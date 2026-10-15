@@ -366,17 +366,20 @@ How this stays true
   added, moved or reclassified changes the committed matrix, and a new route of
   a flagged shape is flagged the day it is written. The steps of the functions
   the matrix's answer is read from - `Authorize_`, the functions whose lists it
-  reads, `RoleManager::Allows` and the `RoleGrant::Holds` and
+  reads, the four built-in roles' functions and the
+  `RoleManager::BuiltInPermissions_` that picks one by a role's name,
+  `RoleManager::Allows` and the `RoleGrant::Holds` and
   `RoleManager::IsDomainReached_` it asks, `IsDomainAllowed_`,
   `IsServerWideReportSection_` and the `FindSection` it asks, and
   `ProcessRequest_` from the end of the anonymous routes to the handler - are
   held to the ones the script follows: one added, taken out, moved or given a
   condition, or a name one compares or is kept under changed, stops the script
   until it has been read against it. What `Authenticate_` makes of a
-  credential, the string helpers and the functions `ProcessRequest_`'s other
-  checks call are not held; the matrix's "Not shown" names those functions.
-  Its `--self-test` breaks the source in memory and proves each flag still
-  fires and each such change stops it.
+  credential - the grant of a role, for its domains - the string helpers and
+  the functions `ProcessRequest_`'s other checks call are not held; the
+  matrix's "Not shown" names those functions. Its `--self-test` breaks the
+  source in memory and proves each flag still fires and each such change stops
+  it.
 - `check-role-choke-point.py`, `check-authz-choke-point.py`,
   `check-deck-script.py` and `check-portal-script.py` hold the choke points and
   the pages' policies.

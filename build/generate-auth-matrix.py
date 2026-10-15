@@ -41,26 +41,35 @@ What is read, all of it from hmailserver/source/Server/Common:
       the report's sections and which of them are counted from server-wide
       metrics: those IsServerWideReportSection_ answers for, which Authorize_
       refuses a credential confined to named domains.
-  Application/RoleManager.cpp
-      the four built-in roles' permissions.
+  Application/RoleManager.cpp, the four built-in roles' functions
+      the permissions DomainAdminPermissions, HelpdeskPermissions and
+      AuditorPermissions each set, one a line (set |= Bit(RolePermission::X););
+      serveradmin is every permission, as ServerAdminPermissions sets every bit
+      below RolePermission::Count. RoleManager::BuiltInPermissions_ picks a
+      role's function by the role's name.
   Util/WebServicesServer.cpp, ProcessRequest_
       the second listener: MTA-STS, autoconfiguration, the Web Key Directory, the
       S/MIME authority, ACME, security.txt, and the CalDAV and CardDAV trees.
 
 The steps between those lists are the script's own writing, so they are held
 to the code: STEPS carries the steps of Authorize_; of the functions whose
-lists it reads; of the functions it hands its decision to - RoleManager::Allows
-(the overload with a domain) with the RoleGrant::Holds and
-RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
-IsServerWideReportSection_ with the FindSection it asks; and of ProcessRequest_
-from the end of the anonymous routes to the handler - each with what the
-readers take out of it masked, and its prose (skeleton, below). A step added,
-taken out, moved or given a condition, or a name a step compares or is kept
-under changed, stops the script until decide() has been read against it and
-STEPS updated. Not held: how Authenticate_ makes a request one of the nine
-credentials (the matrix's columns take that as given), the string helpers the
-functions above use, and what the functions ProcessRequest_'s other checks
-call decide (the matrix's "Not shown" names them).
+lists it reads; of the four built-in roles' functions, ServerAdminPermissions
+whole and each other one but for its permission lines, and of
+RoleManager::BuiltInPermissions_, which picks one by a role's name; of the
+functions Authorize_ hands its decision to - RoleManager::Allows (the overload
+with a domain) with the RoleGrant::Holds and RoleManager::IsDomainReached_ it
+asks, IsDomainAllowed_, and IsServerWideReportSection_ with the FindSection it
+asks; and of ProcessRequest_ from the end of the anonymous routes to the
+handler - each with what the readers take out of it masked, and its prose
+(skeleton, below). A step added, taken out, moved or given a condition, or a
+name a step compares or is kept under changed, stops the script until decide()
+has been read against it and STEPS updated. Not held: how Authenticate_ makes
+a request one of the nine credentials - the grant RoleManager gives it, of
+which role and for which domains (GrantForAccount, GrantForApiKey and
+ServerAdministrator, and the GrantForRole they ask) - which the matrix's
+columns take as given, the string helpers the functions above use, and what
+the functions ProcessRequest_'s other checks call decide (the matrix's "Not
+shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -1963,6 +1972,19 @@ CONFINED_REFUSAL = re.compile(r"if \(((?:route\.kind == Route\w+\s*(?:\|\|)?\s*)
                               r"refusalReason = \"this credential is restricted", re.S)
 SERVER_WIDE = re.compile(r"switch \(route\.kind\)\s*\{(.*?)refusalReason = \"this credential is restricted to named "
                          r"domains, and that resource is server-wide\"", re.S)
+# A built-in role's permission, as RoleManager.cpp sets each on a line of its
+# own: what builtin_permissions reads and steps_of masks.
+ROLE_PERMISSION_LINE = r"\s*set \|= Bit\(RolePermission::(\w+)\);\s*$"
+# The built-in roles, by the name RoleManager::BuiltInPermissions_ picks each
+# one's function by, and whether the function's permission lines are read:
+# serveradmin's are not, it is every permission there is, so the whole of
+# ServerAdminPermissions is a step.
+BUILTIN_ROLES = [
+    ("serveradmin", "ServerAdminPermissions", False),
+    ("domainadmin", "DomainAdminPermissions", True),
+    ("helpdesk", "HelpdeskPermissions", True),
+    ("auditor", "AuditorPermissions", True),
+]
 # The domain DomainNamedByRoute_ answers with, by the expression it is written as.
 DOMAIN_EXPRESSIONS = {
     "StringParser::ExtractDomain(String(route.identifier))": "the address's domain",
@@ -2092,11 +2114,15 @@ def case_groups(body, answer):
 
 
 def builtin_permissions(role_cpp, function):
-    index = role_cpp.find("unsigned __int64 " + function + "()")
-    if index < 0:
+    """The permissions a built-in role's function sets, each on a line of its
+    own in the shape ROLE_PERMISSION_LINE has, read from the code with its
+    comments taken out; None when the function is not there. Every other step
+    of the function is held in STEPS (steps_of)."""
+    body = body_of(role_cpp, function)
+    if body is None:
         return None
-    end = role_cpp.find("\n      }\n", index)
-    return set(re.findall(r"Bit\(RolePermission::(\w+)\)", role_cpp[index:end]))
+    lines = one_statement_a_line(code_of(body)).split("\n")
+    return {m.group(1) for m in (re.match(ROLE_PERMISSION_LINE, line) for line in lines) if m}
 
 
 def permission_tokens(role_cpp):
@@ -2225,19 +2251,18 @@ class Decision(object):
         for kind, m in case_matches(part[span[0]:span[1]], HANDLER_LINE).items():
             self.handler[kind] = m.group(1)
             self.handler_args[kind] = m.group(2)
-        roles = {
-            "serveradmin": builtin_permissions(role_cpp, "ServerAdminPermissions"),
-            "domainadmin": builtin_permissions(role_cpp, "DomainAdminPermissions"),
-            "helpdesk": builtin_permissions(role_cpp, "HelpdeskPermissions"),
-            "auditor": builtin_permissions(role_cpp, "AuditorPermissions"),
-        }
+        # The built-in roles' permissions: the lines of each one's function,
+        # and every permission there is for serveradmin, whose function sets
+        # every bit below RolePermission::Count.
         enum = permission_enum(role_h)
-        roles["serveradmin"] = set(enum)
+        roles = {}
+        for name, function, listed in BUILTIN_ROLES:
+            held = builtin_permissions(role_cpp, function)
+            if held is None or (listed and not held):
+                raise GenerationError("%s: the built-in role %s could not be read" % (ROLE_CPP, name))
+            roles[name] = held if listed else set(enum)
         self.roles = roles
         self.tokens = dict(zip(enum, permission_tokens(role_cpp)))
-        for name, held in roles.items():
-            if held is None or (name != "serveradmin" and not held):
-                raise GenerationError("%s: the built-in role %s could not be read" % (ROLE_CPP, name))
         for label, value in (("IsSessionRoute_", self.session), ("IsSelfServiceRoute_", self.self_service),
                              ("IsScimRoute_", self.scim), ("IsApiKeyRoute_", self.api_key),
                              ("PermissionFor_", self.permission), ("DomainNamedByRoute_", self.domain_named),
@@ -2306,15 +2331,17 @@ class Decision(object):
 # itself: which test comes first, what each one asks, what follows a refusal.
 # So the functions it models are held to STEPS, the steps as they were when
 # decide() was last read against them: Authorize_, the functions whose lists it
-# reads, the functions it hands its decision to and those they ask (steps_of
+# reads, the built-in roles' functions and the one that picks them by a role's
+# name, the functions it hands its decision to and those they ask (steps_of
 # names each), and ProcessRequest_ from the end of the anonymous routes to the
 # handler. A list may change unseen - the readers above take it - and so may
 # prose, and nothing else of those functions may: a step added, taken out,
 # moved or given a condition, or a name a step compares or is kept under
 # changed, stops the script with the difference, until decide() has been read
 # against the new steps and STEPS updated with them. Not held: Authenticate_,
-# which makes a request one of PRINCIPALS, the string helpers, and the functions
-# that ProcessRequest_'s other checks call.
+# which makes a request one of PRINCIPALS - the grant RoleManager gives it, of
+# a role and for its domains - the string helpers, and the functions that
+# ProcessRequest_'s other checks call.
 
 # The functions read with case_set and case_groups, and what their answers are
 # masked to.
@@ -2412,10 +2439,11 @@ def skeleton(code):
     what a condition holds, what is compared, and a name - the header a check
     compares, the role a choice compares, the key a throttle is kept under. Prose
     is masked, so that a refusal's reason, a message or a response's body may be
-    reworded. A run of masked labels is one label, and two masked switch groups
-    or two masked refusals that are alike, side by side and end in a jump are
-    one, so that a route given a group or a refusal of its own is a list edit
-    too."""
+    reworded. A run of masked labels is one label, a run of a built-in role's
+    masked permission lines one line, and two masked switch groups or two masked
+    refusals that are alike, side by side and end in a jump are one, so that a
+    route given a group or a refusal of its own, and a permission given to a
+    role or taken from it, is a list edit too."""
     tokens = []
     significant = [(m.lastgroup, m.group(0)) for m in tokens_of(code) if m.lastgroup not in ("ws", "comment")]
     kept = kept_literals(significant)
@@ -2430,15 +2458,18 @@ def skeleton(code):
         else:
             tokens.append(text)
     label = ["case", "ROUTE", ":"]
+    permission = ["set", "|=", "Bit", "(", "RolePermission", "::", "PERMISSION", ")", ";"]
     refusal = ["if", "(", "route", ".", "kind", "==", "ROUTES", ")", "{"]
     runs = []
     i = 0
     while i < len(tokens):
-        if tokens[i:i + 3] == label and runs[-3:] == label:
-            i += 3
-            continue
-        runs.append(tokens[i])
-        i += 1
+        for unit in (label, permission):
+            if tokens[i:i + len(unit)] == unit and runs[-len(unit):] == unit:
+                i += len(unit)
+                break
+        else:
+            runs.append(tokens[i])
+            i += 1
     tokens = runs
 
     def unit_end(i):
@@ -2537,9 +2568,12 @@ def steps_of(sources=None):
     RoleManager::Allows, with the domain, and the RoleGrant::Holds and
     RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
     IsServerWideReportSection_ and the FindSection it asks, whose table
-    report_sections reads; and ProcessRequest_'s try block, everything between
-    the end of the anonymous routes and the handler, the dispatch's labels and
-    handlers masked."""
+    report_sections reads; RoleManager::BuiltInPermissions_, which picks a
+    built-in role's function by the role's name, and the four functions (their
+    permission lines masked, but for ServerAdminPermissions, whose every step is
+    one); and ProcessRequest_'s try block, everything between the end of the
+    anonymous routes and the handler, the dispatch's labels and handlers
+    masked."""
 
     def code(rel, qualified, params=None):
         body = body_of(read(rel, sources), qualified, params)
@@ -2573,6 +2607,12 @@ def steps_of(sources=None):
     steps.append(("RoleManager::Allows", skeleton(code(ROLE_CPP, "RoleManager::Allows", "const String &domainName"))))
     steps.append(("RoleGrant::Holds", skeleton(code(ROLE_CPP, "RoleGrant::Holds"))))
     steps.append(("RoleManager::IsDomainReached_", skeleton(code(ROLE_CPP, "RoleManager::IsDomainReached_"))))
+    steps.append(("RoleManager::BuiltInPermissions_", skeleton(code(ROLE_CPP, "RoleManager::BuiltInPermissions_"))))
+    for _, function, listed in BUILTIN_ROLES:
+        body = code(ROLE_CPP, function)
+        if listed:
+            body = mask_lines(body, ROLE_PERMISSION_LINE, lambda m: "set |= Bit(RolePermission::PERMISSION);")
+        steps.append((function, skeleton(body)))
     steps.append(("RestApiServer::IsDomainAllowed_", skeleton(code(REST_CPP, "RestApiServer::IsDomainAllowed_"))))
     steps.append(("RestApiServer::IsServerWideReportSection_",
                   skeleton(code(REPORTS_CPP, "RestApiServer::IsServerWideReportSection_"))))
@@ -2844,6 +2884,46 @@ STEPS = {
     if ( allowed . CompareNoCase ( domainName . c_str ( ) ) == 0 ) return true ;
   }
   return false ;
+}
+""",
+    "RoleManager::BuiltInPermissions_": r"""
+{
+  found = true ;
+  const String name = Lower ( roleName ) ;
+  if ( name . Compare ( _T ( "serveradmin" ) ) == 0 ) return ServerAdminPermissions ( ) ;
+  if ( name . Compare ( _T ( "domainadmin" ) ) == 0 ) return DomainAdminPermissions ( ) ;
+  if ( name . Compare ( _T ( "helpdesk" ) ) == 0 ) return HelpdeskPermissions ( ) ;
+  if ( name . Compare ( _T ( "auditor" ) ) == 0 ) return AuditorPermissions ( ) ;
+  found = false ;
+  return 0 ;
+}
+""",
+    "ServerAdminPermissions": r"""
+{
+  unsigned __int64 set = 0 ;
+  for ( int index = 0 ; index < static_cast < int > ( RolePermission :: Count ) ; index ++ ) set |= 1ULL << index ;
+  return set ;
+}
+""",
+    "DomainAdminPermissions": r"""
+{
+  unsigned __int64 set = 0 ;
+  set |= Bit ( RolePermission :: PERMISSION ) ;
+  return set ;
+}
+""",
+    "HelpdeskPermissions": r"""
+{
+  unsigned __int64 set = 0 ;
+  set |= Bit ( RolePermission :: PERMISSION ) ;
+  return set ;
+}
+""",
+    "AuditorPermissions": r"""
+{
+  unsigned __int64 set = 0 ;
+  set |= Bit ( RolePermission :: PERMISSION ) ;
+  return set ;
 }
 """,
     "RestApiServer::IsDomainAllowed_": r"""
@@ -3123,15 +3203,20 @@ def render(decision, records, anon, web):
       "password, `IsApiKeyRoute_` (with the role-holding account's exceptions), then `RoleManager::Allows` on "
       "`PermissionFor_` and `SecondPermissionFor_`, then the refusals a credential confined to named domains "
       "meets, the report's sections among them (`IsServerWideReportSection_`, from `RestApiReports.cpp`'s table), "
-      "then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`. Those steps are the "
-      "script's, so it holds them to the code: `Authorize_` and each function whose list it reads, "
+      "then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`: for each role's "
+      "name, those of the function `RoleManager::BuiltInPermissions_` picks - every permission for `serveradmin`, "
+      "whose `ServerAdminPermissions` sets every bit below `RolePermission::Count`, and for each other role the "
+      "permissions its function sets, one a line, `set |= Bit(RolePermission::X);`. Those steps are the script's, "
+      "so it holds them to the code: `Authorize_` and each function whose list it reads, "
+      "`RoleManager::BuiltInPermissions_` and the four roles' functions, "
       "`RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, "
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
       "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
       "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. Not held: "
-      "how `Authenticate_` makes a request one of the columns below, which they take as given, and the string "
-      "helpers those functions use.")
+      "how `Authenticate_` makes a request one of the columns below - the grant `RoleManager` gives it, of which "
+      "role and for which domains (`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the "
+      "`GrantForRole` they ask) - which they take as given, and the string helpers those functions use.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -3615,6 +3700,26 @@ def self_test():
         except GenerationError as error:
             expect("%s stops the script, saying so" % label, said in str(error))
 
+    # The built-in roles' functions are held but for the lines that set a
+    # permission, which are read, and the function that picks one by a role's
+    # name is held whole.
+    helpdesk_end = ("         set |= Bit(RolePermission::ViewMessageTrace);" + nl + "         return set;" + nl + "      }"
+                    + nl + nl + "      unsigned __int64 AuditorPermissions()")
+    stops("a built-in role made to take in another's permissions stops the script", ROLE_CPP, helpdesk_end,
+          helpdesk_end.replace("         return set;", "         set |= DomainAdminPermissions();" + nl
+                               + "         return set;"), "HelpdeskPermissions")
+    stops("the server administrator's role made to leave a permission out stops the script", ROLE_CPP,
+          "            set |= 1ULL << index;",
+          "            if (index != static_cast<int>(RolePermission::AdministerServer))" + nl
+          + "               set |= 1ULL << index;", "ServerAdminPermissions")
+    stops("a permission's line of a built-in role given a mask stops the script", ROLE_CPP,
+          "         set |= Bit(RolePermission::ManageAccounts);", "         set |= Bit(RolePermission::ManageAccounts) & 0;",
+          "DomainAdminPermissions")
+    stops("a built-in role's name given another role's function stops the script", ROLE_CPP,
+          "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return HelpdeskPermissions();",
+          "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return DomainAdminPermissions();",
+          "RoleManager::BuiltInPermissions_")
+
     # 13. A list changed is read, not stopped on: a route into a refusal, a
     # refusal of the same shape beside the others, a group split, a reason
     # reworded; and what is not code is not read.
@@ -3667,6 +3772,18 @@ def self_test():
     d14, r14, t14 = run(broken_copy(REPORTS_CPP, '{ "storage", false,', '{ "storage", true,'))
     expect("a report section made one counted from server-wide metrics is named in the own+ cell",
            "server-wide metrics (`storage` and `countries`) are refused" in t14)
+    # A built-in role's permission lines are a list: one given to a role is read
+    # as its own, and one named in a comment is not read.
+    helpdesk = dict(result="account", role="helpdesk", domains="own")
+    reads("a permission given to a built-in role is read as its own", ROLE_CPP, helpdesk_end,
+          helpdesk_end.replace("         return set;", "         set |= Bit(RolePermission::ManageAccounts);" + nl
+                               + "         return set;"),
+          lambda d: d.roles["helpdesk"] == decision.roles["helpdesk"] | {"ManageAccounts"}
+          and decision.decide("RouteAccountCreate", helpdesk) == "no" and d.decide("RouteAccountCreate", helpdesk) == "own")
+    reads("a permission named in a comment of a built-in role's function is not read", ROLE_CPP,
+          "         set |= Bit(RolePermission::ManageAccounts);",
+          "         set |= Bit(RolePermission::ManageAccounts);" + nl + "         // set |= Bit(RolePermission::ManageServer);",
+          lambda d: d.roles == decision.roles)
 
     if failures:
         for failure in failures:
