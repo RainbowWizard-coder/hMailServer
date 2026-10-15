@@ -35,28 +35,31 @@ gets the last of a key. It reads the files of snap/, nix/ and platform/packaging
 (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and build/ci/linux-image.sh, which gives
 kaniko the image's labels that change with each build as --label flags (SCANNED_FILES) -
 those git tracks, where there is git - by the kind of file (FIELD_LINES), and takes for a
-licence field a line, not a comment, that
+licence field a line, not a comment, that, blanks being spaces or tabs,
 
-  in an RPM spec             has a License tag, in any case, with or without a space
-                             before its colon;
+  in an RPM spec             has a License tag, in any case, at the start of the line or
+                             after blanks, with or without blanks before its colon;
   in an APKBUILD or a        assigns license - license=, license+= or an element's
   PKGBUILD                   license[...]=, anywhere on the line, after && or a declare;
   in a Nix file              binds a licence - license =, meta.license =, the name in
-                             quotes - or inherits license;
+                             quotes, with or without blanks before the = - or inherits
+                             license;
   in a CMake file            names a CPack variable of a package's licence,
                              CPACK_*PACKAGE_LICENSE*, other than in ${...}: set(),
                              string(), list() and any other command that names the
                              variable it changes, whatever the case of the command;
   in YAML                    has a licence key - license, licence, licenses or licences,
-                             prefixed as artifacthub.io/license is, in quotes or not - at
-                             its start, after a sequence's dashes, or in a flow after its
-                             {, its [ or a comma; or names one of the image's two licence
-                             labels;
+                             prefixed as artifacthub.io/license is, in quotes or not, with
+                             or without blanks before its colon - at its start, after a
+                             sequence's dashes, each with its spaces, or in a flow after
+                             its {, its [ or a comma, with or without blanks; or names one
+                             of the image's two licence labels;
   in a Dockerfile or a       names one of the image's two licence labels;
   Containerfile
   in AppStream's XML         has <project_license> or <metadata_license>;
   in a shell script (*.sh)   sets one of the image's two licence labels as KEY=VALUE, its
-                             key in quotes or not, or by the older LABEL KEY VALUE, or
+                             key in quotes or not, or by the older LABEL KEY VALUE, LABEL
+                             in any case and then blanks, its key in quotes or not, or
                              writes AppStream's licence.
 
 A field added there fails until it is in one list or the other. The scan reads lines, not
@@ -77,7 +80,9 @@ readers read a value on its key's line and nothing of the lines about it, so tha
 carried on to the next line, a label's line that Docker reads as part of another
 instruction, of the older LABEL key value, of a stage before the image's or of the word
 before it, and a chart's licence in a block scalar passed and the check printed the value
-read (the second check of RB-2's third round).
+read, no case tried the blanks of six of the forms or a tab in any, and a shell script's
+older LABEL in small letters, or with its key in quotes, was not read (the second check of
+RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -279,15 +284,16 @@ SCANNED_FILES = ("flake.nix", CMAKELISTS, LINUX_IMAGE)
 IMAGE_LICENCE_LABEL = r"\b(?:org\.opencontainers\.image\.licenses|io\.artifacthub\.package\.license)\b"
 APPSTREAM_LICENCE = r"<(?:project|metadata)_license\b"
 FIELD_LINES = (
-    # An RPM spec's License tag, in any case, with or without a space before its colon, as
-    # rpm reads a tag.
+    # An RPM spec's License tag, in any case, at the start of a line or after blanks, with or
+    # without blanks before its colon, as rpm reads a tag.
     (re.compile(r"\.spec(\.in)?$"), re.compile(r"^[ \t]*license[ \t]*:", re.IGNORECASE)),
     # license assigned in an APKBUILD or a PKGBUILD, as the shell that sources it assigns:
     # license=, license+= or an element's license[...]=, anywhere on a line - after && or a
     # ; or a declare - but not a read of it ($license, ${license[@]}) nor another name
     # (_license=, --license=).
     (re.compile(r"(^|/)(APKBUILD|PKGBUILD)$"), re.compile(r"(?<![\w$./-])license(?:\[[^\]\n]*\])?\+?=")),
-    # A licence bound in Nix - license =, meta.license =, the name in quotes - or inherited.
+    # A licence bound in Nix - license =, meta.license =, the name in quotes, with or without
+    # blanks before the = - or inherited.
     (re.compile(r"\.nix$"), re.compile(r"""\blicen[cs]es?"?[ \t]*=|\binherit\b[^;\n]*\blicen[cs]e\b""")),
     # A CPack variable of a package's licence (CPACK_*PACKAGE_LICENSE*) named by a CMake
     # command: set(), string(), list() and any other that names the variable it changes
@@ -295,8 +301,10 @@ FIELD_LINES = (
     (re.compile(r"(^|/)(CMakeLists\.txt|[^/]*\.cmake)$"),
      re.compile(r"(?<!\$\{)\bCPACK_[A-Z0-9_]*PACKAGE_LICEN[CS]E[A-Z0-9_]*")),
     # A YAML licence key - license, licence, licenses or licences, prefixed as
-    # artifacthub.io/license is, in quotes or not - at the start of a line, after a
-    # sequence's dashes, or in a flow mapping or sequence after its {, its [ or a comma.
+    # artifacthub.io/license is, in quotes or not, with or without blanks before its colon -
+    # at the start of a line, after a sequence's dashes, each with its spaces (and a tab,
+    # which YAML refuses there), or in a flow mapping or sequence after its {, its [ or a
+    # comma, with or without blanks.
     (re.compile(r"\.ya?ml(\.in)?$"),
      re.compile(r"""(?:^|[{\[,])[ \t]*(?:-[ \t]+)*["']?(?:[A-Za-z0-9.-]+/)?licen[cs]es?["']?[ \t]*:""")),
     (re.compile(r"(^|/)((Docker|Container)file[^/]*|[^/]*\.(Docker|Container)file|[^/]*\.ya?ml(\.in)?)$"),
@@ -306,11 +314,13 @@ FIELD_LINES = (
     # its key in quotes or not - a builder's --label or --annotation, as linux-image.sh's
     # kaniko is given the others (kaniko 1.24 keeps the Dockerfile's LABEL of a key both
     # name, and adds a key the Dockerfile does not), or a Dockerfile's LABEL it writes from a
-    # here-document, which also takes the older LABEL KEY VALUE - and writes AppStream's
-    # licence from a here-document. A label it reads back, named in the list of those a test
-    # asks for or in the image's JSON, is not a field.
+    # here-document, which also takes the older LABEL KEY VALUE, its LABEL in any case, as
+    # Docker reads an instruction's name, and its key in quotes or not - and writes
+    # AppStream's licence from a here-document. A label it reads back, named in the list of
+    # those a test asks for or in the image's JSON, is not a field.
     (re.compile(r"\.sh$"),
-     re.compile(IMAGE_LICENCE_LABEL + r"""["']?[ \t]*=|\bLABEL[ \t]+""" + IMAGE_LICENCE_LABEL + "|" + APPSTREAM_LICENCE)),
+     re.compile(IMAGE_LICENCE_LABEL + r"""["']?[ \t]*=|\b(?i:LABEL)[ \t]+["']?""" + IMAGE_LICENCE_LABEL + "|" +
+                APPSTREAM_LICENCE)),
 )
 
 
@@ -1216,6 +1226,37 @@ def self_test():
            None)
     expect("a comment of escape=` after the FROM", changed(DOCKERFILE, "FROM ubuntu:24.04\n", "FROM ubuntu:24.04\n# escape=`\n"),
            None)
+    # The blanks each form allows, a space and a tab, and the forms of a script's older
+    # LABEL. No case tried the blanks of six of the forms or a tab in any, so that a check
+    # without them passed its self-test and the tree, and a shell script's older LABEL in
+    # small letters, or with its key in quotes, was not read (the second check of RB-2's third
+    # round).
+    expect("licence keys with blanks before the colon, after a dash and after a flow's comma, and spelt licences",
+           added(PACKAGING + "/helm/hmailserver/ci/blank-values.yaml",
+                 "image:\n  license : MIT\nx: {artifacthub.io/license : MIT}\nitems:\n  -   license: MIT\n"
+                 "y: {a: b,\tlicense: MIT}\nz:\n  license \t: MIT\nlicences: [MIT]\n"),
+           ["%s/helm/hmailserver/ci/blank-values.yaml:%s is a licence field this does not hold" % (PACKAGING, where)
+            for where in ("2 (license : MIT)", "3 (x: {artifacthub.io/license : MIT})", "5 (-   license: MIT)",
+                          "6 (y: {a: b,\tlicense: MIT})", "8 (license \t: MIT)", "9 (licences: [MIT])")])
+    expect("a second spec's License after blanks and after a tab, with a blank and a tab before its colon",
+           added(PACKAGING + "/rpm/hmailserver-cli.spec", "Name: hmailserver-cli\n  License: MIT\n\t License \t: MIT\n"),
+           ["%s/rpm/hmailserver-cli.spec:%s is a licence field this does not hold" % (PACKAGING, where)
+            for where in ("2 (License: MIT)", "3 (License \t: MIT)")])
+    expect("a Nix licence bound with no blank before the =, and with a tab",
+           added("nix/cli.nix", "{ hmailserver, lib }:\nhmailserver.overrideAttrs (old: {\n"
+                                "  meta = old.meta // { license=old.meta.license; };\n}) // { meta.license\t= lib.licenses.mit; }\n"),
+           ["nix/cli.nix:3 (meta = old.meta // { license=old.meta.license; };) is a licence field this does not hold",
+            "nix/cli.nix:4 (}) // { meta.license\t= lib.licenses.mit; }) is a licence field this does not hold"])
+    expect("a script's older LABEL after blanks, after a tab, in small letters and with its key in quotes, and a key in "
+           "single quotes",
+           added(PACKAGING + "/docker/make-dockerfile.sh",
+                 "cat > Dockerfile <<'EOF'\nLABEL  org.opencontainers.image.licenses MIT\nLABEL\tio.artifacthub.package.license MIT\n"
+                 "label org.opencontainers.image.licenses MIT\nLABEL \"io.artifacthub.package.license\" MIT\n"
+                 "LABEL org.example.a=b \\\n      'org.opencontainers.image.licenses'='MIT'\nEOF\n"),
+           ["%s/docker/make-dockerfile.sh:%s is a licence field this does not hold" % (PACKAGING, where)
+            for where in ("2 (LABEL  org.opencontainers.image.licenses MIT)", "3 (LABEL\tio.artifacthub.package.license MIT)",
+                          "4 (label org.opencontainers.image.licenses MIT)", "5 (LABEL \"io.artifacthub.package.license\" MIT)",
+                          "7 ('org.opencontainers.image.licenses'='MIT')")])
     # As first written the check held the five alone, and said they were every licence
     # field of the Linux packages: the other four are licence fields, and nothing held them.
     expect("the five alone", GOOD,
