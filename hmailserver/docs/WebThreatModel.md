@@ -119,7 +119,7 @@ Every route the two web listeners answer is in
   | The portal's brand logo | An administrator | Public only | BrandLogo.cpp:448 |
   | MTA-STS policies | The recipient's domain | Public only | SMTP/TlsPolicy.cpp:455 |
   | Event webhooks | The administrator password, or a role that reaches every domain and holds `manage_server`; no API key | Any address, by design (Webhooks.md) | WebhookManager.cpp:1076-1084 |
-  | Migration sources | A credential that reaches every domain (a confined one cannot make a job) | Any address | MigrationSources.cpp:248; RestApiMigrations.cpp:512-568 |
+  | Migration sources | A credential that reaches every domain (a confined one cannot create a migration, and the address is the migration's) | Any address | MigrationSources.cpp:248; RestApiMigrations.cpp:512-568 |
   | OIDC discovery and its JWKS, token introspection, the OAuth2 token endpoints, the ACME directory, the sandbox, the object store, alert webhooks | The server's administrator, in the settings | Any address | OidcSignIn.cpp:240, :598; JwksKeySet.cpp:182; TokenIntrospection.cpp:142; OutboundOAuth2TokenClient.cpp:221; ReaderOAuth.cpp:151; AcmeClient.cpp:563; AntiVirus/Sandbox.cpp:1016, :1078; Persistence/MessageStoreObjectClient.cpp:621; AlertManager.cpp:968 |
 
   A4's jobs test that each address of the first five rows is refused where
