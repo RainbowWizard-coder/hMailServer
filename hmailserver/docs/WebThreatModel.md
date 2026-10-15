@@ -371,11 +371,12 @@ How this stays true
   `IsServerWideReportSection_` and the `FindSection` it asks, and
   `ProcessRequest_` from the end of the anonymous routes to the handler - are
   held to the ones the script follows: one added, taken out, moved or given a
-  condition stops the script until it has been read against it. What
-  `Authenticate_` makes of a credential, the string helpers and the functions
-  `ProcessRequest_`'s other checks call are not held. Its `--self-test` breaks
-  the source in memory and proves each flag still fires and each such change
-  stops it.
+  condition, or a name one compares or is kept under changed, stops the script
+  until it has been read against it. What `Authenticate_` makes of a
+  credential, the string helpers and the functions `ProcessRequest_`'s other
+  checks call are not held; the matrix's "Not shown" names those functions.
+  Its `--self-test` breaks the source in memory and proves each flag still
+  fires and each such change stops it.
 - `check-role-choke-point.py`, `check-authz-choke-point.py`,
   `check-deck-script.py` and `check-portal-script.py` hold the choke points and
   the pages' policies.

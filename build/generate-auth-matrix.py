@@ -54,12 +54,13 @@ lists it reads; of the functions it hands its decision to - RoleManager::Allows
 RoleManager::IsDomainReached_ it asks, IsDomainAllowed_, and
 IsServerWideReportSection_ with the FindSection it asks; and of ProcessRequest_
 from the end of the anonymous routes to the handler - each with what the
-readers take out of it masked. A step added, taken out, moved or given a
-condition stops the script until decide() has been read against it and STEPS
-updated. Not held: how Authenticate_ makes a request one of the nine
+readers take out of it masked, and its prose (skeleton, below). A step added,
+taken out, moved or given a condition, or a name a step compares or is kept
+under changed, stops the script until decide() has been read against it and
+STEPS updated. Not held: how Authenticate_ makes a request one of the nine
 credentials (the matrix's columns take that as given), the string helpers the
 functions above use, and what the functions ProcessRequest_'s other checks
-call decide.
+call decide (the matrix's "Not shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -2290,9 +2291,10 @@ class Decision(object):
 # decide() was last read against them: Authorize_, the functions whose lists it
 # reads, the functions it hands its decision to and those they ask (steps_of
 # names each), and ProcessRequest_ from the end of the anonymous routes to the
-# handler. A list may change unseen - the readers above take it - and nothing
-# else of those functions may: a step added, taken out, moved or given a
-# condition stops the script with the difference, until decide() has been read
+# handler. A list may change unseen - the readers above take it - and so may
+# prose, and nothing else of those functions may: a step added, taken out,
+# moved or given a condition, or a name a step compares or is kept under
+# changed, stops the script with the difference, until decide() has been read
 # against the new steps and STEPS updated with them. Not held: Authenticate_,
 # which makes a request one of PRINCIPALS, the string helpers, and the functions
 # that ProcessRequest_'s other checks call.
@@ -2352,34 +2354,63 @@ def last_statement(tokens):
     return tokens[k + 1]
 
 
+# A string literal that is one word - a name, a key, a header, a method, a role -
+# rather than prose.
+NAME_LITERAL = re.compile(r'(?:L|u8)?"[A-Za-z0-9][A-Za-z0-9_.-]*"\Z')
+# What wraps a literal that is compared as itself.
+LITERAL_WRAPPERS = ("_T", "String", "AnsiString")
+
+
+def kept_literals(significant):
+    """The indexes in significant - (kind, text) of every token but whitespace
+    and comments - of the string and character literals that are part of a step:
+    those a condition holds, of an if, a while, a for or a switch; those compared
+    wherever they stand, an operand of == or != as they are or as the one argument
+    of _T, String or AnsiString; and every string literal that is one word."""
+    texts = [text for _, text in significant]
+    kept = set()
+    conditions = []
+    for k, (kind, text) in enumerate(significant):
+        if kind in ("str", "chr"):
+            before, after = k - 1, k + 1
+            if k > 1 and texts[k - 1] == "(" and texts[k - 2] in LITERAL_WRAPPERS and after < len(texts) \
+                    and texts[after] == ")":
+                before, after = k - 3, k + 2
+            compared = (before >= 0 and texts[before] in ("==", "!=")) \
+                or (after < len(texts) and texts[after] in ("==", "!="))
+            if (conditions and conditions[-1]) or compared or (kind == "str" and NAME_LITERAL.match(text)):
+                kept.add(k)
+        elif text == "(":
+            conditions.append(bool(k and texts[k - 1] in ("if", "while", "for", "switch"))
+                              or bool(conditions and conditions[-1]))
+        elif text == ")" and conditions:
+            conditions.pop()
+    return kept
+
+
 def skeleton(code):
     """A function's code as its steps, one statement a line: its tokens with the
     whitespace and the comments gone, and every string literal "" (adjacent ones
-    one, as in C++) but those a condition holds - of an if, a while, a for or a
-    switch - which are part of the step: a refusal's reason may be reworded, the
-    header a check compares is the check. A run of masked labels is one label,
-    and two masked switch groups or two masked refusals that are alike, side by
-    side and end in a jump are one, so that a route given a group or a refusal of
-    its own is a list edit too."""
+    one, as in C++) but those kept_literals keeps, which are part of the step:
+    what a condition holds, what is compared, and a name - the header a check
+    compares, the role a choice compares, the key a throttle is kept under. Prose
+    is masked, so that a refusal's reason, a message or a response's body may be
+    reworded. A run of masked labels is one label, and two masked switch groups
+    or two masked refusals that are alike, side by side and end in a jump are
+    one, so that a route given a group or a refusal of its own is a list edit
+    too."""
     tokens = []
-    conditions = []
-    for m in tokens_of(code):
-        if m.lastgroup in ("ws", "comment"):
-            continue
-        text = m.group(0)
-        if m.lastgroup in ("str", "chr") and conditions and conditions[-1]:
+    significant = [(m.lastgroup, m.group(0)) for m in tokens_of(code) if m.lastgroup not in ("ws", "comment")]
+    kept = kept_literals(significant)
+    for k, (kind, text) in enumerate(significant):
+        if kind in ("str", "chr") and k in kept:
             tokens.append(text)
-        elif m.lastgroup == "str":
+        elif kind == "str":
             if not (tokens and tokens[-1] == '""'):
                 tokens.append('""')
-        elif m.lastgroup == "chr":
+        elif kind == "chr":
             tokens.append("''")
         else:
-            if text == "(":
-                conditions.append(bool(tokens and tokens[-1] in ("if", "while", "for", "switch"))
-                                  or bool(conditions and conditions[-1]))
-            elif text == ")" and conditions:
-                conditions.pop()
             tokens.append(text)
     label = ["case", "ROUTE", ":"]
     refusal = ["if", "(", "route", ".", "kind", "==", "ROUTES", ")", "{"]
@@ -2612,7 +2643,7 @@ STEPS = {
     RolePermission secondPermission = RolePermission :: Count ;
     const bool permitted = RoleManager :: Allows ( caller . grant , PermissionFor_ ( route . kind ) , routeDomain , roleRefusal ) && ( ! SecondPermissionFor_ ( route . kind , secondPermission ) || RoleManager :: Allows ( caller . grant , secondPermission , routeDomain , roleRefusal ) ) ;
     if ( ! permitted ) {
-      refusalReason = ( caller . result == AuthenticatedWithApiKey && caller . read_only && caller . grant . name == _T ( "" ) && IsMutatingRoute_ ( route . kind ) ) ? AnsiString ( "" ) : AnsiString ( roleRefusal ) ;
+      refusalReason = ( caller . result == AuthenticatedWithApiKey && caller . read_only && caller . grant . name == _T ( "auditor" ) && IsMutatingRoute_ ( route . kind ) ) ? AnsiString ( "" ) : AnsiString ( roleRefusal ) ;
       return AuthorizationForbidden ;
     }
   }
@@ -2824,9 +2855,9 @@ STEPS = {
 """,
     "RestApiServer::ProcessRequest_": r"""
 try {
-  const bool adminBasic = BasicUserName_ ( request ) == "" ;
+  const bool adminBasic = BasicUserName_ ( request ) == "administrator" ;
   if ( adminBasic ) {
-    const int waitMs = SessionThrottleRetryMs_ ( "" , peer_address ) ;
+    const int waitMs = SessionThrottleRetryMs_ ( "administrator" , peer_address ) ;
     if ( waitMs > 0 ) {
       const int retryAfter = ( waitMs + 999 ) / 1000 ;
       AnsiString headers ;
@@ -2836,8 +2867,8 @@ try {
   }
   Caller caller = Authenticate_ ( request , peer_address ) ;
   if ( adminBasic ) {
-    if ( caller . result == AuthenticatedAsAdministrator ) ClearSessionFailure_ ( "" , peer_address ) ;
-    else if ( caller . result == AuthenticationFailed && ! caller . second_factor_required ) RegisterSessionFailure_ ( "" , peer_address ) ;
+    if ( caller . result == AuthenticatedAsAdministrator ) ClearSessionFailure_ ( "administrator" , peer_address ) ;
+    else if ( caller . result == AuthenticationFailed && ! caller . second_factor_required ) RegisterSessionFailure_ ( "administrator" , peer_address ) ;
   }
   if ( caller . via_session && method != "GET" && method != "HEAD" && GetHeader_ ( request , "x-requested-with" ) != "hMailServer" ) {
     if ( scimPath ) return BuildScimError_ ( 403 , "" , _T ( "" ) ) ;
@@ -3080,7 +3111,8 @@ def render(decision, records, anon, web):
       "`RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, "
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
-      "against, their lists left out, and a step added, taken out, moved or given a condition stops it. Not held: "
+      "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
+      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. Not held: "
       "how `Authenticate_` makes a request one of the columns below, which they take as given, and the string "
       "helpers those functions use.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
@@ -3088,9 +3120,14 @@ def render(decision, records, anon, web):
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
       "and changes something when the browser reports it as sent from another site (403), the mailbox-key "
       "refusal of an app password on an encrypted mailbox, and `ChangesAccountByAddress_`'s refusal of an "
-      "account the credential does not take in. Those are in WebThreatModel.md; all but the Host check are "
-      "among the steps the script holds, conditions and all, so one of them changed, or one added beside them, "
-      "stops it.")
+      "account the credential does not take in. Those are in WebThreatModel.md. All but the Host check, which "
+      "comes before the anonymous routes, are called in the part of `ProcessRequest_` the script holds, with the "
+      "conditions they are asked under and the names they compare or are kept under (the administrator's name and "
+      "the throttle's key, the methods, the header and its value), so a check taken out, moved, put under another "
+      "condition or given another name there stops it. What the functions they call decide is not held: "
+      "`RequestIsCrossSite_`, `IsWithinRequestRate_`, `GetHeader_`, `CallerTakesInAccount_`, "
+      "`MailboxKeys::SessionRefusal` and `MailboxKeys::RefusalStatus`, and the throttle's `BasicUserName_`, "
+      "`SessionThrottleRetryMs_`, `RegisterSessionFailure_` and `ClearSessionFailure_`.")
     w("")
     w("## The columns")
     w("")
@@ -3513,6 +3550,19 @@ def self_test():
     stops("a string a condition compares, changed, stops the script", REST_CPP,
           "GetHeader_(request, \"x-requested-with\") != \"hMailServer\"",
           "GetHeader_(request, \"x-requested-with\") != \"hMailServerX\"", "RestApiServer::ProcessRequest_")
+    # A name is part of its step wherever it stands: compared outside a
+    # condition, compared as the argument of _T, or the key a call is given.
+    stops("the administrator's name the throttle compares, changed, stops the script", REST_CPP,
+          "const bool adminBasic = BasicUserName_(request) == \"administrator\";",
+          "const bool adminBasic = BasicUserName_(request) == \"Administrator\";", "RestApiServer::ProcessRequest_")
+    stops("the key the throttle is read under, made another, stops the script", REST_CPP,
+          "SessionThrottleRetryMs_(\"administrator\", peer_address)",
+          "SessionThrottleRetryMs_(\"administrator \", peer_address)", "RestApiServer::ProcessRequest_")
+    stops("the key a failure is registered under, made another, stops the script", REST_CPP,
+          "RegisterSessionFailure_(\"administrator\", peer_address);",
+          "RegisterSessionFailure_(\"admin\", peer_address);", "RestApiServer::ProcessRequest_")
+    stops("a role's name compared as the argument of _T, changed, stops the script", REST_CPP,
+          "caller.grant.name == _T(\"auditor\")", "caller.grant.name == _T(\"Auditor\")", authorize)
     stops("a handler called before Authorize_ stops the script", REST_CPP,
           "         AnsiString refusalReason;" + nl + "         AuthorizationResult authorization = Authorize_(",
           "         if (route.kind == RouteQueueList)" + nl + "            return HandleQueueList_();" + nl + nl
@@ -3570,6 +3620,10 @@ def self_test():
           "\"this credential is restricted to named domains, and the delivery queue is server-wide\"",
           "\"this credential is restricted to named domains, and the queue is every domain's\" /* reworded */",
           lambda d: d.decide("RouteQueueList", one_domain_key) == "no" and d.decide("RouteTlsa", one_domain_key) == "own*")
+    reads("a response's body reworded between the credential and the handler changes nothing", REST_CPP,
+          "could not be read just now; try again in a moment",
+          "cannot be read at the moment; try again shortly",
+          lambda d: d.handler == decision.handler)
     reads("a permission's group split in two is read the same", REST_CPP,
           "      case RouteScimUnknown:" + nl + "         return RolePermission::Provision;",
           "         return RolePermission::Provision;" + nl + "      case RouteScimUnknown:" + nl
