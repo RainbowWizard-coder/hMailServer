@@ -38,23 +38,36 @@ namespace HM
    SpamAssassinLearner::LearnFromMove(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
                                       std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner)
    {
-      if (!IniFileSettings::Instance()->GetSpamAssassinLearnOnMove())
+      bool spam = false;
+      if (!copy || !IsLesson(source, destination, destinationOwner, spam))
          return;
+
+      Teach(copy, destinationOwner, spam);
+   }
+
+   bool
+   SpamAssassinLearner::IsLesson(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
+                                 std::shared_ptr<const Account> destinationOwner, bool &spam)
+   {
+      spam = false;
+
+      if (!IniFileSettings::Instance()->GetSpamAssassinLearnOnMove())
+         return false;
 
       if (!Configuration::Instance()->GetAntiSpamConfiguration().GetSpamAssassinEnabled())
-         return;
+         return false;
 
-      if (!source || !destination || !copy || !destinationOwner)
-         return;
+      if (!source || !destination || !destinationOwner)
+         return false;
 
       // A lesson is a move between a user's own folders: into their Junk folder
       // (spam) or out of it (ham). Public folders and other people's mailboxes are
       // not the user's to teach with, and Junk to Junk says nothing.
       if (destination->IsPublicFolder() || source->IsPublicFolder())
-         return;
+         return false;
 
       if (source->GetAccountID() != destination->GetAccountID())
-         return;
+         return false;
 
       // Which folder is the Junk folder is what LIST tells the client: the explicit
       // designation when one was stored (CREATE ... USE, or the Control Panel), else
@@ -67,6 +80,16 @@ namespace HM
       const bool fromJunk = (sourceDesignation & IMAPSpecialUse::DesignationJunk) != 0;
       const bool toJunk = (destinationDesignation & IMAPSpecialUse::DesignationJunk) != 0;
       if (fromJunk == toJunk)
+         return false;
+
+      spam = toJunk;
+      return true;
+   }
+
+   void
+   SpamAssassinLearner::Teach(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam)
+   {
+      if (!copy || !destinationOwner)
          return;
 
       // The user spamd learns as: the mailbox owner when preferences follow the
@@ -92,7 +115,7 @@ namespace HM
          return;
 
       std::shared_ptr<SpamAssassinLearnTask> task =
-         std::shared_ptr<SpamAssassinLearnTask>(new SpamAssassinLearnTask(messageFile, toJunk, user, temporary));
+         std::shared_ptr<SpamAssassinLearnTask>(new SpamAssassinLearnTask(messageFile, spam, user, temporary));
       queue->AddTask(task);
    }
 

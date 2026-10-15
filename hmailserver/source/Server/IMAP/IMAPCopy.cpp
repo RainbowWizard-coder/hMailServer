@@ -98,9 +98,13 @@ namespace HM
       destination_folder_ = pFolder;
       copied_message_ids_.insert(pNewMessage->GetID());
 
-      // A move into or out of the user's own Junk folder is a lesson for spamd
-      // (SpamAssassinLearnOnMove): decided here, delivered off this thread.
-      SpamAssassinLearner::LearnFromMove(pConnection->GetCurrentFolder(), pFolder, pNewMessage, pDestinationOwner);
+      // A copy into or out of the user's own Junk folder is a lesson for spamd
+      // (SpamAssassinLearnOnMove): decided here, and given, off this thread, once the
+      // command has succeeded (GiveLessons). A COPY that fails takes this copy out
+      // again (RollBack), and a lesson queued now would tell spamd of it all the same.
+      bool spam = false;
+      if (SpamAssassinLearner::IsLesson(pConnection->GetCurrentFolder(), pFolder, pDestinationOwner, spam))
+         HoldLesson(pNewMessage, pDestinationOwner, spam);
 
       // RFC 4315 (UIDPLUS): remember the source/destination UIDs for the COPYUID
       // response - for a destination the user may read (RFC 4315 section 6).
@@ -121,6 +125,9 @@ namespace HM
    void
    IMAPCopy::RollBack(std::shared_ptr<IMAPConnection> pConnection)
    {
+      // Nothing was copied: spamd is taught nothing of it.
+      ForgetLessons();
+
       if (copied_message_ids_.empty() || !destination_folder_)
          return;
 

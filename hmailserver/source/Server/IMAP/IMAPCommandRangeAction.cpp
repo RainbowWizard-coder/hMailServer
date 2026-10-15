@@ -13,6 +13,7 @@
 
 #include "IMAPStore.h"
 #include "IMAPListLookup.h"
+#include "../Common/AntiSpam/SpamAssassin/SpamAssassinLearner.h"
 #include "../Common/Util/Parsing/StringParser.h"
 
 #include <algorithm>
@@ -368,6 +369,31 @@ namespace HM
       uidplus_source_uids_.clear();
       uidplus_dest_uids_.clear();
       uidplus_dest_uidvalidity_ = 0;
+   }
+
+   void
+   IMAPCommandRangeAction::HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam)
+   {
+      Lesson_ lesson;
+      lesson.copy = copy;
+      lesson.destination_owner = destinationOwner;
+      lesson.spam = spam;
+      lessons_.push_back(lesson);
+   }
+
+   void
+   IMAPCommandRangeAction::GiveLessons()
+   {
+      for (const Lesson_ &lesson : lessons_)
+         SpamAssassinLearner::Teach(lesson.copy, lesson.destination_owner, lesson.spam);
+
+      lessons_.clear();
+   }
+
+   void
+   IMAPCommandRangeAction::ForgetLessons()
+   {
+      lessons_.clear();
    }
 
    void

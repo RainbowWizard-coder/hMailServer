@@ -133,6 +133,40 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("A MOVE, a UID MOVE and a COPY into the Junk folder that fail part way - the second copy over the quota - leave Junk as it was and teach spamd nothing. The lesson of each first copy was queued as the copy was made, so spamd was told of three moves into Junk that had failed; and before MOVE was rolled back, the MOVE left its copy in Junk.")]
+      public void AMoveOrCopyIntoJunkThatFailsPartWayTeachesNothing()
+      {
+         // 1 MB: two messages of 300 KB and one copy of one fit, and a second copy does not.
+         // Appended, not delivered, so that spamd is sent nothing for them.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "learner-quota@example.test", Password, 1);
+
+         var client = new ImapClientSimulator();
+         Assert.IsTrue(client.ConnectAndLogon(account.Address, Password));
+         Assert.IsTrue(client.CreateFolder("Junk"));
+
+         var body = new System.Text.StringBuilder();
+         for (int line = 0; line < 3072; line++)
+            body.Append(new string('x', 98)).Append("\r\n");
+
+         for (int i = 0; i < 2; i++)
+         {
+            string message = "From: " + account.Address + "\r\nSubject: Large " + i + "\r\n\r\n" + body;
+            StringAssert.Contains("A0" + i + " OK", client.SendSingleCommandWithLiteral("A0" + i + " APPEND INBOX {" + message.Length + "}", message));
+         }
+
+         Assert.IsTrue(client.SelectFolder("INBOX"));
+         StringAssert.Contains("A10 NO", client.SendSingleCommand("A10 MOVE 1:2 Junk"));
+         StringAssert.Contains("A11 NO", client.SendSingleCommand("A11 UID MOVE 1:2 Junk"));
+         StringAssert.Contains("A12 NO", client.SendSingleCommand("A12 COPY 1:2 Junk"));
+         StringAssert.Contains("(MESSAGES 0)", client.Status("Junk", "MESSAGES"));
+         client.Disconnect();
+
+         // Give a lesson every chance to arrive, then make sure none did.
+         System.Threading.Thread.Sleep(1500);
+         Assert.AreEqual(0, _spamd.Requests.Count, "A move or copy that failed teaches spamd nothing.");
+      }
+
+      [Test]
       [Description("Off by default: without the setting a move into Junk sends spamd nothing.")]
       public void OffByDefaultNothingIsSent()
       {

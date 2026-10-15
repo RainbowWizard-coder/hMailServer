@@ -31,6 +31,17 @@ namespace HM
       static void LearnFromMove(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
                                 std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner);
 
+      // LearnFromMove in its two halves, for an IMAP COPY or MOVE, which asks the
+      // first as it makes each copy and gives the second only once the command has
+      // succeeded: one that fails takes its copies out again (IMAPCopy::RollBack,
+      // IMAPMove::RollBack), and a lesson queued for one of them told spamd of a
+      // move that never happened. IsLesson says whether a copy from source into
+      // destination is a lesson, and which (spam true into Junk, false out of it);
+      // Teach queues it for the copy.
+      static bool IsLesson(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
+                           std::shared_ptr<const Account> destinationOwner, bool &spam);
+      static void Teach(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam);
+
       // The conversation itself, synchronous: connect, TELL, wait for the reply.
       // Returns whether spamd acknowledged (EX_OK). Public for the task below.
       static bool Tell(const String &messageFile, bool spam, const String &user);

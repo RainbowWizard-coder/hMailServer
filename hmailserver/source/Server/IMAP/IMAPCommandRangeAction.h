@@ -9,6 +9,7 @@
 
 namespace HM
 {
+   class Account;
    class IMAPFolder;
    class Message;
 
@@ -45,6 +46,10 @@ namespace HM
       // conditional STORE (UNCHANGEDSINCE), or an empty string when not applicable.
       virtual String GetConditionalStoreResponseCode() { return _T(""); }
 
+      // The lessons for spamd that HoldLesson kept, queued now: what a COPY or a MOVE
+      // calls once it has succeeded, its copies there to stay.
+      void GiveLessons();
+
    protected:
 
       bool GetIsUID();
@@ -69,6 +74,15 @@ namespace HM
       // again: GetUIDPlusResponseCode is then empty.
       void ForgetCopyUids();
 
+      // SpamAssassinLearnOnMove's lesson of a copy into or out of the Junk folder
+      // (SpamAssassinLearner::IsLesson), kept until the command has succeeded
+      // (GiveLessons) rather than queued as the copy is made: a COPY or a MOVE that
+      // fails takes its copies out again, and a lesson queued as each copy was made
+      // told spamd of a move that never happened. A command that fails forgets them
+      // (ForgetLessons).
+      void HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam);
+      void ForgetLessons();
+
       // What a copy or a move into folder carries (RFC 4314 section 4): the flags the
       // user may set there - \Seen with the 's' right, \Deleted with 't', and \Draft,
       // \Answered, \Flagged and the keywords with 'w' - and not the others, which
@@ -89,6 +103,15 @@ namespace HM
       std::vector<unsigned int> uidplus_source_uids_;
       std::vector<unsigned int> uidplus_dest_uids_;
       unsigned int uidplus_dest_uidvalidity_;
+
+      struct Lesson_
+      {
+         std::shared_ptr<Message> copy;
+         std::shared_ptr<const Account> destination_owner;
+         bool spam = false;
+      };
+
+      std::vector<Lesson_> lessons_;
 
    };
 

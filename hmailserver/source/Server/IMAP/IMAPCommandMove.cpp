@@ -71,6 +71,9 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
+         // The copies are there to stay: spamd may be taught of them now.
+         pMove->GiveLessons();
+
          // RFC 6851 section 4.3: COPYUID in an untagged OK BEFORE the EXPUNGE
          // responses, not in the tagged OK after them - a client would otherwise
          // be told a message is gone before it learns where it went.
