@@ -83,7 +83,11 @@ dependency-scan-verdict job's (.gitlab-ci.yml): --verdict reads verdict.json and
 exits as the scan job did - 1 for failed, 2 for broken or for a verdict that is
 missing, unreadable or another pipeline's, 0 for passed - in a job allowed to fail,
 as the scan job is. build/ci/security-gate.py reads the reports themselves,
-whatever either job ended with.
+whatever either job ended with. A retry of the scan job by hand does not run the
+verdict job again, since GitLab runs a finished job that needs a retried one again
+only when it was skipped: it is retried too, which it says last when it fails
+(RETRY_NOTE), and the first line of one that read a verdict names the job that
+wrote it.
 
 Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 
@@ -682,6 +686,13 @@ VERDICT_EXIT = {"passed": 0, "failed": 1, "broken": 2}
 # How many lines of a failed target's text the job's log gives; junit.xml and
 # findings.txt hold every one.
 VERDICT_LINES = 40
+# What the job says last when it fails. A retry of dependency-scan by hand does not run
+# it again: GitLab, when a job is retried, runs again only the jobs after it that were
+# skipped (Ci::ResetSkippedJobsService), and this one ran - it is not skipped when the
+# scan fails, since the scan is allowed to fail - so its answer stays the one it gave
+# the attempt before, whose job its first line names ("written by job N").
+RETRY_NOTE = ("If dependency-scan has been retried by hand since this job ran, this is the answer to the attempt before: "
+              "GitLab runs a finished job that needs a retried one again only when it was skipped, so retry this job too.")
 
 
 def write_verdict(out, verdict, says, failed=(), blocking_count=0, environ=None):
@@ -702,9 +713,18 @@ def write_verdict(out, verdict, says, failed=(), blocking_count=0, environ=None)
 
 
 def verdict_job(out, environ, say=print):
-    """The dependency-scan-verdict job: the verdict the scan wrote into out (VERDICT),
-    said, and the exit it calls for - 2 when there is none, when what is there is not
-    one, and, read in a pipeline, when another pipeline wrote it."""
+    """The dependency-scan-verdict job: read_verdict's answer, and RETRY_NOTE after it when
+    it fails."""
+    code = read_verdict(out, environ, say)
+    if code:
+        say(RETRY_NOTE)
+    return code
+
+
+def read_verdict(out, environ, say=print):
+    """The verdict the scan wrote into out (VERDICT), said, and the exit it calls for - 2
+    when there is none, when what is there is not one, and, read in a pipeline, when
+    another pipeline wrote it."""
     shown = os.path.join(out, VERDICT).replace(os.sep, "/")
     unread = "so nothing says that dependency-scan's scans ran"
     try:
@@ -987,6 +1007,8 @@ def self_test():
     # takes its report (VERDICT).
     # And --verdict takes none for one: no verdict, one that is not JSON, names no verdict
     # or an exit that is not its verdict's, and, read in a pipeline, another pipeline's.
+    # Failing, it says last that after a retry of dependency-scan by hand it is retried
+    # too (RETRY_NOTE); passing, it says nothing of a retry.
     import contextlib
     import io
     import tempfile
@@ -1058,6 +1080,9 @@ def self_test():
         expect(code == 1 and "FAILED: 1 of the targets dependency-scan read failed, with 1 Critical or High "
                "vulnerability with a fixed version" in said and "CVE-2026-3" in said,
                "--verdict ends 1 on it, naming the target and the finding: %d, %s" % (code, said[-600:]))
+        expect(said.rstrip("\n").split("\n")[-1] == RETRY_NOTE,
+               "--verdict, failing, says last that after a retry of dependency-scan by hand this job is retried too, "
+               "which GitLab does not do: %s" % said[-300:])
 
         image_vulnerabilities[:] = []
         out = os.path.join(scratch, "passed")
@@ -1070,6 +1095,7 @@ def self_test():
         code, said = run("--verdict", "--out", out)
         expect(code == 0 and "No target dependency-scan read failed." in said,
                "--verdict ends 0 on it: %d, %s" % (code, said[-300:]))
+        expect(RETRY_NOTE not in said, "--verdict, passing, says nothing of a retry: %s" % said[-300:])
 
         module["download_database"] = lambda log: None
         out = os.path.join(scratch, "broken")
@@ -1080,6 +1106,9 @@ def self_test():
                "a scan with no vulnerability database ends 2, and its verdict says it is broken: %d, %s" % (code, record))
         code, said = run("--verdict", "--out", out)
         expect(code == 2 and "could not run" in said, "--verdict ends 2 on it: %d, %s" % (code, said[-300:]))
+        expect(said.rstrip("\n").split("\n")[-1] == RETRY_NOTE,
+               "--verdict, failing on a scan that could not run, says last that after a retry of dependency-scan by hand "
+               "this job is retried too: %s" % said[-300:])
         # And one that could not run part of the way, its reports written as a failure.
         module["download_database"] = lambda log: TRIVY_DB[0]
         failing[:] = ["fs"]
@@ -1098,6 +1127,8 @@ def self_test():
         os.makedirs(out)
         quiet = []
         expect(verdict_job(out, {}, quiet.append) == 2, "no verdict: --verdict ends 2")
+        expect(quiet[-1:] == [RETRY_NOTE], "no verdict: --verdict says last that a retry of dependency-scan by hand asks "
+               "for one of this job: %s" % quiet[-2:])
         for text, what in (("{not json", "a verdict that is not JSON"),
                            (json.dumps({"verdict": "clean", "exit": 0}), "a verdict this does not read"),
                            (json.dumps({"verdict": "passed", "exit": 1}), "a verdict whose exit is not its verdict's"),

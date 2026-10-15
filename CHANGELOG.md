@@ -5930,7 +5930,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   passed, with each target that failed and the pipeline and job that wrote it. The new job `dependency-scan-verdict`,
   made in every pipeline the scan is made in, reads it (`--verdict`) and fails as the scan job used to - exit 1 on a
   finding, exit 2 when a scan could not run or no verdict of the pipeline's came - and is allowed to fail as that job
-  was, so a pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. The
+  was, so a pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. After a
+  retry of `dependency-scan` by hand, `dependency-scan-verdict` is retried too, which its log says last when it
+  fails: GitLab runs a finished job that needs a retried one again only when it was skipped. The
   release's gate, which reads the reports themselves, is unchanged. The script's self-test runs the scan over a tree
   it makes, with Trivy and its database stood in for: a High with a fixed version ends 0, every report written and
   the verdict failed, on which `--verdict` ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends

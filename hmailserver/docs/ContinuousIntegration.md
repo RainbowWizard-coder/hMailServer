@@ -97,7 +97,7 @@ The other tables on this page name runners the same way.
 | `semgrep` | test | linix | the same | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline and to `master`'s exceptions file |
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries; passes whatever they find, so that GitLab takes its report into the vulnerability report, and fails only when a scan could not run ([Dependency findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)) |
-| `dependency-scan-verdict` | test | linix | wherever `dependency-scan` runs, after it | The scan's verdict, `verdict.json`: fails on a Critical or High vulnerability with a fixed version, as `dependency-scan` used to, and when a scan could not run; allowed to fail (`build/ci/dependency-scan.py --verdict`) |
+| `dependency-scan-verdict` | test | linix | wherever `dependency-scan` runs, after it | The scan's verdict, `verdict.json`: fails on a Critical or High vulnerability with a fixed version, as `dependency-scan` used to, and when a scan could not run; allowed to fail (`build/ci/dependency-scan.py --verdict`). After a retry of `dependency-scan` by hand, retry it too: GitLab runs it again only when it was skipped |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
@@ -5008,7 +5008,13 @@ and the pipeline and job that wrote it. `dependency-scan-verdict`
 runs in) fails with exit 1 on `failed` and exit 2 on `broken`, or on a verdict
 that is missing, unreadable or another pipeline's, and is `allow_failure`, as
 the scan job was: a pipeline with a finding still reads "passed with warnings",
-and its log lists what failed. The release's gate reads the reports themselves,
+and its log lists what failed. After a retry of `dependency-scan` by hand,
+retry `dependency-scan-verdict` too: GitLab runs a finished job that needs a
+retried one again only when it was skipped, so until then the verdict job keeps
+the answer it gave the attempt before. The first line of its log names the job
+and the pipeline that wrote the verdict it read ("written by job N of pipeline
+P"), so a stale answer shows, and its last line, when it fails, says to retry
+it after a retry of the scan. The release's gate reads the reports themselves,
 whatever either job ended with. `build/check-release-chain.py` holds both jobs
 to all of this and to nothing beside it. Each has the keys it has and no other,
 so that no `before_script`, `hooks`, `when`, `dependencies` or `variables` can
