@@ -6256,6 +6256,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   out waits 130 seconds before each run for the ports; and an empty folder of the load domain, which the bench's
   pre-flight takes for an orphan, is removed. Rule 5 says the generator's range now outranks *My computer*, and the
   Windows table says that its "fsync on" has a database that flushes every ten seconds.
+- **The documents say what the Control Panel, the CI and the server do where 6.3.7's own changes had left them behind
+  (the release review's RF-8).** DomainsAndAccounts.md, PublicFoldersAndGroups.md and the documents' index call the
+  page for a domain's accounts, aliases and lists the Domains page, under Accounts & domains, as the Control Panel
+  titles it, where they said Domains & accounts. SenderListsAndDigests.md and SmtpPolicy.md give the Control Panel's
+  quarantine apart from the Deck's: there a message and a group carry a tick, a cross and two person icons, the
+  checked messages take the buttons over the list - Release, Allow sender…, Block sender… and Delete permanently - the
+  dialog that asks which list is Allow and release or Block and delete, the first starting on the domain when the
+  server-wide score held one of the messages, the headers' icon is beside the preview's before the subject, the delete
+  question is Delete or Cancel, a group's release or the checked messages' asks first, and the sweep is Delete expired
+  messages…, where they gave the Control Panel the Deck's list icons, its Whitelist and Blacklist and a header
+  carrying the four, and said that no release is asked about. README.md says what the GitLab scans hold -
+  static-analysis and semgrep fail a pipeline on a new finding since 6.3.6, semgrep-sast-gate and mr-dependency-check
+  hold every change, release holds a release, dependency-scan and repo-hygiene block nothing - where it said that they
+  were not yet blocking; it also says that a release tag's Linux packages are built on the project's own runners only
+  while HM_RUNNER_PACKAGES and HM_RUNNER_ARM64 are unset. The OpenAPI document and SenderListsAndDigests.md say that
+  GET /api/v1/quarantine answers its bare array for a q of white space alone, as it does, where they promised the page
+  object for any q. EvidencePack.md no longer says that the backup runs 7-Zip 19.00; SecretsAtRest.md says that the
+  stored-secrets key a process holds is not written over when a stop has to end the process at once, and goes with the
+  process's memory; Roadmap3.md's row on internationalised link hosts names the readers its negative controls fail
+  against by what they lacked, not by two commits batch48 does not hold; the binary manifest's note names
+  build/check-binary-manifest.py, not a GitHub workflow; and the comment in UpdateInstaller.cpp on the drain before an
+  update gives the stop's wait as the installer's, the drain and ninety seconds more.
 - **ActiveActive.md has been read again against the code, with what two nodes do today measured, its open questions
   decided, and the work set out as thirty-one units in the order they are to be built.** Two nodes of today's build
   on one database, each with its own data directory, failed to deliver 29 to 122 of 2,000 relayed messages and kept
