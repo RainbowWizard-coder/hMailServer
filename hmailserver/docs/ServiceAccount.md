@@ -503,12 +503,25 @@ user can put a link in its place in between.
 
 **Before upgrading an installation at a drive's root.** From an elevated Command
 Prompt, with the installation's own folder in place of `C:\hMailServer`, first see
-who owns the three: `dir /q /a:d "C:\hMailServer"` names the program folder's owner
-on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Each `icacls` line
-below must say `Successfully processed 1 files`: one that says 0 has changed
-nothing, and from `/remove:g` that is the only sign that it found no account for a
-SID or a name it was given. Then, as `/ProtectFolders` does, for the program
-folder, then `Bin`, then `ControlPanel`:
+who owns what is there. Of the two listings below, the first names the program
+folder's owner on its line `.`, and the owner of each file and folder directly in
+it - `Bin`, `ControlPanel` and the uninstaller among them - on theirs; the second
+names the owner of everything in the folders that hold the programs, hidden files
+included, and of nothing in the data folders:
+
+```
+dir /q /a "C:\hMailServer"
+dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel" "C:\hMailServer\WebAdmin" "C:\hMailServer\DBScripts" "C:\hMailServer\Addons" "C:\hMailServer\Languages"
+```
+
+`dir` cuts an owner's name to 23 characters (`NT SERVICE\TrustedInsta`), shows
+`...` for an owner it cannot read, and says `File Not Found` for a folder the
+installation does not have - the Control Panel alone has no `WebAdmin`, `DBScripts`
+or `Addons` - and lists the others. Each `icacls` line below must say
+`Successfully processed 1 files`: one that says 0 has changed nothing, and from
+`/remove:g` that is the only sign that it found no account for a SID or a name it
+was given. Then, as `/ProtectFolders` does, for the program folder, then `Bin`,
+then `ControlPanel`:
 
 1. Make the Administrators its owner - an owner may change the permissions whatever
    they say. The folder alone: `/T` would reach the message store too.
@@ -581,15 +594,15 @@ and stays.
 The steps keep anybody else from changing the three folders themselves from then
 on; they undo nothing changed before, and a file or folder in them keeps its owner
 and any entry of its own. Where accounts that are not administrators could sign in
-to the computer while the three took the root's permissions; where `dir /q` named an
-owner other than `BUILTIN\Administrators`, `NT AUTHORITY\SYSTEM` or
-`NT SERVICE\TrustedInstaller` for one of the three, or
-`dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel"` named such an
-owner for anything in them; or where step 2 took away an entry that gave anybody
-more than `(RX)`, the Users' and the service's included, or could not take one
-away: a program in them may have been changed already. Reinstall the programs from
-the release into a folder only the administrators may change, rather than rely on
-the steps.
+to the computer while the three took the root's permissions; where the listings
+named an owner other than `BUILTIN\Administrators`, `NT AUTHORITY\SYSTEM` or
+`NT SERVICE\TrustedInstaller` - `...` among them - for the program folder, a file
+directly in it, or `Bin`, `ControlPanel`, `WebAdmin`, `DBScripts`, `Addons` or
+`Languages` or anything in them; or where step 2 took away an entry that gave
+anybody more than `(RX)`, the Users' and the service's included, or could not take
+one away: a program in them may have been changed already. Reinstall the programs
+from the release into a folder only the administrators may change, rather than rely
+on the steps.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,

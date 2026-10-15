@@ -97,14 +97,15 @@ permissions before it copies anything into it, hardens in place the folder an in
 finds there - no `/ProtectFolders` follows one, as it has no server - unless it is a drive's root, holds a server
 installation or is a link, and says, without refusing it, when the folder chosen lets every user change what is in it.
 Under Program Files the first run makes the three's entries their own, and nobody may do there anything they could not
-before. An administrator who cannot upgrade yet follows the documentation's steps from an elevated prompt on each of
-the three: the Administrators made its owner, every entry of its own but SYSTEM's, the Administrators' and any deny
-entry taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the
-server is installed, the service's given back; and reinstalls the programs into a folder only the administrators may
-change where accounts that are not administrators could sign in while it was installed so, where anybody but SYSTEM,
-the Administrators or TrustedInstaller owned one of the three or anything in `Bin` or `ControlPanel`, or where one of
-the three had an entry of its own that let anybody else change it, or one the steps could not take away. Found by the
-project's own review (work item 78; CVE requested).
+before. An administrator who cannot upgrade yet follows the documentation's steps from an elevated prompt on each of the
+three: the Administrators made its owner, every entry of its own but SYSTEM's, the Administrators' and any deny entry
+taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the server
+is installed, the service's given back; and reinstalls the programs into a folder only the administrators may change
+where accounts that are not administrators could sign in while it was installed so, where anybody but SYSTEM, the
+Administrators or TrustedInstaller owned one of the three, a file directly in the program folder, or anything in `Bin`,
+`ControlPanel`, `WebAdmin`, `DBScripts`, `Addons` or `Languages`, or where one of the three had an entry of its own that
+let anybody else change it, or one the steps could not take away. Found by the project's own review (work item 78; CVE
+requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
