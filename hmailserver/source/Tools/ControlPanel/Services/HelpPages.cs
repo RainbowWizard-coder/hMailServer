@@ -14,15 +14,15 @@ namespace hMailServer.ControlPanel.Services
    /// <summary>
    /// The operator documentation this program carries: hmailserver/docs/*.md,
    /// embedded straight from the repository by the project file as
-   /// Help.&lt;Name&gt;.md (README.md, DeckParity.md and WebAuthorisationMatrix.md
-   /// left out, as the server's copy leaves them out), so the Control Panel -
-   /// which talks COM only and must work with no REST listener - has the same
-   /// text the server serves at /api/v1/help, and cannot be behind it: nothing
-   /// is copied into this tree to go stale. The resources are read from the
-   /// assembly this type was compiled into: the program's own, and
-   /// ControlPanel.Core's, which carries the same resource group so that
-   /// HelpMapTests can hold the copy to the directory - the names, the three
-   /// exclusions, the bytes.
+   /// Help.&lt;Name&gt;.md (README.md, DeckParity.md, WebAuthorisationMatrix.md
+   /// and WebThreatModel.md left out, as the server's copy leaves them out), so
+   /// the Control Panel - which talks COM only and must work with no REST
+   /// listener - has the same text the server serves at /api/v1/help, and
+   /// cannot be behind it: nothing is copied into this tree to go stale. The
+   /// resources are read from the assembly this type was compiled into: the
+   /// program's own, and ControlPanel.Core's, which carries the same resource
+   /// group so that HelpMapTests can hold the copy to the directory - the
+   /// names, the four exclusions, the bytes.
    /// </summary>
    public static class HelpPages
    {

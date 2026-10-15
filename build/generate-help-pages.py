@@ -6,9 +6,12 @@
 """Embed the operator documentation in the server.
 
 Reads every hmailserver/docs/*.md except README.md (the index of the others),
-DeckParity.md (a census build/check-deck-parity.py rewrites) and
+DeckParity.md (a census build/check-deck-parity.py rewrites),
 WebAuthorisationMatrix.md (a table build/generate-auth-matrix.py writes from the
-code, which would otherwise change this file whenever a route did) and writes
+code, which would otherwise change this file whenever a route did) and
+WebThreatModel.md (a model of the web surface for those who change and review
+it, which names the surface's weak points: a page of the help is served to
+anyone who asks, before any credential) and writes
 hmailserver/source/Server/Common/Util/HelpPagesData.cpp: each document's text,
 CRLF made LF, in pieces of at most four thousand characters (a compiler's limit
 on one literal is sixteen thousand bytes; a piece of four thousand characters
@@ -70,8 +73,10 @@ PIECE = 4000
 WIKI_PAGE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_-]{0,99}$")
 
 # The index of the others, and a census a checker rewrites: neither is a page
-# anybody is helped by.
-EXCLUDED = {"README.md", "DeckParity.md", "WebAuthorisationMatrix.md"}
+# anybody is helped by. The authorisation matrix changes with every route; the
+# threat model is for those who change and review the web surface and names its
+# weak points, and /api/v1/help/{page} is answered before any credential.
+EXCLUDED = {"README.md", "DeckParity.md", "WebAuthorisationMatrix.md", "WebThreatModel.md"}
 
 ATX = re.compile(r"^(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$")
 SETEXT_ONE = re.compile(r"^=+[ \t]*$")

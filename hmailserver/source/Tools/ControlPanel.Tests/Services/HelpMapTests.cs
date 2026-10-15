@@ -336,10 +336,10 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The program's embedded copy of the documentation is the directory: the
-      /// same files but README.md, DeckParity.md and WebAuthorisationMatrix.md, in
-      /// ordinal order as the server lists them, each the file's bytes with CRLF
-      /// made LF. A broken Exclude or LogicalName in the project file shows here
-      /// and nowhere else.
+      /// same files but README.md, DeckParity.md, WebAuthorisationMatrix.md and
+      /// WebThreatModel.md, in ordinal order as the server lists them, each the
+      /// file's bytes with CRLF made LF. A broken Exclude or LogicalName in the
+      /// project file shows here and nowhere else.
       /// </summary>
       [Fact]
       public void TheEmbeddedCopyIsTheDocumentsDirectory()
@@ -347,7 +347,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string docs = FindDocs();
          string[] expected = Directory.GetFiles(docs, "*.md")
             .Select(Path.GetFileName)
-            .Where(f => f != "README.md" && f != "DeckParity.md" && f != "WebAuthorisationMatrix.md")
+            .Where(f => f != "README.md" && f != "DeckParity.md" && f != "WebAuthorisationMatrix.md" && f != "WebThreatModel.md")
             .Select(f => f.Substring(0, f.Length - 3))
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToArray();
@@ -357,6 +357,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(HelpPages.Has("README"));
          Assert.False(HelpPages.Has("DeckParity"));
          Assert.False(HelpPages.Has("WebAuthorisationMatrix"));
+         Assert.False(HelpPages.Has("WebThreatModel"));
 
          foreach (string name in expected)
          {

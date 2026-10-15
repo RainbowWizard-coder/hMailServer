@@ -253,6 +253,7 @@ namespace hMailServer.ControlPanel.Services
          "CommandLinePackages.md",
          "ContainerImage.md",
          "ContinuousIntegration.md",
+         "ControlDeckFramework.md",
          "ControlPanelDesign.md",
          "DatabaseTls.md",
          "DkimKeyRotation.md",

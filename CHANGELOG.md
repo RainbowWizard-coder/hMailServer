@@ -6287,6 +6287,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Documentation
 
+- **The Control Deck and the webmail are to be rebuilt on Preact, written in strict TypeScript and bundled by esbuild
+  alone**, which `hmailserver/docs/ControlDeckFramework.md` records with its reasons (Programme A's row A1; the
+  rebuild itself is planned for 6.4). Three evaluations judged ten candidates through three lenses - security and
+  supply chain, engineering and migration, long-term maintenance - and two chose Preact; the third chose Lit, which
+  does not start under the policy the Deck is served with today and, once its policy name is admitted, lets its
+  `unsafeHTML` past Trusted Types, measured in Chromium and Firefox by two of the evaluations and once more before
+  deciding. The document gives the criteria and gates, every score, why each other candidate was rejected, the rules
+  the rebuild is held to, the build (byte-identical from three environments, an SBOM, Renovate, nothing from GitHub,
+  air-gapped), how the pages will be served, and the plan for rows A2 to A4 in four batches. Nothing of it is built
+  yet.
+- **`hmailserver/docs/WebThreatModel.md` is a threat model of the web surface** as it is and as the rebuild will
+  leave it: the assets, the actors, every way in, each control with its file and line, and the findings the rebuild
+  answers - among them the Deck's script hash taken from whatever file is on disk (W-4) and the webmail's service
+  worker controlling the whole origin (W-5). It is for those who change and review the web surface, and is not
+  embedded in the help panes, as the matrix is not.
 - **`hmailserver/docs/WebAuthorisationMatrix.md` is every route the two web listeners answer, against nine kinds of
   credential, read from the code.** `build/generate-auth-matrix.py` interprets the route parser (`ParseRoute_` and the
   three parsers it calls) rather than matching patterns in it, follows `Authorize_` step by step, and reads the

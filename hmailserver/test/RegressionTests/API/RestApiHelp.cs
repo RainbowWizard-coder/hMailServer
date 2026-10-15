@@ -69,7 +69,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("GET /api/v1/help lists every document of hmailserver/docs but README.md, DeckParity.md and WebAuthorisationMatrix.md, by its name, with its first heading as its title, its size in bytes and its level-one and level-two headings with their lines - as the files in the tree have them - the wiki setting's value, and a build tag; and no credential is asked.")]
+      [Description("GET /api/v1/help lists every document of hmailserver/docs but README.md, DeckParity.md, WebAuthorisationMatrix.md and WebThreatModel.md, by its name, with its first heading as its title, its size in bytes and its level-one and level-two headings with their lines - as the files in the tree have them - the wiki setting's value, and a build tag; and no credential is asked.")]
       public void TheListAnswersEveryDocumentWithItsHeadings()
       {
          Response listed = Raw("GET", "/api/v1/help", null, null);
@@ -268,13 +268,13 @@ namespace RegressionTests.API
          get { return Paths.Combine(RepositoryRoot, @"hmailserver\docs"); }
       }
 
-      /// <summary>The documents the generator embeds, in file-name order: every .md but the index, the census and the authorisation matrix (build/generate-help-pages.py's EXCLUDED).</summary>
+      /// <summary>The documents the generator embeds, in file-name order: every .md but the index, the census, the authorisation matrix and the threat model (build/generate-help-pages.py's EXCLUDED).</summary>
       private static List<string> DocumentNames()
       {
          Assert.IsTrue(Directory.Exists(DocsDirectory), "Missing directory: " + DocsDirectory);
          return Directory.GetFiles(DocsDirectory, "*.md")
             .Select(Path.GetFileName)
-            .Where(f => f != "README.md" && f != "DeckParity.md" && f != "WebAuthorisationMatrix.md")
+            .Where(f => f != "README.md" && f != "DeckParity.md" && f != "WebAuthorisationMatrix.md" && f != "WebThreatModel.md")
             .Select(f => f.Substring(0, f.Length - 3))
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
