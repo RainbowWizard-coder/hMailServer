@@ -302,10 +302,11 @@ const helpExcluded = (() => {
 })();
 // The pages the server itself embeds, from the table generate-help-pages.py
 // writes into HelpPagesData.cpp beside the script: what the list above is held to.
-const helpEmbedded = (fs.readFileSync(require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'),
+// A row is read by its head, its name to its headings, whatever follows (a wiki page, say).
+const helpRow = /^\s*\{ "([A-Za-z0-9]+)", \d+, Page\d+Pieces, Page\d+Headings\b/;
+const helpEmbedded = fs.readFileSync(require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'),
    scriptPath.lastIndexOf('\\')) + 1) + 'HelpPagesData.cpp'), 'utf8')
-   .match(/^\s*\{ "[A-Za-z0-9]+", \d+, Page\d+Pieces, Page\d+Headings(?:, "[^"]*")? \},?\s*$/gm) || [])
-   .map((row) => /"([^"]+)"/.exec(row)[1]);
+   .split(/\r?\n/).map((line) => helpRow.exec(line)).filter(Boolean).map((m) => m[1]);
 const helpPages = () => fs.readdirSync(docsDir).filter((f) => f.endsWith('.md') && !helpExcluded.has(f)).sort()
    .map((f) => {
       const body = fs.readFileSync(require('path').join(docsDir, f), 'utf8').replace(/\r\n/g, '\n');
@@ -8457,6 +8458,13 @@ async function main() {
    check('and the documents it lists are the ones the server embeds (HelpPagesData.cpp), no more and no fewer',
       helpEmbedded.length > 0 && JSON.stringify(helpPages().map((p) => p.name).sort()) === JSON.stringify(helpEmbedded.slice().sort()),
       helpPages().length + ' listed, ' + helpEmbedded.length + ' in HelpPagesData.cpp');
+   const helpTableRows = ['      { "AccountRecovery", 25656, Page0Pieces, Page0Headings },',
+      '      { "AccountRecovery", 25656, Page0Pieces, Page0Headings, "Sign-in-and-Identity" },',
+      '      { "AccountRecovery", 25656, Page0Pieces, Page0Headings, "" }'];
+   check('and a row of that table is read by its head, with a field after its headings, such as a wiki page, or without one',
+      helpTableRows.every((row) => (helpRow.exec(row) || [])[1] === 'AccountRecovery') &&
+      helpRow.exec('      const HelpHeading Page0Headings[] =') === null,
+      helpTableRows.map((row) => String(helpRow.exec(row))).join(' | '));
    // The pane holds still. route() runs for every message opened from the
    // list, and the pane follows it; what it followed last is remembered, so
    // a route to the same document and heading moves nothing, another

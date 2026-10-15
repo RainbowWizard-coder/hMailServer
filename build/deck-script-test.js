@@ -68,11 +68,11 @@ const HELP_EXCLUDED = (() => {
    }
    return new Set(names);
 })();
-// The pages the server itself embeds, from the table generate-help-pages.py
-// writes into HelpPagesData.cpp: what the list above is held to.
-const HELP_EMBEDDED = (fs.readFileSync(nodePath.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util',
-   'HelpPagesData.cpp'), 'utf8').match(/^\s*\{ "[A-Za-z0-9]+", \d+, Page\d+Pieces, Page\d+Headings(?:, "[^"]*")? \},?\s*$/gm) || [])
-   .map((row) => /"([^"]+)"/.exec(row)[1]);
+// The pages the server itself embeds, from the table generate-help-pages.py writes into HelpPagesData.cpp: what the
+// list above is held to. A row is read by its head, its name to its headings, whatever follows (a wiki page, say).
+const HELP_ROW = /^\s*\{ "([A-Za-z0-9]+)", \d+, Page\d+Pieces, Page\d+Headings\b/;
+const HELP_EMBEDDED = fs.readFileSync(nodePath.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util',
+   'HelpPagesData.cpp'), 'utf8').split(/\r?\n/).map((line) => HELP_ROW.exec(line)).filter(Boolean).map((m) => m[1]);
 const helpPages = () => fs.readdirSync(DOCS).filter((f) => f.endsWith('.md') && !HELP_EXCLUDED.has(f)).sort()
    .map((f) => {
       const body = fs.readFileSync(nodePath.join(DOCS, f), 'utf8').replace(/\r\n/g, '\n');
@@ -10473,6 +10473,13 @@ async function main() {
    check('and the documents it lists are the ones the server embeds (HelpPagesData.cpp), no more and no fewer',
       HELP_EMBEDDED.length > 0 && JSON.stringify(helpPages().map((p) => p.name).sort()) === JSON.stringify(HELP_EMBEDDED.slice().sort()),
       helpPages().length + ' listed, ' + HELP_EMBEDDED.length + ' in HelpPagesData.cpp');
+   const HELP_TABLE_ROWS = ['      { "AccountRecovery", 25656, Page0Pieces, Page0Headings },',
+      '      { "AccountRecovery", 25656, Page0Pieces, Page0Headings, "Sign-in-and-Identity" },',
+      '      { "AccountRecovery", 25656, Page0Pieces, Page0Headings, "" }'];
+   check('and a row of that table is read by its head, with a field after its headings, such as a wiki page, or without one',
+      HELP_TABLE_ROWS.every((row) => (HELP_ROW.exec(row) || [])[1] === 'AccountRecovery') &&
+      HELP_ROW.exec('      const HelpHeading Page0Headings[] =') === null,
+      HELP_TABLE_ROWS.map((row) => String(HELP_ROW.exec(row))).join(' | '));
    before = requests.length;
    click($('#helpBody').querySelectorAll('.doclist button')[0]);
    await flush();

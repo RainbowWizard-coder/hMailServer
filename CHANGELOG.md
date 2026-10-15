@@ -6323,7 +6323,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   project files), so that a route change does not rewrite `HelpPagesData.cpp` too; Help.md and CONTRIBUTING.md name
   the four documents the help leaves out, and the Deck's and the webmail's harnesses read them from
   `generate-help-pages.py` and hold the list of documents their recorded server answers to the one `HelpPagesData.cpp`
-  embeds.
+  embeds, reading each row of its table by the row's head, so that a field after the headings is read too.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and
