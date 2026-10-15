@@ -28,10 +28,13 @@ carries no binary. Each must be there once and say AGPL-3.0-or-later, so that on
 name more is decided here - moved to FIELDS and held to what is compiled in - rather than
 left short of it.
 
-And no other line of the files the scan reads is a licence field. It reads, by the kind of
-file (FIELD_LINES: an RPM spec, an APKBUILD or a PKGBUILD, a Nix file, a CMake file, YAML,
-a Dockerfile or a Containerfile, AppStream's XML and a shell script, *.sh), the files of
-snap/, nix/ and platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
+And no other line of the files the scan reads is a licence field, nor is anything on the
+line of one of the nine after the field read there: a field this holds has its line to
+itself, for a Dockerfile's LABEL takes several key=value pairs on a line, and the image
+gets the last of a key. It reads, by the kind of file (FIELD_LINES: an RPM spec, an
+APKBUILD or a PKGBUILD, a Nix file, a CMake file, YAML, a Dockerfile or a Containerfile,
+AppStream's XML and a shell script, *.sh), the files of snap/, nix/ and
+platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
 build/ci/linux-image.sh, which gives kaniko the image's labels that change with each build
 as --label flags (SCANNED_FILES) - those git tracks, where there is git. A field added there
 fails until it is in one list or the other. A build reads more than these - the CI files
@@ -40,7 +43,9 @@ seen. As first written, this checked the five alone and said they were every lic
 of the Linux packages, and the other four were licence fields that nothing held (release
 review 6.3.7, the check of RB-2); the scan that came of that read neither linux-image.sh
 nor a shell script, while the CHANGELOG said it read every file the packages are made
-from (the re-check of RB-2).
+from (the re-check of RB-2); and it skipped the line of a field it held whole, so that
+another licence label there passed, and the image got it (the check of RB-2's third
+round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -62,10 +67,15 @@ identifier must have that identifier here. Then each of the five must name:
 
 The SPDX fields are read as an AND of identifiers, which is all they hold; an OR, a WITH or
 parentheses fail, as an expression this does not read. The PKGBUILD's array is the AND of
-its elements. The Nix package's list is read by nixpkgs' names (NIX_NAMES, each the spdxId
-lib/licenses/licenses.nix gives it in the nixpkgs flake.lock pins); a name not there fails.
-The four that name the project's licence are read as their files write a value: bare, or in
-single or double quotes.
+its elements, each one quoted string apart from the next, as bash reads them: bash makes
+one element of 'a''b'. The Nix package's list is read by nixpkgs' names (NIX_NAMES, each
+the spdxId lib/licenses/licenses.nix gives it in the nixpkgs flake.lock pins); a name not
+there fails. The four that name the project's licence are read as their files write a
+value, bare or in single or double quotes, and to where their files' own readers end it:
+YAML's at the end of its line or at a comment after a space (AGPL-3.0-or-later#MIT is one
+value to YAML), and a LABEL's at the end of its word, a space, the backslash that continues
+the line or the line's end (Docker makes one word of "a"" b" and of a\\ b); a value run on
+past that is not read.
 
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
@@ -168,10 +178,16 @@ OWN_LICENCE_ONLY = (
 )
 
 # A value as the snap's and the chart's YAML writes it - in double or single quotes, or
-# bare to the end of the line or a comment - and as a Dockerfile's LABEL does, where a bare
-# value ends at a space.
-YAML_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#][^\n#]*?))[ \t]*(?:#[^\n]*)?$"""
-LABEL_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#\\][^\s#\\]*))"""
+# bare - to the end of its line or to a comment, which YAML begins only after a space or a
+# tab: AGPL-3.0-or-later#MIT is one plain scalar. And as a Dockerfile's LABEL writes it,
+# where a value is a word, which ends at a space, at the backslash that continues its line
+# or at the line's end: one that runs on past its quotes or past a backslash, which Docker
+# makes one word of ("a"" b", a\ b), is not read.
+YAML_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#][^\n]*?))(?:[ \t]+#[^\n]*)?[ \t]*$"""
+LABEL_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#\\][^\s#\\]*))(?=[ \t]|\\[ \t]*$|$)"""
+# The PKGBUILD's array: each element one quoted string, apart from the next by a space or a
+# tab, for bash makes one element of 'a''b' or 'a'"b".
+PKGBUILD_ARRAY = re.compile(r"""[ \t]*(?:(?:'[^']*'|"[^"]*")(?:[ \t]+|$))+""")
 READERS = {
     "cpack": re.compile(r'^set\(CPACK_RPM_PACKAGE_LICENSE\s+"([^"\n]*)"\s*\)', re.MULTILINE),
     "spec": re.compile(r"^License:[ \t]*(\S[^\n]*?)[ \t]*$", re.MULTILINE),
@@ -266,9 +282,9 @@ def field_value(kind, text):
         return None, "is there %d time(s), not once" % len(found)
     value = found[0]
     if kind == "pkgbuild":
+        if not PKGBUILD_ARRAY.fullmatch(value):
+            return None, "is not an array of quoted SPDX expressions, each apart from the next: (%s)" % value
         elements = re.findall(r"""'([^']*)'|"([^"]*)\"""", value)
-        if re.sub(r"""'[^']*'|"[^"]*\"""", "", value).strip() or not elements:
-            return None, "is not an array of quoted SPDX expressions: (%s)" % value
         names = []
         for single, double in elements:
             part = spdx_and(single or double)
@@ -316,27 +332,46 @@ def field_lines_of(path):
     return [line for name, line in FIELD_LINES if name.search(path)]
 
 
-def unheld_fields(texts, own_only):
-    """The lines of the scanned files among texts that are a licence field and that no
-    reader of FIELDS or own_only reads, as problems."""
+def held_columns(texts, own_only):
+    """{path: {line number: the column at which what a reader of FIELDS or own_only reads
+    ends on the line it begins}}. Each reader begins at the start of a line; one that runs
+    on past its line, as CMake's set( does onto its value, has the whole of it."""
     held = {}
     for field in tuple(FIELDS) + tuple(own_only):
         path, kind = field[1], field[2]
         if path in texts:
-            for match in READERS[kind].finditer(texts[path]):
-                held.setdefault(path, set()).add(texts[path].count("\n", 0, match.start()) + 1)
+            text = texts[path]
+            for match in READERS[kind].finditer(text):
+                start = text.rfind("\n", 0, match.start()) + 1
+                held.setdefault(path, {})[text.count("\n", 0, match.start()) + 1] = match.end() - start
+    return held
+
+
+def unheld_fields(texts, own_only):
+    """The licence fields in the scanned files among texts that no reader of FIELDS or
+    own_only reads, as problems: a line no reader reads that a FIELD_LINES pattern of its
+    kind takes, and a line one reads that a pattern takes after where the reader ends - a
+    Dockerfile's LABEL takes several key=value pairs on a line, and the image gets the last
+    of a key."""
+    held = held_columns(texts, own_only)
     problems = []
     for path in sorted(texts):
         patterns = field_lines_of(path) if in_scope(path) else []
         if not patterns:
             continue
+        columns = held.get(path, {})
         for number, line in enumerate(texts[path].split("\n"), 1):
-            if line.lstrip().startswith("#") or not any(p.search(line) for p in patterns):
+            column = columns.get(number)
+            if line.lstrip().startswith("#") or not any(p.search(line, column or 0) for p in patterns):
                 continue
-            if number not in held.get(path, ()):
+            if column is None:
                 problems.append("%s:%d (%s) is a licence field this does not hold: put it in FIELDS, to name what is "
                                 "compiled into the server, or in OWN_LICENCE_ONLY, with why it names the project's "
                                 "licence alone" % (path, number, line.strip()))
+            else:
+                problems.append("%s:%d (%s) has a licence field this does not hold after the field read there: a field "
+                                "this holds has its line to itself, and another goes on a line of its own, in FIELDS or "
+                                "in OWN_LICENCE_ONLY" % (path, number, line.strip()))
     return problems
 
 
@@ -793,6 +828,50 @@ def self_test():
     expect("a licence label given in a script outside them",
            added("build/ci/container-image-push.sh", 'regctl image mod --label "org.opencontainers.image.licenses=MIT" x\n'),
            None)
+    # The line of a field this holds carries that field alone, and the value is read as the
+    # file's own reader reads it: a LABEL's to the end of its word, a YAML value to a comment
+    # after a space, and a PKGBUILD array's elements each apart from the next. The scan
+    # skipped a line a reader held whole and the readers stopped at the value, so that
+    # another licence label on that line, which the image gets, a value run on past its
+    # quotes and an element of two quoted strings passed, and the check printed the value it
+    # had read (the check of RB-2's third round).
+    expect("another licence label after the one held on its line",
+           changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\\n',
+                   'package.license="AGPL-3.0-or-later" org.opencontainers.image.licenses="MIT" \\\n'),
+           '%s:4 (io.artifacthub.package.license="AGPL-3.0-or-later" org.opencontainers.image.licenses="MIT" \\) has a '
+           "licence field this does not hold after the field read there" % DOCKERFILE)
+    expect("the held licence label again on its line",
+           changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\\n',
+                   'package.license="AGPL-3.0-or-later" io.artifacthub.package.license="MIT" \\\n'),
+           '%s:4 (io.artifacthub.package.license="AGPL-3.0-or-later" io.artifacthub.package.license="MIT" \\) has a '
+           "licence field this does not hold after the field read there" % DOCKERFILE)
+    expect("a licence label with its key quoted after the one held on its line",
+           changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\\n',
+                   'package.license="AGPL-3.0-or-later" "org.opencontainers.image.licenses"="MIT" \\\n'),
+           '%s:4 (io.artifacthub.package.license="AGPL-3.0-or-later" "org.opencontainers.image.licenses"="MIT" \\) has a '
+           "licence field this does not hold after the field read there" % DOCKERFILE)
+    expect("a licence label's value run on past its quotes",
+           changed(DOCKERFILE, 'licenses="AGPL-3.0-or-later" \\', 'licenses="AGPL-3.0-or-later"" AND MIT" \\'),
+           ["the container image's org.opencontainers.image.licenses (%s) is there 0 time(s), not once" % DOCKERFILE,
+            '%s:3 (org.opencontainers.image.licenses="AGPL-3.0-or-later"" AND MIT" \\) is a licence field this does not '
+            "hold" % DOCKERFILE])
+    expect("a licence label's bare value run on past a backslash",
+           changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\', "package.license=AGPL-3.0-or-later\\ AND\\ MIT \\"),
+           "the container image's io.artifacthub.package.license (%s) is there 0 time(s), not once" % DOCKERFILE)
+    expect("a licence label's bare value", changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later"',
+                                                   "package.license=AGPL-3.0-or-later"), None)
+    expect("a licence label's value straight before its line's continuation",
+           changed(DOCKERFILE, 'licenses="AGPL-3.0-or-later" \\', 'licenses="AGPL-3.0-or-later"\\'), None)
+    expect("a licence label last in its LABEL",
+           changed(DOCKERFILE, '      io.artifacthub.package.license="AGPL-3.0-or-later" \\\n'
+                               '      io.artifacthub.package.keywords="mail"\n',
+                   '      io.artifacthub.package.keywords="mail" \\\n'
+                   '      io.artifacthub.package.license="AGPL-3.0-or-later"\n'), None)
+    expect("the chart's licence with a # straight after it",
+           changed(CHART, "license: AGPL-3.0-or-later", "license: AGPL-3.0-or-later#MIT"),
+           "the Helm chart's artifacthub.io/license (%s) names AGPL-3.0-or-later#MIT" % CHART)
+    expect("a PKGBUILD element of two quoted strings", changed(pkgbuild, "BSD-1-Clause AND MPL-2.0", "BSD-1-Clause'' MPL-2.0"),
+           "is not an array of quoted SPDX expressions, each apart from the next")
     # As first written the check held the five alone, and said they were every licence
     # field of the Linux packages: the other four are licence fields, and nothing held them.
     expect("the five alone", GOOD,
@@ -843,8 +922,8 @@ def main(argv):
     for what, path, kind, _ in OWN_LICENCE_ONLY:
         print("  %s: %s" % (what, own_value(kind, texts[path])[0]))
     scanned = [p for p in texts if in_scope(p) and field_lines_of(p)]
-    print("and no other line of the %d files the scan reads - those of %s, by the kind of file - is a licence field" % (
-        len(scanned), ", ".join(SCANNED_DIRECTORIES + SCANNED_FILES)))
+    print("and no other line of the %d files the scan reads - those of %s, by the kind of file - is a licence field, nor "
+          "is anything after the field on the line of each" % (len(scanned), ", ".join(SCANNED_DIRECTORIES + SCANNED_FILES)))
     return 0
 
 
