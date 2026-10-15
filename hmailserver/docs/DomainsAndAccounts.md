@@ -2,9 +2,9 @@ Domains and accounts
 ====================
 
 The domains this server carries mail for, the mailboxes in each, and the other
-addresses a domain answers: what the Control Panel's *Domains & accounts* page
-does (*Domains* in the sidebar, under *Accounts & domains*), and the two dialogs
-it opens, the domain's and the account's. The Control Deck's *Domains* view and
+addresses a domain answers: what the Control Panel's *Domains* page (in the
+sidebar under *Accounts & domains*) does, and the two dialogs it opens, the
+domain's and the account's. The Control Deck's *Domains* view and
 `/api/v1/domains` do the same things; this document follows the Control Panel.
 
 The page has four cards. The **domains** of the server on the left, with a search

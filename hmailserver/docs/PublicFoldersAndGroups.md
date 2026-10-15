@@ -5,8 +5,8 @@ Shared IMAP folders that several accounts open, and the security groups that let
 one permission reach several accounts at once: what the Control Panel's *Public
 folders* and *Groups* pages do (*Accounts & domains* in the sidebar). Both belong
 to the server rather than to one domain, so both are the server administrator's;
-a domain's accounts, aliases and lists are on the *Domains & accounts* page
-([DomainsAndAccounts.md](DomainsAndAccounts.md)).
+a domain's accounts, aliases and lists are on the *Domains* page, under
+*Accounts & domains* with them ([DomainsAndAccounts.md](DomainsAndAccounts.md)).
 
 Public folders
 --------------

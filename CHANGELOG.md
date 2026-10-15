@@ -1636,7 +1636,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `FillPanel` - the IP ranges, domains and rules pages' too - keeps 12 pixels clear of its scroll bar on the right,
   which is drawn over the content: its thumb lay over the rounded corner of *Delete selected*, the right border of
   the list card and the end of the notices wherever a page scrolled.
-- **Fixed: on the Control Panel's Domains & accounts page, the Add domain form and the alias and list forms were below
+- **Fixed: on the Control Panel's Domains page, the Add domain form and the alias and list forms were below
   the fold in a 1280 by 800 window.** The detail column's floors are taller than the page, so the page scrolls, the
   domains card stretched to the column's height, and its Domain box and Add domain sat at the foot of the card in the
   hidden bottom 90 pixels - on an empty server the card said "No domains yet. Add the first one to start receiving
@@ -1719,7 +1719,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the one under the pointer, Escape or a click outside closes it, the keyboard goes back to the glyph or to the
   breadcrumb's group button - the one the breadcrumb was rebuilt with, where a page was chosen from it - and the rail's
   mark stays on the group of the page on screen. Above the threshold a glyph expands the sidebar on its group, as before.
-- **Fixed: on the Control Panel's Domains & accounts page, a domain, an account, an alias or a distribution list could
+- **Fixed: on the Control Panel's Domains page, a domain, an account, an alias or a distribution list could
   not be opened, deleted or managed from the keyboard.** The four lists put their verbs in buttons inside each row,
   which Tab never reaches - a list is entered on its selected row and left on the next Tab, and the arrow keys only
   move the selection - and nothing answered Enter, Delete, a double-click or the right mouse button. Each list now
@@ -2254,7 +2254,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   removes it, and the recovery tab asked *Remove this account's recovery address?* and *End this account's one-time
   recovery codes?* over its *Clear* buttons in every language. The Control Panel's tests hold every page to the one
   shape, so that a Yes and No question cannot come back.
-- **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
+- **Fixed: the Domains and Public folders pages' deletes did not say what goes.** *Delete
   user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
   deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a
   template. Each is now one whole question that says what goes and what does not: the account's mailbox and every
@@ -2715,7 +2715,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   binding, the mailbox move, a rule's criterion and an incoming relay's Edit among them - keeps room for its message,
   so that its buttons stay where they were, while a row shown or collapsed still grows or shrinks the dialog.
 
-- **Fixed: the Domains & accounts page's four forms answered a bad value with a message box or with nothing at all.**
+- **Fixed: the Domains page's four forms answered a bad value with a message box or with nothing at all.**
   Add domain said "Enter a valid domain name." in a message box, Create account said "Address and password are
   required." in one that named neither box, and Add alias and Add list did nothing with an empty box. Each refusal is
   said under the box at fault now, with the keyboard put in it and every empty box marked on one press: "Enter a
@@ -3285,7 +3285,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sentence wraps to a few lines; and the failure a page reports when it cannot be entered carries Try again, which
   enters the page once more while it is still the page on screen and closes the toast.
 
-- **Fixed: an alias's target was the part of its row the ellipsis took.** The Domains & accounts page drew an alias as
+- **Fixed: an alias's target was the part of its row the ellipsis took.** The Domains page drew an alias as
   one trimmed line, "name → target", in a column of about 200 pixels at 1280, so that "info@example.com → user00@ex…"
   lost the delivery address an administrator looks for and a long alias lost the arrow too. Each alias row is now two
   lines, each trimmed with its own tool tip: the alias, and under it in the secondary text "→" and the address it
@@ -3906,7 +3906,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   holds the titles, that no page's purpose names Ctrl+K, and that no FieldRow caption ends in a colon - a Label set in
   code or in XAML, a caption given to a helper that builds the row, or a text prompt's.
 
-- **Fixed: the Domains & accounts page called one act Properties and Edit, and the dialog its Members button opens said
+- **Fixed: the Domains page called one act Properties and Edit, and the dialog its Members button opens said
   recipient.** Domain and distribution list rows carried Properties, account rows and the Groups page Edit, for the
   same act of opening the item's dialog, and each row's button was "Edit" or "Properties" to a screen reader whatever
   row it was on. Every row that opens an editor now says Edit - the domain and account rows' word, the list row's glyph
@@ -3935,7 +3935,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   on the boxes' line whatever a box's hint adds under it. `RoleWordsTests` holds the purposes to the scripts' own words
   and to every catalogue, the domains as shown and as sent, and the page's words and form.
 
-- **Fixed: the Domains & accounts page said two failures as "Couldn't load ...", and its Create account said a lost
+- **Fixed: the Domains page said two failures as "Couldn't load ...", and its Create account said a lost
   link as the runtime's text.** The aliases' and distribution lists' read failures began "Couldn't load aliases: " and
   "Couldn't load distribution lists: " beside "Could not read the domains: " and "Could not read the accounts: "; they
   now say "Could not read the aliases: " and "Could not read the distribution lists: ". Create account gave the
@@ -4593,7 +4593,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   translation to the DNS labels its English names - `_domainkey`, `_dmarc`, `_mta-sts`, `_smtp._tls` and the service
   labels - and found no other.
 
-- **Fixed: the Domains & accounts page filled the Address box with "user@" as text, lost the account it had just made
+- **Fixed: the Domains page filled the Address box with "user@" as text, lost the account it had just made
   or moved, could not find an address of another domain, and named no row to a screen reader.** The Address box held
   "user@" and the domain in the primary colour, so an untouched Create account made a mailbox called user and typing a
   name meant selecting "user" first; the other boxes' placeholders read "newdomain.com", "alias@domain",
