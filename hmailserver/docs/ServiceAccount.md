@@ -504,8 +504,11 @@ user can put a link in its place in between.
 **Before upgrading an installation at a drive's root.** From an elevated Command
 Prompt, with the installation's own folder in place of `C:\hMailServer`, first see
 who owns the three: `dir /q /a:d "C:\hMailServer"` names the program folder's owner
-on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Then, as
-`/ProtectFolders` does, for the program folder, then `Bin`, then `ControlPanel`:
+on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Each `icacls` line
+below must say `Successfully processed 1 files`: one that says 0 has changed
+nothing, and from `/remove:g` that is the only sign that it found no account for a
+SID or a name it was given. Then, as `/ProtectFolders` does, for the program
+folder, then `Bin`, then `ControlPanel`:
 
 1. Make the Administrators its owner - an owner may change the permissions whatever
    they say. The folder alone: `/T` would reach the message store too.
@@ -516,15 +519,19 @@ on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Then, as
 
 2. List its entries with `icacls "C:\hMailServer"`; one without `(I)` is the folder's
    own. Take away each entry of its own but SYSTEM's and the Administrators'. The
-   Users' and the service's go by their SIDs, whatever they give - steps 3 and 4 give
-   back what they need:
+   Users' and the service's go by their SIDs, a line each, whatever they give -
+   steps 3 and 4 give back what they need:
 
    ```
-   icacls "C:\hMailServer" /remove:g *S-1-5-32-545 *S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809
+   icacls "C:\hMailServer" /remove:g *S-1-5-32-545
+   icacls "C:\hMailServer" /remove:g *S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809
    ```
 
-   Anybody else's goes by the name the list gives, in quotes (where it gives a SID,
-   `*` and the SID). A `(DENY)` entry only takes away, and stays.
+   On an installation without the server - the Control Panel alone - leave out the
+   second line, and step 4: there is no service, so its SID names no account, and
+   `icacls` refuses a SID that names no account, and the rest of its line with it
+   (exit 1332). Anybody else's goes by the name the list gives, in quotes (where it
+   gives a SID, `*` and the SID). A `(DENY)` entry only takes away, and stays.
 
    ```
    icacls "C:\hMailServer" /remove:g "<name>"
@@ -537,8 +544,8 @@ on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Then, as
    icacls "C:\hMailServer" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
    ```
 
-4. On `Bin` and `ControlPanel`, give the service back its Read & execute, the
-   grant's:
+4. On `Bin` and `ControlPanel`, where the server is installed, give the service back
+   its Read & execute, the grant's:
 
    ```
    icacls "C:\hMailServer\Bin" /grant *S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809:(OI)(CI)RX
@@ -546,15 +553,15 @@ on its line `.`, and `Bin`'s and `ControlPanel`'s on theirs. Then, as
 
 `icacls` on each of the three then lists SYSTEM's and the Administrators'
 `(OI)(CI)(F)`, the Users' `(OI)(CI)(RX)`, on `Bin` and `ControlPanel` the service's
-`(OI)(CI)(RX)`, and any deny entry, which stays - nothing marked `(I)` and nobody
-else's. The SIDs are SYSTEM's, the Administrators', the Users' and the service's, the
-same in every language of Windows; where the folder above lets no user read the
-installation, leave out the Users' grant at the end of step 3, as `/ProtectFolders`
-does. On the program folder each change of its entries reaches everything in it, the
-message store included where 6.3.5 or earlier left `Data` inheriting - minutes
-there, and `Data` then readable by Users until the upgrade's `/ProtectFolders` makes
-it private. The service's Modify on `Bin\hMailServerApiKeys.ini` is the file's own,
-and stays.
+`(OI)(CI)(RX)` where the server is installed, and any deny entry, which stays -
+nothing marked `(I)` and nobody else's. The SIDs are SYSTEM's, the Administrators',
+the Users' and the service's, the same in every language of Windows; where the
+folder above lets no user read the installation, leave out the Users' grant at the
+end of step 3, as `/ProtectFolders` does. On the program folder each change of its
+entries reaches everything in it, the message store included where 6.3.5 or earlier
+left `Data` inheriting - minutes there, and `Data` then readable by Users until the
+upgrade's `/ProtectFolders` makes it private. The service's Modify on
+`Bin\hMailServerApiKeys.ini` is the file's own, and stays.
 
 The steps keep anybody else from changing the three folders themselves from then
 on; they undo nothing changed before, and a file or folder in them keeps its owner
