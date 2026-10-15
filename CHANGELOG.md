@@ -5935,10 +5935,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   it makes, with Trivy and its database stood in for: a High with a fixed version ends 0, every report written and
   the verdict failed, on which `--verdict` ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends
   0, and 0; no database ends 2, and 2; and a verdict that is missing, malformed or another pipeline's is no verdict.
-  `build/check-release-chain.py` holds `dependency-scan` to its one script line and to keeping its files and its
-  report whatever it ends with, and `dependency-scan-verdict` to the scan's rules, to needing it with its artifacts,
-  to `--verdict` and to `allow_failure`, each with a case of its self-test (ContinuousIntegration.md, "Dependency
-  findings, the VEX document, and what OSV cannot answer").
+  `build/check-release-chain.py` holds `dependency-scan` to its one script line and the one line before it, to
+  Trivy's image, to needing `ci-image-packages` with its artifacts, to `allow_failure` and to keeping its files and
+  its report whatever it ends with, and `dependency-scan-verdict` to the scan's rules, to needing it alone with its
+  artifacts, to `--verdict` alone in Docker Hub's Python image and to `allow_failure`; each to the keys it has and no
+  other, so that no `before_script`, `hooks`, `when`, `dependencies` or `variables` can end the verdict job before it
+  reads the verdict, leave it no artifact or no checkout, or make it manual, with no key reaching either from a
+  template it extends but `rules:`, no `before_script`, `after_script` or `hooks` from `default:`, no `needs`,
+  `variables`, `allow_failure` or `when` from a rule they take, and no second definition of either in another CI
+  file; and no CI file may set a variable Trivy reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`, by
+  which what the scan reports would narrow. Each rule has a case of its self-test (ContinuousIntegration.md,
+  "Dependency findings, the VEX document, and what OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

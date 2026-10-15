@@ -181,11 +181,24 @@ refuses it. This checker holds them to each other. It fails when:
     or dependency-scan runs anything but python3 build/ci/dependency-scan.py, which
     ends 0 whatever its scans found - GitLab takes no security report of a job that
     failed into the vulnerability report, and lost master's dependency findings so
-    on 14 October 2026 -, or does not keep security/dependency-scan/ whatever it ends
-    with, with its dependency_scanning report; or dependency-scan-verdict, which fails
-    on the verdict the scan writes as the scan job used to, is not a job, does not
-    take dependency-scan's rules, need it with its artifacts and not optionally, run
-    its --verdict, or is not allowed to fail (verdict_problems);
+    on 14 October 2026 -, runs anything before it but apk add --no-cache --quiet
+    python3, does not run in Trivy's image with its entrypoint emptied, does not need
+    ci-image-packages alone with its artifacts, is not allowed to fail, or does not
+    keep security/dependency-scan/ whatever it ends with, with its dependency_scanning
+    report and no key of its artifacts' but when, expire_in, paths and reports; or
+    dependency-scan-verdict, which fails on the verdict the scan writes as the scan job
+    used to, is not a job, does not take dependency-scan's rules, need it alone with
+    its artifacts and not optionally, run its --verdict alone in Docker Hub's Python
+    image, or is not allowed to fail; or either has a key beside the ones it has (a
+    before_script, hooks or when of the verdict job's, dependencies, variables, an
+    after_script), takes one from a template it extends but rules: and those it sets
+    itself as a list or a value, takes a before_script, an after_script or hooks from
+    default:, or takes a rule that brings needs, variables, allow_failure, start_in or
+    a when but never or on_success, or one written in a form this does not read; or
+    either, or a template either reaches, is defined in a CI file but .gitlab-ci.yml;
+    or a CI file sets a variable Trivy reads (TRIVY_*), or the tree carries Trivy's
+    trivy.yaml or .trivyignore at its root, either of which would narrow what the scan
+    reports past the hold on its command (verdict_problems);
     or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
     finding without a reason, a reviewer or an expiry within a year of the review, or
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
@@ -684,6 +697,44 @@ SCAN_COMMAND = "python3 build/ci/dependency-scan.py"
 SCAN_REPORT = "dependency_scanning: security/dependency-scan/gl-dependency-scanning.json"
 VERDICT_JOB = "dependency-scan-verdict"
 VERDICT_COMMAND = "python3 build/ci/dependency-scan.py --verdict"
+# What the two jobs are held to beside that (verdict_problems): the keys each has, as
+# this tree writes them, and no other - a key beside them could keep the scan from
+# writing its verdict and its reports, or the verdict job from reading the verdict or
+# ending on it: a before_script or hooks that end the job first, an after_script that
+# removes what the scan wrote before its artifacts are kept, dependencies that bring
+# the verdict job no artifact, variables that leave a job no checkout (GIT_STRATEGY:
+# none) or narrow what Trivy reports (TRIVY_SEVERITY), a when: its rules take for their
+# own (manual, on_failure). The scan's one line before its script, the job it needs
+# (the CI image's package database, without which it scans no CI image and calls that
+# target unknown, not failed), the keys of its artifacts, and each job's image: Trivy's,
+# with its entrypoint emptied for the runner's shell, and Docker Hub's Python, which
+# has python3.
+SCAN_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "allow_failure", "before_script", "script",
+             "artifacts")
+VERDICT_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "allow_failure", "script")
+SCAN_BEFORE = "apk add --no-cache --quiet python3"
+SCAN_NEED = "ci-image-packages"
+SCAN_ARTIFACT_KEYS = ("when", "expire_in", "paths", "reports")
+SCAN_IMAGE = re.compile(r"^(?:docker\.io/)?aquasec/trivy:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
+SCAN_IMAGE_KEYS = ("name", "entrypoint", "pull_policy")
+VERDICT_IMAGE = re.compile(r"^(?:docker\.io/)?(?:library/)?python:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
+VERDICT_IMAGE_KEYS = ("name", "pull_policy")
+# The keys of the two jobs' that GitLab merges a template's into: mappings, which
+# extends merges key by key, where a list or a value of the job's own replaces the
+# template's whole.
+MERGED_KEYS = ("image", "artifacts")
+# What default: gives every job that sets none of its own and that runs in the job
+# beside its script: before it, or after it and before its artifacts are kept.
+DEFAULT_RUNS = ("before_script", "after_script", "hooks")
+# What Trivy reads beside its command line, by which what dependency-scan reports -
+# and so what dependency-scan-verdict fails on - would narrow past the hold on the
+# scan's command: a variable of its own (TRIVY_SEVERITY, TRIVY_SKIP_DIRS,
+# TRIVY_IGNOREFILE ...) a CI file sets, in a block mapping or a flow one, and, at the
+# root of the checkout, where the scan runs it, its configuration file and its ignore
+# file, which it reads when they are there (--config and --ignorefile's defaults).
+TRIVY_VARIABLE = re.compile(r"""(?:^[ \t]*(?:-[ \t]+)?|[{,][ \t]*)["']?(TRIVY_[A-Z0-9_]+)["']?[ \t]*:(?=[ \t]|$)""",
+                            re.MULTILINE)
+TRIVY_FILES = ("trivy.yaml", ".trivyignore")
 # The files a change to which is the owner's alone to accept.
 OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
 # What secret_detection runs before its analyzer: GitLab's rules, but for the entries of
@@ -2589,7 +2640,7 @@ def check(texts, chain, feed):
             problems.append("%s may fail without failing the pipeline (allow_failure): it holds its findings to a "
                             "baseline so that a new one fails a branch's pipeline, and it must (docs/ContinuousIntegration.md, "
                             "'Security scanning')" % name)
-    problems.extend(verdict_problems(jobs))
+    problems.extend(verdict_problems(texts, jobs))
     sast = blocks(texts["security"]).get("semgrep-sast", "")
     if "- if: " + TAG_ONLY not in sast:
         problems.append("semgrep-sast does not run for a protected v* tag (- if: %s): the release job needs its report, "
@@ -2676,26 +2727,120 @@ def deciding_rules(name, jobs):
     return None
 
 
-def verdict_problems(jobs):
-    """What would lose GitLab dependency-scan's findings again, or lose the finding's
-    warning (SCAN_JOB, VERDICT_JOB): dependency-scan must run SCAN_COMMAND and nothing
-    else, which ends 0 whatever its scans found, and keep security/dependency-scan/
-    whatever it ends with, with its report for GitLab; dependency-scan-verdict must be a
-    job of .gitlab-ci.yml whose rules are dependency-scan's - a pipeline in which a job
-    needs one it lacks is not created, and a verdict job made in fewer pipelines than the
-    scan would leave a finding unsaid in the others -, need dependency-scan with its
-    artifacts, not optionally, run VERDICT_COMMAND, and be allowed to fail, as the scan
-    job was: a finding in the whole tree holds no change, and the release job holds on
-    the report itself (build/ci/security-gate.py). jobs is .gitlab-ci.yml's blocks."""
+def own_keys(block):
+    """The keys a block of a CI file writes two spaces in, bare - a name of small letters
+    and underscores, its colon straight after it - in order. job_key_problems refuses a
+    key of a block written in any other form, or twice."""
+    return re.findall(r"^  ([a-z_]+):(?:[ \t]|$)", block, re.MULTILINE)
+
+
+def key_text(block, key):
+    """The lines a key of a block writes its value on, below the key's own line and
+    indented four or more; None when the key is not written so - its value on its own
+    line, or a comment after it, among the forms."""
+    match = re.search(r"^  %s:[ \t]*\n((?:    .*\n?)+)" % re.escape(key), block, re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def list_items(block, key):
+    """A key of a block written as a list below it (key_text): each of its lines,
+    stripped ("- item"); None when the key is not written so."""
+    text = key_text(block, key)
+    return [line.strip() for line in text.strip("\n").split("\n")] if text is not None else None
+
+
+def sub_keys(block, key):
+    """A key of a block written as a mapping below it (key_text): (its keys four spaces
+    in, in order, and the lines there or further out that are not bare keys, which
+    unread_keys finds), or (None, None) when the key is not written so."""
+    text = key_text(block, key)
+    if text is None:
+        return None, None
+    return re.findall(r"^    ([a-z_]+):(?:[ \t]|$)", text, re.MULTILINE), unread_keys(text, 4)
+
+
+def image_is(block, name, keys, entrypoint=None):
+    """Whether a block's image is written as a mapping below its key (key_text) whose
+    keys are among keys, each once, and are read (sub_keys), whose name: matches name
+    and, where entrypoint is given, whose entrypoint: is written as it."""
+    found, unread = sub_keys(block, "image")
+    if found is None or unread or len(set(found)) != len(found) or [key for key in found if key not in keys]:
+        return False
+    text = key_text(block, "image")
+    named = re.search(r"^    name:[ \t]*(\S+)[ \t]*$", text, re.MULTILINE)
+    return bool(named and name.match(named.group(1)) and (
+        entrypoint is None or re.search(r"^    entrypoint: %s[ \t]*$" % re.escape(entrypoint), text, re.MULTILINE)))
+
+
+def sole_need(block):
+    """The job a block's needs name when they name one alone, with its artifacts and not
+    optionally, as this tree writes such a need - needs: [name] on the key's line, or
+    below it one entry, - name, or - job: name with artifacts: true or nothing beside
+    it; None for any other needs, and for none."""
+    match = re.search(r"^  needs:([^\n]*)\n?((?:    [^\n]*\n?)*)", block, re.MULTILINE)
+    if not match:
+        return None
+    head = match.group(1).strip()
+    body = [line for line in match.group(2).split("\n") if line.strip()]
+    if head:
+        inline = re.match(r"^\[[ \t]*([a-z][a-z0-9._\-]*)[ \t]*\]$", head)
+        return inline.group(1) if inline and not body else None
+    entry = re.match(r"^    - (job: )?([a-z][a-z0-9._\-]*)$", body[0]) if body else None
+    if not entry or body[1:] not in ([], ["      artifacts: true"] if entry.group(1) else []):
+        return None
+    return entry.group(2)
+
+
+def verdict_problems(texts, jobs):
+    """What would lose GitLab dependency-scan's findings again, or the finding's warning,
+    or make the warning say nothing (SCAN_JOB, VERDICT_JOB). dependency-scan must run
+    SCAN_COMMAND alone, which ends 0 whatever its scans found, after SCAN_BEFORE alone,
+    in Trivy's image with its entrypoint emptied, need SCAN_NEED alone with its
+    artifacts, be allowed to fail, and keep security/dependency-scan/ whatever it ends
+    with, with its report for GitLab and nothing left out (SCAN_ARTIFACT_KEYS).
+    dependency-scan-verdict must be a job of .gitlab-ci.yml whose rules are
+    dependency-scan's - a pipeline in which a job needs one it lacks is not created, and
+    a verdict job made in fewer pipelines than the scan would leave a finding unsaid in
+    the others -, need dependency-scan alone with its artifacts, not optionally, run
+    VERDICT_COMMAND alone in Docker Hub's Python, and be allowed to fail, as the scan job
+    was: a finding in the whole tree holds no change, and the release job holds on the
+    report itself (build/ci/security-gate.py). And nothing else may shape either: each
+    has its keys (SCAN_KEYS, VERDICT_KEYS) and no other; no template it extends has a key
+    but rules: and those the job sets itself as a list or a value, which replace the
+    template's (a mapping, MERGED_KEYS, is merged into the job's own); default: gives
+    neither a before_script, an after_script or hooks it does not set itself
+    (DEFAULT_RUNS); the rules they take bring no needs, variables, allow_failure or
+    start_in, and no when but never or on_success, in a form this reads (unread_rules);
+    neither job, nor a template either reaches, is defined in a CI file but
+    .gitlab-ci.yml, since GitLab merges a second definition into the first; and nothing
+    Trivy reads beside its command line narrows what the scan reports - no CI file sets
+    a variable of Trivy's (TRIVY_VARIABLE), and the tree carries neither its
+    configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
+    written in a form this does not read, or written twice, is job_key_problems'; their
+    timeouts and tags are not held here (the runners' checks hold the tags), nor what
+    every job takes from the pipeline - .gitlab-ci.yml's variables: and workflow:, which
+    a GIT_STRATEGY there would break for every job alike, and the project's CI/CD
+    variables, which are not in the tree. texts is load_texts()'s; jobs is
+    .gitlab-ci.yml's blocks."""
     problems = []
     scan, verdict = jobs.get(SCAN_JOB), jobs.get(VERDICT_JOB)
     if scan is None:
         return ["%s is not a job of .gitlab-ci.yml" % SCAN_JOB]
-    script = re.search(r"^  script:[ \t]*\n((?:    .*\n?)+)", scan, re.MULTILINE)
-    if not script or [line.strip() for line in script.group(1).strip("\n").split("\n")] != ["- " + SCAN_COMMAND]:
+    if list_items(scan, "script") != ["- " + SCAN_COMMAND]:
         problems.append("%s's script is not %s alone, which ends 0 whatever the scans found and 2 when one could not run: "
                         "a job that ends otherwise on a finding loses its findings to GitLab's vulnerability report, which "
                         "takes no report of a job that failed" % (SCAN_JOB, SCAN_COMMAND))
+    if list_items(scan, "before_script") != ["- " + SCAN_BEFORE]:
+        problems.append("%s's before_script is not %s alone, which gives the script its Python: a line beside it could end "
+                        "the job before the scan runs, which then writes no verdict and no report, or fail it, and GitLab "
+                        "takes no report of a job that failed" % (SCAN_JOB, SCAN_BEFORE))
+    if sole_need(scan) != SCAN_NEED:
+        problems.append("%s does not need %s with its artifacts, not optionally, and nothing else (needs: [%s]): without the "
+                        "CI image's package database it scans no CI image, and calls that target unknown, not failed, so "
+                        "that the image's findings would go unsaid" % (SCAN_JOB, SCAN_NEED, SCAN_NEED))
+    if not re.search(r"^  allow_failure: true\s*$", scan, re.MULTILINE):
+        problems.append("%s is not allowed to fail (allow_failure: true): it fails only when a scan could not run - a "
+                        "database mirror that did not answer, say - which warns and holds no change" % SCAN_JOB)
     kept = re.search(r"^  artifacts:[ \t]*\n((?:    .*\n?)+)", scan, re.MULTILINE)
     kept = kept.group(1) if kept else ""
     if (not re.search(r"^    when: always\s*$", kept, re.MULTILINE)
@@ -2704,22 +2849,114 @@ def verdict_problems(jobs):
         problems.append("%s does not keep security/dependency-scan/ whatever it ends with (artifacts: when: always), with "
                         "its report for GitLab (reports: %s): the release's gate and %s read the files, and GitLab's "
                         "vulnerability report the report" % (SCAN_JOB, SCAN_REPORT, VERDICT_JOB))
+    artifact_keys, unread = sub_keys(scan, "artifacts")
+    beside = sorted(set(key for key in artifact_keys or [] if key not in SCAN_ARTIFACT_KEYS))
+    if beside or unread:
+        problems.append("%s's artifacts say %s, which they are held not to: %s alone, so that nothing - exclude, untracked - "
+                        "leaves its verdict or a report out of what is kept, which %s, the release's gate and GitLab read"
+                        % (SCAN_JOB, ", ".join(beside) or unread[0][:60], ", ".join(SCAN_ARTIFACT_KEYS), VERDICT_JOB))
+    if not image_is(scan, SCAN_IMAGE, SCAN_IMAGE_KEYS, entrypoint='[""]'):
+        problems.append("%s does not run in Trivy's image, aquasec/trivy:<version>@sha256:<digest>, with its entrypoint "
+                        "emptied (entrypoint: [\"\"]) and no key of its image's but %s: the script runs trivy, and the "
+                        "runner's shell starts in the image only when the entrypoint is not trivy's - without either the "
+                        "scan fails in every pipeline, and GitLab takes none of its report"
+                        % (SCAN_JOB, ", ".join(SCAN_IMAGE_KEYS)))
     if verdict is None:
         problems.append("%s is not a job of .gitlab-ci.yml: nothing would warn of a dependency finding, now that %s passes "
                         "whatever its scans found" % (VERDICT_JOB, SCAN_JOB))
-        return problems
-    if deciding_rules(VERDICT_JOB, jobs) != deciding_rules(SCAN_JOB, jobs):
-        problems.append("%s does not take %s's rules: GitLab creates no pipeline in which a job needs one it lacks, and in "
-                        "a pipeline it is not made in, %s's verdict goes unsaid" % (VERDICT_JOB, SCAN_JOB, SCAN_JOB))
-    entry = need_entries(verdict).get(SCAN_JOB)
-    if SCAN_JOB not in needs(verdict) or (entry is not None and re.search(r"artifacts:\s*false|optional:\s*true", entry)):
-        problems.append("%s does not need %s with its artifacts, not optionally: it would read no verdict" % (
-            VERDICT_JOB, SCAN_JOB))
-    if not re.search(r"^    - %s\s*$" % re.escape(VERDICT_COMMAND), verdict, re.MULTILINE):
-        problems.append("%s does not run %s, which fails on the verdict as %s used to" % (VERDICT_JOB, VERDICT_COMMAND, SCAN_JOB))
-    if not re.search(r"^  allow_failure: true\s*$", verdict, re.MULTILINE):
-        problems.append("%s is not allowed to fail (allow_failure: true), as %s was: a dependency finding in the whole tree "
-                        "warns and holds no change, and the release's gate holds on the report itself" % (VERDICT_JOB, SCAN_JOB))
+    else:
+        if deciding_rules(VERDICT_JOB, jobs) != deciding_rules(SCAN_JOB, jobs):
+            problems.append("%s does not take %s's rules: GitLab creates no pipeline in which a job needs one it lacks, and "
+                            "in a pipeline it is not made in, %s's verdict goes unsaid" % (VERDICT_JOB, SCAN_JOB, SCAN_JOB))
+        if sole_need(verdict) != SCAN_JOB:
+            problems.append("%s does not need %s with its artifacts, not optionally, and nothing else (needs: [%s]): it "
+                            "would read no verdict, or wait on another job too and be skipped when that one failed"
+                            % (VERDICT_JOB, SCAN_JOB, SCAN_JOB))
+        if list_items(verdict, "script") != ["- " + VERDICT_COMMAND]:
+            problems.append("%s does not run %s alone, which fails on the verdict as %s used to: a line before it could end "
+                            "the job first, and one after it, or more on its own line, could decide how the job ends"
+                            % (VERDICT_JOB, VERDICT_COMMAND, SCAN_JOB))
+        if not re.search(r"^  allow_failure: true\s*$", verdict, re.MULTILINE):
+            problems.append("%s is not allowed to fail (allow_failure: true), as %s was: a dependency finding in the whole "
+                            "tree warns and holds no change, and the release's gate holds on the report itself"
+                            % (VERDICT_JOB, SCAN_JOB))
+        if not image_is(verdict, VERDICT_IMAGE, VERDICT_IMAGE_KEYS):
+            problems.append("%s does not run in Docker Hub's Python image, python:<tag>@sha256:<digest>, with no key of its "
+                            "image's but %s: in an image without python3, or with an entrypoint of its own, it fails in "
+                            "every pipeline, and its warning says nothing" % (VERDICT_JOB, ", ".join(VERDICT_IMAGE_KEYS)))
+    # Nothing else shapes either job: no key beside its own, none from a template it
+    # extends or from default:, no rule that brings needs, variables, allow_failure or a
+    # when, and no definition in another CI file.
+    default_keys = own_keys(jobs.get("default", ""))
+    for name, wanted in ((SCAN_JOB, SCAN_KEYS), (VERDICT_JOB, VERDICT_KEYS)):
+        if name not in jobs:
+            continue
+        own = own_keys(jobs[name])
+        for key in sorted(set(key for key in own if key not in wanted)):
+            problems.append("%s has the key %s, which it is held not to have: its keys are %s alone, so that nothing beside "
+                            "them - a before_script or hooks that end the job first, an after_script that removes what the "
+                            "scan wrote before its artifacts are kept, dependencies that bring the verdict job no artifact, "
+                            "variables that leave the job no checkout (GIT_STRATEGY: none) or narrow what Trivy reports "
+                            "(TRIVY_SEVERITY), a when: its rules take for their own (manual, on_failure) - keeps the scan "
+                            "from writing its verdict and its reports, or the verdict job from reading the verdict and "
+                            "ending on it" % (name, key, ", ".join(wanted)))
+        replaced = set(["rules", "extends"]) | set(key for key in own if key not in MERGED_KEYS)
+        for template in template_order(name, jobs)[1:]:
+            for key in sorted(set(key for key in own_keys(jobs[template]) if key not in replaced)):
+                problems.append("%s takes %s from %s, a template it extends: GitLab gives a job every key of its templates' "
+                                "that it does not set itself, and merges a template's mapping into the job's own (%s), so "
+                                "that a template's before_script, variables, dependencies or when would shape the job past "
+                                "what this holds of it - a template of either job has rules: and the keys the job sets "
+                                "itself as a list or a value, and no other" % (name, key, template, ", ".join(MERGED_KEYS)))
+        for key in DEFAULT_RUNS:
+            if key in default_keys and key not in own:
+                problems.append("%s takes %s from .gitlab-ci.yml's default:, which gives it to every job that sets none of "
+                                "its own: it would run in the job beside its script - before it, and could end the job first, "
+                                "or after it, before its artifacts are kept - past what this holds of it" % (name, key))
+    taken, unread = [], []
+    for name in (SCAN_JOB, VERDICT_JOB):
+        deciding = [current for current in template_order(name, jobs) if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
+        if deciding:
+            unread += [line for line in unread_rules(deciding[0], jobs) if line not in unread]
+            taken += [item for item in rule_items(jobs[deciding[0]], jobs) if item not in taken]
+    if unread:
+        problems.append("the rules %s and %s take are written in a form this does not read (%s): each a list item of bare "
+                        "keys, or !reference [X, rules] with X a block of .gitlab-ci.yml, where GitLab's YAML reader takes "
+                        "other forms too, by which a rule could bring the jobs needs, variables or a when unseen"
+                        % (SCAN_JOB, VERDICT_JOB, unread[0][:80]))
+    for item in taken:
+        brought = re.findall(r"^[ \t]*(needs|variables|allow_failure|start_in)[ \t]*:", item, re.MULTILINE)
+        brought += ["when: %s" % when for when in re.findall(r"^[ \t]*when[ \t]*:[ \t]*(.*?)[ \t]*$", item, re.MULTILINE)
+                    if when not in ("never", "on_success")]
+        if brought:
+            problems.append("the rules %s and %s take have one that brings %s (%s): a rule that matches gives the job its "
+                            "needs, in place of its own, its variables, its allow_failure and its when, so that the scan "
+                            "could lose the CI image's packages or narrow what Trivy reports, and the verdict job read no "
+                            "verdict, hold a change or wait for a person; their rules say when: never or on_success, or "
+                            "nothing of it, and bring none of the others" % (SCAN_JOB, VERDICT_JOB, ", ".join(brought),
+                                                             item.strip().split("\n")[0][:80]))
+    every_ci = ci_files(texts)
+    for reached, paths in sorted(reached_definitions(every_ci, [SCAN_JOB, VERDICT_JOB]).items()):
+        elsewhere = [path for path in paths if path != ".gitlab-ci.yml"]
+        if elsewhere:
+            problems.append("%s is defined in %s: GitLab merges every definition of a name, a later include's keys over an "
+                            "earlier one's and .gitlab-ci.yml's over all, so that a key there that .gitlab-ci.yml's does not "
+                            "set - a before_script, variables, dependencies - would shape %s or %s past what this holds of "
+                            "them; each, and every template either reaches, is defined in .gitlab-ci.yml alone"
+                            % (reached, " and ".join(elsewhere), SCAN_JOB, VERDICT_JOB))
+    # What Trivy reads beside its command line (TRIVY_VARIABLE, TRIVY_FILES).
+    for path, text in sorted(every_ci.items()):
+        code = "\n".join(re.split(r"(?:^|\s)#", line, maxsplit=1)[0] for line in (text or "").split("\n"))
+        for name in sorted(set(match.group(1) for match in TRIVY_VARIABLE.finditer(code))):
+            problems.append("%s sets %s, which Trivy reads: it would narrow what %s reports, and so what %s fails on, past "
+                            "what this holds of the scan's command line - a finding that does not affect the project is "
+                            "dismissed in the VEX document, with its reason" % (path, name, SCAN_JOB, VERDICT_JOB))
+    carried = [name for name in TRIVY_FILES if name in texts.get("tree", [])]
+    if carried:
+        problems.append("the tree carries %s, which Trivy reads where %s runs it, at the root of the checkout: a "
+                        "configuration or an ignore file of Trivy's would narrow what the scan reports, and so what %s "
+                        "fails on - a finding that does not affect the project is dismissed in the VEX document, with its "
+                        "reason" % (" and ".join(carried), SCAN_JOB, VERDICT_JOB))
     return problems
 
 
@@ -5412,6 +5649,128 @@ def self_test(chain, feed):
            "  allow_failure: true\n  script:\n    - python3 build/ci/dependency-scan.py --verdict\n",
            "  script:\n    - python3 build/ci/dependency-scan.py --verdict\n",
            "dependency-scan-verdict is not allowed to fail")
+    # And nothing beside what either job is held to. Check 1 of the fix (15 October
+    # 2026) found four edits of dependency-scan-verdict that silence its warning or make
+    # it fire in every pipeline and passed the whole checker: - exit 0 before the
+    # --verdict line, before_script: [exit 0], dependencies: [] (no artifact, so no
+    # verdict) and variables: GIT_STRATEGY: none (no checkout, so no script). The four
+    # come first; then the others of their kind - a key of either job beside its own
+    # (when: manual, hooks, the scan's after_script and variables), its need, its image,
+    # the scan's before_script, allow_failure and the keys of its artifacts, a key a
+    # template either extends or default: gives it, a rule they take that brings
+    # variables, needs or a when, or is written in a form this does not read, and either
+    # defined again in an included file - and a quoted key, which is job_key_problems'.
+
+    def job_text(name):
+        """The raw text of a block of .gitlab-ci.yml, from its key's line to the next
+        line at column 0, a key's or a comment's."""
+        start = texts["ci"].find("\n%s:\n" % name)
+        if start < 0:
+            return ""
+        end = re.compile(r"^\S", re.MULTILINE).search(texts["ci"], start + len(name) + 3)
+        return texts["ci"][start:end.start() if end else len(texts["ci"])]
+
+    def broken_job(what, name, old, new, needle):
+        """broken() over .gitlab-ci.yml with old, once in the block name's own text, made new
+        there."""
+        block = job_text(name)
+        if block.count(old) != 1:
+            failures.append("%s: the text to break is not once in %s (%r)" % (what, name, old))
+            return
+        broken(what, "ci", block, block.replace(old, new, 1), needle)
+
+    verdict_script = "  script:\n    - python3 build/ci/dependency-scan.py --verdict\n"
+    verdict_image = re.search(r"^    name: (\S+)$", job_text(VERDICT_JOB), re.MULTILINE)
+    verdict_image = verdict_image.group(1) if verdict_image else "the verdict job's image not found"
+    held_verdict = "dependency-scan-verdict has the key %s, which it is held not to have"
+    for what, old, new, needle in (
+            ("the verdict job ending before it reads the verdict", verdict_script,
+             "  script:\n    - exit 0\n    - python3 build/ci/dependency-scan.py --verdict\n",
+             "dependency-scan-verdict does not run python3 build/ci/dependency-scan.py --verdict alone"),
+            ("the verdict job ending in a before_script", verdict_script, "  before_script: [exit 0]\n" + verdict_script,
+             held_verdict % "before_script"),
+            ("the verdict job given no artifact", "  timeout: 5 minutes\n", "  dependencies: []\n  timeout: 5 minutes\n",
+             held_verdict % "dependencies"),
+            ("the verdict job given no checkout", verdict_script, "  variables:\n    GIT_STRATEGY: none\n" + verdict_script,
+             held_verdict % "variables"),
+            ("the verdict job made manual", "  allow_failure: true\n", "  allow_failure: true\n  when: manual\n",
+             held_verdict % "when"),
+            ("the verdict job failing in a hook", "  allow_failure: true\n",
+             "  allow_failure: true\n  hooks:\n    pre_get_sources_script: [exit 1]\n", held_verdict % "hooks"),
+            ("the verdict job waiting on another job too", "  needs: [dependency-scan]\n",
+             "  needs: [dependency-scan, ci-image-packages]\n",
+             "dependency-scan-verdict does not need dependency-scan with its artifacts, not optionally, and nothing else"),
+            ("the verdict job in an image without python3", "    name: %s\n" % verdict_image,
+             "    name: alpine:3.22@sha256:%s\n" % ("0" * 64), "dependency-scan-verdict does not run in Docker Hub's Python image"),
+            ("the verdict job's image with an entrypoint of its own", "    name: %s\n" % verdict_image,
+             "    name: %s\n    entrypoint: [\"/bin/true\"]\n" % verdict_image,
+             "dependency-scan-verdict does not run in Docker Hub's Python image"),
+            ("the verdict job's before_script under a quoted key", verdict_script,
+             "  \"before_script\": [exit 0]\n" + verdict_script,
+             "dependency-scan-verdict in .gitlab-ci.yml has a key this checker does not read")):
+        broken_job(what, VERDICT_JOB, old, new, needle)
+    apk = "    - apk add --no-cache --quiet python3\n"
+    held_scan = "dependency-scan has the key %s, which it is held not to have"
+    for what, old, new, needle in (
+            ("the scan ending before it runs", apk, apk + "    - exit 0\n",
+             "dependency-scan's before_script is not apk add --no-cache --quiet python3 alone"),
+            ("the scan removing its reports before they are kept", "  artifacts:\n",
+             "  after_script:\n    - rm -rf security/dependency-scan\n  artifacts:\n", held_scan % "after_script"),
+            ("the scan narrowing what Trivy reports", "  artifacts:\n", "  variables:\n    TRIVY_SEVERITY: LOW\n  artifacts:\n",
+             held_scan % "variables"),
+            ("the scan given no artifact", "  needs: [ci-image-packages]\n", "  needs: [ci-image-packages]\n  dependencies: []\n",
+             held_scan % "dependencies"),
+            ("the scan made manual", "  allow_failure: true\n", "  allow_failure: true\n  when: manual\n", held_scan % "when"),
+            ("the scan without the CI image's packages", "  needs: [ci-image-packages]\n", "  needs: []\n",
+             "dependency-scan does not need ci-image-packages with its artifacts"),
+            ("the scan needing the CI image's packages without their artifacts", "  needs: [ci-image-packages]\n",
+             "  needs:\n    - job: ci-image-packages\n      artifacts: false\n",
+             "dependency-scan does not need ci-image-packages with its artifacts"),
+            ("the scan holding a change when it cannot run", "  allow_failure: true\n", "",
+             "dependency-scan is not allowed to fail"),
+            ("the scan's artifacts leaving its verdict out", "    when: always\n",
+             "    when: always\n    exclude:\n      - security/dependency-scan/verdict.json\n",
+             "dependency-scan's artifacts say exclude"),
+            ("the scan's image with Trivy's own entrypoint", "    entrypoint: [\"\"]\n", "",
+             "dependency-scan does not run in Trivy's image")):
+        broken_job(what, SCAN_JOB, old, new, needle)
+    broken_job("a template giving the verdict job a before_script", ".own-runners", ".own-runners:\n  rules:\n",
+               ".own-runners:\n  before_script: [exit 0]\n  rules:\n", "dependency-scan-verdict takes before_script from .own-runners")
+    broken_job("a template giving the scan variables", ".own-runners", ".own-runners:\n  rules:\n",
+               ".own-runners:\n  variables:\n    TRIVY_SEVERITY: LOW\n  rules:\n", "dependency-scan takes variables from .own-runners")
+    broken_job("default: giving the verdict job a before_script", "default", "  tags: [$HM_RUNNER]\n",
+               "  tags: [$HM_RUNNER]\n  before_script: [exit 0]\n",
+               "dependency-scan-verdict takes before_script from .gitlab-ci.yml's default:")
+    broken_job("default: giving the scan an after_script", "default", "  tags: [$HM_RUNNER]\n",
+               "  tags: [$HM_RUNNER]\n  after_script: [rm -rf security]\n",
+               "dependency-scan takes after_script from .gitlab-ci.yml's default:")
+    # The last rule of the two's, a protected ref's but a batch* branch's: BATCH_COMPARE,
+    # the two before it, is held by the rule on WHOLE_CHANGE_SCANS.
+    last_rule = ('    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"\n'
+                 '      changes:\n        paths: *not-docs-only\n')
+    for what, brought, needle in (("variables", "      variables:\n        TRIVY_SEVERITY: LOW\n", "have one that brings variables"),
+                                  ("needs of its own", "      needs: []\n", "have one that brings needs"),
+                                  ("when: manual", "      when: manual\n", "have one that brings when: manual"),
+                                  ("a key quoted", "      'variables': {TRIVY_SEVERITY: LOW}\n",
+                                   "are written in a form this does not read")):
+        broken_job("a rule the two take with %s" % what, ".scans-on-the-whole-change", last_rule, last_rule + brought,
+                   "the rules dependency-scan and dependency-scan-verdict take %s" % needle)
+    broken_include("the verdict job defined again in an included file", ".gitlab/ci/snap.yml",
+                   "\ndependency-scan-verdict:\n  before_script: [exit 0]\n", "dependency-scan-verdict is defined in .gitlab/ci/snap.yml")
+    broken_include("the scan defined again in an included file", ".gitlab/ci/snap.yml",
+                   "\ndependency-scan:\n  variables:\n    TRIVY_SEVERITY: LOW\n", "dependency-scan is defined in .gitlab/ci/snap.yml")
+    # And what Trivy reads beside its command line: a variable of its own that a CI file
+    # sets for every job, or for another job in flow style, and its configuration file or
+    # its ignore file at the root of the tree.
+    broken("a variable Trivy reads, given every job", "ci", '  PYTHONUTF8: "1"\n',
+           '  PYTHONUTF8: "1"\n  TRIVY_SEVERITY: CRITICAL\n', ".gitlab-ci.yml sets TRIVY_SEVERITY, which Trivy reads")
+    broken_include("a variable Trivy reads, in flow style in an included file", ".gitlab/ci/snap.yml",
+                   "\n.probe-trivy:\n  variables: {GIT_DEPTH: \"1\", TRIVY_IGNOREFILE: probe}\n",
+                   ".gitlab/ci/snap.yml sets TRIVY_IGNOREFILE, which Trivy reads")
+    for planted in TRIVY_FILES:
+        found, _ = check(dict(texts, tree=list(texts["tree"]) + [planted]), chain, feed)
+        if not any("the tree carries %s, which Trivy reads" % planted in p for p in found):
+            failures.append("a tree that carries Trivy's %s is caught: %s" % (planted, found))
     broken("the source scan allow_failure again", "ci", "  timeout: 120 minutes\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "  timeout: 120 minutes\n  allow_failure: true\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "static-analysis may fail without failing the pipeline")

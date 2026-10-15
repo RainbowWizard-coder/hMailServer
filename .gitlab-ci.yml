@@ -1713,8 +1713,10 @@ dependency-scan:
 # VERDICT). dependency-scan's rules, so that it is made in each pipeline that job is
 # made in and in no other: a pipeline whose job needs one it lacks is not created. On
 # linix whatever the switches say: it reads a file, and spends no minute.
-# build/check-release-chain.py holds it to all of this. The release needs dependency-scan
-# and not this: build/ci/security-gate.py reads the reports themselves.
+# build/check-release-chain.py holds it to all of this, and both jobs to the keys they
+# have and no other and to what a template, default:, a rule or another CI file may add
+# to them (verdict_problems). The release needs dependency-scan and not this:
+# build/ci/security-gate.py reads the reports themselves.
 dependency-scan-verdict:
   extends: .own-runners
   rules:
