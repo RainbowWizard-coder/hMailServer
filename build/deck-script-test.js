@@ -44,11 +44,23 @@ const CATALOGUES = nodePath.join(__dirname, '..', 'hmailserver', 'installation',
 // pages are the files. The Deck carries a copy of the renderer inline.
 const DOCS = nodePath.join(__dirname, '..', 'hmailserver', 'docs');
 const markdown = require(nodePath.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util', 'PortalMarkdown.js'));
+// The page of the wiki made from each document, as the server lists it in
+// /api/v1/help as the page's wiki_page: build/help-wiki-pages.txt, each line
+// a page of the wiki and the documents made into it (build/generate-help-pages.py).
+const wikiPageOf = (() => {
+   const table = {};
+   fs.readFileSync(nodePath.join(__dirname, 'help-wiki-pages.txt'), 'utf8').split(/\r?\n/).forEach((line) => {
+      const fields = line.replace(/#.*/, '').trim().split(/\s+/).filter(Boolean);
+      fields.slice(1).forEach((doc) => { table[doc.replace(/\.md$/, '')] = fields[0]; });
+   });
+   return (name) => table[name] || '';
+})();
 const helpPages = () => fs.readdirSync(DOCS).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
    .map((f) => {
       const body = fs.readFileSync(nodePath.join(DOCS, f), 'utf8').replace(/\r\n/g, '\n');
       const heads = markdown.headings(body);
-      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body), headings: heads };
+      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body),
+         wiki_page: wikiPageOf(f.slice(0, -3)), headings: heads };
    });
 
 const [pagePath, scriptPath] = process.argv.slice(2);
@@ -10383,8 +10395,11 @@ async function main() {
       $('#helpBody').textContent.slice(0, 120));
    check('the document\'s other headings are listed at the top, each a button', $('#helpHeads').querySelectorAll('button').length >= 5 &&
       $('#helpHeads').textContent.indexOf('In the archive') >= 0, $('#helpHeads').textContent);
-   check('Open on the wiki is the base URL the server answered with the document\'s name',
-      $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup', String($('#helpWiki').getAttribute('href')));
+   // The wiki names its pages its own way: the backup document's page is
+   // Backup-and-Restore, and a link of the document's name, Backup, opens
+   // GitLab's "page does not exist".
+   check('Open on the wiki is the base URL the server answered with the page the wiki made from the document, not the document\'s own name',
+      $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup-and-Restore', String($('#helpWiki').getAttribute('href')));
    // A wiki base that is not a web address - refused by the server when it is
    // set, but a value can reach the database another way - is no link. The
    // index is asked once per page, so the page is made to ask again, here by
@@ -10401,17 +10416,22 @@ async function main() {
       helpWikiBase = 'https://wiki.test/';
       await askAgain();
       check('and the web address is a link again once the server says one',
-         $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup', String($('#helpWiki').getAttribute('href')));
+         $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup-and-Restore', String($('#helpWiki').getAttribute('href')));
    }
    check('the choice to keep the pane open is remembered', localStorage.getItem('hmsHelp') === '1');
    before = requests.length;
    await goTo('rules');
    check('the pane follows the view: Rules opens the mail flow rules document',
       called(before, 'GET', '/api/v1/help/MailFlowRules').length === 1 && $('#helpTitle').textContent === 'Mail flow rules', paths(before) + ' ' + $('#helpTitle').textContent);
+   check('a document the wiki made no page from has no Open on the wiki link, rather than one to a page that does not exist: the mail flow rules',
+      wikiPageOf('MailFlowRules') === '' && $('#helpWiki').hidden === true && $('#helpWiki').getAttribute('href') === null,
+      JSON.stringify(wikiPageOf('MailFlowRules')) + ' ' + String($('#helpWiki').getAttribute('href')));
    before = requests.length;
    await goTo('queue');
    check('and a view mapped to a heading opens that document: the queue opens the stalled-mail runbook',
       called(before, 'GET', '/api/v1/help/DiagnosingStalledMail').length === 1 && $('#helpTitle').textContent === 'Diagnosing slow or stalled mail', paths(before));
+   check('whose Open on the wiki is the wiki\'s copy of it, Diagnosing-Stalled-Mail, again by the wiki\'s name',
+      $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Diagnosing-Stalled-Mail', String($('#helpWiki').getAttribute('href')));
    before = requests.length;
    await goTo('roles');
    check('the third of three: Roles opens the roles document', called(before, 'GET', '/api/v1/help/Roles').length === 1, paths(before));

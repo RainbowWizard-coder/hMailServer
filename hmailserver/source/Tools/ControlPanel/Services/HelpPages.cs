@@ -77,6 +77,32 @@ namespace hMailServer.ControlPanel.Services
          return "";
       }
 
+      /// <summary>
+      /// The page of the project's wiki made from the document - Backup-and-Restore
+      /// for Backup, since the wiki names its pages its own way - or null when no
+      /// page was (<see cref="HelpWikiPages"/>, generated from
+      /// build/help-wiki-pages.txt, the table the server answers the Deck and the
+      /// webmail with); without regard to case, as <see cref="Find"/> is.
+      /// </summary>
+      public static string WikiPageOf(string name)
+         => !string.IsNullOrEmpty(name) && HelpWikiPages.ByDocument.TryGetValue(name, out string page) ? page : null;
+
+      /// <summary>
+      /// What "Open on the wiki" opens for the document: the wiki base URL with the
+      /// wiki's page for the document added, or null - no link - when the base is
+      /// empty or not a web address (<see cref="WikiBaseUrlOrEmpty"/>) or the wiki
+      /// has no page made from the document. The page's name, never the document's:
+      /// the wiki has no page called Backup, and up to October 2026, while the link
+      /// was made of the document's name, it opened GitLab's "page does not exist"
+      /// for every document but two.
+      /// </summary>
+      public static string WikiUrl(string baseUrl, string name)
+      {
+         string usable = WikiBaseUrlOrEmpty(baseUrl);
+         string page = WikiPageOf(name);
+         return usable.Length == 0 || page == null ? null : usable + page;
+      }
+
       /// <summary>The document's title: its first level-one heading, or its name.</summary>
       public static string TitleOf(string name)
       {

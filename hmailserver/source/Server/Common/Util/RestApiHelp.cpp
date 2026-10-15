@@ -5,7 +5,8 @@
 // The documentation, served. See RestApiServer.h and HelpPages.h.
 //
 //    GET /api/v1/help           every page: its name, its title, its size in
-//                               bytes and its headings; the wiki base URL the
+//                               bytes, the wiki page made from it (or none)
+//                               and its headings; the wiki base URL the
 //                               "Open on the wiki" links are made against, and
 //                               the build tag
 //    GET /api/v1/help/{page}    one page's markdown, text/markdown
@@ -17,7 +18,11 @@
 // name of anything on this server - so a credential would protect nothing and
 // would keep the Deck's sign-in card from offering help. What the pages hold is
 // what build/generate-help-pages.py embedded when the server was built; the
-// wiki link is the only part that is this server's own.
+// wiki base URL is the only part that is this server's own. The wiki's pages
+// have names of their own (Backup-and-Restore, not Backup), so each page's
+// wiki_page is the one made from the document, as build/help-wiki-pages.txt
+// lists it, or empty where none was: a pane adds it to the base URL, and has
+// no wiki link for a document whose wiki_page is empty.
 //
 // {page} is a file name without its extension and without a path: Backup for
 // Backup.md, matched without regard to case because a link somebody typed is
@@ -183,7 +188,7 @@ namespace HM
          firstPage = false;
 
          body += "{\"name\":\"" + JsonEscape_(page->name) + "\",\"title\":\"" + JsonEscape_(HelpPageTitle_(*page)) + "\",\"bytes\":";
-         body += Number_((int) page->bytes) + ",\"headings\":[";
+         body += Number_((int) page->bytes) + ",\"wiki_page\":\"" + JsonEscape_(page->wikiPage) + "\",\"headings\":[";
 
          bool firstHeading = true;
          for (const HelpHeading *heading = page->headings; heading->text; heading++)
@@ -253,7 +258,7 @@ namespace HM
    {
       return
          ",\"/api/v1/help\":{\"get\":{\"summary\":\"The documentation carried in the binary, listed\","
-         "\"description\":\"Unauthenticated, as /deck-lang/ is: the text is the repository's own operator documentation (hmailserver/docs/*.md), public in the repository and on the wiki, and nothing of this server's own but the wiki base URL. {wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}. wiki is the HelpWikiBaseUrl setting, empty when the administrator hid the link; tag is the build tag the pages' ETags are made from; each page's name is what /api/v1/help/{page} takes, its title its first heading, its headings the level-one and level-two ones with the line each starts on, counted from 0. Answered Cache-Control: no-cache, since the wiki value rides in it, with an ETag of the build tag and a digest of that value, and 304 to an If-None-Match naming it.\","
+         "\"description\":\"Unauthenticated, as /deck-lang/ is: the text is the repository's own operator documentation (hmailserver/docs/*.md), public in the repository and on the wiki, and nothing of this server's own but the wiki base URL. {wiki, tag, pages:[{name, title, bytes, wiki_page, headings:[{text, level, line}]}]}. wiki is the HelpWikiBaseUrl setting, empty when the administrator hid the link; tag is the build tag the pages' ETags are made from; each page's name is what /api/v1/help/{page} takes, its title its first heading, its wiki_page the page of the project's wiki made from the document, which the link adds to wiki (Backup-and-Restore for Backup), or empty when the wiki has none and there is no link, and its headings the level-one and level-two ones with the line each starts on, counted from 0. Answered Cache-Control: no-cache, since the wiki value rides in it, with an ETag of the build tag and a digest of that value, and 304 to an If-None-Match naming it.\","
          "\"responses\":{\"200\":{\"description\":\"The list\"},\"304\":{\"description\":\"The browser's copy is current\"}}}},"
          "\"/api/v1/help/{page}\":{\"get\":{\"summary\":\"One page of the documentation, as markdown\","
          "\"description\":\"Unauthenticated. page is a file name without its extension and without a path - Backup for Backup.md - matched without regard to case. text/markdown; charset=utf-8, with Cache-Control for a day and an ETag from the build tag; a request whose If-None-Match names the tag is answered 304. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same 404.\","

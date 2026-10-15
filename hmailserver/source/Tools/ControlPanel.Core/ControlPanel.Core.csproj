@@ -90,8 +90,11 @@
     <!-- The program's embedded copy of the documentation, read from the assembly
          HelpPages was compiled into; with the resource group below, this assembly
          carries the same copy the program does, so HelpMapTests can hold it to the
-         directory - the names, the two exclusions, the bytes. -->
+         directory - the names, the two exclusions, the bytes. HelpWikiPages is the
+         wiki's page made from each document, generated from build/help-wiki-pages.txt
+         by build/generate-help-pages.py, which "Open on the wiki" opens. -->
     <Compile Include="..\ControlPanel\Services\HelpPages.cs" />
+    <Compile Include="..\ControlPanel\Services\HelpWikiPages.g.cs" />
     <Compile Include="..\ControlPanel\Services\WelcomeIntents.cs" />
     <!-- The Welcome page's areas: one per group of the tree the credential sees
          (review finding F276). Held by WelcomeAreasTests. -->

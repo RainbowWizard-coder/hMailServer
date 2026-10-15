@@ -5120,12 +5120,14 @@ namespace hMailServer.ControlPanel.Views
 
          // The help panes' "Open on the wiki" link, in all three surfaces. The
          // server refuses a value that is not empty and not an absolute http or
-         // https URL, in the same words the Deck shows.
+         // https URL, in the same words the Deck shows. The page added to it is
+         // the wiki's own name for the page made from the document, and a
+         // document no page was made from has no link (HelpPages.WikiUrl).
          general.Settings.Add(new ComText
          {
             Path = "HelpWikiBaseUrl",
             Label = L("Wiki the \"Open on the wiki\" link points at (empty = no link)"),
-            Blurb = L("The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki.")
+            Blurb = L("The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki.")
          });
 
          // The old label said "legacy COM admin tools", which was closer to the

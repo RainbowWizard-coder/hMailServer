@@ -36,6 +36,18 @@ Checked:
             help: mapped to the tab, linked from the page's document
             (REACHED_FROM), or another subject by a stated reason
             (NOT_THE_PAGES).
+  wiki      build/help-wiki-pages.txt, the wiki's pages and the documents
+            each was made from, which the panes' "Open on the wiki" opens:
+            every page named once and in a form a wiki page's name takes,
+            every document one the help carries and under one page only -
+            read by the generator's own reader, which refuses the same. With
+            --wiki and a clone of the wiki's repository, it is also held to
+            the wiki: its pages are exactly the table's, and each names in
+            its text every document the table lists under it - so a page the
+            wiki renamed or dropped, and a document a page no longer covers,
+            fail here rather than in a pane as GitLab's "page does not
+            exist", which every document but two opened while the link was
+            made of the document's name.
 
 What it reads the pages from, and so what it would not notice: a Control
 Panel page is a Page("key" call in NavigationMap.cs (HelpMapTests holds the
@@ -46,18 +58,25 @@ if (head === '...') test in Portal.js's route(), so a route written as a
 case label or looked up in a table would be missed. Keep the three spelled
 as they are, or teach this file the new spelling in the same change.
 
-Usage:  python build/check-help-map.py [--self-test]
+Usage:  python build/check-help-map.py [--self-test] [--wiki <clone of hmailserver.wiki> [--ref <branch>]]
   --self-test runs the same check over a copy of the maps with an entry
   naming a heading that is not there, one naming a document that is not, a
   tab its page does not build, a reference-only document named as a tab is,
   and the service account's document (whose title is not the card's word for
-  word) without the link that reaches it, and fails unless each is refused:
-  the negative controls.
+  word) without the link that reaches it, and over copies of the wiki table
+  and of a wiki with a document that is not one, a document under two pages,
+  a page the wiki does not have, a page of the wiki the table does not list
+  and a page that does not name a document listed under it, and fails unless
+  each is refused: the negative controls.
+  --wiki also holds the wiki table to the wiki's repository at --ref, by
+  default gitlab/master (the remote-tracking branch of a clone whose remote
+  is named gitlab; master in a plain clone).
 """
 import importlib.util
 import io
 import os
 import re
+import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -306,6 +325,88 @@ def check(maps, pages, reference, generator, cp, reached_from=None, not_the_page
     return problems
 
 
+def wiki_problems(rows, wiki):
+    """What is wrong with the wiki table's rows against the wiki itself, given as {page: text} for every .md
+    file at the top of its repository: the table must list exactly the wiki's pages, and each page must name
+    in its text - by file name, Backup.md - every document listed under it, which is how a page says it was
+    made from one, whether in its opening note or in the section that links it."""
+    problems = []
+    listed = set(page for page, docs, number in rows)
+    for page in sorted(set(wiki) - listed):
+        problems.append("wiki: the wiki has a page %s, which build/help-wiki-pages.txt does not list" % page)
+    for page, docs, number in rows:
+        where = "build/help-wiki-pages.txt:%d" % number
+        if page not in wiki:
+            problems.append("%s: the wiki has no page %s, so the documents listed under it would open GitLab's "
+                            "\"page does not exist\"" % (where, page))
+            continue
+        for doc in docs:
+            if doc not in wiki[page]:
+                problems.append("%s: the wiki's page %s does not name %s, which the table says it was made from"
+                                % (where, page, doc))
+    return problems
+
+
+def read_wiki(clone, ref):
+    """{page: text} for every .md file at the top of the wiki's repository at ref, read with git; or a problem
+    saying why it could not be read."""
+    def git(*args):
+        return subprocess.run(["git", "-C", clone] + list(args), capture_output=True, check=True).stdout
+    try:
+        names = [n for n in git("ls-tree", "-z", "--name-only", ref).decode("utf-8").split("\0") if n.endswith(".md")]
+        return dict((name[:-3], git("show", "%s:%s" % (ref, name)).decode("utf-8", "replace")) for name in names), None
+    except (OSError, subprocess.CalledProcessError) as error:
+        detail = getattr(error, "stderr", b"") or b""
+        return None, "wiki: %s at %s could not be read: %s" % (clone, ref, detail.decode("utf-8", "replace").strip() or error)
+
+
+def wiki_self_test(generator):
+    """The wiki table's negative controls: copies of the table and of a wiki made from it, each with one thing
+    wrong, every one refused by name - and the wiki made from the table accepted, so a check that refused
+    everything would fail too."""
+    failures = []
+    names = generator.page_names()
+    rows = generator.read_wiki_table()
+    made = [(page, list(docs), number) for page, docs, number in rows]
+    mapped = [(page, docs) for page, docs, number in made if docs]
+    unmapped = [page for page, docs, number in made if not docs]
+    wiki = dict((page, " ".join(docs)) for page, docs, number in made)
+
+    if generator.wiki_table_problems(made, names) or wiki_problems(made, wiki):
+        failures.append("the table as it is, against a wiki that holds it, was refused")
+
+    wrong = made + [(unmapped[0], ["NoSuchDocument.md"], 9001)]
+    if not any("NoSuchDocument.md, which is not a document the help carries" in p for p in generator.wiki_table_problems(wrong, names)):
+        failures.append("a table naming a document the help does not carry was accepted")
+
+    twice = mapped[0][1][0]
+    wrong = [(page, docs + ([twice] if page == mapped[1][0] else []), number) for page, docs, number in made]
+    if not any(twice + " is listed under" in p for p in generator.wiki_table_problems(wrong, names)):
+        failures.append("a table listing a document under two pages was accepted")
+
+    gone = dict(wiki)
+    del gone[mapped[0][0]]
+    if not any("the wiki has no page %s," % mapped[0][0] in p for p in wiki_problems(made, gone)):
+        failures.append("a page the wiki does not have was accepted")
+
+    more = dict(wiki, **{"A-Page-The-Table-Does-Not-List": ""})
+    if not any("A-Page-The-Table-Does-Not-List, which build/help-wiki-pages.txt does not list" in p for p in wiki_problems(made, more)):
+        failures.append("a page of the wiki the table does not list was accepted")
+
+    silent = dict(wiki, **{mapped[0][0]: ""})
+    if not any("does not name %s" % mapped[0][1][0] in p for p in wiki_problems(made, silent)):
+        failures.append("a page that does not name a document listed under it was accepted")
+
+    # The link as it was made up to October 2026: the base URL and the document's own name, as if the wiki had
+    # a page of that name for every document. Against the wiki the table describes, nearly every one is refused.
+    as_it_was = [(name, [name + ".md"], index + 1) for index, name in enumerate(names)]
+    refused = [p for p in wiki_problems(as_it_was, wiki) if "the wiki has no page" in p]
+    if len(refused) < len(names) - 2:
+        failures.append("the old link, the document's own name, was accepted for %d of %d documents"
+                        % (len(names) - len(refused), len(names)))
+    return failures
+
+
 def self_test(maps, pages, reference, generator, cp):
     """The negative control: a map with a heading that is not there, one with a document that is not, a tab
     entry naming a tab its page does not build, a reference-only document whose name is a tab's heading, the
@@ -358,27 +459,45 @@ def self_test(maps, pages, reference, generator, cp):
     return failures
 
 
+def option(name):
+    """The value given after an option, or None when it is not given; a missing value is an error."""
+    if name not in sys.argv:
+        return None
+    at = sys.argv.index(name)
+    if at + 1 >= len(sys.argv) or sys.argv[at + 1].startswith("--"):
+        sys.exit("%s needs a value" % name)
+    return sys.argv[at + 1]
+
+
 def main():
     generator = load_generator()
     maps, pages, reference, cp = parse_maps()
     if "--self-test" in sys.argv:
-        failures = self_test(maps, pages, reference, generator, cp)
+        failures = self_test(maps, pages, reference, generator, cp) + wiki_self_test(generator)
         for failure in failures:
             print("  FAIL  " + failure)
         if failures:
             return 1
         print("check-help-map self-test: the negative controls are refused")
         return 0
-    problems = check(maps, pages, reference, generator, cp)
+    rows = generator.read_wiki_table()
+    problems = check(maps, pages, reference, generator, cp) + generator.wiki_table_problems(rows, generator.page_names())
+    clone = option("--wiki")
+    ref = option("--ref") or "gitlab/master"
+    if clone is not None:
+        wiki, unreadable = read_wiki(clone, ref)
+        problems += [unreadable] if unreadable else wiki_problems(rows, wiki)
     for problem in problems:
         print("  FAIL  " + problem)
     if problems:
         print("%d problem(s)" % len(problems))
         return 1
+    with_page = sum(len(docs) for page, docs, number in rows)
     print("help map: %d Control Panel pages (%d with no guide yet) and %d of their tabs, %d Deck views, %d webmail pages "
-          "mapped; %d documents, %d reference-only" % (
+          "mapped; %d documents, %d reference-only; %d of the documents have a wiki page, among the wiki's %d pages%s" % (
               len(maps["Control Panel"]), sum(1 for d, h in maps["Control Panel"].values() if d is None), len(cp["tabs"]),
-              len(maps["Deck"]), len(maps["webmail"]), len(generator.page_names()), len(reference)))
+              len(maps["Deck"]), len(maps["webmail"]), len(generator.page_names()), len(reference), with_page, len(rows),
+              " (held to %s at %s)" % (clone, ref) if clone is not None else ""))
     return 0
 
 

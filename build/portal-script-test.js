@@ -276,11 +276,23 @@ window.hmMarkdown = require(require('path').resolve(scriptPath.slice(0, Math.max
 // The documentation the help pane shows: the repository's hmailserver/docs,
 // which the server embeds and answers at /api/v1/help and /api/v1/help/<page>.
 const docsDir = require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) + '../../../../docs');
+// The page of the wiki made from each document, as the server lists it in
+// /api/v1/help as the page's wiki_page: build/help-wiki-pages.txt, each line
+// a page of the wiki and the documents made into it (build/generate-help-pages.py).
+const wikiPageOf = (() => {
+   const table = {};
+   fs.readFileSync(require('path').join(__dirname, 'help-wiki-pages.txt'), 'utf8').split(/\r?\n/).forEach((line) => {
+      const fields = line.replace(/#.*/, '').trim().split(/\s+/).filter(Boolean);
+      fields.slice(1).forEach((doc) => { table[doc.replace(/\.md$/, '')] = fields[0]; });
+   });
+   return (name) => table[name] || '';
+})();
 const helpPages = () => fs.readdirSync(docsDir).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
    .map((f) => {
       const body = fs.readFileSync(require('path').join(docsDir, f), 'utf8').replace(/\r\n/g, '\n');
       const heads = window.hmMarkdown.headings(body);
-      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body), headings: heads };
+      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body),
+         wiki_page: wikiPageOf(f.slice(0, -3)), headings: heads };
    });
 // A confirm box the test answers: what was asked is recorded, the answer is scripted.
 const confirms = [];
@@ -8367,8 +8379,11 @@ async function main() {
       document.getElementById('help-body').textContent.slice(0, 120));
    check('the document\'s other headings are listed at the top, each a button', helpTags('help-heads', 'BUTTON').length >= 4 &&
       document.getElementById('help-heads').textContent.indexOf('What the reader chooses') >= 0, document.getElementById('help-heads').textContent);
-   check('Open on the wiki is the base URL the server answered with the document\'s name',
-      document.getElementById('help-wiki').hidden === false && document.getElementById('help-wiki').getAttribute('href') === 'https://wiki.test/OfflineMail',
+   // The wiki names its pages its own way: the webmail's documents went into
+   // its page The-Webmail, and a link of the document's name, OfflineMail,
+   // opens GitLab's "page does not exist".
+   check('Open on the wiki is the base URL the server answered with the page the wiki made from the document, not the document\'s own name',
+      document.getElementById('help-wiki').hidden === false && document.getElementById('help-wiki').getAttribute('href') === 'https://wiki.test/The-Webmail',
       String(document.getElementById('help-wiki').getAttribute('href')));
    check('the choice to keep the pane open is remembered', localStorage.getItem('hmPortalHelp') === '1');
    beforeHelp = requests.length;
@@ -8413,6 +8428,13 @@ async function main() {
       document.getElementById('help-title').textContent === helpSaid('All documentation') &&
       helpTags('help-body', 'BUTTON').length === helpPages().length,
       document.getElementById('help-title').textContent + ' ' + helpTags('help-body', 'BUTTON').length + ' of ' + helpPages().length);
+   const autoBanButton = helpAll(document.getElementById('help-body'), (n) => n.tagName === 'BUTTON' && n.textContent.indexOf('AutoBan.md') >= 0)[0];
+   if (autoBanButton) { autoBanButton.dispatchEvent(makeEvent('click')); }
+   await flush();
+   check('a document the wiki made no page from has no Open on the wiki link, rather than one to a page that does not exist: the auto-ban document, opened from the list',
+      wikiPageOf('AutoBan') === '' && document.getElementById('help-title').textContent === 'Auto-ban, and who it never bans' &&
+      document.getElementById('help-wiki').hidden === true && document.getElementById('help-wiki').getAttribute('href') === null,
+      document.getElementById('help-title').textContent + ' ' + String(document.getElementById('help-wiki').getAttribute('href')));
    // The pane holds still. route() runs for every message opened from the
    // list, and the pane follows it; what it followed last is remembered, so
    // a route to the same document and heading moves nothing, another

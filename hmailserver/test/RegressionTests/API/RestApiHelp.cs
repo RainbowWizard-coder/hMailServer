@@ -109,6 +109,36 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("Each page of GET /api/v1/help names, as its wiki_page, the page of the project's wiki made from the document, as build/help-wiki-pages.txt in the tree lists it - Backup-and-Restore for Backup, the wiki's own name - or nothing for a document the wiki has no page for, which the Deck and the webmail then show no wiki link for: the link they make is the wiki setting with that page, never with the document's own name, which opened GitLab's \"page does not exist\" for every document but two.")]
+      public void EachPageNamesTheWikisPageMadeFromIt_OrNone()
+      {
+         _settings.HelpWikiBaseUrl = "https://gitlab.com/hmailserver/hmailserver/-/wikis/";
+         Dictionary<string, object> answer = MiniJson.Object(Http("GET", "/api/v1/help", null, authorization: null).body);
+         Dictionary<string, string> table = WikiTable(out HashSet<string> wikiPages);
+
+         var linked = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (object item in (List<object>) answer["pages"])
+         {
+            var page = (Dictionary<string, object>) item;
+            string name = (string) page["name"];
+            Assert.IsTrue(page.ContainsKey("wiki_page"), name + ": the list names no wiki page for it, not even an empty one");
+            string wikiPage = (string) page["wiki_page"];
+            Assert.AreEqual(table.TryGetValue(name, out string listed) ? listed : "", wikiPage, name + ": the wiki page is the table's");
+            if (wikiPage.Length > 0)
+            {
+               Assert.IsTrue(wikiPages.Contains(wikiPage), name + ": " + wikiPage + " is not a page of the wiki");
+               linked[name] = (string) answer["wiki"] + wikiPage;
+            }
+         }
+
+         Assert.AreEqual(table.Count, linked.Count, "Every document the table gives a page has one in the list.");
+         Assert.AreEqual("https://gitlab.com/hmailserver/hmailserver/-/wikis/Backup-and-Restore", linked["Backup"]);
+         Assert.AreEqual("https://gitlab.com/hmailserver/hmailserver/-/wikis/Diagnosing-Stalled-Mail", linked["DiagnosingStalledMail"]);
+         Assert.IsFalse(linked.ContainsKey("SetupChecklist"), "The first-hour checklist has no page on the wiki, and no link.");
+         CollectionAssert.IsSubsetOf(new[] { "Fuzzing", "Migration" }, linked.Keys, "The two documents whose own names are wiki pages keep their links.");
+      }
+
+      [Test]
       [Description("GET /api/v1/help/{page} answers the document's markdown byte for byte as the file in the tree (CRLF made LF), as text/markdown with a day's Cache-Control, nosniff and an ETag of the build tag and the page name; a request whose If-None-Match names that tag is answered 304 with no body; the name is matched without regard to case; and no credential is asked.")]
       public void APageAnswersItsMarkdownByteForByte()
       {
@@ -256,6 +286,31 @@ namespace RegressionTests.API
          string path = Paths.Combine(DocsDirectory, name + ".md");
          Assert.IsTrue(File.Exists(path), "Missing file: " + path);
          return File.ReadAllText(path, Encoding.UTF8).Replace("\r\n", "\n");
+      }
+
+      /// <summary>
+      /// build/help-wiki-pages.txt as build/generate-help-pages.py reads it: each
+      /// line not blank or a comment a page of the wiki, then the documents it was
+      /// made from. The document's name without .md, to the page; every page.
+      /// </summary>
+      private static Dictionary<string, string> WikiTable(out HashSet<string> wikiPages)
+      {
+         string path = Paths.Combine(RepositoryRoot, @"build\help-wiki-pages.txt");
+         Assert.IsTrue(File.Exists(path), "Missing file: " + path);
+
+         var table = new Dictionary<string, string>(StringComparer.Ordinal);
+         wikiPages = new HashSet<string>(StringComparer.Ordinal);
+         foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+         {
+            int comment = line.IndexOf('#');
+            string[] fields = (comment < 0 ? line : line.Substring(0, comment)).Split((char[]) null, StringSplitOptions.RemoveEmptyEntries);
+            if (fields.Length == 0)
+               continue;
+            wikiPages.Add(fields[0]);
+            foreach (string doc in fields.Skip(1))
+               table.Add(doc.Substring(0, doc.Length - 3), fields[0]);
+         }
+         return table;
       }
 
       private sealed class Heading

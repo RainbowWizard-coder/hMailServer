@@ -1936,7 +1936,9 @@ namespace hMailServer.ControlPanel
       /// server's HelpWikiBaseUrl setting over COM - late-bound, as the settings
       /// pages read, so a server without the property (an older one) is a
       /// server whose link goes to the project's wiki rather than a failed
-      /// connection. An empty value is the administrator hiding the link.
+      /// connection. An empty value is the administrator hiding the link. The
+      /// page added to it is this program's own: the one the wiki made from the
+      /// document (HelpPages.WikiUrl), whatever the server's version.
       /// </summary>
       private static string ReadHelpWikiBaseUrl_()
       {

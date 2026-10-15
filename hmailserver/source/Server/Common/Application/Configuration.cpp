@@ -267,11 +267,14 @@ namespace HM
       settings.EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, ReputationWatch::DefaultLists);
       settings.EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
 
-      // The help panes' "Open on the wiki" link: the project's wiki, since that
-      // is where the same documents are published. Empty hides the link. Shipped
-      // at the group's path from 6.3.6; a database set up before keeps the first
-      // path's address, which GitLab redirects there since the project moved on
-      // 29 September 2026 (docs/Help.md, "The wiki link").
+      // The help panes' "Open on the wiki" link: the project's wiki, whose pages
+      // are written from the documents under names of the wiki's own, so a link
+      // is this with the page made from the document added, and a document no
+      // page was made from has none (Util/HelpPages.h). Empty hides the link.
+      // Shipped at the group's path from 6.3.6; a database set up before keeps
+      // the first path's address, which GitLab redirects there, page by page,
+      // since the project moved on 29 September 2026 (docs/Help.md, "The wiki
+      // link").
       settings.EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/hmailserver/hmailserver/-/wikis/"));
       settings.EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 

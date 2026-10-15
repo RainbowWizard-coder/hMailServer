@@ -35,7 +35,11 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The document's file name, extension included: "Backup.md"; null for <see cref="NoGuide"/>.</summary>
       public string Doc { get; }
 
-      /// <summary>The document's name without the extension: what the routes and the wiki take.</summary>
+      /// <summary>
+      /// The document's name without the extension: what the routes take, and what
+      /// <see cref="HelpPages.WikiPageOf"/> looks the wiki's page for it up by - the
+      /// wiki names its pages its own way.
+      /// </summary>
       public string Name => Doc == null ? null : Doc.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? Doc.Substring(0, Doc.Length - 3) : Doc;
 
       /// <summary>The heading to open on, or null for the top of the document.</summary>

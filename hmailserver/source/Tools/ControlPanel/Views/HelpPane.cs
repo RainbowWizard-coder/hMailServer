@@ -25,13 +25,15 @@ namespace hMailServer.ControlPanel.Views
    /// showing, in a pane to the right of it - never a window, never a dialog,
    /// so the page stays usable while the text is open. The text is this
    /// program's own embedded copy of hmailserver/docs (<see cref="HelpPages"/>),
-   /// which is what the server serves at /api/v1/help and what the wiki's
-   /// pages are written from; the page is mapped to its document and heading
+   /// which is what the server serves at /api/v1/help and what many of the
+   /// wiki's pages are written from, under names of their own; the page is
+   /// mapped to its document and heading
    /// by <see cref="HelpMap"/>, read by <see cref="MarkdownBlocks"/> and drawn
    /// by <see cref="MarkdownFlow"/> into a FlowDocumentScrollViewer, scrolled
    /// to the heading, with the document's other headings as a list at the
    /// top, a search box over the open document, and two links at the foot:
-   /// the wiki's copy of the page, and every document by its title, grouped as
+   /// the wiki's page made from the document, where the wiki has one
+   /// (<see cref="HelpPages.WikiUrl"/>), and every document by its title, grouped as
    /// the sidebar is, with Back to what a link in the pane left (HelpPane.List.cs).
    /// The shell (MainWindow) owns the pane's column, its width and whether it is
    /// open, and tells it the page as the navigation changes.
@@ -62,7 +64,8 @@ namespace hMailServer.ControlPanel.Views
       private IReadOnlyDictionary<string, Block> headingBlocks_ = new Dictionary<string, Block>();
 
       /// <summary>
-      /// The wiki base URL "Open on the wiki" is made against; empty hides the
+      /// The wiki base URL "Open on the wiki" is made against, with the wiki's
+      /// page for the document added; empty hides the
       /// link. Kept only when it is a web address (<see cref="HelpPages.WikiBaseUrlOrEmpty"/>):
       /// the value reaches ShellExecute, and the server's setters are the
       /// only other guard - a row written by SQL, or by a server of another
@@ -171,7 +174,8 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(viewer_, 3);
          root.Children.Add(viewer_);
 
-         // The foot: the wiki's copy of this page, and the whole set.
+         // The foot: the wiki's page made from this document, where there is one,
+         // and the whole set.
          var foot = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
          wikiButton_ = new Button { Content = L("Open on the _wiki"), Appearance = ControlAppearance.Secondary, Margin = new Thickness(0, 0, 8, 0), Visibility = Visibility.Collapsed };
          AutomationProperties.SetAutomationId(wikiButton_, "help-wiki");
@@ -502,20 +506,30 @@ namespace hMailServer.ControlPanel.Views
          return slug.ToString().TrimEnd('-');
       }
 
+      /// <summary>
+      /// The wiki's page for the document showing, or null: the base with the page
+      /// the wiki made from the document (HelpPages.WikiUrl), so a document the
+      /// wiki has no page for, the list of documents and a page with no guide have
+      /// no wiki link, rather than one to GitLab's "page does not exist".
+      /// </summary>
+      private string WikiUrl_() => shown_ == null ? null : HelpPages.WikiUrl(wikiBaseUrl_, shown_);
+
       private void UpdateWikiLink_()
       {
-         wikiButton_.Visibility = string.IsNullOrEmpty(wikiBaseUrl_) || shown_ == null ? Visibility.Collapsed : Visibility.Visible;
-         wikiButton_.ToolTip = shown_ == null ? null : wikiBaseUrl_ + shown_;
+         string url = WikiUrl_();
+         wikiButton_.Visibility = url == null ? Visibility.Collapsed : Visibility.Visible;
+         wikiButton_.ToolTip = url;
       }
 
       private void OpenWiki_()
       {
-         if (string.IsNullOrEmpty(wikiBaseUrl_) || shown_ == null)
+         string url = WikiUrl_();
+         if (url == null)
             return;
 
          try
          {
-            Process.Start(new ProcessStartInfo(wikiBaseUrl_ + shown_) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {

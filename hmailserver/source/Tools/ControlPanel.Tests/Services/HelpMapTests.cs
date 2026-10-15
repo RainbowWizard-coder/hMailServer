@@ -386,6 +386,134 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(expected, HelpPages.WikiBaseUrlOrEmpty(value));
       }
 
+      /// <summary>
+      /// "Open on the wiki" opens the wiki's page made from the document, by the
+      /// wiki's own name for it - the wiki has no page called Backup, and a link
+      /// made of the document's name opened GitLab's "page does not exist" for
+      /// every document but two - with the base the server holds, the one shipped
+      /// up to 6.3.5 included (GitLab redirects it to the group's path); and no
+      /// link at all for a document the wiki has no page for, for no base, and for
+      /// a base that is not a web address.
+      /// </summary>
+      [Theory]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "Backup", "https://gitlab.com/hmailserver/hmailserver/-/wikis/Backup-and-Restore")]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "DiagnosingStalledMail", "https://gitlab.com/hmailserver/hmailserver/-/wikis/Diagnosing-Stalled-Mail")]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "backup", "https://gitlab.com/hmailserver/hmailserver/-/wikis/Backup-and-Restore")]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "OfflineMail", "https://gitlab.com/hmailserver/hmailserver/-/wikis/The-Webmail")]
+      [InlineData("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/", "SecureDefaults", "https://gitlab.com/Progressiverobot/hmailserver/-/wikis/Secure-Defaults")]
+      [InlineData("  https://wiki.example.test/w/  ", "Migration", "https://wiki.example.test/w/Migration")]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "SetupChecklist", null)]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "SettingsReasons", null)]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "NoSuchDocument", null)]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", null, null)]
+      [InlineData("", "Backup", null)]
+      [InlineData(null, "Backup", null)]
+      [InlineData("javascript:alert(1)//", "Backup", null)]
+      [InlineData("file:///C:/wiki/", "Backup", null)]
+      public void TheWikiLinkIsTheWikisOwnPageForTheDocument(string baseUrl, string name, string expected)
+      {
+         Assert.Equal(expected, HelpPages.WikiUrl(baseUrl, name));
+      }
+
+      /// <summary>
+      /// Every document the program carries either opens a page the wiki has - one
+      /// of those build/help-wiki-pages.txt lists, which build/check-help-map.py
+      /// --wiki holds to the wiki's repository - or has no wiki link: none opens
+      /// the base with its own name unless that is the wiki's name for its page
+      /// too. And the program's table is the file's, line for line, so a table
+      /// edited without running build/generate-help-pages.py fails here as well as
+      /// in its --check.
+      /// </summary>
+      [Fact]
+      public void EveryDocumentOpensAPageTheWikiHas_OrNoWikiLinkAtAll()
+      {
+         const string Base = "https://gitlab.com/hmailserver/hmailserver/-/wikis/";
+         Dictionary<string, string> table = ReadWikiTable_(out HashSet<string> wikiPages);
+
+         var wrong = new List<string>();
+         int linked = 0;
+         foreach (string name in HelpPages.Names)
+         {
+            string url = HelpPages.WikiUrl(Base, name);
+            if (url == null)
+            {
+               if (table.ContainsKey(name))
+                  wrong.Add(name + ": the table gives it " + table[name] + ", and it has no link");
+               continue;
+            }
+
+            linked++;
+            string page = url.Substring(Base.Length);
+            if (!wikiPages.Contains(page))
+               wrong.Add(name + ": opens " + page + ", which is not a page of the wiki");
+            if (!table.TryGetValue(name, out string listed) || listed != page)
+               wrong.Add(name + ": opens " + page + ", where the table gives " + (listed ?? "no page"));
+         }
+
+         Assert.True(wrong.Count == 0, string.Join("; ", wrong));
+         Assert.Equal(table.Count, linked);
+         Assert.Equal(table.OrderBy(e => e.Key, StringComparer.Ordinal), HelpWikiPages.ByDocument.OrderBy(e => e.Key, StringComparer.Ordinal));
+         // The finding, as it was: of every document, only Fuzzing and Migration
+         // are names the wiki has a page of.
+         Assert.Equal(new[] { "Fuzzing", "Migration" }, HelpPages.Names.Where(wikiPages.Contains).OrderBy(n => n, StringComparer.Ordinal));
+      }
+
+      /// <summary>
+      /// The pane's foot link is made by HelpPages.WikiUrl - shown, given its tool
+      /// tip and opened from the one address - and never of the base and the
+      /// document's own name, which is what it was made of until October 2026. A
+      /// source test because the pane is WPF and this project has no window, as
+      /// the scroll's test above is.
+      /// </summary>
+      [Fact]
+      public void ThePaneOpensTheWikisPage_NotTheDocumentsName()
+      {
+         string pane = File.ReadAllText(Path.Combine(FindControlPanel(), "Views", "HelpPane.cs"));
+
+         Assert.Contains("HelpPages.WikiUrl(wikiBaseUrl_, shown_)", pane, StringComparison.Ordinal);
+         Assert.DoesNotContain("wikiBaseUrl_ + shown_", pane, StringComparison.Ordinal);
+         string update = WithheldRowTests.MemberText(pane, "private void UpdateWikiLink_()");
+         string open = WithheldRowTests.MemberText(pane, "private void OpenWiki_()");
+         Assert.True(update != null && open != null, "HelpPane no longer draws and opens its wiki link in UpdateWikiLink_ and OpenWiki_.");
+         Assert.Contains("WikiUrl_()", update, StringComparison.Ordinal);
+         Assert.Contains("url == null ? Visibility.Collapsed : Visibility.Visible", update, StringComparison.Ordinal);
+         Assert.Contains("wikiButton_.ToolTip = url;", update, StringComparison.Ordinal);
+         Assert.Contains("WikiUrl_()", open, StringComparison.Ordinal);
+         Assert.Contains("new ProcessStartInfo(url)", open, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// build/help-wiki-pages.txt as build/generate-help-pages.py reads it: every
+      /// line not blank or a comment, a page of the wiki and then the documents it
+      /// was made from. The documents' names without .md, to the page; and every
+      /// page of the wiki the file lists.
+      /// </summary>
+      private static Dictionary<string, string> ReadWikiTable_(out HashSet<string> pages)
+      {
+         string file = null;
+         for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null && file == null; at = at.Parent)
+         {
+            string candidate = Path.Combine(at.FullName, "build", "help-wiki-pages.txt");
+            if (File.Exists(candidate))
+               file = candidate;
+         }
+         Assert.True(file != null, "build/help-wiki-pages.txt is not above " + AppContext.BaseDirectory);
+
+         var table = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+         pages = new HashSet<string>(StringComparer.Ordinal);
+         foreach (string line in File.ReadAllLines(file))
+         {
+            int comment = line.IndexOf('#');
+            string[] fields = (comment < 0 ? line : line.Substring(0, comment)).Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            if (fields.Length == 0)
+               continue;
+            pages.Add(fields[0]);
+            foreach (string doc in fields.Skip(1))
+               table.Add(doc.EndsWith(".md", StringComparison.Ordinal) ? doc.Substring(0, doc.Length - 3) : doc, fields[0]);
+         }
+         return table;
+      }
+
       private static string FindControlPanel()
       {
          for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)

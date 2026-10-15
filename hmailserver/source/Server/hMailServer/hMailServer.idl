@@ -1054,8 +1054,8 @@ interface IInterfaceSettings : IDispatch{
 
    // The help panes (Common/Util/HelpPages.h). Stored in hm_settings. 175 is
    // the next free id on this interface; 141 to 174 are taken further up.
-   [propget, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([out, retval] BSTR *pVal);
-   [propput, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([in] BSTR newVal);
+   [propget, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the wiki's page made from the document added, and no link for a document the wiki has no page for - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([out, retval] BSTR *pVal);
+   [propput, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the wiki's page made from the document added, and no link for a document the wiki has no page for - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([in] BSTR newVal);
 
    // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md).
    // Stored in hm_settings. 176 to 179 are the next free ids on this interface.

@@ -4113,6 +4113,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   starts from one document in the pane's face, size and colour, ragged right and unhyphenated
   (`MarkdownFlow.NewDocument`). `HelpDocumentTypographyTests` holds it.
 
+- **Fixed: *Open on the wiki* opened a page that does not exist, for every document but two, in all three help
+  panes.** The Control Panel's, the Control Deck's and the webmail's help panes made the link of the wiki base URL and
+  the document's own name - `.../-/wikis/Backup`, `.../-/wikis/DiagnosingStalledMail` - and the wiki names its pages
+  its own way, `Backup-and-Restore` and `Diagnosing-Stalled-Mail`: of the 124 documents the help carries only
+  `Fuzzing.md` and `Migration.md` opened a page, and every other one GitLab's "page does not exist" (to a GitLab user
+  who may write the wiki, its form for a new page). The link is now the base with the page of the wiki made from the
+  document - its copy, or the page written from it - from one table, `build/help-wiki-pages.txt`, which lists every
+  page of the wiki with the documents each was made from. `GET /api/v1/help` answers each document's page as its
+  `wiki_page` to the Deck and the webmail, and the Control Panel carries the same table, so it gives the wiki's names
+  to a server of any version. A document no page was made from - 62 of the 124, the settings pages' reasons and the
+  first-hour checklist among them - has no wiki link, rather than one to nothing. The setting is unchanged, 6.3.5's
+  address included, which GitLab redirects page by page; an address of an administrator's own gets the wiki's page
+  names too, as the Advanced page's sentence under it now says, in the seventeen languages. `build/check-help-map.py`
+  holds the table to the documents in every pipeline, and with `--wiki` to a clone of the wiki - its pages are the
+  table's, and each names the documents listed under it ([Help.md](hmailserver/docs/Help.md), "The wiki link").
+  `HelpMapTests`, `RestApiHelp`, the Deck's and the webmail's harnesses and the checker's self-test hold it; against
+  the pages before the fix, the harnesses' checks failed on `https://wiki.test/Backup`, `.../MailFlowRules` and
+  `.../OfflineMail`. Found by the release review of 6.3.7.
+
 - **Fixed: German quotations closed with a straight typewriter quote.** 83 German texts opened a quotation with „
   and closed it with ", so the palette's placeholder read „Spam stoppen", DNS records „v=DMARC1" and the setup
   checklist „Prüfen", beside „Sicherung jetzt starten“ closed properly elsewhere. Every German quotation now closes

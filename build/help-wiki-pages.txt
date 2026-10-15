@@ -1,0 +1,113 @@
+# The project's wiki, page by page, and the documents each page was made from: what the help panes'
+# "Open on the wiki" opens. The wiki's pages have names of their own - Backup-and-Restore, not
+# Backup - so the link is the HelpWikiBaseUrl setting with the page's name, never the document's,
+# and a document no page was made from has no link at all.
+#
+# build/generate-help-pages.py reads this file into the server (HelpPagesData.cpp, which
+# GET /api/v1/help answers to the Control Deck and the webmail as each page's wiki_page) and into
+# the Control Panel (Services/HelpWikiPages.g.cs); build/check-help-map.py holds it to the documents
+# in every pipeline and, given the wiki's repository with --wiki, to the wiki itself. docs/Help.md,
+# "The wiki link", says how the three panes use it.
+#
+# One line for every page of the wiki - every .md file at the top of the wiki's repository - and
+# after the page's name, the documents (hmailserver/docs) it was made from, or none:
+#   * a page that is a document's copy - its opening says "Source of truth: hmailserver/docs/X.md,
+#     kept in the repository and copied here", or that it is "the wiki copy of" it;
+#   * a page written from documents - "Written ... from hmailserver/docs/X.md, Y.md and Z.md", or,
+#     for The Webmail, from "the operator documents under hmailserver/docs that each section links":
+#     the documents its sections link;
+#   * the manual's chapter brought up against a document (Backup and Restore, against Backup.md).
+# A document a page names for a part of its own subject, or points at, is not the page's: RemoteDomains.md
+# on Encryption for People (its gateway encryption), ActiveActive.md on the High Availability Runbook,
+# ContinuousIntegration.md, TestLab.md, Webhooks.md and ControlPanelDesign.md where they are pointed at.
+# A document two pages were made from is the page's that is its copy, then the one about its own
+# subject: Upgrading.md is the Upgrading guide's copy, not the chapter Upgrading hMailServer's;
+# UpdateFeed.md is The Update Feed's; BounceSuppression.md is Outbound Shaping's, not Mailing Lists';
+# ConfidentialMessages.md and PersonalData.md are the pages' written from them by name, which The
+# Webmail links as well. A document appears once; README.md and DeckParity.md, which the help does not
+# carry, never.
+#
+# When the wiki gains, loses or renames a page, or a page is made from another document, change this
+# file in the same change and run, with a clone of hmailserver.wiki:
+#   python build/check-help-map.py --wiki <the clone> [--ref <its branch>]
+#   python build/generate-help-pages.py
+# The first holds every line to the wiki - its pages are exactly these, and each names the documents
+# listed after it - and the second writes the two generated files.
+#
+# Checked against hmailserver.wiki at master 956183fada8a (5 October 2026) and main 0e084f7c24ab
+# (27 September 2026, the branch GitLab shows), which hold the same 74 pages, on 15 October 2026.
+
+APIs-Reference
+Aliases-Lists-and-Public-Folders
+Architecture
+Assurance-Case
+Backup-and-Restore                  Backup.md
+Before-You-Install
+Capabilities-and-Configuration
+Changes-Since-6210
+Command-Line                        CommandLine.md
+Compliance-and-eDiscovery           Discovery.md PersonalData.md
+Connecting-a-Mail-Client
+Contributing
+Control-Panel-Pages
+Control-Panel-Reference
+DNS-for-Your-Domain
+Database-TLS                        DatabaseTls.md
+Diagnosing-Stalled-Mail             DiagnosingStalledMail.md
+Encryption-and-Certificates
+Encryption-for-People               ConfidentialMessages.md OpenPGP.md SealedMail.md SmimeAuthority.md ZeroAccess.md
+Event-Scripts                       EventScripts.md
+Fuzzing                             Fuzzing.md
+Glossary
+Governance
+High-Availability-Runbook           HighAvailabilityRunbook.md
+How-Email-Works
+Installing-hMailServer
+Installing-on-Linux
+Mail-In-to-a-Webhook                InboundWebhooks.md
+Mailing-Lists                       DistributionLists.md MailingLists.md
+Message-Storage                     EncryptionAtRest.md MessageStore.md ObjectStorage.md
+Migrating-the-Database-Backend      MigratingDatabaseBackend.md
+Migration                           Migration.md
+Monitoring-and-Health
+Outbound-Shaping                    BounceSuppression.md Complaints.md IpWarmup.md OutboundShaping.md ReputationWatch.md
+Ports-Reference
+Profiles-and-Environment            EnvironmentConfiguration.md Profiles.md SettingLevels.md SettingsApply.md
+Project-Handbook
+Regression-Test-Environment         RegressionEnvironment.md
+Regulatory-Scope                    RegulatoryScope.md
+Release-Process
+Relocating-an-Installation          RelocatingAnInstallation.md
+Rooms-and-Equipment                 RoomsAndEquipment.md
+Routes-and-Relays
+Rules-and-Sieve
+Runbooks-Digest
+Running-in-a-Container
+Secrets-at-Rest                     SecretsAtRest.md
+Secure-Defaults                     SecureDefaults.md
+Security-Hardening
+Security-Policy
+Settings-Overview
+Settings-Reference
+Sign-in-and-Identity                AccountRecovery.md DevicesAndSessions.md PasskeysAndSingleSignOn.md PasswordBreachCheck.md Roles.md Scim.md
+Stopping-Spam
+Stopping-Viruses
+The-COM-API-and-Scripting
+The-Control-Deck
+The-Control-Panel
+The-REST-API
+The-SNMP-Agent                      Snmp.md
+The-Service-Account                 ServiceAccount.md
+The-Update-Feed                     UpdateFeed.md
+The-Webmail                         BrandLogos.md Calendar.md Contacts.md Directory.md FormattedMessages.md ImportantMail.md MessageRecall.md OfflineMail.md Performance.md RecoverDeleted.md SecondAccount.md SharedAddressBooks.md WebmailShortcuts.md
+Third-Party-Binaries                ThirdPartyBinaries.md
+Troubleshooting
+Upgrading-Guide                     Upgrading.md
+Upgrading-hMailServer
+Version-History-to-6210
+Warm-Standby                        WarmStandby.md
+What-hMailServer-Is-and-Is-Not
+Your-First-Domain-and-Mailbox
+_Footer
+_Sidebar
+home

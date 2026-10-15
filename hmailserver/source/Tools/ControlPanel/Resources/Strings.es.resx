@@ -13088,8 +13088,8 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>La programación de la sincronización con el directorio solo se aplica cuando se reinicia el servicio hMailServer. ¿Reiniciar el servicio ahora? Todos los clientes conectados al servidor se desconectan mientras se detiene y vuelve a arrancar.</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>La documentación que muestra el panel de ayuda es la copia propia del servidor; aquí se indica dónde está la misma página en la wiki, con el nombre del documento añadido. De fábrica, la wiki de GitLab del proyecto.</value>
+  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>La documentación que muestra el panel de ayuda es la copia propia del servidor. Las páginas de la wiki están escritas a partir de los documentos, con nombres propios; el enlace abre la página escrita a partir del documento mostrado y no aparece cuando la wiki no tiene ninguna. De fábrica, la wiki de GitLab del proyecto.</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>El dominio aún no tiene clave de firma.</value>

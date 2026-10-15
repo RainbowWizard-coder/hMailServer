@@ -2013,12 +2013,21 @@ function helpRemembered(){try{return localStorage.getItem("hmsHelp")==="1";}catc
 function helpRemember(open){try{if(open)localStorage.setItem("hmsHelp","1");else localStorage.removeItem("hmsHelp");}catch(_){}}
 /* The view's document and heading: the map's entry, the name without .md. */
 function helpTarget(name){const entry=HELP_MAP[name||view];return entry?{name:entry[0].replace(/\.md$/,""),heading:entry[1]||""}:null;}
-/* The list: every document with its title, and the wiki base URL. Asked once. */
+/* The list: every document with its title and the wiki page made from it,
+   and the wiki base URL. Asked once. */
 async function helpIndex(){
   if(helpPages)return helpPages;
   try{const list=await api("/api/v1/help");helpWiki=String(list.wiki||"");helpPages=asList(list,"pages");}
   catch(_){helpWiki="";helpPages=[];}
   return helpPages;
+}
+/* Where Open on the wiki goes for a document: the base with the page the
+   wiki made from it - the wiki names its pages its own way, Backup-and-Restore
+   for Backup - or nowhere when the wiki has none, or there is no base. */
+function helpWikiPage(name){
+  const want=String(name).toLowerCase();
+  const page=(helpPages||[]).find(p=>p&&String(p.name).toLowerCase()===want);
+  return page&&page.wiki_page?String(page.wiki_page):"";
 }
 /* A link in a document: the web opens in a new tab, another document of
    the set opens in this pane. */
@@ -2064,9 +2073,12 @@ async function helpShow(name,heading){
     body.appendChild(hmMarkdown.render(text,document,helpLinkOf));
     await helpIndex();
     const wiki=$("#helpWiki");
+    // The wiki's page for the document, never its own name: the wiki has no
+    // page called Backup, and a document it made no page from has no link.
     // The server refuses a wiki base that is not http(s) when it is set; one
     // that reached the database another way is still no link.
-    const wikiHref=helpWiki?safeHref(helpWiki+name):"";
+    const wikiPage=helpWikiPage(name);
+    const wikiHref=helpWiki&&wikiPage?safeHref(helpWiki+wikiPage):"";
     if(wikiHref){wiki.setAttribute("href",wikiHref);wiki.hidden=false;}else{wiki.removeAttribute("href");wiki.hidden=true;}
   }
   helpScrollTo(helpLineOf(heading));

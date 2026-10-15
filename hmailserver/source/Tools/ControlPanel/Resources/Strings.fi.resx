@@ -13088,8 +13088,8 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>Hakemiston synkronoinnin aikataulu tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>Ohjepaneelin näyttämä dokumentaatio on palvelimen oma kopio; tässä kerrotaan, missä sama sivu on wikissä, asiakirjan nimi lisättynä. Oletuksena projektin GitLab-wiki.</value>
+  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Ohjepaneelin näyttämä dokumentaatio on palvelimen oma kopio. Wikin sivut on kirjoitettu asiakirjojen pohjalta omilla nimillään; linkki avaa sivun, joka on kirjoitettu näytettävän asiakirjan pohjalta, eikä sitä näytetä, jos wikissä ei ole sellaista. Oletuksena projektin GitLab-wiki.</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Verkkotunnuksella ei ole vielä allekirjoitusavainta.</value>

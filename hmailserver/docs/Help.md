@@ -13,24 +13,31 @@ Where the text comes from
 -------------------------
 
 The text is this directory: `hmailserver/docs/*.md`, the operator
-documentation, which is what the wiki's reference pages are written from. It
-is in the repository, so CI holds it (a document the checkers can read is one
-that cannot drift from the code it describes), and it can be embedded. The
-wiki itself lives in another repository and cannot be built in, so what the
-help pane shows is the same text the wiki shows, and *Open on the wiki* takes
-you to the wiki's copy when the server can reach it.
+documentation, which many of the wiki's pages are written from. It is in the
+repository, so CI holds it (a document the checkers can read is one that
+cannot drift from the code it describes), and it can be embedded. The wiki
+itself lives in another repository and cannot be built in, and its pages are
+its own: some are a document's copy, some were written from several
+documents, the manual's chapters were brought up against them, and every page
+has a name of the wiki's own - `Backup-and-Restore`, not `Backup`. So the help
+pane shows the documents, and *Open on the wiki* takes you to the wiki's page
+made from the document showing, where the wiki has one and the server can
+reach it ([The wiki link](#the-wiki-link)).
 
 `build/generate-help-pages.py` embeds every document except `README.md` (the
 index of the others) and `DeckParity.md` (a census a checker rewrites) as
 `hmailserver/source/Server/Common/Util/HelpPagesData.cpp`: the text with LF
 line endings, in pieces of at most four thousand characters, with a table of
-the file name without its extension, the byte length of the text, and the
-document's level-one and level-two headings with the line each starts on.
+the file name without its extension, the byte length of the text, the
+document's level-one and level-two headings with the line each starts on, and
+the wiki's page made from the document, or none, read from
+`build/help-wiki-pages.txt` ([The wiki link](#the-wiki-link)).
 The table ends with a build tag, the first sixteen hex digits of the SHA-256
-of every page's text, which the routes serve as the ETag. Today that is 71
+of every page's text and wiki page, which the routes serve as the ETag. Today that is 71
 documents and 1.1 MB of text, which is 1.2 MB of generated C++ and about
-1.1 MB in the binary; `--check` fails when the unit is behind the documents,
-and GitLab CI's checkers job runs it on every push and merge request.
+1.1 MB in the binary; `--check` fails when the unit, or the Control Panel's
+copy of the wiki table below, is behind the documents or the table, and
+GitLab CI's checkers job runs it on every push and merge request.
 
 The Control Panel talks to the server over COM - what has no COM surface, the
 Discovery page and the settings no COM property carries, it reaches over the REST
@@ -39,6 +46,8 @@ carries its own copy: the same files, embedded as resources straight from this d
 (`ControlPanel.csproj`, `EmbeddedResource Include="..\..\..\docs\*.md"`, the
 same two files excluded, each named `Help.<Name>.md`). Nothing is copied
 into the Control Panel's tree, so its copy cannot be behind the documents.
+The wiki table is the one thing written into it: `Services/HelpWikiPages.g.cs`,
+by the same generator from the same file, which its `--check` holds.
 
 The routes
 ----------
@@ -50,7 +59,7 @@ from offering help.
 
 | Route | Answers |
 |---|---|
-| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `headings` the level-one and level-two ones with the line each starts on, counted from 0. The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a browser on its next page load, not a day later. |
+| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, wiki_page, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `wiki_page` the wiki's page made from the document (`Backup-and-Restore` for `Backup`), which a pane adds to `wiki`, or empty when the wiki has none and there is no link, and its `headings` the level-one and level-two ones with the line each starts on, counted from 0. The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a browser on its next page load, not a day later. |
 | `GET /api/v1/help/{page}` | The page's markdown, `text/markdown; charset=utf-8`, with `Cache-Control: public, max-age=86400` and an `ETag` of the build tag and the page name; a request whose `If-None-Match` names that tag is answered `304`. `{page}` is a file name without its extension and without a path - `Backup` for `Backup.md` - matched without regard to case. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same `404`, so a request that tries the path for a file learns nothing. |
 
 The answers are the same bytes for every reader, so they are on the list of
@@ -112,6 +121,23 @@ a document that is not, a tab entry naming a tab its page does not build, and a
 reference-only document named as a tab is named, each of which must fail.
 GitLab CI's checkers job runs both, beside `generate-help-pages.py --check`.
 
+It holds the wiki table too, `build/help-wiki-pages.txt`, through the
+generator's own reader: every page of the wiki named once and in the form a
+wiki page's name takes, every document listed under a page one the help
+carries, and no document under two pages. A pipeline has no copy of the wiki,
+whose repository is another; given one, `--wiki <clone of hmailserver.wiki>
+[--ref <branch>]` (by default `gitlab/master`) also holds the table to the
+wiki itself: its pages are exactly the table's, and each names in its text -
+in its opening note, or in the section that links it - every document listed
+under it. A page the wiki renames or drops, and a document a page no longer
+covers, then fail there, not in a pane as GitLab's "page does not exist". The
+self-test's negative controls include the table's: a document the help does
+not carry, a document under two pages, a page the wiki does not have, a page
+of the wiki the table leaves out and a page that does not name a document
+listed under it, each of which must fail, and the link as it was made up to
+October 2026, the document's own name, which the wiki the table describes
+refuses for every document but two.
+
 The panes
 ---------
 
@@ -121,7 +147,7 @@ window and never a dialog, that follows the page as the navigation changes,
 with the document's headings as a list at the top, a search box over the
 open document (the two browser pages mark every match and Enter moves to
 the next; the Control Panel finds the next match), the text, and two links
-at the foot - *Open on the wiki* and
+at the foot - *Open on the wiki*, for a document the wiki has a page for, and
 *All documentation*, the second listing every document for opening in the
 same pane. A link in a document to another document of the set opens that
 document in the pane; a link to the web opens in a new tab. Its rendering is
@@ -171,10 +197,42 @@ project's wiki. Up to 6.3.5 it was shipped as
 `https://gitlab.com/Progressiverobot/hmailserver/-/wikis/`, the project's path
 before it moved into the group `hmailserver` on 29 September 2026, and a
 database set up then keeps that value through an upgrade, as it keeps any
-setting; GitLab redirects the old address to the new one, so the link still
-works, and setting the new value is the administrator's choice. Each pane's
-*Open on the wiki* is that URL with the document's name as the page. It is
-`help_wiki_base_url` on `GET` and `PUT /api/v1/settings`, so it is on the Deck's Settings page; on the Control
+setting; GitLab redirects the old address to the new one, page by page, so the
+link still works, and setting the new value is the administrator's choice.
+
+Each pane's *Open on the wiki* is that URL with the name of the wiki's page
+made from the document: `.../-/wikis/Backup-and-Restore` for `Backup.md`,
+`.../-/wikis/The-Webmail` for the webmail's own documents. The wiki names its
+pages its own way, and up to October 2026, while the link was the URL with the
+document's own name, it opened GitLab's "page does not exist" for every
+document but `Fuzzing.md` and `Migration.md`. A document no page of the wiki
+was made from has no link at all - about half of them, the settings pages'
+reasons and the first-hour checklist among them - since there is nothing to
+open. The pages come from one table, `build/help-wiki-pages.txt`, which lists
+every page of the wiki with the documents each was made from:
+
+* a page that is a document's copy, whose opening says so ("Source of truth:
+  `hmailserver/docs/X.md`, kept in the repository and copied here");
+* a page written from documents, whose opening names them, or for *The
+  Webmail* the documents its sections link;
+* the manual's chapter brought up against a document (*Backup and Restore*,
+  against `Backup.md`).
+
+A document a page names for a part of its own subject, or points at, is not
+that page's: `RemoteDomains.md` on *Encryption for People*, which takes its
+gateway encryption, or `ActiveActive.md` on the *High Availability Runbook*.
+Where two pages were made from one document, its copy is the one, and
+otherwise the page about the document's own subject: `Upgrading.md` opens the
+*Upgrading* guide, its copy, not the chapter *Upgrading hMailServer*.
+`generate-help-pages.py` writes the table into the
+server, where `GET /api/v1/help` gives each document's page as its
+`wiki_page` to the Deck and the webmail, and into the Control Panel as
+`Services/HelpWikiPages.g.cs`, so that it adds the wiki's names to the base of
+a server of any version. When the wiki gains, loses or renames a page, the
+table changes with it: `check-help-map.py --wiki <clone>` says which lines no
+longer hold, and the generator writes both copies again.
+
+The setting is `help_wiki_base_url` on `GET` and `PUT /api/v1/settings`, so it is on the Deck's Settings page; on the Control
 Panel's Advanced page under General; and `Settings.HelpWikiBaseUrl` over COM.
 A value that is not empty and not an absolute `http://` or `https://` URL is
 refused in the same words on every door; empty hides the link everywhere.
@@ -189,7 +247,8 @@ What is thinner than the row asks
 
 * The text is the repository's documentation, not the wiki's own pages. The
   wiki cannot be built in; the same text can, and *Open on the wiki* is the
-  bridge.
+  bridge - for the documents the wiki made a page from, about half of them.
+  The others have no wiki link until the wiki has a page made from them.
 * There is no search across all documents in the pane - only within the open
   one. The Ctrl+K palette still finds pages by their purpose sentence, and
   *All documentation* lists every document by its title.
@@ -202,9 +261,12 @@ What is tested
 --------------
 
 * `build/check-help-map.py`, with `--self-test` as its negative control, and
-  `build/generate-help-pages.py --check`, both in GitLab CI's checkers job.
+  `build/generate-help-pages.py --check`, both in GitLab CI's checkers job;
+  `check-help-map.py --wiki` against a clone of the wiki, by hand, whenever
+  the wiki or the table changes.
 * `RegressionTests/API/RestApiHelp.cs`: the list answers every document with
-  its headings, as the repository's files have them; a page answers its
+  its headings, as the repository's files have them, and with the wiki page
+  `build/help-wiki-pages.txt` gives it, or none; a page answers its
   markdown byte for byte with the file in the tree, as `text/markdown` with
   the cache headers and the ETag, and `304` to a request carrying it; a path,
   a dot-dot, an unknown name and an extension are `404`; no credential is
@@ -216,7 +278,12 @@ What is tested
   of the set, the map's lookup for pages and for tabs, its coverage of every
   navigation page, every tab entry against the tabs its page builds, the pages
   with no guide, the pane's heading scroll target, the embedded copy against the
-  directory (the names, the two exclusions, the bytes) and the wiki URL rule.
+  directory (the names, the two exclusions, the bytes), the wiki URL rule, and
+  the wiki link: the wiki's page for a document, never its name, no link for a
+  document the wiki has no page for, every document held to a page of the
+  table's or to none, and the program's copy of the table to the file.
 * `build/deck-script-test.js` and `build/portal-script-test.js`: the button,
-  the fetch path, the rendering of a heading and a list, and the map lookup
-  for three views.
+  the fetch path, the rendering of a heading and a list, the map lookup for
+  three views, and *Open on the wiki* as the wiki's page for the document
+  (`Backup-and-Restore`, `The-Webmail`), or no link for a document it has none
+  for.

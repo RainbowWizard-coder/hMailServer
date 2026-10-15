@@ -2449,6 +2449,18 @@
       .then(function (list) { helpWiki = String(list.wiki || ''); helpPages = Array.isArray(list.pages) ? list.pages : []; return helpPages; })
       .catch(function () { helpWiki = ''; helpPages = []; return helpPages; });
   };
+  // The page of the wiki made from a document, as the list names it - the
+  // wiki names its pages its own way, Backup-and-Restore for Backup - or ''
+  // when the wiki made none, which is no link rather than one to GitLab's
+  // "page does not exist".
+  var helpWikiPage = function (name) {
+    var want = String(name).toLowerCase();
+    var pages = helpPages || [];
+    for (var i = 0; i < pages.length; i++) {
+      if (pages[i] && String(pages[i].name).toLowerCase() === want) { return pages[i].wiki_page ? String(pages[i].wiki_page) : ''; }
+    }
+    return '';
+  };
   // The first element under root that test accepts, by walking the tree:
   // this page reaches nothing by selector, as a rule.
   var helpFind = function (root, test) {
@@ -2513,8 +2525,12 @@
         return helpIndex();
       })
       .then(function () {
+        // The base with the wiki's page for the document, never the document's
+        // own name: the wiki has no page called Backup, and a document it made
+        // no page from has no link.
         var wiki = el('help-wiki');
-        if (helpWiki) { wiki.setAttribute('href', helpWiki + name); wiki.hidden = false; } else { wiki.removeAttribute('href'); wiki.hidden = true; }
+        var wikiPage = helpWikiPage(name);
+        if (helpWiki && wikiPage) { wiki.setAttribute('href', helpWiki + wikiPage); wiki.hidden = false; } else { wiki.removeAttribute('href'); wiki.hidden = true; }
         helpScrollTo(helpLineOf(heading));
       })
       .catch(function () { helpShown = ''; clear(body); body.appendChild(document.createTextNode(t('The documentation could not be loaded.'))); });
