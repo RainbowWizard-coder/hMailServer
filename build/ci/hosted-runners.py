@@ -40,7 +40,10 @@ GitLab expands for each job as it makes the job's resource group.
       names (GITLAB_JOB_CREDENTIALS) -, its runner's (its feature flags, FF_ and a
       flag's name, true or false, and RUNNER_OWN), the container's (PROCESS), those that
       the CI files and the GitLab templates they include set for every job (ci_globals,
-      TEMPLATE_GLOBALS), and the project's that hold none (PLAIN). GitLab keeps no
+      TEMPLATE_GLOBALS), and the project's that hold none (PLAIN); and it accepts by its
+      name alone, and says so, the one credential that must reach every job and can
+      only write telemetry, the group's Observability ingest token (TELEMETRY_ONLY),
+      which scoped to one job's environment would stop GitLab's export. GitLab keeps no
       prefix for its own, so a variable of the project's named CI_, in capitals, that
       says nothing of a credential is taken for GitLab's by its name alone; one with a
       small letter in its name is not; the deploy token GitLab gives every job, while
@@ -234,6 +237,25 @@ TEMPLATE_GLOBALS = {
 # observability export. The switches and the lanes are the CI files' own.
 PLAIN = {"ARTIFACT_SIGNING_ACCOUNT", "ARTIFACT_SIGNING_ENDPOINT", "ARTIFACT_SIGNING_PROFILE", "AZURE_CLIENT_ID",
          "AZURE_TENANT_ID", "HM_PUBLISH_IMAGE", "GITLAB_OBSERVABILITY_EXPORT"}
+# The credentials a job on GitLab's runners may be given, each by its whole name with
+# why: those that can only write telemetry and must reach every job for their reader to
+# see them. GITLAB_OBSERVABILITY_TOKEN is the ingest token with which GitLab's
+# Observability export sends each pipeline's traces to the group's instance once its
+# intake is locked: a protected, masked and hidden group variable of scope *, since the
+# export reads it with no environment (scoped_variables with environment nil), which
+# keeps only the variables of scope * - scoped to one job's environment, as the advice
+# for any other credential goes, it would stop the export -, and the key of an account
+# of that instance with no role, which writes traces, metrics and logs and reads
+# nothing: what anyone could write while the intake was open. So every job of a
+# protected pipeline is given it, those a switch sends to GitLab's runners among them,
+# which the owner accepted on 15 October 2026 in having this check learn it, where it
+# took the token for any credential (docs/ContinuousIntegration.md, "What a job on
+# GitLab's runners is given"). A name is known here whole or not at all: any other
+# variable - GITLAB_OBSERVABILITY_TOKEN_2, another *_TOKEN - is taken for a credential
+# as before, until it is scoped to its job's environment or named here with why.
+TELEMETRY_ONLY = {"GITLAB_OBSERVABILITY_TOKEN": "the group's ingest token for GitLab Observability, of scope * because "
+                                                "GitLab's export reads it with no environment, which writes telemetry into "
+                                                "the group's instance and reads nothing"}
 QUOTA_FAIL_SHARE, QUOTA_WARN_SHARE = 0.95, 0.75
 QUOTA_FAIL_PIPELINES, QUOTA_WARN_PIPELINES = 2, 10
 DOCUMENT = "docs/ContinuousIntegration.md, \"GitLab's hosted runners beside the project's\""
@@ -375,6 +397,7 @@ def check(environ, out, ci=(frozenset(), [])):
     switch_names = set(n for c in CLASSES for n in (c[0], c[2]) if n)
     no_secret = set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | PLAIN | switch_names
     given = sorted(name for name in environ if not gitlab_own(name, environ[name]))
+    accepted = []
     for name in given:
         if name in GITLAB_CREDENTIALS:
             problems.append("%s is given to every job of this pipeline, and so to each job a switch sends to GitLab's runners: "
@@ -389,6 +412,8 @@ def check(environ, out, ci=(frozenset(), [])):
                       "a switch is set")
             problems.append("%s is given to every job of this pipeline that names no environment, and so to each job a switch "
                             "sends to GitLab's runners: %s (Settings, CI/CD, Variables, Environment scope)" % (name, to))
+        elif name in TELEMETRY_ONLY:
+            accepted.append(name)
         elif name.startswith(("CI_", "FF_")) and name not in no_secret:
             ci_name = name.startswith("CI_")
             capitals = bool(GITLAB_CI_NAME.fullmatch(name))
@@ -419,6 +444,9 @@ def check(environ, out, ci=(frozenset(), [])):
     if ci_unknown:
         print("The CI files include what this does not read the variables of: %s (TEMPLATE_GLOBALS)" % ", ".join(ci_unknown),
               file=out)
+    for name in accepted:
+        print("ACCEPTED: %s is given to every job of this pipeline, and so to each job a switch sends to GitLab's runners: "
+              "a credential that only writes telemetry, %s (TELEMETRY_ONLY)." % (name, TELEMETRY_ONLY[name]), file=out)
     for p in problems:
         print("FAILED: %s." % p, file=out)
     for w in warnings:
@@ -429,7 +457,9 @@ def check(environ, out, ci=(frozenset(), [])):
     if warnings:
         return 3
     print("Every switch names a runner of its kind, every lane goes with its class, and a job that names no environment is "
-          "given no variable but those known to hold no secret.", file=out)
+          "given no variable but those known to hold no secret%s." % (
+              " and %s, which only write%s telemetry" % (", ".join(accepted), "s" if len(accepted) == 1 else "")
+              if accepted else ""), file=out)
     return 0
 
 
@@ -667,6 +697,31 @@ def self_test():
            (code, "its job names no environment to scope it to yet" in text), (1, True))
     code, text = run_check(SOMEONES_API_KEY=planted)
     expect("a variable whose name says it is a credential: failed", (code, "FAILED: SOMEONES_API_KEY is given" in text), (1, True))
+    # The group's Observability ingest token, which every job is given once its intake is
+    # locked, of scope * as GitLab's export needs it: accepted by its whole name, and
+    # said, with a switch set as with none, where it would have failed every pipeline a
+    # switch was set for, as a credential to scope to one job's environment, which would
+    # stop the export. Its value is never printed, and nothing wider is accepted: a name
+    # near its own, or any other token, beside it fails as before.
+    for what, switched in (("packages and arm64 on GitLab's runners", recommended), ("every switch at its default", {})):
+        code, text = run_check(**dict(switched, GITLAB_OBSERVABILITY_TOKEN=planted))
+        expect("GITLAB_OBSERVABILITY_TOKEN, %s: passed, the token accepted and said, its value not printed" % what,
+               (code, "FAILED" in text, "ACCEPTED: GITLAB_OBSERVABILITY_TOKEN is given to every job of this pipeline, and so "
+                "to each job a switch sends to GitLab's runners: a credential that only writes telemetry" in text,
+                "GITLAB_OBSERVABILITY_EXPORT, GITLAB_OBSERVABILITY_TOKEN, HM_PUBLISH_IMAGE\n" in text,
+                "and GITLAB_OBSERVABILITY_TOKEN, which only writes telemetry." in text, planted in text),
+               (0, False, True, True, True, False))
+    for name in ("GITLAB_OBSERVABILITY_TOKEN_2", "GITLAB_OBSERVABILITY_TOKEN_OLD", "XGITLAB_OBSERVABILITY_TOKEN",
+                 "OBSERVABILITY_TOKEN", "GITLAB_OBSERVABILITY_KEY", "gitlab_observability_token", "HM_INGEST_TOKEN",
+                 "CI_OBSERVABILITY_TOKEN"):
+        code, text = run_check(**dict(recommended, GITLAB_OBSERVABILITY_TOKEN=planted, **{name: planted}))
+        expect("%s beside the ingest token: failed, named, the token itself still accepted" % name,
+               (code, "FAILED: %s is given to every job" % name in text,
+                "ACCEPTED: GITLAB_OBSERVABILITY_TOKEN is given" in text, "ACCEPTED: %s" % name in text, planted in text),
+               (1, True, True, False, False))
+    expect("TELEMETRY_ONLY names no credential with a job of its own, no variable known to hold none and none of GitLab's",
+           set(TELEMETRY_ONLY) & (set(CREDENTIALS) | PLAIN | set(GITLAB_CREDENTIALS) | GITLAB_OWN | RUNNER_OWN | PROCESS),
+           set())
     # GitLab keeps neither CI_ nor FF_ for its own: a variable of the project's may be named so.
     for name in ("CI_PUSH_TOKEN", "CI_SIGNING_KEY", "CI_NPM_AUTH"):
         code, text = run_check(**dict(recommended, **{name: planted}))

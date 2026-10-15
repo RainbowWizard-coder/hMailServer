@@ -127,7 +127,7 @@ The other tables on this page name runners the same way.
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `image-pins` | check | linix | the schedule described `renovate`, and nothing else | Every image the CI files and the build scripts pin by digest, asked of its registry as a runner asks it; a pin the registry no longer serves fails the pipeline, named with every place that names it (`build/check-image-pins.py`; [Image pins](#image-pins)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
-| `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is - every variable such a job is given is taken for one but GitLab's, its runner's, the container's, those the CI files and their templates set, and the project's that hold none; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
+| `hosted-runners` | check | linix | `master` or a `batch*` branch for which a switch or a lane is set; never a tag | Each switch names a runner of its class's kind, each lane goes with its class, and no credential is given to a job that names no environment, as every job a switch moves is - every variable such a job is given is taken for one but GitLab's, its runner's, the container's, those the CI files and their templates set, the project's that hold none, and the group's Observability ingest token, which only writes telemetry; it names what such a job is given (`.gitlab/ci/hosted-runners.yml`, `build/ci/hosted-runners.py check`; [GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
 | `compute-quota` | check | linix | the same | The namespace's compute minutes this month against its quota and what a pipeline made at the switches as the job reads them, when it starts, is expected to use, in the environment `compute-quota`; while a switch sends a class to GitLab's runners, a warning under a quarter of the quota or ten such pipelines left, a failure under a twentieth or two, with how the switches are set back; with none sent there, the minutes left and that the pipeline's jobs keep the runners they were made with; says "not configured" until `HM_QUOTA_TOKEN` exists; allowed to fail, whatever it says (`build/ci/hosted-runners.py quota`) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
@@ -486,7 +486,8 @@ on GitLab's small runner in a merge request's pipeline already.
 In a pipeline of a protected ref GitLab gives every job each protected variable of
 the project and the group whose environment scope matches the job's environment,
 whichever runner takes it; a variable of scope `*`, the default, matches every job.
-The project's variables on 13 October 2026, by name:
+The project's variables on 13 October 2026, by name, and the group's ingest token for
+GitLab Observability, which the lock-down of the group's Observability intake makes:
 
 | Variable | Protected, masked | Used by | What it is |
 |---|---|---|---|
@@ -495,6 +496,7 @@ The project's variables on 13 October 2026, by name:
 | `RENOVATE_TOKEN` | protected, masked | `renovate` | Renovate's GitLab token: a credential |
 | `SNAPCRAFT_STORE_CREDENTIALS` | protected, masked and hidden | `snap-upload` | The Snap Store's upload credentials: a credential |
 | `GITLAB_OBSERVABILITY_EXPORT` | neither (the group's too) | GitLab | GitLab's CI/CD observability export |
+| `GITLAB_OBSERVABILITY_TOKEN` | protected, masked and hidden: the group's, made when its Observability intake is locked | GitLab's observability export | The ingest token the export sends each pipeline's traces with: a credential, which can only write telemetry into the group's instance, of scope `*` because the export reads it with no environment |
 
 Every job that uses a credential names an environment of its own - `renovate`
 `renovate`, `snap-upload` `snap-store`, `scorecard` `scorecard`, `forge-export`
@@ -509,7 +511,13 @@ with what a job token may do in this project as the pipeline's user: the package
 container registries and the releases, as on the project's runners -; the CI files'
 variables and those of the GitLab templates they include (`SECRETS_ANALYZER_VERSION`,
 `SAST_EXCLUDED_PATHS` and the rest); the five identifiers and the switch of the table's
-first two rows; and `GITLAB_OBSERVABILITY_EXPORT`, which every job is given. No ID
+first two rows; `GITLAB_OBSERVABILITY_EXPORT`, which every job is given; and, once the
+group's Observability intake is locked, `GITLAB_OBSERVABILITY_TOKEN`, which every job
+of a protected pipeline is given too, by design: GitLab's export reads it with no
+environment, which keeps only the variables of scope `*`, so scoped to one job's
+environment it would stop the export, and it can only write telemetry into the
+group's instance, which anyone could while the intake was open. The owner accepted
+on 15 October 2026 that a job on GitLab's runners is given it. No ID
 token: no job of a class asks for one, and `default:` gives none. Until the two
 are scoped, they are given to
 it too, and `hosted-runners` fails every pipeline of `master` or a `batch*` branch a
@@ -525,7 +533,13 @@ deploy token's `CI_DEPLOY_PASSWORD` fails it -, its runner's (its feature flags
 among them, each `FF_` and the flag's name, true or false), the container's, those
 the CI files and their templates set, and the project's that hold none (`PLAIN` in
 `build/ci/hosted-runners.py`: the five identifiers, the switch and the observability
-export). GitLab keeps no prefix for its own, so a variable of the project's named
+export). One credential it accepts, by its whole name, and names in its log as
+given and accepted: `GITLAB_OBSERVABILITY_TOKEN` (`TELEMETRY_ONLY`). Before 6.3.7 it
+took that token for any other credential, so that once the token existed every
+pipeline a switch was set for would have failed, telling the owner to scope it to one
+job's environment, which would have stopped the export. Any other name - one beside
+it, `GITLAB_OBSERVABILITY_TOKEN_2`, another `*_TOKEN` - is a credential to it as before.
+GitLab keeps no prefix for its own, so a variable of the project's named
 `CI_` is a credential to it when its name says so (`TOKEN`, `SECRET`, `PASSWORD`,
 `KEY` and the like) or has a small letter, which none of GitLab's has
 (`CI_push_token`), and one named `FF_` when its value is not true or false; one

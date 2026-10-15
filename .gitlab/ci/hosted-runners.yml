@@ -16,8 +16,11 @@
 #                   job that names no environment, which this job is, as is every job a
 #                   switch moves (build/ci/hosted-runners.py check): every variable it is
 #                   given is taken for one but GitLab's, its runner's, the container's,
-#                   those the CI files and their templates set, and the project's that
-#                   the script knows to hold no secret. A switch that names no such
+#                   those the CI files and their templates set, the project's that the
+#                   script knows to hold no secret, and the group's Observability ingest
+#                   token, by its name, which only writes telemetry and must be of scope
+#                   * for GitLab's export to send it (TELEMETRY_ONLY), and which the job
+#                   names as given. A switch that names no such
 #                   runner, whose jobs would wait for one that never takes them, fails
 #                   it, and so does a credential, named - never its value - with the
 #                   environment to scope it to; a lane that disagrees with its class is

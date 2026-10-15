@@ -6209,6 +6209,19 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   classed job's `"id_tokens":` passed it), each rule with a case of its self-test that fails without it
   (ContinuousIntegration.md, "GitLab's hosted runners beside the project's", says what each class costs, at 0.5 a
   job-minute on any of GitLab's Linux machines, which classes to switch on, and what a job there is given).
+- **Fixed: `hosted-runners` would have failed every pipeline a switch is set for once the group's Observability
+  intake was locked, and told the owner to scope its token in a way that stops the export.** The lock-down makes
+  `GITLAB_OBSERVABILITY_TOKEN`, a protected, masked and hidden group variable of scope `*`, which GitLab's
+  observability export sends each pipeline's traces with and reads with no environment, so that only scope `*`
+  reaches it, and which can only write telemetry into the group's instance; so every job of a protected pipeline is
+  given it, those a switch sends to GitLab's runners among them, as the owner accepted. The credential guard of
+  `build/ci/hosted-runners.py` took it for any credential and asked for it to be scoped to one job's environment. It
+  now accepts that variable by its whole name and no other (`TELEMETRY_ONLY`), names it in its log as given and
+  accepted, never its value, and fails as before on any other variable it does not know - a name near it such as
+  `GITLAB_OBSERVABILITY_TOKEN_2`, `CI_OBSERVABILITY_TOKEN` or the same name in small letters, or any other token.
+  The script's self-test has the cases: the token with a switch set and with none passes (batch48's guard failed the
+  first, naming it), and each of eight other names beside it fails, the token still accepted
+  (ContinuousIntegration.md, "What a job on GitLab's runners is given").
 - **`build/land-via-mr.py` lands a batch of any size from Windows.** It gave glab every field of a request as an
   argument of its command line, and the description of `batch47`'s merge request, 200 commit lines and 50,565
   characters, made one longer than the 32,767 characters Windows takes: on 13 October 2026 the landing pushed the
