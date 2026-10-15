@@ -646,12 +646,16 @@ namespace hMailServer.ControlPanel.Services
                      "{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied.")));
          }
 
+         // The scan runs at delivery, on the delivery thread, after the message has been
+         // accepted (SMTPDeliverer::RunVirusProtection_, from PreprocessMessage_), not in
+         // the task that answers the sender's "250 OK": the note said the sender waited
+         // for it (release review finding CPV-3). Its cost is delivery delay.
          if (scannersRead && usable > 1)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
                Plural(usable,
-                  "Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its \"250 OK\".",
-                  "Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its \"250 OK\".")));
+                  "Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait.",
+                  "Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait.")));
          }
 
          if (scannersRead && config.ClamWinEnabled && config.ClamAvEnabled)

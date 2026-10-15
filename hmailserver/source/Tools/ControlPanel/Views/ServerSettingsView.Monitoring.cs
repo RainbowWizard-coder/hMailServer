@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Views
 
          protected override FrameworkElement BuildEditor(object value)
          {
-            string raw = ((IniStore != null && IniStore.SettingsReachable ? IniStore.Read(Path, Default) : Default) ?? "").Trim();
+            string raw = ((IniStore != null && IniStore.SettingsReachable ? IniStore.ReadNumber(Path, Default) : Default) ?? "").Trim();
 
             box_ = TextEditor(raw, ExamplePlaceholder.Shown(Placeholder));
             box_.Width = NumberWidth;

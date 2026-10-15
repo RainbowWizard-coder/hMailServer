@@ -453,6 +453,113 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal((StatusLevel.Information, "Depends"), SenderCheck.Pill(SenderCheck.SpamExemptions(new[] { new SenderCheck.SpamExemption("10.0.0.0", "10.0.0.255", "*", "") }, "a@example.test", "")));
       }
 
+      // The ranges of the finding's example: the shipped Internet range, and an office
+      // network of the administrator's own whose anti-spam is off, at a higher priority.
+      private static readonly SenderCheck.IpRange[] OfficeRanges_ =
+      {
+         new SenderCheck.IpRange("My computer", "127.0.0.1", "127.0.0.1", 15, true),
+         new SenderCheck.IpRange("Internet", "0.0.0.0", "255.255.255.255", 10, true),
+         new SenderCheck.IpRange("Office LAN", "192.168.1.0", "192.168.1.255", 20, false)
+      };
+
+      /// <summary>
+      /// A range "Office LAN" with anti-spam off, and example.net blocked: Check a sender
+      /// for a@example.net from 192.168.1.10 said the mail is refused at MAIL FROM, where
+      /// the server sets the session's spam protection to none for the range - before it
+      /// asks the exemptions - and accepts the mail with no domain policy, no spam test and
+      /// no greylisting (release review finding CP-6). The allow and block list still
+      /// applies, at delivery.
+      /// </summary>
+      [Fact]
+      public void ARangeWithAntiSpamOff_KeepsTheServerFromEveryListButTheAllowAndBlockList()
+      {
+         List<SenderCheckResult> asked = Answers_("news@mass-mail.example", "192.168.1.10");
+         SenderCheckResult range = SenderCheck.ConnectingRange(OfficeRanges_, "192.168.1.10");
+         Assert.NotNull(range);
+         asked.Insert(0, range);
+
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         Assert.Equal((StatusLevel.Good, "Lets it through"), SenderCheck.Pill(At_(answers, "ipranges")));
+         Assert.Contains("Office LAN", At_(answers, "ipranges").Text, StringComparison.Ordinal);
+         foreach (string page in new[] { "spamwhitelist", "domainpolicylist", "blockedsenders", "dnsbl", "greylistwhitelist", "greylistbypass", "surbl" })
+         {
+            Assert.Equal(SenderCheckOutcome.NotReached, At_(answers, page).Outcome);
+            Assert.StartsWith("Not consulted: the connecting address's IP range has anti-spam off", At_(answers, page).Text, StringComparison.Ordinal);
+         }
+         Assert.Same(asked[8], At_(answers, "senderlist"));
+         Assert.DoesNotContain(answers, answer => SenderCheck.Pill(answer).Word == "Stops it");
+
+         (StatusLevel level, string text) = SenderCheck.Summary(answers);
+         Assert.Equal(StatusLevel.Good, level);
+         Assert.StartsWith("The IP ranges decide.", text, StringComparison.Ordinal);
+         Assert.DoesNotContain("MAIL FROM", text, StringComparison.Ordinal);
+
+         // The allow and block list, which delivery reads, still says so when it blocks.
+         List<SenderCheckResult> spammer = Answers_("spammer@mass-mail.example", "192.168.1.10");
+         spammer.Insert(0, range);
+         (_, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(spammer));
+         Assert.Contains("Allow and block list", text, StringComparison.OrdinalIgnoreCase);
+      }
+
+      /// <summary>The range is the one of the highest priority among those of the address's family that hold it, as the server picks it.</summary>
+      [Theory]
+      [InlineData("192.168.1.10", "Office LAN")]
+      [InlineData("192.168.2.10", "Internet")]
+      [InlineData("127.0.0.1", "My computer")]
+      [InlineData("::1", null)]
+      [InlineData("not an address", null)]
+      [InlineData("", null)]
+      public void TheRangeOfTheHighestPriorityHoldsTheAddress(string ip, string expected)
+         => Assert.Equal(expected, SenderCheck.RangeOf(OfficeRanges_, ip)?.Name);
+
+      /// <summary>A range that runs the spam checks changes no answer, and no address asks no range.</summary>
+      [Fact]
+      public void ARangeThatRunsTheSpamChecks_ChangesNothing()
+      {
+         Assert.Null(SenderCheck.ConnectingRange(OfficeRanges_, "192.0.2.7"));
+         Assert.Null(SenderCheck.ConnectingRange(OfficeRanges_, ""));
+      }
+
+      /// <summary>
+      /// An address that no range contains - an IPv6 client of a server whose ranges are
+      /// the shipped IPv4 two - is refused at connect, before any list is read.
+      /// </summary>
+      [Fact]
+      public void AnAddressNoRangeHolds_IsRefusedBeforeAnyList()
+      {
+         SenderCheckResult range = SenderCheck.ConnectingRange(OfficeRanges_, "2001:db8::25");
+         Assert.Equal((StatusLevel.Warning, "Stops it"), SenderCheck.Pill(range));
+
+         List<SenderCheckResult> asked = Answers_("news@example.org", "2001:db8::25");
+         asked.Insert(0, range);
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         foreach (SenderCheckResult answer in answers.Where(answer => answer.Page != "ipranges"))
+            Assert.Equal("Not reached: the server refuses the connection before the sender is given.", answer.Text);
+
+         (StatusLevel level, string text) = SenderCheck.Summary(answers);
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.Contains("2001:db8::25", text, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The check reads the IP ranges before the lists and puts the range's answer
+      /// first, and its card says that a sender that signs in meets none of the lists
+      /// but the allow and block list.
+      /// </summary>
+      [Fact]
+      public void TheCheckAsksTheRangeFirst_AndSaysWhatASignedInSenderMeets()
+      {
+         string view = ReadView_("SpamOverviewView.cs");
+         string run = view.Substring(view.IndexOf("private void RunCheck_()", StringComparison.Ordinal));
+         run = run.Substring(0, run.IndexOf("private void SayCheck_(", StringComparison.Ordinal));
+         int range = run.IndexOf("Range_((object)settings, ip) is SenderCheckResult range", StringComparison.Ordinal);
+         int lists = run.IndexOf("foreach (SenderListGuideRow list in SenderListGuide.Rows)", StringComparison.Ordinal);
+         Assert.True(range > 0 && lists > range, "RunCheck_ does not ask the connecting address's IP range before the lists.");
+         Assert.Contains("SenderCheck.ConnectingRange(ReadItems_((object)settings.SecurityRanges,", view, StringComparison.Ordinal);
+         Assert.Contains("(bool)item.EnableSpamProtection", view, StringComparison.Ordinal);
+         Assert.Contains("L(\"A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery:", view, StringComparison.Ordinal);
+      }
+
       /// <summary>
       /// The overview draws the guide in place of "The lists behind the checks", and
       /// the check card asks each list in the guide's order, a list that cannot be

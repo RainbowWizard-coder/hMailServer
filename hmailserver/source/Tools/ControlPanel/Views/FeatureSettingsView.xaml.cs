@@ -188,6 +188,25 @@ namespace hMailServer.ControlPanel.Views
          public FieldRow Field { get; private set; }
 
          /// <summary>
+         /// The row of a value this Control Panel cannot show as the server's - a key of a
+         /// section of hMailServer.ini that no COM property carries, where the file here is
+         /// not the server's or may not be read: the caption and a neutral Not read pill,
+         /// as ServerSettingsView's UnreadRow_ draws it, and no editor, so that a save
+         /// neither writes nor counts it. The card says why once (SendingLimitsNotice_).
+         /// </summary>
+         protected FieldRow NotReadRow()
+         {
+            var pill = new StatusPill
+            {
+               Level = StatusLevel.Normal,
+               Text = L("Not read"),
+               HorizontalAlignment = HorizontalAlignment.Left
+            };
+            AutomationProperties.SetAutomationId(pill, "setting-not-read");
+            return Row(pill, Label);
+         }
+
+         /// <summary>
          /// The key of the switch - a BoolSetting on the same page - that this setting
          /// counts only while it is on; null for a setting that counts whatever is
          /// switched. The editor follows the switch (review finding F197).
@@ -358,12 +377,15 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
-            string current = store.Read(Key, Default);
+            // The value the server holds: a key it holds empty is shown empty, and said
+            // to be, where it was shown as the default - which the server does not use
+            // for it (IniFeatureStore.ReadHeld; release review finding CP-4).
+            string current = store.ReadHeld(Key, Default, out bool heldEmpty);
             Loaded = (current ?? "").Trim();
             box_ = new Wpf.Ui.Controls.TextBox
             {
                Text = current,
-               PlaceholderText = ExamplePlaceholder.Shown(Placeholder),
+               PlaceholderText = heldEmpty ? L("(empty)") : ExamplePlaceholder.Shown(Placeholder),
                HorizontalAlignment = Address ? HorizontalAlignment.Left : HorizontalAlignment.Stretch
             };
             if (Address)
@@ -412,7 +434,10 @@ namespace hMailServer.ControlPanel.Views
       /// whether it is a whole number in the range (Services/SettingNumberRange), and
       /// says on the field when it is not. A value the file holds that is not a
       /// number is shown as it is and, unchanged, not written. A key of another
-      /// section - [SendingLimits] - is read and written there.
+      /// section - [SendingLimits] - is read and written there, and only while the
+      /// file here is the server's and may be read: otherwise the row is Not read and a
+      /// save leaves it, and the card says why (<see cref="SendingLimitsNotice_"/>;
+      /// release review part B, CPB-2).
       /// </summary>
       private class NumberSetting : Setting
       {
@@ -435,8 +460,14 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
+            box_ = null;
+            if (Section != null && !FileSectionIsTheServers_(store))
+               return NotReadRow();
+
+            // A [Settings] number the server holds empty is 0 to it, whatever the
+            // default (IniFeatureStore.ReadNumber; release review finding CP-4).
             string raw = (Section == null
-               ? store.Read(Key, Default)
+               ? store.ReadNumber(Key, Default)
                : IniDirect.ReadValue(store.IniPath, Section, Key, Default)) ?? "";
             raw = raw.Trim();
 
@@ -464,6 +495,10 @@ namespace hMailServer.ControlPanel.Views
 
          public override void Save(IniFeatureStore store)
          {
+            // A row marked Not read has no editor, and is left as the server has it.
+            if (box_ == null)
+               return;
+
             if (KeptAsStored)
             {
                box_.Text = Loaded ?? "";
@@ -527,7 +562,7 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
-            string current = (store.Read(Key, Default) ?? "").Trim();
+            string current = (store.ReadHeld(Key, Default, out bool heldEmpty) ?? "").Trim();
             combo_ = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
 
             ComboBoxItem chosen = null;
@@ -542,6 +577,14 @@ namespace hMailServer.ControlPanel.Views
             if (chosen == null && current.Length > 0)
             {
                chosen = new ComboBoxItem { Content = ChoiceOptions.UnknownLabel(current), Tag = current };
+               combo_.Items.Add(chosen);
+            }
+
+            // A key the server holds empty is offered as itself and written back so, as
+            // a word the list does not know is - not as the first choice (CP-4).
+            if (chosen == null && heldEmpty)
+            {
+               chosen = new ComboBoxItem { Content = L("(empty)"), Tag = "" };
                combo_.Items.Add(chosen);
             }
 
@@ -954,11 +997,16 @@ namespace hMailServer.ControlPanel.Views
             return ProfileApi.ReadString(section, key, defaultValue, iniPath, 4096);
          }
 
+         /// <summary>
+         /// Writes one value, and throws with Windows' reason when the file refused it: the
+         /// answer was dropped, so that a file this user may read and not write was counted
+         /// saved (release review part B, CPB-2).
+         /// </summary>
          public static void WriteValue(string iniPath, string section, string key, string value)
          {
             if (string.IsNullOrEmpty(iniPath))
                throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
-            ProfileApi.WriteString(section, key, value, iniPath);
+            ProfileApi.WriteStringChecked(section, key, value, iniPath);
          }
 
          /// <summary>The key=value lines of one section, in file order.</summary>
@@ -974,7 +1022,7 @@ namespace hMailServer.ControlPanel.Views
          {
             if (string.IsNullOrEmpty(iniPath))
                throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
-            ProfileApi.WriteSectionLines(section, lines, iniPath);
+            ProfileApi.WriteSectionLinesChecked(section, lines, iniPath);
          }
       }
 
@@ -999,6 +1047,11 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
+            box_ = null;
+            loaded_ = null;
+            if (!FileSectionIsTheServers_(store))
+               return NotReadRow();
+
             loaded_ = Normalize(IniDirect.ReadSectionLines(store.IniPath, Section));
 
             box_ = new Wpf.Ui.Controls.TextBox
@@ -1017,6 +1070,10 @@ namespace hMailServer.ControlPanel.Views
 
          public override void Save(IniFeatureStore store)
          {
+            // A row marked Not read has no editor, and is left as the server has it.
+            if (box_ == null)
+               return;
+
             string current = Normalize(box_.Text.Split('\n'));
             if (current == loaded_)
                return;
@@ -2150,8 +2207,13 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
                   Settings =
                   {
-                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
-                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)") },
+                     // As often as the hours below say, which the server honours from 1 up -
+                     // it raises a lower value to 1 and caps nothing (IniFileSettings.cpp,
+                     // UpdateChecker::NextCheckUnix, in 64-bit seconds) - where the switch said
+                     // "once a day" beside a box that took 1 to 168 and refused the monthly
+                     // check the server runs (release review finding CP-5).
+                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release") },
+                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Default = "24", Label = L("Hours between checks (at least 1; 24 = once a day)") },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine") },
                      new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed)"), Blurb = L("Set it to use a mirror.") },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for this server's web requests (host:port; empty = direct)"), Blurb = L("The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported."), Placeholder = "proxy.example.net:3128" },
@@ -2233,7 +2295,11 @@ namespace hMailServer.ControlPanel.Views
                      new NumberSetting { Key = "DNSQueryTimeout", Minimum = 0, Maximum = 86400, Default = "10", Label = L("DNS query timeout (seconds; 0 = no time limit)") },
                      new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds; 0 = no time limit)") },
                      new NumberSetting { Key = "DBConnectionAcquireTimeout", Minimum = 0, Default = "60", Label = L("Wait for a free database connection (seconds; 0 = wait for ever)") },
-                     new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Default = "60", Label = L("Event script execution timeout (seconds; 0 = no time limit)") },
+                     // At most 4,294,967 seconds: the watchdog is a 32-bit count of
+                     // milliseconds, which a longer timeout wrapped to a few hundred - every
+                     // event script then ended at once. The server clamps to it as well
+                     // (ScriptServer::WatchdogMilliseconds; release review finding CP-5).
+                     new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Maximum = 4294967, Default = "60", Label = L("Event script execution timeout (seconds; 0 = no time limit)") },
                      new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout (seconds; 0 = no time limit)"), Blurb = L("For example a command-line virus scanner.") },
                      new NumberSetting { Key = "AsyncQueueStallThreshold", Minimum = 0, Default = "120", Label = L("Report the async work queue as stalled after (seconds; 0 = never)") },
                      new NumberSetting { Key = "AsyncQueueReservedThreads", Minimum = 0, Default = "2", Label = L("Threads reserved so the async queue cannot be starved (0 = none)") }
@@ -2293,6 +2359,9 @@ namespace hMailServer.ControlPanel.Views
                   // without a service restart.
                   Title = L("Per-account sending limits"),
                   Blurb = L("Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later."),
+                  // Why the rows are Not read, where they are: the server keeps them in
+                  // its own hMailServer.ini, which no COM property reaches (CPB-2).
+                  Warnings = { new WarningDef { Aid = "sendinglimits-not-read", First = true, Compute = () => SendingLimitsNotice_(store_) } },
                   Settings =
                   {
                      new NumberSetting
@@ -2716,21 +2785,26 @@ namespace hMailServer.ControlPanel.Views
                });
                cards_.Add(new CardDef
                {
+                  // The server serves both under /dav/ on this listener, with no switch to
+                  // turn them off (WebServicesServer.cpp), and an empty setting sends the
+                  // discovery URL there (BuiltInDavUrl_): the card said hMailServer
+                  // implemented neither and that empty answered 404 (release review
+                  // finding CPV-1). Only a value that is set and unusable answers 404.
                   Title = L("Calendar and contacts discovery (CalDAV / CardDAV)"),
-                  Blurb = L("hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address."),
+                  Blurb = L("hMailServer serves CalDAV and CardDAV itself, under /dav/ on this listener, over HTTPS, to each account by its mail address and password. These settings send the well-known discovery URLs (RFC 6764) to another server instead, for calendars and contacts kept there; empty, they lead to this server's own /dav/, so a client configured with a user's mail address finds their calendar without being told a second address."),
                   Settings =
                   {
                      new TextSetting
                      {
                         Key = "CalDavRedirectUrl",
-                        Label = L("Redirect /.well-known/caldav to (empty = answer 404)"),
+                        Label = L("Redirect /.well-known/caldav to (empty = this server's own /dav/)"),
                         Placeholder = "https://calendar.example.com/dav/",
                         Blurb = L("Must be an absolute URL. A relative one is refused and the discovery URL answers 404 instead, with the reason reported once in the error log.")
                      },
                      new TextSetting
                      {
                         Key = "CardDavRedirectUrl",
-                        Label = L("Redirect /.well-known/carddav to (empty = answer 404)"),
+                        Label = L("Redirect /.well-known/carddav to (empty = this server's own /dav/)"),
                         Placeholder = "https://contacts.example.com/dav/",
                         Blurb = L("Must be an absolute URL, as above.")
                      }
@@ -2888,12 +2962,57 @@ namespace hMailServer.ControlPanel.Views
          // cache: the page edits the store. A card that keeps its settings in a
          // section of the file of their own - the per-account sending limits - says
          // so in its own words, and the line names the file for it.
+         // The file is named only where it is the server's: a workstation's is the
+         // workstation's, and the rows kept in it are Not read (CPB-2).
          PathText.Text = cards_.SelectMany(card => card.Settings).Any(setting => setting is NumberSetting { Section: not null } or SectionLinesSetting)
+            && FileSectionIsTheServers_(store_)
             ? F("Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}.", store_.IniPath)
             : L("Stored in the server's settings database.");
          SaveButton.IsEnabled = true;
          SetState_(SettingsPageState.Clean, null);
       }
+
+      /// <summary>
+      /// The sending limits card's word for its rows that are Not read here
+      /// (<see cref="Setting.NotReadRow"/>), or null when the file here is the server's and
+      /// may be read: the server reads [SendingLimits] and [SendingLimitsOverrides] from
+      /// its own file alone (RateLimiter), and no COM property carries them. A Control
+      /// Panel installed on a workstation has a hMailServer.ini of its own, and the rows
+      /// showed and saved that one's values as the server's: a brake of 500 messages read
+      /// 0, "no limit", and an edit of it said every setting on the page was in effect
+      /// (release review part B, CPB-2).
+      /// </summary>
+      private static WarningState SendingLimitsNotice_(IniFeatureStore store)
+      {
+         // (FileSectionIsTheServers_'s reasons, in words.)
+         string denied = null;
+         switch (store?.LocalSectionAccess(out denied))
+         {
+            case IniFeatureStore.FileSectionAccess.OtherComputer:
+               return new WarningState
+               {
+                  Level = StatusLevel.Warning,
+                  Text = L("The settings marked Not read are sending limits the server keeps in the hMailServer.ini on its own computer, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server.")
+               };
+            case IniFeatureStore.FileSectionAccess.Denied:
+               return new WarningState
+               {
+                  Level = StatusLevel.Warning,
+                  Text = F("The settings marked Not read are sending limits the server keeps in hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server.", denied)
+               };
+            default:
+               return null;
+         }
+      }
+
+      /// <summary>
+      /// Whether a section of the file other than [Settings] - [SendingLimits],
+      /// [SendingLimitsOverrides] - is the server's here (IniFeatureStore.LocalSectionAccess):
+      /// the server reads those keys from its own file alone (RateLimiter), and no COM
+      /// property carries them (release review part B, CPB-2).
+      /// </summary>
+      private static bool FileSectionIsTheServers_(IniFeatureStore store)
+         => store != null && store.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable;
 
       /// <summary>The tab strip of a tabbed section (<see cref="FrameTabs_"/>), or null.</summary>
       private TabControl cardTabs_;
@@ -3445,7 +3564,10 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// Restarts the service and says how it went, through the restart the window's
-      /// pending bar shares (Services/ServiceRestart).
+      /// pending bar shares (Services/ServiceRestart). A restart that left the service
+      /// stopped says so, at Critical, and offers the restart again, whose press starts
+      /// it (release review finding CP-1): it said "Could not restart the service" over
+      /// a timeout, with no way on from the page.
       /// </summary>
       private async void RestartService()
       {
@@ -3456,6 +3578,11 @@ namespace hMailServer.ControlPanel.Views
          {
             case ServiceRestartOutcome.NotRestarted:
                SetState_(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason));
+               return;
+            case ServiceRestartOutcome.Stopped:
+               SetState_(SettingsPageState.RestartFailed, reason, StatusLevel.Critical,
+                  saveState_.RestartAction("feature-restart-service",
+                     L("The hMailServer service is not running, so no mail is received or delivered until it is started. Start it now?")));
                return;
             case ServiceRestartOutcome.NotReattached:
                SetState_(SettingsPageState.NotConnected,

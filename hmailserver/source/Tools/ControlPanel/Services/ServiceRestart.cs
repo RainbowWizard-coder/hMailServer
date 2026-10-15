@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -10,28 +12,18 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
 {
-   /// <summary>What a restart of the service came to.</summary>
-   public enum ServiceRestartOutcome
-   {
-      /// <summary>The service stopped, started and the session is attached to it again.</summary>
-      Restarted,
-
-      /// <summary>The service could not be stopped and started; the reason says why.</summary>
-      NotRestarted,
-
-      /// <summary>The service came back, and the session could not attach to it; the reason says why.</summary>
-      NotReattached
-   }
-
    /// <summary>
    /// Restarting the hMailServer service on this machine and attaching the session to
    /// it again: the flow the feature settings pages had to themselves after a save,
    /// shared with the window's pending bar, whose settings waiting for a restart had
    /// nothing to press (review finding F010), and with the directory synchronisation
-   /// page's schedule.
+   /// page's schedule. How long a stop and a start are waited for, and what is said
+   /// when the service is left stopped, is <see cref="ServiceRestartFlow"/>'s.
    /// </summary>
    public static class ServiceRestart
    {
+      private const string ServiceName = "hMailServer"; // no-loc: the service's name
+
       /// <summary>
       /// Whether the service this Control Panel is signed in to is the one on this
       /// machine - the only one a restart here can reach. A Control Panel signed in to
@@ -45,22 +37,23 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static async Task<(ServiceRestartOutcome Outcome, string Reason)> RunAsync()
       {
-         string error = await Task.Run(TryRestart);
-         if (error != null)
-            return (ServiceRestartOutcome.NotRestarted, error);
+         (ServiceRestartOutcome outcome, string reason) = await Task.Run(TryRestart);
+         if (outcome != ServiceRestartOutcome.Restarted)
+            return (outcome, reason);
 
          string lost = Reattach();
          return lost == null ? (ServiceRestartOutcome.Restarted, null) : (ServiceRestartOutcome.NotReattached, lost);
       }
 
       /// <summary>
-      /// Stops and starts the service, returning null on success or a message
-      /// describing the failure. Stopping a service needs administrator rights
-      /// and the Control Panel runs asInvoker, so a non-elevated session hands
-      /// the work to net.exe behind a single UAC prompt instead of failing
-      /// with an opaque "Cannot open hMailServer service" error.
+      /// Stops and starts the service, waited for as the service asks
+      /// (<see cref="ServiceRestartFlow"/>). Stopping a service needs administrator
+      /// rights and the Control Panel runs asInvoker, so a non-elevated session hands
+      /// the work to net.exe behind a single UAC prompt instead of failing with an
+      /// opaque "Cannot open hMailServer service" error, and watches the service's
+      /// state from here.
       /// </summary>
-      public static string TryRestart()
+      public static (ServiceRestartOutcome Outcome, string Reason) TryRestart()
       {
          try
          {
@@ -69,57 +62,56 @@ namespace hMailServer.ControlPanel.Services
                elevated = new System.Security.Principal.WindowsPrincipal(identity)
                   .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
 
-            if (elevated)
-            {
-               using var controller = new ServiceController("hMailServer");
-               if (controller.Status != ServiceControllerStatus.Stopped)
-               {
-                  if (controller.Status == ServiceControllerStatus.Running ||
-                      controller.Status == ServiceControllerStatus.Paused)
-                     controller.Stop();
-                  controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
-               }
-               controller.Start();
-               controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
-               return null;
-            }
-
-            // "net stop" fails harmlessly when the service is already stopped,
-            // so chain with "&" rather than "&&".
-            //
-            // cmd.exe and net.exe by their full System32 paths, and System32 as
-            // the working directory: ShellExecuteEx looks for a bare name in the
-            // current directory first, and that is whatever folder a file dialog
-            // last left it in, so a cmd.exe waiting in Downloads would have run
-            // elevated behind the prompt the administrator expects. /d skips any
-            // Command Processor AutoRun; with /s, cmd takes off only the outer
-            // pair of quotes.
-            string system = Environment.SystemDirectory;
-            string net = System.IO.Path.Combine(system, "net.exe"); // no-loc
-            var startInfo = new System.Diagnostics.ProcessStartInfo
-            {
-               FileName = System.IO.Path.Combine(system, "cmd.exe"), // no-loc
-               Arguments = "/d /s /c \"\"" + net + "\" stop hMailServer & \"" + net + "\" start hMailServer\"", // no-loc
-               WorkingDirectory = system,
-               UseShellExecute = true,
-               Verb = "runas",
-               WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-            };
-
-            using (var process = System.Diagnostics.Process.Start(startInfo))
-               process?.WaitForExit();
-
-            using (var controller = new ServiceController("hMailServer"))
-               controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
-            return null;
-         }
-         catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
-         {
-            return L("the elevation prompt was cancelled.");
+            var service = new WindowsService();
+            var clock = new SystemWaitClock();
+            return elevated
+               ? ServiceRestartFlow.Run(service, clock)
+               : ServiceRestartFlow.RunThroughHelper(service, clock, RunNetElevated_);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            return ex.GetBaseException().Message;
+            return (ServiceRestartOutcome.NotRestarted, ex.GetBaseException().Message);
+         }
+      }
+
+      /// <summary>
+      /// net.exe stop and start, or start alone, behind one UAC prompt; false when the
+      /// prompt was cancelled. "net stop" fails harmlessly when the service is already
+      /// stopped, so the two are chained with "&amp;" rather than "&amp;&amp;".
+      ///
+      /// cmd.exe and net.exe by their full System32 paths, and System32 as the working
+      /// directory: ShellExecuteEx looks for a bare name in the current directory first,
+      /// and that is whatever folder a file dialog last left it in, so a cmd.exe waiting
+      /// in Downloads would have run elevated behind the prompt the administrator
+      /// expects. /d skips any Command Processor AutoRun; with /s, cmd takes off only
+      /// the outer pair of quotes.
+      /// </summary>
+      private static bool RunNetElevated_(bool startOnly)
+      {
+         string system = Environment.SystemDirectory;
+         string net = System.IO.Path.Combine(system, "net.exe"); // no-loc
+         string command = startOnly
+            ? "\"" + net + "\" start " + ServiceName // no-loc
+            : "\"" + net + "\" stop " + ServiceName + " & \"" + net + "\" start " + ServiceName; // no-loc
+         var startInfo = new System.Diagnostics.ProcessStartInfo
+         {
+            FileName = System.IO.Path.Combine(system, "cmd.exe"), // no-loc
+            Arguments = "/d /s /c \"" + command + "\"", // no-loc
+            WorkingDirectory = system,
+            UseShellExecute = true,
+            Verb = "runas", // no-loc
+            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+         };
+
+         try
+         {
+            using (var process = System.Diagnostics.Process.Start(startInfo))
+               process?.WaitForExit();
+            return true;
+         }
+         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
+         {
+            return false;
          }
       }
 
@@ -151,6 +143,93 @@ namespace hMailServer.ControlPanel.Services
          {
             Mouse.OverrideCursor = null;
          }
+      }
+
+      /// <summary>
+      /// The hMailServer service through Windows' service controller: its status read
+      /// with QueryServiceStatusEx and only the right to query it - which a Control
+      /// Panel that is not elevated has, so that it can watch the stop and the start its
+      /// helper asked for - and a stop and a start asked through ServiceController,
+      /// which needs the rights an elevated Control Panel has.
+      /// </summary>
+      private sealed class WindowsService : IServiceControl
+      {
+         private const uint ScManagerConnect = 0x0001;
+         private const uint ServiceQueryStatus = 0x0004;
+         private const int ScStatusProcessInfo = 0;
+
+         public ServiceReading Read()
+         {
+            IntPtr manager = OpenSCManagerW(null, null, ScManagerConnect);
+            if (manager == IntPtr.Zero)
+               throw new Win32Exception(Marshal.GetLastWin32Error());
+            try
+            {
+               IntPtr service = OpenServiceW(manager, ServiceName, ServiceQueryStatus);
+               if (service == IntPtr.Zero)
+                  throw new Win32Exception(Marshal.GetLastWin32Error());
+               try
+               {
+                  var status = new ServiceStatusProcess();
+                  if (!QueryServiceStatusEx(service, ScStatusProcessInfo, ref status, Marshal.SizeOf<ServiceStatusProcess>(), out _))
+                     throw new Win32Exception(Marshal.GetLastWin32Error());
+
+                  return new ServiceReading((ServiceState)status.CurrentState, (int)status.CheckPoint, (int)Math.Min(status.WaitHint, int.MaxValue), (int)status.ProcessId);
+               }
+               finally
+               {
+                  CloseServiceHandle(service);
+               }
+            }
+            finally
+            {
+               CloseServiceHandle(manager);
+            }
+         }
+
+         public void Stop()
+         {
+            using var controller = new ServiceController(ServiceName);
+            controller.Stop();
+         }
+
+         public void Start()
+         {
+            using var controller = new ServiceController(ServiceName);
+            controller.Start();
+         }
+
+         [StructLayout(LayoutKind.Sequential)]
+         private struct ServiceStatusProcess
+         {
+            public uint ServiceType;
+            public uint CurrentState;
+            public uint ControlsAccepted;
+            public uint Win32ExitCode;
+            public uint ServiceSpecificExitCode;
+            public uint CheckPoint;
+            public uint WaitHint;
+            public uint ProcessId;
+            public uint ServiceFlags;
+         }
+
+         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         private static extern IntPtr OpenSCManagerW(string machineName, string databaseName, uint desiredAccess);
+
+         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         private static extern IntPtr OpenServiceW(IntPtr manager, string serviceName, uint desiredAccess);
+
+         [DllImport("advapi32.dll", SetLastError = true)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         [return: MarshalAs(UnmanagedType.Bool)]
+         private static extern bool QueryServiceStatusEx(IntPtr service, int infoLevel, ref ServiceStatusProcess buffer, int bufferSize, out int bytesNeeded);
+
+         [DllImport("advapi32.dll", SetLastError = true)]
+         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+         [return: MarshalAs(UnmanagedType.Bool)]
+         private static extern bool CloseServiceHandle(IntPtr handle);
       }
    }
 }

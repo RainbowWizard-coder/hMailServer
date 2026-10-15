@@ -320,10 +320,13 @@ namespace HM
       if (Configuration::Instance()->GetAutoBanLogonEnabled() == false || maxInvalidLogonAttempts == 0)
          return;
 
-      // An address on AutoBanNeverBan is never counted, let alone banned. The
-      // per-connection disconnect after repeated failures still applies - that is
-      // the protocol handler's, not this - so a stuck client from a listed address
-      // still gets dropped; it just never reaches the firewall.
+      // An address on AutoBanNeverBan is never counted towards an auto-ban, let alone
+      // banned. Its failure has been counted against the name above all the same: the
+      // per-name lockout is told before this list is asked, so a name mistyped from a
+      // listed address is locked as from any other. The per-connection disconnect after
+      // repeated failures still applies - that is the protocol handler's, not this - so
+      // a stuck client from a listed address still gets dropped; it just never reaches
+      // the firewall.
       if (AutoBanFirewall::IsNeverBanned(ipaddress))
       {
          LOG_DEBUG("AccountLogon::RegisterFailedLogin - " + String(ipaddress.ToString()) + " is listed in AutoBanNeverBan; the failure is not counted.");

@@ -40,10 +40,12 @@ has a certificate to borrow - the status on the card says whether it will be.
 
 ## Web services & autoconfiguration
 
-*Calendar and contacts discovery (CalDAV / CardDAV).* Leave both addresses empty
-unless you run such a server: empty means the discovery URLs answer 404, which is the
-right response when there is nothing to point at. They need the web services
-listener to be running, like everything else on the page.
+*Calendar and contacts discovery (CalDAV / CardDAV).* hMailServer serves CalDAV and
+CardDAV itself, under /dav/ on the web services listener, over HTTPS. Leave both
+addresses empty unless the calendars and contacts are on another server: empty sends
+the discovery URLs to this server's own /dav/, and an address that is set and cannot be
+used - a relative one - answers 404, with the reason in the error log. They need the
+web services listener to be running, like everything else on the page.
 
 ## Webmail
 
@@ -97,7 +99,9 @@ nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server li
 and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check
 that from here - and once an address is listed as a PROXY protocol proxy the header
 becomes required from it, so a proxy that does not send one will have its connections
-dropped.
+dropped. These settings are the SMTP listener's alone: the IMAP and POP3 listeners each
+have a PROXY switch and a list of proxies of their own, on their tabs of the Protocols
+page, which a balancer in front of them needs as well.
 
 *Proxies allowed to send a PROXY header.* Each is matched against the real TCP peer. An entry that does not
 parse matches nothing rather than everything, and is reported in the error log once per run.

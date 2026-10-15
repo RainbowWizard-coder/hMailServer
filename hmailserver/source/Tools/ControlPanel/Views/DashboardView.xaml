@@ -151,7 +151,7 @@
                         <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top">
                             <TextBlock x:Name="KpiUptime" Text="—" Style="{StaticResource KpiValue}" />
                         </Viewbox>
-                        <TextBlock Grid.Row="1" Text="{loc:L 'Uptime'}" Style="{StaticResource KpiLabel}" />
+                        <TextBlock Grid.Row="1" Text="{loc:L 'Servers running for'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </Button>
                 <Button x:Name="KpiProcessedCard" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0" Tag="status" Click="KpiCard_Click"

@@ -74,6 +74,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:L 'Version'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
@@ -82,10 +83,18 @@
                              Warning (Services/ServerStateText), where it was body text. -->
                         <scaffold:StatusPill Grid.Row="1" Grid.Column="1" x:Name="StatePill" Level="Normal" HorizontalAlignment="Left"
                                              Margin="0,0,0,8" AutomationProperties.AutomationId="status-state" />
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:L 'Started'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
+                        <!-- The servers' start, which Apply now, a reinitialise and a resume
+                             make again while the service runs on (Status.StartTime is
+                             Application::start_time_, set by StartServers_): named for what it
+                             is, where "Started" and "Uptime" over the counts since the service
+                             started said one minute after an Apply now on a service three days
+                             up (release review finding CP-3). -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:L 'Servers last started'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StartedValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:L 'Uptime'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:L 'Servers running for'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="UptimeValue" Style="{StaticResource TextBody}" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,0" TextWrapping="Wrap" Style="{StaticResource TextCaption}"
+                                   Text="{loc:L 'Apply now, a reinitialise and a resume start the servers again while the service runs on. The statistics count from the start of the service itself.'}" />
                     </Grid>
                 </scaffold:Card>
 

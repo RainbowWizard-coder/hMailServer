@@ -698,8 +698,11 @@ namespace hMailServer.ControlPanel.Services
                // With the front-end proxies, which pass on the real client address of such
                // an upstream, since review finding F273: a card of Server limits & expert
                // settings until then.
+               // The SMTP listener's front-end proxies: the IMAP and POP3 listeners' PROXY
+               // switches are on Protocols, which the page's card points to (release review
+               // part B, CPB-5).
                Page("relays", N("Incoming relays"),
-                  N("Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT."),
+                  N("Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT."),
                   aliases: "Trusted relay|Upstream gateway|Front-end filter|Load balancer|Proxy|Received header|" +
                            "PROXY protocol|HAProxy|XCLIENT|Front-end proxy|Front-end proxies|Real client address",
                   seeAlso: "ipranges|antispam|hardening"),

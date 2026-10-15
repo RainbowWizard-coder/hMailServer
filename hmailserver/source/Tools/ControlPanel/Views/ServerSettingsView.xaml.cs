@@ -858,7 +858,7 @@ namespace hMailServer.ControlPanel.Views
          protected virtual bool Reachable => IniStore != null && IniStore.SettingsReachable;
 
          /// <summary>Where the value is read from and written to - [Settings], unless a subclass says otherwise.</summary>
-         protected virtual string ReadRaw() => IniStore.Read(Path, Default.ToString());
+         protected virtual string ReadRaw() => IniStore.ReadNumber(Path, Default.ToString());
 
          protected virtual void WriteRaw(string value) => IniStore.Write(Path, value);
 
@@ -881,29 +881,43 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Section;
 
-         // The file on this computer alone: the server does not answer [Database] over COM (IIniSetting).
-         protected override bool Reachable => IniStore != null && IniStore.IsAvailable;
+         // The file on this computer alone, and only while it is the server's: the server
+         // does not answer [Database] over COM (IIniSetting), and a Control Panel signed in
+         // to a server on another computer has a file of its own, which the installer
+         // writes for the Control Panel component too (release review part B, CPB-1).
+         protected override bool Reachable => IniStore != null && IniStore.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable;
 
          /// <summary>
          /// Why this Control Panel can neither read the row nor write it, or null when it
-         /// can: hMailServer.ini is not on this computer - a Control Panel signed in to a
-         /// server on another machine - or it is and this user may not read it, as only
-         /// the administrators may from 6.3.6 (hMailServer.exe /ProtectFolders), where a
-         /// read answers the default and a write fails without a word. The server does not
-         /// answer the section over COM, so there is nobody else to ask: BuildUi marks the
-         /// row Not read and leaves it out of a save, and its card says this once. Before,
-         /// the row was a live box at its default, and a save said an edit of it was saved
-         /// and wrote nothing.
+         /// can: hMailServer.ini is not on this computer; or it is, and the server signed in
+         /// to is on another computer, whose own hMailServer.ini holds the section - a
+         /// workstation's file is the workstation's; or it is the server's and this user
+         /// may not read it, as only the administrators may from 6.3.6 (hMailServer.exe
+         /// /ProtectFolders), where a read answers the default and a write fails. The server
+         /// does not answer the section over COM, so there is nobody else to ask: BuildUi
+         /// marks the row Not read and leaves it out of a save, and its card says this
+         /// once. Before, the row was a live box at its default, or at the workstation's
+         /// value, and a save said "Restart to apply" over a write that missed the server
+         /// (CPB-1).
          /// </summary>
          public string Unreadable()
          {
-            if (!Reachable)
-               return L("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server.");
+            string denied = null;
+            IniFeatureStore.FileSectionAccess access = IniStore == null
+               ? IniFeatureStore.FileSectionAccess.NoFile
+               : IniStore.LocalSectionAccess(out denied);
 
-            string denied = IniStore.ReadDenied();
-            return denied == null
-               ? null
-               : F("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server.", denied);
+            switch (access)
+            {
+               case IniFeatureStore.FileSectionAccess.NoFile:
+                  return L("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server.");
+               case IniFeatureStore.FileSectionAccess.OtherComputer:
+                  return L("The settings marked Not read are kept in the [Database] section of the hMailServer.ini on the computer the server runs on, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server.");
+               case IniFeatureStore.FileSectionAccess.Denied:
+                  return F("The settings marked Not read are kept in the [Database] section of hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server.", denied);
+               default:
+                  return null;
+            }
          }
 
          protected override string ReadRaw() => IniStore.ReadFrom(Section, Path, Default.ToString());
@@ -951,12 +965,18 @@ namespace hMailServer.ControlPanel.Views
 
          protected override FrameworkElement BuildEditor(object value)
          {
+            // The value the server holds: a key it holds empty is shown empty, and said
+            // to be, where it was shown as the default, which the server does not use for
+            // it - ScriptAllowedObjects stored empty read "*", under the warning that any
+            // object may be created, on a server that lets a script create none
+            // (IniFeatureStore.ReadHeld; release review finding CP-4).
             string current = Default;
+            bool heldEmpty = false;
             if (IniStore != null && IniStore.SettingsReachable)
-               current = IniStore.Read(Path, Default);
+               current = IniStore.ReadHeld(Path, Default, out heldEmpty);
 
             loaded_ = (current ?? "").Trim();
-            box_ = TextEditor(current, ExamplePlaceholder.Shown(Placeholder));
+            box_ = TextEditor(current, heldEmpty ? L("(empty)") : ExamplePlaceholder.Shown(Placeholder));
             if (Address)
             {
                box_.Width = AddressWidth;
@@ -1010,7 +1030,7 @@ namespace hMailServer.ControlPanel.Views
          protected override FrameworkElement BuildEditor(object value)
          {
             int current = Default;
-            if (IniStore != null && IniStore.SettingsReachable && !int.TryParse(IniStore.Read(Path, Default.ToString()), out current))
+            if (IniStore != null && IniStore.SettingsReachable && !int.TryParse(IniStore.ReadNumber(Path, Default.ToString()), out current))
                current = Default;
 
             loaded_ = current;
@@ -2347,6 +2367,8 @@ namespace hMailServer.ControlPanel.Views
             Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
             Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
          });
+         // The SMTP listener's PROXY protocol and XCLIENT are on Incoming relays (CPB-5).
+         imap.Settings.Add(new ElsewhereRow { Label = L("The PROXY protocol and XCLIENT on the SMTP listener"), Page = "relays" }); // no-loc: a page key
          Tab(L("IMAP")).Cards.Add(imap);
 
          // These two are INI values rather than COM ones, and they used to be on
@@ -2407,6 +2429,7 @@ namespace hMailServer.ControlPanel.Views
             Placeholder = "10.0.0.5, 192.168.10.0/24", // no-loc
             Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody, which is the safe default."))
          });
+         pop3.Settings.Add(new ElsewhereRow { Label = L("The PROXY protocol and XCLIENT on the SMTP listener"), Page = "relays" }); // no-loc: a page key
          Tab(L("POP3")).Cards.Add(pop3);
 
          // RFC 2449 LOGIN-DELAY. On the POP3 page rather than the ini page because
@@ -2847,7 +2870,12 @@ namespace hMailServer.ControlPanel.Views
          // threshold DOES rather than adding a feature beside it: second on General,
          // where it was fourth and below the fold (review finding F263).
          var quarantine = Card(L("Quarantine instead of refusing"),
-            L("Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal."));
+            // The codes are SMTPConnection::DoSpamProtection_'s: a verdict of the checks
+            // after the body is refused with 554 when it is not quarantined, and one
+            // before it with 550, never quarantined; the checks before the body that an
+            // incoming relay's mail is put to after it, against the address in its
+            // headers, are the second kind (release review finding CPV-6).
+            L("Changes what happens at the refuse threshold, for the checks that run once the message body has been received. Off, a message over it is refused during the SMTP conversation with a 554 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. A verdict reached before the body (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal, with a 550 - and so does that check when it is made after the body, for mail from an incoming relay, against the address in its headers."));
          quarantine.Settings.Add(new IniBool
          {
             Path = "QuarantineEnabled",
@@ -3514,10 +3542,14 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence."),
             IniStore = iniStore_
          });
+         // With 0 no SSL_CTX_set_timeout is made, and OpenSSL's own lifetime applies -
+         // 7,200 seconds, tls1_default_timeout - where the label said 300, the figure of
+         // OpenSSL's manual pages (release review finding CPV-5; measured with
+         // SSL_CTX_get_timeout on OpenSSL 4.0.3 and 3.5.5).
          resume.Settings.Add(new IniNumber
          {
             Path = "TlsSessionTimeoutSeconds",
-            Label = L("Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)"),
+            Label = L("Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 7,200)"),
             Default = 0,
             Blurb = L("How long a session stays resumable, for cached sessions and tickets alike. It bounds how long a leaked resumption secret stays useful: a ticket recorded off the wire, or a session read out of a memory dump, stops working once it expires."),
             IniStore = iniStore_
@@ -3631,7 +3663,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AutoBanNeverBan",
             Label = L("Never auto-ban these addresses"),
-            Blurb = L("A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine."),
+            // Not counted towards an auto-ban, and counted by the per-name lockout all the
+            // same: AccountLogon::RegisterFailedLogin records the failure against the name
+            // before it asks the never-ban list (release review finding CPV-8).
+            Blurb = L("A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout below still counts them. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine."),
             IniStore = iniStore_
          });
 
@@ -4584,10 +4619,22 @@ namespace hMailServer.ControlPanel.Views
       private void BuildRuleLimits()
       {
          // No PageKey: the section's header is not drawn, and the Rules page's own names the page.
+         // RuleLoopLimit bounds every message the server generates for a message, not
+         // only what rules send, and nothing else of a rule: IsGeneratedResponseAllowed
+         // (RuleApplier) and the same test in SMTPForwarding (HM4333), SMTPDeliverer
+         // (HM4404), the out-of-office reply, Sieve's vacation and notify and an inbound
+         // webhook's return refuse once the count reaches it; a move, a delete, a header
+         // set or a function run is not counted (release review part B, CPB-3).
          var limits = Card(L("Rule limits"),
-            Sentences(L("What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it."),
+            Sentences(L("What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it."),
                L("The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers.")));
-         limits.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
+         limits.Settings.Add(new ComText
+         {
+            Path = "RuleLoopLimit",
+            Label = L("Rule loop limit"),
+            Numeric = true,
+            Blurb = L("How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce.")
+         });
          // Kept by the server with no COM property, and reached over the REST API.
          limits.Settings.Add(new RestText
          {
@@ -4634,6 +4681,12 @@ namespace hMailServer.ControlPanel.Views
             Blurb = Sentences(L("Addresses or CIDR blocks."), L("Empty means nobody.")),
             IniStore = iniStore_
          });
+         // The IMAP and POP3 listeners read a PROXY header too, each by a switch and a list
+         // of its own on its tab of Protocols (aa-b1, AA-23): the way there, as their cards
+         // give the way back, where this card and the task that opens it presented one
+         // place for front-end proxies (release review part B, CPB-5).
+         proxies.Settings.Add(new ElsewhereRow { Label = L("The PROXY protocol on the IMAP listener"), Page = "protocols", Tab = N("IMAP") }); // no-loc: a page key
+         proxies.Settings.Add(new ElsewhereRow { Label = L("The PROXY protocol on the POP3 listener"), Page = "protocols", Tab = N("POP3") }); // no-loc: a page key
          Tab(L("Front-end proxies (PROXY protocol and XCLIENT)")).Cards.Add(proxies);
       }
 
@@ -4865,7 +4918,11 @@ namespace hMailServer.ControlPanel.Views
             Path = "MessageIndexing.Enabled",
             ButtonText = L("Discard the index and rebuild it"),
             Destructive = true,
-            Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should."),
+            // A search reads every message the index has not marked complete, so that a
+            // search is slower until the rebuild catches up, or refused with NO [LIMIT]
+            // past the search limits, and never short (PersistentMessageIndex::
+            // GetMessagesThatCannotContain; release review, seen outside the findings 5).
+            Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet, so a search is slower, and one past the search limits is refused with NO [LIMIT]; none finds less than it should."),
             Outcome = () => WhenIndexingIsOn_(RebuildIndex_)
          });
          Tab(L("Indexing")).Cards.Add(index);
@@ -5033,7 +5090,9 @@ namespace hMailServer.ControlPanel.Views
          // Written out here rather than in a helper because the settings-index
          // generator only reads the body of a Build<Section>() method; rows built
          // anywhere else compile, render and save, and are invisible to Ctrl+K.
-         string databaseType = iniStore_.IsAvailable
+         // Read from the file only while it is the server's (CPB-1): a workstation's file
+         // says nothing of the server's database.
+         string databaseType = iniStore_.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable
             ? iniStore_.ReadFrom("Database", "Type", "").Trim()
             : "";
 
@@ -5214,11 +5273,13 @@ namespace hMailServer.ControlPanel.Views
          var allowedObjects = new IniText
          {
             Path = "ScriptAllowedObjects",
-            Label = L("COM objects a script may create"),
+            Label = L("COM objects a script may create (empty = none beyond hMailServer's own)"),
             Blurb = L("ProgIDs or CLSIDs, separated by commas. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state."),
             // Absent means "*", so that a key appearing in an upgrade cannot break
             // scripts an installation already runs; the editor shows that, because
-            // a blank here saved back would mean "none" and break them itself.
+            // a blank here saved back would mean "none" and break them itself. Held
+            // empty, it means none, and the editor shows it empty (IniText): a clear
+            // narrows the list, and nothing on the page widens it.
             Default = "*",
             IniStore = iniStore_
          };
@@ -6871,7 +6932,7 @@ namespace hMailServer.ControlPanel.Views
 
          (long Messages, long Indexed)? before = ReadIndexCounts_();
 
-         string warning = L("Discard the search index and rebuild it?\r\n\r\nNo mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH will find less than it should.");
+         string warning = L("Discard the search index and rebuild it?\r\n\r\nNo mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet: searches are slower, and one past the search limits is refused with NO [LIMIT].");
 
          if (before != null)
          {
@@ -6899,7 +6960,7 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)indexing);
          }
 
-         return (true, L("The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes."));
+         return (true, L("The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - until it finishes, IMAP SEARCH reads the messages it has not covered yet, and is slower."));
       }
 
       /// <summary>

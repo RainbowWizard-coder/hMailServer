@@ -356,7 +356,8 @@ namespace hMailServer.ControlPanel.Views
             timer_.Start();
          BeginSetupCheck_();
 
-         // Once as the page opens, not every two seconds: the check runs once a day.
+         // Once as the page opens, not every two seconds: the check runs every
+         // UpdateCheckHours, a day as shipped.
          UpdateNotice.ShowIn(UpdateNoticeHost, "dashboard-update-available");
       }
 
@@ -398,7 +399,7 @@ namespace hMailServer.ControlPanel.Views
             SetKpi_(KpiProcessed, L("Messages processed"), snap.ProcessedMessages.ToString("N0"));
             SetKpi_(KpiSpam, L("Spam detected"), snap.SpamBlocked.ToString("N0"));
             SetKpi_(KpiViruses, L("Viruses removed"), snap.VirusesRemoved.ToString("N0"));
-            SetKpi_(KpiUptime, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession, compact: true));
+            SetKpi_(KpiUptime, L("Servers running for"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession, compact: true));
             ShowQueue_(snap.QueueLength);
             NameKpiCards_();
 
@@ -459,7 +460,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var cards = new (TextBlock value, string label)[]
          {
-            (KpiUptime, L("Uptime")),
+            (KpiUptime, L("Servers running for")),
             (KpiProcessed, L("Messages processed")),
             (KpiQueue, L("In queue")),
             (KpiSpam, L("Spam detected")),

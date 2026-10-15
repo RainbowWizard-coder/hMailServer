@@ -1750,7 +1750,11 @@ namespace hMailServer.ControlPanel
       /// then restarts it and attaches the session again (Services/ServiceRestart).
       /// The reattach raises the session's Reconnected, which enters the page again
       /// and refreshes the bar (OnSessionReconnected); a restart that failed says why
-      /// and puts the bar back.
+      /// and puts the bar back. A restart that left the service stopped keeps the bar
+      /// up at Critical with that sentence and the restart, whose next press starts the
+      /// service (release review finding CP-1): the bar's own read of what waits would
+      /// find no server to ask and take it down, leaving a toast as the only word that
+      /// the mail had stopped.
       /// </summary>
       private async void RestartPending_Click(object sender, RoutedEventArgs e)
       {
@@ -1765,6 +1769,18 @@ namespace hMailServer.ControlPanel
 
          (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
          PendingNotice.Level = StatusLevel.Warning;
+
+         if (outcome == ServiceRestartOutcome.Stopped)
+         {
+            Services.Toast.Failure(reason, L("Control Panel"));
+            PendingNotice.Level = StatusLevel.Critical;
+            PendingNotice.Text = reason;
+            ApplyPendingButton.Visibility = Visibility.Collapsed;
+            RestartServiceButton.Visibility = ServiceRestart.Available ? Visibility.Visible : Visibility.Collapsed;
+            RestartServiceButton.IsEnabled = true;
+            PendingBar.Visibility = Visibility.Visible;
+            return;
+         }
 
          if (outcome == ServiceRestartOutcome.NotRestarted)
             Services.Toast.Failure(F("Could not restart the service: {0}", reason), L("Control Panel"));

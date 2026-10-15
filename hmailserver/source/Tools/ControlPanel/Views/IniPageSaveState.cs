@@ -192,6 +192,11 @@ namespace hMailServer.ControlPanel.Views
             case ServiceRestartOutcome.NotRestarted:
                Settle(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason), action: RestartAction(automationId, question));
                break;
+            case ServiceRestartOutcome.Stopped:
+               // The service is not running: said as the sentence says it, at Critical,
+               // with the restart, whose next press starts it (release review finding CP-1).
+               Settle(SettingsPageState.RestartFailed, reason, StatusLevel.Critical, RestartAction(automationId, question));
+               break;
             case ServiceRestartOutcome.NotReattached:
                Settle(SettingsPageState.NotConnected,
                   F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason));

@@ -221,9 +221,11 @@ namespace hMailServer.ControlPanel.Views
             SetValue_(Pop3Value, L("POP3 sessions"), snap.Pop3Sessions.ToString());
             // The start is the server's time; the uptime is worked out only where the
             // server's clock is this computer's (review finding F247).
-            SetValue_(StartedValue, L("Started"), ServerUptimeText.Started(snap.StartTime));
-            SetValue_(UptimeValue, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession));
-            SinceStartHeading.Text = ServerUptimeText.SinceStart(snap.StartTime);
+            SetValue_(StartedValue, L("Servers last started"), ServerUptimeText.Started(snap.StartTime));
+            SetValue_(UptimeValue, L("Servers running for"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession));
+            // The counts are the service's, since its process started: not since the
+            // servers' last start, which the heading named (release review finding CP-3).
+            SinceStartHeading.Text = L("Since the service started");
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -234,8 +236,8 @@ namespace hMailServer.ControlPanel.Views
             SetValue_(SmtpValue, L("SMTP sessions"), notRead);
             SetValue_(ImapValue, L("IMAP sessions"), notRead);
             SetValue_(Pop3Value, L("POP3 sessions"), notRead);
-            SetValue_(StartedValue, L("Started"), notRead);
-            SetValue_(UptimeValue, L("Uptime"), notRead);
+            SetValue_(StartedValue, L("Servers last started"), notRead);
+            SetValue_(UptimeValue, L("Servers running for"), notRead);
             SinceStartHeading.Text = L("Since the service started");
          }
 

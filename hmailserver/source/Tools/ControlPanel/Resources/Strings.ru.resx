@@ -483,11 +483,11 @@
   <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
     <value>Один из списков не удалось прочитать, поэтому ответ может измениться, когда это станет возможно.</value>
   </data>
-  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban." xml:space="preserve">
-    <value>Адрес из списка никогда не банится автоматически, а его неудачные входы не считаются. Действует со следующего бана.</value>
+  <data name="A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout below still counts them. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
+    <value>Адрес из списка никогда не банится автоматически, а его неудачные входы не засчитываются в автоблокировку; блокировка по имени пользователя ниже всё равно их считает. Внесите сюда адреса, с которых вы администрируете, прежде чем включать параметр межсетевого экрана: бан, дошедший до межсетевого экрана, закрывает этому адресу все почтовые порты этой машины.</value>
   </data>
-  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
-    <value>Адрес из списка никогда не банится автоматически, а его неудачные входы не считаются. Внесите сюда адреса, с которых вы администрируете, прежде чем включать параметр межсетевого экрана: бан, дошедший до межсетевого экрана, закрывает этому адресу все почтовые порты этой машины.</value>
+  <data name="A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout still counts them. It applies to the next ban." xml:space="preserve">
+    <value>Адрес из списка никогда не банится автоматически, а его неудачные входы не засчитываются в автоблокировку; блокировка по имени пользователя всё равно их считает. Действует со следующего бана.</value>
   </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Прослушивателю нужны сертификат и STARTTLS, чтобы ни один пароль не шёл по сети в открытом виде.</value>
@@ -665,6 +665,9 @@
   </data>
   <data name="A secret is configured - leave blank to keep it" xml:space="preserve">
     <value>Секрет настроен — оставьте поле пустым, чтобы сохранить его</value>
+  </data>
+  <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
+    <value>Отправитель, выполнивший вход (SMTP AUTH), не проходит ни через один из этих списков, кроме списка разрешённых и заблокированных при доставке: для сеанса со входом сервер не выполняет проверок на спам и не применяет серый список.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Отдельная верхняя граница, независимая от ограничения по времени, поскольку поиск, читающий огромные объёмы содержимого сообщений, обходится дорого, даже если завершается быстро.</value>
@@ -1798,6 +1801,9 @@ Control Panel может читать файлы сообщений только
   <data name="Apply now" xml:space="preserve">
     <value>Применить сейчас</value>
   </data>
+  <data name="Apply now, a reinitialise and a resume start the servers again while the service runs on. The statistics count from the start of the service itself." xml:space="preserve">
+    <value>«Применить сейчас», повторная инициализация и возобновление снова запускают серверы, пока служба продолжает работать. Статистика считается с запуска самой службы.</value>
+  </data>
   <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
     <value>Применить предварительный просмотр ко всем доменам, связанным с каталогом?</value>
   </data>
@@ -2386,8 +2392,8 @@ Control Panel может читать файлы сообщений только
   <data name="CC" xml:space="preserve">
     <value>Копия</value>
   </data>
-  <data name="COM objects a script may create" xml:space="preserve">
-    <value>COM-объекты, которые может создавать сценарий</value>
+  <data name="COM objects a script may create (empty = none beyond hMailServer's own)" xml:space="preserve">
+    <value>COM-объекты, которые может создавать сценарий (пусто — никакие, кроме собственных объектов hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2551,8 +2557,8 @@ Control Panel может читать файлы сообщений только
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Изменения здесь сохраняются сразу, по мере того как вы их вносите, а не кнопкой «Сохранить» диалога, поэтому «Отмена» их не отменяет.</value>
   </data>
-  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Меняет то, что происходит при достижении порога отклонения. Выключено: сообщение, превысившее порог, отклоняется прямо в разговоре SMTP ответом 550, и отправителю об этом сообщают. Включено: оно принимается ответом 250 и вместо этого откладывается на проверку — отправитель считает его доставленным и не повторяет попытку, именно это и позволяет исправить ложное срабатывание, не отправляя отчёт о недоставке по обратному адресу, который, скорее всего, подделан, и это же означает, что очередь на проверку становится единственным местом, где это сообщение вообще существует. Относится к проверкам, которые выполняются после получения тела письма; для вердикта, вынесенного раньше (подключающийся IP в списке блокировки DNS, неправильный HELO), удерживать нечего, и он остаётся отказом.</value>
+  <data name="Changes what happens at the refuse threshold, for the checks that run once the message body has been received. Off, a message over it is refused during the SMTP conversation with a 554 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. A verdict reached before the body (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal, with a 550 - and so does that check when it is made after the body, for mail from an incoming relay, against the address in its headers." xml:space="preserve">
+    <value>Меняет то, что происходит при достижении порога отклонения, для проверок, которые выполняются после получения тела письма. Выключено: сообщение, превысившее порог, отклоняется прямо в разговоре SMTP ответом 554, и отправителю об этом сообщают. Включено: оно принимается ответом 250 и вместо этого откладывается на проверку — отправитель считает его доставленным и не повторяет попытку, именно это и позволяет исправить ложное срабатывание, не отправляя отчёт о недоставке по обратному адресу, который, скорее всего, подделан, и это же означает, что очередь на проверку становится единственным местом, где это сообщение вообще существует. Для вердикта, вынесенного до тела письма (подключающийся IP в списке блокировки DNS, неправильный HELO), удерживать нечего, и он остаётся отказом с кодом 550 — как и эта проверка, когда для почты от входящего ретранслятора она выполняется после тела письма по адресу из его заголовков.</value>
   </data>
   <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
     <value>Его изменение переименовывает домен и переносит вместе с ним каждую учётную запись, каждый псевдоним и каждый список.</value>
@@ -2620,8 +2626,8 @@ Control Panel может читать файлы сообщений только
   <data name="Check for _updates" xml:space="preserve">
     <value>Проверить _обновления</value>
   </data>
-  <data name="Check for a new release once a day" xml:space="preserve">
-    <value>Проверять наличие нового выпуска раз в день</value>
+  <data name="Check for a new release" xml:space="preserve">
+    <value>Проверять наличие нового выпуска</value>
   </data>
   <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
     <value>Проверьте, есть ли более новый выпуск, загрузите и установите его - или поручите это серверу внутри заданного вами окна.</value>
@@ -4314,10 +4320,10 @@ Control Panel может читать файлы сообщений только
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Сбросить индекс и перестроить его</value>
   </data>
-  <data name="Discard the search index and rebuild it?&#13;&#10;&#13;&#10;No mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH will find less than it should." xml:space="preserve">
+  <data name="Discard the search index and rebuild it?&#13;&#10;&#13;&#10;No mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet: searches are slower, and one past the search limits is refused with NO [LIMIT]." xml:space="preserve">
     <value>Сбросить поисковый индекс и перестроить его?
 
-Почта не затрагивается — индекс из неё и получается, — но пока перестроение не нагонит, IMAP SEARCH будет находить меньше, чем должен.</value>
+Почта не затрагивается — индекс из неё и получается, — но пока перестроение не нагонит, IMAP SEARCH читает каждое сообщение, которое индекс ещё не охватывает: поиск идёт медленнее, а поиск, превышающий пределы поиска, отклоняется ответом NO [LIMIT].</value>
   </data>
   <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
     <value>Отбросить несохранённые изменения и перечитать сценарий с диска?</value>
@@ -4628,8 +4634,8 @@ Control Panel может читать файлы сообщений только
   <data name="Email address" xml:space="preserve">
     <value>Адрес электронной почты</value>
   </data>
-  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
-    <value>Очищает индекс и просит индексатор перестроить его. Почта не затрагивается — индекс является производными данными, — но пока перестроение не нагонит, IMAP SEARCH находит меньше, чем должен.</value>
+  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet, so a search is slower, and one past the search limits is refused with NO [LIMIT]; none finds less than it should." xml:space="preserve">
+    <value>Очищает индекс и просит индексатор перестроить его. Почта не затрагивается — индекс является производными данными, — но пока перестроение не нагонит, IMAP SEARCH читает каждое сообщение, которое индекс ещё не охватывает, поэтому поиск идёт медленнее, а поиск, превышающий пределы поиска, отклоняется ответом NO [LIMIT]; ни один не находит меньше, чем должен.</value>
   </data>
   <data name="Empty means nobody, which is the safe default." xml:space="preserve">
     <value>Пустое значение означает «никто», и это безопасное значение по умолчанию.</value>
@@ -5075,14 +5081,14 @@ Control Panel может читать файлы сообщений только
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Каждое письмо, доставленное на эту учётную запись, после фильтров шифруется её собственным ключом OpenPGP, и этот сервер не может читать, искать, экспортировать или восстанавливать её почту. Выключить это может только сам человек из веб-почты; здесь это невозможно.</value>
   </data>
-  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Каждое сообщение проходит по очереди через каждый из {0} сканера, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
+  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait." xml:space="preserve">
+    <value>Каждое сообщение проходит по очереди через каждый из {0} сканера, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется в потоке доставки после того, как сообщение принято, поэтому её цена — задержка доставки, а не ожидание отправителя.</value>
   </data>
-  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait." xml:space="preserve">
+    <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется в потоке доставки после того, как сообщение принято, поэтому её цена — задержка доставки, а не ожидание отправителя.</value>
   </data>
-  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;.|few" xml:space="preserve">
-    <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait.|few" xml:space="preserve">
+    <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется в потоке доставки после того, как сообщение принято, поэтому её цена — задержка доставки, а не ожидание отправителя.</value>
   </data>
   <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
     <value>Каждое сообщение проверяет один сканер: {0}.</value>
@@ -5900,8 +5906,8 @@ Control Panel может читать файлы сообщений только
   <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
     <value>Часы, в течение которых помнится вердикт (0 = никогда)</value>
   </data>
-  <data name="Hours between checks (1 to 168)" xml:space="preserve">
-    <value>Часов между проверками (от 1 до 168)</value>
+  <data name="Hours between checks (at least 1; 24 = once a day)" xml:space="preserve">
+    <value>Часов между проверками (не меньше 1; 24 = раз в день)</value>
   </data>
   <data name="Hours the link that proves a recovery address works (1 to 168)" xml:space="preserve">
     <value>Часы действия ссылки, подтверждающей адрес восстановления (от 1 до 168)</value>
@@ -5968,6 +5974,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Сколько внешних учётных записей, настроенных в учётных записях домена как внешний сбор по POP3, собирается одновременно. Каждая из них удерживает подключение к чужому серверу на всё время загрузки.</value>
+  </data>
+  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Сколько сгенерированных сообщений может повлечь одно сообщение, прежде чем сервер перестанет генерировать для него новые: пересылка, ответ, копия или уведомление правила, переадресация или перенаправление учётной записи, отчёт о недоставке, автоответ об отсутствии или ответ Sieve, а также ответ входящего вебхука; остальные действия правила не ограничиваются. По умолчанию 5; 0 не генерирует ни одного, даже отчёта о недоставке.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Сколько элементов политики SPF отправителя (a:, mx:, exists:) могут не найти ни одной записи DNS, прежде чем результатом станет permerror. RFC 7208 задаёт 2; 0 снимает ограничение.</value>
@@ -6589,8 +6598,8 @@ Control Panel может читать файлы сообщений только
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Разрешить устройству или принтеру отправлять почту</value>
   </data>
-  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
-    <value>Позвольте балансировщику нагрузки или ретранслятору Postfix передавать настоящий адрес клиента по протоколу PROXY или командой XCLIENT.</value>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT; the IMAP and POP3 listeners each have a PROXY switch of their own, on Protocols." xml:space="preserve">
+    <value>Позвольте балансировщику нагрузки или ретранслятору Postfix передавать настоящий адрес клиента прослушивателю SMTP по протоколу PROXY или командой XCLIENT; у прослушивателей IMAP и POP3 есть свой собственный переключатель PROXY, в разделе «Протоколы».</value>
   </data>
   <data name="Let past greylisting." xml:space="preserve">
     <value>Пропускается мимо серого списка.</value>
@@ -7709,6 +7718,9 @@ Control Panel может читать файлы сообщений только
   <data name="No HELO name was recorded" xml:space="preserve">
     <value>Имя HELO не было записано</value>
   </data>
+  <data name="No IP range contains {0}, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Ни один диапазон IP не содержит {0}, поэтому сервер отклоняет подключение с этого адреса ещё до того, как назван отправитель.</value>
+  </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Ни один диапазон IP не требует TLS перед аутентификацией. Этот параметр находится в каждом диапазоне IP, а не рядом с остальными настройками TLS, поэтому его легко ни разу не увидеть: это единственный элемент управления, который отклоняет пароль открытым текстом независимо от того, что разрешает порт.</value>
   </data>
@@ -8273,6 +8285,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
     <value>Не используется: разрешённый домен никогда не попадает в серый список.</value>
   </data>
+  <data name="Not consulted: the connecting address's IP range has anti-spam off, so the server runs no spam check and does not greylist the session." xml:space="preserve">
+    <value>Не используется: в диапазоне IP подключающегося адреса антиспам выключен, поэтому сервер не выполняет проверок на спам и не применяет к сеансу серый список.</value>
+  </data>
   <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
     <value>Не используется: на этого отправителя распространяется исключение антиспама, поэтому сервер не проверяет ни его домен, ни оценку и не применяет к нему серый список.</value>
   </data>
@@ -8302,6 +8317,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
     <value>Не доходит: письмо отклоняется на этапе MAIL FROM.</value>
+  </data>
+  <data name="Not reached: the server refuses the connection before the sender is given." xml:space="preserve">
+    <value>Не доходит: сервер отклоняет подключение ещё до того, как назван отправитель.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Не прочитано</value>
@@ -9908,11 +9926,11 @@ Control Panel может читать файлы сообщений только
   <data name="Recovery codes generated" xml:space="preserve">
     <value>Коды восстановления созданы</value>
   </data>
-  <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
-    <value>Перенаправлять /.well-known/caldav на (пусто — отвечать 404)</value>
+  <data name="Redirect /.well-known/caldav to (empty = this server's own /dav/)" xml:space="preserve">
+    <value>Перенаправлять /.well-known/caldav на (пусто — собственный /dav/ этого сервера)</value>
   </data>
-  <data name="Redirect /.well-known/carddav to (empty = answer 404)" xml:space="preserve">
-    <value>Перенаправлять /.well-known/carddav на (пусто — отвечать 404)</value>
+  <data name="Redirect /.well-known/carddav to (empty = this server's own /dav/)" xml:space="preserve">
+    <value>Перенаправлять /.well-known/carddav на (пусто — собственный /dav/ этого сервера)</value>
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Понизьте уровень журналирования или задайте, сколько дней хранятся журналы.</value>
@@ -10261,10 +10279,10 @@ Control Panel может читать файлы сообщений только
   <data name="Repair" xml:space="preserve">
     <value>Исправить</value>
   </data>
-  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
+  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (every IPv4 address). IPv6 clients, ::1 included, then match no range and are refused until an IPv6 range is added. This changes who may connect and relay, immediately." xml:space="preserve">
     <value>Заменить все диапазоны IP на значения по умолчанию?
 
-Каждый пользовательский диапазон — включая любые записи автоблокировки — будет удалён и заменён на «My computer» (127.0.0.1) и «Internet» (все остальные). Это немедленно меняет то, кому разрешено подключаться и ретранслировать.</value>
+Каждый пользовательский диапазон — включая любые записи автоблокировки — будет удалён и заменён на «My computer» (127.0.0.1) и «Internet» (все адреса IPv4). После этого клиенты IPv6, включая ::1, не попадают ни в один диапазон и отклоняются, пока не будет добавлен диапазон IPv6. Это немедленно меняет то, кому разрешено подключаться и ретранслировать.</value>
   </data>
   <data name="Replace all configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
     <value>Заменить все настроенные порты на значения по умолчанию?
@@ -10291,8 +10309,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Заменяет все порты стандартным набором: SMTP 25 и 587, POP3 110, IMAP 143 — все без защиты подключения.</value>
   </data>
-  <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (everything else)." xml:space="preserve">
-    <value>Заменяет все диапазоны двумя стандартными: «My computer» (127.0.0.1) и «Internet» (все остальные).</value>
+  <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (every IPv4 address), which no IPv6 client matches." xml:space="preserve">
+    <value>Заменяет все диапазоны двумя стандартными: «My computer» (127.0.0.1) и «Internet» (все адреса IPv4), в которые не попадает ни один клиент IPv6.</value>
   </data>
   <data name="Replies go to th_e list" xml:space="preserve">
     <value>_Ответы идут в список</value>
@@ -10498,8 +10516,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Resume the mail server" xml:space="preserve">
     <value>Возобновить почтовый сервер</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>Время жизни возобновления для кэшированных сеансов и билетов (секунды; 0 = 300 по умолчанию в OpenSSL)</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 7,200)" xml:space="preserve">
+    <value>Время жизни возобновления для кэшированных сеансов и билетов (секунды; 0 = 7 200 по умолчанию в OpenSSL)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>Срок хранения</value>
@@ -11713,6 +11731,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server-wide smart host" xml:space="preserve">
     <value>Общесерверный смарт-хост</value>
   </data>
+  <data name="Servers last started" xml:space="preserve">
+    <value>Последний запуск серверов</value>
+  </data>
+  <data name="Servers running for" xml:space="preserve">
+    <value>Серверы работают</value>
+  </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Учётная запись службы (только для режима поиска)</value>
   </data>
@@ -12072,9 +12096,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>С момента запуска службы</value>
-  </data>
-  <data name="Since the service started at {0}" xml:space="preserve">
-    <value>С момента запуска службы: {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>С {0}</value>
@@ -12763,6 +12784,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>Диапазоны IP не удалось прочитать.</value>
   </data>
+  <data name="The IP ranges decide. {0}" xml:space="preserve">
+    <value>Решают диапазоны IP. {0}</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Фильтр LDAP, отбирающий тех людей, у которых должен быть почтовый ящик. Значение по умолчанию, {0}, берёт включённые объекты person, у которых есть почтовый адрес, — тем самым намеренно исключаются отключённые уволившиеся, учётные записи служб и компьютеры, а для всех них более широкий фильтр создал бы почтовые ящики.</value>
   </data>
@@ -12781,8 +12805,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры OAuth2: {0}</value>
   </data>
+  <data name="The PROXY protocol and XCLIENT on the SMTP listener" xml:space="preserve">
+    <value>Протокол PROXY и XCLIENT на прослушивателе SMTP</value>
+  </data>
   <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
     <value>Протокол PROXY и XCLIENT, с помощью которых фронтенд-прокси передаёт настоящий адрес клиента</value>
+  </data>
+  <data name="The PROXY protocol on the IMAP listener" xml:space="preserve">
+    <value>Протокол PROXY на прослушивателе IMAP</value>
+  </data>
+  <data name="The PROXY protocol on the POP3 listener" xml:space="preserve">
+    <value>Протокол PROXY на прослушивателе POP3</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>REST API и прослушиватель Control Deck, метрики Prometheus и конечные точки работоспособности, которые читает система мониторинга, экспорт OpenTelemetry, оповещения, исходящие веб-хуки и агент SNMP, которые сообщают другой системе о случившемся, и то, как долго останавливающаяся служба ждёт своих сеансов.</value>
@@ -12888,6 +12921,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адрес блокируется так же, как после серии неудачных входов, истекающим диапазоном IP, но никогда не адрес из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» и не входящий ретранслятор. По умолчанию выключено и ничего не делает, пока отказ выше выключен.</value>
+  </data>
+  <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
+    <value>Адрес входит в диапазон IP {0}, в котором антиспам выключен: для сеанса из него сервер не выполняет проверок на спам и не применяет серый список, а из списков ниже действует только список разрешённых и заблокированных при доставке.</value>
   </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Адрес показывается замаскированным здесь и везде, и ни один интерфейс не выдаёт его целиком: это почтовый ящик этого человека, и ничто из того, что делает администратор, не требует его читать.</value>
@@ -13439,6 +13475,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Путь с подсказками: какая половина, какие строки журнала и параметр, ограничивающий каждый этап.</value>
   </data>
+  <data name="The hMailServer service has not finished stopping after {0} seconds, though it asked for {1}. It is not running, and it will not start by itself once it has stopped: start it then, with Restart the service… where it is offered, or in Services." xml:space="preserve">
+    <value>Служба hMailServer не завершила остановку и через {0} секунд, хотя запросила {1}. Она не работает и не запустится сама после остановки: тогда запустите её кнопкой «Перезапустить службу…», где она есть, или в оснастке «Службы».</value>
+  </data>
+  <data name="The hMailServer service is not running, so no mail is received or delivered until it is started. Start it now?" xml:space="preserve">
+    <value>Служба hMailServer не работает, поэтому почта не принимается и не доставляется, пока она не будет запущена. Запустить её сейчас?</value>
+  </data>
+  <data name="The hMailServer service stopped and was not started again: {0} It is not running, so no mail is received or delivered until it is started - with Restart the service… where it is offered, or in Services." xml:space="preserve">
+    <value>Служба hMailServer остановлена и не запущена снова: {0} Она не работает, поэтому почта не принимается и не доставляется, пока её не запустят — кнопкой «Перезапустить службу…», где она есть, или в оснастке «Службы».</value>
+  </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Нельзя сказать, каков максимально достижимый итог: одну из проверок не удалось прочитать.</value>
   </data>
@@ -13463,8 +13508,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The identity provider's ID for this person." xml:space="preserve">
     <value>Идентификатор этого человека у поставщика удостоверений.</value>
   </data>
-  <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
-    <value>Индекс опустошён, а индексатору поручено перестроить его. Перестроение идёт в фоне, проходами, ограниченными пределами выше, поэтому на большом хранилище потребуется несколько проходов - IMAP SEARCH находит меньше, чем должен, пока оно не завершится.</value>
+  <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - until it finishes, IMAP SEARCH reads the messages it has not covered yet, and is slower." xml:space="preserve">
+    <value>Индекс опустошён, а индексатору поручено перестроить его. Перестроение идёт в фоне, проходами, ограниченными пределами выше, поэтому на большом хранилище потребуется несколько проходов - пока оно не завершится, IMAP SEARCH читает сообщения, которые оно ещё не охватило, и работает медленнее.</value>
   </data>
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>Индексатору поручено выполнить проход; он работает в фоне, и счётчики ниже не сдвинутся, пока он не отработает. На данный момент:</value>
@@ -14122,6 +14167,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
     <value>Параметры, помеченные «Не прочитано», хранятся в разделе [Database] файла hMailServer.ini, который на этом компьютере не найден, и ни одно свойство COM их не передаёт. Запустите панель управления на компьютере, где работает сервер, чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of the hMailServer.ini on the computer the server runs on, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметры, помеченные «Не прочитано», хранятся в разделе [Database] файла hMailServer.ini на компьютере, где работает сервер, и ни одно свойство COM их не передаёт; эта панель управления подключена к серверу на другом компьютере, а файл здесь принадлежит этому компьютеру. Запустите панель управления на компьютере сервера, чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
+  </data>
+  <data name="The settings marked Not read are sending limits the server keeps in hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметры, помеченные «Не прочитано», — это ограничения отправки, которые сервер хранит в файле hMailServer.ini, который не удалось прочитать: {0} Ни одно свойство COM их не передаёт, а начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
+  </data>
+  <data name="The settings marked Not read are sending limits the server keeps in the hMailServer.ini on its own computer, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметры, помеченные «Не прочитано», — это ограничения отправки, которые сервер хранит в файле hMailServer.ini на своём компьютере, и ни одно свойство COM их не передаёт; эта панель управления подключена к серверу на другом компьютере, а файл здесь принадлежит этому компьютеру. Запустите панель управления на компьютере сервера, чтобы увидеть и изменить их; при сохранении они остаются на сервере без изменений.</value>
   </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Параметры, ограничивающие каждый этап</value>
@@ -14786,8 +14840,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="UDP port (1 to 65535)" xml:space="preserve">
     <value>Порт UDP (от 1 до 65535)</value>
   </data>
-  <data name="UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
-    <value>UDP обрезает запись до 1 024 байт, что соответствует рекомендации RFC 5426 и укладывается в любой значимый MTU пути; два потоковых транспорта обрамляют каждую запись её собственной длиной (RFC 5425) и ничего не обрезают. TLS проверяет цепочку сертификатов сборщика и его имя по корневому хранилищу этого компьютера и отклоняет соединение, если что-либо из этого не проходит, - поэтому сборщику с самоподписанным сертификатом нужно, чтобы этот сертификат был доверенным на данном компьютере.</value>
+  <data name="UDP truncates an entry to 1,024 bytes - more than the 480 RFC 5426 requires a receiver to take, less than the 2,048 it recommends, and under every path MTU that matters - and the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing below 65,000 bytes. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
+    <value>UDP обрезает запись до 1 024 байт — это больше 480, которые получатель обязан принимать по RFC 5426, меньше рекомендуемых 2 048 и укладывается в любой значимый MTU пути, — а два потоковых транспорта обрамляют каждую запись её собственной длиной (RFC 5425) и ничего не обрезают до 65 000 байт. TLS проверяет цепочку сертификатов сборщика и его имя по корневому хранилищу этого компьютера и отклоняет соединение, если что-либо из этого не проходит, — поэтому сборщику с самоподписанным сертификатом нужно, чтобы этот сертификат был доверенным на данном компьютере.</value>
   </data>
   <data name="Unable to reach the server (RPC unavailable)." xml:space="preserve">
     <value>Не удалось достучаться до сервера (RPC недоступен).</value>
@@ -14858,14 +14912,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Вышестоящие шлюзы (спам-фильтры, балансировщики нагрузки), чьи IP-адреса не должны считаться подключающимся клиентом в проверках хоста защиты от спама.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
-    <value>Вышестоящие шлюзы, чей IP-адрес не должен считаться подключающимся клиентом в проверках на спам, и фронтенд-прокси, которым разрешено передавать настоящий адрес клиента по протоколу PROXY или командой XCLIENT.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Вышестоящие шлюзы, чей IP-адрес не должен считаться подключающимся клиентом в проверках на спам, и фронтенд-прокси, которым разрешено передавать настоящий адрес клиента прослушивателю SMTP по протоколу PROXY или командой XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Вышестоящие узлы, которым разрешён XCLIENT (через запятую)</value>
-  </data>
-  <data name="Uptime" xml:space="preserve">
-    <value>Время работы</value>
   </data>
   <data name="Use ARC results from trusted forwarders to offset a DMARC failure" xml:space="preserve">
     <value>Использовать результаты ARC от доверенных пересылающих для компенсации провала DMARC</value>
@@ -15140,8 +15191,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Что защищает каждый прослушиватель, какой сертификат предъявляет и когда тот истекает, и что ещё может быть согласовано.</value>
   </data>
-  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
-    <value>Чему подчиняется каждое правило: как далеко может зайти цепочка сообщений, которые отправляют правила, — пересылка, ответ, копия, — прежде чем правила перестанут на неё действовать.</value>
+  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
+    <value>Чему подчиняется каждое правило: сколько сообщений сервер может сгенерировать для одного сообщения — пересылку, ответ, копию, отчёт о недоставке, — прежде чем перестанет генерировать для него новые.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Что прямо сейчас делает каждая проверка на спам, в порядке, в котором сервер их выполняет, и где каждая включается.</value>
@@ -16709,14 +16760,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer не создаёт клиентские сертификаты и не управляет ими. Удостоверяющий центр и сами клиентские сертификаты необходимо выпустить вне hMailServer (например, с помощью OpenSSL или внутренней инфраструктуры PKI) — сервер доверяет только тому набору сертификатов ЦС, который указан здесь.</value>
   </data>
-  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address." xml:space="preserve">
-    <value>hMailServer не реализует CalDAV и CardDAV. Эти параметры лишь заставляют общеизвестные URL обнаружения (RFC 6764) отвечать перенаправлением на тот сервер, который их реализует, чтобы клиент, настроенный на почтовый адрес пользователя, нашёл его календарь, не получая второго адреса.</value>
-  </data>
   <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
     <value>hMailServer обновлён с {0} до {1}, служба работает. Установил {2} в {3}.</value>
   </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer — бесплатное программное обеспечение с открытым исходным кодом, распространяемое по лицензии GNU AGPLv3. Этот Control Panel построен на WPF-UI (Fluent design) и LiveCharts2 под .NET 10.</value>
+  </data>
+  <data name="hMailServer serves CalDAV and CardDAV itself, under /dav/ on this listener, over HTTPS, to each account by its mail address and password. These settings send the well-known discovery URLs (RFC 6764) to another server instead, for calendars and contacts kept there; empty, they lead to this server's own /dav/, so a client configured with a user's mail address finds their calendar without being told a second address." xml:space="preserve">
+    <value>hMailServer сам обслуживает CalDAV и CardDAV по пути /dav/ на этом прослушивателе, по HTTPS, для каждой учётной записи по её почтовому адресу и паролю. Эти параметры вместо этого направляют общеизвестные URL обнаружения (RFC 6764) на другой сервер — для календарей и контактов, хранящихся там; пустые, они ведут на собственный /dav/ этого сервера, чтобы клиент, настроенный на почтовый адрес пользователя, нашёл его календарь, не получая второго адреса.</value>
   </data>
   <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
     <value>hMailServer обновлён: {0} Войдите, чтобы увидеть сервер.</value>
@@ -16868,6 +16919,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>он завершился с кодом {0}</value>
+  </data>
+  <data name="it stopped again as it started; the hMailServer error log and the Windows System log say why." xml:space="preserve">
+    <value>при запуске она снова остановилась; причину указывают журнал ошибок hMailServer и системный журнал Windows.</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>элемент</value>
@@ -17268,6 +17322,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the domain itself (many DNS consoles write the zone apex as &quot;@&quot;)" xml:space="preserve">
     <value>сам домен (многие консоли DNS записывают корень зоны как «@»)</value>
   </data>
+  <data name="the elevation prompt to start it was cancelled." xml:space="preserve">
+    <value>запрос на повышение прав для её запуска отменён.</value>
+  </data>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>запрос на повышение прав отменён.</value>
   </data>
@@ -17330,6 +17387,27 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the service credential is not permitted to read the directory" xml:space="preserve">
     <value>служебным учётным данным не разрешено читать каталог</value>
+  </data>
+  <data name="the service did not stop, and Windows reports it in a state it does not name." xml:space="preserve">
+    <value>служба не остановилась, и Windows сообщает о ней состояние, которому не даёт названия.</value>
+  </data>
+  <data name="the service did not stop, and is paused as it was." xml:space="preserve">
+    <value>служба не остановилась и приостановлена, как и была.</value>
+  </data>
+  <data name="the service did not stop, and is pausing." xml:space="preserve">
+    <value>служба не остановилась и сейчас приостанавливается.</value>
+  </data>
+  <data name="the service did not stop, and is resuming." xml:space="preserve">
+    <value>служба не остановилась и сейчас возобновляется.</value>
+  </data>
+  <data name="the service did not stop, and is starting." xml:space="preserve">
+    <value>служба не остановилась и сейчас запускается.</value>
+  </data>
+  <data name="the service did not stop, and runs as it did." xml:space="preserve">
+    <value>служба не остановилась и работает, как и работала.</value>
+  </data>
+  <data name="the service was started again and has not said it is running after {0} seconds; Services shows whether it does." xml:space="preserve">
+    <value>служба запущена снова и через {0} секунд не сообщила, что работает; работает ли она, покажет оснастка «Службы».</value>
   </data>
   <data name="the session has no stored credentials to reconnect with." xml:space="preserve">
     <value>у сеанса нет сохранённых учётных данных для повторного подключения.</value>
@@ -17607,14 +17685,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} адресов</value>
   </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреса</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
-  </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} адреса</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонимов: {0}</value>
@@ -17787,14 +17865,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} events" xml:space="preserve">
     <value>{0} событий</value>
   </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} события</value>
+  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
-  </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} события</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
@@ -18042,14 +18120,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} members" xml:space="preserve">
     <value>{0} участников</value>
   </data>
+  <data name="{0} members|few" xml:space="preserve">
+    <value>{0} участника</value>
+  </data>
   <data name="{0} members added." xml:space="preserve">
     <value>Добавлено {0} участников.</value>
   </data>
   <data name="{0} members added.|few" xml:space="preserve">
     <value>Добавлено {0} участника.</value>
-  </data>
-  <data name="{0} members|few" xml:space="preserve">
-    <value>{0} участника</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} сообщение</value>
@@ -18074,6 +18152,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} сообщения</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
@@ -18110,9 +18191,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages will be tried again now.|few" xml:space="preserve">
     <value>Доставка {0} сообщений будет повторена сейчас.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} сообщения</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} мин</value>

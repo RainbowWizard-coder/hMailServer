@@ -43,6 +43,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The two directory filters' shipped default, wrapped whole in the box and named
          // as the default in the hint (review finding F131).
          "DefaultSyncFilter", "DefaultUserSearchFilter",
+         // A key the server holds empty, said to be where the box would otherwise show an
+         // example over an empty value it does not use (release review finding CP-4).
+         "heldEmpty ? L(\"(empty)\") : ExamplePlaceholder.Shown(",
       };
 
       [Fact]

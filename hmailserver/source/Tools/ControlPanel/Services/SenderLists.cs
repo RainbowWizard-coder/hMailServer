@@ -163,10 +163,16 @@ namespace hMailServer.ControlPanel.Services
    /// matched against it alone are not checked, and the DNS block lists and SURBL
    /// are asked of the network when mail arrives, not here. Each list is asked on its
    /// own; <see cref="ApplyPrecedence"/> then makes the answers the server's, where a
-   /// list it reads first keeps it from reading a later one.
+   /// list it reads first keeps it from reading a later one - and where the connecting
+   /// address's IP range keeps it from reading any (<see cref="ConnectingRange"/>;
+   /// release review finding CP-6). A sender that signs in meets none of the lists but
+   /// the allow and block list, which the card says, since the check cannot know it.
    /// </summary>
    public static class SenderCheck
    {
+      /// <summary>The navigation key of the IP ranges page, whose answer stands before the lists' when an address is given.</summary>
+      public const string RangesPage = "ipranges"; // no-loc: a page key
+
       /// <summary>A list that could not be read: the reason last, as a failure's sentence ends.</summary>
       public static SenderCheckResult NotRead(string page, string why)
          => new SenderCheckResult(page, SenderCheckOutcome.NotRead, F("Could not read the list: {0}", why));
@@ -192,8 +198,13 @@ namespace hMailServer.ControlPanel.Services
       /// though the tests still run: a blocked sender's score still counts, towards
       /// marking it as spam.</item>
       /// </list>
+      /// Before all of them, the connecting address's IP range, where one was given
+      /// (<see cref="ConnectingRange"/>): a connection no range contains is refused before
+      /// any list is read, and a range whose anti-spam is off makes the session one the
+      /// spam protection skips, as a covering exemption does - the range is asked first
+      /// (InitializeSpamProtectionType_), so not even the exemptions are read.
       /// <paramref name="inGuideOrder"/> holds one answer a list, in
-      /// <see cref="SenderListGuide.Rows"/>' order.
+      /// <see cref="SenderListGuide.Rows"/>' order, after the range's when there is one.
       /// </summary>
       public static IReadOnlyList<SenderCheckResult> ApplyPrecedence(IReadOnlyList<SenderCheckResult> inGuideOrder)
       {
@@ -201,6 +212,22 @@ namespace hMailServer.ControlPanel.Services
             return Array.Empty<SenderCheckResult>();
 
          var results = inGuideOrder.ToList();
+
+         SenderCheckResult range = Answer_(results, RangesPage);
+         if (range?.Outcome == SenderCheckOutcome.Matches)
+         {
+            string unread = range.Blocks
+               ? L("Not reached: the server refuses the connection before the sender is given.")
+               : L("Not consulted: the connecting address's IP range has anti-spam off, so the server runs no spam check and does not greylist the session.");
+            for (int at = 0; at < results.Count; at++)
+            {
+               string page = results[at].Page;
+               if (page == RangesPage || (!range.Blocks && page == "senderlist")) // no-loc: page keys
+                  continue;
+               results[at] = new SenderCheckResult(page, SenderCheckOutcome.NotReached, unread);
+            }
+            return results;
+         }
 
          SenderCheckResult exemption = Answer_(results, "spamwhitelist"); // no-loc: page keys
          if (exemption?.Outcome == SenderCheckOutcome.Matches)
@@ -257,6 +284,7 @@ namespace hMailServer.ControlPanel.Services
       public static (StatusLevel Level, string Text) Summary(IReadOnlyList<SenderCheckResult> answers)
       {
          answers ??= Array.Empty<SenderCheckResult>();
+         SenderCheckResult range = Answer_(answers, RangesPage);
          SenderCheckResult exemption = Answer_(answers, "spamwhitelist"); // no-loc: page keys
          SenderCheckResult domain = Answer_(answers, "domainpolicylist");
          SenderCheckResult blocked = Answer_(answers, "blockedsenders");
@@ -266,7 +294,9 @@ namespace hMailServer.ControlPanel.Services
 
          SenderCheckResult deciding = null;
          bool conditional = false;
-         if (Matches(exemption))
+         if (Matches(range))
+            deciding = !range.Blocks && Matches(list) && list.Blocks ? list : range;
+         else if (Matches(exemption))
             deciding = Matches(list) && list.Blocks ? list : exemption;
          else if (exemption?.Outcome == SenderCheckOutcome.MatchesIf)
             (deciding, conditional) = (exemption, true);
@@ -285,6 +315,11 @@ namespace hMailServer.ControlPanel.Services
          {
             level = StatusLevel.Information;
             text = L("No list decides for this sender: the spam checks and their score do.");
+         }
+         else if (deciding.Page == RangesPage)
+         {
+            level = Pill(deciding).Level;
+            text = F("The IP ranges decide. {0}", deciding.Text);
          }
          else
          {
@@ -348,6 +383,69 @@ namespace hMailServer.ControlPanel.Services
             page == "surbl"
                ? L("Not checked here: SURBL is asked about the links in a message once its body has arrived.")
                : L("Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives."));
+
+      // ---- the IP range of the connecting address ---------------------------------
+
+      /// <summary>One IP range: its name, its two ends, its priority and whether its anti-spam is on.</summary>
+      public sealed record IpRange(string Name, string LowerIp, string UpperIp, int Priority, bool AntiSpam);
+
+      /// <summary>
+      /// The IP range a connection from <paramref name="ip"/> is given, as the server gives
+      /// it (PersistentSecurityRange::ReadMatchingIP): of the ranges of the address's own
+      /// family that contain it, the one of the highest priority, and of two that share it
+      /// the first in <paramref name="ranges"/>' order - the IP ranges page's - where the
+      /// server's database decides. Null for no address, one that is not an address, or
+      /// one that no range contains.
+      /// </summary>
+      public static IpRange RangeOf(IEnumerable<IpRange> ranges, string ip)
+      {
+         System.Net.IPAddress connecting = ParseIp_(ip);
+         if (connecting == null)
+            return null;
+
+         IpRange best = null;
+         foreach (IpRange range in ranges ?? Array.Empty<IpRange>())
+         {
+            System.Net.IPAddress lower = ParseIp_(range.LowerIp), upper = ParseIp_(range.UpperIp);
+            if (lower == null || upper == null || !WithinRange_(connecting, lower, upper))
+               continue;
+            if (best == null || range.Priority > best.Priority)
+               best = range;
+         }
+
+         return best;
+      }
+
+      /// <summary>
+      /// What the connecting address's IP range does to the sender before any list is
+      /// read, or null where it does nothing to the answers - no address given, or a range
+      /// that runs the spam checks. A connection that no range contains is refused at
+      /// connect (SessionManager, TCPServer), before a greeting; a range whose anti-spam is
+      /// off sets the session's spam protection to none (SMTPConnection::
+      /// InitializeSpamProtectionType_, before the exemptions are asked), so that no spam
+      /// test, no greylisting and no domain policy runs (GetDoSpamProtection_,
+      /// CheckDomainPolicy_), and only the allow and block list applies, at delivery. Check
+      /// a sender read none of it: a blocked domain read "refused at MAIL FROM" for mail
+      /// from an office range with anti-spam off, which the server accepts with no check
+      /// at all (release review finding CP-6).
+      /// </summary>
+      public static SenderCheckResult ConnectingRange(IEnumerable<IpRange> ranges, string ip)
+      {
+         System.Net.IPAddress connecting = ParseIp_(ip);
+         if (connecting == null)
+            return null;
+
+         IpRange range = RangeOf(ranges, ip);
+         if (range == null)
+            return new SenderCheckResult(RangesPage, SenderCheckOutcome.Matches,
+               F("No IP range contains {0}, so the server refuses a connection from it before the sender is given.", connecting.ToString()), blocks: true);
+
+         if (range.AntiSpam)
+            return null;
+
+         return new SenderCheckResult(RangesPage, SenderCheckOutcome.Matches,
+            F("The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery.", (range.Name ?? "").Trim()));
+      }
 
       // ---- the spam exemptions --------------------------------------------------
 

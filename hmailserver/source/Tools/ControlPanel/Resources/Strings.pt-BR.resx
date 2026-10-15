@@ -480,11 +480,11 @@
   <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
     <value>Não foi possível ler uma lista, então a resposta pode mudar quando ela puder ser lida.</value>
   </data>
-  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban." xml:space="preserve">
-    <value>Um endereço listado nunca é banido automaticamente, e seus logins com falha não são contados. Vale a partir do próximo banimento.</value>
+  <data name="A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout below still counts them. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
+    <value>Um endereço listado nunca é banido automaticamente, e seus logins com falha não contam para um banimento automático; o bloqueio por nome mais abaixo ainda os conta. Coloque aqui os endereços de onde você administra antes de ativar a opção de firewall: um banimento que chega ao firewall bloqueia esse endereço em todas as portas de e-mail desta máquina.</value>
   </data>
-  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
-    <value>Um endereço listado nunca é banido automaticamente, e seus logins com falha não são contados. Coloque aqui os endereços de onde você administra antes de ativar a opção de firewall: um banimento que chega ao firewall bloqueia esse endereço em todas as portas de e-mail desta máquina.</value>
+  <data name="A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout still counts them. It applies to the next ban." xml:space="preserve">
+    <value>Um endereço listado nunca é banido automaticamente, e seus logins com falha não contam para um banimento automático; o bloqueio por nome ainda os conta. Vale a partir do próximo banimento.</value>
   </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Um ouvinte precisa de um certificado e de STARTTLS, para que nenhuma senha atravesse a rede em texto claro.</value>
@@ -659,6 +659,9 @@
   </data>
   <data name="A secret is configured - leave blank to keep it" xml:space="preserve">
     <value>Um segredo está configurado - deixe em branco para mantê-lo</value>
+  </data>
+  <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
+    <value>Um remetente que se autentica (SMTP AUTH) não passa por nenhuma destas listas, a não ser a lista de permitidos e bloqueados, na entrega: o servidor não executa nenhuma verificação de spam e não submete a greylisting uma sessão autenticada.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Um teto separado do limite de tempo, porque uma busca que lê quantidades enormes de conteúdo de mensagens é cara mesmo quando termina rápido.</value>
@@ -1780,6 +1783,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Apply now" xml:space="preserve">
     <value>Aplicar agora</value>
   </data>
+  <data name="Apply now, a reinitialise and a resume start the servers again while the service runs on. The statistics count from the start of the service itself." xml:space="preserve">
+    <value>Aplicar agora, uma reinicialização e uma retomada iniciam os servidores de novo enquanto o serviço continua em execução. As estatísticas contam a partir do início do próprio serviço.</value>
+  </data>
   <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
     <value>Aplicar a prévia a todos os domínios vinculados a um diretório?</value>
   </data>
@@ -2353,8 +2359,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="CC" xml:space="preserve">
     <value>CC</value>
   </data>
-  <data name="COM objects a script may create" xml:space="preserve">
-    <value>Objetos COM que um script pode criar</value>
+  <data name="COM objects a script may create (empty = none beyond hMailServer's own)" xml:space="preserve">
+    <value>Objetos COM que um script pode criar (vazio = nenhum além dos do próprio hMailServer)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -2518,8 +2524,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>As alterações feitas aqui são salvas à medida que você as faz, não com o botão Salvar da caixa de diálogo, então Cancelar não as desfaz.</value>
   </data>
-  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Muda o que acontece no limite de recusa. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 550 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Vale para as verificações que rodam depois que o corpo da mensagem foi recebido; um veredito alcançado antes disso (um IP conectando que está em uma lista de bloqueio DNS, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa.</value>
+  <data name="Changes what happens at the refuse threshold, for the checks that run once the message body has been received. Off, a message over it is refused during the SMTP conversation with a 554 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. A verdict reached before the body (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal, with a 550 - and so does that check when it is made after the body, for mail from an incoming relay, against the address in its headers." xml:space="preserve">
+    <value>Muda o que acontece no limite de recusa, para as verificações que rodam depois que o corpo da mensagem foi recebido. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 554 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Um veredito alcançado antes do corpo (um IP conectando que está em uma lista de bloqueio DNS, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa, com um 550 - e o mesmo vale para essa verificação quando, para o e-mail de um relay de entrada, ela é feita depois do corpo, contra o endereço nos cabeçalhos dele.</value>
   </data>
   <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
     <value>Alterá-lo renomeia o domínio e move junto cada conta, alias e lista.</value>
@@ -2587,8 +2593,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Check for _updates" xml:space="preserve">
     <value>Verificar at_ualizações</value>
   </data>
-  <data name="Check for a new release once a day" xml:space="preserve">
-    <value>Verificar se há uma nova versão uma vez por dia</value>
+  <data name="Check for a new release" xml:space="preserve">
+    <value>Verificar se há uma nova versão</value>
   </data>
   <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
     <value>Procure uma versão mais nova, baixe-a e instale-a - ou deixe o servidor fazer isso dentro de uma janela que você definir.</value>
@@ -4256,10 +4262,10 @@ Salvar mesmo assim?</value>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Descartar o índice e reconstruí-lo</value>
   </data>
-  <data name="Discard the search index and rebuild it?&#13;&#10;&#13;&#10;No mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH will find less than it should." xml:space="preserve">
+  <data name="Discard the search index and rebuild it?&#13;&#10;&#13;&#10;No mail is touched - the index is derived from it - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet: searches are slower, and one past the search limits is refused with NO [LIMIT]." xml:space="preserve">
     <value>Descartar o índice de busca e reconstruí-lo?
 
-Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstrução alcançar, o IMAP SEARCH encontrará menos do que deveria.</value>
+Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstrução alcançar, o IMAP SEARCH lê cada mensagem que o índice ainda não cobre: as buscas ficam mais lentas, e uma que passa dos limites de busca é recusada com NO [LIMIT].</value>
   </data>
   <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
     <value>Descartar as alterações não salvas e ler o script do disco novamente?</value>
@@ -4570,8 +4576,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Email address" xml:space="preserve">
     <value>Endereço de e-mail</value>
   </data>
-  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should." xml:space="preserve">
-    <value>Esvazia o índice e pede ao indexador que o reconstrua. Nenhum e-mail é tocado - o índice é dado derivado - mas até a reconstrução alcançar, o IMAP SEARCH encontra menos do que deveria.</value>
+  <data name="Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH reads every message the index does not cover yet, so a search is slower, and one past the search limits is refused with NO [LIMIT]; none finds less than it should." xml:space="preserve">
+    <value>Esvazia o índice e pede ao indexador que o reconstrua. Nenhum e-mail é tocado - o índice é dado derivado - mas até a reconstrução alcançar, o IMAP SEARCH lê cada mensagem que o índice ainda não cobre, então uma busca fica mais lenta, e uma que passa dos limites de busca é recusada com NO [LIMIT]; nenhuma encontra menos do que deveria.</value>
   </data>
   <data name="Empty means nobody, which is the safe default." xml:space="preserve">
     <value>Vazio significa ninguém, que é o padrão seguro.</value>
@@ -5011,11 +5017,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Cada mensagem entregue a esta conta é criptografada, depois dos filtros, com a chave OpenPGP da própria conta, e este servidor não pode ler, pesquisar, exportar nem recuperar o e-mail dela. Só a pessoa pode desativá-lo, pelo webmail; nada aqui pode.</value>
   </data>
-  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Cada mensagem passa por {0} verificador, que é consultado sobre a mensagem inteira e depois sobre cada anexo separadamente. Isso é minucioso e não é de graça: a verificação acontece enquanto o remetente espera pelo seu "250 OK".</value>
+  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait." xml:space="preserve">
+    <value>Cada mensagem passa por {0} verificador, que é consultado sobre a mensagem inteira e depois sobre cada anexo separadamente. Isso é minucioso e não é de graça: a verificação roda na thread de entrega depois que a mensagem é aceita, então o custo dela é atraso na entrega, não a espera do remetente.</value>
   </data>
-  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Cada mensagem passa por {0} verificadores um após o outro, e cada um é consultado sobre a mensagem inteira e depois sobre cada anexo separadamente. Isso é minucioso e não é de graça: a verificação acontece enquanto o remetente espera pelo seu "250 OK".</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan runs on the delivery thread after the message has been accepted, so its cost is delivery delay, not the sender's wait." xml:space="preserve">
+    <value>Cada mensagem passa por {0} verificadores um após o outro, e cada um é consultado sobre a mensagem inteira e depois sobre cada anexo separadamente. Isso é minucioso e não é de graça: a verificação roda na thread de entrega depois que a mensagem é aceita, então o custo dela é atraso na entrega, não a espera do remetente.</value>
   </data>
   <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
     <value>Cada mensagem é examinada por um verificador: {0}.</value>
@@ -5818,8 +5824,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
     <value>Horas em que um veredito é lembrado (0 = nunca)</value>
   </data>
-  <data name="Hours between checks (1 to 168)" xml:space="preserve">
-    <value>Horas entre verificações (1 a 168)</value>
+  <data name="Hours between checks (at least 1; 24 = once a day)" xml:space="preserve">
+    <value>Horas entre verificações (pelo menos 1; 24 = uma vez por dia)</value>
   </data>
   <data name="Hours the link that proves a recovery address works (1 to 168)" xml:space="preserve">
     <value>Horas em que o link que comprova um endereço de recuperação funciona (1 a 168)</value>
@@ -5886,6 +5892,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Quantas contas externas, configuradas nas contas de um domínio como downloads POP3 externos, são coletadas ao mesmo tempo. Cada uma mantém uma conexão com o servidor de outra pessoa por todo o tempo que o download levar.</value>
+  </data>
+  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Quantas mensagens geradas uma mensagem pode originar antes de o servidor não gerar mais nenhuma para ela: o encaminhamento, a resposta, a cópia ou o aviso de uma regra, o encaminhamento ou o redirecionamento de uma conta, uma devolução, uma resposta de ausência ou do Sieve, ou o retorno de um webhook de entrada; as outras ações de uma regra não são limitadas. 5 de fábrica; 0 não gera nenhuma, nem mesmo uma devolução.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Quantos termos da política SPF de um remetente (a:, mx:, exists:) podem não encontrar nenhum registro DNS antes que o resultado seja permerror. A RFC 7208 define 2; 0 remove o limite.</value>
@@ -6507,8 +6516,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Permitir que um dispositivo ou impressora envie e-mails</value>
   </data>
-  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
-    <value>Deixe um balanceador de carga ou um relay Postfix repassar o endereço real do cliente com o protocolo PROXY ou o XCLIENT.</value>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT; the IMAP and POP3 listeners each have a PROXY switch of their own, on Protocols." xml:space="preserve">
+    <value>Deixe um balanceador de carga ou um relay Postfix repassar o endereço real do cliente ao ouvinte SMTP com o protocolo PROXY ou o XCLIENT; os ouvintes IMAP e POP3 têm cada um seu próprio botão PROXY, em Protocolos.</value>
   </data>
   <data name="Let past greylisting." xml:space="preserve">
     <value>Passa pelo greylisting.</value>
@@ -7621,6 +7630,9 @@ Nada do que já está lá é removido.</value>
   <data name="No HELO name was recorded" xml:space="preserve">
     <value>Nenhum nome HELO foi registrado</value>
   </data>
+  <data name="No IP range contains {0}, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Nenhuma faixa de IP contém {0}, então o servidor recusa uma conexão dele antes de o remetente ser informado.</value>
+  </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Nenhuma faixa de IP exige TLS antes da autenticação. Essa configuração fica em cada faixa de IP, e não junto com o resto do TLS, e é por isso que é fácil nunca a ter visto: é o único controle que recusa uma senha em texto claro independentemente do que a porta permita.</value>
   </data>
@@ -8173,6 +8185,9 @@ Nada do que já está lá é removido.</value>
   <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
     <value>Não consultada: o domínio permitido nunca passa por greylisting.</value>
   </data>
+  <data name="Not consulted: the connecting address's IP range has anti-spam off, so the server runs no spam check and does not greylist the session." xml:space="preserve">
+    <value>Não consultada: a faixa de IP do endereço que conecta está com o antispam desligado, então o servidor não executa nenhuma verificação de spam e não submete a sessão a greylisting.</value>
+  </data>
   <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
     <value>Não consultada: a exceção antispam cobre este remetente, então o servidor não verifica nem o domínio nem a pontuação dele e não o submete a greylisting.</value>
   </data>
@@ -8202,6 +8217,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
     <value>Não alcançada: a mensagem é recusada no MAIL FROM.</value>
+  </data>
+  <data name="Not reached: the server refuses the connection before the sender is given." xml:space="preserve">
+    <value>Não alcançada: o servidor recusa a conexão antes de o remetente ser informado.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Não lido</value>
@@ -9802,11 +9820,11 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Recovery codes generated" xml:space="preserve">
     <value>Códigos de recuperação gerados</value>
   </data>
-  <data name="Redirect /.well-known/caldav to (empty = answer 404)" xml:space="preserve">
-    <value>Redirecionar /.well-known/caldav para (vazio = responder 404)</value>
+  <data name="Redirect /.well-known/caldav to (empty = this server's own /dav/)" xml:space="preserve">
+    <value>Redirecionar /.well-known/caldav para (vazio = o próprio /dav/ deste servidor)</value>
   </data>
-  <data name="Redirect /.well-known/carddav to (empty = answer 404)" xml:space="preserve">
-    <value>Redirecionar /.well-known/carddav para (vazio = responder 404)</value>
+  <data name="Redirect /.well-known/carddav to (empty = this server's own /dav/)" xml:space="preserve">
+    <value>Redirecionar /.well-known/carddav para (vazio = o próprio /dav/ deste servidor)</value>
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Reduza o nível de log, ou defina quantos dias de logs são mantidos.</value>
@@ -10140,10 +10158,10 @@ A caixa e suas mensagens passam para o novo endereço. E-mails enviados ao ender
   <data name="Repair" xml:space="preserve">
     <value>Reparar</value>
   </data>
-  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
+  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (every IPv4 address). IPv6 clients, ::1 included, then match no range and are refused until an IPv6 range is added. This changes who may connect and relay, immediately." xml:space="preserve">
     <value>Substituir todas as faixas de IP pelos padrões?
 
-Cada faixa personalizada - incluindo quaisquer entradas de banimento automático - será removida e substituída por 'Meu computador' (127.0.0.1) e 'Internet' (todo o resto). Isso muda quem pode se conectar e usar relay, imediatamente.</value>
+Cada faixa personalizada - incluindo quaisquer entradas de banimento automático - será removida e substituída por 'Meu computador' (127.0.0.1) e 'Internet' (todos os endereços IPv4). Os clientes IPv6, inclusive ::1, passam a não corresponder a nenhuma faixa e são recusados até que uma faixa IPv6 seja adicionada. Isso muda quem pode se conectar e usar relay, imediatamente.</value>
   </data>
   <data name="Replace all configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
     <value>Substituir todas as portas configuradas pelos padrões?
@@ -10170,8 +10188,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Substitui cada porta pelo conjunto padrão: SMTP 25 e 587, POP3 110, IMAP 143, todas sem segurança de conexão.</value>
   </data>
-  <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (everything else)." xml:space="preserve">
-    <value>Substitui cada faixa pelas duas padrão: 'Meu computador' (127.0.0.1) e 'Internet' (todo o resto).</value>
+  <data name="Replaces every range with the standard two: 'My computer' (127.0.0.1) and 'Internet' (every IPv4 address), which no IPv6 client matches." xml:space="preserve">
+    <value>Substitui cada faixa pelas duas padrão: 'Meu computador' (127.0.0.1) e 'Internet' (todos os endereços IPv4), às quais nenhum cliente IPv6 corresponde.</value>
   </data>
   <data name="Replies go to th_e list" xml:space="preserve">
     <value>As respostas vão para a _lista</value>
@@ -10377,8 +10395,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Resume the mail server" xml:space="preserve">
     <value>Retomar o servidor de e-mail</value>
   </data>
-  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 300)" xml:space="preserve">
-    <value>Tempo de vida da retomada para sessões e tíquetes em cache (segundos; 0 = o padrão de 300 do OpenSSL)</value>
+  <data name="Resumption lifetime for cached sessions and tickets (seconds; 0 = OpenSSL's default of 7,200)" xml:space="preserve">
+    <value>Tempo de vida da retomada para sessões e tíquetes em cache (segundos; 0 = o padrão de 7.200 do OpenSSL)</value>
   </data>
   <data name="Retention" xml:space="preserve">
     <value>Retenção</value>
@@ -11559,6 +11577,12 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Server-wide smart host" xml:space="preserve">
     <value>Smart host de todo o servidor</value>
   </data>
+  <data name="Servers last started" xml:space="preserve">
+    <value>Último início dos servidores</value>
+  </data>
+  <data name="Servers running for" xml:space="preserve">
+    <value>Servidores em execução há</value>
+  </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Conta de serviço (apenas no modo de busca)</value>
   </data>
@@ -11915,9 +11939,6 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Desde que o serviço foi iniciado</value>
-  </data>
-  <data name="Since the service started at {0}" xml:space="preserve">
-    <value>Desde que o serviço foi iniciado, em {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Desde {0}</value>
@@ -12603,6 +12624,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>As faixas de IP não puderam ser lidas.</value>
   </data>
+  <data name="The IP ranges decide. {0}" xml:space="preserve">
+    <value>Quem decide são as faixas de IP. {0}</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>O filtro LDAP que seleciona as pessoas que devem ter uma caixa. O padrão, {0}, pega objetos de pessoa ativados que carregam um endereço de e-mail - o que deliberadamente exclui ex-funcionários desativados, contas de serviço e computadores, para todos os quais um filtro mais amplo provisionaria caixas.</value>
   </data>
@@ -12621,8 +12645,17 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>As configurações do OAuth2 não puderam ser lidas: {0}</value>
   </data>
+  <data name="The PROXY protocol and XCLIENT on the SMTP listener" xml:space="preserve">
+    <value>O protocolo PROXY e o XCLIENT no ouvinte SMTP</value>
+  </data>
   <data name="The PROXY protocol and XCLIENT, with which a front-end proxy passes on the real client address" xml:space="preserve">
     <value>O protocolo PROXY e o XCLIENT, com os quais um proxy à frente repassa o endereço real do cliente</value>
+  </data>
+  <data name="The PROXY protocol on the IMAP listener" xml:space="preserve">
+    <value>O protocolo PROXY no ouvinte IMAP</value>
+  </data>
+  <data name="The PROXY protocol on the POP3 listener" xml:space="preserve">
+    <value>O protocolo PROXY no ouvinte POP3</value>
   </data>
   <data name="The REST API and the Control Deck's listener, the Prometheus metrics and health endpoints a monitoring system reads, the OpenTelemetry export, the alerts, outbound webhooks and SNMP agent that tell another system what happened, and how long a stopping service waits for its sessions." xml:space="preserve">
     <value>A API REST e o ouvinte do Control Deck, as métricas Prometheus e os endpoints de saúde que um sistema de monitoramento lê, a exportação OpenTelemetry, os alertas, os webhooks de saída e o agente SNMP que contam a outro sistema o que aconteceu, e quanto tempo um serviço que está parando espera por suas sessões.</value>
@@ -12728,6 +12761,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>O endereço é banido como uma sequência de logins falhos bane um, por uma faixa de IP com validade, mas nunca um endereço em 'Nunca banir automaticamente estes endereços' na página Banimento automático nem um relay de entrada. Desligado por padrão, e não faz nada enquanto a recusa acima estiver desligada.</value>
+  </data>
+  <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
+    <value>O endereço está na faixa de IP {0}, que está com o antispam desligado: o servidor não executa nenhuma verificação de spam e não submete a greylisting uma sessão vinda dela, e das listas abaixo só vale a lista de permitidos e bloqueados, na entrega.</value>
   </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>O endereço é mostrado mascarado aqui e em qualquer outro lugar, e nenhuma interface o devolve inteiro: é uma caixa daquela pessoa, e nada do que um administrador faz precisa lê-lo.</value>
@@ -13258,6 +13294,15 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>O caminho guiado: qual metade, quais linhas de log, e a configuração que limita cada etapa.</value>
   </data>
+  <data name="The hMailServer service has not finished stopping after {0} seconds, though it asked for {1}. It is not running, and it will not start by itself once it has stopped: start it then, with Restart the service… where it is offered, or in Services." xml:space="preserve">
+    <value>O serviço hMailServer não terminou de parar depois de {0} segundos, embora tenha pedido {1}. Ele não está em execução e não vai iniciar sozinho quando tiver parado: inicie-o então com Reiniciar o serviço…, onde for oferecido, ou em Serviços.</value>
+  </data>
+  <data name="The hMailServer service is not running, so no mail is received or delivered until it is started. Start it now?" xml:space="preserve">
+    <value>O serviço hMailServer não está em execução, então nenhum e-mail é recebido ou entregue até que ele seja iniciado. Iniciá-lo agora?</value>
+  </data>
+  <data name="The hMailServer service stopped and was not started again: {0} It is not running, so no mail is received or delivered until it is started - with Restart the service… where it is offered, or in Services." xml:space="preserve">
+    <value>O serviço hMailServer parou e não foi iniciado de novo: {0} Ele não está em execução, então nenhum e-mail é recebido ou entregue até que seja iniciado - com Reiniciar o serviço…, onde for oferecido, ou em Serviços.</value>
+  </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Não é possível dizer o maior total alcançável: uma verificação não pôde ser lida.</value>
   </data>
@@ -13282,8 +13327,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The identity provider's ID for this person." xml:space="preserve">
     <value>O ID desta pessoa no provedor de identidade.</value>
   </data>
-  <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
-    <value>O índice foi esvaziado e o indexador foi solicitado a reconstruí-lo. A reconstrução roda em segundo plano, em passagens limitadas pelos limites acima, então em um repositório de mensagens grande ela levará várias passagens - o IMAP SEARCH encontra menos do que deveria até que ela termine.</value>
+  <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - until it finishes, IMAP SEARCH reads the messages it has not covered yet, and is slower." xml:space="preserve">
+    <value>O índice foi esvaziado e o indexador foi solicitado a reconstruí-lo. A reconstrução roda em segundo plano, em passagens limitadas pelos limites acima, então em um repositório de mensagens grande ela levará várias passagens - até que termine, o IMAP SEARCH lê as mensagens que ela ainda não cobriu e fica mais lento.</value>
   </data>
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>O indexador foi solicitado a rodar; ele trabalha em segundo plano e as contagens abaixo não se moverão até que ele o faça. Como estão as coisas agora:</value>
@@ -13935,6 +13980,15 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="The settings marked Not read are kept in the [Database] section of hMailServer.ini, which was not found on this computer, and no COM property carries them. Start the Control Panel on the computer the server runs on to see and change them; saving leaves them as they are on the server." xml:space="preserve">
     <value>As configurações marcadas como "Não lido" ficam na seção [Database] do hMailServer.ini, que não foi encontrado neste computador, e nenhuma propriedade COM as carrega. Inicie o Painel de Controle no computador em que o servidor é executado para vê-las e alterá-las; ao salvar, elas ficam como estão no servidor.</value>
+  </data>
+  <data name="The settings marked Not read are kept in the [Database] section of the hMailServer.ini on the computer the server runs on, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>As configurações marcadas como "Não lido" ficam na seção [Database] do hMailServer.ini do computador em que o servidor é executado, e nenhuma propriedade COM as carrega; este Painel de Controle está conectado a um servidor em outro computador, e o arquivo daqui é o deste computador. Inicie o Painel de Controle no computador do servidor para vê-las e alterá-las; ao salvar, elas ficam como estão no servidor.</value>
+  </data>
+  <data name="The settings marked Not read are sending limits the server keeps in hMailServer.ini, which could not be read: {0} No COM property carries them, and from 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>As configurações marcadas como "Não lido" são limites de envio que o servidor mantém no hMailServer.ini, que não pôde ser lido: {0} Nenhuma propriedade COM as carrega, e a partir da 6.3.6 o arquivo pertence aos administradores. Feche o Painel de Controle e inicie-o com Executar como administrador para vê-las e alterá-las; ao salvar, elas ficam como estão no servidor.</value>
+  </data>
+  <data name="The settings marked Not read are sending limits the server keeps in the hMailServer.ini on its own computer, and no COM property carries them; this Control Panel is signed in to a server on another computer, and the file here is this computer's own. Start the Control Panel on the server's computer to see and change them; saving leaves them as they are on the server." xml:space="preserve">
+    <value>As configurações marcadas como "Não lido" são limites de envio que o servidor mantém no hMailServer.ini do próprio computador, e nenhuma propriedade COM as carrega; este Painel de Controle está conectado a um servidor em outro computador, e o arquivo daqui é o deste computador. Inicie o Painel de Controle no computador do servidor para vê-las e alterá-las; ao salvar, elas ficam como estão no servidor.</value>
   </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>As configurações que limitam cada etapa</value>
@@ -14596,8 +14650,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="UDP port (1 to 65535)" xml:space="preserve">
     <value>Porta UDP (1 a 65535)</value>
   </data>
-  <data name="UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
-    <value>O UDP trunca uma entrada em 1.024 bytes, que é a orientação da RFC 5426 e fica abaixo de qualquer MTU de caminho relevante; os dois transportes de fluxo enquadram cada entrada com o próprio comprimento (RFC 5425) e não truncam nada. O TLS verifica a cadeia de certificados do coletor e o nome dele contra o repositório raiz da máquina, e recusa a conexão se qualquer um falhar - portanto um coletor com certificado autoassinado exige que esse certificado seja confiável nesta máquina.</value>
+  <data name="UDP truncates an entry to 1,024 bytes - more than the 480 RFC 5426 requires a receiver to take, less than the 2,048 it recommends, and under every path MTU that matters - and the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing below 65,000 bytes. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
+    <value>O UDP trunca uma entrada em 1.024 bytes - mais do que os 480 que a RFC 5426 exige que um receptor aceite, menos do que os 2.048 que ela recomenda, e abaixo de qualquer MTU de caminho relevante -, e os dois transportes de fluxo enquadram cada entrada com o próprio comprimento (RFC 5425) e não truncam nada abaixo de 65.000 bytes. O TLS verifica a cadeia de certificados do coletor e o nome dele contra o repositório raiz da máquina, e recusa a conexão se qualquer um falhar - portanto um coletor com certificado autoassinado exige que esse certificado seja confiável nesta máquina.</value>
   </data>
   <data name="Unable to reach the server (RPC unavailable)." xml:space="preserve">
     <value>Não foi possível alcançar o servidor (RPC indisponível).</value>
@@ -14668,14 +14722,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Gateways à frente (filtros de spam, balanceadores de carga) cujos endereços IP não devem contar como o cliente que conecta nas verificações antispam de host.</value>
   </data>
-  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
-    <value>Gateways à frente cujo endereço IP não deve ser tratado como o cliente que conecta nas verificações de spam, e os proxies à frente que podem repassar o endereço real do cliente com o protocolo PROXY ou o XCLIENT.</value>
+  <data name="Upstream gateways whose IP address must not be treated as the connecting client in spam checks, and the front-end proxies that may pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Gateways à frente cujo endereço IP não deve ser tratado como o cliente que conecta nas verificações de spam, e os proxies à frente que podem repassar o endereço real do cliente ao ouvinte SMTP com o protocolo PROXY ou o XCLIENT.</value>
   </data>
   <data name="Upstreams allowed to use XCLIENT (comma separated)" xml:space="preserve">
     <value>Gateways à frente autorizados a usar XCLIENT (separados por vírgula)</value>
-  </data>
-  <data name="Uptime" xml:space="preserve">
-    <value>Tempo de atividade</value>
   </data>
   <data name="Use ARC results from trusted forwarders to offset a DMARC failure" xml:space="preserve">
     <value>Usar resultados ARC de encaminhadores confiáveis para compensar uma falha de DMARC</value>
@@ -14947,8 +14998,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>O que cada ouvinte protege, qual certificado ele apresenta e quando esse certificado expira, e o que ainda pode ser negociado.</value>
   </data>
-  <data name="What every rule is held to: how far a chain of messages that rules send - a forward, a reply, a copy - may go before rules stop acting on it." xml:space="preserve">
-    <value>A que toda regra está sujeita: até onde pode ir uma cadeia de mensagens que as regras enviam - um encaminhamento, uma resposta, uma cópia - antes que as regras deixem de agir sobre ela.</value>
+  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
+    <value>A que toda regra está sujeita: quantas mensagens o servidor pode gerar para uma mensagem - um encaminhamento, uma resposta, uma cópia, uma devolução - antes de não gerar mais nenhuma para ela.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>O que cada verificação de spam está fazendo neste momento, na ordem em que o servidor as executa, e onde cada uma é ligada.</value>
@@ -16513,14 +16564,14 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>O hMailServer não cria nem gerencia certificados de cliente. A autoridade certificadora e os próprios certificados de cliente precisam ser produzidos fora do hMailServer (por exemplo, com o OpenSSL ou uma PKI interna) - o servidor apenas confia no pacote de CA que lhe é fornecido aqui.</value>
   </data>
-  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address." xml:space="preserve">
-    <value>O hMailServer não implementa CalDAV nem CardDAV. Estas configurações apenas respondem às URLs de descoberta well-known (RFC 6764) com um redirecionamento para o servidor que as implementa, de modo que um cliente configurado com o endereço de e-mail de um usuário encontre o calendário dele sem que lhe seja informado um segundo endereço.</value>
-  </data>
   <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
     <value>O hMailServer foi atualizado de {0} para {1}, e o serviço está em execução. Instalado por {2} às {3}.</value>
   </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>O hMailServer é software livre e de código aberto, licenciado sob a GNU AGPLv3. Este Control Panel é construído com WPF-UI (Fluent design) e LiveCharts2 sobre o .NET 10.</value>
+  </data>
+  <data name="hMailServer serves CalDAV and CardDAV itself, under /dav/ on this listener, over HTTPS, to each account by its mail address and password. These settings send the well-known discovery URLs (RFC 6764) to another server instead, for calendars and contacts kept there; empty, they lead to this server's own /dav/, so a client configured with a user's mail address finds their calendar without being told a second address." xml:space="preserve">
+    <value>O hMailServer serve CalDAV e CardDAV ele mesmo, em /dav/ neste ouvinte, por HTTPS, a cada conta pelo seu endereço de e-mail e senha. Estas configurações enviam em vez disso as URLs de descoberta well-known (RFC 6764) para outro servidor, para calendários e contatos mantidos lá; vazias, elas levam ao próprio /dav/ deste servidor, de modo que um cliente configurado com o endereço de e-mail de um usuário encontre o calendário dele sem que lhe seja informado um segundo endereço.</value>
   </data>
   <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
     <value>O hMailServer foi atualizado: {0} Entre para ver o servidor.</value>
@@ -16672,6 +16723,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>terminou com o código {0}</value>
+  </data>
+  <data name="it stopped again as it started; the hMailServer error log and the Windows System log say why." xml:space="preserve">
+    <value>ele parou de novo ao iniciar; o log de erros do hMailServer e o log do sistema do Windows dizem por quê.</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>item</value>
@@ -17063,6 +17117,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="the domain itself (many DNS consoles write the zone apex as &quot;@&quot;)" xml:space="preserve">
     <value>o próprio domínio (muitos consoles DNS escrevem o ápice da zona como "@")</value>
   </data>
+  <data name="the elevation prompt to start it was cancelled." xml:space="preserve">
+    <value>a solicitação de elevação para iniciá-lo foi cancelada.</value>
+  </data>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>a solicitação de elevação foi cancelada.</value>
   </data>
@@ -17125,6 +17182,27 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="the service credential is not permitted to read the directory" xml:space="preserve">
     <value>a credencial de serviço não tem permissão para ler o diretório</value>
+  </data>
+  <data name="the service did not stop, and Windows reports it in a state it does not name." xml:space="preserve">
+    <value>o serviço não parou, e o Windows o informa em um estado que não nomeia.</value>
+  </data>
+  <data name="the service did not stop, and is paused as it was." xml:space="preserve">
+    <value>o serviço não parou e continua pausado como estava.</value>
+  </data>
+  <data name="the service did not stop, and is pausing." xml:space="preserve">
+    <value>o serviço não parou e está sendo pausado.</value>
+  </data>
+  <data name="the service did not stop, and is resuming." xml:space="preserve">
+    <value>o serviço não parou e está sendo retomado.</value>
+  </data>
+  <data name="the service did not stop, and is starting." xml:space="preserve">
+    <value>o serviço não parou e está iniciando.</value>
+  </data>
+  <data name="the service did not stop, and runs as it did." xml:space="preserve">
+    <value>o serviço não parou e continua em execução como estava.</value>
+  </data>
+  <data name="the service was started again and has not said it is running after {0} seconds; Services shows whether it does." xml:space="preserve">
+    <value>o serviço foi iniciado de novo e não informou que está em execução depois de {0} segundos; Serviços mostra se está.</value>
   </data>
   <data name="the session has no stored credentials to reconnect with." xml:space="preserve">
     <value>a sessão não tem credenciais armazenadas para se reconectar.</value>

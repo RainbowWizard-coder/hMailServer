@@ -38,6 +38,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          "MAIL FROM", "RCPT TO", "NT SERVICE", "SEARCH BODY and TEXT", "YYYY-MM-DD", "HH:MM:SS", "HH:MM",
          "[EXTERNAL]", "DOMAIN\\name", "--export-stored-secrets-key FILE", "CAP_NET_ADMIN",
+         // IMAP's answer to a search past its limits, with its response code (RFC 5530).
+         "NO [LIMIT]",
          // The trust anchors' example, the IANA root's DS record (FeatureSettingsView).
          "20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D",
       };

@@ -798,6 +798,11 @@ namespace hMailServer.ControlPanel.Views
 
          checkCard_ = Section(L("Check a sender"), out StackPanel content);
          content.Children.Add(Paragraph(L("What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both."), Typography.Caption));
+         // What the check cannot know, said where it is asked (release review finding
+         // CP-6): the server runs no spam check, no greylisting and no domain policy for
+         // a session that signed in (GetDoSpamProtection_, CheckDomainPolicy_), and the
+         // allow and block list, read at delivery, still applies to its mail.
+         content.Children.Add(Paragraph(L("A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in."), Typography.Caption));
 
          var form = new WrapPanel { Orientation = Orientation.Horizontal };
          form.Children.Add(new FieldRow { Label = L("Sender _address"), Content = checkAddress_, Margin = new Thickness(0, 0, 12, 8) });
@@ -845,7 +850,13 @@ namespace hMailServer.ControlPanel.Views
             settings = ServerSession.Current.Application.Settings;
             antiSpam = settings.AntiSpam;
 
+            // The connecting address's IP range first, as the server reads it first: a
+            // range whose anti-spam is off keeps every list but the allow and block list
+            // from being read, and an address no range contains is refused at connect
+            // (SenderCheck.ConnectingRange; release review finding CP-6).
             var answers = new List<SenderCheckResult>();
+            if (ip.Length > 0 && Range_((object)settings, ip) is SenderCheckResult range)
+               answers.Add(range);
             foreach (SenderListGuideRow list in SenderListGuide.Rows)
                answers.Add(Check_((object)antiSpam, list.Page, address, ip));
 
@@ -878,6 +889,25 @@ namespace hMailServer.ControlPanel.Views
          checkNotice_.Level = level;
          checkNotice_.Text = text;
          checkNotice_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// What the IP range the server gives a connection from <paramref name="ip"/> does to
+      /// the lists, read from its ranges as the IP ranges page reads them; null where it
+      /// does nothing to them, and the reason where the ranges cannot be read.
+      /// </summary>
+      private static SenderCheckResult Range_(object source, string ip)
+      {
+         dynamic settings = source;
+         try
+         {
+            return SenderCheck.ConnectingRange(ReadItems_((object)settings.SecurityRanges, (Func<dynamic, SenderCheck.IpRange>)(item =>
+               new SenderCheck.IpRange((string)item.Name, (string)item.LowerIP, (string)item.UpperIP, (int)item.Priority, (bool)item.EnableSpamProtection))), ip);
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return SenderCheck.NotRead(SenderCheck.RangesPage, ServerSession.DescribeComError(ex));
+         }
       }
 
       /// <summary>One list's answer, read from the server; a list that cannot be read says why.</summary>

@@ -151,13 +151,27 @@ namespace hMailServer.ControlPanel.Services
          {
             IniFeatureStore.ComReadSetting = null;
             IniFeatureStore.ComWriteSetting = null;
+            IniFeatureStore.ComSettingNames = null;
             IniFeatureStore.ComAllApplies = null;
             IniFeatureStore.ComPendingSettings = null;
+            IniFeatureStore.SessionHost = null;
             IniFeatureStore.ForgetApplies();
             return;
          }
 
+         // Which computer the server is on: the sections no COM property carries are
+         // read from hMailServer.ini on this computer, which is the server's only when
+         // the session is to this computer (IniFeatureStore.LocalSectionAccess; release
+         // review part B, CPB-1 and CPB-2).
+         IniFeatureStore.SessionHost = session.Host;
+
          IniFeatureStore.ComReadSetting = key => (string)session.Application.Settings.GetIniSetting(key);
+
+         // Which keys the server holds, in its store or in the file: GetIniSetting
+         // answers "" for an absent key and for one stored empty alike, and the server
+         // reads the second as empty, not as its default (IniFeatureStore.ReadHeld;
+         // release review finding CP-4).
+         IniFeatureStore.ComSettingNames = () => (string)session.Application.Settings.IniSettingNames;
 
          // Always SetIniSetting, including for an empty value, because that is
          // precisely what the local file path does - WritePrivateProfileString with

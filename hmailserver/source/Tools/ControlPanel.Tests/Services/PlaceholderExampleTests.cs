@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The three OpenTelemetry endpoints, on Monitoring & alerts since review finding F273.
          string server = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          Assert.Equal(3, Regex.Matches(server, Regex.Escape("Placeholder = \"http://localhost:4318\"")).Count);
-         Assert.Contains("box_ = TextEditor(current, ExamplePlaceholder.Shown(Placeholder));", server, StringComparison.Ordinal);
+         Assert.Contains("box_ = TextEditor(current, heldEmpty ? L(\"(empty)\") : ExamplePlaceholder.Shown(Placeholder));", server, StringComparison.Ordinal);
          Assert.Contains("PlaceholderText = ExamplePlaceholder.Shown(Placeholder)", feature, StringComparison.Ordinal);
          // A placeholder written as English in every language, "e.g. 127.0.0.1", is gone.
          Assert.DoesNotContain("Placeholder = \"e.g.", feature, StringComparison.Ordinal);

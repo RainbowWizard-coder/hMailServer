@@ -38,20 +38,16 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The heading over the counts kept since the service started: with the start,
-      /// marked as the server's time as the Started row is, where the server gave one
-      /// (the owner's decision 13); the words alone where it did not. The heading
-      /// showed the start in the reader's format with no marker, under a Started row
-      /// that had one.
-      /// </summary>
-      public static string SinceStart(string startTime)
-         => ParseStart(startTime) is null ? L("Since the service started") : F("Since the service started at {0}", Started(startTime));
-
-      /// <summary>
-      /// How long the service has been up, in catalogued units, when the server's
-      /// clock is this computer's (<paramref name="sameClock"/>); otherwise that it is
-      /// not known here. <paramref name="compact"/> is the Dashboard's tile: days and
-      /// hours alone past a day, and a dash where the uptime is not known here.
+      /// How long the servers have run since they last started - Status.StartTime is
+      /// Application::start_time_, which StartServers_ sets and Apply now, a reinitialise
+      /// and a resume set again while the service runs on, so that it is not the
+      /// service's own start and the page names it "Servers running for" (release review
+      /// finding CP-3) - in catalogued units, when the server's clock is this computer's
+      /// (<paramref name="sameClock"/>); otherwise that it is not known here.
+      /// <paramref name="compact"/> is the Dashboard's tile: days and hours alone past a
+      /// day, and a dash where it is not known here. The heading over the statistics
+      /// gave this start as the service's, over counts the service keeps from its
+      /// process's start, which no reinitialise resets: it names no time now.
       /// </summary>
       public static string Uptime(string startTime, DateTime now, bool sameClock, bool compact = false)
       {

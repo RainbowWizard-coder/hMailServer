@@ -604,8 +604,10 @@ namespace HM
       // Defends against a stolen resumption secret staying useful: however a
       // session leaks (a ticket recorded off the wire, a session cache read out of
       // a core dump), it stops being resumable when it expires. 0 - the default -
-      // leaves OpenSSL's per-protocol default (300 seconds) alone; values below
-      // zero are meaningless and are skipped rather than handed to OpenSSL.
+      // leaves OpenSSL's own lifetime alone, which is 7,200 seconds
+      // (tls1_default_timeout; SSL_CTX_get_timeout of a new context answers 7200 on
+      // OpenSSL 3.5 and 4.0, though the manual pages say 300); values below zero are
+      // meaningless and are skipped rather than handed to OpenSSL.
       int sessionTimeoutSeconds = IniFileSettings::Instance()->GetTlsSessionTimeoutSeconds();
 
       if (sessionTimeoutSeconds > 0)

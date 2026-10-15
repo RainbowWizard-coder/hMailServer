@@ -66,7 +66,7 @@
                     <ui:Button x:Name="DeleteRangeButton" Content="{loc:L 'Delete selected ra_nge'}"
                                Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="RestoreDefaultsButton" Content="{loc:L 'Restore de_faults'}" Style="{StaticResource DangerTextButton}" Click="RestoreDefaults_Click" Margin="0,2,0,2"
-                               ToolTip="{loc:L 'Replaces every range with the standard two: \'My computer\' (127.0.0.1) and \'Internet\' (everything else).'}" />
+                               ToolTip="{loc:L 'Replaces every range with the standard two: \'My computer\' (127.0.0.1) and \'Internet\' (every IPv4 address), which no IPv6 client matches.'}" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>

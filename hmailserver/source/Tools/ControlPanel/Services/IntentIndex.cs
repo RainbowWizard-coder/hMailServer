@@ -178,13 +178,13 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("why is my spam filter not catching anything"), "spamoverview",
             N("The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero.")),
          new IntentEntry(N("stop spam"), "antispam",
-            N("Scores and thresholds, SPF, DKIM, DMARC, greylisting and SpamAssassin all live here.")),
+            N("Scores and thresholds, SPF, DKIM, DMARC, greylisting and SpamAssassin all live here."), N("General")),
          new IntentEntry(N("too much spam is getting through"), "antispam",
-            N("Lower the mark and refuse thresholds, or turn on more of the checks.")),
+            N("Lower the mark and refuse thresholds, or turn on more of the checks."), N("General")),
          new IntentEntry(N("turn on spamassassin"), "antispam",
-            N("Point the server at a SpamAssassin host and choose how its score is merged.")),
+            N("Point the server at a SpamAssassin host and choose how its score is merged."), N("Content filters")),
          new IntentEntry(N("check spf dkim and dmarc"), "antispam",
-            N("Each check can be enabled separately and given its own score.")),
+            N("Each check can be enabled separately and given its own score."), N("Sender auth")),
          new IntentEntry(N("legitimate mail is being marked as spam"), "spamwhitelist",
             N("Exempt the sender or their IP range from spam protection.")),
          new IntentEntry(N("let a sender through the spam filter"), "spamwhitelist",
@@ -200,7 +200,7 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("mail from a new sender is delayed"), "greylistwhitelist",
             N("That is greylisting. Exempt the sending address here, or turn greylisting off entirely.")),
          new IntentEntry(N("scan for viruses"), "antivirus",
-            N("Enable ClamAV or an external scanner, and choose what happens to an infected message.")),
+            N("Enable ClamAV or an external scanner, and choose what happens to an infected message."), N("ClamAV")),
          new IntentEntry(N("block executable attachments"), "blockedattachments",
             N("Add file-name patterns; matching attachments are stripped whatever a scanner says.")),
 
@@ -220,19 +220,19 @@ namespace hMailServer.ControlPanel.Services
          // for and the third showed them a lockout threshold. The page is now two
          // pages and the phrases point at the half each one is about.
          new IntentEntry(N("someone is trying to guess passwords"), "autoban",
-            N("Auto-ban locks out an address after repeated failed sign-ins.")),
+            N("Auto-ban locks out an address after repeated failed sign-ins."), N("Auto-ban")),
          new IntentEntry(N("lock out repeated failed sign-ins"), "autoban",
-            N("Set the auto-ban threshold and how long the lockout lasts.")),
+            N("Set the auto-ban threshold and how long the lockout lasts."), N("Auto-ban")),
          // Deliberately phrased with "unban" rather than "unblock": "block" is
          // folded onto by ban/deny/reject and is the word the IP ranges page owns,
          // so an "unblock..." phrase here scored against "block an ip" and the two
          // could tie. "unban" is nobody else's word.
          new IntentEntry(N("unban an address that was locked out"), "autoban",
-            N("Raise the threshold here and clear the counted failures. An address already locked out stays out until its \"Auto-ban:\" range expires, or you delete that range on the IP ranges page.")),
+            N("Raise the threshold here and clear the counted failures. An address already locked out stays out until its \"Auto-ban:\" range expires, or you delete that range on the IP ranges page."), N("Auto-ban")),
          new IntentEntry(N("which tls versions are allowed"), "tls",
-            N("The accepted TLS versions and cipher suites are set here.")),
+            N("The accepted TLS versions and cipher suites are set here."), N("Protocol versions")),
          new IntentEntry(N("change the administrator password"), "adminaccess",
-            N("Set a new server administration password.")),
+            N("Set a new server administration password."), N("Password")),
          new IntentEntry(N("use microsoft 365 or google sign-in"), "authentication",
             N("Configure OAuth2 / XOAUTH2 so clients authenticate with a token instead of a password.")),
          new IntentEntry(N("make stored passwords harder to crack"), "authentication",
@@ -251,11 +251,11 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- Getting mail in and out --------------------------------------
          new IntentEntry(N("send all mail through my provider"), "delivery",
-            N("Set the smart host, and its credentials if the provider needs them.")),
+            N("Set the smart host, and its credentials if the provider needs them."), N("Smart host")),
          new IntentEntry(N("send mail for one domain to a different server"), "routes",
             N("A route overrides MX lookup for named domains.")),
          new IntentEntry(N("retry failed deliveries sooner"), "delivery",
-            N("The retry counts and intervals are here, along with what happens when they run out.")),
+            N("The retry counts and intervals are here, along with what happens when they run out."), N("Delivery")),
          new IntentEntry(N("change the bounce message wording"), "servermessages",
             N("The bounce and error texts the server sends are editable templates.")),
          new IntentEntry(N("act on messages as they arrive"), "rules",
@@ -301,11 +301,11 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("is there a new version"), "updates",
             N("The update status says whether a newer release is waiting; Check for updates asks the feed now.")),
          new IntentEntry(N("the server is slow"), "performance",
-            N("Thread counts, database connections and caching are the levers.")),
+            N("Thread counts, database connections and caching are the levers."), N("Threads")),
          new IntentEntry(N("logs are filling the disk"), "logging",
-            N("Reduce the log level, or set how many days of logs are kept.")),
+            N("Reduce the log level, or set how many days of logs are kept."), N("Logging")),
          new IntentEntry(N("turn on more detailed logging"), "logging",
-            N("Raise the log level and choose which log files are written.")),
+            N("Raise the log level and choose which log files are written."), N("Logging")),
          // The three phrases below are for capabilities the server has and the
          // interface never advertised in words anybody would type. The log format
          // and the SQL log device were selectable for years while the server
@@ -313,15 +313,15 @@ namespace hMailServer.ControlPanel.Services
          // that reads them" is a question with an answer, and it should be
          // findable in the terms it is asked in.
          new IntentEntry(N("send my logs to a log analyser"), "logging",
-            N("Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper.")),
+            N("Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper."), N("Logging")),
          new IntentEntry(N("write the log to a database"), "logging",
-            N("Set the log destination to the database; entries fall back to the log files if it is unreachable.")),
+            N("Set the log destination to the database; entries fall back to the log files if it is unreachable."), N("Logging")),
          new IntentEntry(N("make awstats work"), "logging",
-            N("Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it.")),
+            N("Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it."), N("Logging")),
          new IntentEntry(N("run code when mail arrives"), "scripts",
             N("Event scripts run on delivery, sign-in and error events.")),
          new IntentEntry(N("keep a copy of every message"), "advanced",
-            N("Archiving writes a copy of every message to a folder you choose.")),
+            N("Archiving writes a copy of every message to a folder you choose."), N("Copies of mail")),
          new IntentEntry(N("change a setting with no page"), "hardening",
             N("Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here.")),
          // The six settings below moved to the page that owns their feature, which
@@ -330,35 +330,37 @@ namespace hMailServer.ControlPanel.Services
          // subsystem. "IMAP search" is not a phrase anyone types when a search
          // stops working - "searching my mailbox does not work" is.
          new IntentEntry(N("searching a mailbox does not work"), "protocols",
-            N("Raise the IMAP search time and size limits; a search that hits either one is reported to the client as a failure.")),
+            N("Raise the IMAP search time and size limits; a search that hits either one is reported to the client as a failure."), N("IMAP")),
          new IntentEntry(N("stop forwarded mail failing spf"), "security",
             N("Turn on SRS so a forwarded message keeps a return path this server can vouch for."), N("Forwarding")),
          new IntentEntry(N("reject forged bounce messages"), "security",
             N("Turn on BATV so a bounce for a message this server never sent can be told apart from a real one."), N("Forwarding")),
          new IntentEntry(N("limit how long a tls session can be resumed"), "tls",
-            N("Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful.")),
+            N("Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful."), N("Session resumption")),
          new IntentEntry(N("disconnect idle clients sooner"), "protocols",
-            N("The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed.")),
+            N("The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed."), N("Timeouts")),
          // MaxSubmissionsPerIPPerMinute. An abused account sending thousands of
          // messages an hour is one of the commonest reasons an administrator opens
          // this application in a hurry, and the only setting that helps was
          // reachable by knowing its name.
          new IntentEntry(N("limit how many messages an account can send per minute"), "hardening",
             N("Set the per-IP submission rate limit; authenticated senders above it are refused.")),
+         // On their tabs of Monitoring & alerts, which opened on its first, the REST API's
+         // (release review part B, CPB-4): the page has tabs since review finding F273.
          new IntentEntry(N("monitor the server from outside"), "api",
-            N("Prometheus metrics, health endpoints and the REST API are enabled here.")),
+            N("Prometheus metrics, health endpoints and the REST API are enabled here."), N("Metrics")),
          // Four subjects that were filed on pages whose names did not say so (review
          // finding F273): the countries on Auto-ban, which stayed and is in its purpose,
          // the PST import, now on Backup, restore & migration, the alerts and webhooks,
          // now on Monitoring & alerts, and the PROXY protocol, now on Incoming relays.
          new IntentEntry(N("block mail from a country"), "autoban",
-            N("Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database.")),
+            N("Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database."), N("Countries")),
          new IntentEntry(N("import a pst file"), "backup",
             N("Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API.")),
          new IntentEntry(N("send an alert to another system"), "api",
-            N("Alert rules, outbound webhooks and the SNMP agent tell another system what happened.")),
+            N("Alert rules, outbound webhooks and the SNMP agent tell another system what happened."), N("Alerts & webhooks")),
          new IntentEntry(N("put a proxy in front of the server"), "relays",
-            N("Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT.")),
+            N("Let a load balancer or a Postfix relay pass on the real client address to the SMTP listener with the PROXY protocol or XCLIENT; the IMAP and POP3 listeners each have a PROXY switch of their own, on Protocols.")),
          new IntentEntry(N("what version am i running"), "about",
             N("Version, build and licence information."))
       };

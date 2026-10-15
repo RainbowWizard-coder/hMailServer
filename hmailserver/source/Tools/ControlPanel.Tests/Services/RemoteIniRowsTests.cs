@@ -36,11 +36,13 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       private readonly Func<string, string> savedRead_ = IniFeatureStore.ComReadSetting;
       private readonly Action<string, string> savedWrite_ = IniFeatureStore.ComWriteSetting;
+      private readonly string savedHost_ = IniFeatureStore.SessionHost;
 
       public void Dispose()
       {
          IniFeatureStore.ComReadSetting = savedRead_;
          IniFeatureStore.ComWriteSetting = savedWrite_;
+         IniFeatureStore.SessionHost = savedHost_;
       }
 
       /// <summary>
@@ -120,8 +122,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"if \(Ignored \|\| !Reachable \|\| number_ == null\)"), rows["IniNumber"]);
          Assert.Contains("protected virtual bool Reachable => IniStore != null && IniStore.SettingsReachable;", rows["IniNumber"], StringComparison.Ordinal);
 
+         // The [Database] row asks whether the file here is the server's, not only whether
+         // there is one (release review part B, CPB-1).
          string database = Member(view, "private class SectionIniNumber : IniNumber");
-         Assert.Contains("protected override bool Reachable => IniStore != null && IniStore.IsAvailable;", database, StringComparison.Ordinal);
+         Assert.Contains("protected override bool Reachable => IniStore != null && IniStore.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable;", database, StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -259,11 +263,142 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(cardLoop >= 0 && cardLoop < declared && declared < settingLoop, "The [Database] rows' reason is not kept per card.");
          Assert.Matches(new Regex(@"if \(fileProblem != null\)\s*\{\s*var (\w+) = new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning,\s*Text = fileProblem,[^}]*\};[^}]*fields\.Children\.Insert\(0, \1\);\s*\}"), build);
 
-         // The reason: no file on this computer, or one this user may not read.
+         // The reason: no file on this computer; a file of this computer's own, the server
+         // being on another (CPB-1); or one this user may not read.
          string database = Member(view, "private class SectionIniNumber : IniNumber");
          string unreadable = Member(database, "public string Unreadable()");
-         Assert.Matches(new Regex(@"if \(!Reachable\)\s*return L\(""The settings marked Not read are kept in the \[Database\] section of hMailServer\.ini, which was not found on this computer, and no COM property carries them\."), unreadable);
-         Assert.Matches(new Regex(@"string denied = IniStore\.ReadDenied\(\);\s*return denied == null\s*\? null\s*: F\(""The settings marked Not read are kept in the \[Database\] section of hMailServer\.ini, which could not be read: \{0\} "), unreadable);
+         Assert.Contains(": IniStore.LocalSectionAccess(out denied);", unreadable, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"case IniFeatureStore\.FileSectionAccess\.NoFile:\s*return L\(""The settings marked Not read are kept in the \[Database\] section of hMailServer\.ini, which was not found on this computer, and no COM property carries them\."), unreadable);
+         Assert.Matches(new Regex(@"case IniFeatureStore\.FileSectionAccess\.OtherComputer:\s*return L\(""The settings marked Not read are kept in the \[Database\] section of the hMailServer\.ini on the computer the server runs on, and no COM property carries them; this Control Panel is signed in to a server on another computer"), unreadable);
+         Assert.Matches(new Regex(@"case IniFeatureStore\.FileSectionAccess\.Denied:\s*return F\(""The settings marked Not read are kept in the \[Database\] section of hMailServer\.ini, which could not be read: \{0\} "), unreadable);
+
+         // The database type the card names is read on the same terms.
+         Assert.Contains("string databaseType = iniStore_.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable", view, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A readable hMailServer.ini on this computer - the installer writes one for the
+      /// Control Panel component alone - and a session to a server on another computer:
+      /// the file is this computer's, and the sections no COM property carries cannot be
+      /// shown from it as the server's (release review part B, CPB-1 and CPB-2). With the
+      /// session to this computer, or none, the same file is the server's.
+      /// </summary>
+      [Fact]
+      public void AReadableFileHere_IsNotTheServers_WhenTheServerIsOnAnotherComputer()
+      {
+         string path = Path.Join(Path.GetTempPath(), "cp-remote-ini-" + Guid.NewGuid().ToString("N") + ".ini");
+         File.WriteAllText(path, "[Database]\r\nNumberOfConnections=5\r\n[SendingLimits]\r\nMaxMessagesPerAccountPerPeriod=0\r\n");
+         try
+         {
+            var store = new IniFeatureStore(path);
+            Assert.True(store.IsAvailable);
+            Assert.Null(store.ReadDenied());
+
+            IniFeatureStore.SessionHost = "mail.example.com";
+            Assert.Equal(IniFeatureStore.FileSectionAccess.OtherComputer, store.LocalSectionAccess(out string denied));
+            Assert.Null(denied);
+
+            foreach (string here in new[] { null, "", "localhost", "127.0.0.1", Environment.MachineName })
+            {
+               IniFeatureStore.SessionHost = here;
+               Assert.Equal(IniFeatureStore.FileSectionAccess.Readable, store.LocalSectionAccess(out _));
+            }
+
+            Assert.Equal(IniFeatureStore.FileSectionAccess.NoFile, new IniFeatureStore(iniPath: null).LocalSectionAccess(out _));
+         }
+         finally
+         {
+            File.Delete(path);
+         }
+      }
+
+      /// <summary>
+      /// A write the file refuses - one this user may read and not write - is a failure
+      /// the page reports, where the write's answer was dropped and the row counted saved
+      /// (CPB-1, CPB-2). The file is denied to this process's own account for writing.
+      /// </summary>
+      [Fact]
+      public void AWriteTheFileRefuses_Throws()
+      {
+         string path = Path.Join(Path.GetTempPath(), "cp-remote-ini-" + Guid.NewGuid().ToString("N") + ".ini");
+         File.WriteAllText(path, "[Database]\r\nConnectionAttempts=6\r\n");
+         try
+         {
+            var store = new IniFeatureStore(path);
+            SecurityIdentifier account = WindowsIdentity.GetCurrent().User;
+            var deny = new FileSystemAccessRule(account, FileSystemRights.WriteData | FileSystemRights.AppendData, AccessControlType.Deny);
+            var file = new FileInfo(path);
+            FileSecurity security = file.GetAccessControl();
+            security.AddAccessRule(deny);
+            file.SetAccessControl(security);
+            try
+            {
+               bool bypassed;
+               try
+               {
+                  using (new FileStream(path, FileMode.Open, FileAccess.Write))
+                     bypassed = true;
+               }
+               catch (UnauthorizedAccessException)
+               {
+                  bypassed = false;
+               }
+
+               Assert.SkipWhen(bypassed, "This account writes the file past a deny entry of its own, so it cannot be made read-only to it here.");
+
+               var refused = Assert.Throws<System.ComponentModel.Win32Exception>(() => store.WriteTo("Database", "ConnectionAttempts", "9"));
+               Assert.Equal(5, refused.NativeErrorCode);
+               Assert.Contains("ConnectionAttempts", refused.Message, StringComparison.Ordinal);
+            }
+            finally
+            {
+               security = file.GetAccessControl();
+               security.RemoveAccessRuleSpecific(deny);
+               file.SetAccessControl(security);
+            }
+
+            // Nothing was written.
+            Assert.Equal("6", store.ReadFrom("Database", "ConnectionAttempts", "0"));
+         }
+         finally
+         {
+            File.Delete(path);
+         }
+      }
+
+      /// <summary>
+      /// Server limits &amp; expert settings' sending limits - [SendingLimits] and
+      /// [SendingLimitsOverrides], which the server reads from its own file alone
+      /// (RateLimiter) and no COM property carries - are read only where the file here is
+      /// the server's: otherwise each row is Not read, has no editor and is left out of a
+      /// save, the card says why at its top, and the line under the header names no file;
+      /// a write the file refuses is reported (release review part B, CPB-2).
+      /// </summary>
+      [Fact]
+      public void TheSendingLimits_AreNotRead_WhereTheFileHereIsNotTheServers()
+      {
+         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+
+         string number = Member(feature, "private class NumberSetting : Setting");
+         int asked = number.IndexOf("if (Section != null && !FileSectionIsTheServers_(store))", StringComparison.Ordinal);
+         int read = number.IndexOf("IniDirect.ReadValue(store.IniPath, Section, Key, Default)", StringComparison.Ordinal);
+         Assert.True(asked > 0 && read > asked, "A [SendingLimits] number is read before it is asked whether the file here is the server's.");
+         Assert.Contains("return NotReadRow();", number, StringComparison.Ordinal);
+
+         string lines = Member(feature, "private class SectionLinesSetting : Setting");
+         asked = lines.IndexOf("if (!FileSectionIsTheServers_(store))", StringComparison.Ordinal);
+         read = lines.IndexOf("IniDirect.ReadSectionLines(store.IniPath, Section)", StringComparison.Ordinal);
+         Assert.True(asked > 0 && read > asked, "The overrides are read before it is asked whether the file here is the server's.");
+
+         // No editor, no save.
+         Assert.Matches(new Regex(@"public override void Save\(IniFeatureStore store\)\s*\{\s*// A row marked Not read has no editor, and is left as the server has it\.\s*if \(box_ == null\)\s*return;"), number);
+         Assert.Matches(new Regex(@"public override void Save\(IniFeatureStore store\)\s*\{\s*// A row marked Not read has no editor, and is left as the server has it\.\s*if \(box_ == null\)\s*return;"), lines);
+
+         Assert.Contains("store.LocalSectionAccess(out _) == IniFeatureStore.FileSectionAccess.Readable", feature, StringComparison.Ordinal);
+         Assert.Contains("Compute = () => SendingLimitsNotice_(store_)", feature, StringComparison.Ordinal);
+         Assert.Contains("&& FileSectionIsTheServers_(store_)", feature, StringComparison.Ordinal);
+         Assert.Contains("ProfileApi.WriteStringChecked(section, key, value, iniPath);", feature, StringComparison.Ordinal);
+         Assert.Contains("ProfileApi.WriteSectionLinesChecked(section, lines, iniPath);", feature, StringComparison.Ordinal);
       }
 
       private static string Member(string source, string signature)

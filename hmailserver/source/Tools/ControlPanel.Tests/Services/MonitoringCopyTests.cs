@@ -76,7 +76,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheComAllowListIsCaptioned_AndWarnsWhileItIsAny()
       {
          string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         Assert.Contains("Label = L(\"COM objects a script may create\"),", page, StringComparison.Ordinal);
+         // With what empty means again, as 6.3.6 had it: a key held empty lets a script
+         // create none, and is shown so (release review finding CP-4).
+         Assert.Contains("Label = L(\"COM objects a script may create (empty = none beyond hMailServer's own)\"),", page, StringComparison.Ordinal);
          Assert.Contains("afterBuildUi_ = () => WireAnyObjectWarning_(allowedObjects);", page, StringComparison.Ordinal);
          Assert.Contains("(box.Text ?? \"\").Trim() == \"*\" ? Visibility.Visible : Visibility.Collapsed", page, StringComparison.Ordinal);
       }

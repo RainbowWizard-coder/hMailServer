@@ -466,12 +466,21 @@ READBACK_PROVIDER_NAMES = {
 READBACK_LITERAL_MARK = re.compile(r"[A-Z0-9_=@./:<>]")
 # Each catalogue's terms: (the English a text names the thing with, or None for every text; the
 # English that leaves the text alone, or None; the word refused; what the catalogue calls it).
+# A listener is the catalogue's own word wherever the English names one (release review part B, CPB-6):
+# navigation's three new texts called the ManageSieve listener and the Control Deck's another thing than
+# the IMAP and POP3 labels beside them, in Czech, Spanish, Ukrainian and Chinese.
+LISTENER = re.compile(r"(?i)\blisteners?\b")
+
 READBACK_TERMS = {
-   "cs": [(re.compile(r"(?i)\badministrator"), None, re.compile(r"(?i)administrátor\w*"), "správce (an administrator)")],
+   "cs": [(re.compile(r"(?i)\badministrator"), None, re.compile(r"(?i)administrátor\w*"), "správce (an administrator)"),
+          (LISTENER, None, re.compile(r"(?i)naslouchac\w* proces\w*"), "listener (a listener)")],
    "da": [(None, None, re.compile(r"(?i)revisionsspor\w*"), "Revisionslog (the audit trail)")],
+   "es": [(LISTENER, None, re.compile(r"(?i)\bagentes? de escucha\b"), "oyente (a listener)")],
    "fi": [(None, None, re.compile(r"(?i)salasanalau\w*"), "tunnuslause (a passphrase)")],
-   "zh-Hans": [(None, None, re.compile(r"扣留|暂扣|暂留"), "暂挂 (a held message)")],
+   "zh-Hans": [(None, None, re.compile(r"扣留|暂扣|暂留"), "暂挂 (a held message)"),
+               (LISTENER, None, re.compile(r"侦听器"), "监听器 (a listener)")],
    "uk": [
+      (LISTENER, None, re.compile(r"(?i)прослуховувач\w*"), "слухач (a listener)"),
       (None, None, re.compile(r"(?i)резолвер\w*"), "розв’язувач (a resolver)"),
       (None, None, re.compile(r"(?i)стан\w* здоров\S*"), "справність (a server's health)"),
       (re.compile(r"(?i)\bevent[- ]scripts?\b|\bscript events\b|\bevent-scripting\b"), None, re.compile(r"(?i)сценар\w*"),
@@ -1022,6 +1031,16 @@ def self_test():
       ("uk", "Upstream gateways (spam filters, load balancers) whose IP addresses should not count.", "Вищі шлюзи (спам-фільтри), чиї IP-адреси не враховуються."): True,
       ("uk", "Upstream gateways (spam filters, load balancers) whose IP addresses should not count.", "Вищестоящі шлюзи (спам-фільтри), чиї IP-адреси не враховуються."): False,
       ("uk", "Upstreams allowed to use XCLIENT (comma separated)", "Вищі вузли, яким дозволено XCLIENT (через кому)"): False,
+      # A listener, in the catalogue's own word (CPB-6): navigation's texts as they were, and as they are.
+      ("zh-Hans", "The ManageSieve listener", "ManageSieve 侦听器"): True,
+      ("zh-Hans", "The ManageSieve listener", "ManageSieve 监听器"): False,
+      ("uk", "The ManageSieve listener", "Прослуховувач ManageSieve"): True,
+      ("uk", "The ManageSieve listener", "Слухач ManageSieve"): False,
+      ("uk", "None of its ports is being listened on.", "Жоден із його портів не прослуховується."): False,
+      ("cs", "The ManageSieve listener", "Naslouchací proces ManageSieve"): True,
+      ("cs", "The ManageSieve listener", "Listener ManageSieve"): False,
+      ("es", "The ManageSieve listener", "El agente de escucha de ManageSieve"): True,
+      ("es", "The ManageSieve listener", "El oyente de ManageSieve"): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään, ilman että keneltäkään kysytään."): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman, että keneltäkään kysytään."): False,
       ("fi", "It is sent without anyone being asked.", "Se lähetetään ilman että keneltäkään kysytään."): True,

@@ -335,7 +335,7 @@ namespace hMailServer.ControlPanel.Views
             cancel.Click += (_, _) => dialog.Close();
 
             dialog.Frame(L("Add an address to the never-ban list"), body, ok, cancel,
-               L("A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban."),
+               L("A listed address is never auto-banned, and its failed sign-ins do not count towards an auto-ban; the per-name lockout still counts them. It applies to the next ban."),
                width: DesignTokens.Dialog.DefaultWidth);
             // A refusal is said under the box without moving Add and Cancel.
             dialog.KeepRoomForFieldErrors();

@@ -2686,12 +2686,15 @@ namespace HM
              Formatter::Format("SMTP-accept session={0} ip={1}", GetSessionID(), GetIPAddressString())));
 
       // TaskMayBlock, which is what this task has always been in fact and never in
-      // declaration. It runs the script and virus-scanner stages, so it blocks on
-      // things outside this process - and every task on this queue was TaskNormal, so
-      // AsyncQueueReservedThreads reserved nothing here at all. Its only user in the
-      // tree was BackupManager, on a different queue. A wedged scanner or a slow script
-      // could therefore take every thread in the async pool, which is precisely what
-      // the reservation exists to prevent and what the roadmap row claimed it did.
+      // declaration. It runs the spam checks that read the message - spamd among them -
+      // and the OnAcceptMessage script, so it blocks on things outside this process -
+      // and every task on this queue was TaskNormal, so AsyncQueueReservedThreads
+      // reserved nothing here at all. Its only user in the tree was BackupManager, on a
+      // different queue. A wedged spamd or a slow script could therefore take every
+      // thread in the async pool, which is precisely what the reservation exists to
+      // prevent and what the roadmap row claimed it did. The virus scanners are not
+      // among them: they run at delivery, after the 250 this task answers
+      // (SMTPDeliverer::RunVirusProtection_).
       //
       // The two caller constraints on TaskMayBlock were checked before making this
       // change, because getting them wrong deadlocks mail rather than slowing it:

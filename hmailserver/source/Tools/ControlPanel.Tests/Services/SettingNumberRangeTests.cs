@@ -147,7 +147,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          new object[] { "AcmeHttpPort", 1L, 65535L },                     // EnvironmentSettings::CheckIniValue; 0 leaves no challenge listener
          new object[] { "WebServicesHttpPort", 0L, 65535L },
          new object[] { "WebServicesHttpsPort", 0L, 65535L },
-         new object[] { "UpdateCheckHours", 1L, 168L },
+         // IniFileSettings raises a value below 1 to 1 and caps nothing, and NextCheckUnix
+         // counts in 64-bit seconds: a monthly check, 720, is the server's (release review
+         // finding CP-5, which the 168 refused).
+         new object[] { "UpdateCheckHours", 1L, (long)int.MaxValue },
+         // The watchdog's 32-bit count of milliseconds: 4,294,967 seconds and no more,
+         // where a longer timeout wrapped to a watchdog of under a second (CP-5;
+         // ScriptServer::WatchdogMilliseconds).
+         new object[] { "ScriptTimeout", 0L, 4294967L },
          new object[] { "UpdateServiceWaitSeconds", 5L, 86400L },
          new object[] { "DNSQueryTimeout", 0L, 86400L },                 // DNSResolverWinApi's day
          new object[] { "PeriodHours", 1L, 168L },                       // RateLimiter's kMinPeriodHours, kMaxPeriodHours
@@ -173,6 +180,18 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("Maximum = " + maximum.ToString(CultureInfo.InvariantCulture), definition, StringComparison.Ordinal);
          else
             Assert.DoesNotContain("Maximum =", definition, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The update check is as often as its hours say: its switch said "once a day"
+      /// beside a box of 1 to 168 hours, which was true at the default alone (release
+      /// review, seen outside the findings 6, with CP-5).
+      /// </summary>
+      [Fact]
+      public void TheUpdateCheck_IsAsOftenAsItsHoursSay()
+      {
+         Assert.DoesNotContain("once a day", Definition_("UpdateCheckEnabled"), StringComparison.Ordinal);
+         Assert.Contains("Label = L(\"Hours between checks (at least 1; 24 = once a day)\")", Definition_("UpdateCheckHours"), StringComparison.Ordinal);
       }
 
       /// <summary>

@@ -259,13 +259,21 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The palette's tasks for SRS and BATV open the Forwarding tab, and every task
-      /// for the page names the tab it is done on; a task's tab is one its page has.
+      /// for a page with tabs names the tab it is done on - "send an alert to another
+      /// system" and "monitor the server from outside" opened Monitoring &amp; alerts on
+      /// its REST API tab (release review part B, CPB-4), as IntentIndex says a task's tab
+      /// is null only for a page without tabs; a task's tab is one its page has.
       /// </summary>
       [Fact]
       public void ThePalettesTasks_OpenThePageOnTheirTab()
       {
          foreach (IntentEntry intent in IntentIndex.Entries.Where(intent => intent.Page == "security"))
             Assert.True(intent.Tab != null, "The task '" + intent.Phrase + "' opens Transport security without naming its tab.");
+         List<string> untabbed = IntentIndex.Entries
+            .Where(intent => intent.Tab == null && TabsOfOrNone_(intent.Page).Count > 1)
+            .Select(intent => "'" + intent.Phrase + "' opens " + intent.Page + " (" + string.Join(", ", TabsOfOrNone_(intent.Page)) + ")")
+            .ToList();
+         Assert.True(untabbed.Count == 0, "These tasks open a page with tabs without naming theirs:\n" + string.Join("\n", untabbed));
          foreach (IntentEntry intent in IntentIndex.Entries.Where(intent => intent.Tab != null))
             Assert.True(TabsOf_(intent.Page).Contains(intent.Tab), "The task '" + intent.Phrase + "' opens " + intent.Page + " on " + intent.Tab + ", a tab it does not have.");
 
@@ -377,6 +385,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          return tabs;
+      }
+
+      /// <summary>The tabs of a page of settings (<see cref="TabsOf_"/>), and none for any other page.</summary>
+      private static HashSet<string> TabsOfOrNone_(string page)
+      {
+         bool settingsPage = Regex.IsMatch(ReadControlPanelFile("MainWindow.xaml.cs"),
+            @"pageFactories_\[""" + Regex.Escape(page) + @"""\] = \(\) => new (ServerSettingsView|FeatureSettingsView)\(\1\.Section\.\w+\);");
+         return settingsPage ? TabsOf_(page) : new HashSet<string>(StringComparer.Ordinal);
       }
 
       private static string Source_() => ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));

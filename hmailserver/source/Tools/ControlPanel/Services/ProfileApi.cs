@@ -70,6 +70,26 @@ namespace hMailServer.ControlPanel.Services
          return WritePrivateProfileString(section, key, value, filePath);
       }
 
+      /// <summary>
+      /// <see cref="WriteString"/>, throwing with Windows' reason where the API refused
+      /// the write - which it does without an exception, so that a caller that dropped
+      /// the answer counted a write that did not happen as saved.
+      /// </summary>
+      public static void WriteStringChecked(string section, string key, string value, string filePath)
+      {
+         if (!WritePrivateProfileString(section, key, value, filePath))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(),
+               Loc.F("Could not write {0} to {1}", key, filePath));
+      }
+
+      /// <summary><see cref="WriteSectionLines"/>, throwing with Windows' reason where the API refused the write.</summary>
+      public static void WriteSectionLinesChecked(string section, IReadOnlyList<string> lines, string filePath)
+      {
+         if (!WriteSectionLines(section, lines, filePath))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(),
+               Loc.F("Could not write {0} to {1}", "[" + section + "]", filePath));
+      }
+
       /// <summary>Removes a whole section, which is how the API deletes one.</summary>
       public static bool DeleteSection(string section, string filePath)
       {

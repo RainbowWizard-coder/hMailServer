@@ -22,10 +22,62 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// Whether hMailServer.INI is on THIS machine. Unchanged in meaning: callers
       /// that need the file itself - ApiKeyStore locating hMailServerApiKeys.ini
-      /// beside it, the log-folder card, anything reading [Database] or
-      /// [Directories] - still depend on this and still get the honest answer.
+      /// beside it, the log-folder card - still depend on this and still get the
+      /// honest answer. It does not say the file is the server's: a Control Panel
+      /// installed on a workstation has one of its own, which the installer writes for
+      /// every component. A row that shows a section of it as the server's asks
+      /// <see cref="LocalSectionAccess"/>.
       /// </summary>
       public bool IsAvailable => IniPath != null;
+
+      /// <summary>
+      /// The host of the server the session is signed in to, set with the COM reads
+      /// below as the session is attached (ServerSession); null with no session, which
+      /// is this computer, as ServerSession.IsLocalSession takes it.
+      /// </summary>
+      public static string SessionHost;
+
+      /// <summary>Whether the server signed in to is the one on this computer (LocalHostNames, ServerSession.IsLocalSession's test).</summary>
+      public static bool ServerIsOnThisComputer => LocalHostNames.IsLocal(SessionHost);
+
+      /// <summary>Whether a section of hMailServer.ini that the server does not answer over COM can be shown as the server's from here, and if not, why.</summary>
+      public enum FileSectionAccess
+      {
+         /// <summary>The file is here, it is the server's - the session is to this computer - and this user may read it.</summary>
+         Readable,
+
+         /// <summary>No hMailServer.ini on this computer.</summary>
+         NoFile,
+
+         /// <summary>The session is to a server on another computer: the file here is this computer's, not the server's.</summary>
+         OtherComputer,
+
+         /// <summary>The file is here and this user may not read it (from 6.3.6, /ProtectFolders).</summary>
+         Denied
+      }
+
+      /// <summary>
+      /// Whether the [Database], [SendingLimits] and [SendingLimitsOverrides] sections -
+      /// which no COM property carries, so that the file is the only place to read them -
+      /// can be shown as the server's from here, and why not (release review part B,
+      /// findings CPB-1 and CPB-2). The file being on this computer was taken for that,
+      /// and the installer leaves a readable Bin\hMailServer.INI for the Control Panel
+      /// component alone, so that a Control Panel on a workstation signed in to a server
+      /// elsewhere showed the workstation's values as the server's, wrote its edits into
+      /// the workstation's file and said they were saved. <paramref name="denied"/> is
+      /// the reason a read was refused, where it was.
+      /// </summary>
+      public FileSectionAccess LocalSectionAccess(out string denied)
+      {
+         denied = null;
+         if (!IsAvailable)
+            return FileSectionAccess.NoFile;
+         if (!ServerIsOnThisComputer)
+            return FileSectionAccess.OtherComputer;
+
+         denied = ReadDenied();
+         return denied == null ? FileSectionAccess.Readable : FileSectionAccess.Denied;
+      }
 
       /// <summary>
       /// How to read and write the [Settings] section over COM, for when the file is
@@ -46,8 +98,27 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static Func<string, string> ComReadSetting;
 
-      /// <summary>Writes a [Settings] value over COM. An empty value DELETES the key - see Write.</summary>
+      /// <summary>
+      /// Writes a [Settings] value over COM. An empty value is stored empty - a key the
+      /// server then reads as empty, not as its default - and never deletes the key: see
+      /// Write, and ServerSession's comment on SetIniSetting.
+      /// </summary>
       public static Action<string, string> ComWriteSetting;
+
+      /// <summary>
+      /// Settings.IniSettingNames over COM: every [Settings] name the server holds, in its
+      /// store or in the file, one per line. What tells a key stored with an empty value
+      /// from one that is absent, since GetIniSetting answers "" for both (release review
+      /// finding CP-4; <see cref="ReadHeld"/>). Null in the tests and before a session
+      /// exists, and then nothing is told apart.
+      /// </summary>
+      public static Func<string> ComSettingNames;
+
+      // The names as the last read of them found them, and when: one read serves a page's
+      // rows, and a write or a moment's age sends the next row to the server again.
+      private static HashSet<string> heldNames_;
+      private static DateTime heldNamesAt_;
+      private static readonly TimeSpan HeldNamesFor = TimeSpan.FromSeconds(5);
 
       /// <summary>
       /// Settings.IniSettingAppliesAll over COM: every [Settings] key the server's
@@ -192,6 +263,7 @@ namespace hMailServer.ControlPanel.Services
             writesSinceRead_ = int.MaxValue;
             environment_ = null;
             fromFile_ = null;
+            heldNames_ = null;
          }
       }
 
@@ -422,9 +494,11 @@ namespace hMailServer.ControlPanel.Services
             {
                string value = read(key);
 
-               // The server cannot tell "absent" from "empty" either - an ini reader
-               // never can - so an empty answer means the caller's default applies,
-               // exactly as GetPrivateProfileString would decide below.
+               // GetIniSetting answers "" for an absent key and for one stored empty
+               // alike, and this read takes "" for the caller's default. The rows that
+               // show a value with a default of its own read through ReadHeld, which
+               // asks the server's list of the names it holds which of the two it is
+               // (release review finding CP-4).
                return string.IsNullOrEmpty(value) ? defaultValue : value;
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
@@ -459,8 +533,114 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>Starts a new count of fall-backs: a page calls it before it reads its values again.</summary>
       public void ForgetFallback() => FallbackCause = null;
 
+      /// <summary>
+      /// A switch as the server reads it: "1" is on. A key the server holds empty is off
+      /// whatever the default, since the loader makes 0 of it (<see cref="ReadNumber"/>).
+      /// </summary>
       public bool ReadBool(string key, bool defaultValue)
-         => Read(key, defaultValue ? "1" : "0").Trim() == "1";
+         => ReadNumber(key, defaultValue ? "1" : "0").Trim() == "1";
+
+      /// <summary>
+      /// Reads a [Settings] value as the server holds it (release review finding CP-4):
+      /// what <see cref="Read"/> answers, except that a key the server holds with an
+      /// empty value is answered empty, and <paramref name="heldEmpty"/> is true, rather
+      /// than as <paramref name="defaultValue"/>. The server reads such a key as empty and
+      /// never as its default: ScriptAllowedObjects stored empty lets a script create no
+      /// object, an empty AcmeDirectoryUrl renews nothing and an empty RestApiBindAddress
+      /// keeps the REST API from starting without TLS - and the pages showed each at its
+      /// default, the first with the warning that any object may be created. GetIniSetting
+      /// answers "" for an absent key and for an empty one alike, so the server's list of
+      /// the names it holds (<see cref="ComSettingNames"/>) says which; where it cannot be
+      /// asked, the default is answered, as before. The file, read without a session,
+      /// tells the two apart itself: GetPrivateProfileString answers "" for "Key=".
+      /// </summary>
+      public string ReadHeld(string key, string defaultValue, out bool heldEmpty)
+      {
+         heldEmpty = false;
+         Func<string, string> read = ComReadSetting;
+
+         if (read != null)
+         {
+            try
+            {
+               string value = read(key);
+               if (!string.IsNullOrEmpty(value) || string.IsNullOrEmpty(defaultValue))
+                  return value ?? "";
+
+               if (HoldsName_(key) == true)
+               {
+                  heldEmpty = true;
+                  return "";
+               }
+
+               return defaultValue;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // As Read: the file, and why the server was not asked.
+               FallbackCause ??= fatalCheck;
+            }
+         }
+
+         if (IsAvailable)
+         {
+            string value = ProfileApi.ReadString(Section, key, defaultValue, IniPath, 2048);
+            heldEmpty = value.Length == 0 && !string.IsNullOrEmpty(defaultValue);
+            return value;
+         }
+
+         return defaultValue;
+      }
+
+      /// <summary>
+      /// A number as the server's loader reads it, as text: <see cref="ReadHeld"/>'s value,
+      /// and "0" for a key the server holds empty, which its loader makes 0 of whatever
+      /// the default (_ttoi), where the pages showed the default - a script timeout of 60
+      /// for a server that sets none.
+      /// </summary>
+      public string ReadNumber(string key, string defaultValue)
+      {
+         if (string.Equals(defaultValue, "0", StringComparison.Ordinal))
+            return Read(key, defaultValue);
+
+         string value = ReadHeld(key, defaultValue, out bool heldEmpty);
+         return heldEmpty ? "0" : value;
+      }
+
+      // Whether the server holds the key, by its list of names; null when the list
+      // cannot be read.
+      private static bool? HoldsName_(string key)
+      {
+         Func<string> ask = ComSettingNames;
+         if (ask == null)
+            return null;
+
+         HashSet<string> names;
+         lock (appliesLock_)
+            names = heldNames_ != null && DateTime.UtcNow - heldNamesAt_ < HeldNamesFor ? heldNames_ : null;
+
+         if (names == null)
+         {
+            try
+            {
+               names = new HashSet<string>(
+                  (ask() ?? "").Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                  StringComparer.OrdinalIgnoreCase);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               return null;
+            }
+
+            lock (appliesLock_)
+            {
+               heldNames_ = names;
+               heldNamesAt_ = DateTime.UtcNow;
+            }
+         }
+
+         return names.Contains(key);
+      }
 
       /// <summary>
       /// Writes a [Settings] value over COM, which stores it in hm_inisettings - the
@@ -497,6 +677,7 @@ namespace hMailServer.ControlPanel.Services
          {
             if (writesSinceRead_ != int.MaxValue)
                writesSinceRead_++;
+            heldNames_ = null;
          }
 
          // The server published the value as it stored it: a key marked now is in
@@ -523,12 +704,18 @@ namespace hMailServer.ControlPanel.Services
          return ProfileApi.ReadString(section, key, defaultValue, IniPath, 2048);
       }
 
-      /// <summary>Writes a value to a named section. See <see cref="ReadFrom"/>.</summary>
+      /// <summary>
+      /// Writes a value to a named section, and throws with Windows' reason when the file
+      /// refused it (<see cref="ProfileApi.WriteStringChecked"/>): the write's answer was
+      /// dropped, so that a file this user may read and not write - the administrators'
+      /// alone from 6.3.6 - was written to without a word, and the page said the value was
+      /// saved (release review part B, CPB-1). See <see cref="ReadFrom"/>.
+      /// </summary>
       public void WriteTo(string section, string key, string value)
       {
          if (!IsAvailable)
             throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
-         ProfileApi.WriteString(section, key, value, IniPath);
+         ProfileApi.WriteStringChecked(section, key, value, IniPath);
       }
 
       /// <summary>

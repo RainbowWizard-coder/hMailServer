@@ -40,6 +40,14 @@
     <Compile Include="..\ControlPanel\Services\MessageTraceStatus.cs" />
   </ItemGroup>
 
+  <!-- How a restart of the service waits for the stop and the start - as the service
+       asks, by its check point and wait hint - and what it says when it leaves the
+       service stopped (release review finding CP-1): a fake service on a fake clock,
+       no service controller. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ServiceRestartFlow.cs" />
+  </ItemGroup>
+
   <!-- Server status's start time as the server's, and its uptime, worked out only
        where the server's clock is this computer's, in catalogued units. -->
   <ItemGroup>
@@ -315,6 +323,10 @@
        (review finding F242). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ConfigurationWarning.cs" />
+    <!-- And the checks' judging of the settings and the IP ranges, apart from their
+         read over COM (ConfigurationChecks.Read.cs): the ranges counted as auto-bans
+         are the server's own bans (release review finding CP-7). -->
+    <Compile Include="..\ControlPanel\Services\ConfigurationChecks.cs" />
   </ItemGroup>
 
   <!-- The accounts the group members dialog offers to add, and what it says after an

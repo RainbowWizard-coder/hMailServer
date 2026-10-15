@@ -53,21 +53,38 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The statistics heading carries the start as the Started row does, marked as the
-      /// server's time (the owner's decision 13), where it showed the server's local
-      /// time with no marker under a row that had one.
+      /// The time the server gives (Status.StartTime, Application::start_time_) is the
+      /// servers' last start, which Apply now, a reinitialise and a resume make again while
+      /// the service runs on, and the counts under the statistics heading are the
+      /// service's, kept from its process's start: after an Apply now a service three days
+      /// up said "Uptime: 1 min" and "Since the service started at" a minute ago over
+      /// 41,200 messages processed (release review finding CP-3). The rows name the time
+      /// for what it is, a line under them says what starts the servers again, the
+      /// heading names no time, and the Dashboard's tile is named as the row is.
       /// </summary>
       [Fact]
-      public void TheStatisticsHeading_MarksTheStartAsTheServersTime_AndIsItsWordsAloneWithoutOne()
+      public void TheServersStart_IsNamedForWhatItIs_AndTheHeadingOverTheServicesCountsNamesNoTime()
       {
-         string when = new DateTime(2026, 10, 3, 11, 18, 0).ToString("g", System.Globalization.CultureInfo.CurrentCulture);
-         Assert.Equal("Since the service started at " + when + " (server time)", ServerUptimeText.SinceStart("2026-10-03 11:18:00"));
-         Assert.Equal("Since the service started", ServerUptimeText.SinceStart(""));
-         Assert.Equal("Since the service started", ServerUptimeText.SinceStart("not a time"));
-
          string code = ReadControlPanelFile(Path.Join("Views", "StatusView.xaml.cs"));
-         Assert.Contains("SinceStartHeading.Text = ServerUptimeText.SinceStart(snap.StartTime);", code, StringComparison.Ordinal);
-         Assert.DoesNotContain("Since the service started ({0})", code, StringComparison.Ordinal);
+         string xaml = ReadControlPanelFile(Path.Join("Views", "StatusView.xaml"));
+         string dashboard = ReadControlPanelFile(Path.Join("Views", "DashboardView.xaml"));
+         string dashboardCode = ReadControlPanelFile(Path.Join("Views", "DashboardView.xaml.cs"));
+         string uptime = ReadControlPanelFile(Path.Join("Services", "ServerUptimeText.cs"));
+
+         Assert.Contains("SinceStartHeading.Text = L(\"Since the service started\");", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Since the service started at", code + uptime, StringComparison.Ordinal);
+         Assert.Contains("SetValue_(StartedValue, L(\"Servers last started\"), ServerUptimeText.Started(snap.StartTime));", code, StringComparison.Ordinal);
+         Assert.Contains("SetValue_(UptimeValue, L(\"Servers running for\"), ServerUptimeText.Uptime(", code, StringComparison.Ordinal);
+
+         Assert.Contains("{loc:L 'Servers last started'}", xaml, StringComparison.Ordinal);
+         Assert.Contains("{loc:L 'Servers running for'}", xaml, StringComparison.Ordinal);
+         Assert.Contains("{loc:L 'Apply now, a reinitialise and a resume start the servers again while the service runs on. The statistics count from the start of the service itself.'}", xaml, StringComparison.Ordinal);
+         Assert.DoesNotContain("{loc:L 'Uptime'}", xaml + dashboard, StringComparison.Ordinal);
+         Assert.DoesNotContain("{loc:L 'Started'}", xaml, StringComparison.Ordinal);
+
+         Assert.Contains("{loc:L 'Servers running for'}", dashboard, StringComparison.Ordinal);
+         Assert.Contains("SetKpi_(KpiUptime, L(\"Servers running for\"), ", dashboardCode, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Uptime\")", code + dashboardCode, StringComparison.Ordinal);
       }
 
       [Fact]

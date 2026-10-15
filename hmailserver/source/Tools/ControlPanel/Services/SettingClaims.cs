@@ -299,8 +299,13 @@ namespace hMailServer.ControlPanel.Services
          // sent - and the server says so once in the application log.
          new SettingClaim("Logging.SyslogEnabled", ClaimKind.Conditional, SyslogAppliesOnRestart),
 
+         // RFC 5426 3.2 asks a receiver to take 480 octets and recommends 2,048; 1,024 is
+         // the server's own choice between them (SyslogFormatter::UdpByteLimit), and TCP
+         // frames up to 65,000 (TcpByteLimit) - where the claim called 1,024 the RFC's
+         // guidance and said the streams truncate nothing (release review, seen outside
+         // the findings 7).
          new SettingClaim("Logging.SyslogTransport", ClaimKind.Honoured,
-            N("UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine.")),
+            N("UDP truncates an entry to 1,024 bytes - more than the 480 RFC 5426 requires a receiver to take, less than the 2,048 it recommends, and under every path MTU that matters - and the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing below 65,000 bytes. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine.")),
 
          // Verified against the server: BounceTracker reads every one of these at
          // the moment it acts, so a change applies to the next message, and with
