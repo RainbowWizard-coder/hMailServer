@@ -325,10 +325,11 @@ them.
 While the page holds every message held, the search narrows its rows as you type.
 While it holds only the most recent - the five hundred newest in the Control
 Panel, the thousand newest in the Deck - it asks the server a moment after the
-typing stops, so that a message older than the page is found too, and says so:
-*Searched every held message on the server: 37 match the search.* Where more match
-than a page holds, the most recent of them are listed and the notice says how many
-match in all; a longer search narrows them. A server older than the Control Panel
+typing stops, so that a message older than the page is found too, and says so -
+*Searched every held message on the server: 37 match the search.* in the Control
+Panel, *Searched every held message on the server. Matches: 37.* in the Deck. Where
+more match than a page holds, the most recent of them are listed and the notice
+says how many match in all; a longer search narrows them. A server older than the Control Panel
 cannot search, and the page then says that it looked at the most recent only. A
 search is the list's, and is not on the audit trail, as the list is not
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)): the quarantine is one of the
@@ -394,8 +395,9 @@ the server's allow list is read at delivery, so a message whose **server-wide**
 score reaches the delete threshold during the SMTP conversation is held there
 before the list is read. The domain white list is the one that stops that, so the
 Control Panel's *Allow and release* starts on the domain when the server-wide
-score held one of the messages, and says under the address what it would not
-stop; the Deck starts on the address whatever held them.
+score held one of the messages, and whenever the address is chosen says under it
+that this will not stop the sender's next message being held by that score; the
+Deck starts on the address whatever held them.
 
 Before anything is written, the dialog asks the server what the choice would
 write (a dry run) and lists it: one entry per distinct sender or domain, whether
