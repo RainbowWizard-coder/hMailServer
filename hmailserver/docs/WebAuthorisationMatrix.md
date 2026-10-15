@@ -28,7 +28,7 @@ Every route the server's two web listeners answer, and what each kind of credent
 | Cell | Meaning |
 |---|---|
 | yes | Allowed. |
-| own | Allowed where the domain the route names (in its path) is one the credential reaches; another domain's answers 403. |
+| own | Allowed where the domain the route names (in its path) is one the credential reaches; another domain's answers 403. Only the path is held here: what the body names beyond that domain is the handler's to hold, and a change whose handler is not given the caller is listed under Flagged. |
 | own+ | The report route: allowed for a named domain the credential reaches; the sections counted from server-wide metrics are refused. |
 | own* | Allowed, and the route names no domain: whatever it shows or changes beyond the credential's domains is narrowed by the handler, or not at all. Each is listed under Flagged. |
 | sender | Allowed when the key names a sender (`SendFrom`) in a domain it reaches. |
@@ -287,10 +287,6 @@ Any other path is `RouteUnknown`. It needs `view_configuration`; a credential th
 | GET | `/api/v1/me/zero-access` | MeZeroAccess | (own account) | yes | yes | yes | yes | yes | no | no | no | no |
 | PUT | `/api/v1/me/zero-access` | MeZeroAccessPut | (own account) | yes | yes | yes | yes | yes | no | no | no | no |
 | PUT | `/api/v1/me/zero-access/rewrap` | MeZeroAccessRewrap | (own account) | yes | yes | yes | yes | yes | no | no | no | no |
-| GET | `/api/v1/message-trace` | MessageTraceRecent | view_message_trace | no | no | no | yes | yes | yes | yes | yes | no |
-| GET | `/api/v1/message-trace/address/{address}` | MessageTraceAddress | view_message_trace | no | own | own | yes | yes | yes | yes | yes | own |
-| GET | `/api/v1/message-trace/queue/{id}` | MessageTraceQueue | view_message_trace | no | no | no | yes | yes | yes | yes | yes | no |
-| GET | `/api/v1/metrics/history` | MetricsHistory | view_configuration | no | no | no | yes | yes | yes | yes | yes | no |
 
 ### Accounts by address: /api/v1/accounts
 
@@ -585,6 +581,10 @@ Any other path is `RouteUnknown`. It needs `view_configuration`; a credential th
 | GET | `/api/v1/logs/sessions` | LogSessions | view_logs | no | no | no | yes | yes | yes | yes | yes | no |
 | GET | `/api/v1/logs/sessions/{id}` | LogSessionFollow | view_logs | no | no | no | yes | yes | yes | yes | yes | no |
 | GET | `/api/v1/logs/{name}` | LogTail | view_logs | no | no | no | yes | yes | yes | yes | yes | no |
+| GET | `/api/v1/message-trace` | MessageTraceRecent | view_message_trace | no | no | no | yes | yes | yes | yes | yes | no |
+| GET | `/api/v1/message-trace/address/{address}` | MessageTraceAddress | view_message_trace | no | own | own | yes | yes | yes | yes | yes | own |
+| GET | `/api/v1/message-trace/queue/{id}` | MessageTraceQueue | view_message_trace | no | no | no | yes | yes | yes | yes | yes | no |
+| GET | `/api/v1/metrics/history` | MetricsHistory | view_configuration | no | no | no | yes | yes | yes | yes | yes | no |
 | GET | `/api/v1/migrations` | MigrationList | view_accounts | no | own* | own* | yes | yes | yes | yes | yes | own* |
 | POST | `/api/v1/migrations` | MigrationCreate | manage_accounts | no | own* | no | no | yes | yes | yes | no | own* |
 | DELETE | `/api/v1/migrations/{id}` | MigrationDelete | manage_accounts | no | own* | no | no | yes | yes | yes | no | own* |
@@ -783,9 +783,37 @@ Computed from the tables above, so that a new route of these shapes is flagged t
 - `RouteStatus`: a role confined to its domain reaches it, the route names no domain, and the handler (HandleStatus_) is not given the caller, so cannot narrow it.
 - `RouteTlsa`: a role confined to its domain reaches it, the route names no domain, and the handler (HandleTlsa_) is not given the caller, so cannot narrow it.
 
+### A confined role makes this change on its own domain's path, and the handler is not given the caller (12)
+
+- `RouteAccountAddressBookShareDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleAccountAddressBookShareDelete_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteAccountOpenPgpDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleAccountOpenPgpDelete_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteAliasCreate`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleCreateAlias_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteAliasDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleDeleteAlias_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteDomainAliasDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleDeleteDomainAlias_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteFetchAccountDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleDeleteFetchAccount_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteFetchAccountDownload`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleDownloadFetchAccount_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteListDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleDeleteList_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteListMemberApprove`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleListMemberVerb_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteListMemberResetBounces`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleListMemberVerb_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteSuppressionCreate`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleBounces_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+- `RouteSuppressionDelete`: a role confined to its domain makes this change on its own domain's path, and the handler (HandleBounces_) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's.
+
 ### A change reached by GET (0)
 
 None.
+
+### A page answered before any credential for GET and POST alike (10)
+
+- `GET, POST /files/{...}`: answered before any credential by HandlePublicFile_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /confidential/{...}`: answered before any credential by HandleConfidentialPage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /recovery/verify`: answered before any credential by HandleRecoveryVerifyPage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /portal/reset`: answered before any credential by HandlePasswordResetPage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /held/release`: answered before any credential by HandleDigestRelease_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /held/stop`: answered before any credential by HandleDigestStop_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /lists/confirm`: answered before any credential by HandleListConfirmPage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /lists/unsubscribe`: answered before any credential by HandleListMemberPage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /lists/approve`: answered before any credential by HandleListApprovePage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
+- `GET, POST /lists/{list}/subscribe`: answered before any credential by HandleListSubscribePage_ for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries.
 
 ### Authorised but never dispatched (0)
 

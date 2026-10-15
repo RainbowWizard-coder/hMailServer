@@ -47,7 +47,9 @@ Usage:
   python build/generate-auth-matrix.py --self-test
 """
 
+import contextlib
 import copy
+import io
 import os
 import re
 import sys
@@ -2117,15 +2119,19 @@ PRINCIPALS = [
 # ---------------------------------------------------------------------------
 
 def group_of(path):
-    if path.startswith("/api/v1/me"):
+    """The section a path is listed under, by whole segments: /api/v1/message-trace
+    is not under /api/v1/me."""
+    def under(prefix):
+        return path == prefix or path.startswith(prefix + "/")
+    if under("/api/v1/me"):
         return "The account's own: /api/v1/me"
-    if path.startswith("/api/v1/accounts"):
+    if under("/api/v1/accounts"):
         return "Accounts by address: /api/v1/accounts"
-    if path.startswith("/api/v1/domains"):
+    if under("/api/v1/domains"):
         return "Domains: /api/v1/domains"
-    if path.startswith("/api/v1/settings") or path.startswith("/api/v1/ini"):
+    if under("/api/v1/settings") or under("/api/v1/ini"):
         return "Settings: /api/v1/settings and the ini file"
-    if path.startswith("/scim"):
+    if under("/scim"):
         return "SCIM: /scim"
     if path.startswith("/api/v1/"):
         return "The rest of /api/v1"
@@ -2181,7 +2187,7 @@ def route_rows(decision, records):
     return sorted(out, key=lambda r: (GROUP_ORDER.index(group_of(r[2])), r[2], r[1], r[0]))
 
 
-def findings(decision, rows):
+def findings(decision, rows, anon=()):
     """The routes whose check looks wrong or rests on a handler: computed, then listed."""
     out = []
     produced = {r[0] for r in rows}
@@ -2209,6 +2215,18 @@ def findings(decision, rows):
                 out.append(("F-handler-confines", kind, "a role confined to its domain reaches it, the route names no domain, and the handler (%s) is given the caller to narrow it" % decision.handler.get(kind, "?")))
             else:
                 out.append(("F-handler-blind", kind, "a role confined to its domain reaches it, the route names no domain, and the handler (%s) is not given the caller, so cannot narrow it" % decision.handler.get(kind, "?")))
+        elif kind in decision.mutating and ("own" in cells or "own+" in cells) \
+                and "caller" not in decision.handler_args.get(kind, ""):
+            out.append(("F-write-blind", kind, "a role confined to its domain makes this change on its own domain's path, and the handler (%s) is not given the caller, so whatever the body names beyond that domain - another domain's name, an address, a route, one of the server's addresses - is held to nothing of the credential's" % decision.handler.get(kind, "?")))
+    seen = set()
+    for name, methods, template, line, st in anon:
+        if methods is not None and not ("GET" in methods and "POST" in methods):
+            continue
+        key = "%s %s" % (method_text(methods), template)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(("F-anonymous-get", key, "answered before any credential by %s for GET and POST alike: its GET must change nothing, since mail scanners and link previews open the links a message carries" % name))
     return out
 
 
@@ -2264,7 +2282,7 @@ def render(decision, records, anon, web):
     w("| Cell | Meaning |")
     w("|---|---|")
     w("| yes | Allowed. |")
-    w("| own | Allowed where the domain the route names (in its path) is one the credential reaches; another domain's answers 403. |")
+    w("| own | Allowed where the domain the route names (in its path) is one the credential reaches; another domain's answers 403. Only the path is held here: what the body names beyond that domain is the handler's to hold, and a change whose handler is not given the caller is listed under Flagged. |")
     w("| own+ | The report route: allowed for a named domain the credential reaches; the sections counted from server-wide metrics are refused. |")
     w("| own* | Allowed, and the route names no domain: whatever it shows or changes beyond the credential's domains is narrowed by the handler, or not at all. Each is listed under Flagged. |")
     w("| sender | Allowed when the key names a sender (`SendFrom`) in a domain it reaches. |")
@@ -2358,15 +2376,18 @@ def render(decision, records, anon, web):
     w("Computed from the tables above, so that a new route of these shapes is flagged the day it is written. "
       "Each is judged in [WebThreatModel.md](WebThreatModel.md), under \"The routes the matrix flags, judged\".")
     w("")
-    flagged = findings(decision, rows)
+    flagged = findings(decision, rows, anon)
     labels = {
         "F-handler-blind": "A confined role reaches it, it names no domain, and the handler cannot narrow it",
+        "F-write-blind": "A confined role makes this change on its own domain's path, and the handler is not given the caller",
         "F-handler-confines": "A confined role reaches it, it names no domain, and the handler is given the caller",
         "F-mutating-get": "A change reached by GET",
+        "F-anonymous-get": "A page answered before any credential for GET and POST alike",
         "F-undispatched": "Authorised but never dispatched",
         "F-unparsed": "A route kind no path reaches",
     }
-    for code in ("F-handler-blind", "F-mutating-get", "F-undispatched", "F-unparsed", "F-handler-confines"):
+    for code in ("F-handler-blind", "F-write-blind", "F-mutating-get", "F-anonymous-get", "F-undispatched", "F-unparsed",
+                 "F-handler-confines"):
         items = [f for f in flagged if f[0] == code]
         w("### %s (%d)" % (labels[code], len(items)))
         w("")
@@ -2380,7 +2401,20 @@ def render(decision, records, anon, web):
     return "\n".join(lines) + "\n"
 
 
+USAGE = "usage: python build/generate-auth-matrix.py [--check | --print | --self-test]"
+
+
 def main(argv):
+    if argv in (["-h"], ["--help"]):
+        print(USAGE)
+        print("With no argument it writes hmailserver/docs/WebAuthorisationMatrix.md; --check compares, --print writes "
+              "to standard output, and --self-test breaks a copy of the source and proves each rule is still read.")
+        return 0
+    if len(argv) > 1 or any(a not in ("--check", "--print", "--self-test") for a in argv):
+        # A misspelt --check in CI must fail, not write the matrix and pass.
+        print(USAGE, file=sys.stderr)
+        print("generate-auth-matrix: not an argument it takes: %s" % " ".join(argv), file=sys.stderr)
+        return 2
     mode = "write"
     if "--check" in argv:
         mode = "check"
@@ -2511,8 +2545,9 @@ def self_test():
     except GenerationError:
         pass
     try:
-        run(broken_copy(REST_CPP, "Caller caller = Authenticate_(request, peer_address);",
-                        "Caller caller = Authenticate_(request, peer_address);" + nl + "try { }"))
+        run(broken_copy(REST_CPP, "AuditScope auditScope(AuditActorFor_(caller));" + nl + nl + "         switch (route.kind)",
+                        "AuditScope auditScope(AuditActorFor_(caller));" + nl + nl + "         switch (route.kind + 0)"))
+        failures.append("a ProcessRequest_ whose dispatch switch cannot be found is refused")
     except GenerationError:
         pass
 
@@ -2528,6 +2563,37 @@ def self_test():
     expect("a page whose POST may be refused before its handler is one route for GET and POST",
            "| GET, POST | `/portal/reset` | `HandlePasswordResetPage_` |" in t7
            and "| POST | `/portal/reset` |" not in t7)
+
+    # 8. A confined change whose handler is not given the caller is flagged, and
+    # giving it the caller takes the flag away.
+    blind = {f[1] for f in findings(decision, rows) if f[0] == "F-write-blind"}
+    expect("an alias made by a confined credential, its handler given no caller, is flagged",
+           "RouteAliasCreate" in blind)
+    expect("a route that names no domain is not flagged as a confined change on its own domain's path",
+           not (blind & {f[1] for f in findings(decision, rows) if f[0] in ("F-handler-blind", "F-handler-confines")}))
+    d8, r8, t8 = run(broken_copy(
+        REST_CPP, "return HandleCreateAlias_(String(route.identifier), GetRequestBody_(request));",
+        "return HandleCreateAlias_(String(route.identifier), GetRequestBody_(request), caller);"))
+    expect("a confined change whose handler is given the caller is no longer flagged",
+           "RouteAliasCreate" not in {f[1] for f in findings(d8, r8) if f[0] == "F-write-blind"})
+
+    # 9. An anonymous page answered for GET and POST alike is flagged.
+    d9, r9, t9 = run(broken_copy(
+        REST_CPP, 'if (method == "POST" && path == "/api/v1/password-reset")',
+        'if ((method == "GET" || method == "POST") && path == "/api/v1/password-reset")'))
+    expect("an anonymous route answered for GET and POST alike is flagged",
+           "- `GET, POST /api/v1/password-reset`: " in t9 and "- `GET, POST /api/v1/password-reset`: " not in text)
+
+    # 10. Paths are grouped by whole segments.
+    expect("/api/v1/message-trace is not listed with the account's own routes",
+           group_of("/api/v1/message-trace") != group_of("/api/v1/me") and group_of("/api/v1/me/rules") == group_of("/api/v1/me"))
+
+    # 11. An argument it does not know is refused, and nothing is written.
+    before = open(DOC, "rb").read() if os.path.exists(DOC) else None
+    with contextlib.redirect_stderr(io.StringIO()):
+        refused = main(["--chek"])
+    after = open(DOC, "rb").read() if os.path.exists(DOC) else None
+    expect("a misspelt --check is refused with 2 and writes nothing", refused == 2 and before == after)
 
     if failures:
         for failure in failures:
