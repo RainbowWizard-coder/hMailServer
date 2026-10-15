@@ -410,13 +410,15 @@ def yaml_misread(kind, text, match):
             break
     if kind != "chart-annotation":
         return None
-    for line in reversed(lines[:number]):
+    for above in range(number - 1, -1, -1):
+        line = lines[above]
         if line.strip() and not line.lstrip().startswith("#") and blanks(line) < indent:
             if CHART_ANNOTATIONS.match(line):
                 return None
-            return ("is not a key of the chart's annotations to its file's own reader: the line above it indented less is "
-                    "%s" % line.strip())
-    return "is not a key of the chart's annotations to its file's own reader: no line above it is indented less"
+            return ("is not a key of the chart's annotations - annotations: at the start of a line, with no value - to its "
+                    "file's own reader: the line above it indented less is line %d (%s)" % (above + 1, line.strip()))
+    return ("is not a key of the chart's annotations - annotations: at the start of a line, with no value - to its file's own "
+            "reader: no line above it is indented less")
 
 
 def docker_escape(text):
@@ -1177,14 +1179,25 @@ def self_test():
     expect("the chart's licence in a block scalar",
            changed(CHART, chart_licence + '  artifacthub.io/prerelease: "false"\n',
                    '  artifacthub.io/prerelease: "false"\n  artifacthub.io/images: |\n    - name: x\n    ' + chart_licence.lstrip()),
-           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations to its file's own reader: "
-           "the line above it indented less is artifacthub.io/images: |" % CHART)
+           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations - annotations: at the "
+           "start of a line, with no value - to its file's own reader: the line above it indented less is line 5 "
+           "(artifacthub.io/images: |)" % CHART)
     expect("the chart's licence after a comment and a block scalar",
            changed(CHART, "annotations:\n" + chart_licence,
                    "annotations:\n# the images\n  artifacthub.io/images: |\n    - name: x\n" + chart_licence), None)
     expect("the chart's licence with no line above it indented less", added(CHART, "  apiVersion: v2\n" + chart_licence),
-           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations to its file's own reader: "
-           "no line above it is indented less" % CHART)
+           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations - annotations: at the "
+           "start of a line, with no value - to its file's own reader: no line above it is indented less" % CHART)
+    # And the annotations a key with no value on its line, which a case tried only as
+    # GOOD's: a check that took annotations: | for them passed its self-test, and the
+    # refusal gave the line above stripped, so that an annotations: indented under another
+    # key read as the chart's own (this round's own check of the above).
+    expect("the chart's licence under annotations: |", changed(CHART, "annotations:\n", "annotations: |\n"),
+           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations - annotations: at the "
+           "start of a line, with no value - to its file's own reader: the line above it indented less is line 3 "
+           "(annotations: |)" % CHART)
+    expect("the chart's licence under annotations: with a comment after it",
+           changed(CHART, "annotations:\n", "annotations:  # Artifact Hub's\n"), None)
     expect("a licence label's value carried on past its line's backslash",
            changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\\n" AND MIT" \\\n'),
            "the container image's org.opencontainers.image.licenses (%s) has a value its file's own reader carries on past "
@@ -1232,6 +1245,10 @@ def self_test():
            "the escape character `" % DOCKERFILE)
     expect("a Dockerfile whose escape character is said to be the backslash", added(DOCKERFILE, "# escape=\\\n" + GOOD[DOCKERFILE]),
            None)
+    expect("a Dockerfile whose escape directive has blanks about its =",
+           added(DOCKERFILE, "# escape = `\n" + GOOD[DOCKERFILE].replace(" \\\n", " `\n")),
+           "the container image's org.opencontainers.image.licenses (%s) is in a Dockerfile whose parser directive gives it "
+           "the escape character `" % DOCKERFILE)
     expect("a comment of escape=` after the FROM", changed(DOCKERFILE, "FROM ubuntu:24.04\n", "FROM ubuntu:24.04\n# escape=`\n"),
            None)
     # The blanks each form allows, a space and a tab, and the forms of a script's older
