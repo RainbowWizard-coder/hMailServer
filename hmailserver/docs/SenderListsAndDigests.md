@@ -451,8 +451,10 @@ run - `error`, `ids`) and `results` (`id`, `ok`, `outcome` - `released` or
 is a `400` and changes nothing, and an entry naming a public suffix without
 `confirm_public_suffix` is a `409` naming it and changes nothing.
 
-The list without parameters is the bare array it always was. With any of `q`,
-`offset` and `limit` it is a page of **every** held message, newest first (of
+The list without parameters is the bare array it always was, and so is the list
+with a `q` of white space alone, or an empty one, and neither of the others: the
+white space round `q` is not part of it. With a `q` that holds more, or an
+`offset` or a `limit`, it is a page of **every** held message, newest first (of
 those held in one second, the last held first), as an object: `query`, `held`
 (every message held), `total` (the ones that match), `offset`, `count` (the ones
 on this page) and `messages`, each as the list writes it. `q` is looked for as

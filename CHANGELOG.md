@@ -5037,8 +5037,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message now. Over COM `Quarantine.Search(Text, Offset, Count)` loads a page of the messages whose sender,
   recipients, subject or reason holds the text, newest first, which `Item` then indexes, and answers how many match in
   all. Over REST `GET /api/v1/quarantine` takes `q`, `offset` and `limit` and answers a page as an object - `query`,
-  `held`, `total`, `offset`, `count` and `messages` - and without them is the bare array of the newest thousand it
-  always was; `GET /api/v1/me/quarantine` takes the same for an account's own held mail and looks in the sender, the
+  `held`, `total`, `offset`, `count` and `messages` - for a `q` that holds more than white space, or an `offset` or
+  a `limit`, and without them is the bare array of the newest thousand it always was; `GET /api/v1/me/quarantine`
+  takes the same for an account's own held mail and looks in the sender, the
   subject and the reason, never in the recipients, which say who else a message was for. The text is matched as it is
   written, in any case, on all four databases: each LIKE has a parameter of its own, in the order SQL Server binds them
   by position, with `%`, `_`, `[` and the escape character escaped; on MySQL and PostgreSQL the database lowers the
