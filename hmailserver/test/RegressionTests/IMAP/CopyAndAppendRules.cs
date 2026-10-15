@@ -18,6 +18,11 @@ namespace RegressionTests.IMAP
    ///    server implementations MUST restore the destination mailbox to its state
    ///    before the COPY attempt." The copies made before the message that could not
    ///    be copied were left behind.
+   ///  * RFC 6851 section 3.3, of MOVE and UID MOVE: "The server SHOULD NOT leave any
+   ///    message in both mailboxes ... This is true even if the server returns a
+   ///    tagged NO response to the command." A MOVE that failed part way left the
+   ///    copies it had made in the destination, and every original in the source -
+   ///    found by the release review of 6.3.7, once COPY was put right.
    ///
    /// and, into a folder another account owns, by the rights the user holds there:
    ///
@@ -157,14 +162,13 @@ namespace RegressionTests.IMAP
          simulator.Disconnect();
       }
 
-      [Test]
-      [Description("A COPY that fails part way - the second copy over the quota - leaves the destination as " +
-                   "it was, and the copy taken out again no longer counts against the quota. The first copy " +
-                   "was left in the destination with the command answered NO.")]
-      public void ACopyThatFailsPartWayLeavesTheDestinationAsItWas()
+      // An account of 1 MB whose INBOX holds two messages of 300 KB, signed in with
+      // INBOX selected, and an empty folder Target. One copy of a message fits the
+      // quota and a second does not: each copy counts against it as it is saved,
+      // before a MOVE has taken any original out.
+      private ImapClientSimulator SignInWithTwoMessagesOfWhichOneCopyFits(string address)
       {
-         // 1 MB. Two messages of 300 KB and one copy fit; a second copy does not.
-         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "copy-atomic@example.test", "test", 1);
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, "test", 1);
 
          var simulator = new ImapClientSimulator();
          simulator.Connect();
@@ -177,12 +181,23 @@ namespace RegressionTests.IMAP
 
          for (int i = 0; i < 2; i++)
          {
-            string message = "From: copy-atomic@example.test\r\nSubject: Large " + i + "\r\n\r\n" + body;
+            string message = "From: " + address + "\r\nSubject: Large " + i + "\r\n\r\n" + body;
             string appended = simulator.SendSingleCommandWithLiteral("A0" + i + " APPEND INBOX {" + message.Length + "}", message);
             StringAssert.Contains("A0" + i + " OK", appended);
          }
 
          Assert.IsTrue(simulator.SelectFolder("INBOX"));
+
+         return simulator;
+      }
+
+      [Test]
+      [Description("A COPY that fails part way - the second copy over the quota - leaves the destination as " +
+                   "it was, and the copy taken out again no longer counts against the quota. The first copy " +
+                   "was left in the destination with the command answered NO.")]
+      public void ACopyThatFailsPartWayLeavesTheDestinationAsItWas()
+      {
+         var simulator = SignInWithTwoMessagesOfWhichOneCopyFits("copy-atomic@example.test");
 
          string copy = simulator.SendSingleCommand("A10 COPY 1:2 \"Target\"");
          StringAssert.Contains("A10 NO", copy);
@@ -193,6 +208,79 @@ namespace RegressionTests.IMAP
 
          // The copy taken out no longer counts against the quota.
          StringAssert.Contains("A11 OK", simulator.SendSingleCommand("A11 COPY 1 \"Target\""));
+
+         simulator.Disconnect();
+      }
+
+      // A MOVE or a UID MOVE (command) of messages 1 and 2, UIDs 1 and 2, that fails part
+      // way: the first copy fits the quota and the second does not.
+      private void AssertAMoveThatFailsPartWayLeavesNoMessageInBothMailboxes(string address, string command)
+      {
+         var simulator = SignInWithTwoMessagesOfWhichOneCopyFits(address);
+
+         string refused = simulator.SendSingleCommand("A10 " + command + " 1:2 \"Target\"");
+         StringAssert.Contains("A10 NO", refused);
+         StringAssert.DoesNotContain("COPYUID", refused, "A failed " + command + " named copies: " + refused);
+         StringAssert.DoesNotContain("EXPUNGE", refused, "A failed " + command + " expunged an original: " + refused);
+
+         // Each message moved or left as it was, and none in both mailboxes.
+         string target = simulator.Status("Target", "MESSAGES");
+         StringAssert.Contains("(MESSAGES 0)", target, "A failed " + command + " left copies in the destination: " + target);
+
+         string inbox = simulator.Status("INBOX", "MESSAGES");
+         StringAssert.Contains("(MESSAGES 2)", inbox, "A failed " + command + " took an original out of the source: " + inbox);
+
+         // The copy taken out no longer counts against the quota: one message moves.
+         StringAssert.Contains("A11 OK", simulator.SendSingleCommand("A11 " + command + " 1 \"Target\""));
+
+         target = simulator.Status("Target", "MESSAGES");
+         StringAssert.Contains("(MESSAGES 1)", target);
+
+         simulator.Disconnect();
+      }
+
+      [Test]
+      [Description("A MOVE that fails part way - the second copy over the quota - leaves no message in both " +
+                   "mailboxes (RFC 6851 section 3.3): the destination as it was, both originals where they were, " +
+                   "and the copy taken out again no longer counted against the quota. The first copy was left in " +
+                   "the destination, beside its original, with the command answered NO.")]
+      public void AMoveThatFailsPartWayLeavesNoMessageInBothMailboxes()
+      {
+         AssertAMoveThatFailsPartWayLeavesNoMessageInBothMailboxes("move-atomic@example.test", "MOVE");
+      }
+
+      [Test]
+      [Description("A UID MOVE that fails part way leaves no message in both mailboxes, as a MOVE does. The " +
+                   "first copy was left in the destination, beside its original, with the command answered NO.")]
+      public void AUidMoveThatFailsPartWayLeavesNoMessageInBothMailboxes()
+      {
+         AssertAMoveThatFailsPartWayLeavesNoMessageInBothMailboxes("uid-move-atomic@example.test", "UID MOVE");
+      }
+
+      [Test]
+      [Description("A MOVE into the mailbox the session has selected that fails part way leaves the mailbox " +
+                   "as it was, and tells the session of no message: the first copy was left in it, beside its " +
+                   "original, and never reported to the session that made it.")]
+      public void AMoveIntoTheSelectedMailboxThatFailsPartWayLeavesItAsItWas()
+      {
+         var simulator = SignInWithTwoMessagesOfWhichOneCopyFits("move-selected-atomic@example.test");
+
+         string refused = simulator.SendSingleCommand("A10 MOVE 1:2 \"INBOX\"");
+         StringAssert.Contains("A10 NO", refused);
+         StringAssert.DoesNotContain("EXISTS", refused, refused);
+         StringAssert.DoesNotContain("EXPUNGE", refused, refused);
+
+         string inbox = simulator.Status("INBOX", "MESSAGES");
+         StringAssert.Contains("(MESSAGES 2)", inbox, "A failed MOVE left a copy in the mailbox: " + inbox);
+
+         // The session knows the two messages it knew, by the numbers it knew them by.
+         string fetched = simulator.SendSingleCommand("A11 FETCH 1:* (UID)");
+         StringAssert.Contains("* 1 FETCH (UID 1)", fetched);
+         StringAssert.Contains("* 2 FETCH (UID 2)", fetched);
+         StringAssert.DoesNotContain("* 3 ", fetched, fetched);
+
+         // The copy taken out no longer counts against the quota: one message moves.
+         StringAssert.Contains("A12 OK", simulator.SendSingleCommand("A12 MOVE 1 \"INBOX\""));
 
          simulator.Disconnect();
       }

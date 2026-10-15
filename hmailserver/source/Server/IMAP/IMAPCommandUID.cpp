@@ -190,6 +190,12 @@ namespace HM
             pConnection->SubmitDelayedChangeNotification();
             pConnection->SendAsciiData(sTag + " OK UID MOVE completed\r\n");
          }
+         else
+         {
+            // RFC 6851 3.3, as for MOVE: a UID MOVE that fails leaves no message in
+            // both mailboxes.
+            pMove->RollBack(pConnection);
+         }
 
          return result;
       }

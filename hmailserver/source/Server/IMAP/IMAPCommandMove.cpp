@@ -87,6 +87,11 @@ namespace HM
       }
       else
       {
+         // RFC 6851 3.3: a MOVE that fails leaves no message in both mailboxes. The
+         // copies made before the message that could not be moved are taken out of
+         // the destination again, and every original stays where it was.
+         pMove->RollBack(pConnection);
+
          // A MOVE refused after its set was read reports them before its NO.
          pConnection->ReportExpungesHeldForCommand();
       }

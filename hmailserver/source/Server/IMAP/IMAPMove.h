@@ -6,6 +6,8 @@
 
 #include "IMAPCommandRangeAction.h"
 
+#include <set>
+
 namespace HM
 {
    // Implements the message-move action used by the MOVE and UID MOVE
@@ -30,7 +32,21 @@ namespace HM
       // sends the untagged EXPUNGE responses required by RFC 6851.
       void ExpungeMovedMessages(std::shared_ptr<IMAPConnection> pConnection);
 
+      // RFC 6851 3.3: "The server SHOULD NOT leave any message in both mailboxes
+      // ... This is true even if the server returns a tagged NO response to the
+      // command." The copies this command made of the messages before the one that
+      // could not be moved - over the quota, a file that would not copy - were left
+      // in the destination with every original still in the source. They are taken
+      // out again here as IMAPCopy::RollBack takes out a failed COPY's. MOVE and
+      // UID MOVE call it when DoForMails has failed, and expunge nothing.
+      void RollBack(std::shared_ptr<IMAPConnection> pConnection);
+
    private:
+
+      // The destination and the copies made in it, so that a later message that
+      // cannot be moved takes them out again (RollBack).
+      std::shared_ptr<IMAPFolder> destination_folder_;
+      std::set<__int64> copied_message_ids_;
 
       std::vector<unsigned int> moved_message_uids_;
 

@@ -65,6 +65,10 @@ namespace HM
       // may only drop mail into (upstream #650).
       void RecordCopyUidIfReadable(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, unsigned int sourceUid, unsigned int destUid);
 
+      // Forgets every mapping recorded, for a command that has taken its copies out
+      // again: GetUIDPlusResponseCode is then empty.
+      void ForgetCopyUids();
+
       // What a copy or a move into folder carries (RFC 4314 section 4): the flags the
       // user may set there - \Seen with the 's' right, \Deleted with 't', and \Draft,
       // \Answered, \Flagged and the keywords with 'w' - and not the others, which

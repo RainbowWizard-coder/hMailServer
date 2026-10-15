@@ -363,6 +363,14 @@ namespace HM
    }
 
    void
+   IMAPCommandRangeAction::ForgetCopyUids()
+   {
+      uidplus_source_uids_.clear();
+      uidplus_dest_uids_.clear();
+      uidplus_dest_uidvalidity_ = 0;
+   }
+
+   void
    IMAPCommandRangeAction::KeepOnlySettableFlags(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPFolder> folder, std::shared_ptr<Message> message)
    {
       if (!pConnection->CheckPermission(folder, ACLPermission::PermissionWriteSeen))

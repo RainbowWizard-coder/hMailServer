@@ -9,6 +9,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/BO/Account.h"
 #include "../Common/BO/IMAPFolder.h"
+#include "../Common/BO/Messages.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Util/RecoverableStore.h"
 #include "IMAPSimpleCommandParser.h"
@@ -94,6 +95,10 @@ namespace HM
       if (!PersistentMessage::SaveObject(pNewMessage))
          return IMAPResult(IMAPResult::ResultNo, "Failed to save moved message.");
 
+      // Kept, so that a later message that cannot be moved takes this one out again.
+      destination_folder_ = pFolder;
+      copied_message_ids_.insert(pNewMessage->GetID());
+
       // A move into or out of the user's own Junk folder is a lesson for spamd
       // (SpamAssassinLearnOnMove): decided here, delivered off this thread.
       SpamAssassinLearner::LearnFromMove(pConnection->GetCurrentFolder(), pFolder, pNewMessage, pDestinationOwner);
@@ -136,6 +141,42 @@ namespace HM
          return;
 
       pConnection->SendAsciiData(_T("* OK ") + sUidPlus + _T("Moved UIDs.\r\n"));
+   }
+
+   void
+   IMAPMove::RollBack(std::shared_ptr<IMAPConnection> pConnection)
+   {
+      // Nothing moved: no original is expunged, and no COPYUID names a copy that is
+      // taken out again.
+      moved_message_uids_.clear();
+      copies_in_selected_.clear();
+      left_the_account_ = false;
+      ForgetCopyUids();
+
+      if (copied_message_ids_.empty() || !destination_folder_)
+         return;
+
+      // Nobody is told of copies that are not there any more.
+      pConnection->SetDelayedChangeNotification(std::shared_ptr<ChangeNotification>());
+
+      std::shared_ptr<Messages> messages = MessagesContainer::Instance()->GetMessages(destination_folder_->GetAccountID(), destination_folder_->GetID());
+
+      // Deleted as a failed COPY's copies are, and as any delete is - outside a
+      // RecoverableStore::MoveScope, since these are not a move's originals - so a
+      // legal hold on the destination's account keeps a copy of each, and a copy the
+      // hold cannot keep, or the database will not delete, stays where it is.
+      std::vector<__int64> deleted = messages->DeleteMessagesById(copied_message_ids_);
+
+      // A session that has the destination open may have read them already.
+      if (!deleted.empty())
+      {
+         std::shared_ptr<ChangeNotification> pNotification =
+            std::shared_ptr<ChangeNotification>(new ChangeNotification(destination_folder_->GetAccountID(), destination_folder_->GetID(), ChangeNotification::NotificationMessageDeleted, deleted));
+
+         Application::Instance()->GetNotificationServer()->SendNotification(pConnection->GetNotificationClient(), pNotification);
+      }
+
+      copied_message_ids_.clear();
    }
 
    void

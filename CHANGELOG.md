@@ -5353,6 +5353,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `LISTRIGHTS` without the 'a' right, among them. `IMAP/CopyAndAppendRules.cs` holds each. Found by upstream's UIDPLUS
   work (upstream PRs 650 and 666), which met the same.
 
+- **Fixed: an IMAP `MOVE` or `UID MOVE` that failed part way left the copies it had made in both mailboxes, where a
+  `COPY` that fails part way now leaves the destination as it was.** RFC 6851 section 3.3 has each message of a `MOVE`
+  either moved or left as it was, and none in both mailboxes, "even if the server returns a tagged NO response". A
+  `MOVE` copies each message of its set before it takes any original out, and each copy counts against the quota as it
+  is saved, so a `MOVE` that met the quota part way through its set, or a file that would not copy, was answered `NO`
+  with the copies already made in the destination and every original still in the source. A user near the quota who
+  deleted a batch in a client that deletes by moving to Trash with `UID MOVE` was left with the first messages in both
+  folders, counted twice against the quota, which then refused new mail that did not fit, and further moves to Trash,
+  until something was deleted for good. As in 6.3.6: the `COPY` fix above came of upstream's work, and upstream has no
+  `MOVE`. The copies are now taken out of the destination again, as a failed `COPY`'s are, and the sessions that have
+  it open are told; nothing is expunged from the source. They are deleted as any delete is, so that a legal hold on
+  the destination's account keeps a copy of each, and a copy the hold cannot keep, or the database will not delete,
+  stays where it is. A lesson for spamd that the move of a message into or out of Junk has already queued stays
+  queued, as for `COPY`. In `IMAP/CopyAndAppendRules.cs`, a `MOVE` and a `UID MOVE` of two messages of which one copy
+  fits the quota, and a `MOVE` of the two into the folder the session has selected, must leave the destination as it
+  was and the originals where they were, and then move one message, for which the copy left behind would leave no
+  room; without the fix the three failed, each finding the first copy in the destination. Found by the release review
+  of 6.3.7.
+
 - **Fixed: an IMAP `COPY` or `MOVE` by message number copied or moved the wrong message when another session had just
   expunged one before it.** The server tells a session of another's expunge at the start of its next command that may
   carry an untagged `EXPUNGE`, and `COPY` and `MOVE` were such commands; but their message numbers are the ones the
