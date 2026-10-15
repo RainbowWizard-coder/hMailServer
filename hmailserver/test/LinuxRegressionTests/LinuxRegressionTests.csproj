@@ -188,6 +188,7 @@
     <Compile Include="..\RegressionTests\IMAP\CommandSequences.cs" Link="IMAP\CommandSequences.cs" />
     <Compile Include="..\RegressionTests\IMAP\Compress.cs" Link="IMAP\Compress.cs" />
     <Compile Include="..\RegressionTests\IMAP\ConcurrentConnections.cs" Link="IMAP\ConcurrentConnections.cs" />
+    <Compile Include="..\RegressionTests\IMAP\CopyAndAppendRules.cs" Link="IMAP\CopyAndAppendRules.cs" />
     <Compile Include="..\RegressionTests\IMAP\Examine.cs" Link="IMAP\Examine.cs" />
     <Compile Include="..\RegressionTests\IMAP\Fetch.cs" Link="IMAP\Fetch.cs" />
     <Compile Include="..\RegressionTests\IMAP\FetchPartBytes.cs" Link="IMAP\FetchPartBytes.cs" />
@@ -212,6 +213,7 @@
     <Compile Include="..\RegressionTests\IMAP\SaveDate.cs" Link="IMAP\SaveDate.cs" />
     <Compile Include="..\RegressionTests\IMAP\Search.cs" Link="IMAP\Search.cs" />
     <Compile Include="..\RegressionTests\IMAP\SearchLimits.cs" Link="IMAP\SearchLimits.cs" />
+    <Compile Include="..\RegressionTests\IMAP\SelectedFolderReports.cs" Link="IMAP\SelectedFolderReports.cs" />
     <Compile Include="..\RegressionTests\IMAP\SequenceSets.cs" Link="IMAP\SequenceSets.cs" />
     <Compile Include="..\RegressionTests\IMAP\SessionMessageNumbering.cs" Link="IMAP\SessionMessageNumbering.cs" />
     <Compile Include="..\RegressionTests\IMAP\SharedMailboxes.cs" Link="IMAP\SharedMailboxes.cs" />
@@ -352,6 +354,7 @@
     <Compile Include="..\RegressionTests\Security\PasswordScrypt.cs" Link="Security\PasswordScrypt.cs" />
     <Compile Include="..\RegressionTests\Security\SMTPAuthentication.cs" Link="Security\SMTPAuthentication.cs" />
     <Compile Include="..\RegressionTests\Security\SaslCredentialMasking.cs" Link="Security\SaslCredentialMasking.cs" />
+    <Compile Include="..\RegressionTests\Security\SaslPlainAuthorizationIdentity.cs" Link="Security\SaslPlainAuthorizationIdentity.cs" />
     <Compile Include="..\RegressionTests\Security\SecretProtection.cs" Link="Security\SecretProtection.cs" />
     <Compile Include="..\RegressionTests\Security\SecurityTxt.cs" Link="Security\SecurityTxt.cs" />
     <Compile Include="..\RegressionTests\Security\Tarpits.cs" Link="Security\Tarpits.cs" />

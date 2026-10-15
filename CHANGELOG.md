@@ -6228,6 +6228,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `Received` header, `OPENSSL_NO_DEPRECATED`, and a new UIDVALIDITY for the folders a restore puts back, which needs a
   schema change.
 
+- **The Linux suite runs `IMAP/CopyAndAppendRules.cs`, `IMAP/SelectedFolderReports.cs` and
+  `Security/SaslPlainAuthorizationIdentity.cs`, which hold this version's `COPY` and `MOVE` rollbacks, its reports of
+  copies into the selected folder and its SASL PLAIN authorisation identity rules.** The three were linked in the
+  Windows suite alone, though they compile against the Linux shims and read nothing of the repository, so that a
+  change breaking one of those fixes on Linux alone would have passed the `linux-suite` job and shipped in the Linux
+  packages; SASLprep's NFKC step, for one, takes a branch of its own there. On Linux the 12 authorisation identity
+  tests of SMTP, POP3, IMAP and ManageSieve and the 4 selected-folder tests run, and of `CopyAndAppendRules` the four
+  rollback tests, a `COPY`'s and the three of `MOVE` (*IMAP, POP3 and the webmail*); its six tests that make a public
+  folder skip themselves, since the REST API has no route to the public namespace. Found by the release review of
+  6.3.7.
+
 ### Documentation
 
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
