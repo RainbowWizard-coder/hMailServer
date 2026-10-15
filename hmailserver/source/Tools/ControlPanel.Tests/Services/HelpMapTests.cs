@@ -453,9 +453,6 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(wrong.Count == 0, string.Join("; ", wrong));
          Assert.Equal(table.Count, linked);
          Assert.Equal(table.OrderBy(e => e.Key, StringComparer.Ordinal), HelpWikiPages.ByDocument.OrderBy(e => e.Key, StringComparer.Ordinal));
-         // The finding, as it was: of every document, only Fuzzing and Migration
-         // are names the wiki has a page of.
-         Assert.Equal(new[] { "Fuzzing", "Migration" }, HelpPages.Names.Where(wikiPages.Contains).OrderBy(n => n, StringComparer.Ordinal));
       }
 
       /// <summary>

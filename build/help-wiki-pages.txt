@@ -20,12 +20,12 @@
 # A document a page names for a part of its own subject, or points at, is not the page's: RemoteDomains.md
 # on Encryption for People (its gateway encryption), ActiveActive.md on the High Availability Runbook,
 # ContinuousIntegration.md, TestLab.md, Webhooks.md and ControlPanelDesign.md where they are pointed at.
-# A document two pages were made from is the page's that is its copy, then the one about its own
-# subject: Upgrading.md is the Upgrading guide's copy, not the chapter Upgrading hMailServer's;
-# UpdateFeed.md is The Update Feed's; BounceSuppression.md is Outbound Shaping's, not Mailing Lists';
-# ConfidentialMessages.md and PersonalData.md are the pages' written from them by name, which The
-# Webmail links as well. A document appears once; README.md and DeckParity.md, which the help does not
-# carry, never.
+# Where two pages were made from one document, the document goes under its copy, and otherwise under
+# the page about the document's own subject: Upgrading.md under Upgrading-Guide, its copy, not the
+# chapter Upgrading-hMailServer; UpdateFeed.md under The-Update-Feed; BounceSuppression.md under
+# Outbound-Shaping, not Mailing-Lists; ConfidentialMessages.md and PersonalData.md under the pages whose
+# opening names them, not under The-Webmail, which links them as well. A document appears once;
+# README.md and DeckParity.md, which the help does not carry, never.
 #
 # When the wiki gains, loses or renames a page, or a page is made from another document, change this
 # file in the same change and run, with a clone of hmailserver.wiki:
