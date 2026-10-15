@@ -68,11 +68,16 @@ written, this checked the five alone and said they were every licence field of t
 packages, and the other four were licence fields that nothing held (release review 6.3.7,
 the check of RB-2); the scan that came of that read neither linux-image.sh nor a shell
 script, while the CHANGELOG said it read every file the packages are made from (the
-re-check of RB-2); and it skipped the line of a field it held whole, so that another
-licence label there passed and the image got it, and it read a CMake file's set() alone, an
+re-check of RB-2); it skipped the line of a field it held whole, so that another licence
+label there passed and the image got it, and it read a CMake file's set() alone, an
 APKBUILD's or a PKGBUILD's license= and += at a line's start alone, a YAML key at a line's
 start or after one dash alone, a Nix licence bound by its bare name alone and a shell
-script's label by its bare key alone (the check of RB-2's third round).
+script's label by its bare key alone (the check of RB-2's third round); and the four
+readers read a value on its key's line and nothing of the lines about it, so that a value
+carried on to the next line, a label's line that Docker reads as part of another
+instruction, of the older LABEL key value, of a stage before the image's or of the word
+before it, and a chart's licence in a block scalar passed and the check printed the value
+read (the second check of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -97,12 +102,27 @@ parentheses fail, as an expression this does not read. The PKGBUILD's array is t
 its elements, each one quoted string apart from the next, as bash reads them: bash makes
 one element of 'a''b'. The Nix package's list is read by nixpkgs' names (NIX_NAMES, each
 the spdxId lib/licenses/licenses.nix gives it in the nixpkgs flake.lock pins); a name not
-there fails. The four that name the project's licence are read as their files write a
-value, bare or in single or double quotes, and to where their files' own readers end it:
-YAML's at the end of its line or at a comment after a space (AGPL-3.0-or-later#MIT is one
-value to YAML), and a LABEL's at the end of its word, a space, the backslash that continues
-the line or the line's end (Docker makes one word of "a"" b" and of a\\ b); a value run on
-past that is not read.
+there fails. The four that name the project's licence are read as their files write a value
+on the line of its key, bare or in single or double quotes, to where their files' own
+readers end it on that line: YAML's at the line's end or at a comment after a space
+(AGPL-3.0-or-later#MIT is one value to YAML), a LABEL's at the end of its word - at a
+space, at the line's end or at the backslash that continues the line (Docker makes one word
+of "a"" b" and of a\\ b); a value run on past that is not read. Where the reader reads more
+than that line, the field fails: YAML reads a line after it that is indented more than its
+key, and not blank or a comment, as more of the value, or refuses the file; and Docker
+joins a line its backslash continues to the next it keeps, without the backslash (it drops
+an empty line or a comment there), so that a word at the backslash goes on into the rest of
+the instruction where that begins with no blank, and the first word of a line that begins
+with no blank goes into a word that ends the line before. So does a licence label's line
+that Docker reads as no key=value of the image's own LABEL - a line of another instruction,
+of the older LABEL key value, whose one label takes the rest of it, or of a stage that a
+later FROM ends - or that is in a Dockerfile whose parser directive gives it an escape
+character other than the backslash; and a chart's licence that is not a key of the chart's
+annotations, such as a line of a block scalar. The readers too read lines: a line one reads
+that its file's own reader takes for part of a value begun on a line before it - a YAML
+value in quotes or in a flow over several lines - or for no part of the file - a CMake
+bracket comment, a here-document or a false if in a shell file, a false %if in a spec - can
+pass while it is the one field of its kind there.
 
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
@@ -204,12 +224,15 @@ OWN_LICENCE_ONLY = (
      "Artifact Hub takes one SPDX identifier there, and the chart's files are the project's own"),
 )
 
-# A value as the snap's and the chart's YAML writes it - in double or single quotes, or
-# bare - to the end of its line or to a comment, which YAML begins only after a space or a
-# tab: AGPL-3.0-or-later#MIT is one plain scalar. And as a Dockerfile's LABEL writes it,
-# where a value is a word, which ends at a space, at the backslash that continues its line
-# or at the line's end: one that runs on past its quotes or past a backslash, which Docker
-# makes one word of ("a"" b", a\ b), is not read.
+# A value on its key's line as the snap's and the chart's YAML writes it - in double or
+# single quotes, or bare - to the end of the line or to a comment, which YAML begins only
+# after a space or a tab: AGPL-3.0-or-later#MIT is one plain scalar. And as a Dockerfile's
+# LABEL writes it, where a value is a word, which ends on its line at a space, at the
+# backslash that continues the line or at the line's end: one that runs on past its quotes
+# or past a backslash, which Docker makes one word of ("a"" b", a\ b), is not read. What the
+# file's own reader reads beyond the line - more of a YAML value on a line indented more
+# than its key, a word that Docker carries on into the next line it keeps - yaml_misread and
+# docker_misread refuse.
 YAML_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#][^\n]*?))(?:[ \t]+#[^\n]*)?[ \t]*$"""
 LABEL_VALUE = r"""(?:"([^"\n]*)"|'([^'\n]*)'|([^\s"'#\\][^\s#\\]*))(?=[ \t]|\\[ \t]*$|$)"""
 # The PKGBUILD's array: each element one quoted string, apart from the next by a space or a
@@ -230,6 +253,16 @@ READERS = {
 BOOST_OPTION = re.compile(r'^option\(HM_BOOST_STATIC "[^"\n]*" (ON|OFF)\)', re.MULTILINE)
 BOOST_OFF = "-DHM_BOOST_STATIC=OFF"
 IDENTIFIER = re.compile(r"^(?:LicenseRef-)?[A-Za-z0-9][A-Za-z0-9.+-]*$")
+# Docker's parser - moby/buildkit's frontend/dockerfile/parser, which kaniko reads a
+# Dockerfile with: a parser directive, one of the comments at the top of the file before
+# anything else, and the backslash that continues a line, Docker's escape character unless a
+# directive gives it another. And the chart's annotations, the mapping its licence is a key
+# of; and the readers of OWN_LICENCE_ONLY that read YAML.
+DOCKER_DIRECTIVE = re.compile(r"^#[ \t]*([A-Za-z][A-Za-z0-9]*)[ \t]*=[ \t]*(\S.*?)[ \t]*$")
+DOCKER_DIRECTIVES = ("escape", "syntax", "check")
+DOCKER_CONTINUATION = re.compile(r"\\[ \t]*$")
+CHART_ANNOTATIONS = re.compile(r"^annotations:(?:[ \t]+(?:#[^\n]*)?)?$")
+YAML_KINDS = ("snap", "chart-annotation")
 
 # The files the scan reads - the places the recipes of the Linux packages, the snap, the
 # container image and the Helm chart are kept, and linux-image.sh, which gives kaniko the
@@ -347,12 +380,132 @@ def field_value(kind, text):
     return names, None
 
 
+def blanks(line):
+    """How many spaces and tabs a line begins with."""
+    return len(line) - len(line.lstrip(" \t"))
+
+
+def yaml_misread(kind, text, match):
+    """Why the snap's or the chart's YAML reader reads more than the value match read on its
+    key's line, or reads that key as no key of the chart's annotations; or None."""
+    lines = text.split("\n")
+    number = text.count("\n", 0, match.start())
+    indent = blanks(lines[number])
+    for line in lines[number + 1:]:
+        if line.strip() and not line.lstrip().startswith("#"):
+            if blanks(line) > indent:
+                return ("has a line after it indented more than its key (%s), which its file's own reader reads as more of "
+                        "the value, or refuses: this reads a value on its key's line alone" % line.strip())
+            break
+    if kind != "chart-annotation":
+        return None
+    for line in reversed(lines[:number]):
+        if line.strip() and not line.lstrip().startswith("#") and blanks(line) < indent:
+            if CHART_ANNOTATIONS.match(line):
+                return None
+            return ("is not a key of the chart's annotations to its file's own reader: the line above it indented less is "
+                    "%s" % line.strip())
+    return "is not a key of the chart's annotations to its file's own reader: no line above it is indented less"
+
+
+def docker_escape(text):
+    """A Dockerfile's escape character: the backslash, unless an escape= among the parser
+    directives at its top gives another."""
+    for line in text.split("\n"):
+        directive = DOCKER_DIRECTIVE.match(line.lstrip())
+        if not directive or directive.group(1).lower() not in DOCKER_DIRECTIVES:
+            break
+        if directive.group(1).lower() == "escape":
+            return directive.group(2)
+    return "\\"
+
+
+def docker_instructions(text):
+    """A Dockerfile's lines as Docker's parser joins them into instructions, the backslash
+    continuing a line: for each line, the number of the line its instruction begins on, or
+    None for a line the parser drops - a comment, or blanks alone, between instructions or
+    inside one - and its part of the instruction, the line without the backslash that
+    continues it, and on an instruction's first line without its leading blanks."""
+    lines = text.split("\n")
+    starts, parts = [None] * len(lines), [""] * len(lines)
+    start = None
+    for number, line in enumerate(lines):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if start is None:
+            start, line = number, line.lstrip()
+        starts[number] = start
+        continued = DOCKER_CONTINUATION.search(line)
+        parts[number] = line[:continued.start()] if continued else line
+        start = start if continued else None
+    return starts, parts
+
+
+def docker_first_word(arguments):
+    """The first word of an instruction's arguments as Docker's parser splits them: to a blank
+    outside quotes, a backslash outside single quotes keeping the character after it."""
+    word, quote, at = "", None, 0
+    arguments = arguments.lstrip()
+    while at < len(arguments) and (quote or not arguments[at].isspace()):
+        character = arguments[at]
+        if character == "\\" and quote != "'":
+            word += arguments[at:at + 2]
+            at += 2
+            continue
+        if quote is None and character in "'\"":
+            quote = character
+        elif character == quote:
+            quote = None
+        word += character
+        at += 1
+    return word
+
+
+def docker_misread(text, match):
+    """Why Docker's parser reads the line a label reader read as other than a key=value of the
+    image's own LABEL whose value ends where the reader's does; or None."""
+    escape = docker_escape(text)
+    if escape != "\\":
+        return ("is in a Dockerfile whose parser directive gives it the escape character %s: this reads one whose escape "
+                "character is the backslash" % escape)
+    starts, parts = docker_instructions(text)
+    instructions = {}
+    for number, start in enumerate(starts):
+        if start is not None:
+            instructions.setdefault(start, []).append(number)
+    number = text.count("\n", 0, match.start())
+    kept = instructions[starts[number]]
+    words = "".join(parts[n] for n in kept).split(None, 1)
+    if words[0].upper() != "LABEL":
+        return ("is a line of the instruction %s at line %d to its file's own reader, not of a LABEL, which this does not "
+                "read" % (words[0], kept[0] + 1))
+    if "=" not in docker_first_word(words[1] if len(words) > 1 else ""):
+        return ("is a line of a LABEL of the older form, LABEL key value, at line %d, whose one label its file's own reader "
+                "gives the rest of it, which this does not read" % (kept[0] + 1))
+    later = [start for start in sorted(instructions) if start > kept[0] and
+             ("".join(parts[n] for n in instructions[start]).split() or [""])[0].upper() == "FROM"]
+    if later:
+        return ("is in a stage of the build that the FROM at line %d ends: this reads a Dockerfile whose labels are in its "
+                "last stage" % (later[0] + 1))
+    at = kept.index(number)
+    if "".join(parts[n] for n in kept[:at])[-1:].strip() and text.split("\n")[number][:1].strip():
+        return ("has its key on a line its file's own reader joins to the word that ends the line before it, which this does "
+                "not read: the line before is %s" % next(parts[n].strip() for n in reversed(kept[:at]) if parts[n].strip()))
+    if text.startswith("\\", match.end()) and "".join(parts[n] for n in kept[at + 1:])[:1].strip():
+        return ("has a value its file's own reader carries on past its line, into %s, which this does not read"
+                % next(parts[n].strip() for n in kept[at + 1:] if parts[n].strip()))
+    return None
+
+
 def own_value(kind, text):
     """(the value of a field that names the project's licence alone, or None, and what is wrong)."""
-    found = READERS[kind].findall(text)
+    found = list(READERS[kind].finditer(text))
     if len(found) != 1:
         return None, "is there %d time(s), not once" % len(found)
-    return "".join(found[0]), None
+    wrong = yaml_misread(kind, text, found[0]) if kind in YAML_KINDS else docker_misread(text, found[0])
+    if wrong:
+        return None, wrong
+    return "".join(group or "" for group in found[0].groups()), None
 
 
 def boost_static(kind, text, cmake_default):
@@ -980,6 +1133,89 @@ def self_test():
                  "      \"io.artifacthub.package.license\"=\"MIT\"\nEOF\n"),
            '%s/docker/make-dockerfile.sh:3 ("io.artifacthub.package.license"="MIT") is a licence field this does not hold'
            % PACKAGING)
+    # What the file's own reader reads beyond the key's line, and a line it reads as no part
+    # of the field. The readers read a value on its key's line and nothing of the lines about
+    # it, so that a value carried on to the next line, a label's line that Docker reads as
+    # part of another instruction, of the older LABEL key value, of a stage before the
+    # image's or of the word before it, and a chart's licence in a block scalar passed and the
+    # check printed the value read (the second check of RB-2's third round).
+    snap_licence = "license: AGPL-3.0-or-later\n"
+    chart_licence = "  artifacthub.io/license: AGPL-3.0-or-later\n"
+    oci = '      org.opencontainers.image.licenses="AGPL-3.0-or-later" \\\n'
+    art = '      io.artifacthub.package.license="AGPL-3.0-or-later" \\\n'
+    keywords = '      io.artifacthub.package.keywords="mail"\n'
+    expect("the snap's licence carried on to its next line", changed(SNAPCRAFT, snap_licence, snap_licence + "  AND MIT\n"),
+           "the snap's license (%s) has a line after it indented more than its key (AND MIT), which its file's own reader "
+           "reads as more of the value, or refuses" % SNAPCRAFT)
+    expect("the snap's licence before a line indented by a tab", changed(SNAPCRAFT, snap_licence, snap_licence + "\tAND MIT\n"),
+           "the snap's license (%s) has a line after it indented more than its key (AND MIT)" % SNAPCRAFT)
+    expect("the chart's licence carried on past a blank line", changed(CHART, chart_licence, chart_licence + "\n    AND MIT\n"),
+           "the Helm chart's artifacthub.io/license (%s) has a line after it indented more than its key (AND MIT)" % CHART)
+    expect("the chart's licence in quotes before a line indented more",
+           changed(CHART, chart_licence, '  artifacthub.io/license: "AGPL-3.0-or-later"\n   AND MIT\n'),
+           "the Helm chart's artifacthub.io/license (%s) has a line after it indented more than its key (AND MIT)" % CHART)
+    expect("the snap's licence before an indented comment", changed(SNAPCRAFT, snap_licence, snap_licence + "  # the project's\n"),
+           None)
+    expect("the chart's licence in a block scalar",
+           changed(CHART, chart_licence + '  artifacthub.io/prerelease: "false"\n',
+                   '  artifacthub.io/prerelease: "false"\n  artifacthub.io/images: |\n    - name: x\n    ' + chart_licence.lstrip()),
+           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations to its file's own reader: "
+           "the line above it indented less is artifacthub.io/images: |" % CHART)
+    expect("the chart's licence after a comment and a block scalar",
+           changed(CHART, "annotations:\n" + chart_licence,
+                   "annotations:\n# the images\n  artifacthub.io/images: |\n    - name: x\n" + chart_licence), None)
+    expect("the chart's licence with no line above it indented less", added(CHART, "  apiVersion: v2\n" + chart_licence),
+           "the Helm chart's artifacthub.io/license (%s) is not a key of the chart's annotations to its file's own reader: "
+           "no line above it is indented less" % CHART)
+    expect("a licence label's value carried on past its line's backslash",
+           changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\\n" AND MIT" \\\n'),
+           "the container image's org.opencontainers.image.licenses (%s) has a value its file's own reader carries on past "
+           "its line, into \" AND MIT\", which this does not read" % DOCKERFILE)
+    expect("a bare one carried on past a comment line",
+           changed(DOCKERFILE, art, "      io.artifacthub.package.license=AGPL-3.0-or-later\\\n# a comment\n\\ AND\\ MIT \\\n"),
+           "the container image's io.artifacthub.package.license (%s) has a value its file's own reader carries on past its "
+           "line, into \\ AND\\ MIT," % DOCKERFILE)
+    expect("a licence label's value carried on past blanks after its backslash and an empty line",
+           changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\ \t\n\n" AND MIT" \\\n'),
+           "org.opencontainers.image.licenses (%s) has a value its file's own reader carries on" % DOCKERFILE)
+    expect("a licence label's value carried on past a backslash alone",
+           changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\\n\\\n" AND MIT" \\\n'),
+           "org.opencontainers.image.licenses (%s) has a value its file's own reader carries on" % DOCKERFILE)
+    expect("a licence label's value at its backslash before an empty line, a comment and an indented line",
+           changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\\n\n# a comment\n'), None)
+    expect("a licence label's value at its backslash before a backslash alone and an indented line",
+           changed(DOCKERFILE, oci, '      org.opencontainers.image.licenses="AGPL-3.0-or-later"\\\n\\\n'), None)
+    expect("a licence label's line joined to the word before it, past a comment",
+           changed(DOCKERFILE, '"hMailServer" \\\n' + oci, '"hMailServer"\\\n# a comment\n' + oci.lstrip()),
+           "the container image's org.opencontainers.image.licenses (%s) has its key on a line its file's own reader joins "
+           "to the word that ends the line before it, which this does not read: the line before is LABEL "
+           "org.opencontainers.image.title=\"hMailServer\"" % DOCKERFILE)
+    expect("a licence label's line at its start after a blank before the backslash", changed(DOCKERFILE, oci, oci.lstrip()),
+           None)
+    expect("a licence label's line in an ENV",
+           changed(DOCKERFILE, art + keywords, keywords + "ENV HM_X=1 \\\n" + art.rstrip(" \\\n") + "\n"),
+           "the container image's io.artifacthub.package.license (%s) is a line of the instruction ENV at line 5 to its "
+           "file's own reader, not of a LABEL" % DOCKERFILE)
+    expect("the labels in a LABEL written in small letters", changed(DOCKERFILE, "LABEL ", "label "), None)
+    expect("a licence label's line in a LABEL of the older form",
+           changed(DOCKERFILE, art + keywords, keywords + "LABEL org.example.note see \\\n" + art.rstrip(" \\\n") + "\n"),
+           "the container image's io.artifacthub.package.license (%s) is a line of a LABEL of the older form, LABEL key "
+           "value, at line 5" % DOCKERFILE)
+    expect("a LABEL whose first word holds an escaped blank and a quoted one",
+           changed(DOCKERFILE, "LABEL org.opencontainers", 'LABEL org.example.a\\ "b c"=x org.opencontainers'), None)
+    expect("the image's labels in a stage a later FROM ends", added(DOCKERFILE, GOOD[DOCKERFILE] + "FROM scratch\nCOPY --from=0 / /\n"),
+           ["the container image's %s (%s) is in a stage of the build that the FROM at line 6 ends" % (label, DOCKERFILE)
+            for label in ("org.opencontainers.image.licenses", "io.artifacthub.package.license")])
+    expect("the image's labels in the last of two stages", added(DOCKERFILE, "FROM alpine AS build\nRUN true\n" + GOOD[DOCKERFILE]),
+           None)
+    expect("a Dockerfile whose escape character is the backtick",
+           added(DOCKERFILE, "# syntax=docker/dockerfile:1\n# escape=`\n" + GOOD[DOCKERFILE].replace(" \\\n", " `\n")),
+           "the container image's org.opencontainers.image.licenses (%s) is in a Dockerfile whose parser directive gives it "
+           "the escape character `" % DOCKERFILE)
+    expect("a Dockerfile whose escape character is said to be the backslash", added(DOCKERFILE, "# escape=\\\n" + GOOD[DOCKERFILE]),
+           None)
+    expect("a comment of escape=` after the FROM", changed(DOCKERFILE, "FROM ubuntu:24.04\n", "FROM ubuntu:24.04\n# escape=`\n"),
+           None)
     # As first written the check held the five alone, and said they were every licence
     # field of the Linux packages: the other four are licence fields, and nothing held them.
     expect("the five alone", GOOD,

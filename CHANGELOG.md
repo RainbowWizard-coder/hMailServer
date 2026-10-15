@@ -1138,7 +1138,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   spec's packages to carry them marked `%license`. `build/check-package-licenses.py`, in the `checkers` job, holds the
   five licence fields to what is compiled into the server, so that a component compiled in whose licence an identifier
   names and a field that leaves it out fail the pipeline; it holds the snap's, the image's and the chart's to the
-  project's licence alone, and each field it holds to a line of its own, and fails a licence field it does not hold in
+  project's licence alone, and fails one of those whose value its file's own reader carries on to the next line, a
+  label's line that Docker does not read as a key=value of the image's own `LABEL`, and a chart's licence that is not a
+  key of the chart's annotations; it holds each field to a line of its own, and fails a licence field it does not hold in
   the files it reads - those of `snap/`, `nix/` and `platform/packaging/`, `flake.nix`, the server's `CMakeLists.txt`
   and `build/ci/linux-image.sh`, which gives kaniko the image's labels that change with each build as `--label` flags -
   in each of the forms the script lists for the kind of file, a CMake command on a CPack licence variable
