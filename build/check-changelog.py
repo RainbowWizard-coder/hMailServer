@@ -346,7 +346,7 @@ def self_test():
             '`security-exceptions.yml`\'s header counts its 491 exceptions'),
         'the same of "the exceptions file", the day in the next clause': good.replace(
             'On 13 October 2026 the exceptions file held 504 entries;', 'The exceptions file holds 504 entries; on 13 October 2026'),
-        # The words of 058a184bd's entry for this rule, which the rule as that commit wrote it passed.
+        # The words this rule's entry first had, which the rule as first written passed.
         'a figure the header counts, the file called "the file", a day of another fact eleven words before it':
             good.replace('leaving 491 on 15 October 2026;', 'leaving the 491 the header counts now;'),
         'the same, a figure that the file holds': good.replace(
