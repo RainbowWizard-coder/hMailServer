@@ -13088,8 +13088,8 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>Het schema van de directorysynchronisatie wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>De documentatie die het helpvenster toont, is de eigen kopie van de server. De pagina's van de wiki zijn geschreven op basis van de documenten, onder eigen namen; de koppeling opent de pagina die op basis van het getoonde document is geschreven, en wordt niet getoond als de wiki er geen heeft. Standaard de GitLab-wiki van het project.</value>
+  <data name="The documentation the help pane shows is the server's own copy; the link opens the wiki's page written from the document showing, by the wiki's own name for it, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>De documentatie die het helpvenster toont, is de eigen kopie van de server; de koppeling opent de wikipagina die op basis van het getoonde document is geschreven, onder de naam die de wiki eraan geeft, en wordt niet getoond als de wiki er geen heeft. Standaard de GitLab-wiki van het project.</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Het domein heeft nog geen ondertekeningssleutel.</value>

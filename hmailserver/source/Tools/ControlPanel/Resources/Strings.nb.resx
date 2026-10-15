@@ -13088,8 +13088,8 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>Tidsplanen for katalogsynkronisering trer først i kraft når hMailServer-tjenesten startes på nytt. Starte tjenesten på nytt nå? Alle klienter som er koblet til serveren, kobles fra mens den stopper og starter igjen.</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>Dokumentasjonen hjelpepanelet viser, er serverens egen kopi. Wikiens sider er skrevet ut fra dokumentene under egne navn; lenken åpner siden som er skrevet ut fra dokumentet som vises, og vises ikke når wikien ikke har noen. Som levert er det prosjektets GitLab-wiki.</value>
+  <data name="The documentation the help pane shows is the server's own copy; the link opens the wiki's page written from the document showing, by the wiki's own name for it, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Dokumentasjonen hjelpepanelet viser, er serverens egen kopi; lenken åpner siden på wikien som er skrevet ut fra dokumentet som vises, under wikiens eget navn på den, og vises ikke når wikien ikke har noen. Som levert er det prosjektets GitLab-wiki.</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Domenet har ingen signeringsnøkkel ennå.</value>

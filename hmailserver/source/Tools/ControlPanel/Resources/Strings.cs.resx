@@ -13266,8 +13266,8 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>Plán synchronizace s adresářem se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>Dokumentace zobrazená v panelu nápovědy je vlastní kopií serveru. Stránky wiki jsou napsány podle dokumentů a mají vlastní názvy; odkaz otevře stránku napsanou podle zobrazeného dokumentu a nezobrazí se, když wiki žádnou takovou nemá. Ve výchozím stavu wiki projektu na GitLabu.</value>
+  <data name="The documentation the help pane shows is the server's own copy; the link opens the wiki's page written from the document showing, by the wiki's own name for it, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Dokumentace zobrazená v panelu nápovědy je vlastní kopií serveru; odkaz otevře stránku wiki napsanou podle zobrazeného dokumentu, pod názvem, který jí dala wiki, a nezobrazí se, když wiki takovou stránku nemá. Ve výchozím stavu wiki projektu na GitLabu.</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Doména zatím nemá podpisový klíč.</value>

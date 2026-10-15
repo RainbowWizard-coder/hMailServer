@@ -13099,8 +13099,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>ディレクトリ同期のスケジュールは、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>ヘルプ ペインに表示されるドキュメントはサーバー自身のコピーです。Wiki のページはドキュメントをもとに独自の名前で書かれています。リンクは表示中のドキュメントをもとに書かれたページを開き、Wiki にそのようなページがない場合は表示されません。既定ではプロジェクトの GitLab Wiki です。</value>
+  <data name="The documentation the help pane shows is the server's own copy; the link opens the wiki's page written from the document showing, by the wiki's own name for it, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>ヘルプ ペインに表示されるドキュメントはサーバー自身のコピーです。リンクは、表示中のドキュメントをもとに書かれた Wiki のページを Wiki 独自の名前で開き、Wiki にそのようなページがない場合は表示されません。既定ではプロジェクトの GitLab Wiki です。</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>このドメインにはまだ署名キーがありません。</value>

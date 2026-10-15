@@ -13088,8 +13088,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>目录同步计划只有在 hMailServer 服务重启后才会生效。现在重启服务吗？服务停止并重新启动期间，所有连接到服务器的客户端都会断开。</value>
   </data>
-  <data name="The documentation the help pane shows is the server's own copy. The wiki's pages are written from the documents under names of their own; the link opens the page written from the document showing, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
-    <value>帮助窗格显示的文档是服务器自己的副本。Wiki 的页面根据文档编写，并有自己的名称；链接打开根据当前显示的文档编写的页面，若 Wiki 没有这样的页面则不显示。出厂设置为项目的 GitLab Wiki。</value>
+  <data name="The documentation the help pane shows is the server's own copy; the link opens the wiki's page written from the document showing, by the wiki's own name for it, and is not shown when the wiki has none. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>帮助窗格显示的文档是服务器自己的副本；链接以 Wiki 自己的名称打开根据当前显示的文档编写的 Wiki 页面，若 Wiki 没有这样的页面则不显示。出厂设置为项目的 GitLab Wiki。</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>该域还没有签名密钥。</value>
