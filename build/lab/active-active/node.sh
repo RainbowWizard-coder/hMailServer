@@ -47,10 +47,15 @@ esac
 REST=8045
 
 sql() {
-  local database="$1"
+  # sql DATABASE: the statements on standard input, run in DATABASE, or in none when it
+  # is "" (in postgres on PostgreSQL). The password reaches the client in its environment,
+  # by name, so that it is on no command line. The mariadb client takes the database as
+  # its one argument, and no argument for none: an array of the name or of nothing, quoted.
+  local database="$1" named=()
+  [ -z "$database" ] || named=("$database")
   case "$AA_DB" in
     postgresql) PGPASSWORD="$AA_DB_PASSWORD" psql -h "$AA_DB_HOST" -p "$AA_DB_PORT" -U "$AA_DB_USER" -d "${database:-postgres}" -v ON_ERROR_STOP=1 -At -q ;;
-    *) MYSQL_PWD="$AA_DB_PASSWORD" mariadb -h "$AA_DB_HOST" -P "$AA_DB_PORT" -u "$AA_DB_USER" --skip-ssl-verify-server-cert -N -B ${database:+"$database"} ;; # nosemgrep
+    *) MYSQL_PWD="$AA_DB_PASSWORD" mariadb -h "$AA_DB_HOST" -P "$AA_DB_PORT" -u "$AA_DB_USER" --skip-ssl-verify-server-cert -N -B "${named[@]}" ;;
   esac
 }
 
