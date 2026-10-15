@@ -31,7 +31,7 @@ What each job makes
 
 | Job | Runs on | Makes | Fails the pipeline |
 |---|---|---|---|
-| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `windows-gate` and `windows-dotnet`; on a branch only, never a `v*` tag | the x64 server, tools, Control Panel and installer | yes |
+| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `build-inputs-authenticode`, both halves of the Windows suite (`windows-gate` and `windows-gate-s1vm`) and `windows-dotnet`; on a branch only, never a `v*` tag | the x64 server, tools, Control Panel and installer | yes |
 | `windows-packages-arm64` | bench150, the same, and after `windows-packages-x64` on a branch or `windows-installer` on a tag | the ARM64 server, tools, Control Panel and installer; the ARM64 libraries and libpq's build tools once | yes |
 
 Each job builds in the runner's own checkout of the commit, as `windows-dotnet`
@@ -46,13 +46,20 @@ They run after the bench's other jobs, not beside them. `windows-gate` and
 its oldest pending job first. Started with the pipeline, these jobs would take the
 lock first, and an x64 build (about an hour) followed by an ARM64 build would make
 the gate, or on a tag the release's installer, give up with exit 10. So both jobs
-need `windows-gate` and `windows-dotnet`, and on a `v*` tag `windows-installer`
-(an optional need, because that job is only in a tag's pipeline). A job can only
-need jobs of its own or an earlier stage, which is why they are in the `release`
-stage. On a `v*` tag the `release` job needs `windows-packages-arm64`, whose
-installer it collects, and so waits for it and for `windows-installer`; `release`
-is started by hand after every gate in any case. A failed gate or .NET job means
-no installer from that pipeline.
+need `windows-gate` and `windows-gate-s1vm`, the suite's two halves, so that no
+installer is built from a commit either half failed, and `windows-dotnet`;
+`windows-packages-x64` needs `build-inputs-authenticode` too, and on a `v*` tag
+`windows-packages-arm64` needs `windows-installer` (an optional need, because
+that job is only in a tag's pipeline), which needs `build-inputs-authenticode`
+as well. While S1-WINBENCH is down, `windows-gate-s1vm` waits for it, and these
+jobs with it, unless bench150's runner has been given its tag
+(ContinuousIntegration.md, "S1-WINBENCH", and "The Windows gate" for how long
+GitLab lets a job wait for a runner). A job can only need jobs of its own
+or an earlier stage, which is why they are in the `release` stage. On a `v*` tag
+the `release` job needs `windows-packages-arm64`, whose installer it collects,
+and so waits for it and for `windows-installer`; `release` is started by hand
+after every gate in any case. A failed half of the suite or a failed .NET job
+means no installer from these two jobs in that pipeline.
 
 On a branch the ARM64 job also needs `windows-packages-x64`. Side by side,
 whichever job took the lock second would wait for the other's whole build, and

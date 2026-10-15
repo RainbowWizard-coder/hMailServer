@@ -6365,11 +6365,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   PackagesDeb.md, PackagesRpm.md, RegressionEnvironment.md, UpdateFeed.md and three entries above - name the three,
   with up to eight such jobs at once, three on linix and on server2 and two on s1-linux, where they named two.
   HelpPagesData.cpp is regenerated.
-- **CONTRIBUTING.md and RELEASE.md give the Windows suite's two halves.** CONTRIBUTING.md says that `windows-gate` on
-  bench150 and `windows-gate-s1vm` on S1-WINBENCH run the two halves of the suite at once, each in its bench's own
-  checkout, where it said that bench150 ran the whole suite; RELEASE.md's step 2, and ContinuousIntegration.md's two
-  tables, that `windows-installer` waits for both halves and for `build-inputs-authenticode`, where RELEASE.md named
-  `windows-gate` alone and the tables left out `build-inputs-authenticode`. HelpPagesData.cpp is regenerated.
+- **CONTRIBUTING.md, RELEASE.md and PackagesWindows.md give the Windows suite's two halves.** CONTRIBUTING.md says
+  that `windows-gate` on bench150 and `windows-gate-s1vm` on S1-WINBENCH run the two halves of the suite at once,
+  each in its bench's own checkout, where it said that bench150 ran the whole suite; RELEASE.md's step 2, and
+  ContinuousIntegration.md's two tables, that `windows-installer` waits for both halves and for
+  `build-inputs-authenticode`, where RELEASE.md named `windows-gate` alone and the tables left out
+  `build-inputs-authenticode`; and PackagesWindows.md, that `windows-packages-x64` and `windows-packages-arm64` wait
+  for both halves and for `windows-dotnet`, and `windows-packages-x64` for `build-inputs-authenticode` too, where it
+  left out `windows-gate-s1vm` and `build-inputs-authenticode`. HelpPagesData.cpp is regenerated.
 - **ContinuousIntegration.md and the CI files say in which pipelines the checks of a switch run.** `hosted-runners`
   and `compute-quota` run in a pipeline of `master` or a `batch*` branch that a switch is set for, never in a `v*`
   tag's, and for the tagged commit only in those of its pipelines that a switch was set for; so a tag is to be given
