@@ -384,10 +384,11 @@ PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-saniti
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
 the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, *linux-repro* (the server and
-the packages built a second time from another path and compared byte for byte), and five
+the packages built a second time from another path and compared byte for byte), and six
 security-scanning jobs: *static-analysis* (cppcheck and clang-tidy) and *semgrep*, which fail the pipeline on a
 finding new to their baselines that `master`'s `.gitlab/security-exceptions.yml` does not accept, and
-*dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*, which do not stop it; on a `batch*`
+*dependency-scan* (Trivy and OSV, fed by *ci-image-packages*, its finding failing *dependency-scan-verdict*) and
+*repo-hygiene*, which do not stop it; on a `batch*`
 branch the scans judge everything the batch changes from `master`, not its last push. Three of them,
 with GitLab's *semgrep-sast*, hold a release as well: the release job reads their reports and refuses while a
 scan did not finish or found something `SECURITY.md`'s policy counts that no baseline and no entry of

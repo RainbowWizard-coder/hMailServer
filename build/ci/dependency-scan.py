@@ -64,22 +64,40 @@ GitLab dependency-scanning report per scanner (gl-dependency-scanning-trivy.json
 gl-dependency-scanning-osv.json) and one with both (gl-dependency-scanning.json,
 the job's report: GitLab takes one file per report type, and refused the upload
 of two on the first pipeline, "only one file can be sent as raw"), junit.xml (a
-test case per scanned target - the part GitLab's free tier shows) and
-findings.txt. Exits 1 when a high or
-critical vulnerability with a fixed version is found (SECURITY.md's threshold:
-fixed before the next release; one against a header-only package of the CI image
-is not affected and is not one), 2 when a scan could not run, 0 otherwise.
+test case per scanned target - the part GitLab's free tier shows),
+findings.txt, and verdict.json, the scan's verdict (VERDICT, below): failed when a
+high or critical vulnerability with a fixed version is found (SECURITY.md's
+threshold: fixed before the next release; one against a header-only package of the
+CI image is not affected and is not one) or another target it scanned failed,
+broken when a scan could not run, passed otherwise.
+
+Exits 2 when a scan could not run, and 0 when the scans ran, whatever they found:
+GitLab takes a job's security report into the vulnerability report only when the
+job succeeded - "When a CI/CD job fails, security report results are not ingested
+by GitLab, even if the job allows failure" (docs.gitlab.com, "Security scanner
+integration", read on 15 October 2026) - and the exit 1 this script gave a finding
+before, in a job allowed to fail, filed master's scan of 14 October 2026 (pipeline
+2947545170) as JOB_FAILED with none of its findings, which emptied the dependency
+side of the vulnerability report. The finding's warning is the
+dependency-scan-verdict job's (.gitlab-ci.yml): --verdict reads verdict.json and
+exits as the scan job did - 1 for failed, 2 for broken or for a verdict that is
+missing, unreadable or another pipeline's, 0 for passed - in a job allowed to fail,
+as the scan job is. build/ci/security-gate.py reads the reports themselves,
+whatever either job ended with.
 
 Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 
   python3 build/ci/dependency-scan.py [--image-root DIR] [--out DIR] [--skip-trivy] [--skip-osv]
+  python3 build/ci/dependency-scan.py --verdict [--out DIR]
   python3 build/ci/dependency-scan.py --self-test
 
 --image-root is the directory the ci-image-packages job left (ci-image-packages/
 by default; that scan is skipped, and says so, when it is not there). --self-test
 reads no network: the severities, the VEX document's matching, the version
 readers, the header-only rule and the CI image's summary, against records and
-texts it makes, and the tree's own VEX document and pins against each other.
+texts it makes, the tree's own VEX document and pins against each other, and the
+scan's ending and its verdict, over a tree it makes with Trivy and its database
+stood in for.
 """
 
 import os
@@ -233,6 +251,13 @@ def lock_file_packages(path):
     if path.endswith("packages.config"):
         return len(re.findall(r"<package\s", text))
     return len(re.findall(r"^[A-Za-z0-9_.\-]+==", text, re.M))
+
+
+def installed_trivy():
+    """The first line of trivy --version, or None when there is no trivy on PATH."""
+    if not shutil.which("trivy"):
+        return None
+    return subprocess.run(["trivy", "--version"], capture_output=True, text=True).stdout.split("\n")[0]
 
 
 def download_database(log):
@@ -639,6 +664,97 @@ def describe(f):
                                                  fixed, f["title"][:120], extra)
 
 
+# ---------------------------------------------------------------- the verdict
+#
+# What the scan came to, beside its reports (VERDICT, in --out), for the
+# dependency-scan-verdict job, which fails on it as the scan job itself used to (the
+# module's docstring says why the scan job no longer does): failed, exit 1, when a
+# target the scans read failed - a Critical or High vulnerability with a fixed version
+# that the VEX document does not dismiss, which holds the next release unless an
+# exception accepts it, or a lock file Trivy did not read -; broken, exit 2, when a scan
+# could not run, which the scan job still says by failing itself; passed, exit 0,
+# otherwise. It names the pipeline and the job it was written in, and read in a
+# pipeline, a verdict that names another pipeline, or none, stands for nothing: a
+# verdict.json committed to the tree, or kept from another run, cannot pass the job in
+# place of this pipeline's.
+VERDICT = "verdict.json"
+VERDICT_EXIT = {"passed": 0, "failed": 1, "broken": 2}
+# How many lines of a failed target's text the job's log gives; junit.xml and
+# findings.txt hold every one.
+VERDICT_LINES = 40
+
+
+def write_verdict(out, verdict, says, failed=(), blocking_count=0, environ=None):
+    """Writes VERDICT into out, and returns what it wrote: the verdict (one of
+    VERDICT_EXIT's) and the exit it calls for, what the scan said of what it found, each
+    target that failed with its text, how many findings hold the release (blocking), and
+    the pipeline, the job and the commit it was written in, by GitLab's variables (none
+    outside a pipeline)."""
+    environ = os.environ if environ is None else environ
+    record = {"scan": "dependency-scan", "verdict": verdict, "exit": VERDICT_EXIT[verdict], "says": says,
+              "failed": [{"target": "%s %s" % (classname, name), "text": text} for classname, name, _, text in failed],
+              "blocking": blocking_count, "pipeline": environ.get("CI_PIPELINE_ID", ""),
+              "job": environ.get("CI_JOB_ID", ""), "commit": environ.get("CI_COMMIT_SHA", ""), "written": now()}
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, VERDICT), "w", encoding="utf-8") as f:
+        json.dump(record, f, indent=1)
+    return record
+
+
+def verdict_job(out, environ, say=print):
+    """The dependency-scan-verdict job: the verdict the scan wrote into out (VERDICT),
+    said, and the exit it calls for - 2 when there is none, when what is there is not
+    one, and, read in a pipeline, when another pipeline wrote it."""
+    shown = os.path.join(out, VERDICT).replace(os.sep, "/")
+    unread = "so nothing says that dependency-scan's scans ran"
+    try:
+        with open(os.path.join(out, VERDICT), encoding="utf-8") as f:
+            record = json.load(f)
+    except OSError:
+        say("FAILED: there is no %s: dependency-scan stopped before its verdict, or its artifacts did not reach this job "
+            "(its log says which), %s." % (shown, unread))
+        return 2
+    except ValueError as e:
+        say("FAILED: %s is not JSON (%s), %s." % (shown, e, unread))
+        return 2
+    verdict = record.get("verdict") if isinstance(record, dict) else None
+    if verdict not in VERDICT_EXIT or record.get("exit") != VERDICT_EXIT[verdict]:
+        say("FAILED: %s holds no verdict this reads (%r), %s." % (shown, verdict, unread))
+        return 2
+    pipeline = environ.get("CI_PIPELINE_ID", "")
+    if pipeline and str(record.get("pipeline") or "") != pipeline:
+        say("FAILED: %s was written in pipeline %s, not in this one (%s): a verdict committed to the tree, or kept from "
+            "another run, stands for nothing, %s." % (shown, record.get("pipeline") or "none", pipeline, unread))
+        return 2
+    say("dependency-scan's verdict: %s (%s, written by job %s of pipeline %s at %s)." % (
+        verdict, shown, record.get("job") or "none", record.get("pipeline") or "none", record.get("written") or "?"))
+    failed = [t for t in record.get("failed") or [] if isinstance(t, dict)]
+    for target in failed:
+        say("FAIL     %s" % target.get("target", "?"))
+        lines = str(target.get("text") or "").split("\n")
+        for line in lines[:VERDICT_LINES]:
+            say("           " + line)
+        if len(lines) > VERDICT_LINES:
+            say("           ... and %d line(s) more, which junit.xml and findings.txt hold" % (len(lines) - VERDICT_LINES))
+    if record.get("says"):
+        say(str(record["says"]))
+    held = record.get("blocking") or 0
+    if verdict == "failed":
+        say("FAILED: %d of the targets dependency-scan read failed%s. This job is allowed to fail: the finding warns and "
+            "holds no change, as dependency-scan's own failure on it did, and dependency-scan passed, so that GitLab "
+            "takes its findings into the vulnerability report." % (
+                len(failed), (", with %d Critical or High vulnerabilit%s with a fixed version among their findings that the "
+                              "VEX document does not dismiss: each holds the next release unless "
+                              ".gitlab/security-exceptions.yml accepts it (SECURITY.md, \"Before a release\")" % (
+                                  held, "y" if held == 1 else "ies")) if held else ""))
+    elif verdict == "broken":
+        say("FAILED: a scan of dependency-scan could not run, and its job failed with it: its reports say nothing is clean, "
+            "the release's gate holds on them, and GitLab took none of their findings.")
+    else:
+        say("No target dependency-scan read failed.")
+    return VERDICT_EXIT[verdict]
+
+
 # ---------------------------------------------------------------- the self-test
 
 def self_test():
@@ -861,24 +977,169 @@ def self_test():
                 expect(name in libraries and version, "the VEX document's statement for %s names %s@%s, which is no "
                        "library of VENDORED at a version" % (", ".join(sorted(names)), name, version))
 
+    # The scan's ending and its verdict: main() over a tree made here - a manifest and the
+    # CI image's package database -, with Trivy and its database stood in for and OSV left
+    # out. A High with a fixed version against the image's libc6 ends 0, with every report
+    # written and the finding in GitLab's, and the verdict failed, on which --verdict ends
+    # 1; the same scan finding nothing ends 0, and passed, on which it ends 0; a scan with
+    # no database, or whose trivy fs failed, ends 2, and broken, on which it ends 2 - as
+    # the scan job itself ended before it passed whatever its scans found, so that GitLab
+    # takes its report (VERDICT).
+    # And --verdict takes none for one: no verdict, one that is not JSON, names no verdict
+    # or an exit that is not its verdict's, and, read in a pipeline, another pipeline's.
+    import contextlib
+    import io
+    import tempfile
+    scratch = tempfile.mkdtemp(prefix="dependency-scan-self-test-")
+    kept = (module["ROOT"], module["installed_trivy"], module["download_database"], module["trivy"], os.getcwd())
+    image_vulnerabilities, failing = [], []
+
+    def fake_trivy(args, output, log):
+        if args[0] in failing:
+            return 1
+        if args[0] == "fs":
+            answer = {"Results": [{"Target": "build/ci/requirements.txt", "Type": "pip",
+                                   "Packages": [{"Name": "requests", "Version": "2.32.5"}]}]}
+        else:
+            answer = {"Metadata": {"OS": {"Family": "ubuntu", "Name": "26.04"}},
+                      "Results": [{"Target": "ubuntu", "Type": "ubuntu", "Packages": [{"Name": "libc6", "Version": "2.43"}],
+                                   "Vulnerabilities": list(image_vulnerabilities)}]}
+        with open(output, "w", encoding="utf-8") as f:
+            json.dump(answer, f)
+        return 0
+
+    def run(*argv):
+        said = io.StringIO()
+        with contextlib.redirect_stdout(said):
+            code = main(list(argv))
+        return code, said.getvalue()
+
+    def in_out(out, name):
+        try:
+            with open(os.path.join(out, name), encoding="utf-8") as f:
+                return f.read()
+        except OSError:
+            return None
+
+    try:
+        tree = os.path.join(scratch, "tree")
+        for path, text in ((os.path.join("build", "ci", "requirements.txt"), "requests==2.32.5\n"),
+                           (VEX, json.dumps({"@context": "https://openvex.dev/ns/v0.2.0", "statements": []})),
+                           (os.path.join("ci-image-packages", "etc", "lsb-release"), "DISTRIB_ID=Ubuntu\n")):
+            os.makedirs(os.path.dirname(os.path.join(tree, path)), exist_ok=True)
+            with open(os.path.join(tree, path), "w", encoding="utf-8") as f:
+                f.write(text)
+        mr_check()  # from the tree's own build/ci, before ROOT names the one made here
+        module["ROOT"] = tree
+        module["installed_trivy"] = lambda: "Version: 0.74.0"
+        module["download_database"] = lambda log: TRIVY_DB[0]
+        module["trivy"] = fake_trivy
+        reports = ("gl-dependency-scanning.json", "gl-dependency-scanning-trivy.json", "gl-dependency-scanning-osv.json",
+                   "junit.xml", "findings.txt")
+
+        image_vulnerabilities[:] = [{"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
+                                     "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]
+        out = os.path.join(scratch, "failed")
+        code, said = run("--skip-osv", "--out", out)
+        record = json.loads(in_out(out, VERDICT) or "{}")
+        report = json.loads(in_out(out, "gl-dependency-scanning.json") or "{}")
+        expect(code == 0 and all(in_out(out, name) is not None for name in reports),
+               "a scan that finds a High with a fixed version ends 0, every report written: %d, %s" % (
+                   code, [name for name in reports if in_out(out, name) is None]))
+        expect((report.get("scan") or {}).get("status") == "success"
+               and [(v["identifiers"][0]["value"], v["severity"], bool(v.get("solution")))
+                    for v in report.get("vulnerabilities", [])] == [("CVE-2026-3", "High", True)],
+               "the finding is in the job's GitLab report, of a scan that succeeded: %s" % json.dumps(report)[:400])
+        expect(record.get("verdict") == "failed" and record.get("exit") == 1 and record.get("blocking") == 1
+               and [t["target"] for t in record.get("failed", [])] == ["image hmailserver-ci/linux (dpkg and .NET)"]
+               and "CVE-2026-3" in record["failed"][0]["text"],
+               "its verdict says it failed, on the image's High with a fixed version: %s" % record)
+        code, said = run("--verdict", "--out", out)
+        expect(code == 1 and "FAILED: 1 of the targets dependency-scan read failed, with 1 Critical or High "
+               "vulnerability with a fixed version" in said and "CVE-2026-3" in said,
+               "--verdict ends 1 on it, naming the target and the finding: %d, %s" % (code, said[-600:]))
+
+        image_vulnerabilities[:] = []
+        out = os.path.join(scratch, "passed")
+        code, said = run("--skip-osv", "--out", out)
+        record = json.loads(in_out(out, VERDICT) or "{}")
+        expect(code == 0 and all(in_out(out, name) is not None for name in reports)
+               and record.get("verdict") == "passed" and record.get("exit") == 0 and record.get("failed") == [],
+               "a scan that finds nothing ends 0, every report written, and its verdict says it passed: %d, %s" % (
+                   code, record))
+        code, said = run("--verdict", "--out", out)
+        expect(code == 0 and "No target dependency-scan read failed." in said,
+               "--verdict ends 0 on it: %d, %s" % (code, said[-300:]))
+
+        module["download_database"] = lambda log: None
+        out = os.path.join(scratch, "broken")
+        code, said = run("--skip-osv", "--out", out)
+        record = json.loads(in_out(out, VERDICT) or "{}")
+        expect(code == 2 and record.get("verdict") == "broken" and record.get("exit") == 2
+               and in_out(out, "gl-dependency-scanning.json") is None,
+               "a scan with no vulnerability database ends 2, and its verdict says it is broken: %d, %s" % (code, record))
+        code, said = run("--verdict", "--out", out)
+        expect(code == 2 and "could not run" in said, "--verdict ends 2 on it: %d, %s" % (code, said[-300:]))
+        # And one that could not run part of the way, its reports written as a failure.
+        module["download_database"] = lambda log: TRIVY_DB[0]
+        failing[:] = ["fs"]
+        out = os.path.join(scratch, "broken-later")
+        code, said = run("--skip-osv", "--out", out)
+        record = json.loads(in_out(out, VERDICT) or "{}")
+        report = json.loads(in_out(out, "gl-dependency-scanning.json") or "{}")
+        expect(code == 2 and record.get("verdict") == "broken" and (report.get("scan") or {}).get("status") == "failure",
+               "a scan whose trivy fs failed ends 2, its report says so, and its verdict says it is broken: %d, %s, %s" % (
+                   code, record, report.get("scan")))
+        code, said = run("--verdict", "--out", out)
+        expect(code == 2, "--verdict ends 2 on it: %d, %s" % (code, said[-300:]))
+        failing[:] = []
+
+        out = os.path.join(scratch, "read")
+        os.makedirs(out)
+        quiet = []
+        expect(verdict_job(out, {}, quiet.append) == 2, "no verdict: --verdict ends 2")
+        for text, what in (("{not json", "a verdict that is not JSON"),
+                           (json.dumps({"verdict": "clean", "exit": 0}), "a verdict this does not read"),
+                           (json.dumps({"verdict": "passed", "exit": 1}), "a verdict whose exit is not its verdict's"),
+                           (json.dumps(["passed"]), "a verdict that is no object")):
+            with open(os.path.join(out, VERDICT), "w", encoding="utf-8") as f:
+                f.write(text)
+            expect(verdict_job(out, {}, quiet.append) == 2, "%s: --verdict ends 2" % what)
+        write_verdict(out, "passed", "nothing found", environ={"CI_PIPELINE_ID": "100", "CI_JOB_ID": "7"})
+        expect(verdict_job(out, {"CI_PIPELINE_ID": "100"}, quiet.append) == 0, "a verdict of this pipeline's: read")
+        expect(verdict_job(out, {"CI_PIPELINE_ID": "101"}, quiet.append) == 2,
+               "a verdict another pipeline wrote, read in a pipeline: --verdict ends 2")
+        expect(verdict_job(out, {}, quiet.append) == 0, "a pipeline's verdict, read outside one: read")
+        write_verdict(out, "passed", "nothing found", environ={})
+        expect(verdict_job(out, {"CI_PIPELINE_ID": "101"}, quiet.append) == 2,
+               "a verdict written outside a pipeline, read in one - committed to the tree, say: --verdict ends 2")
+    finally:
+        module["ROOT"], module["installed_trivy"], module["download_database"], module["trivy"] = kept[:4]
+        os.chdir(kept[4])
+        shutil.rmtree(scratch, ignore_errors=True)
+
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
     return 1 if failures else 0
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", default=os.path.join("security", "dependency-scan"))
     parser.add_argument("--image-root", default="ci-image-packages")
     parser.add_argument("--skip-trivy", action="store_true", help="the OSV step only (no trivy on PATH)")
     parser.add_argument("--skip-osv", action="store_true")
+    parser.add_argument("--verdict", action="store_true",
+                        help="the dependency-scan-verdict job: the verdict a scan wrote to --out, and the exit it calls for")
     parser.add_argument("--self-test", action="store_true", help="the checks of this script's own reading, offline")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.self_test:
         return self_test()
     os.chdir(ROOT)
     out = args.out
+    if args.verdict:
+        return verdict_job(out, os.environ)
     os.makedirs(out, exist_ok=True)
     log = os.path.join(out, "trivy.log")
     started = now()
@@ -888,14 +1149,16 @@ def main():
     trivy_version = ""
 
     if not args.skip_trivy:
-        if not shutil.which("trivy"):
+        trivy_version = installed_trivy()
+        if trivy_version is None:
             print("trivy is not on PATH: this runs in the aquasec/trivy image (or pass --skip-trivy)")
+            write_verdict(out, "broken", "There was no trivy on PATH, so nothing was scanned.")
             return 2
-        trivy_version = subprocess.run(["trivy", "--version"], capture_output=True, text=True).stdout.split("\n")[0]
         print(trivy_version)
         source = download_database(log)
         if not source:
             print("No vulnerability database from %s: nothing can be scanned." % " or ".join(TRIVY_DB))
+            write_verdict(out, "broken", "No vulnerability database came from %s, so nothing was scanned." % " or ".join(TRIVY_DB))
             return 2
         print("vulnerability database from %s" % source)
         repo_json = os.path.join(out, "trivy-lockfiles.json")
@@ -1009,14 +1272,25 @@ def main():
             print("           " + line)
     live = [f for f in everything if not f.get("dismissed")]
     spared = [f for f in live if f.get("not_affected")]
+    held = sum(1 for f in live if blocking(f))
+    said = ("%d vulnerabilit%s in all (%d dismissed in the VEX document; %d against the CI image's header-only packages, "
+            "%s, %s); %d high or critical with a fixed version." % (
+                len(live), "y" if len(live) == 1 else "ies", len(everything) - len(live), len(spared),
+                ", ".join(sorted(HEADER_ONLY)), HEADER_ONLY_STATUS, held))
     print("")
-    print("%d vulnerabilit%s in all (%d dismissed in the VEX document; %d against the CI image's header-only packages, %s, "
-          "%s); %d high or critical with a fixed version." % (
-              len(live), "y" if len(live) == 1 else "ies", len(everything) - len(live), len(spared),
-              ", ".join(sorted(HEADER_ONLY)), HEADER_ONLY_STATUS, sum(1 for f in live if blocking(f))))
-    if broken:
-        return 2
-    return 1 if any(t[2] == "FAIL" for t in targets) else 0
+    print(said)
+    # The verdict, for dependency-scan-verdict: this job ends 0 whenever its scans ran,
+    # since GitLab ingests no security report of a job that failed (VERDICT).
+    failed = [t for t in targets if t[2] == "FAIL"]
+    verdict = "broken" if broken else "failed" if failed else "passed"
+    write_verdict(out, verdict, said, failed, held)
+    print("")
+    print("The verdict, in %s: %s. %s" % (os.path.join(out, VERDICT).replace(os.sep, "/"), verdict, {
+        "broken": "A scan could not run, so this job fails, and GitLab takes none of its report.",
+        "failed": "%d target(s) failed, which dependency-scan-verdict fails on, allowed to fail; this job passes, so that "
+                  "GitLab takes its report into the vulnerability report." % len(failed),
+        "passed": "No target failed."}[verdict]))
+    return 2 if broken else 0
 
 
 if __name__ == "__main__":

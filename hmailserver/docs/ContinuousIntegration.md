@@ -96,7 +96,8 @@ The other tables on this page name runners the same way.
 | `static-analysis` | test | linix | a protected ref; a `batch*` branch by what it changes from `master` ([Change checks](#change-checks)) | cppcheck and clang-tidy over the server's C++, held to a baseline and to `master`'s exceptions file ([Security scanning](#security-scanning)) |
 | `semgrep` | test | linix | the same | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline and to `master`'s exceptions file |
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
-| `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries |
+| `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries; passes whatever they find, so that GitLab takes its report into the vulnerability report, and fails only when a scan could not run ([Dependency findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)) |
+| `dependency-scan-verdict` | test | linix | wherever `dependency-scan` runs, after it | The scan's verdict, `verdict.json`: fails on a Critical or High vulnerability with a fixed version, as `dependency-scan` used to, and when a scan could not run; allowed to fail (`build/ci/dependency-scan.py --verdict`) |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
@@ -470,7 +471,9 @@ machines have not; `nix`, which boots a QEMU machine and asks for the tags `lini
 and `kvm`, which server2 alone carries ([server2](#server2)); `db-matrix`, which
 reaches the lab on linix; `linux-fuzz` and `linux-coverage`, the one keeping its
 corpus in linix's own cache and the other longer than GitLab's three hours;
-`forge-export`, whose archives are kept in linix's cache, off GitLab; `renovate`,
+`forge-export`, whose archives are kept in linix's cache, off GitLab;
+`dependency-scan-verdict`, which reads the verdict `dependency-scan` wrote, on
+linix wherever the scan ran, and so spends no minute; `renovate`,
 `scorecard` and every publisher of the release channels and the command-line
 packages, each holding a credential; every job of the release and of its
 rehearsal, which sign with the pipeline's ID token or collect, verify and publish
@@ -3098,9 +3101,11 @@ runbook.
 as soon as its own needs have finished, so `release` needs every job of
 `.gitlab-ci.yml` that can fail the tag's pipeline, and waits for the four
 security scans whose reports it reads (`static-analysis`, `semgrep`,
-`dependency-scan` and `semgrep-sast`); `dependency-scan` is `allow_failure`,
-`semgrep-sast` fails only when its scan does, and the first two fail only on a
-finding new to their baselines. It reads
+`dependency-scan` and `semgrep-sast`); `dependency-scan` fails only when a scan
+could not run and is `allow_failure`, as is `dependency-scan-verdict`, which fails
+on its finding and which `release` does not wait for, `semgrep-sast` fails only
+when its scan does, and the first two fail only on a finding new to their
+baselines. It reads
 their reports and refuses on what they found
 ([Before a release](#before-a-release-the-scans-hold-it)). Of the package
 jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too, it needs
@@ -3119,8 +3124,9 @@ because GitLab.com lets a job need fifty jobs at most (`ci_needs_size_limit`):
 them jobs `release` does not need itself. Of the Windows package jobs it needs
 `windows-packages-arm64`, whose ARM64 installer the release carries from 6.3.6;
 a tag's pipeline has no `windows-packages-x64`.
-It does not wait for `ci-image-packages` and `repo-hygiene`, which are
-`allow_failure`, or for the manual `db-matrix` and `installer-smoke`: they are
+It does not wait for `ci-image-packages`, `dependency-scan-verdict` and
+`repo-hygiene`, which are `allow_failure`, or for the manual `db-matrix` and
+`installer-smoke`: they are
 not gates of a release, and `release` can start while they are still running
 or after one has
 failed. `build/check-release-chain.py` fails when a job of `.gitlab-ci.yml`
@@ -4120,6 +4126,7 @@ measured times after the first pipelines.
 | `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
+| `dependency-scan-verdict` | under a minute | 5 min | Reading the verdict takes under a second; the rest is the job's start |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
 | `semgrep-sast` | 5 to 10 min, estimated | 30 min | It passed in 96 s in `master`'s pipeline 2886389460 (27 September 2026), on a shared runner of GitLab's, as it ran until 9 October 2026. Over batch46 on 9 October 2026, in the job's image with linix's limits: 188 s; with server2's: 254 s. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
 | `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `535e9005c`, on a shared runner of GitLab's, as it ran until 9 October 2026. Its scan of the whole history took under a minute on linix |
@@ -4536,10 +4543,10 @@ it too (exit 2).
 
 ### Before a release: the scans hold it
 
-`allow_failure` keeps a `dependency-scan` finding from stopping a push's
-pipeline, `semgrep-sast` stops a change only through `semgrep-sast-gate`, in
-the files the change touches, and a baseline keeps a known `static-analysis` or
-`semgrep` finding from it. None of them lets one into a release. A `v*` tag's
+`allow_failure` keeps a dependency finding, which fails `dependency-scan-verdict`,
+from stopping a push's pipeline, `semgrep-sast` stops a change only through
+`semgrep-sast-gate`, in the files the change touches, and a baseline keeps a known
+`static-analysis` or `semgrep` finding from it. None of them lets one into a release. A `v*` tag's
 `release` job needs four scans of the tagged
 commit - `static-analysis`, `semgrep`, `dependency-scan` and GitLab's
 `semgrep-sast`, which `.gitlab/ci/gitlab-security.yml` runs for a protected `v*`
@@ -4775,7 +4782,7 @@ which this tree has.
 |---|---|---|---|
 | `codeql.yml`, C++ | CodeQL `security-extended` over the MSVC build of the server, on every push and pull request (40 to 54 minutes) | `static-analysis`: cppcheck, and clang-tidy with the Clang static analyser, over every translation unit the Linux build compiles | The Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends, the registry) and the Windows arm of every `#ifdef`, which only an MSVC build compiles; CodeQL's interprocedural taint tracking. `build\analyze.ps1` (MSVC `/analyze`) still covers the Windows build by hand |
 | `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
-| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
+| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The OpenSSF API's copy of the score, which takes results from GitHub's action alone, and the checks Scorecard cannot answer on GitLab |
 | Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
@@ -4787,7 +4794,8 @@ which this tree has.
 | `static-analysis` | the CI image | cppcheck 2.19.0 and clang-tidy 21.1.8, from Ubuntu 26.04's archive, installed as the job starts. clang-tidy is the image's own clang 21 | `gl-sast-report.json` (both tools; each tool's own beside it), `junit.xml` | 51 min 28 s on 4 CPUs |
 | `semgrep` | `python:3.14-slim-trixie`, pinned by digest (Docker Hub) | Semgrep 1.178.0 and 65 packages it needs, from PyPI, with every file's SHA-256 pinned (`build/ci/requirements.txt`, `pip --require-hashes`). The rules come from Semgrep's registry at semgrep.dev (`p/csharp`, `p/python`, `p/javascript`, `r/bash`), fetched with no account and no token | `gl-sast-semgrep.json`, `junit.xml` | under 3 min on 1 CPU |
 | `ci-image-packages` | the CI image | none | the image's `etc/os-release`, `etc/lsb-release`, dpkg status and the .NET SDK's `deps.json` files, 1.4 MB | seconds |
-| `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning.json` (both scanners; each scanner's own beside it), `junit.xml` | 15 to 17 s, the database download included |
+| `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning.json` (both scanners; each scanner's own beside it), `junit.xml`, and the verdict, `verdict.json` | 15 to 17 s, the database download included |
+| `dependency-scan-verdict` | `python:3.14-slim-trixie`, pinned by digest | none: it reads `dependency-scan`'s `verdict.json` | none | seconds |
 | `repo-hygiene` | `python:3.14-slim-trixie`, pinned by digest | git and ssh-keygen, from Debian; GitLab's API, read anonymously | `junit.xml`, `repo-hygiene.json` | 14 to 37 s, the apt install included |
 
 Trivy downloads its database from `ghcr.io` unless it is told otherwise. Its
@@ -4962,9 +4970,31 @@ What each scan leaves out, and why:
 
 ### Dependency findings, the VEX document, and what OSV cannot answer
 
-`dependency-scan` fails on a high or critical advisory that has a fixed
-version, which is [SECURITY.md](../../SECURITY.md)'s threshold for "fixed before
-the next release". A finding that does not affect the project is dismissed in
+A high or critical advisory that has a fixed version, which is
+[SECURITY.md](../../SECURITY.md)'s threshold for "fixed before the next
+release", fails `dependency-scan-verdict`, the job after `dependency-scan` that
+reads the scan's verdict. `dependency-scan` itself passes whatever its scans
+find, and fails only when one could not run (exit 2), because GitLab takes a
+job's security report into the vulnerability report only when the job
+succeeded: "When a CI/CD job fails, security report results are not ingested by
+GitLab, even if the job allows failure" (GitLab's "Security scanner
+integration"). Before 6.3.7 the scan job failed on such an advisory, allowed to
+fail: `master`'s pipeline of 14 October 2026 (2947545170) found 36 of them, in
+the CI image's .NET SDK packages, and GitLab filed its scan as `JOB_FAILED` with
+none of its findings, so that all 3,817 dependency findings of the
+vulnerability report read "no longer detected"; the scan of 13 October
+(2943328025), which passed, had given it 2,757. The verdict,
+`security/dependency-scan/verdict.json`, says
+`failed` (a target failed: such an advisory, or a lock file Trivy did not
+read), `broken` (a scan could not run) or `passed`, with each target that failed
+and the pipeline and job that wrote it. `dependency-scan-verdict`
+(`build/ci/dependency-scan.py --verdict`, in every pipeline `dependency-scan`
+runs in) fails with exit 1 on `failed` and exit 2 on `broken`, or on a verdict
+that is missing, unreadable or another pipeline's, and is `allow_failure`, as
+the scan job was: a pipeline with a finding still reads "passed with warnings",
+and its log lists what failed. The release's gate reads the reports themselves,
+whatever either job ended with, and `build/check-release-chain.py` holds both
+jobs to all of this. A finding that does not affect the project is dismissed in
 the VEX document, `.gitlab/hmailserver.openvex.json`, with its reason. Trivy
 reads that document (`--vex`), and so does the OSV step, which dismisses an
 advisory only where a statement names it, by its id or an alias, and names the

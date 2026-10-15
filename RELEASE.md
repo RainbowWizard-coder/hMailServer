@@ -128,8 +128,9 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    and `semgrep` among them, which fail on a finding new to their baselines,
    and `semgrep-sast`, which passes whatever it found and fails only when its
    scan does - and `dependency-scan` has finished, whatever it found; it does
-   not wait for `ci-image-packages` or `repo-hygiene`, which are
-   `allow_failure`, or for the manual `db-matrix`. Of the package jobs of
+   not wait for `ci-image-packages`, `dependency-scan-verdict` or
+   `repo-hygiene`, which are `allow_failure`, or for the manual `db-matrix`. Of
+   the package jobs of
    `.gitlab/ci/packages-*.yml` it waits for the two whose generic files the
    release carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and
    `rpm-fedora44-aarch64`, the generic aarch64 `.rpm` - with their SBOM jobs and

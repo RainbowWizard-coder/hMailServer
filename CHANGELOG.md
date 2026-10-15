@@ -5919,6 +5919,26 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   location and says in the release job's log what it spared. The rule reaches that name alone, and the image's scan
   alone: a High with a fixed version against any other package, or against the same name in a lock file, counts as
   before; both self-tests hold it ([SECURITY.md](SECURITY.md), "Dependencies").
+- **Fixed: GitLab's vulnerability report lost every dependency finding whenever `dependency-scan` found something to
+  fix. `dependency-scan` now passes whatever its scans find, and `dependency-scan-verdict` warns of the finding
+  instead.** GitLab takes a job's security report into the vulnerability report only when the job succeeded, and
+  `dependency-scan` failed, allowed to fail, on a high or critical advisory with a fixed version: `master`'s pipeline
+  of 14 October 2026 (2947545170), whose scan found 36 in the CI image's .NET SDK packages, was filed `JOB_FAILED`
+  with none of its findings, and all 3,817 dependency findings of the vulnerability report read "no longer detected"
+  (the scan of 13 October, which passed, had given it 2,757). `build/ci/dependency-scan.py` ends 0 whenever its
+  scans ran and 2 when one could not, and writes its verdict beside its reports, `verdict.json`: failed, broken or
+  passed, with each target that failed and the pipeline and job that wrote it. The new job `dependency-scan-verdict`,
+  made in every pipeline the scan is made in, reads it (`--verdict`) and fails as the scan job used to - exit 1 on a
+  finding, exit 2 when a scan could not run or no verdict of the pipeline's came - and is allowed to fail as that job
+  was, so a pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. The
+  release's gate, which reads the reports themselves, is unchanged. The script's self-test runs the scan over a tree
+  it makes, with Trivy and its database stood in for: a High with a fixed version ends 0, every report written and
+  the verdict failed, on which `--verdict` ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends
+  0, and 0; no database ends 2, and 2; and a verdict that is missing, malformed or another pipeline's is no verdict.
+  `build/check-release-chain.py` holds `dependency-scan` to its one script line and to keeping its files and its
+  report whatever it ends with, and `dependency-scan-verdict` to the scan's rules, to needing it with its artifacts,
+  to `--verdict` and to `allow_failure`, each with a case of its self-test (ContinuousIntegration.md, "Dependency
+  findings, the VEX document, and what OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

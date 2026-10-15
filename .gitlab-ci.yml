@@ -1549,20 +1549,24 @@ linux-coverage:
 # each job's script says where each of its tools comes from, and every image is
 # pinned by digest (or is the CI image, by its Dockerfile's hash).
 #
-# dependency-scan, ci-image-packages and repo-hygiene are allow_failure while their
-# findings are triaged; static-analysis and semgrep are not (since 6.3.6, once both had
-# passed over batch42: docs/ContinuousIntegration.md, "Security scanning"). Each
-# publishes GitLab's own report format (SAST, dependency scanning) and a JUnit report:
-# GitLab's free tier stores the first and offers it for download, and shows the
-# second in the pipeline's Tests tab. The two source scans hold their findings to a
-# committed baseline, so they fail on a NEW finding only, and on a scan with a hole.
+# dependency-scan, dependency-scan-verdict, ci-image-packages and repo-hygiene are
+# allow_failure while their findings are triaged; static-analysis and semgrep are not
+# (since 6.3.6, once both had passed over batch42: docs/ContinuousIntegration.md,
+# "Security scanning"). Each publishes GitLab's own report format (SAST, dependency
+# scanning) and a JUnit report: GitLab stores the first, and takes it into the
+# vulnerability report from a job that succeeded alone, and shows the second in the
+# pipeline's Tests tab. The two source scans hold their findings to a committed
+# baseline, so they fail on a NEW finding only, and on a scan with a hole.
+# dependency-scan passes whatever its scans find, and fails only when one could not
+# run, so that GitLab takes its findings; dependency-scan-verdict, after it, fails on a
+# finding as dependency-scan itself used to.
 #
 # For a v* tag the release job needs static-analysis, semgrep and dependency-scan
 # (and GitLab's semgrep-sast) with their artifacts, and refuses while one of them did
 # not finish or found something SECURITY.md's policy counts that no baseline and no
 # exception in .gitlab/security-exceptions.yml accepts (build/ci/security-gate.py).
-# allow_failure on dependency-scan keeps its finding from stopping a push's pipeline;
-# it does not let one into a release.
+# allow_failure on dependency-scan-verdict keeps a dependency finding from stopping a
+# push's pipeline; it does not let one into a release.
 #
 # In the test stage with needs: [] - beside the builds, not after the checks: linix
 # takes up to three jobs at once, and the Windows gate on bench150 is longer than
@@ -1681,6 +1685,12 @@ dependency-scan:
   before_script:
     # Python for the script, from Alpine's own repository.
     - apk add --no-cache --quiet python3
+  # Ends 0 whenever its scans ran, whatever they found, and 2 when one could not run:
+  # GitLab takes a job's security report into the vulnerability report only when the
+  # job succeeded, and filed master's scan of 14 October 2026 (pipeline 2947545170),
+  # which ended 1 on a High with a fixed version while allowed to fail, as JOB_FAILED
+  # with none of its findings, which emptied the report's dependency side. The verdict
+  # is security/dependency-scan/verdict.json, for dependency-scan-verdict (below).
   script:
     - python3 build/ci/dependency-scan.py
   artifacts:
@@ -1693,6 +1703,32 @@ dependency-scan:
       # raw", the first pipeline). Each scanner's own is among the paths above.
       dependency_scanning: security/dependency-scan/gl-dependency-scanning.json
       junit: security/dependency-scan/junit.xml
+
+# dependency-scan's verdict, apart from its report: the finding's warning. It reads the
+# verdict.json dependency-scan wrote and fails as that job used to, allowed to fail as
+# it is, so that a pipeline with a finding still reads "passed with warnings" and marks
+# a job of the dependency scan's failed: exit 1 when a Critical or High vulnerability
+# with a fixed version, or another failure of a target, was found; exit 2 when a scan
+# could not run, or no verdict of this pipeline's came (build/ci/dependency-scan.py,
+# VERDICT). dependency-scan's rules, so that it is made in each pipeline that job is
+# made in and in no other: a pipeline whose job needs one it lacks is not created. On
+# linix whatever the switches say: it reads a file, and spends no minute.
+# build/check-release-chain.py holds it to all of this. The release needs dependency-scan
+# and not this: build/ci/security-gate.py reads the reports themselves.
+dependency-scan-verdict:
+  extends: .own-runners
+  rules:
+    - !reference [.scans-on-the-whole-change, rules]
+  tags: [linix]
+  image:
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+    pull_policy: [if-not-present, always]
+  stage: test
+  needs: [dependency-scan]
+  timeout: 5 minutes
+  allow_failure: true
+  script:
+    - python3 build/ci/dependency-scan.py --verdict
 
 repo-hygiene:
   extends: .own-runners
@@ -1935,7 +1971,8 @@ windows-installer:
 # not finish, or found something SECURITY.md's policy counts that is in no baseline and
 # not accepted in .gitlab/security-exceptions.yml. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml, which runs it for a v* tag for this. Not waited for:
-# ci-image-packages (dependency-scan waits for it) and repo-hygiene, which are
+# ci-image-packages (dependency-scan waits for it), dependency-scan-verdict (it waits
+# for dependency-scan, and fails on its finding) and repo-hygiene, which are
 # allow_failure, and the manual db-matrix and installer-smoke. The four path-bound
 # checks run for every tag (a tag counts every file as changed) and are optional needs
 # only so that a pipeline without one is still created; the scans are not optional, so a

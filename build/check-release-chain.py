@@ -178,6 +178,14 @@ refuses it. This checker holds them to each other. It fails when:
     older than the tag's pipeline;
     or static-analysis or semgrep, which fail on a finding new to their baselines,
     is allow_failure, so that a new finding would pass a branch's pipeline unseen;
+    or dependency-scan runs anything but python3 build/ci/dependency-scan.py, which
+    ends 0 whatever its scans found - GitLab takes no security report of a job that
+    failed into the vulnerability report, and lost master's dependency findings so
+    on 14 October 2026 -, or does not keep security/dependency-scan/ whatever it ends
+    with, with its dependency_scanning report; or dependency-scan-verdict, which fails
+    on the verdict the scan writes as the scan job used to, is not a job, does not
+    take dependency-scan's rules, need it with its artifacts and not optionally, run
+    its --verdict, or is not allowed to fail (verdict_problems);
     or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
     finding without a reason, a reviewer or an expiry within a year of the review, or
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
@@ -665,6 +673,17 @@ SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
 # The two of them that fail a pipeline on a finding new to their committed baselines
 # (since 6.3.6), and are therefore never allow_failure.
 BLOCKING_SCANS = ["static-analysis", "semgrep"]
+# dependency-scan ends 0 whenever its scans ran, whatever they found: GitLab takes a
+# job's security report into the vulnerability report only when the job succeeded, and
+# filed master's scan of 14 October 2026, which ended 1 on a finding while allowed to
+# fail, as JOB_FAILED with none of its findings. VERDICT_JOB carries the finding's
+# warning instead, failing on the verdict the scan writes beside its reports
+# (build/ci/dependency-scan.py, VERDICT) as the scan job used to (verdict_problems).
+SCAN_JOB = "dependency-scan"
+SCAN_COMMAND = "python3 build/ci/dependency-scan.py"
+SCAN_REPORT = "dependency_scanning: security/dependency-scan/gl-dependency-scanning.json"
+VERDICT_JOB = "dependency-scan-verdict"
+VERDICT_COMMAND = "python3 build/ci/dependency-scan.py --verdict"
 # The files a change to which is the owner's alone to accept.
 OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
 # What secret_detection runs before its analyzer: GitLab's rules, but for the entries of
@@ -2570,6 +2589,7 @@ def check(texts, chain, feed):
             problems.append("%s may fail without failing the pipeline (allow_failure): it holds its findings to a "
                             "baseline so that a new one fails a branch's pipeline, and it must (docs/ContinuousIntegration.md, "
                             "'Security scanning')" % name)
+    problems.extend(verdict_problems(jobs))
     sast = blocks(texts["security"]).get("semgrep-sast", "")
     if "- if: " + TAG_ONLY not in sast:
         problems.append("semgrep-sast does not run for a protected v* tag (- if: %s): the release job needs its report, "
@@ -2644,6 +2664,63 @@ def check(texts, chain, feed):
     problems.extend(repeated_key_problems(texts))
     problems.extend(job_key_problems(texts))
     return problems, notes
+
+
+def deciding_rules(name, jobs):
+    """The rules that decide whether a job is made, each item's text: those of the first
+    of the job and its templates (template_order) that has rules:, every
+    !reference [X, rules] in them replaced by X's own items; None when none has any."""
+    for current in template_order(name, jobs):
+        if re.search(r"^  rules:", jobs[current], re.MULTILINE):
+            return [item.strip() for item in rule_items(jobs[current], jobs)]
+    return None
+
+
+def verdict_problems(jobs):
+    """What would lose GitLab dependency-scan's findings again, or lose the finding's
+    warning (SCAN_JOB, VERDICT_JOB): dependency-scan must run SCAN_COMMAND and nothing
+    else, which ends 0 whatever its scans found, and keep security/dependency-scan/
+    whatever it ends with, with its report for GitLab; dependency-scan-verdict must be a
+    job of .gitlab-ci.yml whose rules are dependency-scan's - a pipeline in which a job
+    needs one it lacks is not created, and a verdict job made in fewer pipelines than the
+    scan would leave a finding unsaid in the others -, need dependency-scan with its
+    artifacts, not optionally, run VERDICT_COMMAND, and be allowed to fail, as the scan
+    job was: a finding in the whole tree holds no change, and the release job holds on
+    the report itself (build/ci/security-gate.py). jobs is .gitlab-ci.yml's blocks."""
+    problems = []
+    scan, verdict = jobs.get(SCAN_JOB), jobs.get(VERDICT_JOB)
+    if scan is None:
+        return ["%s is not a job of .gitlab-ci.yml" % SCAN_JOB]
+    script = re.search(r"^  script:[ \t]*\n((?:    .*\n?)+)", scan, re.MULTILINE)
+    if not script or [line.strip() for line in script.group(1).strip("\n").split("\n")] != ["- " + SCAN_COMMAND]:
+        problems.append("%s's script is not %s alone, which ends 0 whatever the scans found and 2 when one could not run: "
+                        "a job that ends otherwise on a finding loses its findings to GitLab's vulnerability report, which "
+                        "takes no report of a job that failed" % (SCAN_JOB, SCAN_COMMAND))
+    kept = re.search(r"^  artifacts:[ \t]*\n((?:    .*\n?)+)", scan, re.MULTILINE)
+    kept = kept.group(1) if kept else ""
+    if (not re.search(r"^    when: always\s*$", kept, re.MULTILINE)
+            or not re.search(r"^      - security/dependency-scan/\s*$", kept, re.MULTILINE)
+            or not re.search(r"^      %s\s*$" % re.escape(SCAN_REPORT), kept, re.MULTILINE)):
+        problems.append("%s does not keep security/dependency-scan/ whatever it ends with (artifacts: when: always), with "
+                        "its report for GitLab (reports: %s): the release's gate and %s read the files, and GitLab's "
+                        "vulnerability report the report" % (SCAN_JOB, SCAN_REPORT, VERDICT_JOB))
+    if verdict is None:
+        problems.append("%s is not a job of .gitlab-ci.yml: nothing would warn of a dependency finding, now that %s passes "
+                        "whatever its scans found" % (VERDICT_JOB, SCAN_JOB))
+        return problems
+    if deciding_rules(VERDICT_JOB, jobs) != deciding_rules(SCAN_JOB, jobs):
+        problems.append("%s does not take %s's rules: GitLab creates no pipeline in which a job needs one it lacks, and in "
+                        "a pipeline it is not made in, %s's verdict goes unsaid" % (VERDICT_JOB, SCAN_JOB, SCAN_JOB))
+    entry = need_entries(verdict).get(SCAN_JOB)
+    if SCAN_JOB not in needs(verdict) or (entry is not None and re.search(r"artifacts:\s*false|optional:\s*true", entry)):
+        problems.append("%s does not need %s with its artifacts, not optionally: it would read no verdict" % (
+            VERDICT_JOB, SCAN_JOB))
+    if not re.search(r"^    - %s\s*$" % re.escape(VERDICT_COMMAND), verdict, re.MULTILINE):
+        problems.append("%s does not run %s, which fails on the verdict as %s used to" % (VERDICT_JOB, VERDICT_COMMAND, SCAN_JOB))
+    if not re.search(r"^  allow_failure: true\s*$", verdict, re.MULTILINE):
+        problems.append("%s is not allowed to fail (allow_failure: true), as %s was: a dependency finding in the whole tree "
+                        "warns and holds no change, and the release's gate holds on the report itself" % (VERDICT_JOB, SCAN_JOB))
+    return problems
 
 
 def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
@@ -5306,6 +5383,35 @@ def self_test(chain, feed):
            "release does not need semgrep-sast")
     broken("a release that does not bring the dependency scan's report", "ci", "    - job: dependency-scan\n      artifacts: true\n",
            "    - job: dependency-scan\n      artifacts: false\n", "release does not bring dependency-scan's artifacts")
+    # The dependency scan's verdict: dependency-scan passes whatever its scans found, so
+    # that GitLab takes its report, and dependency-scan-verdict carries the warning.
+    broken("the dependency scan run another way", "ci", "    - python3 build/ci/dependency-scan.py\n  artifacts:\n",
+           "    - python3 build/ci/dependency-scan.py || exit 1\n  artifacts:\n", "dependency-scan's script is not")
+    broken("the dependency scan's files kept when it passes alone", "ci",
+           "    when: always\n    expire_in: 30 days\n    paths:\n      - security/dependency-scan/\n",
+           "    expire_in: 30 days\n    paths:\n      - security/dependency-scan/\n",
+           "dependency-scan does not keep security/dependency-scan/ whatever it ends with")
+    broken("the dependency scan's report not given to GitLab", "ci",
+           "      dependency_scanning: security/dependency-scan/gl-dependency-scanning.json\n", "",
+           "dependency-scan does not keep security/dependency-scan/ whatever it ends with")
+    broken("no verdict job", "ci", "\ndependency-scan-verdict:\n", "\ndependency-scan-verdict-gone:\n",
+           "dependency-scan-verdict is not a job of .gitlab-ci.yml")
+    broken("the verdict job made by rules of its own", "ci",
+           "dependency-scan-verdict:\n  extends: .own-runners\n  rules:\n    - !reference [.scans-on-the-whole-change, rules]\n",
+           "dependency-scan-verdict:\n  extends: .own-runners\n", "dependency-scan-verdict does not take dependency-scan's rules")
+    broken("the verdict job without the scan's artifacts", "ci", "  needs: [dependency-scan]\n",
+           "  needs:\n    - job: dependency-scan\n      artifacts: false\n",
+           "dependency-scan-verdict does not need dependency-scan with its artifacts")
+    broken("the verdict job needing the scan optionally", "ci", "  needs: [dependency-scan]\n",
+           "  needs:\n    - job: dependency-scan\n      optional: true\n",
+           "dependency-scan-verdict does not need dependency-scan with its artifacts")
+    broken("the verdict job reading no verdict", "ci", "    - python3 build/ci/dependency-scan.py --verdict\n",
+           "    - python3 build/ci/dependency-scan.py --self-test\n",
+           "dependency-scan-verdict does not run python3 build/ci/dependency-scan.py --verdict")
+    broken("the verdict job holding a change", "ci",
+           "  allow_failure: true\n  script:\n    - python3 build/ci/dependency-scan.py --verdict\n",
+           "  script:\n    - python3 build/ci/dependency-scan.py --verdict\n",
+           "dependency-scan-verdict is not allowed to fail")
     broken("the source scan allow_failure again", "ci", "  timeout: 120 minutes\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "  timeout: 120 minutes\n  allow_failure: true\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "static-analysis may fail without failing the pipeline")

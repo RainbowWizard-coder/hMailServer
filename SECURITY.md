@@ -677,10 +677,13 @@ scanning".
   nor the release job counts it among the critical or high with a fixed version (`HEADER_ONLY` in
   `build/ci/dependency-scan.py`, a list of that package alone today, with the reason; the rule reaches no other package
   and no other scan). It runs on the project's own runners for `master`, a release tag, and a `batch*` branch
-  that changes more than documents from `master`, and is `allow_failure`: a finding in the whole tree that no change
-  brought must not stop an unrelated change, and it holds the release instead ([Before a
-  release](#before-a-release)). Renovate (`renovate.json`, the `renovate` job, daily under its schedule) opens a
-  merge request at once for every OSV advisory against a dependency in use, and a weekly one per ecosystem
+  that changes more than documents from `master`. It passes whatever its scans find and fails only when one could
+  not run, since GitLab takes no security report of a job that failed into the vulnerability report; its verdict
+  fails *dependency-scan-verdict*, the job after it, on a high or critical advisory that has a fixed version. Both are
+  `allow_failure`: a finding in the whole tree that no change brought must not stop an unrelated change, and it holds
+  the release instead ([Before a release](#before-a-release)). Renovate (`renovate.json`, the `renovate` job, daily
+  under its schedule) opens a merge request at once for every OSV advisory against a dependency in use, and a weekly
+  one per ecosystem
   ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Dependency updates").
   What holds besides: the NuGet lock files are committed and the .NET projects are restored with `--locked-mode`, so
   a package cannot change under a build without a reviewed commit; the native libraries are pinned by version and by
