@@ -12,8 +12,8 @@ what the server does rather than what somebody once meant it to do, and --check
 fails the moment the two part: when the routes, the lists or the roles it is
 read from have changed and the file has not (exit 1), and when a step of one
 of the functions it holds has changed, or something it reads stands inside a
-conditional of the preprocessor, which it does not evaluate (exit 2; STEPS and
-in_conditional, below).
+conditional of the preprocessor or holds one, which it does not evaluate (exit
+2; STEPS and conditionals, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -66,9 +66,11 @@ handler - each with what the readers take out of it masked, and its prose
 (skeleton, below). A step added, taken out, moved or given a condition, or a
 name a step compares or is kept under changed, stops the script until decide()
 has been read against it and STEPS updated. Every definition it reads - a
-function, the report's table, an enumeration, a constant - is read only where
-it stands outside the preprocessor's conditionals: one inside them stops it,
-since another copy of it may be the one compiled. Not held: how Authenticate_
+function, the report's table, an enumeration, a constant - is read from the
+code with its comments taken out, and only where it stands outside the
+preprocessor's conditionals and holds none: one inside a conditional, or
+holding one, stops it, since another copy of it, or another branch, may be
+what is compiled. Not held: how Authenticate_
 makes a request one of the nine credentials - the grant RoleManager gives it,
 of which role and for which domains (GrantForAccount, GrantForApiKey and
 ServerAdministrator, and the GrantForRole they ask) - which the matrix's
@@ -84,6 +86,7 @@ Usage:
   python build/generate-auth-matrix.py --self-test
 """
 
+import bisect
 import contextlib
 import copy
 import difflib
@@ -583,32 +586,31 @@ class Parser(object):
                 return node
 
 
-# A line of the preprocessor that opens, divides or closes a conditional, and
-# what the compiler does not read before it reads those: comments. A string or
-# character literal is matched so that what it holds is not taken for either.
-CONDITIONAL = re.compile(r"[ \t]*#[ \t]*(if|ifdef|ifndef|elif|else|endif)\b")
-COMMENT_OR_LITERAL = re.compile(r"""//[^\n]*|/\*.*?\*/|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'""", re.S)
+# A line of the preprocessor that opens, divides or closes a conditional, by
+# its directive, # or the digraph %:.
+CONDITIONAL = re.compile(r"[ \t]*(?:#|%:)[ \t]*(if|ifdef|ifndef|elif|elifdef|elifndef|else|endif)\b")
 
 
 @functools.lru_cache(maxsize=None)
-def conditional_depths(text):
-    """For each line of text, how many of the preprocessor's conditionals are
-    open at its start: those an #if, an #ifdef or an #ifndef above it opened and
-    no #endif has closed. Comments are not read, as the compiler does not read
-    them."""
-    def blank(m):
-        piece = m.group(0)
-        return piece if piece[0] in "\"'" else ("\n" * piece.count("\n") or " ")
+def conditionals(text):
+    """The preprocessor's conditionals in text, read from its code with the
+    comments taken out, as the compiler does not read them: for each line, how
+    many are open at its start - those an #if, an #ifdef or an #ifndef above it
+    opened and no #endif has closed - and the numbers (from 0) of the lines that
+    open, divide or close one."""
     depths = []
+    lines = []
     depth = 0
-    for line in COMMENT_OR_LITERAL.sub(blank, text).split("\n"):
+    for number, line in enumerate(code_of(text).split("\n")):
         depths.append(depth)
         m = CONDITIONAL.match(line)
-        if m and m.group(1) in ("if", "ifdef", "ifndef"):
-            depth += 1
-        elif m and m.group(1) == "endif":
-            depth = max(0, depth - 1)
-    return depths
+        if m:
+            lines.append(number)
+            if m.group(1) in ("if", "ifdef", "ifndef"):
+                depth += 1
+            elif m.group(1) == "endif":
+                depth = max(0, depth - 1)
+    return depths, lines
 
 
 def in_conditional(text, at):
@@ -616,55 +618,73 @@ def in_conditional(text, at):
     of the preprocessor. This script does not evaluate a condition, so what it
     reads there may be a copy the compiler leaves out, and the copy it compiles
     another."""
-    return conditional_depths(text)[text.count("\n", 0, at)] > 0
+    return conditionals(text)[0][text.count("\n", 0, at)] > 0
+
+
+def holds_conditional(text, begin, end):
+    """Whether a line of text from the offset begin to the offset end opens,
+    divides or closes a conditional of the preprocessor, whose branches this
+    script would read alike."""
+    lines = conditionals(text)[1]
+    k = bisect.bisect_left(lines, text.count("\n", 0, begin))
+    return k < len(lines) and lines[k] <= text.count("\n", 0, end)
 
 
 def outside_conditionals(text, m, what):
     """m, a match in text of what a reader takes, refused when it stands inside
-    a conditional of the preprocessor (in_conditional)."""
-    if m and in_conditional(text, m.start()):
-        raise GenerationError("%s stands inside a conditional of the preprocessor (#if to #endif), which this script "
-                              "does not evaluate: the copy it would read may not be the one compiled" % what)
+    a conditional of the preprocessor (in_conditional) or holds one."""
+    if m and (in_conditional(text, m.start()) or holds_conditional(text, m.start(), m.end())):
+        raise GenerationError("%s stands inside a conditional of the preprocessor (#if to #endif), or holds one, which "
+                              "this script does not evaluate: what it would read may not be what is compiled" % what)
     return m
 
 
 def function_span(text, qualified, params=None):
-    """(the start of the definition's first line, its '{', the end of its '}')
-    of a member function's first definition, its closing '}' at the
-    definition's indent, or None. With params, of the overload whose parameter
-    list holds that text. A definition that stands inside a conditional of the
-    preprocessor is refused, since another copy of it may be the one compiled."""
+    """(the start of the definition's first line, its '{', the end of its '}',
+    the text of its parameter list) of a member function's first definition in
+    the code of text, its comments taken out - so that a definition in a
+    comment is none - and its closing '}' at the definition's indent, or None;
+    the offsets are into code_of(text). With params, of the overload whose
+    parameter list holds that text. A definition that stands inside a
+    conditional of the preprocessor, or holds one, is refused, since another
+    copy of it, or another branch, may be what is compiled."""
+    code = code_of(text)
     # Tried at the start of each line that names the function, in order: the
     # first definition, as a search of the whole text would find it, without
     # trying the pattern at every line of a file of ten thousand.
     head = re.compile(r"([ \t]*)[^\n]*\b" + re.escape(qualified) + r"\s*\(([^;{]*?)\)\s*(?:const\s*)?\n\1\{", re.S)
-    at = text.find(qualified)
+    at = code.find(qualified)
     while at >= 0:
-        m = head.match(text, text.rfind("\n", 0, at) + 1)
+        m = head.match(code, code.rfind("\n", 0, at) + 1)
         if m and (params is None or params in m.group(2)):
             break
-        at = text.find(qualified, m.end() if m else at + 1)
+        at = code.find(qualified, m.end() if m else at + 1)
     else:
         return None
-    if in_conditional(text, m.start()):
+    if in_conditional(code, m.start()):
         raise GenerationError("%s is defined inside a conditional of the preprocessor (#if to #endif), which this "
                               "script does not evaluate: the copy it would read may not be the one compiled"
                               % qualified)
     indent = m.group(1)
     open_at = m.end() - 1
-    close = text.find("\n" + indent + "}\n", open_at)
+    close = code.find("\n" + indent + "}\n", open_at)
     if close < 0:
         return None
-    return m.start(), open_at, close + len(indent) + 2
+    end = close + len(indent) + 2
+    if holds_conditional(code, m.start(), end):
+        raise GenerationError("%s holds a conditional of the preprocessor (#if to #endif), which this script does not "
+                              "evaluate: it would read every branch as compiled" % qualified)
+    return m.start(), open_at, end, m.group(2)
 
 
 def function_text(text, qualified, params=None):
     """The body of a member function, '{' to its closing '}' at the definition's indent,
-    and the line its '{' is on (function_span)."""
+    its comments taken out, and the line its '{' is on (function_span)."""
     span = function_span(text, qualified, params)
     if span is None:
         return None, 0
-    return text[span[1]:span[2]], text.count("\n", 0, span[1]) + 1
+    code = code_of(text)
+    return code[span[1]:span[2]], code.count("\n", 0, span[1]) + 1
 
 
 def parse_function(text, qualified):
@@ -676,11 +696,12 @@ def parse_function(text, qualified):
 
 
 def function_params(text, qualified):
-    m = re.search(re.escape(qualified) + r"\s*\(([^)]*)\)", text)
-    if not m:
+    """The names of the parameters of the definition function_span reads."""
+    span = function_span(text, qualified)
+    if span is None:
         return []
     params = []
-    for part in m.group(1).split(","):
+    for part in span[3].split(","):
         words = re.findall(r"[A-Za-z_]\w*", part)
         if words:
             params.append(words[-1])
@@ -1916,8 +1937,8 @@ def load_functions(sources):
     functions["__predicates__"] = predicates
     constants = {}
     for name, (rel, pattern) in CONSTANTS.items():
-        text = read(rel, sources)
-        m = outside_conditionals(text, re.search(pattern, text), "%s: the constant %s" % (rel, name))
+        code = code_of(read(rel, sources))
+        m = outside_conditionals(code, re.search(pattern, code), "%s: the constant %s" % (rel, name))
         if not m:
             raise GenerationError("%s: the constant %s could not be read" % (rel, name))
         constants[name] = m.group(1)
@@ -2145,6 +2166,7 @@ def authenticated_part(process):
 
 
 def route_kinds(header):
+    header = code_of(header)
     m = outside_conditionals(header, re.search(r"enum RouteKind\s*\{(.*?)\n      \};", header, re.S),
                              "%s's enum RouteKind" % REST_H)
     if not m:
@@ -2193,12 +2215,14 @@ def builtin_permissions(role_cpp, function):
 
 
 def permission_tokens(role_cpp):
+    role_cpp = code_of(role_cpp)
     m = outside_conditionals(role_cpp, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", role_cpp, re.S),
                              "%s's PermissionTokens" % ROLE_CPP)
     return re.findall(r'"(\w+)"', m.group(1)) if m else []
 
 
 def permission_enum(role_h):
+    role_h = code_of(role_h)
     m = outside_conditionals(role_h, re.search(r"enum class RolePermission\s*\{(.*?)\};", role_h, re.S),
                              "Common/Application/RoleManager.h's enum RolePermission")
     body = re.sub(r"//[^\n]*", "", m.group(1)) if m else ""
@@ -2235,7 +2259,7 @@ def report_sections(reports):
     find = function_span(code, "FindSection")
     if find is None or find[0] < struct.end():
         raise GenerationError("%s: FindSection could not be found after the report's SectionInfo" % REPORTS_CPP)
-    head, _, end = find
+    head, _, end, _ = find
     preprocessor = re.search(r"^[ \t]*#[^\n]*", code[struct.start():end], re.M)
     if preprocessor:
         raise GenerationError("%s: a preprocessor line between the report's SectionInfo and the end of FindSection, "
@@ -3290,9 +3314,10 @@ def render(decision, records, anon, web):
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
       "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
-      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. What it "
-      "reads must stand outside the preprocessor's conditionals (`#if` to `#endif`), which it does not evaluate: a "
-      "definition inside one stops it, since another copy may be the one compiled. Not held: "
+      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. It reads "
+      "the code with its comments taken out, and what it reads must stand outside the preprocessor's conditionals "
+      "(`#if` to `#endif`), which it does not evaluate: a definition inside one, or holding one, stops it, since "
+      "another copy, or another branch, may be what is compiled. Not held: "
       "how `Authenticate_` makes a request one of the columns below - the grant `RoleManager` gives it, of which "
       "role and for which domains (`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the "
       "`GrantForRole` they ask) - which they take as given, the string helpers those functions use and a macro "
@@ -3465,7 +3490,7 @@ def main(argv):
               "to standard output, --steps prints the steps of the functions it holds to the code (steps_of) as STEPS "
               "would hold them, and --self-test breaks a copy of the source and proves each rule is still read. A step that "
               "is not the one STEPS holds stops every mode but --steps, and a definition it reads that stands inside a "
-              "conditional of the preprocessor stops every mode.")
+              "conditional of the preprocessor, or holds one, stops every mode.")
         return 0
     if len(argv) > 1 or any(a not in ("--check", "--print", "--steps", "--self-test") for a in argv):
         # A misspelt --check in CI must fail, not write the matrix and pass.
@@ -3856,6 +3881,25 @@ def self_test():
     counted = broken_copy(REPORTS_CPP, count, "      const int SectionCount = 8;")
     counted[REPORTS_CPP] = counted[REPORTS_CPP].replace(find_end, find_end + "#if 0" + nl + count + nl + "#endif" + nl, 1)
     refused("a SectionCount of another length, its right form under #if 0 after FindSection", counted, "SectionCount")
+    # A definition that holds a conditional is refused too, since the script
+    # would read each of its branches as compiled; and a definition in a comment
+    # is none.
+    refused("a route parser that holds a conditional",
+            broken_copy(REST_CPP, "      route.kind = RouteUnknown;" + nl + '      route.identifier = "";',
+                        "      route.kind = RouteUnknown;" + nl + "#if 0" + nl
+                        + '      if (path == "/api/v1/self-test") { route.kind = RouteQueueList; return; }' + nl + "#endif"
+                        + nl + '      route.identifier = "";'),
+            "holds a conditional of the preprocessor")
+    refused("the enumeration of route kinds holding a conditional",
+            broken_copy(REST_H, "         RouteUnknown = 0," + nl,
+                        "         RouteUnknown = 0," + nl + "#ifdef HM_ROUTES_V2" + nl + "         RouteNothing," + nl
+                        + "#endif" + nl),
+            "or holds one")
+    allowed = base[REST_CPP].find("   bool" + nl + "   RestApiServer::IsDomainAllowed_(")
+    allowed = base[REST_CPP][allowed:base[REST_CPP].find(nl + "   }" + nl, allowed) + len(nl + "   }" + nl)]
+    stops("a copy of IsDomainAllowed_ in a comment before it, the one compiled reaching every domain, stops the "
+          "script", REST_CPP, allowed, "/*" + nl + allowed + "*/" + nl
+          + allowed.replace("      if (domains.empty())", "      if (true)"), "RestApiServer::IsDomainAllowed_")
 
     # 13. A list changed is read, not stopped on: a route into a refusal, a
     # refusal of the same shape beside the others, a group split, a reason
@@ -3915,6 +3959,15 @@ def self_test():
           find_end + "#if 0" + nl + "      const SectionInfo SECTIONS[] =" + nl + "      {" + nl
           + '         { "traffic", true, "hm_messagetrace", "" }' + nl + "      };" + nl + "#endif" + nl,
           lambda d: d.server_wide_sections == ["countries"])
+    # What a comment holds is not read: a constant a route parser names, or a
+    # route kind.
+    dc, rc, tc = run(broken_copy("Common/Util/CalDavServer.cpp", "   const char *CalDavServer::CalendarsPath = ",
+                                 '   // const char *CalDavServer::CalendarsPath = "/dav/old/";' + nl
+                                 + "   const char *CalDavServer::CalendarsPath = "))
+    expect("a constant a route parser names, in a comment before it, is not read", tc == text)
+    reads("a route kind in a comment of the enumeration is not read", REST_H, "         RouteUnknown = 0," + nl,
+          "         RouteUnknown = 0," + nl + "         /*" + nl + "         RouteNothing," + nl + "         */" + nl,
+          lambda d: d.kinds == decision.kinds)
     # A built-in role's permission lines are a list: one given to a role is read
     # as its own, and one named in a comment is not read.
     helpdesk = dict(result="account", role="helpdesk", domains="own")
