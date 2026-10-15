@@ -33,7 +33,17 @@ eleven commits and no check noticed. This one holds:
     in t34a's CHANGELOG entry for review findings F088 and F089, 10 October 2026, with
     two older entries of the same shape). A line before that ends a sentence or a clause
     (".", ":", ";", "!" or "?", a closing bracket, quote or mark-up after it) is taken to
-    begin a list of its own, as entries that list their parts do.
+    begin a list of its own, as entries that list their parts do;
+  - each number of .gitlab/security-exceptions.yml's entries that the Unreleased section
+    gives to the day it was counted. The section is written when a batch lands, and the
+    file changes between landings, each entry in a change of its own: the section's
+    entry on SECURITY.md's policy, written on 6 October 2026, said that the file's
+    header "counts its 500 entries", while four were added on 13 October and thirteen
+    taken out on 14 and 15 October, leaving the 491 the header counts now, and no check
+    noticed. A clause - up to a ";" or the end of a sentence - that names the file, or
+    "the exceptions file", and gives in figures a number of entries, exceptions or
+    accepted findings names a day as well ("500 on 6 October 2026"). A release's section
+    is history and is not read.
 
   python build/check-changelog.py [--self-test]
 """
@@ -49,6 +59,16 @@ FULL_NOTES = re.compile(r'^Full notes: \[the [^\]]+ release\]\(https://gitlab\.c
 # that closes a sentence or a clause.
 NESTED_ITEM = re.compile(r'^ +[-*+] ')
 CLAUSE_END = re.compile(r'[.:;!?][)\]"\'*_`]*$')
+# A count of .gitlab/security-exceptions.yml's entries: a clause that names the file - not
+# where its name ends another, as in the artifact master-security-exceptions.yml - a
+# number of entries in figures, and a day.
+EXCEPTIONS_NAMED = re.compile(r'(?<![\w./-])(?:\.gitlab/)?security-exceptions\.yml(?![\w-])|\bexceptions file\b')
+ENTRY_COUNT = re.compile(r'(?<![\w.,])\d[\d,]* (?:entries|exceptions|accepted findings)\b')
+DAY = re.compile(r'\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|'
+                 r'December) \d{4}\b')
+# Where a clause ends: a ";" or the end of a sentence, a closing bracket, quote or mark-up
+# after it, then a space.
+CLAUSE_BREAK = re.compile(r'(?<=[.;!?])[)\]"\'*_`]*\s+')
 
 
 def mid_sentence_items(lines):
@@ -72,6 +92,53 @@ def mid_sentence_items(lines):
         if indent_before > indent or (indent_before == indent and NESTED_ITEM.match(before)):
             continue
         out.append(n)
+    return out
+
+
+def items_of(lines, first, last):
+    """The paragraphs and list items of lines[first:last] (indexes from 0), each a list of
+    (line number, the line's text): one ends at a blank line, a fence, a heading, a row of
+    a table or a rule, and where a list marker begins a line, which begins the next."""
+    items, current, fenced = [], [], False
+    for k in range(first, last):
+        line = lines[k]
+        stripped = line.strip()
+        fence = stripped.startswith('```')
+        if fence:
+            fenced = not fenced
+        if fence or fenced or not stripped or stripped.startswith(('#', '|')) or stripped == '---':
+            if current:
+                items.append(current)
+            current = []
+            continue
+        if NESTED_ITEM.match(line) or line.startswith(('- ', '* ', '+ ')):
+            if current:
+                items.append(current)
+            current = []
+        current.append((k + 1, stripped))
+    if current:
+        items.append(current)
+    return items
+
+
+def undated_exception_counts(lines, first, last):
+    """(line number, the count, its clause) for each number of .gitlab/security-exceptions.yml's
+    entries that lines[first:last] give in figures in a clause that names the file and no
+    day: a count the file's next entry, or the next taken out, makes untrue."""
+    out = []
+    for item in items_of(lines, first, last):
+        text, starts = '', []
+        for number, part in item:
+            starts.append((len(text), number))
+            text += part + ' '
+        ends = [0] + [m.end() for m in CLAUSE_BREAK.finditer(text)] + [len(text)]
+        for begin, end in zip(ends, ends[1:]):
+            clause = text[begin:end]
+            if not EXCEPTIONS_NAMED.search(clause) or DAY.search(clause):
+                continue
+            for m in ENTRY_COUNT.finditer(clause):
+                at = begin + m.start()
+                out.append((max(n for s, n in starts if s <= at), m.group(0), clause.strip()))
     return out
 
 
@@ -155,6 +222,15 @@ def problems_of(text):
         elif named.group(1) != version:
             out.append('%s: the "Full notes" line (line %d) links the release of v%s'
                        % (version, last + 1, named.group(1)))
+    # A count of the exceptions file's entries in the Unreleased section, with its day.
+    for i, (n, h) in enumerate(sections):
+        if not h.startswith('## Unreleased'):
+            continue
+        for number, count, clause in undated_exception_counts(lines, n, bounds[i + 1] - 1):
+            out.append('line %d: the Unreleased section gives "%s" of .gitlab/security-exceptions.yml with no day: the '
+                       'file changes between landings, each entry in a change of its own, and the section only when a '
+                       'batch lands, so give the day it was counted ("500 on 6 October 2026"): %s'
+                       % (number, count, clause[:120]))
     return out
 
 
@@ -164,11 +240,15 @@ def self_test():
         '## Unreleased - in the tree after 6.3.5, not yet released', '', '### Build and tests', '',
         '- **An entry of parts.** It has three:', '  - the first, which goes on', '    over two lines;',
         '  - the second', '  - and a third - with a spaced', '    hyphen in it.', '',
+        '- **The exceptions.** `.gitlab/security-exceptions.yml`\'s header counts its entries by scan and by group (500',
+        '  on 6 October 2026). On 13 October 2026 the exceptions file held 504 entries; the artifact',
+        '  `master-security-exceptions.yml` holds 3 entries.', '',
         '- **An entry.** Text that goes on', '  over two lines.', '', '---', '',
         '## [6.3.5](https://gitlab.com/p/h/-/releases/v6.3.5) - 2026-09-28', '', 'Its introduction.', '',
         '### Operations', '', '- **One.** Text.', '',
         'Full notes: [the 6.3.5 release](https://gitlab.com/p/h/-/releases/v6.3.5).', '', '---', '',
-        '## [6.3.0](https://gitlab.com/p/h/-/releases/v6.3.0) - 2026-09-10', '', '- **Two.** Text.', '', '---', '',
+        '## [6.3.0](https://gitlab.com/p/h/-/releases/v6.3.0) - 2026-09-10', '',
+        '- **Two.** Text; `.gitlab/security-exceptions.yml` holds 469 entries.', '', '---', '',
         '## [6.3.0-alpha1](https://gitlab.com/p/h/-/releases/v6.3.0-alpha1) - 2026-09-01', '', 'Text.', ''])
     failures = 0
     if problems_of(good):
@@ -206,9 +286,26 @@ def self_test():
         'a "Full notes" line not in its form': good.replace(
             'Full notes: [the 6.3.5 release](https://gitlab.com/p/h/-/releases/v6.3.5).', 'Full notes: on the release page.'),
     }
+    # Refused by the count's own rule, which another rule refusing them would not prove.
+    counts = {
+        'a count of the exceptions file\'s entries with no day': good.replace(
+            'counts its entries by scan and by group (500\n  on 6 October 2026)', 'counts its 500 entries by scan and\n  by group'),
+        'the same, the number and its noun on two lines': good.replace(
+            'counts its entries by scan and by group (500\n  on 6 October 2026)', 'counts its 500\n  entries by scan and by group'),
+        'the same, the file named without its folder, its exceptions counted': good.replace(
+            '`.gitlab/security-exceptions.yml`\'s header counts its entries by scan and by group (500\n  on 6 October 2026)',
+            '`security-exceptions.yml`\'s header counts its 491 exceptions'),
+        'the same of "the exceptions file", the day in the next clause': good.replace(
+            'On 13 October 2026 the exceptions file held 504 entries;', 'The exceptions file holds 504 entries; on 13 October 2026'),
+    }
+    cases.update(counts)
     for name, text in cases.items():
-        if not problems_of(text):
+        found = problems_of(text)
+        if not found:
             print('FAIL: not refused: %s' % name)
+            failures += 1
+        elif name in counts and not any('of .gitlab/security-exceptions.yml with no day' in p for p in found):
+            print('FAIL: refused, but not for its count: %s: %s' % (name, found))
             failures += 1
     print('self-test: %d failure(s)' % failures)
     return 1 if failures else 0

@@ -6059,6 +6059,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list of one item nested in it. The two older entries of the shape, the spam filtering overview's under Control Panel
   and that of the SURBL entries' hosts under 6.3.6, are wrapped again as well; a line after one that ends a sentence
   or a clause still begins a list, as the entries that list their parts do, and the self-test holds both.
+- **`build/check-changelog.py` refuses a count of `.gitlab/security-exceptions.yml`'s entries that the Unreleased
+  section gives without its day.** The section is written when a batch lands, and the file changes between landings,
+  each entry in a change of its own, so that such a count goes out of date with no change to this file: the entry on
+  SECURITY.md's vulnerability management policy said that the file's header "counts its 500 entries", while four were
+  added on 13 October 2026 and thirteen taken out on 14 and 15 October, leaving the 491 the header counts now; the
+  entry gives the 500 as 6 October's now. A clause that names the file, or "the exceptions file", and gives a number
+  of its entries, exceptions or accepted findings in figures names a day as well. A release's section is history, and
+  is not read.
 - **`MessageIndexerTester` no longer turns on when a thread happens to run, nor on the servers of the process it runs
   in being started.** A stop with a limit looked at the limit before it called its progress, so that a first second's
   wait that ran over a limit of two seconds - on a loaded machine, or under the emulator the AArch64 builds run the
@@ -6267,8 +6275,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a fix waiting upstream is no reason, a baseline entry or an inline comment no declaration. ContinuousIntegration.md's
   "Merge request checks" is "Change checks", with how the base is found, the retries, the analyzer's copy and what the
   checks cannot hold, and "Landing on master" names the batches that have landed through it and the two
-  settings the owner makes once this batch has; `.gitlab/security-exceptions.yml`'s header counts its 500 entries by
-  scan and by group, and says how each group was read.
+  settings the owner makes once this batch has; `.gitlab/security-exceptions.yml`'s header counts its entries by
+  scan and by group (500 on 6 October 2026), and says how each group was read.
 - **Performance.md's index-on probe passes when the search for `quokka`, followed to its end, opened its hundred hits
   and no other message**, which is the full-text index having read every other one. It asked for one search answered
   in one request before, which a request no longer gives on SQL Server Compact however far the index has got, since it
