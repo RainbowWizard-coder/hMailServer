@@ -2113,6 +2113,7 @@ def permission_enum(role_h):
 
 # The report's sections, RestApiReports.cpp's table: FindSection finds a section
 # by its name in it, and IsServerWideReportSection_ answers with its second field.
+REPORT_STRUCT = re.compile(r"struct SectionInfo\s*\{\s*const char \*name;\s*bool server_wide;")
 REPORT_TABLE = "const SectionInfo SECTIONS[] ="
 REPORT_ROW = re.compile(r'\{\s*"(\w+)"\s*,\s*(true|false)\s*,')
 REPORT_COUNT = re.compile(r"const int SectionCount = \(int\) \(sizeof\(SECTIONS\) / sizeof\(SECTIONS\[0\]\)\);")
@@ -2120,9 +2121,25 @@ REPORT_COUNT = re.compile(r"const int SectionCount = \(int\) \(sizeof\(SECTIONS\
 
 def report_sections(reports):
     """[(section, whether it is counted from server-wide metrics)], in the
-    table's order. FindSection searches SectionCount rows of it, which must be
-    the whole table."""
+    table's order. A row is read as SectionInfo's first two members, which must
+    be the name and server_wide; FindSection searches SectionCount rows of it,
+    which must be the whole table; and from SectionInfo to FindSection's end no
+    line is the preprocessor's, which this script does not read as the compiler
+    does."""
     code = code_of(reports)
+    struct = REPORT_STRUCT.search(code)
+    if not struct:
+        raise GenerationError("%s: the report's SectionInfo does not begin with the name and server_wide, which a "
+                              "row of its table is read as" % REPORTS_CPP)
+    find = body_of(code, "FindSection")
+    end = code.find(find, struct.end()) if find else -1
+    if end < 0:
+        raise GenerationError("%s: FindSection could not be found after the report's SectionInfo" % REPORTS_CPP)
+    preprocessor = re.search(r"^[ \t]*#[^\n]*", code[struct.start():end + len(find)], re.M)
+    if preprocessor:
+        raise GenerationError("%s: a preprocessor line between the report's SectionInfo and the end of FindSection, "
+                              "which this script does not read as the compiler does: %s"
+                              % (REPORTS_CPP, preprocessor.group(0).strip()))
     at = code.find(REPORT_TABLE)
     table = braced(code, at + len(REPORT_TABLE)) if at >= 0 else None
     if table is None:
@@ -3583,13 +3600,20 @@ def self_test():
     stops("FindSection made to find another section than the one named stops the script", REPORTS_CPP,
           "            if (name.CompareNoCase(SECTIONS[i].name) == 0)",
           "            if (name.CompareNoCase(SECTIONS[i].name) != 0)", "FindSection")
-    try:
-        Decision(broken_copy(REPORTS_CPP, "const int SectionCount = (int) (sizeof(SECTIONS) / sizeof(SECTIONS[0]));",
-                             "const int SectionCount = 8;"))
-        failures.append("a SectionCount that is not the report table's length stops the script")
-    except GenerationError as error:
-        expect("a SectionCount that is not the report table's length stops the script, naming it",
-               "SectionCount" in str(error))
+    # The report's table is read as the compiler reads it, or not at all.
+    for label, old, new, said in (
+            ("a SectionCount that is not the report table's length", "const int SectionCount = (int) "
+             "(sizeof(SECTIONS) / sizeof(SECTIONS[0]));", "const int SectionCount = 8;", "SectionCount"),
+            ("a row of the report's table put under the preprocessor", '         { "countries", true,',
+             "#if 0" + nl + '         { "countries", true,', "a preprocessor line"),
+            ("SectionInfo's members put in another order", "         const char *name;" + nl
+             + "         bool server_wide;", "         bool server_wide;" + nl + "         const char *name;",
+             "SectionInfo")):
+        try:
+            Decision(broken_copy(REPORTS_CPP, old, new))
+            failures.append("%s stops the script" % label)
+        except GenerationError as error:
+            expect("%s stops the script, saying so" % label, said in str(error))
 
     # 13. A list changed is read, not stopped on: a route into a refusal, a
     # refusal of the same shape beside the others, a group split, a reason
