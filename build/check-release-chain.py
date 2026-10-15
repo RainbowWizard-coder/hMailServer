@@ -1453,12 +1453,26 @@ def link_path_problems(chain, documents):
     return problems
 
 
-# The release's security gate as a document gives the command for it: security-gate.py
-# and its arguments - an option, a <placeholder> (of several words, perhaps) or a word -
-# read in a text whose lines gate_flat has joined. A change's gate (--merge-request) and
-# the self-test are other commands.
-GATE_ARGUMENT = re.compile(r"--[A-Za-z][A-Za-z0-9\-]*|<[^<>`]*>|[^\s`()<>,;]+")
-GATE_COMMAND = re.compile(r"(?:python3 )?build/ci/security-gate\.py((?: (?:%s))*)" % GATE_ARGUMENT.pattern)
+# The release's security gate as a document gives the command for it, in a text whose
+# lines gate_flat has joined: security-gate.py by any path, run by an interpreter
+# (python3, python or py, with options of its own perhaps) or from "./" perhaps, and the
+# arguments argparse would read - each an option, --name, with a value after a space or
+# "=" perhaps: a <placeholder>, of several words perhaps, or a word that does not begin
+# with "-" and is neither an interpreter nor a path to the script, which begin the next
+# command. They follow a space, or a shell's " \" that continues the line, and end at
+# the first word that is not one of them, so that the next command, the "- " of a YAML
+# list before it, and the prose after it are never read as more of them. A change's
+# gate (--merge-request) and the self-test are other commands, and the script named
+# with neither an interpreter nor an option is a mention, not a command.
+GATE_OPTION = re.compile(r"(--[A-Za-z][A-Za-z0-9\-]*)(?:[ =](<[^<>`]*>|(?!(?:python[0-9.]*|py)(?: |$))"
+                         r"(?![^\s`()<>,;]*security-gate\.py)[^\s`()<>,;\\\-][^\s`()<>,;]*))?")
+GATE_COMMAND = re.compile(r"(?:\b((?:python(?:3(?:\.[0-9]+)?)?|py)(?: -[A-Za-z0-9]+)*) )?(\.[/\\])?"
+                          r"(?:[^\s`()<>,;'\"]*[/\\])?(?<![\w.\-])security-gate\.py(?![\w\-]|\.\w)"
+                          r"((?:(?: \\)? (?:%s))*)" % GATE_OPTION.pattern)
+# An exceptions file that is the checkout's own copy: its path from the checkout's root,
+# where the gate is run, or the checkout's in a job (a sentence's full stop or colon
+# after it, and quotes round it, taken off first).
+OWN_EXCEPTIONS = re.compile(r"^(?:\.[/\\]|\$\{?CI_PROJECT_DIR\}?[/\\])?\.gitlab[/\\]security-exceptions\.yml$")
 # The exceptions file a command is handed, written from a ref's copy of the exceptions,
 # and a fetch of master by name, after which FETCH_HEAD is master as GitLab has it.
 EXCEPTIONS_COPY = re.compile(r"git show (\S+):\.gitlab/security-exceptions\.yml > (\S+)")
@@ -1468,12 +1482,13 @@ MASTER_REF = re.compile(r"^(?:refs/remotes/)?[A-Za-z0-9._\-]+/master$")
 
 def gate_texts():
     """{path: text} of each Markdown or YAML file of the tree that names
-    build/ci/security-gate.py, RELEASE.md apart (FILES' release-md): what can give a
-    command for asking the release's security gate. The change log and the roadmaps say
-    what was done, and are not read."""
+    security-gate.py, RELEASE.md apart (FILES' release-md): what can give a command for
+    asking the release's security gate. The change log and the roadmaps say what was
+    done, and are not read; nor are the vendored libraries' files and the fuzzers'
+    inputs, which are not the project's documents."""
     texts = {}
     for name in tree_files():
-        if not name.endswith((".md", ".yml", ".yaml")) or name.startswith(("libraries/", "fuzz/")) or \
+        if not name.endswith((".md", ".yml", ".yaml")) or name.startswith(("libraries/", "fuzz/corpus")) or \
                 name in ("RELEASE.md", "CHANGELOG.md") or re.match(r"^Roadmap[0-9]*\.md$", name):
             continue
         try:
@@ -1501,6 +1516,21 @@ def release_step(text, number):
     return step.group(0) if step else None
 
 
+def gate_commands(flat):
+    """Each command for the release's security gate in a text gate_flat has joined -
+    security-gate.py run (GATE_COMMAND), neither a change's gate nor the self-test - as
+    (where it begins, the command, [(option, its value or ""), ...]); without
+    --artifacts it reads the scans' artifacts from the checkout's root."""
+    commands = []
+    for found in GATE_COMMAND.finditer(flat):
+        options = GATE_OPTION.findall(found.group(3))
+        names = [name for name, _ in options]
+        if "--merge-request" in names or "--self-test" in names or not (found.group(1) or found.group(2) or options):
+            continue
+        commands.append((found.start(), found.group(0).strip(), options))
+    return commands
+
+
 def gate_by_hand_problems(texts):
     """The release's security gate, asked by hand - before the tag, of the four scans'
     reports of the commit's pipeline, as RELEASE.md's step 9 asks, and for a release made
@@ -1508,21 +1538,33 @@ def gate_by_hand_problems(texts):
     .gitlab/security-exceptions.yml, which collect hands the gate and never the tagged
     tree's (build/ci/release-chain.py, master_exceptions), where security-gate.py without
     --exceptions reads the checkout's own copy, which need not be master's. So every
-    command a document of the tree gives for that gate (--artifacts, outside a change's
-    --merge-request) names the exceptions file; and step 9, to which
-    .gitlab/ci/release-rehearsal.yml and docs/ContinuousIntegration.md send the reader to
-    ask the gate before the tag, gives such a command, its file written from master's
-    copy as GitLab has it: a fetch of master by name and FETCH_HEAD, or a remote's master."""
+    command a document of the tree gives for that gate (gate_commands: by any path, with
+    or without --artifacts, wherever it stands beside another command) names an
+    exceptions file with --exceptions: each --exceptions is given a file, and the last,
+    the one argparse keeps, not the checkout's own copy; and step 9, to
+    which .gitlab/ci/release-rehearsal.yml and docs/ContinuousIntegration.md send the
+    reader to ask the gate before the tag, gives such a command over --artifacts, its
+    file written from master's copy as GitLab has it: a fetch of master by name and
+    FETCH_HEAD, or a remote's master."""
     problems = []
     release = texts.get("release-md", "")
     for document, text in [("RELEASE.md", release)] + sorted(texts.get("gate-docs", {}).items()):
-        for found in GATE_COMMAND.finditer(gate_flat(text)):
-            arguments = GATE_ARGUMENT.findall(found.group(1))
-            if "--artifacts" in arguments and "--merge-request" not in arguments and "--exceptions" not in arguments:
+        for _, command, options in gate_commands(gate_flat(text)):
+            files = [value for name, value in options if name == "--exceptions"]
+            if not files:
                 problems.append("%s gives the release's security gate as `%s`, without --exceptions: the gate then reads the "
                                 "checkout's own .gitlab/security-exceptions.yml, where the release job reads master's, never "
                                 "the tagged tree's (build/ci/release-chain.py, master_exceptions): hand it master's copy"
-                                % (document, found.group(0).strip()))
+                                % (document, command))
+            elif not all(files):
+                problems.append("%s gives the release's security gate as `%s`, with an --exceptions that names no file, which "
+                                "argparse refuses: hand it master's .gitlab/security-exceptions.yml, which the release job "
+                                "reads (--exceptions <file>)" % (document, command))
+            elif OWN_EXCEPTIONS.match(files[-1].strip("'\"").rstrip(".:")):
+                problems.append("%s gives the release's security gate as `%s`, which hands it the checkout's own "
+                                ".gitlab/security-exceptions.yml, where the release job reads master's, never the tagged "
+                                "tree's (build/ci/release-chain.py, master_exceptions): hand it master's copy"
+                                % (document, command))
     step = release_step(release, 9)
     if step is None:
         problems.append("RELEASE.md has no step 9 in \"Order of operations\", where the security gate's pass is asked for "
@@ -1531,10 +1573,10 @@ def gate_by_hand_problems(texts):
         return problems
     flat = gate_flat(step)
     handed = []
-    for found in GATE_COMMAND.finditer(flat):
-        arguments = GATE_ARGUMENT.findall(found.group(1))
-        if "--artifacts" in arguments and "--merge-request" not in arguments and "--exceptions" in arguments[:-1]:
-            handed.append((found.start(), arguments[arguments.index("--exceptions") + 1]))
+    for at, _, options in gate_commands(flat):
+        files = [value for name, value in options if name == "--exceptions" and value]
+        if "--artifacts" in [name for name, _ in options] and files:
+            handed.append((at, files[-1]))
     if not handed:
         problems.append("RELEASE.md's step 9 gives no command that asks the release's security gate before the tag as the "
                         "release job asks it, over the four scans' artifacts of the commit's pipeline with master's "
@@ -5209,14 +5251,25 @@ def self_test(chain, feed):
             failures.append("a document with %s at permalink/latest is caught: %s" % (what, found))
     if not texts["permalinks"] or not any(PERMALINK.search(t) for t in texts["permalinks"].values()):
         failures.append("the tree's permanent download addresses are read (README.md, Channels.md, the OBS _service): %s" % sorted(texts["permalinks"]))
-    # The release's gate asked by hand: step 9's command without the exceptions, its file
-    # from the tagged tree, from a FETCH_HEAD that is not master's or from nowhere, and no
-    # step 9; and a document's command - wrapped over two comment lines, with a
-    # placeholder of several words - without them, where one with them, a change's gate
-    # and the self-test pass.
+    # The release's gate asked by hand: step 9's command without the exceptions, or with a
+    # command without them on the line after it, its file from the tagged tree, from a
+    # FETCH_HEAD that is not master's or from nowhere, and no step 9; and a document's
+    # command without them - wrapped over two comment lines, with a placeholder of several
+    # words, on the line after a change's gate or after a command with them, in a code
+    # block or a job's script, without the build/ci/ path, by a Windows path, with no
+    # option, with prose after it that names --exceptions - or with no file or the
+    # checkout's own copy after --exceptions, each reported as that command alone, where
+    # two commands with them on two lines, one continued by a shell's backslash, one with
+    # "=", one whose placeholder names master's copy, the script named and not run, a
+    # change's gate and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
+    broken("step 9 giving a command without --exceptions on the line after its own", "release-md",
+           "python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>\n",
+           "python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>\n"
+           "   python3 build/ci/security-gate.py --artifacts <dir>\n",
+           "RELEASE.md gives the release's security gate as `python3 build/ci/security-gate.py --artifacts <dir>`, without")
     broken("step 9's exceptions from the tagged tree", "release-md", "git show FETCH_HEAD:.gitlab/security-exceptions.yml",
            "git show vX.Y.Z:.gitlab/security-exceptions.yml", "from vX.Y.Z's .gitlab/security-exceptions.yml")
     broken("step 9's exceptions from a FETCH_HEAD that is not master's", "release-md", "git fetch gitlab master\n",
@@ -5225,20 +5278,70 @@ def self_test(chain, feed):
            "git show FETCH_HEAD:.gitlab/security-exceptions.yml > <file>", "git show FETCH_HEAD:.gitlab/security-exceptions.yml",
            "which it does not say to write from master's")
     broken("no step 9", "release-md", "\n9. **Full regression suite", "\n9a. **Full regression suite", "RELEASE.md has no step 9")
-    for what, path, planted, caught in (
+    for what, path, planted, reported in (
             ("a command wrapped over two comment lines, without --exceptions", ".gitlab/ci/planted.yml",
-             "# Ask it first (python3 build/ci/security-gate.py\n#   --artifacts <dir>), by hand.\n", True),
+             "# Ask it first (python3 build/ci/security-gate.py\n#   --artifacts <dir>), by hand.\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
             ("a command with a placeholder of several words, without --exceptions", "hmailserver/docs/Planted.md",
-             "Then `python3 build/ci/security-gate.py --artifacts <the directory they wrote to>`, by hand.\n", True),
+             "Then `python3 build/ci/security-gate.py --artifacts <the directory they wrote to>`, by hand.\n",
+             "python3 build/ci/security-gate.py --artifacts <the directory they wrote to>"),
+            ("a command without --exceptions in a code block, on the line after a change's gate",
+             "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --merge-request auto\npython3 build/ci/security-gate.py --artifacts <dir>\n```\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command without --exceptions in a job's script, on the line after a change's gate", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - python3 build/ci/security-gate.py --merge-request auto\n"
+             "    - python3 build/ci/security-gate.py --artifacts .\n",
+             "python3 build/ci/security-gate.py --artifacts ."),
+            ("a command without --exceptions on the line after one with them", "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --artifacts <a> --exceptions <f>\n"
+             "python3 build/ci/security-gate.py --artifacts <b>\n```\n",
+             "python3 build/ci/security-gate.py --artifacts <b>"),
+            ("a command without --exceptions or the build/ci/ path", "hmailserver/docs/Planted.md",
+             "Then `security-gate.py --artifacts <dir>`.\n", "security-gate.py --artifacts <dir>"),
+            ("a command without --exceptions by a Windows path", "hmailserver/docs/Planted.md",
+             "Then `py -3 build\\ci\\security-gate.py --artifacts <dir>`.\n",
+             "py -3 build\\ci\\security-gate.py --artifacts <dir>"),
+            ("a command with no option, which reads the checkout's root", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py` in the checkout the artifacts are unpacked in.\n",
+             "python3 build/ci/security-gate.py"),
+            ("a command without --exceptions, with prose after it that names them", ".gitlab/ci/planted.yml",
+             "# Run python3 build/ci/security-gate.py --artifacts <dir> and see --exceptions in its help.\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command with the checkout's own copy", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions .gitlab/security-exceptions.yml`.\n",
+             "python3 build/ci/security-gate.py --artifacts <dir> --exceptions .gitlab/security-exceptions.yml"),
+            ("a command with the checkout's own copy at the end of a sentence", ".gitlab/ci/planted.yml",
+             "# Ask it so: python3 build/ci/security-gate.py --artifacts . --exceptions ./.gitlab/security-exceptions.yml.\n",
+             "python3 build/ci/security-gate.py --artifacts . --exceptions ./.gitlab/security-exceptions.yml."),
+            ("a command whose --exceptions names no file", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions`.\n",
+             "python3 build/ci/security-gate.py --artifacts <dir> --exceptions"),
             ("a command with --exceptions", "hmailserver/docs/Planted.md",
-             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`.\n", False),
+             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`.\n", None),
+            ("two commands with --exceptions on two lines", "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --artifacts <a> --exceptions <f>\n"
+             "python3 build/ci/security-gate.py --artifacts <b> --exceptions <f>\n```\n", None),
+            ("a command with --exceptions continued by a shell's backslash", "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --artifacts <dir> \\\n    --exceptions <file>\n```\n", None),
+            ("a command with --artifacts=<dir> --exceptions=<file>", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts=<dir> --exceptions=<file>`.\n", None),
+            ("a command whose placeholder names master's copy", "hmailserver/docs/Planted.md",
+             "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <master's .gitlab/security-exceptions.yml>`.\n",
+             None),
+            ("the script named and not run", "hmailserver/docs/Planted.md",
+             "The release job asks `build/ci/security-gate.py`, and security-gate.py's reader reads the file.\n", None),
             ("a change's gate", "hmailserver/docs/Planted.md",
-             "Then `python3 build/ci/security-gate.py --merge-request auto --artifacts <dir>`.\n", False),
-            ("the gate's self-test", "hmailserver/docs/Planted.md", "Then `python3 build/ci/security-gate.py --self-test`.\n", False)):
+             "Then `python3 build/ci/security-gate.py --merge-request auto --artifacts <dir>`.\n", None),
+            ("the gate's self-test", "hmailserver/docs/Planted.md", "Then `python3 build/ci/security-gate.py --self-test`.\n", None)):
         copy = dict(texts, **{"gate-docs": dict(texts["gate-docs"], **{path: planted})})
         found, _ = check(copy, chain, feed)
-        if any(p.startswith(path + " gives the release's security gate") for p in found) != caught:
-            failures.append("%s in a document is %s: %s" % (what, "caught" if caught else "passed", [p for p in found if path in p]))
+        mine = [p for p in found if p.startswith(path + " gives the release's security gate")]
+        if reported is None and mine:
+            failures.append("%s in a document passes: %s" % (what, mine))
+        elif reported is not None and (not mine or not all(
+                p.startswith("%s gives the release's security gate as `%s`, " % (path, reported)) for p in mine)):
+            failures.append("%s in a document is reported, as `%s` alone: %s" % (what, reported, [p for p in found if path in p]))
     if ".gitlab/ci/release-rehearsal.yml" not in texts["gate-docs"] or \
             "hmailserver/docs/ContinuousIntegration.md" not in texts["gate-docs"] or release_step(texts["release-md"], 9) is None:
         failures.append("the documents that give the release's gate are read (release-rehearsal.yml, ContinuousIntegration.md, "

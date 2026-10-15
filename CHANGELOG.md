@@ -6786,9 +6786,14 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   `.gitlab/security-exceptions.yml` fetched from GitLab, and `security-gate.py --artifacts <dir> --exceptions <file>`.
   It gave a command for a release made by hand alone, as ContinuousIntegration.md did, without `--exceptions`, so that
   the gate read the checkout's own copy where the release job reads `master`'s, never the tagged tree's; both pass it
-  now. `build/check-release-chain.py` holds every command a document gives for the release's gate to `--exceptions`,
-  and step 9's to a file written from `master`'s copy, and its self-test breaks each in a copy: run over the documents
-  as they were, it reported both commands and a step 9 with no such command.
+  now. `build/check-release-chain.py` holds every command the project's Markdown and YAML documents give for the
+  release's gate (the change log and the roadmaps, which say what was done, apart) to `--exceptions`, and to a file
+  that is not the checkout's own copy, and step 9's to a file written from `master`'s copy. It reads the script by any
+  path, with or without `--artifacts` (without it, the gate reads the scans' artifacts from the checkout's root), and
+  a command's arguments as argparse does, each an option and its value, up to the first word that is neither, so that
+  neither a command on the line after another nor the prose after one is read as more of its arguments. Its self-test
+  breaks each rule in a copy, and over the documents as they were the check reported both commands and a step 9 with
+  no such command.
 - **SECURITY.md names the libraries `dependency-scan` says UNKNOWN for as the scan answers today: libpq, QuickJS and
   SQL Server Compact.** It named 7-Zip 19.00 among them, which the Windows installer has not carried since 25
   September 2026: 7-Zip 26.03 is asked of OSV beside its control, which OSV names advisories for, and passes.
