@@ -28,14 +28,15 @@ carries no binary. Each must be there once and say AGPL-3.0-or-later, so that on
 name more is decided here - moved to FIELDS and held to what is compiled in - rather than
 left short of it.
 
-And no other line of the files the scan reads is a licence field, nor is anything on the
-line of one of the nine after the field read there: a field this holds has its line to
-itself, for a Dockerfile's LABEL takes several key=value pairs on a line, and the image
-gets the last of a key. It reads the files of snap/, nix/ and platform/packaging/
-(SCANNED_DIRECTORIES), flake.nix, the CMakeLists and build/ci/linux-image.sh, which gives
-kaniko the image's labels that change with each build as --label flags (SCANNED_FILES) -
-those git tracks, where there is git - by the kind of file (FIELD_LINES), and takes for a
-licence field a line, not a comment, that, blanks being spaces or tabs,
+And no other line of the files the scan reads is a licence field, nor is there one on the
+line of one of the nine after the field read there: a field this holds shares its line with
+no other licence field, for a Dockerfile's LABEL takes several key=value pairs on a line,
+and the image gets the last of a key. It reads the files of snap/, nix/ and
+platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
+build/ci/linux-image.sh, which gives kaniko the image's labels that change with each build
+as --label flags (SCANNED_FILES) - those git tracks, where there is git - by the kind of
+file (FIELD_LINES), and takes for a licence field a line, not a comment, that, blanks being
+spaces or tabs,
 
   in an RPM spec             has a License tag, in any case, at the start of the line or
                              after blanks, with or without blanks before its colon;
@@ -64,25 +65,25 @@ licence field a line, not a comment, that, blanks being spaces or tabs,
 
 A field added there fails until it is in one list or the other. The scan reads lines, not
 the languages: a field set another way - by a name the file builds (a set() of ${name} in
-CMake, or cmake_parse_arguments' prefix), a macro, or a command that reads into one, such
-as bash's read - can pass it, and so can a field in a file it does not read: a build reads
-more than these, the CI files and the other scripts under build/ among them. As first
-written, this checked the five alone and said they were every licence field of the Linux
-packages, and the other four were licence fields that nothing held (release review 6.3.7,
-the check of RB-2); the scan that came of that read neither linux-image.sh nor a shell
-script, while the CHANGELOG said it read every file the packages are made from (the
-re-check of RB-2); it skipped the line of a field it held whole, so that another licence
-label there passed and the image got it, and it read a CMake file's set() alone, an
-APKBUILD's or a PKGBUILD's license= and += at a line's start alone, a YAML key at a line's
-start or after one dash alone, a Nix licence bound by its bare name alone and a shell
-script's label by its bare key alone (the check of RB-2's third round); and the four
-readers read a value on its key's line and nothing of the lines about it, so that a value
-carried on to the next line, a label's line that Docker reads as part of another
-instruction, of the older LABEL key value, of a stage before the image's or of the word
-before it, and a chart's licence in a block scalar passed and the check printed the value
-read, no case tried the blanks of six of the forms or a tab in any, and a shell script's
-older LABEL in small letters, or with its key in quotes, was not read (the second check of
-RB-2's third round).
+CMake, or cmake_parse_arguments' prefix), a macro, a command that reads into one, such as
+bash's read, or a YAML key written as an explicit key (? key) - can pass it, and so can a
+field in a file it does not read: a build reads more than these, the CI files and the other
+scripts under build/ among them. As first written, this checked the five alone and said
+they were every licence field of the Linux packages, and the other four were licence fields
+that nothing held (release review 6.3.7, the check of RB-2); the scan that came of that
+read neither linux-image.sh nor a shell script, while the CHANGELOG said it read every file
+the packages are made from (the re-check of RB-2); it skipped the line of a field it held
+whole, so that another licence label there passed and the image got it, and it read a CMake
+file's set() alone, an APKBUILD's or a PKGBUILD's license= and += at a line's start alone,
+a YAML key at a line's start or after one dash alone, a Nix licence bound by its bare name
+alone and a shell script's label by its bare key alone (the check of RB-2's third round);
+and the four readers read a value on its key's line and nothing of the lines about it, so
+that a value carried on to the next line, a label's line that Docker reads as part of
+another instruction, of the older LABEL key value, of a stage before the image's or of the
+word before it, and a chart's licence in a block scalar passed and the check printed the
+value read, no case tried the blanks of six of the forms or a tab in any, and a shell
+script's older LABEL in small letters, or with its key in quotes, was not read (the second
+check of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -574,8 +575,8 @@ def unheld_fields(texts, own_only):
                                 "licence alone" % (path, number, line.strip()))
             else:
                 problems.append("%s:%d (%s) has a licence field this does not hold after the field read there: a field "
-                                "this holds has its line to itself, and another goes on a line of its own, in FIELDS or "
-                                "in OWN_LICENCE_ONLY" % (path, number, line.strip()))
+                                "this holds shares its line with no other licence field, and another goes on a line of its "
+                                "own, in FIELDS or in OWN_LICENCE_ONLY" % (path, number, line.strip()))
     return problems
 
 
@@ -1043,7 +1044,14 @@ def self_test():
            changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\\n',
                    'package.license="AGPL-3.0-or-later" org.opencontainers.image.licenses="MIT" \\\n'),
            '%s:4 (io.artifacthub.package.license="AGPL-3.0-or-later" org.opencontainers.image.licenses="MIT" \\) has a '
-           "licence field this does not hold after the field read there" % DOCKERFILE)
+           "licence field this does not hold after the field read there: a field this holds shares its line with no "
+           "other licence field" % DOCKERFILE)
+    # And with any field that is not a licence one, which the image gets as it gets the
+    # held one: this, the CHANGELOG entry and CONTRIBUTING.md's row said that a field this
+    # holds had its line to itself (the second check of RB-2's third round).
+    expect("a licence label sharing its line with a label that is no licence field",
+           changed(DOCKERFILE, 'licenses="AGPL-3.0-or-later" \\\n', 'licenses="AGPL-3.0-or-later" org.opencontainers.image.vendor="x" \\\n'),
+           None)
     expect("the held licence label again on its line",
            changed(DOCKERFILE, 'package.license="AGPL-3.0-or-later" \\\n',
                    'package.license="AGPL-3.0-or-later" io.artifacthub.package.license="MIT" \\\n'),
@@ -1308,7 +1316,8 @@ def main(argv):
         print("  %s: %s" % (what, own_value(kind, texts[path])[0]))
     scanned = [p for p in texts if in_scope(p) and field_lines_of(p)]
     print("and no other line of the %d files the scan reads - those of %s, by the kind of file - is a licence field, nor "
-          "is anything after the field on the line of each" % (len(scanned), ", ".join(SCANNED_DIRECTORIES + SCANNED_FILES)))
+          "is there one after the field read on the line of each" % (
+              len(scanned), ", ".join(SCANNED_DIRECTORIES + SCANNED_FILES)))
     return 0
 
 
