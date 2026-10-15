@@ -3515,7 +3515,9 @@ def main(argv):
 
 def self_test():
     """Each rule this script reads, broken in a copy of the source, must change
-    what it writes - so that a script that has stopped seeing the source fails."""
+    what it writes or stop it - so that a script that has stopped seeing the
+    source fails - and the documents' index must say what it holds as the
+    matrix does."""
     failures = []
     base = {}
     for rel in [REST_H, REST_CPP, REPORTS_CPP, ROLE_CPP, WEB_CPP, "Common/Application/RoleManager.h"] \
@@ -3925,6 +3927,15 @@ def self_test():
           "         set |= Bit(RolePermission::ManageAccounts);",
           "         set |= Bit(RolePermission::ManageAccounts);" + nl + "         // set |= Bit(RolePermission::ManageServer);",
           lambda d: d.roles == decision.roles)
+
+    # 14. The documents' index says what is held as the matrix does: where its
+    # row for the matrix names ProcessRequest_, it names the part of it held.
+    with open(os.path.join(ROOT, "hmailserver", "docs", "README.md"), encoding="utf-8") as handle:
+        row = [line for line in handle if line.startswith("| [WebAuthorisationMatrix.md](WebAuthorisationMatrix.md) |")]
+    held = "`ProcessRequest_` from the end of the anonymous routes to the handler"
+    expect("the documents' index has one row for the matrix", len(row) == 1)
+    expect("the documents' index names the part of ProcessRequest_ the matrix holds wherever it names ProcessRequest_",
+           all(r.count("`ProcessRequest_`") == r.count(held) for r in row))
 
     if failures:
         for failure in failures:
