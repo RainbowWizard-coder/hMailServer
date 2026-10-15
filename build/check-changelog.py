@@ -286,7 +286,9 @@ def self_test():
         '  on 13 October 2026 and thirteen taken out on 14 and 15 October, leaving 491 on 15 October 2026; the entry gives',
         '  the 500 as 6 October\'s now.',
         '- **Another file.** The file of this entry holds 7 entries, the 7 the header counts.', '',
-        '- **The exceptions\' parts.** `.gitlab/security-exceptions.yml` has two:',
+        # An entry whose indented parts name the file through its first line, which holds a figure
+        # inside a name: no count.
+        '- **The exceptions\' parts.** `.gitlab/security-exceptions.yml` has two, the batch48 entries among them:',
         '  - its groups, each with a comment;', '  - its header, which counts the entries by scan.', '',
         '- **An entry.** Text that goes on', '  over two lines.', '', '---', '',
         '## [6.3.5](https://gitlab.com/p/h/-/releases/v6.3.5) - 2026-09-28', '', 'Its introduction.', '',
@@ -337,6 +339,8 @@ def self_test():
             'counts its entries by scan and by group (500\n  on 6 October 2026)', 'counts its 500 entries by scan and\n  by group'),
         'the same, the number and its noun on two lines': good.replace(
             'counts its entries by scan and by group (500\n  on 6 October 2026)', 'counts its 500\n  entries by scan and by group'),
+        'the same, its accepted findings counted, the noun on two lines': good.replace(
+            'counts its entries by scan and by group (500\n  on 6 October 2026)', 'counts its 469 accepted\n  findings by scan and by group'),
         'the same, the file named without its folder, its exceptions counted': good.replace(
             '`.gitlab/security-exceptions.yml`\'s header counts its entries by scan and by group (500\n  on 6 October 2026)',
             '`security-exceptions.yml`\'s header counts its 491 exceptions'),
@@ -362,6 +366,8 @@ def self_test():
             '  - its header, which counts the entries by scan.', '  - its header, which counts 491 entries by scan.'),
         'a day nine words before its count': good.replace('read by its parser - held 501', 'read by its own parser - held 501'),
         'a day nine words after its count': good.replace('as its parser read and counted', 'as its own parser read and counted'),
+        'a count in the bold first sentence of an entry, its day in the next': good.replace(
+            '- **The exceptions, counted.** On 14 October', '- **The exceptions file holds 501 entries.** On 14 October'),
     }
     cases.update(counts)
     for name, text in cases.items():
@@ -369,9 +375,18 @@ def self_test():
         if not found:
             print('FAIL: not refused: %s' % name)
             failures += 1
-        elif name in counts and not any('of .gitlab/security-exceptions.yml with no day' in p for p in found):
-            print('FAIL: refused, but not for its count: %s: %s' % (name, found))
-            failures += 1
+        elif name in counts:
+            mine = [p for p in found if 'of .gitlab/security-exceptions.yml with no day' in p]
+            if not mine:
+                print('FAIL: refused, but not for its count: %s: %s' % (name, found))
+                failures += 1
+            # Each at the line its count's figure stands on.
+            for p in mine:
+                at = re.match(r'line (\d+): the Unreleased section gives "([\d,]+)', p)
+                line = text.split('\n')[int(at.group(1)) - 1] if at else ''
+                if not at or not re.search(r'(?<![\w.,])%s(?![\d,])' % re.escape(at.group(2)), line):
+                    print('FAIL: refused at a line that does not hold its count: %s: %s' % (name, p[:90]))
+                    failures += 1
     print('self-test: %d failure(s)' % failures)
     return 1 if failures else 0
 
