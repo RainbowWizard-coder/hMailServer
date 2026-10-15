@@ -4,7 +4,7 @@ The Control Deck and the webmail: the framework decision
 **Decided 12 October 2026; nothing of it is built yet: the rebuild it plans is
 for 6.4.** This is row A1 of Programme A, the rebuild of the Control Deck and
 the webmail on a strongly typed framework that escapes by construction
-(Roadmap3 row R3-6-framework). 6.3.7 ships row A1 itself - this decision, the
+(Roadmap3 row 115). 6.3.7 ships row A1 itself - this decision, the
 threat model and the authorisation matrix with its checker - and nothing of the
 rebuild. It records the criteria, the candidates and their scores, the decision
 and why, what was rejected and why, the migration plan for rows A2 to A4, the
