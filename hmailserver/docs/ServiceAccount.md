@@ -530,11 +530,25 @@ folder, then `Bin`, then `ControlPanel`:
    On an installation without the server - the Control Panel alone - leave out the
    second line, and step 4: there is no service, so its SID names no account, and
    `icacls` refuses a SID that names no account, and the rest of its line with it
-   (exit 1332). Anybody else's goes by the name the list gives, in quotes (where it
-   gives a SID, `*` and the SID). A `(DENY)` entry only takes away, and stays.
+   (exit 1332). Anybody else's goes by the name the list gives, in quotes - but the
+   two application package groups by their SIDs, `*S-1-15-2-1` and `*S-1-15-2-2`,
+   since `icacls` does not take them by the names it gives them,
+   `APPLICATION PACKAGE AUTHORITY\ALL APPLICATION PACKAGES` and
+   `APPLICATION PACKAGE AUTHORITY\ALL RESTRICTED APPLICATION PACKAGES`. A `(DENY)`
+   entry only takes away, and stays.
 
    ```
    icacls "C:\hMailServer" /remove:g "<name>"
+   ```
+
+   Where the list gives a SID and no name, Windows found no account for it - one
+   deleted, one of a domain it cannot reach, the service's where there is no
+   service - and `icacls` cannot take the entry away. PowerShell can, with the SID in
+   place of `<SID>`; the line takes away that SID's allow entries of the folder's
+   own, and nothing else:
+
+   ```
+   powershell -NoProfile -Command "$d = Get-Item -LiteralPath 'C:\hMailServer'; $a = $d.GetAccessControl('Access'); $a.RemoveAccessRuleAll((New-Object Security.AccessControl.FileSystemAccessRule ([Security.Principal.SecurityIdentifier]'<SID>'), 'FullControl', 'Allow')); $d.SetAccessControl($a)"
    ```
 
 3. Replace what it inherits, and give SYSTEM and the Administrators full control and
@@ -555,13 +569,14 @@ folder, then `Bin`, then `ControlPanel`:
 `(OI)(CI)(F)`, the Users' `(OI)(CI)(RX)`, on `Bin` and `ControlPanel` the service's
 `(OI)(CI)(RX)` where the server is installed, and any deny entry, which stays -
 nothing marked `(I)` and nobody else's. The SIDs are SYSTEM's, the Administrators',
-the Users' and the service's, the same in every language of Windows; where the
-folder above lets no user read the installation, leave out the Users' grant at the
-end of step 3, as `/ProtectFolders` does. On the program folder each change of its
-entries reaches everything in it, the message store included where 6.3.5 or earlier
-left `Data` inheriting - minutes there, and `Data` then readable by Users until the
-upgrade's `/ProtectFolders` makes it private. The service's Modify on
-`Bin\hMailServerApiKeys.ini` is the file's own, and stays.
+the Users', the service's and the two application package groups', the same in
+every language of Windows; where the folder above lets no user read the
+installation, leave out the Users' grant at the end of step 3, as `/ProtectFolders`
+does. On the program folder each change of its entries reaches everything in it,
+the message store included where 6.3.5 or earlier left `Data` inheriting - minutes
+there, and `Data` then readable by Users until the upgrade's `/ProtectFolders` makes
+it private. The service's Modify on `Bin\hMailServerApiKeys.ini` is the file's own,
+and stays.
 
 The steps keep anybody else from changing the three folders themselves from then
 on; they undo nothing changed before, and a file or folder in them keeps its owner
@@ -571,9 +586,10 @@ owner other than `BUILTIN\Administrators`, `NT AUTHORITY\SYSTEM` or
 `NT SERVICE\TrustedInstaller` for one of the three, or
 `dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel"` named such an
 owner for anything in them; or where step 2 took away an entry that gave anybody
-more than `(RX)`, the Users' and the service's included: a program in them may have
-been changed already. Reinstall the programs from the release into a folder only the
-administrators may change, rather than rely on the steps.
+more than `(RX)`, the Users' and the service's included, or could not take one
+away: a program in them may have been changed already. Reinstall the programs from
+the release into a folder only the administrators may change, rather than rely on
+the steps.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,
