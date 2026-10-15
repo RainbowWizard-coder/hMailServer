@@ -329,7 +329,10 @@ its bytes, its hex, the line, and the line opened again to read the key back - a
 over (`OPENSSL_cleanse`) before they are freed, an error or an exception on the way included;
 the export does the same with the file's text. The one copy kept, the key a process holds
 once it has read it from its line - the service for as long as it runs, a verb until it
-returns - is written over as the process ends. Until 6.3.7 the import read the file through
+returns - is written over as the process ends, unless a stop has to end the process at once
+because it gave up waiting for a thread or left a database connection in use
+(`TerminateProcess` on Windows, `std::_Exit` on Linux): that end runs no destructor, and the
+key goes with the rest of the process's memory. Until 6.3.7 the import read the file through
 the C runtime and the server's text-file reader, and their buffers and the copies of the
 whole file made on the way to the one that was written over - the key's line in each - went
 back to the heap as they stood; so did the key the process held, the whole of it, at every

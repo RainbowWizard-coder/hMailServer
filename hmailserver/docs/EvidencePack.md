@@ -311,12 +311,7 @@ for byte after GitHub suspended the project's account (until 26 September 2026
 the script fetched GitHub's copy, which has answered 404 since 18 September), and
 the second, the MariaDB Connector/C 3.4.11 client built from MariaDB's source, has
 been there alone
-([ThirdPartyBinaries.md](ThirdPartyBinaries.md)). One more thing is not in
-place: 7-Zip 19.00, which the Windows backup runs, is from 2019:
-ThirdPartyBinaries.md names it the file most overdue a refresh. That
-document's narrative still describes the files as committed, and is being
-rewritten under Roadmap2's *Forge-neutral text in the product*; the JSON is the
-current record.
+([ThirdPartyBinaries.md](ThirdPartyBinaries.md)).
 
 OpenSSL, Boost and libpq are built from their upstream source archives by
 `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, each

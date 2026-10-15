@@ -1,7 +1,7 @@
 {
   "schema": "hmailserver-third-party-binaries/1",
   "policy": "hmailserver/docs/ThirdPartyBinaries.md",
-  "note": "Every binary file committed to this repository is listed here. The verify-binary-provenance workflow fails if a listed file changes hash, if a listed file disappears, or if a binary appears that is not listed. Do not edit sha256 by hand - see the policy document.",
+  "note": "Every binary file the Windows builds and installers use, or the repository commits, is listed here with its disposition (see dispositions): committed on purpose, or not in git and fetched, gathered, downloaded, generated or copied from the Windows installation by the script its disposition names. build/check-binary-manifest.py, which the checkers job runs in every pipeline, fails when a tracked file is a binary that is not listed, when a file listed as not in git is tracked, when one listed as committed is not, or when a committed file's bytes are not its sha256. Do not edit a hash by hand - see the policy document.",
   "artifacts": [
     {
       "path": "hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe",
