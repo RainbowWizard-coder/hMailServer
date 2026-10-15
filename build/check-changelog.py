@@ -369,6 +369,9 @@ def self_test():
         'an entry whose indented part alone names the file, its first giving the count': good.replace(
             '- **An entry of parts.** It has three:', '- **An entry of parts.** The file holds 491 entries, in three:').replace(
             '  - the second\n', '  - the second, of `.gitlab/security-exceptions.yml`\n'),
+        'a paragraph indented under an entry whose first line names the file': good.replace(
+            '  - its header, which counts the entries by scan.\n\n',
+            '  - its header, which counts the entries by scan.\n\n  Its second paragraph: the file holds 491 entries.\n\n'),
         'a day nine words before its count': good.replace('read by its parser - held 501', 'read by its own parser - held 501'),
         'a day nine words after its count': good.replace('as its parser read and counted', 'as its own parser read and counted'),
         'a count in the bold first sentence of an entry, its day in the next': good.replace(
