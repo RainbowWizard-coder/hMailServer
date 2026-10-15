@@ -42,12 +42,13 @@ Checked:
             every document one the help carries and under one page only -
             read by the generator's own reader, which refuses the same. With
             --wiki and a clone of the wiki's repository, it is also held to
-            the wiki: its pages are exactly the table's, and each names in
-            its text every document the table lists under it - so a page the
-            wiki renamed or dropped, and a document a page no longer covers,
-            fail here rather than in a pane as GitLab's "page does not
-            exist", which every document but two opened while the link was
-            made of the document's name.
+            the wiki, at the branch the wiki serves (--wiki, below): its
+            pages are exactly the table's, and each names in its text every
+            document the table lists under it - so a page the wiki renamed
+            or dropped, and a document a page no longer covers, fail here
+            rather than in a pane as GitLab's "page does not exist", which
+            every document but two opened while the link was made of the
+            document's name.
 
 What it reads the pages from, and so what it would not notice: a Control
 Panel page is a Page("key" call in NavigationMap.cs (HelpMapTests holds the
@@ -58,26 +59,44 @@ if (head === '...') test in Portal.js's route(), so a route written as a
 case label or looked up in a table would be missed. Keep the three spelled
 as they are, or teach this file the new spelling in the same change.
 
-Usage:  python build/check-help-map.py [--self-test] [--wiki <clone of hmailserver.wiki> [--ref <branch>]]
+Usage:  python build/check-help-map.py [--self-test] [--wiki <clone of hmailserver.wiki> [--ref <ref>]]
   --self-test runs the same check over a copy of the maps with an entry
   naming a heading that is not there, one naming a document that is not, a
   tab its page does not build, a reference-only document named as a tab is,
   and the service account's document (whose title is not the card's word for
-  word) without the link that reaches it, and over copies of the wiki table
-  and of a wiki with a document that is not one, a document under two pages,
-  a page the wiki does not have, a page of the wiki the table does not list
-  and a page that does not name a document listed under it, and fails unless
-  each is refused: the negative controls.
-  --wiki also holds the wiki table to the wiki's repository at --ref, by
-  default gitlab/master (the remote-tracking branch of a clone whose remote
-  is named gitlab; master in a plain clone).
+  word) without the link that reaches it, over copies of the wiki table and
+  of a wiki with a document that is not one, a document under two pages, a
+  page the wiki does not have, a page of the wiki the table does not list
+  and a page that does not name a document listed under it, and over wikis
+  it makes with git in a temporary folder - a page pushed to master alone
+  while the wiki serves main, a remote whose HEAD names another branch than
+  the one its clone recorded, a clone behind its remote and a clone with no
+  remote to ask - and fails unless each is refused, and unless a plain
+  clone of a wiki whose two branches agree is accepted: the negative
+  controls.
+  --wiki also holds the wiki table to the wiki's repository. By default it
+  is held to the branch the wiki serves - the one its remote's HEAD names,
+  which GitLab renders /-/wikis/<page> from - and, while that is another
+  branch, to master as well, where the wiki's edits are pushed, so that a
+  page added or renamed there fails here before it is served rather than
+  opening "page does not exist" in every pane once it is (on 15 October 2026
+  GitLab served main, eight commits behind master). The remote is the
+  clone's gitlab, or origin in a plain clone, and it is asked (git ls-remote
+  --symref), since the clone's own record of the remote's HEAD is written
+  when the clone is made and no fetch moves it; each branch is read from the
+  clone's remote-tracking branch, which must be where the remote has it, so
+  fetch first. --ref <ref> holds the table to that one ref of the clone
+  instead, read as the clone has it, with nothing asked of the remote.
 """
 import importlib.util
 import io
 import os
 import re
+import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -325,39 +344,136 @@ def check(maps, pages, reference, generator, cp, reached_from=None, not_the_page
     return problems
 
 
-def wiki_problems(rows, wiki):
+def wiki_problems(rows, wiki, at=None):
     """What is wrong with the wiki table's rows against the wiki itself, given as {page: text} for every .md
     file at the top of its repository: the table must list exactly the wiki's pages, and each page must name
     in its text - by file name, Backup.md - every document listed under it, which is how a page says it was
-    made from one, whether in its opening note or in the section that links it."""
+    made from one, whether in its opening note or in the section that links it. at, when given, is the ref
+    of the wiki's repository the pages were read at, which each problem names."""
     problems = []
+    there = "" if at is None else " at %s" % at
     listed = set(page for page, docs, number in rows)
     for page in sorted(set(wiki) - listed):
-        problems.append("wiki: the wiki has a page %s, which build/help-wiki-pages.txt does not list" % page)
+        problems.append("wiki: the wiki%s has a page %s, which build/help-wiki-pages.txt does not list" % (there, page))
     for page, docs, number in rows:
         where = "build/help-wiki-pages.txt:%d" % number
         if page not in wiki:
-            problems.append("%s: the wiki has no page %s, so the documents listed under it would open GitLab's "
-                            "\"page does not exist\"" % (where, page))
+            problems.append("%s: the wiki%s has no page %s, so the documents listed under it would open GitLab's "
+                            "\"page does not exist\"" % (where, there, page))
             continue
         for doc in docs:
             if doc not in wiki[page]:
-                problems.append("%s: the wiki's page %s does not name %s, which the table says it was made from"
-                                % (where, page, doc))
+                problems.append("%s: the wiki's page %s%s does not name %s, which the table says it was made from"
+                                % (where, page, there, doc))
     return problems
 
 
-def read_wiki(clone, ref):
+# The branch the project pushes its edits of the wiki to. While the wiki serves another one - GitLab served main
+# on 15 October 2026, and every edit since 27 September 2026 was on master alone - the table is held to both:
+# to the branch served, whose pages the panes open, and to this one, whose pages they open once it is served.
+EDIT_BRANCH = "master"
+
+
+def git_text(clone, args, env=None, timeout=None):
+    """git -C <clone> <args>: what it wrote, as text. Raises OSError (no git), CalledProcessError or
+    TimeoutExpired."""
+    return subprocess.run(["git", "-C", clone] + list(args), capture_output=True, check=True, env=env,
+                          timeout=timeout).stdout.decode("utf-8", "replace")
+
+
+def why(error):
+    """What a git command that failed said, on one line, or the error itself."""
+    said = (getattr(error, "stderr", None) or b"").decode("utf-8", "replace").strip()
+    return " ".join(said.split()) or str(error)
+
+
+def read_wiki(clone, ref, env=None):
     """{page: text} for every .md file at the top of the wiki's repository at ref, read with git; or a problem
     saying why it could not be read."""
-    def git(*args):
-        return subprocess.run(["git", "-C", clone] + list(args), capture_output=True, check=True).stdout
     try:
-        names = [n for n in git("ls-tree", "-z", "--name-only", ref).decode("utf-8").split("\0") if n.endswith(".md")]
-        return dict((name[:-3], git("show", "%s:%s" % (ref, name)).decode("utf-8", "replace")) for name in names), None
+        listed = git_text(clone, ["ls-tree", "-z", "--name-only", ref], env).split("\0")
+        names = [name for name in listed if name.endswith(".md")]
+        return dict((name[:-3], git_text(clone, ["show", "%s:%s" % (ref, name)], env)) for name in names), None
     except (OSError, subprocess.CalledProcessError) as error:
-        detail = getattr(error, "stderr", b"") or b""
-        return None, "wiki: %s at %s could not be read: %s" % (clone, ref, detail.decode("utf-8", "replace").strip() or error)
+        return None, "wiki: %s at %s could not be read: %s" % (clone, ref, why(error))
+
+
+def served_branches(remote, advertised):
+    """The wiki's branches to hold the table to, from what git ls-remote --symref <remote> wrote: the branch its
+    HEAD names, which is the one GitLab renders the pages from, and, while that is another, EDIT_BRANCH - each with
+    the commit the remote has it at, [(branch, commit)]; or a problem when HEAD names no branch the remote has."""
+    served, heads = None, {}
+    for line in advertised.splitlines():
+        if line.startswith("ref: ") and line.endswith("\tHEAD"):
+            target = line[len("ref: "):-len("\tHEAD")]
+            if target.startswith("refs/heads/"):
+                served = target[len("refs/heads/"):]
+            continue
+        commit, _, name = line.partition("\t")
+        if name.startswith("refs/heads/"):
+            heads[name[len("refs/heads/"):]] = commit.strip()
+    if served is None or served not in heads:
+        return None, ("wiki: %s does not say which branch the wiki serves - its HEAD names no branch it has; name the "
+                      "ref to hold the table to with --ref" % remote)
+    branches = [served] + ([EDIT_BRANCH] if served != EDIT_BRANCH and EDIT_BRANCH in heads else [])
+    return [(branch, heads[branch]) for branch in branches], None
+
+
+def wiki_refs(clone, env=None):
+    """The refs of the clone to hold the table to when --ref names none, [(ref, what it is)] - the remote-tracking
+    branches of served_branches - and the problems that keep it from being held to them, [problem]: one of the two
+    lists is empty. The remote is the clone's gitlab, as the project's clone names the group's wiki, or else
+    origin, a plain clone's; it is asked which branch it serves, since refs/remotes/<remote>/HEAD, the clone's own
+    record of that, is written when the clone is made and no fetch moves it (on 15 October 2026 the maintainer's
+    clone recorded master for its origin, which served main); and each branch must be in the clone where the
+    remote has it, so that what is read is what GitLab serves now and not what the clone last fetched."""
+    try:
+        remotes = git_text(clone, ["remote"], env).split()
+    except (OSError, subprocess.CalledProcessError) as error:
+        return [], ["wiki: %s cannot be read as a clone: %s" % (clone, why(error))]
+    remote = next((name for name in ("gitlab", "origin") if name in remotes), None)
+    if remote is None:
+        return [], ["wiki: %s has no remote named gitlab or origin to ask which branch the wiki serves (it has %s); "
+                    "name the ref to hold the table to with --ref" % (clone, ", ".join(remotes) or "none")]
+    try:
+        advertised = git_text(clone, ["ls-remote", "--symref", remote], env, timeout=120)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        return [], ["wiki: %s could not be asked which branch the wiki serves: %s; with no way to it, name the ref to "
+                    "hold the table to with --ref" % (remote, why(error))]
+    branches, unknown = served_branches(remote, advertised)
+    if unknown:
+        return [], [unknown]
+    refs, problems = [], []
+    for branch, commit in branches:
+        ref = "%s/%s" % (remote, branch)
+        try:
+            have = git_text(clone, ["rev-parse", "--verify", "--quiet", "refs/remotes/%s^{commit}" % ref], env).strip()
+        except (OSError, subprocess.CalledProcessError):
+            have = ""
+        if have != commit:
+            problems.append("wiki: the clone's %s is %s, and the wiki's %s is at %s: fetch (git -C %s fetch %s) and "
+                            "run this again" % (ref, "at " + have[:12] if have else "not there", branch, commit[:12],
+                                                clone, remote))
+        refs.append((ref, "the branch the wiki serves" if not refs else "the branch its edits are pushed to"))
+    return ([], problems) if problems else (refs, [])
+
+
+def wikis_problems(rows, wikis):
+    """What is wrong with the table against each branch of the wiki read, [(ref, what it is, {page: text})], every
+    problem naming its ref; and, when the branch served and the edits' branch hold different pages, that no table
+    holds for both - the panes open the served branch's, and the other's once it is served."""
+    problems = []
+    for ref, what, wiki in wikis:
+        problems += wiki_problems(rows, wiki, ref)
+    if len(wikis) == 2:
+        (served_ref, _, served), (other_ref, _, other) = wikis
+        only = ((served_ref, sorted(set(served) - set(other))), (other_ref, sorted(set(other) - set(served))))
+        differ = ["only %s has %s" % (ref, ", ".join(pages)) for ref, pages in only if pages]
+        if differ:
+            problems.append("wiki: %s, the branch the wiki serves, and %s, the branch its edits are pushed to, hold "
+                            "different pages (%s): the panes open what %s holds, so no table holds for both until the "
+                            "two branches hold the same pages" % (served_ref, other_ref, "; ".join(differ), served_ref))
+    return problems
 
 
 def wiki_self_test(generator):
@@ -404,6 +520,139 @@ def wiki_self_test(generator):
     if len(refused) < len(names) - 2:
         failures.append("the old link, the document's own name, was accepted for %d of %d documents"
                         % (len(names) - len(refused), len(names)))
+    return failures
+
+
+def remove_tree(path):
+    """shutil.rmtree, through the read-only files git leaves on Windows."""
+    def again(function, name, *ignored):
+        os.chmod(name, stat.S_IWRITE)
+        function(name)
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=again)
+    else:
+        shutil.rmtree(path, onerror=again)
+
+
+def wiki_branch_self_test():
+    """The negative controls of the branch --wiki holds the table to, over wikis made with git in a temporary
+    folder, each a bare repository standing for GitLab's with a clone of it: a page pushed to master alone while
+    the wiki serves main, and listed in the table, is refused by the branch served - the default of up to October
+    2026, gitlab/master, accepted it, though every pane would have opened "page does not exist" for it; a remote
+    whose HEAD has moved to master since its clone was made is held at master, not at the main the clone
+    recorded; a clone behind its remote, and a clone with no remote gitlab or origin, are refused; and a plain
+    clone, whose remote is origin, of a wiki whose two branches hold the same pages is accepted - which that
+    default refused as "Not a valid object name gitlab/master" - so a check that refused every clone fails too."""
+    failures = []
+    work = tempfile.mkdtemp(prefix="check-help-map-")
+    try:
+        # git as nobody in particular: no system or user configuration (no signing, no hooks, no rewritten
+        # addresses), a fixed identity and date.
+        config = os.path.join(work, "gitconfig")
+        io.open(config, "w").close()
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=config, GIT_CONFIG_NOSYSTEM="1", GIT_TERMINAL_PROMPT="0",
+                   GIT_AUTHOR_NAME="check-help-map", GIT_AUTHOR_EMAIL="check-help-map@example.invalid",
+                   GIT_AUTHOR_DATE="2026-10-15T12:00:00Z", GIT_COMMITTER_NAME="check-help-map",
+                   GIT_COMMITTER_EMAIL="check-help-map@example.invalid", GIT_COMMITTER_DATE="2026-10-15T12:00:00Z")
+
+        def git(*args, **given):
+            return subprocess.run(["git"] + list(args), capture_output=True, check=True, env=env,
+                                  **given).stdout.decode("utf-8", "replace").strip()
+
+        pages = {"Home": "The wiki's home page.",
+                 "Backup-and-Restore": "Brought up against hmailserver/docs/Backup.md."}
+        rows = [("Backup-and-Restore", ["Backup.md"], 1), ("Home", [], 2)]
+        added = {"Setup-Checklist": "Written from hmailserver/docs/SetupChecklist.md."}
+        rows_added = rows + [("Setup-Checklist", ["SetupChecklist.md"], 3)]
+
+        def commit(bare, branch, tree_pages, parent=None):
+            entries = "".join("100644 blob %s\t%s.md\n" % (git("-C", bare, "hash-object", "-w", "--stdin",
+                                                               input=text.encode("utf-8")), name)
+                              for name, text in sorted(tree_pages.items()))
+            tree = git("-C", bare, "mktree", input=entries.encode("utf-8"))
+            made = git("-C", bare, "commit-tree", tree, "-m", "The wiki's pages", *(["-p", parent] if parent else []))
+            git("-C", bare, "update-ref", "refs/heads/" + branch, made)
+            return made
+
+        def remote(name, master_adds=None):
+            """GitLab's repository of a wiki: main, and master with the pages added, HEAD naming main."""
+            bare = os.path.join(work, name + ".git")
+            git("init", "-q", "--bare", bare)
+            main = commit(bare, "main", pages)
+            commit(bare, "master", dict(pages, **(master_adds or {})), main)
+            git("-C", bare, "symbolic-ref", "HEAD", "refs/heads/main")
+            return bare
+
+        def clone(bare, name, origin="origin"):
+            path = os.path.join(work, name)
+            git("clone", "-q", "--no-checkout", "-o", origin, bare, path)
+            return path
+
+        def held(path, table):
+            """The refs the default holds the table to, and what it finds wrong, as main() reads them."""
+            refs, problems = wiki_refs(path, env)
+            wikis = []
+            for ref, what in refs:
+                wiki, unreadable = read_wiki(path, ref, env)
+                if unreadable:
+                    problems.append(unreadable)
+                else:
+                    wikis.append((ref, what, wiki))
+            return [ref for ref, what in refs], problems + wikis_problems(table, wikis)
+
+        # A page pushed to master alone, as the wiki's edits are, and listed in the table; GitLab serves main.
+        ahead = clone(remote("ahead", added), "ahead", "gitlab")
+        if wiki_problems(rows_added, read_wiki(ahead, "gitlab/master", env)[0] or {}):
+            failures.append("the wiki made for the page on master alone is not one gitlab/master alone accepts")
+        refs, problems = held(ahead, rows_added)
+        if refs != ["gitlab/main", "gitlab/master"]:
+            failures.append("a clone whose remote gitlab serves main was held to %s, not to gitlab/main and "
+                            "gitlab/master: %s" % (refs, "; ".join(problems)))
+        if not any("the wiki at gitlab/main has no page Setup-Checklist," in p for p in problems) or \
+                not any("hold different pages (only gitlab/master has Setup-Checklist)" in p for p in problems):
+            failures.append("a page pushed to master alone, which the wiki does not serve, was accepted: %s"
+                            % ("; ".join(problems) or "no problem found"))
+
+        # A plain clone of a wiki whose two branches hold the same pages.
+        same = remote("same")
+        refs, problems = held(clone(same, "plain"), rows)
+        if refs != ["origin/main", "origin/master"] or problems:
+            failures.append("a plain clone of a wiki whose branches agree was held to %s and refused: %s"
+                            % (refs, "; ".join(problems) or "no problem found"))
+
+        # The remote's HEAD moved to master after the clone recorded main.
+        moved = remote("moved")
+        recorded = clone(moved, "moved")
+        git("-C", moved, "symbolic-ref", "HEAD", "refs/heads/master")
+        if git("-C", recorded, "symbolic-ref", "refs/remotes/origin/HEAD") != "refs/remotes/origin/main":
+            failures.append("the clone made before the remote's HEAD moved does not record main")
+        refs, problems = held(recorded, rows)
+        if refs != ["origin/master"] or problems:
+            failures.append("a clone whose remote now serves master was held to %s, as the clone recorded it, not "
+                            "to origin/master: %s" % (refs, "; ".join(problems) or "no problem found"))
+
+        # A clone behind its remote: main moved on after it fetched.
+        behind_remote = remote("behind")
+        behind = clone(behind_remote, "behind", "gitlab")
+        commit(behind_remote, "main", dict(pages, **{"Late-Page": "Pushed after the clone fetched."}),
+               git("-C", behind_remote, "rev-parse", "refs/heads/main"))
+        refs, problems = held(behind, rows + [("Late-Page", [], 3)])
+        if refs or not any("the clone's gitlab/main is at" in p and "fetch" in p for p in problems):
+            failures.append("a clone behind its remote was read as the wiki: held to %s, %s"
+                            % (refs, "; ".join(problems) or "no problem found"))
+
+        # A clone whose only remote has another name: nothing to ask.
+        renamed = clone(same, "renamed")
+        git("-C", renamed, "remote", "rename", "origin", "upstream")
+        refs, problems = held(renamed, rows)
+        if refs or not any("has no remote named gitlab or origin" in p for p in problems):
+            failures.append("a clone with no remote gitlab or origin was held to %s: %s"
+                            % (refs, "; ".join(problems) or "no problem found"))
+    except (OSError, subprocess.CalledProcessError) as error:
+        failures.append("the wikis of the default branch's negative controls could not be made with git: %s"
+                        % why(error))
+    finally:
+        remove_tree(work)
     return failures
 
 
@@ -473,7 +722,8 @@ def main():
     generator = load_generator()
     maps, pages, reference, cp = parse_maps()
     if "--self-test" in sys.argv:
-        failures = self_test(maps, pages, reference, generator, cp) + wiki_self_test(generator)
+        failures = (self_test(maps, pages, reference, generator, cp) + wiki_self_test(generator)
+                    + wiki_branch_self_test())
         for failure in failures:
             print("  FAIL  " + failure)
         if failures:
@@ -483,10 +733,22 @@ def main():
     rows = generator.read_wiki_table()
     problems = check(maps, pages, reference, generator, cp) + generator.wiki_table_problems(rows, generator.page_names())
     clone = option("--wiki")
-    ref = option("--ref") or "gitlab/master"
+    ref = option("--ref")
+    held = ""
     if clone is not None:
-        wiki, unreadable = read_wiki(clone, ref)
-        problems += [unreadable] if unreadable else wiki_problems(rows, wiki)
+        # The ref named, read as the clone has it; or the branch the wiki serves, and while that is another the
+        # branch its edits are pushed to, each where the remote has it.
+        refs, unusable = ([(ref, "the ref named")], []) if ref is not None else wiki_refs(clone)
+        problems += unusable
+        wikis = []
+        for at, what in refs:
+            wiki, unreadable = read_wiki(clone, at)
+            if unreadable:
+                problems.append(unreadable)
+            else:
+                wikis.append((at, what, wiki))
+        problems += wikis_problems(rows, wikis)
+        held = " (held to %s at %s)" % (clone, " and ".join("%s (%s)" % (at, what) for at, what in refs))
     for problem in problems:
         print("  FAIL  " + problem)
     if problems:
@@ -497,7 +759,7 @@ def main():
           "mapped; %d documents, %d reference-only; %d of the documents have a wiki page, among the wiki's %d pages%s" % (
               len(maps["Control Panel"]), sum(1 for d, h in maps["Control Panel"].values() if d is None), len(cp["tabs"]),
               len(maps["Deck"]), len(maps["webmail"]), len(generator.page_names()), len(reference), with_page, len(rows),
-              " (held to %s at %s)" % (clone, ref) if clone is not None else ""))
+              held))
     return 0
 
 

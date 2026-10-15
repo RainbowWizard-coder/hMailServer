@@ -125,18 +125,31 @@ It holds the wiki table too, `build/help-wiki-pages.txt`, through the
 generator's own reader: every page of the wiki named once and in the form a
 wiki page's name takes, every document listed under a page one the help
 carries, and no document under two pages. A pipeline has no copy of the wiki,
-whose repository is another; given one, `--wiki <clone of hmailserver.wiki>
-[--ref <branch>]` (by default `gitlab/master`) also holds the table to the
-wiki itself: its pages are exactly the table's, and each names in its text -
-in its opening note, or in the section that links it - every document listed
-under it. A page the wiki renames or drops, and a document a page no longer
-covers, then fail there, not in a pane as GitLab's "page does not exist". The
-self-test's negative controls include the table's: a document the help does
-not carry, a document under two pages, a page the wiki does not have, a page
-of the wiki the table leaves out and a page that does not name a document
-listed under it, each of which must fail, and the link as it was made up to
-October 2026, the document's own name, which the wiki the table describes
-refuses for every document but two.
+whose repository is another; given one, `--wiki <clone of hmailserver.wiki>`
+also holds the table to the wiki itself: its pages are exactly the table's,
+and each names in its text - in its opening note, or in the section that
+links it - every document listed under it. A page the wiki renames or drops,
+and a document a page no longer covers, then fail there, not in a pane as
+GitLab's "page does not exist". The table is held to the branch the wiki
+serves, the one its remote's HEAD names, which GitLab renders the pages from,
+and while that is another branch to `master` as well, where the wiki's edits
+are pushed: on 15 October 2026 GitLab served `main`, eight commits behind
+`master`, so a page added on `master` alone would have opened "page does not
+exist" in every pane while a check of `master` passed. The remote is the
+clone's `gitlab`, or `origin` in a plain clone, and it is asked with
+`git ls-remote`, since a clone's own record of its remote's HEAD is written
+when the clone is made and no fetch moves it; each branch must be in the
+clone where the remote has it, so fetch first. `--ref <ref>` holds the table
+to that one ref of the clone instead. The self-test's negative controls
+include the table's: a document the help does not carry, a document under two
+pages, a page the wiki does not have, a page of the wiki the table leaves out
+and a page that does not name a document listed under it, each of which must
+fail, and the link as it was made up to October 2026, the document's own
+name, which the wiki the table describes refuses for every document but two.
+They include the branch's too, over wikis the self-test makes with git: a
+page on `master` alone while the wiki serves `main`, a remote whose HEAD has
+moved since its clone was made, a clone behind its remote and a clone with no
+remote to ask, each of which must fail, and a plain clone, which must pass.
 
 The panes
 ---------
@@ -262,8 +275,9 @@ What is tested
 
 * `build/check-help-map.py`, with `--self-test` as its negative control, and
   `build/generate-help-pages.py --check`, both in GitLab CI's checkers job;
-  `check-help-map.py --wiki` against a clone of the wiki, by hand, whenever
-  the wiki or the table changes.
+  `check-help-map.py --wiki` against a fetched clone of the wiki, at the
+  branch it serves (and `master`), by hand, whenever the wiki or the table
+  changes.
 * `RegressionTests/API/RestApiHelp.cs`: the list answers every document with
   its headings, as the repository's files have them, and with the wiki page
   `build/help-wiki-pages.txt` gives it, or none; a page answers its

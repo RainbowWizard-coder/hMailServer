@@ -28,14 +28,16 @@
 # README.md and DeckParity.md, which the help does not carry, never.
 #
 # When the wiki gains, loses or renames a page, or a page is made from another document, change this
-# file in the same change and run, with a clone of hmailserver.wiki:
-#   python build/check-help-map.py --wiki <the clone> [--ref <its branch>]
+# file in the same change and run, with a clone of hmailserver.wiki fetched from its remote:
+#   python build/check-help-map.py --wiki <the clone>
 #   python build/generate-help-pages.py
 # The first holds every line to the wiki - its pages are exactly these, and each names the documents
-# listed after it - and the second writes the two generated files.
+# listed after it - at the branch the wiki serves, which its remote's HEAD names and GitLab renders
+# the pages from, and while that is another branch at master too, where the wiki's edits are pushed
+# (--ref <ref> holds it to one ref instead); the second writes the two generated files.
 #
 # Checked against hmailserver.wiki at master 956183fada8a (5 October 2026) and main 0e084f7c24ab
-# (27 September 2026, the branch GitLab shows), which hold the same 74 pages, on 15 October 2026.
+# (27 September 2026, the branch GitLab serves), which hold the same 74 pages, on 15 October 2026.
 
 APIs-Reference
 Aliases-Lists-and-Public-Folders

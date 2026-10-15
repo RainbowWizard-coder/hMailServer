@@ -4127,10 +4127,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   address included, which GitLab redirects page by page; an address of an administrator's own gets the wiki's page
   names too, as the Advanced page's sentence under it now says, in the seventeen languages. `build/check-help-map.py`
   holds the table to the documents in every pipeline, and with `--wiki` to a clone of the wiki - its pages are the
-  table's, and each names the documents listed under it ([Help.md](hmailserver/docs/Help.md), "The wiki link").
-  `HelpMapTests`, `RestApiHelp`, the Deck's and the webmail's harnesses and the checker's self-test hold it; against
-  the pages before the fix, the harnesses' checks failed on `https://wiki.test/Backup`, `.../MailFlowRules` and
-  `.../OfflineMail`. Found by the release review of 6.3.7.
+  table's, and each names the documents listed under it - at the branch GitLab serves the wiki from, which its
+  remote's HEAD names, and while that is another at `master` too, where the wiki's edits are pushed
+  ([Help.md](hmailserver/docs/Help.md), "The checker" and "The wiki link"). `HelpMapTests`, `RestApiHelp`, the Deck's
+  and the webmail's harnesses and the checker's self-test hold it; against the pages before the fix, the harnesses'
+  checks failed on `https://wiki.test/Backup`, `.../MailFlowRules` and `.../OfflineMail`. Found by the release review
+  of 6.3.7.
 
 - **Fixed: German quotations closed with a straight typewriter quote.** 83 German texts opened a quotation with „
   and closed it with ", so the palette's placeholder read „Spam stoppen", DNS records „v=DMARC1" and the setup
