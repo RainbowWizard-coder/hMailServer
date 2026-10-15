@@ -509,5 +509,81 @@ namespace RegressionTests.IMAP
 
          simulator.Disconnect();
       }
+
+      // The first untagged line of a response that begins with the given text, or null.
+      private static string UntaggedLine(string response, string start)
+      {
+         foreach (string line in response.Split(new[] { "\r\n" }, StringSplitOptions.None))
+         {
+            if (line.StartsWith(start))
+               return line;
+         }
+
+         return null;
+      }
+
+      private static long FetchModSeq(ImapClientSimulator simulator, string tag, int message)
+      {
+         string response = simulator.SendSingleCommand(tag + " FETCH " + message + " (MODSEQ)");
+
+         const string marker = "MODSEQ (";
+         int start = response.IndexOf(marker, StringComparison.Ordinal);
+         Assert.Greater(start, -1, "The FETCH carried no MODSEQ item: " + response);
+         start += marker.Length;
+         return long.Parse(response.Substring(start, response.IndexOf(")", start, StringComparison.Ordinal) - start));
+      }
+
+      [Test]
+      [Description("RFC 7162 3.1.9: a SORT or UID SORT that names MODSEQ and finds messages ends its response with " +
+                   "their highest mod-sequence, as a SEARCH does, behind an OR as well; a SORT that names none, one " +
+                   "that finds nothing and a THREAD carry none.")]
+      public void TestSortNamingModSeqReportsTheHighestModSeq()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sortmodseq@example.test", "test");
+
+         var simulator = new ImapClientSimulator();
+         simulator.Connect();
+         simulator.LogonWithLiteral("sortmodseq@example.test", "test");
+
+         // Internal dates a day apart, so that ARRIVAL has one order.
+         simulator.SendSingleCommandWithLiteral("A01 APPEND INBOX \"20-Feb-2008 10:00:00 +0000\" {4}", "ABCD");
+         simulator.SendSingleCommandWithLiteral("A02 APPEND INBOX \"21-Feb-2008 10:00:00 +0000\" {4}", "EFGH");
+         simulator.SendSingleCommandWithLiteral("A03 APPEND INBOX \"22-Feb-2008 10:00:00 +0000\" {4}", "IJKL");
+         simulator.SendSingleCommand("A04 ENABLE CONDSTORE");
+         Assert.IsTrue(simulator.SelectFolder("INBOX"));
+         simulator.SendSingleCommand("A05 STORE 1:3 +FLAGS (\\Seen)");
+
+         long highest = Math.Max(FetchModSeq(simulator, "A06", 1),
+            Math.Max(FetchModSeq(simulator, "A07", 2), FetchModSeq(simulator, "A08", 3)));
+
+         string uids = UntaggedLine(simulator.SendSingleCommand("A09 UID SEARCH ALL"), "* SEARCH ").Substring("* SEARCH ".Length);
+
+         var wrong = new List<string>();
+
+         Action<string, string> expect = (command, line) =>
+         {
+            string got = UntaggedLine(simulator.SendSingleCommand(command), "* SORT");
+            if (got != line)
+               wrong.Add(command + " answered '" + got + "' where RFC 7162 gives '" + line + "'");
+         };
+
+         expect("A10 SORT (ARRIVAL) US-ASCII MODSEQ 1", "* SORT 1 2 3 (MODSEQ " + highest + ")");
+         expect("A11 SORT (REVERSE ARRIVAL) US-ASCII OR SEEN MODSEQ 1", "* SORT 3 2 1 (MODSEQ " + highest + ")");
+         expect("A12 UID SORT (ARRIVAL) US-ASCII MODSEQ 1", "* SORT " + uids + " (MODSEQ " + highest + ")");
+
+         // No MODSEQ key, and nothing found: no item.
+         expect("A13 SORT (ARRIVAL) US-ASCII SEEN", "* SORT 1 2 3");
+         expect("A14 SORT (ARRIVAL) US-ASCII OR NOT MODSEQ 1 LARGER 50000", "* SORT");
+
+         // RFC 7162 3.1.9: "THREAD responses are unchanged by the CONDSTORE extension".
+         string thread = UntaggedLine(simulator.SendSingleCommand("A15 THREAD ORDEREDSUBJECT US-ASCII MODSEQ 1"), "* THREAD");
+         if (thread == null || thread.Contains("MODSEQ"))
+            wrong.Add("A15 THREAD ORDEREDSUBJECT US-ASCII MODSEQ 1 answered '" + thread + "', where a THREAD carries no MODSEQ item");
+
+         simulator.Disconnect();
+
+         if (wrong.Count > 0)
+            Assert.Fail(string.Join("; ", wrong));
+      }
    }
 }

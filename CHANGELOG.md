@@ -5365,6 +5365,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   read from the command as parsed. A result that is empty still carries none (RFC 7162's example 16).
   `IMAP/Basics`'s `TestSearchModSeqIsReportedWhenNoMatchReachesTheKey` sends those four, with the value each must
   carry, and their controls; without the fix the four failed. Found by the release review of 6.3.7.
+- **Fixed: an IMAP `SORT` that named `MODSEQ` never ended its response with the highest mod-sequence of the messages it
+  returned.** RFC 7162 3.1.9 has a `SORT` or `UID SORT` that names a `MODSEQ` key and finds messages end its `* SORT`
+  line with `(MODSEQ n)`, as a `SEARCH` does; the server's never carried it. It does now, behind an `OR` as well, and a
+  `SORT` that names no `MODSEQ` key, or finds nothing, has none, as before. A `THREAD`'s response, which RFC 7162
+  leaves "unchanged by the CONDSTORE extension", still has none. `IMAP/Sort`'s
+  `TestSortNamingModSeqReportsTheHighestModSeq` holds a `SORT`, a `SORT` behind an `OR` and a `UID SORT` to the item
+  and its value, and the others and a `THREAD` to none; without the fix the first three failed. Found while fixing the
+  one above.
 - **Fixed: IMAP `FETCH` handed out a part's MIME header and a multipart's body written out again, not as the message
   holds them.** `BODY[N.MIME]` - and `BODY[N.HEADER]` of a part that is not a message - was each field of the part's
   header as `Name: value` with its folds undone, and `BODY[N]` of a multipart - with its `BINARY[N]` and

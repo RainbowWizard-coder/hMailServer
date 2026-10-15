@@ -88,8 +88,8 @@ namespace HM
       bool esearch_save_;
 
       // RFC 7162 (CONDSTORE): set from the parsed command when it names a MODSEQ search key
-      // anywhere - whether or not a message's match reached the key - so the SEARCH/ESEARCH
-      // response can report the highest mod-sequence among the matched messages.
+      // anywhere - whether or not a message's match reached the key - so the SEARCH, ESEARCH
+      // or SORT response can report the highest mod-sequence among the matched messages.
       bool modseq_search_;
       __int64 highest_modseq_;
 

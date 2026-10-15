@@ -667,7 +667,22 @@ namespace HM
          sResponse += "\r\n";
       }
       else if (is_sort_)
-         sResponse = "* SORT" + sMatching + "\r\n";
+      {
+         sResponse = "* SORT" + sMatching;
+
+         // RFC 7162 3.1.9: a SORT that names a MODSEQ key, and finds messages,
+         // appends the highest mod-sequence of those it returns, as a SEARCH
+         // does. It never did. A THREAD's response is "unchanged by the
+         // CONDSTORE extension", so it has none.
+         if (modseq_search_ && !sMatchingVec.empty())
+         {
+            String sModSeq;
+            sModSeq.Format(_T(" (MODSEQ %I64d)"), highest_modseq_);
+            sResponse += sModSeq;
+         }
+
+         sResponse += "\r\n";
+      }
       else if (is_thread_)
       {
          // The body carries its own leading space when there is one - an empty
