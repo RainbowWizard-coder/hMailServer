@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(ei voitu lukea palvelimelta)</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>(tyhjä = {0})</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>(tyhjä)</value>
   </data>
@@ -2434,6 +2437,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>Ei voida sanoa täältä - palvelimen verkkotunnusluetteloa ei voitu lukea, joten ei tiedetä, mitkä verkkotunnukset on liitetty hakemistoon. Kyse on yhteysongelmasta eikä määritysongelmasta: paina Lataa uudelleen, kun yhteys on palannut.</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Ei voida sanoa täältä. [LDAP]-osio, joka ratkaisee, voiko ajo tapahtua, säilytetään palvelimen tietokoneen hMailServer.ini-tiedostossa, ja täällä oleva tiedosto on tämän tietokoneen oma. Paina Esikatsele: se ajetaan palvelimen sisällä ja kertoo tarkalleen, mitä puuttuu, jos jotain puuttuu.</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Tästä ei voi sanoa. Tiedostoa hMailServer.ini ei voitu lukea, ja sen, voiko ajo tapahtua, ratkaisee tiedoston [LDAP]-osio, ei mikään tällä sivulla. Paina Esikatsele: se suoritetaan palvelimen sisällä ja kertoo tarkalleen, mitä mahdollisesti puuttuu.</value>
   </data>
@@ -2442,6 +2448,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Tästä ei voi sanoa: tiedostoa hMailServer.ini ei voitu lukea, ja asian ratkaisee tiedoston [LDAP]-osio. Käynnistä Control Panel järjestelmänvalvojana nähdäksesi sen.</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>Tästä ei voi sanoa: asian ratkaisee palvelimen oman hMailServer.ini-tiedoston [LDAP]-osio, eikä tämä hallintapaneeli voi lukea sitä.</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Ei voida sanoa, milloin viimeisin varmuuskopiointi ajettiin: varmuuskopioinnin asetuksia ei voitu lukea palvelimelta.</value>
@@ -5845,6 +5854,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>Miten tilien salasanat tiivistetään, kuinka paljon työtä uusi tiiviste maksaa ja heikoin tallennettu tiiviste, jolla vielä saa kirjautua. Nykyiset salasanat säilyttävät nykyisen tiivisteensä, kunnes ne seuraavan kerran vaihdetaan - tai, kun työkerrointa nostettiin, kunnes niitä seuraavan kerran käytetään kirjautumiseen.</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Kuinka syvälle luotujen viestien ketju saa jatkua: viesti, joka on jo kulkenut niin monen luodun viestin läpi - säännön välityksen, vastauksen, kopion tai ilmoituksen, tilin edelleenlähetyksen tai uudelleenohjauksen, palautusviestin, poissaolo- tai Sieve-vastauksen, saapuvan webhookin palautteen - ei aiheuta enää yhtäkään, kun taas säännön muita toimintoja ei rajoiteta. Toimitettaessa 5; 0 ei luo yhtäkään, ei edes palautusviestiä.</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Miten merkinnät päätyvät keräimelle</value>
   </data>
@@ -5892,9 +5904,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Kuinka monta ulkoista tiliä, jotka on määritetty verkkotunnuksen tileissä ulkoisiksi POP3-latauksiksi, noudetaan samanaikaisesti. Jokainen pitää yhteyttä jonkun toisen palvelimeen niin kauan kuin lataus kestää.</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>Kuinka monta luotua viestiä yksi viesti saa aiheuttaa, ennen kuin palvelin ei enää luo sille uusia: säännön välitys, vastaus, kopio tai ilmoitus, tilin edelleenlähetys tai uudelleenohjaus, palautusviesti, poissaolo- tai Sieve-vastaus tai saapuvan webhookin palaute; säännön muita toimintoja ei rajoiteta. Toimitettaessa 5; 0 ei luo yhtäkään, ei edes palautusviestiä.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Kuinka moni lähettäjän SPF-käytännön termi (a:, mx:, exists:) saa jäädä ilman DNS-tietuetta, ennen kuin tulos on permerror. RFC 7208 määrää 2; 0 poistaa rajan.</value>
@@ -12762,6 +12771,12 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Osoite estetään samoin kuin sarja epäonnistuneita kirjautumisia estää, vanhenevalla IP-alueella, mutta ei koskaan osoitetta, joka on kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto, eikä saapuvaa välittäjää. Oletuksena pois, eikä se tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>Osoite on estetty: automaattisen eston IP-alue {0} ei salli SMTP:tä, joten palvelin hylkää siitä tulevan yhteyden, ennen kuin lähettäjä on annettu. Esto päättyy {1}.</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Osoite kuuluu IP-alueeseen {0}, joka ei salli SMTP:tä, joten palvelin hylkää siitä tulevan yhteyden, ennen kuin lähettäjä on annettu.</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>Osoite kuuluu IP-alueeseen {0}, jonka roskapostisuojaus on pois päältä: palvelin ei aja sieltä tulevalle istunnolle yhtään roskapostitarkistusta eikä harmaalistaa sitä, ja alla olevista luetteloista pätee vain sallittujen ja estettyjen luettelo toimituksen yhteydessä.</value>
   </data>
@@ -14191,6 +14206,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Näillä nimetty ylävirran palvelin voi välittää todellisen asiakasosoitteen. Molemmat ovat oletuksena pois päältä eivätkä luota keneenkään, ennen kuin osoite on lueteltu, koska vastapuoli, joka voi kirjoittaa oman lähdeosoitteensa uusiksi, on kukistanut jokaisen IP-pohjaisen valvonnan tällä palvelimella.</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Nämä valinnat säilytetään palvelimen tietokoneen hMailServer.ini-tiedoston [LDAP]-osiossa, ja täällä oleva tiedosto on tämän tietokoneen oma, joten niitä ei voi muokata täällä. Esikatsele ja Käytä toimivat silti: ne ajetaan palvelimen sisällä.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Nämä asetukset luetaan REST-rajapinnan kautta, jota tämä istunto ei voi käyttää.</value>
   </data>
@@ -14226,6 +14244,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Tämä Control Panel on yhdistetty palvelimeen {0}, ei tietokoneeseen, jossa se toimii. Palvelimen {0} hMailServer-palvelu toimii tilillä {1}, joka ei voi ajaa asennusohjelmaa, joten siellä päivitykset asentaa järjestelmänvalvoja kyseisellä palvelimella: avaa hMailServer Control Panel itse palvelimella {0} ja napsauta siellä Asenna päivitys.</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Tämä hallintapaneeli on kirjautunut toisessa tietokoneessa olevaan palvelimeen: nämä asetukset säilytetään siellä olevan hMailServer.ini-tiedoston [LDAP]-osiossa, ja täällä oleva tiedosto on tämän tietokoneen oma. Niitä voi muokata vain palvelimen tietokoneessa; yhteystesti toimii silti tähän kirjoitetuilla arvoilla.</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>Tätä Control Panelia ajetaan kohteesta {0}, ei asennuksen omasta Control Panelista ({1}). Avaa Control Panel sieltä ja napsauta Asenna päivitys.</value>
@@ -14998,8 +15019,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Mitä kukin kuuntelija suojaa, minkä varmenteen se esittää ja milloin se vanhenee, ja mistä voidaan yhä neuvotella.</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>Mitä jokainen sääntö noudattaa: kuinka monta viestiä palvelin saa luoda yhdelle viestille - välityksen, vastauksen, kopion, palautusviestin - ennen kuin se ei enää luo sille uusia.</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>Mitä jokainen sääntö noudattaa: kuinka syvälle palvelimen luomien viestien ketju saa jatkua - välityksen välitys, vastaus vastaukseen - ennen kuin palvelin ei enää luo siitä mitään uutta.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Mitä jokainen roskapostitarkistus tekee juuri nyt, siinä järjestyksessä kuin palvelin ajaa ne, ja missä kukin kytketään päälle.</value>

@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(konnte nicht vom Server gelesen werden)</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>(leer = {0})</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>(leer)</value>
   </data>
@@ -2434,6 +2437,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>Von hier aus nicht feststellbar - die Domainliste des Servers konnte nicht gelesen werden, welche Domains mit einem Verzeichnis verknüpft sind, ist also unbekannt. Das ist ein Verbindungsproblem, kein Konfigurationsproblem: Drücken Sie Neu laden, sobald die Verbindung wieder besteht.</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Von hier aus nicht feststellbar. Der Abschnitt [LDAP], der entscheidet, ob ein Lauf stattfinden kann, steht in der Datei hMailServer.ini auf dem Computer des Servers, und die Datei hier gehört diesem Computer. Klicken Sie auf Vorschau: sie läuft im Server und sagt genau, was fehlt, falls etwas fehlt.</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Von hier aus nicht feststellbar. hMailServer.ini konnte nicht gelesen werden, und ob ein Lauf stattfinden kann, entscheidet der Abschnitt [LDAP] dieser Datei, nicht etwas auf dieser Seite. Drücken Sie Vorschau: sie läuft im Server und sagt genau, was gegebenenfalls fehlt.</value>
   </data>
@@ -2442,6 +2448,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Von hier aus nicht feststellbar: hMailServer.ini konnte nicht gelesen werden, und entscheidend ist der Abschnitt [LDAP] dieser Datei. Starten Sie das Control Panel als Administrator, um ihn zu sehen.</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>Von hier aus nicht feststellbar: Entscheidend ist der Abschnitt [LDAP] der eigenen hMailServer.ini des Servers, und dieses Control Panel kann ihn nicht lesen.</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Wann die letzte Sicherung lief, ist nicht feststellbar: die Sicherungseinstellungen konnten nicht vom Server gelesen werden.</value>
@@ -5845,6 +5854,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>Wie Kontopasswörter gehasht werden, wie viel Arbeit ein neuer Hash kostet und der schwächste gespeicherte Hash, der noch zur Anmeldung zugelassen ist. Bestehende Passwörter behalten ihren aktuellen Hash, bis sie das nächste Mal geändert werden - oder, wenn ein Arbeitsfaktor erhöht wurde, bis sie das nächste Mal zur Anmeldung verwendet werden.</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Wie tief eine Kette erzeugter Nachrichten reichen darf: Eine Nachricht, die bereits so viele davon durchlaufen hat - die Weiterleitung, Antwort, Kopie oder Benachrichtigung einer Regel, die Weiterleitung oder Umleitung eines Kontos, einen Unzustellbarkeitsbericht, eine Abwesenheits- oder Sieve-Antwort, die Rückmeldung eines eingehenden Webhooks -, zieht keine weitere mehr nach sich, während die übrigen Aktionen einer Regel nicht begrenzt sind. 5 ist die werkseitige Vorgabe; 0 erzeugt keine, nicht einmal einen Unzustellbarkeitsbericht.</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Wie die Einträge zum Collector gelangen</value>
   </data>
@@ -5892,9 +5904,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Wie viele externe Konten, die unter den Konten einer Domain als externe POP3-Downloads konfiguriert sind, gleichzeitig abgeholt werden. Jedes hält eine Verbindung zum Server eines anderen, solange der Download dauert.</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>Wie viele erzeugte Nachrichten eine Nachricht nach sich ziehen darf, bevor der Server keine weiteren mehr für sie erzeugt: die Weiterleitung, Antwort, Kopie oder Benachrichtigung einer Regel, die Weiterleitung oder Umleitung eines Kontos, ein Unzustellbarkeitsbericht, eine Abwesenheits- oder Sieve-Antwort oder die Rückmeldung eines eingehenden Webhooks; die übrigen Aktionen einer Regel sind nicht begrenzt. 5 ist die werkseitige Vorgabe; 0 erzeugt keine, nicht einmal einen Unzustellbarkeitsbericht.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Wie viele Terme der SPF-Richtlinie eines Absenders (a:, mx:, exists:) keinen DNS-Eintrag finden dürfen, bevor das Ergebnis permerror ist. RFC 7208 legt 2 fest; 0 hebt die Grenze auf.</value>
@@ -12762,6 +12771,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Die Adresse wird gebannt, wie eine Reihe fehlgeschlagener Anmeldungen eine bannt, durch einen ablaufenden IP-Bereich, aber nie eine Adresse in 'Diese Adressen niemals automatisch bannen' auf der Seite Auto-Bann oder ein eingehendes Relay. Standardmäßig aus, und es tut nichts, solange die Abweisung oben aus ist.</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>Die Adresse ist gebannt: Der Auto-Bann-IP-Bereich {0} lässt kein SMTP zu, daher lehnt der Server eine Verbindung von dort ab, bevor der Absender genannt ist. Der Bann endet {1}.</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Die Adresse liegt im IP-Bereich {0}, der kein SMTP zulässt, daher lehnt der Server eine Verbindung von dort ab, bevor der Absender genannt ist.</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>Die Adresse liegt im IP-Bereich {0}, dessen Anti-Spam ausgeschaltet ist: Der Server führt für eine Sitzung von dort keine Spamprüfung aus und greylistet sie nicht, und von den Listen unten gilt nur die Zulassungs- und Sperrliste, bei der Zustellung.</value>
   </data>
@@ -14191,6 +14206,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Diese hier lassen einen benannten Upstream die echte Client-Adresse weiterreichen. Beide sind in der Vorgabe aus und vertrauen niemandem, bis eine Adresse eingetragen ist, denn eine Gegenstelle, die ihre eigene Quelladresse umschreiben kann, hat jede IP-basierte Kontrolle auf diesem Server ausgehebelt.</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Diese Auswahlen stehen im Abschnitt [LDAP] der Datei hMailServer.ini auf dem Computer des Servers, und die Datei hier gehört diesem Computer, daher können sie hier nicht bearbeitet werden. Vorschau und Anwenden funktionieren trotzdem: sie laufen im Server.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Diese Einstellungen werden über die REST-API gelesen, die diese Sitzung nicht nutzen kann.</value>
   </data>
@@ -14226,6 +14244,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Dieses Control Panel ist mit {0} verbunden, nicht mit dem Computer, auf dem es läuft. Der hMailServer-Dienst auf {0} läuft als {1} und kann keinen Installer ausführen, also installiert dort ein Administrator an diesem Server die Updates: Öffnen Sie das hMailServer Control Panel auf {0} selbst und klicken Sie dort auf „Update installieren“.</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Dieses Control Panel ist bei einem Server auf einem anderen Computer angemeldet: Diese Einstellungen stehen im Abschnitt [LDAP] der Datei hMailServer.ini dort, und die Datei hier gehört diesem Computer. Sie können nur auf dem Computer des Servers bearbeitet werden; der Verbindungstest funktioniert trotzdem mit den hier eingegebenen Werten.</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>Dieses Control Panel läuft aus {0}, nicht aus dem eigenen Control Panel der Installation ({1}). Öffnen Sie das Control Panel dort und klicken Sie auf „Update installieren“.</value>
@@ -14998,8 +15019,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Was jeder Listener schützt, welches Zertifikat er vorlegt und wann dieses abläuft, und was sich noch aushandeln lässt.</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>Woran jede Regel gebunden ist: wie viele Nachrichten der Server für eine Nachricht erzeugen darf - eine Weiterleitung, eine Antwort, eine Kopie, einen Unzustellbarkeitsbericht -, bevor er keine weiteren mehr für sie erzeugt.</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>Woran jede Regel gebunden ist: wie tief eine Kette von Nachrichten, die der Server erzeugt, reichen darf - eine Weiterleitung einer Weiterleitung, eine Antwort auf eine Antwort -, bevor der Server daraus nichts mehr erzeugt.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Was jede Spamprüfung gerade tut, in der Reihenfolge, in der der Server sie ausführt, und wo jede eingeschaltet wird.</value>

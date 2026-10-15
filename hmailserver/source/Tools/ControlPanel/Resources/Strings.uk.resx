@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(не вдалося прочитати з сервера)</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>(порожньо = {0})</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>(порожньо)</value>
   </data>
@@ -2467,6 +2470,9 @@
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>Звідси визначити неможливо — не вдалося прочитати список доменів сервера, тож невідомо, які домени пов’язані з каталогом. Це радше проблема підключення, ніж конфігурації: натисніть «Перезавантажити», коли підключення відновиться.</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Звідси визначити неможливо. Розділ [LDAP], який вирішує, чи може відбутися запуск, зберігається у файлі hMailServer.ini на комп’ютері сервера, а файл тут належить цьому комп’ютерові. Натисніть «Попередній перегляд»: він виконується всередині сервера й точно скаже, чого бракує, якщо бракує чогось.</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Звідси не визначити. Не вдалося прочитати hMailServer.ini, а чи можливий запуск, вирішує розділ [LDAP] цього файлу, а не щось на цій сторінці. Натисніть «Попередній перегляд»: він виконується всередині сервера й точно скаже, чого бракує, якщо чогось бракує.</value>
   </data>
@@ -2475,6 +2481,9 @@
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Звідси не визначити: не вдалося прочитати hMailServer.ini, а вирішує саме розділ [LDAP] цього файлу. Запустіть Панель керування від імені адміністратора, щоб побачити його.</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>Звідси не визначити: вирішує розділ [LDAP] власного файлу hMailServer.ini сервера, а ця панель керування не може його прочитати.</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Неможливо визначити, коли виконувалося останнє резервне копіювання: не вдалося прочитати параметри резервного копіювання з сервера.</value>
@@ -5927,6 +5936,9 @@
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>Як хешуються паролі облікових записів, скільки роботи коштує новий хеш і який найслабший збережений хеш ще допускається до входу. Наявні паролі зберігають поточний хеш, доки їх не змінять наступного разу - або, якщо підвищено фактор роботи, доки їх наступного разу не використають для входу.</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Наскільки глибоким може бути ланцюжок згенерованих повідомлень: повідомлення, яке вже пройшло через стільки з них — пересилання, відповідь, копію чи сповіщення правила, переадресацію чи перенаправлення облікового запису, звіт про недоставку, автовідповідь про відсутність чи відповідь Sieve, відповідь вхідного вебхука, — більше нічого не спричиняє, тоді як інші дії правила не обмежуються. Типово 5; 0 не генерує жодного, навіть звіту про недоставку.</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Як записи потрапляють до збирача</value>
   </data>
@@ -5974,9 +5986,6 @@
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Скільки зовнішніх облікових записів, налаштованих серед облікових записів домену як зовнішні завантаження POP3, збираються одночасно. Кожен тримає з'єднання з чужим сервером стільки, скільки триває завантаження.</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>Скільки згенерованих повідомлень може спричинити одне повідомлення, перш ніж сервер перестане генерувати для нього нові: пересилання, відповідь, копія чи сповіщення правила, переадресація чи перенаправлення облікового запису, звіт про недоставку, автовідповідь про відсутність чи відповідь Sieve або відповідь вхідного вебхука; інші дії правила не обмежуються. Типово 5; 0 не генерує жодного, навіть звіту про недоставку.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Скільки термів політики SPF відправника (a:, mx:, exists:) можуть не знайти жодного запису DNS, перш ніж результатом стане permerror. RFC 7208 встановлює 2; 0 знімає обмеження.</value>
@@ -12922,6 +12931,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адресу блокують так само, як після серії невдалих входів, діапазоном IP зі строком дії, але ніколи не адресу з «Ніколи не банити автоматично ці адреси» на сторінці «Автоблокування» і не вхідний ретранслятор. Типово вимкнено, і нічого не робить, доки відмову вище вимкнено.</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>Адресу заблоковано: діапазон IP автоблокування {0} не дозволяє SMTP, тож сервер відхиляє підключення з цієї адреси ще до того, як названо відправника. Блокування закінчиться {1}.</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Адреса належить до діапазону IP {0}, який не дозволяє SMTP, тож сервер відхиляє підключення з цієї адреси ще до того, як названо відправника.</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>Адреса належить до діапазону IP {0}, у якому антиспам вимкнено: для сеансу з нього сервер не виконує перевірок на спам і не застосовує сірий список, а зі списків нижче діє лише список дозволених і заблокованих під час доставки.</value>
   </data>
@@ -14378,6 +14393,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Ці параметри дозволяють названому вищому вузлу передавати справжню адресу клієнта. Обидва типово вимкнені й не довіряють нікому, доки адресу не перелічено, бо співрозмовник, здатний переписати власну адресу джерела, обійшов кожен засіб керування на основі IP на цьому сервері.</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Ці вибори зберігаються в розділі [LDAP] файлу hMailServer.ini на комп’ютері сервера, а файл тут належить цьому комп’ютерові, тому редагувати їх тут неможливо. «Попередній перегляд» і «Застосувати» все одно працюють: вони виконуються всередині сервера.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Ці параметри читаються через REST API, який цей сеанс не може використовувати.</value>
   </data>
@@ -14413,6 +14431,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Ця Панель керування під'єднана до {0}, а не до комп'ютера, на якому вона працює. Служба hMailServer на {0} працює як {1} і не може запустити інсталятор, тому там оновлення встановлює адміністратор на самому сервері: відкрийте Панель керування hMailServer на самому {0} і натисніть там «Установити оновлення».</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Ця панель керування підключена до сервера на іншому комп’ютері: ці параметри зберігаються в розділі [LDAP] файлу hMailServer.ini на тому комп’ютері, а файл тут належить цьому комп’ютерові. Редагувати їх можна лише на комп’ютері сервера; перевірка підключення все одно працює зі значеннями, введеними тут.</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>Ця Панель керування працює з {0}, а не з власної Панелі керування установлення ({1}). Відкрийте Панель керування там і натисніть «Установити оновлення».</value>
@@ -15191,8 +15212,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Що захищає кожен слухач, який сертифікат пред'являє і коли той спливає, і що ще може бути узгоджено.</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>Чому підлягає кожне правило: скільки повідомлень сервер може згенерувати для одного повідомлення — пересилання, відповідь, копію, звіт про недоставку, — перш ніж перестане генерувати для нього нові.</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>Чому підлягає кожне правило: наскільки глибоким може бути ланцюжок повідомлень, які генерує сервер, — пересилання пересилання, відповідь на відповідь, — перш ніж сервер перестане щось із нього генерувати.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Що просто зараз робить кожна перевірка на спам, у порядку, в якому сервер їх виконує, і де кожна вмикається.</value>

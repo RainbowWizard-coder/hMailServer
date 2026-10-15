@@ -401,6 +401,95 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ProfileApi.WriteSectionLinesChecked(section, lines, iniPath);", feature, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Directory authentication (LDAP) and Directory synchronisation read and write the
+      /// [LDAP] section, which no COM property carries, from the hMailServer.ini on this
+      /// computer - only where it is the server's (release review part B's rule for CPB-1,
+      /// found on these two pages by the adversarial check of rf5-rf6-cp). A Control Panel
+      /// on a workstation, whose installer leaves a readable file without [LDAP], signed in
+      /// to a server elsewhere, showed that file's defaults as the server's, saved edits into
+      /// it, and Directory synchronisation's state card said directory access was switched
+      /// off. With a readable file here and the session to another computer, neither page
+      /// reads the file or writes it, each says why under its header, and each state card
+      /// says it cannot tell; the schedule record reads no file then either.
+      /// </summary>
+      [Fact]
+      public void TheDirectoryPages_ReadAndWriteNoLdapSectionHere_WhenTheServerIsOnAnotherComputer()
+      {
+         string path = Path.Join(Path.GetTempPath(), "cp-remote-ini-" + Guid.NewGuid().ToString("N") + ".ini");
+         File.WriteAllText(path, "[Settings]\r\n");
+         try
+         {
+            var store = new IniFeatureStore(path);
+            IniFeatureStore.SessionHost = "mail.example.com";
+            Assert.True(store.IsAvailable);
+            Assert.False(store.IsAvailable && IniFeatureStore.ServerIsOnThisComputer);
+            IniFeatureStore.SessionHost = null;
+            Assert.True(store.IsAvailable && IniFeatureStore.ServerIsOnThisComputer);
+         }
+         finally
+         {
+            File.Delete(path);
+         }
+
+         const string serversFile = "private bool ServersFile_ => store_.IsAvailable && IniFeatureStore.ServerIsOnThisComputer;";
+         foreach (string page in new[] { "LdapSettingsView.cs", "DirectorySyncView.cs" })
+         {
+            string view = ReadControlPanelFile(Path.Join("Views", page));
+            Assert.Contains(serversFile, view, StringComparison.Ordinal);
+
+            string read = Member(view, "private string IniRead_(string key, string fallback)");
+            Assert.Matches(new Regex(@"^\s*\{\s*if \(!ServersFile_\)\s*return fallback;"), read);
+            Assert.Contains("denied_ = ServersFile_ ? store_.ReadDenied() : null;", view, StringComparison.Ordinal);
+            Assert.Contains("public bool HasUnsavedChanges => ServersFile_ && baseline_.Differs(EditorValues_());", view, StringComparison.Ordinal);
+            Assert.Matches(new Regex(@"private bool Save_\(\)\s*\{\s*if \((denied_ != null \|\| !ServersFile_|!ServersFile_ \|\| denied_ != null)\)\s*return false;"), view);
+            Assert.Contains("if (ServersFile_", view, StringComparison.Ordinal);
+         }
+
+         string ldap = ReadControlPanelFile(Path.Join("Views", "LdapSettingsView.cs"));
+         Assert.Matches(new Regex(@"else if \(store_\.IsAvailable\)\s*saveState_\.Settle\(SettingsPageState\.Unavailable, L\(""This Control Panel is signed in to a server on another computer: these settings are kept in the \[LDAP\] section of the hMailServer\.ini there, and the file here is this computer's own\."), ldap);
+         Assert.Matches(new Regex(@"if \(denied_ == null && !ServersFile_\)\s*\{\s*string unknown = L\(""Cannot tell from here: it is the \[LDAP\] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it.""\);"), ldap);
+         Assert.Matches(new Regex(@"if \(!ServersFile_\)\s*throw new InvalidOperationException\(L\(""This Control Panel is signed in to a server on another computer:"), ldap);
+
+         string sync = ReadControlPanelFile(Path.Join("Views", "DirectorySyncView.cs"));
+         Assert.Contains("bool editable = ServersFile_ && denied_ == null;", sync, StringComparison.Ordinal);
+         Assert.Contains("private bool SelectionUnsaved_ => ServersFile_ && denied_ == null && selectionBaseline_.Differs(SelectionValues_());", sync, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Settle(SettingsPageState.Unavailable, L(\"These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here.", sync, StringComparison.Ordinal);
+         string state = Member(sync, "private void RefreshState_()");
+         int unknown = state.IndexOf("State_(StatusLevel.Information, L(\"Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own.", StringComparison.Ordinal);
+         int enabled = state.IndexOf("bool ldapOn = string.Equals(IniRead_(\"Enabled\", \"0\"), \"1\", StringComparison.Ordinal);", StringComparison.Ordinal);
+         Assert.True(unknown > 0 && enabled > unknown, "Directory synchronisation's state card reads [LDAP] Enabled before it asks whether the file here is the server's.");
+
+         string schedule = ReadControlPanelFile(Path.Join("Services", "DirectorySyncSchedule.Session.cs"));
+         Assert.Matches(new Regex(@"public void ReadFile\(string iniPath\)\s*\{\s*if \(IniFeatureStore\.ServerIsOnThisComputer\)\s*Read\("), schedule);
+         Assert.Contains("=> IniFeatureStore.ServerIsOnThisComputer && Saved(ServerStarted(), EnabledIn_(iniPath), MinutesIn_(iniPath));", schedule, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The CHANGELOG says which file a Control Panel signed in to a server on another
+      /// computer read the [Database] rows from: this computer's own, which the installer's
+      /// Control Panel component leaves - where the corrected entry said "that computer's",
+      /// which reads as the server's (the adversarial check of rf5-rf6-cp) - and it says what
+      /// the two Directory pages do there now.
+      /// </summary>
+      [Fact]
+      public void TheChangelog_NamesThisComputersFile_AsTheOneReadOnAnotherComputer()
+      {
+         string changelog = null;
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null && changelog == null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "CHANGELOG.md");
+            if (File.Exists(candidate) && Directory.Exists(Path.Join(directory.FullName, "hmailserver")))
+               changelog = candidate;
+         }
+
+         Assert.True(changelog != null, "CHANGELOG.md could not be found above the test binaries.");
+         string text = Regex.Replace(File.ReadAllText(changelog), @"\s+", " ");
+         Assert.Contains("One signed in to a server on another computer read them from this computer's own hMailServer.ini, which the installer's Control Panel component leaves,", text, StringComparison.Ordinal);
+         Assert.DoesNotContain("read them from that computer's own hMailServer.ini", text, StringComparison.Ordinal);
+         Assert.Contains("**Fixed: Directory authentication (LDAP) and Directory synchronisation read and wrote the [LDAP] section of this computer's hMailServer.ini when signed in to a server on another computer.**", text, StringComparison.Ordinal);
+      }
+
       private static string Member(string source, string signature)
       {
          string body = WithheldRowTests.MemberText(source, signature);

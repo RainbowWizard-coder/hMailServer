@@ -45,7 +45,8 @@ namespace hMailServer.ControlPanel.Tests.Services
             ["AcmeDirectoryUrl"] = "",
             ["ScriptTimeout"] = "",
             ["IMAPCompressionEnabled"] = "",
-            ["OtelServiceName"] = "mail-1"
+            ["OtelServiceName"] = "mail-1",
+            ["OAuth2UsernameClaim"] = ""
          };
          IniFeatureStore.ComReadSetting = key => server.TryGetValue(key, out string value) ? value : "";
          IniFeatureStore.ComSettingNames = () =>
@@ -158,7 +159,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The rows read through it: the text rows of both settings views show a key held
-      /// empty as empty, said in their placeholder, and the number rows the 0 the loader
+      /// empty as empty, said in their placeholder (with what the server uses for it, where
+      /// that is not the empty value), and the number rows the 0 the loader
       /// makes of it; ScriptAllowedObjects says again what empty means, its warning
       /// follows a box that starts at what the server holds, and the store no longer
       /// says that an empty value deletes the key.
@@ -169,7 +171,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string server = ReadControlPanelFile_(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          string iniText = WithheldRowTests.MemberText(server, "private class IniText : ComSetting, IIniSetting");
          Assert.Contains("current = IniStore.ReadHeld(Path, Default, out heldEmpty);", iniText, StringComparison.Ordinal);
-         Assert.Contains("heldEmpty ? L(\"(empty)\") : ExamplePlaceholder.Shown(Placeholder)", iniText, StringComparison.Ordinal);
+         Assert.Contains("heldEmpty ? IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans) : ExamplePlaceholder.Shown(Placeholder)", iniText, StringComparison.Ordinal);
          Assert.Contains("protected virtual string ReadRaw() => IniStore.ReadNumber(Path, Default.ToString());", server, StringComparison.Ordinal);
          Assert.Contains("Label = L(\"COM objects a script may create (empty = none beyond hMailServer's own)\"),", server, StringComparison.Ordinal);
 
@@ -179,6 +181,62 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string store = ReadControlPanelFile_(Path.Join("Services", "IniFeatureStore.cs"));
          Assert.DoesNotContain("An empty value DELETES the key", store, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A key whose server reader puts a value of its own in the place of an empty one is
+      /// shown with it: OtelServiceName held empty is the service name "hmailserver" to the
+      /// three exporters, and its box says "(empty = hmailserver)", where it said "(empty)"
+      /// as for a key the server reads as empty (the adversarial check of rf5-rf6-cp). A
+      /// key the server reads as empty keeps "(empty)".
+      /// </summary>
+      [Fact]
+      public void AKeyWhoseServerReaderUsesItsDefaultForEmpty_IsShownWithTheDefault()
+      {
+         var asked = new int[1];
+         Dictionary<string, string> server = Server_(asked);
+         server["OtelServiceName"] = "";
+         var store = new IniFeatureStore(iniPath: null);
+
+         Assert.Equal("", store.ReadHeld("OtelServiceName", "hmailserver", out bool held));
+         Assert.True(held);
+         Assert.Equal("(empty = hmailserver)", IniFeatureStore.HeldEmptyPlaceholder("hmailserver"));
+         Assert.Equal("", store.ReadHeld("OAuth2UsernameClaim", "email", out held));
+         Assert.True(held);
+         Assert.Equal("(empty = email)", IniFeatureStore.HeldEmptyPlaceholder("email"));
+
+         // The server uses the empty value: "(empty)".
+         Assert.Equal("(empty)", IniFeatureStore.HeldEmptyPlaceholder(null));
+         Assert.Equal("(empty)", IniFeatureStore.HeldEmptyPlaceholder(""));
+      }
+
+      /// <summary>
+      /// The rows of the four keys whose server reader puts its default in the place of an
+      /// empty value - OtelServiceName (OtelTracer, OtelLogExporter, OtelMetricsExporter),
+      /// OAuth2UsernameClaim (OAuth2TokenValidator::LoadConfig), MtaStsPolicyMode
+      /// (WebServicesServer, anything but enforce, testing and none being enforce) and
+      /// UpdateChannel (UpdateChecker::IsPreReleaseChannel) - say what the server uses, and
+      /// the three row kinds that show a held value use it: MtaStsPolicyMode held empty is
+      /// its "enforce" choice, where the list offered "(empty)" while the server served
+      /// mode: enforce.
+      /// </summary>
+      [Fact]
+      public void TheRowsOfTheKeysWhoseEmptyIsTheDefault_SayWhatTheServerUses()
+      {
+         string server = ReadControlPanelFile_(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         Assert.Contains("new IniText { Path = \"OtelServiceName\", Label = L(\"OpenTelemetry service name\"), Default = \"hmailserver\", EmptyMeans = \"hmailserver\", IniStore = iniStore_ });", server, StringComparison.Ordinal);
+
+         string feature = ReadControlPanelFile_(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+         Assert.Contains("new TextSetting { Key = \"UpdateChannel\", Default = \"stable\", EmptyMeans = \"stable\",", feature, StringComparison.Ordinal);
+         Assert.Contains("new TextSetting { Key = \"OAuth2UsernameClaim\", DependsOn = OAuth2Switch, Default = \"email\", EmptyMeans = \"email\",", feature, StringComparison.Ordinal);
+         Assert.Matches(new System.Text.RegularExpressions.Regex(@"Key = ""MtaStsPolicyMode"",\s*Default = ""enforce"",\s*EmptyMeans = ""enforce"","), feature);
+
+         string text = WithheldRowTests.MemberText(feature, "private class TextSetting : Setting");
+         Assert.Contains("PlaceholderText = heldEmpty ? IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans) : ExamplePlaceholder.Shown(Placeholder),", text, StringComparison.Ordinal);
+         string word = WithheldRowTests.MemberText(feature, "private class WordSetting : Setting");
+         int choice = word.IndexOf("if (chosen == null && heldEmpty && EmptyMeans != null)", StringComparison.Ordinal);
+         int itself = word.IndexOf("chosen = new ComboBoxItem { Content = IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans), Tag = \"\" };", StringComparison.Ordinal);
+         Assert.True(choice > 0 && itself > choice, "MtaStsPolicyMode held empty is not the choice the server uses.");
       }
 
       private static string ReadControlPanelFile_(string relative)

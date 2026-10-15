@@ -37,7 +37,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("scheduleMinutes_", values, StringComparison.Ordinal);
 
          string unsaved = Member("private bool SelectionUnsaved_");
-         Assert.Contains("store_.IsAvailable && denied_ == null && selectionBaseline_.Differs(SelectionValues_())", unsaved, StringComparison.Ordinal);
+         Assert.Contains("ServersFile_ && denied_ == null && selectionBaseline_.Differs(SelectionValues_())", unsaved, StringComparison.Ordinal);
 
          // Taken where the page's own record is: after a read and after a save.
          Assert.Contains("selectionBaseline_.Take(SelectionValues_());", Member("private void Load_()"), StringComparison.Ordinal);

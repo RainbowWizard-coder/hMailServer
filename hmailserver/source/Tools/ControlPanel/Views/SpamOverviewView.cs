@@ -893,8 +893,10 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// What the IP range the server gives a connection from <paramref name="ip"/> does to
-      /// the lists, read from its ranges as the IP ranges page reads them; null where it
-      /// does nothing to them, and the reason where the ranges cannot be read.
+      /// the lists, read from its ranges as the IP ranges page reads them - whether it takes
+      /// SMTP, which no auto-ban does, as well as its anti-spam - null where it does nothing
+      /// to them, and the reason where the ranges cannot be read. A ban's end is said as the
+      /// Auto-ban page says it, by this computer's clock where it is the server's.
       /// </summary>
       private static SenderCheckResult Range_(object source, string ip)
       {
@@ -902,7 +904,8 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             return SenderCheck.ConnectingRange(ReadItems_((object)settings.SecurityRanges, (Func<dynamic, SenderCheck.IpRange>)(item =>
-               new SenderCheck.IpRange((string)item.Name, (string)item.LowerIP, (string)item.UpperIP, (int)item.Priority, (bool)item.EnableSpamProtection))), ip);
+               new SenderCheck.IpRange((string)item.Name, (string)item.LowerIP, (string)item.UpperIP, (int)item.Priority, (bool)item.EnableSpamProtection,
+                  (bool)item.AllowSMTPConnections, (bool)item.Expires, ExpiresAt_(item)))), ip, DateTime.Now, ServerSession.IsLocalSession);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

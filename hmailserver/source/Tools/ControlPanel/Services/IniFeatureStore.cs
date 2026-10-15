@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
+using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -544,15 +545,19 @@ namespace hMailServer.ControlPanel.Services
       /// Reads a [Settings] value as the server holds it (release review finding CP-4):
       /// what <see cref="Read"/> answers, except that a key the server holds with an
       /// empty value is answered empty, and <paramref name="heldEmpty"/> is true, rather
-      /// than as <paramref name="defaultValue"/>. The server reads such a key as empty and
-      /// never as its default: ScriptAllowedObjects stored empty lets a script create no
-      /// object, an empty AcmeDirectoryUrl renews nothing and an empty RestApiBindAddress
-      /// keeps the REST API from starting without TLS - and the pages showed each at its
-      /// default, the first with the warning that any object may be created. GetIniSetting
-      /// answers "" for an absent key and for an empty one alike, so the server's list of
-      /// the names it holds (<see cref="ComSettingNames"/>) says which; where it cannot be
-      /// asked, the default is answered, as before. The file, read without a session,
-      /// tells the two apart itself: GetPrivateProfileString answers "" for "Key=".
+      /// than as <paramref name="defaultValue"/>. The server's loader hands such a key on
+      /// as empty, and most of its readers then use the empty value and not the default:
+      /// ScriptAllowedObjects stored empty lets a script create no object, an empty
+      /// AcmeDirectoryUrl renews nothing and an empty RestApiBindAddress keeps the REST API
+      /// from starting without TLS - and the pages showed each at its default, the first
+      /// with the warning that any object may be created. A few readers put their default
+      /// back for an empty value - OtelServiceName, OAuth2UsernameClaim, MtaStsPolicyMode
+      /// and UpdateChannel - which a row says with <see cref="HeldEmptyPlaceholder"/>.
+      /// GetIniSetting answers "" for an absent key and for an empty one alike, so the
+      /// server's list of the names it holds (<see cref="ComSettingNames"/>) says which;
+      /// where it cannot be asked, the default is answered, as before. The file, read
+      /// without a session, tells the two apart itself: GetPrivateProfileString answers ""
+      /// for "Key=".
       /// </summary>
       public string ReadHeld(string key, string defaultValue, out bool heldEmpty)
       {
@@ -591,6 +596,20 @@ namespace hMailServer.ControlPanel.Services
 
          return defaultValue;
       }
+
+      /// <summary>
+      /// What a row's box says of a key the server holds empty (<see cref="ReadHeld"/>):
+      /// "(empty)", where the server uses the empty value; and "(empty = hmailserver)",
+      /// where the server's reader of the key puts a value of its own in the place of an
+      /// empty one - <paramref name="emptyMeans"/>, which is then what the server uses.
+      /// OtelServiceName held empty is the service name "hmailserver" to the three
+      /// exporters (OtelTracer, OtelLogExporter, OtelMetricsExporter), OAuth2UsernameClaim
+      /// "email" to the token validator, and UpdateChannel the stable feed; the rows said
+      /// "(empty)" for them as for a key the server reads as empty (the adversarial check
+      /// of rf5-rf6-cp).
+      /// </summary>
+      public static string HeldEmptyPlaceholder(string emptyMeans)
+         => string.IsNullOrEmpty(emptyMeans) ? L("(empty)") : F("(empty = {0})", emptyMeans);
 
       /// <summary>
       /// A number as the server's loader reads it, as text: <see cref="ReadHeld"/>'s value,

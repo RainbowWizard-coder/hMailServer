@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>（无法从服务器读取）</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>（空 = {0}）</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>（空）</value>
   </data>
@@ -2434,6 +2437,9 @@
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>无法从此处判断 - 无法读取服务器的域列表，因此不知道哪些域关联了目录。这是连接问题，而不是配置问题：连接恢复后请按“重新加载”。</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>无法从此处判断。决定能否运行的 [LDAP] 节保存在服务器所在计算机的 hMailServer.ini 中，这里的文件属于这台计算机本身。请按“预览”：它在服务器内部运行，会准确说明缺少什么（如果确有缺少）。</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>无法从这里判断。无法读取 hMailServer.ini，而决定能否运行的是该文件的 [LDAP] 节，而不是此页面上的任何内容。请按“预览”：它在服务器内运行，并会准确说明缺少什么（如果有的话）。</value>
   </data>
@@ -2442,6 +2448,9 @@
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>无法从这里判断：无法读取 hMailServer.ini，而起决定作用的正是该文件的 [LDAP] 节。请以管理员身份启动控制面板以查看。</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>无法从这里判断：起决定作用的是服务器自己的 hMailServer.ini 中的 [LDAP] 节，而此控制面板无法读取它。</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>无法判断上次备份的运行时间：无法从服务器读取备份设置。</value>
@@ -5845,6 +5854,9 @@
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>账户密码如何哈希、新哈希要花费多少工作量，以及仍允许登录的最弱存储哈希。现有密码保持其当前哈希，直到下一次更改 - 或者在工作因子提高后，直到下一次用它登录。</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>生成的邮件链最多可以延伸多深：一封邮件若已经经过这么多封生成的邮件（规则的转发、回复、副本或通知，帐户的转发或重定向，退信，外出或 Sieve 自动回复，入站 Webhook 的回传），就不会再引出任何邮件，而规则的其他操作不受限制。出厂为 5；0 则一封都不生成，连退信也没有。</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>条目如何送达收集器</value>
   </data>
@@ -5892,9 +5904,6 @@
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>同时收取多少个外部账户（在域的账户下配置为外部 POP3 下载）。每一个在下载期间都会一直占用一条到别人服务器的连接。</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>一封邮件在服务器不再为其生成更多邮件之前，最多可以引出多少封生成的邮件：规则的转发、回复、副本或通知，帐户的转发或重定向，退信，外出或 Sieve 自动回复，以及入站 Webhook 的回传；规则的其他操作不受限制。出厂为 5；0 则一封都不生成，连退信也没有。</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>发件人 SPF 策略中最多可以有多少项（a:、mx:、exists:）找不到 DNS 记录，超过后结果即为 permerror。RFC 7208 规定为 2；0 表示取消限制。</value>
@@ -12762,6 +12771,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>该地址会像连续登录失败那样被一个会过期的 IP 范围封禁，但“自动封禁”页上“永不自动封禁这些地址”中的地址和入站中继永远不会被封禁。默认关闭，上面的拒绝关闭时不起任何作用。</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>该地址已被封禁：自动封禁 IP 范围 {0} 不允许 SMTP，因此在给出发件人之前，服务器就会拒绝来自它的连接。封禁将于{1}结束。</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>该地址位于不允许 SMTP 的 IP 范围 {0} 中，因此在给出发件人之前，服务器就会拒绝来自它的连接。</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>该地址位于关闭了反垃圾邮件的 IP 范围 {0} 中：服务器对来自该范围的会话不做任何垃圾邮件检查，也不做灰名单处理；下面的列表中只有投递时的允许与拦截名单适用。</value>
   </data>
@@ -14191,6 +14206,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>这些设置让指定的上游传递真实的客户端地址。两者默认都关闭，并且在列出地址之前不信任任何人，因为能改写自己源地址的对端已经击败了本服务器上所有基于 IP 的控制。</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>这些选择保存在服务器所在计算机的 hMailServer.ini 的 [LDAP] 节中，这里的文件属于这台计算机本身，因此无法在此处编辑。预览和应用仍然可用：它们在服务器内部运行。</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>这些设置通过 REST API 读取，而此会话无法使用 REST API。</value>
   </data>
@@ -14226,6 +14244,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>此控制面板连接的是 {0}，而不是它所运行的计算机。{0} 上的 hMailServer 服务以 {1} 身份运行，无法运行安装程序，因此那里的更新须由管理员在该服务器上安装：请直接在 {0} 上打开 hMailServer 控制面板，并在那里点击“安装更新”。</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>此控制面板登录的是另一台计算机上的服务器：这些设置保存在那台计算机的 hMailServer.ini 的 [LDAP] 节中，这里的文件属于这台计算机本身。它们只能在服务器的计算机上编辑；连接测试仍然可以用此处输入的值运行。</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>此控制面板从 {0} 运行，而不是从安装自带的控制面板（{1}）运行。请打开那里的控制面板并点击“安装更新”。</value>
@@ -14998,8 +15019,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>每个监听器保护什么、出示哪个证书及其何时到期，以及还有什么可以协商。</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>每条规则都受到的限制：服务器为一封邮件最多可以生成多少封邮件（转发、回复、副本、退信），超过后便不再为其生成。</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>每条规则都受到的限制：服务器生成的邮件链（转发的转发、回复的回复）最多可以延伸多深，超过后服务器便不再由此生成任何邮件。</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>每项垃圾邮件检查此刻在做什么，按服务器运行它们的顺序排列，以及各自在哪里开启。</value>

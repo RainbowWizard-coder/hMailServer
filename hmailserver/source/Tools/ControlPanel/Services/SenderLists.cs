@@ -199,9 +199,10 @@ namespace hMailServer.ControlPanel.Services
       /// marking it as spam.</item>
       /// </list>
       /// Before all of them, the connecting address's IP range, where one was given
-      /// (<see cref="ConnectingRange"/>): a connection no range contains is refused before
-      /// any list is read, and a range whose anti-spam is off makes the session one the
-      /// spam protection skips, as a covering exemption does - the range is asked first
+      /// (<see cref="ConnectingRange"/>): a connection no range contains, or whose range
+      /// does not allow SMTP - an auto-ban's - is refused before any list is read, and a
+      /// range whose anti-spam is off makes the session one the spam protection skips, as
+      /// a covering exemption does - the range is asked first
       /// (InitializeSpamProtectionType_), so not even the exemptions are read.
       /// <paramref name="inGuideOrder"/> holds one answer a list, in
       /// <see cref="SenderListGuide.Rows"/>' order, after the range's when there is one.
@@ -386,8 +387,13 @@ namespace hMailServer.ControlPanel.Services
 
       // ---- the IP range of the connecting address ---------------------------------
 
-      /// <summary>One IP range: its name, its two ends, its priority and whether its anti-spam is on.</summary>
-      public sealed record IpRange(string Name, string LowerIp, string UpperIp, int Priority, bool AntiSpam);
+      /// <summary>
+      /// One IP range: its name, its two ends, its priority, whether its anti-spam is on,
+      /// whether it allows SMTP connections, and whether and when it expires - an auto-ban
+      /// is a range the server makes with no option set, SMTP and anti-spam off among them
+      /// (AccountLogon::CreateIPRange), named "Auto-ban: " and expiring.
+      /// </summary>
+      public sealed record IpRange(string Name, string LowerIp, string UpperIp, int Priority, bool AntiSpam, bool AllowSmtp, bool Expires, DateTime ExpiresAt);
 
       /// <summary>
       /// The IP range a connection from <paramref name="ip"/> is given, as the server gives
@@ -419,17 +425,23 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// What the connecting address's IP range does to the sender before any list is
       /// read, or null where it does nothing to the answers - no address given, or a range
-      /// that runs the spam checks. A connection that no range contains is refused at
-      /// connect (SessionManager, TCPServer), before a greeting; a range whose anti-spam is
-      /// off sets the session's spam protection to none (SMTPConnection::
-      /// InitializeSpamProtectionType_, before the exemptions are asked), so that no spam
-      /// test, no greylisting and no domain policy runs (GetDoSpamProtection_,
-      /// CheckDomainPolicy_), and only the allow and block list applies, at delivery. Check
-      /// a sender read none of it: a blocked domain read "refused at MAIL FROM" for mail
-      /// from an office range with anti-spam off, which the server accepts with no check
-      /// at all (release review finding CP-6).
+      /// that takes SMTP and runs the spam checks. A connection that no range contains, or
+      /// whose range does not allow SMTP, is refused at connect (SessionManager::
+      /// CreateSession), before a greeting - and that is every auto-ban, a range made with
+      /// no option set at a priority of 100 (AccountLogon::CreateIPRange), which is said as
+      /// the ban it is, with when it ends (<paramref name="now"/>, and
+      /// <paramref name="sameClock"/> where the server's clock is this computer's, as the
+      /// Auto-ban page says it). A range whose anti-spam is off sets the session's spam
+      /// protection to none (SMTPConnection::InitializeSpamProtectionType_, before the
+      /// exemptions are asked), so that no spam test, no greylisting and no domain policy
+      /// runs (GetDoSpamProtection_, CheckDomainPolicy_), and only the allow and block list
+      /// applies, at delivery. Check a sender read none of it: a blocked domain read
+      /// "refused at MAIL FROM" for mail from an office range with anti-spam off, which the
+      /// server accepts with no check at all (release review finding CP-6); and, read for
+      /// its anti-spam alone, an auto-banned address read "Lets it through", where the
+      /// server refuses its connection (the adversarial check of rf5-rf6-cp).
       /// </summary>
-      public static SenderCheckResult ConnectingRange(IEnumerable<IpRange> ranges, string ip)
+      public static SenderCheckResult ConnectingRange(IEnumerable<IpRange> ranges, string ip, DateTime now, bool sameClock)
       {
          System.Net.IPAddress connecting = ParseIp_(ip);
          if (connecting == null)
@@ -440,11 +452,21 @@ namespace hMailServer.ControlPanel.Services
             return new SenderCheckResult(RangesPage, SenderCheckOutcome.Matches,
                F("No IP range contains {0}, so the server refuses a connection from it before the sender is given.", connecting.ToString()), blocks: true);
 
+         string name = (range.Name ?? "").Trim();
+         if (!range.AllowSmtp)
+         {
+            return new SenderCheckResult(RangesPage, SenderCheckOutcome.Matches,
+               AutoBanList.IsBan(range.Name, range.Expires)
+                  ? F("The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}.", name, AutoBanList.Ends(range.ExpiresAt, now, sameClock))
+                  : F("The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given.", name),
+               blocks: true);
+         }
+
          if (range.AntiSpam)
             return null;
 
          return new SenderCheckResult(RangesPage, SenderCheckOutcome.Matches,
-            F("The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery.", (range.Name ?? "").Trim()));
+            F("The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery.", name));
       }
 
       // ---- the spam exemptions --------------------------------------------------

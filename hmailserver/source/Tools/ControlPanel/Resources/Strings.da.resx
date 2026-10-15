@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(kunne ikke læses fra serveren)</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>(tom = {0})</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>(tom)</value>
   </data>
@@ -2434,6 +2437,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>Kan ikke afgøres herfra - serverens domæneliste kunne ikke læses, så hvilke domæner der er knyttet til et katalog, er ukendt. Det er et forbindelsesproblem snarere end et konfigurationsproblem: tryk på Genindlæs, når forbindelsen er tilbage.</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Kan ikke afgøres herfra. Sektionen [LDAP], der afgør, om en kørsel kan finde sted, gemmes i hMailServer.ini på serverens computer, og filen her er denne computers egen. Tryk på Forhåndsvis: den kører inde i serveren og vil sige præcis, hvad der mangler, hvis noget gør.</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Kan ikke afgøres herfra. hMailServer.ini kunne ikke læses, og det er filens [LDAP]-afsnit, ikke noget på denne side, der afgør, om en kørsel kan finde sted. Tryk på Forhåndsvis: den kører inde i serveren og siger præcis, hvad der eventuelt mangler.</value>
   </data>
@@ -2442,6 +2448,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Kan ikke afgøres herfra: hMailServer.ini kunne ikke læses, og det er filens [LDAP]-afsnit, der afgør det. Start Control Panel som administrator for at se det.</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>Kan ikke afgøres herfra: det er [LDAP]-afsnittet i serverens egen hMailServer.ini, der afgør det, og dette Control Panel kan ikke læse det.</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Kan ikke afgøre, hvornår den seneste sikkerhedskopiering kørte: sikkerhedskopiindstillingerne kunne ikke læses fra serveren.</value>
@@ -5845,6 +5854,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>Hvordan kontoadgangskoder hashes, hvor meget arbejde en ny hash koster, og den svageste gemte hash, der stadig må logge på. Eksisterende adgangskoder beholder deres nuværende hash, indtil de næste gang ændres - eller, når en arbejdsfaktor er blevet hævet, indtil de næste gang bruges til at logge på.</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Hvor dybt en kæde af genererede meddelelser må gå: en meddelelse, der allerede har været igennem så mange - en regels videresendelse, svar, kopi eller meddelelse, en kontos videresendelse eller omdirigering, en afvisningsmeddelelse, et fraværssvar eller Sieve-svar, et indgående webhooks svar - fører ikke til flere, mens en regels øvrige handlinger ikke er begrænset. 5 som leveret; 0 genererer ingen, ikke engang en afvisningsmeddelelse.</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Hvordan posterne når samleren</value>
   </data>
@@ -5892,9 +5904,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Hvor mange eksterne konti, konfigureret under et domænes konti som eksterne POP3-afhentninger, der afhentes samtidig. Hver enkelt holder en forbindelse til en andens server, så længe afhentningen tager.</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>Hvor mange genererede meddelelser en meddelelse må føre til, før serveren ikke genererer flere for den: en regels videresendelse, svar, kopi eller meddelelse, en kontos videresendelse eller omdirigering, en afvisningsmeddelelse, et fraværssvar eller Sieve-svar eller et indgående webhooks svar; en regels øvrige handlinger er ikke begrænset. 5 som leveret; 0 genererer ingen, ikke engang en afvisningsmeddelelse.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Hvor mange led i en afsenders SPF-politik (a:, mx:, exists:) der må finde ingen DNS-post, før resultatet er permerror. RFC 7208 fastsætter 2; 0 fjerner grænsen.</value>
@@ -12762,6 +12771,12 @@ Hver mappe tømmes først: post, der er kommet siden sikkerhedskopien, er væk. 
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adressen udelukkes, som en stribe mislykkede pålogninger udelukker en, med et udløbende IP-interval, men aldrig en adresse i 'Udeluk aldrig disse adresser automatisk' på siden Automatisk blokering eller et indgående relæ. Fra som standard, og gør intet, så længe afvisningen ovenfor er fra.</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>Adressen er blokeret: IP-intervallet {0} fra automatisk blokering tillader ikke SMTP, så serveren afviser en forbindelse derfra, før afsenderen er angivet. Blokeringen ophører {1}.</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Adressen er i IP-intervallet {0}, som ikke tillader SMTP, så serveren afviser en forbindelse derfra, før afsenderen er angivet.</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>Adressen er i IP-intervallet {0}, som har anti-spam slået fra: serveren kører ingen spamkontrol og greylister ikke en session derfra, og af listerne nedenfor gælder kun listen over tilladte og blokerede, ved levering.</value>
   </data>
@@ -14191,6 +14206,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Disse lader en navngiven upstream give den rigtige klientadresse videre. Begge er slået fra som standard og stoler ikke på nogen, før en adresse er angivet, fordi en modpart, der kan omskrive sin egen kildeadresse, har overvundet hver IP-baseret kontrol på denne server.</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Disse valg gemmes i [LDAP]-afsnittet i hMailServer.ini på serverens computer, og filen her er denne computers egen, så de kan ikke redigeres her. Forhåndsvis og Anvend virker stadig: de kører inde i serveren.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Disse indstillinger læses gennem REST-API'et, som denne session ikke kan bruge.</value>
   </data>
@@ -14226,6 +14244,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Dette Control Panel er forbundet til {0}, ikke til den computer, det kører på. hMailServer-tjenesten på {0} kører som {1}, som ikke kan køre et installationsprogram, så der installeres opdateringer af en administrator ved den server: åbn hMailServer Control Panel på {0} selv, og klik på Installér opdatering der.</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Dette Control Panel er logget på en server på en anden computer: disse indstillinger gemmes i [LDAP]-afsnittet i hMailServer.ini dér, og filen her er denne computers egen. De kan kun redigeres på serverens computer; forbindelsestesten virker stadig med de værdier, der er indtastet her.</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>Dette Control Panel kører fra {0}, ikke fra installationens eget Control Panel ({1}). Åbn Control Panel der, og klik på Installér opdatering.</value>
@@ -14998,8 +15019,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Hvad hver lytter beskytter, hvilket certifikat den præsenterer, og hvornår det udløber, og hvad der stadig kan forhandles.</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>Det, alle regler holdes til: hvor mange meddelelser serveren må generere for én meddelelse - en videresendelse, et svar, en kopi, en afvisningsmeddelelse - før den ikke genererer flere for den.</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>Det, alle regler holdes til: hvor dybt en kæde af meddelelser, som serveren genererer, må gå - en videresendelse af en videresendelse, et svar på et svar - før serveren ikke genererer mere ud fra den.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Hvad hver spamkontrol gør lige nu, i den rækkefølge serveren kører dem, og hvor hver enkelt slås til.</value>

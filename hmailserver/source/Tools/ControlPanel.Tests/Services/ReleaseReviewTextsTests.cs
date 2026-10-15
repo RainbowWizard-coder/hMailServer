@@ -158,19 +158,23 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// RuleLoopLimit bounds every message the server generates for a message - a rule's
-      /// forward, reply, copy or notice, a forwarding, a bounce, an auto-reply, a
-      /// webhook's return - and no other action of a rule: the card said it bounded how
-      /// far a chain of the rules' messages went before rules stopped acting on it, and
-      /// the row said nothing (part B, CPB-3).
+      /// The Rule limits card and its row say what RuleLoopLimit holds: how deep a chain of
+      /// generated messages may go, by the count a message carries of the generated
+      /// messages it has been through (RuleApplier::IsGeneratedResponseAllowed, against
+      /// MessageData::GetRuleLoopCount), for every message the server generates and not
+      /// only what rules send (part B, CPB-3). The card said how many messages the server
+      /// may generate for one message, where a message under the limit may lead to any
+      /// number of them (the adversarial check of rf5-rf6-cp).
       /// </summary>
       [Fact]
       public void TheRuleLimitsCard_SaysWhatTheLimitCounts()
       {
          string page = File_(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         Assert.Contains("L(\"What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it.\")", page, StringComparison.Ordinal);
-         Assert.Contains("Blurb = L(\"How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce.\")", page, StringComparison.Ordinal);
+         Assert.Contains("L(\"What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it.\")", page, StringComparison.Ordinal);
+         Assert.Contains("Blurb = L(\"How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce.\")", page, StringComparison.Ordinal);
          Assert.DoesNotContain("how far a chain of messages that rules send", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("how many messages the server may generate for one message", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("How many generated messages a message may lead to", page, StringComparison.Ordinal);
       }
 
       /// <summary>

@@ -367,6 +367,13 @@ namespace hMailServer.ControlPanel.Views
          public string Default = "";
          public string Placeholder = "";
 
+         /// <summary>
+         /// What the server uses for the key held empty, where its reader puts a value of
+         /// its own in the place of an empty one (IniFeatureStore.HeldEmptyPlaceholder);
+         /// null where the server uses the empty value.
+         /// </summary>
+         public string EmptyMeans;
+
          /// <summary>An address, 260 pixels wide; free text otherwise, the width of the form column.</summary>
          public bool Address;
 
@@ -385,7 +392,7 @@ namespace hMailServer.ControlPanel.Views
             box_ = new Wpf.Ui.Controls.TextBox
             {
                Text = current,
-               PlaceholderText = heldEmpty ? L("(empty)") : ExamplePlaceholder.Shown(Placeholder),
+               PlaceholderText = heldEmpty ? IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans) : ExamplePlaceholder.Shown(Placeholder),
                HorizontalAlignment = Address ? HorizontalAlignment.Left : HorizontalAlignment.Stretch
             };
             if (Address)
@@ -558,6 +565,14 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Default = "";
          public (string Value, string Label)[] Options;
+
+         /// <summary>
+         /// The choice the server uses for the key held empty, where its reader puts one of
+         /// its own in the place of an empty value - MtaStsPolicyMode's "enforce"
+         /// (WebServicesServer, which serves anything but enforce, testing and none as
+         /// enforce); null where the server uses the empty value.
+         /// </summary>
+         public string EmptyMeans;
          private ComboBox combo_;
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
@@ -580,11 +595,25 @@ namespace hMailServer.ControlPanel.Views
                combo_.Items.Add(chosen);
             }
 
-            // A key the server holds empty is offered as itself and written back so, as
-            // a word the list does not know is - not as the first choice (CP-4).
+            // A key the server holds empty is the choice the server then uses, where its
+            // reader puts one in its place (EmptyMeans), and else is offered as itself and
+            // written back so, as a word the list does not know is - not as the first
+            // choice (CP-4). Saved unchanged, the choice writes nothing.
+            if (chosen == null && heldEmpty && EmptyMeans != null)
+            {
+               foreach (ComboBoxItem item in combo_.Items)
+               {
+                  if (string.Equals((string)item.Tag, EmptyMeans, StringComparison.OrdinalIgnoreCase))
+                  {
+                     chosen = item;
+                     break;
+                  }
+               }
+            }
+
             if (chosen == null && heldEmpty)
             {
-               chosen = new ComboBoxItem { Content = L("(empty)"), Tag = "" };
+               chosen = new ComboBoxItem { Content = IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans), Tag = "" };
                combo_.Items.Add(chosen);
             }
 
@@ -2214,7 +2243,8 @@ namespace hMailServer.ControlPanel.Views
                      // check the server runs (release review finding CP-5).
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release") },
                      new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Default = "24", Label = L("Hours between checks (at least 1; 24 = once a day)") },
-                     new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine") },
+                     // Anything but prerelease is the stable feed (UpdateChecker::IsPreReleaseChannel), an empty value too.
+                     new TextSetting { Key = "UpdateChannel", Default = "stable", EmptyMeans = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine") },
                      new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed)"), Blurb = L("Set it to use a mirror.") },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for this server's web requests (host:port; empty = direct)"), Blurb = L("The update feed and its downloads, JWKS and token introspection all go through it. Proxy credentials are not supported."), Placeholder = "proxy.example.net:3128" },
                      new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
@@ -2601,7 +2631,8 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" }, // no-loc: an example issuer, the same in every language
                      new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Blurb = L("Usually the client ID of this server's registration with the identity provider.") },
                      new TextSetting { Key = "OAuth2AllowedAlgorithms", DependsOn = OAuth2Switch, Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
-                     new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address") },
+                     // Empty is "email" to the validator (OAuth2TokenValidator::LoadConfig).
+                     new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", EmptyMeans = "email", Label = L("Claim that holds the mailbox address") },
                      new PathSetting { Key = "OAuth2PublicKeyFile", DependsOn = OAuth2Switch, FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)") },
                      new SecretSetting { Key = "OAuth2HmacSecret", DependsOn = OAuth2Switch, Label = L("Shared HMAC secret (only for HS256/384/512 tokens)"), Hint = L("Only needed for HS* algorithms") },
                      // The two round trips to the provider, both off unless set: its
@@ -2771,6 +2802,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "MtaStsPolicyMode",
                         Default = "enforce",
+                        EmptyMeans = "enforce",
                         Label = L("MTA-STS policy mode"),
                         Options = new (string, string)[]
                         {

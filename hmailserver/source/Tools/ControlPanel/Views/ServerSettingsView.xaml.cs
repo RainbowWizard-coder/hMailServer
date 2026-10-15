@@ -956,6 +956,14 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public string Default = "";
 
+         /// <summary>
+         /// What the server uses for the key held empty, where its reader puts a value of
+         /// its own in the place of an empty one (IniFeatureStore.HeldEmptyPlaceholder):
+         /// OtelServiceName's "hmailserver". Null where the server uses the empty value, as
+         /// it does ScriptAllowedObjects'.
+         /// </summary>
+         public string EmptyMeans;
+
          private TextBox box_;
 
          /// <summary>The setting's box, once the page has built it.</summary>
@@ -976,7 +984,7 @@ namespace hMailServer.ControlPanel.Views
                current = IniStore.ReadHeld(Path, Default, out heldEmpty);
 
             loaded_ = (current ?? "").Trim();
-            box_ = TextEditor(current, heldEmpty ? L("(empty)") : ExamplePlaceholder.Shown(Placeholder));
+            box_ = TextEditor(current, heldEmpty ? IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans) : ExamplePlaceholder.Shown(Placeholder));
             if (Address)
             {
                box_.Width = AddressWidth;
@@ -4377,7 +4385,8 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("From 5 to 3,600. Only used when the metrics endpoint above is set."),
             IniStore = iniStore_
          });
-         metrics.Settings.Add(new IniText { Path = "OtelServiceName", Label = L("OpenTelemetry service name"), Default = "hmailserver", IniStore = iniStore_ }); // no-loc: the default
+         // Empty is "hmailserver" to the three exporters (OtelTracer, OtelLogExporter, OtelMetricsExporter).
+         metrics.Settings.Add(new IniText { Path = "OtelServiceName", Label = L("OpenTelemetry service name"), Default = "hmailserver", EmptyMeans = "hmailserver", IniStore = iniStore_ }); // no-loc: the default
          metrics.Settings.Add(new IniRangeNumber { Path = "SlowQueryLogMilliseconds", Label = L("Log database queries slower than (milliseconds; 0 = off)"), Minimum = 0, Default = "0", Placeholder = "250", IniStore = iniStore_ }); // no-loc: the placeholder
          // Behaviour verified in MetricsServer::Start: an invalid bind address is
          // refused outright; a non-loopback bind without a credential serves 503 on
@@ -4619,21 +4628,25 @@ namespace hMailServer.ControlPanel.Views
       private void BuildRuleLimits()
       {
          // No PageKey: the section's header is not drawn, and the Rules page's own names the page.
-         // RuleLoopLimit bounds every message the server generates for a message, not
-         // only what rules send, and nothing else of a rule: IsGeneratedResponseAllowed
-         // (RuleApplier) and the same test in SMTPForwarding (HM4333), SMTPDeliverer
-         // (HM4404), the out-of-office reply, Sieve's vacation and notify and an inbound
-         // webhook's return refuse once the count reaches it; a move, a delete, a header
-         // set or a function run is not counted (release review part B, CPB-3).
+         // RuleLoopLimit bounds how deep a chain of the messages the server generates may
+         // go, every generated message and not only what rules send, and nothing else of a
+         // rule: IsGeneratedResponseAllowed (RuleApplier) and the same test in
+         // SMTPForwarding (HM4333), SMTPDeliverer (HM4404), the out-of-office reply, Sieve's
+         // vacation and notify and an inbound webhook's return refuse once the message's
+         // own count - X-hMailServer-LoopCount, the generated messages it has been through -
+         // reaches it; a message under it may lead to any number of them, and a move, a
+         // delete, a header set or a function run is not counted (release review part B,
+         // CPB-3, and the adversarial check of rf5-rf6-cp: the card said how many messages
+         // the server may generate for one message, where the limit is the chain's depth).
          var limits = Card(L("Rule limits"),
-            Sentences(L("What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it."),
+            Sentences(L("What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it."),
                L("The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers.")));
          limits.Settings.Add(new ComText
          {
             Path = "RuleLoopLimit",
             Label = L("Rule loop limit"),
             Numeric = true,
-            Blurb = L("How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce.")
+            Blurb = L("How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce.")
          });
          // Kept by the server with no COM property, and reached over the REST API.
          limits.Settings.Add(new RestText

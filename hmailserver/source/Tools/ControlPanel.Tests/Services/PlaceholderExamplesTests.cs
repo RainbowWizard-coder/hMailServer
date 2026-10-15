@@ -44,8 +44,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // as the default in the hint (review finding F131).
          "DefaultSyncFilter", "DefaultUserSearchFilter",
          // A key the server holds empty, said to be where the box would otherwise show an
-         // example over an empty value it does not use (release review finding CP-4).
-         "heldEmpty ? L(\"(empty)\") : ExamplePlaceholder.Shown(",
+         // example over an empty value it does not use (release review finding CP-4), with
+         // what the server uses for it where its reader puts a value in its place.
+         "heldEmpty ? IniFeatureStore.HeldEmptyPlaceholder(EmptyMeans) : ExamplePlaceholder.Shown(",
       };
 
       [Fact]

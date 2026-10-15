@@ -15,16 +15,25 @@ namespace hMailServer.ControlPanel.Services
    {
       private const string Section = "LDAP";   // no-loc
 
-      /// <summary>After a page read the file at <paramref name="iniPath"/>: see <see cref="Read"/>.</summary>
+      /// <summary>
+      /// After a page read the file at <paramref name="iniPath"/>: see <see cref="Read"/>.
+      /// Nothing is read while the session is to a server on another computer, whose
+      /// schedule is in its own file and not this computer's (IniFeatureStore.
+      /// ServerIsOnThisComputer; the directory pages read neither then).
+      /// </summary>
       public void ReadFile(string iniPath)
-         => Read(ServerStarted(), EnabledIn_(iniPath), MinutesIn_(iniPath));
+      {
+         if (IniFeatureStore.ServerIsOnThisComputer)
+            Read(ServerStarted(), EnabledIn_(iniPath), MinutesIn_(iniPath));
+      }
 
       /// <summary>
       /// After a page wrote the file at <paramref name="iniPath"/>: whether the schedule
-      /// it holds now waits for the server to start again (see <see cref="Saved"/>).
+      /// it holds now waits for the server to start again (see <see cref="Saved"/>). No,
+      /// for a file that is not the server's, which the pages write no more.
       /// </summary>
       public bool SavedFile(string iniPath)
-         => Saved(ServerStarted(), EnabledIn_(iniPath), MinutesIn_(iniPath));
+         => IniFeatureStore.ServerIsOnThisComputer && Saved(ServerStarted(), EnabledIn_(iniPath), MinutesIn_(iniPath));
 
       /// <summary>
       /// When the server last started or reinitialised - the moment it registered the

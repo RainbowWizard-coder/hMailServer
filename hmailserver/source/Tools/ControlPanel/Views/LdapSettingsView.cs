@@ -256,7 +256,21 @@ namespace hMailServer.ControlPanel.Views
       /// OnEnter reads the INI again, so such an edit is gone when the page is next
       /// opened.
       /// </summary>
-      public bool HasUnsavedChanges => store_.IsAvailable && baseline_.Differs(EditorValues_());
+      public bool HasUnsavedChanges => ServersFile_ && baseline_.Differs(EditorValues_());
+
+      /// <summary>
+      /// Whether the hMailServer.ini on this computer is the server's: here, and the
+      /// session to this computer (IniFeatureStore.LocalSectionAccess's test). The [LDAP]
+      /// section has no COM property, and a Control Panel installed on a workstation has a
+      /// file of its own, which the installer writes for the Control Panel component too,
+      /// with no [LDAP] in it: signed in to a server on another computer, the page showed
+      /// that file's defaults as the server's and saved an edit into it (release review
+      /// part B's rule for CPB-1, found on this page by the adversarial check of
+      /// rf5-rf6-cp). Where it is not, nothing of the file is read or written, as where
+      /// there is no file.
+      /// </summary>
+      private bool ServersFile_ => store_.IsAvailable && IniFeatureStore.ServerIsOnThisComputer;
+
 
       /// <summary>The page's own Save; true when it wrote the section.</summary>
       public bool SaveChanges() => Save_();
@@ -674,7 +688,7 @@ namespace hMailServer.ControlPanel.Views
 
       private string IniRead_(string key, string fallback)
       {
-         if (!store_.IsAvailable)
+         if (!ServersFile_)
             return fallback;
 
          // 4096 characters, the same buffer size LdapSettings::ReadString_ uses, so
@@ -699,6 +713,8 @@ namespace hMailServer.ControlPanel.Views
       {
          if (!store_.IsAvailable)
             throw new InvalidOperationException(L("hMailServer.ini was not found on this machine."));
+         if (!ServersFile_)
+            throw new InvalidOperationException(L("This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here."));
 
          if (!ProfileApi.WriteString(IniSection, key, value, store_.IniPath))
             throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(),
@@ -711,8 +727,9 @@ namespace hMailServer.ControlPanel.Views
 
          // Before any value is read: a file that is here and cannot be read
          // answers every read with its fallback, which is a configuration this
-         // page must not show as the server's.
-         denied_ = store_.ReadDenied();
+         // page must not show as the server's. A file that is not the server's is
+         // not read at all (ServersFile_).
+         denied_ = ServersFile_ ? store_.ReadDenied() : null;
          deniedNotice_.Text = denied_ == null ? null : F("hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings.", denied_);
          deniedNotice_.Visibility = denied_ == null ? Visibility.Collapsed : Visibility.Visible;
          foreach (Card card in editing_)
@@ -735,7 +752,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (!store_.IsAvailable)
+         if (!ServersFile_)
          {
             saveButton_.IsEnabled = false;
             pathText_.Visibility = Visibility.Collapsed;
@@ -791,13 +808,15 @@ namespace hMailServer.ControlPanel.Views
          RefreshState_();
          baseline_.Take(EditorValues_());
 
-         if (store_.IsAvailable)
+         if (ServersFile_)
          {
             // What the file holds of the directory synchronisation schedule, which
             // Enabled is half of, before a save here changes it (DirectorySyncSchedule).
             DirectorySyncSchedule.Shared.ReadFile(store_.IniPath);
             saveState_.Settle(SettingsPageState.Clean, null);
          }
+         else if (store_.IsAvailable)
+            saveState_.Settle(SettingsPageState.Unavailable, L("This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here."));
          else
             saveState_.Settle(SettingsPageState.Unavailable, L("hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here."));
       }
@@ -860,7 +879,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>Writes the [LDAP] section; true when it was written.</summary>
       private bool Save_()
       {
-         if (denied_ != null)
+         if (denied_ != null || !ServersFile_)
             return false;
 
          // A save refused before it writes anything says why as every refused save on
@@ -1148,7 +1167,21 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          // The state is read off the editors, and with the file unread they hold
-         // nothing: the card says that, not "Off".
+         // nothing: the card says that, not "Off". Nor do they hold the server's where
+         // the file here is not the server's, or there is none: they hold the defaults,
+         // for the connection test, and "Off" would send an administrator to switch on
+         // what may well be on.
+         if (denied_ == null && !ServersFile_)
+         {
+            string unknown = L("Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it.");
+            stateText_.Level = StatusLevel.Information;
+            stateText_.Text = unknown;
+            System.Windows.Automation.AutomationProperties.SetName(stateText_, StatusSemantics.For(StatusLevel.Information).SeverityWord + ": " + unknown);
+            stateDetail_.Text = "";
+            stateDetail_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
          if (denied_ != null)
          {
             string unread = L("Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it.");

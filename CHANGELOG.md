@@ -1316,13 +1316,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: a hMailServer.ini [Settings] value the server holds empty was shown as the row's default (release review
   finding CP-4).** `GetIniSetting` answers "" for a key that is absent and for one stored empty alike, and the rows
   took both for absent: ScriptAllowedObjects stored empty showed `*` under the warning that a script may create any
-  COM object, on a server that lets a script create none beyond hMailServer's own, and a number or a switch held
-  empty showed its default where the server's loader reads 0. The rows ask the server which keys it holds
+  COM object, on a server that lets a script create none beyond hMailServer's own, and a number or a switch held empty
+  showed its default where the server's loader reads 0. The rows ask the server which keys it holds
   (`Settings.IniSettingNames`, asked again after five seconds or a save): a text held empty is shown empty, with
   "(empty)" in its box, a word chosen from a list offers "(empty)" as its choice, and a number or a switch held empty
-  shows the 0 the server reads. ScriptAllowedObjects' caption says again what empty means, "(empty = none beyond
-  hMailServer's own)": a clear narrows the list, and nothing on the page widens it. `IniHeldValueTests` holds the
-  store and the rows to it.
+  shows the 0 the server reads. Four keys whose reader in the server puts its default in the place of an empty value
+  say that instead: OpenTelemetry's service name shows "(empty = hmailserver)", the OAuth2 username claim "(empty =
+  email)" and the update channel "(empty = stable)", and the MTA-STS policy mode is its "enforce" choice, the mode the
+  server serves. ScriptAllowedObjects' caption says again what empty means, "(empty = none beyond hMailServer's own)":
+  a clear narrows the list, and nothing on the page widens it. `IniHeldValueTests` holds the store and the rows to it.
 
 - **Fixed: two of the Control Panel's new number ranges were not the server's (release review finding CP-5).**
   ScriptTimeout took any number of seconds up to 2,147,483,647, which the server multiplied into the 32-bit count of
@@ -1333,22 +1335,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checks (at least 1; 24 = once a day)", where it said "once a day" whatever the hours were (release review, seen
   outside the findings 6). `SettingNumberRangeTests` holds the two fields to the server's bounds.
 
-- **Fixed: Check a sender left out the connecting address's IP range (release review finding CP-6).** The server
-  gives a connection the range of the highest priority that contains its address before it reads any list: a
-  connection no range contains is refused before the sender is given, and a range whose anti-spam is off runs no spam
-  check, no greylisting and no domain policy, so that of the lists only the allow and block list applies, at
-  delivery. The check said a blocked domain was "refused at MAIL FROM" for mail from an office range with anti-spam
-  off, which the server accepts with no check at all. It reads the IP ranges now and answers with the range first -
-  "The IP ranges decide." - marking the lists the range keeps the server from reading as not consulted or not
-  reached, and its caption says that a sender who signs in meets none of the lists but the allow and block list.
-  `SenderListsTests` holds the range's choice to the server's and the answers to it.
+- **Fixed: Check a sender left out the connecting address's IP range (release review finding CP-6).** The server gives
+  a connection the range of the highest priority that contains its address before it reads any list: a connection no
+  range contains, or from a range that does not allow SMTP - every auto-ban is one - is refused before the sender is
+  given, and a range whose anti-spam is off runs no spam check, no greylisting and no domain policy, so that of the
+  lists only the allow and block list applies, at delivery. The check said a blocked domain was "refused at MAIL FROM"
+  for mail from an office range with anti-spam off, which the server accepts with no check at all. It reads the IP
+  ranges now and answers with the range first - "The IP ranges decide." - marking the lists the range keeps the server
+  from reading as not consulted or not reached, says of a banned address that it is banned, by which range and when
+  the ban ends, and its caption says that a sender who signs in meets none of the lists but the allow and block list.
+  `SenderListsTests` holds the range's choice to the server's and the answers to it, an auto-ban and a range that
+  takes no SMTP among them.
 
 - **Fixed: Server status counted every IP range that expires as an auto-ban (release review finding CP-7).** Its
-  Auto-ban IP ranges row, from the configuration checks the Dashboard reads as well, counted a range with an expiry
-  as a ban, while the server and the Auto-ban page's
-  Banned now count only the ranges it names "Auto-ban: ". It asks the auto-ban list's own test now
-  (`AutoBanList.IsBan`), and the check's judgement is a pure function of what it read. `ConfigurationChecksTests`
-  holds it to an expiring range of another name.
+  Auto-ban IP ranges row, from the configuration checks the Dashboard reads as well, counted a range with an expiry as
+  a ban, while the server and the Auto-ban page's Banned now count only the ranges it names "Auto-ban: ". It asks the
+  auto-ban list's own test now (`AutoBanList.IsBan`), and the check's judgement is a pure function of what it read.
+  `ConfigurationChecksTests` holds it to an expiring range of another name.
 
 - **Fixed: the Control Panel's texts that said what the server does not do (release review findings CPV-1, CPV-3 to
   CPV-8 and CP-3, the two seen outside the findings 5 and 7, and part B's CPB-3, CPB-5 and seen 1).** The CalDAV and
@@ -1358,32 +1361,33 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "250 OK"; it runs on the delivery thread after the message has been accepted, and its cost is delivery delay.
   Restoring the default IP ranges said "'Internet' (everything else)"; the defaults are IPv4 alone, and the button and
   its question say that an IPv6 client, ::1 included, then matches no range and is refused. The TLS resumption
-  lifetime's "0 = OpenSSL's default of 300" says 7,200, OpenSSL's own. The quarantine switch said a refusal was a
-  550; a verdict after the body is refused with 554, one before it, and an incoming relay's check made after the
-  body against the address in its headers, with 550. The German Send-As sentence said a compromised account "cannot
-  send more than any other"; it says "in the name of any other account". The never auto-ban list said a listed
-  address's failed sign-ins are not counted; the per-name lockout still counts them. Server status's "Uptime" and
-  "Since the service started at" were the servers' last start, which Apply now, a reinitialise and a resume make
-  again, over counts the service keeps from its own start: the rows say "Servers last started" and "Servers running
-  for", a line under them says what starts the servers again, the heading names no time, and the Dashboard's tile is
-  named as the row is. The search index's rebuild said IMAP SEARCH finds less than it should until it catches up; a
-  search reads what the index does not cover yet, so it is slower, or refused with NO [LIMIT], and never short. The
-  syslog claim called 1,024 bytes RFC 5426's guidance and said the streams truncate nothing; it names the RFC's 480
-  and 2,048, and the streams' 65,000. Rule limits said the loop limit bounds how far a chain of the rules' messages
-  goes; it bounds every message the server generates for a message - a rule's forward, reply, copy or notice, an
-  account's forwarding, a bounce, an auto-reply, an inbound webhook's return - and the row says so. Incoming relays'
-  front-end proxies, its description and its task read as though they covered every listener: they are the SMTP
-  listener's, and the card and the IMAP and POP3 cards of Protocols, whose PROXY switches are their own, point to each
-  other. The comments in the server that made three of the claims (SMTPConnection.cpp, SslContextInitializer.cpp,
-  AccountLogon.cpp) are corrected with them. `ReleaseReviewTextsTests` and `ServerUptimeTextTests` hold each text to
-  what the server does.
+  lifetime's "0 = OpenSSL's default of 300" says 7,200, OpenSSL's own. The quarantine switch said a refusal was a 550;
+  a verdict after the body is refused with 554, one before it, and an incoming relay's check made after the body
+  against the address in its headers, with 550. The German Send-As sentence said a compromised account "cannot send
+  more than any other"; it says "in the name of any other account". The never auto-ban list said a listed address's
+  failed sign-ins are not counted; the per-name lockout still counts them. Server status's "Uptime" and "Since the
+  service started at" were the servers' last start, which Apply now, a reinitialise and a resume make again, over
+  counts the service keeps from its own start: the rows say "Servers last started" and "Servers running for", a line
+  under them says what starts the servers again, the heading names no time, and the Dashboard's tile is named as the
+  row is. The search index's rebuild said IMAP SEARCH finds less than it should until it catches up; a search reads
+  what the index does not cover yet, so it is slower, or refused with NO [LIMIT], and never short. The syslog claim
+  called 1,024 bytes RFC 5426's guidance and said the streams truncate nothing; it names the RFC's 480 and 2,048, and
+  the streams' 65,000. Rule limits said the loop limit bounds how far a chain of the rules' messages goes; it bounds
+  how far a chain of every message the server generates goes - a rule's forward, reply, copy or notice, an account's
+  forwarding, a bounce, an auto-reply, an inbound webhook's return - by the generated messages a message has been
+  through, and the card and the row say so. Incoming relays' front-end proxies, its description and its task read as
+  though they covered every listener: they are the SMTP listener's, and the card and the IMAP and POP3 cards of
+  Protocols, whose PROXY switches are their own, point to each other. The comments in the server that made three of
+  the claims (SMTPConnection.cpp, SslContextInitializer.cpp, AccountLogon.cpp) are corrected with them.
+  `ReleaseReviewTextsTests` and `ServerUptimeTextTests` hold each text to what the server does.
 
 - **Fixed: every palette task on a page with tabs names its tab (release review part B, CPB-4).** "send an alert to
   another system" and "monitor the server from outside" opened Monitoring & alerts on its first tab, the REST API's,
   where the alert rules and the metrics are on others, and 23 more tasks on Anti-spam settings, Anti-virus settings,
   Auto-ban, TLS versions & ciphers, Administrative access, Delivery of e-mail, Performance, Logging, Advanced and
-  Protocols named no tab, which IntentIndex says only a page without tabs may do. Each opens its page on the tab whose card its answer names
-  first now, and `TransportSecurityTabsTests` holds every task, where it held Transport security's alone.
+  Protocols named no tab, which IntentIndex says only a page without tabs may do. Each opens its page on the tab whose
+  card its answer names first now, and `TransportSecurityTabsTests` holds every task, where it held Transport
+  security's alone.
 
 - **Fixed: three navigation texts used another word for a listener than the rest of their catalogue, in Czech,
   Spanish, Ukrainian and Simplified Chinese (release review part B, CPB-6).** They use the catalogue's own word now,
@@ -4996,12 +5000,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the server does not answer that section over COM. One on the server that was not run as administrator - the file is
   the administrators' alone from 6.3.6 - had no value to read, showed each at its default as a live, editable value,
   and on a save said that an edit of one was saved, where nothing was written. One signed in to a server on another
-  computer read them from that computer's own hMailServer.ini, which the installer's Control Panel component leaves,
-  showed its values as the server's, and saved an edit into it, or failed to without a word, where the server read
-  its own (release review part B, CPB-1). Each is marked Not read now in both cases, the card says at its top why, and
-  how to see and change the three, a save neither writes nor counts them, and the database type the card reads from
-  the same file is taken from it only when it is the server's. `RemoteIniRowsTests` holds the rows and the card to it,
-  and the store to the default it answers for [Database] with no file on this computer, with a file this user may not
+  computer read them from this computer's own hMailServer.ini, which the installer's Control Panel component leaves,
+  showed its values as the server's, and saved an edit into it, or failed to without a word, where the server read its
+  own (release review part B, CPB-1). Each is marked Not read now in both cases, the card says at its top why, and how
+  to see and change the three, a save neither writes nor counts them, and the database type the card reads from the
+  same file is taken from it only when it is the server's. `RemoteIniRowsTests` holds the rows and the card to it, and
+  the store to the default it answers for [Database] with no file on this computer, with a file this user may not
   read, and with a readable file here while the session is another computer's.
 
 - **Fixed: Server limits & expert settings read and wrote its sending limits in this computer's hMailServer.ini when
@@ -5015,6 +5019,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   out, and the card names no file of this computer as theirs. A write of the file that fails - it is the
   administrators' alone from 6.3.6 - is a failure the save reports, where `WritePrivateProfileString`'s answer was
   dropped and the save counted as made. `RemoteIniRowsTests` holds the rows, the notice and the write to it.
+
+- **Fixed: Directory authentication (LDAP) and Directory synchronisation read and wrote the [LDAP] section of this
+  computer's hMailServer.ini when signed in to a server on another computer.** The section has no COM property, and
+  the installer's Control Panel component leaves a readable hMailServer.ini with no [LDAP] in it, so a Control Panel
+  on a workstation showed that file's defaults as the server's, saved an edit into it, and Directory synchronisation's
+  state card said that directory access was switched off. Neither page reads or writes the file now unless it is the
+  server's: each says under its header that the settings are kept in the hMailServer.ini on the server's computer,
+  Save is off, the state cards say that they cannot tell from here, and the connection test, Preview and Apply still
+  work. Directory authentication's state card says the same where there is no file, where it said "Off".
+  `RemoteIniRowsTests` holds both pages and the schedule record to it (release review part B's rule for CPB-1, found
+  on these pages by the adversarial check of rf5-rf6-cp).
 
 - **Fixed: the Quarantine page's search looked only through the five hundred most recent held messages (review
   finding F261).** It filtered the page COM had loaded, so an older message could not be found from the page at all,

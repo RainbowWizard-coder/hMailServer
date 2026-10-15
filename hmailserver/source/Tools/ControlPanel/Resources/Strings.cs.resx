@@ -54,6 +54,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(nelze načíst ze serveru)</value>
   </data>
+  <data name="(empty = {0})" xml:space="preserve">
+    <value>(prázdné = {0})</value>
+  </data>
   <data name="(empty)" xml:space="preserve">
     <value>(prázdné)</value>
   </data>
@@ -2467,6 +2470,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
     <value>Odsud to nelze určit – seznam domén serveru se nepodařilo přečíst, takže není známo, které domény jsou propojené s adresářem. Jde spíš o problém s připojením než o problém s konfigurací: až bude připojení obnoveno, stiskněte Znovu načíst.</value>
   </data>
+  <data name="Cannot tell from here. The [LDAP] section that decides whether a run can happen is kept in the hMailServer.ini on the server's computer, and the file here is this computer's own. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Odsud to nelze určit. Sekce [LDAP], která rozhoduje, zda běh může proběhnout, se uchovává v souboru hMailServer.ini na počítači serveru a soubor zde patří tomuto počítači. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co chybí, pokud něco.</value>
+  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Odsud nelze říci. Soubor hMailServer.ini se nepodařilo přečíst a o tom, zda může běh proběhnout, rozhoduje sekce [LDAP] tohoto souboru, nikoli cokoli na této stránce. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co případně chybí.</value>
   </data>
@@ -2475,6 +2481,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Odsud nelze říci: soubor hMailServer.ini se nepodařilo přečíst a rozhoduje právě sekce [LDAP] tohoto souboru. Spusťte Control Panel jako správce, abyste ji viděli.</value>
+  </data>
+  <data name="Cannot tell from here: it is the [LDAP] section of the server's own hMailServer.ini that decides, and this Control Panel cannot read it." xml:space="preserve">
+    <value>Odsud nelze říci: rozhoduje sekce [LDAP] vlastního souboru hMailServer.ini serveru a tento Ovládací panel ji nemůže přečíst.</value>
   </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Nelze určit, kdy proběhla poslední záloha: nastavení zálohování se ze serveru nepodařilo přečíst.</value>
@@ -5927,6 +5936,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to sign in. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to sign in." xml:space="preserve">
     <value>Jak se hashují hesla účtů, kolik práce stojí nový hash a nejslabší uložený hash, který se ještě smí přihlásit. Stávající hesla si ponechají svůj hash, dokud se příště nezmění - nebo, byl-li zvýšen pracovní faktor, dokud se příště nepoužijí k přihlášení.</value>
   </data>
+  <data name="How deep a chain of generated messages may go: a message that has already been through that many - a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, an inbound webhook's return - leads to none more, while a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
+    <value>Jak hluboko smí sahat řetězec vygenerovaných zpráv: zpráva, která už prošla tolika vygenerovanými zprávami – přeposláním, odpovědí, kopií nebo oznámením pravidla, přeposláním nebo přesměrováním účtu, nedoručenkou, odpovědí v nepřítomnosti nebo odpovědí Sieve, zpětnou zprávou příchozího webhooku –, už žádnou další nevyvolá; ostatní akce pravidla omezeny nejsou. Výchozí hodnota je 5; 0 nevygeneruje žádnou, ani nedoručenku.</value>
+  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Jak se záznamy dostanou ke sběrači</value>
   </data>
@@ -5974,9 +5986,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Kolik externích účtů, nakonfigurovaných v účtech domény jako externí stahování POP3, se stahuje současně. Každý drží spojení s cizím serverem tak dlouho, jak stahování trvá.</value>
-  </data>
-  <data name="How many generated messages a message may lead to before the server generates no more for it: a rule's forward, reply, copy or notice, an account's forwarding or redirect, a bounce, an out-of-office or Sieve reply, or an inbound webhook's return; a rule's other actions are not limited. 5 as shipped; 0 generates none, not even a bounce." xml:space="preserve">
-    <value>Kolik vygenerovaných zpráv smí jedna zpráva vyvolat, než pro ni server přestane další generovat: přeposlání, odpověď, kopie nebo oznámení pravidla, přeposlání nebo přesměrování účtu, nedoručenka, odpověď v nepřítomnosti nebo odpověď Sieve či zpětná zpráva příchozího webhooku; ostatní akce pravidla omezeny nejsou. Výchozí hodnota je 5; 0 nevygeneruje žádnou, ani nedoručenku.</value>
   </data>
   <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
     <value>Kolik členů SPF politiky odesílatele (a:, mx:, exists:) smí nenajít žádný záznam DNS, než je výsledkem permerror. RFC 7208 stanoví 2; 0 limit ruší.</value>
@@ -12922,6 +12931,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The address is banned as a run of failed sign-ins bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adresa se zakáže stejně jako po řadě neúspěšných přihlášení, rozsahem IP s vypršením, ale nikdy adresa v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban ani příchozí relay. Ve výchozím stavu vypnuto a nedělá nic, dokud je odmítání výše vypnuto.</value>
   </data>
+  <data name="The address is banned: the auto-ban IP range {0} does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends {1}." xml:space="preserve">
+    <value>Adresa je zablokována: rozsah IP automatického blokování {0} nepovoluje SMTP, takže server připojení z této adresy odmítne dřív, než je uveden odesílatel. Blokování skončí {1}.</value>
+  </data>
+  <data name="The address is in the IP range {0}, which does not allow SMTP, so the server refuses a connection from it before the sender is given." xml:space="preserve">
+    <value>Adresa patří do rozsahu IP {0}, který nepovoluje SMTP, takže server připojení z této adresy odmítne dřív, než je uveden odesílatel.</value>
+  </data>
   <data name="The address is in the IP range {0}, whose anti-spam is off: the server runs no spam check and does not greylist a session from it, and of the lists below only the allow and block list applies, at delivery." xml:space="preserve">
     <value>Adresa patří do rozsahu IP {0}, který má antispam vypnutý: server u relace z něj nespouští žádnou kontrolu spamu a nepodrobí ji greylistingu a ze seznamů níže platí jen seznam povolených a blokovaných, a to při doručení.</value>
   </data>
@@ -14378,6 +14393,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server." xml:space="preserve">
     <value>Tyto volby umožňují pojmenovanému předřazenému serveru předat skutečnou adresu klienta. Obě jsou ve výchozím nastavení vypnuté a nedůvěřují nikomu, dokud není uvedena adresa, protože protějšek, který může přepsat vlastní zdrojovou adresu, obešel každou kontrolu na tomto serveru založenou na IP.</value>
   </data>
+  <data name="These selections are kept in the [LDAP] section of the hMailServer.ini on the server's computer, and the file here is this computer's own, so they cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Tyto volby se uchovávají v sekci [LDAP] souboru hMailServer.ini na počítači serveru a soubor zde patří tomuto počítači, takže je zde nelze upravovat. Náhled a Použít fungují dál: běží uvnitř serveru.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Tato nastavení se čtou přes REST API, které tato relace nemůže použít.</value>
   </data>
@@ -14413,6 +14431,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Tento Control Panel je připojen k {0}, ne k počítači, na kterém běží. Služba hMailServer na {0} běží jako {1}, který nemůže spustit instalátor, takže tam aktualizace instaluje správce přímo na tom serveru: otevřete hMailServer Control Panel přímo na {0} a klikněte tam na Nainstalovat aktualizaci.</value>
+  </data>
+  <data name="This Control Panel is signed in to a server on another computer: these settings are kept in the [LDAP] section of the hMailServer.ini there, and the file here is this computer's own. They can be edited only on the server's computer; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Tento Ovládací panel je přihlášen k serveru na jiném počítači: tato nastavení se uchovávají v sekci [LDAP] souboru hMailServer.ini tam a soubor zde patří tomuto počítači. Upravovat je lze jen na počítači serveru; test připojení s hodnotami zadanými zde přesto funguje.</value>
   </data>
   <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
     <value>Tento Control Panel běží z {0}, ne z vlastního Control Panelu instalace ({1}). Otevřete Control Panel tam a klikněte na Nainstalovat aktualizaci.</value>
@@ -15191,8 +15212,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>Co každý listener chrání, který certifikát předkládá a kdy vyprší, a co lze ještě vyjednat.</value>
   </data>
-  <data name="What every rule is held to: how many messages the server may generate for one message - a forward, a reply, a copy, a bounce - before it generates no more for it." xml:space="preserve">
-    <value>Co platí pro každé pravidlo: kolik zpráv smí server pro jednu zprávu vygenerovat – přeposlání, odpověď, kopii, nedoručenku –, než pro ni přestane další generovat.</value>
+  <data name="What every rule is held to: how deep a chain of messages the server generates may go - a forward of a forward, a reply to a reply - before the server generates nothing more from it." xml:space="preserve">
+    <value>Co platí pro každé pravidlo: jak hluboko smí sahat řetězec zpráv, které server generuje – přeposlání přeposlání, odpověď na odpověď –, než z něj server přestane cokoli dalšího generovat.</value>
   </data>
   <data name="What every spam check is doing right now, in the order the server runs them, and where each is switched on." xml:space="preserve">
     <value>Co právě dělá každá kontrola spamu, v pořadí, v jakém je server spouští, a kde se každá zapíná.</value>

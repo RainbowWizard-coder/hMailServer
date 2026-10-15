@@ -457,10 +457,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       // network of the administrator's own whose anti-spam is off, at a higher priority.
       private static readonly SenderCheck.IpRange[] OfficeRanges_ =
       {
-         new SenderCheck.IpRange("My computer", "127.0.0.1", "127.0.0.1", 15, true),
-         new SenderCheck.IpRange("Internet", "0.0.0.0", "255.255.255.255", 10, true),
-         new SenderCheck.IpRange("Office LAN", "192.168.1.0", "192.168.1.255", 20, false)
+         new SenderCheck.IpRange("My computer", "127.0.0.1", "127.0.0.1", 15, true, true, false, default),
+         new SenderCheck.IpRange("Internet", "0.0.0.0", "255.255.255.255", 10, true, true, false, default),
+         new SenderCheck.IpRange("Office LAN", "192.168.1.0", "192.168.1.255", 20, false, true, false, default)
       };
+
+      private static readonly DateTime Now_ = new DateTime(2026, 10, 15, 6, 30, 0);
+
+      private static SenderCheckResult ConnectingRange_(IEnumerable<SenderCheck.IpRange> ranges, string ip)
+         => SenderCheck.ConnectingRange(ranges, ip, Now_, sameClock: true);
 
       /// <summary>
       /// A range "Office LAN" with anti-spam off, and example.net blocked: Check a sender
@@ -474,7 +479,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void ARangeWithAntiSpamOff_KeepsTheServerFromEveryListButTheAllowAndBlockList()
       {
          List<SenderCheckResult> asked = Answers_("news@mass-mail.example", "192.168.1.10");
-         SenderCheckResult range = SenderCheck.ConnectingRange(OfficeRanges_, "192.168.1.10");
+         SenderCheckResult range = ConnectingRange_(OfficeRanges_, "192.168.1.10");
          Assert.NotNull(range);
          asked.Insert(0, range);
 
@@ -516,8 +521,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void ARangeThatRunsTheSpamChecks_ChangesNothing()
       {
-         Assert.Null(SenderCheck.ConnectingRange(OfficeRanges_, "192.0.2.7"));
-         Assert.Null(SenderCheck.ConnectingRange(OfficeRanges_, ""));
+         Assert.Null(ConnectingRange_(OfficeRanges_, "192.0.2.7"));
+         Assert.Null(ConnectingRange_(OfficeRanges_, ""));
       }
 
       /// <summary>
@@ -527,7 +532,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void AnAddressNoRangeHolds_IsRefusedBeforeAnyList()
       {
-         SenderCheckResult range = SenderCheck.ConnectingRange(OfficeRanges_, "2001:db8::25");
+         SenderCheckResult range = ConnectingRange_(OfficeRanges_, "2001:db8::25");
          Assert.Equal((StatusLevel.Warning, "Stops it"), SenderCheck.Pill(range));
 
          List<SenderCheckResult> asked = Answers_("news@example.org", "2001:db8::25");
@@ -539,6 +544,73 @@ namespace hMailServer.ControlPanel.Tests.Services
          (StatusLevel level, string text) = SenderCheck.Summary(answers);
          Assert.Equal(StatusLevel.Warning, level);
          Assert.Contains("2001:db8::25", text, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// An auto-banned address: the server makes every ban with no option set - SMTP off,
+      /// anti-spam off - at a priority of 100 (AccountLogon::CreateIPRange), and refuses a
+      /// session from a range that does not allow SMTP at connect (SessionManager::
+      /// CreateSession). The check read the ban for its anti-spam alone and said "Lets it
+      /// through", "The IP ranges decide ... only the allow and block list applies", at
+      /// Good, for an address the server refuses (the adversarial check of rf5-rf6-cp):
+      /// it says the address is banned, when the ban ends, and that no list is reached.
+      /// </summary>
+      [Fact]
+      public void AnAutoBannedAddress_IsRefusedAtConnect_AndTheBanIsNamed()
+      {
+         var ranges = new List<SenderCheck.IpRange>(OfficeRanges_)
+         {
+            new SenderCheck.IpRange("Auto-ban: someone@example.com", "203.0.113.9", "203.0.113.9", 100, false, false, true, Now_.AddMinutes(23))
+         };
+
+         SenderCheckResult range = ConnectingRange_(ranges, "203.0.113.9");
+         Assert.NotNull(range);
+         Assert.Equal((StatusLevel.Warning, "Stops it"), SenderCheck.Pill(range));
+         Assert.Equal("The address is banned: the auto-ban IP range Auto-ban: someone@example.com does not allow SMTP, so the server refuses a connection from it before the sender is given. The ban ends 23 min from now.", range.Text);
+
+         List<SenderCheckResult> asked = Answers_("someone@example.com", "203.0.113.9");
+         asked.Insert(0, range);
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         foreach (SenderCheckResult answer in answers.Where(answer => answer.Page != "ipranges"))
+            Assert.Equal("Not reached: the server refuses the connection before the sender is given.", answer.Text);
+         Assert.DoesNotContain(answers, answer => SenderCheck.Pill(answer).Word == "Lets it through");
+
+         (StatusLevel level, string text) = SenderCheck.Summary(answers);
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.StartsWith("The IP ranges decide. The address is banned:", text, StringComparison.Ordinal);
+         Assert.DoesNotContain("anti-spam is off", text, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// An administrator's own range that does not allow SMTP, with its anti-spam on: the
+      /// server refuses the connection all the same, where the check read no range at all
+      /// and let the lists answer as if the session were taken.
+      /// </summary>
+      [Fact]
+      public void ARangeThatDoesNotAllowSmtp_IsRefusedAtConnect_WhateverItsAntiSpam()
+      {
+         var ranges = new List<SenderCheck.IpRange>(OfficeRanges_)
+         {
+            new SenderCheck.IpRange("Partner network", "198.51.100.0", "198.51.100.255", 30, true, false, false, default)
+         };
+
+         SenderCheckResult range = ConnectingRange_(ranges, "198.51.100.20");
+         Assert.NotNull(range);
+         Assert.True(range.Blocks);
+         Assert.Equal("The address is in the IP range Partner network, which does not allow SMTP, so the server refuses a connection from it before the sender is given.", range.Text);
+
+         List<SenderCheckResult> asked = Answers_("news@example.org", "198.51.100.20");
+         asked.Insert(0, range);
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         Assert.All(answers.Where(answer => answer.Page != "ipranges"), answer => Assert.Equal(SenderCheckOutcome.NotReached, answer.Outcome));
+         Assert.Equal(StatusLevel.Warning, SenderCheck.Summary(answers).Level);
+
+         // A ban whose time has passed is still the server's until the sweep lifts it.
+         var lapsed = new List<SenderCheck.IpRange>(OfficeRanges_)
+         {
+            new SenderCheck.IpRange("Auto-ban: spam trap trap@example.com", "203.0.113.10", "203.0.113.10", 100, false, false, true, Now_.AddMinutes(-2))
+         };
+         Assert.EndsWith("The ban ends within a minute.", ConnectingRange_(lapsed, "203.0.113.10").Text, StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -557,6 +629,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(range > 0 && lists > range, "RunCheck_ does not ask the connecting address's IP range before the lists.");
          Assert.Contains("SenderCheck.ConnectingRange(ReadItems_((object)settings.SecurityRanges,", view, StringComparison.Ordinal);
          Assert.Contains("(bool)item.EnableSpamProtection", view, StringComparison.Ordinal);
+         Assert.Contains("(bool)item.AllowSMTPConnections, (bool)item.Expires, ExpiresAt_(item)))), ip, DateTime.Now, ServerSession.IsLocalSession);", view, StringComparison.Ordinal);
          Assert.Contains("L(\"A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery:", view, StringComparison.Ordinal);
       }
 
