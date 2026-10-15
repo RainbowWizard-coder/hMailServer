@@ -516,14 +516,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   passed back to the original sender. Every message to a valid address was taken as delivery to a local recipient, not
   only a bounce (from 6.2.1, which brought SRS). Only a bounce, with a null reverse-path (RFC 5321 4.5.5), is taken so
   now; anything else sent to the address is mail for the original sender's domain and is held to the relay rules like
-  any other. Its `RCPT TO` is answered as it always was, so that a server verifying the address with a sender of its
-  own - Postfix's `reject_unverified_sender` asks as `double-bounce@` - is still told it exists and takes the forwarded
-  message; where the relay rules refuse it, the transaction is refused at `DATA` or `BDAT` with the reply the
-  `RCPT TO` would have had, and the SMTP log says why. Such an address keeps its transaction to itself: a recipient
-  named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own, rather than
-  lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside address is.
-  `SMTP/Srs.cs` holds each, the refusal at `BDAT` as well as at `DATA`. Found by upstream's review of its own SRS
-  (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself.
+  any other. Its `RCPT TO` is answered as it always was (but `554 5.6.3` in a session that has not authenticated and
+  asked for `BODY=BINARYMIME`, as for any outside address), so that a server verifying the address with a sender of
+  its own - Postfix's `reject_unverified_sender` asks as `double-bounce@` - is still told it exists and takes the
+  forwarded message; where the relay rules refuse it, the transaction is refused at `DATA` or `BDAT` with the reply
+  the `RCPT TO` would have had, and the SMTP log says why. Such an address keeps its transaction to itself: a
+  recipient named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own,
+  rather than lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside
+  address is. `SMTP/Srs.cs` holds each, the refusal at `BDAT` as well as at `DATA`. Found by upstream's review of its
+  own SRS (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself.
 
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for
@@ -663,10 +664,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (`SQLCEConnection::Disconnect`): ADO refuses to close it otherwise, and the connection stayed open under its
   transaction while the server took it for closed, so that the next attempt to connect it failed on an object that was
   still open - which a scope that reconnects a connection it could not roll back would meet. On one node this shows
-  only when the server closes its database (a stop, a reinitialise) while a script holds `Database.BeginTransaction`
-  open: that transaction is now rolled back at the close, where it stayed open past it. The comment in
-  `PersistentDomain.cpp` that said SQL Server Compact has no transactions, and the one in
-  `DatabaseConnectionManager.cpp` that said it has them for data alone, are corrected.
+  only when a reinitialise closes the database while a script holds `Database.BeginTransaction` open: that
+  transaction is now rolled back at the close, where it stayed open past it. A stop after which the process ends
+  waits up to twelve seconds on SQL Server Compact for the script to hand its connection back - by committing, by
+  rolling back, or by ending, which rolls back - and otherwise leaves it open, and what the script had not committed
+  ends with the process, as before. The comment in `PersistentDomain.cpp` that said SQL Server Compact has no
+  transactions, and the one in `DatabaseConnectionManager.cpp` that said it has them for data alone, are corrected.
 - **Fixed: on PostgreSQL, a transaction in which a statement had failed was reported as committed.** PostgreSQL
   answers the `COMMIT` of such a transaction with success and the tag `ROLLBACK`, and `PGConnection` looked at the
   status alone, so a script that went on past a failed `Database.ExecuteSQL` was told by
