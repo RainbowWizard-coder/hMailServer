@@ -71,9 +71,15 @@ single or double quotes.
   python build/check-package-licenses.py --self-test  the negative controls alone
 
 The tree's check runs the negative controls first, so a check that has stopped seeing what
-it reads fails too. Exit codes: 0 every field names exactly what it must; 1 a field names
-too little or too much, is not there or is there twice, a line of those files is a licence
-field this does not hold, or a component is undecided; 2 a file could not be read.
+it reads fails too. Among them is a tree written to a temporary directory, and to a
+temporary git repository where there is git (SCAN_TREE): files of each kind in the places
+the scan reads, each with a licence field nothing holds, and files it must not read. The
+scan must list exactly the first, by its walk and by git's list alike, and refuse the
+licence field each holds.
+
+Exit codes: 0 every field names exactly what it must; 1 a field names too little or too
+much, is not there or is there twice, a line of those files is a licence field this does
+not hold, or a component is undecided; 2 a file could not be read.
 """
 
 import os
@@ -85,8 +91,11 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
                os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
 
 import ast
+import contextlib
 import re
+import shutil
 import subprocess
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER = "hmailserver/source/Server"
@@ -467,6 +476,153 @@ GOOD = {
                   '  grep -q "\\"$label\\":\\"[^\\"]" "$out/image.json" || fail "the image carries no $label label"\n'
                   'done\n'),
 }
+# The files of GOOD the scan reads, named here rather than found by the code it tries.
+GOOD_SCANNED = (CMAKELISTS, PACKAGING + "/rpm/hmailserver.spec", PACKAGING + "/alpine/APKBUILD", PACKAGING + "/PKGBUILD",
+                "nix/package.nix", SNAPCRAFT, DOCKERFILE, CHART, LINUX_IMAGE)
+# A tree for the scan's own listing: beside GOOD's files, files of each kind in the places
+# the scan reads - one in each place at least, and each optional part of a kind's names
+# spelt out by one of them (.spec and .spec.in, .yml and .yaml.in, Dockerfile.<suffix> and
+# *.Dockerfile, ...) - each with a licence field nothing holds at its second line. Then a
+# file for each reason the scan does not read one: outside those places, of no kind, and,
+# written for the walk alone, under a .git directory, and for git alone, not tracked.
+SCAN_TREE = {
+    "flake.nix": "{\n  meta.license = lib.licenses.mit;\n}\n",
+    "nix/tools.nix": "{ lib }: {\n  meta.license = lib.licenses.mit;\n}\n",
+    "snap/local/parts.yaml.in": "parts:\n  - license: MIT\n",
+    "snap/local/image.sh": "cat > Dockerfile <<'EOF'\nLABEL org.opencontainers.image.licenses MIT\nEOF\n",
+    PACKAGING + "/rpm/hmailserver-cli.spec": "Name: hmailserver-cli\nLicense: MIT\n",
+    PACKAGING + "/rpm/hmailserver.spec.in": "Name: hmailserver\nlicense: MIT\n",
+    PACKAGING + "/alpine/cli/APKBUILD": 'pkgname=hmailserver-cli\nlicense="MIT"\n',
+    PACKAGING + "/arch/PKGBUILD": "pkgname=hmailserver-cli\nlicense=('MIT')\n",
+    PACKAGING + "/cmake/CMakeLists.txt": 'project(x)\nset(CPACK_RPM_PACKAGE_LICENSE "MIT")\n',
+    PACKAGING + "/cpack-extra.cmake": 'include(x)\nset(CPACK_FREEBSD_PACKAGE_LICENSE "MIT")\n',
+    PACKAGING + "/helm/other/Chart.yaml": "apiVersion: v2\n'license': MIT\n",
+    PACKAGING + "/docker/artifacthub-repo.yml": "repositoryID: x\nlicence: MIT\n",
+    PACKAGING + "/docker/compose.yaml.in": "services:\n  x: {build: {labels: {org.opencontainers.image.licenses: MIT}}}\n",
+    PACKAGING + "/docker/compose.yml": ("# a Compose file's labels as a list\n"
+                                        "services: {x: {labels: [io.artifacthub.package.license=MIT]}}\n"),
+    PACKAGING + "/docker/Dockerfile.alpine": 'FROM alpine\nLABEL org.opencontainers.image.licenses="MIT"\n',
+    PACKAGING + "/docker/Containerfile": "FROM alpine\nLABEL io.artifacthub.package.license=MIT\n",
+    PACKAGING + "/docker/hmailserver.Dockerfile": "FROM alpine\nLABEL org.opencontainers.image.licenses=MIT\n",
+    PACKAGING + "/docker/hmailserver.Containerfile": 'FROM alpine\n  io.artifacthub.package.license="MIT"\n',
+    PACKAGING + "/docker/build.sh": "set -e\nbuildah config --label io.artifacthub.package.license=MIT x\n",
+    PACKAGING + "/appimage/hmailserver.metainfo.xml": "<component>\n  <project_license>MIT</project_license>\n</component>\n",
+    PACKAGING + "/appimage/hmailserver.appdata.xml.in": ("<component>\n  <metadata_license>FSFAP</metadata_license>\n"
+                                                         "</component>\n"),
+    PACKAGING + "/appimage/metainfo.sh": ("cat > x.xml <<'XML'\n<component><project_license>MIT</project_license></component>\n"
+                                          "XML\n"),
+}
+SCAN_TREE_NOT_READ = {
+    "build/ci/linux.Dockerfile": "FROM x\nLABEL org.opencontainers.image.licenses=MIT\n",
+    PACKAGING + "/README.md": "# x\nlicense: MIT\n",
+}
+SCAN_TREE_UNDER_GIT_DIRECTORY = {"nix/.git/config.nix": "{\n  license = 1;\n}\n"}
+SCAN_TREE_UNTRACKED = {"snap/local/untracked.yaml": "name: x\nlicense: MIT\n"}
+
+
+def write_tree(root, files):
+    for path, text in files.items():
+        full = os.path.join(root, *path.split("/"))
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+
+
+def remove_tree(root):
+    # git writes its objects read-only, which Windows will not delete as they are.
+    for directory, _, names in os.walk(root):
+        for name in names:
+            try:
+                os.chmod(os.path.join(directory, name), 0o600)
+            except OSError:
+                pass
+    shutil.rmtree(root, ignore_errors=True)
+
+
+@contextlib.contextmanager
+def environment_without(names):
+    """os.environ without those variables while it is entered."""
+    saved = dict((name, os.environ.pop(name)) for name in names if name in os.environ)
+    try:
+        yield
+    finally:
+        os.environ.update(saved)
+
+
+def scan_tree_failures():
+    """What is wrong with the scan's listing and reading of SCAN_TREE: by the walk, over a
+    temporary directory, and by git's list, over a temporary git repository, which is the
+    way the checkers job takes. Returns (the failures, what could not be tried)."""
+    failures = []
+    skipped = []
+    listed = sorted(GOOD_SCANNED + tuple(SCAN_TREE))
+    refused = sorted("%s:2" % path for path in SCAN_TREE)
+
+    def differences(expected, got):
+        """What got leaves out of expected and has besides, or how it lists the same."""
+        if sorted(set(expected)) != sorted(set(got)):
+            return "it left out %s and had %s besides" % (sorted(set(expected) - set(got)) or "nothing",
+                                                          sorted(set(got) - set(expected)) or "nothing")
+        return "it had them as %s, not as %s" % (got, expected)
+
+    def tried(how, root):
+        found = scanned_paths(root)
+        if found != listed:
+            failures.append("the scan's listing of a tree by %s is not the files it reads there: %s" % (
+                how, differences(listed, found)))
+        try:
+            problems = problems_of(tree_texts(root))
+        except Unreadable as e:
+            problems = [str(e)]
+        unheld = re.compile(r"^(\S+:\d+) \(.* is a licence field this does not hold")
+        where = sorted(m.group(1) for m in (unheld.match(p) for p in problems) if m)
+        others = [p for p in problems if not unheld.match(p)]
+        if where != refused:
+            failures.append("the scan's reading of a tree by %s did not refuse each licence field nothing holds there once: "
+                            "%s" % (how, differences(refused, where)))
+        if others:
+            failures.append("the scan's reading of a tree by %s found %s" % (how, others))
+
+    # Without the variables a git hook or a caller sets to point git at a repository of its
+    # own (git rev-parse --local-env-vars), with one of which git would list that
+    # repository, not these.
+    local = []
+    git = shutil.which("git")
+    if git:
+        done = subprocess.run([git, "rev-parse", "--local-env-vars"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if done.returncode != 0:
+            failures.append("git rev-parse --local-env-vars failed: %s" % done.stderr.decode("utf-8", "replace").strip())
+            return failures, skipped
+        local = done.stdout.decode("utf-8", "replace").split()
+    with environment_without(local):
+        walked = tempfile.mkdtemp(prefix="check-package-licenses-walk-")
+        try:
+            write_tree(walked, dict(GOOD, **dict(SCAN_TREE, **dict(SCAN_TREE_NOT_READ, **SCAN_TREE_UNDER_GIT_DIRECTORY))))
+            tried("the walk", walked)
+        finally:
+            remove_tree(walked)
+        if not git:
+            skipped.append("the scan's listing by git's list, for there is no git here")
+            return failures, skipped
+        repository = tempfile.mkdtemp(prefix="check-package-licenses-git-")
+        try:
+            tracked = dict(GOOD, **dict(SCAN_TREE, **SCAN_TREE_NOT_READ))
+            write_tree(repository, tracked)
+            # The files go into the index as they are, whatever the caller's own git says of
+            # line ends or of what it ignores.
+            for what, arguments in (("init", ["init", "-q"]),
+                                    ("add", ["-c", "core.autocrlf=false", "-c", "core.safecrlf=false", "add", "-f", "--"] +
+                                     sorted(tracked))):
+                done = subprocess.run([git, "-C", repository] + arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if done.returncode != 0:
+                    failures.append("git %s in a temporary repository failed: %s" % (
+                        what, done.stderr.decode("utf-8", "replace").strip()))
+                    return failures, skipped
+            write_tree(repository, SCAN_TREE_UNTRACKED)
+            tried("git's list", repository)
+        finally:
+            remove_tree(repository)
+    return failures, skipped
 
 
 def self_test():
@@ -598,6 +754,27 @@ def self_test():
     expect("a licence label in a file outside them", added("build/ci/linux.Dockerfile",
                                                            'LABEL org.opencontainers.image.licenses="MIT"\n'), None)
     expect("a licence file, not a field", added(PACKAGING + "/debian-src/debian/copyright", "License: MIT\n"), None)
+    # A field nothing holds beside one a reader holds, and in another file of the kind: the
+    # self-test passed a scan that had stopped reading a Compose file's labels, a PKGBUILD
+    # or an APKBUILD, a spec or a YAML list's items, until these (release review 6.3.7, the
+    # re-check of RB-2).
+    expect("a licence label of a Compose file's build",
+           added(PACKAGING + "/docker/docker-compose.yml",
+                 'services:\n  hmailserver:\n    build:\n      labels:\n        org.opencontainers.image.licenses: "MIT"\n'),
+           '%s/docker/docker-compose.yml:5 (org.opencontainers.image.licenses: "MIT") is a licence field this does not '
+           "hold" % PACKAGING)
+    expect("a split package's licence in the PKGBUILD",
+           changed(pkgbuild, "BSL-1.0')\n", "BSL-1.0')\npackage_hmailserver-cli() {\n  license=('MIT')\n}\n"),
+           "%s:3 (license=('MIT')) is a licence field this does not hold" % pkgbuild)
+    expect("a licence added to the PKGBUILD's", changed(pkgbuild, "BSL-1.0')\n", "BSL-1.0')\nlicense+=('MIT')\n"),
+           "%s:2 (license+=('MIT')) is a licence field this does not hold" % pkgbuild)
+    expect("a subpackage's licence in the APKBUILD",
+           changed(apk, "-DHM_BOOST_STATIC=OFF \\\n", "-DHM_BOOST_STATIC=OFF \\\ncli() {\n\tlicense=\"MIT\"\n}\n"),
+           '%s:4 (license="MIT") is a licence field this does not hold' % apk)
+    expect("a second spec", added(PACKAGING + "/rpm/hmailserver-cli.spec", "Name: hmailserver-cli\nLicense: MIT\n"),
+           "%s/rpm/hmailserver-cli.spec:2 (License: MIT) is a licence field this does not hold" % PACKAGING)
+    expect("a licence key of a YAML list", changed(CHART, "annotations:\n", "maintainers:\n  - license: MIT\nannotations:\n"),
+           "%s:4 (- license: MIT) is a licence field this does not hold" % CHART)
     # A shell script's fields: a label kaniko is given, and AppStream's licence written from
     # a here-document; but not a label read back (GOOD's linux-image.sh) or named in a
     # comment, nor one in a script outside them. The scan read no shell script until these
@@ -625,14 +802,17 @@ def self_test():
             "%s:4 (io.artifacthub.package.license=\"AGPL-3.0-or-later\" \\) is a licence field this does not hold"
             % DOCKERFILE,
             "%s:4 (artifacthub.io/license: AGPL-3.0-or-later) is a licence field this does not hold" % CHART], ())
-    return failures
+    # The scan's own listing of a tree, by its walk and by git's list.
+    found, skipped = scan_tree_failures()
+    failures.extend(found)
+    return failures, skipped
 
 
 def main(argv):
     if argv not in ([], ["--self-test"]):
         print("usage: check-package-licenses.py [--self-test]")
         return 2
-    failures = self_test()
+    failures, skipped = self_test()
     if failures:
         print("FAILED: the negative controls - the check no longer sees what it reads:")
         for failure in failures:
@@ -640,7 +820,11 @@ def main(argv):
         return 1
     if argv == ["--self-test"]:
         print("OK: the negative controls, each refused as it should be")
+        for each in skipped:
+            print("  not tried: %s" % each)
         return 0
+    for each in skipped:
+        print("the negative controls passed; not tried: %s" % each)
     try:
         texts = tree_texts(ROOT)
         problems = problems_of(texts)
