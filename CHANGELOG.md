@@ -1064,6 +1064,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Downloads and the release
 
+- **The installer's licence terms end with who made hMailServer.** "This software is a fork of hMailServer,
+  originally created by Martin Knafve, whose copyright in the original work remains" is now the last paragraph of
+  `installation/License.rtf`, which setup shows before it installs and copies to `Bin`, where it was the second
+  sentence of the Preamble.
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact
   Hub gave them.** On 6 October 2026 the maintainers added both to the organization `hmailserver`: the chart's,
   `https://updates.progressiverobot.com/helm/`, with the ID `d8768ed9-b894-45c8-ba44-f7516bcf4206`, and the image's,
