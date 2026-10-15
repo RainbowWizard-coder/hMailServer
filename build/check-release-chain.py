@@ -189,13 +189,15 @@ refuses it. This checker holds them to each other. It fails when:
     dependency-scan-verdict, which fails on the verdict the scan writes as the scan job
     used to, is not a job, does not take dependency-scan's rules, need it alone with
     its artifacts and not optionally, run its --verdict alone in Docker Hub's Python
-    image, or is not allowed to fail; or either has a key beside the ones it has (a
-    before_script, hooks or when of the verdict job's, dependencies, variables, an
-    after_script), takes one from a template it extends but rules: and those it sets
-    itself as a list or a value, takes a before_script, an after_script or hooks from
-    default:, or takes a rule that brings needs, variables, allow_failure, start_in or
-    a when but never or on_success, or one written in a form this does not read; or
-    either, or a template either reaches, is defined in a CI file but .gitlab-ci.yml;
+    image, or is not allowed to fail; or either has a blank line inside it, past which
+    GitLab's YAML reader carries a list or a mapping that this reads up to the line, or
+    a key beside the ones it has (a before_script, hooks or when of the verdict job's,
+    dependencies, variables, an after_script), takes one from a template it extends
+    but rules: and those it sets itself as a list or a value, takes a before_script,
+    an after_script or hooks from default:, or takes a rule that brings needs,
+    variables, allow_failure, start_in or a when but never or on_success, or one
+    written in a form this does not read; or either, or a template either reaches, is
+    defined in a CI file but .gitlab-ci.yml;
     or a CI file sets a variable Trivy reads (TRIVY_*), or the tree carries Trivy's
     trivy.yaml or .trivyignore at its root, either of which would narrow what the scan
     reports past the hold on its command (verdict_problems);
@@ -2737,7 +2739,9 @@ def own_keys(block):
 def key_text(block, key):
     """The lines a key of a block writes its value on, below the key's own line and
     indented four or more; None when the key is not written so - its value on its own
-    line, or a comment after it, among the forms."""
+    line, or a comment after it, among the forms. It reads up to the first line that is
+    not indented four, a blank one among them, where GitLab's YAML reader carries the
+    value on past a blank line: verdict_problems refuses one inside either job it holds."""
     match = re.search(r"^  %s:[ \t]*\n((?:    .*\n?)+)" % re.escape(key), block, re.MULTILINE)
     return match.group(1) if match else None
 
@@ -2804,10 +2808,13 @@ def verdict_problems(texts, jobs):
     the others -, need dependency-scan alone with its artifacts, not optionally, run
     VERDICT_COMMAND alone in Docker Hub's Python, and be allowed to fail, as the scan job
     was: a finding in the whole tree holds no change, and the release job holds on the
-    report itself (build/ci/security-gate.py). And nothing else may shape either: each
-    has its keys (SCAN_KEYS, VERDICT_KEYS) and no other; no template it extends has a key
-    but rules: and those the job sets itself as a list or a value, which replace the
-    template's (a mapping, MERGED_KEYS, is merged into the job's own); default: gives
+    report itself (build/ci/security-gate.py). Neither has a blank line inside its block,
+    past which GitLab's YAML reader carries a list or a mapping that this reads up to the
+    line (key_text, sole_need), so that a line after it - another line of script,
+    artifacts: false, an exclude: - would go unread. And nothing else may shape either:
+    each has its keys (SCAN_KEYS, VERDICT_KEYS) and no other; no template it extends has
+    a key but rules: and those the job sets itself as a list or a value, which replace
+    the template's (a mapping, MERGED_KEYS, is merged into the job's own); default: gives
     neither a before_script, an after_script or hooks it does not set itself
     (DEFAULT_RUNS); the rules they take bring no needs, variables, allow_failure or
     start_in, and no when but never or on_success, in a form this reads (unread_rules);
@@ -2826,6 +2833,20 @@ def verdict_problems(texts, jobs):
     scan, verdict = jobs.get(SCAN_JOB), jobs.get(VERDICT_JOB)
     if scan is None:
         return ["%s is not a job of .gitlab-ci.yml" % SCAN_JOB]
+    # Each value below is read up to the first line that is not indented four (key_text,
+    # sole_need and the artifacts' own reading), and GitLab's YAML reader carries a list
+    # or a mapping on past a blank line: so neither job has one inside its block.
+    # blocks() drops the comment lines and keeps the blank lines before the next block's
+    # comments, which are not inside.
+    for name in (SCAN_JOB, VERDICT_JOB):
+        lines = jobs.get(name, "").rstrip().split("\n")
+        blank = [number for number, line in enumerate(lines) if not line.strip()]
+        if blank:
+            problems.append("%s has a blank line inside its block, after %r: GitLab's YAML reader carries a list or a "
+                            "mapping on past a blank line, where this reads each value it holds - a script, a "
+                            "before_script, a need, an image, the artifacts - up to it, so that what follows it - another "
+                            "line of script, artifacts: false, an exclude: - would shape the job unread; neither job has a "
+                            "blank line inside it" % (name, (lines[blank[0] - 1].strip() if blank[0] else name + ":")[:60]))
     if list_items(scan, "script") != ["- " + SCAN_COMMAND]:
         problems.append("%s's script is not %s alone, which ends 0 whatever the scans found and 2 when one could not run: "
                         "a job that ends otherwise on a finding loses its findings to GitLab's vulnerability report, which "
@@ -5759,6 +5780,41 @@ def self_test(chain, feed):
                    "\ndependency-scan-verdict:\n  before_script: [exit 0]\n", "dependency-scan-verdict is defined in .gitlab/ci/snap.yml")
     broken_include("the scan defined again in an included file", ".gitlab/ci/snap.yml",
                    "\ndependency-scan:\n  variables:\n    TRIVY_SEVERITY: LOW\n", "dependency-scan is defined in .gitlab/ci/snap.yml")
+    # And neither with a blank line inside it. Check 1 of the repair (15 October 2026)
+    # found ten edits of the two that passed the whole checker when a blank line came
+    # before what they add, where key_text, sole_need and the artifacts' reading stop and
+    # GitLab's YAML reader carries the list or the mapping on: after the scan's script
+    # line, - exit 1, with which the job fails after every scan and GitLab takes none of
+    # its findings, and the same past a line of two spaces; after its apk line, - export
+    # TRIVY_SEVERITY=LOW, with which the verdict passed and GitLab's report narrowed to
+    # the Low findings in a real scan, and - exit 0; artifacts: false in either need; an
+    # exclude: of the verdict in the scan's artifacts; an entrypoint in either image; and
+    # - exit 1 after --verdict. Each is a case, so that each reader stays held.
+    blank = "%s has a blank line inside its block"
+    scan_line = "    - python3 build/ci/dependency-scan.py\n"
+    verdict_line = "    - python3 build/ci/dependency-scan.py --verdict\n"
+    junit = "      junit: security/dependency-scan/junit.xml\n"
+    pull = "    pull_policy: [if-not-present, always]\n"
+    for what, name, old, new in (
+            ("the scan failing after every scan, past a blank line", SCAN_JOB, scan_line, scan_line + "\n    - exit 1\n"),
+            ("the scan failing after every scan, past a line of two spaces", SCAN_JOB, scan_line,
+             scan_line + "  \n    - exit 1\n"),
+            ("the scan narrowing what Trivy reports, past a blank line", SCAN_JOB, apk,
+             apk + "\n    - export TRIVY_SEVERITY=LOW\n"),
+            ("the scan ending before it runs, past a blank line", SCAN_JOB, apk, apk + "\n    - exit 0\n"),
+            ("the scan needing the CI image's packages without their artifacts, past a blank line", SCAN_JOB,
+             "  needs: [ci-image-packages]\n", "  needs:\n    - job: ci-image-packages\n\n      artifacts: false\n"),
+            ("the scan's artifacts leaving its verdict out, past a blank line", SCAN_JOB, junit,
+             junit + "\n    exclude:\n      - security/dependency-scan/verdict.json\n"),
+            ("the scan's image given an entrypoint again, past a blank line", SCAN_JOB, pull,
+             pull + "\n    entrypoint: [\"/bin/true\"]\n"),
+            ("the verdict job without the scan's artifacts, past a blank line", VERDICT_JOB, "  needs: [dependency-scan]\n",
+             "  needs:\n    - job: dependency-scan\n\n      artifacts: false\n"),
+            ("the verdict job failing after the verdict, past a blank line", VERDICT_JOB, verdict_line,
+             verdict_line + "\n    - exit 1\n"),
+            ("the verdict job's image given an entrypoint, past a blank line", VERDICT_JOB, pull,
+             pull + "\n    entrypoint: [\"/bin/true\"]\n")):
+        broken_job(what, name, old, new, blank % name)
     # And what Trivy reads beside its command line: a variable of its own that a CI file
     # sets for every job, or for another job in flow style, and its configuration file or
     # its ignore file at the root of the tree.

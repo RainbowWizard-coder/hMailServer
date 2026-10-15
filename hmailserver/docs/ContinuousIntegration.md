@@ -5022,27 +5022,30 @@ end the verdict job before it reads the verdict, leave it no artifact or no
 checkout, or make it manual. Each runs its one line of script, the scan after
 its one line of `before_script`, in its own image (Trivy's, with its entrypoint
 emptied, and Docker Hub's Python), and needs one job with its artifacts
-(`ci-image-packages`, and the scan). No template either extends gives it a key
-it does not set itself but `rules:`, `default:` gives neither a
-`before_script`, an `after_script` or `hooks`, no rule they take brings
-`needs`, `variables`, `allow_failure` or a `when`, and neither is defined in
-another CI file, which GitLab would merge into the job's. And no CI file sets a
-variable Trivy reads (`TRIVY_SEVERITY` and the like), nor does the tree carry
-Trivy's `trivy.yaml` or `.trivyignore` at its root, where the scan runs it:
-either would narrow what the scan reports. A finding that does not affect the
-project is dismissed in the VEX document, `.gitlab/hmailserver.openvex.json`,
-with its reason. Trivy reads that document (`--vex`), and so does the OSV step,
-which dismisses an advisory only where a statement names it, by its id or an
-alias, and names the library at the version scanned by its purl
-(`pkg:generic/<name>@<version>`, the purl `build/native-dependencies.ps1` gives
-the SBOM): a statement made for zlib 1.3.1 does not dismiss the same advisory
-for 1.3.2. The document is read, and its products matched, by
-`build/ci/mr-dependency-check.py`, which the change gate uses too. A record
-with no CVSS v3 vector and no rating of its database's is scored by its CVSS
-v4.0 vector with that script's calculator, so that CVE-2026-76844, in zlib's
-`gz_write`, is High (8.3) with a fixed version; the VEX document says zlib
-1.3.2 is not affected, since `gzwrite.c` is not vendored. A dismissed finding
-is still listed, marked as dismissed.
+(`ci-image-packages`, and the scan). Neither has a blank line inside it:
+GitLab's YAML reader carries a list or a mapping on past one, where the checker
+reads each value up to it, so that a line after it - another line of script,
+`artifacts: false` in a need, an `exclude:` in the artifacts - would go unread.
+No template either extends gives it a key it does not set itself but `rules:`,
+`default:` gives neither a `before_script`, an `after_script` or `hooks`, no
+rule they take brings `needs`, `variables`, `allow_failure` or a `when`, and
+neither is defined in another CI file, which GitLab would merge into the job's.
+And no CI file sets a variable Trivy reads (`TRIVY_SEVERITY` and the like), nor
+does the tree carry Trivy's `trivy.yaml` or `.trivyignore` at its root, where
+the scan runs it: either would narrow what the scan reports. A finding that
+does not affect the project is dismissed in the VEX document,
+`.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads that document
+(`--vex`), and so does the OSV step, which dismisses an advisory only where a
+statement names it, by its id or an alias, and names the library at the version
+scanned by its purl (`pkg:generic/<name>@<version>`, the purl
+`build/native-dependencies.ps1` gives the SBOM): a statement made for zlib
+1.3.1 does not dismiss the same advisory for 1.3.2. The document is read, and
+its products matched, by `build/ci/mr-dependency-check.py`, which the change
+gate uses too. A record with no CVSS v3 vector and no rating of its database's
+is scored by its CVSS v4.0 vector with that script's calculator, so that
+CVE-2026-76844, in zlib's `gz_write`, is High (8.3) with a fixed version; the
+VEX document says zlib 1.3.2 is not affected, since `gzwrite.c` is not
+vendored. A dismissed finding is still listed, marked as dismissed.
 
 OSV's data on C and C++ libraries is partial. So each vendored library is also
 asked about a *control* version, one a published advisory is known to affect.

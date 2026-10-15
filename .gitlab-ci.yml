@@ -1715,10 +1715,11 @@ dependency-scan:
 # linix whatever the switches say: it reads a file, and spends no minute.
 # build/check-release-chain.py holds it to all of this, and both jobs to the keys they
 # have and no other and to what a template, default:, a rule or another CI file may add
-# to them (verdict_problems). The release needs dependency-scan and not this:
-# build/ci/security-gate.py reads the reports themselves. After a retry of
-# dependency-scan by hand, retry this job too: GitLab runs a finished job that needs a
-# retried one again only when it was skipped, and this one says so when it fails.
+# to them, with no blank line inside either (verdict_problems). The release needs
+# dependency-scan and not this: build/ci/security-gate.py reads the reports themselves.
+# After a retry of dependency-scan by hand, retry this job too: GitLab runs a finished
+# job that needs a retried one again only when it was skipped, and this one says so when
+# it fails.
 dependency-scan-verdict:
   extends: .own-runners
   rules:

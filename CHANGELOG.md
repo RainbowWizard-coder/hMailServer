@@ -5931,8 +5931,8 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   made in every pipeline the scan is made in, reads it (`--verdict`) and fails as the scan job used to - exit 1 on a
   finding, exit 2 when a scan could not run or no verdict of the pipeline's came - and is allowed to fail as that job
   was, so a pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. After a
-  retry of `dependency-scan` by hand, `dependency-scan-verdict` is retried too, which its log says last when it
-  fails: GitLab runs a finished job that needs a retried one again only when it was skipped. The
+  retry of `dependency-scan` by hand, retry `dependency-scan-verdict` too, as its log says last when it fails: GitLab
+  runs a finished job that needs a retried one again only when it was skipped. The
   release's gate, which reads the reports themselves, is unchanged. The script's self-test runs the scan over a tree
   it makes, with Trivy and its database stood in for: a High with a fixed version ends 0, every report written and
   the verdict failed, on which `--verdict` ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends
@@ -5946,8 +5946,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   template it extends but `rules:`, no `before_script`, `after_script` or `hooks` from `default:`, no `needs`,
   `variables`, `allow_failure` or `when` from a rule they take, and no second definition of either in another CI
   file; and no CI file may set a variable Trivy reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`, by
-  which what the scan reports would narrow. Each rule has a case of its self-test (ContinuousIntegration.md,
-  "Dependency findings, the VEX document, and what OSV cannot answer").
+  which what the scan reports would narrow; and neither job may have a blank line inside it, past which GitLab's YAML
+  reader carries a list or a mapping that the checker reads up to the line. Each rule has a case of its self-test
+  (ContinuousIntegration.md, "Dependency findings, the VEX document, and what OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a
