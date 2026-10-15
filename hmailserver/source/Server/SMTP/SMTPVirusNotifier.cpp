@@ -37,7 +37,7 @@ namespace HM
    }
 
    void
-   SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient)
+   SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient, const String &sAddressedTo)
    {
       // A notice to nobody: the notice to the sender of a message whose envelope
       // sender is empty - a bounce - has no place to go. Asked of the address the
@@ -48,12 +48,12 @@ namespace HM
          return;
 
       // Parse out the subject in the original message, so that we can Re: that.
-      CreateMessageDeletedNotification(pOriginalMessage, sRecipient,
+      CreateMessageDeletedNotification(pOriginalMessage, sRecipient, sAddressedTo,
          PersistentMessage::LoadHeader(MessageStore::WorkingFile(pOriginalMessage)));
    }
 
    void
-   SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient, const AnsiString &originalHeader)
+   SMTPVirusNotifier::CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient, const String &sAddressedTo, const AnsiString &originalHeader)
    {
       LOG_DEBUG("SMTPVirusNotifier::CreateMessageDeletedNotification");
 
@@ -73,15 +73,19 @@ namespace HM
       String sOriginalTo = header.GetRawFieldValue("To");
 
       // A header with nothing in it: the message's file could not be read when
-      // the header was asked for - another program held it or had taken it away -
-      // which is how the strip action comes to delete a message it cannot read.
-      // Every field of the notice was then empty, and its recipient could not
-      // tell which message had been deleted. The envelope says who sent it, or
-      // that nobody did, and the notice is going to one of its recipients.
+      // the header was asked for - another program held it or had taken it away.
+      // That is how the strip action comes to delete a message it cannot read,
+      // and it can happen to the delete action's notices too, which read the
+      // file as they are made. Every field of the notice was then empty, and
+      // whoever it went to could not tell which message had been deleted. The
+      // envelope says who sent it, or that nobody did. Whom it was sent to is
+      // the caller's to say, since the notice may be going to a recipient or to
+      // the sender: a recipient's notice names that recipient alone, and the
+      // sender's the addresses the sender sent it to.
       if (header.GetFieldCount() == 0)
       {
          sOriginalFrom = pOriginalMessage->GetFromAddress().IsEmpty() ? String(_T("<>")) : pOriginalMessage->GetFromAddress();
-         sOriginalTo = sRecipient;
+         sOriginalTo = sAddressedTo;
       }
 
       // Replace macros.

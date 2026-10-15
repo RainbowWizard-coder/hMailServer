@@ -51,6 +51,31 @@ namespace HM
 
    }
 
+   String
+   MessageRecipients::GetCommaSeparatedAddressesAsSent()
+   {
+      String addresses;
+
+      // A distribution list's members all carry the list's address as their
+      // original one, so the list is named once, as the sender named it.
+      std::set<String> named;
+
+      for (std::shared_ptr<MessageRecipient> recipient : recipients_)
+      {
+         const String address = recipient->GetOriginalAddress().IsEmpty() ? recipient->GetAddress() : recipient->GetOriginalAddress();
+
+         if (address.IsEmpty() || !named.insert(address).second)
+            continue;
+
+         if (!addresses.IsEmpty())
+            addresses += ", ";
+
+         addresses += address;
+      }
+
+      return addresses;
+   }
+
    void 
    MessageRecipients::RemoveNonLocalAccounts()
    //---------------------------------------------------------------------------()

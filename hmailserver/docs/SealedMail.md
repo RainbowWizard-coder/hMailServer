@@ -219,6 +219,15 @@ What the action does with a message that is not text with files attached:
   what was being written over it. The log says that the message `could not be
   rewritten`.
 
+*Delete the whole message* sends the same notice to the recipients and to the sender
+when its two notice settings say so, each notice reading the message's file for itself
+and writing to the error log when it cannot. When the file cannot be read, its notices
+give the envelope's sender as the *From* too, and as the *To* a recipient's notice
+names that recipient alone - never the others, whom the message may have reached
+unseen - and the sender's notice the addresses the sender sent the message to, each
+once and as the sender gave them: a distribution list or an alias by the address the
+sender wrote, not what it resolves to.
+
 ## Rules
 
 **A body criterion on an opaque message does not match, whichever way it is phrased,

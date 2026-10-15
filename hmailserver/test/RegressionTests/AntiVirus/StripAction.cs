@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using hMailServer;
@@ -38,7 +39,11 @@ namespace RegressionTests.AntiVirus
    ///      since what would be delivered is the file as it arrived.
    ///
    ///    And the "message deleted" notice reaches the recipients of a message
-   ///    whose envelope sender is empty, as it reaches any other recipient.
+   ///    whose envelope sender is empty, as it reaches any other recipient; and
+   ///    when the message's file cannot be read as the delete action's notices
+   ///    are made, the sender's notice names the addresses the sender sent the
+   ///    message to, as the sender gave them, and each recipient's notice that
+   ///    recipient alone.
    ///
    ///    The scanners are command lines with a fixed exit code, as in
    ///    SealedMailSafety: these tests are about what the server does with a
@@ -460,12 +465,13 @@ namespace RegressionTests.AntiVirus
       }
 
       /// <summary>
-      ///    The strip action, with HoldScript as the scanner: while the stripper
-      ///    works on the message, another process holds its file, sharing it as
-      ///    <paramref name="sharing"/> says ("Delete": nobody may read it or write
-      ///    it; "Read, Delete": it may be read, and not written).
+      ///    HoldScript as the scanner, and <paramref name="action"/> as the
+      ///    action: while the server acts on the verdict, another process holds
+      ///    the message's file, sharing it as <paramref name="sharing"/> says
+      ///    ("Delete": nobody may read it or write it; "Read, Delete": it may be
+      ///    read, and not written).
       /// </summary>
-      private void StripWhileAnotherProcessHoldsTheFile(string sharing)
+      private void ScanWhileAnotherProcessHoldsTheFile(string sharing, eAntivirusAction action)
       {
          string powershell = Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe");
          if (!File.Exists(powershell))
@@ -480,7 +486,18 @@ namespace RegressionTests.AntiVirus
          File.WriteAllText(_holdScript, HoldScript(sharing));
 
          EnableScanner("\"" + powershell + "\" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + _holdScript +
-            "\" \"%FILE%\" \"" + _holdSignal + "\" " + HoldMilliseconds, eAntivirusAction.hDeleteAttachments);
+            "\" \"%FILE%\" \"" + _holdSignal + "\" " + HoldMilliseconds, action);
+      }
+
+      /// <summary>
+      ///    The strip action, with HoldScript as the scanner: while the stripper
+      ///    works on the message, another process holds its file, sharing it as
+      ///    <paramref name="sharing"/> says ("Delete": nobody may read it or write
+      ///    it; "Read, Delete": it may be read, and not written).
+      /// </summary>
+      private void StripWhileAnotherProcessHoldsTheFile(string sharing)
+      {
+         ScanWhileAnotherProcessHoldsTheFile(sharing, eAntivirusAction.hDeleteAttachments);
 
          // Whatever goes on to be delivered waits here, well past the end of the
          // hold: a message the server went on with after the stripper could not
@@ -612,6 +629,90 @@ namespace RegressionTests.AntiVirus
             "The deleted message was delivered.");
          StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ": Text and a file", delivered,
             "What arrived is not the message-deleted notice.");
+      }
+
+      [Test]
+      [Description("With the delete action and both notices on, while another process holds the message's file as the notices are made, the sender's notice names the addresses the sender sent the message to, as the sender gave them, and each recipient's notice names that recipient alone.")]
+      public void TheDeleteActionsNoticesNameWhomTheMessageWasSentToWhenItsFileCannotBeRead()
+      {
+         var setup = SingletonProvider<TestSetup>.Instance;
+
+         // A sender of this server, so that its notice can be read here, sending
+         // to the fixture's account and to a distribution list of two more.
+         var sender = setup.AddAccount(_domain, "strip-sender@example.test", Password);
+         var firstMember = setup.AddAccount(_domain, "strip-member1@example.test", Password);
+         var secondMember = setup.AddAccount(_domain, "strip-member2@example.test", Password);
+         var list = setup.AddDistributionList(_domain, "strip-list@example.test",
+            new List<string> { firstMember.Address, secondMember.Address });
+
+         ScanWhileAnotherProcessHoldsTheFile("Delete", eAntivirusAction.hDeleteEmail);
+         _settings.AntiVirus.NotifySender = true;
+         _settings.AntiVirus.NotifyReceiver = true;
+
+         // The header names another sender and one recipient alone, so that a
+         // notice made from it could not pass for one made from the envelope.
+         new SmtpClientSimulator().SendRaw(sender.Address, new List<string> { _account.Address, list.Address },
+            TextAndEicarMessage(_account.Address));
+
+         var sendersNotice = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, Password);
+         var accountsNotice = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+         var firstMembersNotice = Pop3ClientSimulator.AssertGetFirstMessageText(firstMember.Address, Password);
+         var secondMembersNotice = Pop3ClientSimulator.AssertGetFirstMessageText(secondMember.Address, Password);
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         // What the test stands on: the file was held while the notices were
+         // made. The delete action's notices read it each for itself, and say
+         // in the error log that they could not, as they always have.
+         CustomAsserts.AssertReportedError("Could not read the message header, since the file was not available");
+         Assert.IsTrue(LogHandler.ClearErrorLogUntilSettled(),
+            "Errors were still being written after the notices had arrived.");
+
+         BounceTestSupport.AssertLogContains("Message will be deleted (contained virus",
+            "The message was not deleted by the delete action.");
+
+         // The sender's: whom the message was sent to, as the sender gave it -
+         // the list by its own address, once, and none of its members.
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ":", sendersNotice,
+            "What reached the sender is not the message-deleted notice.");
+         StringAssert.Contains(NoticeLine("%MACRO_FROM%", sender.Address) + "\r\n", sendersNotice,
+            "The sender's notice does not name the sender of the message it says was deleted.");
+         StringAssert.Contains(NoticeLine("%MACRO_TO%", _account.Address + ", " + list.Address) + "\r\n", sendersNotice,
+            "The sender's notice does not name the addresses the sender sent the deleted message to.");
+         StringAssert.DoesNotContain(firstMember.Address, sendersNotice,
+            "The sender's notice names a member of the distribution list the sender wrote to.");
+         StringAssert.DoesNotContain(secondMember.Address, sendersNotice,
+            "The sender's notice names a member of the distribution list the sender wrote to.");
+         StringAssert.DoesNotContain(EicarBase64(), sendersNotice, "The deleted message reached its sender.");
+
+         // Each recipient's: that recipient, and no other.
+         AssertTheRecipientsNoticeNamesThemAlone(accountsNotice, _account.Address, sender.Address,
+            firstMember.Address, secondMember.Address);
+         AssertTheRecipientsNoticeNamesThemAlone(firstMembersNotice, firstMember.Address, sender.Address,
+            _account.Address, secondMember.Address);
+         AssertTheRecipientsNoticeNamesThemAlone(secondMembersNotice, secondMember.Address, sender.Address,
+            _account.Address, firstMember.Address);
+
+         // The notices, read (and so taken) above, were all that arrived.
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(firstMember.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(secondMember.Address, Password, 0);
+      }
+
+      private void AssertTheRecipientsNoticeNamesThemAlone(string notice, string recipient, string sender, params string[] otherRecipients)
+      {
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ":", notice,
+            "What reached " + recipient + " is not the message-deleted notice.");
+         StringAssert.Contains(NoticeLine("%MACRO_FROM%", sender) + "\r\n", notice,
+            "The notice to " + recipient + " does not name the sender of the message it says was deleted.");
+         StringAssert.Contains(NoticeLine("%MACRO_TO%", recipient) + "\r\n", notice,
+            "The notice to " + recipient + " does not name its recipient alone.");
+
+         foreach (var other in otherRecipients)
+            StringAssert.DoesNotContain(other, notice, "The notice to " + recipient + " names another recipient, " + other + ".");
+
+         StringAssert.DoesNotContain(EicarBase64(), notice, "The deleted message reached " + recipient + ".");
       }
    }
 }

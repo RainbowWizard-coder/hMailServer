@@ -1349,16 +1349,21 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as
   this action never tells the sender. The notice is made from the message's header, read once for all of its
   recipients; when that cannot be read either, nothing is written to the error log, and the notice gives the
-  envelope's sender and the recipient as the message's *From* and *To*. An S/MIME message signed as one part -
+  envelope's sender and the recipient as the message's *From* and *To*. The notices of *Delete the whole message*,
+  which read the file for themselves and say in the error log when they cannot, now fill the two fields from the
+  envelope too when it cannot be read, where they left them empty: a recipient's notice names that recipient alone,
+  and the sender's notice the addresses the sender sent the message to, each once and as the sender gave them - a
+  distribution list by its own address, not its members. An S/MIME message signed as one part -
   `application/pkcs7-mime` holding signed-data, which is opaque to the server's other readers and is not encrypted -
   is one such part, and is replaced by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is
   `IsOpaque` less signed-data. A message that is one text part is delivered as it is, having no attachment to remove,
   and so is an encrypted one; the application log says which of these each message was. `AntiVirus/StripAction.cs`
   delivers a message that is one attachment in four shapes, an S/MIME message signed as one part and one encrypted as
   one part, and one that is one text part, and holds a message's file while the stripper reads it and finds the
-  notice naming the message's sender and recipient and nothing in the error log; `SealedMessageTester` holds
-  `IsEncrypted` to the S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete
-  attachments" anti-virus action").
+  notice naming the message's sender and recipient and nothing in the error log, and while the delete action's
+  notices are made and finds the sender's naming the addresses the message was sent to and each recipient's that
+  recipient alone; `SealedMessageTester` holds `IsEncrypted` to the S/MIME and PGP/MIME shapes
+  ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action").
 
 - **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
   sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message

@@ -945,7 +945,9 @@ namespace HM
       // Every recipient of the message is sent the "message deleted" notice
       // (SMTPVirusNotifier, VIRUS_NOTIFICATION): made from the message's header
       // as read here and once, when originalHeader is given, and otherwise from
-      // the file, which each notice reads for itself.
+      // the file, which each notice reads for itself. When the header cannot be
+      // read, a recipient's notice names that recipient alone as the message's
+      // To, never the others, whom the message may have reached unseen (Bcc).
       auto notifyEveryRecipient = [&pMessage](const AnsiString *originalHeader)
       {
          // owned by this call: the recipients of the message this delivery holds
@@ -954,10 +956,12 @@ namespace HM
 
          while (iterRecipient != vecRecipients.end())
          {
+            const String address = (*iterRecipient)->GetAddress();
+
             if (originalHeader != nullptr)
-               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress(), *originalHeader);
+               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, address, address, *originalHeader);
             else
-               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, (*iterRecipient)->GetAddress());
+               SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, address, address);
 
             iterRecipient++;
          }
@@ -971,8 +975,13 @@ namespace HM
          if (antiVirusConfig.AVNotifyReceiver())
             notifyEveryRecipient(nullptr);
 
+         // The sender's notice, when the header cannot be read, names the
+         // addresses the sender sent the message to, as the sender gave them -
+         // not what they resolved to, a distribution list's members or an
+         // alias's target, which are for this server to know.
          if (antiVirusConfig.AVNotifySender())
-            SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, pMessage->GetFromAddress());
+            SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, pMessage->GetFromAddress(),
+               pMessage->GetRecipients()->GetCommaSeparatedAddressesAsSent());
 
          String logMessage = Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}).",
             pMessage->GetID(), virusName);
