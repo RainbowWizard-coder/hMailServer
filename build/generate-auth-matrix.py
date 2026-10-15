@@ -2297,22 +2297,33 @@ def last_statement(tokens):
 
 def skeleton(code):
     """A function's code as its steps, one statement a line: its tokens with the
-    whitespace and the comments gone and every string literal "" (adjacent ones
-    one, as in C++). A run of masked labels is one label, and two masked switch
-    groups or two masked refusals that are alike, side by side and end in a jump
-    are one, so that a route given a group or a refusal of its own is a list
-    edit too."""
+    whitespace and the comments gone, and every string literal "" (adjacent ones
+    one, as in C++) but those a condition holds - of an if, a while, a for or a
+    switch - which are part of the step: a refusal's reason may be reworded, the
+    header a check compares is the check. A run of masked labels is one label,
+    and two masked switch groups or two masked refusals that are alike, side by
+    side and end in a jump are one, so that a route given a group or a refusal of
+    its own is a list edit too."""
     tokens = []
+    conditions = []
     for m in tokens_of(code):
         if m.lastgroup in ("ws", "comment"):
             continue
-        if m.lastgroup == "str":
+        text = m.group(0)
+        if m.lastgroup in ("str", "chr") and conditions and conditions[-1]:
+            tokens.append(text)
+        elif m.lastgroup == "str":
             if not (tokens and tokens[-1] == '""'):
                 tokens.append('""')
         elif m.lastgroup == "chr":
             tokens.append("''")
         else:
-            tokens.append(m.group(0))
+            if text == "(":
+                conditions.append(bool(tokens and tokens[-1] in ("if", "while", "for", "switch"))
+                                  or bool(conditions and conditions[-1]))
+            elif text == ")" and conditions:
+                conditions.pop()
+            tokens.append(text)
     label = ["case", "ROUTE", ":"]
     refusal = ["if", "(", "route", ".", "kind", "==", "ROUTES", ")", "{"]
     runs = []
@@ -2733,7 +2744,7 @@ try {
     if ( caller . result == AuthenticatedAsAdministrator ) ClearSessionFailure_ ( "" , peer_address ) ;
     else if ( caller . result == AuthenticationFailed && ! caller . second_factor_required ) RegisterSessionFailure_ ( "" , peer_address ) ;
   }
-  if ( caller . via_session && method != "" && method != "" && GetHeader_ ( request , "" ) != "" ) {
+  if ( caller . via_session && method != "GET" && method != "HEAD" && GetHeader_ ( request , "x-requested-with" ) != "hMailServer" ) {
     if ( scimPath ) return BuildScimError_ ( 403 , "" , _T ( "" ) ) ;
     return BuildResponse_ ( 403 , "" ) ;
   }
@@ -2978,7 +2989,8 @@ def render(decision, records, anon, web):
       "and changes something when the browser reports it as sent from another site (403), the mailbox-key "
       "refusal of an app password on an encrypted mailbox, and `ChangesAccountByAddress_`'s refusal of an "
       "account the credential does not take in. Those are in WebThreatModel.md; all but the Host check are "
-      "among the steps the script holds, so one added beside them stops it.")
+      "among the steps the script holds, conditions and all, so one of them changed, or one added beside them, "
+      "stops it.")
     w("")
     w("## The columns")
     w("")
@@ -3391,6 +3403,9 @@ def self_test():
     except GenerationError as error:
         expect("the report route put in a refusal after its own block stops the script, naming it",
                "RouteReport is in a refusal" in str(error))
+    stops("a string a condition compares, changed, stops the script", REST_CPP,
+          "GetHeader_(request, \"x-requested-with\") != \"hMailServer\"",
+          "GetHeader_(request, \"x-requested-with\") != \"hMailServerX\"", "RestApiServer::ProcessRequest_")
     stops("a handler called before Authorize_ stops the script", REST_CPP,
           "         AnsiString refusalReason;" + nl + "         AuthorizationResult authorization = Authorize_(",
           "         if (route.kind == RouteQueueList)" + nl + "            return HandleQueueList_();" + nl + nl
