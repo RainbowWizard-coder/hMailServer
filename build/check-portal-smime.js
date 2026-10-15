@@ -279,6 +279,36 @@ async function importedAs(bytes, password) {
     const said = await messageOf(smime.importAny(new Uint8Array(pem('ENCRYPTED PRIVATE KEY', der)), 'nope'));
     check(Buffer.compare(decrypted, noise) === 0 && said === 'wrong password', 'a wrong password that the padding lets through, to ' + kind + ', is named: ' + said);
   }
+  // A key under PBKDF2 with SHA-224, which OpenSSL reads with its password and
+  // Web Crypto cannot compute: refused by name, where until 6.3.7 the page put
+  // SHA-1 in its place, made the wrong key from the right password and called
+  // it a wrong one. No password can be tried on it, so another is refused the
+  // same way.
+  const prf224 = read('alice-key-sha224prf.pem');
+  const prf224Openssl = openssl(['pkey', '-in', path.join(fixtures, 'alice-key-sha224prf.pem'), '-passin', 'pass:' + PASSWORD, '-noout']);
+  const prf224Right = await messageOf(smime.importAny(prf224, PASSWORD));
+  check(prf224Openssl.ok && /^unknown key derivation hash 1\.2\.840\.113549\.2\.8;/.test(prf224Right),
+    'a key under PBKDF2 with SHA-224, which Web Crypto lacks and OpenSSL reads with its password, is refused by name, not called a wrong password: ' + prf224Right +
+    (prf224Openssl.ok ? '' : '; OpenSSL: ' + prf224Openssl.out.trim()));
+  const prf224Other = await messageOf(smime.importAny(prf224, 'nope'));
+  check(/^unknown key derivation hash 1\.2\.840\.113549\.2\.8;/.test(prf224Other), 'and so is another password, which the page cannot try: ' + prf224Other);
+  // A key under PBKDF2 with SHA-1 named by RFC 3370's OID for HMAC-SHA1
+  // (1.3.6.1.5.5.8.1.2), as openssl pkcs8 -v2prf HMAC-SHA1 writes it: SHA-1,
+  // which the page computes, so it imports with its password and another is
+  // a wrong one - not refused by name as a hash Web Crypto lacks.
+  const prfSha1 = read('alice-key-hmacsha1prf.pem');
+  const prfSha1Kdf = smime.derChildren(smime.derChildren(smime.derChildren(smime.derChildren(smime.derRead(smime.pemBlocks(text(prfSha1))[0].bytes))[0])[1])[0]);
+  const prfSha1Seq = smime.derChildren(prfSha1Kdf[1]).filter(function (n) { return n.tag === 0x30; })[0];
+  const prfSha1Oid = prfSha1Seq ? smime.oidDecode(smime.derChildren(prfSha1Seq)[0].content) : 'none';
+  const prfSha1Openssl = openssl(['pkey', '-in', path.join(fixtures, 'alice-key-hmacsha1prf.pem'), '-passin', 'pass:' + PASSWORD, '-noout']);
+  const prfSha1Right = await smime.importAny(prfSha1, PASSWORD).then(function (found) {
+    return found.keys.length === 1 && smime.keyMatchesCertificate(found.keys[0].key, alice) ? 'IMPORTED' : found.keys.length + ' key(s)';
+  }, function (e) { return e.message; });
+  check(prfSha1Oid === '1.3.6.1.5.5.8.1.2' && prfSha1Openssl.ok && prfSha1Right === 'IMPORTED',
+    'a key under PBKDF2 with SHA-1 by RFC 3370\'s OID for HMAC-SHA1, which OpenSSL reads with its password, imports with it: ' + prfSha1Right +
+    ' (PRF ' + prfSha1Oid + (prfSha1Openssl.ok ? '' : '; OpenSSL: ' + prfSha1Openssl.out.trim()) + ')');
+  const prfSha1Other = await messageOf(smime.importAny(prfSha1, 'nope'));
+  check(prfSha1Other === 'wrong password', 'and another password is a wrong one: ' + prfSha1Other);
   const p12 = await smime.importAny(read('alice.p12'), PASSWORD);
   check(p12.keys.length === 1 && p12.keys[0].certificate && p12.keys[0].certificate.emails[0] === 'alice@example.test', 'PKCS#12 imported: the key is paired with its certificate');
   check(p12.certificates.length === 2, 'PKCS#12 carries the chain: ' + p12.certificates.map(function (c) { return c.name; }).join(', '));
@@ -286,10 +316,10 @@ async function importedAs(bytes, password) {
   // decrypted; until 6.3.7 it was the same gamble as the key's above.
   const p12Wrong = await messageOf(smime.importAny(read('alice.p12'), 'nope'));
   check(p12Wrong === 'wrong password', 'a wrong password for the PKCS#12 is named: ' + p12Wrong);
-  // A file whose safes are not encrypted: only its MAC knows the password, and
+  // A file in which nothing is encrypted: only its MAC knows the password, and
   // until 6.3.7, which never read the MAC, any password imported it.
   const clearP12 = await smime.importAny(read('alice-clear.p12'), PASSWORD);
-  check(clearP12.keys.length === 1 && !!clearP12.keys[0].certificate, 'a PKCS#12 whose safes are not encrypted imports with its password');
+  check(clearP12.keys.length === 1 && !!clearP12.keys[0].certificate, 'a PKCS#12 in which nothing is encrypted imports with its password');
   const clearWrong = await messageOf(smime.importAny(read('alice-clear.p12'), 'nope'));
   check(clearWrong === 'wrong password', 'and its MAC names a wrong one: ' + clearWrong);
   // Files with no MAC: the padding, and then the shape of what each safe and

@@ -297,7 +297,7 @@
     aes128cbc: '2.16.840.1.101.3.4.1.2', aes192cbc: '2.16.840.1.101.3.4.1.22', aes256cbc: '2.16.840.1.101.3.4.1.42',
     aes128gcm: '2.16.840.1.101.3.4.1.6', aes192gcm: '2.16.840.1.101.3.4.1.26', aes256gcm: '2.16.840.1.101.3.4.1.46', des3cbc: '1.2.840.113549.3.7',
     pbes2: '1.2.840.113549.1.5.13', pbkdf2: '1.2.840.113549.1.5.12',
-    hmacSha1: '1.2.840.113549.2.7', hmacSha256: '1.2.840.113549.2.9', hmacSha384: '1.2.840.113549.2.10', hmacSha512: '1.2.840.113549.2.11',
+    hmacSha1: '1.2.840.113549.2.7', hmacSha256: '1.2.840.113549.2.9', hmacSha384: '1.2.840.113549.2.10', hmacSha512: '1.2.840.113549.2.11', hmacSha1Cms: '1.3.6.1.5.5.8.1.2',
     keyBag: '1.2.840.113549.1.12.10.1.1', shroudedKeyBag: '1.2.840.113549.1.12.10.1.2', certBag: '1.2.840.113549.1.12.10.1.3', x509CertBag: '1.2.840.113549.1.9.22.1',
     friendlyName: '1.2.840.113549.1.9.20', localKeyId: '1.2.840.113549.1.9.21',
     subjectAltName: '2.5.29.17', basicConstraints: '2.5.29.19', keyUsage: '2.5.29.15', subjectKeyId: '2.5.29.14', extKeyUsage: '2.5.29.37',
@@ -470,7 +470,12 @@
   }
 
   // PBES2 (RFC 8018): PBKDF2 then AES-CBC. The two legacy PBE families are
-  // named in the error they raise.
+  // named in the error they raise, and so is a PBKDF2 hash Web Crypto lacks -
+  // any but SHA-1, SHA-256, SHA-384 and SHA-512, such as hmacWithSHA224,
+  // hmacWithMD5 or hmacWithSM3: with SHA-1, the default, put in its place, the
+  // right password would make the wrong key and be called a wrong one. SHA-1
+  // is also read under RFC 3370's OID for HMAC-SHA1, which openssl pkcs8
+  // -v2prf HMAC-SHA1 writes.
   async function pbes2Decrypt(algorithmNode, ciphertext, password) {
     const alg = derChildren(algorithmNode);
     const algOid = oidDecode(alg[0].content);
@@ -486,7 +491,13 @@
     const salt = kdfParams[0].content;
     const iterations = Number(bytesToBig(kdfParams[1].content));
     let prf = 'SHA-1';
-    for (let i = 2; i < kdfParams.length; i++) { if (kdfParams[i].tag === TAG.SEQ) { prf = HASH_BY_OID[algorithmOid(kdfParams[i])] || prf; } }
+    for (let i = 2; i < kdfParams.length; i++) {
+      if (kdfParams[i].tag === TAG.SEQ) {
+        const prfOid = algorithmOid(kdfParams[i]);
+        prf = prfOid === OID.hmacSha1Cms ? 'SHA-1' : HASH_BY_OID[prfOid];
+        if (!prf) { throw new Error('unknown key derivation hash ' + prfOid + '; export the key again with AES and SHA-256'); }
+      }
+    }
     const scheme = derChildren(params[1]);
     const schemeOid = oidDecode(scheme[0].content);
     const keyBits = schemeOid === OID.aes128cbc ? 128 : (schemeOid === OID.aes192cbc ? 192 : (schemeOid === OID.aes256cbc ? 256 : 0));
@@ -514,9 +525,11 @@
   // length") that the person could do nothing with.
 
   // A PrivateKeyInfo (RFC 5208; RFC 5958's OneAsymmetricKey) as
-  // importPrivateKey reads one: a SEQUENCE that is the whole of the bytes, of
-  // a version INTEGER, an AlgorithmIdentifier that starts with its OID, and
-  // the key as an OCTET STRING.
+  // importPrivateKey reads one: a SEQUENCE that is the whole of the bytes and
+  // starts with a version INTEGER, an AlgorithmIdentifier that starts with its
+  // OID, and the key as an OCTET STRING. What RFC 5958 lets follow the key -
+  // its attributes, as a key exported with a key usage has them, and its
+  // public key - may follow it.
   function isPrivateKeyInfo(bytes) {
     try {
       const top = derRead(bytes);
@@ -532,8 +545,9 @@
   }
 
   // A SafeContents (RFC 7292 section 4.2) as importPkcs12 reads one: a
-  // SEQUENCE that is the whole of the bytes, of SafeBags, each a SEQUENCE of
-  // its type's OID and a [0] holding the bag's one value.
+  // SEQUENCE that is the whole of the bytes, of SafeBags, each a SEQUENCE that
+  // starts with its type's OID and a [0] holding the bag's one value, its
+  // attributes (a friendly name, a local key ID) after them if it has any.
   function isSafeContents(bytes) {
     try {
       const top = derRead(bytes);

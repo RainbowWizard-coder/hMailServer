@@ -6,12 +6,12 @@
 # S/MIME fixtures made with OpenSSL, the independent implementation the page's
 # module is checked against: a CA, an RSA leaf and an EC leaf for
 # alice@example.test (emailAddress in the subject and an rfc822Name SAN), the
-# keys as PKCS#8 (clear and PBES2-encrypted, each in PEM and in DER) and as
-# modern PKCS#12 files (with and without a MAC, with a MAC the page passes
-# over, with MACs by SHA-512 and with no iteration count, with clear safes,
-# with a key-usage attribute on the key, with an empty and a non-ASCII
-# password), then messages OpenSSL signed (detached and opaque) and encrypted
-# for each leaf.
+# keys as PKCS#8 (clear and PBES2-encrypted, each in PEM and in DER, and in
+# PEM under a PBKDF2 hash Web Crypto lacks) and as modern PKCS#12 files (with
+# and without a MAC, with a MAC the page passes over, with MACs by SHA-512 and
+# with no iteration count, with clear safes, with a key-usage attribute on the
+# key, with an empty and a non-ASCII password), then messages OpenSSL signed
+# (detached and opaque) and encrypted for each leaf.
 set -euo pipefail
 out="$1"
 mkdir -p "$out"
@@ -41,9 +41,16 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out alice-key.pem 
 openssl req -new -key alice-key.pem -subj '/CN=Alice Example/emailAddress=alice@example.test' -out alice.csr 2>/dev/null
 openssl x509 -req -in alice.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -days 3650 -extfile leaf.cnf -extensions ext -out alice.pem 2>/dev/null
 openssl pkcs8 -topk8 -in alice-key.pem -out alice-key-encrypted.pem -v2 aes-256-cbc -v2prf hmacWithSHA256 -passout pass:fixture-pass 2>/dev/null
+# The same key under PBKDF2 with SHA-224, which OpenSSL reads and Web Crypto
+# cannot compute.
+openssl pkcs8 -topk8 -in alice-key.pem -out alice-key-sha224prf.pem -v2 aes-256-cbc -v2prf hmacWithSHA224 -passout pass:fixture-pass 2>/dev/null
+# And under PBKDF2 with SHA-1 named by RFC 3370's OID for HMAC-SHA1
+# (1.3.6.1.5.5.8.1.2), not RFC 8018's hmacWithSHA1, which OpenSSL leaves out
+# as PBKDF2's default.
+openssl pkcs8 -topk8 -in alice-key.pem -out alice-key-hmacsha1prf.pem -v2 aes-256-cbc -v2prf HMAC-SHA1 -passout pass:fixture-pass 2>/dev/null
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -out alice.p12 2>/dev/null
 openssl pkcs12 -export -in alice.pem -inkey alice-key.pem -certfile ca.pem -name 'Alice Example' -passout pass:fixture-pass -legacy -out alice-legacy.p12 2>/dev/null || true
-# PKCS#12 files for the wrong-password checks: one whose safes are not
+# PKCS#12 files for the wrong-password checks: one in which nothing is
 # encrypted, so that only its MAC knows the password; two with no MAC, the
 # certificates encrypted in one and not in the other (OpenSSL 3.2 encrypts
 # them under -nomac only when asked); one made with an empty password; and one
