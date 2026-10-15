@@ -458,6 +458,50 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("IMAP MOVE and COPY that fail part way in a held account - the second copy over its quota - take the copy they made out of the destination again, and the hold keeps it among the deleted items, as a delete's is, with RecoverDeletedDays at 0; the originals stay where they were. A MOVE that failed so left its copy in the destination, and nothing was kept.")]
+      public void AMoveOrCopyThatFailsPartWayInAHeldAccountKeepsTheCopyItTookOut()
+      {
+         string word = Word();
+
+         // 1 MB: two messages of 300 KB and one copy of one fit, and a second copy does not.
+         Account alice = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "alice@" + _domain.Name, Password, 1);
+
+         long caseId = OpenCase("Failed moves " + word);
+         ClassicAssert.AreEqual(201, Admin("POST", CasePath(caseId) + "/holds", "{\"scope\":\"account\",\"target\":\"" + alice.Address + "\"}").Status);
+
+         var imap = new ImapClientSimulator();
+         ClassicAssert.IsTrue(imap.ConnectAndLogon(alice.Address, Password));
+         ClassicAssert.IsTrue(imap.CreateFolder("Target"));
+
+         var body = new StringBuilder();
+         for (int line = 0; line < 3072; line++)
+            body.Append(new string('x', 98)).Append("\r\n");
+
+         for (int i = 0; i < 2; i++)
+         {
+            string message = "From: " + alice.Address + "\r\nSubject: Large " + i + " " + word + "\r\n\r\n" + body;
+            StringAssert.Contains("A0" + i + " OK", imap.SendSingleCommandWithLiteral("A0" + i + " APPEND INBOX {" + message.Length + "}", message));
+         }
+
+         ClassicAssert.IsTrue(imap.SelectFolder("INBOX"));
+
+         StringAssert.Contains("A10 NO", imap.SendSingleCommand("A10 MOVE 1:2 \"Target\""));
+
+         JsonElement kept = Recoverable(alice.Address);
+         ClassicAssert.AreEqual(0, kept.GetProperty("days").GetInt32(), "RecoverDeletedDays is 0: the hold is what keeps it.");
+         ClassicAssert.AreEqual(1, kept.GetProperty("items").GetArrayLength(), "The copy a failed MOVE took out again is kept: " + kept);
+         StringAssert.StartsWith("Large 0 ", kept.GetProperty("items")[0].GetProperty("subject").GetString());
+
+         StringAssert.Contains("A11 NO", imap.SendSingleCommand("A11 COPY 1:2 \"Target\""));
+         ClassicAssert.AreEqual(2, Recoverable(alice.Address).GetProperty("items").GetArrayLength(), "The copy a failed COPY took out again is kept.");
+
+         // The originals where they were, and the destination as it was.
+         StringAssert.Contains("(MESSAGES 2)", imap.Status("INBOX", "MESSAGES"));
+         StringAssert.Contains("(MESSAGES 0)", imap.Status("Target", "MESSAGES"));
+         imap.Disconnect();
+      }
+
+      [Test]
       [Description("A hold on a domain: an account in it keeps what its person expunges, where an account of another domain under no hold keeps nothing; the domain's deletion is refused over REST and over COM with the sentence; the held account is not moved to another domain - 409 with the sentence, and it is still there and still held - while an account under no hold moves into the held domain and is held there.")]
       public void ADomainHoldKeepsItsAccountsAndRefusesTheDomainsDeletionAndAMoveOutOfIt()
       {

@@ -5365,12 +5365,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `MOVE`. The copies are now taken out of the destination again, as a failed `COPY`'s are, and the sessions that have
   it open are told; nothing is expunged from the source. They are deleted as any delete is, so that a legal hold on
   the destination's account keeps a copy of each, and a copy the hold cannot keep, or the database will not delete,
-  stays where it is. A lesson for spamd that the move of a message into or out of Junk has already queued stays
-  queued, as for `COPY`. In `IMAP/CopyAndAppendRules.cs`, a `MOVE` and a `UID MOVE` of two messages of which one copy
-  fits the quota, and a `MOVE` of the two into the folder the session has selected, must leave the destination as it
-  was and the originals where they were, and then move one message, for which the copy left behind would leave no
-  room; without the fix the three failed, each finding the first copy in the destination. Found by the release review
-  of 6.3.7.
+  stays where it is; [Discovery.md](hmailserver/docs/Discovery.md) lists that, and the same of a failed `COPY`, among
+  the deletes a hold stops, and `Infrastructure/Discovery.cs` holds both. A lesson for spamd that the move of a
+  message into or out of Junk has already queued stays queued, as for `COPY`. In `IMAP/CopyAndAppendRules.cs`, a
+  `MOVE` and a `UID MOVE` of two messages of which one copy fits the quota, and a `MOVE` of the two into the folder
+  the session has selected, must leave the destination as it was and the originals where they were, and then move one
+  message, for which the copy left behind would leave no room; without the fix the three failed, each finding the
+  first copy in the destination. Found by the release review of 6.3.7.
 
 - **Fixed: an IMAP `COPY` or `MOVE` by message number copied or moved the wrong message when another session had just
   expunged one before it.** The server tells a session of another's expunge at the start of its next command that may

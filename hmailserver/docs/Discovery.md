@@ -226,6 +226,7 @@ drops a message the account's own filters were given, found by reading the code:
 |---|---|
 | **The person's delete**: IMAP `EXPUNGE`, `UID EXPUNGE` and `CLOSE`, POP3 `DELE`, the webmail's delete and its emptying of a folder, a folder deleted over IMAP, over the webmail or over COM, `APPEND` with `REPLACE`, a recall of a message the sender sent | The message leaves the folder, and a copy is kept among the account's deleted items **whatever `RecoverDeletedDays` says** (0 by default). If the copy cannot be made the delete is refused and the message stays (HM7333), and a folder is not deleted over a message left so |
 | **An IMAP `MOVE` out of the account**: into a public folder, or into another account's folder shared under `#Users` - by the account's own person, or by a delegate moving from the held account's shared folder into their own | The original is kept among the held account's deleted items, as a delete's is: the copy the move made belongs to somebody else now, who may expunge it |
+| **An IMAP `COPY` or `MOVE` that fails part way** - the quota met after its first copies, say - takes the copies it made out of the destination again, and expunges no original | Each copy taken out is kept among the deleted items of the account whose folder it was in, as a delete's is; one whose copy cannot be made stays in the destination (HM7333), and the command is still answered `NO`. The originals stay where they were |
 | **An administrator's delete**: `DELETE /api/v1/accounts/{address}/messages/{id}` and the other message deletes of the account's resources, `Messages.DeleteByDBID` over COM | The same: deleted from the folder, kept among the deleted items |
 | **Every message at once**: `DELETE /api/v1/accounts/{address}/messages`, `Account.DeleteMessages` | Refused, `409` over REST and an error over COM, with the sentence |
 | **The account's own filters at delivery**: an account rule's Delete or Reject action, a Sieve `discard`, `reject` or `redirect` that keeps no local copy, a forward that keeps no copy, and the account's own spam delete threshold when there is no quarantine | The copy is not delivered to the mailbox - the filter's decision stands - and is kept among the deleted items instead of being dropped; the log line says the hold kept it. For a **zero-access mailbox** the kept copy is sealed to the mailbox's key first, as the mailbox would have held it, and is never kept in the clear. When the copy cannot be kept, the message is **delivered** instead - a hold outranks the filter - and the log says so; a Sieve reject is then not sent |
@@ -527,7 +528,9 @@ nothing, refuses a restore's replace and the account's deletion over REST and
 COM, is found by a search, and its placing and release are on the audit trail;
 released, the deletion proceeds. An IMAP `MOVE` of a held account's message into
 a public folder keeps its original, where a move within the account and the same
-move out of an unheld account keep nothing. `API/RestApiErasureStores.cs`: an
+move out of an unheld account keep nothing. A `MOVE` and a `COPY` that fail part
+way over a held account's quota each keep the copy they took out again, with the
+originals where they were. `API/RestApiErasureStores.cs`: an
 address's erasure leaves a held account's message held for review, message that
 expires and password-protected message, counts them in `held`, and ends them once
 the case is closed. A domain hold keeps an expunge in
