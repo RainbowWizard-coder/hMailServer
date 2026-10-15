@@ -1048,12 +1048,15 @@ namespace HM
          FileUtilities::DeleteFile(outcome);
 
       // The drain, before the helper. The listeners close and the delivery
-      // queue pauses now, so that the service stop the helper issues in a
-      // moment finds the sessions and deliveries already finishing - or
-      // finished - and spends its wait (ShutdownDrainSeconds, plus thirty on
-      // the Windows installer's side) on that tail rather than on connections
-      // accepted meanwhile. A server that is already draining is somebody
-      // else's maintenance, which this apply neither takes over nor ends: it is
+      // queue pauses now, so that the service stop that comes in a moment -
+      // the helper's on Linux, on Windows the one the installer the helper
+      // runs makes - finds the sessions and deliveries already finishing - or
+      // finished - and spends its wait on that tail rather than on connections
+      // accepted meanwhile: on Windows ShutdownDrainSeconds plus ninety
+      // seconds (GetServiceStopBudgetMs in hMailServerInnoExtension.iss, as
+      // the service's own wait hint has it), on Linux the unit's
+      // TimeoutStopSec. A server that is already draining is somebody else's
+      // maintenance, which this apply neither takes over nor ends: it is
       // refused with the reason, and the operator leaves the drain or applies
       // once it is over. A helper that could not be started leaves the drain
       // again, so a refused apply does not leave the doors closed.
