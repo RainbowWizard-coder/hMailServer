@@ -28,11 +28,19 @@ carries no binary. Each must be there once and say AGPL-3.0-or-later, so that on
 name more is decided here - moved to FIELDS and held to what is compiled in - rather than
 left short of it.
 
-And no other line of the files they are made from (SCANNED_DIRECTORIES and SCANNED_FILES)
-is a licence field (FIELD_LINES, by the kind of file): a field added there fails until it
-is in one list or the other. As first written, this checked the five alone and said they
-were every licence field of the Linux packages, and the other four were licence fields
-that nothing held (release review 6.3.7, the check of RB-2).
+And no other line of the files the scan reads is a licence field. It reads, by the kind of
+file (FIELD_LINES: an RPM spec, an APKBUILD or a PKGBUILD, a Nix file, a CMake file, YAML,
+a Dockerfile or a Containerfile, AppStream's XML and a shell script, *.sh), the files of
+snap/, nix/ and platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
+build/ci/linux-image.sh, which gives kaniko the image's labels that change with each build
+as --label flags (SCANNED_FILES) - those git tracks, where there is git. A field added there
+fails until it is in one list or the other. A build reads more than these - the CI files
+and the other scripts under build/ among them - and a field written in one of those is not
+seen. As first written, this checked the five alone and said they were every licence field
+of the Linux packages, and the other four were licence fields that nothing held (release
+review 6.3.7, the check of RB-2); the scan that came of that read neither linux-image.sh
+nor a shell script, while the CHANGELOG said it read every file the packages are made
+from (the re-check of RB-2).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -88,6 +96,7 @@ CMAKELISTS = SERVER + "/CMakeLists.txt"
 SNAPCRAFT = "snap/snapcraft.yaml"
 DOCKERFILE = PACKAGING + "/docker/Dockerfile"
 CHART = PACKAGING + "/helm/hmailserver/Chart.yaml"
+LINUX_IMAGE = "build/ci/linux-image.sh"
 
 OWN = "AGPL-3.0-or-later"
 BOOST = "BSL-1.0"
@@ -170,13 +179,20 @@ BOOST_OPTION = re.compile(r'^option\(HM_BOOST_STATIC "[^"\n]*" (ON|OFF)\)', re.M
 BOOST_OFF = "-DHM_BOOST_STATIC=OFF"
 IDENTIFIER = re.compile(r"^(?:LicenseRef-)?[A-Za-z0-9][A-Za-z0-9.+-]*$")
 
-# The files the Linux packages, the snap, the container image and the Helm chart are made
-# from, and the lines of them that are a licence field, by the kind of file: a line that
-# is not a comment and that one of these takes must be the line a reader of FIELDS or of
-# OWN_LICENCE_ONLY reads in that file. (A licence file, such as debian/copyright, is not a
-# field: it is what the fields' notices are, and none of these kinds takes it.)
+# The files the scan reads - the places the recipes of the Linux packages, the snap, the
+# container image and the Helm chart are kept, and linux-image.sh, which gives kaniko the
+# image's labels that change with each build as --label flags - and the lines of them that
+# are a licence field, by the kind of file: a line that is not a comment and that one of
+# these takes must be the line a reader of FIELDS or of OWN_LICENCE_ONLY reads in that
+# file. (A licence file, such as debian/copyright, is not a field: it is what the fields'
+# notices are, and none of these kinds takes it.) The CI files and the other scripts under
+# build/ are not read.
 SCANNED_DIRECTORIES = ("snap/", "nix/", PACKAGING + "/")
-SCANNED_FILES = ("flake.nix", CMAKELISTS)
+SCANNED_FILES = ("flake.nix", CMAKELISTS, LINUX_IMAGE)
+# An image's two licence labels, and AppStream's licence, in each kind of file that can
+# carry them.
+IMAGE_LICENCE_LABEL = r"\b(?:org\.opencontainers\.image\.licenses|io\.artifacthub\.package\.license)\b"
+APPSTREAM_LICENCE = r"<(?:project|metadata)_license\b"
 FIELD_LINES = (
     (re.compile(r"\.spec(\.in)?$"), re.compile(r"^[ \t]*license[ \t]*:", re.IGNORECASE)),
     (re.compile(r"(^|/)(APKBUILD|PKGBUILD)$"), re.compile(r"^[ \t]*license\+?=")),
@@ -185,8 +201,17 @@ FIELD_LINES = (
      re.compile(r"^[ \t]*set[ \t]*\([ \t]*CPACK_[A-Z0-9_]*PACKAGE_LICEN[CS]E\b", re.IGNORECASE)),
     (re.compile(r"\.ya?ml(\.in)?$"), re.compile(r"""^[ \t]*(?:-[ \t]+)?["']?(?:[A-Za-z0-9.-]+/)?licen[cs]es?["']?[ \t]*:""")),
     (re.compile(r"(^|/)((Docker|Container)file[^/]*|[^/]*\.(Docker|Container)file|[^/]*\.ya?ml(\.in)?)$"),
-     re.compile(r"\b(?:org\.opencontainers\.image\.licenses|io\.artifacthub\.package\.license)\b")),
-    (re.compile(r"\.xml(\.in)?$"), re.compile(r"<(?:project|metadata)_license\b")),
+     re.compile(IMAGE_LICENCE_LABEL)),
+    (re.compile(r"\.xml(\.in)?$"), re.compile(APPSTREAM_LICENCE)),
+    # A shell script (*.sh; one without the suffix is not read) sets a label as KEY=VALUE -
+    # a builder's --label or --annotation, as linux-image.sh's kaniko is given the others
+    # (kaniko 1.24 keeps the Dockerfile's LABEL of a key both name, and adds a key the
+    # Dockerfile does not), or a Dockerfile's LABEL it writes from a here-document, which
+    # also takes the older LABEL KEY VALUE - and writes AppStream's licence from a
+    # here-document. A label it reads back, named in the list of those a test asks for or
+    # in the image's JSON, is not a field.
+    (re.compile(r"\.sh$"),
+     re.compile(IMAGE_LICENCE_LABEL + r"[ \t]*=|\bLABEL[ \t]+" + IMAGE_LICENCE_LABEL + "|" + APPSTREAM_LICENCE)),
 )
 
 
@@ -433,6 +458,14 @@ GOOD = {
                  '      io.artifacthub.package.keywords="mail"\n'),
     CHART: ('apiVersion: v2\nname: hmailserver\nannotations:\n  artifacthub.io/license: AGPL-3.0-or-later\n'
             '  artifacthub.io/prerelease: "false"\n'),
+    # The labels kaniko is given, and the image's licence label read back by name.
+    LINUX_IMAGE: ('"$executor" \\\n'
+                  '    --label "org.opencontainers.image.version=$version" \\\n'
+                  '    --label "io.artifacthub.package.prerelease=$prerelease" \\\n'
+                  '    --cleanup\n'
+                  'for label in org.opencontainers.image.source org.opencontainers.image.licenses; do\n'
+                  '  grep -q "\\"$label\\":\\"[^\\"]" "$out/image.json" || fail "the image carries no $label label"\n'
+                  'done\n'),
 }
 
 
@@ -538,7 +571,7 @@ def self_test():
                                            '      org.opencontainers.image.licenses="AGPL-3.0-or-later" \\\n'
                                            "      io.artifacthub.package.license"),
            "org.opencontainers.image.licenses (%s) is there 2 time(s), not once" % DOCKERFILE)
-    # And no licence field in the files the packages are made from that nothing holds.
+    # And no licence field that nothing holds in the files the scan reads.
     expect("a licence label in another Dockerfile",
            added(PACKAGING + "/docker/Dockerfile.alpine", 'FROM alpine\nLABEL org.opencontainers.image.licenses="MIT"\n'),
            "%s/docker/Dockerfile.alpine:2 (LABEL org.opencontainers.image.licenses=\"MIT\") is a licence field this "
@@ -565,6 +598,24 @@ def self_test():
     expect("a licence label in a file outside them", added("build/ci/linux.Dockerfile",
                                                            'LABEL org.opencontainers.image.licenses="MIT"\n'), None)
     expect("a licence file, not a field", added(PACKAGING + "/debian-src/debian/copyright", "License: MIT\n"), None)
+    # A shell script's fields: a label kaniko is given, and AppStream's licence written from
+    # a here-document; but not a label read back (GOOD's linux-image.sh) or named in a
+    # comment, nor one in a script outside them. The scan read no shell script until these
+    # (the re-check of RB-2).
+    expect("a licence label kaniko is given in linux-image.sh",
+           changed(LINUX_IMAGE, "    --cleanup\n", '    --label "org.opencontainers.image.licenses=MIT" \\\n    --cleanup\n'),
+           '%s:4 (--label "org.opencontainers.image.licenses=MIT" \\) is a licence field this does not hold' % LINUX_IMAGE)
+    expect("AppStream's licence written by build-appimage.sh",
+           added(PACKAGING + "/build-appimage.sh", "cat > \"${APPDIR}/usr/share/metainfo/hmailserver.appdata.xml\" <<'XML'\n"
+                 "<component><project_license>MIT</project_license></component>\nXML\n"),
+           "%s/build-appimage.sh:2 (<component><project_license>MIT</project_license></component>) is a licence field "
+           "this does not hold" % PACKAGING)
+    expect("a licence label kaniko is given, in a comment alone",
+           changed(LINUX_IMAGE, "    --cleanup\n", '    --cleanup\n# --label "org.opencontainers.image.licenses=MIT" would win\n'),
+           None)
+    expect("a licence label given in a script outside them",
+           added("build/ci/container-image-push.sh", 'regctl image mod --label "org.opencontainers.image.licenses=MIT" x\n'),
+           None)
     # As first written the check held the five alone, and said they were every licence
     # field of the Linux packages: the other four are licence fields, and nothing held them.
     expect("the five alone", GOOD,
@@ -608,7 +659,8 @@ def main(argv):
     for what, path, kind, _ in OWN_LICENCE_ONLY:
         print("  %s: %s" % (what, own_value(kind, texts[path])[0]))
     scanned = [p for p in texts if in_scope(p) and field_lines_of(p)]
-    print("and no other line of the %d files they are made from is a licence field" % len(scanned))
+    print("and no other line of the %d files the scan reads - those of %s, by the kind of file - is a licence field" % (
+        len(scanned), ", ".join(SCANNED_DIRECTORIES + SCANNED_FILES)))
     return 0
 
 

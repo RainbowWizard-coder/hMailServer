@@ -1138,8 +1138,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   spec's packages to carry them marked `%license`. `build/check-package-licenses.py`, in the `checkers` job, holds the
   five licence fields to what is compiled into the server, so that a component compiled in whose licence an identifier
   names and a field that leaves it out fail the pipeline; it holds the snap's, the image's and the chart's to the
-  project's licence alone, and fails a licence field it does not hold in the files the packages are made from. Found
-  by the release review of 6.3.7 ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences";
+  project's licence alone, and fails a licence field it does not hold in the files it reads, by the kind of file:
+  those of `snap/`, `nix/` and `platform/packaging/`, `flake.nix`, the server's `CMakeLists.txt` and
+  `build/ci/linux-image.sh`, which gives kaniko the image's labels that change with each build as `--label` flags.
+  Found by the release review of 6.3.7 ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences";
   [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
 
 ### Delivery and SMTP
