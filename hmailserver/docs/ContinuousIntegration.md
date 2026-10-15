@@ -5026,14 +5026,18 @@ emptied, and Docker Hub's Python), and needs one job with its artifacts
 GitLab's YAML reader carries a list or a mapping on past one, where the checker
 reads each value up to it, so that a line after it - another line of script,
 `artifacts: false` in a need, an `exclude:` in the artifacts - would go unread.
-No template either extends gives it a key it does not set itself but `rules:`,
-`default:` gives neither a `before_script`, an `after_script` or `hooks`, no
-rule they take brings `needs`, `variables`, `allow_failure` or a `when`, and
-neither is defined in another CI file, which GitLab would merge into the job's.
-And no CI file sets a variable Trivy reads (`TRIVY_SEVERITY` and the like), nor
-does the tree carry Trivy's `trivy.yaml` or `.trivyignore` at its root, where
-the scan runs it: either would narrow what the scan reports. A finding that
-does not affect the project is dismissed in the VEX document,
+The scan's artifacts are the lines they are and no other, since GitLab's YAML
+reader takes the last of a key written twice: a second `when:`, `paths:` or
+`reports:`, or a second `dependency_scanning:` among the reports, would keep
+the scan's files from the release's gate and the verdict job, or its report
+from GitLab. No template either extends gives it a key it does not set itself
+but `rules:`, `default:` gives neither a `before_script`, an `after_script` or
+`hooks`, no rule they take brings `needs`, `variables`, `allow_failure` or a
+`when`, and neither is defined in another CI file, which GitLab would merge
+into the job's. And no CI file sets a variable Trivy reads (`TRIVY_SEVERITY`
+and the like), nor does the tree carry Trivy's `trivy.yaml` or `.trivyignore`
+at its root, where the scan runs it: either would narrow what the scan reports.
+A finding that does not affect the project is dismissed in the VEX document,
 `.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads that document
 (`--vex`), and so does the OSV step, which dismisses an advisory only where a
 statement names it, by its id or an alias, and names the library at the version

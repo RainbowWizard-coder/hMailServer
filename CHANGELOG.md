@@ -5939,7 +5939,8 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   0, and 0; no database ends 2, and 2; and a verdict that is missing, malformed or another pipeline's is no verdict.
   `build/check-release-chain.py` holds `dependency-scan` to its one script line and the one line before it, to
   Trivy's image, to needing `ci-image-packages` with its artifacts, to `allow_failure` and to keeping its files and
-  its report whatever it ends with, and `dependency-scan-verdict` to the scan's rules, to needing it alone with its
+  its report whatever it ends with, its artifacts held line by line, since GitLab's YAML reader takes the last of a
+  key written twice, and `dependency-scan-verdict` to the scan's rules, to needing it alone with its
   artifacts, to `--verdict` alone in Docker Hub's Python image and to `allow_failure`; each to the keys it has and no
   other, so that no `before_script`, `hooks`, `when`, `dependencies` or `variables` can end the verdict job before it
   reads the verdict, leave it no artifact or no checkout, or make it manual, with no key reaching either from a

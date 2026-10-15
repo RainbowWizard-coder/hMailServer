@@ -185,7 +185,8 @@ refuses it. This checker holds them to each other. It fails when:
     python3, does not run in Trivy's image with its entrypoint emptied, does not need
     ci-image-packages alone with its artifacts, is not allowed to fail, or does not
     keep security/dependency-scan/ whatever it ends with, with its dependency_scanning
-    report and no key of its artifacts' but when, expire_in, paths and reports; or
+    report and nothing beside - its artifacts are the lines the tree writes and no other,
+    since GitLab's YAML reader takes the last of a key written twice there; or
     dependency-scan-verdict, which fails on the verdict the scan writes as the scan job
     used to, is not a job, does not take dependency-scan's rules, need it alone with
     its artifacts and not optionally, run its --verdict alone in Docker Hub's Python
@@ -716,7 +717,13 @@ SCAN_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "
 VERDICT_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "allow_failure", "script")
 SCAN_BEFORE = "apk add --no-cache --quiet python3"
 SCAN_NEED = "ci-image-packages"
-SCAN_ARTIFACT_KEYS = ("when", "expire_in", "paths", "reports")
+# The scan's artifacts, the lines below its artifacts: as the tree writes them, comments
+# aside: its files whatever it ends with, its report for GitLab and its test report, and
+# nothing else. The lines themselves are held, not what one of them says, since GitLab's
+# YAML reader takes the last of a key written twice - a second when:, paths: or reports:,
+# or a second dependency_scanning: among the reports, bare or quoted - and says nothing.
+SCAN_ARTIFACTS = ("    when: always", "    expire_in: 30 days", "    paths:", "      - security/dependency-scan/",
+                  "    reports:", "      " + SCAN_REPORT, "      junit: security/dependency-scan/junit.xml")
 SCAN_IMAGE = re.compile(r"^(?:docker\.io/)?aquasec/trivy:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 SCAN_IMAGE_KEYS = ("name", "entrypoint", "pull_policy")
 VERDICT_IMAGE = re.compile(r"^(?:docker\.io/)?(?:library/)?python:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
@@ -2801,7 +2808,8 @@ def verdict_problems(texts, jobs):
     SCAN_COMMAND alone, which ends 0 whatever its scans found, after SCAN_BEFORE alone,
     in Trivy's image with its entrypoint emptied, need SCAN_NEED alone with its
     artifacts, be allowed to fail, and keep security/dependency-scan/ whatever it ends
-    with, with its report for GitLab and nothing left out (SCAN_ARTIFACT_KEYS).
+    with, with its report for GitLab and nothing beside, its artifacts' lines held one by
+    one, since GitLab's YAML reader takes the last of a key written twice (SCAN_ARTIFACTS).
     dependency-scan-verdict must be a job of .gitlab-ci.yml whose rules are
     dependency-scan's - a pipeline in which a job needs one it lacks is not created, and
     a verdict job made in fewer pipelines than the scan would leave a finding unsaid in
@@ -2862,20 +2870,18 @@ def verdict_problems(texts, jobs):
     if not re.search(r"^  allow_failure: true\s*$", scan, re.MULTILINE):
         problems.append("%s is not allowed to fail (allow_failure: true): it fails only when a scan could not run - a "
                         "database mirror that did not answer, say - which warns and holds no change" % SCAN_JOB)
-    kept = re.search(r"^  artifacts:[ \t]*\n((?:    .*\n?)+)", scan, re.MULTILINE)
-    kept = kept.group(1) if kept else ""
-    if (not re.search(r"^    when: always\s*$", kept, re.MULTILINE)
-            or not re.search(r"^      - security/dependency-scan/\s*$", kept, re.MULTILINE)
-            or not re.search(r"^      %s\s*$" % re.escape(SCAN_REPORT), kept, re.MULTILINE)):
-        problems.append("%s does not keep security/dependency-scan/ whatever it ends with (artifacts: when: always), with "
-                        "its report for GitLab (reports: %s): the release's gate and %s read the files, and GitLab's "
-                        "vulnerability report the report" % (SCAN_JOB, SCAN_REPORT, VERDICT_JOB))
-    artifact_keys, unread = sub_keys(scan, "artifacts")
-    beside = sorted(set(key for key in artifact_keys or [] if key not in SCAN_ARTIFACT_KEYS))
-    if beside or unread:
-        problems.append("%s's artifacts say %s, which they are held not to: %s alone, so that nothing - exclude, untracked - "
-                        "leaves its verdict or a report out of what is kept, which %s, the release's gate and GitLab read"
-                        % (SCAN_JOB, ", ".join(beside) or unread[0][:60], ", ".join(SCAN_ARTIFACT_KEYS), VERDICT_JOB))
+    kept = key_text(scan, "artifacts")
+    kept = [line.rstrip() for line in kept.rstrip("\n").split("\n")] if kept is not None else []
+    if kept != list(SCAN_ARTIFACTS):
+        apart = [n for n in range(max(len(kept), len(SCAN_ARTIFACTS)))
+                 if kept[n:n + 1] != list(SCAN_ARTIFACTS[n:n + 1])][0]
+        problems.append("%s does not keep security/dependency-scan/ whatever it ends with, with its report for GitLab and "
+                        "nothing beside (artifacts: %s): the release's gate and %s read the files, and GitLab's "
+                        "vulnerability report the report; an exclude: or untracked: could leave the verdict or a report "
+                        "out, and a key written twice another when:, paths: or report in place of these, since GitLab's "
+                        "YAML reader takes the last of the two; its artifacts are these lines alone, and line %d is %s"
+                        % (SCAN_JOB, " / ".join(line.strip() for line in SCAN_ARTIFACTS), VERDICT_JOB, apart + 1,
+                           repr(kept[apart].strip())[:60] if apart < len(kept) else "missing"))
     if not image_is(scan, SCAN_IMAGE, SCAN_IMAGE_KEYS, entrypoint='[""]'):
         problems.append("%s does not run in Trivy's image, aquasec/trivy:<version>@sha256:<digest>, with its entrypoint "
                         "emptied (entrypoint: [\"\"]) and no key of its image's but %s: the script runs trivy, and the "
@@ -5751,7 +5757,7 @@ def self_test(chain, feed):
              "dependency-scan is not allowed to fail"),
             ("the scan's artifacts leaving its verdict out", "    when: always\n",
              "    when: always\n    exclude:\n      - security/dependency-scan/verdict.json\n",
-             "dependency-scan's artifacts say exclude"),
+             "dependency-scan does not keep security/dependency-scan/ whatever it ends with"),
             ("the scan's image with Trivy's own entrypoint", "    entrypoint: [\"\"]\n", "",
              "dependency-scan does not run in Trivy's image")):
         broken_job(what, SCAN_JOB, old, new, needle)
@@ -5815,6 +5821,28 @@ def self_test(chain, feed):
             ("the verdict job's image given an entrypoint, past a blank line", VERDICT_JOB, pull,
              pull + "\n    entrypoint: [\"/bin/true\"]\n")):
         broken_job(what, name, old, new, blank % name)
+    # Nor a key of the scan's artifacts written twice, of which GitLab's YAML reader takes
+    # the last and says nothing, where a reading of the first passed them all (repair 2 of
+    # the fix, 15 October 2026): a second when: on_success, so that a scan that could not
+    # run keeps no verdict; a second paths:, in a block or in flow style, so that the
+    # files are not kept; a second reports:, in a block or in flow style, or a second
+    # dependency_scanning: among the reports, bare or quoted, so that GitLab is given no
+    # report and takes none of the findings, as before G5's fix.
+    unkept = "dependency-scan does not keep security/dependency-scan/ whatever it ends with"
+    expire = "    expire_in: 30 days\n"
+    for what, old, new in (
+            ("the scan's artifacts kept when it passes alone, by a second when:", expire, expire + "    when: on_success\n"),
+            ("the scan's files not kept, by a second paths:", junit, junit + "    paths:\n      - security/elsewhere/\n"),
+            ("the scan's files not kept, by a second paths: in flow style", junit, junit + "    paths: [security/elsewhere/]\n"),
+            ("the scan's report not given to GitLab, by a second reports:", junit,
+             junit + "    reports:\n      junit: security/dependency-scan/junit.xml\n"),
+            ("the scan's report not given to GitLab, by a second reports: in flow style", junit,
+             junit + "    reports: {junit: security/dependency-scan/junit.xml}\n"),
+            ("the scan's report not given to GitLab, by a second dependency_scanning:", junit,
+             junit + "      dependency_scanning: security/dependency-scan/none.json\n"),
+            ("the scan's report not given to GitLab, by a second dependency_scanning: quoted", junit,
+             junit + "      \"dependency_scanning\": security/dependency-scan/none.json\n")):
+        broken_job(what, SCAN_JOB, old, new, unkept)
     # And what Trivy reads beside its command line: a variable of its own that a CI file
     # sets for every job, or for another job in flow style, and its configuration file or
     # its ignore file at the root of the tree.
