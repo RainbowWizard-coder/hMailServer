@@ -5353,6 +5353,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   each of three attachments, in the body and in a binary attachment, must part the mailbox between them, find nothing
   together and every message in an `OR`; without the fix both tests failed on the three attachments, `NOT TEXT`
   finding the message and `TEXT x NOT TEXT x` finding it. Found by the release review of 6.3.7.
+- **Fixed: an IMAP `SEARCH` that named `MODSEQ` inside an `OR` could answer without the highest mod-sequence RFC 7162
+  has it end with.** A `SEARCH` or `UID SEARCH` that names a `MODSEQ` key and finds messages ends its `* SEARCH` line
+  with `(MODSEQ n)`, the highest mod-sequence of the messages it returns, and an `ESEARCH` carries the `MODSEQ` result
+  option (RFC 7162 3.1.5 and 3.1.10). The server took the key as named only once a message's match had asked it, and
+  an `OR` is answered by the first of its two a message matches, a list of keys by the first one it fails: in a mailbox
+  read through, `SEARCH OR SEEN MODSEQ 1` answered `* SEARCH 1 2 3` with no item, its `UID SEARCH` answered the three
+  messages' UIDs with none, `SEARCH 1 OR SEEN MODSEQ 1` answered `* SEARCH 1` with none, and
+  `SEARCH RETURN (ALL) OR SEEN MODSEQ 1` had no `MODSEQ`, where the same command with one of the messages it finds
+  unseen, or with the `OR`'s two the other way round, carried it. Whether the command names the key is now
+  read from the command as parsed. A result that is empty still carries none (RFC 7162's example 16).
+  `IMAP/Basics`'s `TestSearchModSeqIsReportedWhenNoMatchReachesTheKey` sends those four, with the value each must
+  carry, and their controls; without the fix the four failed. Found by the release review of 6.3.7.
 - **Fixed: IMAP `FETCH` handed out a part's MIME header and a multipart's body written out again, not as the message
   holds them.** `BODY[N.MIME]` - and `BODY[N.HEADER]` of a part that is not a message - was each field of the part's
   header as `Name: value` with its folds undone, and `BODY[N]` of a multipart - with its `BINARY[N]` and

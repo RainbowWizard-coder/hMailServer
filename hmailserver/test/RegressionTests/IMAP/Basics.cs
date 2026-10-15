@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
@@ -704,6 +705,84 @@ namespace RegressionTests.IMAP
             "A MODSEQ search should append the highest mod-sequence. " + result);
 
          simulator.Disconnect();
+      }
+
+      // The untagged SEARCH or ESEARCH line of a response, or null.
+      private static string SearchResultLine(string response)
+      {
+         foreach (string line in response.Split(new[] { "\r\n" }, StringSplitOptions.None))
+         {
+            if (line.StartsWith("* SEARCH") || line.StartsWith("* ESEARCH"))
+               return line;
+         }
+
+         return null;
+      }
+
+      [Test]
+      [Description("RFC 7162 3.1.5 and 3.1.10: a SEARCH, UID SEARCH or ESEARCH that names MODSEQ and finds messages " +
+                   "reports their highest mod-sequence whether or not a message's match reached the key - behind an " +
+                   "OR its first operand answers, or after a key the other messages fail.")]
+      public void TestSearchModSeqIsReportedWhenNoMatchReachesTheKey()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "searchmodseqor@example.test", "test");
+
+         var simulator = new ImapClientSimulator();
+         simulator.Connect();
+         simulator.LogonWithLiteral("searchmodseqor@example.test", "test");
+
+         simulator.SendSingleCommandWithLiteral("A01 APPEND INBOX {4}", "ABCD");
+         simulator.SendSingleCommandWithLiteral("A02 APPEND INBOX {4}", "EFGH");
+         simulator.SendSingleCommandWithLiteral("A03 APPEND INBOX {4}", "IJKL");
+         simulator.SendSingleCommand("A04 ENABLE CONDSTORE");
+         Assert.IsTrue(simulator.SelectFolder("INBOX"));
+
+         // Every message seen, so that an OR whose first operand is SEEN is answered
+         // by it, and the MODSEQ key after it is asked of no message.
+         simulator.SendSingleCommand("A05 STORE 1:3 +FLAGS (\\Seen)");
+
+         long first = ParseModSeq(simulator.SendSingleCommand("A06 FETCH 1 (MODSEQ)"));
+         long second = ParseModSeq(simulator.SendSingleCommand("A07 FETCH 2 (MODSEQ)"));
+         long third = ParseModSeq(simulator.SendSingleCommand("A08 FETCH 3 (MODSEQ)"));
+         long highest = Math.Max(first, Math.Max(second, third));
+
+         string uids = SearchResultLine(simulator.SendSingleCommand("A09 UID SEARCH ALL")).Substring("* SEARCH ".Length);
+
+         var wrong = new List<string>();
+
+         Action<string, string> expect = (command, line) =>
+         {
+            string got = SearchResultLine(simulator.SendSingleCommand(command));
+            if (got != line)
+               wrong.Add(command + " answered '" + got + "' where RFC 7162 gives '" + line + "'");
+         };
+
+         // The key asked of every message, and first in the OR: reported before the fix too.
+         expect("A10 SEARCH MODSEQ 1", "* SEARCH 1 2 3 (MODSEQ " + highest + ")");
+         expect("A11 SEARCH OR MODSEQ 1 SEEN", "* SEARCH 1 2 3 (MODSEQ " + highest + ")");
+
+         // The OR answered by SEEN for every message.
+         expect("A12 SEARCH OR SEEN MODSEQ 1", "* SEARCH 1 2 3 (MODSEQ " + highest + ")");
+         expect("A13 UID SEARCH OR SEEN MODSEQ 1", "* SEARCH " + uids + " (MODSEQ " + highest + ")");
+         expect("A14 SEARCH RETURN (ALL) OR SEEN MODSEQ 1", "* ESEARCH (TAG \"A14\") ALL 1:3 MODSEQ " + highest);
+
+         // Messages 2 and 3 fail the key before the OR, and SEEN answers it for 1.
+         expect("A15 SEARCH 1 OR SEEN MODSEQ 1", "* SEARCH 1 (MODSEQ " + first + ")");
+
+         // NOT MODSEQ names the key as well; and a result that is empty carries no
+         // item (RFC 7162 example 16).
+         expect("A16 SEARCH NOT MODSEQ " + (highest + 1), "* SEARCH 1 2 3 (MODSEQ " + highest + ")");
+         expect("A17 SEARCH OR NOT MODSEQ 1 LARGER 50000", "* SEARCH");
+
+         // With message 3 unseen the OR reaches the key for it: reported before the fix too.
+         simulator.SendSingleCommand("A18 STORE 3 -FLAGS (\\Seen)");
+         long unseen = ParseModSeq(simulator.SendSingleCommand("A19 FETCH 3 (MODSEQ)"));
+         expect("A20 SEARCH OR SEEN MODSEQ 1", "* SEARCH 1 2 3 (MODSEQ " + Math.Max(highest, unseen) + ")");
+
+         simulator.Disconnect();
+
+         if (wrong.Count > 0)
+            Assert.Fail(string.Join("; ", wrong));
       }
 
       [Test]

@@ -413,9 +413,17 @@ namespace HM
       if (is_sort_ && !pParser->GetSortParser())
          return IMAPResult(IMAPResult::ResultBad, "Incorrect search commands.");
 
+      // RFC 7162 3.1.5 and 3.1.10: a SEARCH that names a MODSEQ key reports the
+      // highest mod-sequence of a result that is not empty. Whether it names one
+      // is read here, from the command as parsed: it was set where the key was
+      // asked of a message, and an OR that its first operand answers, or a key
+      // before it that a message fails, asks it of none - so that, with every
+      // message seen, SEARCH OR SEEN MODSEQ 1 answered without the item.
+      modseq_search_ = UsesModSeqKey_(pParser->GetCriteria());
+
       // RFC 7162 section 3.1: MODSEQ is a CONDSTORE-enabling search key, and the
       // first enabling command reports HIGHESTMODSEQ before the result.
-      if (UsesModSeqKey_(pParser->GetCriteria()))
+      if (modseq_search_)
          pConnection->OnCondstoreEnablingCommand();
 
       // RFC 5256's sort-criteria list is 1*sort-criterion, so an empty one is a
@@ -1064,7 +1072,8 @@ namespace HM
          case IMAPSearchCriteria::CTModSeq:
             {
                // RFC 7162 (CONDSTORE): match messages whose mod-sequence is >= the value.
-               modseq_search_ = true;
+               // That the command names the key is modseq_search_, set from the
+               // parsed command (ExecuteCommand), not here.
                __int64 wantedModSeq = _ttoi64(pCriteria->GetText());
                bool bMatches = pMessage->GetModSeq() >= wantedModSeq;
                if (pCriteria->GetPositive() && !bMatches ||

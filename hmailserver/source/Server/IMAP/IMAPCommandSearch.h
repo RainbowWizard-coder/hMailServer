@@ -87,7 +87,8 @@ namespace HM
       // the matched UIDs are stored on the connection for later reference via "$".
       bool esearch_save_;
 
-      // RFC 7162 (CONDSTORE): set when a MODSEQ search key is present, so the SEARCH/ESEARCH
+      // RFC 7162 (CONDSTORE): set from the parsed command when it names a MODSEQ search key
+      // anywhere - whether or not a message's match reached the key - so the SEARCH/ESEARCH
       // response can report the highest mod-sequence among the matched messages.
       bool modseq_search_;
       __int64 highest_modseq_;
