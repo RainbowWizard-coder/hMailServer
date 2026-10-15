@@ -31,21 +31,48 @@ left short of it.
 And no other line of the files the scan reads is a licence field, nor is anything on the
 line of one of the nine after the field read there: a field this holds has its line to
 itself, for a Dockerfile's LABEL takes several key=value pairs on a line, and the image
-gets the last of a key. It reads, by the kind of file (FIELD_LINES: an RPM spec, an
-APKBUILD or a PKGBUILD, a Nix file, a CMake file, YAML, a Dockerfile or a Containerfile,
-AppStream's XML and a shell script, *.sh), the files of snap/, nix/ and
-platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
-build/ci/linux-image.sh, which gives kaniko the image's labels that change with each build
-as --label flags (SCANNED_FILES) - those git tracks, where there is git. A field added there
-fails until it is in one list or the other. A build reads more than these - the CI files
-and the other scripts under build/ among them - and a field written in one of those is not
-seen. As first written, this checked the five alone and said they were every licence field
-of the Linux packages, and the other four were licence fields that nothing held (release
-review 6.3.7, the check of RB-2); the scan that came of that read neither linux-image.sh
-nor a shell script, while the CHANGELOG said it read every file the packages are made
-from (the re-check of RB-2); and it skipped the line of a field it held whole, so that
-another licence label there passed, and the image got it (the check of RB-2's third
-round).
+gets the last of a key. It reads the files of snap/, nix/ and platform/packaging/
+(SCANNED_DIRECTORIES), flake.nix, the CMakeLists and build/ci/linux-image.sh, which gives
+kaniko the image's labels that change with each build as --label flags (SCANNED_FILES) -
+those git tracks, where there is git - by the kind of file (FIELD_LINES), and takes for a
+licence field a line, not a comment, that
+
+  in an RPM spec             has a License tag, in any case, with or without a space
+                             before its colon;
+  in an APKBUILD or a        assigns license - license=, license+= or an element's
+  PKGBUILD                   license[...]=, anywhere on the line, after && or a declare;
+  in a Nix file              binds a licence - license =, meta.license =, the name in
+                             quotes - or inherits license;
+  in a CMake file            names a CPack variable of a package's licence,
+                             CPACK_*PACKAGE_LICENSE*, other than in ${...}: set(),
+                             string(), list() and any other command that names the
+                             variable it changes, whatever the case of the command;
+  in YAML                    has a licence key - license, licence, licenses or licences,
+                             prefixed as artifacthub.io/license is, in quotes or not - at
+                             its start, after a sequence's dashes, or in a flow after its
+                             {, its [ or a comma; or names one of the image's two licence
+                             labels;
+  in a Dockerfile or a       names one of the image's two licence labels;
+  Containerfile
+  in AppStream's XML         has <project_license> or <metadata_license>;
+  in a shell script (*.sh)   sets one of the image's two licence labels as KEY=VALUE, its
+                             key in quotes or not, or by the older LABEL KEY VALUE, or
+                             writes AppStream's licence.
+
+A field added there fails until it is in one list or the other. The scan reads lines, not
+the languages: a field set another way - by a name the file builds (a set() of ${name} in
+CMake, or cmake_parse_arguments' prefix), a macro, or a command that reads into one, such
+as bash's read - can pass it, and so can a field in a file it does not read: a build reads
+more than these, the CI files and the other scripts under build/ among them. As first
+written, this checked the five alone and said they were every licence field of the Linux
+packages, and the other four were licence fields that nothing held (release review 6.3.7,
+the check of RB-2); the scan that came of that read neither linux-image.sh nor a shell
+script, while the CHANGELOG said it read every file the packages are made from (the
+re-check of RB-2); and it skipped the line of a field it held whole, so that another
+licence label there passed and the image got it, and it read a CMake file's set() alone, an
+APKBUILD's or a PKGBUILD's license= and += at a line's start alone, a YAML key at a line's
+start or after one dash alone, a Nix licence bound by its bare name alone and a shell
+script's label by its bare key alone (the check of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -80,12 +107,12 @@ past that is not read.
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
 
-The tree's check runs the negative controls first, so a check that has stopped seeing what
-it reads fails too. Among them is a tree written to a temporary directory, and to a
-temporary git repository where there is git (SCAN_TREE): files of each kind in the places
-the scan reads, each with a licence field nothing holds, and files it must not read. The
-scan must list exactly the first, by its walk and by git's list alike, and refuse the
-licence field each holds.
+The tree's check runs the negative controls first, so that a check that has stopped seeing
+one of the forms above fails too: each is among them. Among them too is a tree written to a
+temporary directory, and to a temporary git repository where there is git (SCAN_TREE):
+files of each kind in the places the scan reads, each with a licence field nothing holds,
+and files it must not read. The scan must list exactly the first, by its walk and by git's
+list alike, and refuse the licence field each holds.
 
 Exit codes: 0 every field names exactly what it must; 1 a field names too little or too
 much, is not there or is there twice, a line of those files is a licence field this does
@@ -219,24 +246,38 @@ SCANNED_FILES = ("flake.nix", CMAKELISTS, LINUX_IMAGE)
 IMAGE_LICENCE_LABEL = r"\b(?:org\.opencontainers\.image\.licenses|io\.artifacthub\.package\.license)\b"
 APPSTREAM_LICENCE = r"<(?:project|metadata)_license\b"
 FIELD_LINES = (
+    # An RPM spec's License tag, in any case, with or without a space before its colon, as
+    # rpm reads a tag.
     (re.compile(r"\.spec(\.in)?$"), re.compile(r"^[ \t]*license[ \t]*:", re.IGNORECASE)),
-    (re.compile(r"(^|/)(APKBUILD|PKGBUILD)$"), re.compile(r"^[ \t]*license\+?=")),
-    (re.compile(r"\.nix$"), re.compile(r"\blicen[cs]es?[ \t]*=")),
+    # license assigned in an APKBUILD or a PKGBUILD, as the shell that sources it assigns:
+    # license=, license+= or an element's license[...]=, anywhere on a line - after && or a
+    # ; or a declare - but not a read of it ($license, ${license[@]}) nor another name
+    # (_license=, --license=).
+    (re.compile(r"(^|/)(APKBUILD|PKGBUILD)$"), re.compile(r"(?<![\w$./-])license(?:\[[^\]\n]*\])?\+?=")),
+    # A licence bound in Nix - license =, meta.license =, the name in quotes - or inherited.
+    (re.compile(r"\.nix$"), re.compile(r"""\blicen[cs]es?"?[ \t]*=|\binherit\b[^;\n]*\blicen[cs]e\b""")),
+    # A CPack variable of a package's licence (CPACK_*PACKAGE_LICENSE*) named by a CMake
+    # command: set(), string(), list() and any other that names the variable it changes
+    # bare, whatever the case of the command's name; a read is ${...}.
     (re.compile(r"(^|/)(CMakeLists\.txt|[^/]*\.cmake)$"),
-     re.compile(r"^[ \t]*set[ \t]*\([ \t]*CPACK_[A-Z0-9_]*PACKAGE_LICEN[CS]E\b", re.IGNORECASE)),
-    (re.compile(r"\.ya?ml(\.in)?$"), re.compile(r"""^[ \t]*(?:-[ \t]+)?["']?(?:[A-Za-z0-9.-]+/)?licen[cs]es?["']?[ \t]*:""")),
+     re.compile(r"(?<!\$\{)\bCPACK_[A-Z0-9_]*PACKAGE_LICEN[CS]E[A-Z0-9_]*")),
+    # A YAML licence key - license, licence, licenses or licences, prefixed as
+    # artifacthub.io/license is, in quotes or not - at the start of a line, after a
+    # sequence's dashes, or in a flow mapping or sequence after its {, its [ or a comma.
+    (re.compile(r"\.ya?ml(\.in)?$"),
+     re.compile(r"""(?:^|[{\[,])[ \t]*(?:-[ \t]+)*["']?(?:[A-Za-z0-9.-]+/)?licen[cs]es?["']?[ \t]*:""")),
     (re.compile(r"(^|/)((Docker|Container)file[^/]*|[^/]*\.(Docker|Container)file|[^/]*\.ya?ml(\.in)?)$"),
      re.compile(IMAGE_LICENCE_LABEL)),
     (re.compile(r"\.xml(\.in)?$"), re.compile(APPSTREAM_LICENCE)),
-    # A shell script (*.sh; one without the suffix is not read) sets a label as KEY=VALUE -
-    # a builder's --label or --annotation, as linux-image.sh's kaniko is given the others
-    # (kaniko 1.24 keeps the Dockerfile's LABEL of a key both name, and adds a key the
-    # Dockerfile does not), or a Dockerfile's LABEL it writes from a here-document, which
-    # also takes the older LABEL KEY VALUE - and writes AppStream's licence from a
-    # here-document. A label it reads back, named in the list of those a test asks for or
-    # in the image's JSON, is not a field.
+    # A shell script (*.sh; one without the suffix is not read) sets a label as KEY=VALUE,
+    # its key in quotes or not - a builder's --label or --annotation, as linux-image.sh's
+    # kaniko is given the others (kaniko 1.24 keeps the Dockerfile's LABEL of a key both
+    # name, and adds a key the Dockerfile does not), or a Dockerfile's LABEL it writes from a
+    # here-document, which also takes the older LABEL KEY VALUE - and writes AppStream's
+    # licence from a here-document. A label it reads back, named in the list of those a test
+    # asks for or in the image's JSON, is not a field.
     (re.compile(r"\.sh$"),
-     re.compile(IMAGE_LICENCE_LABEL + r"[ \t]*=|\bLABEL[ \t]+" + IMAGE_LICENCE_LABEL + "|" + APPSTREAM_LICENCE)),
+     re.compile(IMAGE_LICENCE_LABEL + r"""["']?[ \t]*=|\bLABEL[ \t]+""" + IMAGE_LICENCE_LABEL + "|" + APPSTREAM_LICENCE)),
 )
 
 
@@ -872,6 +913,73 @@ def self_test():
            "the Helm chart's artifacthub.io/license (%s) names AGPL-3.0-or-later#MIT" % CHART)
     expect("a PKGBUILD element of two quoted strings", changed(pkgbuild, "BSD-1-Clause AND MPL-2.0", "BSD-1-Clause'' MPL-2.0"),
            "is not an array of quoted SPDX expressions, each apart from the next")
+    # Each form of a licence field that a kind's own tool takes. The scan read a CMake file's
+    # set() alone, an APKBUILD's or a PKGBUILD's license= and license+= at the start of a
+    # line alone, a YAML key at the start of a line or after one dash alone, a Nix licence
+    # bound with its name bare alone and a shell script's label with its key bare alone, so
+    # that a string(APPEND) or a string(REPLACE) of the .rpm's tag, which CPack takes, an
+    # element of the PKGBUILD's array and a flow mapping's licence passed; and no case tried
+    # a CMake command in capitals or a spec's License with a space before its colon (the
+    # check of RB-2's third round).
+    cpack_end = 'BSD-3-Clause AND BSL-1.0")\n'
+    expect("the .rpm's tag added to by string()",
+           changed(CMAKELISTS, cpack_end, cpack_end + 'string(APPEND CPACK_RPM_PACKAGE_LICENSE " AND GPL-2.0-only")\n'),
+           '%s:4 (string(APPEND CPACK_RPM_PACKAGE_LICENSE " AND GPL-2.0-only")) is a licence field this does not hold'
+           % CMAKELISTS)
+    expect("the .rpm's tag cut by string(REPLACE)",
+           changed(CMAKELISTS, cpack_end, cpack_end + 'string(REPLACE " AND Unicode-3.0 AND BSD-3-Clause" "" '
+                                                      'CPACK_RPM_PACKAGE_LICENSE "${CPACK_RPM_PACKAGE_LICENSE}")\n'),
+           '%s:4 (string(REPLACE " AND Unicode-3.0 AND BSD-3-Clause" "" CPACK_RPM_PACKAGE_LICENSE '
+           '"${CPACK_RPM_PACKAGE_LICENSE}")) is a licence field this does not hold' % CMAKELISTS)
+    expect("a CPack licence added to by list()",
+           changed(CMAKELISTS, cpack_end, cpack_end + 'list(APPEND CPACK_FREEBSD_PACKAGE_LICENSE "MIT")\n'),
+           '%s:4 (list(APPEND CPACK_FREEBSD_PACKAGE_LICENSE "MIT")) is a licence field this does not hold' % CMAKELISTS)
+    expect("a CPack licence set in capitals", changed(CMAKELISTS, cpack_end, cpack_end + 'SET(CPACK_FREEBSD_PACKAGE_LICENSE "MIT")\n'),
+           '%s:4 (SET(CPACK_FREEBSD_PACKAGE_LICENSE "MIT")) is a licence field this does not hold' % CMAKELISTS)
+    expect("a CPack licence of a longer name",
+           changed(CMAKELISTS, cpack_end, cpack_end + 'set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "MIT")\n'),
+           '%s:4 (set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "MIT")) is a licence field this does not hold' % CMAKELISTS)
+    expect("the .rpm's tag read", changed(CMAKELISTS, cpack_end, cpack_end + 'message(STATUS "The tag: ${CPACK_RPM_PACKAGE_LICENSE}")\n'),
+           None)
+    expect("an element of the PKGBUILD's licence", changed(pkgbuild, "BSL-1.0')\n", "BSL-1.0')\nlicense[1]='GPL-2.0-only'\n"),
+           "%s:2 (license[1]='GPL-2.0-only') is a licence field this does not hold" % pkgbuild)
+    expect("a licence added to the PKGBUILD's after &&, and one declared",
+           changed(pkgbuild, "BSL-1.0')\n", "BSL-1.0')\n[[ $CARCH == aarch64 ]] && license+=('GPL-2.0-only')\n"
+                                            "declare -ga license=('MIT')\n"),
+           ["%s:2 ([[ $CARCH == aarch64 ]] && license+=('GPL-2.0-only')) is a licence field this does not hold" % pkgbuild,
+            "%s:3 (declare -ga license=('MIT')) is a licence field this does not hold" % pkgbuild])
+    expect("the PKGBUILD's licence read", changed(pkgbuild, "BSL-1.0')\n", "BSL-1.0')\nprintf '%s\\n' \"${license[@]}\" \"$license\"\n"),
+           None)
+    expect("a licence key in a YAML flow mapping",
+           added(PACKAGING + "/helm/hmailserver-cli/Chart.yaml", "apiVersion: v2\nannotations: {artifacthub.io/license: MIT}\n"),
+           "%s/helm/hmailserver-cli/Chart.yaml:2 (annotations: {artifacthub.io/license: MIT}) is a licence field this does not "
+           "hold" % PACKAGING)
+    expect("licence keys after a flow's comma, in a flow sequence, in a sequence of sequences, spelt licenses and in "
+           "double quotes",
+           added(PACKAGING + "/helm/hmailserver/ci/extra-values.yaml",
+                 "image: {repository: x, license: MIT}\nkeywords: [license: MIT]\nitems:\n  - - license: MIT\nlicenses: [MIT]\n"
+                 'quoted: {"licence": MIT}\n'),
+           ["%s/helm/hmailserver/ci/extra-values.yaml:%s is a licence field this does not hold" % (PACKAGING, where)
+            for where in ("1 (image: {repository: x, license: MIT})", "2 (keywords: [license: MIT])", "4 (- - license: MIT)",
+                          "5 (licenses: [MIT])", '6 (quoted: {"licence": MIT})')])
+    expect("a second spec's License with a space before its colon",
+           added(PACKAGING + "/rpm/hmailserver-cli.spec", "Name: hmailserver-cli\nLicense : MIT\n"),
+           "%s/rpm/hmailserver-cli.spec:2 (License : MIT) is a licence field this does not hold" % PACKAGING)
+    expect("a Nix licence inherited",
+           added("nix/cli.nix", "{ hmailserver, quickjs }:\nhmailserver.overrideAttrs (old: {\n"
+                                "  meta = old.meta // { inherit (quickjs.meta) license; };\n})\n"),
+           "nix/cli.nix:3 (meta = old.meta // { inherit (quickjs.meta) license; };) is a licence field this does not hold")
+    expect("a Nix licence's name in quotes",
+           added("nix/cli.nix", "{ hmailserver, quickjs }:\nhmailserver.overrideAttrs (old: {\n"
+                                "  meta = old.meta // { \"license\" = quickjs.meta.license; };\n})\n"),
+           'nix/cli.nix:3 (meta = old.meta // { "license" = quickjs.meta.license; };) is a licence field this does not hold')
+    expect("nixpkgs' licences inherited", added("nix/licences.nix", "{ lib }:\nlet inherit (lib.licenses) mit; in [ mit ]\n"),
+           None)
+    expect("a licence label with its key in quotes, written by a script",
+           added(PACKAGING + "/docker/make-dockerfile.sh", "cat > Dockerfile <<'EOF'\nLABEL org.opencontainers.image.title=\"x\" \\\n"
+                 "      \"io.artifacthub.package.license\"=\"MIT\"\nEOF\n"),
+           '%s/docker/make-dockerfile.sh:3 ("io.artifacthub.package.license"="MIT") is a licence field this does not hold'
+           % PACKAGING)
     # As first written the check held the five alone, and said they were every licence
     # field of the Linux packages: the other four are licence fields, and nothing held them.
     expect("the five alone", GOOD,

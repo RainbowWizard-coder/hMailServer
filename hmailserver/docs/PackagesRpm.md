@@ -687,7 +687,9 @@ spec's, the APKBUILD's, the PKGBUILD's and the Nix package's to what is compiled
 into the server: each third-party component the source tarball declares
 (`build/asset-sbom.py`'s list) is either compiled in or not, and a field that
 leaves out the licence of one compiled in, or names one nothing is under, fails
-the job.
+the job, and so does any other line of the files it reads that sets or changes a
+licence field in one of the forms the script lists, a `string(APPEND ...)` of
+this tag after its `set()` among them.
 
 The install rules put the four texts in, for every install; CPack alone puts the
 copyright file in (`platform/packaging/cpack-licenses.cmake`), so the source
