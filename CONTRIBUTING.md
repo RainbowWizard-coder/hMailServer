@@ -72,7 +72,7 @@ The documents at the repository root:
 | [GOVERNANCE.md](GOVERNANCE.md) | Who decides what |
 | [ASSURANCE-CASE.md](ASSURANCE-CASE.md) | What the project claims about its own security, and the evidence |
 | [SECURITY.md](SECURITY.md), [SUPPORT.md](SUPPORT.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Reporting a vulnerability, getting help, and how people are expected to behave |
-| [hmailserver/docs/](hmailserver/docs/README.md) | Operator documentation, indexed by its README. Every document there but the index and `DeckParity.md` is also embedded in the server as a help page |
+| [hmailserver/docs/](hmailserver/docs/README.md) | Operator documentation, indexed by its README. Every document there but the index, `DeckParity.md`, `WebAuthorisationMatrix.md` and `WebThreatModel.md` is also embedded in the server as a help page |
 
 The tree:
 
@@ -477,7 +477,7 @@ file differs from what it would write. After changing the input, run it without 
 
 | Generator | Writes | From |
 |---|---|---|
-| `python build/generate-help-pages.py [--check]` | `Common/Util/HelpPagesData.cpp` | `hmailserver/docs/*.md`, except `README.md` and `DeckParity.md` |
+| `python build/generate-help-pages.py [--check]` | `Common/Util/HelpPagesData.cpp` | `hmailserver/docs/*.md`, except `README.md`, `DeckParity.md`, `WebAuthorisationMatrix.md` and `WebThreatModel.md` |
 | `python build/generate-portal-page.py [--check]` | `Common/Util/PortalPageData.cpp` | The webmail's `Portal.html`, `Portal.js`, `Portal.webmanifest`, `PortalServiceWorker.js` and `PortalMarkdown.js`, and the protected-message page `PortalProtected.html` and `PortalProtected.js` |
 | `python build/generate-portal-smime.py [--check]` | `Common/Util/PortalSmimeData.cpp` | `PortalSmime.js` |
 | `python build/generate-portal-openpgp.py [--check]` | `Common/Util/PortalOpenPgpData.cpp` | `PortalOpenPgp.js` |
@@ -729,7 +729,8 @@ And, for any new setting:
 ### Documentation and the help pages
 
 * Operator documents live in `hmailserver/docs/` and are listed in `hmailserver/docs/README.md`.
-* **Every document there except `README.md` and `DeckParity.md` is compiled into the server** as a help page.
+* **Every document there except `README.md`, `DeckParity.md`, `WebAuthorisationMatrix.md` and `WebThreatModel.md` is
+  compiled into the server** as a help page.
   After any change to one, run `python build/generate-help-pages.py` and commit
   `hmailserver/source/Server/Common/Util/HelpPagesData.cpp` with it. A docs change is therefore a server change,
   and rides a build.

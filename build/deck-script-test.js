@@ -55,7 +55,25 @@ const wikiPageOf = (() => {
    });
    return (name) => table[name] || '';
 })();
-const helpPages = () => fs.readdirSync(DOCS).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
+// The documents the server leaves out of its help: generate-help-pages.py's
+// EXCLUDED, read from the generator as build/check-help-map.py reads it, so that
+// the list here cannot keep a set of its own.
+const HELP_EXCLUDED = (() => {
+   const generator = fs.readFileSync(nodePath.join(__dirname, 'generate-help-pages.py'), 'utf8');
+   const set = /^EXCLUDED\s*=\s*\{([^}]*)\}/m.exec(generator);
+   const names = set ? (set[1].match(/"[^"]+"/g) || []).map((s) => s.slice(1, -1)) : [];
+   if (!names.length) {
+      out.error('build/generate-help-pages.py: its EXCLUDED set could not be read');
+      process.exit(2);
+   }
+   return new Set(names);
+})();
+// The pages the server itself embeds, from the table generate-help-pages.py
+// writes into HelpPagesData.cpp: what the list above is held to.
+const HELP_EMBEDDED = (fs.readFileSync(nodePath.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util',
+   'HelpPagesData.cpp'), 'utf8').match(/^\s*\{ "[A-Za-z0-9]+", \d+, Page\d+Pieces, Page\d+Headings(?:, "[^"]*")? \},?\s*$/gm) || [])
+   .map((row) => /"([^"]+)"/.exec(row)[1]);
+const helpPages = () => fs.readdirSync(DOCS).filter((f) => f.endsWith('.md') && !HELP_EXCLUDED.has(f)).sort()
    .map((f) => {
       const body = fs.readFileSync(nodePath.join(DOCS, f), 'utf8').replace(/\r\n/g, '\n');
       const heads = markdown.headings(body);
@@ -10452,6 +10470,9 @@ async function main() {
    check('All documentation lists every document by its title, for opening in the pane',
       $('#helpTitle').textContent === 'All documentation' && $('#helpBody').querySelectorAll('.doclist button').length === helpPages().length &&
       $('#helpBody').textContent.indexOf('What the backup carries') >= 0, String($('#helpBody').querySelectorAll('.doclist button').length));
+   check('and the documents it lists are the ones the server embeds (HelpPagesData.cpp), no more and no fewer',
+      HELP_EMBEDDED.length > 0 && JSON.stringify(helpPages().map((p) => p.name).sort()) === JSON.stringify(HELP_EMBEDDED.slice().sort()),
+      helpPages().length + ' listed, ' + HELP_EMBEDDED.length + ' in HelpPagesData.cpp');
    before = requests.length;
    click($('#helpBody').querySelectorAll('.doclist button')[0]);
    await flush();

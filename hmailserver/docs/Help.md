@@ -25,7 +25,10 @@ made from the document showing, where the wiki has one and the server can
 reach it ([The wiki link](#the-wiki-link)).
 
 `build/generate-help-pages.py` embeds every document except `README.md` (the
-index of the others) and `DeckParity.md` (a census a checker rewrites) as
+index of the others), `DeckParity.md` (a census a checker rewrites),
+`WebAuthorisationMatrix.md` (a table another generator writes from the
+routes) and `WebThreatModel.md` (a model of the web surface for those who
+change and review it) as
 `hmailserver/source/Server/Common/Util/HelpPagesData.cpp`: the text with LF
 line endings, in pieces of at most four thousand characters, with a table of
 the file name without its extension, the byte length of the text, the
@@ -33,18 +36,18 @@ document's level-one and level-two headings with the line each starts on, and
 the wiki's page made from the document, or none, read from
 `build/help-wiki-pages.txt` ([The wiki link](#the-wiki-link)).
 The table ends with a build tag, the first sixteen hex digits of the SHA-256
-of every page's text and wiki page, which the routes serve as the ETag. Today that is 71
-documents and 1.1 MB of text, which is 1.2 MB of generated C++ and about
-1.1 MB in the binary; `--check` fails when the unit, or the Control Panel's
-copy of the wiki table below, is behind the documents or the table, and
-GitLab CI's checkers job runs it on every push and merge request.
+of every page's text and wiki page, which the routes serve as the ETag. Today that is
+125 documents and 4.0 MB of text, which is 4.2 MB of generated C++ and about 4.0 MB
+in the binary; `--check` fails when the unit, or the Control Panel's copy of the wiki
+table below, is behind the documents or the table, and GitLab CI's checkers job runs
+it on every push and merge request.
 
 The Control Panel talks to the server over COM - what has no COM surface, the
 Discovery page and the settings no COM property carries, it reaches over the REST
 API while that listener is on - and must work with no REST listener, so it
 carries its own copy: the same files, embedded as resources straight from this directory by its project file
 (`ControlPanel.csproj`, `EmbeddedResource Include="..\..\..\docs\*.md"`, the
-same two files excluded, each named `Help.<Name>.md`). Nothing is copied
+same four files excluded, each named `Help.<Name>.md`). Nothing is copied
 into the Control Panel's tree, so its copy cannot be behind the documents.
 The wiki table is the one thing written into it: `Services/HelpWikiPages.g.cs`,
 by the same generator from the same file, which its `--check` holds.

@@ -287,7 +287,26 @@ const wikiPageOf = (() => {
    });
    return (name) => table[name] || '';
 })();
-const helpPages = () => fs.readdirSync(docsDir).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
+// The documents the server leaves out of its help: generate-help-pages.py's
+// EXCLUDED, read from the generator as build/check-help-map.py reads it, so that
+// the list here cannot keep a set of its own.
+const helpExcluded = (() => {
+   const generator = fs.readFileSync(require('path').join(__dirname, 'generate-help-pages.py'), 'utf8');
+   const set = /^EXCLUDED\s*=\s*\{([^}]*)\}/m.exec(generator);
+   const names = set ? (set[1].match(/"[^"]+"/g) || []).map((s) => s.slice(1, -1)) : [];
+   if (!names.length) {
+      console.error('build/generate-help-pages.py: its EXCLUDED set could not be read');
+      process.exit(2);
+   }
+   return new Set(names);
+})();
+// The pages the server itself embeds, from the table generate-help-pages.py
+// writes into HelpPagesData.cpp beside the script: what the list above is held to.
+const helpEmbedded = (fs.readFileSync(require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'),
+   scriptPath.lastIndexOf('\\')) + 1) + 'HelpPagesData.cpp'), 'utf8')
+   .match(/^\s*\{ "[A-Za-z0-9]+", \d+, Page\d+Pieces, Page\d+Headings(?:, "[^"]*")? \},?\s*$/gm) || [])
+   .map((row) => /"([^"]+)"/.exec(row)[1]);
+const helpPages = () => fs.readdirSync(docsDir).filter((f) => f.endsWith('.md') && !helpExcluded.has(f)).sort()
    .map((f) => {
       const body = fs.readFileSync(require('path').join(docsDir, f), 'utf8').replace(/\r\n/g, '\n');
       const heads = window.hmMarkdown.headings(body);
@@ -8435,6 +8454,9 @@ async function main() {
       wikiPageOf('AutoBan') === '' && document.getElementById('help-title').textContent === 'Auto-ban, and who it never bans' &&
       document.getElementById('help-wiki').hidden === true && document.getElementById('help-wiki').getAttribute('href') === null,
       document.getElementById('help-title').textContent + ' ' + String(document.getElementById('help-wiki').getAttribute('href')));
+   check('and the documents it lists are the ones the server embeds (HelpPagesData.cpp), no more and no fewer',
+      helpEmbedded.length > 0 && JSON.stringify(helpPages().map((p) => p.name).sort()) === JSON.stringify(helpEmbedded.slice().sort()),
+      helpPages().length + ' listed, ' + helpEmbedded.length + ' in HelpPagesData.cpp');
    // The pane holds still. route() runs for every message opened from the
    // list, and the pane follows it; what it followed last is remembered, so
    // a route to the same document and heading moves nothing, another
