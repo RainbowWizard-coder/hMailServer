@@ -11,7 +11,9 @@ by hand: every row comes from the C++ that decides it, so that the matrix says
 what the server does rather than what somebody once meant it to do, and --check
 fails the moment the two part: when the routes, the lists or the roles it is
 read from have changed and the file has not (exit 1), and when a step of one
-of the functions it holds has changed (exit 2; STEPS, below).
+of the functions it holds has changed, or something it reads stands inside a
+conditional of the preprocessor, which it does not evaluate (exit 2; STEPS and
+in_conditional, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -63,13 +65,16 @@ asks; and of ProcessRequest_ from the end of the anonymous routes to the
 handler - each with what the readers take out of it masked, and its prose
 (skeleton, below). A step added, taken out, moved or given a condition, or a
 name a step compares or is kept under changed, stops the script until decide()
-has been read against it and STEPS updated. Not held: how Authenticate_ makes
-a request one of the nine credentials - the grant RoleManager gives it, of
-which role and for which domains (GrantForAccount, GrantForApiKey and
+has been read against it and STEPS updated. Every definition it reads - a
+function, the report's table, an enumeration, a constant - is read only where
+it stands outside the preprocessor's conditionals: one inside them stops it,
+since another copy of it may be the one compiled. Not held: how Authenticate_
+makes a request one of the nine credentials - the grant RoleManager gives it,
+of which role and for which domains (GrantForAccount, GrantForApiKey and
 ServerAdministrator, and the GrantForRole they ask) - which the matrix's
-columns take as given, the string helpers the functions above use, and what
-the functions ProcessRequest_'s other checks call decide (the matrix's "Not
-shown" names them).
+columns take as given, the string helpers the functions above use, a macro
+defined over a name they use, and what the functions ProcessRequest_'s other
+checks call decide (the matrix's "Not shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -578,10 +583,57 @@ class Parser(object):
                 return node
 
 
-def function_text(text, qualified, params=None):
-    """The body of a member function, '{' to its closing '}' at the definition's indent,
-    and the line its '{' is on. With params, of the overload whose parameter list
-    holds that text."""
+# A line of the preprocessor that opens, divides or closes a conditional, and
+# what the compiler does not read before it reads those: comments. A string or
+# character literal is matched so that what it holds is not taken for either.
+CONDITIONAL = re.compile(r"[ \t]*#[ \t]*(if|ifdef|ifndef|elif|else|endif)\b")
+COMMENT_OR_LITERAL = re.compile(r"""//[^\n]*|/\*.*?\*/|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'""", re.S)
+
+
+@functools.lru_cache(maxsize=None)
+def conditional_depths(text):
+    """For each line of text, how many of the preprocessor's conditionals are
+    open at its start: those an #if, an #ifdef or an #ifndef above it opened and
+    no #endif has closed. Comments are not read, as the compiler does not read
+    them."""
+    def blank(m):
+        piece = m.group(0)
+        return piece if piece[0] in "\"'" else ("\n" * piece.count("\n") or " ")
+    depths = []
+    depth = 0
+    for line in COMMENT_OR_LITERAL.sub(blank, text).split("\n"):
+        depths.append(depth)
+        m = CONDITIONAL.match(line)
+        if m and m.group(1) in ("if", "ifdef", "ifndef"):
+            depth += 1
+        elif m and m.group(1) == "endif":
+            depth = max(0, depth - 1)
+    return depths
+
+
+def in_conditional(text, at):
+    """Whether the line the offset at of text is on stands inside a conditional
+    of the preprocessor. This script does not evaluate a condition, so what it
+    reads there may be a copy the compiler leaves out, and the copy it compiles
+    another."""
+    return conditional_depths(text)[text.count("\n", 0, at)] > 0
+
+
+def outside_conditionals(text, m, what):
+    """m, a match in text of what a reader takes, refused when it stands inside
+    a conditional of the preprocessor (in_conditional)."""
+    if m and in_conditional(text, m.start()):
+        raise GenerationError("%s stands inside a conditional of the preprocessor (#if to #endif), which this script "
+                              "does not evaluate: the copy it would read may not be the one compiled" % what)
+    return m
+
+
+def function_span(text, qualified, params=None):
+    """(the start of the definition's first line, its '{', the end of its '}')
+    of a member function's first definition, its closing '}' at the
+    definition's indent, or None. With params, of the overload whose parameter
+    list holds that text. A definition that stands inside a conditional of the
+    preprocessor is refused, since another copy of it may be the one compiled."""
     # Tried at the start of each line that names the function, in order: the
     # first definition, as a search of the whole text would find it, without
     # trying the pattern at every line of a file of ten thousand.
@@ -593,13 +645,26 @@ def function_text(text, qualified, params=None):
             break
         at = text.find(qualified, m.end() if m else at + 1)
     else:
-        return None, 0
+        return None
+    if in_conditional(text, m.start()):
+        raise GenerationError("%s is defined inside a conditional of the preprocessor (#if to #endif), which this "
+                              "script does not evaluate: the copy it would read may not be the one compiled"
+                              % qualified)
     indent = m.group(1)
     open_at = m.end() - 1
     close = text.find("\n" + indent + "}\n", open_at)
     if close < 0:
+        return None
+    return m.start(), open_at, close + len(indent) + 2
+
+
+def function_text(text, qualified, params=None):
+    """The body of a member function, '{' to its closing '}' at the definition's indent,
+    and the line its '{' is on (function_span)."""
+    span = function_span(text, qualified, params)
+    if span is None:
         return None, 0
-    return text[open_at:close + len(indent) + 2], text.count("\n", 0, open_at) + 1
+    return text[span[1]:span[2]], text.count("\n", 0, span[1]) + 1
 
 
 def parse_function(text, qualified):
@@ -1851,7 +1916,8 @@ def load_functions(sources):
     functions["__predicates__"] = predicates
     constants = {}
     for name, (rel, pattern) in CONSTANTS.items():
-        m = re.search(pattern, read(rel, sources))
+        text = read(rel, sources)
+        m = outside_conditionals(text, re.search(pattern, text), "%s: the constant %s" % (rel, name))
         if not m:
             raise GenerationError("%s: the constant %s could not be read" % (rel, name))
         constants[name] = m.group(1)
@@ -2079,7 +2145,8 @@ def authenticated_part(process):
 
 
 def route_kinds(header):
-    m = re.search(r"enum RouteKind\s*\{(.*?)\n      \};", header, re.S)
+    m = outside_conditionals(header, re.search(r"enum RouteKind\s*\{(.*?)\n      \};", header, re.S),
+                             "%s's enum RouteKind" % REST_H)
     if not m:
         return []
     body = re.sub(r"//[^\n]*", "", m.group(1))
@@ -2126,12 +2193,14 @@ def builtin_permissions(role_cpp, function):
 
 
 def permission_tokens(role_cpp):
-    m = re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", role_cpp, re.S)
+    m = outside_conditionals(role_cpp, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", role_cpp, re.S),
+                             "%s's PermissionTokens" % ROLE_CPP)
     return re.findall(r'"(\w+)"', m.group(1)) if m else []
 
 
 def permission_enum(role_h):
-    m = re.search(r"enum class RolePermission\s*\{(.*?)\};", role_h, re.S)
+    m = outside_conditionals(role_h, re.search(r"enum class RolePermission\s*\{(.*?)\};", role_h, re.S),
+                             "Common/Application/RoleManager.h's enum RolePermission")
     body = re.sub(r"//[^\n]*", "", m.group(1)) if m else ""
     names = re.findall(r"^\s*(\w+)\s*(?:=\s*\d+)?\s*,?\s*$", body, re.M)
     return [n for n in names if n != "Count"]
@@ -2149,27 +2218,34 @@ def report_sections(reports):
     """[(section, whether it is counted from server-wide metrics)], in the
     table's order. A row is read as SectionInfo's first two members, which must
     be the name and server_wide; FindSection searches SectionCount rows of it,
-    which must be the whole table; and from SectionInfo to FindSection's end no
-    line is the preprocessor's, which this script does not read as the compiler
-    does."""
+    which must be the whole table. What is read is the first SectionInfo, the
+    table and SectionCount after it and the FindSection after those, and only
+    there: that stretch must stand outside every conditional of the
+    preprocessor and hold no line of it, since this script does not evaluate
+    them as the compiler does."""
     code = code_of(reports)
     struct = REPORT_STRUCT.search(code)
     if not struct:
         raise GenerationError("%s: the report's SectionInfo does not begin with the name and server_wide, which a "
                               "row of its table is read as" % REPORTS_CPP)
-    find = body_of(code, "FindSection")
-    end = code.find(find, struct.end()) if find else -1
-    if end < 0:
+    if in_conditional(code, struct.start()):
+        raise GenerationError("%s: the report's SectionInfo stands inside a conditional of the preprocessor (#if to "
+                              "#endif), which this script does not evaluate: the table it would read may not be the "
+                              "one compiled" % REPORTS_CPP)
+    find = function_span(code, "FindSection")
+    if find is None or find[0] < struct.end():
         raise GenerationError("%s: FindSection could not be found after the report's SectionInfo" % REPORTS_CPP)
-    preprocessor = re.search(r"^[ \t]*#[^\n]*", code[struct.start():end + len(find)], re.M)
+    head, _, end = find
+    preprocessor = re.search(r"^[ \t]*#[^\n]*", code[struct.start():end], re.M)
     if preprocessor:
         raise GenerationError("%s: a preprocessor line between the report's SectionInfo and the end of FindSection, "
                               "which this script does not read as the compiler does: %s"
                               % (REPORTS_CPP, preprocessor.group(0).strip()))
-    at = code.find(REPORT_TABLE)
+    at = code.find(REPORT_TABLE, struct.end(), head)
     table = braced(code, at + len(REPORT_TABLE)) if at >= 0 else None
-    if table is None:
-        raise GenerationError("%s: the report's table of sections could not be found" % REPORTS_CPP)
+    if table is None or table[1] > head:
+        raise GenerationError("%s: the report's table of sections could not be found between SectionInfo and "
+                              "FindSection" % REPORTS_CPP)
     inside = code[:table[1] - 1]
     sections = []
     row = braced(inside, table[0] + 1)
@@ -2182,9 +2258,10 @@ def report_sections(reports):
         row = braced(inside, row[1])
     if not sections:
         raise GenerationError("%s: the report's table of sections has no row" % REPORTS_CPP)
-    if not REPORT_COUNT.search(code):
+    if not REPORT_COUNT.search(code, table[1], head):
         raise GenerationError("%s: FindSection searches SectionCount rows of the report's table, and SectionCount "
-                              "is not written as the table's length" % REPORTS_CPP)
+                              "is not written as the table's length between the table and FindSection"
+                              % REPORTS_CPP)
     return sections
 
 
@@ -3213,10 +3290,13 @@ def render(decision, records, anon, web):
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
       "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
-      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. Not held: "
+      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. What it "
+      "reads must stand outside the preprocessor's conditionals (`#if` to `#endif`), which it does not evaluate: a "
+      "definition inside one stops it, since another copy may be the one compiled. Not held: "
       "how `Authenticate_` makes a request one of the columns below - the grant `RoleManager` gives it, of which "
       "role and for which domains (`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the "
-      "`GrantForRole` they ask) - which they take as given, and the string helpers those functions use.")
+      "`GrantForRole` they ask) - which they take as given, the string helpers those functions use and a macro "
+      "defined over a name they use.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -3384,7 +3464,8 @@ def main(argv):
         print("With no argument it writes hmailserver/docs/WebAuthorisationMatrix.md; --check compares, --print writes "
               "to standard output, --steps prints the steps of the functions it holds to the code (steps_of) as STEPS "
               "would hold them, and --self-test breaks a copy of the source and proves each rule is still read. A step that "
-              "is not the one STEPS holds stops every mode but --steps.")
+              "is not the one STEPS holds stops every mode but --steps, and a definition it reads that stands inside a "
+              "conditional of the preprocessor stops every mode.")
         return 0
     if len(argv) > 1 or any(a not in ("--check", "--print", "--steps", "--self-test") for a in argv):
         # A misspelt --check in CI must fail, not write the matrix and pass.
@@ -3690,7 +3771,7 @@ def self_test():
             ("a SectionCount that is not the report table's length", "const int SectionCount = (int) "
              "(sizeof(SECTIONS) / sizeof(SECTIONS[0]));", "const int SectionCount = 8;", "SectionCount"),
             ("a row of the report's table put under the preprocessor", '         { "countries", true,',
-             "#if 0" + nl + '         { "countries", true,', "a preprocessor line"),
+             "#if 0" + nl + '         { "countries", true,', "preprocessor"),
             ("SectionInfo's members put in another order", "         const char *name;" + nl
              + "         bool server_wide;", "         bool server_wide;" + nl + "         const char *name;",
              "SectionInfo")):
@@ -3719,6 +3800,60 @@ def self_test():
           "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return HelpdeskPermissions();",
           "      if (name.Compare(_T(\"helpdesk\")) == 0)" + nl + "         return DomainAdminPermissions();",
           "RoleManager::BuiltInPermissions_")
+
+    # What is read is read as the compiler would read it: a definition inside a
+    # conditional of the preprocessor, beside which another copy may be the one
+    # compiled, stops the script, from the report's table to a route parser's
+    # predicate and the enumeration of route kinds.
+    def refused(label, sources, said):
+        try:
+            run(sources)
+        except GenerationError as error:
+            expect("%s stops the script, saying so" % label, said in str(error))
+            return
+        failures.append("%s stops the script" % label)
+
+    def under_conditional(rel, begin, end, change, opening="#if 0"):
+        """A copy of the source with the text of rel from begin to the end of end
+        put under a conditional, and a copy of it changed by change under its
+        #else."""
+        text = base[rel]
+        at = text.find(begin)
+        to = text.find(end, at) if at >= 0 else -1
+        if to < 0:
+            failures.append("the negative control could not be applied: %r is no longer in %s" % (begin[:60], rel))
+            return dict(base)
+        region = text[at:to + len(end)]
+        live = change(region)
+        if live == region:
+            failures.append("the negative control could not be applied: its change is no longer in %s" % rel)
+        copy_ = dict(base)
+        copy_[rel] = text[:at] + opening + nl + region + "#else" + nl + live + "#endif" + nl + text[to + len(end):]
+        return copy_
+
+    find_end = "               return &SECTIONS[i];" + nl + "         }" + nl + nl + "         return 0;" + nl + "      }" + nl
+    for opening in ("#if 0", "#ifndef HM_REPORTS_V2"):
+        refused("the report's table, its count and FindSection under %s, a copy under its #else" % opening,
+                under_conditional(REPORTS_CPP, "      struct SectionInfo" + nl, find_end,
+                                  lambda region: region.replace('{ "countries", true,', '{ "countries", false,'), opening),
+                "conditional of the preprocessor")
+    refused("IsDomainAllowed_ under #if 0, a copy that reaches every domain under its #else",
+            under_conditional(REST_CPP, "   bool" + nl + "   RestApiServer::IsDomainAllowed_(", nl + "   }" + nl,
+                              lambda region: region.replace("      if (domains.empty())", "      if (true)")),
+            "conditional of the preprocessor")
+    refused("a route parser's predicate under #if 0, a copy under its #else",
+            under_conditional("Common/Util/CalDavServer.cpp", "   bool" + nl + "   CalDavServer::IsCalendarTarget(",
+                              nl + "   }" + nl, lambda region: region.replace('"/dav/calendars"', '"/dav/calendar"')),
+            "conditional of the preprocessor")
+    refused("the enumeration of route kinds under #if 0, a copy under its #else",
+            under_conditional(REST_H, "      enum RouteKind" + nl, nl + "      };" + nl,
+                              lambda region: region.replace("         RouteUnknown = 0,", "         RouteUnknown = 0," + nl
+                                                            + "         RouteNothing,")),
+            "conditional of the preprocessor")
+    count = "      const int SectionCount = (int) (sizeof(SECTIONS) / sizeof(SECTIONS[0]));"
+    counted = broken_copy(REPORTS_CPP, count, "      const int SectionCount = 8;")
+    counted[REPORTS_CPP] = counted[REPORTS_CPP].replace(find_end, find_end + "#if 0" + nl + count + nl + "#endif" + nl, 1)
+    refused("a SectionCount of another length, its right form under #if 0 after FindSection", counted, "SectionCount")
 
     # 13. A list changed is read, not stopped on: a route into a refusal, a
     # refusal of the same shape beside the others, a group split, a reason
@@ -3772,6 +3907,12 @@ def self_test():
     d14, r14, t14 = run(broken_copy(REPORTS_CPP, '{ "storage", false,', '{ "storage", true,'))
     expect("a report section made one counted from server-wide metrics is named in the own+ cell",
            "server-wide metrics (`storage` and `countries`) are refused" in t14)
+    # A conditional that closes before what is read hides nothing: a copy of the
+    # table under one after FindSection is not read.
+    reads("a copy of the report's table under #if 0 after FindSection is not read", REPORTS_CPP, find_end,
+          find_end + "#if 0" + nl + "      const SectionInfo SECTIONS[] =" + nl + "      {" + nl
+          + '         { "traffic", true, "hm_messagetrace", "" }' + nl + "      };" + nl + "#endif" + nl,
+          lambda d: d.server_wide_sections == ["countries"])
     # A built-in role's permission lines are a list: one given to a role is read
     # as its own, and one named in a comment is not read.
     helpdesk = dict(result="account", role="helpdesk", domains="own")

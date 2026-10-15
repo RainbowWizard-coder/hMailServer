@@ -374,10 +374,12 @@ How this stays true
   `ProcessRequest_` from the end of the anonymous routes to the handler - are
   held to the ones the script follows: one added, taken out, moved or given a
   condition, or a name one compares or is kept under changed, stops the script
-  until it has been read against it. What `Authenticate_` makes of a
-  credential - the grant of a role, for its domains - the string helpers and
-  the functions `ProcessRequest_`'s other checks call are not held; the
-  matrix's "Not shown" names those functions. Its `--self-test` breaks the
+  until it has been read against it. So does a definition it reads that stands
+  inside a conditional of the preprocessor, which it does not evaluate. What
+  `Authenticate_` makes of a credential - the grant of a role, for its
+  domains - the string helpers, a macro defined over a name those functions
+  use and the functions `ProcessRequest_`'s other checks call are not held;
+  the matrix's "Not shown" names those functions. Its `--self-test` breaks the
   source in memory and proves each flag still fires and each such change stops
   it.
 - `check-role-choke-point.py`, `check-authz-choke-point.py`,
