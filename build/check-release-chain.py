@@ -246,7 +246,12 @@ refuses it. This checker holds them to each other. It fails when:
     YAML reader takes the last where this reads the first or any (repeated_key_problems),
     nor a key of a job, a template, default: or workflow: other than bare - unquoted,
     its colon straight after it - and once, as the rules that hold a job read it
-    (job_key_problems); and each Python script of GATE_FILES must keep its own
+    (job_key_problems), nor hold a character but printable ASCII, a tab and a line
+    feed, since GitLab's YAML reader ends a line at NEL, LS and PS too and takes no
+    character but a space and a tab for white space, where this reads lines at line
+    feeds alone and Python takes every Unicode space for white space, so that a
+    comment line holding an LS hid from every rule what GitLab reads after it
+    (character_problems); and each Python script of GATE_FILES must keep its own
     directory off sys.path before it imports anything but os and sys (PATH_GUARD).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
@@ -456,6 +461,7 @@ import re
 import subprocess
 import shutil
 import tempfile
+import unicodedata
 import urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -2723,6 +2729,7 @@ def check(texts, chain, feed):
     problems.extend(runner_class_problems(texts))
     problems.extend(repeated_key_problems(texts))
     problems.extend(job_key_problems(texts))
+    problems.extend(character_problems(texts))
     return problems, notes
 
 
@@ -3421,6 +3428,42 @@ def job_key_problems(texts):
                 problems.append("%s in %s writes its key %s %s: GitLab's YAML reader takes the last alone, without a word, "
                                 "where the rules that hold a job read the first or any - write each key of a job once" % (
                                     name, path, key, {2: "twice"}.get(keys.count(key), "%d times" % keys.count(key))))
+    return problems
+
+
+# What a CI file may hold, as this checker reads the files: printable ASCII, the tab and
+# the line feed (read() makes a line feed of a CR LF and of a CR alone). GitLab's YAML
+# reader, Psych on libyaml, ends a line at NEL, LS and PS too (U+0085, U+2028, U+2029),
+# and takes no character but a space and a tab for white space, where this reads the
+# lines at line feeds alone, and Python's strip() and \s take every Unicode space for
+# white space.
+CI_TEXT = re.compile(r"[^\t\n -~]")
+
+
+def character_problems(texts):
+    """[problem] for each CI file that holds a character CI_TEXT does not allow, naming the
+    first and its line. Each rule here reads a CI file's lines as the line feeds split
+    them, and blocks() drops a comment line whole, so that a comment line holding an LS
+    hid from every rule what GitLab reads after it - "    # note<LS>    - exit 1" after
+    dependency-scan's script line gave GitLab [python3 build/ci/dependency-scan.py, exit 1]
+    and passed every rule (15 October 2026) -, and "<spaces><NBSP># x" on the line after
+    it, which blocks() drops as a comment, is part of that line for GitLab, which then runs
+    the script with two arguments it refuses. A CI file is written in ASCII alone, and
+    a character beyond it is written as its escape in a quoted string."""
+    problems = []
+    for path, text in sorted(ci_files(texts).items()):
+        found = list(CI_TEXT.finditer(text or ""))
+        if not found:
+            continue
+        char = found[0].group(0)
+        problems.append("%s holds %s on its line %d%s: GitLab's YAML reader ends a line at NEL, LS and PS too and takes no "
+                        "character but a space and a tab for white space, where this checker reads a CI file's lines at "
+                        "line feeds alone and Python takes every Unicode space for white space, so that a comment line "
+                        "holding one could hide from every rule here what GitLab reads after it; a CI file holds printable "
+                        "ASCII, tabs and line feeds alone" % (
+                            path, "U+%04X %s" % (ord(char), unicodedata.name(char, "(a control character)")),
+                            (text or "").count("\n", 0, found[0].start()) + 1,
+                            " and %d more beyond ASCII" % (len(found) - 1) if len(found) > 1 else ""))
     return problems
 
 
@@ -5843,6 +5886,35 @@ def self_test(chain, feed):
             ("the scan's report not given to GitLab, by a second dependency_scanning: quoted", junit,
              junit + "      \"dependency_scanning\": security/dependency-scan/none.json\n")):
         broken_job(what, SCAN_JOB, old, new, unkept)
+    # Nor a character beyond printable ASCII, a tab and a line feed in a CI file (repair
+    # 2 of the fix, 15 October 2026): a comment line that holds an LS, a NEL or a PS,
+    # which GitLab's YAML reader ends the line at and blocks() drops whole with what
+    # follows it - - exit 1 after the scan's script line, as before G5's fix, - export
+    # TRIVY_SEVERITY=LOW after its apk line, - exit 0 after --verdict, dependencies: []
+    # in the verdict job, and a definition of the verdict job in an included file -, and
+    # a no-break space before "# ..." on the line after the scan's script line, which
+    # blocks() drops as a comment and GitLab reads as more of that line, arguments the
+    # script refuses. The characters are made with chr(), so that this file holds none.
+    nel, ls, ps, nbsp = chr(0x85), chr(0x2028), chr(0x2029), chr(0xA0)
+    for what, name, old, new, char in (
+            ("the scan failing after every scan, past a comment line ending in an LS", SCAN_JOB, scan_line,
+             scan_line + "    # a note" + ls + "    - exit 1\n", "U+2028 LINE SEPARATOR"),
+            ("the scan failing after every scan, past a comment line ending in a NEL", SCAN_JOB, scan_line,
+             scan_line + "    # a note" + nel + "    - exit 1\n", "U+0085 (a control character)"),
+            ("the scan failing after every scan, past a comment line ending in a PS", SCAN_JOB, scan_line,
+             scan_line + "    # a note" + ps + "    - exit 1\n", "U+2029 PARAGRAPH SEPARATOR"),
+            ("the scan narrowing what Trivy reports, past a comment line ending in an LS", SCAN_JOB, apk,
+             apk + "    # a note" + ls + "    - export TRIVY_SEVERITY=LOW\n", "U+2028 LINE SEPARATOR"),
+            ("the scan run with more arguments, behind a no-break space", SCAN_JOB, scan_line,
+             scan_line + "      " + nbsp + "# a note\n", "U+00A0 NO-BREAK SPACE"),
+            ("the verdict job ending after the verdict, past a comment line ending in an LS", VERDICT_JOB, verdict_line,
+             verdict_line + "    # a note" + ls + "    - exit 0\n", "U+2028 LINE SEPARATOR"),
+            ("the verdict job given no artifact, past a comment line ending in an LS", VERDICT_JOB, "  timeout: 5 minutes\n",
+             "  timeout: 5 minutes\n  # a note" + ls + "  dependencies: []\n", "U+2028 LINE SEPARATOR")):
+        broken_job(what, name, old, new, ".gitlab-ci.yml holds %s on its line" % char)
+    broken_include("the verdict job defined again in an included file, past a comment line ending in an LS",
+                   ".gitlab/ci/snap.yml", "\n# a note" + ls + "dependency-scan-verdict:" + ls + "  before_script: [exit 0]\n",
+                   ".gitlab/ci/snap.yml holds U+2028 LINE SEPARATOR on its line")
     # And what Trivy reads beside its command line: a variable of its own that a CI file
     # sets for every job, or for another job in flow style, and its configuration file or
     # its ignore file at the root of the tree.

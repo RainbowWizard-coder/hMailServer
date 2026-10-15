@@ -1264,10 +1264,15 @@ own file - since GitLab's YAML reader takes the last of the two without a word,
 where the checker reads the first or any; when a key of a job, a template,
 `default:` or `workflow:` is written quoted, with a space before its colon, by a
 merge key or twice, which GitLab's YAML reader takes too, where the rules that
-hold a job read each of its keys bare and once; and when a Python script of
-`GATE_FILES` imports anything but `os` and `sys` before it takes its own
-directory off its module path (`PATH_GUARD`). Each of those has a case in its
-self-test that must fail.
+hold a job read each of its keys bare and once; when a CI file holds a
+character but printable ASCII, a tab and a line feed, since GitLab's YAML
+reader ends a line at NEL, LS and PS too and takes no character but a space and
+a tab for white space, where the checker reads a CI file's lines at line feeds
+alone and Python takes every Unicode space for white space, so that a comment
+line holding an LS would hide from every rule what GitLab reads after it; and
+when a Python script of `GATE_FILES` imports anything but `os` and `sys` before
+it takes its own directory off its module path (`PATH_GUARD`). Each of those
+has a case in its self-test that must fail.
 `security-gate.py`'s own self-test fails while the tree's `static-analysis.sh`
 or `semgrep.sh` has no `# scan-scope` marks around its tools' invocations, the
 rule packs' fetching and what stands as the tools' report, or one of their
@@ -5030,7 +5035,10 @@ The scan's artifacts are the lines they are and no other, since GitLab's YAML
 reader takes the last of a key written twice: a second `when:`, `paths:` or
 `reports:`, or a second `dependency_scanning:` among the reports, would keep
 the scan's files from the release's gate and the verdict job, or its report
-from GitLab. No template either extends gives it a key it does not set itself
+from GitLab. Nor does a CI file hold a character beyond printable ASCII, a tab
+and a line feed: GitLab's YAML reader ends a line at an LS, a NEL or a PS too,
+so that a comment line holding one could hide a line of either job from the
+checker. No template either extends gives it a key it does not set itself
 but `rules:`, `default:` gives neither a `before_script`, an `after_script` or
 `hooks`, no rule they take brings `needs`, `variables`, `allow_failure` or a
 `when`, and neither is defined in another CI file, which GitLab would merge
