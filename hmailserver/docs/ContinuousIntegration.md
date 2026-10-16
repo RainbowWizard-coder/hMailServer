@@ -5155,17 +5155,18 @@ UNKNOWN (a skipped test case), not clean. On 25 September 2026:
 | SQL Server Compact | 4.0 SP1 | UNKNOWN: no open database tracks it, and Microsoft ended its support in July 2021 |
 
 The .NET Desktop Runtime each Windows installer carries - the release
-`third-party-binaries.json` pins for that installer, which setup installs
-where no .NET 10 Desktop Runtime is present - is asked of OSV too, by the NuGet
+`third-party-binaries.json` pins for that installer, which setup installs where
+no .NET 10 Desktop Runtime is present - is asked of OSV too, by the NuGet
 packages Microsoft publishes its two shared frameworks as, under which OSV's
 records name the runtime's advisories: `Microsoft.WindowsDesktop.App.Runtime`
 and `Microsoft.NETCore.App.Runtime`, `win-x64` for the x64 installer and
 `win-arm64` for the ARM64 one, each in OSV's NuGet ecosystem at the pinned
 release, with the control 10.0.12 beside it, a release OSV is known to name
 advisories for. A record's fix is the release that ends its range for that
-package, so a pinned release a High advisory names fails the scan with a fixed
-version, and the release job holds it. On 14 October 2026 OSV named no advisory
-for 10.0.13, the release the installers carry.
+package, so a pinned release a High advisory names fails the scan's verdict
+(`dependency-scan-verdict`) with a fixed version, and the release job holds it.
+On 14 October 2026 OSV named no advisory for 10.0.13, the release the
+installers carry.
 
 The CI image's scan treats `linux-libc-dev` as a header-only package: the rule
 `HEADER_ONLY` in `build/ci/dependency-scan.py`, a list of the image's packages

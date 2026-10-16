@@ -5840,15 +5840,15 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   `win-arm64` for the ARM64 one, the packages Microsoft publishes the installer's two shared frameworks as and OSV's
   records name the runtime's advisories under - each asked of `api.osv.dev` in its NuGet ecosystem at the release its
   installer's entry pins, with the control 10.0.12 beside it, which OSV is known to name, so that its silence fails the
-  scan. An advisory's fix is the release that ends its range for that package, which the report gives as the
-  solution: a pinned release a High advisory names fails the scan with a fixed version, and the release job's gate
-  holds it, as it holds any other. `mr-dependency-check` asks the same of a change that moves either pin, by the same
-  packages, and names the fix the same way; an exception of `.gitlab/security-exceptions.yml` names such an advisory
-  by its package. Both self-tests hold it: the four packages asked at each installer's pin, the NuGet ecosystem and
-  never a repository's tag, the fix of the range that holds the version, a pin that a High advisory names held and one
-  past it passed, a control that draws nothing refused; and the tree's two runtime pins each read by its two packages.
-  Run against OSV on 14 October 2026, the scan passed each of the four packages at 10.0.13, the release the installers
-  carry.
+  scan. An advisory's fix is the release that ends its range for that package, which the report gives as the solution:
+  a pinned release a High advisory names fails the scan's verdict (`dependency-scan-verdict`) with a fixed version, and
+  the release job's gate holds it, as it holds any other. `mr-dependency-check` asks the same of a change that moves
+  either pin, by the same packages, and names the fix the same way; an exception of `.gitlab/security-exceptions.yml`
+  names such an advisory by its package. Both self-tests hold it: the four packages asked at each installer's pin, the
+  NuGet ecosystem and never a repository's tag, the fix of the range that holds the version, a pin that a High advisory
+  names held and one past it passed, a control that draws nothing refused; and the tree's two runtime pins each read by
+  its two packages. Run against OSV on 14 October 2026, the scan passed each of the four packages at 10.0.13, the
+  release the installers carry.
 - **The Windows gate stops when the post-build step fails, where it ran the suite on the previous gate's files.**
   `build/ci/windows-gate.ps1` ran `post-build.ps1` and went on whatever it answered, so a post-build that stopped
   part-way - at a library the commit's binary manifest names and the bench has not got, as the MariaDB client's move
