@@ -11,9 +11,10 @@ by hand: every row comes from the C++ that decides it, so that the matrix says
 what the server does rather than what somebody once meant it to do, and --check
 fails the moment the two part: when the routes, the lists or the roles it is
 read from have changed and the file has not (exit 1), and when a step of one
-of the functions it holds has changed, or something it reads stands inside a
-conditional of the preprocessor or holds one, which it does not evaluate (exit
-2; STEPS and conditionals, below).
+of the functions it holds has changed, something it reads stands inside a
+conditional of the preprocessor or holds one, which it does not evaluate, or a
+file it reads holds a form it does not read as the compilers do (exit 2;
+STEPS, lex and conditionals, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -66,18 +67,30 @@ asks; and of ProcessRequest_ from the end of the anonymous routes to the
 handler - each with what the readers take out of it masked, and its prose
 (skeleton, below). A step added, taken out, moved or given a condition, or a
 name a step compares or is kept under changed, stops the script until decide()
-has been read against it and STEPS updated. Every definition it reads - a
-function, the report's table, an enumeration, a constant - is read from the
-code with its comments taken out, and only where it stands outside the
-preprocessor's conditionals and holds none: one inside a conditional, or
-holding one, stops it, since another copy of it, or another branch, may be
-what is compiled. Not held: how Authenticate_
+has been read against it and STEPS updated. Every file it reads is read as
+the compiler's first three translation phases read it (lex, below): its line
+splices joined, its comments taken out, a raw string literal and a number
+with digit separators read whole, a directive of the preprocessor wherever it
+begins a logical line - after spaces or a comment, over a splice, with a
+comment in it - and nothing inside a comment or a literal taken for code. A
+form it does not read as every compiler does stops it: a backslash with only
+spaces or tabs after it before a line's end, which compilers read differently,
+a carriage return that ends no line, a line splice inside a raw string
+literal, and a raw string literal over more than one line inside a function it
+reads. Every definition it reads - a function, the report's table, an
+enumeration, a constant - is read only where it stands outside the
+preprocessor's conditionals and holds none, and only when it is the only
+definition of its name in its file: one inside a conditional, or holding one,
+stops it, since another copy of it, or another branch, may be what is
+compiled, and so does a second definition, an overload or a copy in another
+namespace, since the compiler may use that one. Not held: how Authenticate_
 makes a request one of the nine credentials - the grant RoleManager gives it,
 of which role and for which domains (GrantForAccount, GrantForApiKey and
 ServerAdministrator, and the GrantForRole they ask) - which the matrix's
 columns take as given, the string helpers the functions above use, a macro
-defined over a name they use, and what the functions ProcessRequest_'s other
-checks call decide (the matrix's "Not shown" names them).
+defined over a name they use, an overload of one of them defined in another
+file, and what the functions ProcessRequest_'s other checks call decide (the
+matrix's "Not shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -118,9 +131,10 @@ PREDICATES = {
     "CardDavServer::IsDavTarget": "Common/Util/CardDavServer.cpp",
 }
 CONSTANTS = {
-    # static const char * members the predicates name
-    "CalendarsPath": ("Common/Util/CalDavServer.cpp", r'CalDavServer::CalendarsPath\s*=\s*"([^"]*)"'),
-    "ContextPath": ("Common/Util/CardDavServer.cpp", r'CardDavServer::ContextPath\s*=\s*"([^"]*)"'),
+    # static const char * members the predicates name, each defined as a string
+    # literal
+    "CalendarsPath": ("Common/Util/CalDavServer.cpp", "CalDavServer::CalendarsPath"),
+    "ContextPath": ("Common/Util/CardDavServer.cpp", "CardDavServer::ContextPath"),
 }
 
 METHODS = ("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "PROPFIND", "PROPPATCH", "REPORT", "MKCOL",
@@ -135,23 +149,275 @@ def read(rel, sources=None):
     if sources is not None and rel in sources:
         return sources[rel]
     with open(os.path.join(SERVER, rel), encoding="utf-8", errors="replace") as handle:
-        return handle.read().replace("\r\n", "\n")
+        text = handle.read().replace("\r\n", "\n")
+    # A byte-order mark is not part of the text the compiler reads.
+    return text[1:] if text.startswith(chr(0xFEFF)) else text
 
 
 # ---------------------------------------------------------------------------
-# A tokenizer and parser for the subset of C++ the route functions are written in
+# Reading C++ as the compiler's first three translation phases read it
 # ---------------------------------------------------------------------------
+#
+# Every reader below reads what lex() makes of a file, so that what is a
+# comment, a literal or a directive of the preprocessor to the compiler is one
+# to this script too.
+#
+# Phase 1: read() makes every CR LF a line feed and leaves out a byte-order
+# mark, and a carriage return left after that, which ends no line, is refused.
+# No build of the server replaces a trigraph - the POSIX build compiles C++20,
+# which has none, and MSVC replaces them only under /Zc:trigraphs, which the
+# Windows build does not set - so none is read as one.
+# Phase 2 (logical_text): a backslash that ends a line joins the line to the
+# next. A backslash with only spaces or tabs after it on its line is refused,
+# outside a raw string literal, and so is a backslash that ends a line inside
+# one, whose splice the compiler takes back: this script reads neither.
+# Phase 3 (scan): the comments, each one space; the literals - a character or
+# string literal with any of its prefixes, and a raw string literal whole, to
+# the ")" and delimiter that end it; a number with its digit separators, as one
+# preprocessing number; and the directives - a # or %: that is the first thing
+# on a logical line but for whitespace and comments, to the end of that line,
+# a header name after #include and __has_include read whole, a comment in a
+# directive one space however many lines it runs over.
 
-TOKEN = re.compile(r"""
-    (?P<ws>\s+)
+LEX = re.compile(r"""
+    (?P<nl>\n)
+  | (?P<ws>[ \t\f\v]+)
   | (?P<comment>//[^\n]*|/\*.*?\*/)
-  | (?P<pp>^\#[^\n]*)
-  | (?P<str>(?:L|u8)?"(?:[^"\\\n]|\\.)*")
-  | (?P<chr>'(?:[^'\\\n]|\\.)*')
-  | (?P<num>0[xX][0-9a-fA-F]+[uUlL]*|\d+(?:\.\d+)?[uUlLfF]*)
+  | (?P<raw>(?:u8|[uUL])?R"(?P<delim>[^ ()\\\t\f\v\n]{0,16})\(.*?\)(?P=delim)")
+  | (?P<str>(?:u8|[uUL])?"(?:[^"\\\n]|\\.)*")
+  | (?P<chr>(?:u8|[uUL])?'(?:[^'\\\n]|\\.)*')
+  | (?P<num>\.?[0-9](?:[eEpP][-+]|'[0-9A-Za-z_]|[0-9A-Za-z_.])*)
   | (?P<id>[A-Za-z_]\w*)
-  | (?P<op>::|->|\+\+|--|<<=|>>=|<=|>=|==|!=|&&|\|\||\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<|>>|[-+*/%<>=!&|^~?:;,.(){}\[\]])
-""", re.S | re.X | re.M)
+  | (?P<op>::|->|\+\+|--|<<=|>>=|<=|>=|==|!=|&&|\|\||\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<|>>|\#\#|%:%:
+        |[-+*/%<>=!&|^~?:;,.(){}\[\]\#])
+""", re.S | re.X)
+# What begins a directive at the head of a logical line: # or %:, but not ## or
+# %:%:, which are one token of their own.
+DIRECTIVE_START = re.compile(r"\#(?!\#)|%:(?!%:)")
+HEADER_NAME = re.compile(r'<[^>\n]*>|"[^"\n]*"')
+# The directives whose header name follows the name, and the operators in a
+# directive whose header name follows a "(".
+INCLUDES = frozenset(["include", "include_next", "import", "embed"])
+HAS_INCLUDES = frozenset(["__has_include", "__has_include_next", "__has_embed"])
+SPACED_SPLICE = re.compile(r"\\[ \t\f\v]+\n")
+
+
+def logical_text(text):
+    """text as translation phase 2 leaves it: (the text with every backslash
+    that ends a line taken out with the line feed after it, the offsets in that
+    text at which one was taken out). A carriage return that ends no line is
+    refused: this script does not read it as the compilers do."""
+    if "\r" in text:
+        raise GenerationError("a carriage return that ends no line, at line %d, which this script does not read"
+                              % (text.count("\n", 0, text.index("\r")) + 1))
+    if "\\\n" not in text:
+        return text, ()
+    out = []
+    offsets = []
+    pos = 0
+    length = 0
+    at = text.find("\\\n")
+    while at >= 0:
+        out.append(text[pos:at])
+        length += at - pos
+        offsets.append(length)
+        pos = at + 2
+        at = text.find("\\\n", pos)
+    out.append(text[pos:])
+    return "".join(out), tuple(offsets)
+
+
+def scan(text, pos=0, bol=True):
+    """Translation phase 3's pieces of text, a text phase 2 has joined, from the
+    offset pos: (kind, start, end, whether the piece is part of a directive),
+    the kinds LEX's groups and "pp" for the # or %: that begins a directive and
+    "header" for a header name. bol: whether pos is at the start of a logical
+    line but for whitespace and comments."""
+    end_of_text = len(text)
+    directive = False
+    named = False
+    expect = None
+    match = LEX.match
+    while pos < end_of_text:
+        if expect == "header" and text[pos] in '<"':
+            m = HEADER_NAME.match(text, pos)
+            if m:
+                expect = None
+                yield "header", pos, m.end(), True
+                pos = m.end()
+                continue
+        if bol and not directive:
+            m = DIRECTIVE_START.match(text, pos)
+            if m:
+                directive, named, expect, bol = True, False, None, False
+                yield "pp", pos, m.end(), True
+                pos = m.end()
+                continue
+        m = match(text, pos)
+        if not m:
+            raise GenerationError("cannot tokenize near line %d: %r" % (text.count("\n", 0, pos) + 1, text[pos:pos + 40]))
+        kind = m.lastgroup
+        end = m.end()
+        if kind == "nl":
+            bol, directive, expect = True, False, None
+        elif kind != "ws" and kind != "comment":
+            bol = False
+            if directive:
+                word = m.group()
+                if not named:
+                    named = True
+                    expect = "header" if kind == "id" and word in INCLUDES else None
+                elif kind == "id" and word in HAS_INCLUDES:
+                    expect = "paren"
+                elif expect == "paren" and word == "(":
+                    expect = "header"
+                else:
+                    expect = None
+        yield kind, pos, end, directive
+        pos = end
+
+
+def blank(text):
+    return re.sub(r"[^\n]", " ", text)
+
+
+def literal_parts(kind, text):
+    """(what opens a literal, what it holds, what closes it): of a raw string
+    literal its prefix, delimiter and parentheses, of any other its prefix and
+    quotes."""
+    if kind == "raw":
+        quote = text.index('"')
+        paren = text.index("(", quote)
+        close = len(text) - (paren - quote) - 1
+        return text[:paren + 1], text[paren + 1:close], text[close:]
+    quote = text.index('"' if kind == "str" else "'")
+    return text[:quote + 1], text[quote + 1:-1], text[-1:]
+
+
+class Lexed(object):
+    """What lex() makes of a text: code, blind, the directives and the
+    literals."""
+    __slots__ = ("code", "blind", "directives", "literals", "starts")
+
+    def __init__(self, code, blind, directives, literals):
+        self.code = code
+        self.blind = blind
+        self.directives = directives
+        self.literals = literals
+        self.starts = [begin for begin, _, _ in literals]
+
+    def literal_at(self, at):
+        """The literal of the code that the offset at stands inside, its
+        quotes or prefix included: (start, end, kind), or None."""
+        k = bisect.bisect_right(self.starts, at) - 1
+        if k >= 0 and self.literals[k][0] <= at < self.literals[k][1]:
+            return self.literals[k]
+        return None
+
+
+@functools.lru_cache(maxsize=None)
+def lex(text):
+    """text as translation phases 1 to 3 read it (logical_text, scan).
+
+    code: the text with each comment taken out - one space, or as many line
+    feeds as it holds - and each line splice joined, each line after a logical
+    line's end where it was: a line feed the compiler does not see as one, in a
+    splice or in a comment inside a directive, is written at the end of the
+    logical line it stands in, so that a directive is one line of the code.
+    blind: the code with what each literal holds made spaces, its line feeds
+    kept, so that a search of it finds nothing inside a literal and its offsets
+    are the code's. directives: (the line of the code it stands on, its name or
+    "", its text) of each directive. literals: (start, end, kind) in the code
+    of each literal, "raw", "str" or "chr"."""
+    logical, splices = logical_text(text or "")
+    try:
+        pieces = list(scan(logical))
+    except GenerationError:
+        spaced = SPACED_SPLICE.search(logical)
+        if spaced:
+            raise GenerationError("a backslash with only spaces or tabs after it on its line, at line %d, which this "
+                                  "script does not read" % (logical.count("\n", 0, spaced.start()) + 1))
+        raise
+    raws = [(start, end) for kind, start, end, _ in pieces if kind == "raw"]
+    for spaced in SPACED_SPLICE.finditer(logical):
+        if not any(start <= spaced.start() < end for start, end in raws):
+            raise GenerationError("a backslash with only spaces or tabs after it on its line, at line %d, which this "
+                                  "script does not read" % (logical.count("\n", 0, spaced.start()) + 1))
+    for start, end in raws:
+        k = bisect.bisect_right(splices, start)
+        if k < len(splices) and splices[k] < end:
+            raise GenerationError("a raw string literal at line %d holds a backslash that ends a line, a splice the "
+                                  "compiler takes back there and this script does not"
+                                  % (logical.count("\n", 0, start) + 1))
+    code = []
+    blind = []
+    directives = []
+    literals = []
+    length = 0
+    line = 0
+    deferred = 0
+    joined = 0
+    directive = None
+    for kind, start, end, inside in pieces:
+        piece = logical[start:end]
+        if kind == "nl":
+            if directive is not None:
+                directives.append((directive[0], directive[1], "".join(directive[2]).strip()))
+                directive = None
+            passed = bisect.bisect_right(splices, start)
+            deferred += passed - joined
+            joined = passed
+            piece = "\n" * (1 + deferred)
+            deferred = 0
+            line += len(piece)
+            code.append(piece)
+            blind.append(piece)
+            length += len(piece)
+            continue
+        if kind == "comment":
+            feeds = piece.count("\n")
+            if inside:
+                deferred += feeds
+                piece = " "
+            else:
+                piece = "\n" * feeds or " "
+                line += feeds
+            covered = piece
+        elif kind in ("raw", "str", "chr"):
+            opening, held, closing = literal_parts(kind, piece)
+            covered = opening + blank(held) + closing
+            literals.append((length, length + len(piece), kind))
+            line += piece.count("\n")
+        else:
+            covered = piece
+        if kind == "pp":
+            directive = [line, None, []]
+        elif directive is not None and directive[1] is None and kind not in ("ws", "comment"):
+            directive[1] = piece if kind == "id" else ""
+        if directive is not None:
+            directive[2].append(piece)
+        code.append(piece)
+        blind.append(covered)
+        length += len(piece)
+    if directive is not None:
+        directives.append((directive[0], directive[1] or "", "".join(directive[2]).strip()))
+    rest = "\n" * (deferred + len(splices) - joined)
+    code.append(rest)
+    blind.append(rest)
+    return Lexed("".join(code), "".join(blind), tuple(directives), tuple(literals))
+
+
+def code_of(text):
+    """The text with its comments taken out, as the compiler reads it (lex): a
+    case label, a definition or a directive in a comment is none, and a //
+    inside a string is no comment."""
+    return lex(text or "").code
+
+
+def blind_of(text):
+    """The code of text with what each literal holds made spaces (lex), for a
+    search that must find code and nothing inside a literal."""
+    return lex(text or "").blind
 
 
 def unescape(body):
@@ -169,6 +435,35 @@ def unescape(body):
     return "".join(out)
 
 
+def literal_value(kind, text):
+    """What a string or character literal holds: a raw string literal's text as
+    it is, another's with its escapes read."""
+    held = literal_parts(kind, text)[1]
+    return held if kind == "raw" else unescape(held)
+
+
+# An integer literal as C++ writes it: hexadecimal, binary, octal or decimal,
+# with digit separators and a suffix.
+INTEGER_LITERAL = re.compile(r"(0[xX][0-9a-fA-F](?:'?[0-9a-fA-F])*|0[bB][01](?:'?[01])*|0(?:'?[0-7])*|[1-9](?:'?[0-9])*)"
+                             r"(?:[uU](?:ll|LL|[lLzZ])?|(?:ll|LL|[lLzZ])[uU]?)?\Z")
+
+
+def integer_value(text):
+    """The value of an integer literal as the compiler reads it, or None when
+    text is not one."""
+    m = INTEGER_LITERAL.match(text)
+    if not m:
+        return None
+    digits = m.group(1).replace("'", "")
+    if digits[:2] in ("0x", "0X"):
+        return int(digits[2:], 16)
+    if digits[:2] in ("0b", "0B"):
+        return int(digits[2:], 2)
+    if digits[0] == "0":
+        return int(digits, 8)
+    return int(digits)
+
+
 class Tok(object):
     __slots__ = ("kind", "text", "line")
 
@@ -182,31 +477,32 @@ class Tok(object):
 
 
 def tokenize(text, first_line=1):
+    """The tokens of text, code as lex() gives it, for the parser: directives
+    left out, adjacent string literals one, as in C++."""
     tokens = []
     line = first_line
-    pos = 0
-    while pos < len(text):
-        m = TOKEN.match(text, pos)
-        if not m:
-            raise GenerationError("cannot tokenize near line %d: %r" % (line, text[pos:pos + 40]))
-        kind = m.lastgroup
-        value = m.group(kind)
-        if kind == "str":
-            literal = value[value.index('"') + 1:-1]
-            # adjacent literals are one literal, as in C++
-            if tokens and tokens[-1].kind == "str":
-                tokens[-1].text += unescape(literal)
-            else:
-                tokens.append(Tok("str", unescape(literal), line))
-        elif kind == "chr":
-            tokens.append(Tok("chr", unescape(value[1:-1]), line))
-        elif kind in ("num", "id", "op"):
-            tokens.append(Tok(kind, value, line))
+    for kind, start, end, inside in scan(text):
+        value = text[start:end]
+        if not inside:
+            if kind in ("str", "raw"):
+                literal = literal_value(kind, value)
+                # adjacent literals are one literal, as in C++
+                if tokens and tokens[-1].kind == "str":
+                    tokens[-1].text += literal
+                else:
+                    tokens.append(Tok("str", literal, line))
+            elif kind == "chr":
+                tokens.append(Tok("chr", literal_value(kind, value), line))
+            elif kind in ("num", "id", "op"):
+                tokens.append(Tok(kind, value, line))
         line += value.count("\n")
-        pos = m.end()
     tokens.append(Tok("eof", "", line))
     return tokens
 
+
+# ---------------------------------------------------------------------------
+# A parser for the subset of C++ the route functions are written in
+# ---------------------------------------------------------------------------
 
 # AST nodes are tuples: (tag, line, ...)
 BINARY = {
@@ -518,12 +814,10 @@ class Parser(object):
         if tok.kind == "chr":
             return ("chr", tok.line, tok.text)
         if tok.kind == "num":
-            text = tok.text.rstrip("uUlLfF")
-            try:
-                value = int(text, 0)
-            except ValueError:
-                value = 0
-            return ("num", tok.line, value)
+            # An integer literal's value; another number, which the parsers do
+            # not compare, is 0.
+            value = integer_value(tok.text)
+            return ("num", tok.line, 0 if value is None else value)
         if tok.kind == "id":
             name = tok.text
             while self.at("::") and self.peek(1).kind == "id":
@@ -587,53 +881,77 @@ class Parser(object):
                 return node
 
 
-# A line of the preprocessor that opens, divides or closes a conditional, by
-# its directive, # or the digraph %:.
-CONDITIONAL = re.compile(r"[ \t]*(?:#|%:)[ \t]*(if|ifdef|ifndef|elif|elifdef|elifndef|else|endif)\b")
+# The directives that open, divide and close a conditional of the
+# preprocessor.
+CONDITIONAL_OPENS = frozenset(["if", "ifdef", "ifndef"])
+CONDITIONAL_DIVIDES = frozenset(["elif", "elifdef", "elifndef", "else"])
+CONDITIONAL_CLOSES = frozenset(["endif"])
 
 
 @functools.lru_cache(maxsize=None)
 def conditionals(text):
-    """The preprocessor's conditionals in text, read from its code with the
-    comments taken out, as the compiler does not read them: for each line, how
-    many are open at its start - those an #if, an #ifdef or an #ifndef above it
-    opened and no #endif has closed - and the numbers (from 0) of the lines that
-    open, divide or close one."""
-    depths = []
+    """The preprocessor's conditionals in text, code as lex() gives it, read
+    from its directives (lex), which the compiler does not evaluate here: for
+    each line, how many are open at its start - those an #if, an #ifdef or an
+    #ifndef above it opened and no #endif has closed - and the numbers (from 0)
+    of the lines that open, divide or close one."""
+    lexed = lex(text)
+    change = {}
     lines = []
+    for line, name, _ in lexed.directives:
+        if name in CONDITIONAL_OPENS:
+            change[line] = 1
+        elif name in CONDITIONAL_DIVIDES:
+            change[line] = 0
+        elif name in CONDITIONAL_CLOSES:
+            change[line] = -1
+        else:
+            continue
+        lines.append(line)
+    depths = []
     depth = 0
-    for number, line in enumerate(code_of(text).split("\n")):
+    for number in range(lexed.code.count("\n") + 1):
         depths.append(depth)
-        m = CONDITIONAL.match(line)
-        if m:
-            lines.append(number)
-            if m.group(1) in ("if", "ifdef", "ifndef"):
-                depth += 1
-            elif m.group(1) == "endif":
-                depth = max(0, depth - 1)
+        delta = change.get(number)
+        if delta == 1:
+            depth += 1
+        elif delta == -1:
+            depth = max(0, depth - 1)
     return depths, lines
 
 
 def in_conditional(text, at):
-    """Whether the line the offset at of text is on stands inside a conditional
-    of the preprocessor. This script does not evaluate a condition, so what it
-    reads there may be a copy the compiler leaves out, and the copy it compiles
-    another."""
+    """Whether the line the offset at of text, code as lex() gives it, is on
+    stands inside a conditional of the preprocessor. This script does not
+    evaluate a condition, so what it reads there may be a copy the compiler
+    leaves out, and the copy it compiles another."""
     return conditionals(text)[0][text.count("\n", 0, at)] > 0
 
 
 def holds_conditional(text, begin, end):
-    """Whether a line of text from the offset begin to the offset end opens,
-    divides or closes a conditional of the preprocessor, whose branches this
-    script would read alike."""
+    """Whether a line of text, code as lex() gives it, from the offset begin to
+    the offset end opens, divides or closes a conditional of the preprocessor,
+    whose branches this script would read alike."""
     lines = conditionals(text)[1]
     k = bisect.bisect_left(lines, text.count("\n", 0, begin))
     return k < len(lines) and lines[k] <= text.count("\n", 0, end)
 
 
+def defined_once(blind, head, what):
+    """Refused unless the pattern head, a definition's head, matches once in
+    blind, the code of a file outside its literals (lex): a second definition
+    of the name, wherever it stands - in another namespace or class, or under a
+    conditional - may be the one the compiler uses, which this script does not
+    work out."""
+    if len(re.findall(head, blind)) > 1:
+        raise GenerationError("%s is defined more than once in its file - in another namespace or class, or under a "
+                              "conditional - and this script does not work out which the compiler uses" % what)
+
+
 def outside_conditionals(text, m, what):
-    """m, a match in text of what a reader takes, refused when it stands inside
-    a conditional of the preprocessor (in_conditional) or holds one."""
+    """m, a match in text (code as lex() gives it, or its blind) of what a
+    reader takes, refused when it stands inside a conditional of the
+    preprocessor (in_conditional) or holds one."""
     if m and (in_conditional(text, m.start()) or holds_conditional(text, m.start(), m.end())):
         raise GenerationError("%s stands inside a conditional of the preprocessor (#if to #endif), or holds one, which "
                               "this script does not evaluate: what it would read may not be what is compiled" % what)
@@ -643,23 +961,34 @@ def outside_conditionals(text, m, what):
 def function_span(text, qualified, params=None):
     """(the start of the definition's first line, its '{', the end of its '}',
     the text of its parameter list) of a member function's first definition in
-    the code of text, its comments taken out - so that a definition in a
-    comment is none - and its closing '}' at the definition's indent, or None;
-    the offsets are into code_of(text). With params, of the overload whose
-    parameter list holds that text. A definition that stands inside a
-    conditional of the preprocessor, or holds one, is refused, since another
-    copy of it, or another branch, may be what is compiled."""
-    code = code_of(text)
-    # Tried at the start of each line that names the function, in order: the
-    # first definition, as a search of the whole text would find it, without
-    # trying the pattern at every line of a file of ten thousand.
-    head = re.compile(r"([ \t]*)[^\n]*\b" + re.escape(qualified) + r"\s*\(([^;{]*?)\)\s*(?:const\s*)?\n\1\{", re.S)
-    at = code.find(qualified)
+    the code of text as the compiler reads it (lex) - so that a definition in a
+    comment is none, and one in a literal too - and its closing '}' at the
+    definition's indent, or None; the offsets are into code_of(text). With
+    params, of the overload whose parameter list holds that text. A definition
+    that stands inside a conditional of the preprocessor, or holds one, is
+    refused, since another copy of it, or another branch, may be what is
+    compiled; so is one that is not the only definition of the function (with
+    params, of that overload) in the file, and one that holds a raw string
+    literal over more than one line, since the readers read a definition a line
+    at a time."""
+    lexed = lex(text)
+    code = lexed.code
+    # Searched in the blind code, so that nothing inside a literal is taken for
+    # a definition or the '}' that ends one. Tried at the start of each line
+    # that names the function, in order: the first definition, as a search of
+    # the whole text would find it, without trying the pattern at every line of
+    # a file of ten thousand. Before the name on its line stand only the words
+    # of a type - a return type, a qualifier, *, &, <, > - so that a call in a
+    # condition with its block below is not taken for a definition.
+    blind = lexed.blind
+    head = re.compile(r"([ \t]*)[\w:*&<>,~ \t]*?\b" + re.escape(qualified) + r"\s*\(([^;{]*?)\)\s*(?:const\s*)?\n\1\{",
+                      re.S)
+    at = blind.find(qualified)
     while at >= 0:
-        m = head.match(code, code.rfind("\n", 0, at) + 1)
+        m = head.match(blind, blind.rfind("\n", 0, at) + 1)
         if m and (params is None or params in m.group(2)):
             break
-        at = code.find(qualified, m.end() if m else at + 1)
+        at = blind.find(qualified, m.end() if m else at + 1)
     else:
         return None
     if in_conditional(code, m.start()):
@@ -668,13 +997,31 @@ def function_span(text, qualified, params=None):
                               % qualified)
     indent = m.group(1)
     open_at = m.end() - 1
-    close = code.find("\n" + indent + "}\n", open_at)
+    close = blind.find("\n" + indent + "}\n", open_at)
     if close < 0:
         return None
     end = close + len(indent) + 2
     if holds_conditional(code, m.start(), end):
         raise GenerationError("%s holds a conditional of the preprocessor (#if to #endif), which this script does not "
                               "evaluate: it would read every branch as compiled" % qualified)
+    # The only definition of it in the file, wherever another would stand: an
+    # overload, or a copy in another namespace or under a conditional, may be
+    # the one the compiler calls, which this script does not work out.
+    again = blind.find(qualified, end)
+    while again >= 0:
+        other = head.match(blind, blind.rfind("\n", 0, again) + 1)
+        if other and (params is None or params in other.group(2)):
+            raise GenerationError("%s is defined more than once in its file - an overload, or a copy in another "
+                                  "namespace - and this script does not work out which the compiler calls"
+                                  % qualified)
+        again = blind.find(qualified, other.end() if other else again + 1)
+    k = bisect.bisect_left(lexed.starts, m.start())
+    while k < len(lexed.literals) and lexed.literals[k][0] < end:
+        begin, finish, kind = lexed.literals[k]
+        if kind == "raw" and "\n" in code[begin:finish]:
+            raise GenerationError("%s holds a raw string literal over more than one line, which this script, reading a "
+                                  "definition a line at a time, does not read" % qualified)
+        k += 1
     return m.start(), open_at, end, m.group(2)
 
 
@@ -1937,12 +2284,18 @@ def load_functions(sources):
         predicates.setdefault(short, (params, expr))
     functions["__predicates__"] = predicates
     constants = {}
-    for name, (rel, pattern) in CONSTANTS.items():
-        code = code_of(read(rel, sources))
-        m = outside_conditionals(code, re.search(pattern, code), "%s: the constant %s" % (rel, name))
-        if not m:
-            raise GenerationError("%s: the constant %s could not be read" % (rel, name))
-        constants[name] = m.group(1)
+    for name, (rel, qualified) in CONSTANTS.items():
+        # Its definition, outside every comment, literal and conditional of the
+        # preprocessor: the one string literal it is given.
+        what = "%s: the constant %s" % (rel, name)
+        lexed = lex(read(rel, sources))
+        m = outside_conditionals(lexed.code, re.search(r"\b" + re.escape(qualified) + r"\s*=(?!=)([^;]*);",
+                                                       lexed.blind), what)
+        value = string_list(lexed.code[m.start(1):m.end(1)], what) if m else []
+        if len(value) != 1:
+            raise GenerationError("%s could not be read: it is not defined as one string literal" % what)
+        defined_once(lexed.blind, r"\b" + re.escape(qualified) + r"\s*=(?!=)", what)
+        constants[name] = value[0]
     functions["__constants__"] = constants
     return functions
 
@@ -2081,25 +2434,51 @@ DOMAIN_EXPRESSIONS = {
 }
 
 
-def tokens_of(text):
-    """Every token of text in order, whitespace and comments included, so that
-    joining them gives the text back."""
-    pos = 0
-    while pos < len(text):
-        m = TOKEN.match(text, pos)
-        if not m:
-            raise GenerationError("cannot tokenize near line %d: %r" % (text.count("\n", 0, pos) + 1, text[pos:pos + 40]))
-        yield m
-        pos = m.end()
+class Piece(object):
+    """A piece of a text as tokens_of gives it, asked as a match object is:
+    lastgroup, group(), start(), end()."""
+    __slots__ = ("lastgroup", "text", "begin", "finish")
+
+    def __init__(self, kind, text, begin, finish):
+        self.lastgroup = kind
+        self.text = text
+        self.begin = begin
+        self.finish = finish
+
+    def group(self, index=0):
+        return self.text
+
+    def start(self):
+        return self.begin
+
+    def end(self):
+        return self.finish
 
 
-@functools.lru_cache(maxsize=None)
-def code_of(text):
-    """The text with its comments taken out, each line where it was. By the
-    tokenizer, so that a /* ... */ is a comment too and a // inside a string is
-    not: a case label in a comment is no case label."""
-    return "".join(("\n" * m.group(0).count("\n") or " ") if m.lastgroup == "comment" else m.group(0)
-                   for m in tokens_of(text or ""))
+def tokens_of(text, start=0):
+    """Every piece of text from the offset start in order, as translation
+    phase 3 makes them (scan), whitespace and comments included, so that joining
+    them gives the text back: a run of whitespace, line feeds among it, one
+    piece "ws", a directive to the end of its line one piece "pp", a raw string
+    literal a "str". text is code, as lex() gives it."""
+    line_start = text.rfind("\n", 0, start) + 1
+    pending = None
+    for kind, begin, end, inside in scan(text, start, not text[line_start:start].strip(" \t\f\v")):
+        if inside and kind != "pp":
+            pending[2] = end
+            continue
+        if kind in ("ws", "nl") and pending is not None and pending[0] == "ws":
+            pending[2] = end
+            continue
+        if pending is not None:
+            yield Piece(pending[0], text[pending[1]:pending[2]], pending[1], pending[2])
+            pending = None
+        if kind in ("ws", "nl", "pp"):
+            pending = ["pp" if kind == "pp" else "ws", begin, end]
+            continue
+        yield Piece("str" if kind == "raw" else kind, text[begin:end], begin, end)
+    if pending is not None:
+        yield Piece(pending[0], text[pending[1]:pending[2]], pending[1], pending[2])
 
 
 def one_statement_a_line(code):
@@ -2125,24 +2504,38 @@ def braced(code, start):
     matched by token, or None."""
     depth = 0
     begin = None
-    for m in tokens_of(code[start:]):
+    for m in tokens_of(code, start):
         if m.lastgroup != "op":
             continue
         if m.group(0) == "{":
             if begin is None:
-                begin = start + m.start()
+                begin = m.start()
             depth += 1
         elif m.group(0) == "}" and begin is not None:
             depth -= 1
             if depth == 0:
-                return begin, start + m.end()
+                return begin, m.end()
     return None
+
+
+def code_find(code, what, start=0):
+    """The offset of the first what in code, outside every literal (blind_of),
+    or -1."""
+    return blind_of(code).find(what, start)
+
+
+def code_matches(pattern, code):
+    """The matches of pattern in code that begin outside every literal: of a
+    pattern that holds no quote before the literal it ends in, if any, each one
+    is code to its literal."""
+    lexed = lex(code)
+    return [m for m in pattern.finditer(code) if lexed.literal_at(m.start()) is None]
 
 
 def key_route_block(authorize):
     """Authorize_'s block for IsApiKeyRoute_, which holds the role-holding
     account's exceptions: (begin, end) in its code, or None."""
-    at = authorize.find(KEY_ROUTES)
+    at = code_find(authorize, KEY_ROUTES)
     return braced(authorize, at + len(KEY_ROUTES)) if at >= 0 else None
 
 
@@ -2161,23 +2554,27 @@ def authenticated_part(process):
             if block is None:
                 return None, None
             part = process[m.start():block[1]]
-            at = part.find(DISPATCH)
+            at = code_find(part, DISPATCH)
             return part, (braced(part, at) if at >= 0 else None)
     return None, None
 
 
 def route_kinds(header):
-    header = code_of(header)
-    m = outside_conditionals(header, re.search(r"enum RouteKind\s*\{(.*?)\n      \};", header, re.S),
-                             "%s's enum RouteKind" % REST_H)
+    """The route kinds of RestApiServer.h's enum RouteKind, in order: its only
+    definition in the file (defined_once), searched for outside every literal."""
+    what = "%s's enum RouteKind" % REST_H
+    lexed = lex(header)
+    m = outside_conditionals(lexed.code, re.search(r"enum RouteKind\s*\{(.*?)\n      \};", lexed.blind, re.S), what)
     if not m:
         return []
-    body = re.sub(r"//[^\n]*", "", m.group(1))
-    return re.findall(r"^\s*(Route\w+)\s*(?:=\s*\d+)?\s*,?\s*$", body, re.M)
+    defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?RouteKind\b[^;{]*\{", what)
+    return re.findall(r"^\s*(Route\w+)\s*(?:=\s*\d+)?\s*,?\s*$", lexed.code[m.start(1):m.end(1)], re.M)
 
 
 def case_set(body):
-    return set(re.findall(LABEL, code_of(body)))
+    """The route kinds of the case labels in body, outside every comment and
+    literal."""
+    return set(re.findall(LABEL, blind_of(body)))
 
 
 def case_matches(body, answer):
@@ -2215,19 +2612,45 @@ def builtin_permissions(role_cpp, function):
     return {m.group(1) for m in (re.match(ROLE_PERMISSION_LINE, line) for line in lines) if m}
 
 
+def string_list(body, what):
+    """The strings of a brace list's body, code as lex() gives it: each element
+    a string literal (adjacent ones one, as in C++), a comma between them. Any
+    other element stops the script."""
+    tokens = tokenize(body)
+    strings = []
+    i = 0
+    while tokens[i].kind != "eof":
+        if tokens[i].kind != "str":
+            raise GenerationError("%s: %r is not a string literal, which is all this script reads there"
+                                  % (what, tokens[i].text))
+        strings.append(tokens[i].text)
+        i += 1
+        if tokens[i].kind == "op" and tokens[i].text == ",":
+            i += 1
+        elif tokens[i].kind != "eof":
+            raise GenerationError("%s: %r follows a string, where this script reads a comma or the end"
+                                  % (what, tokens[i].text))
+    return strings
+
+
 def permission_tokens(role_cpp):
-    role_cpp = code_of(role_cpp)
-    m = outside_conditionals(role_cpp, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", role_cpp, re.S),
-                             "%s's PermissionTokens" % ROLE_CPP)
-    return re.findall(r'"(\w+)"', m.group(1)) if m else []
+    what = "%s's PermissionTokens" % ROLE_CPP
+    lexed = lex(role_cpp)
+    m = outside_conditionals(lexed.code, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", lexed.blind, re.S), what)
+    if not m:
+        return []
+    defined_once(lexed.blind, r"\bPermissionTokens\s*\[[^\]]*\]\s*=", what)
+    return re.findall(r'"(\w+)"', lexed.code[m.start(1):m.end(1)])
 
 
 def permission_enum(role_h):
-    role_h = code_of(role_h)
-    m = outside_conditionals(role_h, re.search(r"enum class RolePermission\s*\{(.*?)\};", role_h, re.S),
-                             "Common/Application/RoleManager.h's enum RolePermission")
-    body = re.sub(r"//[^\n]*", "", m.group(1)) if m else ""
-    names = re.findall(r"^\s*(\w+)\s*(?:=\s*\d+)?\s*,?\s*$", body, re.M)
+    what = "Common/Application/RoleManager.h's enum RolePermission"
+    lexed = lex(role_h)
+    m = outside_conditionals(lexed.code, re.search(r"enum class RolePermission\s*\{(.*?)\};", lexed.blind, re.S), what)
+    if not m:
+        return []
+    defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?RolePermission\b[^;{]*\{", what)
+    names = re.findall(r"^\s*(\w+)\s*(?:=\s*\d+)?\s*,?\s*$", lexed.code[m.start(1):m.end(1)], re.M)
     return [n for n in names if n != "Count"]
 
 
@@ -2246,10 +2669,12 @@ def report_sections(reports):
     which must be the whole table. What is read is the first SectionInfo, the
     table and SectionCount after it and the FindSection after those, and only
     there: that stretch must stand outside every conditional of the
-    preprocessor and hold no line of it, since this script does not evaluate
-    them as the compiler does."""
-    code = code_of(reports)
-    struct = REPORT_STRUCT.search(code)
+    preprocessor and hold no directive of it, since this script does not
+    evaluate them as the compiler does. Each is searched for outside every
+    literal (lex)."""
+    lexed = lex(reports)
+    code, blind = lexed.code, lexed.blind
+    struct = REPORT_STRUCT.search(blind)
     if not struct:
         raise GenerationError("%s: the report's SectionInfo does not begin with the name and server_wide, which a "
                               "row of its table is read as" % REPORTS_CPP)
@@ -2261,12 +2686,17 @@ def report_sections(reports):
     if find is None or find[0] < struct.end():
         raise GenerationError("%s: FindSection could not be found after the report's SectionInfo" % REPORTS_CPP)
     head, _, end, _ = find
-    preprocessor = re.search(r"^[ \t]*#[^\n]*", code[struct.start():end], re.M)
-    if preprocessor:
-        raise GenerationError("%s: a preprocessor line between the report's SectionInfo and the end of FindSection, "
-                              "which this script does not read as the compiler does: %s"
-                              % (REPORTS_CPP, preprocessor.group(0).strip()))
-    at = code.find(REPORT_TABLE, struct.end(), head)
+    first, last = code.count("\n", 0, struct.start()), code.count("\n", 0, end)
+    for line, _, directive in lexed.directives:
+        if first <= line <= last:
+            raise GenerationError("%s: a preprocessor line between the report's SectionInfo and the end of "
+                                  "FindSection, which this script does not read as the compiler does: %s"
+                                  % (REPORTS_CPP, directive))
+    for once, what in ((r"\bstruct\s+SectionInfo\b[^;{]*\{", "the report's SectionInfo"),
+                       (r"\bSECTIONS\s*\[[^\]]*\]\s*=", "the report's table of sections"),
+                       (r"\bSectionCount\s*[={(]", "the report's SectionCount")):
+        defined_once(blind, once, "%s: %s" % (REPORTS_CPP, what))
+    at = blind.find(REPORT_TABLE, struct.end(), head)
     table = braced(code, at + len(REPORT_TABLE)) if at >= 0 else None
     if table is None or table[1] > head:
         raise GenerationError("%s: the report's table of sections could not be found between SectionInfo and "
@@ -2283,7 +2713,7 @@ def report_sections(reports):
         row = braced(inside, row[1])
     if not sections:
         raise GenerationError("%s: the report's table of sections has no row" % REPORTS_CPP)
-    if not REPORT_COUNT.search(code, table[1], head):
+    if not REPORT_COUNT.search(blind, table[1], head):
         raise GenerationError("%s: FindSection searches SectionCount rows of the report's table, and SectionCount "
                               "is not written as the table's length between the table and FindSection"
                               % REPORTS_CPP)
@@ -2310,7 +2740,7 @@ class Decision(object):
         self.permission = case_groups(body_of(cpp, "RestApiServer::PermissionFor_"), PERMISSION_LINE)
         self.second = case_groups(body_of(cpp, "RestApiServer::SecondPermissionFor_"), SECOND_PERMISSION_LINE)
         default = re.search(r"default:\s*break;\s*\}\s*return RolePermission::(\w+);",
-                            code_of(body_of(cpp, "RestApiServer::PermissionFor_")))
+                            blind_of(body_of(cpp, "RestApiServer::PermissionFor_")))
         self.default_permission = default.group(1) if default else None
         named = case_groups(body_of(cpp, "RestApiServer::DomainNamedByRoute_"), DOMAIN_LINE)
         self.domain_named = {}
@@ -2321,19 +2751,20 @@ class Decision(object):
         # The role-holding account's exceptions inside the API-key block
         span = key_route_block(authorize)
         self.role_key_routes = case_set(authorize[span[0]:span[1]]) if span else set()
-        # The refusals a credential confined to named domains meets
-        after = authorize.split(CONFINEMENT, 1)
-        if len(after) != 2:
+        # The refusals a credential confined to named domains meets, each read
+        # where it is code, outside every literal
+        at = code_find(authorize, CONFINEMENT)
+        if at < 0:
             raise GenerationError("%s: Authorize_'s confinement section could not be found" % REST_CPP)
-        confined = after[1]
+        confined = authorize[at + len(CONFINEMENT):]
         self.confined_refused = set()
-        for block in CONFINED_REFUSAL.finditer(confined):
+        for block in code_matches(CONFINED_REFUSAL, confined):
             self.confined_refused |= set(re.findall(r"Route\w+", block.group(1)))
-        sw = SERVER_WIDE.search(confined)
+        sw = code_matches(SERVER_WIDE, confined)
         if not sw:
             raise GenerationError("%s: Authorize_'s list of server-wide routes could not be found" % REST_CPP)
-        self.confined_refused |= case_set(sw.group(1))
-        self.report_kind = "RouteReport" if "route.kind == RouteReport" in confined else None
+        self.confined_refused |= case_set(sw[0].group(1))
+        self.report_kind = "RouteReport" if code_find(confined, "route.kind == RouteReport") >= 0 else None
         # The sections of it that block refuses: IsServerWideReportSection_'s,
         # from the table FindSection searches.
         self.server_wide_sections = [name for name, wide in report_sections(read(REPORTS_CPP, sources)) if wide]
@@ -2465,6 +2896,19 @@ STEP_CASE_GROUPS = [
 ]
 
 
+def mask_labels(code):
+    """code with each case label case_set reads, outside every literal, made
+    "case ROUTE:"."""
+    out = []
+    pos = 0
+    for m in re.finditer(LABEL, blind_of(code)):
+        out.append(code[pos:m.start()])
+        out.append("case ROUTE:")
+        pos = m.end()
+    out.append(code[pos:])
+    return "".join(out)
+
+
 def mask_lines(code, answer, masked):
     """code, one statement a line, with each line case_matches would take as a
     label or as an answer masked."""
@@ -2503,7 +2947,7 @@ def last_statement(tokens):
 
 # A string literal that is one word - a name, a key, a header, a method, a role -
 # rather than prose.
-NAME_LITERAL = re.compile(r'(?:L|u8)?"[A-Za-z0-9][A-Za-z0-9_.-]*"\Z')
+NAME_LITERAL = re.compile(r'(?:u8|[uUL])?"[A-Za-z0-9][A-Za-z0-9_.-]*"\Z')
 # What wraps a literal that is compared as itself.
 LITERAL_WRAPPERS = ("_T", "String", "AnsiString")
 
@@ -2686,25 +3130,27 @@ def steps_of(sources=None):
 
     steps = []
     authorize = code(REST_CPP, "RestApiServer::Authorize_")
+    # What the readers take, masked where they take it: outside every literal.
     spans = []
+    blind = blind_of(authorize)
     key = key_route_block(authorize)
     if key:
-        spans += [(key[0] + m.start(), key[0] + m.end(), "case ROUTE:")
-                  for m in re.finditer(LABEL, authorize[key[0]:key[1]])]
-    at = authorize.find(CONFINEMENT)
+        spans += [(m.start(), m.end(), "case ROUTE:") for m in re.compile(LABEL).finditer(blind, key[0], key[1])]
+    at = code_find(authorize, CONFINEMENT)
     if at >= 0:
         base = at + len(CONFINEMENT)
         confined = authorize[base:]
-        spans += [(base + m.start(1), base + m.end(1), "route.kind == ROUTES") for m in CONFINED_REFUSAL.finditer(confined)]
-        sw = SERVER_WIDE.search(confined)
+        spans += [(base + m.start(1), base + m.end(1), "route.kind == ROUTES")
+                  for m in code_matches(CONFINED_REFUSAL, confined)]
+        sw = code_matches(SERVER_WIDE, confined)
         if sw:
-            spans += [(base + sw.start(1) + m.start(), base + sw.start(1) + m.end(), "case ROUTE:")
-                      for m in re.finditer(LABEL, sw.group(1))]
+            spans += [(m.start(), m.end(), "case ROUTE:")
+                      for m in re.compile(LABEL).finditer(blind, base + sw[0].start(1), base + sw[0].end(1))]
     for begin, end, new in sorted(spans, reverse=True):
         authorize = authorize[:begin] + new + authorize[end:]
     steps.append(("RestApiServer::Authorize_", skeleton(authorize)))
     for qualified, rel in STEP_CASE_SETS:
-        steps.append((qualified, skeleton(re.sub(LABEL, "case ROUTE:", code(rel, qualified)))))
+        steps.append((qualified, skeleton(mask_labels(code(rel, qualified)))))
     for qualified, answer, masked in STEP_CASE_GROUPS:
         steps.append((qualified, skeleton(mask_lines(code(REST_CPP, qualified), answer, masked))))
     steps.append(("RoleManager::Allows", skeleton(code(ROLE_CPP, "RoleManager::Allows", "const String &domainName"))))
@@ -3322,14 +3768,20 @@ def render(decision, records, anon, web):
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
       "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
-      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. It reads "
-      "the code with its comments taken out, and what it reads must stand outside the preprocessor's conditionals "
-      "(`#if` to `#endif`), which it does not evaluate: a definition inside one, or holding one, stops it, since "
-      "another copy, or another branch, may be what is compiled. Not held: "
+      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. It "
+      "reads the code as the compiler's first three translation phases "
+      "do - line splices joined, comments taken out, raw string literals and numbers with digit separators read "
+      "whole, a directive wherever it begins a line, after spaces or a comment too - so that nothing in a comment or "
+      "a literal is read as code, and a form it does not read as the compilers do - a backslash with spaces after it "
+      "at a line's end, which they read differently, among them - stops it. What it reads must stand outside the "
+      "preprocessor's conditionals (`#if` to `#endif`), which it does not evaluate, and be the only definition of "
+      "its name in its file: a definition inside one, or holding one, stops it, since another copy, or another "
+      "branch, may be what is compiled, and so does a second definition - an overload, a copy in another namespace "
+      "- since the compiler may use that one. Not held: "
       "how `Authenticate_` makes a request one of the columns below - the grant `RoleManager` gives it, of which "
       "role and for which domains (`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the "
-      "`GrantForRole` they ask) - which they take as given, the string helpers those functions use and a macro "
-      "defined over a name they use.")
+      "`GrantForRole` they ask) - which they take as given, the string helpers those functions use, a macro "
+      "defined over a name they use and an overload of one of them defined in another file.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -3851,6 +4303,16 @@ def self_test():
             return
         failures.append("%s stops the script" % label)
 
+    def stopped(label, sources, said):
+        """refused(), of a change to a file Decision reads, which stops it before
+        the routes are interpreted."""
+        try:
+            Decision(sources)
+        except GenerationError as error:
+            expect("%s stops the script, saying so" % label, said in str(error))
+            return
+        failures.append("%s stops the script" % label)
+
     def under_conditional(rel, begin, end, change, opening="#if 0"):
         """A copy of the source with the text of rel from begin to the end of end
         put under a conditional, and a copy of it changed by change under its
@@ -3964,12 +4426,33 @@ def self_test():
     d14, r14, t14 = run(broken_copy(REPORTS_CPP, '{ "storage", false,', '{ "storage", true,'))
     expect("a report section made one counted from server-wide metrics is named in the own+ cell",
            "server-wide metrics (`storage` and `countries`) are refused" in t14)
-    # A conditional that closes before what is read hides nothing: a copy of the
-    # table under one after FindSection is not read.
-    reads("a copy of the report's table under #if 0 after FindSection is not read", REPORTS_CPP, find_end,
-          find_end + "#if 0" + nl + "      const SectionInfo SECTIONS[] =" + nl + "      {" + nl
-          + '         { "traffic", true, "hm_messagetrace", "" }' + nl + "      };" + nl + "#endif" + nl,
-          lambda d: d.server_wide_sections == ["countries"])
+    # A second definition of what is read, wherever it stands - under a
+    # conditional after FindSection, in another namespace - stops the script,
+    # which reads one definition of each name and does not work out which the
+    # compiler uses.
+    table_copy = ("      const SectionInfo SECTIONS[] =" + nl + "      {" + nl
+                  + '         { "traffic", true, "hm_messagetrace", "" }' + nl + "      };" + nl)
+    for label, extra in (("under #if 0 after FindSection", "#if 0" + nl + table_copy + "#endif" + nl),
+                         ("in another namespace after FindSection",
+                          "      namespace Old_" + nl + "      {" + nl + table_copy + "      }" + nl)):
+        stopped("a copy of the report's table %s" % label, broken_copy(REPORTS_CPP, find_end, find_end + extra),
+                "defined more than once")
+    helpdesk_whole = base[ROLE_CPP][base[ROLE_CPP].find("      unsigned __int64 HelpdeskPermissions()"):]
+    helpdesk_whole = helpdesk_whole[:helpdesk_whole.find(nl + "      }" + nl) + len(nl + "      }" + nl)]
+    stopped("a copy of HelpdeskPermissions in another namespace before it, the one compiled taking in another role's "
+            "permissions",
+            broken_copy(ROLE_CPP, helpdesk_whole, "      namespace Old_" + nl + "      {" + nl + helpdesk_whole + "      }"
+                        + nl + nl + helpdesk_whole.replace("         return set;", "         set |= "
+                                                           "DomainAdminPermissions();" + nl + "         return set;")),
+            "defined more than once")
+    stopped("an overload of IsDomainAllowed_ before it",
+            broken_copy(REST_CPP, allowed, allowed.replace("const String &domainName)", "const char *domainName)")
+                        + nl + allowed), "defined more than once")
+    stopped("a second definition of RolePermission, in another namespace",
+            broken_copy("Common/Application/RoleManager.h", "   enum class RolePermission" + nl,
+                        "   namespace Old_ { enum class RolePermission { AdministerServer, Count }; }" + nl + nl
+                        + "   enum class RolePermission" + nl),
+            "defined more than once")
     # What a comment holds is not read: a constant a route parser names, or a
     # route kind.
     dc, rc, tc = run(broken_copy("Common/Util/CalDavServer.cpp", "   const char *CalDavServer::CalendarsPath = ",
@@ -3991,6 +4474,124 @@ def self_test():
           "         set |= Bit(RolePermission::ManageAccounts);",
           "         set |= Bit(RolePermission::ManageAccounts);" + nl + "         // set |= Bit(RolePermission::ManageServer);",
           lambda d: d.roles == decision.roles)
+
+    # 15. The code is read as the compiler's first three translation phases
+    # read it: a directive written over a line splice, with a comment in it or
+    # after whitespace is one, a comment a digit separator or a raw string
+    # literal holds is none, and what a literal holds is not code - so that a
+    # definition held under a conditional so written, or a copy the compiler
+    # reads as a comment or a literal, stops the script as the plain forms do;
+    # and the forms the server's source is written in are read through.
+    def current(label, sources):
+        try:
+            same = run(sources)[2] == text
+        except GenerationError as error:
+            failures.append("%s: it stopped: %s" % (label, str(error).split(nl)[0]))
+            return
+        expect(label, same)
+
+    allowed_begin = "   bool" + nl + "   RestApiServer::IsDomainAllowed_("
+    allowed_end = nl + "   }" + nl
+    every_domain = lambda region: region.replace("      if (domains.empty())", "      if (true)")
+    for label, opening in (
+            ("a line splice between # and if", "#\\" + nl + "if 0"),
+            ("a comment between # and if", "#/**/if 0"),
+            ("a comment over a line's end between # and if", "#/*" + nl + "*/if 0"),
+            ("spaces before the #", "   #if 0"),
+            ("a comment before the #", "/* a note */ #if 0"),
+            ("the digraph %: for the #", "%:if 0"),
+            ("a raw string literal holding /* before it", '   static const char *const QuotedNote_ = R"(" /* )";' + nl
+             + "#if 0" + nl + "   // */")):
+        stopped("IsDomainAllowed_ under an #if 0 written with %s, a copy that reaches every domain under its #else"
+                % label, under_conditional(REST_CPP, allowed_begin, allowed_end, every_domain, opening),
+                "conditional of the preprocessor")
+    stopped("HelpdeskPermissions under an #if 0 written over a line splice, a copy that takes in another role's "
+            "permissions under its #else",
+            under_conditional(ROLE_CPP, "      unsigned __int64 HelpdeskPermissions()", nl + "      }" + nl,
+                              lambda region: region.replace("         return set;", "         set |= "
+                                                            "DomainAdminPermissions();" + nl + "         return set;"),
+                              "#\\" + nl + "if 0"),
+            "conditional of the preprocessor")
+    stopped("the report's table, its count and FindSection under an #if 0 written over a line splice, a copy under its "
+            "#else",
+            under_conditional(REPORTS_CPP, "      struct SectionInfo" + nl, find_end,
+                              lambda region: region.replace('{ "countries", true,', '{ "countries", false,'),
+                              "#\\" + nl + "if 0"),
+            "conditional of the preprocessor")
+    stops("a copy of IsDomainAllowed_ in a comment a digit separator does not open, the one compiled reaching every "
+          "domain, stops the script", REST_CPP, allowed,
+          "   static const int CommentWidth_ = 1'0; /* '" + nl + allowed + "   // */" + nl + every_domain(allowed),
+          "RestApiServer::IsDomainAllowed_")
+    stops("a copy of HelpdeskPermissions in a comment a digit separator does not open, the one compiled taking in "
+          "another role's permissions, stops the script", ROLE_CPP, helpdesk_whole,
+          "      static const int CommentWidth_ = 1'0; /* '" + nl + helpdesk_whole + "      // */" + nl
+          + helpdesk_whole.replace("         return set;", "         set |= DomainAdminPermissions();" + nl
+                                + "         return set;"), "HelpdeskPermissions")
+    stops("a copy of IsDomainAllowed_ in a comment begun on a directive's line, the one compiled reaching every "
+          "domain, stops the script", REST_CPP, allowed,
+          "#define HM_ALLOWED_NOTE_ /*" + nl + allowed + "*/" + nl + every_domain(allowed),
+          "RestApiServer::IsDomainAllowed_")
+    stops("a copy of IsDomainAllowed_ in a raw string literal before it, the one compiled reaching every domain, "
+          "stops the script", REST_CPP, allowed,
+          '   static const char *const AllowedCopy_ = R"copy(' + nl + allowed + ')copy";' + nl + every_domain(allowed),
+          "RestApiServer::IsDomainAllowed_")
+    dr, rr, tr = run(broken_copy("Common/Util/CalDavServer.cpp", "   const char *CalDavServer::CalendarsPath = ",
+                                 '   static const char *const OldPath_ = R"(CalDavServer::CalendarsPath = "/dav/old/";)";'
+                                 + nl + "   const char *CalDavServer::CalendarsPath = "))
+    expect("a constant a route parser names, its definition in a raw string literal before it, is not read", tr == text)
+    stopped("a SectionCount of another length, its right form in a string literal before it",
+            broken_copy(REPORTS_CPP, count, '      static const char *const CountNote_ = "const int SectionCount = '
+                        '(int) (sizeof(SECTIONS) / sizeof(SECTIONS[0]));";' + nl + "      const int SectionCount = 8;"),
+            "SectionCount")
+    key_reason = '"the api keys and the [Settings] section of hMailServer.ini, including'
+    reads("a case label in a string literal of Authorize_'s block of API-key routes is not read", REST_CPP, key_reason,
+          '"the api keys and the [Settings] section (case RouteApiKeyList: among them) of hMailServer.ini, including',
+          lambda d: d.role_key_routes == decision.role_key_routes)
+    reads("the dispatch's switch named in a string literal before it is not read there", REST_CPP,
+          "could not be read just now; try again in a moment\\\",",
+          "could not be read just now (switch (route.kind) { case it: }); try again in a moment\\\",",
+          lambda d: d.handler == decision.handler and d.handler_args == decision.handler_args)
+    # The forms this script does not read stop it, rather than being read one way
+    # by it and another by the compiler.
+    stopped("a backslash with a space after it at a line's end",
+            broken_copy(REST_CPP, allowed, "   // a note that ends in a backslash and a space \\ " + nl + allowed),
+            "only spaces or tabs after it")
+    stopped("a raw string literal holding a line splice",
+            broken_copy(REST_CPP, allowed, '   static const char *const SplicedNote_ = R"(a \\' + nl + 'b)";' + nl
+                        + allowed), "holds a backslash that ends a line")
+    stopped("a raw string literal over more than one line in Authorize_",
+            broken_copy(REST_CPP, '"the api keys and the [Settings] section of hMailServer.ini, including the list of '
+                        'what this server has changed from stock, answer to the administrator password only"',
+                        'R"(the api keys and the [Settings] section of hMailServer.ini, including the list of what this'
+                        + nl + 'server has changed from stock, answer to the administrator password only)"'),
+            "raw string literal over more than one line")
+    stopped("a carriage return that ends no line",
+            broken_copy(REST_CPP, allowed, "   // a note with a carriage return\rin it" + nl + allowed),
+            "carriage return that ends no line")
+    # The forms the server's source is written in elsewhere are read through,
+    # at the file scope of RestApiServer.cpp, and leave the matrix as it is.
+    scope = "   bool" + nl + "   RestApiServer::HoldsServerAuthority_("
+    for label, line in (
+            ("an #include after spaces", "   #include <algorithm>"),
+            ("an #ifdef and its #endif after spaces", "   #ifdef HM_TRACE_AUTHORISATION" + nl + "   #endif"),
+            ("a number with digit separators", "   static const int LargestBatch_ = 10'000;"),
+            ("a raw string literal holding an odd number of quotes, /* and #if 0",
+             '   static const char *const QuotedExample_ = R"x(a "quoted /* example' + nl + "#if 0" + nl + ')x";'),
+            ("a raw string literal holding IsDomainAllowed_ as it is compiled",
+             '   static const char *const AllowedExample_ = R"copy(' + nl + allowed + ')copy";'),
+            ("a macro defined over line splices, after spaces",
+             "   #define HM_ROUTE_TRACE_(x) \\" + nl + "      do { (void) (x); } \\" + nl + "      while (0)"),
+            ("a string literal with a prefix and a character literal with one",
+             '   static const char16_t *const Wide_ = u"a \\" /* b"; static const char32_t Quote_ = U\'"\';')):
+        current("%s is read through" % label, broken_copy(REST_CPP, scope, line + nl + nl + scope))
+    for label, path in (("over a line splice", '"/api/v1/sta\\' + nl + 'tus"'),
+                        ("as a raw string literal", 'R"(/api/v1/status)"'), ("as a u8 literal", 'u8"/api/v1/status"')):
+        current("a route's path written %s is read as the path it is" % label,
+                broken_copy(REST_CPP, 'path == "/api/v1/status"', "path == " + path))
+
+    expect("integer literals are read as the compiler reads them",
+           [integer_value(t) for t in ("0", "017", "0x1F", "0b101", "10'000", "42ULL", "0xFFu", "1.5", "08")]
+           == [0, 15, 31, 5, 10000, 42, 255, None, None])
 
     # 14. The documents' index says what is held as the matrix does: where its
     # row for the matrix names ProcessRequest_, it names the part of it held.

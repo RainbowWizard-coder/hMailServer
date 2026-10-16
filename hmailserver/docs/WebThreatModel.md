@@ -376,9 +376,15 @@ How this stays true
   condition, or a name one compares or is kept under changed, stops the script
   until it has been read against it. So does a definition it reads that stands
   inside a conditional of the preprocessor, which it does not evaluate, or
-  holds one; what a comment holds is not read. What `Authenticate_` makes of a
-  credential - the grant of a role, for its domains - the string helpers, a
-  macro defined over a name those functions use and the functions
+  holds one, or is not the only definition of its name in its file (an
+  overload, a copy in another namespace). It reads the code as the compiler's
+  first three translation phases do: what a comment or a literal holds is not
+  read, a directive is one wherever it begins a line, after spaces, a comment
+  or a line splice too, and a form it does not read as the compilers do, such
+  as a backslash with spaces after it at a line's end, stops it. What
+  `Authenticate_` makes of a credential - the grant of a role, for its
+  domains - the string helpers, a macro defined over a name those functions
+  use, an overload of one of them defined in another file and the functions
   `ProcessRequest_`'s other checks call are not held; the matrix's "Not shown"
   names those functions. Its `--self-test` breaks the source in memory and
   proves each flag still fires and each such change stops it.
