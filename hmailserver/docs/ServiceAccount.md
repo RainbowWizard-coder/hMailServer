@@ -608,6 +608,21 @@ setup leaves in place every file it does not ship, a library put in `Bin` among
 them, and puts the event script and the scripts in `Addons` only where none is
 there. Read the old event script before you copy it into the new installation.
 
+**Reinstalling into a new folder.** Run nothing from the old folder, its uninstaller
+included, which runs the old `Bin\hMailServer.exe` as an administrator. Setup run
+over an installation shows no folder page and installs into the folder it finds, so
+it is given the new one with `/DIR`, from the elevated prompt, with the new folder in
+place of `C:\Program Files\hMailServer`. Where the first line below finds an entry -
+a 32-bit installation's - setup installs into the folder that entry names, whatever
+`/DIR` says: take it away with the second. `sc qc hMailServer` then names the new
+`Bin`.
+
+```
+reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32 /f
+hMailServer-<version>-x64.exe /DIR="C:\Program Files\hMailServer"
+```
+
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,
 permissions that could not be written; 2 not in an installation's `Bin` folder; 3 not

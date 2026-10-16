@@ -107,7 +107,9 @@ program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or
 `ControlPanel`, or where one of the three had an entry of its own that let anybody else change it, or one the steps
 could not take away: setup leaves in place every file it does not ship, and puts the event script in `Events`, which the
 service runs, and the scripts in `Addons` only where none is there, so the old event script is read before it is copied
-across. Found by the project's own review (work item 78; CVE requested).
+across; nothing is run from the old folder, its uninstaller included, and setup is given the new folder with `/DIR=`,
+since over an installation it installs into the folder it finds, once a 32-bit installation's uninstall entry, which
+overrides `/DIR=`, is taken away. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
