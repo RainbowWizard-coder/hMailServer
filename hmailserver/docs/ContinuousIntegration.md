@@ -5042,9 +5042,20 @@ checker. No template either extends gives it a key it does not set itself
 but `rules:`, `default:` gives neither a `before_script`, an `after_script` or
 `hooks`, no rule they take brings `needs`, `variables`, `allow_failure` or a
 `when`, and neither is defined in another CI file, which GitLab would merge
-into the job's. And no CI file sets a variable Trivy reads (`TRIVY_SEVERITY`
-and the like), nor does the tree carry Trivy's `trivy.yaml` or `.trivyignore`
-at its root, where the scan runs it: either would narrow what the scan reports.
+into the job's. And Trivy is given nothing of its own beside its command line,
+which would narrow what the scan reports: the script runs it with the job's
+variables less every one whose name begins `TRIVY_` (`TRIVY_SEVERITY` and the
+like), whoever gave the job one - a CI file, the dotenv report of the job the
+scan needs, a CI/CD variable of the project's or the group's -, and gives it an
+empty configuration and ignore file of its own, outside the checkout, as
+`--config` and `--ignorefile`, so that a `trivy.yaml` or `.trivyignore` at the
+root of the checkout, where the scan runs it, is not read; its self-test holds
+it to that. Beside that, no CI file sets such a variable, and the tree carries
+neither file. Each name of `.gitlab-ci.yml`'s `variables:` and of its workflow
+rules' `variables:`, which every job is given, is written bare and once, since
+GitLab's YAML reader takes a name quoted with an escape, tagged, anchored, as
+an alias or as an explicit key too: `TRIVY_SEVERITY: LOW` written so passed
+the checker, and narrowed a real scan to its Low findings.
 A finding that does not affect the project is dismissed in the VEX document,
 `.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads that document
 (`--vex`), and so does the OSV step, which dismisses an advisory only where a

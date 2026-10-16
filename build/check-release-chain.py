@@ -201,7 +201,12 @@ refuses it. This checker holds them to each other. It fails when:
     defined in a CI file but .gitlab-ci.yml;
     or a CI file sets a variable Trivy reads (TRIVY_*), or the tree carries Trivy's
     trivy.yaml or .trivyignore at its root, either of which would narrow what the scan
-    reports past the hold on its command (verdict_problems);
+    reports past the hold on its command (verdict_problems) - which
+    build/ci/dependency-scan.py gives Trivy neither of, running it with no TRIVY_
+    variable and with an empty configuration and ignore file of its own, as its
+    self-test holds -, or a name of the variables every job is given, .gitlab-ci.yml's
+    variables: and its workflow rules', is not written bare and once, as the rules that
+    read a variable's name read it (variable_key_problems);
     or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
     finding without a reason, a reviewer or an expiry within a year of the review, or
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
@@ -747,6 +752,9 @@ DEFAULT_RUNS = ("before_script", "after_script", "hooks")
 # TRIVY_IGNOREFILE ...) a CI file sets, in a block mapping or a flow one, and, at the
 # root of the checkout, where the scan runs it, its configuration file and its ignore
 # file, which it reads when they are there (--config and --ignorefile's defaults).
+# build/ci/dependency-scan.py gives Trivy neither (own_trivy_files there); these are
+# refused beside that. A name of the variables every job is given is read here in every
+# form, since variable_key_problems holds each to its bare form.
 TRIVY_VARIABLE = re.compile(r"""(?:^[ \t]*(?:-[ \t]+)?|[{,][ \t]*)["']?(TRIVY_[A-Z0-9_]+)["']?[ \t]*:(?=[ \t]|$)""",
                             re.MULTILINE)
 TRIVY_FILES = ("trivy.yaml", ".trivyignore")
@@ -2729,6 +2737,7 @@ def check(texts, chain, feed):
     problems.extend(runner_class_problems(texts))
     problems.extend(repeated_key_problems(texts))
     problems.extend(job_key_problems(texts))
+    problems.extend(variable_key_problems(texts))
     problems.extend(character_problems(texts))
     return problems, notes
 
@@ -2835,9 +2844,12 @@ def verdict_problems(texts, jobs):
     start_in, and no when but never or on_success, in a form this reads (unread_rules);
     neither job, nor a template either reaches, is defined in a CI file but
     .gitlab-ci.yml, since GitLab merges a second definition into the first; and nothing
-    Trivy reads beside its command line narrows what the scan reports - no CI file sets
-    a variable of Trivy's (TRIVY_VARIABLE), and the tree carries neither its
-    configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
+    Trivy reads beside its command line narrows what the scan reports - the script runs
+    it with no variable of its own and with an empty configuration and ignore file of
+    its own (own_trivy_files, held by its self-test), and beside that no CI file sets a
+    variable of Trivy's (TRIVY_VARIABLE, which reads every name of the variables every
+    job is given in its one form, variable_key_problems), and the tree carries neither
+    its configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
     written in a form this does not read, or written twice, is job_key_problems'; their
     timeouts and tags are not held here (the runners' checks hold the tags), nor what
     every job takes from the pipeline - .gitlab-ci.yml's variables: and workflow:, which
@@ -3428,6 +3440,84 @@ def job_key_problems(texts):
                 problems.append("%s in %s writes its key %s %s: GitLab's YAML reader takes the last alone, without a word, "
                                 "where the rules that hold a job read the first or any - write each key of a job once" % (
                                     name, path, key, {2: "twice"}.get(keys.count(key), "%d times" % keys.count(key))))
+    return problems
+
+
+# A variable's name as the rules that read one take it (variable_key_problems): bare -
+# letters, digits and underscores, unquoted, its colon straight after it.
+VARIABLE_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_]*:(?:[ \t]|$)")
+
+
+def unread_variables(text, level):
+    """The lines of a mapping of variables, whose keys are level spaces in, that this
+    checker does not read as a variable's name: when its first line is not level spaces
+    in, that line, since every key of a mapping is as far in as its first; and each line
+    there or further out that is not a bare name (VARIABLE_KEY) level spaces in. A line
+    further in is a value's. [] when every key is read."""
+    lines = [line for line in text.split("\n") if line.strip()]
+    found = []
+    if lines and len(lines[0]) - len(lines[0].lstrip(" ")) != level:
+        found.append(lines[0].strip())
+    found += [line.strip() for line in lines if len(line) - len(line.lstrip(" ")) <= level
+              and not (line[:level] == " " * level and VARIABLE_KEY.match(line[level:]))
+              and line.strip() not in found]
+    return found
+
+
+def variable_key_problems(texts):
+    """[problem] for each key of the variables every job is given from the tree -
+    .gitlab-ci.yml's variables: and those of its workflow's rules, which no other CI file
+    may set (ci_override_problems) - that is not written bare (unread_variables), or is
+    written twice, and for each workflow rule written in a form this does not read
+    (unread_rules). The rules that read a variable's name - HM_RUNNER's and the switches'
+    (runner_problems) and Trivy's (TRIVY_VARIABLE, verdict_problems) - read it bare,
+    where GitLab's YAML reader takes the same name quoted with an escape
+    ("TRIVY\\x5fSEVERITY"), as an explicit key (? TRIVY_SEVERITY), tagged (!!str),
+    anchored (&a), as an alias of a scalar (*a) or by a merge key, and the last of a
+    name written twice, so that TRIVY_SEVERITY: LOW given every job in five of those
+    forms in variables: and in one in a workflow rule's passed every rule (check 2 of
+    cycle 3 of G5's fix, 16 October 2026)."""
+    problems = []
+    ci_blocks = blocks(texts["ci"])
+    if "variables" in top_level_keys(texts["ci"]) and "variables" not in ci_blocks:
+        problems.append(".gitlab-ci.yml writes variables: with something after it on its line: the variables every job is "
+                        "given are a mapping below the key, each name bare, so that the rules that read a variable's "
+                        "name read every one")
+    sets = [("variables:", ci_blocks.get("variables", ""), 2)]
+    workflow = {"workflow": ci_blocks.get("workflow", "")}
+    for line in unread_rules("workflow", workflow):
+        problems.append(".gitlab-ci.yml's workflow: has a rule written in a form this checker does not read (%s): each rule "
+                        "is a list item of bare keys, as GitLab's YAML reader takes other forms too, a rule in flow style "
+                        "and a quoted key among them, by which a rule could give every job a variable unread" % line[:80])
+    for number, item in enumerate(rule_items(workflow["workflow"], workflow), 1):
+        lines = ("      " + item).split("\n")
+        for index, line in enumerate(lines):
+            head = re.match(r"^      variables:(.*)$", line)
+            if not head:
+                continue
+            if re.split(r"(?:^|\s)#", head.group(1), maxsplit=1)[0].strip():
+                problems.append(".gitlab-ci.yml's workflow rule %d writes variables: with something after it on its line (%s): "
+                                "a rule's variables, which every job of its pipeline is given, are a mapping below the key, "
+                                "each name bare" % (number, head.group(1).strip()[:60]))
+            body = []
+            for later in lines[index + 1:]:
+                if later.strip() and len(later) - len(later.lstrip(" ")) <= 6:
+                    break
+                body.append(later)
+            sets.append(("workflow rule %d's variables:" % number, "\n".join(body), 8))
+    for where, text, level in sets:
+        unread = unread_variables(text, level)
+        if unread:
+            problems.append(".gitlab-ci.yml's %s has a key this checker does not read as a variable's name (%s): GitLab's YAML "
+                            "reader takes a name quoted, with an escape, tagged (!!str), anchored, as an alias, as an "
+                            "explicit key (? NAME) or by a merge key too, where the rules that read a variable's name - "
+                            "HM_RUNNER's, the switches', Trivy's own (TRIVY_*) - read it bare, so that every job could be "
+                            "given one of them past them; write each name bare, %d spaces in" % (where, unread[0][:60], level))
+        names = re.findall(r"^%s([A-Za-z_][A-Za-z0-9_]*):(?:[ \t]|$)" % (" " * level), text, re.MULTILINE)
+        for name in sorted(set(n for n in names if names.count(n) > 1)):
+            problems.append(".gitlab-ci.yml's %s writes %s %s: GitLab's YAML reader takes the last alone, without a word, "
+                            "where the rules that read a variable read the first or any - write each name once" % (
+                                where, name, {2: "twice"}.get(names.count(name), "%d times" % names.count(name))))
     return problems
 
 
@@ -5927,6 +6017,50 @@ def self_test(chain, feed):
         found, _ = check(dict(texts, tree=list(texts["tree"]) + [planted]), chain, feed)
         if not any("the tree carries %s, which Trivy reads" % planted in p for p in found):
             failures.append("a tree that carries Trivy's %s is caught: %s" % (planted, found))
+    # Nor a name of the variables every job is given - .gitlab-ci.yml's variables: and its
+    # workflow rules' - in a form of key TRIVY_VARIABLE and the runners' rules do not read
+    # (variable_key_problems). Check 2 of cycle 3 of the fix (16 October 2026) gave every
+    # job TRIVY_SEVERITY: LOW in each of the five forms below in variables:, and as the
+    # tagged key in the rule of a protected branch's pipeline, and each passed the whole
+    # checker, where GitLab's YAML reader (Psych 5.1.2 on libyaml 0.2.5) took each for
+    # TRIVY_SEVERITY and a real scan with it reported 114 Low findings and passed its
+    # verdict. Then a rule in flow style, variables: on its key's line, and a name twice.
+    unread_name = ".gitlab-ci.yml's %s has a key this checker does not read as a variable's name"
+    every_job = '  PYTHONUTF8: "1"\n'
+    protected_rule = '    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n'
+    rule_number = [n for n, item in enumerate(rule_items(blocks(texts["ci"]).get("workflow", ""), {}), 1)
+                   if ("    - " + item).startswith(protected_rule.rstrip("\n") + "\n")]
+    rule_number = rule_number[0] if rule_number else 0
+    for what, old, new, needle in (
+            ("a variable Trivy reads under a double-quoted key with an escape", every_job,
+             every_job + '  "TRIVY\\x5fSEVERITY": LOW\n', unread_name % "variables:"),
+            ("a variable Trivy reads under an explicit key", every_job, every_job + "  ? TRIVY_SEVERITY\n  : LOW\n",
+             unread_name % "variables:"),
+            ("a variable Trivy reads under a tagged key", every_job, every_job + "  !!str TRIVY_SEVERITY: LOW\n",
+             unread_name % "variables:"),
+            ("a variable Trivy reads under an anchored key", every_job, every_job + "  &sev TRIVY_SEVERITY: LOW\n",
+             unread_name % "variables:"),
+            ("a variable Trivy reads under an alias of a scalar", every_job,
+             every_job + "  HM_TRIVY_NAME: &name TRIVY_SEVERITY\n  *name : LOW\n", unread_name % "variables:"),
+            ("a variable Trivy reads under a tagged key in a workflow rule", protected_rule,
+             protected_rule + "      variables:\n        !!str TRIVY_SEVERITY: LOW\n",
+             unread_name % ("workflow rule %d's variables:" % rule_number)),
+            ("a variable Trivy reads in a workflow rule in flow style", protected_rule,
+             protected_rule + "    - {if: $CI_COMMIT_TAG, variables: {!!str TRIVY_SEVERITY: LOW}}\n",
+             ".gitlab-ci.yml's workflow: has a rule written in a form this checker does not read"),
+            ("a workflow rule's variables written on its key's line", protected_rule,
+             protected_rule + "      variables: {!!str TRIVY_SEVERITY: LOW}\n",
+             ".gitlab-ci.yml's workflow rule %d writes variables: with something after it on its line" % rule_number),
+            ("a variable every job is given written twice", every_job, every_job + '  PYTHONUTF8: "0"\n',
+             ".gitlab-ci.yml's variables: writes PYTHONUTF8 twice")):
+        broken(what, "ci", old, new, needle)
+    # And the whole of variables: two spaces further in, the tagged key first: every name
+    # is then as far in as the first, and none is two spaces in.
+    variables_text = job_text("variables")
+    broken("the variables every job is given, written further in", "ci", variables_text,
+           "\nvariables:\n    !!str TRIVY_SEVERITY: LOW\n" + "".join("  " + line if line.strip() else line
+                                                            for line in variables_text.split("\n", 2)[2].splitlines(True)),
+           unread_name % "variables:")
     broken("the source scan allow_failure again", "ci", "  timeout: 120 minutes\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "  timeout: 120 minutes\n  allow_failure: true\n  script:\n    - bash build/ci/static-analysis.sh\n",
            "static-analysis may fail without failing the pipeline")

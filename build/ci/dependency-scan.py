@@ -45,6 +45,17 @@ download it has. A run that can reach neither fails; it never tries GitHub. OSV 
 api.osv.dev. (Both databases carry, among their sources, GitHub's advisory
 database; what is avoided is GitHub as a place to download from, not its data.)
 
+Trivy is given nothing of its own beside its command line. Each run of it has the
+job's environment less every variable whose name begins TRIVY_ - whoever gave the job
+one: a CI file, in any form of key GitLab's YAML reader takes, the dotenv report of
+the job the scan needs, or a CI/CD variable of the project's or the group's - and, as
+--config and --ignorefile, an empty configuration and an empty ignore file this script
+writes in a directory of its own outside the checkout, so that a trivy.yaml or a
+.trivyignore at the root of the checkout, committed or laid there by an artifact, is
+not read (own_trivy_files). TRIVY_SEVERITY=LOW given the job so narrowed a real scan
+to its 114 Low findings, and passed its verdict, before (16 October 2026). What the
+scan reports narrows by the VEX document alone.
+
 A finding that does not affect the project is dismissed in the VEX document,
 .gitlab/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex,
 and the OSV step drops an advisory the document says is not_affected (or fixed) when
@@ -122,6 +133,7 @@ import math
 import re
 import shutil
 import subprocess
+import tempfile
 import urllib.error
 import urllib.request
 import uuid
@@ -257,11 +269,69 @@ def lock_file_packages(path):
     return len(re.findall(r"^[A-Za-z0-9_.\-]+==", text, re.M))
 
 
+# What Trivy reads beside its command line, by which what it reports would narrow past
+# what this script asks of it - and so what dependency-scan-verdict fails on: a variable
+# of its own (TRIVY_SEVERITY, TRIVY_SKIP_DIRS, TRIVY_IGNOREFILE ...), whoever gave the job
+# one - a CI file in any of the forms GitLab's YAML reader takes for a key, a rule, the
+# dotenv report of the job the scan needs, a project or group CI/CD variable -, and at
+# the root of the checkout, where it runs, its configuration file and its ignore file
+# (--config's and --ignorefile's defaults, trivy.yaml and .trivyignore), which the tree,
+# an artifact laid over the checkout or a cache could put there. So every run of Trivy
+# has the job's environment less every variable whose name begins TRIVY_, in any case
+# (trivy_environment), and --config and --ignorefile naming two files of this script's,
+# an empty configuration and an empty ignore file, in a directory made for the run in
+# the system's temporary directory, outside the checkout and the scan's artifacts, and
+# removed when the scan ends (own_trivy_files, forget_trivy_files).
+TRIVY_VARIABLE_PREFIX = "TRIVY_"
+_own_trivy_files = []
+
+
+def trivy_environment(environ=None):
+    """The environment Trivy runs with: environ (the job's) less every variable whose
+    name begins TRIVY_, in any case."""
+    environ = os.environ if environ is None else environ
+    return dict((name, value) for name, value in environ.items() if not name.upper().startswith(TRIVY_VARIABLE_PREFIX))
+
+
+def own_trivy_files():
+    """(configuration, ignore file): the two files this script gives Trivy as --config
+    and --ignorefile, an empty mapping and an empty file, written the first time they
+    are asked for in a directory made for the run in the system's temporary directory."""
+    if not _own_trivy_files:
+        held = tempfile.mkdtemp(prefix="dependency-scan-trivy-")
+        config, ignore = os.path.join(held, "trivy.yaml"), os.path.join(held, "trivyignore")
+        with open(config, "w", encoding="utf-8") as f:
+            f.write("{}\n")
+        with open(ignore, "w", encoding="utf-8"):
+            pass
+        _own_trivy_files[:] = [held, config, ignore]
+    return _own_trivy_files[1], _own_trivy_files[2]
+
+
+def forget_trivy_files():
+    """Removes own_trivy_files' directory, when there is one."""
+    if _own_trivy_files:
+        shutil.rmtree(_own_trivy_files[0], ignore_errors=True)
+        del _own_trivy_files[:]
+
+
+def run_trivy(command, log):
+    """command, a run of Trivy, with own_trivy_files as its --config and --ignorefile and
+    trivy_environment as its environment, from the root of the checkout, its output
+    added to log: its exit code."""
+    config, ignore = own_trivy_files()
+    command = command + ["--config", config, "--ignorefile", ignore]
+    print("$ " + " ".join(command))
+    with open(log, "a", encoding="utf-8") as out:
+        return subprocess.run(command, cwd=ROOT, env=trivy_environment(), stdout=out, stderr=subprocess.STDOUT).returncode
+
+
 def installed_trivy():
     """The first line of trivy --version, or None when there is no trivy on PATH."""
     if not shutil.which("trivy"):
         return None
-    return subprocess.run(["trivy", "--version"], capture_output=True, text=True).stdout.split("\n")[0]
+    return subprocess.run(["trivy", "--version"], capture_output=True, text=True,
+                          env=trivy_environment()).stdout.split("\n")[0]
 
 
 def download_database(log):
@@ -269,10 +339,8 @@ def download_database(log):
     for repository in TRIVY_DB:
         command = ["trivy", "image", "--download-db-only", "--db-repository", repository,
                    "--skip-version-check", "--disable-telemetry", "--no-progress"]
-        print("$ " + " ".join(command))
-        with open(log, "a", encoding="utf-8") as out:
-            if subprocess.run(command, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT).returncode == 0:
-                return repository
+        if run_trivy(command, log) == 0:
+            return repository
         print("  %s did not answer; see trivy.log" % repository)
     return None
 
@@ -285,10 +353,7 @@ def trivy(args, output, log):
     ]
     if os.path.exists(os.path.join(ROOT, VEX)):
         command += ["--vex", VEX, "--show-suppressed"]
-    print("$ " + " ".join(command))
-    with open(log, "a", encoding="utf-8") as out:
-        code = subprocess.run(command, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT).returncode
-    return code
+    return run_trivy(command, log)
 
 
 def trivy_findings(path, label, file_prefix=""):
@@ -1123,6 +1188,89 @@ def self_test():
         expect(code == 2, "--verdict ends 2 on it: %d, %s" % (code, said[-300:]))
         failing[:] = []
 
+        # Trivy given nothing of its own beside what this script asks of it
+        # (TRIVY_VARIABLE_PREFIX): main() over the tree made here with the real
+        # download_database() and trivy(), and subprocess.run stood in for, answering as
+        # Trivy would, in a job whose environment holds variables of Trivy's and whose
+        # checkout holds a trivy.yaml and a .trivyignore at its root - TRIVY_SEVERITY=LOW,
+        # given the job in a form of key the checker did not read or by a dotenv report,
+        # narrowed a real scan to its 114 Low findings and passed its verdict (check 2 of
+        # cycle 3 of G5's fix, 16 October 2026). Each run of Trivy has the job's
+        # environment less those variables, and names as --config and --ignorefile, once
+        # each, the same empty configuration and empty ignore file, outside the checkout,
+        # gone once the scan has ended; and the scan ends as before.
+        module["download_database"], module["trivy"] = kept[2], kept[3]
+        image_vulnerabilities[:] = [{"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
+                                     "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]
+        for name, text in (("trivy.yaml", "severity:\n  - LOW\n"), (".trivyignore", "CVE-2026-3\n")):
+            with open(os.path.join(tree, name), "w", encoding="utf-8") as f:
+                f.write(text)
+        calls = []
+
+        def stand_in(command, **options):
+            seen = {"command": list(command), "env": options.get("env"), "files": {}}
+            for flag in ("--config", "--ignorefile"):
+                if flag in command[:-1]:
+                    path = command[command.index(flag) + 1]
+                    try:
+                        with open(path, encoding="utf-8") as f:
+                            seen["files"][flag] = (path, f.read())
+                    except OSError:
+                        seen["files"][flag] = (path, None)
+            calls.append(seen)
+            if "--output" in command[:-1]:
+                fake_trivy(command[1:2], command[command.index("--output") + 1], None)
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        planted = {"TRIVY_SEVERITY": "LOW", "TRIVY_IGNOREFILE": os.path.join(tree, ".trivyignore"),
+                   "Trivy_Skip_Dirs": "ci-image-packages", "HM_DEPENDENCY_SCAN_SELF_TEST": "kept"}
+        environ_held = dict((name, os.environ.get(name)) for name in planted)
+        run_held = subprocess.run
+        try:
+            os.environ.update(planted)
+            subprocess.run = stand_in
+            out = os.path.join(scratch, "own-files")
+            code, said = run("--skip-osv", "--out", out)
+        finally:
+            subprocess.run = run_held
+            for name, value in environ_held.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+        record = json.loads(in_out(out, VERDICT) or "{}")
+        kinds = [call["command"][1] for call in calls if len(call["command"]) > 1]
+        expect(code == 0 and record.get("verdict") == "failed" and kinds == ["image", "fs", "rootfs"],
+               "the scan with Trivy's command stood in for runs it three times, for the database, the lock files and the "
+               "CI image, and ends 0 with the image's High failing its verdict, as before: %d, %s, %s" % (
+                   code, kinds, record.get("verdict")))
+        root = os.path.normcase(os.path.realpath(tree)) + os.sep
+        configs = set()
+        for call in calls:
+            environment = call["env"] if call["env"] is not None else dict(os.environ, **planted)
+            given = sorted(name for name in environment if name.upper().startswith(TRIVY_VARIABLE_PREFIX))
+            expect(not given and environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept",
+                   "trivy %s runs with the job's environment less every variable of Trivy's, whatever its case, and "
+                   "with the job's others: %s given%s" % (" ".join(call["command"][1:2]), ", ".join(given) or "none",
+                                                        "" if environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept"
+                                                        else ", and the job's other variables not"))
+            for flag, content in (("--config", "{}\n"), ("--ignorefile", "")):
+                path, text = call["files"].get(flag, (None, None))
+                expect(call["command"].count(flag) == 1 and path and text == content
+                       and not os.path.normcase(os.path.realpath(path)).startswith(root),
+                       "trivy %s is given %s once, naming an empty file of this script's outside the checkout, so that "
+                       "the checkout's own is not read: %s" % (" ".join(call["command"][1:2]), flag,
+                                                              "%r holding %r" % (path, text) if path else "not given"))
+            configs.add(tuple(path for path, _ in (call["files"].get(flag, (None, None))
+                                                   for flag in ("--config", "--ignorefile"))))
+        expect(len(configs) == 1, "every run of Trivy is given the same two files: %s" % sorted(configs, key=str))
+        left = [path for paths in configs for path in paths if path and os.path.exists(path)]
+        expect(not left and not _own_trivy_files,
+               "the files given Trivy are gone once the scan has ended: %s" % (left or _own_trivy_files))
+        for name in ("trivy.yaml", ".trivyignore"):
+            os.remove(os.path.join(tree, name))
+        module["download_database"], module["trivy"] = (lambda log: TRIVY_DB[0]), fake_trivy
+
         out = os.path.join(scratch, "read")
         os.makedirs(out)
         quiet = []
@@ -1168,9 +1316,18 @@ def main(argv=None):
     if args.self_test:
         return self_test()
     os.chdir(ROOT)
-    out = args.out
     if args.verdict:
-        return verdict_job(out, os.environ)
+        return verdict_job(args.out, os.environ)
+    try:
+        return scan(args)
+    finally:
+        forget_trivy_files()
+
+
+def scan(args):
+    """The scans, their reports and the verdict, from the root of the checkout: 0 when
+    the scans ran, whatever they found, and 2 when one could not."""
+    out = args.out
     os.makedirs(out, exist_ok=True)
     log = os.path.join(out, "trivy.log")
     started = now()
