@@ -505,10 +505,19 @@ namespace HM
 
       // Whatever state it is in - open and accepting, closed by a drain, never
       // opened because Run refused the port: closing a closed acceptor does
-      // nothing, and a failure has nothing left to act on at a stop.
+      // nothing, and a failure has nothing left to act on at a stop. Each call
+      // returns the error code it writes; a failure goes to the debug log alone.
       boost::system::error_code error;
-      acceptor_.cancel(error);
-      acceptor_.close(error);
+      if (acceptor_.cancel(error))
+      {
+         LOG_DEBUG(Formatter::Format("TCPServer::Close - cancelling the acceptor for {0}:{1} failed: {2}",
+            String(ipaddress_.ToString()), port_, String(error.message())));
+      }
+      if (acceptor_.close(error))
+      {
+         LOG_DEBUG(Formatter::Format("TCPServer::Close - closing the acceptor for {0}:{1} failed: {2}",
+            String(ipaddress_.ToString()), port_, String(error.message())));
+      }
    }
 
    void 
