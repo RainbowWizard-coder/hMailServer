@@ -29,6 +29,8 @@
 #include "../Util/Unicode.h"
 
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -370,6 +372,20 @@ namespace HM
       return result;
    }
 
+   AnsiString
+   RoleManager::DescribeAuthority(const RoleGrant &grant)
+   {
+      // A grant confined to named domains does not hold administer_server
+      // anywhere (Allows), so it is not listed as held: a reader of the list -
+      // the Control Panel - takes that token for every page there is.
+      RoleGrant held = grant;
+
+      if (!Allows(grant, RolePermission::AdministerServer))
+         held.permissions &= ~Bit(RolePermission::AdministerServer);
+
+      return DescribeGrant(held);
+   }
+
    unsigned __int64
    RoleManager::BuiltInPermissions_(const String &roleName, bool &found)
    {
@@ -565,8 +581,9 @@ namespace HM
    bool
    RoleManager::ReachesEveryDomain(const RoleGrant &grant)
    {
-      return grant.administrative &&
-             (grant.Holds(RolePermission::AdministerServer) || grant.domains.empty());
+      // A list confines whatever the grant holds, AdministerServer included,
+      // as Allows reads it.
+      return grant.administrative && grant.domains.empty();
    }
 
    bool
@@ -642,10 +659,12 @@ namespace HM
          return true;
 
       // What reaches every domain is never inside a list: a grant with no list
-      // of its own, and one that holds AdministerServer whatever list it
-      // carries, since Allows and ReachesEveryDomain read that permission as
-      // the whole server.
-      if (ReachesEveryDomain(other))
+      // of its own. Nor is one that holds AdministerServer, whatever list it
+      // carries: Allows confines it to that list, but an account holding it -
+      // serveradmin assigned with a list - is still kept out of every confined
+      // credential's reach, as it was before Allows confined it, so that what
+      // a confined credential may change or take over is no wider than it was.
+      if (ReachesEveryDomain(other) || other.Holds(RolePermission::AdministerServer))
          return false;
 
       for (const String &domain : other.domains)
@@ -714,6 +733,17 @@ namespace HM
          return assignedGrant;
       }
 
+      return GrantByAdminLevel(account);
+   }
+
+   RoleGrant
+   RoleManager::GrantByAdminLevel(std::shared_ptr<const Account> account)
+   {
+      RoleGrant grant;
+
+      if (!account)
+         return grant;
+
       switch (account->GetAdminLevel())
       {
       case Account::ServerAdmin:
@@ -722,7 +752,7 @@ namespace HM
       case Account::DomainAdmin:
       {
          RoleGrant derived = GrantForRole(_T("domainadmin"), std::vector<String>());
-         derived.domains.push_back(ownDomain);
+         derived.domains.push_back(Lower(StringParser::ExtractDomain(account->GetAddress())));
          return derived;
       }
 
@@ -732,6 +762,31 @@ namespace HM
 
       // An ordinary account: not administrative, and that is the whole answer.
       return grant;
+   }
+
+   bool
+   RoleManager::MayChangeAssignment(const RoleGrant &holder, std::shared_ptr<const Account> account,
+                                    const String &roleName, const String &domains)
+   {
+      if (!account || account->GetID() <= 0)
+         return false;
+
+      // The account is in a domain the holder gives roles in.
+      String reason;
+      if (!Allows(holder, RolePermission::ManageRoles, StringParser::ExtractDomain(account->GetAddress()), reason))
+         return false;
+
+      // What the account holds now is the holder's to take away.
+      if (!Encompasses(holder, GrantForAccount(account)))
+         return false;
+
+      // And so is what it holds afterwards: the role given, or - when the role
+      // is taken away - what its admin level gives it, which an assignment had
+      // narrowed.
+      const RoleGrant after = roleName.IsEmpty() ? GrantByAdminLevel(account)
+                                                 : GrantForAssignment(account, roleName, domains);
+
+      return Encompasses(holder, after);
    }
 
    RoleGrant
@@ -805,11 +860,22 @@ namespace HM
          return false;
       }
 
-      // AdministerServer is the whole of it, and is checked first so that the
-      // server administrator's answer does not depend on any list below.
-      const bool full = grant.Holds(RolePermission::AdministerServer);
+      // AdministerServer is the whole of it for a grant that reaches every
+      // domain, and is checked first so that the server administrator's answer
+      // does not depend on any list below. Held with a list of domains -
+      // serveradmin assigned with one, a full key issued for named domains - it
+      // is not the whole server: that grant is judged below as every confined
+      // grant is, by its list wherever a domain is named, and AdministerServer
+      // itself, which names the whole server, it does not hold anywhere. The
+      // REST API has confined such a grant to its list since roles were added
+      // (Authorize_ and HoldsServerAuthority_); this is the same rule answered
+      // here, so that COM, which asks only this, answers it too.
+      const bool full = grant.Holds(RolePermission::AdministerServer) && grant.domains.empty();
 
-      if (!full && !grant.Holds(permission))
+      if (full)
+         return true;
+
+      if (!grant.Holds(permission))
       {
          // Names the permission and the role, and nothing about the resource.
          // A refusal that said "no such account" for one address and "not
@@ -821,8 +887,12 @@ namespace HM
          return false;
       }
 
-      if (full)
-         return true;
+      if (permission == RolePermission::AdministerServer)
+      {
+         reason.Format(_T("the role '%s' is confined to named domains, and administering the server is not a domain's"),
+                       grant.name.c_str());
+         return false;
+      }
 
       // A decision with no domain in it - the server's status, its settings,
       // the queue, the logs - is finished: the permission was the whole of the
@@ -838,8 +908,14 @@ namespace HM
          // Deliberately the same sentence whatever the reason the domain is
          // out of reach - it does not exist, it exists and is somebody else's,
          // the address was misspelled. The caller learns that its role does
-         // not reach where it asked and nothing about what is there.
-         reason.Format(_T("the role '%s' does not reach that domain"), grant.name.c_str());
+         // not reach where it asked and nothing about what is there. A grant
+         // holding AdministerServer with a list hears the sentence the REST
+         // API's own domain check has always given it.
+         if (grant.Holds(RolePermission::AdministerServer))
+            reason = _T("this credential is not permitted for that domain");
+         else
+            reason.Format(_T("the role '%s' does not reach that domain"), grant.name.c_str());
+
          return false;
       }
 
@@ -1501,5 +1577,109 @@ namespace HM
    RoleManager::CurrentActor()
    {
       return current_actor;
+   }
+
+   void
+   RoleManagerTester::Test()
+   {
+      std::string wrong;
+      auto fail = [&wrong](const std::string &what)
+      {
+         wrong += (wrong.empty() ? "" : "; ") + what;
+      };
+
+      // The grants a built-in role resolves to, built with no database:
+      // GrantForRole answers a built-in role from the code, before it reads the
+      // store. The server administrator with no list, and serveradmin assigned
+      // with the one domain example.test - which is what an account assigned
+      // serveradmin with that list holds (GrantForAssignment keeps the list,
+      // ConfineAssignment_ not clearing it for a role that is not server-wide
+      // when a list is named).
+      const std::vector<String> example = { _T("example.test") };
+      const std::vector<String> other = { _T("other.test") };
+
+      const RoleGrant serverAdmin = RoleManager::ServerAdministrator();
+      const RoleGrant confinedServerAdmin = RoleManager::GrantForRole(_T("serveradmin"), example);
+      const RoleGrant domainAdminExample = RoleManager::GrantForRole(_T("domainadmin"), example);
+      const RoleGrant domainAdminOther = RoleManager::GrantForRole(_T("domainadmin"), other);
+      const RoleGrant auditorEveryDomain = RoleManager::GrantForRole(_T("auditor"), std::vector<String>());
+
+      String reason;
+      auto allows = [&](const RoleGrant &grant, RolePermission permission, const String &domain)
+      {
+         return RoleManager::Allows(grant, permission, domain, reason);
+      };
+
+      // The server administrator is the whole server, in every domain, as it
+      // always was.
+      if (!allows(serverAdmin, RolePermission::AdministerServer, String()))
+         fail("the server administrator does not hold administer_server");
+      if (!RoleManager::ReachesEveryDomain(serverAdmin))
+         fail("the server administrator does not reach every domain");
+
+      // serveradmin with a list is NOT the server administrator: it does not
+      // hold administer_server with no domain in the question, nor in any
+      // domain it names - administering the server is not a domain's.
+      if (allows(confinedServerAdmin, RolePermission::AdministerServer, String()))
+         fail("serveradmin with a list holds administer_server server-wide");
+      if (allows(confinedServerAdmin, RolePermission::AdministerServer, _T("example.test")))
+         fail("serveradmin with a list holds administer_server in a domain it names");
+      if (RoleManager::ReachesEveryDomain(confinedServerAdmin))
+         fail("serveradmin with a list reaches every domain");
+
+      // It IS a domain administrator of the domain it names, and of no other:
+      // it administers its own domain's accounts, and administer_domain is
+      // among the permissions it holds.
+      if (!allows(confinedServerAdmin, RolePermission::AdministerDomain, _T("example.test")))
+         fail("serveradmin with a list does not administer the domain it names");
+      if (allows(confinedServerAdmin, RolePermission::AdministerDomain, _T("other.test")))
+         fail("serveradmin with a list administers a domain it does not name");
+      if (allows(confinedServerAdmin, RolePermission::ManageAccounts, _T("other.test")))
+         fail("serveradmin with a list manages accounts in a domain it does not name");
+
+      // The refusal in a domain it does not name is the one the REST API gives,
+      // so that COM and REST answer alike.
+      allows(confinedServerAdmin, RolePermission::AdministerDomain, _T("other.test"));
+      if (reason.Find(_T("not permitted for that domain")) < 0)
+         fail("serveradmin with a list is refused a domain with the wrong sentence");
+
+      // Encompasses: what each grant may hand out or take over.
+      // The server administrator takes in everything.
+      if (!RoleManager::Encompasses(serverAdmin, confinedServerAdmin))
+         fail("the server administrator does not take in serveradmin with a list");
+      if (!RoleManager::Encompasses(serverAdmin, serverAdmin))
+         fail("the server administrator does not take in the server administrator");
+
+      // serveradmin with a list takes in an administrator of the domain it
+      // names, so it may give and reset within it.
+      if (!RoleManager::Encompasses(confinedServerAdmin, domainAdminExample))
+         fail("serveradmin with a list does not take in a domain administrator of its domain");
+
+      // And takes in nothing wider: not the server administrator, not an
+      // auditor of every domain, not a domain administrator of another domain,
+      // and not another serveradmin confined to the same domain - that account
+      // holds administer_server, which no confined grant may take over.
+      if (RoleManager::Encompasses(confinedServerAdmin, serverAdmin))
+         fail("serveradmin with a list takes in the server administrator");
+      if (RoleManager::Encompasses(confinedServerAdmin, auditorEveryDomain))
+         fail("serveradmin with a list takes in an auditor of every domain");
+      if (RoleManager::Encompasses(confinedServerAdmin, domainAdminOther))
+         fail("serveradmin with a list takes in a domain administrator of another domain");
+      if (RoleManager::Encompasses(confinedServerAdmin, confinedServerAdmin))
+         fail("serveradmin with a list takes in serveradmin with the same list");
+
+      // The authority a page lists for it does not include administer_server,
+      // which it does not hold anywhere, so a Control Panel does not draw it
+      // every page; it still holds the domain administrator's permissions.
+      const AnsiString described = RoleManager::DescribeAuthority(confinedServerAdmin);
+      if (described.Find("administer_server") >= 0)
+         fail("DescribeAuthority lists administer_server for serveradmin with a list");
+      if (described.Find("administer_domain") < 0)
+         fail("DescribeAuthority drops administer_domain for serveradmin with a list");
+      if (RoleManager::DescribeAuthority(serverAdmin).Find("administer_server") < 0)
+         fail("DescribeAuthority drops administer_server for the server administrator");
+
+      if (!wrong.empty())
+         throw std::logic_error("serveradmin confined to a domain list: " + wrong);
    }
 }

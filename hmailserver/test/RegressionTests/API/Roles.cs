@@ -1484,6 +1484,77 @@ namespace RegressionTests.API
          StringAssert.DoesNotContain("rolestest-held", ComRoles(_application));
       }
 
+      [Test]
+      [Description("Over COM an account assigned serveradmin with a domain list is a domain administrator of those domains and no more: it is refused the server settings, a domain alias, a domain rename and another domain's objects, exactly as over REST, while it still administers the accounts of the domain it names")]
+      public void ServerAdminAssignedADomainListIsConfinedToItOverCom()
+      {
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "them@" + OtherDomain, AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "regional@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "staff@example.test", AccountPassword);
+
+         // The administrator gives it serveradmin, confined to its own domain.
+         // Roles.md says the domains are optional, and the administrator takes in
+         // everything, so the assignment is made.
+         ComAssignRole(_application, "regional@example.test", "serveradmin", "example.test");
+
+         var regional = new Application();
+         Assert.IsNotNull(regional.Authenticate("regional@example.test", AccountPassword));
+
+         // Its role is serveradmin, but the authority it may use does not include
+         // administer_server - which the Control Panel reads to leave a page out -
+         // and does include administer_domain: a domain administrator of its domain.
+         Assert.AreEqual("serveradmin", ComCurrentRole(regional));
+         StringAssert.DoesNotContain("administer_server", ComCurrentPermissions(regional),
+            "serveradmin confined to a domain list must not carry administer_server over COM.");
+         StringAssert.Contains("administer_domain", ComCurrentPermissions(regional));
+
+         // The server administrator's facets are refused, as they are to a domain
+         // administrator and as they are over REST.
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => { var s = regional.Settings; }).Message,
+            "A serveradmin confined to a domain list reached the server settings over COM.");
+
+         // A domain alias maps a name onto a domain server-wide, so creating one is
+         // the server administrator's even on the credential's own domain - as
+         // DomainAliasCreate is over REST.
+         Domain ownAsRegional = regional.Domains.get_ItemByName("example.test");
+         DomainAlias alias = ownAsRegional.DomainAliases.Add();
+         alias.AliasName = "mapped-" + OtherDomain;
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => alias.Save()).Message,
+            "A serveradmin confined to a domain list created a domain alias over COM.");
+
+         // Renaming the domain is the server administrator's, too.
+         StringAssert.Contains(AccessDenied, Assert.Throws<COMException>(() => ownAsRegional.Name = "renamed-example.test").Message,
+            "A serveradmin confined to a domain list renamed its own domain over COM.");
+
+         // It sees only the domain it names: another domain's objects are out of
+         // reach, so there is no cross-domain alias or rename to make.
+         Assert.AreEqual(1, regional.Domains.Count,
+            "A serveradmin confined to a domain list saw more than the domain it names over COM.");
+         Assert.AreEqual("example.test", regional.Domains[0].Name);
+
+         // And it is still a domain administrator of the domain it names: it adds
+         // an account there and reads one, which a domain administrator may do.
+         Account made = ownAsRegional.Accounts.Add();
+         made.Address = "added-by-regional@example.test";
+         made.Password = AccountPassword;
+         made.Active = true;
+         made.Save();
+         Assert.IsTrue(AccountOverCom("added-by-regional@example.test").ValidatePassword(AccountPassword),
+            "A serveradmin confined to a domain list could not administer the accounts of the domain it names.");
+
+         // The refused writes changed nothing.
+         Assert.AreEqual(0, DomainOverCom("example.test").DomainAliases.Count, "The refused alias was stored.");
+         Assert.AreEqual("example.test", DomainOverCom("example.test").Name, "The refused rename took effect.");
+
+         ComAssignRole(_application, "regional@example.test", "", "");
+      }
+
+      private Domain DomainOverCom(string name)
+      {
+         return _application.Domains.get_ItemByName(name);
+      }
+
       // ------------------------------------------------------- the audit trail
 
       [Test]

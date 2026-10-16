@@ -8575,6 +8575,9 @@ namespace HM
    bool
    RestApiServer::HoldsServerAuthority_(const Caller &caller)
    {
+      // RoleManager::Allows answers AdministerServer only for a grant that
+      // reaches every domain - the rule COM's GetIsServerAdmin asks as well -
+      // and the caller's own list is asked beside it, as it always was.
       return caller.domains.empty() &&
              RoleManager::Allows(caller.grant, RolePermission::AdministerServer);
    }

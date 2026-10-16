@@ -172,8 +172,9 @@ What names a domain beyond the credential's own
 -----------------------------------------------
 
 A credential confined to named domains — a domain administrator, a help desk, a
-full-scope API key issued for named domains — administers what is inside its
-domains. A handful of changes name, or reach, something beyond them even on a
+full-scope API key issued for named domains, an account assigned `serveradmin`
+with a list of domains — administers what is inside its domains. A handful of
+changes name, or reach, something beyond them even on a
 route that names one of the credential's own domains, and are the server
 administrator's alone whatever permission the confined credential holds. Each is
 refused the same way over REST (`Authorize_`, and the domain and rule handlers)
@@ -255,12 +256,21 @@ the switch keeps SMTP's.
 The server administrator's own mailbox may sit in a domain somebody else administers;
 that domain's administrator is refused all of these on it, over both interfaces.
 
-`administer_server` takes in everything only where it reaches every domain. A full
-key confined to named domains is `serveradmin` confined to them, and it is judged by
-its list like any confined grant: it takes in an administrator of those domains, and
+`administer_server` is the whole server only where the grant reaches every domain.
+A full key confined to named domains, and an account assigned `serveradmin` with a
+list of domains, are `serveradmin` confined to those domains: the server
+administrator in each of them and in no other, which over COM is a domain
+administrator of the domains the list names (the server's settings, a domain alias,
+a domain's name and the rest above are refused, as they are over REST), and over
+REST is refused every server-wide route and every domain the list leaves out. The
+decision is one place — `RoleManager::Allows` answers `administer_server` only for a
+grant with no list, which `COMAuthentication::GetIsServerAdmin` and
+`RestApiServer::HoldsServerAuthority_` both read. Such a grant is judged by its list
+like any confined grant: it takes in an administrator of those domains, and
 not an account there that administers another domain, or reaches every domain — the
-server administrator, by admin level or by role, and an auditor given no list. Before
-SCIM was added it took in every account, whatever its list said.
+server administrator, by admin level or by role, and an auditor given no list — nor
+another account holding `administer_server`. Before SCIM was added it took in every
+account, whatever its list said.
 
 ### What `manage_settings` reaches
 
@@ -443,7 +453,10 @@ whatever its role.
 An assignment with no domains reaches **every domain** for `serveradmin` and
 `auditor`, and **the account's own domain** for every other role, custom roles
 included. Naming domains is how an administrator widens a confined role; an auditor
-given a list is confined to it. `*` is every domain, for any role — which is what a
+given a list is confined to it, and so is `serveradmin` given one — an account
+assigned `serveradmin` with a list is the server administrator in the domains it
+names and a domain administrator of them over COM, not the whole server (see
+[What names a domain beyond the credential's own](#what-names-a-domain-beyond-the-credentials-own)). `*` is every domain, for any role — which is what a
 custom role holding a server-wide permission such as `manage_settings` needs before an
 account can use it at all. (A key's `Domains=` line still reads `*` as the name of no
 domain, as it always has.) The listings answer `every_domain` (REST) or a fourth

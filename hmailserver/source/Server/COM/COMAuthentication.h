@@ -97,6 +97,14 @@ namespace HM
       // answers exactly what it answered before - and a help desk or an
       // auditor, which hold neither permission, is refused every write in COM
       // without a single one of them being edited.
+      //
+      // The server administrator is a grant that holds AdministerServer and
+      // reaches every domain (RoleManager::Allows): serveradmin assigned with a
+      // list of domains is not one, over COM as over REST. A domain
+      // administrator is a grant that holds AdministerDomain in the domain of
+      // the credential's own account, the domain those call sites compare -
+      // which serveradmin with a list naming that domain does, and a grant
+      // whose list leaves that domain out does not.
       bool GetIsDomainAdmin() const;
       bool GetIsServerAdmin() const;
 
@@ -226,6 +234,10 @@ namespace HM
       // ones a process holds: the server administrator 3, a domain
       // administrator 2, any other 1.
       int Rank_() const;
+
+      // GetIsDomainAdmin's answer for this credential's own sign-in: it holds
+      // AdministerDomain in the domain of its own account.
+      bool AdministersItsDomain_() const;
 
       // An account's credential that matched one of its app passwords rather
       // than its own password is not a COM logon: account_ is left empty. See

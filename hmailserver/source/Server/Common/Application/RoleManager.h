@@ -231,6 +231,14 @@ namespace HM
       // sentence a 403 can carry; it never names a resource the caller may not
       // see, because a refusal that distinguishes "no such account" from "not
       // yours" is an oracle for enumerating other people's mailboxes.
+      //
+      // AdministerServer answers every question only for a grant that reaches
+      // every domain. A grant that holds it with a list of domains - serveradmin
+      // assigned with a list, a full key issued for named domains - is judged by
+      // its list wherever a domain is named, like any confined grant, and is
+      // refused AdministerServer itself: it administers those domains and not
+      // the server. COM's "is this the server administrator?" is that question,
+      // and REST's HoldsServerAuthority_ asks it too.
       static bool Allows(const RoleGrant &grant, RolePermission permission, const String &domainName, String &reason);
 
       // The same question with no domain in it: for the server-wide
@@ -250,6 +258,21 @@ namespace HM
       // existed before roles did goes on having exactly the authority it had.
       static RoleGrant GrantForAccount(std::shared_ptr<const Account> account);
 
+      // What an account holds with no assignment: the grant its AdminLevel has
+      // always given it. GrantForAccount answers this for an account with no
+      // row, and it is what an account goes back to when its role is taken away.
+      static RoleGrant GrantByAdminLevel(std::shared_ptr<const Account> account);
+
+      // Whether holder may give account the role roleName in domains - or, with
+      // an empty roleName, take its role away: the account is in a domain where
+      // holder holds ManageRoles, and holder takes in (Encompasses) both what
+      // the account holds now and what it will hold afterwards - the role given,
+      // or what its admin level gives it once no role narrows it. The one rule
+      // AssignRole, Account.RoleName and RoleDomains over COM and the role
+      // assignment routes over REST ask, read from the account as stored.
+      static bool MayChangeAssignment(const RoleGrant &holder, std::shared_ptr<const Account> account,
+                                      const String &roleName, const String &domains);
+
       // The grant an account WOULD hold if it were given this role in these
       // domains - an empty list read exactly as GrantForAccount reads it - so
       // that the authority an assignment hands out is judged before it is
@@ -267,7 +290,7 @@ namespace HM
       // in everything only when it reaches every domain: held with a list of
       // domains - a full key issued for named domains - it is judged by the
       // list like any confined grant, and takes in nothing that reaches every
-      // domain.
+      // domain, nor any grant that holds AdministerServer with a list of its own.
       static bool Encompasses(const RoleGrant &holder, const RoleGrant &other);
 
       // An API key's grant. roleName is the key store's Role= line; when it is
@@ -327,7 +350,8 @@ namespace HM
       static bool AssignmentReachesEveryDomain(const String &roleName, const String &domains);
 
       // True when a grant is confined to no list of domains - the server
-      // administrator, an unrestricted key, an auditor given no list. A
+      // administrator, an unrestricted key, an auditor given no list; never a
+      // grant with a list, whatever it holds (serveradmin given one). A
       // question some resources have to ask before they can answer at all: a
       // search that matches any address, or one queued message whose
       // recipients sit in any number of domains, has no domain to confine to,
@@ -348,6 +372,12 @@ namespace HM
       static AnsiString PermissionName(RolePermission permission);
       static bool ParsePermission(const AnsiString &token, RolePermission &permission);
       static AnsiString DescribeGrant(const RoleGrant &grant);
+
+      // The permissions a credential may use, for a page that shows only what
+      // its holder can do: DescribeGrant, without administer_server for a
+      // grant that does not hold it anywhere (serveradmin given a list of
+      // domains, which Allows confines to them).
+      static AnsiString DescribeAuthority(const RoleGrant &grant);
 
       // Who is acting, on this thread. The audit trail reads this; nothing
       // else may decide from it (the decision takes a grant by value, so that
@@ -463,5 +493,18 @@ namespace HM
       static RoleGrant ConfineAssignment_(RoleGrant grant, const String &roleName, const String &domains, const String &ownDomain);
       static bool IsDomainReached_(const RoleGrant &grant, const String &domainName);
       static void EnsureLoaded_();
+   };
+
+   // The decision, over the grants a built-in role resolves to, with no
+   // database, configuration or network: that a grant holding administer_server
+   // with a list of domains is confined to that list, not the whole server -
+   // the rule COM's GetIsServerAdmin and REST's HoldsServerAuthority_ both read
+   // through RoleManager::Allows. ClassTester runs it on Windows,
+   // business-object-tests on Linux. Throws std::logic_error naming every case
+   // that went wrong.
+   class RoleManagerTester
+   {
+   public:
+      void Test();
    };
 }

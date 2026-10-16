@@ -606,10 +606,30 @@ namespace HM
       if (RoleManager::Allows(grant_, RolePermission::AdministerServer))
          return 3;
 
-      if (RoleManager::Allows(grant_, RolePermission::AdministerDomain))
+      if (AdministersItsDomain_())
          return 2;
 
       return 1;
+   }
+
+   bool
+   COMAuthentication::AdministersItsDomain_() const
+   {
+      if (!account_ || !RoleManager::Allows(grant_, RolePermission::AdministerDomain))
+         return false;
+
+      // In the domain of its own account. Every COM gate that asks "is this a
+      // domain administrator?" goes on to compare that domain with the
+      // object's (Links, Domains, the account and alias reads), so a grant
+      // whose list of domains leaves its own domain out would otherwise
+      // administer, over COM, a domain its list does not name. Such a grant
+      // administers no domain's objects over COM, and keeps the domains its
+      // list names wherever COM names a domain (AllowsForDomain). A grant with
+      // no list reaches every domain, and the administrator stand-in's
+      // "Administrator" names none; both are answered as before.
+      String reason;
+      return RoleManager::Allows(grant_, RolePermission::AdministerDomain,
+                                 StringParser::ExtractDomain(account_->GetAddress()), reason);
    }
 
    bool
@@ -662,8 +682,10 @@ namespace HM
       // elsewhere is nobody's here to administer. And an account there whose
       // authority it does not take in (TakesInAccount) - the server
       // administrator's mailbox, an administrator of another domain - is not
-      // one it may set the password of, nor speak for.
-      if (GetIsDomainAdmin())
+      // one it may set the password of, nor speak for. Asked of the domain
+      // claimed alone, so that a role whose list leaves its own account's
+      // domain out still speaks for the domains its list names.
+      if (Allows(RolePermission::AdministerDomain))
       {
          const String claimed = ObjectCache::Instance()->GetDomainAliases()->ApplyAliasesOnAddress(address);
          const String claimedDomain = StringParser::ExtractDomain(claimed);
@@ -776,13 +798,14 @@ namespace HM
 
       InstallActor_();
 
-      // Reads exactly as it did: serveradmin holds every permission, so
-      // AdministerDomain is among them, and an account with AdminLevel =
-      // DomainAdmin and no assignment resolves to the domainadmin grant, which
-      // holds it. A help desk and an auditor hold neither, which is what
-      // refuses them every COM write without one of the ~200 call sites that
-      // ask this question being touched.
-      return RoleManager::Allows(grant_, RolePermission::AdministerDomain);
+      // serveradmin holds every permission, so AdministerDomain is among them,
+      // and an account with AdminLevel = DomainAdmin and no assignment
+      // resolves to the domainadmin grant, which holds it. A help desk and an
+      // auditor hold neither, which is what refuses them every COM write
+      // without one of the ~200 call sites that ask this question being
+      // touched. Asked in the domain of the credential's own account
+      // (AdministersItsDomain_), since those call sites compare that domain.
+      return AdministersItsDomain_();
    }
 
    bool
@@ -794,6 +817,11 @@ namespace HM
 
       InstallActor_();
 
+      // The server administrator: a grant that holds AdministerServer and
+      // reaches every domain. serveradmin assigned with a list of domains is
+      // not one (RoleManager::Allows); over COM it is a domain administrator
+      // of its own domain where its list names it, as over REST it is
+      // confined to its list.
       return RoleManager::Allows(grant_, RolePermission::AdministerServer);
    }
 

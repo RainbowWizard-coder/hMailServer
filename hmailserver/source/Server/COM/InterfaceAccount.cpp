@@ -2135,14 +2135,22 @@ STDMETHODIMP InterfaceAccount::put_RoleName(BSTR newVal)
       HM::RoleManager::AssignmentForAccount(object_->GetID(), existing);
 
       // A credential may not hand out authority it has not got, nor take away
-      // authority it has not got. Only the server administrator holds
-      // ManageRoles today, so this cannot fire yet; it is written now because
-      // the day a delegate holds it is the day the check has to already be here.
-      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(object_)) ||
-          (!wanted.IsEmpty() &&
-           !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(object_, wanted, existing.domains))))
+      // authority it has not got: what the account holds now, and what it holds
+      // afterwards - the role given, or with none the authority of its admin
+      // level - judged on the account as stored, whose level an assignment in
+      // memory cannot have changed (RoleManager::MayChangeAssignment). Only
+      // serveradmin holds ManageRoles, and serveradmin given a list of domains
+      // holds it in those alone. An account not yet saved holds nothing and is
+      // given nothing (RoleManager::Assign answers it).
+      if (object_->GetID() > 0)
       {
-         return COMError::GenerateError("That role holds authority this credential does not, and a credential may not hand out authority it has not got.");
+         std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+         if (!HM::PersistentAccount::ReadObject(stored, object_->GetID()) ||
+             !HM::RoleManager::MayChangeAssignment(authentication_->GetGrant(), stored, wanted, existing.domains))
+         {
+            return COMError::GenerateError("That role holds authority this credential does not, and a credential may not hand out authority it has not got.");
+         }
       }
 
       HM::String error;
@@ -2204,6 +2212,16 @@ STDMETHODIMP InterfaceAccount::put_RoleDomains(BSTR newVal)
 
       if (!HM::RoleManager::AssignmentForAccount(object_->GetID(), existing))
          return COMError::GenerateError("This account holds no role, so there are no domains to confine it to. Set RoleName first.");
+
+      // The domains are part of the authority handed out: judged as RoleName
+      // and Application.AssignRole judge a role, on the account as stored.
+      std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+      if (!HM::PersistentAccount::ReadObject(stored, object_->GetID()) ||
+          !HM::RoleManager::MayChangeAssignment(authentication_->GetGrant(), stored, existing.role_name, HM::String(newVal)))
+      {
+         return COMError::GenerateError("Those domains reach beyond this credential's, and a credential may not hand out authority it has not got.");
+      }
 
       HM::String error;
 

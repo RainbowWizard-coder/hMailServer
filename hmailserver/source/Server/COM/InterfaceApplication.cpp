@@ -711,7 +711,9 @@ STDMETHODIMP InterfaceApplication::get_CurrentPermissions(BSTR *pVal)
 
       // What the signed-in credential may do, so that a Control Panel can
       // leave out a page rather than show one every button of which refuses.
-      *pVal = HM::String(HM::RoleManager::DescribeGrant(authentication_->GetGrant())).AllocSysString();
+      // administer_server is listed only where it is held, which a role given
+      // for named domains is not (RoleManager::DescribeAuthority).
+      *pVal = HM::String(HM::RoleManager::DescribeAuthority(authentication_->GetGrant())).AllocSysString();
       return S_OK;
    }
    catch (...)
@@ -787,14 +789,31 @@ STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Doma
       std::shared_ptr<HM::Account> account = std::shared_ptr<HM::Account>(new HM::Account());
 
       // The same answer for an address that does not exist and for one this
-      // credential may not see, because ManageRoles is only ever held with
-      // AdministerServer today - and when it is delegated, the day it is, this
-      // must already read the same either way.
+      // credential may not see: ManageRoles is held only with AdministerServer,
+      // and serveradmin given a list of domains holds it in those alone. The
+      // domain is judged from the address before the database is asked, as
+      // the REST route judges the domain in its path.
+      const HM::String domainName = HM::StringParser::ExtractDomain(HM::String(Address));
+
+      if (domainName.IsEmpty() || !authentication_->AllowsForDomain(HM::RolePermission::ManageRoles, domainName))
+         return COMError::GenerateError("No such account.");
+
       if (!HM::PersistentAccount::ReadObject(account, HM::String(Address)) || account->GetID() == 0)
          return COMError::GenerateError("No such account.");
 
       const HM::String wanted = Role;
       HM::String error;
+
+      // A credential may not hand out authority it has not got, nor take away
+      // authority it has not got - what the account holds now, and what it
+      // holds afterwards: the role given, or with none the authority of its
+      // admin level (RoleManager::MayChangeAssignment).
+      if (!HM::RoleManager::MayChangeAssignment(authentication_->GetGrant(), account, wanted, HM::String(Domains)))
+      {
+         return COMError::GenerateError(wanted.IsEmpty()
+            ? "That account holds, or would hold without its role, authority this credential does not, and a credential may not take away authority it has not got."
+            : "That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
+      }
 
       if (wanted.IsEmpty())
       {
@@ -802,14 +821,6 @@ STDMETHODIMP InterfaceApplication::AssignRole(BSTR Address, BSTR Role, BSTR Doma
             return COMError::GenerateError(error);
 
          return S_OK;
-      }
-
-      // A credential may not hand out authority it has not got, nor take away
-      // authority it has not got.
-      if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAssignment(account, wanted, HM::String(Domains))) ||
-          !HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(account)))
-      {
-         return COMError::GenerateError("That role holds permissions this credential does not, and a credential may not hand out authority it has not got.");
       }
 
       if (!HM::RoleManager::Assign(account->GetID(), wanted, HM::String(Domains), error))

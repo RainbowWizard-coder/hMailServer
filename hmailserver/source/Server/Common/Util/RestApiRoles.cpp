@@ -280,8 +280,11 @@ namespace HM
       // than the server administrator - which no custom role may be today, and
       // a delegate might be one day - could make an account a server
       // administrator and then sign in as it. Checked against the grant the
-      // request came in on, which is the object Authorize_ decided with.
-      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAssignment(account, String(roleName), String(domains))))
+      // request came in on, which is the object Authorize_ decided with. The
+      // one rule COM's AssignRole asks too (RoleManager::MayChangeAssignment):
+      // the account's domain and what it holds now, which Authorize_ and
+      // ProcessRequest_ have asked already, and the role given.
+      if (!RoleManager::MayChangeAssignment(caller.grant, account, String(roleName), String(domains)))
       {
          return BuildResponse_(403, "{\"error\":\"that role holds permissions this credential does not, and a credential may not hand out authority it has not got\"}");
       }
@@ -324,7 +327,11 @@ namespace HM
       if (!RoleManager::AssignmentForAccount(account->GetID(), assignment))
          return BuildResponse_(404, "{\"error\":\"that account holds no role\"}");
 
-      if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account)))
+      // What the account holds now, and what it holds once no role narrows it:
+      // the authority of its admin level, which the credential must take in as
+      // well, or taking the role away would hand the account authority the
+      // credential has not got (RoleManager::MayChangeAssignment).
+      if (!RoleManager::MayChangeAssignment(caller.grant, account, String(), String()))
       {
          return BuildResponse_(403, "{\"error\":\"that role holds permissions this credential does not, and a credential may not take away authority it has not got\"}");
       }

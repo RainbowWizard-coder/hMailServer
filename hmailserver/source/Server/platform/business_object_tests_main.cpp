@@ -123,6 +123,12 @@
 //     the firing path's own test - where until 12 October 2026 COM stored any name
 //     and the REST routes any but an empty one, and the server refused it only each
 //     time the rule fired.
+//   - A grant that holds administer_server with a list of domains is confined to
+//     that list (RoleManagerTester, Common/Application/RoleManager.cpp): it is a
+//     domain administrator of the domains it names, not the server administrator,
+//     over COM exactly as over REST (RoleManager::Allows, which GetIsServerAdmin
+//     and HoldsServerAuthority_ both read); and no credential confined to named
+//     domains takes over a grant that holds administer_server.
 //   - DKIM signs a message as the domain its From names only when the server is
 //     entitled to (SigningOriginTester, Common/AntiSpam/DKIM/DKIMSigner.cpp): not mail
 //     from outside, nor a forward, a redirect or a rule's copy of it, nor a signed-in
@@ -180,6 +186,7 @@
 #include "../SMTP/SMTPForwarding.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
+#include "../Common/Application/RoleManager.h"
 #include "../Common/Sieve/SieveVacationResponder.h"
 #include "../Common/Sieve/ManageSieveServer.h"
 #include "../Common/Tracking/ChangeNotification.h"
@@ -561,6 +568,13 @@ namespace
    }
 
    void
+   TestRoleManagerConfinement()
+   {
+      HM::RoleManagerTester tester;
+      tester.Test();
+   }
+
+   void
    TestSigningOrigin()
    {
       HM::SigningOriginTester tester;
@@ -614,6 +628,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount, and no Sieve edit changes Auto-Submitted");
    failed += Run(&TestRuleOwner, "a rule's actions held to its owner: no From or DKIM-Signature set but by a global rule, a reply sent only from an address the owner may send as, and its From one mailbox");
+   failed += Run(&TestRoleManagerConfinement, "a grant holding administer_server with a list of domains is a domain administrator of those domains, not the server administrator, and takes over no wider grant");
    failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, nor a signed-in submission whose From is another's, is signed as its From's domain; the mark and the relaying domain are copied and kept on the queue row and in a quarantined copy's name");
    failed += Run(&TestCopyEnvelope, "a forward, a redirect, a list's or an alias's copy of mail from outside is given an envelope sender of its From's organisation only for a message that passed DMARC for it, and none is sent outside with a null sender under a host name of that organisation or with the envelope sender it came with at this server's host name or a hosted domain; and a copy carries the pass the message arrived with - a copy of a copy, a queue row and a quarantined copy's name");
    failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");

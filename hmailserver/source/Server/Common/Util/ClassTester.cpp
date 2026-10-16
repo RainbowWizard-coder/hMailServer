@@ -61,6 +61,7 @@
 #include "MigrationSources.h"
 #include "../Application/MigrationJob.h"
 #include "../Application/MessageIndexer.h"
+#include "../Application/RoleManager.h"
 #include "../Pst/PstTester.h"
 #include "../Pst/PstItemsTester.h"
 #include "../Pst/PstReaderWireTester.h"
@@ -282,6 +283,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing a rule's actions against its owner\n"));
       RuleOwnerTester ruleOwnerTester;
       ruleOwnerTester.Test();
+
+      // A grant holding administer_server with a list of domains is confined to
+      // that list - a domain administrator of its domains, not the server
+      // administrator - over COM as over REST (RoleManager.h, RoleManagerTester).
+      OutputDebugString(_T("hMailServer: Testing that serveradmin assigned with a domain list is confined to it\n"));
+      RoleManagerTester roleManagerTester;
+      roleManagerTester.Test();
 
       // Which messages DKIM signs as the domain their From names: not mail from
       // outside, nor a forward, a redirect or a copy of it, which were signed until 7
