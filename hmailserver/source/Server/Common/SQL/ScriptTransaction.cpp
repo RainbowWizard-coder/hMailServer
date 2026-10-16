@@ -38,7 +38,9 @@ namespace HM
       catch (...)
       {
          // A destructor may not throw. The connection stays with the pool's busy
-         // set, as the Database object's did when its rollback failed.
+         // set, as the Database object's did when its rollback failed, and the
+         // debug log says so.
+         LOG_DEBUG(_T("ScriptTransaction: a transaction still open at its end could not be rolled back."));
       }
    }
 
