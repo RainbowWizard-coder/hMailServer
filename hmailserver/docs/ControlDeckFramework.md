@@ -9,8 +9,8 @@ threat model and the authorisation matrix with its checker - and nothing of the
 rebuild. It records the criteria, the candidates and their scores, the decision
 and why, what was rejected and why, the migration plan for rows A2 to A4, the
 build, and how the pages are to be served. The threat model the rebuild answers
-to is [WebThreatModel.md](WebThreatModel.md), and the authorisation of every
-route the pages call is [WebAuthorisationMatrix.md](WebAuthorisationMatrix.md),
+to is `hmailserver/docs/WebThreatModel.md`, and the authorisation of every
+route the pages call is `hmailserver/docs/WebAuthorisationMatrix.md`,
 which `build/generate-auth-matrix.py` writes from the code. What it counts of
 today's pages, and its file and line references, are the tree's at 6e1a336c5
 (15 October 2026); the measurements are the evaluations' (Evidence, below).
