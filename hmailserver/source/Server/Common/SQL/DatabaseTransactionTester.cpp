@@ -1951,36 +1951,41 @@ namespace HM
             // Database.ExecuteSQL is ScriptTransaction::Execute, which sends a statement
             // once (TryExecute) and never reconnects - and the connection closed under
             // the transaction, as the pool's Disconnect closes the connections it has
-            // handed out. On every engine the statement that meets the lost session
-            // fails saying that the transaction has ended and what to do, or, where
-            // the connection is closed already, is refused; every later statement is
-            // refused, the commit fails as rolled back and not committed - as one lost
-            // with its session after the connection was closed, and on PostgreSQL
-            // after the session ended, where nothing else has said the end (on MySQL
-            // and MariaDB CheckError has said it at the statement that met the lost
-            // session, and on SQL Server IsTransactionFailed, and the commit names that
-            // statement's failure) - and nothing of the transaction is saved; and the
-            // connection, given back, runs the next statement on a new session. Up to
-            // 99e6204ff PostgreSQL said none of
-            // it - libpq answers a connection that is gone with PQTRANS_UNKNOWN, not
-            // PQTRANS_INERROR - and sent each later statement to the dead connection,
-            // which failed it, and the commit failed with "no connection to the
-            // server"; and on MySQL, MariaDB, PostgreSQL and SQL Server Compact a
-            // connection closed under the transaction was not said either. Nothing was
-            // saved: nothing reconnected there. Not closed on SQL Server, whose
-            // provider refuses to close a connection with a transaction open
-            // (ADOConnection::Disconnect); on SQL Server Compact a session ends only
-            // by closing it (EndSessionOf), so there the first case is the second.
+            // handed out, each run to the commit and again to the rollback. On every
+            // engine the statement that meets the lost session fails saying that the
+            // transaction has ended and what to do, or, where the connection is closed
+            // already, is refused; every later statement is refused, nothing of the
+            // transaction is saved, and the connection, given back, runs the next
+            // statement on a new session. The commit fails as rolled back and not
+            // committed - as one lost with its session after the connection was closed,
+            // and on PostgreSQL after the session ended, where nothing else has said the
+            // end (on MySQL and MariaDB CheckError has said it at the statement that met
+            // the lost session, and on SQL Server IsTransactionFailed, and the commit
+            // names that statement's failure) - and the rollback succeeds, the database
+            // having rolled back what the transaction held with the session, though its
+            // ROLLBACK fails on the session that is gone (ScriptTransaction::Rollback).
+            // Up to 99e6204ff PostgreSQL said none of it - libpq answers a connection
+            // that is gone with PQTRANS_UNKNOWN, not PQTRANS_INERROR - and sent each
+            // later statement to the dead connection, which failed it, and the commit
+            // failed with "no connection to the server"; and on MySQL, MariaDB,
+            // PostgreSQL and SQL Server Compact a connection closed under the
+            // transaction was not said either. Nothing was saved: nothing reconnected
+            // there. Not closed on SQL Server, whose provider refuses to close a
+            // connection with a transaction open (ADOConnection::Disconnect); on SQL
+            // Server Compact a session ends only by closing it (EndSessionOf), so there
+            // the first case is the second.
             {
                const DatabaseSettings::SQLDBType type = probe.type_;
                std::vector<std::string> goneFailed;
-               for (int path = 0; path < 2; path++)
+               for (int path = 0; path < 4; path++)
                {
-                  const bool closed = path == 1;
+                  const bool closed = (path % 2) == 1;
+                  const bool rollback = path >= 2;
                   if ((!closed && type == DatabaseSettings::TypeMSSQLCompactEdition) || (closed && type == DatabaseSettings::TypeMSSQLServer))
                      continue;
 
-                  const String how = closed ? _T("the connection was closed under the transaction") : _T("the database ended the transaction's session");
+                  const String how = String(closed ? _T("the connection was closed under the transaction") : _T("the database ended the transaction's session")) +
+                     (rollback ? _T(", the script ending it with a rollback") : _T(""));
                   try
                   {
                      probe.Reset();
@@ -2001,8 +2006,8 @@ namespace HM
                      const ScriptTransaction::Outcome next = Script(script, Insert(42, 1), nextError);
                      const int seen = probe.Value(_T("aatxnprobe"), 42);
 
-                     String commitError;
-                     const bool committed = script.Commit(commitError);
+                     String endError;
+                     const bool succeeded = rollback ? script.Rollback(endError) : script.Commit(endError);
 
                      // Given back, the connection runs the next statement: Execute
                      // reconnects outside a transaction.
@@ -2014,7 +2019,7 @@ namespace HM
                      const int fortyTwo = probe.Value(_T("aatxnprobe"), 42);
 
                      Check(forty == -1 && fortyOne == -1 && fortyTwo == -1 && seen == -1,
-                        Formatter::Format("after {0}, rows 40, 41 and 42 were left at {1}, {2} and {3} (42 at {4} before the commit), not none",
+                        Formatter::Format("after {0}, rows 40, 41 and 42 were left at {1}, {2} and {3} (42 at {4} before the transaction's end), not none",
                            how, forty, fortyOne, fortyTwo, seen));
 
                      if (closed)
@@ -2030,16 +2035,23 @@ namespace HM
 
                      Check(next == ScriptTransaction::Refused && Says(nextError, _T("The statement was not run: ")),
                         Formatter::Format("after {0}, the script's statement after the lost session was {1}, not refused: {2}", how, OutcomeName(next), nextError));
-                     if (closed || type == DatabaseSettings::TypePGServer)
+
+                     if (rollback)
                      {
-                        Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: the connection to the database was lost inside it")),
-                           Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the connection was lost inside the transaction"), commitError));
+                        Check(succeeded && endError.IsEmpty(),
+                           Formatter::Format("after {0}, Database.RollbackTransaction was refused, where the database had rolled back what the transaction held with the session: {1}", how, endError));
+                     }
+                     else if (closed || type == DatabaseSettings::TypePGServer)
+                     {
+                        Check(!succeeded && Says(endError, _T("The transaction was rolled back, not committed: the connection to the database was lost inside it")),
+                           Formatter::Format("after {0}, the commit {1}: {2}", how, succeeded ? _T("reported success") : _T("failed without saying that the connection was lost inside the transaction"), endError));
                      }
                      else
                      {
-                        Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: ")),
-                           Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the transaction was rolled back, not committed"), commitError));
+                        Check(!succeeded && Says(endError, _T("The transaction was rolled back, not committed: ")),
+                           Formatter::Format("after {0}, the commit {1}: {2}", how, succeeded ? _T("reported success") : _T("failed without saying that the transaction was rolled back, not committed"), endError));
                      }
+
                      Check(after, Formatter::Format("after {0}, the connection given back did not run the next statement: {1}", how, afterError));
                   }
                   catch (const std::exception &failure)
@@ -2056,7 +2068,7 @@ namespace HM
                   throw std::logic_error(all);
                }
 
-               probe.Say(_T("a session lost under the Database object's own statement, and a connection closed under its transaction: the statement after it refused, the commit failed, nothing saved"));
+               probe.Say(_T("a session lost under the Database object's own statement, and a connection closed under its transaction: the statement after it refused, the commit failed, the rollback answered with success, nothing saved"));
             }
 
             // A session that ends before the COMMIT: whether the COMMIT reached the

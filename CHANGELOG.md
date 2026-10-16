@@ -789,7 +789,8 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   1020; a row-lock wait and a metadata-lock wait that timed out; a session ended under `DALConnection::Execute`, under
   `DALRecordset::Open` and under the object's own statement, and a connection closed under the transaction, the last two
   ended by `Database.CommitTransaction`, which must say that the connection was lost where nothing else has said that
-  the transaction ended; and a second `Begin` while a transaction is open. On the code before this change (6e1a336c5)
+  the transaction ended, and again by `Database.RollbackTransaction`, which must succeed though its `ROLLBACK` fails on
+  the session that is gone; and a second `Begin` while a transaction is open. On the code before this change (6e1a336c5)
   each case failed but its controls and the two that hold the fix to its own limits - the metadata-lock wait, which ends
   nothing, and the pool's connection after a scope lost its session - which pass there too: on MySQL and MariaDB the
   statement after the failure, a script's included, was committed on its own, the first transaction's connection was
@@ -799,14 +800,13 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   of `ScriptTransaction`'s handling taken out by itself - the refusal at a statement, a script and the prerequisites,
   the failure it answers for a statement marked `[IGNORE-ERRORS]` whose failure ended the transaction, the commit's
   rollback, the advice in the error, the first transaction's rollback at a second `Begin`, PostgreSQL left to the
-  database - fails a case of its own on MySQL and MariaDB, the last two on PostgreSQL too, and so does the commit's
-  saying that the connection was lost, on MySQL, MariaDB and PostgreSQL alike, but for the success
-  `Database.RollbackTransaction` answers for an ended transaction, which only SQL Server's refusal of a `ROLLBACK` with
-  nothing open would show, and the guards after a script or the prerequisites that ran whole, which no case can reach
-  while the runner stops after each statement that ended the transaction and each prerequisite at its first failure. On
-  SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that timed out leaving the
-  transaction going on, a session ended under `DALConnection::Execute` and under `DALRecordset::Open`, and a connection
-  closed under the transaction, and
+  database - fails a case of its own on MySQL and MariaDB, the last two on PostgreSQL too, and so do the commit's saying
+  that the connection was lost and the success `Database.RollbackTransaction` answers for a transaction that has ended,
+  on MySQL, MariaDB and PostgreSQL alike, but for the guards after a script or the prerequisites that ran whole, which
+  no case can reach while the runner stops after each statement that ended the transaction and each prerequisite at its
+  first failure. On SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that timed
+  out leaving the transaction going on, a session ended under `DALConnection::Execute` and under `DALRecordset::Open`,
+  and a connection closed under the transaction, and
   `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the
   `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
   takes back everything. SQL Server's part rests on the code and on SQL Server 2022's own answers (a deadlock's victim
