@@ -97,12 +97,14 @@ stops it, since another copy of it, or another branch, may be what is
 compiled, and so does a second definition, an overload or a copy in another
 namespace, since the compiler may use that one. A directive of any other kind
 inside what it reads stops it too, since an #include there brings in code it
-never sees and it does not read what another directive does: inside a route
-parser, a predicate, either listener's ProcessRequest_, an enumeration,
-PermissionTokens or a constant's initialiser, which it parses, as a directive
-(tokenize); inside another function whose steps it holds, as one of its
-steps; and between the report's SectionInfo and the end of FindSection, as
-any directive there. Not held: how Authenticate_ makes a request one of the
+never sees and it does not read what another directive does: one inside a
+function it reads - a route parser, a predicate, either listener's
+ProcessRequest_, a function whose steps it holds - from the line that names
+the function to its closing brace, its parameter list among it, as a
+conditional there does (function_span); one inside an enumeration's body,
+PermissionTokens or a constant's initialiser, which its parser reads
+(tokenize); and one between the report's SectionInfo and the end of
+FindSection. Not held: how Authenticate_ makes a request one of the
 nine credentials - the grant RoleManager gives it, of which role and for
 which domains (GrantForAccount, GrantForApiKey and ServerAdministrator, and
 the GrantForRole they ask) - which the matrix's columns take as given, the
@@ -997,7 +999,9 @@ def function_span(text, qualified, params=None):
     params, of the overload whose parameter list holds that text. A definition
     that stands inside a conditional of the preprocessor, or holds one, is
     refused, since another copy of it, or another branch, may be what is
-    compiled; so is one that is not the only definition of the function (with
+    compiled; so is one that holds a directive of any other kind from the line
+    that names it to its closing '}', whose effect this script does not read;
+    so is one that is not the only definition of the function (with
     params, of that overload) in the file, and one that holds a raw string
     literal over more than one line, since the readers read a definition a line
     at a time."""
@@ -1034,6 +1038,15 @@ def function_span(text, qualified, params=None):
     if holds_conditional(code, m.start(), end):
         raise GenerationError("%s holds a conditional of the preprocessor (#if to #endif), which this script does not "
                               "evaluate: it would read every branch as compiled" % qualified)
+    # A directive of any other kind, from the line that names it to its '}' -
+    # its parameter list among it - is refused as a conditional is: what an
+    # #include there brings in is code this script never reads.
+    first, last = code.count("\n", 0, m.start()), code.count("\n", 0, end)
+    for line, _, directive in lexed.directives:
+        if first <= line <= last:
+            raise GenerationError("%s holds a directive of the preprocessor at line %d, %s, which this script does not "
+                                  "read: an #include there brings in code it never sees, and it does not read what "
+                                  "another directive does" % (qualified, line + 1, directive))
     # The only definition of it in the file, wherever another would stand: an
     # overload, or a copy in another namespace or under a conditional, may be
     # the one the compiler calls, which this script does not work out.
@@ -3879,10 +3892,10 @@ def render(decision, records, anon, web):
       "its name in its file: a definition inside one, or holding one, stops it, since another copy, or another "
       "branch, may be what is compiled, and so does a second definition - an overload, a copy in another namespace "
       "- since the compiler may use that one. A directive of the preprocessor of any other kind inside what it reads "
-      "- an `#include`, which brings in code it never sees, a `#define` - stops it too: inside the route parsers, "
-      "their predicates, either listener's `ProcessRequest_`, the enumerations, `PermissionTokens` or a constant's "
-      "initialiser, which it parses, inside another function whose steps it holds, as one of its steps, and from "
-      "the report's `SectionInfo` to the end of `FindSection`. Not held: how `Authenticate_` makes a request one "
+      "- an `#include`, which brings in code it never sees, a `#define` - stops it too, as a conditional does: "
+      "inside a function it reads, from the line that names it to its closing brace, its parameter list among it, "
+      "inside the enumerations, `PermissionTokens` or a constant's initialiser, and from the report's `SectionInfo` "
+      "to the end of `FindSection`. Not held: how `Authenticate_` makes a request one "
       "of the columns below - the grant `RoleManager` gives it, of which role and for which domains "
       "(`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the `GrantForRole` they ask) - which "
       "they take as given, the string helpers those functions use, a macro defined elsewhere over a name they use "
@@ -4722,15 +4735,15 @@ def self_test():
            [integer_value(t) for t in ("0", "017", "0x1F", "0b101", "10'000", "42ULL", "0xFFu", "1.5", "08")]
            == [0, 15, 31, 5, 10000, 42, 255, None, None])
 
-    # 17. A directive of the preprocessor inside what the parser reads - an
-    # enumeration, PermissionTokens, a constant's initialiser, a route parser, a
-    # predicate, an anonymous chain - stops the script, as a conditional does,
-    # naming its line: an #include there brings in code it never reads, and it
-    # does not read what another directive does. The file named need not exist,
-    # since the script does not open it. ProcessRequest_ is parsed whole, so a
-    # directive inside a dispatch's return, which its steps mask, stops it too;
-    # inside another function whose steps it holds, a directive is one of the
-    # steps.
+    # 17. A directive of the preprocessor inside what the script reads - an
+    # enumeration, PermissionTokens, a constant's initialiser, which its parser
+    # reads, and a function it reads from the line that names it to its '}',
+    # its parameter list among it: a route parser, a predicate, either
+    # listener's ProcessRequest_, a dispatch's return its steps mask among it,
+    # or a function whose steps it holds - stops the script, as a conditional
+    # does, naming its line: an #include there brings in code it never reads,
+    # and it does not read what another directive does. The file named need
+    # not exist, since the script does not open it.
     def directive_stops(label, rel, old, new, directive, whole):
         sources = broken_copy(rel, old, new)
         line = sources[rel][:sources[rel].find(directive)].count(nl) + 1
@@ -4763,8 +4776,16 @@ def self_test():
             ("the web services listener's ProcessRequest_", WEB_CPP,
              "      AnsiString host = GetRequestHost_(request);" + nl)):
         directive_stops("%s, an #include" % label, rel, old, include + nl + old, include, True)
-    stops("an #include inside a built-in role's function changes its steps", ROLE_CPP, helpdesk_end,
-          helpdesk_end.replace("         return set;", include + nl + "         return set;"), "HelpdeskPermissions")
+    directive_stops("a route parser's parameter list, an #include", SUB_PARSERS["ParseScimRoute_"],
+                    "RestApiServer::ParseScimRoute_(const AnsiString &method, const AnsiString &path, Route &route)",
+                    "RestApiServer::ParseScimRoute_(const AnsiString &method," + nl + include + nl
+                    + "      const AnsiString &path, Route &route)", include, True)
+    directive_stops("a built-in role's function, an #include", ROLE_CPP, helpdesk_end,
+                    helpdesk_end.replace("         return set;", include + nl + "         return set;"), include, False)
+    directive_stops("the parameter list of a function whose steps are held, an #include", REST_CPP,
+                    "RestApiServer::IsDomainAllowed_(const std::vector<String> &domains, const String &domainName)",
+                    "RestApiServer::IsDomainAllowed_(const std::vector<String> &domains," + nl + include + nl
+                    + "      const String &domainName)", include, False)
 
     # 18. A comparison is not a definition: PermissionTokens, the report's table
     # and SectionCount compared with == in a function the script does not hold
