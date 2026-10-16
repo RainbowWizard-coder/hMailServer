@@ -107,11 +107,11 @@ PermissionTokens or a constant's initialiser, which its parser reads
 FindSection. Not held: how Authenticate_ makes a request one of the
 nine credentials - the grant RoleManager gives it, of which role and for
 which domains (GrantForAccount, GrantForApiKey and ServerAdministrator, and
-the GrantForRole they ask) - which the matrix's columns take as given, the
-string helpers the functions above use, a macro defined elsewhere over a name
-they use, an overload of one of them defined in another file, and what the
-functions ProcessRequest_'s other checks call decide (the matrix's "Not
-shown" names them).
+the GrantForRole and GrantByAdminLevel they ask) - which the matrix's columns
+take as given, the string helpers the functions above use, a macro defined
+elsewhere over a name they use, an overload of one of them defined in another
+file, and what the functions ProcessRequest_'s other checks call decide (the
+matrix's "Not shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -2949,10 +2949,19 @@ class Decision(object):
             if kind not in self.role_key_routes:
                 return "no"
         held = self.roles[role]
-        full = "AdministerServer" in held
+        # RoleManager::Allows, asked of each permission the route needs.
+        # AdministerServer is every permission only for a grant with no list of
+        # domains. Held with a list - a Scope=full key issued for named domains,
+        # serveradmin assigned with one - it is judged as every confined grant
+        # is: it must hold the permission, it is refused AdministerServer
+        # itself, and where the route names a domain its list must reach that
+        # domain, which is the "own" of the cells below. Which sentence that
+        # last refusal gives - it is not the same for a grant holding
+        # AdministerServer - is in no cell.
+        full = "AdministerServer" in held and who["domains"] == "all"
         first = self.permission.get(kind, self.default_permission)
         needed = [first] + ([self.second[kind]] if kind in self.second else [])
-        if not full and not all(p in held for p in needed):
+        if not full and (not all(p in held for p in needed) or "AdministerServer" in needed):
             return "no"
         cell = "yes"
         if kind == "RouteSendCreate":
@@ -3519,15 +3528,20 @@ STEPS = {
     reason = _T ( "" ) ;
     return false ;
   }
-  const bool full = grant . Holds ( RolePermission :: AdministerServer ) ;
-  if ( ! full && ! grant . Holds ( permission ) ) {
+  const bool full = grant . Holds ( RolePermission :: AdministerServer ) && grant . domains . empty ( ) ;
+  if ( full ) return true ;
+  if ( ! grant . Holds ( permission ) ) {
     reason . Format ( _T ( "" ) , grant . name . c_str ( ) , String ( PermissionName ( permission ) ) . c_str ( ) ) ;
     return false ;
   }
-  if ( full ) return true ;
+  if ( permission == RolePermission :: AdministerServer ) {
+    reason . Format ( _T ( "" ) , grant . name . c_str ( ) ) ;
+    return false ;
+  }
   if ( domainName . IsEmpty ( ) ) return true ;
   if ( ! IsDomainReached_ ( grant , Lower ( domainName ) ) ) {
-    reason . Format ( _T ( "" ) , grant . name . c_str ( ) ) ;
+    if ( grant . Holds ( RolePermission :: AdministerServer ) ) reason = _T ( "" ) ;
+    else reason . Format ( _T ( "" ) , grant . name . c_str ( ) ) ;
     return false ;
   }
   return true ;
@@ -3868,8 +3882,12 @@ def render(decision, records, anon, web):
     w("- **The answer** follows `RestApiServer::Authorize_` step by step: `IsSessionRoute_`, the send API's "
       "key-only rule, `IsScimRoute_`, `IsSelfServiceRoute_`, the ordinary account's refusal, the administrator "
       "password, `IsApiKeyRoute_` (with the role-holding account's exceptions), then `RoleManager::Allows` on "
-      "`PermissionFor_` and `SecondPermissionFor_`, then the refusals a credential confined to named domains "
-      "meets, the report's sections among them (`IsServerWideReportSection_`, from `RestApiReports.cpp`'s table), "
+      "`PermissionFor_` and `SecondPermissionFor_` - in which `administer_server` is every permission only for a "
+      "grant with no list of domains: one that holds it with a list (a `Scope=full` key issued for named domains, "
+      "`serveradmin` assigned with one) is judged as any confined grant is, by the permissions it holds and, where the "
+      "route names a domain, by its list, and is refused `administer_server` itself - then the refusals a credential "
+      "confined to named domains meets, the report's sections among them (`IsServerWideReportSection_`, from "
+      "`RestApiReports.cpp`'s table), "
       "then `DomainNamedByRoute_`. Then the built-in roles' permissions from `RoleManager.cpp`: for each role's "
       "name, those of the function `RoleManager::BuiltInPermissions_` picks - every permission for `serveradmin`, "
       "whose `ServerAdminPermissions` sets every bit below `RolePermission::Count`, and for each other role the "
@@ -3897,9 +3915,9 @@ def render(decision, records, anon, web):
       "inside the enumerations, `PermissionTokens` or a constant's initialiser, and from the report's `SectionInfo` "
       "to the end of `FindSection`. Not held: how `Authenticate_` makes a request one "
       "of the columns below - the grant `RoleManager` gives it, of which role and for which domains "
-      "(`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the `GrantForRole` they ask) - which "
-      "they take as given, the string helpers those functions use, a macro defined elsewhere over a name they use "
-      "and an overload of one of them defined in another file.")
+      "(`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the `GrantForRole` and `GrantByAdminLevel` "
+      "they ask) - which they take as given, the string helpers those functions use, a macro defined elsewhere over a "
+      "name they use and an overload of one of them defined in another file.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -3910,7 +3928,8 @@ def render(decision, records, anon, web):
       "conditions they are asked under and the names they compare or are kept under (the administrator's name and "
       "the throttle's key, the methods, the header and its value), so a check taken out, moved, put under another "
       "condition or given another name there stops it. What the functions they call decide is not held: "
-      "`RequestIsCrossSite_`, `IsWithinRequestRate_`, `GetHeader_`, `CallerTakesInAccount_`, "
+      "`RequestIsCrossSite_`, `IsWithinRequestRate_`, `GetHeader_`, `CallerTakesInAccount_` (and the "
+      "`RoleManager::Encompasses` it asks), "
       "`MailboxKeys::SessionRefusal` and `MailboxKeys::RefusalStatus`, and the throttle's `BasicUserName_`, "
       "`SessionThrottleRetryMs_`, `RegisterSessionFailure_` and `ClearSessionFailure_`.")
     w("")
@@ -3923,11 +3942,15 @@ def render(decision, records, anon, web):
     w("| Domain admin | An account whose level is domain administrator, or which is assigned `domainadmin` with no list: confined to its own domain. On its password or its session cookie; a bearer session of the same account is never administrative, and counts as Account. The same holds for the next three columns. |")
     w("| Help desk | An account assigned `helpdesk` with no list: confined to its own domain. |")
     w("| Auditor | An account assigned `auditor`: every domain. |")
-    w("| Server admin account | An account whose level is server administrator (or assigned `serveradmin`): every domain, but an account. |")
+    w("| Server admin account | An account whose level is server administrator, or which is assigned `serveradmin` for "
+      "every domain (no list of domains, or `*`): every domain, but an account. An account assigned `serveradmin` with a "
+      "list of domains is confined to them and does not hold `administer_server`, as a key issued for named domains "
+      "does not (`RoleManager::Allows`). |")
     w("| Admin password | The `administrator` password from hMailServer.ini (HTTP Basic, or the Control Deck's session made from it). |")
     w("| Key, full | An API key with `Scope=full` and no domain list (`serveradmin`). |")
     w("| Key, read-only | An API key with `Scope=readonly` (`auditor`). |")
-    w("| Key, one domain | A `Scope=full` key issued for named domains. |")
+    w("| Key, one domain | A `Scope=full` key issued for named domains: `serveradmin` confined to them, which does not "
+      "hold `administer_server` (`RoleManager::Allows`). |")
     w("")
     w("| Cell | Meaning |")
     w("|---|---|")
@@ -4311,9 +4334,22 @@ def self_test():
     stops("IsDomainAllowed_ made to allow every domain stops the script", REST_CPP,
           "      if (domains.empty())" + nl + "         return true;",
           "      if (true || domains.empty())" + nl + "         return true;", "RestApiServer::IsDomainAllowed_")
+    allows_full = "      const bool full = grant.Holds(RolePermission::AdministerServer) && grant.domains.empty();"
     stops("RoleManager::Allows made to grant every permission stops the script", ROLE_CPP,
-          "      const bool full = grant.Holds(RolePermission::AdministerServer);", "      const bool full = true;",
+          allows_full, "      const bool full = true;", "RoleManager::Allows")
+    # A grant holding AdministerServer is the whole server only with no list of
+    # domains: the list taken out of that test, the refusal of AdministerServer
+    # itself to a grant with a list taken out, or the refusal of a domain its
+    # list does not reach made an allow, each stops the script.
+    stops("RoleManager::Allows made to read AdministerServer as the whole server whatever the grant's list stops the "
+          "script", ROLE_CPP, allows_full, "      const bool full = grant.Holds(RolePermission::AdministerServer);",
           "RoleManager::Allows")
+    stops("RoleManager::Allows's refusal of AdministerServer to a grant with a list taken out stops the script",
+          ROLE_CPP, "      if (permission == RolePermission::AdministerServer)" + nl + "      {" + nl, "      if (false)"
+          + nl + "      {" + nl, "RoleManager::Allows")
+    stops("RoleManager::Allows made to allow a domain the list of a grant holding AdministerServer does not reach stops "
+          "the script", ROLE_CPP, "            reason = _T(\"this credential is not permitted for that domain\");",
+          "            return true;", "RoleManager::Allows")
     stops("a route of DomainNamedByRoute_ answered with no domain stops the script", REST_CPP,
           "         return StringParser::ExtractDomain(String(route.identifier));" + nl + nl
           + "      // An inbound webhook is named by its address",
@@ -4506,6 +4542,23 @@ def self_test():
     one_domain_key = dict(result="key", role="serveradmin", domains="own")
     expect("a key confined to one domain reaches /api/v1/tlsa, which names no domain (own*)",
            decision.decide("RouteTlsa", one_domain_key) == "own*")
+    # A route that needs AdministerServer - here /api/v1/tlsa taken out of
+    # PermissionFor_'s list, so that it falls to the permission after the
+    # switch - is refused a grant that holds it with a list of domains, a key
+    # issued for named domains or an account assigned serveradmin with a list,
+    # and allowed one with no list (RoleManager::Allows): such a grant is not
+    # the whole server.
+    full_key = dict(result="key", role="serveradmin", domains="all")
+    server_admin_account = dict(result="account", role="serveradmin", domains="all")
+    confined_server_admin_account = dict(result="account", role="serveradmin", domains="own")
+    reads("a route that needs administer_server is refused serveradmin with a list of domains and allowed it with none",
+          REST_CPP, "      case RouteStatus:" + nl + "      case RouteTlsa:" + nl + "      case RouteSrv:" + nl,
+          "      case RouteStatus:" + nl + "      case RouteSrv:" + nl,
+          lambda d: d.permission.get("RouteTlsa") is None and d.default_permission == "AdministerServer"
+          and decision.decide("RouteTlsa", one_domain_key) == "own*"
+          and decision.decide("RouteTlsa", confined_server_admin_account) == "own*"
+          and d.decide("RouteTlsa", one_domain_key) == "no" and d.decide("RouteTlsa", confined_server_admin_account) == "no"
+          and d.decide("RouteTlsa", full_key) == "yes" and d.decide("RouteTlsa", server_admin_account) == "yes")
     reads("a route added to a refusal's list is read as refused", REST_CPP,
           "      if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure)",
           "      if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure || route.kind == RouteTlsa)",
