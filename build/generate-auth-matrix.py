@@ -967,11 +967,12 @@ def holds_conditional(text, begin, end):
 
 
 def defined_once(blind, head, what):
-    """Refused unless the pattern head, a definition's head, matches once in
-    blind, the code of a file outside its literals (lex): a second definition
-    of the name, wherever it stands - in another namespace or class, or under a
-    conditional - may be the one the compiler uses, which this script does not
-    work out."""
+    """Refused unless the pattern head, a definition's head - the name and the
+    = (not the first of ==), { or ( that follows it in a definition, so that a
+    comparison is not one - matches once in blind, the code of a file outside
+    its literals (lex): a second definition of the name, wherever it stands -
+    in another namespace or class, or under a conditional - may be the one the
+    compiler uses, which this script does not work out."""
     if len(re.findall(head, blind)) > 1:
         raise GenerationError("%s is defined more than once in its file - in another namespace or class, or under a "
                               "conditional - and this script does not work out which the compiler uses" % what)
@@ -2730,7 +2731,7 @@ def permission_tokens(role_cpp):
     m = outside_conditionals(lexed.code, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", lexed.blind, re.S), what)
     if not m:
         raise GenerationError("%s could not be read" % what)
-    defined_once(lexed.blind, r"\bPermissionTokens\s*\[[^\]]*\]\s*=", what)
+    defined_once(lexed.blind, r"\bPermissionTokens\s*\[[^\]]*\]\s*(?:=(?!=)|\{)", what)
     return string_list(lexed.code[m.start(1):m.end(1)], what, lexed.code.count("\n", 0, m.start(1)) + 1)
 
 
@@ -2787,8 +2788,8 @@ def report_sections(reports):
                                   "FindSection, which this script does not read as the compiler does: %s"
                                   % (REPORTS_CPP, directive))
     for once, what in ((r"\bstruct\s+SectionInfo\b[^;{]*\{", "the report's SectionInfo"),
-                       (r"\bSECTIONS\s*\[[^\]]*\]\s*=", "the report's table of sections"),
-                       (r"\bSectionCount\s*[={(]", "the report's SectionCount")):
+                       (r"\bSECTIONS\s*\[[^\]]*\]\s*(?:=(?!=)|\{)", "the report's table of sections"),
+                       (r"\bSectionCount\s*(?:=(?!=)|[{(])", "the report's SectionCount")):
         defined_once(blind, once, "%s: %s" % (REPORTS_CPP, what))
     at = blind.find(REPORT_TABLE, struct.end(), head)
     table = braced(code, at + len(REPORT_TABLE)) if at >= 0 else None
@@ -4764,6 +4765,25 @@ def self_test():
         directive_stops("%s, an #include" % label, rel, old, include + nl + old, include, True)
     stops("an #include inside a built-in role's function changes its steps", ROLE_CPP, helpdesk_end,
           helpdesk_end.replace("         return set;", include + nl + "         return set;"), "HelpdeskPermissions")
+
+    # 18. A comparison is not a definition: PermissionTokens, the report's table
+    # and SectionCount compared with == in a function the script does not hold
+    # leave the matrix as it is, where the test for a second definition must not
+    # take the first = of == for one.
+    civil = "      long long DaysFromCivil(int year, int month, int day)"
+    for label, rel, old, new in (
+            ("an element of PermissionTokens", ROLE_CPP,
+             '         return "";' + nl + nl + "      return PermissionTokens[index];",
+             '         return "";' + nl + nl + "      if (PermissionTokens[index] == nullptr)" + nl + '         return "";'
+             + nl + nl + "      return PermissionTokens[index];"),
+            ("SectionCount", REPORTS_CPP, civil,
+             "      bool NoSectionFound(const SectionInfo *info)" + nl + "      {" + nl
+             + "         return info != 0 && SectionCount == 0;" + nl + "      }" + nl + nl + civil),
+            ("an element of the report's table", REPORTS_CPP, civil,
+             "      bool IsFirstSection(const SectionInfo *info)" + nl + "      {" + nl
+             + "         return &SECTIONS[0] == info;" + nl + "      }" + nl + nl + civil)):
+        current("%s compared with == in a function the script does not hold is read through" % label,
+                broken_copy(rel, old, new))
 
     # 14. The documents' index says what is held as the matrix does: where its
     # row for the matrix names ProcessRequest_, it names the part of it held.
