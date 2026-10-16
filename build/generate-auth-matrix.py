@@ -3944,13 +3944,13 @@ def render(decision, records, anon, web):
     w("| Auditor | An account assigned `auditor`: every domain. |")
     w("| Server admin account | An account whose level is server administrator, or which is assigned `serveradmin` for "
       "every domain (no list of domains, or `*`): every domain, but an account. An account assigned `serveradmin` with a "
-      "list of domains is confined to them and does not hold `administer_server`, as a key issued for named domains "
-      "does not (`RoleManager::Allows`). |")
+      "list of domains is confined to them and is refused `administer_server` (`RoleManager::Allows`), though its role "
+      "holds it, as a key issued for named domains is. |")
     w("| Admin password | The `administrator` password from hMailServer.ini (HTTP Basic, or the Control Deck's session made from it). |")
     w("| Key, full | An API key with `Scope=full` and no domain list (`serveradmin`). |")
     w("| Key, read-only | An API key with `Scope=readonly` (`auditor`). |")
-    w("| Key, one domain | A `Scope=full` key issued for named domains: `serveradmin` confined to them, which does not "
-      "hold `administer_server` (`RoleManager::Allows`). |")
+    w("| Key, one domain | A `Scope=full` key issued for named domains: `serveradmin` confined to them, which is refused "
+      "`administer_server` (`RoleManager::Allows`), though its role holds it. |")
     w("")
     w("| Cell | Meaning |")
     w("|---|---|")

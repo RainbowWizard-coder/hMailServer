@@ -261,7 +261,14 @@ A full key confined to named domains, and an account assigned `serveradmin` with
 list of domains, are `serveradmin` confined to those domains: each holds
 `serveradmin`'s permissions in them, short of what reaches beyond a domain, and none
 in any other, and neither is the server administrator. Over REST such a credential is
-refused every server-wide route and every domain the list leaves out. Over COM an
+refused what `RestApiServer::Authorize_` refuses every credential confined to named
+domains, whatever its role holds - the delivery queue, the message store, the
+quarantine, the server's own settings and resources, a new domain alias, and the
+creation, rewriting and deletion of a custom role among them - and every domain the
+list leaves out. A route that names no domain - the server's status among them - it
+reaches as any confined credential does, and what such a route shows or changes
+beyond the list's domains is narrowed by the route's handler, or not at all (the routes
+[WebAuthorisationMatrix.md](WebAuthorisationMatrix.md) marks `own*`). Over COM an
 account so assigned is refused the server's settings, a domain alias, a domain's
 name and the rest above, as it is over REST; it is a domain administrator of its
 own account's domain where its list names that domain, and of no other, since the

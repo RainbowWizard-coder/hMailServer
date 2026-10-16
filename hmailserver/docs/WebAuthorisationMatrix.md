@@ -19,11 +19,11 @@ Every route the server's two web listeners answer, and what each kind of credent
 | Domain admin | An account whose level is domain administrator, or which is assigned `domainadmin` with no list: confined to its own domain. On its password or its session cookie; a bearer session of the same account is never administrative, and counts as Account. The same holds for the next three columns. |
 | Help desk | An account assigned `helpdesk` with no list: confined to its own domain. |
 | Auditor | An account assigned `auditor`: every domain. |
-| Server admin account | An account whose level is server administrator, or which is assigned `serveradmin` for every domain (no list of domains, or `*`): every domain, but an account. An account assigned `serveradmin` with a list of domains is confined to them and does not hold `administer_server`, as a key issued for named domains does not (`RoleManager::Allows`). |
+| Server admin account | An account whose level is server administrator, or which is assigned `serveradmin` for every domain (no list of domains, or `*`): every domain, but an account. An account assigned `serveradmin` with a list of domains is confined to them and is refused `administer_server` (`RoleManager::Allows`), though its role holds it, as a key issued for named domains is. |
 | Admin password | The `administrator` password from hMailServer.ini (HTTP Basic, or the Control Deck's session made from it). |
 | Key, full | An API key with `Scope=full` and no domain list (`serveradmin`). |
 | Key, read-only | An API key with `Scope=readonly` (`auditor`). |
-| Key, one domain | A `Scope=full` key issued for named domains: `serveradmin` confined to them, which does not hold `administer_server` (`RoleManager::Allows`). |
+| Key, one domain | A `Scope=full` key issued for named domains: `serveradmin` confined to them, which is refused `administer_server` (`RoleManager::Allows`), though its role holds it. |
 
 | Cell | Meaning |
 |---|---|
