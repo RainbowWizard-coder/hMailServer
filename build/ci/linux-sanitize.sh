@@ -74,8 +74,8 @@ ninja -C "$build_dir" -t targets all > "$out/targets.txt" 2> /dev/null
 # BER decoder bytes nobody meant it to see; workqueue-teardown-tests removes a
 # work queue while a worker is still inside it. A tree with HM_SANITIZE but
 # without one of these no longer makes what the job exists to run.
-sanitize_targets="snmp-tests workqueue-teardown-tests"
-for target in $sanitize_targets; do
+sanitize_targets=(snmp-tests workqueue-teardown-tests)
+for target in "${sanitize_targets[@]}"; do
   if ! grep -q "^$target:" "$out/targets.txt"; then
     echo "FAILED: the build offers HM_SANITIZE but makes no $target target, which is what this job runs."
     exit 1
@@ -83,9 +83,9 @@ for target in $sanitize_targets; do
 done
 
 echo ""
-echo "== ninja $sanitize_targets (-j $jobs)"
+echo "== ninja ${sanitize_targets[*]} (-j $jobs)"
 started=$(date +%s)
-ninja -C "$build_dir" -j "$jobs" $sanitize_targets > "$out/build.log" 2>&1
+ninja -C "$build_dir" -j "$jobs" "${sanitize_targets[@]}" > "$out/build.log" 2>&1
 code=$?
 ended=$(date +%s)
 echo "ninja exit $code after $(( ended - started )) s"
@@ -103,7 +103,7 @@ fi
 # runs its stop's ten-second give-up and a twenty-second task, so it is given a
 # longer bound than the decoder tests.
 overall=0
-for target in $sanitize_targets; do
+for target in "${sanitize_targets[@]}"; do
   echo ""
   echo "== $target under AddressSanitizer (ASAN_OPTIONS=abort_on_error=1)"
   ( cd "$build_dir" && ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1 timeout 900 "./$target" ) > "$out/$target.log" 2>&1
