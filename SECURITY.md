@@ -155,7 +155,8 @@ more fixes, would go into it as well; and so 6.3.7 was released.
 So all five were public for longer than the day that step 3
 below allows, and their descriptions say more about each flaw than that step allows. 6.3.7 also carries the work that
 was under way on 13 October 2026 and, by the decision of 15 October 2026, the work already done for a later release.
-The list above, and step 3's window of about a day, stand for every release after 6.3.7.
+The batch it was made from was pushed and tagged on the same day, by the owner's decision of 16 October 2026. The
+list above, and step 3's window of about a day, stand for every release after 6.3.7.
 
 ### How a report is handled
 
