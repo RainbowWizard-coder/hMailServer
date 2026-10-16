@@ -87,6 +87,17 @@ namespace RegressionTests.Shared
       private readonly HashSet<string> silent_ =
          new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+      // Questions - "type/name" - answered as the zone otherwise would, but only
+      // so long after they were asked: a name server that answers, slowly. Inside
+      // the resolver's timeout such a lookup succeeds, and each one takes that
+      // long, which is how a chain of lookups that each answer is made to take
+      // longer than any one lookup's timeout.
+      private readonly Dictionary<string, TimeSpan> delays_ =
+         new Dictionary<string, TimeSpan>(StringComparer.OrdinalIgnoreCase);
+
+      // UDP answers go out from the serve thread and, when delayed, from timers.
+      private readonly object udpSendLock_ = new object();
+
       // Questions - "type/name" - answered SERVFAIL so many more times before they
       // are answered as the zone otherwise would: a resolver that failed once and
       // then recovered, which is what a lookup asked a second time is for.
@@ -310,6 +321,23 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    Answers the queries of one type for a name as the zone otherwise would,
+      ///    each one <paramref name="delay"/> after it was asked: a name server that
+      ///    answers slowly, within the resolver's timeout. Over UDP the answer is sent
+      ///    from a timer, so that other questions are answered meanwhile; over TCP,
+      ///    which the suite's lookups reach only for an answer too long for UDP, the
+      ///    serve thread waits, and the TCP questions behind it with it. Undone by
+      ///    <see cref="Reset"/>.
+      /// </summary>
+      public FakeDnsServer WithDelay(string name, int type, TimeSpan delay)
+      {
+         lock (answers_)
+            delays_[Key_(type, name)] = delay;
+
+         return this;
+      }
+
+      /// <summary>
       ///    Answers the next <paramref name="times"/> queries of one type for a name
       ///    SERVFAIL, and the ones after as the zone otherwise would - over any
       ///    answer added for the name, while the failures last. A resolver that
@@ -365,6 +393,7 @@ namespace RegressionTests.Shared
             nonExistent_.Clear();
             serverFailing_.Clear();
             silent_.Clear();
+            delays_.Clear();
             failuresLeft_.Clear();
             cnames_.Clear();
             raw_.Clear();
@@ -431,8 +460,14 @@ namespace RegressionTests.Shared
                var remote = new IPEndPoint(IPAddress.Any, 0);
                byte[] query = udp_.Receive(ref remote);
                byte[] response = TryBuildResponse_(query);
-               if (response != null)
-                  udp_.Send(response, response.Length, remote);
+               if (response == null)
+                  continue;
+
+               TimeSpan delay = DelayFor_(query);
+               if (delay > TimeSpan.Zero)
+                  SendUdpLater_(response, remote, delay);
+               else
+                  SendUdp_(response, remote);
             }
             catch (SocketException)
             {
@@ -462,6 +497,10 @@ namespace RegressionTests.Shared
                   if (response == null)
                      continue;
 
+                  TimeSpan delay = DelayFor_(query);
+                  if (delay > TimeSpan.Zero)
+                     Thread.Sleep(delay);
+
                   stream.Write(new[] { (byte) (response.Length >> 8), (byte) (response.Length & 0xFF) }, 0, 2);
                   stream.Write(response, 0, response.Length);
                   stream.Flush();
@@ -480,6 +519,47 @@ namespace RegressionTests.Shared
                // Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding.
             }
          }
+      }
+
+      // How long after it was asked a question is answered (WithDelay); zero for
+      // every question not given a delay. Read from a query TryBuildResponse_ has
+      // answered, so its question is whole.
+      private TimeSpan DelayFor_(byte[] query)
+      {
+         string key = Key_(QueryType_(query), QueryName_(query));
+
+         lock (answers_)
+            return delays_.TryGetValue(key, out TimeSpan delay) ? delay : TimeSpan.Zero;
+      }
+
+      private void SendUdp_(byte[] response, IPEndPoint remote)
+      {
+         lock (udpSendLock_)
+            udp_.Send(response, response.Length, remote);
+      }
+
+      // The answer goes from a timer, and the serve thread goes back to the next
+      // question at once.
+      private void SendUdpLater_(byte[] response, IPEndPoint remote, TimeSpan delay)
+      {
+         System.Threading.Tasks.Task.Delay(delay).ContinueWith(_ =>
+         {
+            if (stopping_)
+               return;
+
+            try
+            {
+               SendUdp_(response, remote);
+            }
+            catch (SocketException)
+            {
+               // Deliberately ignored: best effort only, as for an answer sent at once.
+            }
+            catch (ObjectDisposedException)
+            {
+               // Deliberately ignored: the zone was disposed while the answer waited.
+            }
+         });
       }
 
       private static byte[] ReadExactly_(NetworkStream stream, int count)

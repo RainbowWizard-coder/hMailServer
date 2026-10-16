@@ -619,17 +619,22 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   where it had waited for the task - and without the five more seconds. The stop of the TCP/IP service closes every
   one of its listeners itself, whatever the drain before it managed - the drain's request to close a listener waits on
   that listener's strand, which a thread in its accept handler, running the `OnClientConnect` script, holds - so that
-  the servers a reinitialise starts while such a thread is still there listen on every port. Once the thread has left,
-  the queue and the service are freed within a minute (the queue health task) or at the next start or stop, and the
-  connections still on the old service are closed then. `WorkQueueTeardownTester` removes two queues while their tasks
-  wait twenty seconds, inside the server on Windows (`ClassTester`) and as `workqueue-teardown-tests`, a tester the
-  Linux build runs and `linux-sanitize` runs under AddressSanitizer: on the tree before this change AddressSanitizer
-  reports the use of the freed queue and the freed object it kept, and here both are kept until the tasks end and
-  freed after. `IOServiceLifetimeTester`, inside the server on Windows, stops and starts the servers while a task of a
-  session queue, and then a handler on a listener's strand, is held past the stop's give-up, and holds the TCP/IP
-  service to being kept until the thread has left and freed after, and the start to listening on that listener's port.
-  `API.Events` and `API.EventsJavaScript` reinitialise while an `OnClientConnect` script runs on, and require the port
-  to greet while it still runs and once it has ended.
+  the servers a reinitialise starts while such a thread is still there listen on every port. The start - a
+  reinitialise's - puts a new set of spam tests in place and leaves the one such a thread is still going through, in a
+  session's SPF check or the scan of a message being finalised, to that thread until it has finished with it, where it
+  freed it under the thread (`SpamProtection::Load`). Once the thread has left, the queue and the service are freed
+  within a minute (the queue health task) or at the next start or stop, and the connections still on the old service are
+  closed then. `WorkQueueTeardownTester` removes two queues while their tasks wait twenty seconds, inside the server on
+  Windows (`ClassTester`) and as `workqueue-teardown-tests`, a tester the Linux build runs and `linux-sanitize` runs
+  under AddressSanitizer: on the tree before this change AddressSanitizer reports the use of the freed queue and the
+  freed object it kept, and here both are kept until the tasks end and freed after. `IOServiceLifetimeTester`, inside
+  the server on Windows, stops and starts the servers while a task of a session queue, and then a handler on a
+  listener's strand, is held past the stop's give-up, and holds the TCP/IP service to being kept until the thread has
+  left and freed after, and the start to listening on that listener's port. `API.Events` and `API.EventsJavaScript`
+  reinitialise while an `OnClientConnect` script runs on, or an `OnAcceptMessage` script finalising a message, and
+  `AntiSpam.SpfEvaluation`, in the Windows and the Linux suites, while a session's SPF check runs on, its eight lookups
+  each answered three seconds after it is asked; each requires port 25 to greet while the script or the check still
+  runs, and again once it has ended, and the `OnAcceptMessage` tests a message to be taken and delivered after it.
 
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement

@@ -418,6 +418,95 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("An OnAcceptMessage script still running on one of the asynchronous-task queue's threads, finalising a " +
+                   "message, when a reinitialise has given up on that thread and gone on without it ends in a server " +
+                   "that is still there: the servers the reinitialise started greet on port 25 while the script still " +
+                   "runs, and once it has ended they greet again and take and deliver a message. Only the message with " +
+                   "the subject the script looks for is held.")]
+      public void AnOnAcceptMessageThatOutlastsAReinitialiseLeavesTheServersRunning()
+      {
+         // As the OnClientConnect test's: past the stop's ten seconds for the
+         // asynchronous-task queue's threads and the start after it, and inside
+         // ScriptTimeout's sixty seconds.
+         const int holdSeconds = 45;
+         const string heldSubject = "Held across a reinitialise";
+
+         var script =
+            "Sub OnAcceptMessage(oClient, oMessage)\r\n" +
+            "   If oMessage.Subject <> \"" + heldSubject + "\" Then Exit Sub\r\n" +
+            "   EventLog.Write(\"OnAcceptMessage holding\")\r\n" +
+            "   Dim t\r\n" +
+            "   t = Now\r\n" +
+            "   Do While DateDiff(\"s\", t, Now) < " + holdSeconds + "\r\n" +
+            "   Loop\r\n" +
+            "   EventLog.Write(\"OnAcceptMessage released\")\r\n" +
+            "End Sub\r\n";
+
+         var held = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "held@example.test", "test");
+         var after = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "after@example.test", "test");
+         string heldAddress = held.Address;
+         string afterAddress = after.Address;
+
+         var scripting = _settings.Scripting;
+         scripting.Language = "VBScript";
+         File.WriteAllText(scripting.CurrentScriptFile, script);
+         scripting.Enabled = true;
+         scripting.Reload();
+
+         try
+         {
+            LogHandler.DeleteEventLog();
+
+            // Not waited for: its "250" is to go out on a connection of the TCP/IP
+            // service the reinitialise stops. What becomes of the message is not
+            // asserted; that the server is still there afterwards is.
+            var sender = System.Threading.Tasks.Task.Run(() =>
+            {
+               try
+               {
+                  new SmtpClientSimulator().Send(heldAddress, heldAddress, heldSubject, "Body");
+               }
+               catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+               {
+                  // Deliberately ignored: the session is cut off by the reinitialise, which is the scenario.
+               }
+            });
+
+            StringAssert.Contains("OnAcceptMessage holding", WaitForEventLogText("OnAcceptMessage holding", TimeSpan.FromSeconds(20)),
+               "OnAcceptMessage did not begin for the message held across the reinitialise.");
+
+            _application.Reinitialize();
+
+            ClassicAssert.IsFalse(LogHandler.ReadEventLog().Contains("OnAcceptMessage released"),
+               "OnAcceptMessage had ended before the reinitialise returned, so the reinitialise did not go on without its thread and nothing was tested.");
+
+            string seen;
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers the reinitialise started did not greet on port 25 within twenty seconds, while the " +
+               "OnAcceptMessage script the reinitialise gave up on was still running; last seen: " + seen + ".");
+
+            StringAssert.Contains("OnAcceptMessage released", WaitForEventLogText("OnAcceptMessage released", TimeSpan.FromSeconds(holdSeconds + 15)),
+               "OnAcceptMessage did not end within its span.");
+
+            // The rest of the finalisation runs after the script: a few seconds for it.
+            System.Threading.Thread.Sleep(3000);
+
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers did not greet on port 25 within twenty seconds once the OnAcceptMessage script the " +
+               "reinitialise gave up on had ended; last seen: " + seen + ".");
+
+            SmtpClientSimulator.StaticSend(afterAddress, afterAddress, "After the reinitialise", "Body");
+            Pop3ClientSimulator.AssertGetFirstMessageText(afterAddress, "test");
+
+            sender.Wait(TimeSpan.FromSeconds(1));
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
       // The event log since the test's DeleteEventLog, polled until it holds the
       // text or the bound passes; returned either way, for the assertion to print.
       private static string WaitForEventLogText(string expected, TimeSpan bound)

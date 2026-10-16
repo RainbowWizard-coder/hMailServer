@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
+
 namespace HM
 {
    class Message;
@@ -69,10 +72,23 @@ namespace HM
 
       GreyListingVerdict PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress, const String &heloHost, bool afterData);
    private:
-      
-      
+
+      // The runner a run of the tests is to use, taken once per run.
+      std::shared_ptr<SpamTestRunner> CurrentRunner_() const;
+
+      // The runner and the tests it goes through. Load puts a new one here at
+      // every start of the servers, a reinitialise's among them, while a thread
+      // the stop before it went on without (WorkQueue::Stop) may still be in the
+      // tests of the one it replaces - a session's SPF check on one of the TCP/IP
+      // threads, a scan of a message being finalised. Each run takes its own
+      // reference first (CurrentRunner_), so that the runner it began with, and
+      // its tests, live until it has finished. Read and replaced atomically, as
+      // IniFileSettings' block is.
+#if defined(__cpp_lib_atomic_shared_ptr)
+      std::atomic<std::shared_ptr<SpamTestRunner>> spam_test_runner_;
+#else
       std::shared_ptr<SpamTestRunner> spam_test_runner_;
-      
+#endif
    };
 
 }

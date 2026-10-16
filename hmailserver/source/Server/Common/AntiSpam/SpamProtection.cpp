@@ -60,10 +60,29 @@ namespace HM
    void
    SpamProtection::Load()
    {
-      spam_test_runner_ = std::shared_ptr<SpamTestRunner>(new SpamTestRunner);
-      spam_test_runner_->LoadSpamTests();
+      // Put in place once its tests are loaded, so that no run finds a runner
+      // part way through LoadSpamTests; the one it replaces is let go of here,
+      // and freed when the last run still going through its tests returns.
+      std::shared_ptr<SpamTestRunner> runner = std::shared_ptr<SpamTestRunner>(new SpamTestRunner);
+      runner->LoadSpamTests();
+
+#if defined(__cpp_lib_atomic_shared_ptr)
+      spam_test_runner_.store(runner);
+#else
+      std::atomic_store(&spam_test_runner_, runner);
+#endif
 
       DKIM::Initialize();
+   }
+
+   std::shared_ptr<SpamTestRunner>
+   SpamProtection::CurrentRunner_() const
+   {
+#if defined(__cpp_lib_atomic_shared_ptr)
+      return spam_test_runner_.load();
+#else
+      return std::atomic_load(&spam_test_runner_);
+#endif
    }
 
    std::set<std::shared_ptr<SpamTestResult> >
@@ -85,7 +104,14 @@ namespace HM
       AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
       int maxScore = std::max(config.GetSpamDeleteThreshold(), config.GetSpamMarkThreshold());
 
-      std::set<std::shared_ptr<SpamTestResult> > setResult = spam_test_runner_->RunSpamTest(pTestData, SpamTest::PreTransmission, maxScore);
+      // This run's own reference: a start of the servers while the tests run
+      // puts a new runner in place and leaves this one to this run (the
+      // member's comment).
+      std::shared_ptr<SpamTestRunner> runner = CurrentRunner_();
+      if (!runner)
+         return std::set<std::shared_ptr<SpamTestResult> >();
+
+      std::set<std::shared_ptr<SpamTestResult> > setResult = runner->RunSpamTest(pTestData, SpamTest::PreTransmission, maxScore);
 
       return setResult;
    }
@@ -128,7 +154,12 @@ namespace HM
 
       int maxScore = std::max(config.GetSpamDeleteThreshold(), config.GetSpamMarkThreshold());
 
-      std::set<std::shared_ptr<SpamTestResult> > setResult = spam_test_runner_->RunSpamTest(pTestData, SpamTest::PostTransmission, maxScore);
+      // As in RunPreTransmissionTests.
+      std::shared_ptr<SpamTestRunner> runner = CurrentRunner_();
+      if (!runner)
+         return std::set<std::shared_ptr<SpamTestResult> >();
+
+      std::set<std::shared_ptr<SpamTestResult> > setResult = runner->RunSpamTest(pTestData, SpamTest::PostTransmission, maxScore);
 
       return setResult;
    }

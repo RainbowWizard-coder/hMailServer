@@ -2,8 +2,13 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Shared;
 
 namespace RegressionTests.AntiSpam
@@ -209,6 +214,106 @@ namespace RegressionTests.AntiSpam
 
          Assert.AreEqual("none", AuthenticationResultsSpf(messageData),
             "Authentication-Results must agree with Received-SPF.\r\n" + messageData);
+      }
+
+      [Test]
+      [Description("An SPF check whose lookups are each answered, but slowly, runs on in the session's handler on one " +
+                   "of the TCP/IP threads for longer than a stop of the servers waits for those threads. A reinitialise " +
+                   "made while it runs goes on without that thread, the servers it starts greet on port 25 while the " +
+                   "check still runs, and the server is still there, and greets again, once the check has ended.")]
+      public void AnSpfCheckThatOutlastsAReinitialiseLeavesTheServersRunning()
+      {
+         // Eight includes, each answered three seconds after it is asked: at
+         // least twenty-four seconds in all - about forty-eight on server1's
+         // bench and on server2, where each lookup took about six - past the ten
+         // the stop waits for a TCP/IP thread and the start after it, while each
+         // lookup on its own answers inside its timeout: DNSQueryTimeout's ten
+         // seconds on Windows, five a name server on Linux (DnssecResolver).
+         // RFC 7208 allows ten terms that look up a name; the evaluator bounds
+         // their number, not their time. The names are this run's own, so that
+         // no cache answers.
+         const int includes = 8;
+         var delay = TimeSpan.FromSeconds(3);
+
+         string domain = "spf-slow-" + Guid.NewGuid().ToString("N").Substring(0, 12) + ".test";
+         string first = "16/i1." + domain;
+         string last = "16/i" + includes + "." + domain;
+
+         var policy = new StringBuilder("v=spf1");
+         for (int i = 1; i <= includes; i++)
+         {
+            string name = "i" + i + "." + domain;
+            SuiteDns.Zone.WithTxt(name, "v=spf1 -all").WithDelay(name, FakeDnsServer.TypeTxt, delay);
+            policy.Append(" include:" + name);
+         }
+         policy.Append(" ?all");
+         SuiteDns.Zone.WithTxt(domain, policy.ToString());
+
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "spf-slow@example.test", "test");
+
+         SuiteDns.Zone.ClearQueries();
+
+         using (var held = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(held.Connect(25), "Could not connect to port 25.");
+            held.ReadUntil("220");
+            held.Send("EHLO spf-slow.test\r\n");
+            held.ReadUntil("250 ");
+
+            // The check runs where the spam tests before the data run: on MAIL FROM
+            // by default, on RCPT TO with DNSBLChecksAfterMailFrom=0. Both are sent,
+            // and no answer is waited for.
+            held.Send("MAIL FROM:<sender@" + domain + ">\r\nRCPT TO:<" + account.Address + ">\r\n");
+
+            ClassicAssert.IsTrue(WaitForQuestion_(first, TimeSpan.FromSeconds(20)),
+               "The SPF check did not ask for its first include within twenty seconds.");
+
+            _application.Reinitialize();
+
+            ClassicAssert.IsFalse(Asked_(last),
+               "The SPF check had reached its last include before the reinitialise returned, so the reinitialise did " +
+               "not go on without its thread and nothing was tested.");
+
+            string seen;
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers the reinitialise started did not greet on port 25 within twenty seconds, while the SPF " +
+               "check the reinitialise went on without was still running; last seen: " + seen + ".");
+
+            ClassicAssert.IsFalse(Asked_(last),
+               "The SPF check had reached its last include before the servers the reinitialise started were seen " +
+               "to greet, so they were not seen beside it.");
+
+            // Its last lookup asked and answered, the check ends and the thread
+            // leaves the handler: what a server that freed what the thread was in
+            // would not survive.
+            ClassicAssert.IsTrue(WaitForQuestion_(last, TimeSpan.FromSeconds(60)),
+               "The SPF check did not ask for its last include within a minute.");
+            Thread.Sleep(delay + TimeSpan.FromSeconds(3));
+
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers did not greet on port 25 within twenty seconds once the SPF check the reinitialise went " +
+               "on without had ended; last seen: " + seen + ".");
+         }
+      }
+
+      private static bool Asked_(string question)
+      {
+         return SuiteDns.Zone.Queries.Contains(question, StringComparer.OrdinalIgnoreCase);
+      }
+
+      private static bool WaitForQuestion_(string question, TimeSpan bound)
+      {
+         var deadline = DateTime.UtcNow + bound;
+
+         while (!Asked_(question))
+         {
+            if (DateTime.UtcNow >= deadline)
+               return false;
+
+            Thread.Sleep(100);
+         }
+
+         return true;
       }
    }
 }
