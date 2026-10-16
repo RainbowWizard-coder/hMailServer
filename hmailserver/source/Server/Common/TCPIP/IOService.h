@@ -97,8 +97,8 @@ namespace HM
       std::vector<std::shared_ptr<TCPServer> > tcp_servers_;
 
       // True from construction until StopAccepting closes the listeners; back to
-      // true when StartAccepting reopens them. The stop in DoWork closes them
-      // only when this is still true.
+      // true when StartAccepting reopens them; false for good from the stop in
+      // DoWork, which closes every listener whatever this says.
       std::atomic<bool> accepting_;
 
       boost::condition_variable do_work_dummy;

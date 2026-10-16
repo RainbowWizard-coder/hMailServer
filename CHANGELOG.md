@@ -615,13 +615,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   re-check of 10 October 2026 saw end in an access violation and HM6075 in "work queue .". The manager of the work
   queues now keeps a queue whose stop gave up on a thread until the thread has left (`WorkQueue::HasRunningWorkers`),
   and the TCP/IP queue and the three session queues each keep the TCP/IP service alive until they are freed
-  themselves, so that the task ends in objects that still exist. The stop goes on at once, as before and without the
-  five more seconds, and a reinitialise starts the servers again with a new TCP/IP service, whose listeners take the
-  ports the old one closed. Once the thread has left, the queue and the service are freed within a minute (the
-  queue health task) or at the next start or stop, and the connections still on the old service are closed then.
-  `workqueue-teardown-tests`, a tester the Linux build runs and `linux-sanitize` runs under AddressSanitizer, removes
-  two queues while their tasks wait twenty seconds: on the tree before this change AddressSanitizer reports the use of
-  the freed queue and the freed object it kept, and here both are kept until the tasks end and freed after.
+  themselves, so that the task ends in objects that still exist. The stop goes on without the thread - on Windows too,
+  where it had waited for the task - and without the five more seconds. The stop of the TCP/IP service closes every
+  one of its listeners itself, whatever the drain before it managed - the drain's request to close a listener waits on
+  that listener's strand, which a thread in its accept handler, running the `OnClientConnect` script, holds - so that
+  the servers a reinitialise starts while such a thread is still there listen on every port. Once the thread has left,
+  the queue and the service are freed within a minute (the queue health task) or at the next start or stop, and the
+  connections still on the old service are closed then. `workqueue-teardown-tests`, a tester the Linux build runs and
+  `linux-sanitize` runs under AddressSanitizer, removes two queues while their tasks wait twenty seconds: on the tree
+  before this change AddressSanitizer reports the use of the freed queue and the freed object it kept, and here both
+  are kept until the tasks end and freed after. `API.Events` and `API.EventsJavaScript` reinitialise while an
+  `OnClientConnect` script runs on, and require the port to greet while it still runs and once it has ended.
 
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement

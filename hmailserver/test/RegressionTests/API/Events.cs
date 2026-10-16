@@ -355,6 +355,95 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An OnClientConnect script still running on one of the TCP/IP threads when a reinitialise has given up " +
+                   "on that thread and gone on without it leaves its port to the servers the reinitialise starts: they " +
+                   "greet on that port while the script still runs, and again once it has ended. The script runs for " +
+                   "one client address alone, 127.0.0.2, so that the greetings looked for are not held as well.")]
+      public void AnOnClientConnectThatOutlastsAReinitialiseLeavesItsPortToTheServersItStarts()
+      {
+         // Past the stop's give-ups - ten seconds for the listeners' close, ten for
+         // the TCP/IP threads - and the start after them, and inside ScriptTimeout's
+         // sixty seconds.
+         const int holdSeconds = 45;
+
+         var script =
+            "Sub OnClientConnect(oClient)\r\n" +
+            "   If oClient.IPAddress <> \"127.0.0.2\" Then Exit Sub\r\n" +
+            "   EventLog.Write(\"OnClientConnect holding\")\r\n" +
+            "   Dim t\r\n" +
+            "   t = Now\r\n" +
+            "   Do While DateDiff(\"s\", t, Now) < " + holdSeconds + "\r\n" +
+            "   Loop\r\n" +
+            "   EventLog.Write(\"OnClientConnect released\")\r\n" +
+            "End Sub\r\n";
+
+         var scripting = _settings.Scripting;
+         scripting.Language = "VBScript";
+         File.WriteAllText(scripting.CurrentScriptFile, script);
+         scripting.Enabled = true;
+         scripting.Reload();
+
+         try
+         {
+            LogHandler.DeleteEventLog();
+
+            using (var held = new System.Net.Sockets.TcpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.2"), 0)))
+            {
+               held.Connect(TestPorts.HostAddress, TestPorts.Actual(25));
+
+               StringAssert.Contains("OnClientConnect holding", WaitForEventLogText("OnClientConnect holding", TimeSpan.FromSeconds(20)),
+                  "OnClientConnect did not begin for the connection from 127.0.0.2.");
+
+               _application.Reinitialize();
+
+               ClassicAssert.IsFalse(LogHandler.ReadEventLog().Contains("OnClientConnect released"),
+                  "OnClientConnect had ended before the reinitialise returned, so the reinitialise did not go on without its thread and nothing was tested.");
+
+               string seen;
+               ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+                  "The servers the reinitialise started did not greet on port 25 within twenty seconds, while the " +
+                  "OnClientConnect script the reinitialise gave up on was still running; last seen: " + seen + ".");
+
+               StringAssert.Contains("OnClientConnect released", WaitForEventLogText("OnClientConnect released", TimeSpan.FromSeconds(holdSeconds + 15)),
+                  "OnClientConnect did not end within its span.");
+
+               ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+                  "The servers did not greet on port 25 within twenty seconds once the OnClientConnect script the " +
+                  "reinitialise gave up on had ended; last seen: " + seen + ".");
+            }
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      // The event log since the test's DeleteEventLog, polled until it holds the
+      // text or the bound passes; returned either way, for the assertion to print.
+      private static string WaitForEventLogText(string expected, TimeSpan bound)
+      {
+         var deadline = DateTime.UtcNow + bound;
+         var contents = string.Empty;
+
+         while (true)
+         {
+            try
+            {
+               contents = LogHandler.ReadEventLog();
+            }
+            catch (IOException)
+            {
+               // The server may be writing it; read again.
+            }
+
+            if (contents.Contains(expected) || DateTime.UtcNow >= deadline)
+               return contents;
+
+            System.Threading.Thread.Sleep(250);
+         }
+      }
+
+      [Test]
       public void TestOnDeliverMessageJScript()
       {
          LogHandler.DeleteEventLog();

@@ -173,6 +173,7 @@ namespace HM
       ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file,
       SMTPAuthenticationMode smtp_authentication) :
       strand_(boost::asio::make_strand(io_context)),
+      closed_(false),
       acceptor_(io_context),
       context_(boost::asio::ssl::context::sslv23),
       io_context_(io_context),
@@ -204,103 +205,120 @@ namespace HM
    {
       boost::asio::ip::tcp::endpoint endpoint(ipaddress_.GetAddress(), port_);
 
-      try
-      {
-         acceptor_.open(endpoint.protocol());
+      // What failed, reported once acceptor_mutex_ is let go of: a report can
+      // run the OnError script, and a Close made meanwhile is not to wait for
+      // it (TCPServer.h).
+      int errorId = 0;
+      String sErrorMessage;
 
-         // An IPv6 acceptor answers for IPv6 only. Windows sockets are made that
-         // way and this server has always bound a separate IPv4 acceptor beside
-         // each IPv6 one; Linux makes an IPv6 socket dual-stack by default, so the
-         // second of the pair to bind fails with "address already in use" and a
-         // port that was configured for both families ends up listening on
-         // neither. Saying it explicitly is the same behaviour on both.
-         if (endpoint.address().is_v6())
-            acceptor_.set_option(boost::asio::ip::v6_only(true));
+      {
+         boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
+
+         // Closed for good by the stop of the I/O service: not opened again, and
+         // nothing to report - this listener's service is ending.
+         if (closed_)
+            return false;
+
+         try
+         {
+            acceptor_.open(endpoint.protocol());
+
+            // An IPv6 acceptor answers for IPv6 only. Windows sockets are made that
+            // way and this server has always bound a separate IPv4 acceptor beside
+            // each IPv6 one; Linux makes an IPv6 socket dual-stack by default, so the
+            // second of the pair to bind fails with "address already in use" and a
+            // port that was configured for both families ends up listening on
+            // neither. Saying it explicitly is the same behaviour on both.
+            if (endpoint.address().is_v6())
+               acceptor_.set_option(boost::asio::ip::v6_only(true));
 
 #ifdef HM_PLATFORM_POSIX
-         // SO_REUSEADDR means something different on the two platforms. On
-         // Windows it lets a second socket take a port that is in use, which is
-         // why it is refused below; on POSIX it only lets a restart bind while the
-         // previous instance's connections linger in TIME_WAIT, which is what
-         // every daemon wants and without which a restart fails for a minute.
-         acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+            // SO_REUSEADDR means something different on the two platforms. On
+            // Windows it lets a second socket take a port that is in use, which is
+            // why it is refused below; on POSIX it only lets a restart bind while the
+            // previous instance's connections linger in TIME_WAIT, which is what
+            // every daemon wants and without which a restart fails for a minute.
+            acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 #else
-         acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
+            acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
 
-         // SO_EXCLUSIVEADDRUSE as well, unless another of the configured TCP/IP
-         // ports has this one's number in this one's family (IOService decides,
-         // SetExclusiveAddressUse): no other socket then takes the port's
-         // connections on a more specific address, nor does this listener start on
-         // the wildcard while another holds one address of the port. An
-         // administrator may list one number twice - SMTP on 0.0.0.0 and again on
-         // 127.0.0.1 with other settings - and the option would refuse the second
-         // of those, so there it is left off. A drain left while sessions go on, and
-         // a service restart, bind the same address again, which the option does not
-         // refuse (AcceptLoop::ClaimPortExclusively has the measurements).
-         if (exclusive_address_use_)
-            AcceptLoop::ClaimPortExclusively(acceptor_.native_handle());
+            // SO_EXCLUSIVEADDRUSE as well, unless another of the configured TCP/IP
+            // ports has this one's number in this one's family (IOService decides,
+            // SetExclusiveAddressUse): no other socket then takes the port's
+            // connections on a more specific address, nor does this listener start on
+            // the wildcard while another holds one address of the port. An
+            // administrator may list one number twice - SMTP on 0.0.0.0 and again on
+            // 127.0.0.1 with other settings - and the option would refuse the second
+            // of those, so there it is left off. A drain left while sessions go on, and
+            // a service restart, bind the same address again, which the option does not
+            // refuse (AcceptLoop::ClaimPortExclusively has the measurements).
+            if (exclusive_address_use_)
+               AcceptLoop::ClaimPortExclusively(acceptor_.native_handle());
 #endif
+         }
+         catch (const boost::system::system_error &error)
+         {
+            String msg = error.what();
+
+            sErrorMessage.Format(_T("Failed to initialize local acceptor. Error: %s. Address: %s, Port: %d."), 
+               msg.c_str(), String(ipaddress_.ToString()).c_str(), port_);
+
+            errorId = 4316;
+         }
+
+         if (errorId == 0)
+         {
+            try
+            {
+               acceptor_.bind(endpoint);
+            }
+            catch (const boost::system::system_error &error)
+            {
+               String msg = error.what();
+
+               sErrorMessage = Formatter::Format("Failed to bind to local port. Error: {0}. Address: {1}, Error code: {2}, Port: {3}. This is often caused by another server listening on the same port."
+                                                 "To determine which server is listening on the port, telnet your server on port {4}. Make sure that no other email server is running "
+                                                 "and listening on this port, and then restart the hMailServer service.", 
+                                                  msg, String(ipaddress_.ToString()), error.code().value(), port_, port_);
+
+               errorId = 4316;
+
+               // Closed again, so that is_open() does not answer true for a port that
+               // is not bound: RestartAccept reads it as "already listening", and a
+               // drain left with this port taken would otherwise never try it again.
+               boost::system::error_code closeError;
+               acceptor_.close(closeError);
+            }
+         }
+
+         if (errorId == 0)
+         {
+            try
+            {
+               acceptor_.listen();
+            }
+            catch (const boost::system::system_error &error)
+            {
+               String msg = error.what();
+
+               sErrorMessage = Formatter::Format("Failed to listen on local port. Error: {0}. Error code: {1}, Address: {2}, Port: {3}",
+                                                 msg, error.code().value(), String(ipaddress_.ToString()), port_);
+
+               errorId = 4317;
+
+               boost::system::error_code closeError;
+               acceptor_.close(closeError);
+            }
+         }
       }
-      catch (const boost::system::system_error &error)
+
+      if (errorId != 0)
       {
-         String msg = error.what();
-
-         String sErrorMessage;
-         sErrorMessage.Format(_T("Failed to initialize local acceptor. Error: %s. Address: %s, Port: %d."), 
-            msg.c_str(), String(ipaddress_.ToString()).c_str(), port_);
-
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 4316, "TCPServer::Run()", sErrorMessage);
-
-         return false;
-      }
-
-      try
-      {
-         acceptor_.bind(endpoint);
-
-      }
-      catch (const boost::system::system_error &error)
-      {
-         String msg = error.what();
-
-         String sErrorMessage = Formatter::Format("Failed to bind to local port. Error: {0}. Address: {1}, Error code: {2}, Port: {3}. This is often caused by another server listening on the same port."
-                                                  "To determine which server is listening on the port, telnet your server on port {4}. Make sure that no other email server is running "
-                                                  "and listening on this port, and then restart the hMailServer service.", 
-                                                   msg, String(ipaddress_.ToString()), error.code().value(), port_, port_);
-
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 4316, "TCPServer::Run()", sErrorMessage);
-
-         // Closed again, so that is_open() does not answer true for a port that
-         // is not bound: RestartAccept reads it as "already listening", and a
-         // drain left with this port taken would otherwise never try it again.
-         boost::system::error_code closeError;
-         acceptor_.close(closeError);
-
-         return false;
-      }
-
-      try
-      {
-         acceptor_.listen();
-      }
-      catch (const boost::system::system_error &error)
-      {
-         String msg = error.what();
-
-         String sErrorMessage = Formatter::Format("Failed to listen on local port. Error: {0}. Error code: {1}, Address: {2}, Port: {3}",
-                                          msg, error.code().value(), String(ipaddress_.ToString()), port_);
-
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 4317, "TCPServer::Run()", sErrorMessage);
-
-         boost::system::error_code closeError;
-         acceptor_.close(closeError);
-
+         ErrorManager::Instance()->ReportError(ErrorManager::High, errorId, "TCPServer::Run()", sErrorMessage);
          return false;
       }
 
       return true;
-
-
    }
   
 
@@ -354,9 +372,18 @@ namespace HM
       if (!prepared_)
          return false;
 
-      if (acceptor_.is_open())
-         return true;
+      {
+         boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
 
+         if (closed_)
+            return false;
+
+         if (acceptor_.is_open())
+            return true;
+      }
+
+      // A Close between the look above and this is seen by InitAcceptor, which
+      // then opens nothing.
       if (!InitAcceptor())
          return false;
 
@@ -425,9 +452,13 @@ namespace HM
    void
    TCPServer::StartAccept()
    {
+      // Under the mutex, so that a Close from the stop's thread finds the accept
+      // either not yet posted - and then it is not - or posted, and cancels it.
+      boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
+
       if (acceptor_.is_open())
       {
-        
+
          std::shared_ptr<TCPConnection> pNewConnection = connectionFactory_->Create(connection_security_, io_context_, context_);
 
          // The CA bundle lives in the shared SSL context, but the decision to ask
@@ -456,11 +487,28 @@ namespace HM
    void
    TCPServer::StopAccept()
    {
+      boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
+
       // eat any errors thrown by cancel:
       boost::system::error_code error;
       acceptor_.cancel(error);
 
       acceptor_.close();
+   }
+
+   void
+   TCPServer::Close()
+   {
+      boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
+
+      closed_ = true;
+
+      // Whatever state it is in - open and accepting, closed by a drain, never
+      // opened because Run refused the port: closing a closed acceptor does
+      // nothing, and a failure has nothing left to act on at a stop.
+      boost::system::error_code error;
+      acceptor_.cancel(error);
+      acceptor_.close(error);
    }
 
    void 
@@ -477,8 +525,8 @@ namespace HM
              The I/O operation has been aborted because of either a thread exit or
              an application request: 995 on Windows, ECANCELED on POSIX. Compared
              as the asio condition rather than as the Windows number, because
-             StopAccept is what causes it and StopAccept now runs during a drain
-             as well as at a stop - and on POSIX the number never matched, so the
+             StopAccept is what causes it during a drain, as Close does at a
+             stop - and on POSIX the number never matched, so the
              fall-through below re-posted an accept on an acceptor that a drain
              had just closed and RestartAccept was about to reopen, leaving two
              outstanding accepts on the port for the life of the process.

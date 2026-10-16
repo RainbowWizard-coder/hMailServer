@@ -107,6 +107,57 @@ namespace RegressionTests.Shared
          return true;
       }
 
+      // Whether the port greets ("220") a connection from the usual address within
+      // the bound. A connection a listener nothing accepts from takes into its
+      // backlog is answered by nothing, so each try waits five seconds at most for
+      // a greeting and the next connects again.
+      public static bool GreetsWithin(int port, TimeSpan bound, out string seen)
+      {
+         var deadline = DateTime.UtcNow + bound;
+         seen = "nothing";
+
+         while (DateTime.UtcNow < deadline)
+         {
+            var connection = new TcpConnection();
+            try
+            {
+               if (!connection.Connect(port))
+               {
+                  seen = "no connection";
+               }
+               else
+               {
+                  var left = deadline - DateTime.UtcNow;
+                  var wait = left < TimeSpan.FromSeconds(5) ? left : TimeSpan.FromSeconds(5);
+
+                  if (wait > TimeSpan.Zero && connection.WaitForData(wait))
+                  {
+                     var greeting = connection.Receive();
+                     if (greeting.StartsWith("220"))
+                     {
+                        connection.Send("QUIT\r\n");
+                        return true;
+                     }
+
+                     seen = "\"" + greeting.Trim() + "\"";
+                  }
+                  else
+                  {
+                     seen = "a connection that nothing greeted within five seconds";
+                  }
+               }
+            }
+            finally
+            {
+               connection.Disconnect();
+            }
+
+            Thread.Sleep(250);
+         }
+
+         return false;
+      }
+
       public bool IsPortOpen(int iPort)
       {
          if (!Connect(iPort))

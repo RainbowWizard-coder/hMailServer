@@ -214,17 +214,26 @@ namespace HM
 
          io_context_.stop();
 
-         // Once only: a drain (StopAccepting) has usually closed them already,
-         // and StopServers always calls it first now. The io_context is stopped
-         // above, so nothing else can be touching an acceptor here.
-         if (accepting_.exchange(false))
+         // Every listener closed for good, here, whatever the drain did. A drain
+         // (StopAccepting, which StopServers calls first) asks each listener's
+         // strand to close it, and a strand a thread is still in - a handler
+         // that has re-armed its accept and is running the OnClientConnect
+         // script, say - runs that request only once the thread leaves it, which
+         // the io_context, stopped above, then never lets it do. Left to it, such
+         // a listener would stay open and bound for as long as this service is
+         // kept - and a stop that gives up on that thread keeps it until the
+         // thread has left (WorkQueueManager) - so that the next start's listener
+         // on that port could not bind. TCPServer::Close takes the acceptor's own
+         // lock, so it is made here, beside any handler still on the strand, and
+         // nothing opens the acceptor again after it.
+         accepting_ = false;
          {
             boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
             auto iterServer = tcp_servers_.begin();
             auto iterEnd = tcp_servers_.end();
             for (; iterServer != iterEnd; iterServer++)
             {
-               (*iterServer)->StopAccept();
+               (*iterServer)->Close();
             }
          }
 

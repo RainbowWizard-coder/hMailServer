@@ -120,9 +120,15 @@ namespace RegressionTests.API
       /// print it.
       private static string WaitForEventLog(string expected)
       {
-         var contents = string.Empty;
+         return WaitForEventLog(expected, TimeSpan.FromSeconds(20));
+      }
 
-         for (var i = 0; i < 80; i++)
+      private static string WaitForEventLog(string expected, TimeSpan bound)
+      {
+         var contents = string.Empty;
+         var tries = Math.Max(1, (int) (bound.TotalMilliseconds / 250));
+
+         for (var i = 0; i < tries; i++)
          {
             try
             {
@@ -371,6 +377,56 @@ namespace RegressionTests.API
          StringAssert.IsMatch("Address: [0-9a-fA-F.:]+", eventLogText);
          // Empty: nobody has logged on when a client connects.
          StringAssert.Contains("Username: \"", eventLogText);
+      }
+
+      [Test]
+      [Description("An OnClientConnect handler still running on one of the TCP/IP threads when a reinitialise has given " +
+                   "up on that thread and gone on without it leaves its port to the servers the reinitialise starts: " +
+                   "they greet on that port while the handler still runs, and again once it has ended (as API/Events.cs " +
+                   "has it in VBScript). The handler runs for one client address alone, 127.0.0.2, so that the " +
+                   "greetings looked for are not held as well.")]
+      public void AnOnClientConnectThatOutlastsAReinitialiseLeavesItsPortToTheServersItStarts()
+      {
+         // Past the stop's give-ups - ten seconds for the listeners' close, ten for
+         // the TCP/IP threads - and the start after them, and inside ScriptTimeout's
+         // sixty seconds.
+         const int holdSeconds = 45;
+
+         InstallScript(Lines(
+            "function OnClientConnect(oClient) {",
+            "   if (oClient.IPAddress !== '127.0.0.2') return;",
+            "   EventLog.Write('OnClientConnect holding');",
+            "   var until = Date.now() + " + (holdSeconds * 1000) + ";",
+            "   while (Date.now() < until) { }",
+            "   EventLog.Write('OnClientConnect released');",
+            "}"));
+
+         LogHandler.DeleteEventLog();
+
+         using (var held = new System.Net.Sockets.TcpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.2"), 0)))
+         {
+            held.Connect(TestPorts.HostAddress, TestPorts.Actual(25));
+
+            StringAssert.Contains("OnClientConnect holding", WaitForEventLog("OnClientConnect holding"),
+               "OnClientConnect did not begin for the connection from 127.0.0.2.");
+
+            _application.Reinitialize();
+
+            ClassicAssert.IsFalse(LogHandler.ReadEventLog().Contains("OnClientConnect released"),
+               "OnClientConnect had ended before the reinitialise returned, so the reinitialise did not go on without its thread and nothing was tested.");
+
+            string seen;
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers the reinitialise started did not greet on port 25 within twenty seconds, while the " +
+               "OnClientConnect handler the reinitialise gave up on was still running; last seen: " + seen + ".");
+
+            StringAssert.Contains("OnClientConnect released", WaitForEventLog("OnClientConnect released", TimeSpan.FromSeconds(holdSeconds + 15)),
+               "OnClientConnect did not end within its span.");
+
+            ClassicAssert.IsTrue(TcpConnection.GreetsWithin(25, TimeSpan.FromSeconds(20), out seen),
+               "The servers did not greet on port 25 within twenty seconds once the OnClientConnect handler the " +
+               "reinitialise gave up on had ended; last seen: " + seen + ".");
+         }
       }
 
       [Test]

@@ -7,6 +7,9 @@
 #include <ctime>
 #include <iostream>
 
+#include <boost/thread/lock_guard.hpp>
+#include <boost/thread/mutex.hpp>
+
 #include "SocketConstants.h"
 
 #include "../BO/SSLCertificates.h"
@@ -29,21 +32,34 @@ namespace HM
       ~TCPServer(void);
 
       void Run();
+
+      // Closes the acceptor, which RestartAccept may open again: a drain's half.
       void StopAccept();
+
+      // Closes the acceptor for good: nothing opens it again, RestartAccept
+      // included. The stop of the I/O service (IOService::DoWork) closes every
+      // listener this way once its io_context is stopped - from its own thread,
+      // whatever a drain did before it - so that the port is free for the next
+      // start's listener even while a thread is still in a handler on this
+      // listener's strand, which no request dispatched there can then reach.
+      void Close();
 
       // Opens the acceptor again after StopAccept closed it - the same address,
       // port and TLS context Run built, so a drain that is left (Application::
       // LeaveDrain) listens exactly where it listened before. True when the
       // port is listening on return, which includes "it never stopped". False
       // when Run never got as far as the acceptor (a certificate that would not
-      // load, a policy the port cannot carry) or when the bind fails now; the
-      // bind failure is reported as HM4316/HM4317 by InitAcceptor as at start.
-      // Only ever called on the io_context's own thread, as StopAccept during a
-      // drain is: IOService posts both, because the acceptor is not thread-safe
-      // and a close from another thread while an accept is pending is a race.
+      // load, a policy the port cannot carry), when Close has closed it, or when
+      // the bind fails now; the bind failure is reported as HM4316/HM4317 by
+      // InitAcceptor as at start. Called on this listener's strand, as
+      // StopAccept during a drain is: IOService dispatches both there.
       bool RestartAccept();
 
-      bool IsListening() const { return acceptor_.is_open(); }
+      bool IsListening() const
+      {
+         boost::lock_guard<boost::mutex> guard(acceptor_mutex_);
+         return acceptor_.is_open();
+      }
       int GetPort() const { return port_; }
       const IPAddress &GetAddress() const { return ipaddress_; }
 
@@ -53,19 +69,23 @@ namespace HM
       // would refuse (InitAcceptor says more). Off until set; no effect on POSIX.
       void SetExclusiveAddressUse(bool exclusive) { exclusive_address_use_ = exclusive; }
 
-      // Everything that touches acceptor_ after Run runs on this strand: the
-      // accept completion (HandleAccept, which re-posts the accept), and the
-      // close and reopen a drain dispatches. The io_context has as many threads
-      // as GetTCPIPThreads says, so "on the io thread" was never one thread -
-      // a close on one worker while another was re-arming the accept was a
-      // race on the acceptor's state. IOService dispatches StopAccept and
-      // RestartAccept onto this strand and nowhere else.
+      // The accept completion (HandleAccept, which re-posts the accept) runs on
+      // this strand, and so do the close and the reopen a drain dispatches. The
+      // io_context has as many threads as GetTCPIPThreads says, so "on the io
+      // thread" was never one thread - a close on one worker while another was
+      // re-arming the accept was a race on the acceptor's state. IOService
+      // dispatches StopAccept and RestartAccept onto this strand. Close is the
+      // one call made elsewhere - by the stop, on its own thread - which is why
+      // acceptor_mutex_ guards the acceptor as well.
       boost::asio::strand<boost::asio::io_context::executor_type> &GetStrand() { return strand_; }
 
    private:
       
       std::string GetPassword() const;
 
+      // Each takes acceptor_mutex_ for what it does to acceptor_, and InitAcceptor
+      // reports a failure after letting go of it: a report can run the OnError
+      // script, which must not hold up a close made meanwhile.
       bool InitAcceptor();
       void StartAccept();
       void HandleAccept(std::shared_ptr<TCPConnection> connection, const boost::system::error_code &error);
@@ -82,6 +102,17 @@ namespace HM
       // Declared before acceptor_ so that it is constructed first; both are
       // built from the io_context.
       boost::asio::strand<boost::asio::io_context::executor_type> strand_;
+
+      // Guards acceptor_ and closed_. The strand orders the accept completion,
+      // the drain's close and its reopen among themselves; Close comes from the
+      // stop's own thread, while a thread may still be in a handler on the
+      // strand - one that has re-armed its accept and is running the
+      // OnClientConnect script, say - or at the start of one. Held only for the
+      // calls on the acceptor, never while anything is reported.
+      mutable boost::mutex acceptor_mutex_;
+
+      // Set by Close: nothing opens the acceptor again.
+      bool closed_;
 
       boost::asio::ip::tcp::acceptor acceptor_;
       boost::asio::ssl::context context_;
