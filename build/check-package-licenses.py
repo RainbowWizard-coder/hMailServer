@@ -63,8 +63,11 @@ spaces or tabs,
                              in any case and then blanks, its key in quotes or not, or
                              writes AppStream's licence.
 
-A field added there fails until it is in one list or the other. The scan reads lines, not
-the languages: a field set another way - by a name the file builds (a set() of ${name} in
+A field added there fails until it is in one list or the other. A byte order mark at the
+start of a Dockerfile or of a YAML file is taken off before the file is read, as buildkit,
+PyYAML and Helm take it off, so that a parser directive or a key on its first line is read
+as theirs (BOM_TAKEN_OFF); the other kinds' files are read with it. The scan reads lines,
+not the languages: a field set another way - by a name the file builds (a set() of ${name} in
 CMake, or cmake_parse_arguments' prefix), a macro, a command that reads into one, such as
 bash's read, or a YAML key written as an explicit key (? key) - can pass it, and so can a
 field in a file it does not read: a build reads more than these, the CI files and the other
@@ -83,7 +86,10 @@ another instruction, of the older LABEL key value, of a stage before the image's
 word before it, and a chart's licence in a block scalar passed and the check printed the
 value read, no case tried the blanks of six of the forms or a tab in any, and a shell
 script's older LABEL in small letters, or with its key in quotes, was not read (the second
-check of RB-2's third round).
+check of RB-2's third round); and a parser directive after a byte order mark, which
+buildkit takes off, and a YAML key after one on a file's first line were not read, and a
+line that ends in an escaped backslash was taken for one Docker continues (the third check
+of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -116,19 +122,21 @@ space, at the line's end or at the backslash that continues the line (Docker mak
 of "a"" b" and of a\\ b); a value run on past that is not read. Where the reader reads more
 than that line, the field fails: YAML reads a line after it that is indented more than its
 key, and not blank or a comment, as more of the value, or refuses the file; and Docker
-joins a line its backslash continues to the next it keeps, without the backslash (it drops
-an empty line or a comment there), so that a word at the backslash goes on into the rest of
-the instruction where that begins with no blank, and the first word of a line that begins
-with no blank goes into a word that ends the line before. So does a licence label's line
-that Docker reads as no key=value of the image's own LABEL - a line of another instruction,
-of the older LABEL key value, whose one label takes the rest of it, or of a stage that a
-later FROM ends - or that is in a Dockerfile whose parser directive gives it an escape
-character other than the backslash; and a chart's licence that is not a key of the chart's
-annotations, such as a line of a block scalar. The readers too read lines: a line one reads
-that its file's own reader takes for part of a value begun on a line before it - a YAML
-value in quotes or in a flow over several lines - or for no part of the file - a CMake
-bracket comment, a here-document or a false if in a shell file, a false %if in a spec - can
-pass while it is the one field of its kind there.
+joins a line that a backslash continues - one that ends in a backslash with blanks alone
+after it and no backslash straight before it, so that a line that ends in C:\\\\ continues
+nothing - to the next it keeps, without the backslash (it drops an empty line or a comment
+there), so that a word at the backslash goes on into the rest of the instruction where that
+begins with no blank, and the first word of a line that begins with no blank goes into a
+word that ends the line before. So does a licence label's line that Docker reads as no
+key=value of the image's own LABEL - a line of another instruction, of the older LABEL key
+value, whose one label takes the rest of it, or of a stage that a later FROM ends - or that
+is in a Dockerfile whose parser directive, after a byte order mark or not, gives it an
+escape character other than the backslash; and a chart's licence that is not a key of the
+chart's annotations, such as a line of a block scalar. The readers too read lines: a line
+one reads that its file's own reader takes for part of a value begun on a line before it -
+a YAML value in quotes or in a flow over several lines - or for no part of the file - a
+CMake bracket comment, a here-document or a false if in a shell file, a false %if in a spec
+- can pass while it is the one field of its kind there.
 
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
@@ -262,13 +270,23 @@ IDENTIFIER = re.compile(r"^(?:LicenseRef-)?[A-Za-z0-9][A-Za-z0-9.+-]*$")
 # Docker's parser - moby/buildkit's frontend/dockerfile/parser, which kaniko reads a
 # Dockerfile with: a parser directive, one of the comments at the top of the file before
 # anything else, and the backslash that continues a line, Docker's escape character unless a
-# directive gives it another. And the chart's annotations, the mapping its licence is a key
-# of; and the readers of OWN_LICENCE_ONLY that read YAML.
+# directive gives it another. A backslash continues its line where only blanks follow it and
+# no backslash comes straight before it, as buildkit's ([^\\])\\[ \t]*$|^\\[ \t]*$ has it:
+# a line that ends in an escaped backslash, C:\\, continues nothing. And the chart's
+# annotations, the mapping its licence is a key of; and the readers of OWN_LICENCE_ONLY that
+# read YAML.
 DOCKER_DIRECTIVE = re.compile(r"^#[ \t]*([A-Za-z][A-Za-z0-9]*)[ \t]*=[ \t]*(\S.*?)[ \t]*$")
 DOCKER_DIRECTIVES = ("escape", "syntax", "check")
-DOCKER_CONTINUATION = re.compile(r"\\[ \t]*$")
+DOCKER_CONTINUATION = re.compile(r"(?<!\\)\\[ \t]*$")
 CHART_ANNOTATIONS = re.compile(r"^annotations:(?:[ \t]+(?:#[^\n]*)?)?$")
 YAML_KINDS = ("snap", "chart-annotation")
+# The files whose own readers take a byte order mark off their start - a Dockerfile, whose
+# first line buildkit takes it off, and a YAML file, which PyYAML and Helm read without it -
+# and which are read here without it, so that a parser directive or a key on the first line
+# is read as theirs. The other kinds are read with it: rpm cannot parse a spec whose first
+# tag comes after one, and the other kinds' patterns take a licence field after one.
+BOM = "\ufeff"
+BOM_TAKEN_OFF = re.compile(r"(^|/)((Docker|Container)file[^/]*|[^/]*\.(Docker|Container)file|[^/]*\.ya?ml(\.in)?)$")
 
 # The files the scan reads - the places the recipes of the Linux packages, the snap, the
 # container image and the Helm chart are kept, and linux-image.sh, which gives kaniko the
@@ -335,6 +353,13 @@ def read(root, path):
             return f.read().decode("utf-8").replace("\r\n", "\n")
     except (OSError, UnicodeDecodeError) as e:
         raise Unreadable("%s cannot be read: %s" % (path, e))
+
+
+def as_read(texts):
+    """{path: text} as each file's own reader reads it: a byte order mark at its start taken
+    off where that reader takes it off (BOM_TAKEN_OFF)."""
+    return dict((path, text[len(BOM):] if text.startswith(BOM) and BOM_TAKEN_OFF.search(path) else text)
+                for path, text in texts.items())
 
 
 def source_components(text):
@@ -434,11 +459,12 @@ def docker_escape(text):
 
 
 def docker_instructions(text):
-    """A Dockerfile's lines as Docker's parser joins them into instructions, the backslash
-    continuing a line: for each line, the number of the line its instruction begins on, or
-    None for a line the parser drops - a comment, or blanks alone, between instructions or
-    inside one - and its part of the instruction, the line without the backslash that
-    continues it, and on an instruction's first line without its leading blanks."""
+    """A Dockerfile's lines as Docker's parser joins them into instructions, a backslash
+    continuing a line as DOCKER_CONTINUATION reads one: for each line, the number of the
+    line its instruction begins on, or None for a line the parser drops - a comment, or
+    blanks alone, between instructions or inside one - and its part of the instruction, the
+    line without the backslash that continues it, and on an instruction's first line without
+    its leading blanks."""
     lines = text.split("\n")
     starts, parts = [None] * len(lines), [""] * len(lines)
     start = None
@@ -585,6 +611,7 @@ def unheld_fields(texts, own_only):
 def problems_of(texts, own_only=OWN_LICENCE_ONLY):
     """What is wrong, given {path: text} of the CMakeLists, asset-sbom.py, the files of the
     fields and the other files the scan reads."""
+    texts = as_read(texts)
     problems = []
     components = source_components(texts[ASSET_SBOM])
     for ref, (name, spdx) in sorted(components.items()):
@@ -1251,6 +1278,26 @@ def self_test():
            "the escape character `" % DOCKERFILE)
     expect("a comment of escape=` after the FROM", changed(DOCKERFILE, "FROM ubuntu:24.04\n", "FROM ubuntu:24.04\n# escape=`\n"),
            None)
+    # A byte order mark, which buildkit takes off a Dockerfile's first line and PyYAML and
+    # Helm off a YAML file's start, and a backslash after a backslash at a line's end, which
+    # continues nothing to buildkit. The escape directive after a byte order mark was not
+    # read, nor a YAML key after one on a file's first line, and a line that ends in C:\\ was
+    # taken for one Docker continues (the third check of RB-2's third round).
+    backticks = GOOD[DOCKERFILE].replace(" \\\n", " `\n")
+    expect("a Dockerfile whose escape directive follows a byte order mark", added(DOCKERFILE, "\ufeff# escape=`\n" + backticks),
+           "the container image's org.opencontainers.image.licenses (%s) is in a Dockerfile whose parser directive gives it "
+           "the escape character `" % DOCKERFILE)
+    expect("a licence key after a byte order mark on a YAML file's first line",
+           added("snap/local/parts.yaml", "\ufefflicense: MIT\nname: x\n"),
+           "snap/local/parts.yaml:1 (license: MIT) is a licence field this does not hold")
+    expect("the snap, the image and the chart each behind a byte order mark",
+           dict(GOOD, **dict((path, "\ufeff" + GOOD[path]) for path in (SNAPCRAFT, DOCKERFILE, CHART))), None)
+    no_oci = changed(DOCKERFILE, '      org.opencontainers.image.licenses="AGPL-3.0-or-later" \\\n', "")[DOCKERFILE]
+    for backslashes, how in (("\\\\", "an escaped backslash"), ("\\\\\\", "an escaped backslash and a backslash")):
+        expect("a licence LABEL after one whose value ends in %s" % how,
+               added(DOCKERFILE, no_oci.replace("FROM ubuntu:24.04\n", "FROM ubuntu:24.04\nLABEL org.example.path=C:%s\n"
+                                                'LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"\n' % backslashes)),
+               None)
     # The blanks each form allows, a space and a tab, and the forms of a script's older
     # LABEL. No case tried the blanks of six of the forms or a tab in any, so that a check
     # without them passed its self-test and the tree, and a shell script's older LABEL in
@@ -1325,6 +1372,7 @@ def main(argv):
         for problem in problems:
             print("  " + problem)
         return 1
+    texts = as_read(texts)
     print("OK: the five licence fields each name the server's licence and those of what is compiled into it:")
     for what, path, kind, _ in FIELDS:
         print("  %s: %s" % (what, " AND ".join(field_value(kind, texts[path])[0])))
