@@ -117,8 +117,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
-  multi-tenant server.** A domain administrator, a help desk, or a full-scope API key issued for named domains
-  administers what is inside its domains; a handful of changes named, or reached, something beyond them, and are
+  multi-tenant server.** A domain administrator, an account or API key given another role that manages accounts in
+  named domains, or a full-scope API key issued for named domains administers what is inside its domains; a handful
+  of changes named, or reached, something beyond them, and are
   now held to the server administrator alone — over the REST API and over the COM API both — with the confined
   credential keeping every change that stays inside its domains:
   - renaming a domain, and creating a domain alias, which decide what names the server accepts mail for;

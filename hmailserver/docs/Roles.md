@@ -171,9 +171,10 @@ answer the server administrator and the event scripts alone.
 What names a domain beyond the credential's own
 -----------------------------------------------
 
-A credential confined to named domains — a domain administrator, a help desk, a
-full-scope API key issued for named domains, an account assigned `serveradmin`
-with a list of domains — administers what is inside its domains. A handful of
+A credential confined to named domains — a domain administrator, an account or
+API key given another role that manages accounts in named domains, a full-scope
+API key issued for named domains, an account assigned `serveradmin` with a list
+of domains — administers what is inside its domains. A handful of
 changes name, or reach, something beyond them even on a
 route that names one of the credential's own domains, and are the server
 administrator's alone whatever permission the confined credential holds. Each is
