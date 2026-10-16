@@ -743,69 +743,69 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   a failure it ignored. The transaction is now rolled back and the commit reported as failed.
   `DatabaseTransactionTester` holds it on PostgreSQL with a duplicate ignored inside a transaction begun on a pooled
   connection, which failed on the code before.
-- **Fixed: on MySQL and MariaDB, a script that went on in a transaction after a deadlock had its later statements
-  saved one by one, and `Database.CommitTransaction` reported success.** A deadlock (error 1213) rolls the whole
-  transaction back there, as MariaDB 11.8's error 1020 (a row another session changed after the transaction read it)
-  and, where `innodb_rollback_on_timeout` is on, a row-lock wait that timed out (1205) do, and the session goes on in
-  autocommit. So each statement a script ran after `Database.ExecuteSQL` had failed that way was committed at once on
-  its own, `Database.RollbackTransaction` took none of them back, and `Database.CommitTransaction`, a `COMMIT` with
-  nothing open, answered success. SQL Server goes on in autocommit after a deadlock too: the statements after it were
-  saved one by one there as well, and the commit then failed without saying so. A connection lost inside the
-  transaction did the same on every engine: `DALConnection::Execute` and `DALRecordset::Open`, which
-  `Database.EnsurePrerequisites`' prerequisites and a script's macros run their statements with, reconnected and ran
-  the statement again on the new session, and everything after it ran there in autocommit, nothing refused - and on
-  SQL Server a deadlock met there is taken for a lost connection. Where nothing reconnected - a connection lost under
-  the object's own statement, which it sends once, or one closed under the transaction, as the pool's `Disconnect`
-  closes the connections it has handed out - nothing was saved, but nothing said that the transaction had ended:
-  each later statement was sent to the dead connection and failed there, and so did the commit. Now, once the
-  database has ended the script's
-  transaction, the `Database` object says so in the error, with what to do - call `Database.RollbackTransaction` and
-  run the whole transaction again - refuses every later statement of the transaction without running it, rolls back
-  and fails at `Database.CommitTransaction`, and answers `Database.RollbackTransaction` with success; and
-  `Database.ExecuteSQLScript` stops after a statement whose failure its `[IGNORE-ERRORS]` marker let through when that
-  failure has ended the transaction, as the server's own upgrade step (`SchemaUpgrader`) now does. Whether the
-  transaction has ended is `DALConnection::IsTransactionFailed`: `MySQLConnection` now answers it from the error
-  (1213, 1020, 1206 and a lost connection) and, after a 1205 where `innodb_rollback_on_timeout`, read at each
-  connection, is on, from the session itself - a metadata-lock wait that timed out is 1205 too and ends nothing - and
-  refuses the `COMMIT` of a transaction that has ended, as `PGConnection` does; `ADOConnection` asks `@@TRANCOUNT`
-  after any failure but an integrity violation, where it asked only after a failure answered as a success; and on
-  every engine a transaction whose session was replaced has ended, after which `DALConnection::Execute` and
-  `DALRecordset::Open` reconnect and run nothing on the new session until the transaction's end
-  (`DALConnection::IsTransactionSessionLost`), and `PGConnection` refuses the commit, which the new session would have
-  answered with success; and so has one whose session is gone before anything reconnected
-  (`DALConnection::IsTransactionSessionGone`) - on PostgreSQL by `PQstatus`, since libpq answers a connection that
-  is gone with `PQTRANS_UNKNOWN` rather than as an aborted transaction, and on MySQL, MariaDB and SQL Server Compact
-  by a connection that was closed. A failure that ends nothing - a duplicate key, a row-lock wait that timed out where
-  `innodb_rollback_on_timeout` is off, a metadata-lock wait that timed out, any failure on SQL Server Compact but a
-  lost or closed connection - leaves the transaction going on as before, and PostgreSQL, which refuses everything after any
-  other failure until the rollback, answers as before. A second `Database.BeginTransaction` while a transaction is
-  open rolls the open one back and gives its connection back to the pool, where the object let go of it with its
-  transaction open: the pool never had the connection back, and what the transaction held stayed locked until the
-  database closed the session or the server stopped. What the object does with its transaction is
-  `ScriptTransaction`'s, which `InterfaceDatabase` holds and only turns into its errors, so that it is built and
-  tested on Linux as on Windows. `DatabaseTransactionTester` holds that code through a transaction the pool hands
-  out, on MySQL 8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and on, and on PostgreSQL 18: a
-  deadlock whose victim is the script's statement, with what the object says at the statement, at the next and at
-  the commit, beside the control that a statement sent past the refusal is committed on its own; the same deadlock
-  met by a statement marked `[IGNORE-ERRORS]`, sent alone and in a script; a script and the prerequisites asked for
-  after the deadlock; MariaDB's 1020; a row-lock wait and a metadata-lock wait
-  that timed out; a session ended under `DALConnection::Execute`, under `DALRecordset::Open` and under the object's own
-  statement, and a connection closed under the transaction; and a second `Begin`
-  while a transaction is open. On the code before, each case but its controls failed where the defect is - the
-  statement after the failure committed on its own, or, after a metadata-lock wait where `innodb_rollback_on_timeout`
-  is on, a transaction still open refused - and PostgreSQL passed but for the session ended, which failed there too;
-  and each part of `ScriptTransaction`'s handling taken out by itself - the refusal at a statement, a script and the
-  prerequisites, the failure it answers for a statement marked `[IGNORE-ERRORS]` whose failure ended the transaction,
-  the commit's rollback, the advice in the error, the first transaction's rollback at a second `Begin`, PostgreSQL
-  left to the database - fails a case of its own on MySQL and MariaDB, the last two on PostgreSQL too, but for the
-  success `Database.RollbackTransaction` answers for an ended transaction, which only SQL Server's refusal of a
-  `ROLLBACK` with nothing open would show, and the guards after a script or the prerequisites that ran whole, which
-  no case can reach while the runner stops after each statement that ended the transaction and each prerequisite at
-  each failure. On
-  SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that timed out leaving the
-  transaction going on and a session ended under each and under the object's own statement, and
-  `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the
-  `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
+- **Fixed: on MySQL and MariaDB, a script that went on in a transaction after a deadlock had its later statements saved
+  one by one, and `Database.CommitTransaction` reported success.** A deadlock (error 1213) rolls the whole transaction
+  back there, as MariaDB 11.8's error 1020 (a row another session changed after the transaction read it) and, where
+  `innodb_rollback_on_timeout` is on, a row-lock wait that timed out (1205) do, and the session goes on in autocommit.
+  So each statement a script ran after `Database.ExecuteSQL` had failed that way was committed at once on its own,
+  `Database.RollbackTransaction` took none of them back, and `Database.CommitTransaction`, a `COMMIT` with nothing open,
+  answered success. SQL Server goes on in autocommit after a deadlock too: the statements after it were saved one by one
+  there as well, and the commit then failed without saying so. A connection lost inside the transaction did the same on
+  every engine: `DALConnection::Execute` and `DALRecordset::Open`, which `Database.EnsurePrerequisites`' prerequisites
+  and a script's macros run their statements with, reconnected and ran the statement again on the new session, and
+  everything after it ran there in autocommit, nothing refused - and on SQL Server a deadlock met there is taken for a
+  lost connection. Where nothing reconnected - a connection lost under the object's own statement, which it sends once,
+  or one closed under the transaction, as the pool's `Disconnect` closes the connections it has handed out - nothing was
+  saved, but nothing said that the transaction had ended: each later statement was sent to the dead connection and
+  failed there, and so did the commit. Now, once the database has ended the script's transaction, the `Database` object
+  says so in the error, with what to do - call `Database.RollbackTransaction` and run the whole transaction again -
+  refuses every later statement, script and prerequisite of the transaction without running it, rolls back and fails at
+  `Database.CommitTransaction`, and answers `Database.RollbackTransaction` with success; and `Database.ExecuteSQLScript`
+  stops after a statement whose failure its `[IGNORE-ERRORS]` marker let through when that failure has ended the
+  transaction, as the server's own upgrade step (`SchemaUpgrader`) now does. Whether the transaction has ended is
+  `DALConnection::IsTransactionFailed`: `MySQLConnection` now answers it from the error (1213, 1020, 1206 and a lost
+  connection) and, after a 1205 where `innodb_rollback_on_timeout`, read at each connection, is on, from the session
+  itself - a metadata-lock wait that timed out is 1205 too and ends nothing - and refuses the `COMMIT` of a transaction
+  that has ended, as `PGConnection` does; `ADOConnection` asks `@@TRANCOUNT` after any failure but an integrity
+  violation, where it asked only after a failure answered as a success; on every engine a transaction whose session was
+  replaced has ended, after which `DALConnection::Execute` and `DALRecordset::Open` reconnect and run nothing on the new
+  session until the transaction's end (`DALConnection::IsTransactionSessionLost`), and `PGConnection` refuses the
+  commit, which the new session would have answered with success; and so has one whose session is gone before anything
+  reconnected (`DALConnection::IsTransactionSessionGone`) - on PostgreSQL by `PQstatus`, since libpq answers a
+  connection that is gone with `PQTRANS_UNKNOWN` rather than as an aborted transaction, and on MySQL, MariaDB and SQL
+  Server Compact by a connection that was closed. A failure that ends nothing - a duplicate key, a row-lock wait that
+  timed out where `innodb_rollback_on_timeout` is off, a metadata-lock wait that timed out, any failure on SQL Server
+  Compact but a lost or closed connection - leaves the transaction going on as before, and PostgreSQL, which refuses
+  everything after any other failure until the rollback, answers as before. A second `Database.BeginTransaction` while a
+  transaction is open rolls the open one back and gives its connection back to the pool, where the object let go of it
+  with its transaction open: the pool never had the connection back, and what the transaction held stayed locked until
+  the database closed the session or the server stopped. What the object does with its transaction is
+  `ScriptTransaction`'s, which `InterfaceDatabase` holds and only turns into its errors, so that it is built and tested
+  on Linux as on Windows. `DatabaseTransactionTester` holds that code through a transaction the pool hands out, on MySQL
+  8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and on, and on PostgreSQL 18: a deadlock whose victim
+  is the script's statement, with what the object says at the statement, at the next and at the commit, beside the
+  control that a statement sent past the refusal is committed on its own; the same deadlock met by a statement marked
+  `[IGNORE-ERRORS]`, sent alone and in a script; a script and the prerequisites asked for after the deadlock; MariaDB's
+  1020; a row-lock wait and a metadata-lock wait that timed out; a session ended under `DALConnection::Execute`, under
+  `DALRecordset::Open` and under the object's own statement, and a connection closed under the transaction; and a second
+  `Begin` while a transaction is open. On the code before this change (6e1a336c5) each case failed but its controls and
+  the two that hold the fix to its own limits - the metadata-lock wait, which ends nothing, and the pool's connection
+  after a scope lost its session - which pass there too: on MySQL and MariaDB the statement after the failure, a
+  script's included, was committed on its own, the first transaction's connection was kept from the pool at a second
+  `Begin`, or, after a session lost under the object's own statement or a connection closed under it, nothing said that
+  the transaction had ended; on PostgreSQL, whose aborted transaction the object leaves to the database, the second
+  `Begin` and the lost and closed connections failed, and the rest passed. Each part of `ScriptTransaction`'s handling
+  taken out by itself - the refusal at a statement, a script and the prerequisites, the failure it answers for a
+  statement marked `[IGNORE-ERRORS]` whose failure ended the transaction, the commit's rollback, the advice in the
+  error, the first transaction's rollback at a second `Begin`, PostgreSQL left to the database - fails a case of its own
+  on MySQL and MariaDB, the last two on PostgreSQL too, but for the success `Database.RollbackTransaction` answers for
+  an ended transaction, which only SQL Server's refusal of a `ROLLBACK` with nothing open would show, and the guards
+  after a script or the prerequisites that ran whole, which no case can reach while the runner stops after each
+  statement that ended the transaction and each prerequisite at its first failure. On SQL Server Compact, the bench's
+  database, `DatabaseTransactionTester` holds a lock wait that timed out leaving the transaction going on, a session
+  ended under `DALConnection::Execute` and under `DALRecordset::Open`, and a connection closed under the transaction,
+  and `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes`
+  the `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
   takes back everything. SQL Server's part rests on the code and on SQL Server 2022's own answers (a deadlock's victim
   at `@@TRANCOUNT` 0, its next statement committed on its own, the `COMMIT` refused with 3902). As in 6.3.6 and every
   release before.
