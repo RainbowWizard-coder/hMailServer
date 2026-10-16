@@ -602,26 +602,83 @@ directly in it, or `Bin`, `ControlPanel`, `Events`, `WebAdmin`, `DBScripts`,
 gave anybody more than `(RX)`, the Users' and the service's included, or could not
 take one away: a program in them may have been changed already, and so may the
 event script in `Events`, which the service runs. Reinstall the programs from the
-release into a new, empty folder that only the administrators may change - under
-Program Files, say - not over this installation, rather than rely on the steps:
-setup leaves in place every file it does not ship, a library put in `Bin` among
-them, and puts the event script and the scripts in `Addons` only where none is
-there. Read the old event script before you copy it into the new installation.
+release into a new folder that only the administrators may change - under Program
+Files, say - not over this installation, rather than rely on the steps: setup leaves
+in place every file it does not ship, a library put in `Bin` among them, and puts the
+event script and the scripts in `Addons` only where none is there.
 
 **Reinstalling into a new folder.** Run nothing from the old folder, its uninstaller
 included, which runs the old `Bin\hMailServer.exe` as an administrator. Setup run
 over an installation shows no folder page and installs into the folder it finds, so
-it is given the new one with `/DIR`, from the elevated prompt, with the new folder in
-place of `C:\Program Files\hMailServer`. Where the first line below finds an entry -
-a 32-bit installation's - setup installs into the folder that entry names, whatever
-`/DIR` says: take it away with the second. `sc qc hMailServer` then names the new
-`Bin`.
+it is given the new one with `/DIR`; and setup run into a folder without a settings
+file sets up a new server there - an empty one, without this installation's mail,
+accounts or settings - so the settings file and the data go into the new folder
+first. Bring nothing else from the old folder, and read what you bring, as you would
+read a program. From the elevated prompt, with the new folder in place of
+`C:\Program Files\hMailServer` (the Control Panel alone brings nothing: step 3 is all
+of it):
 
-```
-reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32
-reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32 /f
-hMailServer-<version>-x64.exe /DIR="C:\Program Files\hMailServer"
-```
+1. Stop the service. Make the new folder's `Bin`, `Data`, `Database` and `Events` -
+   the last three private to SYSTEM and the Administrators before anything is in
+   them - and copy the mail, the built-in database's folder and the settings file,
+   which is made private too. Copy, not move: a file moved within a drive keeps its
+   owner and its permissions.
+
+   ```
+   net stop hMailServer
+   mkdir "C:\Program Files\hMailServer\Bin" "C:\Program Files\hMailServer\Data" "C:\Program Files\hMailServer\Database" "C:\Program Files\hMailServer\Events"
+   icacls "C:\Program Files\hMailServer\Data" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F
+   icacls "C:\Program Files\hMailServer\Database" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F
+   icacls "C:\Program Files\hMailServer\Events" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F
+   robocopy "C:\hMailServer\Data" "C:\Program Files\hMailServer\Data" /E
+   robocopy "C:\hMailServer\Database" "C:\Program Files\hMailServer\Database" /E
+   copy "C:\hMailServer\Bin\hMailServer.INI" "C:\Program Files\hMailServer\Bin"
+   icacls "C:\Program Files\hMailServer\Bin\hMailServer.INI" /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F
+   ```
+
+2. Read the copy of the settings file - in Notepad, say. It took `Bin`'s permissions
+   until 6.3.6, and it decides what the service runs and who may administer it:
+
+   - `[Directories]` names the folders the service takes the database scripts and
+     `7za.exe` from (`ProgramFolder`) and the event scripts from (`EventFolder`),
+     and those of its data, logs and temporary files. Delete each of its lines that
+     names a folder in the old installation; setup writes the new folder's instead.
+   - `AdministratorPassword`, in `[Security]`, is the administrator password's
+     hash. Delete it, and setup asks for a new password; a silent setup takes it
+     from `HM_ADMIN_PASSWORD`.
+   - `[Database]` names the database the server opens, and `AutoBanCommand`, in
+     `[Settings]` or `[SettingsOverride]`, a program it runs.
+
+   Read what is in the old `Events` - the event script - as well, and only then
+   copy it:
+
+   ```
+   robocopy "C:\hMailServer\Events" "C:\Program Files\hMailServer\Events" /E
+   ```
+
+3. Where the first line below finds an entry - a 32-bit installation's - setup
+   installs into the folder that entry names, whatever `/DIR` says: take it away with
+   the second. Then run the release's setup with the new folder. It finds the
+   settings file there and goes on as an upgrade of this installation, the service's
+   account kept, with the programs its own; `sc qc hMailServer` then names the new
+   `Bin`.
+
+   ```
+   reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32
+   reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32 /f
+   hMailServer-<version>-x64.exe /DIR="C:\Program Files\hMailServer"
+   ```
+
+4. The database comes across as it was - on the built-in database in a file that
+   took the program folder's permissions until 6.3.6. In the new Control Panel,
+   read the programs its settings name: ClamWin's and the custom scanner's under
+   *Anti-virus settings*, and `AutoBanCommand` under *Auto-ban*. Make the REST API's
+   keys again rather than copy `Bin\hMailServerApiKeys.ini`, to which anybody who
+   could change `Bin` could have added one. A path the database holds into the old
+   folder - a certificate's, a DKIM key's, the backup folder - still names it: step
+   9 of [RelocatingAnInstallation.md](RelocatingAnInstallation.md) moves each. Then,
+   once nothing names it, delete the old folder - by hand, never with its
+   uninstaller.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,

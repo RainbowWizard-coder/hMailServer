@@ -100,16 +100,20 @@ Under Program Files the first run makes the three's entries their own, and nobod
 before. An administrator who cannot upgrade yet follows the documentation's steps from an elevated prompt on each of the
 three: the Administrators made its owner, every entry of its own but SYSTEM's, the Administrators' and any deny entry
 taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the server
-is installed, the service's given back; and reinstalls the programs into a new, empty folder only the administrators
+is installed, the service's given back; and reinstalls the programs into a new folder only the administrators
 may change, not over the installation, where accounts that are not administrators could sign in while it was installed
 so, where anybody but SYSTEM, the Administrators or TrustedInstaller owned one of the three, a file directly in the
 program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or
 `ControlPanel`, or where one of the three had an entry of its own that let anybody else change it, or one the steps
 could not take away: setup leaves in place every file it does not ship, and puts the event script in `Events`, which the
-service runs, and the scripts in `Addons` only where none is there, so the old event script is read before it is copied
-across; nothing is run from the old folder, its uninstaller included, and setup is given the new folder with `/DIR=`,
-since over an installation it installs into the folder it finds, once a 32-bit installation's uninstall entry, which
-overrides `/DIR=`, is taken away. Found by the project's own review (work item 78; CVE requested).
+service runs, and the scripts in `Addons` only where none is there. The documentation says how: nothing is run from the
+old folder, its uninstaller included; with the service stopped, the settings file, the mail and the built-in database
+are copied into the new folder before setup runs, since setup run into a folder without a settings file sets up a new,
+empty server there; the settings file is read first - the lines of its `[Directories]` that name the old folder and its
+administrator password deleted, which setup writes anew - and the event script before it is copied; setup is given the
+new folder with `/DIR=`, since over an installation it installs into the folder it finds, once a 32-bit installation's
+uninstall entry, which overrides `/DIR=`, is taken away; and the programs the database names are read in the new
+Control Panel. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
