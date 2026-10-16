@@ -2866,21 +2866,23 @@ def verdict_problems(texts, jobs):
     the scan that job's dotenv report as variables and unpacks its artifacts into the
     scan's checkout over the tree, where a trivy.yaml or a build/ci/dependency-scan.py of
     its own would be the scan's -, so that it has its keys (PACKAGES_KEYS) and no other,
-    keeps ci-image-packages/ alone with no report (PACKAGES_ARTIFACTS), takes no artifacts
-    from a template it extends and has no blank line inside it; the rules they take bring no needs, variables, allow_failure or
-    start_in, and no when but never or on_success, in a form this reads (unread_rules);
-    neither job, nor SCAN_NEED, nor a template one reaches, is defined in a CI file but
-    .gitlab-ci.yml, since GitLab merges a second definition into the first, and every CI
-    file is read, .gitlab-ci.yml including nothing but the files of .gitlab/ci/ named
-    <name>.yml and GitLab's templates (ci_override_problems); and nothing
-    Trivy reads beside its command line narrows what the scan reports - the script runs
-    it with no variable of its own, with an empty configuration, ignore file, cache and
-    module directory of its own, and with HOME and the XDG base directories naming a
-    directory of its own (own_trivy_files and trivy_environment, held by its self-test),
-    and beside that no CI file sets a variable of Trivy's (TRIVY_VARIABLE, which reads
-    every name of the variables every
-    job is given in its one form, variable_key_problems), and the tree carries neither
-    its configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
+    keeps ci-image-packages/ alone with no report (PACKAGES_ARTIFACTS), takes no
+    artifacts from a template it extends and has no blank line inside it; the rules they
+    take bring no needs, variables, allow_failure or start_in, and no when but never or
+    on_success, in a form this reads (unread_rules); neither job, nor SCAN_NEED, nor a
+    template one reaches, is defined in a CI file but .gitlab-ci.yml, since GitLab merges
+    a second definition into the first, and every CI file is read, .gitlab-ci.yml
+    including nothing but the files of .gitlab/ci/ named <name>.yml and GitLab's
+    templates (ci_override_problems); and nothing Trivy reads beside its command line
+    narrows what the scan reports - the script runs it with no variable of its own, with
+    HOME and the XDG base directories naming a directory of its own and none of the
+    variables that name another place for its registry configuration, with an empty
+    configuration and cache of its own, and, where it downloads or scans, an empty ignore
+    file and module directory of its own (own_trivy_files, trivy_environment and
+    installed_trivy, held by its self-test), and beside that no CI file sets a variable
+    of Trivy's (TRIVY_VARIABLE, which reads every name of the variables every job is
+    given in its one form, variable_key_problems), and the tree carries neither its
+    configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
     written in a form this does not read, or written twice, is job_key_problems'; their
     timeouts and tags are not held here (the runners' checks hold the tags), nor what
     every job takes from the pipeline - .gitlab-ci.yml's variables: and workflow:, which

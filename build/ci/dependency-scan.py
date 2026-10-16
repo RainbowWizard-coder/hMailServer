@@ -46,30 +46,34 @@ api.osv.dev. (Both databases carry, among their sources, GitHub's advisory
 database; what is avoided is GitHub as a place to download from, not its data.)
 
 Trivy is given no setting of its own beside its command line, and reads no file of the
-checkout's that its command line does not name. Each run of it has the job's
-environment less every variable whose name begins TRIVY_ - whoever gave the job
-one: a CI file, in any form of key GitLab's YAML reader takes, the dotenv report of
-the job the scan needs, or a CI/CD variable of the project's or the group's - and, as
---config and --ignorefile, an empty configuration and an empty ignore file this script
-writes in a directory of its own outside the checkout, so that a trivy.yaml or a
-.trivyignore at the root of the checkout, committed or laid there by an artifact, is
-not read, and as --cache-dir an empty directory there, so that the vulnerability
-database it scans with is the one it has just downloaded - its default cache is under
-HOME or XDG_CACHE_HOME, which a variable could put in the checkout beside a database
-that says it is fresh, which --download-db-only would keep -, and as --module-dir
-another, so that it loads no module of the checkout's - its default module directory
-is .trivy/modules under XDG_DATA_HOME or HOME, every .wasm file in which it loads, and
-a module that is a post-scanner may change or drop findings before Trivy writes its
-report. HOME, XDG_CACHE_HOME, XDG_CONFIG_HOME and XDG_DATA_HOME name a third empty
-directory there, so that no other default Trivy takes from its home is the
-checkout's either (its VEX repositories' configuration, Docker's and Podman's registry
-configuration), and DOCKER_CONFIG, REGISTRY_AUTH_FILE and XDG_RUNTIME_DIR, which name
-another place for the registry configuration, are not given it (own_trivy_files,
-trivy_environment). TRIVY_SEVERITY=LOW given the job so narrowed a real scan to its
-114 Low findings, and passed its verdict, before (16 October 2026). What Trivy is told
-beside that narrows what the scan reports by the VEX document alone; the job's other
-variables reach it as they reach any program the job runs (PATH among them), and are
-not held here.
+checkout's that its command line does not name. Each run of it that downloads the
+vulnerability database or scans has the job's environment less every variable whose
+name begins TRIVY_ - whoever gave the job one: a CI file, in any form of key GitLab's
+YAML reader takes, the dotenv report of the job the scan needs, or a CI/CD variable of
+the project's or the group's - and, as --config and --ignorefile, an empty
+configuration and an empty ignore file this script writes in a directory of its own
+outside the checkout, so that a trivy.yaml or a .trivyignore at the root of the
+checkout, committed or laid there by an artifact, is not read, and as --cache-dir an
+empty directory there, so that the vulnerability database it scans with is the one it
+has just downloaded - its default cache is under HOME or XDG_CACHE_HOME, which a
+variable could put in the checkout beside a database that says it is fresh, which
+--download-db-only would keep -, and as --module-dir another, so that it loads no
+module of the checkout's - its default module directory is .trivy/modules under
+XDG_DATA_HOME or HOME, every .wasm file in which it loads, and a module that is a
+post-scanner may change or drop findings before Trivy writes its report. HOME,
+XDG_CACHE_HOME, XDG_CONFIG_HOME and XDG_DATA_HOME name a third empty directory there,
+so that no other default Trivy takes from its home is the checkout's either (its VEX
+repositories' configuration, Docker's and Podman's registry configuration), and
+DOCKER_CONFIG, REGISTRY_AUTH_FILE and XDG_RUNTIME_DIR, which name another place for
+the registry configuration, are not given it (own_trivy_files, trivy_environment).
+trivy --version, run first for the version the reports name, has the same environment
+and the same configuration, cache and home, and neither an ignore file nor a module
+directory, which it does not take (installed_trivy): given no --config, it loads the
+trivy.yaml of the directory it runs in, the checkout's root. TRIVY_SEVERITY=LOW given
+the job so narrowed a real scan to its 114 Low findings, and passed its verdict,
+before (16 October 2026). What Trivy is told beside that narrows what the scan reports
+by the VEX document alone; the job's other variables reach it as they reach any
+program the job runs (PATH among them), and are not held here.
 
 A finding that does not affect the project is dismissed in the VEX document,
 .gitlab/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex,
@@ -286,31 +290,35 @@ def lock_file_packages(path):
 
 # What Trivy reads beside its command line, by which what it reports would narrow past
 # what this script asks of it - and so what dependency-scan-verdict fails on: a variable
-# of its own (TRIVY_SEVERITY, TRIVY_SKIP_DIRS, TRIVY_IGNOREFILE ...), whoever gave the job
-# one - a CI file in any of the forms GitLab's YAML reader takes for a key, a rule, the
-# dotenv report of the job the scan needs, a project or group CI/CD variable -, and at
-# the root of the checkout, where it runs, its configuration file and its ignore file
+# of its own (TRIVY_SEVERITY, TRIVY_SKIP_DIRS, TRIVY_IGNOREFILE ...), whoever gave the
+# job one - a CI file in any of the forms GitLab's YAML reader takes for a key, a rule,
+# the dotenv report of the job the scan needs, a project or group CI/CD variable -, and
+# at the root of the checkout, where it runs, its configuration file and its ignore file
 # (--config's and --ignorefile's defaults, trivy.yaml and .trivyignore), which the tree,
 # an artifact laid over the checkout or a cache could put there. So every run of Trivy
-# has the job's environment less every variable whose name begins TRIVY_, in any case
-# (trivy_environment), and --config and --ignorefile naming two files of this script's,
-# an empty configuration and an empty ignore file, in a directory made for the run in
-# the system's temporary directory, outside the checkout and the scan's artifacts, and
-# removed when the scan ends (own_trivy_files, forget_trivy_files). Its cache, where it
-# keeps the vulnerability database, is an empty directory there too (--cache-dir): the
-# default is under HOME or XDG_CACHE_HOME, which a variable could put in the checkout
-# beside a database that says it is fresh, which trivy --download-db-only keeps. So is
-# its module directory (--module-dir), whose default, .trivy/modules under XDG_DATA_HOME
-# or HOME, could be put in the checkout the same way: Trivy loads every .wasm file in it
-# when --enable-modules names none, as here, and a module that is a post-scanner may
-# change or drop the scan's findings before Trivy writes its report. And since every
-# other default Trivy takes from its home could be put there too - among them its VEX
+# that downloads the database or scans has the job's environment less every variable
+# whose name begins TRIVY_, in any case (trivy_environment), and --config and
+# --ignorefile naming two files of this script's, an empty configuration and an empty
+# ignore file, in a directory made for the run in the system's temporary directory,
+# outside the checkout and the scan's artifacts, and removed when the scan ends
+# (own_trivy_files, forget_trivy_files). Its cache, where it keeps the vulnerability
+# database, is an empty directory there too (--cache-dir): the default is under HOME or
+# XDG_CACHE_HOME, which a variable could put in the checkout beside a database that says
+# it is fresh, which trivy --download-db-only keeps. So is its module directory
+# (--module-dir), whose default, .trivy/modules under XDG_DATA_HOME or HOME, could be
+# put in the checkout the same way: Trivy loads every .wasm file in it when
+# --enable-modules names none, as here, and a module that is a post-scanner may change
+# or drop the scan's findings before Trivy writes its report. And since every other
+# default Trivy takes from its home could be put there too - among them its VEX
 # repositories' configuration and Docker's and Podman's registry configuration, which
 # can name a credential helper for it to run -, each run has HOME and the XDG base
-# directories it reads (TRIVY_HOME_VARIABLES) naming an empty directory of this
-# script's beside the files, and none of the variables that name another place for the
-# registry configuration (TRIVY_REGISTRY_VARIABLES): the vulnerability database is
-# public, and asks no login.
+# directories it reads (TRIVY_HOME_VARIABLES) naming an empty directory of this script's
+# beside the files, and none of the variables that name another place for the registry
+# configuration (TRIVY_REGISTRY_VARIABLES): the vulnerability database is public, and
+# asks no login. trivy --version, which takes neither --ignorefile nor --module-dir
+# (Trivy 0.74.0 refuses both there as unknown flags), is given the same environment,
+# configuration and cache (installed_trivy), since with no --config it loads the
+# trivy.yaml of the directory it runs in, the checkout's root.
 TRIVY_VARIABLE_PREFIX = "TRIVY_"
 TRIVY_HOME_VARIABLES = ("HOME", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME")
 TRIVY_REGISTRY_VARIABLES = ("DOCKER_CONFIG", "REGISTRY_AUTH_FILE", "XDG_RUNTIME_DIR")
@@ -370,10 +378,18 @@ def run_trivy(command, log):
 
 
 def installed_trivy():
-    """The first line of trivy --version, or None when there is no trivy on PATH."""
+    """The first line of trivy --version, or None when there is no trivy on PATH. It runs
+    as run_trivy runs Trivy - from the root of the checkout, with trivy_environment, and
+    with own_trivy_files' configuration and cache as its --config and --cache-dir, so that
+    it reads neither the checkout's trivy.yaml, which it loads as --config's default when
+    given no --config, nor the metadata of a database the checkout holds - but for
+    --ignorefile and --module-dir, which trivy --version does not take (Trivy 0.74.0
+    refuses both there as unknown flags)."""
     if not shutil.which("trivy"):
         return None
-    return subprocess.run(["trivy", "--version"], capture_output=True, text=True,
+    files = own_trivy_files()
+    command = ["trivy", "--version", "--config", files[0], "--cache-dir", files[2]]
+    return subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
                           env=trivy_environment()).stdout.split("\n")[0]
 
 
@@ -1238,23 +1254,29 @@ def self_test():
         # checkout holds a trivy.yaml and a .trivyignore at its root - TRIVY_SEVERITY=LOW,
         # given the job in a form of key the checker did not read or by a dotenv report,
         # narrowed a real scan to its 114 Low findings and passed its verdict (check 2 of
-        # cycle 3 of G5's fix, 16 October 2026). Each run of Trivy has the job's
-        # environment less those variables, and names as --config and --ignorefile, once
-        # each, the same empty configuration and empty ignore file, and as --cache-dir the
-        # same empty directory beside them, outside the checkout, gone once the scan has
-        # ended; and the scan ends as before. The job's HOME and XDG base directories name
-        # the checkout, which holds a .wasm file in .trivy/modules and a Docker
-        # configuration, and DOCKER_CONFIG, REGISTRY_AUTH_FILE and XDG_RUNTIME_DIR name
-        # places in it too - Trivy loads every module in --module-dir's default, under
-        # HOME or XDG_DATA_HOME, and a post-scan one may drop findings (check 3 of cycle
-        # 3, 16 October 2026): each run is given --module-dir once, an empty directory
-        # beside the configuration, as its modules, HOME and each XDG base directory
-        # naming one more empty directory there, and none of the three. Which of the
-        # job's variables a run must be without, and which must name its home, is read
-        # from the names planted here, written out (home_names, withheld), and never from
-        # the lists the script reads them by (TRIVY_VARIABLE_PREFIX, TRIVY_HOME_VARIABLES,
-        # TRIVY_REGISTRY_VARIABLES), so that a name taken out of one of those lists fails
-        # here rather than shortening the case with it (check 4 of cycle 7, 16 October 2026).
+        # cycle 3 of G5's fix, 16 October 2026). Each run of Trivy that downloads the
+        # database or scans has the job's environment less those variables, and names as
+        # --config and --ignorefile, once each, the same empty configuration and empty
+        # ignore file, and as --cache-dir the same empty directory beside them, outside
+        # the checkout, gone once the scan has ended; and the scan ends as before. The
+        # job's HOME and XDG base directories name the checkout, which holds a .wasm file
+        # in .trivy/modules and a Docker configuration, and DOCKER_CONFIG,
+        # REGISTRY_AUTH_FILE and XDG_RUNTIME_DIR name places in it too - Trivy loads every
+        # module in --module-dir's default, under HOME or XDG_DATA_HOME, and a post-scan
+        # one may drop findings (check 3 of cycle 3, 16 October 2026): each run is given
+        # --module-dir once, an empty directory beside the configuration, as its modules,
+        # HOME and each XDG base directory naming one more empty directory there, and none
+        # of the three. Which of the job's variables a run must be without, and which must
+        # name its home, is read from the names planted here, written out (home_names,
+        # withheld), and never from the lists the script reads them by
+        # (TRIVY_VARIABLE_PREFIX, TRIVY_HOME_VARIABLES, TRIVY_REGISTRY_VARIABLES), so that
+        # a name taken out of one of those lists fails here rather than shortening the
+        # case with it (check 4 of cycle 7, 16 October 2026). And the real
+        # installed_trivy() runs too, with shutil.which stood in to find a trivy:
+        # trivy --version, run with no --config, loads the trivy.yaml of the directory it
+        # runs in, the checkout's root (check 4 of cycle 7, with Trivy 0.74.0), so it is
+        # given the same configuration, cache and home as the other runs, and neither
+        # --ignorefile nor --module-dir, which it refuses as unknown flags.
         module["download_database"], module["trivy"] = kept[2], kept[3]
         image_vulnerabilities[:] = [{"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
                                      "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]
@@ -1288,6 +1310,8 @@ def self_test():
             seen["home"] = dict((name, (environment.get(name), listing(environment.get(name))))
                                 for name in home_names)
             calls.append(seen)
+            if command[1:2] == ["--version"]:
+                return subprocess.CompletedProcess(command, 0, "Version: 0.74.0\n", "")
             if "--output" in command[:-1]:
                 fake_trivy(command[1:2], command[command.index("--output") + 1], None)
             return subprocess.CompletedProcess(command, 0, "", "")
@@ -1305,14 +1329,18 @@ def self_test():
                             "TRIVY_SKIP_DIRS", "XDG_RUNTIME_DIR"],
                "the case plants Trivy's three variables and the three registry ones: %s" % withheld)
         environ_held = dict((name, os.environ.get(name)) for name in planted)
-        run_held = subprocess.run
+        run_held, which_held = subprocess.run, shutil.which
         try:
             os.environ.update(planted)
             subprocess.run = stand_in
+            shutil.which = lambda name, *more, **options: (
+                os.path.join(scratch, "trivy") if name == "trivy" else which_held(name, *more, **options))
+            module["installed_trivy"] = kept[1]
             out = os.path.join(scratch, "own-files")
             code, said = run("--skip-osv", "--out", out)
         finally:
-            subprocess.run = run_held
+            subprocess.run, shutil.which = run_held, which_held
+            module["installed_trivy"] = lambda: "Version: 0.74.0"
             for name, value in environ_held.items():
                 if value is None:
                     os.environ.pop(name, None)
@@ -1320,13 +1348,20 @@ def self_test():
                     os.environ[name] = value
         record = json.loads(in_out(out, VERDICT) or "{}")
         kinds = [call["command"][1] for call in calls if len(call["command"]) > 1]
-        expect(code == 0 and record.get("verdict") == "failed" and kinds == ["image", "fs", "rootfs"],
-               "the scan with Trivy's command stood in for runs it three times, for the database, the lock files and the "
-               "CI image, and ends 0 with the image's High failing its verdict, as before: %d, %s, %s" % (
+        expect(code == 0 and record.get("verdict") == "failed" and kinds == ["--version", "image", "fs", "rootfs"],
+               "the scan with Trivy's command stood in for runs it four times, for its version, the database, the lock "
+               "files and the CI image, and ends 0 with the image's High failing its verdict, as before: %d, %s, %s" % (
                    code, kinds, record.get("verdict")))
+        scanner = (json.loads(in_out(out, "gl-dependency-scanning-trivy.json") or "{}").get("scan") or {}).get("scanner")
+        expect((scanner or {}).get("version") == "0.74.0",
+               "the GitLab report names the version trivy --version gave: %s" % scanner)
+        # The runs up to the database's download, and that one, find the cache and the
+        # home empty.
+        downloaded = kinds.index("image") if "image" in kinds else -1
         root = os.path.normcase(os.path.realpath(tree)) + os.sep
-        configs = set()
-        for call in calls:
+        configs, versions = set(), set()
+        for at, call in enumerate(calls):
+            version, fresh = call["command"][1:2] == ["--version"], at <= downloaded
             environment = call["env"] if call["env"] is not None else dict(os.environ, **planted)
             given = sorted(name for name in environment if name.upper() in withheld or name.upper().startswith("TRIVY_"))
             expect(not given and environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept",
@@ -1337,6 +1372,8 @@ def self_test():
                        "" if environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept"
                        else ", and the job's other variables not"))
             for flag, content in (("--config", "{}\n"), ("--ignorefile", "")):
+                if version and flag == "--ignorefile":
+                    continue
                 path, text = call["files"].get(flag, (None, None))
                 expect(call["command"].count(flag) == 1 and path and text == content
                        and not os.path.normcase(os.path.realpath(path)).startswith(root),
@@ -1346,33 +1383,42 @@ def self_test():
             path, listed = call["files"].get("--cache-dir", (None, None))
             config = call["files"].get("--config", (None, None))[0]
             expect(call["command"].count("--cache-dir") == 1 and path and listed is not None
-                   and (call is not calls[0] or listed == [])
+                   and (not fresh or listed == [])
                    and config and os.path.dirname(path) == os.path.dirname(config),
                    "trivy %s is given --cache-dir once, naming the directory of this script's beside its configuration, "
-                   "empty when the database is downloaded, so that a database of the checkout's is not read: %s" % (
+                   "empty until the database is downloaded, so that a database of the checkout's is not read: %s" % (
                        " ".join(call["command"][1:2]), "%r holding %s" % (path, listed) if path else "not given"))
             path, listed = call["files"].get("--module-dir", (None, None))
-            expect(call["command"].count("--module-dir") == 1 and path and listed == []
-                   and config and os.path.dirname(path) == os.path.dirname(config),
-                   "trivy %s is given --module-dir once, naming an empty directory of this script's beside its "
-                   "configuration, so that no module of the checkout's is loaded: %s" % (
-                       " ".join(call["command"][1:2]), "%r holding %s" % (path, listed) if path else "not given"))
+            if version:
+                expect("--ignorefile" not in call["command"] and "--module-dir" not in call["command"],
+                       "trivy --version is given neither --ignorefile nor --module-dir, which it refuses as unknown "
+                       "flags, so that it ends with its version: %s" % call["command"][1:])
+            else:
+                expect(call["command"].count("--module-dir") == 1 and path and listed == []
+                       and config and os.path.dirname(path) == os.path.dirname(config),
+                       "trivy %s is given --module-dir once, naming an empty directory of this script's beside its "
+                       "configuration, so that no module of the checkout's is loaded: %s" % (
+                           " ".join(call["command"][1:2]), "%r holding %s" % (path, listed) if path else "not given"))
             homes = dict((name, value) for name, (value, _) in call["home"].items())
             home, listed = call["home"]["HOME"]
             expect(len(set(homes.values())) == 1 and home and listed is not None
-                   and (call is not calls[0] or listed == [])
+                   and (not fresh or listed == [])
                    and config and os.path.dirname(home) == os.path.dirname(config)
                    and home not in (call["files"].get("--cache-dir", (None,))[0], path),
                    "trivy %s runs with HOME and each XDG base directory naming one more directory of this script's "
-                   "beside its configuration, empty when the database is downloaded, so that no default under its home "
+                   "beside its configuration, empty until the database is downloaded, so that no default under its home "
                    "is the checkout's: %s" % (" ".join(call["command"][1:2]),
                                                ", ".join("%s=%s" % item for item in sorted(homes.items()))))
-            configs.add(tuple(path for path, _ in (call["files"].get(flag, (None, None))
-                                                   for flag in ("--config", "--ignorefile", "--cache-dir", "--module-dir")))
-                        + (home,))
-        expect(len(configs) == 1, "every run of Trivy is given the same two files, cache, modules and home: %s" % sorted(
-            configs, key=str))
-        left = [path for paths in configs for path in paths if path and os.path.exists(path)]
+            files = tuple(path for path, _ in (call["files"].get(flag, (None, None))
+                                               for flag in ("--config", "--ignorefile", "--cache-dir", "--module-dir")))
+            if version:
+                versions.add((files[0], files[2], home))
+            else:
+                configs.add(files + (home,))
+        expect(len(configs) == 1 and versions == set((paths[0], paths[2], paths[4]) for paths in configs),
+               "every run of Trivy is given the same two files, cache, modules and home, and trivy --version the same "
+               "configuration, cache and home: %s, and %s" % (sorted(configs, key=str), sorted(versions, key=str)))
+        left = [path for paths in configs | versions for path in paths if path and os.path.exists(path)]
         expect(not left and not _own_trivy_files,
                "the files given Trivy are gone once the scan has ended: %s" % (left or _own_trivy_files))
         for name, _ in planted_files:

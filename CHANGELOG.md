@@ -5971,12 +5971,14 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   module that is a post-scanner may change or drop findings before Trivy writes its report -, and with `HOME` and the
   XDG base directories naming a directory of its own and no `DOCKER_CONFIG`, `REGISTRY_AUTH_FILE` or
   `XDG_RUNTIME_DIR`, so that no other default Trivy takes from its home, Docker's and Podman's registry configuration
-  among them, is the checkout's; and neither job may have a blank line inside it, past which GitLab's YAML reader
-  carries a list or a mapping that the checker reads up to the line; and no CI file may hold a character beyond
-  printable ASCII, a tab and a line feed, since GitLab's YAML reader ends a line at NEL, LS and PS too, where the
-  checker reads lines at line feeds alone, so that a comment line holding an LS hid what follows it from every rule.
-  Each rule has a case of its self-test (ContinuousIntegration.md, "Dependency findings, the VEX document, and what
-  OSV cannot answer").
+  among them, is the checkout's, and it gives `trivy --version`, which it runs first for the version the report names
+  and which takes no ignore file or module directory, the same variables, configuration, cache and home, since with no
+  `--config` it loads the `trivy.yaml` of the directory it runs in; and neither job may have a blank line inside it,
+  past which GitLab's YAML reader carries a list or a mapping that the checker reads up to the line; and no CI file
+  may hold a character beyond printable ASCII, a tab and a line feed, since GitLab's YAML reader ends a line at NEL,
+  LS and PS too, where the checker reads lines at line feeds alone, so that a comment line holding an LS hid what
+  follows it from every rule. Each rule has a case of its self-test (ContinuousIntegration.md, "Dependency findings,
+  the VEX document, and what OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

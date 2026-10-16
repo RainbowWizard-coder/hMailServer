@@ -5081,9 +5081,13 @@ repositories' configuration, and Docker's and Podman's registry configuration,
 which can name a credential helper for it to run - is the checkout's either, and
 `DOCKER_CONFIG`, `REGISTRY_AUTH_FILE` and `XDG_RUNTIME_DIR`, which name another
 place for that configuration, are not given it (the vulnerability database is
-public, and asks no login); its self-test holds it to all of that. The job's
-other variables reach Trivy as they reach any program the job runs, `PATH` among
-them, and the script does not hold them. Beside that, no CI file sets a variable
+public, and asks no login). `trivy --version`, which the script runs first for
+the version its report names, has the same variables, configuration, cache and
+home, and no ignore file or module directory, which it does not take: given no
+`--config`, it loads the `trivy.yaml` of the directory it runs in, the
+checkout's root. The script's self-test holds it to all of that. The job's other
+variables reach Trivy as they reach any program the job runs, `PATH` among them,
+and the script does not hold them. Beside that, no CI file sets a variable
 of Trivy's, and the tree carries neither file. Each name of `.gitlab-ci.yml`'s
 `variables:` and of its workflow rules' `variables:`, which every job is given,
 is written bare and once, since GitLab's YAML reader takes a name quoted with an
