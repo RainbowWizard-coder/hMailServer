@@ -1954,9 +1954,14 @@ namespace HM
             // handed out. On every engine the statement that meets the lost session
             // fails saying that the transaction has ended and what to do, or, where
             // the connection is closed already, is refused; every later statement is
-            // refused, the commit fails as rolled back and not committed, and nothing
-            // of the transaction is saved; and the connection, given back, runs the
-            // next statement on a new session. Up to 99e6204ff PostgreSQL said none of
+            // refused, the commit fails as rolled back and not committed - as one lost
+            // with its session after the connection was closed, and on PostgreSQL
+            // after the session ended, where nothing else has said the end (on MySQL
+            // and MariaDB CheckError has said it at the statement that met the lost
+            // session, and on SQL Server IsTransactionFailed, and the commit names that
+            // statement's failure) - and nothing of the transaction is saved; and the
+            // connection, given back, runs the next statement on a new session. Up to
+            // 99e6204ff PostgreSQL said none of
             // it - libpq answers a connection that is gone with PQTRANS_UNKNOWN, not
             // PQTRANS_INERROR - and sent each later statement to the dead connection,
             // which failed it, and the commit failed with "no connection to the
@@ -2025,8 +2030,16 @@ namespace HM
 
                      Check(next == ScriptTransaction::Refused && Says(nextError, _T("The statement was not run: ")),
                         Formatter::Format("after {0}, the script's statement after the lost session was {1}, not refused: {2}", how, OutcomeName(next), nextError));
-                     Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: ")),
-                        Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the transaction was rolled back, not committed"), commitError));
+                     if (closed || type == DatabaseSettings::TypePGServer)
+                     {
+                        Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: the connection to the database was lost inside it")),
+                           Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the connection was lost inside the transaction"), commitError));
+                     }
+                     else
+                     {
+                        Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: ")),
+                           Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the transaction was rolled back, not committed"), commitError));
+                     }
                      Check(after, Formatter::Format("after {0}, the connection given back did not run the next statement: {1}", how, afterError));
                   }
                   catch (const std::exception &failure)
