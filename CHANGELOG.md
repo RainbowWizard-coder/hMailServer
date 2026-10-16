@@ -6791,14 +6791,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   that is not the checkout's own copy, and step 9's to a file written from `master`'s copy. It reads the script by any
   path, with or without `--artifacts` (without it, the gate reads the scans' artifacts from the checkout's root), and
   a command's arguments as argparse does, each an option and its value, up to the first word that is neither, so that
-  a command on the line after another is never read as more of its arguments, nor is the prose after one unless it
-  begins with an option. A line that begins with an option continues the command on the line before it, as a wrapped
-  command does, but in a code block - fenced or indented, in a list item or a block quote too, as CommonMark's
+  a command on the line after another is never read as more of its arguments, nor is a comment, nor the prose after one
+  unless it begins with an option. A line that begins with an option continues the command on the line before it, as a
+  wrapped command does, but in a code block - fenced or indented, in a list item or a block quote too, as CommonMark's
   reference implementation reads a document's blocks - and in a YAML literal block, or at a line break that YAML keeps
   in a folded one, only a line that ends with a continuation (a shell's backslash, PowerShell's backtick, cmd's caret)
-  continues a command, as the shell reads it; a block quote's lines are read without their `>` marks. Its self-test
-  breaks each rule in a copy, and over the documents as they were the check reported both commands and a step 9 with
-  no such command.
+  continues a command, and a comment ends one where it begins, as the shell reads them: a line with a word after its
+  first that begins with `#` ends its command whatever it ends with, and a line that begins with `#` ends the command
+  before it and is read without its `#`, as a root prompt's command is. Outside a block scalar, a YAML comment line ends
+  the line before it unless that is a comment too, as YAML ends a scalar there. A block quote's lines are read without
+  their `>` marks. Its self-test breaks each rule in a copy, and over the documents as they were the check reported both
+  commands and a step 9 with no such command.
 - **SECURITY.md names the libraries `dependency-scan` says UNKNOWN for as the scan answers today: libpq, QuickJS and
   SQL Server Compact.** It named 7-Zip 19.00 among them, which the Windows installer has not carried since 25
   September 2026: 7-Zip 26.03 is asked of OSV beside its control, which OSV names advisories for, and passes.
