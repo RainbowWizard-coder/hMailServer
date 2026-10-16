@@ -1661,6 +1661,112 @@ namespace RegressionTests.API
          ComAssignRole(_application, "regional@example.test", "", "");
       }
 
+      [Test]
+      [Description("Over COM an account assigned serveradmin with the list example.test gives and takes away roles in example.test alone: Application.AssignRole for an account of another domain, taking its role away or giving it one, answers \"No such account.\" as it does for an address that does not exist, and the account keeps its role, while the same account gives a role to an account of example.test and takes it away again")]
+      public void AServerAdminGivenADomainListGivesAndTakesAwayRolesOnlyInsideItOverCom()
+      {
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "them@" + OtherDomain, AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "clerk@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "regional@example.test", AccountPassword);
+
+         try
+         {
+            // The administrator gives an account of the other domain the help desk
+            // there, and another account serveradmin confined to example.test.
+            ComAssignRole(_application, "them@" + OtherDomain, "helpdesk", OtherDomain);
+            ComAssignRole(_application, "regional@example.test", "serveradmin", "example.test");
+
+            var regional = new Application();
+            Assert.IsNotNull(regional.Authenticate("regional@example.test", AccountPassword));
+
+            // Taking the role away from an account of the other domain: refused
+            // before the account is read, with the answer an address that does not
+            // exist gets.
+            COMException takenAway = Assert.Throws<COMException>(() => ComAssignRole(regional, "them@" + OtherDomain, "", ""),
+               "Over COM an account assigned serveradmin with the list example.test took a role away from an account of " + OtherDomain + ".");
+            StringAssert.Contains("No such account.", takenAway.Message);
+            Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("them@" + OtherDomain)), "The refused AssignRole took the role away.");
+
+            // Giving it a role: the same.
+            COMException given = Assert.Throws<COMException>(() => ComAssignRole(regional, "them@" + OtherDomain, "helpdesk", ""),
+               "Over COM an account assigned serveradmin with the list example.test gave a role to an account of " + OtherDomain + ".");
+            COMException missing = Assert.Throws<COMException>(() => ComAssignRole(regional, "nobody@" + OtherDomain, "helpdesk", ""));
+            StringAssert.Contains("No such account.", missing.Message);
+            Assert.AreEqual(missing.Message, given.Message,
+               "Over COM AssignRole answered an account of another domain otherwise than an address that does not exist.");
+            Assert.AreEqual(missing.Message, takenAway.Message,
+               "Over COM AssignRole answered an account of another domain otherwise than an address that does not exist.");
+
+            Account them = AccountOverCom("them@" + OtherDomain);
+            Assert.AreEqual("helpdesk", ComRoleName(them), "The refused AssignRole changed the role.");
+            Assert.AreEqual(OtherDomain, ComRoleDomains(them), "The refused AssignRole changed the role's domains.");
+
+            // In example.test it gives a role and takes it away.
+            ComAssignRole(regional, "clerk@example.test", "helpdesk", "example.test");
+            Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("clerk@example.test")),
+               "Over COM an account assigned serveradmin with the list example.test could not give a role in example.test.");
+            Assert.AreEqual("example.test", ComRoleDomains(AccountOverCom("clerk@example.test")));
+
+            ComAssignRole(regional, "clerk@example.test", "", "");
+            Assert.AreEqual("", ComRoleName(AccountOverCom("clerk@example.test")),
+               "Over COM an account assigned serveradmin with the list example.test could not take a role away in example.test.");
+         }
+         finally
+         {
+            // Taken away here, whatever happened above, so that a run of this test
+            // alone leaves the bench with its one domain and no role held. Taking
+            // away a role an account does not hold changes nothing and succeeds.
+            ComAssignRole(_application, "regional@example.test", "", "");
+            ComAssignRole(_application, "clerk@example.test", "", "");
+            ComAssignRole(_application, "them@" + OtherDomain, "", "");
+            _application.Domains.DeleteByDBID(other.ID);
+         }
+      }
+
+      [Test]
+      [Description("Over COM an account assigned serveradmin with the list example.test sets the domains of a role held in example.test only to domains inside its list: Account.RoleDomains set to * or to another domain is refused and the list stays as it was, while setting it to the account's own domain is allowed")]
+      public void AServerAdminGivenADomainListSetsTheDomainsOfARoleOnlyInsideItOverCom()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "clerk@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "regional@example.test", AccountPassword);
+
+         try
+         {
+            ComAssignRole(_application, "clerk@example.test", "helpdesk", "example.test");
+            ComAssignRole(_application, "regional@example.test", "serveradmin", "example.test");
+
+            var regional = new Application();
+            Assert.IsNotNull(regional.Authenticate("regional@example.test", AccountPassword));
+
+            Account clerkAsRegional = regional.Domains.get_ItemByName("example.test").Accounts.get_ItemByAddress("clerk@example.test");
+
+            // Every domain is beyond the list.
+            StringAssert.Contains("reach beyond this credential's",
+               Assert.Throws<COMException>(() => { ((dynamic) clerkAsRegional).RoleDomains = "*"; },
+                  "Over COM an account assigned serveradmin with the list example.test set a role's domains to every domain.").Message);
+            Assert.AreEqual("example.test", ComRoleDomains(AccountOverCom("clerk@example.test")), "The refused RoleDomains changed the list.");
+
+            // So is a domain the list does not name.
+            StringAssert.Contains("reach beyond this credential's",
+               Assert.Throws<COMException>(() => { ((dynamic) clerkAsRegional).RoleDomains = OtherDomain; },
+                  "Over COM an account assigned serveradmin with the list example.test set a role's domains to " + OtherDomain + ".").Message);
+            Assert.AreEqual("example.test", ComRoleDomains(AccountOverCom("clerk@example.test")), "The refused RoleDomains changed the list.");
+            Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("clerk@example.test")), "The refused RoleDomains changed the role.");
+
+            // An empty list, the help desk's own account's domain, is inside it.
+            ((dynamic) clerkAsRegional).RoleDomains = "";
+            Assert.AreEqual("", ComRoleDomains(AccountOverCom("clerk@example.test")),
+               "Over COM an account assigned serveradmin with the list example.test could not set a role's domains to the account's own.");
+            Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("clerk@example.test")));
+         }
+         finally
+         {
+            ComAssignRole(_application, "regional@example.test", "", "");
+            ComAssignRole(_application, "clerk@example.test", "", "");
+         }
+      }
+
       private Domain DomainOverCom(string name)
       {
          return _application.Domains.get_ItemByName(name);
