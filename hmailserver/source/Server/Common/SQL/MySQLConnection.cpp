@@ -27,6 +27,7 @@ namespace HM
       timeout_variable_is_seconds_ = false;
       server_is_mysql_ = false;
       transaction_ended_ = false;
+      lock_wait_timed_out_ = false;
       rollback_on_timeout_ = true;
    }
 
@@ -698,9 +699,17 @@ namespace HM
          // IsTransactionFailed says from here on: read here, where the statements
          // TryExecute runs and the queries MySQLRecordset runs alike are answered,
          // and whether or not the caller or the [IGNORE-ERRORS] marker then forgives
-         // the failure, since the transaction is gone either way.
-         if (IsTransactionOpen_() && FailureEndsTransaction_((unsigned int) errorCode, result))
-            transaction_ended_ = true;
+         // the failure, since the transaction is gone either way. A lock wait that
+         // timed out where innodb_rollback_on_timeout is on may have ended it or
+         // not - a row lock's has, a metadata lock's has not - and IsTransactionFailed
+         // asks the session which, when it is next asked.
+         if (IsTransactionOpen_())
+         {
+            if (FailureEndsTransaction_((unsigned int) errorCode, result))
+               transaction_ended_ = true;
+            else if (errorCode == 1205 && rollback_on_timeout_)
+               lock_wait_timed_out_ = true;
+         }
 
          AnsiString sMySqlErrorAnsi = pError;
          String sMySQLErrorUnicode = sMySqlErrorAnsi;
@@ -812,6 +821,7 @@ namespace HM
       {
          SetTransactionOpen_(false);
          transaction_ended_ = false;
+         lock_wait_timed_out_ = false;
 
          const bool begun = TryExecute(SQLCommand("BEGIN"), sErrorMessage, 0) == DALSuccess;
          SetTransactionOpen_(begun);
@@ -839,6 +849,7 @@ namespace HM
             const bool lost = IsTransactionSessionLost();
             SetTransactionOpen_(false);
             transaction_ended_ = false;
+            lock_wait_timed_out_ = false;
 
             String rollbackError;
             TryExecute(SQLCommand("ROLLBACK"), rollbackError, 0);
@@ -852,6 +863,7 @@ namespace HM
          const bool committed = TryExecute(SQLCommand("COMMIT"), sErrorMessage, 0) == DALSuccess;
          SetTransactionOpen_(false);
          transaction_ended_ = false;
+         lock_wait_timed_out_ = false;
          return committed;
       }
 
@@ -867,6 +879,7 @@ namespace HM
          const bool rolledBack = TryExecute(SQLCommand("ROLLBACK"), sErrorMessage, 0) == DALSuccess;
          SetTransactionOpen_(false);
          transaction_ended_ = false;
+         lock_wait_timed_out_ = false;
          return rolledBack;
       }
       else
@@ -980,14 +993,17 @@ namespace HM
       // The rest of the session lost, as ClassifyLastFailure names it: 2055, 1053,
       // 1927. And the failures at which InnoDB rolls the whole transaction back,
       // where at any other it takes back the failed statement alone, and the
-      // session goes on in autocommit: 1213, and 1205 with
-      // innodb_rollback_on_timeout on, measured on MySQL 8.4.11 and MariaDB
+      // session goes on in autocommit: 1213, measured on MySQL 8.4.11 and MariaDB
       // 11.8.9, and 1020 on MariaDB 11.8.9 (14 and 15 October 2026, with the
       // databases' own clients and through this code, DatabaseTransactionTester:
       // the whole transaction rolled back, the next statement committed on its
       // own, a COMMIT after it answered with success); 1206 by InnoDB's own code,
       // which rolls the whole transaction back at a lock table that is full as
-      // at a deadlock (row_mysql_handle_errors), and not measured.
+      // at a deadlock (row_mysql_handle_errors), and not measured. Not 1205, a
+      // lock wait that timed out: a row lock's ends the transaction where
+      // innodb_rollback_on_timeout is on, a metadata lock's never does, and the
+      // error is the same - so CheckError leaves it to IsTransactionFailed, which
+      // asks the session.
       switch (errorCode)
       {
       case 2055: // CR_SERVER_LOST_EXTENDED
@@ -997,11 +1013,53 @@ namespace HM
       case 1020: // ER_CHECKREAD: MariaDB's snapshot isolation
       case 1206: // ER_LOCK_TABLE_FULL
          return true;
-      case 1205: // ER_LOCK_WAIT_TIMEOUT: its own statement alone, unless the server says otherwise
-         return rollback_on_timeout_;
       default:
          return false;
       }
+   }
+
+   bool
+   MySQLConnection::IsTransactionFailed() const
+   {
+      if (IsTransactionSessionLost())
+         return true;
+
+      if (!IsTransactionOpen_())
+         return false;
+
+      // A lock wait that timed out where innodb_rollback_on_timeout is on: ended if
+      // it was a row lock's, not if it was a metadata lock's, which the error does
+      // not tell apart - the session does. Asked once, the first time this is
+      // asked after it.
+      if (lock_wait_timed_out_ && !transaction_ended_)
+      {
+         lock_wait_timed_out_ = false;
+         transaction_ended_ = !SessionHoldsTransaction_();
+      }
+
+      return transaction_ended_;
+   }
+
+   bool
+   MySQLConnection::SessionHoldsTransaction_() const
+   {
+      if (dbconn_ == 0)
+         return false;
+
+      MySQLInterface *client = MySQLInterface::Instance();
+
+      // Each statement's answer read and let go of, as TryExecute does, so that
+      // the connection is ready for the next.
+      auto run = [&](const char *statement) -> bool
+      {
+         const bool succeeded = client->p_mysql_query(dbconn_, statement) == 0;
+         hm_MYSQL_RES *result = client->p_mysql_store_result(dbconn_);
+         if (result)
+            client->p_mysql_free_result(result);
+         return succeeded;
+      };
+
+      return run("SAVEPOINT hm_transaction_open_probe") && run("RELEASE SAVEPOINT hm_transaction_open_probe");
    }
 
    void

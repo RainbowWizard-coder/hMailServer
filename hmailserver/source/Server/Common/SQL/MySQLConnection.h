@@ -103,17 +103,20 @@ namespace HM
       // whole transaction back at a deadlock (1213), MariaDB at a row changed
       // since the transaction read it (1020, under innodb_snapshot_isolation,
       // which MariaDB 11.8 has on by default), both at a lock table that is full
-      // (1206) and at a lock wait that timed out (1205) when
+      // (1206) and at a row-lock wait that timed out (1205) when
       // innodb_rollback_on_timeout is on, and the session goes on in autocommit,
       // so that every statement after it is committed on its own and a COMMIT
       // with nothing open is answered with success. A lost connection ends the
       // transaction with the session. The client's own status flags cannot tell
       // it: an error packet carries none, and the flags keep the last OK packet's
       // SERVER_STATUS_IN_TRANS through the failure (measured through libmariadb
-      // on MySQL 8.4 and MariaDB 11.8, 15 October 2026). False while no
-      // transaction BeginTransaction began is open; true once the session it was
-      // on has been replaced (DALConnection::IsTransactionSessionLost).
-      virtual bool IsTransactionFailed() const { return IsTransactionSessionLost() || (IsTransactionOpen_() && transaction_ended_); }
+      // on MySQL 8.4 and MariaDB 11.8, 15 October 2026). A metadata-lock wait that
+      // timed out is 1205 too, and ends nothing, whatever innodb_rollback_on_timeout
+      // says: so after a 1205 where it is on, the session itself is asked, once,
+      // here (SessionHoldsTransaction_). False while no transaction
+      // BeginTransaction began is open; true once the session it was on has been
+      // replaced (DALConnection::IsTransactionSessionLost).
+      virtual bool IsTransactionFailed() const;
 
    private:
 
@@ -144,7 +147,24 @@ namespace HM
 
       // Whether the failure CheckError reads, of a statement inside a transaction
       // BeginTransaction began, has ended that transaction (IsTransactionFailed).
+      // Not a lock wait that timed out (1205), which the session is asked about.
       bool FailureEndsTransaction_(unsigned int errorCode, ExecutionResult result) const;
+
+      // Whether the session holds an open transaction, asked of the session
+      // itself, by statements sent as they are so that neither is reported nor
+      // read as the caller's failure: a SAVEPOINT and its RELEASE SAVEPOINT, which
+      // inside an open transaction both succeed and change nothing, and in
+      // autocommit the SAVEPOINT does nothing and the RELEASE is refused (1305).
+      // Measured with the databases' own clients on MySQL 8.4.11 and MariaDB
+      // 11.8.9, each with innodb_rollback_on_timeout on and off, 16 October 2026:
+      // after a metadata-lock wait that timed out both succeed and the
+      // transaction's rows are still its own, uncommitted, until its ROLLBACK
+      // takes them back; after a row-lock wait that timed out with
+      // innodb_rollback_on_timeout on, and after a deadlock, the RELEASE is
+      // refused and the next statement is committed on its own; after a row-lock
+      // wait that timed out with it off both succeed. A session lost answers
+      // false.
+      bool SessionHoldsTransaction_() const;
 
       // Works out which session variable this server understands, and in which
       // unit, and proves it by setting it. Run once per connection, from Connect().
@@ -173,9 +193,12 @@ namespace HM
 
       // Once the database has ended the transaction BeginTransaction began
       // (DALConnection::IsTransactionOpen_) at a failure in it, which CheckError -
-      // const, and MySQLRecordset's too - sees. Cleared by BeginTransaction,
-      // CommitTransaction and RollbackTransaction.
+      // const, and MySQLRecordset's too - sees; and a lock wait in it that timed
+      // out where innodb_rollback_on_timeout is on, which IsTransactionFailed asks
+      // the session about. Cleared by BeginTransaction, CommitTransaction and
+      // RollbackTransaction.
       mutable bool transaction_ended_;
+      mutable bool lock_wait_timed_out_;
 
       // innodb_rollback_on_timeout as read at Connect; true when it could not be
       // read, since taking a lock wait that timed out for the end of the transaction

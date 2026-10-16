@@ -1495,6 +1495,120 @@ namespace HM
                });
             }
 
+            // A metadata-lock wait that timed out (1205 as well): a transaction holds a
+            // shared metadata lock on aatxnprobeb, an ALTER TABLE of it waits behind
+            // that, and the script's read of the table waits behind the ALTER until its
+            // lock_wait_timeout, made a second long on a pool of its own. That ends
+            // nothing, whatever innodb_rollback_on_timeout says: the script's statement
+            // fails, and the transaction goes on and commits whole (measured with the
+            // databases' own clients on MySQL 8.4.11 and MariaDB 11.8.9, each with
+            // innodb_rollback_on_timeout on and off, 16 October 2026). On f7dcb3862, where
+            // innodb_rollback_on_timeout is on, every 1205 was taken for the end of the
+            // transaction: the rest of a transaction still open was refused, and its
+            // commit rolled back what a commit would have saved.
+            if (mysql)
+            {
+               run([&]()
+               {
+                  probe.Reset();
+                  std::shared_ptr<DatabaseConnectionManager> timing = OpenPool(settings, 1);
+                  std::shared_ptr<DALConnection> alterer = probe.Connect(_T("the ALTER TABLE that waits"));
+                  std::thread alter;
+                  bool altered = false;
+                  std::exception_ptr failure;
+                  try
+                  {
+                     ScriptTransaction script;
+                     BeginOn(script, timing);
+                     String error;
+                     Check(script.GetConnection()->TryExecute(SQLCommand(_T("set session lock_wait_timeout = 1")), error, 0, 0) == DALConnection::DALSuccess,
+                        _T("the tester could not shorten the script's metadata-lock wait: ") + error);
+                     Check(Script(script, Insert(2, 20), error) == ScriptTransaction::Ran, _T("the script's insert failed: ") + error);
+
+                     ScriptTransaction::Outcome waited = ScriptTransaction::Ran;
+                     String waitError;
+                     {
+                        ScriptTransaction holder;
+                        BeginOn(holder, pool);
+                        std::shared_ptr<DALRecordset> held = holder.GetConnection()->CreateRecordset();
+                        Check(held->TryOpen(holder.GetConnection(), SQLCommand(_T("select v from aatxnprobeb where id = 1")), error) == DALConnection::DALSuccess,
+                           _T("the holder's read failed: ") + error);
+
+                        Check(alterer->TryExecute(SQLCommand(_T("set session lock_wait_timeout = 30")), error, 0, 0) == DALConnection::DALSuccess,
+                           _T("the tester could not set the ALTER TABLE's metadata-lock wait: ") + error);
+                        alter = std::thread([&]()
+                        {
+                           String alterError;
+                           altered = alterer->TryExecute(SQLCommand(_T("alter table aatxnprobeb add column w int null")), alterError, 0, 0) == DALConnection::DALSuccess;
+                        });
+
+                        // The ALTER TABLE waiting for the holder's lock, seen in the
+                        // server's own list of the tester's sessions, before the script
+                        // reads the table.
+                        bool waiting = false;
+                        for (int i = 0; i < 250 && !waiting; i++)
+                        {
+                           std::shared_ptr<DALRecordset> waits = probe.raw_->CreateRecordset();
+                           Check(waits->TryOpen(probe.raw_, SQLCommand(_T("select count(*) as waiting from information_schema.processlist where state like 'Waiting for table metadata lock%' and info like 'alter table aatxnprobeb%'")), error) == DALConnection::DALSuccess,
+                              _T("the tester could not see whether the ALTER TABLE waits: ") + error);
+                           waiting = waits->GetLongValue("waiting") > 0;
+                           if (!waiting)
+                              std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                        }
+                        Check(waiting, _T("the ALTER TABLE did not wait for the holder's metadata lock within five seconds"));
+
+                        waited = Script(script, SQLCommand(_T("select v from aatxnprobeb where id = 1")), waitError);
+
+                        // The holder's end lets the ALTER TABLE go on.
+                        String ignored;
+                        holder.Rollback(ignored);
+                     }
+
+                     alter.join();
+
+                     const bool ended = script.GetConnection()->IsTransactionFailed();
+                     const ScriptTransaction::Outcome next = Script(script, Insert(3, 30), error);
+                     const int seen = probe.Value(_T("aatxnprobe"), 3);
+
+                     String commitError;
+                     const bool committed = script.Commit(commitError);
+
+                     const int two = probe.Value(_T("aatxnprobe"), 2);
+                     const int three = probe.Value(_T("aatxnprobe"), 3);
+
+                     Check(waited == ScriptTransaction::Failed && waitError.Find(_T("Lock wait timeout")) > 0,
+                        Formatter::Format("the script's read of a table an ALTER TABLE waited for was {0}, not failed after its metadata-lock wait timed out: {1}", OutcomeName(waited), waitError));
+                     Check(!ended && next == ScriptTransaction::Ran && seen == -1 && committed,
+                        Formatter::Format("after a metadata-lock wait that timed out, which ends nothing, the transaction was said to have ended ({0}), its next statement was {1}, seen {2} before the commit, and the commit {3}: {4}",
+                           ended ? 1 : 0, OutcomeName(next), seen, committed ? _T("succeeded") : _T("failed"), commitError));
+                     Check(two == 20 && three == 30,
+                        Formatter::Format("after a metadata-lock wait that timed out the transaction left {0} and {1}, not 20 and 30", two, three));
+                     Check(altered, _T("the ALTER TABLE the script's read waited behind did not run once the holder's transaction ended"));
+                  }
+                  catch (...)
+                  {
+                     failure = std::current_exception();
+                  }
+
+                  // The ALTER TABLE ends once the holder's transaction has, which leaving
+                  // the block above saw to whatever failed in it.
+                  if (alter.joinable())
+                     alter.join();
+
+                  String ignored;
+                  if (altered)
+                     alterer->TryExecute(SQLCommand(_T("alter table aatxnprobeb drop column w")), ignored, 0, 0);
+
+                  alterer->Disconnect();
+                  timing->Disconnect();
+
+                  if (failure)
+                     std::rethrow_exception(failure);
+
+                  probe.Say(_T("a metadata-lock wait that timed out: its own statement failed, and the transaction went on and committed"));
+               });
+            }
+
             // Database.BeginTransaction called while its transaction is open: the open
             // one is rolled back and its connection given back to the pool before the
             // second begins. Up to 6.3.6 the Database object let go of the first with

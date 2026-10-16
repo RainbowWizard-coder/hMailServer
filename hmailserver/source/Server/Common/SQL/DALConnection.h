@@ -233,9 +233,10 @@ namespace HM
       // PostgreSQL any failure does
       // (PQTRANS_INERROR), and every later statement is refused until the
       // rollback. On MySQL and MariaDB a deadlock (1213), MariaDB's 1020, a lock
-      // table that is full (1206), a lock wait that timed out where
-      // innodb_rollback_on_timeout is on (1205) and a lost connection do, and the
-      // session goes on in autocommit (MySQLConnection). On SQL Server a deadlock's
+      // table that is full (1206), a row-lock wait that timed out where
+      // innodb_rollback_on_timeout is on (1205, which a metadata-lock wait that
+      // timed out answers too, and ends nothing: the session is asked) and a lost
+      // connection do, and the session goes on in autocommit (MySQLConnection).On SQL Server a deadlock's
       // victim (1205) and some other failures - a conversion error among them - do,
       // and the session goes on in autocommit (ADOConnection, @@TRANCOUNT, read only
       // after a failure). On SQL Server Compact none does. Asked after a statement
