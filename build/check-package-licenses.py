@@ -67,9 +67,9 @@ A field added there fails until it is in one list or the other. A byte order mar
 start of a Dockerfile or of a YAML file is taken off before the file is read, as buildkit,
 PyYAML and Helm take it off, so that a parser directive or a key on its first line is read
 as theirs (BOM_TAKEN_OFF); the other kinds' files are read with it. The scan reads lines,
-not the languages: a field set another way - by a name the file builds (a set() of ${name} in
-CMake, or cmake_parse_arguments' prefix), a macro, a command that reads into one, such as
-bash's read, or a YAML key written as an explicit key (? key) - can pass it, and so can a
+not the languages: a field set another way - by a name the file builds (a set() of ${name}
+in CMake, or cmake_parse_arguments' prefix), a macro, a command that reads into one, such
+as bash's read, or a YAML key written as an explicit key (? key) - can pass it, and so can a
 field in a file it does not read: a build reads more than these, the CI files and the other
 scripts under build/ among them. As first written, this checked the five alone and said
 they were every licence field of the Linux packages, and the other four were licence fields
@@ -87,8 +87,10 @@ word before it, and a chart's licence in a block scalar passed and the check pri
 value read, no case tried the blanks of six of the forms or a tab in any, and a shell
 script's older LABEL in small letters, or with its key in quotes, was not read (the second
 check of RB-2's third round); and a parser directive after a byte order mark, which
-buildkit takes off, and a YAML key after one on a file's first line were not read, and a
-line that ends in an escaped backslash was taken for one Docker continues (the third check
+buildkit takes off, and a YAML key after one on a file's first line were not read, a line
+that ends in an escaped backslash was taken for one Docker continues, and a chart's licence
+under the first of two keys annotations, and a licence label's line inside a value whose
+quotes a line before it opened, passed while the check printed the licence (the third check
 of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
@@ -129,14 +131,19 @@ there), so that a word at the backslash goes on into the rest of the instruction
 begins with no blank, and the first word of a line that begins with no blank goes into a
 word that ends the line before. So does a licence label's line that Docker reads as no
 key=value of the image's own LABEL - a line of another instruction, of the older LABEL key
-value, whose one label takes the rest of it, or of a stage that a later FROM ends - or that
-is in a Dockerfile whose parser directive, after a byte order mark or not, gives it an
-escape character other than the backslash; and a chart's licence that is not a key of the
-chart's annotations, such as a line of a block scalar. The readers too read lines: a line
-one reads that its file's own reader takes for part of a value begun on a line before it -
-a YAML value in quotes or in a flow over several lines - or for no part of the file - a
-CMake bracket comment, a here-document or a false if in a shell file, a false %if in a spec
-- can pass while it is the one field of its kind there.
+value, whose one label takes the rest of it, or of a stage that a later FROM ends, or one
+whose key and value Docker reads as part of a longer word, which a quote opened on a line
+before it, or a character before its key or after its value that Go's unicode.IsSpace
+takes for no blank, carries on into them - or that is in a Dockerfile whose parser
+directive, after a byte order mark or not, gives it an escape character other than the
+backslash; a chart's licence that is not a key of the chart's annotations, such as a line of
+a block scalar, or that is under one of more than one key annotations at the start of a
+line, of which YAML keeps the last; and the snap's or the chart's licence in a YAML file of
+more than one document, of which Helm reads the first and PyYAML's safe_load none. The
+readers too read lines: a line one reads that its file's own reader takes for part of a
+value begun on a line before it - a YAML value in quotes or in a flow over several lines -
+or for no part of the file - a CMake bracket comment, a here-document or a false if in a
+shell file, a false %if in a spec - can pass while it is the one field of its kind there.
 
   python build/check-package-licenses.py              the tree
   python build/check-package-licenses.py --self-test  the negative controls alone
@@ -279,6 +286,12 @@ DOCKER_DIRECTIVE = re.compile(r"^#[ \t]*([A-Za-z][A-Za-z0-9]*)[ \t]*=[ \t]*(\S.*
 DOCKER_DIRECTIVES = ("escape", "syntax", "check")
 DOCKER_CONTINUATION = re.compile(r"(?<!\\)\\[ \t]*$")
 CHART_ANNOTATIONS = re.compile(r"^annotations:(?:[ \t]+(?:#[^\n]*)?)?$")
+# Any key annotations at the start of a line - in quotes or not, as an explicit key or not -
+# of which YAML keeps the last; and the markers of a YAML document's start and end, at the
+# start of a line, after which a line of content begins another document.
+CHART_ANNOTATIONS_KEY = re.compile(r"""^(?:\?[ \t]+)?["']?annotations["']?[ \t]*(?::|$)""", re.MULTILINE)
+YAML_DOCUMENT_START = re.compile(r"^---(?=[ \t]|$)")
+YAML_DOCUMENT_END = re.compile(r"^\.\.\.(?=[ \t]|$)")
 YAML_KINDS = ("snap", "chart-annotation")
 # The files whose own readers take a byte order mark off their start - a Dockerfile, whose
 # first line buildkit takes it off, and a YAML file, which PyYAML and Helm read without it -
@@ -421,10 +434,33 @@ def blanks(line):
     return len(line) - len(line.lstrip(" \t"))
 
 
+def yaml_documents_after_the_first(lines):
+    """Whether YAML reads those lines as more than one document: a --- after a line of
+    content, or a line of content after a ...; a blank line, a comment and a directive (%)
+    are none."""
+    content = ended = False
+    for line in lines:
+        if YAML_DOCUMENT_START.match(line):
+            if content or ended:
+                return True
+            rest = line[3:].strip()
+            content = bool(rest) and not rest.startswith("#")
+        elif YAML_DOCUMENT_END.match(line):
+            ended = True
+        elif line.strip() and not line.lstrip().startswith("#") and not line.startswith("%"):
+            if ended:
+                return True
+            content = True
+    return False
+
+
 def yaml_misread(kind, text, match):
     """Why the snap's or the chart's YAML reader reads more than the value match read on its
     key's line, or reads that key as no key of the chart's annotations; or None."""
     lines = text.split("\n")
+    if yaml_documents_after_the_first(lines):
+        return ("is in a YAML file of more than one document - a --- after a line of the first, or a line after a ... - "
+                "which its file's own reader reads in part or refuses: this reads a file of one")
     number = text.count("\n", 0, match.start())
     indent = blanks(lines[number])
     for line in lines[number + 1:]:
@@ -439,6 +475,10 @@ def yaml_misread(kind, text, match):
         line = lines[above]
         if line.strip() and not line.lstrip().startswith("#") and blanks(line) < indent:
             if CHART_ANNOTATIONS.match(line):
+                keys = len(CHART_ANNOTATIONS_KEY.findall(text))
+                if keys != 1:
+                    return ("is under one of %d keys annotations at the start of a line, of which its file's own reader "
+                            "keeps the last: this reads a chart with one" % keys)
                 return None
             return ("is not a key of the chart's annotations - annotations: at the start of a line, with no value - to its "
                     "file's own reader: the line above it indented less is line %d (%s)" % (above + 1, line.strip()))
@@ -480,24 +520,34 @@ def docker_instructions(text):
     return starts, parts
 
 
-def docker_first_word(arguments):
-    """The first word of an instruction's arguments as Docker's parser splits them: to a blank
-    outside quotes, a backslash outside single quotes keeping the character after it."""
-    word, quote, at = "", None, 0
-    arguments = arguments.lstrip()
-    while at < len(arguments) and (quote or not arguments[at].isspace()):
-        character = arguments[at]
-        if character == "\\" and quote != "'":
-            word += arguments[at:at + 2]
-            at += 2
+def docker_blank(character):
+    """Whether Docker's parser splits words at the character: Go's unicode.IsSpace, which is
+    str.isspace() but for U+001C to U+001F, which Go takes for no space."""
+    return character.isspace() and character not in "\x1c\x1d\x1e\x1f"
+
+
+def docker_words(arguments):
+    """The (start, end) of each word of an instruction's arguments as Docker's parser splits
+    them: to a blank outside quotes, a backslash outside single quotes keeping the character
+    after it."""
+    words, at = [], 0
+    while at < len(arguments):
+        if docker_blank(arguments[at]):
+            at += 1
             continue
-        if quote is None and character in "'\"":
-            quote = character
-        elif character == quote:
-            quote = None
-        word += character
-        at += 1
-    return word
+        start, quote = at, None
+        while at < len(arguments) and (quote or not docker_blank(arguments[at])):
+            character = arguments[at]
+            if character == "\\" and quote != "'":
+                at += 2
+                continue
+            if quote is None and character in "'\"":
+                quote = character
+            elif character == quote:
+                quote = None
+            at += 1
+        words.append((start, min(at, len(arguments))))
+    return words
 
 
 def docker_misread(text, match):
@@ -514,11 +564,13 @@ def docker_misread(text, match):
             instructions.setdefault(start, []).append(number)
     number = text.count("\n", 0, match.start())
     kept = instructions[starts[number]]
-    words = "".join(parts[n] for n in kept).split(None, 1)
+    joined = "".join(parts[n] for n in kept)
+    words = joined.split(None, 1)
     if words[0].upper() != "LABEL":
         return ("is a line of the instruction %s at line %d to its file's own reader, not of a LABEL, which this does not "
                 "read" % (words[0], kept[0] + 1))
-    if "=" not in docker_first_word(words[1] if len(words) > 1 else ""):
+    arguments = words[1] if len(words) > 1 else ""
+    if "=" not in "".join(arguments[start:end] for start, end in docker_words(arguments)[:1]):
         return ("is a line of a LABEL of the older form, LABEL key value, at line %d, whose one label its file's own reader "
                 "gives the rest of it, which this does not read" % (kept[0] + 1))
     later = [start for start in sorted(instructions) if start > kept[0] and
@@ -533,6 +585,17 @@ def docker_misread(text, match):
     if text.startswith("\\", match.end()) and "".join(parts[n] for n in kept[at + 1:])[:1].strip():
         return ("has a value its file's own reader carries on past its line, into %s, which this does not read"
                 % next(parts[n].strip() for n in kept[at + 1:] if parts[n].strip()))
+    # And the key and its value one word of the instruction as Docker splits it, not part of
+    # a longer one: a quote a line before opened, or a character before the line's key or
+    # after its value that Go takes for no blank, carries a word on into it.
+    raw = text.split("\n")[number]
+    offset = sum(len(parts[n]) for n in kept[:at]) - (len(raw) - len(raw.lstrip()) if at == 0 else 0)
+    key = offset + len(re.match(r"[ \t]*(?:LABEL[ \t]+)?", match.group(0)).group(0))
+    end = offset + len(match.group(0))
+    word = next(((start, stop) for start, stop in docker_words(joined) if start <= key < stop), (key, key))
+    if word != (key, end):
+        return ("is part of a longer word to its file's own reader, %r, of the LABEL at line %d: this reads a label that is "
+                "a word of its own" % (joined[word[0]:word[1]], kept[0] + 1))
     return None
 
 
@@ -1298,6 +1361,45 @@ def self_test():
                added(DOCKERFILE, no_oci.replace("FROM ubuntu:24.04\n", "FROM ubuntu:24.04\nLABEL org.example.path=C:%s\n"
                                                 'LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"\n' % backslashes)),
                None)
+    # The chart's annotations given once, in a file of one YAML document, and a licence
+    # label's key and value a word of their own to Docker. A chart whose annotations were
+    # given twice, the licence's under the first, which YAML gives up for the last, and a
+    # licence label's line inside a value whose quotes a line before it opened passed (the
+    # third check of RB-2's third round); and so did the chart's annotations in a second
+    # document, which Helm does not read, and a licence label's line joined to a word that
+    # ends in a character Go's unicode.IsSpace takes for no blank or in an escaped blank
+    # (this round's own check of the above).
+    two_keys = "the Helm chart's artifacthub.io/license (%s) is under one of 2 keys annotations at the start of a line" % CHART
+    expect("the chart's annotations under two keys annotations, the licence's under the first",
+           changed(CHART, '  artifacthub.io/prerelease: "false"\n', 'annotations:\n  artifacthub.io/prerelease: "false"\n'),
+           two_keys + ", of which its file's own reader keeps the last: this reads a chart with one")
+    expect("empty annotations after the chart's", added(CHART, GOOD[CHART] + "annotations: {}\n"), two_keys)
+    expect("annotations as an explicit key after the chart's", added(CHART, GOOD[CHART] + "? annotations\n: {}\n"), two_keys)
+    expect("annotations in quotes after the chart's", added(CHART, GOOD[CHART] + '"annotations" : {}\n'), two_keys)
+    documents = "is in a YAML file of more than one document - a --- after a line of the first, or a line after a ... -"
+    expect("the chart's annotations in a second YAML document", changed(CHART, "annotations:\n", "---\nannotations:\n"),
+           "the Helm chart's artifacthub.io/license (%s) %s" % (CHART, documents))
+    expect("a line after the chart's end of document", added(CHART, GOOD[CHART] + "...\nkeywords: [mail]\n"),
+           "the Helm chart's artifacthub.io/license (%s) %s" % (CHART, documents))
+    expect("the snap's licence in a second YAML document", changed(SNAPCRAFT, "license:", "---\nlicense:"),
+           "the snap's license (%s) %s" % (SNAPCRAFT, documents))
+    expect("the chart begun by --- after a comment and ended by ... before one",
+           added(CHART, "# the chart\n--- # its document\n" + GOOD[CHART] + "...\n# the end\n"), None)
+    longer = "the container image's org.opencontainers.image.licenses (%s) is part of a longer word to its file's own reader, " % (
+        DOCKERFILE)
+    for quote in "\"'":
+        expect("a licence label's line inside a value whose %s quote the line before opened" % ("double", "single")[quote == "'"],
+               changed(DOCKERFILE, oci, "      org.example.note=%ssee \\\n%s      org.example.end=x%s \\\n" % (quote, oci, quote)),
+               longer + "'org.example.note=")
+    expect("a licence label's line at column 0 after a word that ends in a character Go takes for no blank",
+           changed(DOCKERFILE, '"hMailServer" \\\n' + oci, '"hMailServer"\x1c\\\n' + oci.lstrip()),
+           longer + "'org.opencontainers.image.title=\"hMailServer\"\\x1corg.opencontainers.image.licenses=\"AGPL-3.0-or-later\"', "
+           "of the LABEL at line 2: this reads a label that is a word of its own")
+    expect("a licence label's line at column 0 after a word that ends in an escaped blank",
+           changed(DOCKERFILE, '"hMailServer" \\\n' + oci, '"hMailServer"\\ \\\n' + oci.lstrip()),
+           longer + "'org.opencontainers.image.title=\"hMailServer\"\\\\ org.opencontainers.image.licenses")
+    expect("a licence label's line at column 0 after a word that ends in a no-break space",
+           changed(DOCKERFILE, '"hMailServer" \\\n' + oci, '"hMailServer"\u00a0\\\n' + oci.lstrip()), None)
     # The blanks each form allows, a space and a tab, and the forms of a script's older
     # LABEL. No case tried the blanks of six of the forms or a tab in any, so that a check
     # without them passed its self-test and the tree, and a shell script's older LABEL in

@@ -1139,13 +1139,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   five licence fields to what is compiled into the server, so that a component compiled in whose licence an identifier
   names and a field that leaves it out fail the pipeline; it holds the snap's, the image's and the chart's to the
   project's licence alone, and fails one of those whose value its file's own reader carries on to the next line, a
-  label's line that Docker does not read as a key=value of the image's own `LABEL`, and a chart's licence that is not a
-  key of the chart's annotations; it fails another licence field on the line of a field it holds, and a licence field it
-  does not hold in the files it reads - those of `snap/`, `nix/` and `platform/packaging/`, `flake.nix`, the server's
-  `CMakeLists.txt` and `build/ci/linux-image.sh`, which gives kaniko the image's labels that change with each build as
-  `--label` flags - in each of the forms the script lists for the kind of file, a CMake command on a CPack licence
-  variable (`string(APPEND ...)` as well as `set()`), an assignment to the APKBUILD's or the PKGBUILD's `license` or to
-  an element of it, and a YAML key in a block or in a flow among them. Found by the release review of 6.3.7
+  label's line that Docker does not read as a key=value of the image's own `LABEL`, a word of its own, a chart's licence
+  that is not a key of the chart's one `annotations`, and the snap's or the chart's in a file of more than one YAML
+  document, though a line that YAML reads as part of a value in quotes or in a flow begun on a line before it can pass;
+  it fails another licence field on the line of a field it holds, and a licence field it does not hold in the files it
+  reads - those of `snap/`, `nix/` and `platform/packaging/`, `flake.nix`, the server's `CMakeLists.txt` and
+  `build/ci/linux-image.sh`, which gives kaniko the image's labels that change with each build as `--label` flags - in
+  each of the forms the script lists for the kind of file, a CMake command on a CPack licence variable
+  (`string(APPEND ...)` as well as `set()`), an assignment to the APKBUILD's or the PKGBUILD's `license` or to an
+  element of it, and a YAML key in a block or in a flow among them. Found by the release review of 6.3.7
   ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences";
   [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
 
