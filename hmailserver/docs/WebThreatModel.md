@@ -377,12 +377,14 @@ How this stays true
   until it has been read against it. So does a definition it reads that stands
   inside a conditional of the preprocessor, which it does not evaluate, or
   holds one, or is not the only definition of its name in its file (an
-  overload, a copy in another namespace). It reads the code as the compiler's
-  first three translation phases do: what a comment or a literal holds is not
-  read, a directive is one wherever it begins a line, after spaces, a comment
-  or a line splice too, and a form it does not read as the compilers do, such
-  as a backslash with spaces after it at a line's end, stops it. What
-  `Authenticate_` makes of a credential - the grant of a role, for its
+  overload, a copy in another namespace), and an enumerator of the route kinds
+  or of the permissions whose value, as the compiler gives it, is not its
+  place - a permission's place is the bit it is set at. It reads the code as
+  the compiler's first three translation phases do: what a comment or a literal
+  holds is not read, a directive is one wherever it begins a line, after
+  spaces, a comment or a line splice too, and a form it does not read as the
+  compilers do, such as a backslash with spaces after it at a line's end, stops
+  it. What `Authenticate_` makes of a credential - the grant of a role, for its
   domains - the string helpers, a macro defined over a name those functions
   use, an overload of one of them defined in another file and the functions
   `ProcessRequest_`'s other checks call are not held; the matrix's "Not shown"

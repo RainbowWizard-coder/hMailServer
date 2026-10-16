@@ -11,10 +11,11 @@ by hand: every row comes from the C++ that decides it, so that the matrix says
 what the server does rather than what somebody once meant it to do, and --check
 fails the moment the two part: when the routes, the lists or the roles it is
 read from have changed and the file has not (exit 1), and when a step of one
-of the functions it holds has changed, something it reads stands inside a
-conditional of the preprocessor or holds one, which it does not evaluate, or a
-file it reads holds a form it does not read as the compilers do (exit 2;
-STEPS, lex and conditionals, below).
+of the functions it holds has changed, an enumerator it reads has a value that
+is not its place, something it reads stands inside a conditional of the
+preprocessor or holds one, which it does not evaluate, or a file it reads holds
+a form it does not read as the compilers do (exit 2; STEPS, lex, conditionals
+and enumeration, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -40,10 +41,20 @@ What is read, all of it from hmailserver/source/Server/Common:
       order, step for step; build/check-role-choke-point.py already holds every
       RouteKind to a classification, and this script holds the decision to the
       same reading.
+  Util/RestApiServer.h, enum RouteKind
+      the route kinds, in order, each one's value, as the compiler gives it,
+      its place in the enumeration.
   Util/RestApiReports.cpp, SECTIONS
       the report's sections and which of them are counted from server-wide
       metrics: those IsServerWideReportSection_ answers for, which Authorize_
       refuses a credential confined to named domains.
+  Application/RoleManager.h, enum RolePermission
+      the permissions, in order, and Count after them. Each one's value, as
+      the compiler gives it, must be its place in the enumeration: that is the
+      bit Bit sets it at and RoleGrant::Holds asks, and the place of its token
+      in RoleManager.cpp's PermissionTokens, which is read beside it. A value
+      written that is not its place - one permission given another's bit -
+      or one that is not an integer literal stops the script.
   Application/RoleManager.cpp, the four built-in roles' functions
       the permissions DomainAdminPermissions, HelpdeskPermissions and
       AuditorPermissions each set, one a line (set |= Bit(RolePermission::X););
@@ -2559,16 +2570,69 @@ def authenticated_part(process):
     return None, None
 
 
-def route_kinds(header):
-    """The route kinds of RestApiServer.h's enum RouteKind, in order: its only
-    definition in the file (defined_once), searched for outside every literal."""
-    what = "%s's enum RouteKind" % REST_H
-    lexed = lex(header)
-    m = outside_conditionals(lexed.code, re.search(r"enum RouteKind\s*\{(.*?)\n      \};", lexed.blind, re.S), what)
+def enumerators(body, what):
+    """[(name, value)] of the enumerators of an enumeration's body, code as
+    lex() gives it, with each one's value as the compiler gives it: the integer
+    literal written for it, or one more than the one before, the first 0. An
+    enumerator written any other way - its value an expression, an attribute
+    after its name - stops the script, which evaluates nothing else."""
+    tokens = tokenize(body)
+    items = []
+    value = -1
+    i = 0
+    while tokens[i].kind != "eof":
+        name = tokens[i]
+        if name.kind != "id":
+            raise GenerationError("%s: %r is not an enumerator this script reads, a name or a name = an integer "
+                                  "literal" % (what, name.text))
+        i += 1
+        if tokens[i].kind == "op" and tokens[i].text == "=":
+            written = tokens[i + 1]
+            value = integer_value(written.text) if written.kind == "num" else None
+            following = tokens[i + 2] if written.kind != "eof" else written
+            if value is None or not (following.kind == "eof" or (following.kind == "op" and following.text == ",")):
+                raise GenerationError("%s: %s's value is not written as an integer literal, which is all this script "
+                                      "evaluates" % (what, name.text))
+            i += 2
+        else:
+            value += 1
+        items.append((name.text, value))
+        if tokens[i].kind == "op" and tokens[i].text == ",":
+            i += 1
+        elif tokens[i].kind != "eof":
+            raise GenerationError("%s: %s is followed by %r, where this script reads a comma or the end"
+                                  % (what, name.text, tokens[i].text))
+    return items
+
+
+def held_to_places(items, what):
+    """items, enumerators(), refused unless each one's value is its place in the
+    enumeration, from 0, which the script reads it as."""
+    for place, (name, value) in enumerate(items):
+        if value != place:
+            raise GenerationError("%s: %s is %d, and its place in the enumeration %d: this script reads each "
+                                  "enumerator as its place" % (what, name, value, place))
+    return items
+
+
+def enumeration(text, name, pattern, what):
+    """The enumerators of the enumeration name whose body is pattern's group 1
+    in the code of text (lex), outside every literal and every conditional of
+    the preprocessor and the only enumeration of that name in it
+    (defined_once), each one's value its place (held_to_places)."""
+    lexed = lex(text)
+    m = outside_conditionals(lexed.code, re.search(pattern, lexed.blind, re.S), what)
     if not m:
-        return []
-    defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?RouteKind\b[^;{]*\{", what)
-    return re.findall(r"^\s*(Route\w+)\s*(?:=\s*\d+)?\s*,?\s*$", lexed.code[m.start(1):m.end(1)], re.M)
+        raise GenerationError("%s could not be read" % what)
+    defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?" + name + r"\b[^;{]*\{", what)
+    return held_to_places(enumerators(lexed.code[m.start(1):m.end(1)], what), what)
+
+
+def route_kinds(header):
+    """The route kinds of RestApiServer.h's enum RouteKind, in order, each one's
+    value its place."""
+    return [name for name, _ in enumeration(header, "RouteKind", r"enum RouteKind\s*\{(.*?)\n      \};",
+                                            "%s's enum RouteKind" % REST_H)]
 
 
 def case_set(body):
@@ -2634,24 +2698,29 @@ def string_list(body, what):
 
 
 def permission_tokens(role_cpp):
+    """The tokens of RoleManager.cpp's PermissionTokens, in order: the token of
+    each permission at its place."""
     what = "%s's PermissionTokens" % ROLE_CPP
     lexed = lex(role_cpp)
     m = outside_conditionals(lexed.code, re.search(r"PermissionTokens\[\]\s*=\s*\{(.*?)\};", lexed.blind, re.S), what)
     if not m:
-        return []
+        raise GenerationError("%s could not be read" % what)
     defined_once(lexed.blind, r"\bPermissionTokens\s*\[[^\]]*\]\s*=", what)
-    return re.findall(r'"(\w+)"', lexed.code[m.start(1):m.end(1)])
+    return string_list(lexed.code[m.start(1):m.end(1)], what)
 
 
 def permission_enum(role_h):
+    """The permissions of RoleManager.h's enum RolePermission, in order, Count
+    left out. Each one's value, as the compiler gives it, must be its place in
+    the enumeration (held_to_places) - the bit Bit sets it at and RoleGrant::Holds
+    asks, and the place of its token in PermissionTokens - so that a value
+    written for one, which would give it another's bit, stops the script; and
+    Count, the last, is the number of permissions."""
     what = "Common/Application/RoleManager.h's enum RolePermission"
-    lexed = lex(role_h)
-    m = outside_conditionals(lexed.code, re.search(r"enum class RolePermission\s*\{(.*?)\};", lexed.blind, re.S), what)
-    if not m:
-        return []
-    defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?RolePermission\b[^;{]*\{", what)
-    names = re.findall(r"^\s*(\w+)\s*(?:=\s*\d+)?\s*,?\s*$", lexed.code[m.start(1):m.end(1)], re.M)
-    return [n for n in names if n != "Count"]
+    items = enumeration(role_h, "RolePermission", r"enum class RolePermission\s*\{(.*?)\};", what)
+    if not items or items[-1][0] != "Count":
+        raise GenerationError("%s does not end in Count, which this script reads as the number of permissions" % what)
+    return [name for name, _ in items[:-1]]
 
 
 # The report's sections, RestApiReports.cpp's table: FindSection finds a section
@@ -2795,7 +2864,11 @@ class Decision(object):
                 raise GenerationError("%s: the built-in role %s could not be read" % (ROLE_CPP, name))
             roles[name] = held if listed else set(enum)
         self.roles = roles
-        self.tokens = dict(zip(enum, permission_tokens(role_cpp)))
+        tokens = permission_tokens(role_cpp)
+        if len(tokens) != len(enum):
+            raise GenerationError("%s: PermissionTokens holds %d tokens and RolePermission %d permissions"
+                                  % (ROLE_CPP, len(tokens), len(enum)))
+        self.tokens = dict(zip(enum, tokens))
         for label, value in (("IsSessionRoute_", self.session), ("IsSelfServiceRoute_", self.self_service),
                              ("IsScimRoute_", self.scim), ("IsApiKeyRoute_", self.api_key),
                              ("PermissionFor_", self.permission), ("DomainNamedByRoute_", self.domain_named),
@@ -3768,8 +3841,10 @@ def render(decision, records, anon, web):
       "`IsDomainAllowed_`, `IsServerWideReportSection_` and the `FindSection` it asks, and `ProcessRequest_` from "
       "the end of the anonymous routes to the handler are compared with the steps the script was last read "
       "against, their lists left out, and a step added, taken out, moved or given a condition, or a name a step "
-      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. It "
-      "reads the code as the compiler's first three translation phases "
+      "compares or is kept under changed, stops it; prose - a refusal's reason, a message - may be reworded. The "
+      "enumerations of route kinds and of permissions are read with the value the compiler gives each enumerator, "
+      "which must be its place - a permission's place is the bit it is set at and the place of its token - so a value "
+      "written that is not its place stops it. It reads the code as the compiler's first three translation phases "
       "do - line splices joined, comments taken out, raw string literals and numbers with digit separators read "
       "whole, a directive wherever it begins a line, after spaces or a comment too - so that nothing in a comment or "
       "a literal is read as code, and a form it does not read as the compilers do - a backslash with spaces after it "
@@ -4588,7 +4663,31 @@ def self_test():
                         ("as a raw string literal", 'R"(/api/v1/status)"'), ("as a u8 literal", 'u8"/api/v1/status"')):
         current("a route's path written %s is read as the path it is" % label,
                 broken_copy(REST_CPP, 'path == "/api/v1/status"', "path == " + path))
+    reads("two permissions on one line of the enumeration are read as two", "Common/Application/RoleManager.h",
+          "      ManageAccounts,        // create, change and delete accounts, aliases, lists, groups" + nl
+          + "      ResetPassword,", "      ManageAccounts, ResetPassword,",
+          lambda d: d.tokens == decision.tokens and d.roles == decision.roles)
+    reads("two route kinds on one line of the enumeration are read as two", REST_H,
+          "         RouteApiKeyList," + nl + "         RouteApiKeyCreate,",
+          "         RouteApiKeyList, RouteApiKeyCreate,", lambda d: d.kinds == decision.kinds)
 
+    # 16. An enumerator is read as its place: RolePermission's is the bit Bit
+    # sets and the place of its token, so a value written that is not its place
+    # - one permission given another's bit - stops the script, as does a value
+    # it does not evaluate; and so for the route kinds.
+    role_h = "Common/Application/RoleManager.h"
+    aliased = broken_copy(role_h, "      ManageAccounts,", "      ManageAccounts = 9,")
+    aliased[role_h] = aliased[role_h].replace("      ResetPassword,", "      ResetPassword = 12,", 1)
+    stopped("a permission given another's value, the next given back its own", aliased, "its place in the enumeration")
+    for written in ("0x0B", "1'1", "013"):
+        reads("a permission's value written %s, its place, is read as its place" % written, role_h,
+              "      ManageAccounts,", "      ManageAccounts = %s," % written,
+              lambda d: d.tokens == decision.tokens and d.roles == decision.roles)
+    stopped("a permission's value written as an expression",
+            broken_copy(role_h, "      ManageAccounts,", "      ManageAccounts = 11 + 0,"), "integer literal")
+    stopped("a route kind given another's value",
+            broken_copy(REST_H, "         RouteApiKeyCreate,", "         RouteApiKeyCreate = 2,"),
+            "its place in the enumeration")
     expect("integer literals are read as the compiler reads them",
            [integer_value(t) for t in ("0", "017", "0x1F", "0b101", "10'000", "42ULL", "0xFFu", "1.5", "08")]
            == [0, 15, 31, 5, 10000, 42, 255, None, None])
