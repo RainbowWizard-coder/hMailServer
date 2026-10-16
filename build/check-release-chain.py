@@ -198,7 +198,9 @@ refuses it. This checker holds them to each other. It fails when:
     an after_script or hooks from default:, or takes a rule that brings needs,
     variables, allow_failure, start_in or a when but never or on_success, or one
     written in a form this does not read; or either, or a template either reaches, is
-    defined in a CI file but .gitlab-ci.yml;
+    defined in a CI file but .gitlab-ci.yml, every one of which is read, since
+    .gitlab-ci.yml includes nothing but the files of .gitlab/ci/ and GitLab's templates
+    (ci_override_problems);
     or a CI file sets a variable Trivy reads (TRIVY_*), or the tree carries Trivy's
     trivy.yaml or .trivyignore at its root, either of which would narrow what the scan
     reports past the hold on its command (verdict_problems) - which
@@ -247,7 +249,9 @@ refuses it. This checker holds them to each other. It fails when:
     windows-gate-s1vm: every job of LANDING_REQUIRED) or a template one reaches, since
     GitLab merges a second definition into the first; no CI file but .gitlab-ci.yml
     may set variables, default or workflow, or include anything but GitLab's
-    templates; no CI file may write a top-level key twice, of which GitLab's
+    templates, and .gitlab-ci.yml may include nothing but those and the files of
+    .gitlab/ci/ named <name>.yml, which this reads, each by a line of its own; no CI
+    file may write a top-level key twice, of which GitLab's
     YAML reader takes the last where this reads the first or any (repeated_key_problems),
     nor a key of a job, a template, default: or workflow: other than bare - unquoted,
     its colon straight after it - and once, as the rules that hold a job read it
@@ -2843,7 +2847,9 @@ def verdict_problems(texts, jobs):
     (DEFAULT_RUNS); the rules they take bring no needs, variables, allow_failure or
     start_in, and no when but never or on_success, in a form this reads (unread_rules);
     neither job, nor a template either reaches, is defined in a CI file but
-    .gitlab-ci.yml, since GitLab merges a second definition into the first; and nothing
+    .gitlab-ci.yml, since GitLab merges a second definition into the first, and every CI
+    file is read, .gitlab-ci.yml including nothing but the files of .gitlab/ci/ named
+    <name>.yml and GitLab's templates (ci_override_problems); and nothing
     Trivy reads beside its command line narrows what the scan reports - the script runs
     it with no variable of its own and with an empty configuration and ignore file of
     its own (own_trivy_files, held by its self-test), and beside that no CI file sets a
@@ -3309,6 +3315,10 @@ HELD_JOBS = sorted(set(job for required in LANDING_REQUIRED.values() for job in 
 # The top-level keys every job takes from the file that sets them: .gitlab-ci.yml's alone,
 # a file of build/land-via-mr.py's GATE_FILES.
 EVERY_JOB_KEYS = ("variables", "default", "workflow")
+# An entry of .gitlab-ci.yml's include: as ci_override_problems lets one be - a file of
+# .gitlab/ci/ named <name>.yml, which load_texts reads among the CI files, or one of
+# GitLab's templates - each on a line of its own, a comment after it aside.
+CI_INCLUDE = re.compile(r"^  - (?:local: \.gitlab/ci/[A-Za-z0-9_\-]+\.yml|template: [A-Za-z0-9_./\-]+)(?:[ \t]+#.*)?$")
 
 
 def top_level_keys(text):
@@ -3357,10 +3367,25 @@ def ci_override_problems(texts):
     it reaches, in a file a landing asks no person's word for, could take any key the job
     does not set itself - its rules, script, before_script or allow_failure, over what it
     takes from a template by extends; a file but .gitlab-ci.yml that sets what every job
-    takes (EVERY_JOB_KEYS); and an include in one that brings in a file this cannot read
-    (any but one of GitLab's templates)."""
+    takes (EVERY_JOB_KEYS); an include in one that brings in a file this cannot read
+    (any but one of GitLab's templates); and an include in .gitlab-ci.yml of anything but
+    a file of .gitlab/ci/ named <name>.yml, which load_texts reads, and one of GitLab's
+    templates, each an entry of one line (CI_INCLUDE): GitLab merges a definition in any
+    file .gitlab-ci.yml includes into the job's, and one in a .yaml file, a file beside
+    .gitlab/ci/ or a remote one, giving dependency-scan-verdict before_script: [exit 0],
+    passed every rule (check 2 of cycle 3 of G5's fix, 16 October 2026)."""
     every_ci = ci_files(texts)
     problems = []
+    if "include" in top_level_keys(texts["ci"]):
+        included = blocks(texts["ci"]).get("include")
+        other = [line.strip() for line in (included if included is not None else "include: on one line").split("\n")
+                 if line.strip() and not CI_INCLUDE.match(line)]
+        if other:
+            problems.append(".gitlab-ci.yml includes what is not a file of .gitlab/ci/ or one of GitLab's templates, each as "
+                            "- local: .gitlab/ci/<name>.yml or - template: <name> on a line of its own (%s): GitLab merges "
+                            "a definition in any file it includes into the job's, and this reads the CI files of .gitlab/ci/ "
+                            "named <name>.yml alone, so that a definition there of a job that holds a change, or of "
+                            "dependency-scan or its verdict job, could not be read here" % other[0][:80])
     for name, paths in sorted(reached_definitions(every_ci, HELD_JOBS).items()):
         if len(paths) > 1:
             problems.append("%s is defined in %s: GitLab merges the definitions, a later include's keys over an earlier "
@@ -5919,6 +5944,38 @@ def self_test(chain, feed):
                    "\ndependency-scan-verdict:\n  before_script: [exit 0]\n", "dependency-scan-verdict is defined in .gitlab/ci/snap.yml")
     broken_include("the scan defined again in an included file", ".gitlab/ci/snap.yml",
                    "\ndependency-scan:\n  variables:\n    TRIVY_SEVERITY: LOW\n", "dependency-scan is defined in .gitlab/ci/snap.yml")
+    # And .gitlab-ci.yml includes nothing but files of .gitlab/ci/ named <name>.yml, which
+    # load_texts reads, and GitLab's templates, each on a line of its own (CI_INCLUDE):
+    # check 2 of cycle 3 of the fix (16 October 2026) included a .yaml file of .gitlab/ci/
+    # and a file beside .gitlab/ci/, each defining the verdict job with before_script:
+    # [exit 0], a file of build/ci/ giving the scan variables, and a remote file, and each
+    # passed the whole checker, as a definition there of a job that holds a change would
+    # have. Then the other forms GitLab takes: a file of another project, a component, a
+    # glob, a path out of .gitlab/ci/, an entry with rules or written as a mapping, a quoted
+    # path, and include: on one line; and one of GitLab's templates, which is let pass.
+    last_include = "  - local: .gitlab/ci/hosted-runners.yml\n"
+    unincluded = ".gitlab-ci.yml includes what is not a file of .gitlab/ci/ or one of GitLab's templates"
+    for what, addition in (
+            ("a .yaml file of .gitlab/ci/", "  - local: .gitlab/ci/extra.yaml\n"),
+            ("a file beside .gitlab/ci/", "  - local: .gitlab/extra.yml\n"),
+            ("a file of build/ci/", "  - local: build/ci/extra.yml\n"),
+            ("a remote file", "  - remote: https://example.invalid/extra.yml\n"),
+            ("a file of another project", "  - project: hmailserver/other\n    file: /extra.yml\n"),
+            ("a component", "  - component: gitlab.com/example/components/extra@1.0.0\n"),
+            ("every file of .gitlab/ci/ by a glob", "  - local: .gitlab/ci/*.yml\n"),
+            ("a file by a path out of .gitlab/ci/", "  - local: .gitlab/ci/../extra.yml\n"),
+            ("a file of .gitlab/ci/ with rules of its own", "  - local: .gitlab/ci/extra.yml\n    rules:\n      - if: $CI_COMMIT_TAG\n"),
+            ("a file of .gitlab/ci/ written as a mapping", "  - {local: .gitlab/ci/extra.yml}\n"),
+            ("a file of .gitlab/ci/ by a quoted path", "  - local: \".gitlab/ci/extra.yml\"\n"),
+            ("a file by its path alone", "  - .gitlab/extra.yml\n")):
+        broken(".gitlab-ci.yml including %s" % what, "ci", last_include, last_include + addition, unincluded)
+    included_text = job_text("include")
+    broken(".gitlab-ci.yml including on one line", "ci", included_text,
+           "\ninclude: [%s]\n" % ", ".join(re.findall(r"^  - local: (\S+)", included_text, re.MULTILINE)), unincluded)
+    copy = dict(texts, ci=texts["ci"].replace(last_include, last_include + "  - template: Jobs/Dependency-Scanning.gitlab-ci.yml\n", 1))
+    found, _ = check(copy, chain, feed)
+    if last_include not in texts["ci"] or any(unincluded in p for p in found):
+        failures.append(".gitlab-ci.yml including one of GitLab's templates is let pass: %s" % [p for p in found if unincluded in p])
     # And neither with a blank line inside it. Check 1 of the repair (15 October 2026)
     # found ten edits of the two that passed the whole checker when a blank line came
     # before what they add, where key_text, sole_need and the artifacts' reading stop and

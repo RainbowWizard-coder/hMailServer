@@ -1258,7 +1258,11 @@ could take any key the job does not set itself - its rules, script,
 `extends` - from a file the landing asks no person's word for;
 when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
 `workflow` at its top level, which every job takes, or includes anything but
-one of GitLab's templates; when a CI file writes a top-level key twice - a
+one of GitLab's templates; when `.gitlab-ci.yml` includes anything but those
+and the files of `.gitlab/ci/` named `<name>.yml`, which the checker reads, each
+by a line of its own, since GitLab merges a definition in any file it includes
+into the job's, and one in a `.yaml` file, a file beside `.gitlab/ci/` or a
+remote one passed every rule; when a CI file writes a top-level key twice - a
 second `default:`, `variables:` or `workflow:`, or a job written again in its
 own file - since GitLab's YAML reader takes the last of the two without a word,
 where the checker reads the first or any; when a key of a job, a template,
@@ -5042,7 +5046,9 @@ checker. No template either extends gives it a key it does not set itself
 but `rules:`, `default:` gives neither a `before_script`, an `after_script` or
 `hooks`, no rule they take brings `needs`, `variables`, `allow_failure` or a
 `when`, and neither is defined in another CI file, which GitLab would merge
-into the job's. And Trivy is given nothing of its own beside its command line,
+into the job's: `.gitlab-ci.yml` includes nothing but files of `.gitlab/ci/`
+named `<name>.yml` and GitLab's templates, so that the checker reads every CI
+file a definition could be in. And Trivy is given nothing of its own beside its command line,
 which would narrow what the scan reports: the script runs it with the job's
 variables less every one whose name begins `TRIVY_` (`TRIVY_SEVERITY` and the
 like), whoever gave the job one - a CI file, the dotenv report of the job the

@@ -136,7 +136,10 @@
 # build/ci/*.sh and the Dockerfile), and a shebang line ending in a carriage return
 # names an interpreter that does not exist.
 
-# Jobs kept in files of their own under .gitlab/ci/, one line each.
+# Jobs kept in files of their own under .gitlab/ci/, one line each, and nothing else:
+# build/check-release-chain.py reads the CI files of .gitlab/ci/ named <name>.yml, and
+# refuses an include here of any other file, which GitLab would merge into the jobs
+# unread (ci_override_problems).
 include:
   # GitLab's SAST and secret detection, from GitLab's templates (the file says what they add).
   - local: .gitlab/ci/gitlab-security.yml
@@ -1714,8 +1717,9 @@ dependency-scan:
 # made in and in no other: a pipeline whose job needs one it lacks is not created. On
 # linix whatever the switches say: it reads a file, and spends no minute.
 # build/check-release-chain.py holds it to all of this, and both jobs to the keys they
-# have and no other and to what a template, default:, a rule or another CI file may add
-# to them, with no blank line inside either (verdict_problems). The release needs
+# have and no other and to what a template, default:, a rule or another CI file - read
+# with this one, since it includes none but those of .gitlab/ci/ - may add to them,
+# with no blank line inside either (verdict_problems). The release needs
 # dependency-scan and not this: build/ci/security-gate.py reads the reports themselves.
 # After a retry of dependency-scan by hand, retry this job too: GitLab runs a finished
 # job that needs a retried one again only when it was skipped, and this one says so when
