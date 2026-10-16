@@ -528,11 +528,13 @@ namespace RegressionTests.Installation
             "FinishNewInstallationAtStart does not apply the defaults and make the key, or does not answer true when it changed the server.");
 
          // The start runs it once InitInstance has opened the database, starts
-         // again, listeners and all, when it changed the server, and else starts
-         // the servers - at its end, and nowhere else.
+         // again, listeners and all, when it changed the server (Reinitialize_,
+         // given the message indexer since the indexer's own thread may ask for a
+         // reinitialisation), and else starts the servers - at its end, and
+         // nowhere else.
          string application = ReadRepositoryFile(@"hmailserver\source\Server\Common\Application\Application.cpp");
          string start = CppFunctionCode(application, "Application::InitInstanceAndStart(", "Application.cpp");
-         ClassicAssert.IsTrue(Regex.IsMatch(start, @"if \(!InitInstance\(sErrorMessage\)\)\s*return false;\s*if \(finish && finish\(\)\)\s*\{\s*sErrorMessage = Reinitialize_\(\);\s*return sErrorMessage\.IsEmpty\(\);\s*\}"),
+         ClassicAssert.IsTrue(Regex.IsMatch(start, @"if \(!InitInstance\(sErrorMessage\)\)\s*return false;\s*if \(finish && finish\(\)\)\s*\{\s*sErrorMessage = Reinitialize_\(\*MessageIndexer::Instance\(\)\);\s*return sErrorMessage\.IsEmpty\(\);\s*\}"),
             "Application::InitInstanceAndStart does not run the finish it is given once InitInstance has opened the database, or does not start again (Reinitialize_) when the finish changed the server.");
          ClassicAssert.IsTrue(Regex.IsMatch(start, @"return StartServers_\(\);\s*\}$"),
             "Application::InitInstanceAndStart does not start the servers when it was given no finish or the finish changed nothing.");
