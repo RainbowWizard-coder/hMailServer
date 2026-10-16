@@ -258,8 +258,9 @@ that domain's administrator is refused all of these on it, over both interfaces.
 
 `administer_server` is the whole server only where the grant reaches every domain.
 A full key confined to named domains, and an account assigned `serveradmin` with a
-list of domains, are `serveradmin` confined to those domains: the server
-administrator in each of them and in no other. Over REST such a credential is
+list of domains, are `serveradmin` confined to those domains: each holds
+`serveradmin`'s permissions in them, short of what reaches beyond a domain, and none
+in any other, and neither is the server administrator. Over REST such a credential is
 refused every server-wide route and every domain the list leaves out. Over COM an
 account so assigned is refused the server's settings, a domain alias, a domain's
 name and the rest above, as it is over REST; it is a domain administrator of its
@@ -471,8 +472,9 @@ An assignment with no domains reaches **every domain** for `serveradmin` and
 `auditor`, and **the account's own domain** for every other role, custom roles
 included. Naming domains is how an administrator widens a confined role; an auditor
 given a list is confined to it, and so is `serveradmin` given one — an account
-assigned `serveradmin` with a list is the server administrator in the domains it
-names, not the whole server (see
+assigned `serveradmin` with a list holds `serveradmin`'s permissions in the domains it
+names, short of what reaches beyond a domain, and none in any other: it is not the
+server administrator (see
 [What names a domain beyond the credential's own](#what-names-a-domain-beyond-the-credentials-own)).
 Over COM a role holding `administer_domain` is a domain administrator of its own
 account's domain only where its list of domains names that domain: the COM calls

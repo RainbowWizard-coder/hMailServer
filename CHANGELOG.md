@@ -138,8 +138,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own".
 
 - **Fixed: the COM API holds a server-administrator role assigned with a domain list to those domains, as the
-  REST API does.** An account given the `serveradmin` role with a list of domains is the server administrator in
-  the domains the list names and in no other: over COM it is refused the server settings, a domain alias, a
+  REST API does.** An account given the `serveradmin` role with a list of domains is confined to the domains the
+  list names: it holds `serveradmin`'s permissions in them, short of what reaches beyond a domain, and none in any
+  other, so it is not the server administrator. Over COM it is refused the server settings, a domain alias, a
   domain's name and the other changes that reach beyond a domain, exactly as over REST. Over COM it is a domain
   administrator of its own account's domain where its list names that domain, and reaches the other domains its
   list names through REST, and over COM through the calls that name a domain of their own, among them the password
