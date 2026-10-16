@@ -602,9 +602,11 @@ directly in it, or `Bin`, `ControlPanel`, `Events`, `WebAdmin`, `DBScripts`,
 gave anybody more than `(RX)`, the Users' and the service's included, or could not
 take one away: a program in them may have been changed already, and so may the
 event script in `Events`, which the service runs. Reinstall the programs from the
-release into a folder only the administrators may change, rather than rely on the
-steps; setup puts the event script there only where none is, so read it rather than
-rely on a reinstall to replace it.
+release into a new, empty folder that only the administrators may change - under
+Program Files, say - not over this installation, rather than rely on the steps:
+setup leaves in place every file it does not ship, a library put in `Bin` among
+them, and puts the event script and the scripts in `Addons` only where none is
+there. Read the old event script before you copy it into the new installation.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,

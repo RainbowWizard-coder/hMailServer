@@ -100,13 +100,14 @@ Under Program Files the first run makes the three's entries their own, and nobod
 before. An administrator who cannot upgrade yet follows the documentation's steps from an elevated prompt on each of the
 three: the Administrators made its owner, every entry of its own but SYSTEM's, the Administrators' and any deny entry
 taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the server
-is installed, the service's given back; and reinstalls the programs into a folder only the administrators may change
-where accounts that are not administrators could sign in while it was installed so, where anybody but SYSTEM, the
-Administrators or TrustedInstaller owned one of the three, a file directly in the program folder, or `Events`,
-`WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or `ControlPanel`, or where one of the
-three had an entry of its own that let anybody else change it, or one the steps could not take away, and reads the event
-script in `Events`, which the service runs and which setup puts there only where none is, rather than relying on a
-reinstall to replace it. Found by the project's own review (work item 78; CVE requested).
+is installed, the service's given back; and reinstalls the programs into a new, empty folder only the administrators
+may change, not over the installation, where accounts that are not administrators could sign in while it was installed
+so, where anybody but SYSTEM, the Administrators or TrustedInstaller owned one of the three, a file directly in the
+program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or
+`ControlPanel`, or where one of the three had an entry of its own that let anybody else change it, or one the steps
+could not take away: setup leaves in place every file it does not ship, and puts the event script in `Events`, which the
+service runs, and the scripts in `Addons` only where none is there, so the old event script is read before it is copied
+across. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
