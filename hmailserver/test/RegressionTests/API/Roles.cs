@@ -1592,6 +1592,75 @@ namespace RegressionTests.API
          ComAssignRole(_application, "provider@example.test", "", "");
       }
 
+      [Test]
+      [Description("A role is taken away only by a credential that takes in what the account holds afterwards, which with no role left is the authority of its admin level: a full key issued for example.test, and over COM an account assigned serveradmin with the list example.test, are refused taking the help desk role away from an account there whose admin level says server administrator - by DELETE /api/v1/role-assignments, Application.AssignRole and Account.RoleName - and the role stays, while each takes the role away from an ordinary account of the domain")]
+      public void TakingARoleAwayIsJudgedOnTheAuthorityTheAccountsAdminLevelGivesBack()
+      {
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "desk@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "clerk@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "regional@example.test", AccountPassword);
+
+         // The administrator narrows the account whose level says server
+         // administrator to the help desk of its domain, and gives the same role
+         // to two ordinary accounts there.
+         Assign("boss@example.test", "helpdesk", "example.test");
+         Assign("desk@example.test", "helpdesk", "example.test");
+         Assign("clerk@example.test", "helpdesk", "example.test");
+         const string BossHoldsTheHelpDesk = "\"address\":\"boss@example.test\",\"role\":\"helpdesk\"";
+
+         (int status, string body) key = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest take away\",\"scope\":\"full\",\"domains\":\"example.test\"}");
+         Assert.AreEqual(201, key.status, key.body);
+         string token = JsonValue(key.body, "key");
+
+         // Over REST: what the account holds now, the help desk, the key takes in;
+         // what it would hold afterwards, the server administrator its level says,
+         // it does not.
+         (int status, string body) refused = Bearer(token, "DELETE", "/api/v1/role-assignments/boss@example.test");
+         Assert.AreEqual(403, refused.status,
+            "A full key issued for example.test took a role away from an account whose admin level says server administrator. Body: " + refused.body);
+         StringAssert.Contains("may not take away authority it has not got", refused.body);
+         StringAssert.Contains(BossHoldsTheHelpDesk, Admin("GET", "/api/v1/role-assignments").body, "The refused delete took the assignment away.");
+
+         // An ordinary account's role is the key's to take away: the refusal is
+         // about the admin level, not the route.
+         (int status, string body) ordinary = Bearer(token, "DELETE", "/api/v1/role-assignments/desk@example.test");
+         Assert.AreEqual(200, ordinary.status, "The key could not take the role away from an ordinary account of its domain. Body: " + ordinary.body);
+
+         // Over COM the same, for an account assigned serveradmin with the list
+         // example.test, by both of COM's ways to take a role away.
+         ComAssignRole(_application, "regional@example.test", "serveradmin", "example.test");
+         var regional = new Application();
+         Assert.IsNotNull(regional.Authenticate("regional@example.test", AccountPassword));
+
+         StringAssert.Contains("may not take away authority it has not got",
+            Assert.Throws<COMException>(() => ComAssignRole(regional, "boss@example.test", "", "")).Message,
+            "Over COM an account assigned serveradmin with the list example.test took a role away from an account whose admin level says server administrator.");
+         Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("boss@example.test")), "The refused AssignRole took the role away.");
+
+         Account bossAsRegional = regional.Domains.get_ItemByName("example.test").Accounts.get_ItemByAddress("boss@example.test");
+         StringAssert.Contains("authority this credential does not",
+            Assert.Throws<COMException>(() => { ((dynamic) bossAsRegional).RoleName = ""; }).Message,
+            "Over COM Account.RoleName took a role away from an account whose admin level says server administrator.");
+         Assert.AreEqual("helpdesk", ComRoleName(AccountOverCom("boss@example.test")), "The refused RoleName took the role away.");
+         StringAssert.Contains(BossHoldsTheHelpDesk, Admin("GET", "/api/v1/role-assignments").body);
+
+         ComAssignRole(regional, "clerk@example.test", "", "");
+         Assert.AreEqual("", ComRoleName(AccountOverCom("clerk@example.test")),
+            "Over COM an account assigned serveradmin with the list example.test could not take the role away from an ordinary account there.");
+
+         // The negative control: the administrator takes the role away, and the
+         // account is the server administrator its level says - the authority
+         // that every refusal above kept from being handed back.
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/role-assignments/boss@example.test").status);
+         StringAssert.Contains("administer_server", AsAccount("boss@example.test", "GET", "/api/v1/session").body,
+            "Without its role the account is not the server administrator its admin level says, so the refusals proved nothing.");
+
+         ComAssignRole(_application, "regional@example.test", "", "");
+      }
+
       private Domain DomainOverCom(string name)
       {
          return _application.Domains.get_ItemByName(name);

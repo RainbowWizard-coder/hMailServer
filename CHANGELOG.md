@@ -144,11 +144,17 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   administrator of its own account's domain where its list names that domain, and reaches the other domains its
   list names through REST, and over COM through the password reset, the unlock, the mailbox move, the message trace
   and role assignment. Over COM a role holding `administer_domain` is a domain administrator of its own account's
-  domain only where its list of domains names that domain, as over REST. `RoleManager::Allows` answers
-  `administer_server` only for a role that reaches every domain — the one rule `COMAuthentication::GetIsServerAdmin`
-  and `RestApiServer::HoldsServerAuthority_` both read — and a role given no list of domains is unchanged. Found by
-  the project's own review; handled under [SECURITY.md](SECURITY.md).
-  [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own".
+  domain only where its list of domains names that domain, as over REST. A role is given or taken away, over REST as
+  over COM, only by a credential that holds `manage_roles` in the account's domain and takes in what the account
+  holds now and what it will hold afterwards — with no role left, the authority of its admin level
+  (`RoleManager::MayChangeAssignment`) — so a full key issued for named domains, or an account assigned
+  `serveradmin` with a list, is refused taking a role away from an account whose admin level says server
+  administrator. `RoleManager::Allows` answers `administer_server` only for a role that reaches every domain — the
+  one rule `COMAuthentication::GetIsServerAdmin` and `RestApiServer::HoldsServerAuthority_` both read — and a role
+  given no list of domains is unchanged. Found by the project's own review; handled under
+  [SECURITY.md](SECURITY.md).
+  [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own" and "Giving somebody a
+  role".
 
 - **Fixed: a credentialed REST request a browser made from another site was accepted (cross-site request
   forgery).** A session's write already needed `X-Requested-With: hMailServer` and the session cookie is

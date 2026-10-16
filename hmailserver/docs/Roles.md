@@ -444,6 +444,16 @@ GET    /api/v1/roles
 an empty role name to take it away; `Account.RoleName`, `RoleDomains` and
 `RolePermissions` read it back.
 
+**Who may give a role or take one away.** A credential that holds `manage_roles` in
+the account's domain and takes in both what the account holds now and what it will
+hold afterwards: the role given, or, when the role is taken away, the authority of the
+account's admin level, which an account with no assignment holds. One rule answers it
+over REST and over COM (`RoleManager::MayChangeAssignment`), on the account as stored.
+So a full key issued for named domains, or an account assigned `serveradmin` with a
+list of domains, takes a role away from an ordinary account in those domains, and is
+refused taking one away from an account there whose admin level says server
+administrator (`403` over REST, an error over COM): the assignment stays.
+
 **An API key:** `POST /api/v1/apikeys` with `"role":"helpdesk"` writes a `Role=` line
 to the key store. A key without one is what it always was: `Scope=full` is
 `serveradmin` and `Scope=readonly` is `auditor`. A full key unconfined is the server
