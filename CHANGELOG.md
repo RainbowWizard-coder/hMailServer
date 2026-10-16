@@ -141,7 +141,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   REST API does.** An account given the `serveradmin` role with a list of domains is the server administrator in
   the domains the list names and a domain administrator of them over both APIs: over COM it is refused the server
   settings, a domain alias, a domain's name and the other changes that reach beyond a domain, exactly as over
-  REST, while it administers the accounts of the listed domains as before. `RoleManager::Allows` answers
+  REST, while it administers the accounts of the listed domains as before. Over COM a role holding
+  `administer_domain` is a domain administrator of its own account's domain only where its list of domains
+  names that domain, as over REST. `RoleManager::Allows` answers
   `administer_server` only for a role that reaches every domain — the one rule `COMAuthentication::GetIsServerAdmin`
   and `RestApiServer::HoldsServerAuthority_` both read — and a role given no list of domains is unchanged. Found by
   the project's own review; handled under [SECURITY.md](SECURITY.md).

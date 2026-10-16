@@ -1550,6 +1550,48 @@ namespace RegressionTests.API
          ComAssignRole(_application, "regional@example.test", "", "");
       }
 
+      [Test]
+      [Description("Over COM a role holding administer_domain is a domain administrator of its own account's domain only where its list of domains names that domain: domainadmin given a list that names only another domain sees no account of its own account's domain but its own and sets no password there, as REST refuses it the same account, while the password reset still reaches the domain its list names")]
+      public void DomainAdminWhoseListLeavesOutItsOwnDomainIsNoAdministratorOfItOverCom()
+      {
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "them@" + OtherDomain, AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "provider@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "plain@example.test", AccountPassword);
+
+         // The administrator gives it domainadmin in the other domain alone: a
+         // list replaces the account's own domain rather than adding to it.
+         ComAssignRole(_application, "provider@example.test", "domainadmin", OtherDomain);
+
+         // Over REST an ordinary account of its own account's domain is not its.
+         (int status, string body) overRest = AsAccount("provider@example.test", "PUT", "/api/v1/accounts/plain@example.test", "{\"max_size_mb\":3}");
+         Assert.AreEqual(403, overRest.status, "Over REST a domainadmin listed for another domain alone changed an account of its own account's domain. Body: " + overRest.body);
+
+         var provider = new Application();
+         Assert.IsNotNull(provider.Authenticate("provider@example.test", AccountPassword));
+         Assert.AreEqual("domainadmin", ComCurrentRole(provider));
+
+         // Over COM it is no domain administrator of its own account's domain: it
+         // sees its own account there and no other, as an ordinary account does.
+         Domain own = provider.Domains.get_ItemByName("example.test");
+         Assert.AreEqual(1, own.Accounts.Count,
+            "Over COM a domainadmin listed for another domain alone saw every account of its own account's domain.");
+         Assert.AreEqual("provider@example.test", own.Accounts[0].Address);
+         Assert.Throws<COMException>(() => own.Accounts.get_ItemByAddress("plain@example.test"),
+            "Over COM a domainadmin listed for another domain alone reached an ordinary account of its own account's domain.");
+
+         // The password of that account is as it was.
+         Assert.IsTrue(AccountOverCom("plain@example.test").ValidatePassword(AccountPassword),
+            "The password of an account the domainadmin's list does not reach changed.");
+
+         // Where COM names a domain, the domain its list names is still its.
+         ComResetPassword(provider, "them@" + OtherDomain, "Reset-by-provider-56");
+         Assert.IsTrue(AccountOverCom("them@" + OtherDomain).ValidatePassword("Reset-by-provider-56"),
+            "A domainadmin listed for " + OtherDomain + " could not reset a password there over COM.");
+
+         ComAssignRole(_application, "provider@example.test", "", "");
+      }
+
       private Domain DomainOverCom(string name)
       {
          return _application.Domains.get_ItemByName(name);
