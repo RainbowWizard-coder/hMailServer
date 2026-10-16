@@ -1507,6 +1507,16 @@ MARKDOWN_HTML = (
                 r"'[^']*'|\"[^\"]*\"))?)*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*[>])\s*$", re.IGNORECASE), None),
 )
 MARKDOWN_HOLDS = {"document": None, "block_quote": None, "item": None, "list": "item"}
+# A link reference definition's label, its destination between < and >, the punctuation
+# a backslash escapes, its title, the spaces and one line end that may come between, and
+# the end of its line, as commonmark.js's parseReference reads them (markdown_reference).
+MARKDOWN_LABEL = re.compile(r"\[(?:[^\\\[\]]|\\.){0,1000}\]", re.DOTALL)
+MARKDOWN_DESTINATION = re.compile(r"<(?:[^<>\n\\\x00]|\\.)*>")
+MARKDOWN_ESCAPABLE = "!\"#$%&'()*+,./:;<=>?@[\\]^_`{|}~-"
+MARKDOWN_TITLE = re.compile(r"\"(?:\\[%s]|\\[^\\]|[^\\\"\x00])*\"|'(?:\\[%s]|\\[^\\]|[^\\'\x00])*'|\((?:\\[%s]|\\[^\\]|[^\\()\x00])*\)"
+                            % ((re.escape(MARKDOWN_ESCAPABLE),) * 3))
+MARKDOWN_SPACES = re.compile(r" *(?:\n *)?")
+MARKDOWN_LINE_END = re.compile(r" *(?:\n|\Z)")
 # A YAML block scalar's header: a line that ends with "|" (literal) or ">" (folded),
 # their indicators - an indentation of 1 to 9, "+" or "-" - and a comment perhaps, after
 # a sequence entry's "- ", a key, both or neither, and a tag or an anchor perhaps.
@@ -1582,6 +1592,59 @@ def yaml_command_ends(lines, first, last, ends):
             if header.group(4) == "|" or following is None or following[0] != line_number + 1 or \
                     indent > content or following[1] > content:
                 ends.add(line_number)
+
+
+def markdown_reference(text):
+    """The length of the link reference definition text begins with, or 0, as
+    commonmark.js's parseReference reads one: a label, ":", a destination, a title
+    perhaps, and nothing more on the line - the title dropped, if what follows it is
+    more, and the line ending at the destination instead."""
+    label = MARKDOWN_LABEL.match(text)
+    if not label or len(label.group(0)) > 1001 or text[label.end():label.end() + 1] != ":":
+        return 0
+    at = MARKDOWN_SPACES.match(text, label.end() + 1).end()
+    braces = MARKDOWN_DESTINATION.match(text, at)
+    if braces:
+        at = braces.end()
+    elif text[at:at + 1] == "<":
+        return 0
+    else:
+        start, parens, char = at, 0, ""
+        while at < len(text):
+            char = text[at]
+            if char == "\\" and text[at + 1:at + 2] and text[at + 1] in MARKDOWN_ESCAPABLE:
+                at += 2
+            elif char == "(":
+                at, parens = at + 1, parens + 1
+            elif char == ")":
+                if parens < 1:
+                    break
+                at, parens = at + 1, parens - 1
+            elif char in " \t\n\x0b\x0c\r":
+                break
+            else:
+                at += 1
+        else:
+            char = ""
+        if at == start and char != ")" or parens:
+            return 0
+    before = at
+    at = MARKDOWN_SPACES.match(text, at).end()
+    title = None  # none read; else "absent" (spaces, then no title), "empty" or "some"
+    if at != before:
+        found = MARKDOWN_TITLE.match(text, at)
+        if found:
+            title, at = ("empty" if len(found.group(0)) == 2 else "some"), found.end()
+        else:
+            title, at = "absent", before
+    end = MARKDOWN_LINE_END.match(text, at)
+    if end is None:
+        if title in ("absent", "empty"):
+            return 0
+        end = MARKDOWN_LINE_END.match(text, before)
+        if end is None:
+            return 0
+    return end.end() if label.group(0)[1:-1].strip() else 0
 
 
 def markdown_command_ends(lines, ends, quoted=None):
@@ -1725,10 +1788,17 @@ def markdown_command_ends(lines, ends, quoted=None):
                     container = add({"kind": "html", "type": html})
                     break
             if indent < 4 and container["kind"] == "paragraph" and MARKDOWN_UNDERLINE.match(rest):
+                # a setext underline, unless the paragraph is link reference definitions alone
                 close_unmatched()
-                container["kind"] = "heading"
-                offset = len(line)
-                break
+                while container["text"].startswith("["):
+                    taken = markdown_reference(container["text"])
+                    if not taken:
+                        break
+                    container["text"] = container["text"][taken:]
+                if container["text"]:
+                    container["kind"] = "heading"
+                    offset = len(line)
+                    break
             if indent < 4 and MARKDOWN_BREAK.match(rest):
                 close_unmatched()
                 container = add({"kind": "break"})
@@ -1763,6 +1833,7 @@ def markdown_command_ends(lines, ends, quoted=None):
         # a paragraph's lazy line, or the text of the block the line ends in
         blank = nonspace(offset) >= len(line)
         if not all_matched and not blank and blocks[-1]["kind"] == "paragraph" and unmatched[0]:
+            blocks[-1]["text"] += line[offset:] + "\n"
             continue
         close_unmatched()
         kind = container["kind"]
@@ -1776,8 +1847,10 @@ def markdown_command_ends(lines, ends, quoted=None):
             end = MARKDOWN_HTML[container["type"] - 1][1]
             if end is not None and end.search(line[offset:]):
                 blocks.pop()
-        elif kind != "paragraph" and not blank:
-            add({"kind": "paragraph"})
+        elif kind == "paragraph":
+            container["text"] += line[offset:] + "\n"
+        elif not blank:
+            add({"kind": "paragraph", "text": line[offset:] + "\n"})
     for block in fences:
         info = block["info"].split()
         if info and info[0].strip("{}.").lower() in ("yaml", "yml"):
@@ -5573,9 +5646,10 @@ def self_test(chain, feed):
     # two lines, one continued by a shell's backslash, between --exceptions and its file
     # too, in a block quote too, or by PowerShell's backtick, one wrapped over two lines of
     # a paragraph, a block quote's too, of a script's item in a yaml code block, of a
-    # folded block that YAML folds into one, of an HTML block with a fence in it, one with
-    # "=", one whose placeholder names master's copy, the script named and not run, a
-    # change's gate and the self-test pass.
+    # folded block that YAML folds into one, of an HTML block with a fence in it, of a
+    # paragraph that a line of = begins after a link reference definition, one with "=",
+    # one whose placeholder names master's copy, the script named and not run, a change's
+    # gate and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
@@ -5684,6 +5758,10 @@ def self_test(chain, feed):
              "> Ask it as `python3 build/ci/security-gate.py --artifacts <dir>\n> --exceptions <file>` before the tag.\n", None),
             ("a command with --exceptions over the lines of an HTML block, a fence among them", "hmailserver/docs/Planted.md",
              "<details>\n```\npython3 build/ci/security-gate.py --artifacts <dir>\n--exceptions <file>\n```\n</details>\n", None),
+            ("a command with --exceptions over two indented lines of a paragraph that a line of = begins after a link "
+             "reference definition", "hmailserver/docs/Planted.md",
+             "[gate]: https://example.invalid/gate\n=\n    python3 build/ci/security-gate.py --artifacts <dir>\n"
+             "    --exceptions <file>\n", None),
             ("a script item of a yaml code block continued on the next line", "hmailserver/docs/Planted.md",
              "```yaml\nplanted:\n  script:\n    - python3 build/ci/security-gate.py --artifacts .\n      --exceptions <file>\n```\n",
              None),
