@@ -173,8 +173,12 @@ namespace HM
          return Failed;
       }
 
-      // A script that ran whole on a transaction that has ended all the same - the
-      // runner stops at the end, so this is a guard - is not taken for done.
+      // A script that ran whole on a transaction that has ended all the same is not
+      // taken for done. A guard, which no test reaches and none can while the
+      // runner stands as it is: SQLScriptRunner asks after each statement, the last
+      // included, whether the transaction has ended, and stops there if it has. The
+      // refusal above, before anything is sent, is what DatabaseTransactionTester
+      // holds.
       if (HasEnded(_T("a statement of the script")))
       {
          error = _T("Execution of SQL statements failed. Error: a statement of the script ended the transaction. ") + Advice_();
@@ -206,7 +210,12 @@ namespace HM
       }
 
       // Prerequisites that said they were met on a transaction that has ended all
-      // the same are not taken for met: their statements are gone with it.
+      // the same are not taken for met: their statements are gone with it. A
+      // guard, which no test reaches and none can while the prerequisites stand as
+      // they are: each fails at the first statement that fails, and
+      // DALConnection::Execute and DALRecordset::Open run nothing once the session
+      // is lost. It is there for a prerequisite that forgives a failure. The
+      // refusal above is what DatabaseTransactionTester holds.
       if (HasEnded(_T("a statement of the prerequisites")))
       {
          error = _T("Execution of SQL statements failed. Error: a statement of the prerequisites ended the transaction. ") + Advice_();

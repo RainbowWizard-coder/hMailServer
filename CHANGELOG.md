@@ -780,15 +780,20 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   out, on MySQL 8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and on, and on PostgreSQL 18: a
   deadlock whose victim is the script's statement, with what the object says at the statement, at the next and at
   the commit, beside the control that a statement sent past the refusal is committed on its own; the same deadlock
-  met by a statement marked `[IGNORE-ERRORS]` in a script; MariaDB's 1020; a row-lock wait and a metadata-lock wait
+  met by a statement marked `[IGNORE-ERRORS]`, sent alone and in a script; a script and the prerequisites asked for
+  after the deadlock; MariaDB's 1020; a row-lock wait and a metadata-lock wait
   that timed out; a session ended under `DALConnection::Execute` and under `DALRecordset::Open`; and a second `Begin`
   while a transaction is open. On the code before, each case but its controls failed where the defect is - the
   statement after the failure committed on its own, or, after a metadata-lock wait where `innodb_rollback_on_timeout`
   is on, a transaction still open refused - and PostgreSQL passed but for the session ended, which failed there too;
-  and each part of `ScriptTransaction`'s handling taken out by itself - the refusal, the commit's rollback, the advice
-  in the error, the first transaction's rollback at a second `Begin`, PostgreSQL left to the database - fails a case
-  of its own on MySQL and MariaDB, the last two on PostgreSQL too, but for the success `Database.RollbackTransaction`
-  answers for an ended transaction, which only SQL Server's refusal of a `ROLLBACK` with nothing open would show. On
+  and each part of `ScriptTransaction`'s handling taken out by itself - the refusal at a statement, a script and the
+  prerequisites, the failure it answers for a statement marked `[IGNORE-ERRORS]` whose failure ended the transaction,
+  the commit's rollback, the advice in the error, the first transaction's rollback at a second `Begin`, PostgreSQL
+  left to the database - fails a case of its own on MySQL and MariaDB, the last two on PostgreSQL too, but for the
+  success `Database.RollbackTransaction` answers for an ended transaction, which only SQL Server's refusal of a
+  `ROLLBACK` with nothing open would show, and the guards after a script or the prerequisites that ran whole, which
+  no case can reach while the runner stops after each statement that ended the transaction and each prerequisite at
+  each failure. On
   SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that timed out leaving the
   transaction going on and a session ended under each, and
   `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the

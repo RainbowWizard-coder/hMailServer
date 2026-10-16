@@ -999,7 +999,11 @@ namespace HM
          // statement, which MySQL and MariaDB committed on its own, and the commit - a
          // COMMIT with nothing open - reported success. The control: the same statement
          // sent past the refusal is committed on its own on MySQL, MariaDB and SQL
-         // Server. Then a script run in such a transaction (Database.ExecuteSQLScript,
+         // Server. Then the victim a statement marked [IGNORE-ERRORS], sent as
+         // Database.ExecuteSQL sends one; a script and the prerequisites asked for
+         // after the deadlock (Database.ExecuteSQLScript and
+         // Database.EnsurePrerequisites), each refused as a statement is; a script
+         // run in such a transaction (Database.ExecuteSQLScript,
          // ScriptTransaction::ExecuteScript), whose statement marked [IGNORE-ERRORS] is
          // the victim, and, on MySQL and MariaDB, the other failures that end the
          // transaction there: MariaDB's 1020 and, where innodb_rollback_on_timeout is on,
@@ -1008,6 +1012,7 @@ namespace HM
          // is open (Database.BeginTransaction called twice).
          {
             const bool compact = probe.type_ == DatabaseSettings::TypeMSSQLCompactEdition;
+            const bool mssql = probe.type_ == DatabaseSettings::TypeMSSQLServer;
 
             // The script's transaction holds row 1 of aatxnprobe, which it updates,
             // and row 2, which it inserts. Another transaction, made the heavier by
@@ -1278,6 +1283,139 @@ namespace HM
                      _T("the control: a statement sent past the refusal after the deadlock was not committed on its own, so the check above cannot tell the refusal from a database that keeps the transaction"));
                   Check(rolledBack, _T("the rollback of a transaction a deadlock had ended was refused: ") + rollbackError);
                   probe.Say(_T("the control: a statement sent past the refusal after a deadlock is committed on its own"));
+               });
+            }
+
+            // A statement marked [IGNORE-ERRORS] that the deadlock chooses as its
+            // victim, sent as Database.ExecuteSQL sends one (ScriptTransaction::Execute).
+            // MySQL and MariaDB answer its failure as a success, as the marker asks,
+            // and have ended the transaction all the same: the Database object answers
+            // the statement as failed, saying that the failure the marker let through
+            // ended the transaction and what to do, refuses the next statement and
+            // fails the commit, with nothing saved. Taken for run, the script would go
+            // on as if its transaction held what it had done. On PostgreSQL the
+            // marker's success stands, the transaction aborted and still open: the
+            // database refuses the next statement itself, and PGConnection the commit.
+            // SQL Server's providers answer a victim with E_FAIL, which the marker
+            // never lets through: the statement fails, with the advice. Not on SQL
+            // Server Compact, where no deadlock is detected.
+            if (!compact)
+            {
+               run([&]()
+               {
+                  probe.Reset();
+                  ScriptTransaction script;
+                  BeginOn(script, pool);
+                  String victimError;
+                  const ScriptTransaction::Outcome victim = deadlock(script, [&]() -> ScriptTransaction::Outcome
+                  {
+                     return Script(script, SQLCommand(_T("update aatxnprobeb set v = v + 10 where id = 1 /* [IGNORE-ERRORS] */")), victimError);
+                  });
+
+                  String nextError;
+                  const ScriptTransaction::Outcome next = Script(script, Insert(3, 30), nextError);
+                  const int seen = probe.Value(_T("aatxnprobe"), 3);
+
+                  String commitError;
+                  const bool committed = script.Commit(commitError);
+
+                  const int one = probe.Value(_T("aatxnprobe"), 1);
+                  const int two = probe.Value(_T("aatxnprobe"), 2);
+                  const int three = probe.Value(_T("aatxnprobe"), 3);
+                  const int held = probe.Value(_T("aatxnprobeb"), 1);
+
+                  Check(seen == -1 && three == -1,
+                     Formatter::Format("a statement the script ran after its statement marked [IGNORE-ERRORS] had met a deadlock was saved on its own: {0} before the transaction's end and {1} after it, where nothing was to be saved", seen, three));
+                  Check(one == 0 && two == -1 && held == 0,
+                     Formatter::Format("the transaction a deadlock ended at a statement marked [IGNORE-ERRORS] left rows 1 and 2 at {0} and {1}, and the other's row at {2}, not 0, none and 0", one, two, held));
+                  Check(!committed, _T("the commit of a transaction a deadlock had ended at a statement marked [IGNORE-ERRORS] reported success"));
+
+                  if (postgres)
+                  {
+                     Check(victim == ScriptTransaction::Ran,
+                        Formatter::Format("on PostgreSQL a statement marked [IGNORE-ERRORS] that met a deadlock was {0}, not run as the marker asks: {1}", OutcomeName(victim), victimError));
+                     Check(next == ScriptTransaction::Failed,
+                        Formatter::Format("on PostgreSQL the script's statement after a statement marked [IGNORE-ERRORS] had met a deadlock was {0}, not failed: the database refuses it itself", OutcomeName(next)));
+                     Check(Says(commitError, _T("Postgres: the transaction was rolled back, not committed")),
+                        _T("on PostgreSQL the commit after a statement marked [IGNORE-ERRORS] had met a deadlock was not refused as one the database had aborted: ") + commitError);
+                  }
+                  else
+                  {
+                     const String marked = mssql ? String(_T("The database has ended the transaction and rolled back what it held")) :
+                        String(_T("the statement is marked [IGNORE-ERRORS], and its failure, which the marker let through, ended the transaction. The database has ended the transaction and rolled back what it held"));
+                     Check(victim == ScriptTransaction::Failed && victimError.Find(marked) > 0 && victimError.Find(_T("Call Database.RollbackTransaction")) > 0,
+                        Formatter::Format("a statement marked [IGNORE-ERRORS] that met a deadlock which ended the transaction was {0}, not failed with what to do: {1}", OutcomeName(victim), victimError));
+                     Check(next == ScriptTransaction::Refused && Says(nextError, _T("The statement was not run: the database ended this transaction at an earlier statement in it that failed")),
+                        Formatter::Format("the script's statement after a statement marked [IGNORE-ERRORS] had met a deadlock was {0}, not refused: {1}", OutcomeName(next), nextError));
+                     Check(Says(commitError, _T("The transaction was rolled back, not committed: the database ended it at a statement in it that failed")),
+                        _T("the commit after a statement marked [IGNORE-ERRORS] had met a deadlock was not refused as the Database object refuses it: ") + commitError);
+                  }
+
+                  probe.Say(_T("a statement marked [IGNORE-ERRORS] that a deadlock chose as its victim: answered as the end of the transaction, the next statement refused, the commit failed, nothing saved"));
+               });
+            }
+
+            // Database.ExecuteSQLScript and Database.EnsurePrerequisites after a
+            // deadlock has ended the transaction (ScriptTransaction::ExecuteScript and
+            // ScriptTransaction::EnsurePrerequisites): each refused without running
+            // anything, as a statement is - a script of one insert, whose row is never
+            // saved, and the prerequisites of a version that has none, so that nothing
+            // but the refusal answers them. Sent, the script's insert would be
+            // committed on its own, outside any transaction, on MySQL, MariaDB and SQL
+            // Server, and the prerequisites said to be met. Not on PostgreSQL, whose
+            // database refuses the script itself, nor on SQL Server Compact, whose
+            // transaction goes on.
+            if (!compact && !postgres)
+            {
+               run([&]()
+               {
+                  probe.Reset();
+                  const String file = FileUtilities::Combine(IniFileSettings::Instance()->GetTempDirectory(), _T("aatxnafter-") + GUIDCreator::GetGUID() + _T(".sql"));
+                  Check(FileUtilities::WriteToFile(file, AnsiString(String(_T("insert into aatxnprobe (id, v) values (50, 50)\n\n")))), _T("the tester could not write its script to ") + file);
+
+                  ScriptTransaction::Outcome scriptOutcome = ScriptTransaction::Ran;
+                  ScriptTransaction::Outcome prerequisitesOutcome = ScriptTransaction::Ran;
+                  String scriptError;
+                  String prerequisitesError;
+                  int seen = -2;
+                  std::exception_ptr failure;
+                  try
+                  {
+                     ScriptTransaction script;
+                     BeginOn(script, pool);
+                     deadlock(script, [&]() -> ScriptTransaction::Outcome
+                     {
+                        String error;
+                        return Script(script, Update(_T("aatxnprobeb"), 10), error);
+                     });
+
+                     scriptOutcome = script.ExecuteScript(file, scriptError);
+                     seen = probe.Value(_T("aatxnprobe"), 50);
+                     prerequisitesOutcome = script.EnsurePrerequisites(1, prerequisitesError);
+
+                     String rollbackError;
+                     script.Rollback(rollbackError);
+                  }
+                  catch (...)
+                  {
+                     failure = std::current_exception();
+                  }
+
+                  FileUtilities::DeleteFile(file);
+
+                  if (failure)
+                     std::rethrow_exception(failure);
+
+                  const int after = probe.Value(_T("aatxnprobe"), 50);
+                  const String refusal = _T("The statement was not run: the database ended this transaction at an earlier statement in it that failed");
+
+                  Check(seen == -1 && after == -1,
+                     Formatter::Format("the insert of a script run after a deadlock had ended its transaction was saved on its own, as on 6e1a336c5 on MySQL and MariaDB: {0} before the transaction's end and {1} after it, where nothing was to be saved", seen, after));
+                  Check(scriptOutcome == ScriptTransaction::Refused && Says(scriptError, refusal),
+                     Formatter::Format("a script run after a deadlock had ended its transaction was {0}, not refused: {1}", OutcomeName(scriptOutcome), scriptError));
+                  Check(prerequisitesOutcome == ScriptTransaction::Refused && Says(prerequisitesError, refusal),
+                     Formatter::Format("the prerequisites asked for after a deadlock had ended the transaction were {0}, not refused: {1}", OutcomeName(prerequisitesOutcome), prerequisitesError));
+                  probe.Say(_T("a script and the prerequisites asked for after a deadlock had ended the transaction: both refused, nothing saved"));
                });
             }
 
