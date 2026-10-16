@@ -2874,9 +2874,11 @@ def verdict_problems(texts, jobs):
     file is read, .gitlab-ci.yml including nothing but the files of .gitlab/ci/ named
     <name>.yml and GitLab's templates (ci_override_problems); and nothing
     Trivy reads beside its command line narrows what the scan reports - the script runs
-    it with no variable of its own and with an empty configuration and ignore file of
-    its own (own_trivy_files, held by its self-test), and beside that no CI file sets a
-    variable of Trivy's (TRIVY_VARIABLE, which reads every name of the variables every
+    it with no variable of its own, with an empty configuration, ignore file, cache and
+    module directory of its own, and with HOME and the XDG base directories naming a
+    directory of its own (own_trivy_files and trivy_environment, held by its self-test),
+    and beside that no CI file sets a variable of Trivy's (TRIVY_VARIABLE, which reads
+    every name of the variables every
     job is given in its one form, variable_key_problems), and the tree carries neither
     its configuration file nor its ignore file at its root (TRIVY_FILES). A key of either
     written in a form this does not read, or written twice, is job_key_problems'; their

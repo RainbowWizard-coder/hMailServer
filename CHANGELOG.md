@@ -5925,52 +5925,58 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   `dependency-scan` failed, allowed to fail, on a high or critical advisory with a fixed version: `master`'s pipeline
   of 14 October 2026 (2947545170), whose scan found 36 in the CI image's .NET SDK packages, was filed `JOB_FAILED`
   with none of its findings, and all 3,817 dependency findings of the vulnerability report read "no longer detected"
-  (the scan of 13 October, which passed, had given it 2,757). `build/ci/dependency-scan.py` ends 0 whenever its
-  scans ran and 2 when one could not, and writes its verdict beside its reports, `verdict.json`: failed, broken or
-  passed, with each target that failed and the pipeline and job that wrote it. The new job `dependency-scan-verdict`,
-  made in every pipeline the scan is made in, reads it (`--verdict`) and fails as the scan job used to - exit 1 on a
-  finding, exit 2 when a scan could not run or no verdict of the pipeline's came - and is allowed to fail as that job
-  was, so a pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. After a
-  retry of `dependency-scan` by hand, retry `dependency-scan-verdict` too, as its log says last when it fails: GitLab
-  runs a finished job that needs a retried one again only when it was skipped. The
-  release's gate, which reads the reports themselves, is unchanged. The script's self-test runs the scan over a tree
-  it makes, with Trivy and its database stood in for: a High with a fixed version ends 0, every report written and
-  the verdict failed, on which `--verdict` ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends
-  0, and 0; no database ends 2, and 2; and a verdict that is missing, malformed or another pipeline's is no verdict.
-  `build/check-release-chain.py` holds `dependency-scan` to its one script line and the one line before it, to
-  Trivy's image, to needing `ci-image-packages` with its artifacts, to `allow_failure` and to keeping its files and
-  its report whatever it ends with, its artifacts held line by line, since GitLab's YAML reader takes the last of a
-  key written twice, and `dependency-scan-verdict` to the scan's rules, to needing it alone with its
-  artifacts, to `--verdict` alone in Docker Hub's Python image and to `allow_failure`; each to the keys it has and no
-  other, so that no `before_script`, `hooks`, `when`, `dependencies` or `variables` can end the verdict job before it
-  reads the verdict, leave it no artifact or no checkout, or make it manual, with no key reaching either from a
-  template it extends but `rules:`, no `before_script`, `after_script`, `hooks`, `cache` or `services` from
-  `default:`, the last two of which lay files over the checkout, no `needs`, `variables`, `allow_failure` or
-  `start_in`, and no `when` but `never` or `on_success`, from a rule they take, and no second definition of either in
-  another CI file, `.gitlab-ci.yml` including nothing but the files of `.gitlab/ci/` named `<name>.yml`, which the
-  checker reads, and GitLab's templates, each by a line of its own - a definition of the verdict job in an included
-  `.yaml` file, a file beside `.gitlab/ci/` or a remote one passed the checker, as one of a job that holds a change
-  would have; and `ci-image-packages`, which the scan needs with its artifacts, may hand it the CI image's package
-  database and nothing else - its keys as they are, `ci-image-packages/` alone among its artifacts with no report,
-  none from a template, no blank line inside it and no definition elsewhere - since GitLab passes the scan that job's
-  dotenv report as variables and unpacks its artifacts over the scan's checkout, and a dotenv report of
-  `TRIVY_SEVERITY=LOW`, a `trivy.yaml` and a `build/ci/dependency-scan.py` of its own among them each passed the
-  checker; and no CI file may set a variable Trivy reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`,
-  by which what the scan reports would narrow, and each name of `.gitlab-ci.yml`'s `variables:` and of its workflow
-  rules' is written bare and once, since GitLab's YAML reader takes a name quoted with an escape, tagged, anchored, as
-  an alias or as an explicit key too, and `TRIVY_SEVERITY: LOW` given every job in five such forms, or in a workflow
-  rule's, passed the checker and narrowed a real scan to its 114 Low findings; and the script itself gives Trivy
-  nothing of its own - it runs it with the job's variables less every one whose name begins `TRIVY_`, whoever gave the
-  job one, and with an empty configuration and ignore file of its own outside the checkout as `--config` and
-  `--ignorefile`, so that neither a variable nor a `trivy.yaml` or `.trivyignore` laid over the checkout by an
-  artifact narrows the scan, and with an empty cache directory of its own as `--cache-dir`, so that it scans with the
-  database it has just downloaded and not one it would find, and keep as fresh, in its default cache under `HOME`,
-  which a variable could put in the checkout; and neither job may have a blank line inside it, past which GitLab's
-  YAML reader carries a list or a mapping that the checker reads up to the line; and no CI file may hold a character
-  beyond printable ASCII, a tab and a line feed, since GitLab's YAML reader ends a line at NEL, LS and PS too, where
-  the checker reads lines at line feeds alone, so that a comment line holding an LS hid what follows it from every
-  rule. Each rule has a case of its self-test (ContinuousIntegration.md, "Dependency findings, the VEX document, and
-  what OSV cannot answer").
+  (the scan of 13 October, which passed, had given it 2,757). `build/ci/dependency-scan.py` ends 0 whenever its scans
+  ran and 2 when one could not, and writes its verdict beside its reports, `verdict.json`: failed, broken or passed,
+  with each target that failed and the pipeline and job that wrote it. The new job `dependency-scan-verdict`, made in
+  every pipeline the scan is made in, reads it (`--verdict`) and fails as the scan job used to - exit 1 on a finding,
+  exit 2 when a scan could not run or no verdict of the pipeline's came - and is allowed to fail as that job was, so a
+  pipeline with a finding still reads "passed with warnings", and the job's log lists the finding. After a retry of
+  `dependency-scan` by hand, retry `dependency-scan-verdict` too, as its log says last when it fails: GitLab runs a
+  finished job that needs a retried one again only when it was skipped. The release's gate, which reads the reports
+  themselves, is unchanged. The script's self-test runs the scan over a tree it makes, with Trivy and its database
+  stood in for: a High with a fixed version ends 0, every report written and the verdict failed, on which `--verdict`
+  ends 1 (batch48's script ended 1 and wrote no verdict); nothing found ends 0, and 0; no database ends 2, and 2; and
+  a verdict that is missing, malformed or another pipeline's is no verdict. `build/check-release-chain.py` holds
+  `dependency-scan` to its one script line and the one line before it, to Trivy's image, to needing
+  `ci-image-packages` with its artifacts, to `allow_failure` and to keeping its files and its report whatever it ends
+  with, its artifacts held line by line, since GitLab's YAML reader takes the last of a key written twice, and
+  `dependency-scan-verdict` to the scan's rules, to needing it alone with its artifacts, to `--verdict` alone in
+  Docker Hub's Python image and to `allow_failure`; each to the keys it has and no other, so that no `before_script`,
+  `hooks`, `when`, `dependencies` or `variables` can end the verdict job before it reads the verdict, leave it no
+  artifact or no checkout, or make it manual, with no key reaching either from a template it extends but `rules:`, no
+  `before_script`, `after_script`, `hooks`, `cache` or `services` from `default:`, the last two of which lay files
+  over the checkout, no `needs`, `variables`, `allow_failure` or `start_in`, and no `when` but `never` or
+  `on_success`, from a rule they take, and no second definition of either in another CI file, `.gitlab-ci.yml`
+  including nothing but the files of `.gitlab/ci/` named `<name>.yml`, which the checker reads, and GitLab's
+  templates, each by a line of its own - a definition of the verdict job in an included `.yaml` file, a file beside
+  `.gitlab/ci/` or a remote one passed the checker, as one of a job that holds a change would have; and
+  `ci-image-packages`, which the scan needs with its artifacts, may hand it the CI image's package database and
+  nothing else - its keys as they are, `ci-image-packages/` alone among its artifacts with no report, none from a
+  template, no blank line inside it and no definition elsewhere - since GitLab passes the scan that job's dotenv
+  report as variables and unpacks its artifacts over the scan's checkout, and a dotenv report of `TRIVY_SEVERITY=LOW`,
+  a `trivy.yaml` and a `build/ci/dependency-scan.py` of its own among them each passed the checker; and no CI file may
+  set a variable Trivy reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`, by which what the scan
+  reports would narrow, and each name of `.gitlab-ci.yml`'s `variables:` and of its workflow rules' is written bare
+  and once, since GitLab's YAML reader takes a name quoted with an escape, tagged, anchored, as an alias or as an
+  explicit key too, and `TRIVY_SEVERITY: LOW` given every job in five such forms, or in a workflow rule's, passed the
+  checker and narrowed a real scan to its 114 Low findings; and the script itself gives Trivy no setting of its own,
+  and no file of the checkout's its command line does not name - it runs it with the job's variables less every one
+  whose name begins `TRIVY_`, whoever gave the job one, and with an empty configuration and ignore file of its own
+  outside the checkout as `--config` and `--ignorefile`, so that neither a variable nor a `trivy.yaml` or
+  `.trivyignore` laid over the checkout by an artifact narrows the scan, and with an empty cache directory of its own
+  as `--cache-dir`, so that it scans with the database it has just downloaded and not one it would find, and keep as
+  fresh, in its default cache under `HOME`, which a variable could put in the checkout, with an empty module directory
+  of its own as `--module-dir`, so that it loads no module of the checkout's - it loads every `.wasm` file in its
+  default, `.trivy/modules` under `HOME` or `XDG_DATA_HOME`, which a variable could put there the same way, and a
+  module that is a post-scanner may change or drop findings before Trivy writes its report -, and with `HOME` and the
+  XDG base directories naming a directory of its own and no `DOCKER_CONFIG`, `REGISTRY_AUTH_FILE` or
+  `XDG_RUNTIME_DIR`, so that no other default Trivy takes from its home, Docker's and Podman's registry configuration
+  among them, is the checkout's; and neither job may have a blank line inside it, past which GitLab's YAML reader
+  carries a list or a mapping that the checker reads up to the line; and no CI file may hold a character beyond
+  printable ASCII, a tab and a line feed, since GitLab's YAML reader ends a line at NEL, LS and PS too, where the
+  checker reads lines at line feeds alone, so that a comment line holding an LS hid what follows it from every rule.
+  Each rule has a case of its self-test (ContinuousIntegration.md, "Dependency findings, the VEX document, and what
+  OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

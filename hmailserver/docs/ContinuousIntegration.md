@@ -5057,37 +5057,51 @@ its artifacts into the scan's checkout over the tree, where a `trivy.yaml` or a
 `build/ci/dependency-scan.py` of its own would be the scan's, so that it has
 the keys it has, keeps `ci-image-packages/` alone with no report, takes no
 `artifacts` from a template it extends, has no blank line inside it and is
-defined in `.gitlab-ci.yml` alone. And Trivy is given nothing of its own beside
-its command line, which would narrow what the scan reports: the script runs it
-with the job's variables less every one whose name begins `TRIVY_`
+defined in `.gitlab-ci.yml` alone. And Trivy is given no setting of its own
+beside its command line, by which what the scan reports would narrow, and reads
+no file of the checkout's that its command line does not name: the script runs
+it with the job's variables less every one whose name begins `TRIVY_`
 (`TRIVY_SEVERITY` and the like), whoever gave the job one - a CI file, the
 dotenv report of the job the scan needs, a CI/CD variable of the project's or
 the group's -, and gives it an empty configuration and ignore file of its own,
 outside the checkout, as `--config` and `--ignorefile`, so that a `trivy.yaml`
 or `.trivyignore` at the root of the checkout, where the scan runs it, is not
-read, and an empty cache directory there as `--cache-dir`, so that it scans
-with the vulnerability database it has just downloaded and not one it finds in
-its default cache, under `HOME` or `XDG_CACHE_HOME`, which it keeps when the
-database says it is fresh, and which a variable could put in the checkout; its
-self-test holds it to that. Beside that, no CI file sets such a variable, and
-the tree carries neither file. Each name of `.gitlab-ci.yml`'s `variables:` and
-of its workflow rules' `variables:`, which every job is given, is written bare
-and once, since GitLab's YAML reader takes a name quoted with an escape,
-tagged, anchored, as an alias or as an explicit key too: `TRIVY_SEVERITY: LOW`
-written so passed the checker, and narrowed a real scan to its Low findings.
-A finding that does not affect the project is dismissed in the VEX document,
-`.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads that document
-(`--vex`), and so does the OSV step, which dismisses an advisory only where a
-statement names it, by its id or an alias, and names the library at the version
-scanned by its purl (`pkg:generic/<name>@<version>`, the purl
-`build/native-dependencies.ps1` gives the SBOM): a statement made for zlib
-1.3.1 does not dismiss the same advisory for 1.3.2. The document is read, and
-its products matched, by `build/ci/mr-dependency-check.py`, which the change
-gate uses too. A record with no CVSS v3 vector and no rating of its database's
-is scored by its CVSS v4.0 vector with that script's calculator, so that
+read, and an empty cache directory there as `--cache-dir`, so that it scans with
+the vulnerability database it has just downloaded and not one it finds in its
+default cache, under `HOME` or `XDG_CACHE_HOME`, which it keeps when the
+database says it is fresh, and which a variable could put in the checkout, and
+an empty module directory there as `--module-dir`, so that it loads no module of
+the checkout's: its default module directory, `.trivy/modules` under
+`XDG_DATA_HOME` or `HOME`, could be put there the same way, Trivy loads every
+`.wasm` file in it, and a module that is a post-scanner may change or drop
+findings before Trivy writes its report. `HOME`, `XDG_CACHE_HOME`,
+`XDG_CONFIG_HOME` and `XDG_DATA_HOME` name one more empty directory of the
+script's, so that no other default Trivy takes from its home - its VEX
+repositories' configuration, and Docker's and Podman's registry configuration,
+which can name a credential helper for it to run - is the checkout's either, and
+`DOCKER_CONFIG`, `REGISTRY_AUTH_FILE` and `XDG_RUNTIME_DIR`, which name another
+place for that configuration, are not given it (the vulnerability database is
+public, and asks no login); its self-test holds it to all of that. The job's
+other variables reach Trivy as they reach any program the job runs, `PATH` among
+them, and the script does not hold them. Beside that, no CI file sets a variable
+of Trivy's, and the tree carries neither file. Each name of `.gitlab-ci.yml`'s
+`variables:` and of its workflow rules' `variables:`, which every job is given,
+is written bare and once, since GitLab's YAML reader takes a name quoted with an
+escape, tagged, anchored, as an alias or as an explicit key too:
+`TRIVY_SEVERITY: LOW` written so passed the checker, and narrowed a real scan to
+its Low findings. A finding that does not affect the project is dismissed in the
+VEX document, `.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads
+that document (`--vex`), and so does the OSV step, which dismisses an advisory
+only where a statement names it, by its id or an alias, and names the library at
+the version scanned by its purl (`pkg:generic/<name>@<version>`, the purl
+`build/native-dependencies.ps1` gives the SBOM): a statement made for zlib 1.3.1
+does not dismiss the same advisory for 1.3.2. The document is read, and its
+products matched, by `build/ci/mr-dependency-check.py`, which the change gate
+uses too. A record with no CVSS v3 vector and no rating of its database's is
+scored by its CVSS v4.0 vector with that script's calculator, so that
 CVE-2026-76844, in zlib's `gz_write`, is High (8.3) with a fixed version; the
-VEX document says zlib 1.3.2 is not affected, since `gzwrite.c` is not
-vendored. A dismissed finding is still listed, marked as dismissed.
+VEX document says zlib 1.3.2 is not affected, since `gzwrite.c` is not vendored.
+A dismissed finding is still listed, marked as dismissed.
 
 OSV's data on C and C++ libraries is partial. So each vendored library is also
 asked about a *control* version, one a published advisory is known to affect.
