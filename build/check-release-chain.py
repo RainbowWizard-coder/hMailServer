@@ -5639,17 +5639,17 @@ def self_test(chain, feed):
     # words, on the line after a change's gate or after a command with them, in a code
     # block or a job's script, without the build/ci/ path, by a Windows path, with no
     # option, with prose after it that names --exceptions, in a fenced or an indented
-    # code block, a block quote's, a job's literal block or one of a yaml code block with
-    # --exceptions or --merge-request on the next line and no backslash, in a folded block
-    # whose next line YAML keeps apart - or with no file or the checkout's own copy after
-    # --exceptions, each reported as that command alone, where two commands with them on
-    # two lines, one continued by a shell's backslash, between --exceptions and its file
-    # too, in a block quote too, or by PowerShell's backtick, one wrapped over two lines of
-    # a paragraph, a block quote's too, of a script's item in a yaml code block, of a
-    # folded block that YAML folds into one, of an HTML block with a fence in it, of a
-    # paragraph that a line of = begins after a link reference definition, one with "=",
-    # one whose placeholder names master's copy, the script named and not run, a change's
-    # gate and the self-test pass.
+    # code block (after a setext heading too), a block quote's, a job's literal block or
+    # one of a yaml code block with --exceptions or --merge-request on the next line and
+    # no backslash, in a folded block whose next line YAML keeps apart - or with no file
+    # or the checkout's own copy after --exceptions, each reported as that command alone,
+    # where two commands with them on two lines, one continued by a shell's backslash,
+    # between --exceptions and its file too, in a block quote too, or by PowerShell's
+    # backtick, one wrapped over two lines of a paragraph, a block quote's too, of a
+    # script's item in a yaml code block, of a folded block that YAML folds into one, of an
+    # HTML block with a fence in it, of a paragraph that a line of = begins after a link
+    # reference definition, one with "=", one whose placeholder names master's copy, the
+    # script named and not run, a change's gate and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
@@ -5734,6 +5734,10 @@ def self_test(chain, feed):
              "      --exceptions <file>\n```\n", "python3 build/ci/security-gate.py --artifacts ."),
             ("a command in a block quote's code block wrapped without the shell's backslash", "hmailserver/docs/Planted.md",
              "> ```\n> python3 build/ci/security-gate.py --artifacts <dir>\n>     --exceptions <file>\n> ```\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command in an indented code block after a setext heading, wrapped without the shell's backslash",
+             "hmailserver/docs/Planted.md",
+             "Ask the gate\n=\n    python3 build/ci/security-gate.py --artifacts <dir>\n    --exceptions <file>\n",
              "python3 build/ci/security-gate.py --artifacts <dir>"),
             ("a command in a folded block whose next line YAML keeps apart", ".gitlab/ci/planted.yml",
              "planted:\n  script:\n    - >\n      python3 build/ci/security-gate.py --artifacts .\n        --exceptions master.yml\n",
