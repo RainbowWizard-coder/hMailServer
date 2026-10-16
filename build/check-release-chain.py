@@ -1468,14 +1468,16 @@ def link_path_problems(chain, documents):
 # where the shell reads the lines: in a code block (fenced or indented, in a list item
 # or a block quote too) and in a YAML block scalar - a literal one's every line, a
 # folded one's where YAML keeps the line break. There a command ends at the end of a
-# line that does not end with a continuation, and at a comment: a line with a word after
-# its first that begins with # ends one whatever it ends with, and a line that begins
-# with # ends the one before it, and is read without its #, as a root prompt's command
-# is. Outside a block scalar, a YAML comment line ends the line before it unless that is
-# a comment too, as YAML ends a scalar there. gate_flat ends a command with " ;", which
-# none of them crosses. A change's gate (--merge-request) and the self-test are other
-# commands, and the script named with neither an interpreter nor an option is a
-# mention, not a command.
+# line that does not end with a continuation written as a word of its own - a mark at a
+# word's end, as a Windows directory's backslash, which PowerShell and cmd do not read
+# as one, is read as none, so that such a command is reported where a shell would
+# continue it - and at a comment: a line with a word after its first that begins with
+# "#" ends one whatever it ends with, and a line that begins with # ends the one before
+# it, and is read without its #, as a root prompt's command is. Outside a block scalar,
+# a YAML comment line ends the line before it unless that is a comment too, as YAML
+# ends a scalar there. gate_flat ends a command with " ;", which none of them crosses.
+# A change's gate (--merge-request) and the self-test are other commands, and the
+# script named with neither an interpreter nor an option is a mention, not a command.
 GATE_BREAK = r"(?: [\\`^])? "
 GATE_OPTION = re.compile(r"(--[A-Za-z][A-Za-z0-9\-]*)(?:(?:=|%s)(<[^<>`]*>|(?!(?:python[0-9.]*|py)(?: |$))"
                          r"(?![^\s`()<>,;]*security-gate\.py)[^\s`()<>,;\\\-^#][^\s`()<>,;]*))?" % GATE_BREAK)
@@ -1897,12 +1899,15 @@ def gate_flat(text, yaml=False):
     by a space, so that a command wrapped over two lines of prose, of a YAML comment or of
     a script's item reads as one. Where the shell reads the lines - in a code block or a
     YAML block scalar (markdown_command_ends, yaml_command_ends) - and ends a command at
-    the end of a line, a line that does not end with a continuation (a shell's \\,
-    PowerShell's `, cmd's ^) ends with " ;", which no argument of a command crosses
-    (GATE_COMMAND); so does a line there with a word after its first that begins with #,
-    a comment, which holds whatever the line ends with, and, whatever it ends with, the
-    line before one there whose first word begins with # - a comment, or a root prompt's
-    command - and the line before a YAML comment line that ends a scalar."""
+    the end of a line, a line that does not end with a continuation written as a word of
+    its own (a shell's \\, PowerShell's `, cmd's ^) ends with " ;", which no argument of
+    a command crosses (GATE_COMMAND); so does a line there with a word after its first
+    that begins with #, a comment, which holds whatever the line ends with, and, whatever
+    it ends with, the line before one there whose first word begins with # - a comment,
+    or a root prompt's command - and the line before a YAML comment line that ends a
+    scalar. A continuation mark at a word's end, as a Windows directory's backslash,
+    which PowerShell and cmd do not read as one, is read as none, so that such a command
+    is reported where a shell would continue it."""
     lines = text.split("\n")
     ends, quoted, shell, before = set(), {}, set(), set()
     if yaml:
@@ -1924,7 +1929,8 @@ def gate_flat(text, yaml=False):
             if held is not None and not parts[held].endswith(" ;"):
                 parts[held] += " ;"
         part = " ".join(" ".join(words).lstrip("#").split())
-        if part and (commented or number in ends and not part.endswith(("\\", "`", "^"))):
+        continued = part in ("\\", "`", "^") or part.endswith((" \\", " `", " ^"))
+        if part and (commented or number in ends and not continued):
             part += " ;"
         parts.append(part)
     return " ".join(parts)
@@ -5680,27 +5686,29 @@ def self_test(chain, feed):
     # command without them - wrapped over two comment lines, with a placeholder of several
     # words, on the line after a change's gate or after a command with them, in a code
     # block or a job's script, without the build/ci/ path, by a Windows path, with no
-    # option, with prose after it that names --exceptions, in a fenced or an indented
-    # code block (after a setext heading too), a block quote's, a job's literal block or
-    # one of a yaml code block with --exceptions or --merge-request on the next line and
-    # no backslash, in a folded block whose next line YAML keeps apart, continued by a
+    # option, with prose after it that names --exceptions, in a fenced or an indented code
+    # block (after a setext heading too), a block quote's, a job's literal block or one of
+    # a yaml code block with --exceptions or --merge-request on the next line and no
+    # backslash, in a folded block whose next line YAML keeps apart, continued by a
     # shell's backslash or PowerShell's backtick onto a comment line that names
     # --exceptions, in a code block or a job's literal block, with such a comment line
     # folded into it, a job's script item or one of a yaml code block followed by a
     # comment line that begins with --exceptions or --merge-request, one that ends with a
-    # backslash too, a root prompt's command - or with no file or the checkout's own copy
-    # after --exceptions, a comment there too, each reported as that command alone (and
-    # one in a comment after another command, continued in that comment), where two
-    # commands with them on two lines, one continued by a shell's backslash, between
-    # --exceptions and its file too, in a block quote too, or by PowerShell's backtick, one
-    # wrapped over two lines of a paragraph, a block quote's too, of a script's item in a
-    # yaml code block, of a folded block that YAML folds into one, of an HTML block with a
-    # fence in it, of a paragraph that a line of = begins after a link reference
-    # definition, of a YAML comment after a key, a root prompt's command with them,
-    # continued too, one after a comment line, one with a comment after it, two with a
-    # comment line between them in a job's literal block, one with "=", one whose
-    # placeholder names master's copy, the script named and not run, a change's gate and
-    # the self-test pass.
+    # backslash too, a root prompt's command, one in a PowerShell code block or a job's
+    # literal block whose directory ends with a backslash and --exceptions on the next
+    # line - or with no file or the checkout's own copy after --exceptions, a comment
+    # there too, each reported as that command alone (and one in a comment after another
+    # command, continued in that comment), where two commands with them on two lines, one
+    # continued by a shell's backslash, between --exceptions and its file too, in a block
+    # quote too, or by PowerShell's backtick or cmd's caret, after a directory that ends
+    # with a backslash too, one wrapped over two lines of a paragraph, a block quote's
+    # too, of a script's item in a yaml code block, of a folded block that YAML folds into
+    # one, of an HTML block with a fence in it, of a paragraph that a line of = begins
+    # after a link reference definition, of a YAML comment after a key, a root prompt's
+    # command with them, continued too, one after a comment line, one with a comment after
+    # it, two with a comment line between them in a job's literal block, one with "=", one
+    # whose placeholder names master's copy, the script named and not run, a change's gate
+    # and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
@@ -5838,6 +5846,14 @@ def self_test(chain, feed):
             ("a root prompt's command without --exceptions", "hmailserver/docs/Planted.md",
              "```console\n# python3 build/ci/security-gate.py --artifacts <dir>\n```\n",
              "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command in a PowerShell code block whose directory ends with a backslash, then --exceptions",
+             "hmailserver/docs/Planted.md",
+             "```powershell\npy build\\ci\\security-gate.py --artifacts C:\\scans\\\n    --exceptions C:\\master.yml\n```\n",
+             "py build\\ci\\security-gate.py --artifacts C:\\scans\\"),
+            ("a command in a job's literal block whose directory ends with a backslash, then --exceptions",
+             ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - |\n      py build\\ci\\security-gate.py --artifacts C:\\scans\\\n"
+             "      --exceptions C:\\master.yml\n", "py build\\ci\\security-gate.py --artifacts C:\\scans\\"),
             ("a command with --exceptions", "hmailserver/docs/Planted.md",
              "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`.\n", None),
             ("two commands with --exceptions on two lines", "hmailserver/docs/Planted.md",
@@ -5849,6 +5865,12 @@ def self_test(chain, feed):
              "```\npython3 build/ci/security-gate.py --artifacts <dir> --exceptions \\\n    <file>\n```\n", None),
             ("a command with --exceptions continued by PowerShell's backtick", "hmailserver/docs/Planted.md",
              "```powershell\npython3 build/ci/security-gate.py --artifacts <dir> `\n    --exceptions <file>\n```\n", None),
+            ("a command with --exceptions whose directory ends with a backslash, continued by PowerShell's backtick",
+             "hmailserver/docs/Planted.md",
+             "```powershell\npy build\\ci\\security-gate.py --artifacts C:\\scans\\ `\n    --exceptions C:\\master.yml\n```\n", None),
+            ("a command with --exceptions whose directory ends with a backslash, continued by cmd's caret",
+             "hmailserver/docs/Planted.md",
+             "```bat\npy build\\ci\\security-gate.py --artifacts C:\\scans\\ ^\n    --exceptions C:\\master.yml\n```\n", None),
             ("a command with --exceptions wrapped over two lines of a paragraph", "hmailserver/docs/Planted.md",
              "Ask it as `python3 build/ci/security-gate.py --artifacts <dir>\n--exceptions <file>` before the tag.\n", None),
             ("a command with --exceptions in a block quote's code block continued by a shell's backslash",

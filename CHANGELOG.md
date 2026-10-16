@@ -6795,13 +6795,15 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   unless it begins with an option. A line that begins with an option continues the command on the line before it, as a
   wrapped command does, but in a code block - fenced or indented, in a list item or a block quote too, as CommonMark's
   reference implementation reads a document's blocks - and in a YAML literal block, or at a line break that YAML keeps
-  in a folded one, only a line that ends with a continuation (a shell's backslash, PowerShell's backtick, cmd's caret)
-  continues a command, and a comment ends one where it begins, as the shell reads them: a line with a word after its
-  first that begins with `#` ends its command whatever it ends with, and a line that begins with `#` ends the command
-  before it and is read without its `#`, as a root prompt's command is. Outside a block scalar, a YAML comment line ends
-  the line before it unless that is a comment too, as YAML ends a scalar there. A block quote's lines are read without
-  their `>` marks. Its self-test breaks each rule in a copy, and over the documents as they were the check reported both
-  commands and a step 9 with no such command.
+  in a folded one, only a line that ends with a continuation written as a word of its own (a shell's backslash,
+  PowerShell's backtick, cmd's caret) continues a command, and a comment ends one where it begins, as the shell reads
+  them; a mark at a word's end, as in a Windows directory such as `C:\scans\`, which PowerShell and cmd do not continue,
+  is read as none, so that such a command is reported. In those blocks a line with a word after its first that begins
+  with `#` ends its command whatever it ends with, and a line that begins with `#` ends the command before it and is
+  read without its `#`, as a root prompt's command is. Outside a block scalar, a YAML comment line ends the line before
+  it unless that is a comment too, as YAML ends a scalar there. A block quote's lines are read without their `>` marks.
+  Its self-test breaks each rule in a copy, and over the documents as they were the check reported both commands and a
+  step 9 with no such command.
 - **SECURITY.md names the libraries `dependency-scan` says UNKNOWN for as the scan answers today: libpq, QuickJS and
   SQL Server Compact.** It named 7-Zip 19.00 among them, which the Windows installer has not carried since 25
   September 2026: 7-Zip 26.03 is asked of OSV beside its control, which OSV names advisories for, and passes.
