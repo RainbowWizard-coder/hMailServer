@@ -81,7 +81,8 @@ namespace HM
       // envelope says who sent it, or that nobody did. Whom it was sent to is
       // the caller's to say, since the notice may be going to a recipient or to
       // the sender: a recipient's notice names that recipient alone, and the
-      // sender's the addresses the sender sent it to.
+      // sender's each address the message was taken for, before it was
+      // resolved (MessageRecipients::GetCommaSeparatedOriginalAddresses).
       if (header.GetFieldCount() == 0)
       {
          sOriginalFrom = pOriginalMessage->GetFromAddress().IsEmpty() ? String(_T("<>")) : pOriginalMessage->GetFromAddress();

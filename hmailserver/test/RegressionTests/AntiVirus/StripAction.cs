@@ -41,9 +41,14 @@ namespace RegressionTests.AntiVirus
    ///    And the "message deleted" notice reaches the recipients of a message
    ///    whose envelope sender is empty, as it reaches any other recipient; and
    ///    when the message's file cannot be read as the delete action's notices
-   ///    are made, the sender's notice names the addresses the sender sent the
-   ///    message to, as the sender gave them, and each recipient's notice that
-   ///    recipient alone.
+   ///    are made, each recipient's notice names that recipient alone, and the
+   ///    sender's notice each address the message was taken for, once and
+   ///    before it was resolved: for mail received by SMTP the RCPT TO
+   ///    addresses, a distribution list by its own address; for a download the
+   ///    account it was downloaded into, or the address its header named when
+   ///    the external account delivers to the accounts its headers name. An
+   ///    address that reached only recipients an earlier one had reached is not
+   ///    named.
    ///
    ///    The scanners are command lines with a fixed exit code, as in
    ///    SealedMailSafety: these tests are about what the server does with a
@@ -632,7 +637,7 @@ namespace RegressionTests.AntiVirus
       }
 
       [Test]
-      [Description("With the delete action and both notices on, while another process holds the message's file as the notices are made, the sender's notice names the addresses the sender sent the message to, as the sender gave them, and each recipient's notice names that recipient alone.")]
+      [Description("With the delete action and both notices on, while another process holds the file of a message received by SMTP as the notices are made, the sender's notice names the RCPT TO addresses as the sender gave them, a distribution list by its own address and not its members, and each recipient's notice names that recipient alone.")]
       public void TheDeleteActionsNoticesNameWhomTheMessageWasSentToWhenItsFileCannotBeRead()
       {
          var setup = SingletonProvider<TestSetup>.Instance;
@@ -698,6 +703,164 @@ namespace RegressionTests.AntiVirus
          Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
          Pop3ClientSimulator.AssertMessageCount(firstMember.Address, Password, 0);
          Pop3ClientSimulator.AssertMessageCount(secondMember.Address, Password, 0);
+      }
+
+      [TestCase("the account")]
+      [TestCase("the accounts its headers name")]
+      [Description("With the delete action and the sender's notice on, while another process holds the file of a message an external account downloaded as the notice is made, the sender's notice names the account the message was downloaded into, or, when the external account delivers to the accounts the message's headers name, the address its header named for this server - not what that address resolved to, and not an address the external account did not take the message for.")]
+      public void TheDeleteActionsSendersNoticeOfADownloadNamesWhomItWasDownloadedFor(string deliveredTo)
+      {
+         var headersNameTheRecipients = deliveredTo == "the accounts its headers name";
+
+         // The header names an alias of the fixture's account, and an address
+         // at no domain of this server's.
+         const string aliasAddress = "strip-alias@example.test";
+         const string elsewhere = "someone@elsewhere.example";
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, aliasAddress, _account.Address);
+
+         // A sender outside, which a download takes from its From as its
+         // envelope sender: its notice goes through a route to the simulator.
+         const string outsideSender = "correspondent@" + BounceTestSupport.RemoteDomain;
+
+         var messages = new List<string>
+         {
+            "From: " + outsideSender + "\r\n" +
+            "To: " + aliasAddress + ", " + elsewhere + "\r\n" +
+            "Subject: A downloaded message\r\n" +
+            "\r\n" +
+            "Downloaded text.\r\n"
+         };
+
+         ScanWhileAnotherProcessHoldsTheFile("Delete", eAntivirusAction.hDeleteEmail);
+         _settings.AntiVirus.NotifySender = true;
+
+         string sendersNotice;
+
+         var smtpPort = TestSetup.GetNextFreePort();
+         using (var smtpServer = new SmtpServerSimulator(1, smtpPort))
+         {
+            // The scan starts two PowerShell processes before the notice is made.
+            smtpServer.SecondsToWaitBeforeTerminate = 60;
+            smtpServer.AddRecipientResult(new Dictionary<string, int> { [outsideSender] = 250 });
+            smtpServer.StartListen();
+            TestSetup.AddRoutePointingAtLocalhost(0, smtpPort, false);
+
+            var pop3Port = TestSetup.GetNextFreePort();
+            using (var pop3Server = new Pop3ServerSimulator(1, pop3Port, messages))
+            {
+               pop3Server.StartListen();
+
+               var fa = _account.FetchAccounts.Add();
+               fa.Enabled = true;
+               fa.MinutesBetweenFetch = 10;
+               fa.Name = "Strip action";
+               fa.Username = "test@example.com";
+               fa.Password = "test";
+               fa.UseSSL = false;
+               fa.ServerAddress = "127.0.0.1";
+               fa.Port = pop3Port;
+               fa.ProcessMIMERecipients = headersNameTheRecipients;
+               if (headersNameTheRecipients)
+                  fa.MIMERecipientHeaders = "To,CC,X-RCPT-TO,X-Envelope-To";
+               fa.DaysToKeepMessages = -1;
+               fa.UseAntiSpam = false;
+               fa.UseAntiVirus = true;
+               fa.Save();
+
+               fa.DownloadNow();
+               pop3Server.WaitForCompletion();
+
+               smtpServer.WaitForCompletion();
+               fa.Delete();
+            }
+
+            sendersNotice = smtpServer.MessageData;
+         }
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         AssertTheNoticesReadTheHeldFile();
+
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ":", sendersNotice,
+            "What reached the sender is not the message-deleted notice.");
+         StringAssert.Contains(NoticeLine("%MACRO_FROM%", outsideSender) + "\r\n", sendersNotice,
+            "The sender's notice does not name the sender of the message it says was deleted.");
+
+         if (headersNameTheRecipients)
+         {
+            // What the header named and the external account took it for, as
+            // named: the alias, not the account it leads to.
+            StringAssert.Contains(NoticeLine("%MACRO_TO%", aliasAddress) + "\r\n", sendersNotice,
+               "The sender's notice of a download does not name the address its header named for this server.");
+            StringAssert.DoesNotContain(_account.Address, sendersNotice,
+               "The sender's notice of a download names the account an address of its header resolved to.");
+         }
+         else
+         {
+            // Whom the external account took it for: the account it belongs to,
+            // whatever the header says.
+            StringAssert.Contains(NoticeLine("%MACRO_TO%", _account.Address) + "\r\n", sendersNotice,
+               "The sender's notice of a download does not name the account it was downloaded into.");
+            StringAssert.DoesNotContain(aliasAddress, sendersNotice,
+               "The sender's notice of a download names an address of its header that the external account did not take it for.");
+         }
+
+         StringAssert.DoesNotContain(elsewhere, sendersNotice,
+            "The sender's notice of a download names an address of its header that the external account did not take it for.");
+
+         // Nothing of the message reached the account.
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+      }
+
+      [Test]
+      [Description("With the delete action and the sender's notice on, while another process holds the message's file as the notice is made, an address the sender gave that reached only recipients an earlier address had already reached is not named in the sender's notice.")]
+      public void TheSendersNoticeLeavesOutAnAddressThatReachedNoRecipientOfItsOwn()
+      {
+         var setup = SingletonProvider<TestSetup>.Instance;
+
+         var sender = setup.AddAccount(_domain, "strip-sender@example.test", Password);
+         var member = setup.AddAccount(_domain, "strip-member1@example.test", Password);
+         var list = setup.AddDistributionList(_domain, "strip-list@example.test",
+            new List<string> { _account.Address, member.Address });
+
+         ScanWhileAnotherProcessHoldsTheFile("Delete", eAntivirusAction.hDeleteEmail);
+         _settings.AntiVirus.NotifySender = true;
+
+         // The list first, which reaches the fixture's account, and then the
+         // account itself, which the list has reached already.
+         new SmtpClientSimulator().SendRaw(sender.Address, new List<string> { list.Address, _account.Address },
+            TextAndEicarMessage(_account.Address));
+
+         var sendersNotice = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, Password);
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         AssertTheNoticesReadTheHeldFile();
+
+         StringAssert.Contains("Subject: " + ServerMessage("VIRUS_FOUND") + ":", sendersNotice,
+            "What reached the sender is not the message-deleted notice.");
+         StringAssert.Contains(NoticeLine("%MACRO_TO%", list.Address) + "\r\n", sendersNotice,
+            "The sender's notice does not name the list alone.");
+         StringAssert.DoesNotContain(member.Address, sendersNotice,
+            "The sender's notice names a member of the distribution list the sender wrote to.");
+
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(_account.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(member.Address, Password, 0);
+      }
+
+      /// <summary>
+      ///    What the delete action's tests stand on: the file was held while the
+      ///    notices were made. The delete action's notices read it each for
+      ///    itself, and say in the error log that they could not, as they always
+      ///    have; and the message was deleted.
+      /// </summary>
+      private static void AssertTheNoticesReadTheHeldFile()
+      {
+         CustomAsserts.AssertReportedError("Could not read the message header, since the file was not available");
+         Assert.IsTrue(LogHandler.ClearErrorLogUntilSettled(),
+            "Errors were still being written after the notices had arrived.");
+
+         BounceTestSupport.AssertLogContains("Message will be deleted (contained virus",
+            "The message was not deleted by the delete action.");
       }
 
       private void AssertTheRecipientsNoticeNamesThemAlone(string notice, string recipient, string sender, params string[] otherRecipients)

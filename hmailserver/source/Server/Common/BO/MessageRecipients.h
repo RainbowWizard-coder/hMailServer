@@ -20,13 +20,18 @@ namespace HM
       int GetCount() {return (int) recipients_.size(); }
       String GetCommaSeperatedRecipientList();
 
-      // The addresses the message was sent to as its sender gave them, each
-      // once, comma-separated: each recipient's original address - the RCPT TO
-      // it came from - or its address when it has none.
-      // GetCommaSeperatedRecipientList lists what they resolved to instead: a
-      // distribution list's members, an alias's target, which are for this
-      // server to know and not for the sender.
-      String GetCommaSeparatedAddressesAsSent();
+      // Each recipient's original address, or its address when it has none, each
+      // once, comma-separated. The original address is the one RecipientParser
+      // was given, before it resolved it: for mail received by SMTP the RCPT TO
+      // (a bare name with the default domain added); for mail an external
+      // account downloaded, the account it was downloaded into, or with MIME
+      // recipients on the addresses its header and Received fields named. An
+      // address that added no recipient - each it resolved to was there
+      // already, from an earlier address - is not here: RecipientParser keeps
+      // the first. GetCommaSeperatedRecipientList lists what the addresses
+      // resolved to instead: a distribution list's members, an alias's target,
+      // a masked address's owner.
+      String GetCommaSeparatedOriginalAddresses();
 
       void RemoveNonLocalAccounts();
       void RemoveExternal();

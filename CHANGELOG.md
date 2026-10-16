@@ -1352,8 +1352,11 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   envelope's sender and the recipient as the message's *From* and *To*. The notices of *Delete the whole message*,
   which read the file for themselves and say in the error log when they cannot, now fill the two fields from the
   envelope too when it cannot be read, where they left them empty: a recipient's notice names that recipient alone,
-  and the sender's notice the addresses the sender sent the message to, each once and as the sender gave them - a
-  distribution list by its own address, not its members. An S/MIME message signed as one part -
+  and the sender's notice each address the message was taken for, once and before the server resolved it - for mail
+  received by SMTP the `RCPT TO` addresses, a distribution list by its own address and not its members; for mail an
+  external account downloaded, the account it was downloaded into, or, with *Deliver each message to the accounts its
+  headers name* on, the addresses its header and *Received* fields named that it took the message for - and not an
+  address that reached only recipients an earlier address had already reached. An S/MIME message signed as one part -
   `application/pkcs7-mime` holding signed-data, which is opaque to the server's other readers and is not encrypted -
   is one such part, and is replaced by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is
   `IsOpaque` less signed-data. A message that is one text part is delivered as it is, having no attachment to remove,
@@ -1361,9 +1364,11 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   delivers a message that is one attachment in four shapes, an S/MIME message signed as one part and one encrypted as
   one part, and one that is one text part, and holds a message's file while the stripper reads it and finds the
   notice naming the message's sender and recipient and nothing in the error log, and while the delete action's
-  notices are made and finds the sender's naming the addresses the message was sent to and each recipient's that
-  recipient alone; `SealedMessageTester` holds `IsEncrypted` to the S/MIME and PGP/MIME shapes
-  ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action").
+  notices are made and finds each recipient's naming that recipient alone and the sender's naming the `RCPT TO`
+  addresses of mail received by SMTP, the account a download went into, or the address a download's header named for
+  it, and not an address that reached no recipient of its own; `SealedMessageTester` holds `IsEncrypted` to the
+  S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus
+  action").
 
 - **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
   sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message

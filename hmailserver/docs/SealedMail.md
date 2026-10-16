@@ -224,9 +224,20 @@ when its two notice settings say so, each notice reading the message's file for 
 and writing to the error log when it cannot. When the file cannot be read, its notices
 give the envelope's sender as the *From* too, and as the *To* a recipient's notice
 names that recipient alone - never the others, whom the message may have reached
-unseen - and the sender's notice the addresses the sender sent the message to, each
-once and as the sender gave them: a distribution list or an alias by the address the
-sender wrote, not what it resolves to.
+unseen - and the sender's notice each address the message was taken for, once and as
+it was before the server resolved it, so that a distribution list, an alias or a
+masked address is named by its own address and not by what it leads to:
+
+* for mail received by SMTP, the `RCPT TO` addresses as the sender gave them (a bare
+  name with the default domain added);
+* for mail an external account downloaded, the account it was downloaded into - or,
+  with *Deliver each message to the accounts its headers name* on, those of the
+  addresses named in the header fields it reads and in the message's *Received*
+  fields that it took the message for, and the account itself when it took it for
+  none of them.
+
+An address that reached only recipients an earlier address had already reached is not
+named.
 
 ## Rules
 

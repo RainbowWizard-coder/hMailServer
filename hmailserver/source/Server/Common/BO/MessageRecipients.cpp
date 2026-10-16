@@ -52,12 +52,12 @@ namespace HM
    }
 
    String
-   MessageRecipients::GetCommaSeparatedAddressesAsSent()
+   MessageRecipients::GetCommaSeparatedOriginalAddresses()
    {
       String addresses;
 
       // A distribution list's members all carry the list's address as their
-      // original one, so the list is named once, as the sender named it.
+      // original one, so the list is named once, by its own address.
       std::set<String> named;
 
       for (std::shared_ptr<MessageRecipient> recipient : recipients_)

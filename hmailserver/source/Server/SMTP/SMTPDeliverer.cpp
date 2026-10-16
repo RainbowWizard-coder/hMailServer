@@ -975,13 +975,17 @@ namespace HM
          if (antiVirusConfig.AVNotifyReceiver())
             notifyEveryRecipient(nullptr);
 
-         // The sender's notice, when the header cannot be read, names the
-         // addresses the sender sent the message to, as the sender gave them -
-         // not what they resolved to, a distribution list's members or an
-         // alias's target, which are for this server to know.
+         // The sender's notice, when the header cannot be read, names each
+         // address the message was taken for, once and before it was resolved -
+         // not what it resolved to, a distribution list's members or an alias's
+         // target. For mail received by SMTP those are the RCPT TO addresses;
+         // for a download they are the account it was downloaded into, or the
+         // addresses its header named (MIME recipients), since that is what the
+         // fetcher took it for. Nothing on the message says which of the two it
+         // came by.
          if (antiVirusConfig.AVNotifySender())
             SMTPVirusNotifier::CreateMessageDeletedNotification(pMessage, pMessage->GetFromAddress(),
-               pMessage->GetRecipients()->GetCommaSeparatedAddressesAsSent());
+               pMessage->GetRecipients()->GetCommaSeparatedOriginalAddresses());
 
          String logMessage = Formatter::Format("SMTPDeliverer - Message {0}: Message will be deleted (contained virus {1}).",
             pMessage->GetID(), virusName);

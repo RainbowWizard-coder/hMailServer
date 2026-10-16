@@ -26,8 +26,9 @@ namespace HM
       // could not be read - names the envelope's sender in place of the
       // header's From and sAddressedTo in place of its To: in a recipient's
       // notice that recipient alone, never the others, whom the message may
-      // have reached unseen (Bcc); in the sender's notice the addresses the
-      // sender sent it to (MessageRecipients::GetCommaSeparatedAddressesAsSent).
+      // have reached unseen (Bcc); in the sender's notice each address the
+      // message was taken for, before it was resolved
+      // (MessageRecipients::GetCommaSeparatedOriginalAddresses).
       static void CreateMessageDeletedNotification(const std::shared_ptr<Message> pOriginalMessage, const String &sRecipient, const String &sAddressedTo, const AnsiString &originalHeader);
 
    };
