@@ -1456,19 +1456,37 @@ def link_path_problems(chain, documents):
 # The release's security gate as a document gives the command for it, in a text whose
 # lines gate_flat has joined: security-gate.py by any path, run by an interpreter
 # (python3, python or py, with options of its own perhaps) or from "./" perhaps, and the
-# arguments argparse would read - each an option, --name, with a value after a space or
-# "=" perhaps: a <placeholder>, of several words perhaps, or a word that does not begin
-# with "-" and is neither an interpreter nor a path to the script, which begin the next
-# command. They follow a space, or a shell's " \" that continues the line, and end at
-# the first word that is not one of them, so that the next command, the "- " of a YAML
-# list before it, and the prose after it are never read as more of them. A change's
-# gate (--merge-request) and the self-test are other commands, and the script named
-# with neither an interpreter nor an option is a mention, not a command.
-GATE_OPTION = re.compile(r"(--[A-Za-z][A-Za-z0-9\-]*)(?:[ =](<[^<>`]*>|(?!(?:python[0-9.]*|py)(?: |$))"
-                         r"(?![^\s`()<>,;]*security-gate\.py)[^\s`()<>,;\\\-][^\s`()<>,;]*))?")
+# arguments argparse would read - each an option, --name, with a value after "=" or a
+# space perhaps: a <placeholder>, of several words perhaps, or a word that begins with
+# none of "-", "\" and "^" and is neither an interpreter nor a path to the script, which
+# begin the next command. Each follows a space, or a continuation a shell's line ends
+# with (" \", PowerShell's " `", cmd's " ^"; GATE_BREAK), and they end at the first word
+# that is none of them, so that the next command and the "- " of a YAML list before it
+# are never read as more of them. A line that begins with an option continues the
+# command on the line before it, as a command wrapped over two lines does, except in a
+# fenced code block or a YAML block scalar, where the shell ends a command at the end of
+# a line that has no continuation: gate_flat ends such a line with " ;", which none of
+# them crosses. A change's gate (--merge-request) and the self-test are other commands,
+# and the script named with neither an interpreter nor an option is a mention, not a
+# command.
+GATE_BREAK = r"(?: [\\`^])? "
+GATE_OPTION = re.compile(r"(--[A-Za-z][A-Za-z0-9\-]*)(?:(?:=|%s)(<[^<>`]*>|(?!(?:python[0-9.]*|py)(?: |$))"
+                         r"(?![^\s`()<>,;]*security-gate\.py)[^\s`()<>,;\\\-^][^\s`()<>,;]*))?" % GATE_BREAK)
 GATE_COMMAND = re.compile(r"(?:\b((?:python(?:3(?:\.[0-9]+)?)?|py)(?: -[A-Za-z0-9]+)*) )?(\.[/\\])?"
                           r"(?:[^\s`()<>,;'\"]*[/\\])?(?<![\w.\-])security-gate\.py(?![\w\-]|\.\w)"
-                          r"((?:(?: \\)? (?:%s))*)" % GATE_OPTION.pattern)
+                          r"((?:%s(?:%s))*)" % (GATE_BREAK, GATE_OPTION.pattern))
+# A Markdown code fence's opening line, as CommonMark has it: three backticks or more and
+# an info string with none in it, or three tildes or more and any.
+CODE_FENCE = re.compile(r"^(?:(`{3,})([^`]*)|(~{3,})(.*))$")
+# A Markdown list item's first line: its mark ("-", "+", "*", or a number and "." or
+# ")"), the spaces after it, and its text; the item's content stands at the column after
+# the spaces, or one after the mark when there are more than four or none.
+MARKDOWN_ITEM = re.compile(r"^ *([-+*]|[0-9]{1,9}[.)])(?:( +)(\S.*)?)?$")
+# A YAML block scalar's header: a line that ends with "|" (literal) or ">" (folded),
+# their indicators - an indentation of 1 to 9, "+" or "-" - and a comment perhaps, after
+# a sequence entry's "- ", a key, both or neither, and a tag or an anchor perhaps.
+BLOCK_SCALAR = re.compile(r"^([ \t]*)((?:-[ \t]+)*)((?:\"[^\"]*\"|'[^']*'|[^\s#'\"][^#]*?)[ \t]*:[ \t]+)?"
+                          r"(?:[!&]\S*[ \t]+)*([|>])(?:([1-9])[+\-]?|[+\-]([1-9])?)?(?:[ \t]+#.*)?[ \t]*$")
 # An exceptions file that is the checkout's own copy: its path from the checkout's root,
 # where the gate is run, or the checkout's in a job (a sentence's full stop or colon
 # after it, and quotes round it, taken off first).
@@ -1501,11 +1519,154 @@ def gate_texts():
     return texts
 
 
-def gate_flat(text):
-    """A document as one line: each line's indentation and comment marks (YAML's #, a
-    heading's) taken off and its spaces made one, and the lines joined by a space, so
-    that a command wrapped over two lines reads as one."""
-    return " ".join(" ".join(line.strip().lstrip("#").split()) for line in text.split("\n"))
+def yaml_command_ends(lines, first, last, ends):
+    """Add to ends the number of each line of lines[first:last], a YAML document's or a
+    part of one, after which the shell ends a command, as a script's lines are read: each
+    line of a literal block scalar (|), which keeps every line break, and each line of a
+    folded one (>) whose line break YAML keeps - beside a more-indented line or an empty
+    one - or that ends it. A block scalar's lines are those after its header indented
+    more than the key or the "- " it stands after, up to the first that is not as
+    indented as its text: the first of them, or the key or the "- " and the header's
+    indentation indicator; YAML joins every other line break of a scalar, as of a
+    script's item continued on the next line, with a space."""
+    number = first
+    while number < last:
+        header = BLOCK_SCALAR.match(lines[number])
+        number += 1
+        if not header:
+            continue
+        if header.group(3):
+            parent = header.start(3)
+        elif header.group(2):
+            parent = header.start(2) + header.group(2).rstrip().rfind("-")
+        else:
+            parent = len(header.group(1)) - 1
+        indicator = header.group(5) or header.group(6)
+        content, block = max(parent, 0) + int(indicator) if indicator else None, []
+        while number < last:
+            line = lines[number]
+            if line.strip():
+                indent = len(line) - len(line.lstrip(" \t"))
+                if indent <= parent if content is None else indent < content:
+                    break
+                content = indent if content is None else content
+                block.append((number, indent))
+            number += 1
+        for at, (line_number, indent) in enumerate(block):
+            following = block[at + 1] if at + 1 < len(block) else None
+            if header.group(4) == "|" or following is None or following[0] != line_number + 1 or \
+                    indent > content or following[1] > content:
+                ends.add(line_number)
+
+
+def markdown_command_ends(lines, ends):
+    """Add to ends the number of each line of a Markdown document after which the shell
+    ends a command: each line of a code block, as CommonMark reads one - a fenced block,
+    which ends at a line of the same mark, at least as long, and nothing else, at the end
+    of the list item it stands in or at the document's end, and an indented one, a line
+    four spaces or more inside the list item it stands in (MARKDOWN_ITEM, of its
+    content's column) that no paragraph's line comes just before, and the lines after it
+    so indented or empty - but in a fence whose info string is yaml or yml, which is YAML
+    (yaml_command_ends). A list item ends at a line less indented than its content that
+    follows an empty line or is a fence, a heading or another item; a paragraph runs on
+    into any other line, as CommonMark's lazy lines do, and into an empty item or one
+    numbered other than 1 that would begin a list."""
+    def indented(at):
+        line = lines[at].expandtabs(4)
+        return len(line) - len(line.lstrip(" "))
+
+    def code(first, column):
+        # an indented code block from lines[first], its lines so indented or empty
+        at = first + 1
+        while at < len(lines) and (not lines[at].strip() or indented(at) >= column):
+            at += 1
+        ends.update(n for n in range(first, at) if lines[n].strip())
+        return at
+
+    def fence(opened, first, inside):
+        # a fenced code block opened on the line before lines[first], in a list item whose
+        # content stands at the column inside
+        mark = opened.group(1) or opened.group(3)
+        info = (opened.group(2) if opened.group(1) else opened.group(4)).split()
+        closing = re.compile(r"^%s%s*$" % (re.escape(mark), re.escape(mark[0])))
+        at = first
+        while at < len(lines) and not (lines[at].strip() and indented(at) < inside):
+            if closing.match(lines[at].strip()) and indented(at) < inside + 4:
+                break
+            at += 1
+        if info and info[0].strip("{}.").lower() in ("yaml", "yml"):
+            yaml_command_ends(lines, first, at, ends)
+        else:
+            ends.update(range(first, at))
+        closed = at < len(lines) and closing.match(lines[at].strip()) and inside <= indented(at) < inside + 4
+        return at + 1 if closed else at
+
+    items = []
+    after_block = True
+    number = 0
+    while number < len(lines):
+        line = lines[number].expandtabs(4)
+        number += 1
+        if not line.strip():
+            after_block = True
+            continue
+        indent = indented(number - 1)
+        held = [column for column in items if column <= indent]
+        relative = indent - (held[-1] if held else 0)
+        opened = CODE_FENCE.match(line.strip())
+        heading = re.match(r"^#{1,6}(?:\s|$)", line.strip())
+        item = MARKDOWN_ITEM.match(line)
+        if item and not after_block and indent >= (items[-1] if items else 0) and \
+                (not item.group(3) or item.group(1)[0].isdigit() and int(item.group(1)[:-1]) != 1):
+            # a paragraph runs into an empty item, or a list numbered from other than 1
+            item = None
+        started = relative < 4 and (opened or heading or item)
+        if after_block or started:
+            items = held
+        inside = items[-1] if items else 0
+        if after_block and relative >= 4:
+            number = code(number - 1, inside + 4)
+        elif started and opened:
+            number = fence(opened, number, inside)
+            after_block = True
+        elif started and item:
+            spaces = len(item.group(2) or "")
+            items.append(indent + len(item.group(1)) + (spaces if item.group(3) and spaces <= 4 else 1))
+            text = item.group(3) or ""
+            after_block = not text or re.match(r"^#{1,6}(?:\s|$)", text) is not None
+            if text and spaces > 4:
+                # the item's text begins with an indented code block
+                number = code(number - 1, items[-1] + 4)
+                after_block = True
+            elif CODE_FENCE.match(text.strip()):
+                number = fence(CODE_FENCE.match(text.strip()), number, items[-1])
+                after_block = True
+        else:
+            after_block = bool(started)
+
+
+def gate_flat(text, yaml=False):
+    """A document as one line - a YAML document's if yaml, else a Markdown one's: each
+    line's indentation and comment marks (YAML's #, a heading's) taken off and its spaces
+    made one, and the lines joined by a space, so that a command wrapped over two lines
+    of prose, of a YAML comment or of a script's item reads as one. Where the shell ends
+    a command at the end of a line - in a fenced code block or a YAML block scalar
+    (markdown_command_ends, yaml_command_ends) - a line that does not end with a
+    continuation (a shell's \\, PowerShell's `, cmd's ^) ends with " ;", which no
+    argument of a command crosses (GATE_COMMAND)."""
+    lines = text.split("\n")
+    ends = set()
+    if yaml:
+        yaml_command_ends(lines, 0, len(lines), ends)
+    else:
+        markdown_command_ends(lines, ends)
+    parts = []
+    for number, line in enumerate(lines):
+        part = " ".join(line.strip().lstrip("#").split())
+        if number in ends and part and not part.endswith(("\\", "`", "^")):
+            part += " ;"
+        parts.append(part)
+    return " ".join(parts)
 
 
 def release_step(text, number):
@@ -1549,7 +1710,7 @@ def gate_by_hand_problems(texts):
     problems = []
     release = texts.get("release-md", "")
     for document, text in [("RELEASE.md", release)] + sorted(texts.get("gate-docs", {}).items()):
-        for _, command, options in gate_commands(gate_flat(text)):
+        for _, command, options in gate_commands(gate_flat(text, document.endswith((".yml", ".yaml")))):
             files = [value for name, value in options if name == "--exceptions"]
             if not files:
                 problems.append("%s gives the release's security gate as `%s`, without --exceptions: the gate then reads the "
@@ -5252,16 +5413,22 @@ def self_test(chain, feed):
     if not texts["permalinks"] or not any(PERMALINK.search(t) for t in texts["permalinks"].values()):
         failures.append("the tree's permanent download addresses are read (README.md, Channels.md, the OBS _service): %s" % sorted(texts["permalinks"]))
     # The release's gate asked by hand: step 9's command without the exceptions, or with a
-    # command without them on the line after it, its file from the tagged tree, from a
+    # command without them on the line after it, its command or its fetch of master
+    # wrapped without the shell's backslash, its file from the tagged tree, from a
     # FETCH_HEAD that is not master's or from nowhere, and no step 9; and a document's
     # command without them - wrapped over two comment lines, with a placeholder of several
     # words, on the line after a change's gate or after a command with them, in a code
     # block or a job's script, without the build/ci/ path, by a Windows path, with no
-    # option, with prose after it that names --exceptions - or with no file or the
-    # checkout's own copy after --exceptions, each reported as that command alone, where
-    # two commands with them on two lines, one continued by a shell's backslash, one with
-    # "=", one whose placeholder names master's copy, the script named and not run, a
-    # change's gate and the self-test pass.
+    # option, with prose after it that names --exceptions, in a fenced or an indented
+    # code block, a job's literal block or one of a yaml code block with --exceptions or
+    # --merge-request on the next line and no backslash, in a folded block whose next line
+    # YAML keeps apart - or with no file or the checkout's own copy after --exceptions,
+    # each reported as that command alone, where two commands with them on two lines, one
+    # continued by a shell's backslash, between --exceptions and its file too, or by
+    # PowerShell's backtick, one wrapped over two lines of a paragraph, of a script's item
+    # in a yaml code block, of a folded block that YAML folds into one, one with "=", one
+    # whose placeholder names master's copy, the script named and not run, a change's
+    # gate and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
@@ -5270,6 +5437,15 @@ def self_test(chain, feed):
            "python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>\n"
            "   python3 build/ci/security-gate.py --artifacts <dir>\n",
            "RELEASE.md gives the release's security gate as `python3 build/ci/security-gate.py --artifacts <dir>`, without")
+    for what, needle in (
+            ("step 9's command wrapped without the shell's backslash",
+             "RELEASE.md gives the release's security gate as `python3 build/ci/security-gate.py --artifacts <dir>`, without"),
+            ("step 9 without a command over --artifacts with --exceptions, its own wrapped without the shell's backslash",
+             "RELEASE.md's step 9 gives no command")):
+        broken(what, "release-md", "python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>\n",
+               "python3 build/ci/security-gate.py --artifacts <dir>\n     --exceptions <file>\n", needle)
+    broken("step 9's fetch of master wrapped without the shell's backslash", "release-md", "git fetch gitlab master\n",
+           "git fetch gitlab\n     master\n", "from FETCH_HEAD's .gitlab/security-exceptions.yml")
     broken("step 9's exceptions from the tagged tree", "release-md", "git show FETCH_HEAD:.gitlab/security-exceptions.yml",
            "git show vX.Y.Z:.gitlab/security-exceptions.yml", "from vX.Y.Z's .gitlab/security-exceptions.yml")
     broken("step 9's exceptions from a FETCH_HEAD that is not master's", "release-md", "git fetch gitlab master\n",
@@ -5317,6 +5493,27 @@ def self_test(chain, feed):
             ("a command whose --exceptions names no file", "hmailserver/docs/Planted.md",
              "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions`.\n",
              "python3 build/ci/security-gate.py --artifacts <dir> --exceptions"),
+            ("a command in a code block wrapped without the shell's backslash", "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --artifacts <dir>\n    --exceptions <file>\n```\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command in a code block, then a line that begins with --merge-request", "hmailserver/docs/Planted.md",
+             "```sh\npython3 build/ci/security-gate.py --artifacts <dir>\n--merge-request auto\n```\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command in an indented code block wrapped without the shell's backslash", "hmailserver/docs/Planted.md",
+             "Ask it so:\n\n    python3 build/ci/security-gate.py --artifacts <dir>\n      --exceptions <file>\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
+            ("a command in a job's literal block, then --exceptions on the next line", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - |\n      python3 build/ci/security-gate.py --artifacts .\n      --exceptions master.yml\n",
+             "python3 build/ci/security-gate.py --artifacts ."),
+            ("a command in a job's literal block, then --merge-request on the next line", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - |\n      python3 build/ci/security-gate.py --artifacts .\n      --merge-request auto\n",
+             "python3 build/ci/security-gate.py --artifacts ."),
+            ("a command in a literal block of a yaml code block, wrapped", "hmailserver/docs/Planted.md",
+             "```yaml\nplanted:\n  script:\n    - |\n      python3 build/ci/security-gate.py --artifacts .\n"
+             "      --exceptions <file>\n```\n", "python3 build/ci/security-gate.py --artifacts ."),
+            ("a command in a folded block whose next line YAML keeps apart", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - >\n      python3 build/ci/security-gate.py --artifacts .\n        --exceptions master.yml\n",
+             "python3 build/ci/security-gate.py --artifacts ."),
             ("a command with --exceptions", "hmailserver/docs/Planted.md",
              "Then `python3 build/ci/security-gate.py --artifacts <dir> --exceptions <file>`.\n", None),
             ("two commands with --exceptions on two lines", "hmailserver/docs/Planted.md",
@@ -5324,6 +5521,21 @@ def self_test(chain, feed):
              "python3 build/ci/security-gate.py --artifacts <b> --exceptions <f>\n```\n", None),
             ("a command with --exceptions continued by a shell's backslash", "hmailserver/docs/Planted.md",
              "```\npython3 build/ci/security-gate.py --artifacts <dir> \\\n    --exceptions <file>\n```\n", None),
+            ("a command whose --exceptions and its file a shell's backslash parts", "hmailserver/docs/Planted.md",
+             "```\npython3 build/ci/security-gate.py --artifacts <dir> --exceptions \\\n    <file>\n```\n", None),
+            ("a command with --exceptions continued by PowerShell's backtick", "hmailserver/docs/Planted.md",
+             "```powershell\npython3 build/ci/security-gate.py --artifacts <dir> `\n    --exceptions <file>\n```\n", None),
+            ("a command with --exceptions wrapped over two lines of a paragraph", "hmailserver/docs/Planted.md",
+             "Ask it as `python3 build/ci/security-gate.py --artifacts <dir>\n--exceptions <file>` before the tag.\n", None),
+            ("a script item of a yaml code block continued on the next line", "hmailserver/docs/Planted.md",
+             "```yaml\nplanted:\n  script:\n    - python3 build/ci/security-gate.py --artifacts .\n      --exceptions <file>\n```\n",
+             None),
+            ("a command with --exceptions in a job's literal block continued by a shell's backslash", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - |\n      python3 build/ci/security-gate.py --artifacts . \\\n        --exceptions master.yml\n",
+             None),
+            ("a command with --exceptions in a job's folded block, its lines folded into one", ".gitlab/ci/planted.yml",
+             "planted:\n  script:\n    - >\n      python3 build/ci/security-gate.py --artifacts .\n      --exceptions master.yml\n",
+             None),
             ("a command with --artifacts=<dir> --exceptions=<file>", "hmailserver/docs/Planted.md",
              "Then `python3 build/ci/security-gate.py --artifacts=<dir> --exceptions=<file>`.\n", None),
             ("a command whose placeholder names master's copy", "hmailserver/docs/Planted.md",
