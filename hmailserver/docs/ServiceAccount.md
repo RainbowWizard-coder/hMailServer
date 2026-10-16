@@ -658,10 +658,10 @@ of it):
 
 3. Where the first line below finds an entry - a 32-bit installation's - setup
    installs into the folder that entry names, whatever `/DIR` says: take it away with
-   the second. Then run the release's setup with the new folder. It finds the
-   settings file there and goes on as an upgrade of this installation, the service's
-   account kept, with the programs its own; `sc qc hMailServer` then names the new
-   `Bin`.
+   the second. Then run the release's setup with the new folder. For the server, it
+   finds the settings file there and goes on as an upgrade of this installation, the
+   service's account kept, with the programs its own; `sc qc hMailServer` then names
+   the new `Bin`.
 
    ```
    reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1" /reg:32
