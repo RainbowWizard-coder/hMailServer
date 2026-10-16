@@ -179,7 +179,12 @@ namespace HM
       if (iThreadCount <= 0)
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4325, "IOService::DoWork()", "The number of TCP/IP threads has been set to zero.");
 
-      size_t iQueueID = WorkQueueManager::Instance()->CreateWorkQueue(iThreadCount, "IOCPQueue");
+      // The queue keeps this service alive for as long as it exists: its threads
+      // run in io_context_, and a stop that gives up on one (a session's handler
+      // in a wait the stop cannot interrupt) leaves the queue to WorkQueueManager,
+      // which frees it once the thread has left - and this service after it, not
+      // under that thread when StopServers lets go of io_service_.
+      size_t iQueueID = WorkQueueManager::Instance()->CreateWorkQueue(iThreadCount, "IOCPQueue", shared_from_this());
 
       std::shared_ptr<WorkQueue> pWorkQueue = WorkQueueManager::Instance()->GetQueue("IOCPQueue");
 

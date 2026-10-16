@@ -3,19 +3,21 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The linux-sanitize job of .gitlab-ci.yml: the SNMP agent's tester, snmp-tests,
-# built with AddressSanitizer (the CMake option HM_SANITIZE) and run so that the
-# first memory error aborts it. The agent parses datagrams from the network, and
-# a sanitizer is what turns a read one byte past a buffer - which would never
-# fault in a release build - into a failed job.
+# The linux-sanitize job of .gitlab-ci.yml: the test programs built with
+# AddressSanitizer (the CMake option HM_SANITIZE) and run so that the first memory
+# error aborts the job. snmp-tests feeds the agent's BER decoder datagrams from
+# the network - a read one byte past a buffer, which would never fault in a
+# release build, becomes a failed job. workqueue-teardown-tests removes a work
+# queue while one of its worker threads is still inside it, which is where a queue
+# freed under a running thread shows as a use-after-free.
 #
 #   bash build/ci/linux-sanitize.sh
 #
-# The option and the target are the SNMP row's. On a tree without them - the
-# CMake build offers no HM_SANITIZE (cmake -LH does not list it) - this says so
-# and exits 0: there is nothing to sanitize yet, and that is not a failure. On a
-# tree with the option and without the target it fails, because then the build
-# no longer makes what this job exists to run.
+# The option is the SNMP row's. On a tree without it - the CMake build offers no
+# HM_SANITIZE (cmake -LH does not list it) - this says so and exits 0: there is
+# nothing to sanitize yet, and that is not a failure. On a tree with the option
+# and without one of the targets it fails, because then the build no longer makes
+# what this job exists to run.
 #
 # Run in the image of build/ci/linux.Dockerfile (clang and its sanitizer
 # runtimes, llvm-symbolizer), from the root of a checkout. The environment:
@@ -68,15 +70,22 @@ if ! cmake -S "$source_dir" -B "$build_dir" -G Ninja -DHM_SANITIZE=ON -DCMAKE_BU
 fi
 tail -n 5 "$out/configure.log"
 ninja -C "$build_dir" -t targets all > "$out/targets.txt" 2> /dev/null
-if ! grep -q '^snmp-tests:' "$out/targets.txt"; then
-  echo "FAILED: the build offers HM_SANITIZE but makes no snmp-tests target, which is what this job runs."
-  exit 1
-fi
+# The targets this job builds and runs under the sanitizer. snmp-tests feeds the
+# BER decoder bytes nobody meant it to see; workqueue-teardown-tests removes a
+# work queue while a worker is still inside it. A tree with HM_SANITIZE but
+# without one of these no longer makes what the job exists to run.
+sanitize_targets="snmp-tests workqueue-teardown-tests"
+for target in $sanitize_targets; do
+  if ! grep -q "^$target:" "$out/targets.txt"; then
+    echo "FAILED: the build offers HM_SANITIZE but makes no $target target, which is what this job runs."
+    exit 1
+  fi
+done
 
 echo ""
-echo "== ninja snmp-tests (-j $jobs)"
+echo "== ninja $sanitize_targets (-j $jobs)"
 started=$(date +%s)
-ninja -C "$build_dir" -j "$jobs" snmp-tests > "$out/build.log" 2>&1
+ninja -C "$build_dir" -j "$jobs" $sanitize_targets > "$out/build.log" 2>&1
 code=$?
 ended=$(date +%s)
 echo "ninja exit $code after $(( ended - started )) s"
@@ -88,15 +97,29 @@ if [ "$code" -ne 0 ]; then
   exit 3
 fi
 
-echo ""
-echo "== snmp-tests under AddressSanitizer (ASAN_OPTIONS=abort_on_error=1)"
-( cd "$build_dir" && ASAN_OPTIONS=abort_on_error=1 timeout 900 ./snmp-tests ) > "$out/snmp-tests.log" 2>&1
-code=$?
-tail -n 60 "$out/snmp-tests.log"
+# Each target run under the sanitiser, each aborting on the first memory error
+# (ASAN_OPTIONS=abort_on_error=1). A non-zero exit from any is the job's failure,
+# but every one is run so the log carries all of them. The work-queue teardown
+# runs its stop's ten-second give-up and a twenty-second task, so it is given a
+# longer bound than the decoder tests.
+overall=0
+for target in $sanitize_targets; do
+  echo ""
+  echo "== $target under AddressSanitizer (ASAN_OPTIONS=abort_on_error=1)"
+  ( cd "$build_dir" && ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1 timeout 900 "./$target" ) > "$out/$target.log" 2>&1
+  code=$?
+  tail -n 60 "$out/$target.log"
+  if [ "$code" -ne 0 ]; then
+    echo "FAILED: $target exited $code under the sanitizer; $out/$target.log has the report."
+    overall=1
+  else
+    echo "$target passed under AddressSanitizer."
+  fi
+done
+
 rm -rf "$build_dir"
 echo ""
-if [ "$code" -ne 0 ]; then
-  echo "FAILED: snmp-tests exited $code under the sanitizer; $out/snmp-tests.log has the report."
+if [ "$overall" -ne 0 ]; then
   exit 1
 fi
-echo "snmp-tests passed under AddressSanitizer."
+echo "The sanitizer targets passed under AddressSanitizer."

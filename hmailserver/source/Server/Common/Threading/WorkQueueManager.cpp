@@ -26,16 +26,21 @@ namespace HM
    }
 
    size_t 
-   WorkQueueManager::CreateWorkQueue(int iMaxSimultaneous, const String &sQueueName)
+   WorkQueueManager::CreateWorkQueue(int iMaxSimultaneous, const String &sQueueName, std::shared_ptr<void> outlives)
    //---------------------------------------------------------------------------
    // DESCRIPTION:
    // Creates a new work queue and adds it to the list of queues. Returns the ID
-   // of the new queue.
+   // of the new queue. outlives: what the queue keeps alive for as long as it
+   // exists (WorkQueue's constructor).
    //---------------------------------------------------------------------------
    {
       // Create the work queue
-      std::shared_ptr<WorkQueue> pWorkQueue = std::shared_ptr<WorkQueue>(new WorkQueue(iMaxSimultaneous, sQueueName));
+      std::shared_ptr<WorkQueue> pWorkQueue = std::shared_ptr<WorkQueue>(new WorkQueue(iMaxSimultaneous, sQueueName, outlives));
       pWorkQueue->Start();
+
+      // A good moment to let go of any queue a past remove had to keep alive: its
+      // thread has had until now to leave.
+      SweepRetired_();
 
       boost::lock_guard<boost::recursive_mutex> guard(mutex_);
 
@@ -146,10 +151,73 @@ namespace HM
                break;
             }
          }
+
+         // Stop gave up on a worker still inside io_context::run() - a task in a
+         // blocking wait outside Boost's interruption points. Letting pQueue drop
+         // here would run the destructor, which frees the io_context, and the state
+         // the worker still reads as it leaves, out from under that thread. The
+         // queue is kept alive instead until the thread leaves (SweepRetired_
+         // frees it then), so the worker finishes in a live object and the caller -
+         // a stop or a reinitialise - goes on at once.
+         if (pQueue->HasRunningWorkers())
+            retired_queues_.push_back(pQueue);
       }
 
       LOG_DEBUG(Formatter::Format("WorkQueueManager::RemoveQueue - Erased {0}", sQueueName));
 
+      SweepRetired_();
+   }
+
+   void
+   WorkQueueManager::SweepRetiredQueues()
+   {
+      SweepRetired_();
+   }
+
+   int
+   WorkQueueManager::GetRetiredQueueCount()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      return static_cast<int>(retired_queues_.size());
+   }
+
+   void
+   WorkQueueManager::SweepRetired_()
+   //---------------------------------------------------------------------------
+   // DESCRIPTION:
+   // Frees the retired queues whose worker threads have all left. See the
+   // member's comment in the header.
+   //
+   // Never frees the queue of the thread that calls it, whichever thread that
+   // is: a thread inside a queue's io_context::run() counts in that queue's
+   // HasRunningWorkers, so its own queue is not one of those freed here.
+   //---------------------------------------------------------------------------
+   {
+      // Taken out under the lock and destroyed after it: the destructor joins the
+      // threads - which have ended, so the join is near instant - and lets go of
+      // what the queue kept alive, an IOService whose connections then close.
+      // Holding mutex_ across that would stall every AddTask behind it.
+      std::vector<std::shared_ptr<WorkQueue> > toDrop;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+         for (auto iter = retired_queues_.begin(); iter != retired_queues_.end(); )
+         {
+            if (!(*iter)->HasRunningWorkers())
+            {
+               toDrop.push_back(*iter);
+               iter = retired_queues_.erase(iter);
+            }
+            else
+            {
+               iter++;
+            }
+         }
+      }
+
+      toDrop.clear();
    }
 
    std::vector<std::shared_ptr<WorkQueue> >

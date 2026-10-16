@@ -380,8 +380,8 @@ CI files made to break it). Each script is started as `python3 build/...`, `node
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
 nothing else. On the Linux runners, linix, server2 and s1-linux, which share the tag `linix`: *linux-build* (the server with clang, its tester programs, the OpenPGP
 writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole Linux suite against it on
-PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
-AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
+PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` and
+`workqueue-teardown-tests` under AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
 the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, *linux-repro* (the server and
 the packages built a second time from another path and compared byte for byte), and six

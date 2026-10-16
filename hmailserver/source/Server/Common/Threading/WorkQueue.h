@@ -50,7 +50,14 @@ namespace HM
          TaskMayBlock = 1
       };
 
-      WorkQueue(unsigned int iMaxSimultaneous, const String &sName);
+      // outlives: an object this queue keeps alive for as long as the queue itself
+      // exists - past its io_context and every handler still in it. Given by a queue
+      // whose tasks hold what lives on that object, so that the object cannot be
+      // freed while a task, or a handler not yet run, still holds part of it: the
+      // session queues and the IOCP queue are given the IOService whose io_context
+      // their connections' sockets are built on (Application::CreateSessionWorkQueues_,
+      // IOService::DoWork). Null for every other queue.
+      WorkQueue(unsigned int iMaxSimultaneous, const String &sName, std::shared_ptr<void> outlives = std::shared_ptr<void>());
       ~WorkQueue(void);
 
       void SetMaxSimultaneous(int iMaxSimultaneous);
@@ -73,6 +80,15 @@ namespace HM
       // gave up on a thread - which then ended - left every later stop of the
       // process taking the thread for one still running.
       static int GetThreadsLeft();
+
+      // Whether any worker thread is still inside io_context::run() on this
+      // queue right now - true while it runs, and still true of a thread a stop
+      // or the destructor gave up on, until that thread leaves. The manager
+      // reads it after a Stop to decide whether freeing the queue would pull the
+      // io_context, and the state the worker still reads, out from under a thread
+      // that is still in it; such a queue is kept alive (retired) instead and
+      // freed once this is false.
+      bool HasRunningWorkers() const { return live_worker_count_.load() > 0; }
 
       const String &GetName() const;
 
@@ -173,6 +189,11 @@ namespace HM
       unsigned int GetBlockingLimit_() const;
 
       static unsigned __int64 ElapsedSince_(unsigned __int64 now, unsigned __int64 earlier);
+
+      // See the constructor. Declared first, so that it is let go of last: after
+      // io_context_, whose destructor destroys the handlers that never ran and the
+      // connections they hold.
+      std::shared_ptr<void> outlives_;
 
       boost::asio::io_context io_context_;
       boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work_;

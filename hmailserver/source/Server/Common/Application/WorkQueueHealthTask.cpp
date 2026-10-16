@@ -53,6 +53,11 @@ namespace HM
    // affected rather than merely that one is.
    //---------------------------------------------------------------------------
    {
+      // A queue a stop had to keep because a thread was still inside is freed
+      // once that thread has left - with the I/O service it keeps alive and the
+      // connections on it - rather than at the next stop or start of the servers.
+      WorkQueueManager::Instance()->SweepRetiredQueues();
+
       // Copied out of the manager before anything is inspected - see GetAllQueues
       // for why holding the manager's lock across this would be a lock-ordering
       // problem rather than a tidiness one.

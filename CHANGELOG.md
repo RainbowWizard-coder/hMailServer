@@ -605,6 +605,23 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   clamped before it is scaled. The JavaScript engine of the Linux builds counts its deadline in 64-bit time and never
   wrapped. `ScriptWatchdogTester`, which ClassTester runs on Windows and `script-binding-tests` on Linux, holds the
   bound, and the Control Panel's field takes no more than it.
+- **Fixed: a stop or a reinitialise of the servers that gave up waiting for one of a work queue's threads freed the
+  queue with the thread still inside it, and with the TCP/IP and session queues the TCP/IP service too.** A work
+  queue's stop waits ten seconds for each of its threads and then goes on without it, so that a task in a wait the
+  stop cannot interrupt - a scanner, a script or a host that has stopped answering - does not hold the stop for
+  ever. The queue was then freed all the same, five seconds later, and the TCP/IP service as soon as the stop let go
+  of it, though that thread, or a connection a task held, was still on its context: when the task ended, the thread
+  went on in freed memory - on Windows after the stop had waited for the task, however long it took, which the
+  re-check of 10 October 2026 saw end in an access violation and HM6075 in "work queue .". The manager of the work
+  queues now keeps a queue whose stop gave up on a thread until the thread has left (`WorkQueue::HasRunningWorkers`),
+  and the TCP/IP queue and the three session queues each keep the TCP/IP service alive until they are freed
+  themselves, so that the task ends in objects that still exist. The stop goes on at once, as before and without the
+  five more seconds, and a reinitialise starts the servers again with a new TCP/IP service, whose listeners take the
+  ports the old one closed. Once the thread has left, the queue and the service are freed within a minute (the
+  queue health task) or at the next start or stop, and the connections still on the old service are closed then.
+  `workqueue-teardown-tests`, a tester the Linux build runs and `linux-sanitize` runs under AddressSanitizer, removes
+  two queues while their tasks wait twenty seconds: on the tree before this change AddressSanitizer reports the use of
+  the freed queue and the freed object it kept, and here both are kept until the tasks end and freed after.
 
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
@@ -833,9 +850,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   thread that the stop of one of the server's work queues has given up on, after its ten seconds and five more - a
   delivery, a script, an external account's fetch or a lookup held by a database or a host that has stopped answering -
   still runs, where the database was closed under that thread too (in every version) - on Linux, where it was
-  measured. On Windows such a stop does not get that far: the queue's teardown waits for the thread's task to end,
-  however long it takes, and the thread then goes on in the queue it has let go of, which faulted in the re-check's
-  run, the stop never finishing (in every version, and not changed here). Either way, a connection in use is closed
+  measured. On Windows such a stop did not get that far until 6.3.7: the queue's teardown waited for the thread's
+  task to end, however long it took, and the thread then went on in the queue it had let go of, which faulted in the
+  re-check's run, the stop never finishing (in every version until the entry above on a work queue a stop gave up on). Either way, a connection in use is closed
   once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
   there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its connections:
   one made after the close is now closed rather than put in the pool, which took it without the pool's lock while

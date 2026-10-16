@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <vector>
 #include <boost/function.hpp>
 #include "../Application/SessionManager.h"
@@ -19,7 +20,13 @@ namespace HM
 {
    class TCPServer;
 
-   class IOService : public Task
+   // Owned through a shared_ptr (Application::StartServers_) and by more than one
+   // owner: the work queues whose tasks hold connections on its io_context - the
+   // IOCP queue its DoWork makes and the session queues - keep it alive for as long
+   // as they exist (WorkQueue's outlives), so that it is freed after them and never
+   // under a thread still in one of them. Hence enable_shared_from_this, which
+   // DoWork hands the IOCP queue.
+   class IOService : public Task, public std::enable_shared_from_this<IOService>
    {
    public:
       IOService(void);

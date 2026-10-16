@@ -79,7 +79,7 @@ The other tables on this page name runners the same way.
 | `package-repos` | release | linix | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 18 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
-| `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
+| `linux-sanitize` | test | linix | a protected ref | `snmp-tests` and `workqueue-teardown-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
 | `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A database made by 6029's own create script, with orphaned rows, upgrades to this schema and to the schema of a new database, on PostgreSQL 18 and MariaDB 13 (`build/ci/linux-db-upgrade.sh`) |
 | `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
 | `linux-image` | test | linix | a protected ref | The container image for linux/amd64 built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
@@ -2404,7 +2404,7 @@ not hold it.
 | `package-managers.yml` manifests | not ported: it renders from a published, signed installer and submits it; still the release-chain row's (137) | | |
 | `sbom.yml` | `linux-sbom`: made and kept; a `v*` tag's release carries them, signed | linix | a protected ref |
 | `fuzz-nightly.yml` | `linux-fuzz`, on Linux rather than Windows | linix | the fuzz schedule |
-| (none) | `linux-sanitize`: `snmp-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
+| (none) | `linux-sanitize`: `snmp-tests` and `workqueue-teardown-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
 | (none) | `linux-repro`: the binary, the `.deb` and the `.rpm` built a second time and required to be `linux-build`'s, byte for byte | linix | a protected ref |
 | `codeql.yml` | not ported: see below | | |
 | `dependency-review.yml` | `mr-dependency-check`, against OSV's own export rather than GitHub's advisory service, since 6.3.6 ([Change checks](#change-checks)) | shared | every change: a merge request, and a `batch*` branch |

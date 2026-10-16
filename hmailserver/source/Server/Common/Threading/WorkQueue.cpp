@@ -32,7 +32,8 @@ namespace HM
    // and produces an event log line that some sinks truncate.
    const size_t MAX_LISTED_STALLED_TASKS = 20;
 
-   WorkQueue::WorkQueue(unsigned int iMaxSimultaneous, const String &sQueueName) :
+   WorkQueue::WorkQueue(unsigned int iMaxSimultaneous, const String &sQueueName, std::shared_ptr<void> outlives) :
+      outlives_(outlives),
       work_(boost::asio::make_work_guard(io_context_)),
       next_task_id_(0),
       stall_reported_(false),
@@ -147,19 +148,18 @@ namespace HM
          // Still running, on what is about to be freed: counted until each ends
          // (GetThreadsLeft), whether or not a Stop gave up on it first.
          //
-         // Open, in every version: on Windows the io_context's destructor, which
-         // runs as this one returns, waits for the task a thread is in to end -
-         // win_iocp_io_context::shutdown loops while work is outstanding - so that
-         // a stop of the servers sits here for as long as that task takes, the
-         // service controller told nothing, and the thread then goes on in the
-         // io_context and the queue that are gone. The re-check of 10 October 2026
-         // saw it: an OnClientConnect script held one of the I/O queue's threads
-         // for 40 seconds, the stop sat here, and when the script ended the thread
-         // faulted (0xC0000005) and reported it as HM6075 in "work queue ." - the
-         // name of the freed queue. On Linux the destructor does not wait, and the
-         // thread goes on in the freed queue at once. Ending it needs the
-         // io_context, and what the thread reads of this queue, to live as long as
-         // the threads do.
+         // A queue of WorkQueueManager's never comes here with a thread inside:
+         // RemoveQueue keeps a queue whose stop gave up on a thread (retires it)
+         // and frees it only once HasRunningWorkers is false, so that the thread
+         // finishes in this object and its io_context while both still exist.
+         // Until 6.3.7 the queue was freed here with the thread still inside - on
+         // Windows the io_context's destructor waited for the thread's task to end
+         // (win_iocp_io_context::shutdown loops while work is outstanding) and the
+         // thread then went on in the freed queue, which the re-check of 10
+         // October 2026 saw end in 0xC0000005 and HM6075 in "work queue ."; on
+         // Linux at once. Only a queue nothing else owns - one on the stack, as a
+         // tester's - can still reach this line, and its owner must join its
+         // threads first.
          CountThreadsLeft_();
 
          // The cast names FormatArgument's unsigned __int64 constructor, which is the

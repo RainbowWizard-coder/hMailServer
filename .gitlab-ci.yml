@@ -1246,10 +1246,10 @@ linux-cross:
     paths:
       - linux-cross/
 
-# The SNMP agent's tester built with AddressSanitizer (build/ci/linux-sanitize.sh):
-# cmake -DHM_SANITIZE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo, the snmp-tests target, run
-# with ASAN_OPTIONS=abort_on_error=1. It passes, saying so, on a tree whose CMake build
-# has no HM_SANITIZE yet; the SNMP row adds it.
+# The test programs built with AddressSanitizer (build/ci/linux-sanitize.sh):
+# cmake -DHM_SANITIZE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo, the snmp-tests and
+# workqueue-teardown-tests targets, run with ASAN_OPTIONS=abort_on_error=1. It passes,
+# saying so, on a tree whose CMake build has no HM_SANITIZE yet; the SNMP row adds it.
 linux-sanitize:
   extends: .linix
   stage: test

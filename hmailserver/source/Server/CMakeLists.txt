@@ -106,9 +106,10 @@ add_compile_options(
 
 # A build under AddressSanitizer and UndefinedBehaviorSanitizer, for the test
 # programs that feed a decoder bytes nobody meant it to see - snmp-tests above
-# all. Off, and never for a package. Every unit is instrumented, not only the
-# program's, because the code under test lives in the core library; so it is a
-# build directory of its own:
+# all - and for workqueue-teardown-tests, whose threads outlive a stop. Off,
+# and never for a package. Every unit is instrumented, not only the program's,
+# because the code under test lives in the core library; so it is a build
+# directory of its own:
 #
 #   cmake -S hmailserver/source/Server -B build/linux-sanitize -DHM_SANITIZE=ON \
 #         -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -118,7 +119,8 @@ add_compile_options(
 #
 # An undefined behaviour stops the run rather than being printed and passed
 # over, so a finding fails the job that ran it: the linux-sanitize CI job,
-# which builds this directory and runs snmp-tests in it.
+# which builds this directory and runs snmp-tests and workqueue-teardown-tests
+# in it.
 option(HM_SANITIZE "Build with -fsanitize=address,undefined, for the test programs" OFF)
 if(HM_SANITIZE)
    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
@@ -556,11 +558,28 @@ set_target_properties(script-binding-tests PROPERTIES OUTPUT_NAME script-binding
 # over byte by byte - and checks the USM cryptography: AES-128-CFB against NIST
 # SP 800-38A, HMAC-SHA-256-192 and the SHA-256 key localisation against values
 # computed independently. No database, no configuration, no socket, no network.
-# Not installed; a bench tool. Built under HM_SANITIZE (above), it is the
-# program the linux-sanitize CI job runs.
+# Not installed; a bench tool. Built under HM_SANITIZE (above), it is one of the
+# programs the linux-sanitize CI job runs (workqueue-teardown-tests is the other).
 add_executable(snmp-tests ${SERVER_DIR}/platform/snmp_tests_main.cpp)
 target_link_libraries(snmp-tests PRIVATE hmailserver_core)
 set_target_properties(snmp-tests PROPERTIES OUTPUT_NAME snmp-tests)
+
+# ---------------------------------------------------------------- the work queue's teardown
+#
+# A work queue removed while a worker thread is still inside io_context::run() -
+# a task in a wait the queue cannot interrupt, past the stop's ten-second give-up
+# - as a program of its own, for the reason spf-tests is one: on Windows the
+# threads a stop gives up on are covered by ServersLockTester inside the service,
+# which nothing reaches here. The queue, and what it was given to keep alive (the
+# IOService, for the IOCP and session queues), are kept until the worker leaves
+# and freed after it; built under HM_SANITIZE (above) this is the second program
+# the linux-sanitize CI job runs, and on a tree that frees either under the
+# worker AddressSanitizer reports the use-after-free. No database, configuration
+# (but a scratch directory of its own) or network. About twenty-two seconds. Not
+# installed; a bench tool.
+add_executable(workqueue-teardown-tests ${SERVER_DIR}/platform/workqueue_teardown_tests_main.cpp)
+target_link_libraries(workqueue-teardown-tests PRIVATE hmailserver_core)
+set_target_properties(workqueue-teardown-tests PROPERTIES OUTPUT_NAME workqueue-teardown-tests)
 
 # ---------------------------------------------------------------- the backup index's XML
 #

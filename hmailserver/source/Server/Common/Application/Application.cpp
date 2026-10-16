@@ -776,15 +776,28 @@ namespace HM
    // threads in queue Name lookup queue. First task: AsynchronousTask" - it just
    // waited in the wrong place, two teardown steps too late.
    //
-   // Creating them here, before io_service_ exists, and removing them in
+   // Creating them here, before io_service_ runs, and removing them in
    // StopServers before io_service_ is reset, makes the ordering an invariant of
    // the two functions rather than something each new queue has to remember.
+   //
+   // Each queue also keeps io_service_ alive for as long as the queue exists
+   // (WorkQueue's outlives), and lets go of it after its io_context and the
+   // handlers that never ran. The ordering above holds for a task that ends
+   // within its queue's stop; one that does not - a wait the stop cannot
+   // interrupt, past its ten seconds - leaves its queue to WorkQueueManager,
+   // which keeps it until the thread has left. Until 6.3.7 the queue was freed
+   // with the thread inside, and io_service_ with it when StopServers let go of
+   // it. Now the I/O service lives as long as the queue does, so the task ends on
+   // a connection whose context still exists, and the stop goes on meanwhile.
    //---------------------------------------------------------------------------()
    {
+      // Kept alive by each queue below. Made by StartServers_ before this.
+      std::shared_ptr<void> outlives = io_service_;
+
       // Processes asynchronous tasks from clients - principally message
       // finalization, which is what sends the final "250 OK".
       WorkQueueManager::Instance()->CreateWorkQueue(Configuration::Instance()->GetAsynchronousThreads(),
-                                                    asynchronous_tasks_queue_);
+                                                    asynchronous_tasks_queue_, outlives);
 
       // Separate queue for blocking name lookups made on behalf of a live
       // session. These can stall for seconds on an address whose reverse zone
@@ -792,14 +805,14 @@ namespace HM
       // finalizes (and acknowledges) received messages. Saturating this queue
       // only delays the lookups themselves, which degrade to "Unknown".
       WorkQueueManager::Instance()->CreateWorkQueue(Configuration::Instance()->GetAsynchronousThreads(),
-                                                    name_lookup_queue_);
+                                                    name_lookup_queue_, outlives);
 
       // The never-ban list's verifications, on threads of their own: a ban of a
       // listed provider is not to wait behind the sessions' reverse lookups,
       // which an outsider whose reverse zone does not answer can keep backed up
       // (NeverBanNameList.h). Not monitored for stalls: a verification waits on
       // DNS for up to its deadline by design.
-      WorkQueueManager::Instance()->CreateWorkQueue(NeverBanNameList::VerifyThreads, NeverBanNameList::QueueName());
+      WorkQueueManager::Instance()->CreateWorkQueue(NeverBanNameList::VerifyThreads, NeverBanNameList::QueueName(), outlives);
 
       // Both of these run tasks that are expected to finish, so "every thread busy
       // for longer than the threshold" means something is wedged and is worth an
@@ -819,8 +832,13 @@ namespace HM
    // DESCRIPTION:
    // Drains and removes the queues created by CreateSessionWorkQueues_. Must be
    // called while io_service_ is still alive; see there for what happens if it is
-   // not. RemoveQueue joins the queue's worker threads, so on return no task can
-   // still be holding a connection.
+   // not. RemoveQueue joins the queue's worker threads, and on return a task that
+   // ended within the join holds no connection. One that did not - a wait the
+   // stop cannot interrupt, past its ten seconds - may still hold one: its queue
+   // is then kept by WorkQueueManager until the thread has left, and keeps
+   // io_service_, which the connection's socket is on, alive with it
+   // (CreateSessionWorkQueues_), so that StopServers' reset of io_service_ does
+   // not free the context under that task.
    //
    // Safe to call twice - RemoveQueue on a name that is not registered is a
    // no-op - which is what lets ExitInstance keep it as a backstop for a
@@ -925,12 +943,15 @@ namespace HM
       // listener is up (IMAP/IMAPCommandAppend.h).
       IMAPCommandAppend::SweepAbandonedAppends();
 
-      // Before io_service_, so that no listener can ever accept a connection on a
+      // Made before the session queues, which keep it alive (CreateSessionWorkQueues_),
+      // and run only after them: nothing listens until its task runs on the main
+      // server queue below, so no listener can ever accept a connection on a
       // context whose session queues do not exist yet.
-      CreateSessionWorkQueues_();
-
       io_service_ = std::shared_ptr<IOService>(new IOService);
       io_service_->Initialize();
+
+      CreateSessionWorkQueues_();
+
       RegisterSessionTypes_();
 
       // Create the main work queue.
@@ -2075,7 +2096,11 @@ namespace HM
       LOG_DEBUG("Application::StopServers() - Draining session work queues");
       RemoveSessionWorkQueues_();
 
-      // Deinitialize servers
+      // Deinitialize servers. This lets go of io_service_; it is freed here unless
+      // a queue whose stop gave up on a thread still keeps it - the IOCP queue, a
+      // session queue - in which case it is freed after that queue, once the
+      // thread has left (WorkQueueManager::SweepRetiredQueues), and not under it.
+      // The next start makes its own; the listeners of this one are closed.
       LOG_DEBUG("Application::StopServers() - Destructing IOCP");
       if (io_service_) io_service_.reset();
       LOG_DEBUG("Application::StopServers() - Destructing DeliveryManager");
