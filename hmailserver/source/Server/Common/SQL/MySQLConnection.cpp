@@ -26,7 +26,6 @@ namespace HM
       supports_transactions_ = false;
       timeout_variable_is_seconds_ = false;
       server_is_mysql_ = false;
-      in_transaction_ = false;
       transaction_ended_ = false;
       rollback_on_timeout_ = true;
    }
@@ -51,11 +50,6 @@ namespace HM
    DALConnection::ConnectionResult
    MySQLConnection::Connect(String &sErrorMessage)
    {
-      // A new session holds no transaction: one begun on the session before it
-      // ended with that session.
-      in_transaction_ = false;
-      transaction_ended_ = false;
-
       if (!MySQLInterface::Instance()->IsLoaded())
       {
          // Load the MySQL interface.
@@ -470,10 +464,6 @@ namespace HM
       // connection that had been closed. Connect sets it again on the way back up.
       is_connected_ = false;
 
-      // The session is gone, and a transaction open on it with it.
-      in_transaction_ = false;
-      transaction_ended_ = false;
-
       return true;
    }
 
@@ -709,7 +699,7 @@ namespace HM
          // TryExecute runs and the queries MySQLRecordset runs alike are answered,
          // and whether or not the caller or the [IGNORE-ERRORS] marker then forgives
          // the failure, since the transaction is gone either way.
-         if (in_transaction_ && FailureEndsTransaction_((unsigned int) errorCode, result))
+         if (IsTransactionOpen_() && FailureEndsTransaction_((unsigned int) errorCode, result))
             transaction_ended_ = true;
 
          AnsiString sMySqlErrorAnsi = pError;
@@ -820,11 +810,11 @@ namespace HM
    {
       if (supports_transactions_)
       {
-         in_transaction_ = false;
+         SetTransactionOpen_(false);
          transaction_ended_ = false;
 
          const bool begun = TryExecute(SQLCommand("BEGIN"), sErrorMessage, 0) == DALSuccess;
-         in_transaction_ = begun;
+         SetTransactionOpen_(begun);
          return begun;
       }
 
@@ -844,19 +834,23 @@ namespace HM
             // a COMMIT with nothing open with success, which every caller - COM's
             // Database.CommitTransaction, SchemaUpgrader - read as everything saved.
             // As PGConnection::CommitTransaction does: rolled back, so that the
-            // session holds nothing whatever was open on it, and said to be.
-            in_transaction_ = false;
+            // session holds nothing whatever was open on it, and said to be. A
+            // session that replaced the transaction's has nothing open either.
+            const bool lost = IsTransactionSessionLost();
+            SetTransactionOpen_(false);
             transaction_ended_ = false;
 
             String rollbackError;
             TryExecute(SQLCommand("ROLLBACK"), rollbackError, 0);
 
-            sErrorMessage = "MySQL: the transaction was rolled back, not committed: a statement in it failed in a way that ends the transaction - a deadlock, for one - and the database rolled back what it held.";
+            sErrorMessage = lost ?
+               "MySQL: the transaction was rolled back, not committed: the connection to the database was lost inside it, and the database rolled back what it held with the session." :
+               "MySQL: the transaction was rolled back, not committed: a statement in it failed in a way that ends the transaction - a deadlock, for one - and the database rolled back what it held.";
             return false;
          }
 
          const bool committed = TryExecute(SQLCommand("COMMIT"), sErrorMessage, 0) == DALSuccess;
-         in_transaction_ = false;
+         SetTransactionOpen_(false);
          transaction_ended_ = false;
          return committed;
       }
@@ -871,7 +865,7 @@ namespace HM
       if (supports_transactions_)
       {
          const bool rolledBack = TryExecute(SQLCommand("ROLLBACK"), sErrorMessage, 0) == DALSuccess;
-         in_transaction_ = false;
+         SetTransactionOpen_(false);
          transaction_ended_ = false;
          return rolledBack;
       }

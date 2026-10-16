@@ -20,7 +20,9 @@ namespace HM
    DALConnection::DALConnection(std::shared_ptr<DatabaseSettings> pDatabaseSettings) :
       database_settings_(pDatabaseSettings),
       try_count_(6),
-      transport_encrypted_(false)
+      transport_encrypted_(false),
+      transaction_open_(false),
+      transaction_session_lost_(false)
    {
 
    }
@@ -59,9 +61,28 @@ namespace HM
          commandCopy.SetQueryString(nonParameterQueryString);
       }
 
+      // What the statement failed with when the connection was lost under it.
+      String lostWith;
+
       int iNoOfTries = 6;
       for (int i = 1 ; i <= try_count_; i++)
       {
+         // Not run on a session that has replaced the one a transaction
+         // BeginTransaction began was on - the statement that met the lost
+         // connection, run again, included: it would be committed on its own,
+         // outside the transaction, which the database rolled back with the session
+         // (IsTransactionSessionLost). The caller is told why, and reports it.
+         if (transaction_session_lost_)
+         {
+            sErrorMessage = TransactionSessionLostError(lostWith);
+#ifndef _ERROR_LOGGING_IN_MESSAGE_BOXES
+            LOG_APPLICATION(_T("DALConnection - ") + sErrorMessage);
+#endif
+            if (rowsAffected != nullptr)
+               *rowsAffected = -1;
+            return false;
+         }
+
          if (i == 2 || i == 4)
          {
             // Try to reconnect
@@ -84,6 +105,8 @@ namespace HM
          // the next attempt sends it again (Execute's declaration).
          if (reconnected != nullptr)
             *reconnected = true;
+
+         lostWith = sErrorMessage;
 
          Sleep(1000);
          Reconnect(sErrorMessage);
@@ -226,6 +249,28 @@ namespace HM
       SetTimeout(IniFileSettings::Instance()->GetDatabaseStatementTimeout());
    }
 
+   void
+   DALConnection::SetTransactionOpen_(bool open)
+   {
+      transaction_open_ = open;
+      transaction_session_lost_ = false;
+   }
+
+   bool
+   DALConnection::IsTransactionEndedIntoAutocommit() const
+   {
+      return transaction_session_lost_ || (!GetFailedStatementEndsTransaction() && IsTransactionFailed());
+   }
+
+   String
+   DALConnection::TransactionSessionLostError(const String &lostWith)
+   {
+      String error = _T("The statement was not run on a new connection: the connection to the database was lost inside the transaction it belongs to, and the database rolled back what the transaction held with the session; on a new connection the statement would be saved on its own, outside the transaction.");
+      if (!lostWith.IsEmpty())
+         error += _T(" The connection was lost with: ") + lostWith;
+      return error;
+   }
+
    bool
    DALConnection::Reconnect(String &sErrorMessage)
    {
@@ -233,12 +278,26 @@ namespace HM
       LOG_APPLICATION("DALConnection - Reconnecting to the database");
 #endif
 
+      // A transaction BeginTransaction began goes with the session it is on: the
+      // database rolls back what it held, and the new session holds none.
+      // IsTransactionSessionLost says so until the transaction's end, and nothing
+      // is run on the new session in its place (Execute, DALRecordset::Open) - but
+      // what Connect itself runs to set the new session up, its queries among them
+      // (MySQLConnection::LoadSupportsTransactions_ opens a recordset), which a
+      // refusal there would leave unread: so it is said once Connect has returned.
+      const bool transactionLost = transaction_open_;
+      transaction_session_lost_ = false;
+
       // Disconnect first...
       Disconnect();
-      
+
       // ... and now try to reconnect.
-      if (Connect(sErrorMessage) != Connected)
-         return false;   
+      const bool connected = Connect(sErrorMessage) == Connected;
+
+      transaction_session_lost_ = transactionLost;
+
+      if (!connected)
+         return false;
 
       CacheContainer::Instance()->Clear();
 

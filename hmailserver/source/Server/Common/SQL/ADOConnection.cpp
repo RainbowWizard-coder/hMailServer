@@ -53,7 +53,6 @@ namespace HM
       bConnected = false;
       failure_answered_as_success_ = false;
       last_failure_result_ = DALSuccess;
-      in_transaction_ = false;
    }
 
 
@@ -76,9 +75,6 @@ namespace HM
    bool
    ADOConnection::Disconnect()
    {
-      // The session goes, and a transaction open on it with it.
-      in_transaction_ = false;
-
       try
       {
 
@@ -102,9 +98,6 @@ namespace HM
    DALConnection::ConnectionResult
    ADOConnection::Connect(String &sErrorMessage)
    {
-      // A new session holds no transaction.
-      in_transaction_ = false;
-
       String sUsername = database_settings_->GetUsername();
       String sPassword = database_settings_->GetPassword();
       String sServer = database_settings_->GetServer();
@@ -662,10 +655,10 @@ namespace HM
    bool 
    ADOConnection::BeginTransaction(String &sErrorMessage)
    {
-      in_transaction_ = false;
+      SetTransactionOpen_(false);
 
       const bool begun = TryExecute(SQLCommand("BEGIN TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
-      in_transaction_ = begun;
+      SetTransactionOpen_(begun);
       return begun;
    }
 
@@ -673,7 +666,7 @@ namespace HM
    ADOConnection::CommitTransaction(String &sErrorMessage)
    {
       const bool committed = TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
-      in_transaction_ = false;
+      SetTransactionOpen_(false);
       return committed;
    }
 
@@ -681,7 +674,7 @@ namespace HM
    ADOConnection::RollbackTransaction(String &sErrorMessage)
    {
       const bool rolledBack = TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
-      in_transaction_ = false;
+      SetTransactionOpen_(false);
       return rolledBack;
    }
 
@@ -808,9 +801,14 @@ namespace HM
       // (DALErrorInSQL - a duplicate key, a foreign key's, a NULL's or a CHECK's
       // refusal), which ends a statement and never the transaction with XACT_ABORT
       // off; nothing at all outside a transaction BeginTransaction began, where
-      // @@TRANCOUNT is 0 with nothing failed.
-      if (!in_transaction_)
+      // @@TRANCOUNT is 0 with nothing failed. A transaction whose session was
+      // replaced has ended with that session (IsTransactionSessionLost), and the
+      // new one's @@TRANCOUNT, 0, would say so too, but only after a failure.
+      if (!IsTransactionOpen_())
          return false;
+
+      if (IsTransactionSessionLost())
+         return true;
 
       if (!failure_answered_as_success_ &&
           (last_failure_result_ == DALSuccess || last_failure_result_ == DALErrorInSQL))

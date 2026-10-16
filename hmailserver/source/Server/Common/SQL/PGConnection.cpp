@@ -491,7 +491,11 @@ namespace HM
    bool 
    PGConnection::BeginTransaction(String &sErrorMessage)
    {
-      return TryExecute(SQLCommand("BEGIN TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      SetTransactionOpen_(false);
+
+      const bool begun = TryExecute(SQLCommand("BEGIN TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      SetTransactionOpen_(begun);
+      return begun;
    }
 
    bool 
@@ -502,23 +506,34 @@ namespace HM
       // rolls it back. TryExecute looks at the status alone, so this said
       // committed, and every caller - SchemaUpgrader, COM's
       // Database.CommitTransaction - reads true as saved. It is rolled back here
-      // instead, and said to be.
+      // instead, and said to be. The same for a transaction whose session was
+      // replaced (IsTransactionSessionLost): the new session, which holds no
+      // transaction, would answer a COMMIT with a warning and success.
       if (IsTransactionFailed())
       {
+         const bool lost = IsTransactionSessionLost();
+         SetTransactionOpen_(false);
+
          String rollbackError;
          TryExecute(SQLCommand("ROLLBACK TRANSACTION"), rollbackError, 0, 0);
 
-         sErrorMessage = "Postgres: the transaction was rolled back, not committed: a statement in it had failed, and PostgreSQL does not commit a transaction after that.";
+         sErrorMessage = lost ?
+            "Postgres: the transaction was rolled back, not committed: the connection to the database was lost inside it, and the database rolled back what it held with the session." :
+            "Postgres: the transaction was rolled back, not committed: a statement in it had failed, and PostgreSQL does not commit a transaction after that.";
          return false;
       }
 
-      return TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      const bool committed = TryExecute(SQLCommand("COMMIT TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      SetTransactionOpen_(false);
+      return committed;
    }
 
    bool 
    PGConnection::RollbackTransaction(String &sErrorMessage)
    {
-      return TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      const bool rolledBack = TryExecute(SQLCommand("ROLLBACK TRANSACTION"), sErrorMessage, 0, 0) == DALSuccess;
+      SetTransactionOpen_(false);
+      return rolledBack;
    }
 
    DALConnection::LastFailure
@@ -552,7 +567,7 @@ namespace HM
    bool
    PGConnection::IsTransactionFailed() const
    {
-      return dbconn_ != 0 && PQtransactionStatus(dbconn_) == PQTRANS_INERROR;
+      return IsTransactionSessionLost() || (dbconn_ != 0 && PQtransactionStatus(dbconn_) == PQTRANS_INERROR);
    }
 
    void

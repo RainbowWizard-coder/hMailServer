@@ -124,11 +124,13 @@ namespace HM
          // the database goes on in autocommit, and each statement of the rest of
          // the script would be committed on its own: the script stops there, as at
          // a statement that failed. Only inside a transaction BeginTransaction
-         // began (DALConnection::IsTransactionFailed): on a connection with none it
-         // is false, and nothing is asked of the database. Not on PostgreSQL, where
-         // such a failure leaves the transaction aborted and open, and the database
-         // refuses the rest of the script by itself, as it always did.
-         if (!connectionObject->GetFailedStatementEndsTransaction() && connectionObject->IsTransactionFailed())
+         // began (DALConnection::IsTransactionEndedIntoAutocommit): on a connection
+         // with none it is false, and nothing is asked of the database. Not on
+         // PostgreSQL, where such a failure leaves the transaction aborted and open,
+         // and the database refuses the rest of the script by itself, as it always
+         // did - but there too once the transaction's session was lost, which a
+         // macro's query meets as DALRecordset::Open's refusal.
+         if (connectionObject->IsTransactionEndedIntoAutocommit())
          {
             sErrorMessage = "The script was stopped after this statement: it failed, the failure was let through (as the [IGNORE-ERRORS] marker lets one through), and it ended the transaction the script runs in. Script: " + sFile + "\r\nStatement: " + sCommand;
             return false;

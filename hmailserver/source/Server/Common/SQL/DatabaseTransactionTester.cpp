@@ -1556,10 +1556,18 @@ namespace HM
          }
 
          // The session lost in the middle of a unit of work: nothing of the attempt is
-         // committed, and Run's next attempt commits it once. The control is what
-         // DALConnection::Execute does on a transaction the pool hands out: it
-         // reconnects and runs the statement again on the new session, outside the
-         // transaction, where it commits on its own (ActiveActive.md, C17).
+         // committed, and Run's next attempt commits it once. Then the same in a
+         // transaction the pool hands out, held as the Database object holds its
+         // script's (ScriptTransaction), under DALConnection::Execute - which
+         // Database.EnsurePrerequisites' prerequisites run their statements with -
+         // and under DALRecordset::Open, which a script's macros run their queries
+         // with: each reconnects, and runs nothing on the new session, where it would
+         // be committed on its own, outside the transaction; the transaction is said
+         // to have ended (IsTransactionFailed, on every engine), the script's next
+         // statement is refused and its commit fails, each saying why. Up to
+         // 1701f240f both ran the statement again on the new session and everything
+         // after it ran there in autocommit, the script's next statement committed on
+         // its own and nothing refused (ActiveActive.md, C17).
          {
             probe.Reset();
             int calls = 0;
@@ -1577,23 +1585,115 @@ namespace HM
                   (int) result.outcome, result.attempts, calls, result.error));
             Check(probe.Value(_T("aatxnprobe"), 10) == 1 && probe.Value(_T("aatxnprobe"), 11) == 1, _T("a unit of work retried after a lost session did not leave its two rows once each"));
 
-            probe.Reset();
-            String error;
-            std::shared_ptr<DALConnection> connection = pool->BeginTransaction(error);
-            Check(connection != nullptr, _T("the pool's BeginTransaction failed: ") + error);
-            Check(connection->Execute(Insert(20, 1), error), _T("the control's first insert failed: ") + error);
-            probe.EndSessionOf(connection);
-            const bool second = connection->Execute(Insert(21, 1), error);
-            pool->RollbackTransaction(connection, error);
-            Check(probe.Value(_T("aatxnprobe"), 20) == -1, _T("the control's first insert, made before its session ended, was committed"));
+            // A scope whose session was lost sends no ROLLBACK to a session that is
+            // gone, and opens its connection again before the pool has it back
+            // (DatabaseTransaction::Fail_, Release_): the connection goes back
+            // holding no transaction, and a statement the pool runs on it outside
+            // any - DALConnection::Execute, on a pool of that one connection - runs.
+            // It would be refused as one of a transaction lost with its session if
+            // the pool kept what BeginTransaction recorded
+            // (DALConnection::ForgetTransaction).
+            {
+               probe.Reset();
+               std::shared_ptr<DatabaseConnectionManager> single = OpenPool(settings, 1);
+               std::exception_ptr failure;
+               try
+               {
+                  {
+                     DatabaseTransaction transaction(single);
+                     Check(transaction.Execute(Insert(12, 1)), _T("the insert of a scope on a pool of one connection failed"));
+                     probe.EndSessionOf(transaction.root_->connection_);
+                     Check(!transaction.Execute(Insert(13, 1)) && transaction.GetFailure() == DatabaseTransaction::FailureConnection,
+                        _T("a statement on a scope's lost session was not failed as a lost connection"));
+                  }
+
+                  String error;
+                  Check(single->Execute(Insert(14, 1), 0, 0, error),
+                     _T("a statement the pool ran outside any transaction, on the connection a scope had lost its session on, failed: ") + error);
+                  Check(probe.Value(_T("aatxnprobe"), 12) == -1 && probe.Value(_T("aatxnprobe"), 13) == -1 && probe.Value(_T("aatxnprobe"), 14) == 1,
+                     _T("a scope whose session was lost, and a statement the pool ran after it, left rows 12, 13 and 14 other than none, none and 1"));
+               }
+               catch (...)
+               {
+                  failure = std::current_exception();
+               }
+
+               single->Disconnect();
+
+               if (failure)
+                  std::rethrow_exception(failure);
+            }
 
             // On every engine: MySQL and MariaDB over TLS answer a statement on a
             // session the server ended with the TLS layer's end of file (2026), which
             // MySQLConnection::CheckError takes for a lost connection as it takes
-            // 2013 over a plain one (unit AA-01), so DALConnection::Execute
-            // reconnects and runs it again there too.
-            Check(second && probe.Value(_T("aatxnprobe"), 21) == 1,
-               _T("the control did not show a statement run again after a reconnect committing outside its transaction"));
+            // 2013 over a plain one (unit AA-01), so Execute and Open reconnect there
+            // too. Each case is a check of its own, said together at the end.
+            std::vector<std::string> lostFailed;
+            for (int path = 0; path < 2; path++)
+            {
+               const String through = path == 0 ? _T("DALConnection::Execute") : _T("DALRecordset::Open");
+               try
+               {
+                  probe.Reset();
+                  ScriptTransaction script;
+                  BeginOn(script, pool);
+                  String error;
+                  Check(Script(script, Insert(20, 1), error) == ScriptTransaction::Ran, _T("the script's first insert failed: ") + error);
+                  probe.EndSessionOf(script.GetConnection());
+
+                  bool again = false;
+                  if (path == 0)
+                  {
+                     again = script.GetConnection()->Execute(Insert(21, 1), error);
+                  }
+                  else
+                  {
+                     std::shared_ptr<DALRecordset> read = script.GetConnection()->CreateRecordset();
+                     again = read->Open(script.GetConnection(), SQLCommand(_T("select v from aatxnprobe where id = 1")));
+                     if (again)
+                        Check(script.GetConnection()->TryExecute(Insert(21, 1), error, 0, 0) == DALConnection::DALSuccess, _T("the insert after the query run again failed: ") + error);
+                  }
+
+                  const bool ended = script.GetConnection()->IsTransactionFailed();
+                  String nextError;
+                  const ScriptTransaction::Outcome next = Script(script, Insert(22, 1), nextError);
+                  const int seen = probe.Value(_T("aatxnprobe"), 22);
+
+                  String commitError;
+                  const bool committed = script.Commit(commitError);
+
+                  const int twenty = probe.Value(_T("aatxnprobe"), 20);
+                  const int twentyOne = probe.Value(_T("aatxnprobe"), 21);
+                  const int twentyTwo = probe.Value(_T("aatxnprobe"), 22);
+
+                  Check(twenty == -1 && twentyOne == -1 && twentyTwo == -1 && seen == -1,
+                     Formatter::Format("a transaction whose session ended under {0} left rows 20, 21 and 22 at {1}, {2} and {3} (22 at {4} before the commit), not none: what ran on the new session was committed on its own, as up to 1701f240f",
+                        through, twenty, twentyOne, twentyTwo, seen));
+                  Check(!again,
+                     Formatter::Format("after the session of a transaction the pool handed out ended, {0} ran its statement again on the new session, outside the transaction, as up to 1701f240f", through));
+                  Check(ended,
+                     Formatter::Format("a transaction whose session ended under {0} was not said to have ended (DALConnection::IsTransactionFailed)", through));
+                  Check(next == ScriptTransaction::Refused && Says(nextError, _T("The statement was not run: the connection to the database was lost inside this transaction")),
+                     Formatter::Format("after a transaction's session ended under {0}, the script's next statement was {1}, not refused as one of a transaction lost with its session: {2}",
+                        through, OutcomeName(next), nextError));
+                  Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: the connection to the database was lost inside it")),
+                     Formatter::Format("after a transaction's session ended under {0}, the commit {1}: {2}",
+                        through, committed ? _T("reported success") : _T("failed without saying that the session was lost"), commitError));
+               }
+               catch (const std::exception &failure)
+               {
+                  lostFailed.push_back(failure.what());
+               }
+            }
+
+            if (!lostFailed.empty())
+            {
+               std::string all;
+               for (const std::string &one : lostFailed)
+                  all += (all.empty() ? "" : " AND ") + one;
+               throw std::logic_error(all);
+            }
 
             // A session that ends before the COMMIT: whether the COMMIT reached the
             // database is not known, so the scope says so and is not run again.
@@ -1631,7 +1731,7 @@ namespace HM
             for (int i = 0; i < 4; i++)
                Check(pool->Execute(Update(_T("aatxnprobeb"), 1)), _T("a pool connection a transaction lost was not opened again"));
 
-            probe.Say(_T("a session lost in the middle: nothing committed and the retry commits once, where DALConnection::Execute commits the next statement on its own; a lost COMMIT is not run again"));
+            probe.Say(_T("a session lost in the middle: nothing committed and the retry commits once; in a transaction the pool handed out nothing run on the new session, the next statement refused, the commit failed; a lost COMMIT is not run again"));
          }
 
          // MariaDB: its error 4031 is a statement's own refusal (a CREATE TRIGGER that

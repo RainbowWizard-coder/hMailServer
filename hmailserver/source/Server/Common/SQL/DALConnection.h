@@ -43,7 +43,11 @@ namespace HM
       // lost, and the next attempt sends the statement again: so after a reconnect a
       // failure may hide a committed first run, and a 0 from an UPDATE that is not
       // idempotent may be its own first run's doing (ActiveActive.md: a claim
-      // recognises itself by its epoch for this reason).
+      // recognises itself by its epoch for this reason). Not on a connection whose
+      // session was replaced inside a transaction BeginTransaction began
+      // (IsTransactionSessionLost): there neither this statement nor any after it
+      // is run, until the transaction's end, and false is answered with
+      // TransactionSessionLostError.
       bool Execute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0,
                    __int64 *rowsAffected = nullptr, bool *reconnected = nullptr);
 
@@ -222,7 +226,11 @@ namespace HM
       // this connection, at a statement in it that failed - answered as a failure,
       // or as a success where the [IGNORE-ERRORS] marker or the caller let the
       // failure through - so that nothing of it will be committed and whatever the
-      // session runs next would run outside it. On PostgreSQL any failure does
+      // session runs next would run outside it. On every engine the transaction
+      // ends with its session, and once Reconnect has put a new session in the
+      // place of the one it was on this says true until the transaction's end
+      // (IsTransactionSessionLost), which is all the default here says. On
+      // PostgreSQL any failure does
       // (PQTRANS_INERROR), and every later statement is refused until the
       // rollback. On MySQL and MariaDB a deadlock (1213), MariaDB's 1020, a lock
       // table that is full (1206), a lock wait that timed out where
@@ -240,13 +248,65 @@ namespace HM
       // (GetFailedStatementEndsTransaction), where the transaction is aborted and
       // still open, the database refuses everything itself but the rollback and a
       // ROLLBACK TO SAVEPOINT.
-      virtual bool IsTransactionFailed() const { return false; }
+      virtual bool IsTransactionFailed() const { return transaction_session_lost_; }
+
+      // Whether the session the transaction BeginTransaction began on this
+      // connection was on has gone, and Reconnect has put a new one in its place,
+      // before CommitTransaction or RollbackTransaction ended the transaction:
+      // DALConnection::Execute and DALRecordset::Open reconnect when the connection
+      // is lost under a statement, and Database.EnsurePrerequisites' prerequisites
+      // and a script's macros run their statements with them. The database rolled
+      // back what the transaction held when the session went, and the new session
+      // holds no transaction, so that whatever it ran would be committed on its
+      // own: Execute and Open run nothing more on the connection, the statement
+      // that met the lost connection included, until the transaction's end, and
+      // IsTransactionFailed says true on every engine. Up to 6.3.6 they ran the
+      // statement again on the new session and went on there, in autocommit
+      // (ActiveActive.md). False while no transaction BeginTransaction began is
+      // open, and cleared by BeginTransaction, CommitTransaction and
+      // RollbackTransaction.
+      bool IsTransactionSessionLost() const { return transaction_session_lost_; }
+
+      // What BeginTransaction recorded, forgotten: the connection holds no
+      // transaction of its caller's any more. The pool says it as it takes a
+      // connection back (DatabaseConnectionManager::ReleaseConnection_), so that a
+      // caller that let go of a transaction without a CommitTransaction or a
+      // RollbackTransaction - DatabaseTransaction, which sends no ROLLBACK to a
+      // session that is gone and opens the connection again instead - leaves
+      // nothing behind for the next: Execute and Open would refuse every statement
+      // on a connection whose transaction lost its session.
+      void ForgetTransaction() { SetTransactionOpen_(false); }
+
+      // Whether the transaction BeginTransaction began has ended and whatever the
+      // session runs next would run outside it, each statement committed on its
+      // own: on every engine once its session was lost (IsTransactionSessionLost);
+      // where the database has ended it at a failure (IsTransactionFailed) and the
+      // session goes on in autocommit - MySQL, MariaDB, SQL Server - but not on
+      // PostgreSQL, whose transaction is aborted and still open, the database
+      // refusing everything itself but the rollback and a ROLLBACK TO SAVEPOINT
+      // (GetFailedStatementEndsTransaction). A caller that goes on in a transaction
+      // after a statement failed runs nothing more in it once this says true
+      // (ScriptTransaction, SQLScriptRunner).
+      bool IsTransactionEndedIntoAutocommit() const;
+
+      // What Execute and Open answer for a statement they do not run because the
+      // session the transaction was on is gone (IsTransactionSessionLost), with
+      // what the statement that met the lost connection failed with, when it did.
+      static String TransactionSessionLostError(const String &lostWith);
 
    protected:
 
       // Records what GetTransportSecurity answers, and notes it for the
       // diagnostics and the application log (DatabaseTls::NoteConnection).
       void SetTransportSecurity_(bool encrypted, const String &description);
+
+      // Said by each backend: true by its BeginTransaction once it has begun a
+      // transaction on the session, false by it before the BEGIN and by
+      // CommitTransaction and RollbackTransaction whatever they were answered
+      // with. Clears IsTransactionSessionLost. Reconnect reads it to know whether
+      // the session it replaces held such a transaction.
+      void SetTransactionOpen_(bool open);
+      bool IsTransactionOpen_() const { return transaction_open_; }
 
       std::shared_ptr<DatabaseSettings> database_settings_;
 
@@ -256,6 +316,12 @@ namespace HM
 
       bool transport_encrypted_;
       String transport_security_;
+
+      // A transaction BeginTransaction began is open on the connection
+      // (SetTransactionOpen_), and the session it was on has been replaced since
+      // (Reconnect).
+      bool transaction_open_;
+      bool transaction_session_lost_;
    };
 
 }

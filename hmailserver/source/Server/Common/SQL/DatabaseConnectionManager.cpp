@@ -674,6 +674,11 @@ namespace HM
 
       busy_connections_.erase(iterConnection);
 
+      // Back in the pool, the connection holds no transaction of its caller's: a
+      // scope that lost its session let go of it without a rollback
+      // (DALConnection::ForgetTransaction).
+      pConnection->ForgetTransaction();
+
       if (closing_)
       {
          // The close before the process ends waits for this one (CloseWhenIdle):

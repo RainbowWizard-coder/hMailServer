@@ -62,12 +62,14 @@ namespace HM
    bool
    ScriptTransaction::HasEnded(const String &failure)
    {
-      // Not PostgreSQL's: a failure aborts the transaction there and leaves it open,
+      // Not PostgreSQL's failure: it aborts the transaction there and leaves it open,
       // the database refuses every later statement by itself - nothing is committed
       // on its own - until the rollback or a ROLLBACK TO SAVEPOINT, which a script
       // may send to go on, and PGConnection::CommitTransaction refuses the commit. So
-      // the script's statements go to the database as they always did.
-      if (!ended_ && connection_ && !connection_->GetFailedStatementEndsTransaction() && connection_->IsTransactionFailed())
+      // the script's statements go to the database as they always did. On every
+      // engine, a session lost with the transaction
+      // (DALConnection::IsTransactionEndedIntoAutocommit).
+      if (!ended_ && connection_ && connection_->IsTransactionEndedIntoAutocommit())
       {
          ended_ = true;
          ended_by_ = failure;
@@ -85,6 +87,9 @@ namespace HM
    String
    ScriptTransaction::Refusal_() const
    {
+      if (connection_ && connection_->IsTransactionSessionLost())
+         return _T("The statement was not run: the connection to the database was lost inside this transaction, and the database rolled back what it held with the session, and a statement run now would be saved on its own, outside any transaction. Call Database.RollbackTransaction, and run the whole transaction again.");
+
       String refusal = _T("The statement was not run: the database ended this transaction at an earlier statement in it that failed");
       if (!ended_by_.IsEmpty())
          refusal += _T(" (") + ended_by_ + _T(")");
@@ -166,6 +171,14 @@ namespace HM
          return Failed;
       }
 
+      // A script that ran whole on a transaction that has ended all the same - the
+      // runner stops at the end, so this is a guard - is not taken for done.
+      if (HasEnded(_T("a statement of the script")))
+      {
+         error = _T("Execution of SQL statements failed. Error: a statement of the script ended the transaction. ") + Advice_();
+         return Failed;
+      }
+
       error.Empty();
       return Ran;
    }
@@ -190,6 +203,14 @@ namespace HM
          return Failed;
       }
 
+      // Prerequisites that said they were met on a transaction that has ended all
+      // the same are not taken for met: their statements are gone with it.
+      if (HasEnded(_T("a statement of the prerequisites")))
+      {
+         error = _T("Execution of SQL statements failed. Error: a statement of the prerequisites ended the transaction. ") + Advice_();
+         return Failed;
+      }
+
       error.Empty();
       return Ran;
    }
@@ -198,6 +219,7 @@ namespace HM
    ScriptTransaction::Commit(String &error)
    {
       const bool ended = HasEnded();
+      const bool lost = connection_ && connection_->IsTransactionSessionLost();
       const String endedBy = ended_by_;
       std::shared_ptr<DALConnection> connection = Take_();
 
@@ -216,6 +238,12 @@ namespace HM
          // nothing (SQL Server refuses a ROLLBACK with nothing open, 3903).
          String ignored;
          manager_->RollbackTransaction(connection, ignored);
+
+         if (lost)
+         {
+            error = _T("The transaction was rolled back, not committed: the connection to the database was lost inside it, and the database rolled back what it held with the session. Run the whole transaction again.");
+            return false;
+         }
 
          error = _T("The transaction was rolled back, not committed: the database ended it at a statement in it that failed");
          if (!endedBy.IsEmpty())

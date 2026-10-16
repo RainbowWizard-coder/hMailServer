@@ -40,15 +40,32 @@ namespace HM
          commandCopy.SetQueryString(nonParameterQueryString);
       }
 
+      // What the query failed with when the connection was lost under it.
+      String lostWith;
+
       int iNoOfTries = 6;
       for (int i = 1 ; i <= iNoOfTries; i++)
       {
+         // Not run on a session that has replaced the one a transaction
+         // BeginTransaction began was on, as DALConnection::Execute runs nothing
+         // there (DALConnection::IsTransactionSessionLost). The caller says why
+         // its query failed.
+         if (pConn->IsTransactionSessionLost())
+         {
+#ifndef _ERROR_LOGGING_IN_MESSAGE_BOXES
+            LOG_APPLICATION(_T("DALRecordset - ") + DALConnection::TransactionSessionLostError(lostWith));
+#endif
+            return false;
+         }
+
          DALConnection::ExecutionResult result = TryOpen(pConn, commandCopy, sErrMsg);
          if (result == DALConnection::DALSuccess)
             return true;
 
          if (result != DALConnection::DALConnectionProblem)
             break;
+
+         lostWith = sErrMsg;
 
          // There's been a connection problem. Try to reconnect.
          Sleep(1000);

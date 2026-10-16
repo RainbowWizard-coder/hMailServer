@@ -19,15 +19,18 @@ namespace HM
    //
    // A statement that fails in it is the script's to answer, and the transaction
    // goes on without it - unless the database has ended the transaction at that
-   // failure and goes on in autocommit (DALConnection::IsTransactionFailed, but for
-   // PostgreSQL's), where a statement run after it would be committed on its own.
+   // failure and goes on in autocommit, or the connection was lost under it and
+   // the session the transaction was on with it
+   // (DALConnection::IsTransactionEndedIntoAutocommit), where a statement run
+   // after it would be committed on its own.
    // From then on every statement, script and prerequisite is refused without
    // being sent, Commit rolls back and fails, and Rollback succeeds, as
    // DatabaseTransaction runs nothing after a failure. On PostgreSQL a failure
    // aborts the transaction and leaves it open: the database refuses every later
    // statement itself until the rollback or a ROLLBACK TO SAVEPOINT, which a script
    // may send to go on, and PGConnection::CommitTransaction refuses the commit - so
-   // there the statements go to the database as they always did.
+   // there the statements go to the database as they always did - but for a
+   // session lost, after which PostgreSQL's new session would commit them too.
    //
    // The errors are the Database object's own: each says what failed, and once
    // the transaction has ended, that it has and what to do - call

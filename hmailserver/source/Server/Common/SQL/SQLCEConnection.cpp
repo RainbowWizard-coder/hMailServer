@@ -921,9 +921,14 @@ namespace HM
    bool
    SQLCEConnection::BeginTransaction(String &sErrorMessage)
    {
+      // DALConnection::SetTransactionOpen_: what Reconnect reads to know that the
+      // connection it closes held a transaction, which Compact rolls back with it.
+      SetTransactionOpen_(false);
+
       try
       {
          cSQLCEConnection->BeginTrans();
+         SetTransactionOpen_(true);
          return true;
       }
       catch (_com_error &err)
@@ -943,6 +948,8 @@ namespace HM
    bool
    SQLCEConnection::CommitTransaction(String &sErrorMessage)
    {
+      SetTransactionOpen_(false);
+
       try
       {
          cSQLCEConnection->CommitTrans();
@@ -968,6 +975,8 @@ namespace HM
    bool
    SQLCEConnection::RollbackTransaction(String &sErrorMessage)
    {
+      SetTransactionOpen_(false);
+
       try
       {
          cSQLCEConnection->RollbackTrans();

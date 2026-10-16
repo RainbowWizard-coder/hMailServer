@@ -92,7 +92,9 @@ namespace HM
       // last statement's failure - answered as a failure, or as a success where the
       // [IGNORE-ERRORS] marker or a caller's iIgnoreErrors let it through: a
       // deadlock's victim, a conversion error. @@TRANCOUNT, read only after such a
-      // failure; false while no transaction BeginTransaction began is open.
+      // failure; false while no transaction BeginTransaction began is open, and
+      // true once the session it was on has been replaced
+      // (DALConnection::IsTransactionSessionLost).
       virtual bool IsTransactionFailed() const;
 
    private:
@@ -128,11 +130,6 @@ namespace HM
       // whose callers have no more than false. DALSuccess when it did not fail.
       bool failure_answered_as_success_;
       ExecutionResult last_failure_result_;
-
-      // A transaction BeginTransaction began is open: until CommitTransaction or
-      // RollbackTransaction ends it, or a new session replaces the one it was on.
-      // IsTransactionFailed asks nothing outside one.
-      bool in_transaction_;
 
    };
 

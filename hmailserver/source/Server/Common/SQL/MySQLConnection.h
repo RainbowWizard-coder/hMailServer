@@ -111,8 +111,9 @@ namespace HM
       // it: an error packet carries none, and the flags keep the last OK packet's
       // SERVER_STATUS_IN_TRANS through the failure (measured through libmariadb
       // on MySQL 8.4 and MariaDB 11.8, 15 October 2026). False while no
-      // transaction BeginTransaction began is open.
-      virtual bool IsTransactionFailed() const { return in_transaction_ && transaction_ended_; }
+      // transaction BeginTransaction began is open; true once the session it was
+      // on has been replaced (DALConnection::IsTransactionSessionLost).
+      virtual bool IsTransactionFailed() const { return IsTransactionSessionLost() || (IsTransactionOpen_() && transaction_ended_); }
 
    private:
 
@@ -170,11 +171,10 @@ namespace HM
       // lost connection only when this is true. False until it is known.
       bool server_is_mysql_;
 
-      // The transaction BeginTransaction began: open until CommitTransaction or
-      // RollbackTransaction ends it, or a new session replaces the one it was on
-      // (Connect, Disconnect). transaction_ended_ once the database has ended it at
-      // a failure in it, which CheckError - const, and MySQLRecordset's too - sees.
-      bool in_transaction_;
+      // Once the database has ended the transaction BeginTransaction began
+      // (DALConnection::IsTransactionOpen_) at a failure in it, which CheckError -
+      // const, and MySQLRecordset's too - sees. Cleared by BeginTransaction,
+      // CommitTransaction and RollbackTransaction.
       mutable bool transaction_ended_;
 
       // innodb_rollback_on_timeout as read at Connect; true when it could not be
