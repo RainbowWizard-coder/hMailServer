@@ -762,14 +762,24 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   does; `ADOConnection` asks `@@TRANCOUNT` after any failure but an integrity violation, where it asked only after a
   failure answered as a success. A failure that ends nothing - a duplicate key, a lock wait that timed out where
   `innodb_rollback_on_timeout` is off, any failure on SQL Server Compact - leaves the transaction going on as before,
-  and PostgreSQL, which refuses everything after any failure until the rollback, answers as before.
-  `DatabaseTransactionTester` holds it through a transaction the pool hands out, run as the `Database` object runs its
-  script's, on MySQL 8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and on, and on PostgreSQL 18: a
-  deadlock whose victim is the script's statement, beside the control that a statement sent past the refusal is
-  committed on its own; the same deadlock met by a statement marked `[IGNORE-ERRORS]` in a script; MariaDB's 1020; and
-  a lock wait that timed out. On the code before, each failed where the defect is - the statement after the failure
-  committed on its own - and PostgreSQL passed, as it does now. On SQL Server Compact, the bench's database,
-  `DatabaseTransactionTester` holds a lock wait that timed out leaving the transaction going on, and
+  and PostgreSQL, which refuses everything after any failure until the rollback, answers as before. A second
+  `Database.BeginTransaction` while a transaction is open rolls the open one back and gives its connection back to
+  the pool, where the object let go of it with its transaction open: the pool never had the connection back, and
+  what the transaction held stayed locked until the database closed the session or the server stopped. What the
+  object does with its transaction is `ScriptTransaction`'s, which `InterfaceDatabase` holds and only turns into its
+  errors, so that it is built and tested on Linux as on Windows. `DatabaseTransactionTester` holds that code through
+  a transaction the pool hands out, on MySQL 8.4 and MariaDB 11.8, each with `innodb_rollback_on_timeout` off and
+  on, and on PostgreSQL 18: a deadlock whose victim is the script's statement, with what the object says at the
+  statement, at the next and at the commit, beside the control that a statement sent past the refusal is committed
+  on its own; the same deadlock met by a statement marked `[IGNORE-ERRORS]` in a script; MariaDB's 1020; a lock wait
+  that timed out; and a second `Begin` while a transaction is open. On the code before, each case but its controls
+  failed where the defect is - the statement after the failure committed on its own - and PostgreSQL passed, as it
+  does now; and each part of `ScriptTransaction`'s handling taken out by itself - the refusal, the commit's
+  rollback, the advice in the error, the first transaction's rollback at a second `Begin`, PostgreSQL left to the
+  database - fails a case of its own on MySQL and MariaDB, the last two on PostgreSQL too, but for the success
+  `Database.RollbackTransaction` answers for an ended transaction, which only SQL Server's refusal of a `ROLLBACK`
+  with nothing open would show. On SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that
+  timed out leaving the transaction going on, and
   `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the
   `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
   takes back everything. SQL Server's part rests on the code and on SQL Server 2022's own answers (a deadlock's victim

@@ -834,10 +834,10 @@ namespace DBUpdater
             // did not throw is not evidence that it did anything - see
             // SchemaVerification for why - and this is the last moment at which
             // the answer can still be acted on: the probes run on the
-            // transaction's own connection (InterfaceDatabase::ExecuteSQL uses
-            // conn_ while a transaction is open), so they see the uncommitted DDL
-            // and a missing object can still be rolled back on the two backends
-            // that have transactional DDL.
+            // transaction's own connection (InterfaceDatabase::ExecuteSQL runs on
+            // its ScriptTransaction's while a transaction is open), so they see
+            // the uncommitted DDL and a missing object can still be rolled back on
+            // the two backends that have transactional DDL.
             string verificationError;
             if (!VerifyUpgradedSchema(database, segmentStart, listRequiredUpgrades.Items.Count, out verificationError))
             {

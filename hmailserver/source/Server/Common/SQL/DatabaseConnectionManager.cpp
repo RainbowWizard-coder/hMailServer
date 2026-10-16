@@ -862,10 +862,10 @@ namespace HM
       statements run *on that object* are inside the transaction: Execute() and
       OpenRecordset() on this class borrow a different pooled connection per
       statement, so anything routed through them during the window is outside it.
-      The COM API uses it so: InterfaceDatabase keeps the connection in conn_ and
-      sends ExecuteSQL / ExecuteSQLScript / EnsurePrerequisites straight to it
-      (SchemaUpgrader begins its own transactions on the connection UpgradeSchema
-      lends it). The server's own units of work use DatabaseTransaction instead,
+      The COM API uses it so: InterfaceDatabase's ScriptTransaction keeps the
+      connection and sends ExecuteSQL / ExecuteSQLScript / EnsurePrerequisites
+      straight to it (SchemaUpgrader begins its own transactions on the connection
+      UpgradeSchema lends it). The server's own units of work use DatabaseTransaction instead,
       which holds its connection for the thread that opened it, so that Execute()
       and OpenRecordset() made on that thread run inside it, and which sends each
       statement once, not again after a reconnect - except on a MySQL database
@@ -878,11 +878,11 @@ namespace HM
       PostgreSQL any failure, on MySQL and MariaDB a deadlock and a few others, on
       SQL Server a deadlock and some others, never on SQL Server Compact. MySQL,
       MariaDB and SQL Server then go on in autocommit, so that every statement run
-      on the connection after it is committed on its own: InterfaceDatabase sends
-      none there once the transaction has ended - it refuses the script's
-      statements and rolls back at its commit - while PostgreSQL refuses them
-      itself, and the backends' CommitTransaction refuses one on PostgreSQL and
-      MySQL. A caller of its own must ask before it goes on.
+      on the connection after it is committed on its own: ScriptTransaction, which
+      InterfaceDatabase holds, sends none there once the transaction has ended - it
+      refuses the script's statements and rolls back at its commit - while
+      PostgreSQL refuses them itself, and the backends' CommitTransaction refuses
+      one on PostgreSQL and MySQL. A caller of its own must ask before it goes on.
 
       PER BACKEND:
 

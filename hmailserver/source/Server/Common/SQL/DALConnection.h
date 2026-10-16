@@ -235,7 +235,7 @@ namespace HM
       // transaction BeginTransaction began is open. A caller that goes on in a
       // transaction after a statement failed - the COM Database object's script -
       // runs nothing more in it once this says true where the session goes on in
-      // autocommit (InterfaceDatabase, SQLScriptRunner), as DatabaseTransaction
+      // autocommit (ScriptTransaction, SQLScriptRunner), as DatabaseTransaction
       // runs nothing more after any failure; on PostgreSQL
       // (GetFailedStatementEndsTransaction), where the transaction is aborted and
       // still open, the database refuses everything itself but the rollback and a

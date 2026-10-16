@@ -658,6 +658,7 @@ EXIT 0
     <ClCompile Include="..\Common\SQL\SQLParameter.cpp" />
     <ClCompile Include="..\Common\SQL\SQLScriptParser.cpp" />
     <ClCompile Include="..\Common\SQL\SQLScriptRunner.cpp" />
+    <ClCompile Include="..\Common\SQL\ScriptTransaction.cpp" />
     <ClCompile Include="..\Common\Sql\SQLStatement.cpp" />
     <ClCompile Include="..\Common\TCPIP\CertificateVerifier.cpp" />
     <ClCompile Include="..\Common\TCPIP\DaneVerifier.cpp" />
@@ -1677,6 +1678,7 @@ EXIT 0
     <ClInclude Include="..\Common\SQL\SQLParameter.h" />
     <ClInclude Include="..\Common\SQL\SQLScriptParser.h" />
     <ClInclude Include="..\Common\SQL\SQLScriptRunner.h" />
+    <ClInclude Include="..\Common\SQL\ScriptTransaction.h" />
     <ClInclude Include="..\Common\Sql\SQLStatement.h" />
     <ClInclude Include="..\Common\TCPIP\CertificateVerifier.h" />
     <ClInclude Include="..\Common\TCPIP\DaneVerifier.h" />
