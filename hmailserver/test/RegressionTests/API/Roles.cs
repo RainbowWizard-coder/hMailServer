@@ -1485,7 +1485,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Over COM an account assigned serveradmin with a domain list is a domain administrator of those domains and no more: it is refused the server settings, a domain alias, a domain rename and another domain's objects, exactly as over REST, while it still administers the accounts of the domain it names")]
+      [Description("Over COM an account assigned serveradmin with a list of domains is not the server administrator: it is refused the server settings, a domain alias, a domain rename and the domains it does not reach, as over REST, while it is still a domain administrator of its own account's domain, which its list names")]
       public void ServerAdminAssignedADomainListIsConfinedToItOverCom()
       {
          Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);

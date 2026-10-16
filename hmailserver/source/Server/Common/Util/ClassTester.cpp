@@ -285,8 +285,9 @@ namespace HM
       ruleOwnerTester.Test();
 
       // A grant holding administer_server with a list of domains is confined to
-      // that list - a domain administrator of its domains, not the server
-      // administrator - over COM as over REST (RoleManager.h, RoleManagerTester).
+      // that list - it administers the domains it names and is not the server
+      // administrator - and COM's server-administrator question and REST's read
+      // that one rule (RoleManager.h, RoleManagerTester).
       OutputDebugString(_T("hMailServer: Testing that serveradmin assigned with a domain list is confined to it\n"));
       RoleManagerTester roleManagerTester;
       roleManagerTester.Test();

@@ -124,11 +124,12 @@
 //     and the REST routes any but an empty one, and the server refused it only each
 //     time the rule fired.
 //   - A grant that holds administer_server with a list of domains is confined to
-//     that list (RoleManagerTester, Common/Application/RoleManager.cpp): it is a
-//     domain administrator of the domains it names, not the server administrator,
-//     over COM exactly as over REST (RoleManager::Allows, which GetIsServerAdmin
-//     and HoldsServerAuthority_ both read); and no credential confined to named
-//     domains takes over a grant that holds administer_server.
+//     that list (RoleManagerTester, Common/Application/RoleManager.cpp): the grant
+//     administers the domains it names and is not the server administrator, and
+//     COM's server-administrator question and REST's read that one rule
+//     (RoleManager::Allows, which GetIsServerAdmin and HoldsServerAuthority_ both
+//     read); and no grant confined to named domains takes over a grant that
+//     holds administer_server.
 //   - DKIM signs a message as the domain its From names only when the server is
 //     entitled to (SigningOriginTester, Common/AntiSpam/DKIM/DKIMSigner.cpp): not mail
 //     from outside, nor a forward, a redirect or a rule's copy of it, nor a signed-in
