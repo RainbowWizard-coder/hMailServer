@@ -257,9 +257,15 @@ namespace HM
    }
 
    bool
+   DALConnection::IsTransactionSessionGone() const
+   {
+      return transaction_session_lost_ || (transaction_open_ && IsSessionGone_());
+   }
+
+   bool
    DALConnection::IsTransactionEndedIntoAutocommit() const
    {
-      return transaction_session_lost_ || (!GetFailedStatementEndsTransaction() && IsTransactionFailed());
+      return IsTransactionSessionGone() || (!GetFailedStatementEndsTransaction() && IsTransactionFailed());
    }
 
    String

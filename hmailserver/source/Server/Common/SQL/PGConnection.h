@@ -120,6 +120,14 @@ namespace HM
       virtual bool GetFailedStatementEndsTransaction() const { return true; }
       virtual bool IsTransactionFailed() const;
 
+   protected:
+
+      // DALConnection's: a connection libpq has found gone (PQstatus) - a session
+      // the server ended, met by the statement sent after it - or one Disconnect
+      // has finished. PQtransactionStatus answers PQTRANS_UNKNOWN for it, not
+      // PQTRANS_INERROR, so that IsTransactionFailed does not say it.
+      virtual bool IsSessionGone_() const;
+
    private:
 
   

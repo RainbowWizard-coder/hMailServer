@@ -754,7 +754,11 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   transaction did the same on every engine: `DALConnection::Execute` and `DALRecordset::Open`, which
   `Database.EnsurePrerequisites`' prerequisites and a script's macros run their statements with, reconnected and ran
   the statement again on the new session, and everything after it ran there in autocommit, nothing refused - and on
-  SQL Server a deadlock met there is taken for a lost connection. Now, once the database has ended the script's
+  SQL Server a deadlock met there is taken for a lost connection. Where nothing reconnected - a connection lost under
+  the object's own statement, which it sends once, or one closed under the transaction, as the pool's `Disconnect`
+  closes the connections it has handed out - nothing was saved, but nothing said that the transaction had ended:
+  each later statement was sent to the dead connection and failed there, and so did the commit. Now, once the
+  database has ended the script's
   transaction, the `Database` object says so in the error, with what to do - call `Database.RollbackTransaction` and
   run the whole transaction again - refuses every later statement of the transaction without running it, rolls back
   and fails at `Database.CommitTransaction`, and answers `Database.RollbackTransaction` with success; and
@@ -768,9 +772,12 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   every engine a transaction whose session was replaced has ended, after which `DALConnection::Execute` and
   `DALRecordset::Open` reconnect and run nothing on the new session until the transaction's end
   (`DALConnection::IsTransactionSessionLost`), and `PGConnection` refuses the commit, which the new session would have
-  answered with success. A failure that ends nothing - a duplicate key, a row-lock wait that timed out where
+  answered with success; and so has one whose session is gone before anything reconnected
+  (`DALConnection::IsTransactionSessionGone`) - on PostgreSQL by `PQstatus`, since libpq answers a connection that
+  is gone with `PQTRANS_UNKNOWN` rather than as an aborted transaction, and on MySQL, MariaDB and SQL Server Compact
+  by a connection that was closed. A failure that ends nothing - a duplicate key, a row-lock wait that timed out where
   `innodb_rollback_on_timeout` is off, a metadata-lock wait that timed out, any failure on SQL Server Compact but a
-  lost connection - leaves the transaction going on as before, and PostgreSQL, which refuses everything after any
+  lost or closed connection - leaves the transaction going on as before, and PostgreSQL, which refuses everything after any
   other failure until the rollback, answers as before. A second `Database.BeginTransaction` while a transaction is
   open rolls the open one back and gives its connection back to the pool, where the object let go of it with its
   transaction open: the pool never had the connection back, and what the transaction held stayed locked until the
@@ -782,7 +789,8 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   the commit, beside the control that a statement sent past the refusal is committed on its own; the same deadlock
   met by a statement marked `[IGNORE-ERRORS]`, sent alone and in a script; a script and the prerequisites asked for
   after the deadlock; MariaDB's 1020; a row-lock wait and a metadata-lock wait
-  that timed out; a session ended under `DALConnection::Execute` and under `DALRecordset::Open`; and a second `Begin`
+  that timed out; a session ended under `DALConnection::Execute`, under `DALRecordset::Open` and under the object's own
+  statement, and a connection closed under the transaction; and a second `Begin`
   while a transaction is open. On the code before, each case but its controls failed where the defect is - the
   statement after the failure committed on its own, or, after a metadata-lock wait where `innodb_rollback_on_timeout`
   is on, a transaction still open refused - and PostgreSQL passed but for the session ended, which failed there too;
@@ -795,7 +803,7 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   no case can reach while the runner stops after each statement that ended the transaction and each prerequisite at
   each failure. On
   SQL Server Compact, the bench's database, `DatabaseTransactionTester` holds a lock wait that timed out leaving the
-  transaction going on and a session ended under each, and
+  transaction going on and a session ended under each and under the object's own statement, and
   `RegressionTests.Infrastructure.SqlLayerErrorHandling.AFailedStatementEndsATransactionOnlyWhereTheDatabaseDoes` the
   `Database` object's transaction itself: a duplicate key ends nothing there, the rest is committed, and a rollback
   takes back everything. SQL Server's part rests on the code and on SQL Server 2022's own answers (a deadlock's victim

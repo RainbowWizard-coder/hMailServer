@@ -69,8 +69,9 @@ namespace HM
       // on its own - until the rollback or a ROLLBACK TO SAVEPOINT, which a script
       // may send to go on, and PGConnection::CommitTransaction refuses the commit. So
       // the script's statements go to the database as they always did. On every
-      // engine, a session lost with the transaction
-      // (DALConnection::IsTransactionEndedIntoAutocommit).
+      // engine, PostgreSQL included, a session gone with the transaction - lost
+      // under a statement, closed under the transaction, or replaced by a
+      // reconnect (DALConnection::IsTransactionEndedIntoAutocommit).
       if (!ended_ && connection_ && connection_->IsTransactionEndedIntoAutocommit())
       {
          ended_ = true;
@@ -89,8 +90,8 @@ namespace HM
    String
    ScriptTransaction::Refusal_() const
    {
-      if (connection_ && connection_->IsTransactionSessionLost())
-         return _T("The statement was not run: the connection to the database was lost inside this transaction, and the database rolled back what it held with the session, and a statement run now would be saved on its own, outside any transaction. Call Database.RollbackTransaction, and run the whole transaction again.");
+      if (connection_ && connection_->IsTransactionSessionGone())
+         return _T("The statement was not run: the connection to the database was lost inside this transaction, and the database rolled back what it held with the session; a statement run now would not be part of it, and on a new connection it would be saved on its own. Call Database.RollbackTransaction, and run the whole transaction again.");
 
       String refusal = _T("The statement was not run: the database ended this transaction at an earlier statement in it that failed");
       if (!ended_by_.IsEmpty())
@@ -230,7 +231,7 @@ namespace HM
    ScriptTransaction::Commit(String &error)
    {
       const bool ended = HasEnded();
-      const bool lost = connection_ && connection_->IsTransactionSessionLost();
+      const bool lost = connection_ && connection_->IsTransactionSessionGone();
       const String endedBy = ended_by_;
       std::shared_ptr<DALConnection> connection = Take_();
 

@@ -1947,6 +1947,105 @@ namespace HM
                throw std::logic_error(all);
             }
 
+            // The session lost under the Database object's own statement -
+            // Database.ExecuteSQL is ScriptTransaction::Execute, which sends a statement
+            // once (TryExecute) and never reconnects - and the connection closed under
+            // the transaction, as the pool's Disconnect closes the connections it has
+            // handed out. On every engine the statement that meets the lost session
+            // fails saying that the transaction has ended and what to do, or, where
+            // the connection is closed already, is refused; every later statement is
+            // refused, the commit fails as rolled back and not committed, and nothing
+            // of the transaction is saved; and the connection, given back, runs the
+            // next statement on a new session. Up to 99e6204ff PostgreSQL said none of
+            // it - libpq answers a connection that is gone with PQTRANS_UNKNOWN, not
+            // PQTRANS_INERROR - and sent each later statement to the dead connection,
+            // which failed it, and the commit failed with "no connection to the
+            // server"; and on MySQL, MariaDB, PostgreSQL and SQL Server Compact a
+            // connection closed under the transaction was not said either. Nothing was
+            // saved: nothing reconnected there. Not closed on SQL Server, whose
+            // provider refuses to close a connection with a transaction open
+            // (ADOConnection::Disconnect); on SQL Server Compact a session ends only
+            // by closing it (EndSessionOf), so there the first case is the second.
+            {
+               const DatabaseSettings::SQLDBType type = probe.type_;
+               std::vector<std::string> goneFailed;
+               for (int path = 0; path < 2; path++)
+               {
+                  const bool closed = path == 1;
+                  if ((!closed && type == DatabaseSettings::TypeMSSQLCompactEdition) || (closed && type == DatabaseSettings::TypeMSSQLServer))
+                     continue;
+
+                  const String how = closed ? _T("the connection was closed under the transaction") : _T("the database ended the transaction's session");
+                  try
+                  {
+                     probe.Reset();
+                     ScriptTransaction script;
+                     BeginOn(script, pool);
+                     String error;
+                     Check(Script(script, Insert(40, 1), error) == ScriptTransaction::Ran, _T("the script's first insert failed: ") + error);
+
+                     const std::shared_ptr<DALConnection> connection = script.GetConnection();
+                     if (closed)
+                        connection->Disconnect();
+                     else
+                        probe.EndSessionOf(connection);
+
+                     String firstError;
+                     const ScriptTransaction::Outcome first = Script(script, Insert(41, 1), firstError);
+                     String nextError;
+                     const ScriptTransaction::Outcome next = Script(script, Insert(42, 1), nextError);
+                     const int seen = probe.Value(_T("aatxnprobe"), 42);
+
+                     String commitError;
+                     const bool committed = script.Commit(commitError);
+
+                     // Given back, the connection runs the next statement: Execute
+                     // reconnects outside a transaction.
+                     String afterError;
+                     const bool after = connection->Execute(Update(_T("aatxnprobeb"), 1), afterError);
+
+                     const int forty = probe.Value(_T("aatxnprobe"), 40);
+                     const int fortyOne = probe.Value(_T("aatxnprobe"), 41);
+                     const int fortyTwo = probe.Value(_T("aatxnprobe"), 42);
+
+                     Check(forty == -1 && fortyOne == -1 && fortyTwo == -1 && seen == -1,
+                        Formatter::Format("after {0}, rows 40, 41 and 42 were left at {1}, {2} and {3} (42 at {4} before the commit), not none",
+                           how, forty, fortyOne, fortyTwo, seen));
+
+                     if (closed)
+                     {
+                        Check(first == ScriptTransaction::Refused && Says(firstError, _T("The statement was not run: the connection to the database was lost inside this transaction")),
+                           Formatter::Format("after {0}, the script's next statement was {1}, not refused as one of a transaction lost with its session: {2}", how, OutcomeName(first), firstError));
+                     }
+                     else
+                     {
+                        Check(first == ScriptTransaction::Failed && firstError.Find(_T("The database has ended the transaction and rolled back what it held")) > 0 && firstError.Find(_T("Call Database.RollbackTransaction")) > 0,
+                           Formatter::Format("after {0}, the script's statement that met the lost session was {1}, and its error did not say that the transaction had ended and what to do: {2}", how, OutcomeName(first), firstError));
+                     }
+
+                     Check(next == ScriptTransaction::Refused && Says(nextError, _T("The statement was not run: ")),
+                        Formatter::Format("after {0}, the script's statement after the lost session was {1}, not refused: {2}", how, OutcomeName(next), nextError));
+                     Check(!committed && Says(commitError, _T("The transaction was rolled back, not committed: ")),
+                        Formatter::Format("after {0}, the commit {1}: {2}", how, committed ? _T("reported success") : _T("failed without saying that the transaction was rolled back, not committed"), commitError));
+                     Check(after, Formatter::Format("after {0}, the connection given back did not run the next statement: {1}", how, afterError));
+                  }
+                  catch (const std::exception &failure)
+                  {
+                     goneFailed.push_back(failure.what());
+                  }
+               }
+
+               if (!goneFailed.empty())
+               {
+                  std::string all;
+                  for (const std::string &one : goneFailed)
+                     all += (all.empty() ? "" : " AND ") + one;
+                  throw std::logic_error(all);
+               }
+
+               probe.Say(_T("a session lost under the Database object's own statement, and a connection closed under its transaction: the statement after it refused, the commit failed, nothing saved"));
+            }
+
             // A session that ends before the COMMIT: whether the COMMIT reached the
             // database is not known, so the scope says so and is not run again.
             probe.Reset();

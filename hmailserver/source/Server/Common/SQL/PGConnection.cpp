@@ -570,6 +570,12 @@ namespace HM
       return IsTransactionSessionLost() || (dbconn_ != 0 && PQtransactionStatus(dbconn_) == PQTRANS_INERROR);
    }
 
+   bool
+   PGConnection::IsSessionGone_() const
+   {
+      return dbconn_ == 0 || PQstatus(dbconn_) != CONNECTION_OK;
+   }
+
    void
    PGConnection::SetTimeout(int seconds)
    {

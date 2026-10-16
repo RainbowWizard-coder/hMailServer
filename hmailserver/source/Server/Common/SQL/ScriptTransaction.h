@@ -30,7 +30,8 @@ namespace HM
    // statement itself until the rollback or a ROLLBACK TO SAVEPOINT, which a script
    // may send to go on, and PGConnection::CommitTransaction refuses the commit - so
    // there the statements go to the database as they always did - but for a
-   // session lost, after which PostgreSQL's new session would commit them too.
+   // session lost or closed, which PostgreSQL does not answer as an aborted
+   // transaction, and after which its new session would commit them too.
    //
    // The errors are the Database object's own: each says what failed, and once
    // the transaction has ended, that it has and what to do - call

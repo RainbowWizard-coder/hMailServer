@@ -268,6 +268,16 @@ namespace HM
       // RollbackTransaction.
       bool IsTransactionSessionLost() const { return transaction_session_lost_; }
 
+      // Whether the session the transaction BeginTransaction began on this
+      // connection was on is gone: replaced by Reconnect (IsTransactionSessionLost),
+      // or gone now, before anything has reconnected - lost under a statement the
+      // caller sent once (TryExecute: the COM Database object's own statements),
+      // or closed under the transaction, as the pool's Disconnect closes the
+      // connections it has handed out (IsSessionGone_). The database rolled back
+      // what the transaction held with the session either way. False while no
+      // transaction BeginTransaction began is open.
+      bool IsTransactionSessionGone() const;
+
       // What BeginTransaction recorded, forgotten: the connection holds no
       // transaction of its caller's any more. The pool says it as it takes a
       // connection back (DatabaseConnectionManager::ReleaseConnection_), so that a
@@ -280,14 +290,17 @@ namespace HM
 
       // Whether the transaction BeginTransaction began has ended and whatever the
       // session runs next would run outside it, each statement committed on its
-      // own: on every engine once its session was lost (IsTransactionSessionLost);
-      // where the database has ended it at a failure (IsTransactionFailed) and the
-      // session goes on in autocommit - MySQL, MariaDB, SQL Server - but not on
-      // PostgreSQL, whose transaction is aborted and still open, the database
-      // refusing everything itself but the rollback and a ROLLBACK TO SAVEPOINT
-      // (GetFailedStatementEndsTransaction). A caller that goes on in a transaction
-      // after a statement failed runs nothing more in it once this says true
-      // (ScriptTransaction, SQLScriptRunner).
+      // own: on every engine once its session is gone (IsTransactionSessionGone),
+      // PostgreSQL included, whose libpq answers a connection that is gone with
+      // PQTRANS_UNKNOWN rather than PQTRANS_INERROR, so that IsTransactionFailed
+      // alone does not say it there; and where the database has ended it at a
+      // failure (IsTransactionFailed) and the session goes on in autocommit -
+      // MySQL, MariaDB, SQL Server - but not on PostgreSQL, whose transaction is
+      // aborted and still open, the database refusing everything itself but the
+      // rollback and a ROLLBACK TO SAVEPOINT (GetFailedStatementEndsTransaction).
+      // A caller that goes on in a transaction after a statement failed runs
+      // nothing more in it once this says true (ScriptTransaction,
+      // SQLScriptRunner).
       bool IsTransactionEndedIntoAutocommit() const;
 
       // What Execute and Open answer for a statement they do not run because the
@@ -308,6 +321,16 @@ namespace HM
       // the session it replaces held such a transaction.
       void SetTransactionOpen_(bool open);
       bool IsTransactionOpen_() const { return transaction_open_; }
+
+      // Whether the session this connection holds is gone now, which the backend
+      // can tell without a round trip: false here; PostgreSQL's from PQstatus,
+      // MySQL's and SQL Server Compact's from a connection Disconnect has closed.
+      // A lost connection is also said where it is met - MySQLConnection::CheckError
+      // (2006, 2013, a TLS end of file), and ADOConnection::IsTransactionFailed,
+      // which takes a question of @@TRANCOUNT that fails, or a closed connection,
+      // for the end. Read only while a transaction BeginTransaction began is open
+      // (IsTransactionSessionGone).
+      virtual bool IsSessionGone_() const { return false; }
 
       std::shared_ptr<DatabaseSettings> database_settings_;
 

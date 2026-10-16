@@ -118,6 +118,14 @@ namespace HM
       // replaced (DALConnection::IsTransactionSessionLost).
       virtual bool IsTransactionFailed() const;
 
+   protected:
+
+      // DALConnection's: a connection Disconnect has closed - as the pool's
+      // Disconnect closes the connections it has handed out - or whose
+      // reconnection was refused. A session the server ended is said where it is
+      // met, by CheckError (IsTransactionFailed).
+      virtual bool IsSessionGone_() const { return dbconn_ == 0; }
+
    private:
 
       // One attempt at the server: a fresh handle (the one before it closed), the

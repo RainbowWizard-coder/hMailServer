@@ -68,6 +68,14 @@ namespace HM
       virtual LastFailure ClassifyLastFailure(ExecutionResult result);
       virtual void ForgetLastFailure();
 
+   protected:
+
+      // DALConnection's: a connection Disconnect has closed - as the pool's
+      // Disconnect closes the connections it has handed out - which took back
+      // what its transaction held. Compact is a file in this process: nothing
+      // else ends its session.
+      virtual bool IsSessionGone_() const { return !connected_; }
+
    private:
 
       friend class SQLCEConnectionTester;
