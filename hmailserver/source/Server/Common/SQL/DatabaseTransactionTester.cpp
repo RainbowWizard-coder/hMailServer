@@ -1969,11 +1969,13 @@ namespace HM
             // later statement to the dead connection, which failed it, and the commit
             // failed with "no connection to the server"; and on MySQL, MariaDB,
             // PostgreSQL and SQL Server Compact a connection closed under the
-            // transaction was not said either. Nothing was saved: nothing reconnected
-            // there. Not closed on SQL Server, whose provider refuses to close a
-            // connection with a transaction open (ADOConnection::Disconnect); on SQL
-            // Server Compact a session ends only by closing it (EndSessionOf), so there
-            // the first case is the second.
+            // transaction was not said either. Up to b2f5470e2 SQL Server did not say it
+            // until a statement had failed on the closed connection: the first was
+            // failed, not refused, and a commit straight after the close failed with no
+            // error text (ADOConnection::IsSessionGone_, which ADOConnectionTester
+            // holds: nothing runs this tester on SQL Server). Nothing was saved:
+            // nothing reconnected there. On SQL Server Compact a session ends only by
+            // closing it (EndSessionOf), so there the first case is the second.
             {
                const DatabaseSettings::SQLDBType type = probe.type_;
                std::vector<std::string> goneFailed;
@@ -1981,7 +1983,7 @@ namespace HM
                {
                   const bool closed = (path % 2) == 1;
                   const bool rollback = path >= 2;
-                  if ((!closed && type == DatabaseSettings::TypeMSSQLCompactEdition) || (closed && type == DatabaseSettings::TypeMSSQLServer))
+                  if (!closed && type == DatabaseSettings::TypeMSSQLCompactEdition)
                      continue;
 
                   const String how = String(closed ? _T("the connection was closed under the transaction") : _T("the database ended the transaction's session")) +

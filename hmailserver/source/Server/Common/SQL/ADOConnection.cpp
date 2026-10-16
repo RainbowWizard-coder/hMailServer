@@ -1110,6 +1110,21 @@ namespace HM
             return String();
          return String((const wchar_t *) _bstr_t(value));
       }
+
+      // An ADOConnection with a transaction said open as BeginTransaction says it
+      // once its BEGIN TRANSACTION has succeeded, which needs no server. One that
+      // has not connected is what Disconnect leaves of one closed under its
+      // transaction: bConnected false, its ADO Connection there but not open.
+      class AdoTransactionOnClosedConnection : public ADOConnection
+      {
+      public:
+         AdoTransactionOnClosedConnection() :
+            ADOConnection(std::shared_ptr<DatabaseSettings>(new DatabaseSettings(String(), String(), String(), String(), String(), String(), String(), DatabaseSettings::TypeMSSQLServer, 0)))
+         {
+         }
+
+         void SayTransactionOpen(bool open) { SetTransactionOpen_(open); }
+      };
    }
 
    void
@@ -1174,6 +1189,27 @@ namespace HM
          _T("a provider that is not a name was not refused"));
       CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLNCLI"), _T("s"), _T("d"), false, _T("p;Data Source=evil"), connectionString, error),
          _T("a failover partner with a semicolon was not refused"));
+
+      // A connection closed under the transaction BeginTransaction began - as the
+      // pool's Disconnect closes the connections it has handed out - has ended the
+      // transaction, as on every other engine (DALConnection::IsTransactionSessionGone,
+      // IsSessionGone_): the COM Database object's next statement is refused and its
+      // commit rolls back and fails saying the connection was lost. Up to b2f5470e2
+      // nothing said it on SQL Server until a statement had failed on the closed
+      // connection. With no transaction open, or once it has ended, nothing is said.
+      {
+         AdoTransactionOnClosedConnection closed;
+         CheckAdo(!closed.IsTransactionSessionGone() && !closed.IsTransactionEndedIntoAutocommit(),
+            _T("a closed ADOConnection with no transaction open was said to have lost one"));
+
+         closed.SayTransactionOpen(true);
+         CheckAdo(closed.IsTransactionSessionGone() && closed.IsTransactionEndedIntoAutocommit(),
+            _T("an ADOConnection closed under its transaction was not said to have ended it (DALConnection::IsTransactionSessionGone): the Database object's next statement would be failed rather than refused, and a commit straight after the close would fail with no error text"));
+
+         closed.SayTransactionOpen(false);
+         CheckAdo(!closed.IsTransactionSessionGone() && !closed.IsTransactionEndedIntoAutocommit(),
+            _T("a closed ADOConnection whose transaction had ended was still said to have lost one"));
+      }
    }
 }
 

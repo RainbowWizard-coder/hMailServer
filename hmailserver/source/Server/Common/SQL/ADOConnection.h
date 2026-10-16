@@ -97,6 +97,25 @@ namespace HM
       // (DALConnection::IsTransactionSessionLost).
       virtual bool IsTransactionFailed() const;
 
+   protected:
+
+      // DALConnection's: a connection Disconnect has closed, as the pool's
+      // Disconnect closes the connections it has handed out. Disconnect makes
+      // bConnected false whether Close succeeded or threw, and TryExecute sends
+      // nothing on a connection it calls closed. bConnected is false only after
+      // Disconnect or before Connect, and a Reconnect, whether its Connect
+      // succeeds or not, says the session lost
+      // (DALConnection::IsTransactionSessionLost). A session the server ended
+      // while bConnected still says connected is said where it is met, by
+      // IsTransactionFailed, which takes a failed question of @@TRANCOUNT for the
+      // end. Up to b2f5470e2 SQL Server alone had no answer here: a transaction
+      // whose connection was closed under it was not taken for ended until a
+      // statement had failed on it, so that Database.CommitTransaction straight
+      // after the close went on to the COMMIT, which TryExecute refused with no
+      // error text, and the first statement after the close was failed rather
+      // than refused.
+      virtual bool IsSessionGone_() const { return !bConnected || cADOConnection == NULL; }
+
    private:
 
       // What one Open came to: opened; refused by the provider with a COM error,
@@ -136,8 +155,10 @@ namespace HM
    // ADOConnection::MakeConnectionString held to ADO's own reading of what it
    // writes (an ADO Connection given the string, its Data Source and Initial
    // Catalog properties read back): hostile server and database names read back as
-   // given, none moving another value, and what cannot be written refused. Throws
-   // std::logic_error with a sentence. ClassTester runs it inside the service.
+   // given, none moving another value, and what cannot be written refused; and an
+   // ADOConnection closed under its transaction said to have ended it
+   // (IsSessionGone_), which needs no server. Throws std::logic_error with a
+   // sentence. ClassTester runs it inside the service.
    class ADOConnectionTester
    {
    public:

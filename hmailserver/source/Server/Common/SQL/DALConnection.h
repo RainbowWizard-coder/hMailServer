@@ -324,12 +324,12 @@ namespace HM
 
       // Whether the session this connection holds is gone now, which the backend
       // can tell without a round trip: false here; PostgreSQL's from PQstatus,
-      // MySQL's and SQL Server Compact's from a connection Disconnect has closed.
-      // A lost connection is also said where it is met - MySQLConnection::CheckError
-      // (2006, 2013, a TLS end of file), and ADOConnection::IsTransactionFailed,
-      // which takes a question of @@TRANCOUNT that fails, or a closed connection,
-      // for the end. Read only while a transaction BeginTransaction began is open
-      // (IsTransactionSessionGone).
+      // MySQL's, SQL Server's and SQL Server Compact's from a connection
+      // Disconnect has closed. A lost connection is also said where it is met -
+      // MySQLConnection::CheckError (2006, 2013, a TLS end of file), and
+      // ADOConnection::IsTransactionFailed, which takes a question of @@TRANCOUNT
+      // that fails, or a closed connection, for the end. Read only while a
+      // transaction BeginTransaction began is open (IsTransactionSessionGone).
       virtual bool IsSessionGone_() const { return false; }
 
       std::shared_ptr<DatabaseSettings> database_settings_;
