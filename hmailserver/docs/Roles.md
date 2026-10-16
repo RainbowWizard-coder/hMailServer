@@ -37,7 +37,7 @@ domains is refused them whatever it holds.
 
 | Permission | What it reaches | `serveradmin` | `domainadmin` | `helpdesk` | `auditor` |
 |---|---|:-:|:-:|:-:|:-:|
-| `administer_server` | Everything, including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
+| `administer_server` | Everything (given no list of domains; with a list, see [What names a domain beyond the credential's own](#what-names-a-domain-beyond-the-credentials-own)), including the reads of secrets such as password hashes and private keys. Every COM gate that has always asked "is this the server administrator?" asks for this. | ✅ | | | |
 | `administer_domain` | Every COM gate that has always asked "is this a domain administrator?" | ✅ | ✅ | | |
 | `view_configuration` | The status, settings, listeners, certificates, rules, routes, anti-spam lists, the roles and who holds them, the alert rules and what they raised, a domain's DKIM key rotation, a domain's spam traps and what has addressed them, the bounce settings *(server-wide)* and how a bounce would be classifiedand complaint settings, how a bounce would be classified, and every domain's complaint rate — never a secret, what the reputation watch last found — never a secret the server holds | ✅ | ✅ | | ✅ |
 | `view_accounts` | Domains, accounts, aliases, lists, groups *(server-wide)*, fetch accounts, the OpenAPI document, and whether a mailbox could be moved now and what it has been through | ✅ | ✅ | ✅ | ✅ |
@@ -259,10 +259,15 @@ that domain's administrator is refused all of these on it, over both interfaces.
 `administer_server` is the whole server only where the grant reaches every domain.
 A full key confined to named domains, and an account assigned `serveradmin` with a
 list of domains, are `serveradmin` confined to those domains: the server
-administrator in each of them and in no other, which over COM is a domain
-administrator of the domains the list names (the server's settings, a domain alias,
-a domain's name and the rest above are refused, as they are over REST), and over
-REST is refused every server-wide route and every domain the list leaves out. The
+administrator in each of them and in no other. Over REST such a credential is
+refused every server-wide route and every domain the list leaves out. Over COM an
+account so assigned is refused the server's settings, a domain alias, a domain's
+name and the rest above, as it is over REST; it is a domain administrator of its
+own account's domain where its list names that domain, and of no other, since the
+COM calls that ask "is this a domain administrator?" compare the object's domain
+with that one. It reaches the other domains its list names through REST, and over
+COM through the calls that name a domain of their own: the password reset, the
+unlock, the mailbox move, the message trace and role assignment. The
 decision is one place — `RoleManager::Allows` answers `administer_server` only for a
 grant with no list, which `COMAuthentication::GetIsServerAdmin` and
 `RestApiServer::HoldsServerAuthority_` both read. Such a grant is judged by its list
@@ -455,7 +460,7 @@ An assignment with no domains reaches **every domain** for `serveradmin` and
 included. Naming domains is how an administrator widens a confined role; an auditor
 given a list is confined to it, and so is `serveradmin` given one — an account
 assigned `serveradmin` with a list is the server administrator in the domains it
-names and a domain administrator of them over COM, not the whole server (see
+names, not the whole server (see
 [What names a domain beyond the credential's own](#what-names-a-domain-beyond-the-credentials-own)).
 Over COM a role holding `administer_domain` is a domain administrator of its own
 account's domain only where its list of domains names that domain: the COM calls
@@ -506,7 +511,7 @@ Where each role works
 
 | | Control Deck | REST API | Control Panel (COM) |
 |---|---|---|---|
-| `serveradmin` | Every view | Every route | Every page |
+| `serveradmin` (given no list of domains; with a list, see [What names a domain beyond the credential's own](#what-names-a-domain-beyond-the-credentials-own)) | Every view | Every route | Every page |
 | `domainadmin` | The dashboard, DANE / TLSA, domains, fetch accounts, lists, roles and the reports for its domains; not the settings, rules, routes, remote domains, certificates, ports, IP ranges, groups, backup, server messages, queue, logs or audit trail, which are server-wide | Its domains' accounts, aliases, lists and mailboxes, the status, and who holds a role in its domains | Domains and Administrator roles, as a domain administrator always has |
 | `helpdesk` | Domains, fetch accounts and lists, with *Reset password* and *Unlock* on every account | The reset, the unlock, the account listings and the trace of an address in its domains | Welcome and About only — use the Deck. `Application.ResetPassword`, `UnlockAccount` and `GlobalObjects.MessageTrace` answer a script |
 | `auditor` | Every view that reads, the audit trail and the reports included | Every read, the audit trail and the alert rules and events included (an API key is refused those whatever its role); every write refused | Welcome, About and Administrator roles. COM's settings objects answer only the server administrator, so an auditor reads the configuration through the Deck or REST |
