@@ -1249,7 +1249,12 @@ def self_test():
         # HOME or XDG_DATA_HOME, and a post-scan one may drop findings (check 3 of cycle
         # 3, 16 October 2026): each run is given --module-dir once, an empty directory
         # beside the configuration, as its modules, HOME and each XDG base directory
-        # naming one more empty directory there, and none of the three.
+        # naming one more empty directory there, and none of the three. Which of the
+        # job's variables a run must be without, and which must name its home, is read
+        # from the names planted here, written out (home_names, withheld), and never from
+        # the lists the script reads them by (TRIVY_VARIABLE_PREFIX, TRIVY_HOME_VARIABLES,
+        # TRIVY_REGISTRY_VARIABLES), so that a name taken out of one of those lists fails
+        # here rather than shortening the case with it (check 4 of cycle 7, 16 October 2026).
         module["download_database"], module["trivy"] = kept[2], kept[3]
         image_vulnerabilities[:] = [{"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
                                      "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]
@@ -1261,6 +1266,7 @@ def self_test():
             with open(os.path.join(tree, name), "w", encoding="utf-8") as f:
                 f.write(text)
         calls = []
+        home_names = ("HOME", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME")
 
         def listing(path):
             return sorted(os.listdir(path)) if path and os.path.isdir(path) else None
@@ -1280,7 +1286,7 @@ def self_test():
                         seen["files"][flag] = (path, None)
             environment = seen["env"] if seen["env"] is not None else os.environ
             seen["home"] = dict((name, (environment.get(name), listing(environment.get(name))))
-                                for name in TRIVY_HOME_VARIABLES)
+                                for name in home_names)
             calls.append(seen)
             if "--output" in command[:-1]:
                 fake_trivy(command[1:2], command[command.index("--output") + 1], None)
@@ -1291,6 +1297,13 @@ def self_test():
                    "HOME": tree, "XDG_CACHE_HOME": tree, "XDG_CONFIG_HOME": tree, "XDG_DATA_HOME": tree,
                    "DOCKER_CONFIG": os.path.join(tree, ".docker"), "REGISTRY_AUTH_FILE": os.path.join(tree, "auth.json"),
                    "XDG_RUNTIME_DIR": tree}
+        # Every planted name but the one the job's own and the four of the home, in any
+        # case: Trivy's three and the three that name another place for the registry
+        # configuration.
+        withheld = sorted(set(name.upper() for name in planted) - set(("HM_DEPENDENCY_SCAN_SELF_TEST",) + home_names))
+        expect(withheld == ["DOCKER_CONFIG", "REGISTRY_AUTH_FILE", "TRIVY_IGNOREFILE", "TRIVY_SEVERITY",
+                            "TRIVY_SKIP_DIRS", "XDG_RUNTIME_DIR"],
+               "the case plants Trivy's three variables and the three registry ones: %s" % withheld)
         environ_held = dict((name, os.environ.get(name)) for name in planted)
         run_held = subprocess.run
         try:
@@ -1315,12 +1328,14 @@ def self_test():
         configs = set()
         for call in calls:
             environment = call["env"] if call["env"] is not None else dict(os.environ, **planted)
-            given = sorted(name for name in environment if name.upper().startswith(TRIVY_VARIABLE_PREFIX))
+            given = sorted(name for name in environment if name.upper() in withheld or name.upper().startswith("TRIVY_"))
             expect(not given and environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept",
-                   "trivy %s runs with the job's environment less every variable of Trivy's, whatever its case, and "
-                   "with the job's others: %s given%s" % (" ".join(call["command"][1:2]), ", ".join(given) or "none",
-                                                        "" if environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept"
-                                                        else ", and the job's other variables not"))
+                   "trivy %s runs with the job's environment less every variable of Trivy's, whatever its case, and less "
+                   "DOCKER_CONFIG, REGISTRY_AUTH_FILE and XDG_RUNTIME_DIR, which name another place for the registry "
+                   "configuration, and with the job's others: %s given%s" % (
+                       " ".join(call["command"][1:2]), ", ".join(given) or "none",
+                       "" if environment.get("HM_DEPENDENCY_SCAN_SELF_TEST") == "kept"
+                       else ", and the job's other variables not"))
             for flag, content in (("--config", "{}\n"), ("--ignorefile", "")):
                 path, text = call["files"].get(flag, (None, None))
                 expect(call["command"].count(flag) == 1 and path and text == content
@@ -1352,10 +1367,6 @@ def self_test():
                    "beside its configuration, empty when the database is downloaded, so that no default under its home "
                    "is the checkout's: %s" % (" ".join(call["command"][1:2]),
                                                ", ".join("%s=%s" % item for item in sorted(homes.items()))))
-            elsewhere = sorted(name for name in environment if name.upper() in TRIVY_REGISTRY_VARIABLES)
-            expect(not elsewhere, "trivy %s runs with none of %s, which name another place for the registry "
-                   "configuration: %s given" % (" ".join(call["command"][1:2]), ", ".join(TRIVY_REGISTRY_VARIABLES),
-                                                ", ".join(elsewhere) or "none"))
             configs.add(tuple(path for path, _ in (call["files"].get(flag, (None, None))
                                                    for flag in ("--config", "--ignorefile", "--cache-dir", "--module-dir")))
                         + (home,))
