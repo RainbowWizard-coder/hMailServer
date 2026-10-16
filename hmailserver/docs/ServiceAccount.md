@@ -506,22 +506,22 @@ Prompt, with the installation's own folder in place of `C:\hMailServer`, first s
 who owns what is there. Of the two listings below, the first names the program
 folder's owner on its line `.`, and the owner of each file and folder directly in
 it - `Bin`, `ControlPanel` and the uninstaller among them - on theirs; the second
-names the owner of everything in the folders that hold the programs, hidden files
-included, and of nothing in the data folders:
+names the owner of everything in the folders that hold the programs and the event
+script, hidden files included, and of nothing in the data folders:
 
 ```
 dir /q /a "C:\hMailServer"
-dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel" "C:\hMailServer\WebAdmin" "C:\hMailServer\DBScripts" "C:\hMailServer\Addons" "C:\hMailServer\Languages"
+dir /q /s /a "C:\hMailServer\Bin" "C:\hMailServer\ControlPanel" "C:\hMailServer\Events" "C:\hMailServer\WebAdmin" "C:\hMailServer\DBScripts" "C:\hMailServer\Addons" "C:\hMailServer\Languages"
 ```
 
 `dir` cuts an owner's name to 23 characters (`NT SERVICE\TrustedInsta`), shows
 `...` for an owner it cannot read, and says `File Not Found` for a folder the
-installation does not have - the Control Panel alone has no `WebAdmin`, `DBScripts`
-or `Addons` - and lists the others. Each `icacls` line below must say that it
-processed one file - `Successfully processed 1 files` on an English Windows: one
-that says 0 has changed nothing, and from `/remove:g` that is the only sign that it
-found no account for a SID or a name it was given. Then, as `/ProtectFolders` does,
-for the program folder, then `Bin`, then `ControlPanel`:
+installation does not have - the Control Panel alone has no `Events`, `WebAdmin`,
+`DBScripts` or `Addons` - and lists the others. Each `icacls` line below must say
+that it processed one file - `Successfully processed 1 files` on an English
+Windows: one that says 0 has changed nothing, and from `/remove:g` that is the only
+sign that it found no account for a SID or a name it was given. Then, as
+`/ProtectFolders` does, for the program folder, then `Bin`, then `ControlPanel`:
 
 1. Make the Administrators its owner - an owner may change the permissions whatever
    they say. The folder alone: `/T` would reach the message store too.
@@ -597,12 +597,14 @@ and any entry of its own. Where accounts that are not administrators could sign 
 to the computer while the three took the root's permissions; where the listings
 named an owner other than `BUILTIN\Administrators`, `NT AUTHORITY\SYSTEM` or
 `NT SERVICE\TrustedInstaller` - `...` among them - for the program folder, a file
-directly in it, or `Bin`, `ControlPanel`, `WebAdmin`, `DBScripts`, `Addons` or
-`Languages` or anything in them; or where step 2 took away an entry that gave
-anybody more than `(RX)`, the Users' and the service's included, or could not take
-one away: a program in them may have been changed already. Reinstall the programs
-from the release into a folder only the administrators may change, rather than rely
-on the steps.
+directly in it, or `Bin`, `ControlPanel`, `Events`, `WebAdmin`, `DBScripts`,
+`Addons` or `Languages` or anything in them; or where step 2 took away an entry that
+gave anybody more than `(RX)`, the Users' and the service's included, or could not
+take one away: a program in them may have been changed already, and so may the
+event script in `Events`, which the service runs. Reinstall the programs from the
+release into a folder only the administrators may change, rather than rely on the
+steps; setup puts the event script there only where none is, so read it rather than
+rely on a reinstall to replace it.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,
