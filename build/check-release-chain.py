@@ -1464,9 +1464,9 @@ def link_path_problems(chain, documents):
 # that is none of them, so that the next command and the "- " of a YAML list before it
 # are never read as more of them. A line that begins with an option continues the
 # command on the line before it, as a command wrapped over two lines does, except in a
-# fenced code block or a YAML block scalar, where the shell ends a command at the end of
-# a line that has no continuation: gate_flat ends such a line with " ;", which none of
-# them crosses. A change's gate (--merge-request) and the self-test are other commands,
+# code block (fenced or indented, in a list item or a block quote too) or a YAML block
+# scalar, where the shell ends a command at the end of a line that has no continuation:
+# gate_flat ends such a line with " ;", which none of them crosses. A change's gate (--merge-request) and the self-test are other commands,
 # and the script named with neither an interpreter nor an option is a mention, not a
 # command.
 GATE_BREAK = r"(?: [\\`^])? "
@@ -1475,13 +1475,38 @@ GATE_OPTION = re.compile(r"(--[A-Za-z][A-Za-z0-9\-]*)(?:(?:=|%s)(<[^<>`]*>|(?!(?
 GATE_COMMAND = re.compile(r"(?:\b((?:python(?:3(?:\.[0-9]+)?)?|py)(?: -[A-Za-z0-9]+)*) )?(\.[/\\])?"
                           r"(?:[^\s`()<>,;'\"]*[/\\])?(?<![\w.\-])security-gate\.py(?![\w\-]|\.\w)"
                           r"((?:%s(?:%s))*)" % (GATE_BREAK, GATE_OPTION.pattern))
-# A Markdown code fence's opening line, as CommonMark has it: three backticks or more and
-# an info string with none in it, or three tildes or more and any.
-CODE_FENCE = re.compile(r"^(?:(`{3,})([^`]*)|(~{3,})(.*))$")
-# A Markdown list item's first line: its mark ("-", "+", "*", or a number and "." or
-# ")"), the spaces after it, and its text; the item's content stands at the column after
-# the spaces, or one after the mark when there are more than four or none.
-MARKDOWN_ITEM = re.compile(r"^ *([-+*]|[0-9]{1,9}[.)])(?:( +)(\S.*)?)?$")
+# CommonMark's block structure as its reference implementation, commonmark.js (0.31),
+# reads it, for markdown_command_ends: a fence's opening and closing marks, an ATX
+# heading's mark, a setext heading's underline, a thematic break, a list item's bullet and
+# number, the characters a block can begin with, and the seven kinds of HTML block, each
+# by the start of the line that begins one and the text of the line that ends it (None:
+# an empty line ends it; the seventh, a whole tag alone on its line, ends no paragraph).
+# The document, a block quote and a list item hold any block but an item, a list holds
+# items alone, and a leaf - a paragraph, a heading, a break, a code or HTML block - none
+# (MARKDOWN_HOLDS).
+MARKDOWN_FENCE = re.compile(r"^`{3,}(?!.*`)|^~{3,}")
+MARKDOWN_FENCE_END = re.compile(r"^(?:`{3,}|~{3,})(?=[ \t]*$)")
+MARKDOWN_HEADING = re.compile(r"^#{1,6}(?:[ \t]+|$)")
+MARKDOWN_UNDERLINE = re.compile(r"^(?:=+|-+)[ \t]*$")
+MARKDOWN_BREAK = re.compile(r"^(?:\*[ \t]*){3,}$|^(?:_[ \t]*){3,}$|^(?:-[ \t]*){3,}$")
+MARKDOWN_BULLET = re.compile(r"^[*+-]")
+MARKDOWN_NUMBER = re.compile(r"^([0-9]{1,9})([.)])")
+MARKDOWN_SPECIAL = re.compile(r"^[#`~*+_=<>0-9-]")
+MARKDOWN_HTML = (
+    (re.compile(r"^<(?:script|pre|textarea|style)(?:\s|>|$)", re.IGNORECASE),
+     re.compile(r"</(?:script|pre|textarea|style)>", re.IGNORECASE)),
+    (re.compile(r"^<!--"), re.compile(r"-->")),
+    (re.compile(r"^<[?]"), re.compile(r"\?>")),
+    (re.compile(r"^<![A-Za-z]"), re.compile(r">")),
+    (re.compile(r"^<!\[CDATA\["), re.compile(r"\]\]>")),
+    (re.compile(r"^</?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|"
+                r"dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[123456]|head|header|hr|"
+                r"html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|search|"
+                r"section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$)", re.IGNORECASE), None),
+    (re.compile(r"^(?:<[A-Za-z][A-Za-z0-9-]*(?:\s+[a-zA-Z_:][a-zA-Z0-9:._-]*(?:\s*=\s*(?:[^\"'=<>`\x00-\x20]+|"
+                r"'[^']*'|\"[^\"]*\"))?)*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*[>])\s*$", re.IGNORECASE), None),
+)
+MARKDOWN_HOLDS = {"document": None, "block_quote": None, "item": None, "list": "item"}
 # A YAML block scalar's header: a line that ends with "|" (literal) or ">" (folded),
 # their indicators - an indentation of 1 to 9, "+" or "-" - and a comment perhaps, after
 # a sequence entry's "- ", a key, both or neither, and a tag or an anchor perhaps.
@@ -1559,109 +1584,230 @@ def yaml_command_ends(lines, first, last, ends):
                 ends.add(line_number)
 
 
-def markdown_command_ends(lines, ends):
+def markdown_command_ends(lines, ends, quoted=None):
     """Add to ends the number of each line of a Markdown document after which the shell
-    ends a command: each line of a code block, as CommonMark reads one - a fenced block,
-    which ends at a line of the same mark, at least as long, and nothing else, at the end
-    of the list item it stands in or at the document's end, and an indented one, a line
-    four spaces or more inside the list item it stands in (MARKDOWN_ITEM, of its
-    content's column) that no paragraph's line comes just before, and the lines after it
-    so indented or empty - but in a fence whose info string is yaml or yml, which is YAML
-    (yaml_command_ends). A list item ends at a line less indented than its content that
-    follows an empty line or is a fence, a heading or another item; a paragraph runs on
-    into any other line, as CommonMark's lazy lines do, and into an empty item or one
-    numbered other than 1 that would begin a list."""
-    def indented(at):
-        line = lines[at].expandtabs(4)
-        return len(line) - len(line.lstrip(" "))
+    ends a command: each line of the text of a code block - an indented one, or a fenced
+    one's between its fences, but a fence's whose info string is yaml or yml, which is
+    YAML (yaml_command_ends, of its lines' text) - wherever it stands, in a list item or
+    a block quote too, as CommonMark's reference implementation reads the document's
+    blocks (commonmark.js's incorporateLine): each line continues the open blocks it can,
+    outermost first (a block quote by its ">", a list item by its indentation, a fenced
+    block up to its closing fence, an indented block by four spaces, an HTML block up to
+    its end, a paragraph unless the line is empty); then begins the blocks it begins, in
+    CommonMark's order (a block quote, an ATX heading, a fence, an HTML block, a setext
+    underline, a thematic break, a list item, indented code); and is a paragraph's lazy
+    line, or the text of the block it ends in. Tabs are stops of four columns. quoted,
+    if given, takes the column each line's text begins at after its block quotes' marks,
+    by the line's number, for a line with any (its tabs expanded so)."""
+    blocks = [{"kind": "document", "children": 0}]
+    fences = []
 
-    def code(first, column):
-        # an indented code block from lines[first], its lines so indented or empty
-        at = first + 1
-        while at < len(lines) and (not lines[at].strip() or indented(at) >= column):
-            at += 1
-        ends.update(n for n in range(first, at) if lines[n].strip())
-        return at
+    def add(block):
+        # a block, in the innermost open block that can hold it
+        while not (blocks[-1]["kind"] in MARKDOWN_HOLDS and (
+                block["kind"] == MARKDOWN_HOLDS[blocks[-1]["kind"]] if MARKDOWN_HOLDS[blocks[-1]["kind"]] else block["kind"] != "item")):
+            blocks.pop()
+        blocks[-1]["children"] += 1
+        block["children"] = 0
+        blocks.append(block)
+        return block
 
-    def fence(opened, first, inside):
-        # a fenced code block opened on the line before lines[first], in a list item whose
-        # content stands at the column inside
-        mark = opened.group(1) or opened.group(3)
-        info = (opened.group(2) if opened.group(1) else opened.group(4)).split()
-        closing = re.compile(r"^%s%s*$" % (re.escape(mark), re.escape(mark[0])))
-        at = first
-        while at < len(lines) and not (lines[at].strip() and indented(at) < inside):
-            if closing.match(lines[at].strip()) and indented(at) < inside + 4:
-                break
-            at += 1
-        if info and info[0].strip("{}.").lower() in ("yaml", "yml"):
-            yaml_command_ends(lines, first, at, ends)
-        else:
-            ends.update(range(first, at))
-        closed = at < len(lines) and closing.match(lines[at].strip()) and inside <= indented(at) < inside + 4
-        return at + 1 if closed else at
+    for number, raw in enumerate(lines):
+        line = raw.expandtabs(4)
+        offset = 0
 
-    items = []
-    after_block = True
-    number = 0
-    while number < len(lines):
-        line = lines[number].expandtabs(4)
-        number += 1
-        if not line.strip():
-            after_block = True
+        def at(column):
+            return line[column] if column < len(line) else ""
+
+        def nonspace(column):
+            while at(column) == " ":
+                column += 1
+            return column
+
+        # the open blocks the line continues
+        matched = 1
+        fence_closed = False
+        for block in blocks[1:]:
+            first = nonspace(offset)
+            indent, blank = first - offset, first >= len(line)
+            kind = block["kind"]
+            if kind == "block_quote":
+                if indent < 4 and at(first) == ">":
+                    offset = first + 1
+                    if at(offset) == " ":
+                        offset += 1
+                    if quoted is not None:
+                        quoted[number] = offset
+                else:
+                    break
+            elif kind == "item":
+                if blank:
+                    if not block["children"]:
+                        break  # an item that began with an empty line ends at the next
+                    offset = first
+                elif indent >= block["width"]:
+                    offset += block["width"]
+                else:
+                    break
+            elif kind == "fence":
+                closing = MARKDOWN_FENCE_END.match(line[first:]) if indent <= 3 and at(first) == block["mark"] else None
+                if closing and len(closing.group(0)) >= block["length"]:
+                    fence_closed = True
+                    break
+                for _ in range(block["offset"]):
+                    if at(offset) == " ":
+                        offset += 1
+            elif kind == "code":
+                if indent >= 4:
+                    offset += 4
+                elif blank:
+                    offset = first
+                else:
+                    break
+            elif kind == "html":
+                if blank and block["type"] >= 6:
+                    break
+            elif kind == "paragraph":
+                if blank:
+                    break
+            elif kind != "list":
+                break  # a heading or a thematic break holds one line
+            matched += 1
+        if fence_closed:
+            del blocks[matched:]
             continue
-        indent = indented(number - 1)
-        held = [column for column in items if column <= indent]
-        relative = indent - (held[-1] if held else 0)
-        opened = CODE_FENCE.match(line.strip())
-        heading = re.match(r"^#{1,6}(?:\s|$)", line.strip())
-        item = MARKDOWN_ITEM.match(line)
-        if item and not after_block and indent >= (items[-1] if items else 0) and \
-                (not item.group(3) or item.group(1)[0].isdigit() and int(item.group(1)[:-1]) != 1):
-            # a paragraph runs into an empty item, or a list numbered from other than 1
-            item = None
-        started = relative < 4 and (opened or heading or item)
-        if after_block or started:
-            items = held
-        inside = items[-1] if items else 0
-        if after_block and relative >= 4:
-            number = code(number - 1, inside + 4)
-        elif started and opened:
-            number = fence(opened, number, inside)
-            after_block = True
-        elif started and item:
-            spaces = len(item.group(2) or "")
-            items.append(indent + len(item.group(1)) + (spaces if item.group(3) and spaces <= 4 else 1))
-            text = item.group(3) or ""
-            after_block = not text or re.match(r"^#{1,6}(?:\s|$)", text) is not None
-            if text and spaces > 4:
-                # the item's text begins with an indented code block
-                number = code(number - 1, items[-1] + 4)
-                after_block = True
-            elif CODE_FENCE.match(text.strip()):
-                number = fence(CODE_FENCE.match(text.strip()), number, items[-1])
-                after_block = True
+        container = blocks[matched - 1]
+        all_matched = matched == len(blocks)
+        unmatched = [True]
+
+        def close_unmatched():
+            if unmatched[0]:
+                del blocks[matched:]
+                unmatched[0] = False
+
+        # the blocks the line begins
+        leaf = container["kind"] in ("code", "fence", "html")
+        while not leaf:
+            first = nonspace(offset)
+            indent, blank = first - offset, first >= len(line)
+            rest = line[first:]
+            if indent < 4 and not MARKDOWN_SPECIAL.match(rest):
+                offset = first
+                break
+            if indent < 4 and rest.startswith(">"):
+                offset = first + 1
+                if at(offset) == " ":
+                    offset += 1
+                if quoted is not None:
+                    quoted[number] = offset
+                close_unmatched()
+                container = add({"kind": "block_quote"})
+                continue
+            if indent < 4 and MARKDOWN_HEADING.match(rest):
+                close_unmatched()
+                container = add({"kind": "heading"})
+                offset = len(line)
+                break
+            opened = MARKDOWN_FENCE.match(rest) if indent < 4 else None
+            if opened:
+                close_unmatched()
+                container = add({"kind": "fence", "mark": opened.group(0)[0], "length": len(opened.group(0)), "offset": indent,
+                                 "info": rest[len(opened.group(0)):].strip(), "opened": number, "text": []})
+                fences.append(container)
+                offset = len(line)
+                break
+            if indent < 4 and rest.startswith("<"):
+                html = next((kind for kind, (start, _) in enumerate(MARKDOWN_HTML, 1) if start.match(rest) and (
+                    kind < 7 or container["kind"] != "paragraph" and
+                    not (not all_matched and not blank and blocks[-1]["kind"] == "paragraph"))), None)
+                if html:
+                    close_unmatched()
+                    container = add({"kind": "html", "type": html})
+                    break
+            if indent < 4 and container["kind"] == "paragraph" and MARKDOWN_UNDERLINE.match(rest):
+                close_unmatched()
+                container["kind"] = "heading"
+                offset = len(line)
+                break
+            if indent < 4 and MARKDOWN_BREAK.match(rest):
+                close_unmatched()
+                container = add({"kind": "break"})
+                offset = len(line)
+                break
+            bullet = MARKDOWN_BULLET.match(rest) if indent < 4 else None
+            ordered = None if bullet or indent >= 4 else MARKDOWN_NUMBER.match(rest)
+            if ordered and container["kind"] == "paragraph" and int(ordered.group(1)) != 1:
+                ordered = None  # a paragraph runs into a list numbered from other than 1
+            marker = bullet or ordered
+            if marker and at(first + len(marker.group(0))) in ("", " ") and not (
+                    container["kind"] == "paragraph" and not line[first + len(marker.group(0)):].strip()):
+                start = first + len(marker.group(0))
+                spaces = len(line[start:]) - len(line[start:].lstrip(" "))
+                if spaces >= 5 or start + spaces >= len(line):
+                    padding, offset = len(marker.group(0)) + 1, start + (1 if at(start) == " " else 0)
+                else:
+                    padding, offset = len(marker.group(0)) + spaces, start + spaces
+                close_unmatched()
+                style = ("bullet", marker.group(0)) if bullet else ("ordered", ordered.group(2))
+                if blocks[-1]["kind"] != "list" or blocks[-1]["style"] != style:
+                    add({"kind": "list", "style": style})
+                container = add({"kind": "item", "width": indent + padding})
+                continue
+            if indent >= 4 and blocks[-1]["kind"] != "paragraph" and not blank:
+                offset += 4
+                close_unmatched()
+                container = add({"kind": "code"})
+                break
+            offset = first
+            break
+        # a paragraph's lazy line, or the text of the block the line ends in
+        blank = nonspace(offset) >= len(line)
+        if not all_matched and not blank and blocks[-1]["kind"] == "paragraph" and unmatched[0]:
+            continue
+        close_unmatched()
+        kind = container["kind"]
+        if kind == "code":
+            if not blank:
+                ends.add(number)
+        elif kind == "fence":
+            if number != container["opened"]:
+                container["text"].append((number, line[offset:]))
+        elif kind == "html":
+            end = MARKDOWN_HTML[container["type"] - 1][1]
+            if end is not None and end.search(line[offset:]):
+                blocks.pop()
+        elif kind != "paragraph" and not blank:
+            add({"kind": "paragraph"})
+    for block in fences:
+        info = block["info"].split()
+        if info and info[0].strip("{}.").lower() in ("yaml", "yml"):
+            texts = [text for _, text in block["text"]]
+            within = set()
+            yaml_command_ends(texts, 0, len(texts), within)
+            ends.update(block["text"][at][0] for at in within)
         else:
-            after_block = bool(started)
+            ends.update(at for at, text in block["text"] if text.strip())
 
 
 def gate_flat(text, yaml=False):
     """A document as one line - a YAML document's if yaml, else a Markdown one's: each
-    line's indentation and comment marks (YAML's #, a heading's) taken off and its spaces
-    made one, and the lines joined by a space, so that a command wrapped over two lines
-    of prose, of a YAML comment or of a script's item reads as one. Where the shell ends
-    a command at the end of a line - in a fenced code block or a YAML block scalar
-    (markdown_command_ends, yaml_command_ends) - a line that does not end with a
-    continuation (a shell's \\, PowerShell's `, cmd's ^) ends with " ;", which no
+    line's indentation, block quote marks and comment marks (YAML's #, a heading's) taken
+    off and its spaces made one, and the lines joined by a space, so that a command
+    wrapped over two lines of prose, of a YAML comment or of a script's item reads as
+    one. Where the shell ends a command at the end of a line - in a code block or a YAML
+    block scalar (markdown_command_ends, yaml_command_ends) - a line that does not end
+    with a continuation (a shell's \\, PowerShell's `, cmd's ^) ends with " ;", which no
     argument of a command crosses (GATE_COMMAND)."""
     lines = text.split("\n")
-    ends = set()
+    ends, quoted = set(), {}
     if yaml:
         yaml_command_ends(lines, 0, len(lines), ends)
     else:
-        markdown_command_ends(lines, ends)
+        markdown_command_ends(lines, ends, quoted)
     parts = []
     for number, line in enumerate(lines):
+        if number in quoted:
+            line = line.expandtabs(4)[quoted[number]:]
         part = " ".join(line.strip().lstrip("#").split())
         if number in ends and part and not part.endswith(("\\", "`", "^")):
             part += " ;"
@@ -5420,15 +5566,16 @@ def self_test(chain, feed):
     # words, on the line after a change's gate or after a command with them, in a code
     # block or a job's script, without the build/ci/ path, by a Windows path, with no
     # option, with prose after it that names --exceptions, in a fenced or an indented
-    # code block, a job's literal block or one of a yaml code block with --exceptions or
-    # --merge-request on the next line and no backslash, in a folded block whose next line
-    # YAML keeps apart - or with no file or the checkout's own copy after --exceptions,
-    # each reported as that command alone, where two commands with them on two lines, one
-    # continued by a shell's backslash, between --exceptions and its file too, or by
-    # PowerShell's backtick, one wrapped over two lines of a paragraph, of a script's item
-    # in a yaml code block, of a folded block that YAML folds into one, one with "=", one
-    # whose placeholder names master's copy, the script named and not run, a change's
-    # gate and the self-test pass.
+    # code block, a block quote's, a job's literal block or one of a yaml code block with
+    # --exceptions or --merge-request on the next line and no backslash, in a folded block
+    # whose next line YAML keeps apart - or with no file or the checkout's own copy after
+    # --exceptions, each reported as that command alone, where two commands with them on
+    # two lines, one continued by a shell's backslash, between --exceptions and its file
+    # too, in a block quote too, or by PowerShell's backtick, one wrapped over two lines of
+    # a paragraph, a block quote's too, of a script's item in a yaml code block, of a
+    # folded block that YAML folds into one, of an HTML block with a fence in it, one with
+    # "=", one whose placeholder names master's copy, the script named and not run, a
+    # change's gate and the self-test pass.
     broken("step 9 asking the gate with the checkout's exceptions", "release-md",
            "security-gate.py --artifacts <dir> --exceptions <file>", "security-gate.py --artifacts <dir>",
            "RELEASE.md's step 9 gives no command")
@@ -5511,6 +5658,9 @@ def self_test(chain, feed):
             ("a command in a literal block of a yaml code block, wrapped", "hmailserver/docs/Planted.md",
              "```yaml\nplanted:\n  script:\n    - |\n      python3 build/ci/security-gate.py --artifacts .\n"
              "      --exceptions <file>\n```\n", "python3 build/ci/security-gate.py --artifacts ."),
+            ("a command in a block quote's code block wrapped without the shell's backslash", "hmailserver/docs/Planted.md",
+             "> ```\n> python3 build/ci/security-gate.py --artifacts <dir>\n>     --exceptions <file>\n> ```\n",
+             "python3 build/ci/security-gate.py --artifacts <dir>"),
             ("a command in a folded block whose next line YAML keeps apart", ".gitlab/ci/planted.yml",
              "planted:\n  script:\n    - >\n      python3 build/ci/security-gate.py --artifacts .\n        --exceptions master.yml\n",
              "python3 build/ci/security-gate.py --artifacts ."),
@@ -5527,6 +5677,13 @@ def self_test(chain, feed):
              "```powershell\npython3 build/ci/security-gate.py --artifacts <dir> `\n    --exceptions <file>\n```\n", None),
             ("a command with --exceptions wrapped over two lines of a paragraph", "hmailserver/docs/Planted.md",
              "Ask it as `python3 build/ci/security-gate.py --artifacts <dir>\n--exceptions <file>` before the tag.\n", None),
+            ("a command with --exceptions in a block quote's code block continued by a shell's backslash",
+             "hmailserver/docs/Planted.md",
+             "> ```\n> python3 build/ci/security-gate.py --artifacts <dir> \\\n>     --exceptions <file>\n> ```\n", None),
+            ("a command with --exceptions wrapped over two lines of a block quote's paragraph", "hmailserver/docs/Planted.md",
+             "> Ask it as `python3 build/ci/security-gate.py --artifacts <dir>\n> --exceptions <file>` before the tag.\n", None),
+            ("a command with --exceptions over the lines of an HTML block, a fence among them", "hmailserver/docs/Planted.md",
+             "<details>\n```\npython3 build/ci/security-gate.py --artifacts <dir>\n--exceptions <file>\n```\n</details>\n", None),
             ("a script item of a yaml code block continued on the next line", "hmailserver/docs/Planted.md",
              "```yaml\nplanted:\n  script:\n    - python3 build/ci/security-gate.py --artifacts .\n      --exceptions <file>\n```\n",
              None),
