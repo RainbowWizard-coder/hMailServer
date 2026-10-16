@@ -31,10 +31,6 @@ namespace HM
       // rather than at the next stop or start of the servers.
       void SweepRetiredQueues();
 
-      // How many removed queues are still kept because a worker thread was inside
-      // when their stop gave up. For the tests.
-      int GetRetiredQueueCount();
-
       void AddTask(size_t iQueueID, std::shared_ptr<Task> pTask);
 
       std::shared_ptr<WorkQueue> GetQueue(const String &sQueueName);
@@ -79,5 +75,33 @@ namespace HM
       // CreateWorkQueue for what reissuing an id costs.
       size_t next_queue_id_;
 
+   };
+
+   // A work queue removed while one of its worker threads is still inside
+   // io_context::run() - a task in a wait nothing in the queue can interrupt,
+   // past the stop's ten seconds - through the manager, as every queue of the
+   // server's is removed. Two queues are removed side by side while each runs a
+   // twenty-second task; the second is given a stand-in to keep alive (an
+   // io_context and a counter, which its task holds by reference as the IOCP
+   // queue's tasks hold the TCP/IP service's context), which the test lets go
+   // of right after the remove, as Application::StopServers_ lets go of the
+   // TCP/IP service. It holds that each remove returns while its task still
+   // runs, that both threads are counted (WorkQueue::GetThreadsLeft), that both
+   // queues and the stand-in are kept while the tasks run, that the stand-in is
+   // not freed before its queue, and that a sweep once the threads have left
+   // frees both queues and the stand-in. A queue freed under its thread, or a
+   // stand-in freed under the task, is a use of freed memory: under
+   // AddressSanitizer a reported fault, and on Windows, whose io_context's
+   // destructor waits for the task, a remove that returns only once the task
+   // has ended.
+   //
+   // Run inside the server on Windows by ClassTester, and on Linux by
+   // workqueue-teardown-tests, in the ordinary build and under
+   // AddressSanitizer (linux-sanitize). Throws std::logic_error naming what did
+   // not hold. About twenty seconds.
+   class WorkQueueTeardownTester
+   {
+   public:
+      void Test();
    };
 }

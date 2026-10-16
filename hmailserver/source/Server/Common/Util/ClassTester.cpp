@@ -6,6 +6,7 @@
 #include "ClassTester.h"
 #include "../Application/BackupManager.h"
 #include "../Application/TimeoutCalculator.h"
+#include "../Threading/WorkQueueManager.h"
 #include "../BO/MessageData.h"
 #include "../BO/Message.h"
 #include "../BO/Account.h"
@@ -1020,6 +1021,23 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the servers' mutex\n"));
       ServersLockTester serversLockTester;
       serversLockTester.Test();
+
+      // A work queue whose stop gives up on a thread still inside it, removed
+      // through the manager as the server's queues are: kept, with what it was
+      // given to keep alive, until the thread has left, and freed by the sweep
+      // after (WorkQueueManager::RemoveQueue). workqueue-teardown-tests runs
+      // the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing a work queue's teardown while a thread is still in it\n"));
+      WorkQueueTeardownTester workQueueTeardownTester;
+      workQueueTeardownTester.Test();
+
+      // The TCP/IP service across a stop of the servers that gives up on a task
+      // of a session queue, and on a handler on a listener's strand: kept until
+      // the thread has left and freed after, and the start made meanwhile
+      // listening on that listener's port. It stops and starts the servers.
+      OutputDebugString(_T("hMailServer: Testing the TCP/IP service across a stop that gives up on one of its threads\n"));
+      IOServiceLifetimeTester ioServiceLifetimeTester;
+      ioServiceLifetimeTester.Test();
 
       // The close before the process ends (Application::ShutDown), over a
       // manager of the test's own with stand-in connections: an idle one is

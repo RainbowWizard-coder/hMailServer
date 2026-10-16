@@ -21,6 +21,8 @@ namespace HM
    class ScheduledTask;
    class WorkQueue;
    class IOService;
+   class IPAddress;
+   class TCPServer;
    class ServerMessages;
    class NotificationServer;
    class FolderManager;
@@ -537,5 +539,39 @@ namespace HM
       void TestTheServicesStartTakesTheLockFirst_();
       void TestAWorkQueuesThreadLeftEndsTheProcessWhileItRuns_();
       void TestAConnectionInUseIsLeftOpenAndTheRestClosed_();
+   };
+
+   // The TCP/IP service across a stop of the servers that gives up on one of the
+   // threads it has work on, driven through Application itself, in a running
+   // server - so on Windows, through ClassTester, alone. Two rounds, each a stop
+   // and a start of the servers:
+   //
+   //   - a task of the asynchronous-task queue, one of the session queues, held
+   //     in a wait the stop cannot interrupt past the queue's ten seconds: the
+   //     stop returns while it still runs, the service is kept - by that queue,
+   //     which is given it to keep (Application::CreateSessionWorkQueues_) -
+   //     until the task has ended, and a sweep then frees it;
+   //   - a handler held on a listener's strand, as HandleAccept is while it runs
+   //     the OnClientConnect script, on one of the IOCP queue's threads: the
+   //     stop returns while it still runs, the service is kept - by the IOCP
+   //     queue (IOService::DoWork) - and the start made while the thread is
+   //     still there listens on that listener's port, whose old acceptor the
+   //     stop has closed (TCPServer::Close); once the handler has ended a sweep
+   //     frees the old service.
+   //
+   // About forty seconds, nearly all of it the stops' waits. Throws
+   // std::logic_error naming what did not hold in either round; the servers
+   // are started again either way.
+   class IOServiceLifetimeTester
+   {
+   public:
+      void Test();
+
+   private:
+      String TestAQueueTaskHeld_();
+      String TestAListenersHandlerHeld_();
+
+      // The listener of that service on that address and port, if it has one.
+      static std::shared_ptr<TCPServer> ListenerOn_(IOService &service, const IPAddress &address, int port);
    };
 }

@@ -65,6 +65,10 @@ namespace HM
       boost::asio::ssl::context &GetClientContext();
    private:
 
+      // Holds a handler on a listener's strand across a stop and a start of the
+      // servers, and looks for the next start's listener on that port.
+      friend class IOServiceLifetimeTester;
+
       const String asynchronous_tasks_queue_;
 
       std::set<SessionType> session_types_;

@@ -568,9 +568,10 @@ set_target_properties(snmp-tests PROPERTIES OUTPUT_NAME snmp-tests)
 #
 # A work queue removed while a worker thread is still inside io_context::run() -
 # a task in a wait the queue cannot interrupt, past the stop's ten-second give-up
-# - as a program of its own, for the reason spf-tests is one: on Windows the
-# threads a stop gives up on are covered by ServersLockTester inside the service,
-# which nothing reaches here. The queue, and what it was given to keep alive (the
+# - as a program of its own, for the reason spf-tests is one: on Windows
+# WorkQueueTeardownTester (Common/Threading/WorkQueueManager.h), which this
+# program runs, runs inside the service through ClassTester, which nothing
+# reaches here. The queue, and what it was given to keep alive (the
 # IOService, for the IOCP and session queues), are kept until the worker leaves
 # and freed after it; built under HM_SANITIZE (above) this is the second program
 # the linux-sanitize CI job runs, and on a tree that frees either under the

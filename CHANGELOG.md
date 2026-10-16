@@ -621,11 +621,15 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   that listener's strand, which a thread in its accept handler, running the `OnClientConnect` script, holds - so that
   the servers a reinitialise starts while such a thread is still there listen on every port. Once the thread has left,
   the queue and the service are freed within a minute (the queue health task) or at the next start or stop, and the
-  connections still on the old service are closed then. `workqueue-teardown-tests`, a tester the Linux build runs and
-  `linux-sanitize` runs under AddressSanitizer, removes two queues while their tasks wait twenty seconds: on the tree
-  before this change AddressSanitizer reports the use of the freed queue and the freed object it kept, and here both
-  are kept until the tasks end and freed after. `API.Events` and `API.EventsJavaScript` reinitialise while an
-  `OnClientConnect` script runs on, and require the port to greet while it still runs and once it has ended.
+  connections still on the old service are closed then. `WorkQueueTeardownTester` removes two queues while their tasks
+  wait twenty seconds, inside the server on Windows (`ClassTester`) and as `workqueue-teardown-tests`, a tester the
+  Linux build runs and `linux-sanitize` runs under AddressSanitizer: on the tree before this change AddressSanitizer
+  reports the use of the freed queue and the freed object it kept, and here both are kept until the tasks end and
+  freed after. `IOServiceLifetimeTester`, inside the server on Windows, stops and starts the servers while a task of a
+  session queue, and then a handler on a listener's strand, is held past the stop's give-up, and holds the TCP/IP
+  service to being kept until the thread has left and freed after, and the start to listening on that listener's port.
+  `API.Events` and `API.EventsJavaScript` reinitialise while an `OnClientConnect` script runs on, and require the port
+  to greet while it still runs and once it has ended.
 
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
@@ -854,18 +858,19 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   thread that the stop of one of the server's work queues has given up on, after its ten seconds - a delivery, a script,
   an external account's fetch or a lookup held by a database or a host that has stopped answering - still runs, where
   the database was closed under that thread too (in every version) - on Linux, where it was measured. On Windows such a
-  stop did not get that far until 6.3.7: the queue's teardown waited for the thread's task to end, however long it took,
-  and the thread then went on in the queue it had let go of, which faulted in the re-check's run, the stop never
-  finishing (in every version until the entry above on a work queue a stop gave up on). Either way, a connection in use
-  is closed once its caller hands it back, none is handed out after the close, and a thread that asks for one is
-  answered that there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its
-  connections: one made after the close is now closed rather than put in the pool, which took it without the pool's lock
-  while the close read and cleared the pool, and the start is answered that the database was closed, which is written to
-  the application log once logging is configured, as in a reinitialise, rather than reported as a database that
-  could not be reached, or whose version could not be detected; at the service's start, before its settings are
-  loaded, nothing is written, and the process ends at once. The checks made on a connection once they are all made -
-  the server's version, and on MySQL the internal database's upkeep - run with that connection checked out, where
-  they ran on the first connection in the pool, read without the lock: the close could clear the pool or close the
+  stop did not get that far: the queue's teardown waited for the thread's task to end, however long it took (in every
+  version), and in the re-check's run the thread then went on in the queue it had let go of and faulted, the stop never
+  finishing. The entry above on a work queue a stop gave up on ends that wait; on Windows its tests stop and
+  reinitialise the servers past such a thread, and the stop before the process ends has not been measured there. Either
+  way, a connection in use is closed once its caller hands it back, none is handed out after the close, and a thread
+  that asks for one is answered that there is none. A start or a reinitialise that such a stop gave up waiting for may
+  still be making its connections: one made after the close is now closed rather than put in the pool, which took it
+  without the pool's lock while the close read and cleared the pool, and the start is answered that the database was
+  closed, which is written to the application log once logging is configured, as in a reinitialise, rather than reported
+  as a database that could not be reached, or whose version could not be detected; at the service's start, before its
+  settings are loaded, nothing is written, and the process ends at once. The checks made on a connection once they are
+  all made - the server's version, and on MySQL the internal database's upkeep - run with that connection checked out,
+  where they ran on the first connection in the pool, read without the lock: the close could clear the pool or close the
   connection under them, and another caller could be handed it meanwhile. A pool of no connections at all
   (`[Database] NumberOfConnections` below 1) is refused as one that could not connect, where the first connection
   was read from the empty pool. SQL Server Compact, the database of a default Windows installation, runs in the

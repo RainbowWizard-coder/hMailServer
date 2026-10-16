@@ -73,6 +73,7 @@
 #include "../Sieve/ManageSieveServer.h"
 #include "../Util/WebServicesServer.h"
 #include "../TCPIP/IOService.h"
+#include "../TCPIP/TCPServer.h"
 
 #include "../BO/Message.h"
 #include "../BO/Domain.h"
@@ -3711,5 +3712,322 @@ namespace HM
       const int limit = Application::ComServersWaitSeconds;
       if (call->took < std::chrono::seconds(limit) - std::chrono::milliseconds(500))
          throw std::logic_error("ServersLockTester: a reinitialise asked from an event script during a stop was refused without waiting the few seconds it waits.");
+   }
+
+   namespace
+   {
+      // What a handler or a task IOServiceLifetimeTester holds waits on, and
+      // what it says, shared so that a thread the test gives up on has what it
+      // reads. The hold is bounded, so that a test that fails never leaves a
+      // thread waiting for ever.
+      struct LifetimeHold
+      {
+         std::mutex lock;
+         std::condition_variable changed;
+         bool began = false;
+         bool let_go = false;
+         bool ended = false;
+
+         // Not a Boost interruption point: a stop's interrupt() does not reach
+         // it, as it does not reach a scanner's socket or a script's loop.
+         void Hold()
+         {
+            Set([this]() { began = true; });
+            {
+               std::unique_lock<std::mutex> guard(lock);
+               changed.wait_for(guard, std::chrono::seconds(90), [this]() { return let_go; });
+            }
+            Set([this]() { ended = true; });
+         }
+
+         void LetGo()
+         {
+            Set([this]() { let_go = true; });
+         }
+
+         bool HasEnded()
+         {
+            std::lock_guard<std::mutex> guard(lock);
+            return ended;
+         }
+
+         template <typename Predicate>
+         bool WaitFor(std::chrono::seconds within, Predicate predicate)
+         {
+            std::unique_lock<std::mutex> guard(lock);
+            return changed.wait_for(guard, within, predicate);
+         }
+
+         template <typename Change>
+         void Set(Change change)
+         {
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               change();
+            }
+            changed.notify_all();
+         }
+      };
+
+      class LifetimeHeldTask : public Task
+      {
+      public:
+         explicit LifetimeHeldTask(const std::shared_ptr<LifetimeHold> &hold) :
+            Task("IOServiceLifetimeTester's held task"),
+            hold_(hold)
+         {
+         }
+
+      protected:
+         void DoWork() override
+         {
+            hold_->Hold();
+         }
+
+      private:
+         std::shared_ptr<LifetimeHold> hold_;
+      };
+
+      template <typename Condition>
+      bool WaitUntil(std::chrono::seconds bound, Condition condition)
+      {
+         const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + bound;
+         for (;;)
+         {
+            if (condition())
+               return true;
+
+            if (std::chrono::steady_clock::now() >= until)
+               return false;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(25));
+         }
+      }
+   }
+
+   void
+   IOServiceLifetimeTester::Test()
+   {
+      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+         throw std::logic_error("IOServiceLifetimeTester: the servers were not running, and the test stops and starts them.");
+
+      // Both are run whatever the first answers, and both answers given.
+      const String queueTask = TestAQueueTaskHeld_();
+      const String listenerHandler = TestAListenersHandlerHeld_();
+
+      if (queueTask.IsEmpty() && listenerHandler.IsEmpty())
+         return;
+
+      String said = _T("IOServiceLifetimeTester:");
+      if (!queueTask.IsEmpty())
+      {
+         said += _T(" with a task of the asynchronous-task queue held, ");
+         said += queueTask;
+      }
+      if (!listenerHandler.IsEmpty())
+      {
+         said += _T(" with a handler on a listener's strand held, ");
+         said += listenerHandler;
+      }
+
+      throw std::logic_error(AnsiString(said).c_str());
+   }
+
+   std::shared_ptr<TCPServer>
+   IOServiceLifetimeTester::ListenerOn_(IOService &service, const IPAddress &address, int port)
+   {
+      boost::lock_guard<boost::mutex> guard(service.tcp_servers_mutex_);
+      for (const std::shared_ptr<TCPServer> &listener : service.tcp_servers_)
+      {
+         if (listener->GetPort() == port && listener->GetAddress().GetAddress() == address.GetAddress())
+            return listener;
+      }
+
+      return std::shared_ptr<TCPServer>();
+   }
+
+   String
+   IOServiceLifetimeTester::TestAQueueTaskHeld_()
+   {
+      Application &application = *Application::Instance();
+      WorkQueueManager &manager = *WorkQueueManager::Instance();
+
+      std::shared_ptr<WorkQueue> queue = application.GetAsyncWorkQueue();
+      std::weak_ptr<IOService> seen = application.GetIOService();
+      if (!queue || seen.expired())
+         return _T("the asynchronous-task queue or the TCP/IP service did not exist.");
+
+      // A task of one of the session queues, which are given the TCP/IP service
+      // to keep alive (Application::CreateSessionWorkQueues_): a finalisation
+      // waiting on a scanner, say, which the stop cannot interrupt.
+      std::shared_ptr<LifetimeHold> hold = std::make_shared<LifetimeHold>();
+      queue->AddTask(std::make_shared<LifetimeHeldTask>(hold));
+      queue.reset();
+
+      if (!hold->WaitFor(std::chrono::seconds(60), [&hold]() { return hold->began; }))
+      {
+         hold->LetGo();
+         return _T("the queue began no task within a minute.");
+      }
+
+      const int before = WorkQueue::GetThreadsLeft();
+
+      // Ten seconds, and the queue's stop gives up on the held thread.
+      const String refused = application.StopServers();
+
+      // Then only the held thread is still counted, and a sweep frees nothing
+      // that it keeps.
+      const bool settled = WaitUntil(std::chrono::seconds(30), [before]() { return WorkQueue::GetThreadsLeft() == before + 1; });
+      manager.SweepRetiredQueues();
+
+      const bool heldThroughTheStop = !hold->HasEnded();
+      const bool letGoOfByTheServers = !application.GetIOService();
+      const bool keptWhileHeld = !seen.expired();
+
+      hold->LetGo();
+      const bool ended = hold->WaitFor(std::chrono::seconds(60), [&hold]() { return hold->ended; });
+      const bool left = ended && WaitUntil(std::chrono::seconds(30), [before]() { return WorkQueue::GetThreadsLeft() == before; });
+      manager.SweepRetiredQueues();
+      const bool freedAfter = seen.expired();
+
+      String startRefused;
+      const bool started = application.StartServers(0, &startRefused);
+
+      if (!refused.IsEmpty())
+         return String(_T("the stop of the servers was refused: ")) + refused;
+
+      if (!heldThroughTheStop)
+         return _T("the stop of the servers returned only once the task had ended: it waited for the thread its queue's stop had given up on.");
+
+      if (!settled)
+         return _T("the thread the stop gave up on was not counted, or another was still counted thirty seconds after the stop (WorkQueue::GetThreadsLeft).");
+
+      if (!letGoOfByTheServers)
+         return _T("the servers had not let go of the TCP/IP service after the stop.");
+
+      if (!keptWhileHeld)
+         return _T("the TCP/IP service was freed while the task, which the stop had given up on, still ran in its queue.");
+
+      if (!left)
+         return _T("the thread the stop gave up on had not left within half a minute of its task's end.");
+
+      if (!freedAfter)
+         return _T("the TCP/IP service was still kept after the task had ended and a sweep had run.");
+
+      if (!started)
+         return String(_T("the servers did not start again after the test: ")) + startRefused;
+
+      return String();
+   }
+
+   String
+   IOServiceLifetimeTester::TestAListenersHandlerHeld_()
+   {
+      Application &application = *Application::Instance();
+      WorkQueueManager &manager = *WorkQueueManager::Instance();
+
+      std::shared_ptr<IOService> service = application.GetIOService();
+      if (!service)
+         return _T("the TCP/IP service did not exist.");
+
+      // A listening port, and the strand its accept completions run on. A
+      // handler held there stands in for HandleAccept running the
+      // OnClientConnect script, on one of the TCP/IP service's own threads -
+      // those of the IOCP queue, which is given the service to keep alive
+      // (IOService::DoWork).
+      std::shared_ptr<TCPServer> listener;
+      {
+         boost::lock_guard<boost::mutex> guard(service->tcp_servers_mutex_);
+         for (const std::shared_ptr<TCPServer> &candidate : service->tcp_servers_)
+         {
+            if (candidate->IsListening())
+            {
+               listener = candidate;
+               break;
+            }
+         }
+      }
+
+      if (!listener)
+         return _T("no port of the TCP/IP service was listening.");
+
+      const IPAddress address = listener->GetAddress();
+      const int port = listener->GetPort();
+      std::weak_ptr<IOService> seen = service;
+
+      std::shared_ptr<LifetimeHold> hold = std::make_shared<LifetimeHold>();
+      boost::asio::dispatch(listener->GetStrand(), [hold]() { hold->Hold(); });
+      listener.reset();
+      service.reset();
+
+      if (!hold->WaitFor(std::chrono::seconds(60), [&hold]() { return hold->began; }))
+      {
+         hold->LetGo();
+         return _T("the listener's strand ran nothing within a minute.");
+      }
+
+      const int before = WorkQueue::GetThreadsLeft();
+
+      // The drain's request to close that listener waits on the strand, and the
+      // IOCP queue's stop gives up on the held thread after its ten seconds.
+      const String refused = application.StopServers();
+
+      const bool settled = WaitUntil(std::chrono::seconds(30), [before]() { return WorkQueue::GetThreadsLeft() == before + 1; });
+      manager.SweepRetiredQueues();
+
+      const bool heldThroughTheStop = !hold->HasEnded();
+      const bool keptWhileHeld = !seen.expired();
+
+      // Started again with the thread still on the old service's strand: the
+      // new service's listener on that port listens.
+      String startRefused;
+      const bool started = application.StartServers(0, &startRefused);
+
+      const bool listening = started && WaitUntil(std::chrono::seconds(20), [&application, &address, port]()
+      {
+         std::shared_ptr<IOService> current = application.GetIOService();
+         if (!current)
+            return false;
+
+         std::shared_ptr<TCPServer> again = IOServiceLifetimeTester::ListenerOn_(*current, address, port);
+         return again && again->IsListening();
+      });
+
+      const bool stillHeldAtTheStart = !hold->HasEnded();
+
+      hold->LetGo();
+      const bool ended = hold->WaitFor(std::chrono::seconds(60), [&hold]() { return hold->ended; });
+      const bool left = ended && WaitUntil(std::chrono::seconds(30), [before]() { return WorkQueue::GetThreadsLeft() == before; });
+      manager.SweepRetiredQueues();
+      const bool freedAfter = seen.expired();
+
+      if (!refused.IsEmpty())
+         return String(_T("the stop of the servers was refused: ")) + refused;
+
+      if (!heldThroughTheStop)
+         return _T("the stop of the servers returned only once the handler had ended: it waited for the thread the IOCP queue's stop had given up on.");
+
+      if (!settled)
+         return _T("the thread the stop gave up on was not counted, or another was still counted thirty seconds after the stop (WorkQueue::GetThreadsLeft).");
+
+      if (!keptWhileHeld)
+         return _T("the TCP/IP service was freed while the handler, which the stop had given up on, still ran on one of its threads.");
+
+      if (!started)
+         return String(_T("the servers did not start again: ")) + startRefused;
+
+      if (!stillHeldAtTheStart)
+         return _T("the handler had ended before the start was looked at, so the start was not tested beside it.");
+
+      if (!listening)
+         return Formatter::Format(_T("the start after the stop did not listen on {0}:{1} within twenty seconds, the port of the listener whose strand the held thread was on."), String(address.ToString()), port);
+
+      if (!left)
+         return _T("the thread the stop gave up on had not left within half a minute of the handler's end.");
+
+      if (!freedAfter)
+         return _T("the old TCP/IP service was still kept after the handler had ended and a sweep had run.");
+
+      return String();
    }
 }
