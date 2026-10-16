@@ -268,7 +268,7 @@ creation, rewriting and deletion of a custom role among them - and every domain 
 list leaves out. A route that names no domain - the server's status among them - it
 reaches as any confined credential does, and what such a route shows or changes
 beyond the list's domains is narrowed by the route's handler, or not at all (the routes
-[WebAuthorisationMatrix.md](WebAuthorisationMatrix.md) marks `own*`). Over COM an
+`hmailserver/docs/WebAuthorisationMatrix.md` marks `own*`). Over COM an
 account so assigned is refused the server's settings, a domain alias, a domain's
 name and the rest above, as it is over REST; it is a domain administrator of its
 own account's domain where its list names that domain, and of no other, since the
