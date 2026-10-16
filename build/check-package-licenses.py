@@ -35,8 +35,11 @@ and the image gets the last of a key. It reads the files of snap/, nix/ and
 platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
 build/ci/linux-image.sh, which gives kaniko the image's labels that change with each build
 as --label flags (SCANNED_FILES) - those git tracks, where there is git - by the kind of
-file (FIELD_LINES), and takes for a licence field a line, not a comment, that, blanks being
-spaces or tabs,
+file (FIELD_LINES), and takes for a licence field a line that is not a comment - one whose
+first character but blanks is a #, unless it has AppStream's licence element, for XML has
+no such comment and a shell script writes the element from a here-document, whose lines
+are the document's, so that a shell comment that names the element is taken too - and
+that, blanks being spaces or tabs,
 
   in an RPM spec             has a License tag, in any case, at the start of the line or
                              after blanks, with or without blanks before its colon;
@@ -90,8 +93,9 @@ check of RB-2's third round); and a parser directive after a byte order mark, wh
 buildkit takes off, and a YAML key after one on a file's first line were not read, a line
 that ends in an escaped backslash was taken for one Docker continues, and a chart's licence
 under the first of two keys annotations, and a licence label's line inside a value whose
-quotes a line before it opened, passed while the check printed the licence (the third check
-of RB-2's third round).
+quotes a line before it opened, passed while the check printed the licence, and a line of
+AppStream's licence that begins with a # was skipped as a comment, in AppStream's XML and in
+a shell script's here-document (the third check of RB-2's third round).
 
 What is compiled in is decided component by component against build/asset-sbom.py's
 SOURCE_COMPONENTS, the third-party parts of the source tarball as
@@ -648,7 +652,8 @@ def unheld_fields(texts, own_only):
     own_only reads, as problems: a line no reader reads that a FIELD_LINES pattern of its
     kind takes, and a line one reads that a pattern takes after where the reader ends - a
     Dockerfile's LABEL takes several key=value pairs on a line, and the image gets the last
-    of a key."""
+    of a key. A line whose first character but blanks is a # is a comment, and not read,
+    unless it has AppStream's licence element."""
     held = held_columns(texts, own_only)
     problems = []
     for path in sorted(texts):
@@ -658,7 +663,10 @@ def unheld_fields(texts, own_only):
         columns = held.get(path, {})
         for number, line in enumerate(texts[path].split("\n"), 1):
             column = columns.get(number)
-            if line.lstrip().startswith("#") or not any(p.search(line, column or 0) for p in patterns):
+            # A comment, but for a line with AppStream's licence element: XML has no # comment,
+            # and a shell script writes it from a here-document, whose lines are the document's.
+            comment = line.lstrip().startswith("#") and not re.search(APPSTREAM_LICENCE, line)
+            if comment or not any(p.search(line, column or 0) for p in patterns):
                 continue
             if column is None:
                 problems.append("%s:%d (%s) is a licence field this does not hold: put it in FIELDS, to name what is "
@@ -1400,6 +1408,21 @@ def self_test():
            longer + "'org.opencontainers.image.title=\"hMailServer\"\\\\ org.opencontainers.image.licenses")
     expect("a licence label's line at column 0 after a word that ends in a no-break space",
            changed(DOCKERFILE, '"hMailServer" \\\n' + oci, '"hMailServer"\u00a0\\\n' + oci.lstrip()), None)
+    # A line that begins with a # is no comment in XML, nor in the here-document a shell
+    # script writes XML from: such a line of AppStream's licence was skipped, and
+    # ElementTree reads the element (the third check of RB-2's third round).
+    appstream = PACKAGING + "/appimage/write-metainfo.sh"
+    expect("AppStream's licence on a line that begins with a #",
+           added(PACKAGING + "/appimage/x.metainfo.xml", "<component>\n#<project_license>MIT</project_license>\n</component>\n"),
+           "%s/appimage/x.metainfo.xml:2 (#<project_license>MIT</project_license>) is a licence field this does not hold"
+           % PACKAGING)
+    expect("AppStream's licence on a line that begins with a #, written from a here-document",
+           added(appstream, "cat > x.xml <<'XML'\n<component>\n  # <project_license>MIT</project_license>\n</component>\nXML\n"),
+           "%s:3 (# <project_license>MIT</project_license>) is a licence field this does not hold" % appstream)
+    expect("a shell comment that names AppStream's licence element", added(appstream, "true\n# no <project_license> here\n"),
+           "%s:2 (# no <project_license> here) is a licence field this does not hold" % appstream)
+    expect("a YAML comment that names AppStream's licence element",
+           added("snap/local/parts.yaml", "# <project_license> is AppStream's\nname: x\n"), None)
     # The blanks each form allows, a space and a tab, and the forms of a script's older
     # LABEL. No case tried the blanks of six of the forms or a tab in any, so that a check
     # without them passed its self-test and the tree, and a shell script's older LABEL in
