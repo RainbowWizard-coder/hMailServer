@@ -1019,98 +1019,138 @@ namespace HM
             // transaction is the one aborted. On SQL Server Compact both lock waits
             // time out. The other transaction is rolled back before this returns, and
             // what ask answered is returned.
+            //
+            // PostgreSQL looks for a deadlock once, when a waiter's deadlock_timeout
+            // runs out (1 s by default), and not again: the script's transaction is the
+            // victim only when the other is waiting for it by then. On a busy machine
+            // the other may start waiting later, its own look then finds the cycle,
+            // and the other is aborted (2 runs in 11 at a load of about 40 on 32
+            // threads, 16 October 2026). So, where the tester's user may set it (a
+            // superuser, as the CI's and the lab's are), the script's deadlock_timeout
+            // is made 3 s and the other's 10 s, inside each transaction: the other never
+            // looks first, and has 3 s to start waiting. And on every engine a deadlock
+            // whose victim was the other transaction is set up again, the script's
+            // transaction rolled back and begun again on the pool and the rows put back,
+            // three times in all before the case is said not to have been made.
             auto deadlock = [&](ScriptTransaction &script, const std::function<ScriptTransaction::Outcome()> &ask) -> ScriptTransaction::Outcome
             {
                String error;
-               Check(Script(script, Update(_T("aatxnprobe"), 1), error) == ScriptTransaction::Ran, _T("the script's first update failed: ") + error);
-               Check(Script(script, Insert(2, 20), error) == ScriptTransaction::Ran, _T("the script's insert failed: ") + error);
 
-               __int64 session = 0;
+               bool timeoutsSet = false;
                if (postgres)
                {
-                  std::shared_ptr<DALRecordset> own = script.GetConnection()->CreateRecordset();
-                  Check(own->TryOpen(script.GetConnection(), SQLCommand(_T("select pg_backend_pid() as session")), error) == DALConnection::DALSuccess && !own->IsEOF(),
-                     _T("the tester could not read the script's session: ") + error);
-                  session = own->GetInt64Value("session");
+                  std::shared_ptr<DALRecordset> role = probe.raw_->CreateRecordset();
+                  Check(role->TryOpen(probe.raw_, SQLCommand(_T("select case when current_setting('is_superuser') = 'on' then 1 else 0 end as superuser")), error) == DALConnection::DALSuccess && !role->IsEOF(),
+                     _T("the tester could not read whether its user is a superuser: ") + error);
+                  timeoutsSet = role->GetLongValue("superuser") == 1;
                }
 
-               ScriptTransaction other;
-               BeginOn(other, pool);
-               for (int id = 100; id < 140; id++)
+               for (int attempt = 1; ; attempt++)
                {
-                  Check(other.GetConnection()->TryExecute(SQLCommand(Formatter::Format("insert into aatxnprobeb (id, v) values ({0}, 0)", id)), error, 0, 0) == DALConnection::DALSuccess,
-                     _T("the other transaction's insert failed: ") + error);
-               }
-               Check(other.GetConnection()->TryExecute(Update(_T("aatxnprobeb"), 5), error, 0, 0) == DALConnection::DALSuccess, _T("the other transaction's update failed: ") + error);
+                  if (attempt > 1)
+                  {
+                     String ignored;
+                     script.Rollback(ignored);
+                     probe.Reset();
+                     BeginOn(script, pool);
+                  }
 
-               ScriptTransaction::Outcome answer = ScriptTransaction::Ran;
-               std::exception_ptr askFailed;
-               std::thread asker([&]()
-               {
+                  if (timeoutsSet)
+                     Check(script.GetConnection()->TryExecute(SQLCommand(_T("set local deadlock_timeout = '3s'")), error, 0, 0) == DALConnection::DALSuccess, _T("the tester could not set the script's deadlock_timeout: ") + error);
+
+                  Check(Script(script, Update(_T("aatxnprobe"), 1), error) == ScriptTransaction::Ran, _T("the script's first update failed: ") + error);
+                  Check(Script(script, Insert(2, 20), error) == ScriptTransaction::Ran, _T("the script's insert failed: ") + error);
+
+                  __int64 session = 0;
+                  if (postgres)
+                  {
+                     std::shared_ptr<DALRecordset> own = script.GetConnection()->CreateRecordset();
+                     Check(own->TryOpen(script.GetConnection(), SQLCommand(_T("select pg_backend_pid() as session")), error) == DALConnection::DALSuccess && !own->IsEOF(),
+                        _T("the tester could not read the script's session: ") + error);
+                     session = own->GetInt64Value("session");
+                  }
+
+                  ScriptTransaction other;
+                  BeginOn(other, pool);
+                  if (timeoutsSet)
+                     Check(other.GetConnection()->TryExecute(SQLCommand(_T("set local deadlock_timeout = '10s'")), error, 0, 0) == DALConnection::DALSuccess, _T("the tester could not set the other transaction's deadlock_timeout: ") + error);
+                  for (int id = 100; id < 140; id++)
+                  {
+                     Check(other.GetConnection()->TryExecute(SQLCommand(Formatter::Format("insert into aatxnprobeb (id, v) values ({0}, 0)", id)), error, 0, 0) == DALConnection::DALSuccess,
+                        _T("the other transaction's insert failed: ") + error);
+                  }
+                  Check(other.GetConnection()->TryExecute(Update(_T("aatxnprobeb"), 5), error, 0, 0) == DALConnection::DALSuccess, _T("the other transaction's update failed: ") + error);
+
+                  ScriptTransaction::Outcome answer = ScriptTransaction::Ran;
+                  std::exception_ptr askFailed;
+                  std::thread asker([&]()
+                  {
+                     try
+                     {
+                        answer = ask();
+                     }
+                     catch (...)
+                     {
+                        askFailed = std::current_exception();
+                     }
+                  });
+
+                  bool otherRan = false;
+                  std::exception_ptr otherFailed;
                   try
                   {
-                     answer = ask();
+                     if (postgres)
+                     {
+                        bool waiting = false;
+                        for (int i = 0; i < 250 && !waiting; i++)
+                        {
+                           std::shared_ptr<DALRecordset> waits = probe.raw_->CreateRecordset();
+                           Check(waits->TryOpen(probe.raw_, SQLCommand(Formatter::Format("select count(*) as waiting from pg_stat_activity where pid = {0} and wait_event_type = 'Lock'", session)), error) == DALConnection::DALSuccess,
+                              _T("the tester could not see whether the script waits: ") + error);
+                           waiting = waits->GetLongValue("waiting") > 0;
+                           if (!waiting)
+                              std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                        }
+                        Check(waiting, _T("the script's statement did not wait for the other transaction's row within five seconds"));
+                     }
+                     else
+                     {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                     }
+
+                     String otherError;
+                     otherRan = other.GetConnection()->TryExecute(Update(_T("aatxnprobe"), 100), otherError, 0, 0) == DALConnection::DALSuccess;
                   }
                   catch (...)
                   {
-                     askFailed = std::current_exception();
-                  }
-               });
-
-               bool otherRan = false;
-               std::exception_ptr otherFailed;
-               try
-               {
-                  if (postgres)
-                  {
-                     bool waiting = false;
-                     for (int i = 0; i < 250 && !waiting; i++)
-                     {
-                        std::shared_ptr<DALRecordset> waits = probe.raw_->CreateRecordset();
-                        Check(waits->TryOpen(probe.raw_, SQLCommand(Formatter::Format("select count(*) as waiting from pg_stat_activity where pid = {0} and wait_event_type = 'Lock'", session)), error) == DALConnection::DALSuccess,
-                           _T("the tester could not see whether the script waits: ") + error);
-                        waiting = waits->GetLongValue("waiting") > 0;
-                        if (!waiting)
-                           std::this_thread::sleep_for(std::chrono::milliseconds(20));
-                     }
-                     Check(waiting, _T("the script's statement did not wait for the other transaction's row within five seconds"));
-                  }
-                  else
-                  {
-                     std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                     // Joined first: a thread destroyed while it can still be joined ends
+                     // the process. The other transaction is rolled back below, which ends
+                     // the script's wait.
+                     otherFailed = std::current_exception();
                   }
 
-                  String otherError;
-                  otherRan = other.GetConnection()->TryExecute(Update(_T("aatxnprobe"), 100), otherError, 0, 0) == DALConnection::DALSuccess;
+                  String rollbackError;
+                  if (otherFailed)
+                     other.Rollback(rollbackError);
+
+                  asker.join();
+                  if (other.IsOpen())
+                     other.Rollback(rollbackError);
+
+                  if (askFailed)
+                     std::rethrow_exception(askFailed);
+                  if (otherFailed)
+                     std::rethrow_exception(otherFailed);
+
+                  // Where a deadlock is detected, the script's transaction was the victim
+                  // when the other's update could go on: the database rolled the script's
+                  // back and freed its row 1.
+                  if (compact || otherRan)
+                     return answer;
+
+                  Check(attempt < 3, _T("the deadlock chose the other transaction as its victim, not the script's, three times, so this check could not be made"));
+                  probe.Say(Formatter::Format("a deadlock chose the other transaction as its victim, not the script's, at attempt {0}: set up again", attempt));
                }
-               catch (...)
-               {
-                  // Joined first: a thread destroyed while it can still be joined ends
-                  // the process. The other transaction is rolled back below, which ends
-                  // the script's wait.
-                  otherFailed = std::current_exception();
-               }
-
-               String rollbackError;
-               if (otherFailed)
-                  other.Rollback(rollbackError);
-
-               asker.join();
-               if (other.IsOpen())
-                  other.Rollback(rollbackError);
-
-               if (askFailed)
-                  std::rethrow_exception(askFailed);
-               if (otherFailed)
-                  std::rethrow_exception(otherFailed);
-
-               // Where a deadlock is detected, the script's transaction was the victim
-               // when the other's update could go on: the database rolled the script's
-               // back and freed its row 1.
-               if (!compact)
-                  Check(otherRan, _T("the deadlock chose the other transaction as its victim, not the script's, so this check could not be made"));
-
-               return answer;
             };
 
             // Each case below is a check of its own: a failure is kept and the next case
