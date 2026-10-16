@@ -195,12 +195,18 @@ refuses it. This checker holds them to each other. It fails when:
     a key beside the ones it has (a before_script, hooks or when of the verdict job's,
     dependencies, variables, an after_script), takes one from a template it extends
     but rules: and those it sets itself as a list or a value, takes a before_script,
-    an after_script or hooks from default:, or takes a rule that brings needs,
+    an after_script, hooks, a cache or services from default:, the last two of which
+    lay files over its checkout, or takes a rule that brings needs,
     variables, allow_failure, start_in or a when but never or on_success, or one
     written in a form this does not read; or either, or a template either reaches, is
     defined in a CI file but .gitlab-ci.yml, every one of which is read, since
     .gitlab-ci.yml includes nothing but the files of .gitlab/ci/ and GitLab's templates
-    (ci_override_problems);
+    (ci_override_problems); or ci-image-packages, which the scan needs with its
+    artifacts - GitLab passes the scan its dotenv report as variables and unpacks its
+    artifacts over the scan's checkout -, has a key beside the ones it has, keeps
+    anything but ci-image-packages/ or a report, takes artifacts from a template it
+    extends, has a blank line inside it or is defined in another CI file, so that it
+    could hand the scan a variable of Trivy's, a trivy.yaml or a script of its own;
     or a CI file sets a variable Trivy reads (TRIVY_*), or the tree carries Trivy's
     trivy.yaml or .trivyignore at its root, either of which would narrow what the scan
     reports past the hold on its command (verdict_problems) - which
@@ -732,6 +738,14 @@ SCAN_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "
 VERDICT_KEYS = ("extends", "rules", "tags", "image", "stage", "needs", "timeout", "allow_failure", "script")
 SCAN_BEFORE = "apk add --no-cache --quiet python3"
 SCAN_NEED = "ci-image-packages"
+# What SCAN_NEED may hand the scan, which needs it with its artifacts: GitLab passes the
+# scan that job's dotenv report as variables and unpacks its artifacts into the scan's
+# checkout over the tree, so that a file among them - a trivy.yaml, a .trivyignore, a VEX
+# document, a build/ci/dependency-scan.py of its own - would be the scan's. Its keys as
+# the tree writes them, and its artifacts these lines alone: the CI image's package
+# database, kept a day, and no report.
+PACKAGES_KEYS = ("extends", "rules", "stage", "needs", "timeout", "allow_failure", "script", "artifacts")
+PACKAGES_ARTIFACTS = ("    expire_in: 1 day", "    paths:", "      - ci-image-packages/")
 # The scan's artifacts, the lines below its artifacts: as the tree writes them, comments
 # aside: its files whatever it ends with, its report for GitLab and its test report, and
 # nothing else. The lines themselves are held, not what one of them says, since GitLab's
@@ -748,8 +762,11 @@ VERDICT_IMAGE_KEYS = ("name", "pull_policy")
 # template's whole.
 MERGED_KEYS = ("image", "artifacts")
 # What default: gives every job that sets none of its own and that runs in the job
-# beside its script: before it, or after it and before its artifacts are kept.
-DEFAULT_RUNS = ("before_script", "after_script", "hooks")
+# beside its script - before it, or after it and before its artifacts are kept - or lays
+# files over its checkout: a cache, which GitLab restores over the checkout before the
+# script, and services, which GitLab Runner gives the job's build directory too ("GitLab
+# Runner mounts a /builds directory to all shared services", docs.gitlab.com, "Services").
+DEFAULT_RUNS = ("before_script", "after_script", "hooks", "cache", "services")
 # What Trivy reads beside its command line, by which what dependency-scan reports -
 # and so what dependency-scan-verdict fails on - would narrow past the hold on the
 # scan's command: a variable of its own (TRIVY_SEVERITY, TRIVY_SKIP_DIRS,
@@ -2843,10 +2860,16 @@ def verdict_problems(texts, jobs):
     each has its keys (SCAN_KEYS, VERDICT_KEYS) and no other; no template it extends has
     a key but rules: and those the job sets itself as a list or a value, which replace
     the template's (a mapping, MERGED_KEYS, is merged into the job's own); default: gives
-    neither a before_script, an after_script or hooks it does not set itself
-    (DEFAULT_RUNS); the rules they take bring no needs, variables, allow_failure or
+    neither a before_script, an after_script, hooks, a cache or services it does not set
+    itself (DEFAULT_RUNS), the last two of which lay files over the checkout; the job the
+    scan needs, SCAN_NEED, hands it its package database and nothing else - GitLab passes
+    the scan that job's dotenv report as variables and unpacks its artifacts into the
+    scan's checkout over the tree, where a trivy.yaml or a build/ci/dependency-scan.py of
+    its own would be the scan's -, so that it has its keys (PACKAGES_KEYS) and no other,
+    keeps ci-image-packages/ alone with no report (PACKAGES_ARTIFACTS), takes no artifacts
+    from a template it extends and has no blank line inside it; the rules they take bring no needs, variables, allow_failure or
     start_in, and no when but never or on_success, in a form this reads (unread_rules);
-    neither job, nor a template either reaches, is defined in a CI file but
+    neither job, nor SCAN_NEED, nor a template one reaches, is defined in a CI file but
     .gitlab-ci.yml, since GitLab merges a second definition into the first, and every CI
     file is read, .gitlab-ci.yml including nothing but the files of .gitlab/ci/ named
     <name>.yml and GitLab's templates (ci_override_problems); and nothing
@@ -2868,18 +2891,19 @@ def verdict_problems(texts, jobs):
         return ["%s is not a job of .gitlab-ci.yml" % SCAN_JOB]
     # Each value below is read up to the first line that is not indented four (key_text,
     # sole_need and the artifacts' own reading), and GitLab's YAML reader carries a list
-    # or a mapping on past a blank line: so neither job has one inside its block.
-    # blocks() drops the comment lines and keeps the blank lines before the next block's
-    # comments, which are not inside.
-    for name in (SCAN_JOB, VERDICT_JOB):
+    # or a mapping on past a blank line: so neither job has one inside its block, nor
+    # SCAN_NEED, whose artifacts are read so too. blocks() drops the comment lines and
+    # keeps the blank lines before the next block's comments, which are not inside.
+    for name in (SCAN_JOB, VERDICT_JOB, SCAN_NEED):
         lines = jobs.get(name, "").rstrip().split("\n")
         blank = [number for number, line in enumerate(lines) if not line.strip()]
         if blank:
             problems.append("%s has a blank line inside its block, after %r: GitLab's YAML reader carries a list or a "
                             "mapping on past a blank line, where this reads each value it holds - a script, a "
                             "before_script, a need, an image, the artifacts - up to it, so that what follows it - another "
-                            "line of script, artifacts: false, an exclude: - would shape the job unread; neither job has a "
-                            "blank line inside it" % (name, (lines[blank[0] - 1].strip() if blank[0] else name + ":")[:60]))
+                            "line of script, artifacts: false, an exclude:, a path among the artifacts - would shape the "
+                            "job unread; neither job, nor %s, has a blank line inside it"
+                            % (name, (lines[blank[0] - 1].strip() if blank[0] else name + ":")[:60], SCAN_NEED))
     if list_items(scan, "script") != ["- " + SCAN_COMMAND]:
         problems.append("%s's script is not %s alone, which ends 0 whatever the scans found and 2 when one could not run: "
                         "a job that ends otherwise on a finding loses its findings to GitLab's vulnerability report, which "
@@ -2913,6 +2937,34 @@ def verdict_problems(texts, jobs):
                         "runner's shell starts in the image only when the entrypoint is not trivy's - without either the "
                         "scan fails in every pipeline, and GitLab takes none of its report"
                         % (SCAN_JOB, ", ".join(SCAN_IMAGE_KEYS)))
+    # And what the job the scan needs hands it (PACKAGES_KEYS, PACKAGES_ARTIFACTS): GitLab
+    # passes the scan its dotenv report as variables and unpacks its artifacts into the
+    # scan's checkout over the tree. A dotenv report giving TRIVY_SEVERITY=LOW, a
+    # trivy.yaml at the root and a build/ci/dependency-scan.py of its own among its
+    # artifacts each passed the whole checker (check 2 of cycle 3 of the fix, 16 October
+    # 2026).
+    packages = jobs.get(SCAN_NEED)
+    if packages is not None:
+        for key in sorted(set(key for key in own_keys(packages) if key not in PACKAGES_KEYS)):
+            problems.append("%s, which %s needs with its artifacts, has the key %s, which it is held not to have: its keys "
+                            "are %s alone, so that it hands the scan its package database and nothing else"
+                            % (SCAN_NEED, SCAN_JOB, key, ", ".join(PACKAGES_KEYS)))
+        handed = key_text(packages, "artifacts")
+        handed = [line.rstrip() for line in handed.rstrip("\n").split("\n")] if handed is not None else []
+        if handed != list(PACKAGES_ARTIFACTS):
+            apart = [n for n in range(max(len(handed), len(PACKAGES_ARTIFACTS)))
+                     if handed[n:n + 1] != list(PACKAGES_ARTIFACTS[n:n + 1])][0]
+            problems.append("the artifacts of %s are not %s alone, the CI image's package database and no report: GitLab "
+                            "passes %s, which needs it with its artifacts, its dotenv report as variables and unpacks its "
+                            "artifacts into the scan's checkout over the tree, so that a variable of Trivy's, a trivy.yaml, "
+                            "a .trivyignore, a VEX document or a build/ci/dependency-scan.py of its own would be the scan's; "
+                            "line %d is %s" % (SCAN_NEED, " / ".join(line.strip() for line in PACKAGES_ARTIFACTS), SCAN_JOB,
+                                               apart + 1, repr(handed[apart].strip())[:60] if apart < len(handed) else "missing"))
+        for template in template_order(SCAN_NEED, jobs)[1:]:
+            if "artifacts" in own_keys(jobs[template]):
+                problems.append("%s takes artifacts from %s, a template it extends, which GitLab merges into the job's own: a "
+                                "report or a path there - a dotenv report, a trivy.yaml - would be handed to %s past what this "
+                                "holds of %s's artifacts" % (SCAN_NEED, template, SCAN_JOB, SCAN_NEED))
     if verdict is None:
         problems.append("%s is not a job of .gitlab-ci.yml: nothing would warn of a dependency finding, now that %s passes "
                         "whatever its scans found" % (VERDICT_JOB, SCAN_JOB))
@@ -2964,7 +3016,9 @@ def verdict_problems(texts, jobs):
             if key in default_keys and key not in own:
                 problems.append("%s takes %s from .gitlab-ci.yml's default:, which gives it to every job that sets none of "
                                 "its own: it would run in the job beside its script - before it, and could end the job first, "
-                                "or after it, before its artifacts are kept - past what this holds of it" % (name, key))
+                                "or after it, before its artifacts are kept - or lay files over its checkout, as a cache "
+                                "restored there and a service, which shares the job's build directory, can, past what this "
+                                "holds of it" % (name, key))
     taken, unread = [], []
     for name in (SCAN_JOB, VERDICT_JOB):
         deciding = [current for current in template_order(name, jobs) if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
@@ -2988,7 +3042,7 @@ def verdict_problems(texts, jobs):
                             "nothing of it, and bring none of the others" % (SCAN_JOB, VERDICT_JOB, ", ".join(brought),
                                                              item.strip().split("\n")[0][:80]))
     every_ci = ci_files(texts)
-    for reached, paths in sorted(reached_definitions(every_ci, [SCAN_JOB, VERDICT_JOB]).items()):
+    for reached, paths in sorted(reached_definitions(every_ci, [SCAN_JOB, VERDICT_JOB, SCAN_NEED]).items()):
         elsewhere = [path for path in paths if path != ".gitlab-ci.yml"]
         if elsewhere:
             problems.append("%s is defined in %s: GitLab merges every definition of a name, a later include's keys over an "
@@ -5976,6 +6030,45 @@ def self_test(chain, feed):
     found, _ = check(copy, chain, feed)
     if last_include not in texts["ci"] or any(unincluded in p for p in found):
         failures.append(".gitlab-ci.yml including one of GitLab's templates is let pass: %s" % [p for p in found if unincluded in p])
+    # And what the job the scan needs hands it, ci-image-packages (PACKAGES_KEYS,
+    # PACKAGES_ARTIFACTS): check 2 of cycle 3 of the fix (16 October 2026) gave it a dotenv
+    # report of TRIVY_SEVERITY=LOW, kept a trivy.yaml at the root among its artifacts, and
+    # kept a build/ci/dependency-scan.py of its own, which would be laid over the scan's
+    # checkout, and each passed the whole checker - with the first two a real scan
+    # reported 114 Low findings and passed its verdict. Then the VEX document, its
+    # artifacts in flow style or with untracked:, a key beside its own, a blank line before
+    # a path, artifacts from a template it extends, and a definition of it in an included
+    # file. And default: giving the two jobs a cache, which GitLab restores over the
+    # checkout, or a service, which shares the job's build directory.
+    unhanded = "the artifacts of ci-image-packages are not"
+    packages_path = "      - ci-image-packages/\n"
+    packages_artifacts = "  artifacts:\n    expire_in: 1 day\n    paths:\n" + packages_path
+    for what, old, new, needle in (
+            ("a dotenv report", packages_path, packages_path + "    reports:\n      dotenv: trivy.env\n", unhanded),
+            ("Trivy's configuration file", packages_path, packages_path + "      - trivy.yaml\n", unhanded),
+            ("Trivy's ignore file", packages_path, packages_path + "      - .trivyignore\n", unhanded),
+            ("the scan's own script", packages_path, packages_path + "      - build/ci/dependency-scan.py\n", unhanded),
+            ("the VEX document", packages_path, packages_path + "      - .gitlab/hmailserver.openvex.json\n", unhanded),
+            ("its artifacts in flow style", packages_artifacts,
+             "  artifacts: {expire_in: 1 day, paths: [ci-image-packages/, trivy.yaml]}\n", unhanded),
+            ("every untracked file", "    expire_in: 1 day\n", "    expire_in: 1 day\n    untracked: true\n", unhanded),
+            ("a key beside its own", packages_artifacts, "  after_script:\n    - cp -r security ci-image-packages/\n" +
+             packages_artifacts, "ci-image-packages, which dependency-scan needs with its artifacts, has the key after_script"),
+            ("a path past a blank line", packages_path, packages_path + "\n      - trivy.yaml\n",
+             "ci-image-packages has a blank line inside its block")):
+        broken_job("ci-image-packages handing the scan %s" % what, SCAN_NEED, old, new, needle)
+    broken_job("ci-image-packages taking a dotenv report from a template", ".linix", ".linix:\n  extends: .own-runners\n",
+               ".linix:\n  extends: .own-runners\n  artifacts:\n    reports:\n      dotenv: trivy.env\n",
+               "ci-image-packages takes artifacts from .linix")
+    broken_include("ci-image-packages defined again in an included file", ".gitlab/ci/snap.yml",
+                   "\nci-image-packages:\n  artifacts:\n    reports:\n      dotenv: trivy.env\n",
+                   "ci-image-packages is defined in .gitlab/ci/snap.yml")
+    broken_job("default: giving the scan a cache laid over its checkout", "default", "  tags: [$HM_RUNNER]\n",
+               "  tags: [$HM_RUNNER]\n  cache:\n    key: scan\n    paths: [build/ci/]\n",
+               "dependency-scan takes cache from .gitlab-ci.yml's default:")
+    broken_job("default: giving the verdict job a service that shares its build directory", "default", "  tags: [$HM_RUNNER]\n",
+               "  tags: [$HM_RUNNER]\n  services: [alpine:3.22]\n",
+               "dependency-scan-verdict takes services from .gitlab-ci.yml's default:")
     # And neither with a blank line inside it. Check 1 of the repair (15 October 2026)
     # found ten edits of the two that passed the whole checker when a blank line came
     # before what they add, where key_text, sole_need and the artifacts' reading stop and

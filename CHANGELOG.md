@@ -5944,24 +5944,30 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   artifacts, to `--verdict` alone in Docker Hub's Python image and to `allow_failure`; each to the keys it has and no
   other, so that no `before_script`, `hooks`, `when`, `dependencies` or `variables` can end the verdict job before it
   reads the verdict, leave it no artifact or no checkout, or make it manual, with no key reaching either from a
-  template it extends but `rules:`, no `before_script`, `after_script` or `hooks` from `default:`, no `needs`,
-  `variables`, `allow_failure` or `when` from a rule they take, and no second definition of either in another CI
-  file, `.gitlab-ci.yml` including nothing but the files of `.gitlab/ci/` named `<name>.yml`, which the checker reads,
-  and GitLab's templates, each by a line of its own - a definition of the verdict job in an included `.yaml` file, a
-  file beside `.gitlab/ci/` or a remote one passed the checker, as one of a job that holds a change would have; and no
-  CI file may set a variable Trivy reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`, by which what the
-  scan reports would narrow, and each name of `.gitlab-ci.yml`'s `variables:` and of its workflow rules' is written
-  bare and once, since GitLab's YAML reader takes a name quoted with an escape, tagged, anchored, as an alias or as an
-  explicit key too, and `TRIVY_SEVERITY: LOW` given every job in five such forms, or in a workflow rule's, passed the
-  checker and narrowed a real scan to its 114 Low findings; and the script itself gives Trivy nothing of its own - it
-  runs it with the job's variables less every one whose name begins `TRIVY_`, whoever gave the job one, and with an
-  empty configuration and ignore file of its own outside the checkout as `--config` and `--ignorefile`, so that
-  neither a variable nor a `trivy.yaml` or `.trivyignore` laid over the checkout by an artifact narrows the scan; and
-  neither job may have a blank line inside it, past which GitLab's YAML reader carries a list or a mapping that the
-  checker reads up to the line; and no CI file may hold a character beyond printable ASCII, a tab and a line feed,
-  since GitLab's YAML reader ends a line at NEL, LS and PS too, where the checker reads lines at line feeds alone, so
-  that a comment line holding an LS hid what follows it from every rule. Each rule has a case of its self-test
-  (ContinuousIntegration.md, "Dependency findings, the VEX document, and what OSV cannot answer").
+  template it extends but `rules:`, no `before_script`, `after_script`, `hooks`, `cache` or `services` from
+  `default:`, the last two of which lay files over the checkout, no `needs`, `variables`, `allow_failure` or `when`
+  from a rule they take, and no second definition of either in another CI file, `.gitlab-ci.yml` including nothing but
+  the files of `.gitlab/ci/` named `<name>.yml`, which the checker reads, and GitLab's templates, each by a line of
+  its own - a definition of the verdict job in an included `.yaml` file, a file beside `.gitlab/ci/` or a remote one
+  passed the checker, as one of a job that holds a change would have; and `ci-image-packages`, which the scan needs
+  with its artifacts, may hand it the CI image's package database and nothing else - its keys as they are,
+  `ci-image-packages/` alone among its artifacts with no report, none from a template, no blank line inside it and no
+  definition elsewhere - since GitLab passes the scan that job's dotenv report as variables and unpacks its artifacts
+  over the scan's checkout, and a dotenv report of `TRIVY_SEVERITY=LOW`, a `trivy.yaml` and a
+  `build/ci/dependency-scan.py` of its own among them each passed the checker; and no CI file may set a variable Trivy
+  reads, nor the tree carry Trivy's `trivy.yaml` or `.trivyignore`, by which what the scan reports would narrow, and
+  each name of `.gitlab-ci.yml`'s `variables:` and of its workflow rules' is written bare and once, since GitLab's
+  YAML reader takes a name quoted with an escape, tagged, anchored, as an alias or as an explicit key too, and
+  `TRIVY_SEVERITY: LOW` given every job in five such forms, or in a workflow rule's, passed the checker and narrowed a
+  real scan to its 114 Low findings; and the script itself gives Trivy nothing of its own - it runs it with the job's
+  variables less every one whose name begins `TRIVY_`, whoever gave the job one, and with an empty configuration and
+  ignore file of its own outside the checkout as `--config` and `--ignorefile`, so that neither a variable nor a
+  `trivy.yaml` or `.trivyignore` laid over the checkout by an artifact narrows the scan; and neither job may have a
+  blank line inside it, past which GitLab's YAML reader carries a list or a mapping that the checker reads up to the
+  line; and no CI file may hold a character beyond printable ASCII, a tab and a line feed, since GitLab's YAML reader
+  ends a line at NEL, LS and PS too, where the checker reads lines at line feeds alone, so that a comment line holding
+  an LS hid what follows it from every rule. Each rule has a case of its self-test (ContinuousIntegration.md,
+  "Dependency findings, the VEX document, and what OSV cannot answer").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

@@ -1650,7 +1650,10 @@ semgrep:
 # The CI image's package database, for dependency-scan: Trivy runs in its own image
 # and cannot open this one (a job has no Docker socket, on purpose), so the files it
 # reads to know what is installed - Ubuntu's release files and dpkg status, and the
-# .NET SDK's deps.json - are copied out of the image as an artifact, 1.4 MB.
+# .NET SDK's deps.json - are copied out of the image as an artifact, 1.4 MB. GitLab
+# unpacks that artifact into the scan's checkout over the tree, and would pass the scan a
+# dotenv report of this job's as variables: build/check-release-chain.py holds this job
+# to its keys and to these files alone, with no report (verdict_problems).
 ci-image-packages:
   extends: .linix
   rules:

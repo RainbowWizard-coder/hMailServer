@@ -5043,12 +5043,20 @@ from GitLab. Nor does a CI file hold a character beyond printable ASCII, a tab
 and a line feed: GitLab's YAML reader ends a line at an LS, a NEL or a PS too,
 so that a comment line holding one could hide a line of either job from the
 checker. No template either extends gives it a key it does not set itself
-but `rules:`, `default:` gives neither a `before_script`, an `after_script` or
-`hooks`, no rule they take brings `needs`, `variables`, `allow_failure` or a
+but `rules:`, `default:` gives neither a `before_script`, an `after_script`,
+`hooks`, a `cache` or `services`, the last two of which lay files over the
+checkout (a service shares the job's build directory), no rule they take brings `needs`, `variables`, `allow_failure` or a
 `when`, and neither is defined in another CI file, which GitLab would merge
 into the job's: `.gitlab-ci.yml` includes nothing but files of `.gitlab/ci/`
 named `<name>.yml` and GitLab's templates, so that the checker reads every CI
-file a definition could be in. And Trivy is given nothing of its own beside its command line,
+file a definition could be in. The job the scan needs, `ci-image-packages`, may
+hand it the CI image's package database and nothing else: GitLab passes the
+scan that job's dotenv report as variables and unpacks its artifacts into the
+scan's checkout over the tree, where a `trivy.yaml` or a
+`build/ci/dependency-scan.py` of its own would be the scan's, so that it has the
+keys it has, keeps `ci-image-packages/` alone with no report, takes no
+`artifacts` from a template it extends, has no blank line inside it and is
+defined in `.gitlab-ci.yml` alone. And Trivy is given nothing of its own beside its command line,
 which would narrow what the scan reports: the script runs it with the job's
 variables less every one whose name begins `TRIVY_` (`TRIVY_SEVERITY` and the
 like), whoever gave the job one - a CI file, the dotenv report of the job the
