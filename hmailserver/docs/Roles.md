@@ -266,8 +266,10 @@ name and the rest above, as it is over REST; it is a domain administrator of its
 own account's domain where its list names that domain, and of no other, since the
 COM calls that ask "is this a domain administrator?" compare the object's domain
 with that one. It reaches the other domains its list names through REST, and over
-COM through the calls that name a domain of their own: the password reset, the
-unlock, the mailbox move, the message trace and role assignment. The
+COM through the calls that name a domain of their own, among them the password
+reset, the unlock, the mailbox move and its history (`Utilities.GetMailboxMoves`),
+the message trace, role assignment and the sender of a message it queues (send-as,
+above). The
 decision is one place — `RoleManager::Allows` answers `administer_server` only for a
 grant with no list, which `COMAuthentication::GetIsServerAdmin` and
 `RestApiServer::HoldsServerAuthority_` both read. Such a grant is judged by its list
@@ -478,8 +480,9 @@ that ask "is this a domain administrator?" compare the object's domain with the
 account's own, so a `domainadmin` given a list that leaves its own account's domain
 out sees only its own account there, as over REST it is refused that domain. Every
 role reaches the domains its list names over REST, and over COM through the calls
-that name a domain of their own — the password reset, the unlock, the mailbox move,
-the message trace and role assignment — each as its permissions allow. `*` is every domain, for any role — which is what a
+that name a domain of their own — among them the password reset, the unlock, the
+mailbox move and its history, the message trace, role assignment and a message's
+sender (send-as) — each as its permissions allow. `*` is every domain, for any role — which is what a
 custom role holding a server-wide permission such as `manage_settings` needs before an
 account can use it at all. (A key's `Domains=` line still reads `*` as the name of no
 domain, as it always has.) The listings answer `every_domain` (REST) or a fourth

@@ -142,8 +142,9 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   the domains the list names and in no other: over COM it is refused the server settings, a domain alias, a
   domain's name and the other changes that reach beyond a domain, exactly as over REST. Over COM it is a domain
   administrator of its own account's domain where its list names that domain, and reaches the other domains its
-  list names through REST, and over COM through the password reset, the unlock, the mailbox move, the message trace
-  and role assignment. Over COM a role holding `administer_domain` is a domain administrator of its own account's
+  list names through REST, and over COM through the calls that name a domain of their own, among them the password
+  reset, the unlock, the mailbox move and its history, the message trace, role assignment and a message's sender
+  (send-as). Over COM a role holding `administer_domain` is a domain administrator of its own account's
   domain only where its list of domains names that domain, as over REST. A role is given or taken away, over REST as
   over COM, only by a credential that holds `manage_roles` in the account's domain and takes in what the account
   holds now and what it will hold afterwards — with no role left, the authority of its admin level
