@@ -52,7 +52,11 @@ the job the scan needs, or a CI/CD variable of the project's or the group's - an
 --config and --ignorefile, an empty configuration and an empty ignore file this script
 writes in a directory of its own outside the checkout, so that a trivy.yaml or a
 .trivyignore at the root of the checkout, committed or laid there by an artifact, is
-not read (own_trivy_files). TRIVY_SEVERITY=LOW given the job so narrowed a real scan
+not read, and as --cache-dir an empty directory there, so that the vulnerability
+database it scans with is the one it has just downloaded - its default cache is under
+HOME or XDG_CACHE_HOME, which a variable could put in the checkout beside a database
+that says it is fresh, which --download-db-only would keep (own_trivy_files).
+TRIVY_SEVERITY=LOW given the job so narrowed a real scan
 to its 114 Low findings, and passed its verdict, before (16 October 2026). What the
 scan reports narrows by the VEX document alone.
 
@@ -281,7 +285,10 @@ def lock_file_packages(path):
 # (trivy_environment), and --config and --ignorefile naming two files of this script's,
 # an empty configuration and an empty ignore file, in a directory made for the run in
 # the system's temporary directory, outside the checkout and the scan's artifacts, and
-# removed when the scan ends (own_trivy_files, forget_trivy_files).
+# removed when the scan ends (own_trivy_files, forget_trivy_files). Its cache, where it
+# keeps the vulnerability database, is an empty directory there too (--cache-dir): the
+# default is under HOME or XDG_CACHE_HOME, which a variable could put in the checkout
+# beside a database that says it is fresh, which trivy --download-db-only keeps.
 TRIVY_VARIABLE_PREFIX = "TRIVY_"
 _own_trivy_files = []
 
@@ -294,18 +301,21 @@ def trivy_environment(environ=None):
 
 
 def own_trivy_files():
-    """(configuration, ignore file): the two files this script gives Trivy as --config
-    and --ignorefile, an empty mapping and an empty file, written the first time they
-    are asked for in a directory made for the run in the system's temporary directory."""
+    """(configuration, ignore file, cache): the two files and the directory this script
+    gives Trivy as --config, --ignorefile and --cache-dir, an empty mapping, an empty file
+    and an empty directory, made the first time they are asked for in a directory made
+    for the run in the system's temporary directory."""
     if not _own_trivy_files:
         held = tempfile.mkdtemp(prefix="dependency-scan-trivy-")
         config, ignore = os.path.join(held, "trivy.yaml"), os.path.join(held, "trivyignore")
+        cache = os.path.join(held, "cache")
         with open(config, "w", encoding="utf-8") as f:
             f.write("{}\n")
         with open(ignore, "w", encoding="utf-8"):
             pass
-        _own_trivy_files[:] = [held, config, ignore]
-    return _own_trivy_files[1], _own_trivy_files[2]
+        os.mkdir(cache)
+        _own_trivy_files[:] = [held, config, ignore, cache]
+    return tuple(_own_trivy_files[1:])
 
 
 def forget_trivy_files():
@@ -316,11 +326,11 @@ def forget_trivy_files():
 
 
 def run_trivy(command, log):
-    """command, a run of Trivy, with own_trivy_files as its --config and --ignorefile and
-    trivy_environment as its environment, from the root of the checkout, its output
-    added to log: its exit code."""
-    config, ignore = own_trivy_files()
-    command = command + ["--config", config, "--ignorefile", ignore]
+    """command, a run of Trivy, with own_trivy_files as its --config, --ignorefile and
+    --cache-dir and trivy_environment as its environment, from the root of the checkout,
+    its output added to log: its exit code."""
+    config, ignore, cache = own_trivy_files()
+    command = command + ["--config", config, "--ignorefile", ignore, "--cache-dir", cache]
     print("$ " + " ".join(command))
     with open(log, "a", encoding="utf-8") as out:
         return subprocess.run(command, cwd=ROOT, env=trivy_environment(), stdout=out, stderr=subprocess.STDOUT).returncode
@@ -1197,8 +1207,9 @@ def self_test():
         # narrowed a real scan to its 114 Low findings and passed its verdict (check 2 of
         # cycle 3 of G5's fix, 16 October 2026). Each run of Trivy has the job's
         # environment less those variables, and names as --config and --ignorefile, once
-        # each, the same empty configuration and empty ignore file, outside the checkout,
-        # gone once the scan has ended; and the scan ends as before.
+        # each, the same empty configuration and empty ignore file, and as --cache-dir the
+        # same empty directory beside them, outside the checkout, gone once the scan has
+        # ended; and the scan ends as before.
         module["download_database"], module["trivy"] = kept[2], kept[3]
         image_vulnerabilities[:] = [{"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
                                      "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]
@@ -1209,9 +1220,12 @@ def self_test():
 
         def stand_in(command, **options):
             seen = {"command": list(command), "env": options.get("env"), "files": {}}
-            for flag in ("--config", "--ignorefile"):
+            for flag in ("--config", "--ignorefile", "--cache-dir"):
                 if flag in command[:-1]:
                     path = command[command.index(flag) + 1]
+                    if os.path.isdir(path):
+                        seen["files"][flag] = (path, sorted(os.listdir(path)) if flag == "--cache-dir" else None)
+                        continue
                     try:
                         with open(path, encoding="utf-8") as f:
                             seen["files"][flag] = (path, f.read())
@@ -1261,9 +1275,17 @@ def self_test():
                        "trivy %s is given %s once, naming an empty file of this script's outside the checkout, so that "
                        "the checkout's own is not read: %s" % (" ".join(call["command"][1:2]), flag,
                                                               "%r holding %r" % (path, text) if path else "not given"))
+            path, listed = call["files"].get("--cache-dir", (None, None))
+            config = call["files"].get("--config", (None, None))[0]
+            expect(call["command"].count("--cache-dir") == 1 and path and listed is not None
+                   and (call is not calls[0] or listed == [])
+                   and config and os.path.dirname(path) == os.path.dirname(config),
+                   "trivy %s is given --cache-dir once, naming the directory of this script's beside its configuration, "
+                   "empty when the database is downloaded, so that a database of the checkout's is not read: %s" % (
+                       " ".join(call["command"][1:2]), "%r holding %s" % (path, listed) if path else "not given"))
             configs.add(tuple(path for path, _ in (call["files"].get(flag, (None, None))
-                                                   for flag in ("--config", "--ignorefile"))))
-        expect(len(configs) == 1, "every run of Trivy is given the same two files: %s" % sorted(configs, key=str))
+                                                   for flag in ("--config", "--ignorefile", "--cache-dir"))))
+        expect(len(configs) == 1, "every run of Trivy is given the same two files and cache: %s" % sorted(configs, key=str))
         left = [path for paths in configs for path in paths if path and os.path.exists(path)]
         expect(not left and not _own_trivy_files,
                "the files given Trivy are gone once the scan has ended: %s" % (left or _own_trivy_files))

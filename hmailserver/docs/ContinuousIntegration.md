@@ -5065,13 +5065,16 @@ dotenv report of the job the scan needs, a CI/CD variable of the project's or
 the group's -, and gives it an empty configuration and ignore file of its own,
 outside the checkout, as `--config` and `--ignorefile`, so that a `trivy.yaml`
 or `.trivyignore` at the root of the checkout, where the scan runs it, is not
-read; its self-test holds it to that. Beside that, no CI file sets such a
-variable, and the tree carries neither file. Each name of `.gitlab-ci.yml`'s
-`variables:` and of its workflow rules' `variables:`, which every job is given,
-is written bare and once, since GitLab's YAML reader takes a name quoted with
-an escape, tagged, anchored, as an alias or as an explicit key too:
-`TRIVY_SEVERITY: LOW` written so passed the checker, and narrowed a real scan
-to its Low findings.
+read, and an empty cache directory there as `--cache-dir`, so that it scans
+with the vulnerability database it has just downloaded and not one it finds in
+its default cache, under `HOME` or `XDG_CACHE_HOME`, which it keeps when the
+database says it is fresh, and which a variable could put in the checkout; its
+self-test holds it to that. Beside that, no CI file sets such a variable, and
+the tree carries neither file. Each name of `.gitlab-ci.yml`'s `variables:` and
+of its workflow rules' `variables:`, which every job is given, is written bare
+and once, since GitLab's YAML reader takes a name quoted with an escape,
+tagged, anchored, as an alias or as an explicit key too: `TRIVY_SEVERITY: LOW`
+written so passed the checker, and narrowed a real scan to its Low findings.
 A finding that does not affect the project is dismissed in the VEX document,
 `.gitlab/hmailserver.openvex.json`, with its reason. Trivy reads that document
 (`--vex`), and so does the OSV step, which dismisses an advisory only where a
