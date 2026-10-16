@@ -6924,9 +6924,15 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   descriptions here, were public on GitLab from 6 and 7 October 2026 and on `master` from 7 and 9 October 2026 until
   the release, by the owner's decisions of 6, 7, 12, 13 and 15 October 2026; that it carries, as well as fixes, the
   work that was under way on 13 October 2026 and, by the decision of 15 October 2026, the work already done for a
-  later release, and so is not only 6.3.6 with fixes; and that the window of about a day between a fix's push and its
-  release stays the rule after it: a fix, its commit message and its entry here are
-  pushed with the batch its release is made from, and say what was fixed, not how to exploit it. Since 13 October
+  later release; and that the window of about a day between a fix's push and its release stays the rule after it: a
+  fix, its commit message and its entry here are pushed with the batch its release is made from, and say what was
+  fixed, not how to exploit it. The five places in the two documents that said what a release is while releases
+  pause - SECURITY.md's "Supported versions", the opening of its "While releases pause" and its "What is
+  supported, and for how long", and RELEASE.md's opening and its "A security release during the pause" - are
+  reworded, by the owner's decision of 16 October 2026: no release is planned by date, and each security release is
+  cut from `master` with the finished work `master` holds then, where they said that no feature release follows
+  6.3.6, that a security release is 6.3.6 with fixes and that during the pause `master` takes fixes only, none of
+  which is true of 6.3.7 or of the releases after it; 6.3.6's section, below, keeps what was said then. Since 13 October
   2026 Zain Ul Abidin holds no role in the GitLab project, so nobody but the owner sees a security report or can
   approve a merge request, and every batch lands on the owner's override until another person can: GOVERNANCE.md's
   "Maintainers", "Review" and "Continuity", SECURITY.md, RELEASE.md, CONTRIBUTING.md and ASSURANCE-CASE.md say so,

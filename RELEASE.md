@@ -36,9 +36,10 @@ October 2026 nobody in the project can approve a batch, which is the owner's own
 work, so every batch lands on that override until somebody can (GOVERNANCE.md,
 Review).
 
-**From 6.3.6, releases pause.** 6.3.6 is the last release for the time being.
+**From 6.3.6, releases pause.** No release is planned by date.
 Security releases are still made, until 30 September 2027
-(SECURITY.md, "While releases pause"), in the way
+(SECURITY.md, "While releases pause"), each cut from `master` with the
+finished work it holds then, in the way
 [A security release during the pause](#a-security-release-during-the-pause)
 describes below.
 
@@ -366,11 +367,12 @@ update feed").
 
 ## A security release during the pause
 
-From 6.3.6 no feature release is made, but a confirmed vulnerability still ships
-in a release: 6.3.6 with fixes, as 6.3.7, 6.3.8 and so on. Which versions are
-supported, until when, and what gets a release is in SECURITY.md, "While
-releases pause" (the maintainers' decision of 29 September 2026). A security
-release is made by the tag's pipeline, as in
+From 6.3.6 no release is planned by date, but a confirmed vulnerability still
+ships in a release - 6.3.7, 6.3.8 and so on - each cut from `master` with its
+fixes and the finished work `master` has taken since the release before. Which
+versions are supported, until when, and what gets a release is in SECURITY.md,
+"While releases pause" (the maintainers' decision of 29 September 2026). A
+security release is made by the tag's pipeline, as in
 [The release on GitLab](#the-release-on-gitlab), with the steps of
 [Order of operations](#order-of-operations) below it. What differs is the
 order in which things become public, and the steps only the owner can take.
@@ -386,9 +388,8 @@ way had been finished and folded into one batch, and of 15 October 2026 to add
 to it the work already done for a later release, and more fixes (SECURITY.md,
 "What gets a release"). 6.3.7 also carries the work that was under way on 13
 October 2026 and, by the decision of 15 October 2026, the work already done for
-a later release, so it is not only 6.3.6 with fixes, which the paragraph above
-says a security release is. The steps below, and their window of about a day,
-stay the rule for every release after it.
+a later release. The steps below, and their window of about a day, stay the
+rule for every release after it.
 
 **Before starting**, check what the release depends on is still valid: the
 table in SECURITY.md, "What must stay valid for a security release". In

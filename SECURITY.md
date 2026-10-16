@@ -13,8 +13,9 @@ older, because there are no maintenance branches. That is less of a burden than 
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,
 so the answer to a vulnerability in an older version is to upgrade.
 
-From 6.3.6, releases pause: no feature release follows it until the maintainers say otherwise here. Security
-releases still do, as [While releases pause](#while-releases-pause) says, below.
+From 6.3.6, releases pause: no release is planned by date until the maintainers say otherwise here. A release is
+still made when a confirmed vulnerability needs one, as [While releases pause](#while-releases-pause) says below,
+and it is cut from `master` with whatever finished work `master` holds then.
 
 ## Reporting a vulnerability
 
@@ -90,15 +91,17 @@ notes.
 
 ## While releases pause
 
-6.3.6 is the last release for the time being, the owner's decision of 28 September 2026. What follows is **the
-maintainers' decision of 29 September 2026**, taken under the owner's delegation. The maintainers write here when
-it changes.
+6.3.6 was the last release planned by date, the owner's decision of 28 September 2026; the releases since are
+security releases, each cut from `master`. What follows is **the maintainers' decision of 29 September 2026**,
+taken under the owner's delegation. The maintainers write here when it changes.
 
 ### What is supported, and for how long
 
 - **The 6.3 line, as its newest release:** 6.3.6, and each security release made after it (6.3.7, 6.3.8 and so
-  on). A security release is 6.3.6 with fixes. During the pause `master` takes fixes only, and a security release
-  is cut from `master` like every other release. There is still no maintenance branch, and nothing is
+  on). A security release is the newest release with its fixes and whatever finished work `master` has taken
+  since: `master` goes on taking finished work during the pause (6.3.7 carried the work under way on 13 October
+  2026 and row A1 of Programme A, by the owner's decisions of 13 and 15 October 2026), and a security release is
+  cut from `master` like every other release. There is still no maintenance branch, and nothing is
   back-ported. An installation of 6.3.5, 6.2 or anything older is upgraded in place to the newest release, as
   [Supported versions](#supported-versions) says.
 - **Until 30 September 2027.** Before that date, the maintainers write here whether support continues. If nothing
@@ -151,9 +154,8 @@ been finished and folded into one batch, and on 15 October 2026 that the work al
 more fixes, would go into it as well; and so 6.3.7 was released. So those of them that the rule above ships at once
 did not ship as soon as their fixes had passed the gates; all five were public for longer than the day that step 3
 below allows, and their descriptions say more about each flaw than that step allows. 6.3.7 also carries the work that
-was under way on 13 October 2026 and, by the decision of 15 October 2026, the work already done for a later release,
-so it is not only 6.3.6 with fixes, which [What is supported](#what-is-supported-and-for-how-long) says a security
-release is. The list above, and step 3's window of about a day, stand for every release after 6.3.7.
+was under way on 13 October 2026 and, by the decision of 15 October 2026, the work already done for a later release.
+The list above, and step 3's window of about a day, stand for every release after 6.3.7.
 
 ### How a report is handled
 
