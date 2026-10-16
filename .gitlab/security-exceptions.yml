@@ -4081,3 +4081,35 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-10-13
     expires: 2027-10-12
+
+  # The two semgrep-sast findings in batch48's Control Panel code that its change gate held
+  # when the batch was pre-gated (16 October 2026, at 052cee9b8): the lines of two accepted
+  # findings, rewritten by the batch, so that their fingerprints - the rule, the file and
+  # the line's text - are new. The elevated restart's argument line, accepted in
+  # ServiceRestart.TryRestart since 13 October (1a5b94ee86ee3748e0e8), is built in
+  # ServiceRestart.RunNetElevated_ now, around a command of net.exe start, or stop and
+  # start, which the caller chooses; and the help pane's "Open on the wiki" opens the URL
+  # HelpPages.WikiUrl makes, the base with the wiki's own page name for the document, where
+  # it opened the base with the document's name (d47e3a059aee686ad374). Each was read
+  # against the code of batch48 at 052cee9b8 by an AI agent, which then tried to show it
+  # exploitable and could not, under the owner's delegation and not line by line by the
+  # owner, so reviewed-by names the owner, who delegated the reading. They land on master
+  # before batch48, in a change of their own. With batch48 on master the two entries they
+  # replace accept nothing, their lines gone, and are to be taken out in a change of their
+  # own.
+  # hmailserver/source/Tools/ControlPanel/Services/ServiceRestart.cs
+  - scan: semgrep-sast
+    finding: de2781975dd86a8f0ccc
+    what: Arguments of the elevated cmd.exe (net start, or net stop and start, of hMailServer) in ServiceRestart.RunNetElevated_
+    reason: 'In ServiceRestart.RunNetElevated_, the argument line is cmd.exe''s constant switches /d /s /c around command, which the method builds two lines above from constant text, net and ServiceName alone: net is Path.Combine(Environment.SystemDirectory, "net.exe"), a GetSystemDirectoryW path that no environment variable sets, and ServiceName the class''s constant "hMailServer"; the caller chooses only between the start form and the stop-and-start form, with a bool. FileName is System32''s cmd.exe by its full path, the working directory System32, and the process runs elevated (runas) only when this Control Panel is not, for the restart or the start the administrator asked for. No text of a user''s, a file''s or the server''s reaches the line.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-16
+    expires: 2027-10-15
+  # hmailserver/source/Tools/ControlPanel/Views/HelpPane.cs
+  - scan: semgrep-sast
+    finding: d0aded864e200b067fdc
+    what: ShellExecute of the wiki page URL in HelpPane.OpenWiki_
+    reason: 'OpenWiki_ returns on a null url and otherwise hands ShellExecute HelpPages.WikiUrl(wikiBaseUrl_, shown_), which is null unless the base, trimmed, starts with http:// or https:// (WikiBaseUrlOrEmpty, the rule the server''s two setters apply as well) and the document showing has a page in HelpWikiPages, the table generated from build/help-wiki-pages.txt whose names are the project wiki''s own; the URL is that base with that page name added. ShellExecute of an absolute http or https URL goes to the browser registered for the scheme, with no arguments and no command.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-16
+    expires: 2027-10-15
