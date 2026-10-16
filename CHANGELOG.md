@@ -6317,24 +6317,27 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   route that changed where the matrix did not fails its `--check`, and only the lists it reads and prose may change
   unseen (`--steps` prints the steps as the code has them), and a definition it reads that stands inside a conditional
   of the preprocessor, which it does not evaluate, or holds one, or is not the only definition of its name in its
-  file - an overload, a copy in another namespace - stops it too, as does an enumerator of the route kinds or of the
-  permissions whose value, as the compiler gives it, is not its place - a permission's place is the bit it is set at
-  and the place of its token; it reads the code as the compiler's first three translation phases do - line splices
-  joined, comments taken out, raw string literals and numbers with digit separators read whole, a directive wherever
-  it begins a line, after spaces or a comment too - so that nothing in a comment or a literal is read as code, and a
-  form it does not read as the compilers do, a backslash with spaces after it at a line's end among them, stops it;
-  what `Authenticate_` makes of a credential - the grant of a role, for its domains - the string helpers those
-  functions use, a macro defined over a name they use, an overload of one of them defined in another file and the
-  functions `ProcessRequest_`'s other checks call are not held, and the matrix says so. It flags each route a role
-  confined to its domain reaches while the route names no domain, each change such a role makes on its own domain's
-  path whose handler is not given the caller, each change reached by GET, each page answered before any credential for
-  GET and POST alike, and each route kind authorised and never dispatched. Its `--check` and its `--self-test`, which
-  breaks the source in memory and proves each flag fires and each changed step stops it, run in the `checkers` job;
-  neither the server's help nor the Control Panel's embeds the matrix (`generate-help-pages.py`, the Control Panel's
-  project files), so that a route change does not rewrite `HelpPagesData.cpp` too; Help.md and CONTRIBUTING.md name
-  the four documents the help leaves out, and the Deck's and the webmail's harnesses read them from
-  `generate-help-pages.py` and hold the list of documents their recorded server answers to the one `HelpPagesData.cpp`
-  embeds, reading each row of its table by the row's head, so that a field after the headings is read too.
+  file - an overload, a copy in another namespace - stops it too, as do a directive of the preprocessor of any other
+  kind - an `#include`, which brings in code it never sees - inside what it reads, a route parser, either listener's
+  `ProcessRequest_`, an enumeration, `PermissionTokens`, a constant's initialiser or a function whose steps it holds,
+  and an enumerator of the route kinds or of the permissions whose value, as the compiler gives it, is not its place -
+  a permission's place is the bit it is set at and the place of its token; it reads the code as the compiler's first
+  three translation phases do - line splices joined, comments taken out, raw string literals and numbers with digit
+  separators read whole, a directive wherever it begins a line, after spaces or a comment too - so that nothing in a
+  comment or a literal is read as code, and a form it does not read as the compilers do, a backslash with spaces after
+  it at a line's end among them, stops it; what `Authenticate_` makes of a credential - the grant of a role, for its
+  domains - the string helpers those functions use, a macro defined elsewhere over a name they use, an overload of one
+  of them defined in another file and the functions `ProcessRequest_`'s other checks call are not held, and the matrix
+  says so. It flags each route a role confined to its domain reaches while the route names no domain, each change such a
+  role makes on its own domain's path whose handler is not given the caller, each change reached by GET, each page
+  answered before any credential for GET and POST alike, and each route kind authorised and never dispatched. Its
+  `--check` and its `--self-test`, which breaks the source in memory and proves each flag fires and each changed step
+  stops it, run in the `checkers` job; neither the server's help nor the Control Panel's embeds the matrix
+  (`generate-help-pages.py`, the Control Panel's project files), so that a route change does not rewrite
+  `HelpPagesData.cpp` too; Help.md and CONTRIBUTING.md name the four documents the help leaves out, and the Deck's and
+  the webmail's harnesses read them from `generate-help-pages.py` and hold the list of documents their recorded server
+  answers to the one `HelpPagesData.cpp` embeds, reading each row of its table by the row's head, so that a field after
+  the headings is read too.
 - **SmtpPolicy.md, RestrictedDelivery.md and ImpersonationProtection.md say what the server's IDNA conversion reads
   and what it does not.** They said the server has none, and that the Linux build has no Unicode tables, which UTS 46
   for a link's host made untrue ("Anti-spam, anti-virus and mail flow rules", above): the domain policy list and

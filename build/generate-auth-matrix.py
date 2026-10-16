@@ -13,9 +13,10 @@ fails the moment the two part: when the routes, the lists or the roles it is
 read from have changed and the file has not (exit 1), and when a step of one
 of the functions it holds has changed, an enumerator it reads has a value that
 is not its place, something it reads stands inside a conditional of the
-preprocessor or holds one, which it does not evaluate, or a file it reads holds
-a form it does not read as the compilers do (exit 2; STEPS, lex, conditionals
-and enumeration, below).
+preprocessor, which it does not evaluate, or holds a directive of it - a
+conditional, an #include - whose effect it does not read, or a file it reads
+holds a form it does not read as the compilers do (exit 2; STEPS, lex,
+conditionals, tokenize and enumeration, below).
 
 What is read, all of it from hmailserver/source/Server/Common:
 
@@ -94,14 +95,21 @@ preprocessor's conditionals and holds none, and only when it is the only
 definition of its name in its file: one inside a conditional, or holding one,
 stops it, since another copy of it, or another branch, may be what is
 compiled, and so does a second definition, an overload or a copy in another
-namespace, since the compiler may use that one. Not held: how Authenticate_
-makes a request one of the nine credentials - the grant RoleManager gives it,
-of which role and for which domains (GrantForAccount, GrantForApiKey and
-ServerAdministrator, and the GrantForRole they ask) - which the matrix's
-columns take as given, the string helpers the functions above use, a macro
-defined over a name they use, an overload of one of them defined in another
-file, and what the functions ProcessRequest_'s other checks call decide (the
-matrix's "Not shown" names them).
+namespace, since the compiler may use that one. A directive of any other kind
+inside what it reads stops it too, since an #include there brings in code it
+never sees and it does not read what another directive does: inside a route
+parser, a predicate, either listener's ProcessRequest_, an enumeration,
+PermissionTokens or a constant's initialiser, which it parses, as a directive
+(tokenize); inside another function whose steps it holds, as one of its
+steps; and between the report's SectionInfo and the end of FindSection, as
+any directive there. Not held: how Authenticate_ makes a request one of the
+nine credentials - the grant RoleManager gives it, of which role and for
+which domains (GrantForAccount, GrantForApiKey and ServerAdministrator, and
+the GrantForRole they ask) - which the matrix's columns take as given, the
+string helpers the functions above use, a macro defined elsewhere over a name
+they use, an overload of one of them defined in another file, and what the
+functions ProcessRequest_'s other checks call decide (the matrix's "Not
+shown" names them).
 
 Usage:
   python build/generate-auth-matrix.py            # write the matrix
@@ -487,25 +495,35 @@ class Tok(object):
         return "%s:%r@%d" % (self.kind, self.text, self.line)
 
 
-def tokenize(text, first_line=1):
-    """The tokens of text, code as lex() gives it, for the parser: directives
-    left out, adjacent string literals one, as in C++."""
+def tokenize(text, first_line, what):
+    """The tokens of text, code as lex() gives it whose first line is the
+    line first_line of its file, for the parser: adjacent string literals one,
+    as in C++. A directive of the preprocessor in text stops the script, as a
+    conditional does: what an #include there brings in is code it never reads,
+    and it does not read what another directive does, so the tokens it would
+    give need not be those the compiler reads. what: what text is, for the
+    message."""
     tokens = []
     line = first_line
     for kind, start, end, inside in scan(text):
         value = text[start:end]
-        if not inside:
-            if kind in ("str", "raw"):
-                literal = literal_value(kind, value)
-                # adjacent literals are one literal, as in C++
-                if tokens and tokens[-1].kind == "str":
-                    tokens[-1].text += literal
-                else:
-                    tokens.append(Tok("str", literal, line))
-            elif kind == "chr":
-                tokens.append(Tok("chr", literal_value(kind, value), line))
-            elif kind in ("num", "id", "op"):
-                tokens.append(Tok(kind, value, line))
+        if inside:
+            finish = text.find("\n", start)
+            raise GenerationError("%s: a directive of the preprocessor at line %d, %s, inside what this script reads "
+                                  "as code, which it does not read: an #include there brings in code it never sees, "
+                                  "and it does not read what another directive does"
+                                  % (what, line, text[start:finish if finish >= 0 else len(text)].strip()))
+        if kind in ("str", "raw"):
+            literal = literal_value(kind, value)
+            # adjacent literals are one literal, as in C++
+            if tokens and tokens[-1].kind == "str":
+                tokens[-1].text += literal
+            else:
+                tokens.append(Tok("str", literal, line))
+        elif kind == "chr":
+            tokens.append(Tok("chr", literal_value(kind, value), line))
+        elif kind in ("num", "id", "op"):
+            tokens.append(Tok(kind, value, line))
         line += value.count("\n")
     tokens.append(Tok("eof", "", line))
     return tokens
@@ -1046,11 +1064,13 @@ def function_text(text, qualified, params=None):
     return code[span[1]:span[2]], code.count("\n", 0, span[1]) + 1
 
 
-def parse_function(text, qualified):
+def parse_function(text, qualified, rel):
+    """The statements of a member function's body (function_text) as the
+    parser reads them, and the line its '{' is on; rel: its file."""
     body, line = function_text(text, qualified)
     if body is None:
         return None, 0
-    parser = Parser(tokenize(body, line))
+    parser = Parser(tokenize(body, line, "%s: %s" % (rel, qualified)))
     return parser.block(), line
 
 
@@ -2269,7 +2289,7 @@ def load_functions(sources):
     for name, rel in SUB_PARSERS.items():
         text = read(rel, sources)
         qualified = "RestApiServer::" + name
-        ast, _ = parse_function(text, qualified)
+        ast, _ = parse_function(text, qualified, rel)
         if ast is None:
             raise GenerationError("%s: %s could not be read" % (rel, qualified))
         functions[name] = (ast, function_params(text, qualified), True)
@@ -2280,7 +2300,7 @@ def load_functions(sources):
         body, line = function_text(text, qualified)
         if body is None:
             raise GenerationError("%s: %s could not be read" % (rel, qualified))
-        ast = Parser(tokenize(body, line)).block()
+        ast = Parser(tokenize(body, line, "%s: %s" % (rel, qualified))).block()
         # the predicate is its last return; earlier statements strip a query string
         returns = [stmt for stmt in ast[2] if stmt[0] == "return"]
         if not returns:
@@ -2302,7 +2322,8 @@ def load_functions(sources):
         lexed = lex(read(rel, sources))
         m = outside_conditionals(lexed.code, re.search(r"\b" + re.escape(qualified) + r"\s*=(?!=)([^;]*);",
                                                        lexed.blind), what)
-        value = string_list(lexed.code[m.start(1):m.end(1)], what) if m else []
+        value = string_list(lexed.code[m.start(1):m.end(1)], what, lexed.code.count("\n", 0, m.start(1)) + 1) \
+            if m else []
         if len(value) != 1:
             raise GenerationError("%s could not be read: it is not defined as one string literal" % what)
         defined_once(lexed.blind, r"\b" + re.escape(qualified) + r"\s*=(?!=)", what)
@@ -2315,7 +2336,7 @@ def read_rest_routes(sources):
     """[(kind, methods, template text, line)] from ParseRoute_ and its sub-parsers."""
     text = read(REST_CPP, sources)
     functions = load_functions(sources)
-    ast, _ = parse_function(text, "RestApiServer::ParseRoute_")
+    ast, _ = parse_function(text, "RestApiServer::ParseRoute_", REST_CPP)
     if ast is None:
         raise GenerationError("%s: ParseRoute_ could not be read" % REST_CPP)
     records = []
@@ -2353,7 +2374,7 @@ def read_anonymous_routes(sources, rel, qualified, stop_at_try):
     """[(handler, methods, template text, conditions, line)] answered before any credential."""
     text = read(rel, sources)
     functions = load_functions(sources)
-    ast, _ = parse_function(text, qualified)
+    ast, _ = parse_function(text, qualified, rel)
     if ast is None:
         raise GenerationError("%s: %s could not be read" % (rel, qualified))
     body = list(ast[2])
@@ -2570,13 +2591,15 @@ def authenticated_part(process):
     return None, None
 
 
-def enumerators(body, what):
+def enumerators(body, what, first_line):
     """[(name, value)] of the enumerators of an enumeration's body, code as
-    lex() gives it, with each one's value as the compiler gives it: the integer
-    literal written for it, or one more than the one before, the first 0. An
-    enumerator written any other way - its value an expression, an attribute
-    after its name - stops the script, which evaluates nothing else."""
-    tokens = tokenize(body)
+    lex() gives it whose first line is the line first_line of its file, with
+    each one's value as the compiler gives it: the integer literal written for
+    it, or one more than the one before, the first 0. An enumerator written any
+    other way - its value an expression, an attribute after its name - stops
+    the script, which evaluates nothing else, and so does a directive of the
+    preprocessor in the body (tokenize)."""
+    tokens = tokenize(body, first_line, what)
     items = []
     value = -1
     i = 0
@@ -2625,7 +2648,8 @@ def enumeration(text, name, pattern, what):
     if not m:
         raise GenerationError("%s could not be read" % what)
     defined_once(lexed.blind, r"\benum\s+(?:class\s+|struct\s+)?" + name + r"\b[^;{]*\{", what)
-    return held_to_places(enumerators(lexed.code[m.start(1):m.end(1)], what), what)
+    return held_to_places(enumerators(lexed.code[m.start(1):m.end(1)], what,
+                                      lexed.code.count("\n", 0, m.start(1)) + 1), what)
 
 
 def route_kinds(header):
@@ -2676,11 +2700,12 @@ def builtin_permissions(role_cpp, function):
     return {m.group(1) for m in (re.match(ROLE_PERMISSION_LINE, line) for line in lines) if m}
 
 
-def string_list(body, what):
-    """The strings of a brace list's body, code as lex() gives it: each element
-    a string literal (adjacent ones one, as in C++), a comma between them. Any
-    other element stops the script."""
-    tokens = tokenize(body)
+def string_list(body, what, first_line):
+    """The strings of a brace list's body, code as lex() gives it whose first
+    line is the line first_line of its file: each element a string literal
+    (adjacent ones one, as in C++), a comma between them. Any other element
+    stops the script, and so does a directive of the preprocessor (tokenize)."""
+    tokens = tokenize(body, first_line, what)
     strings = []
     i = 0
     while tokens[i].kind != "eof":
@@ -2706,7 +2731,7 @@ def permission_tokens(role_cpp):
     if not m:
         raise GenerationError("%s could not be read" % what)
     defined_once(lexed.blind, r"\bPermissionTokens\s*\[[^\]]*\]\s*=", what)
-    return string_list(lexed.code[m.start(1):m.end(1)], what)
+    return string_list(lexed.code[m.start(1):m.end(1)], what, lexed.code.count("\n", 0, m.start(1)) + 1)
 
 
 def permission_enum(role_h):
@@ -3852,11 +3877,15 @@ def render(decision, records, anon, web):
       "preprocessor's conditionals (`#if` to `#endif`), which it does not evaluate, and be the only definition of "
       "its name in its file: a definition inside one, or holding one, stops it, since another copy, or another "
       "branch, may be what is compiled, and so does a second definition - an overload, a copy in another namespace "
-      "- since the compiler may use that one. Not held: "
-      "how `Authenticate_` makes a request one of the columns below - the grant `RoleManager` gives it, of which "
-      "role and for which domains (`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the "
-      "`GrantForRole` they ask) - which they take as given, the string helpers those functions use, a macro "
-      "defined over a name they use and an overload of one of them defined in another file.")
+      "- since the compiler may use that one. A directive of the preprocessor of any other kind inside what it reads "
+      "- an `#include`, which brings in code it never sees, a `#define` - stops it too: inside the route parsers, "
+      "their predicates, either listener's `ProcessRequest_`, the enumerations, `PermissionTokens` or a constant's "
+      "initialiser, which it parses, inside another function whose steps it holds, as one of its steps, and from "
+      "the report's `SectionInfo` to the end of `FindSection`. Not held: how `Authenticate_` makes a request one "
+      "of the columns below - the grant `RoleManager` gives it, of which role and for which domains "
+      "(`GrantForAccount`, `GrantForApiKey` and `ServerAdministrator`, and the `GrantForRole` they ask) - which "
+      "they take as given, the string helpers those functions use, a macro defined elsewhere over a name they use "
+      "and an overload of one of them defined in another file.")
     w("- **Not shown**, because they narrow every route alike: the Host check (421), the request budget per "
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
@@ -4691,6 +4720,50 @@ def self_test():
     expect("integer literals are read as the compiler reads them",
            [integer_value(t) for t in ("0", "017", "0x1F", "0b101", "10'000", "42ULL", "0xFFu", "1.5", "08")]
            == [0, 15, 31, 5, 10000, 42, 255, None, None])
+
+    # 17. A directive of the preprocessor inside what the parser reads - an
+    # enumeration, PermissionTokens, a constant's initialiser, a route parser, a
+    # predicate, an anonymous chain - stops the script, as a conditional does,
+    # naming its line: an #include there brings in code it never reads, and it
+    # does not read what another directive does. The file named need not exist,
+    # since the script does not open it. ProcessRequest_ is parsed whole, so a
+    # directive inside a dispatch's return, which its steps mask, stops it too;
+    # inside another function whose steps it holds, a directive is one of the
+    # steps.
+    def directive_stops(label, rel, old, new, directive, whole):
+        sources = broken_copy(rel, old, new)
+        line = sources[rel][:sources[rel].find(directive)].count(nl) + 1
+        shown = directive[directive.find("%:") if directive.startswith("%:") else directive.find("#"):]
+        said = "a directive of the preprocessor at line %d, %s," % (line, shown)
+        (refused if whole else stopped)("a directive inside %s" % label, sources, said)
+
+    include = '#include "Extra.inc"'
+    for label, directive in (("an #include", include),
+                             ("an #include after spaces and a comment", '   /* the next ones */ #include "Extra.inc"'),
+                             ("an #include written with the digraph %:", '%:include "Extra.inc"'),
+                             ("a #define", "#define HM_PERMISSION_NOTE_ 1")):
+        directive_stops("RolePermission's body, %s" % label, role_h, "      ManageAccounts,",
+                        directive + nl + "      ManageAccounts,", directive, False)
+    directive_stops("RouteKind's body, an #include", REST_H, "         RouteApiKeyList,",
+                    include + nl + "         RouteApiKeyList,", include, False)
+    directive_stops("PermissionTokens, an #include", ROLE_CPP, '         "view_accounts",',
+                    include + nl + '         "view_accounts",', include, False)
+    directive_stops("a constant a route parser names, an #include between its = and its literal",
+                    "Common/Util/CalDavServer.cpp", '   const char *CalDavServer::CalendarsPath = "',
+                    "   const char *CalDavServer::CalendarsPath =" + nl + include + nl + '      "', include, True)
+    for label, rel, old in (
+            ("ParseRoute_", REST_CPP, '      const AnsiString apiKeysPath = "/api/v1/apikeys";' + nl),
+            ("ParseScimRoute_", SUB_PARSERS["ParseScimRoute_"], '      const AnsiString prefix = "/scim/v2/";' + nl),
+            ("a route parser's predicate", "Common/Util/CalDavServer.cpp",
+             '      return path == "/dav/calendars" || path.StartsWith(CalendarsPath);' + nl),
+            ("ProcessRequest_'s anonymous chain", REST_CPP, '      if (method == "GET" && path == "/api/v1/help")' + nl),
+            ("a return of ProcessRequest_'s dispatch written over several lines", REST_CPP,
+             "                                          HttpsClient::IsLoopbackHost(caller.peer.ToString()) &&" + nl),
+            ("the web services listener's ProcessRequest_", WEB_CPP,
+             "      AnsiString host = GetRequestHost_(request);" + nl)):
+        directive_stops("%s, an #include" % label, rel, old, include + nl + old, include, True)
+    stops("an #include inside a built-in role's function changes its steps", ROLE_CPP, helpdesk_end,
+          helpdesk_end.replace("         return set;", include + nl + "         return set;"), "HelpdeskPermissions")
 
     # 14. The documents' index says what is held as the matrix does: where its
     # row for the matrix names ProcessRequest_, it names the part of it held.
