@@ -62,17 +62,17 @@ namespace HM
       boost::recursive_mutex mutex_;
       std::map<size_t, std::shared_ptr<WorkQueue> > work_queues_;
 
-      // Queues whose stop (or whose destructor) gave up on a worker thread still
-      // inside io_context::run() - a task in a blocking wait outside Boost's
-      // interruption points, past the ten seconds the stop waits and the five
-      // more the destructor would. Freeing such a queue would pull its
-      // io_context, and the mutexes, containers and counters the worker still
-      // reads as it leaves, out from under that thread. The queue is kept here
-      // instead until the thread leaves, and SweepRetired_ frees it then. It is
-      // not the worker that holds the queue alive (a worker that dropped the last
-      // reference would run the destructor, and so join its own thread, on
-      // itself): the manager does, and sweeps on the next create or remove and
-      // once a minute (SweepRetiredQueues).
+      // Queues whose stop gave up on a worker thread still inside
+      // io_context::run() - a task in a blocking wait outside Boost's
+      // interruption points, past the ten seconds the stop waits. Freeing such
+      // a queue would pull its io_context, and the mutexes, containers and
+      // counters the worker still reads as it leaves, out from under that
+      // thread. The queue is kept here instead until the thread leaves, and
+      // SweepRetired_ frees it then. It is not the worker that holds the queue
+      // alive (a worker that dropped the last reference would run the
+      // destructor, and so join its own thread, on itself): the manager does,
+      // and sweeps on the next create or remove and once a minute
+      // (SweepRetiredQueues).
       std::vector<std::shared_ptr<WorkQueue> > retired_queues_;
 
       // Never reused, never derived from the size of the map above. See

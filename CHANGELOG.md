@@ -851,16 +851,16 @@ Control Panel. Found by the project's own review (work item 78; CVE requested).
   connection but the one the thread's statement is on, which it leaves open, and ends the process at once, the thread
   with it, where closing the database freed the connection the statement was on and the process went on through the
   destructors of its statics with the thread still running. It does the same while a connection is still in use, or a
-  thread that the stop of one of the server's work queues has given up on, after its ten seconds and five more - a
-  delivery, a script, an external account's fetch or a lookup held by a database or a host that has stopped answering -
-  still runs, where the database was closed under that thread too (in every version) - on Linux, where it was
-  measured. On Windows such a stop did not get that far until 6.3.7: the queue's teardown waited for the thread's
-  task to end, however long it took, and the thread then went on in the queue it had let go of, which faulted in the
-  re-check's run, the stop never finishing (in every version until the entry above on a work queue a stop gave up on). Either way, a connection in use is closed
-  once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
-  there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its connections:
-  one made after the close is now closed rather than put in the pool, which took it without the pool's lock while
-  the close read and cleared the pool, and the start is answered that the database was closed, which is written to
+  thread that the stop of one of the server's work queues has given up on, after its ten seconds - a delivery, a script,
+  an external account's fetch or a lookup held by a database or a host that has stopped answering - still runs, where
+  the database was closed under that thread too (in every version) - on Linux, where it was measured. On Windows such a
+  stop did not get that far until 6.3.7: the queue's teardown waited for the thread's task to end, however long it took,
+  and the thread then went on in the queue it had let go of, which faulted in the re-check's run, the stop never
+  finishing (in every version until the entry above on a work queue a stop gave up on). Either way, a connection in use
+  is closed once its caller hands it back, none is handed out after the close, and a thread that asks for one is
+  answered that there is none. A start or a reinitialise that such a stop gave up waiting for may still be making its
+  connections: one made after the close is now closed rather than put in the pool, which took it without the pool's lock
+  while the close read and cleared the pool, and the start is answered that the database was closed, which is written to
   the application log once logging is configured, as in a reinitialise, rather than reported as a database that
   could not be reached, or whose version could not be detected; at the service's start, before its settings are
   loaded, nothing is written, and the process ends at once. The checks made on a connection once they are all made -

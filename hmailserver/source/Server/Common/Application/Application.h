@@ -164,13 +164,13 @@ namespace HM
       // Server Compact once its flush interval has been waited out
       // (CloseDatabaseBeforeExit_). Answers false when a thread was left
       // running - the indexer's; one of a work queue's that the queue's stop
-      // gave up on after its ten seconds and five more (WorkQueue::Stop) and
-      // that has not ended since, in this stop or an earlier one; or the stop
-      // or start this waited for - or a connection was left open: the caller
-      // then ends the process at once, without the destructors of statics,
-      // which such a thread may be using (TerminateProcess, _Exit). Until 10
-      // October 2026 the database was closed under such a thread, and the
-      // process ended through the destructors.
+      // gave up on after its ten seconds (WorkQueue::Stop) and that has not
+      // ended since, in this stop or an earlier one; or the stop or start this
+      // waited for - or a connection was left open: the caller then ends the
+      // process at once, without the destructors of statics, which such a
+      // thread may be using (TerminateProcess, _Exit). Until 10 October 2026
+      // the database was closed under such a thread, and the process ended
+      // through the destructors.
       bool ShutDown();
 
       void SubmitPendingEmail();

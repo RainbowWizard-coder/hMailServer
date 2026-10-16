@@ -589,17 +589,16 @@ namespace HM
    {
       // Before the process ends, a thread may still be using the database: the
       // message indexer's after its minute, one of a work queue's that its
-      // queue's stop gave up on after its ten seconds and five more - a
-      // delivery, a script, a lookup in a database or a host that has stopped
-      // answering - a COM call's, or that of a start, a stop or a reinitialise
-      // ShutDown gave up waiting for (holderLeft). Every connection not in use
-      // is closed now, and each one in use as its caller hands it back - never
-      // under the statement on it, which until 10 October 2026 the close freed
-      // (PQfinish, mysql_close) while the call was still in it - and none is
-      // handed out after this: a statement asked for meanwhile, by such a
-      // thread or a COM call, finds no connection and fails as one the
-      // database could not take, where it went through the manager let go of
-      // here.
+      // queue's stop gave up on after its ten seconds - a delivery, a script, a
+      // lookup in a database or a host that has stopped answering - a COM
+      // call's, or that of a start, a stop or a reinitialise ShutDown gave up
+      // waiting for (holderLeft). Every connection not in use is closed now,
+      // and each one in use as its caller hands it back - never under the
+      // statement on it, which until 10 October 2026 the close freed (PQfinish,
+      // mysql_close) while the call was still in it - and none is handed out
+      // after this: a statement asked for meanwhile, by such a thread or a COM
+      // call, finds no connection and fails as one the database could not take,
+      // where it went through the manager let go of here.
       //
       // A connection still in use is waited for as long as what was committed
       // needs to reach the database's own storage before the process ends
