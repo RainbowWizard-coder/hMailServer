@@ -25,7 +25,7 @@ PackageName: hMailServer
 PackageUrl: https://gitlab.com/hmailserver/hmailserver
 License: AGPL-3.0-or-later
 LicenseUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
-Copyright: Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.
+Copyright: Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer
 CopyrightUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
 ShortDescription: A free, open-source mail server for Windows - SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.
 Description: |-

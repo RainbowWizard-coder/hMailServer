@@ -7,7 +7,7 @@ AppName=hMailServer
 ; the existing installation directory). This value produces exactly the key those
 ; already use; changing AppName without it would silently break both.
 AppId=hMailServer
-AppCopyright=Copyright (C) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.
+AppCopyright=Copyright (C) 2026 Progressive Robot Ltd. Based on hMailServer
 AppPublisher=Progressive Robot Ltd
 AppPublisherURL=https://www.progressiverobot.com
 DefaultDirName={pf}\hMailServer

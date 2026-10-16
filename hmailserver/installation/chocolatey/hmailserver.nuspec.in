@@ -25,7 +25,7 @@
     <title>hMailServer</title>
     <authors>Christopher Holloway, Progressive Robot Ltd</authors>
     <projectUrl>https://gitlab.com/hmailserver/hmailserver</projectUrl>
-    <copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.</copyright>
+    <copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer</copyright>
     <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver</projectSourceUrl>

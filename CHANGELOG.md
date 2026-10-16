@@ -1064,6 +1064,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Downloads and the release
 
+- **The installers' and packages' copyright line reads "Copyright (c) 2026 Progressive Robot Ltd. Based on
+  hMailServer".** The Windows installer's `AppCopyright`, the Chocolatey package's `copyright` and the winget
+  manifest's `Copyright` no longer name the original author there, where they ended "by Martin Knafve"; the
+  licence the installer shows, and every source file's notice, say who made hMailServer as they did.
 - **The installer's licence terms end with who made hMailServer.** "This software is a fork of hMailServer,
   originally created by Martin Knafve, whose copyright in the original work remains" is now the last paragraph of
   `installation/License.rtf`, which setup shows before it installs and copies to `Bin`, where it was the second
