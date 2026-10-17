@@ -18,8 +18,8 @@ signs it: from 6.3.6 every release carries `HmailServer.psd1` and
 ([Publishing](#publishing), step 5). Until then, `hmctl` comes with the `.deb` and
 the `.rpm` as `/usr/bin/hmctl`, and the module is the file in the tree.
 
-Both packages are at the server's version: `hmailserver-cli` 6.3.6 and
-`HmailServer` 6.3.6 are the clients as the 6.3.6 release has them. They speak the
+Both packages are at the server's version: `hmailserver-cli` 6.3.7 and
+`HmailServer` 6.3.7 are the clients as the 6.3.7 release has them. They speak the
 REST API, so either works against any server whose API has the routes it asks for;
 `hmctl api` and `Invoke-HmApi` reach a route newer than the client.
 
@@ -50,7 +50,7 @@ are made at, and the builder says so.
 
 The command is the console script `hmctl = hmailserver_cli.hmctl:main`, so pipx and
 pip make an `hmctl` (an `hmctl.exe` on Windows) that calls the same `main()`
-`/usr/bin/hmctl` does. `hmctl --version` says the server's version, `hmctl 6.3.6`, as
+`/usr/bin/hmctl` does. `hmctl --version` says the server's version, `hmctl 6.3.7`, as
 the package's version does (`pipx list`, `pip show hmailserver-cli`), and its requests
 name it in their `User-Agent`. Until 6.3.6 it said `hmctl 1.0`, the client's own first
 version, which never moved. `VERSION` in `hmctl` is a literal, since the script runs
