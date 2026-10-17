@@ -289,24 +289,35 @@ pack() {
   git -C "$aports" remote add origin "$APORTS"
   cut -d' ' -f3 "$work/units" | LC_ALL=C sort -u > "$work/commits"
   fetch_aports() {
-    xargs git -C "$aports" fetch -q --no-tags --depth 1 --filter=tree:0 origin < "$work/commits"
+    xargs git -C "$aports" fetch -q --no-tags --depth 1 --filter=blob:none origin < "$work/commits"
   }
   attempt "fetching aports" fetch_aports \
     || die "aports could not be fetched at $(tr '\n' ' ' < "$work/commits")from $APORTS"
 
-  # Each library, version and commit: where it is in aports, and that directory's tree.
+  # Each library, version and commit: where it is in aports, and that directory's tree. The
+  # fetch brought the trees (--filter=blob:none), so the lookup reads nothing from the
+  # network: a git failure here is not a missing directory, and is tried again.
+  aports_where() {
+    for wait in 30 60 none; do
+      if listed=$(git -C "$aports" ls-tree -d "$1" "main/$2" "community/$2" 2>&1); then
+        printf '%s\n' "$listed" | awk '$2 == "tree" { print $4, $3; exit }'
+        return 0
+      fi
+      if [ "$wait" = none ]; then
+        printf '%s\n' "$listed" >&2
+        return 1
+      fi
+      echo "aports' directory of $2 at $1 could not be read; trying again in $wait seconds" >&2
+      sleep "$wait"
+    done
+  }
   cut -d' ' -f1-3 "$work/units" | LC_ALL=C sort -u > "$work/ovc"
   : > "$work/trees"
   while read -r origin pkgversion commit; do
-    where=""
-    for repository in main community; do
-      if tree=$(git -C "$aports" rev-parse -q --verify "$commit:$repository/$origin" 2> /dev/null) \
-          && [ "$(git -C "$aports" cat-file -t "$tree")" = tree ]; then
-        where="$repository/$origin"
-        break
-      fi
-    done
-    [ -n "$where" ] || die "aports has no main/$origin or community/$origin at $commit"
+    found=$(aports_where "$commit" "$origin") || die "aports could not be read at $commit"
+    [ -n "$found" ] || die "aports has no main/$origin or community/$origin at $commit"
+    where=${found% *}
+    tree=${found#* }
     echo "$origin $pkgversion $commit $where $tree" >> "$work/trees"
   done < "$work/ovc"
   # The list the loop below reads, and a copy it looks things up in.
@@ -328,7 +339,8 @@ pack() {
     mkdir -p "$target"
     rm -rf "$work/x"
     mkdir -p "$work/x"
-    git -C "$aports" archive --format=tar -o "$work/aports.tar" "$commit" "$where" \
+    # The archive fetches the directory's blobs, which the fetch left out: a lapse is tried again.
+    attempt "aports' $where at $commit" git -C "$aports" archive --format=tar -o "$work/aports.tar" "$commit" "$where" \
       || die "aports' $where could not be read at $commit"
     tar -x -f "$work/aports.tar" -C "$work/x"
     if [ -n "$(find "$work/x" -type l)" ]; then
