@@ -396,7 +396,7 @@ table in SECURITY.md, "What must stay valid for a security release". In
 particular, check five things:
 
 - the findings of `.gitlab/security-exceptions.yml` that expire before the
-  release (293 of them on 26 and 27 March 2027) have been read again, or the
+  release (290 of them on 26 and 27 March 2027) have been read again, or the
   release job refuses;
 - the last pipeline of the batch the release is made from has, in its
   `dependency-scan` job, no Critical or High record with a fixed version that
