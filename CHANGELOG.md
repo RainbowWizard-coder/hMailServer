@@ -75,45 +75,45 @@ with `--check`).
 
 ### Security
 
-Every user of a Windows computer on which hMailServer was installed in a folder at the root of a drive could replace
-the programs its service runs. The installer left the program folder, `Bin` and `ControlPanel` with the permissions
-the folder above them hands down. Under `C:\Program Files`, the default, that lets nobody but SYSTEM, the
-Administrators and TrustedInstaller change them; but the root of a drive on a Windows client hands every folder made
-below it `Authenticated Users` Modify, so any account that can sign in to the computer could replace `hMailServer.exe`,
-or put a library in `Bin` that Windows loads into it before its own, and the service - LocalSystem by default and
-after every upgrade that keeps it - ran it at its next start, as did the next administrator to run `DBSetup`, the
-Control Panel's elevated steps or the uninstaller. On Windows Server the root lets `Users` make files in it, which is
-enough for the library. Every release from 6.0.0 to 6.3.6 installs so in such a folder; the default folder was never
-affected. 6.3.6's `/ProtectFolders` made the data folders private and left these three as they were, and
-`/GrantServiceAccess` only said `CHECK`, and only under the virtual account. `hMailServer.exe /ProtectFolders`, which
-setup runs at every installation and upgrade, now hardens the three: SYSTEM and the Administrators with full control,
-`BUILTIN\Users` with Read & execute where every user could read them before (none in a folder only the administrators
-may open), nothing inherited, and the Administrators as the owner of one somebody else owned, without the entries of its
-own that let others change it, which that owner could have written.
-It then holds the installation to the rule an administrator's install of an update checks, which such an installation
-now passes, and says what it does not change - an entry of a file's own, a folder above the program folder that others
-may rename - on a `CHECK` line with the `icacls` that removes it. Setup also gives a program folder it makes those
-permissions before it copies anything into it, hardens in place the folder an installation of the Control Panel alone
-finds there - no `/ProtectFolders` follows one, as it has no server - unless it is a drive's root, holds a server
-installation or is a link, and says, without refusing it, when the folder chosen lets every user change what is in it.
-Under Program Files the first run makes the three's entries their own, and nobody may do there anything they could not
-before. An administrator who cannot upgrade yet follows the documentation's steps from an elevated prompt on each of the
-three: the Administrators made its owner, every entry of its own but SYSTEM's, the Administrators' and any deny entry
-taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin` and `ControlPanel` where the server
-is installed, the service's given back; and reinstalls the programs into a new folder only the administrators
-may change, not over the installation, where accounts that are not administrators could sign in while it was installed
-so, where anybody but SYSTEM, the Administrators or TrustedInstaller owned one of the three, a file directly in the
-program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or
-`ControlPanel`, or where one of the three had an entry of its own that let anybody else change it, or one the steps
-could not take away: setup leaves in place every file it does not ship, and puts the event script in `Events`, which the
-service runs, and the scripts in `Addons` only where none is there. The documentation says how: nothing is run from the
-old folder, its uninstaller included; with the service stopped, the settings file, the mail and the built-in database
-are copied into the new folder before setup runs, since setup run into a folder without a settings file sets up a new,
-empty server there; the settings file is read first - the lines of its `[Directories]` that name the old folder and its
-administrator password deleted, which setup writes anew - and the event script before it is copied; setup is given the
-new folder with `/DIR=`, since over an installation it installs into the folder it finds, once a 32-bit installation's
-uninstall entry, which overrides `/DIR=`, is taken away; and the programs the database names are read in the new
-Control Panel. Found by the project's own review (work item 78; CVE requested).
+Every user of a Windows computer on which hMailServer was installed in a folder at the root of a drive could replace the
+programs its service runs. The installer left the program folder, `Bin` and `ControlPanel` with the permissions the
+folder above them hands down. Under `C:\Program Files`, the default, that lets nobody but SYSTEM, the Administrators and
+TrustedInstaller change them; but the root of a drive on a Windows client hands every folder made below it
+`Authenticated Users` Modify, so any account that can sign in to the computer could replace `hMailServer.exe`, or put a
+library in `Bin` that Windows loads into it before its own, and the service - LocalSystem by default and after every
+upgrade that keeps it - ran it at its next start, as did the next administrator to run `DBSetup`, the Control Panel's
+elevated steps or the uninstaller. On Windows Server the root lets `Users` make files in it, which is enough for the
+library. Every release from 6.0.0 to 6.3.6 installs so in such a folder; the default folder was never affected. 6.3.6's
+`/ProtectFolders` made the data folders private and left these three as they were, and `/GrantServiceAccess` only said
+`CHECK`, and only under the virtual account. `hMailServer.exe /ProtectFolders`, which setup runs at every installation
+and upgrade, now hardens the three: SYSTEM and the Administrators with full control, `BUILTIN\Users` with Read & execute
+where every user could read them before (none in a folder only the administrators may open), nothing inherited, and the
+Administrators as the owner of one somebody else owned, without the entries of its own that let others change it, which
+that owner could have written. It then holds the installation to the rule an administrator's install of an update
+checks, which such an installation now passes, and says what it does not change - an entry of a file's own, a folder
+above the program folder that others may rename - on a `CHECK` line with the `icacls` that removes it. Setup also gives
+a program folder it makes those permissions before it copies anything into it, hardens in place the folder an
+installation of the Control Panel alone finds there - no `/ProtectFolders` follows one, as it has no server - unless it
+is a drive's root, holds a server installation or is a link, and says, without refusing it, when the folder chosen lets
+every user change what is in it. Under Program Files the first run makes the three's entries their own, and nobody may
+do there anything they could not before. An administrator who cannot upgrade yet follows the documentation's steps from
+an elevated prompt on each of the three: the Administrators made its owner, every entry of its own but SYSTEM's, the
+Administrators' and any deny entry taken away, what it inherits replaced, and the Users' Read & execute and, on `Bin`
+and `ControlPanel` where the server is installed, the service's given back; and reinstalls the programs into a new
+folder only the administrators may change, not over the installation, where accounts that are not administrators could
+sign in while it was installed so, where anybody but SYSTEM, the Administrators or TrustedInstaller owned one of the
+three, a file directly in the program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything
+in them or in `Bin` or `ControlPanel`, or where one of the three had an entry of its own that let anybody else change
+it, or one the steps could not take away: setup leaves in place every file it does not ship, and puts the event script
+in `Events`, which the service runs, and the scripts in `Addons` only where none is there. The documentation says how:
+nothing is run from the old folder, its uninstaller included; with the service stopped, the settings file, the mail and
+the built-in database are copied into the new folder before setup runs, since setup run into a folder without a settings
+file sets up a new, empty server there; the settings file is read first - the lines of its `[Directories]` that name the
+old folder and its administrator password deleted, which setup writes anew - and the event script before it is copied;
+setup is given the new folder with `/DIR=`, since over an installation it installs into the folder it finds, once a
+32-bit installation's uninstall entry, which overrides `/DIR=`, is taken away; and the programs the database names are
+read in the new Control Panel, the paths the database holds into the old folder are changed, and, once nothing names it,
+the old folder is deleted by hand. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
