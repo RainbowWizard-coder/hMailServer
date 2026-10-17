@@ -14,7 +14,7 @@
 
 @{
     RootModule           = 'HmailServer.psm1'
-    ModuleVersion        = '6.3.6'
+    ModuleVersion        = '6.3.7'
     GUID                 = '89f008bd-5dc0-4d6d-9a05-4ac1c8dbf8e5'
     Author               = 'Christopher Holloway / Progressive Robot Ltd'
     CompanyName          = 'Progressive Robot Ltd'

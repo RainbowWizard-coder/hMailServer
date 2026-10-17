@@ -9,8 +9,8 @@ to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.6, published on 6 October 2026.** Anything that arrived after it is in the tree
-after 6.3.6 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-636-not-yet-released)
+**The latest release is 6.3.7, published on 17 October 2026.** Anything that arrived after it is in the tree
+after 6.3.7 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-637-not-yet-released)
 and will carry a version number when a release is cut.
 
 ## Where the releases are
@@ -71,7 +71,252 @@ with `--check`).
 
 ---
 
-## Unreleased - in the tree after 6.3.6, not yet released
+## Unreleased - in the tree after 6.3.7, not yet released
+
+Nothing yet.
+
+---
+
+## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17
+
+Everything that landed on `master` after the `v6.3.6` tag, from 6 October 2026 ([compare `v6.3.6` with
+`v6.3.7`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.6...v6.3.7)). It is the first security release
+made while releases pause ([SECURITY.md](SECURITY.md), "While releases pause"), and it fixes vulnerabilities in every
+earlier version: **upgrade every server running 6.3.6 or earlier.** The schema stays at **6108**, as 6.3.6 has it:
+6.3.7 adds no upgrade step (below). The security notes come first, then what changes on upgrade without a switch.
+
+**What it fixes, and who found it.** Each is under *Security* below, with what changed and how it is tested.
+
+- **Programs that any user could replace, on a Windows server installed at the root of a drive**
+  ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), CVE-2026-107571). Where the program
+  folder took its permissions from the root of a drive, any account that could sign in to the computer could replace
+  the programs the service runs, in every release from 6.0.0 to 6.3.6; the default folder under Program Files was
+  never affected. `hMailServer.exe /ProtectFolders`, which setup runs at every installation and upgrade, now hardens
+  the program folder, `Bin` and `ControlPanel`. Four narrower cases are not fixed in this release (*What 6.3.7 does
+  not fix*, below). Found by the project's own review.
+- **Mail sent, and signed, in the name of a domain hosted here.** Mail from outside whose `From` named a hosted domain
+  was signed with that domain's DKIM key, and so was every forward and copy of it, in every version that signs; and an
+  authenticated submission was signed as whatever hosted domain its `From` named, which 6.3.7 does only where the
+  account may send as that address ([work item 84](https://gitlab.com/hmailserver/hmailserver/-/work_items/84),
+  CVE-2026-107567). An account's Sieve `notify` was sent from whatever its `:from` said
+  ([work item 82](https://gitlab.com/hmailserver/hmailserver/-/work_items/82), CVE-2026-107568), and its `editheader`
+  could rewrite who a message was from ahead of a `redirect`
+  ([work item 83](https://gitlab.com/hmailserver/hmailserver/-/work_items/83), CVE-2026-107566), both from 6.2.22; a
+  domain's or an account's rule had the same gap in every version - a *Reply* from an address its owner may not send as,
+  a *Set header value* of `From`, `Sender`, the `Resent-` pair or `DKIM-Signature` - and is held the same way, under the
+  same two work items. A forward, a redirect, a list's copy or an alias's copy of mail from outside - a forward of a
+  message downloaded from an external account among them - is given an envelope sender, or for a null one is sent under
+  a host name, in the organisation of a domain its `From` names only when the message passed DMARC for it on arrival
+  (work items 90 and 91; CVE requested). Without a CVE request, as hardening: an ARC seal this server makes attests its
+  own SPF result, is made by the domain that relayed the message, and names the domains its results are for. All found
+  by the project's own review.
+- **The rule loop limit** ([work item 81](https://gitlab.com/hmailserver/hmailserver/-/work_items/81),
+  CVE-2026-107569). Any sender could lift the limit off a message, an account's own Sieve script or rule could reset
+  it, and a Sieve `notify` did not consult it, so that a loop of generated mail could run without bound, in every
+  version. Found by the project's own review.
+- **What a credential confined to named domains may change, over the REST and the COM APIs.** On a server with several
+  tenants, such a credential could make a few changes that reach beyond its domains, and could read the server-wide
+  metric history; over COM an account given the `serveradmin` role with a list of domains was the server's
+  administrator, its list aside, and over both a role could be taken away from an account by a credential that does not
+  hold what the account's admin level then gives it; a browser that held a REST credential could be made to send a
+  state-changing request from another site; and the ACME challenge responder served one connection at a time, so that
+  idle clients could make a certificate's renewal fail (work items 86, 87, 88, 89, 93, 96 and 97; CVE requested). Found
+  by the project's own reviews.
+- **The anti-virus action that removes attachments** delivered a message whose one part is an attachment, and an S/MIME
+  message signed as one part, as they arrived, with what the scanner had found in them, in every version; 6.3.7 replaces
+  each with the action's note, and deletes a message the server cannot read (work item 92; CVE requested). The default
+  action, which deletes the message, was never affected. Found by the project's review of this release.
+- **Keys left in memory.** `--import-stored-secrets-key`, and the reading of the stored-secrets key from its line,
+  left copies of the key in memory freed without being written over, from 6.3.4 (found by the project's own review);
+  and a mailbox key encrypted at rest stayed open past `MailboxKeyIdleMinutes` for as long as the scheduled tasks held
+  up their minute, from 6.3.4 (found by the batch's regression gate).
+- **Found by upstream hMailServer, in code this project shares with it:** with SRS on, mail to an SRS address this
+  server had handed out was not held to the relay rules, from 6.2.1 (work item 94; CVE requested), and an SRS address or
+  a BATV tag almost a whole cycle old was taken for fresh (upstream PR 649); a SASL PLAIN client that asked to act as
+  another account was signed in as itself and told it had succeeded (upstream issue 652); and the SMTP log wrote some
+  credentials in the clear (upstream issue 654; work item 95; CVE requested).
+- **What the Windows installers carry.** The .NET Desktop Runtime 10.0.13, Microsoft's security release of 13 October
+  2026, where the installers of 6.3.4 to 6.3.6 carried 10.0.12 (*The .NET 10 Desktop Runtime*, below); and, as the
+  MySQL and MariaDB client, MariaDB Connector/C 3.4.11, where 6.2.3 to 6.3.6 carried 3.4.9, which has CVE-2026-107819.
+
+Reported from outside and fixed besides: the Control Panel's IP ranges page, which could show no list of ranges at
+all (work item 79, `ThiagoES84`); mail to a DNSSEC-signed domain whose MX answer came compressed, live.com among
+them, which DANE enforcement deferred (work item 80, `ThiagoES84`); and classic Outlook's POP3 downloads, which
+stopped at the `UTF8` it sends after the login (work item 85, `ciprianbalus`). Thank you.
+
+**A security release, and more than fixes.** A security release during the pause is cut from `master` with the
+finished work `master` holds then, as [SECURITY.md](SECURITY.md), "What is supported, and for how long", now says;
+until this release it said "6.3.6 with fixes", and the five places that said so are reworded (*Documentation*). 6.3.7
+carries the work that was under way on 13 October 2026, which the owner decided that day to finish and fold into one
+batch: the Control Panel's corrections to its pages, texts, translations and keyboard and screen-reader behaviour,
+and its regrouped sidebar (*Control Panel*); IMAP and POP3 taking the client's address from a PROXY header (*IMAP,
+POP3 and the webmail*); a link's host that is not ASCII read by UTS 46 (*Anti-spam, anti-virus and mail flow
+rules*); the first units of the active-active work, which is still not built
+([ActiveActive.md](hmailserver/docs/ActiveActive.md)); and the Windows suite run in two halves on two benches, with
+GitLab's hosted runners available by a switch (*Build and tests*). By the owner's decision of 15 October 2026 it also
+carries the work already done for a later release, the first step of the Control Deck's and the webmail's rebuild
+planned for 6.4: the framework decision, the threat model of the web surface and the authorisation matrix with its
+check, with no product code (*Documentation*); and more fixes: the COM `Database` object once the database has ended a
+script's transaction, and the stop of a work queue that gave up on one of its threads (*Correctness*), and GitLab's
+report of the dependency findings and the guard of the hosted runners (*Build and tests*).
+
+Five of the security fixes below, those of work items 78 and 81 to 84, and their entries here, were public in the
+repository before this release - on GitLab from 6 and 7 October 2026, and on `master` from 7 and 9 October 2026 - by the
+owner's decision; the batch this release is made from was pushed and tagged on the same day, by his decision of 16
+October 2026; the rule, a day or so between a fix becoming public and its release, holds again after it
+([SECURITY.md](SECURITY.md), "What gets a release").
+
+**Signing, and who installs this release by the live update.** Every file is signed with Sigstore as this release's
+own pipeline at the group's path, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.7`,
+issuer `https://gitlab.com`, with the project's id, 86730559, in the certificate, as 6.3.6 was. Every server from
+6.3.4 on has that signer compiled in and requires the id for it. The update is applied by the version already
+installed, so:
+
+- **From 6.3.6** the live update installs 6.3.7, with 6.3.6's own file as its rollback image. A Windows service
+  running as LocalSystem installs it itself, as it installs any update. One running as `NT SERVICE\hMailServer`
+  downloads and verifies it, and an administrator installs it with *Install update* on the Server status page of the
+  Control Panel on the server: one Windows prompt, and the installer is checked again, elevated, before it runs. On
+  Linux 6.3.6's own update helper applies it, for the generic `.deb` and `.rpm` of either architecture and for both
+  AppImages, each of which finds its own file in the feed by name; an ARM64 Windows server finds the ARM64 installer
+  by name. A server installed from one of 6.3.6's per-distribution packages is offered the generic package, which apt
+  refuses on Debian 12 and dnf on Enterprise Linux 9: upgrade it with its package manager and its own release's package
+  of 6.3.7. No live update had installed a release signed at the group's path when these notes were written.
+- **From 6.3.4 or 6.3.5** what 6.3.6's notes said of those two versions still holds. A Windows service running as
+  LocalSystem installs 6.3.7 by its live update, from 6.3.5 with 6.3.5's file as its rollback image and from 6.3.4,
+  which carries no Sigstore bundle, without one. That image is no way back once the upgrade's schema steps have run:
+  6.3.5's updater runs it whenever the service is not running again in time, without looking at the database, and
+  6.3.5 refuses a database the steps have moved to 6108, so the backup taken before the upgrade is the way back
+  (*Back up first*, below). One running as `NT SERVICE\hMailServer` downloads and verifies it, then leaves the install
+  to an administrator (`HM7463`), whose *Install update* on 6.3.4 and 6.3.5 cannot do it: install 6.3.7 by hand,
+  once, as below, and every release after it with one click. On Linux install 6.3.7 with apt, dnf or zypper rather
+  than by the live update, whose apply step on 6.3.4 and 6.3.5 is the one 6.3.6 fixed (CVE-2026-104658), or turn the
+  apply off until then with `systemctl disable --now hmailserver-update.path`.
+- **A server whose `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository` still name the path the
+  project began at** - set so that a server from 6.2.28 to 6.3.3 could install 6.3.5 - trusts that path alone and
+  refuses every release signed after the project moved, 6.3.7 included. Clear the three first: on 6.3.4 and 6.3.5 in
+  the Control Panel, with `DELETE /api/v1/settings/ini/<name>` or on Linux with `hmailserver --set-setting <name>=`,
+  not in the file, which those versions put back; on 6.3.6, which reads them from `hMailServer.ini` alone, by deleting
+  their lines from `[Settings]` with an editor run as an administrator, or on Linux with `sudo hmailserver
+  --set-setting <name>=`, and restarting the service ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **From 6.2.28 to 6.3.3, and from 6.3.3's AArch64 packages or AppImages:** by hand, once, after the backup
+  [Upgrading.md](hmailserver/docs/Upgrading.md) describes. Those versions trust only the GitHub workflow that signed
+  the releases up to 6.3.3, and refuse a release signed on GitLab; one pointed at this project's feed with
+  `UpdateFeedUrl` downloads the installer at every check and refuses it, so keep `UpdateAutoDownload` off there until
+  then ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "A server from 6.2.28 to 6.3.3"). **Older than 6.2.28:** run
+  the installer, as always; the upgrade chain runs from every earlier version.
+- **The container image**, `registry.gitlab.com/hmailserver/hmailserver:6.3.7`, also tagged `6.3` and `latest`, is
+  pushed from this release's own pipeline once the release is published, by a job started by hand, as 6.3.6's was: in
+  the container the update check names the image to pull and installs nothing
+  ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+
+By hand on Windows: download `hMailServer-6.3.7-x64.exe` from this release, check that `Get-AuthenticodeSignature`
+reports it `Valid` and signed by `CN=Progressive Robot Ltd`, and run it as an administrator, keeping the service
+account on the installer's *Service account* page. On a machine that has not seen the file before, Windows
+SmartScreen may say that it "prevented an unrecognized app from starting": *More info* names the publisher,
+Progressive Robot Ltd, and with the signature checked, *Run anyway* installs it.
+
+**Back up first; no schema step.** Take the backup [Upgrading.md](hmailserver/docs/Upgrading.md) describes - the
+database and the data directory, each with its own tools - before installing. 6.3.7 requires schema 6108, as 6.3.6
+does, and adds no upgrade step, so an upgrade from 6.3.6 changes no table, and the live update's rollback to 6.3.6,
+should 6.3.7 not start, meets no newer schema. From 6.3.5 or older the upgrade runs 6.3.6's three steps to 6108,
+which are one-way (6.3.6's notes; from 6.3.3 or older 6.3.4's steps come first, and 6.3.4's notes apply), and the
+backup is the only way back.
+
+**The .NET 10 Desktop Runtime.** The Control Panel and the setup tools - DBSetup, DBSetupQuick and DBUpdater - run on
+the .NET 10 Desktop Runtime; the server itself is native code and does not. Both installers now carry 10.0.13,
+Microsoft's security release of 13 October 2026, where those of 6.3.4 to 6.3.6 carried 10.0.12, against which
+Microsoft published advisories that day, several of them rated High; whether hMailServer's own tools reach the code
+they concern has not been established. Setup installs the runtime it carries only on a machine that has no .NET 10
+Desktop Runtime at all, and leaves one that is there as it is, of whatever 10.0 release: **an upgraded server keeps
+the runtime it had**, 10.0.12 where 6.3.4, 6.3.5 or 6.3.6 installed it and an older 10.0 where an earlier installer
+did, and so does every other .NET 10 desktop program on it. The runtime is Microsoft's product, serviced through
+Microsoft Update rather than the operating system's own updates: on Windows Server through WSUS or the Microsoft Update
+Catalog, and by Automatic Updates only where the server has been opted in. Bring it to 10.0.13 or later that way, or
+with Microsoft's installer (<https://dotnet.microsoft.com/download/dotnet/10.0>); `dotnet --list-runtimes` lists the
+releases a machine has ([Upgrading.md](hmailserver/docs/Upgrading.md), "The .NET 10 runtime").
+
+**Before you upgrade.** What an upgraded server does differently with no setting turned is in *What changes on upgrade
+without a switch*, below. The changes most likely to need something done:
+
+- An account that sends over authenticated SMTP as an address of another domain hosted here, with no alias or grant
+  that lets it, now has that mail sent unsigned as that domain: give it the alias or the grant first.
+- A Sieve script stored before the upgrade still runs, without an edit of `From`, `Sender`, `Resent-From`,
+  `Resent-Sender`, `DKIM-Signature`, `Auto-Submitted` or the loop count, and its `notify` goes from the account's own
+  address where its `:from` does not reach the account; a domain's or an account's rule stored before it is taken
+  without a *Set header value* of one of the first five or of the loop count, and without a *Reply* from an address
+  its owner may not send as. The application log names each one.
+- `RuleLoopLimit` 0 now stops out-of-office replies, as it stopped every other generated message.
+- An account given the `serveradmin` role with a list of domains is, over COM as over REST, confined to those
+  domains and no longer the server's administrator: give the role with no list to an account that is to administer
+  the whole server, a script's or a Control Panel's account among them.
+- On Windows a program folder at a drive's root, its `Bin` and its `ControlPanel` keep no entry that lets another
+  user change them, a file's own entry aside, which a `CHECK` line names; under Program Files the first run makes the
+  three folders' inherited entries their own.
+- The MySQL and MariaDB client ships with seven authentication plugins where 6.3.6's had nine: a database account
+  that signs in with MySQL Enterprise's Windows authentication can no longer sign in, and the server then cannot open
+  its database.
+- SMTP, POP3 and ManageSieve refuse a SASL PLAIN sign-in that asks to act as another account; and with SRS on, mail
+  to an SRS address this server handed out is held to the relay rules unless it is a bounce.
+- Under *Remove all attachments and deliver the text*, a message that is one attachment arrives as the note alone, and
+  one the server cannot read is deleted, its recipients told.
+- A forward, a redirect or a rule's forward of mail from outside whose `From` names the forwarding domain's own
+  organisation, and that did not pass DMARC for it when it arrived, keeps the envelope sender it came with, with no
+  SRS address or rewritten sender; a copy of it with an empty envelope sender is not sent to an outside address under
+  this server's host name where that name is in the same organisation; a copy whose own envelope sender is at this
+  server's host name, or at a hosted domain or a subdomain of one, in the organisation its `From` names is not sent to
+  an outside address at all - the message stays in the mailbox, and the application log names each recipient - nor
+  is such a message sent where an alias or a distribution list expands to an outside address; and a managed list does
+  not distribute a posting whose `From` names the list domain's organisation unless it passed. No pass is recorded for
+  a message the DMARC check did not judge - with `ASDMARCEnabled` off, from a sender on the anti-spam white list or an
+  IP range with spam protection off, larger than `antispammaxsize` (1024 KB as shipped), already scored by the tests
+  before it at the higher of the spam thresholds, imported from a file or downloaded - nor for a `From` whose domain
+  publishes no DMARC record.
+- An event script that goes on in a transaction after `Database.ExecuteSQL` has failed is refused every statement
+  after it once the database has ended the transaction, and `Database.CommitTransaction` then fails: call
+  `Database.RollbackTransaction` and run the whole transaction again, or stop.
+
+**What 6.3.7 does not fix.** Four narrower cases of work item 78 are not in this release, by the owner's decision, and
+stay open:
+
+- setup hardens a program folder before it copies anything into it only when setup makes the folder, and then just
+  after making it rather than as it makes it;
+- a folder that is already there is hardened in place, before the copy, only for an installation of the Control
+  Panel alone; for a server installation, and at every upgrade, the program folder, `Bin` and `ControlPanel` are
+  hardened by `/ProtectFolders` at the end of setup;
+- a link or a junction in the program folder's path is named in setup's log as not hardened, and not refused;
+- the files in `Bin` and `ControlPanel` are not listed by their owners.
+
+None of them reaches an installation in a folder only the administrators may change - the default under Program Files
+is one - unless a link that another account controls is on its path. An installation at a drive's root is hardened
+by the upgrade itself; to have it hardened before the upgrade runs anything from it, follow
+[ServiceAccount.md](hmailserver/docs/ServiceAccount.md)'s steps "Before upgrading an installation at a drive's root"
+first. Reinstall the programs from the release into a new folder that only the administrators may change, not over the
+installation, where accounts that are not administrators could sign in to the computer while it was installed so, where
+anybody but SYSTEM, the Administrators or TrustedInstaller owned one of the three folders, a file directly in the
+program folder, or `Events`, `WebAdmin`, `DBScripts`, `Addons` or `Languages` or anything in them or in `Bin` or
+`ControlPanel`, or where one of the three had an entry of its own that let anybody else change it, or one the steps
+could not take away: setup leaves in place every file it does not ship, and puts the event script in `Events`, which the
+service runs, and the scripts in `Addons` only where none is there. The documentation says how: nothing run from the old
+folder, its uninstaller included; the mail, the built-in database and the settings file copied into the new folder
+before setup runs, since setup run into a folder without a settings file sets up a new, empty server; the settings
+file - its `[Directories]` and administrator password - and the event script read first; and setup given the new folder
+with `/DIR=`, since over an installation it installs into the folder it finds, once a 32-bit installation's uninstall
+entry, which overrides `/DIR=`, is taken away.
+
+**Known issues.**
+
+- **The ARM64 installer has never run on ARM64 hardware.** It is cross-compiled on the project's x64 Windows runner
+  and remains a preview ([WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)); if you install it on an ARM64 machine,
+  please say how it went, working or not, in [an issue](https://gitlab.com/hmailserver/hmailserver/-/issues). The
+  AArch64 Linux files are cross-compiled and tested under emulation: no AArch64 machine has run them.
+- **No channel publishes it yet.** The apt and dnf repositories, Docker Hub, Quay.io, the AUR, the Ubuntu PPA, Copr,
+  the openSUSE Build Service, Chocolatey, PyPI and the PowerShell Gallery publish from `master` once their keys and
+  accounts exist; none is live as this release is made ([Channels.md](hmailserver/docs/Channels.md)). The Snap Store's
+  name is registered, and `snap-upload`, a job started by hand once the release is published, puts 6.3.7 on its
+  `edge` and `candidate` channels; `stable` is promoted by hand ([Snap.md](hmailserver/docs/Snap.md)).
+- **An AppImage on Fedora, Enterprise Linux or openSUSE** runs on the host's glibc and cannot require its extra
+  character-set converters: install `glibc-gconv-extra` (Fedora, EL) or `glibc-gconv-modules-extra` (openSUSE) by
+  hand; the server says when they are missing.
 
 ### Security
 
@@ -113,7 +358,8 @@ old folder and its administrator password deleted, which setup writes anew - and
 setup is given the new folder with `/DIR=`, since over an installation it installs into the folder it finds, once a
 32-bit installation's uninstall entry, which overrides `/DIR=`, is taken away; and the programs the database names are
 read in the new Control Panel, the paths the database holds into the old folder are changed, and, once nothing names it,
-the old folder is deleted by hand. Found by the project's own review (work item 78; CVE requested).
+the old folder is deleted by hand. Found by the project's own review
+([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), CVE-2026-107571).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 - **Fixed: a credential confined to named domains could make a few changes that reach other tenants, on a
@@ -134,8 +380,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   is judged, so a domain whose server administrator set an internal smart host stays its domain administrator's to
   save, from the Control Panel as from a script. The server-wide **metric history** (`GET /api/v1/metrics/history`),
   counted from counters that carry no domain, is refused a confined credential as the report's server-wide sections
-  already were. Found by the project's own web-surface review; handled under [SECURITY.md](SECURITY.md) and
-  described here with the release that fixes it.
+  already were. Found by the project's own web-surface review and handled under [SECURITY.md](SECURITY.md)
+  (work items 86, 89 and 96; CVE requested).
   [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own".
 
 - **Fixed: the COM API holds a server-administrator role assigned with a domain list to those domains, as the
@@ -154,8 +400,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   `serveradmin` with a list, is refused taking a role away from an account whose admin level says server
   administrator. `RoleManager::Allows` answers `administer_server` only for a role that reaches every domain — the
   one rule `COMAuthentication::GetIsServerAdmin` and `RestApiServer::HoldsServerAuthority_` both read — and a role
-  given no list of domains is unchanged. Found by the project's own review; handled under
-  [SECURITY.md](SECURITY.md).
+  given no list of domains is unchanged. Found by the project's own review and handled under
+  [SECURITY.md](SECURITY.md) (work items 87 and 88; CVE requested).
   [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own" and "Giving somebody a
   role".
 
@@ -169,14 +415,15 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   The subscribe form alone still takes `Origin: null`, as this server's own form can be posted with it by a browser
   too old to send `Sec-Fetch-Site`. Scripts, `hmctl` and the PowerShell module send no such header and are
   unaffected, as are the Deck and the webmail, which act on their own origin. Found by the project's own web-surface
-  review; handled under [SECURITY.md](SECURITY.md).
+  review and handled under [SECURITY.md](SECURITY.md) (work item 93; CVE requested).
   [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md).
 
 - **Fixed: the ACME HTTP-01 challenge responder served one connection at a time.** During a certificate
   validation a client that connected and sent nothing held the responder for several seconds, so enough of them in
   turn could keep the certificate authority's own request from being answered and make the renewal fail. The
-  responder now serves connections concurrently, so an idle client holds only its own short-lived handler and never
-  the others. Found by the project's own web-surface review.
+  responder now serves connections concurrently, up to 64 at once, and closes a connection past that, so that an idle
+  client holds only its own short-lived handler. Found by the project's own web-surface review
+  (work item 97; CVE requested).
 
 - **Fixed: any sender could lift the rule loop limit off a message, an account's own Sieve script or rule could
   reset it, and a Sieve `notify` did not consult it.** The server counts the generated messages a message has been
@@ -239,7 +486,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   writer to examples, `MimeTester` (`report-parser-tests` on Linux) the writer's folds, and `Rules.cs`,
   `API/RestApiRules.cs`, `API/ComCallingProcess.cs`, `Sieve/SieveEditheaderDelivery.cs`, `Sieve/ManageSieve.cs`,
   `Sieve/SieveNotifyDelivery.cs`, `Sieve/SieveVacationDelivery.cs` and `SMTP/OutOfOfficeScope.cs` send them through
-  storing and delivery, four loops among them. Found by the project's own review.
+  storing and delivery, four loops among them. Found by the project's own review
+  ([work item 81](https://gitlab.com/hmailserver/hmailserver/-/work_items/81), CVE-2026-107569).
 
 - **Fixed: a Sieve `notify` was sent from whatever its `:from` said, so that any account with a Sieve script could
   send mail through this server as any address.** A `vacation` reply's `:from` is used only when it is an address
@@ -261,7 +509,7 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   `SieveFromAddressTester` (`business-object-tests` on Linux) holds the rule, the check at storing and a stored
   script's run to examples, and `Sieve/SieveNotifyDelivery.cs` and `Sieve/ManageSieve.cs` send an alias, another
   account's address and a `:from` that is not an address through storing and delivery. Found by the project's own
-  review.
+  review ([work item 82](https://gitlab.com/hmailserver/hmailserver/-/work_items/82), CVE-2026-107568).
 
 - **Fixed: an account's Sieve script could redirect a message as from any address, and have this server sign it
   with that address's domain's DKIM key.** `editheader` let a script add or delete any field but `Received`,
@@ -280,7 +528,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
 
   `SieveFromAddressTester` holds the refusal, a stored script's run and the edits at delivery to examples, and
   `Sieve/SieveEditheaderDelivery.cs` sends them through storing, delivery and a redirect between two accounts. Found
-  by the project's own review.
+  by the project's own review ([work item 83](https://gitlab.com/hmailserver/hmailserver/-/work_items/83),
+  CVE-2026-107566).
 
 - **Fixed: an account's own rule could reply as any address, or set the `From` of a message it forwarded, and have
   this server sign it with that address's domain's DKIM key.** An account may change its own rules over COM, signed
@@ -312,7 +561,9 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   `Rules/Rules.cs` and `API/RestApiRules.cs` save the rules over COM, signed in as the account and as the
   administrator, and over REST, and deliver a reply and a `From` stored before the check; `AntiSpam/DKIM/ArcSealing.cs`
   delivers a reply from no address under the name of a hosted domain's address, unsigned and naming no address.
-  Found by the project's own review.
+  Found by the project's own review; the rule engine's case is part of
+  [work item 82](https://gitlab.com/hmailserver/hmailserver/-/work_items/82) and
+  [work item 83](https://gitlab.com/hmailserver/hmailserver/-/work_items/83) (CVE-2026-107568 and CVE-2026-107566).
 
   A rule's *Warn sender* notice, and the notice a *Reject* met after acceptance sends, carry the rule's name and its
   owner's text, and came from `postmaster@` the sender's own domain (from 6.3.4, which brought them): an account's or
@@ -352,7 +603,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   `From` through an account's forward, an account rule's forward, a Sieve `redirect` and a distribution list (none
   signed, the forwards sealed) and a signed-in member's posting to the list (signed); `AntiSpam/Quarantine.cs`
   releases mail from outside that a domain's rule claimed a signed-in client for and then held, and finds its forward
-  not signed. Found by the project's own review.
+  not signed. Found by the project's own review
+  ([work item 84](https://gitlab.com/hmailserver/hmailserver/-/work_items/84), CVE-2026-107567).
 
 - **Fixed: a forward, a redirect, a list's copy or an alias's copy of mail from outside is given an envelope sender -
   or, for a null one, sent under a host name - in the organisation of a domain its `From` names only when the message
@@ -395,7 +647,7 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   alias that expands to an address outside and an ordinary third-party forward, all still sent; `SMTP.MailingLists`,
   `AntiSpam.Quarantine` and `SMTP.Journaling` find a list member's forward of a posting that passed, the forward of a
   message that passed released from the quarantine, and a journal mailbox's forward of its copy of one, sent on.
-  Found by the project's own review.
+  Found by the project's own review (work items 90 and 91; CVE requested).
 
 - **Changed: an authenticated SMTP submission is signed as another domain hosted here only when its account may send
   as the address its `From` names.** Authenticated SMTP does not hold the `From` header to the account
@@ -414,7 +666,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   hosted domain's addresses without an alias or a grant should give them one, or the mail goes unsigned.
   `SigningOriginTester` holds the mark and the address the signer reads to examples, and `AntiSpam/DKIM/ArcSealing.cs`
   sends a signed-in account's message as another hosted domain's address (not signed, nor its forward), as an alias of
-  its own and as its own domain's other address (both signed).
+  its own and as its own domain's other address (both signed). Found by the project's own review; it is part of
+  [work item 84](https://gitlab.com/hmailserver/hmailserver/-/work_items/84) (CVE-2026-107567).
 
 - **Fixed: an ARC seal attested whatever SPF result the first `Received-SPF` field of the message claimed.** With
   `ArcSealingEnabled` on, the `ARC-Authentication-Results` this server seals over mail it relays read `spf=` from
@@ -471,6 +724,39 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   IMAP folder's cached listing holds is 24 bytes smaller. `ArcAuthenticationResultsTester` holds the value, its folds
   and the domain's travel to examples, and `AntiSpam/DKIM/ArcSealing.cs` and `AntiSpam/Quarantine.cs` find both
   named in a seal. Found by the project's own review.
+
+- **Fixed: the anti-virus action *Remove all attachments and deliver the text* delivered a message whose one part is an
+  attachment, and an S/MIME message signed as one part, as they arrived, with what the scanner had found in them, in
+  every version; it now replaces each with its note, and deletes a message it cannot read.** A message whose one part is
+  not its text - a file, a message carried whole, or a text file declared an attachment, which are attachments as a part
+  of a multipart message is one (`MimeBody::IsAttachment`) - is rewritten as a message with no text part is: its header,
+  the subject marked with the server's *VIRUS_FOUND* text, and the *VIRUS_ATTACHMENT_REMOVED* note with nothing after
+  it, the part's own `Content-` fields left out with the part, so that the note reads as text. A message the stripper
+  cannot read - its file held by another program or gone, or its parse failed - has nothing in it that can be kept, and
+  is deleted, as *Delete the whole message* deletes it: each of its recipients is sent the "message deleted" notice
+  (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as this
+  action never tells the sender. The notice is made from the message's header, read once for all of its recipients; when
+  that cannot be read either, nothing is written to the error log, and the notice gives the envelope's sender and the
+  recipient as the message's *From* and *To*. The notices of *Delete the whole message*, which read the file for
+  themselves and say in the error log when they cannot, now fill the two fields from the envelope too when it cannot be
+  read, where they left them empty: a recipient's notice names that recipient alone, and the sender's notice each
+  address the message was taken for, once and before the server resolved it - for mail received by SMTP the `RCPT TO`
+  addresses, a distribution list by its own address and not its members; for mail an external account downloaded, the
+  account it was downloaded into, or, with *Deliver each message to the accounts its headers name* on, the addresses its
+  header and *Received* fields named that it took the message for - and not an address that reached only recipients an
+  earlier address had already reached. An S/MIME message signed as one part - `application/pkcs7-mime` holding
+  signed-data, which is opaque to the server's other readers and is not encrypted - is one such part, and is replaced by
+  the note too: the stripper asks `SealedMessage::IsEncrypted`, which is `IsOpaque` less signed-data. A message that is
+  one text part is delivered as it is, having no attachment to remove, and so is an encrypted one; the application log
+  says which of these each message was. `AntiVirus/StripAction.cs` delivers a message that is one attachment in four
+  shapes, an S/MIME message signed as one part and one encrypted as one part, and one that is one text part, and holds a
+  message's file while the stripper reads it and finds the notice naming the message's sender and recipient and nothing
+  in the error log, and while the delete action's notices are made and finds each recipient's naming that recipient
+  alone and the sender's naming the `RCPT TO` addresses of mail received by SMTP, the account a download went into, or
+  the address a download's header named for it, and not an address that reached no recipient of its own;
+  `SealedMessageTester` holds `IsEncrypted` to the S/MIME and PGP/MIME shapes
+  ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action"). Found by the
+  project's review of this release (work item 92; CVE requested).
 
 - **Fixed: a mailbox key encrypted at rest stayed open, its private half in memory, past `MailboxKeyIdleMinutes` for
   as long as the server's other scheduled tasks held up their minute.** The sweep that closes an idle key was the first
@@ -561,7 +847,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   recipient named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own,
   rather than lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside
   address is. `SMTP/Srs.cs` holds each, the refusal at `BDAT` as well as at `DATA`. Found by upstream's review of its
-  own SRS (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself.
+  own SRS (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself (work item 94; CVE
+  requested).
 
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for
@@ -593,7 +880,238 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   and readable to anyone who could read the log. The scrubber the POP3 and IMAP logs go through had an SMTP part that
   nothing called. Every line of a SASL exchange is hidden now but the user name of `AUTH LOGIN`, and `AUTH PLAIN` keeps
   its authentication identity, as before. `Security/SaslCredentialMasking.cs` sends each and reads the log; the
-  evidence pack says what the logs hold. Found by upstream issue 654 (upstream PRs 656 and 661).
+  evidence pack says what the logs hold. Found by upstream issue 654 (upstream PRs 656 and 661;
+  work item 95; CVE requested).
+
+### What changes on upgrade without a switch
+
+1. **Mail from outside is no longer signed as the hosted domain its `From` names, and nor is any copy of it.** A
+   message is signed as its `From`'s domain only when the server is entitled to: a submission by a signed-in user,
+   held to item 2, and every copy of it; a message the server makes itself; and one an IP range lets in as one of this
+   server's domains without signing in. Mail that came in from outside - an SMTP session that did not sign in and was
+   not such a submission, a download from an external account, a message imported from a file - leaves with the
+   signature it came with, and so does an account's forward of it, a rule's forward or copy, a Sieve `redirect`, an
+   alias or a distribution list to an address outside, the mirror copy and a journal rule's copy. A managed list does
+   not sign its copies of such a posting as the list's domain when an address of the list domain's organisation is in
+   its `From` fields. Messages in the queue at the upgrade are signed as before; a message the quarantine held before
+   it is taken for mail from outside unless it has no `Received` field, or the one on top is this server's own for a
+   session that signed in, or the send API's (*Security*).
+2. **An authenticated submission is signed as another hosted domain only where its account may send as the `From`'s
+   address.** A signed-in user's message is signed as its `From`'s domain when that is the account's own domain or one
+   of its domain aliases, whatever the address in it, and as another hosted domain only when the account may send as
+   that address: its own, an alias pointing at it, a mailbox that granted it the post right, an address it proved, a
+   masked address of its own. Otherwise it is still accepted and sent, unsigned as that domain, and so is every copy
+   of it; the debug log says why. A session a trusted upstream signed in through `XCLIENT LOGIN` under a name that is
+   no account here is held to the same rule with the name in the account's place. **Before upgrading**, give every
+   account that sends as another hosted domain's address an alias or a grant, or that mail goes unsigned (*Security*).
+3. **A rule or a Sieve script no longer edits who a message is from, its loop count or `Auto-Submitted`.** A Sieve
+   script that adds or deletes `From`, `Sender`, `Resent-From`, `Resent-Sender`, `DKIM-Signature`, `Auto-Submitted`
+   or the loop count is refused when it is stored or checked - ManageSieve `PUTSCRIPT` and `CHECKSCRIPT`, the
+   self-service filter, COM's `CheckSieveSyntax` - with the reason. A *Set header value* of `From`, `Sender`, the
+   `Resent-` pair or `DKIM-Signature` is for the server's rules alone, and no rule sets the loop count or a name with
+   a line break, a colon or a character outside ASCII: `RuleAction.Save`, `Rule.Save` and the REST API's rule routes
+   refuse them. A script or a rule stored before the upgrade, or restored from a backup since, still runs without that
+   edit, and the application log names it. To set `From` on a domain's mail, make the rule a server rule with a
+   condition on the domain. Event scripts may still set the loop count (*Security*).
+4. **A rule's *Reply* goes from an address its owner may send as, and a rule's notices from its owner's domain.** An
+   account's rule replies from an address the account may send as - its own, an alias of it, a mailbox that granted it
+   the post right, an address it proved, a masked address of its own - and a domain's rule from an address of the
+   domain or of one of its domain aliases, one email address in either case; an account's rule the server
+   administrator saves is held to the account's addresses too. Such a rule is refused when saved, and one stored
+   before, or restored from a backup since, sends no such reply, which the application log names; the rule's other
+   actions are taken. The reply's name is one quoted
+   name before its address, a reply from no address has its name before an empty `<>`, and a name with an `@` in it is
+   left out. A rule's *Warn sender* notice, and the notice of a *Reject* met after acceptance, come from the postmaster
+   of the rule owner's domain and are signed as it; a server rule's from the postmaster of the default domain when one
+   is set and hosted here, else of the hosted domain the message was addressed to, else of the sender's own
+   (*Security*).
+5. **A Sieve `notify` goes from the account's own address unless its `:from` reaches the account**, as a `vacation`
+   reply already did: its own address, or an active alias whose value is it. A `:from` that is not an address is
+   refused when the script is stored or checked; a script stored before still runs, its notifications from the
+   account's own address. The address found for a `:from`, a `vacation` reply's too, must be the one the script
+   wrote, letters' case aside, so that on MySQL a `:from` with an accent on a letter of an address no longer finds it
+   (*Security*).
+6. **The rule loop limit holds for every message.** A loop count that is not digits alone, or is above the limit,
+   reads as the limit: the message is delivered, and no forward, reply, copy, redirect, vacation or notification is
+   made from it. A Sieve `notify` is not sent once the count has reached the limit; an out-of-office reply, an
+   account's or a domain's, carries the count + 1 and is not sent at the limit. So `RuleLoopLimit` 0, which already
+   stopped every other generated message, now stops out-of-office replies too (*Security*).
+7. **A line break in a header value is written as spaces**, a space for each CR and each LF, unless it folds the
+   line, in every message the server makes, and COM's `Message.Save` refuses a credential's message whose values hold
+   a line break that does not fold them, and says why, where 6.3.6 sent a line break that began a field of its own
+   as that field (*Security*).
+8. **On Windows, `/ProtectFolders` hardens the program folder, `Bin` and `ControlPanel` at every installation and
+   upgrade**: SYSTEM and the Administrators with full control, `BUILTIN\Users` with Read & execute where every user
+   could read them before, nothing inherited, and the Administrators as the owner of one somebody else owned. What it
+   does not change - an entry of a file's own, a folder above the program folder that others may rename - is named on
+   a `CHECK` line with the `icacls` that removes it. Under Program Files the first run makes the three folders'
+   inherited entries their own, and nobody may do there anything they could not before. For an installation at a
+   drive's root, read *What 6.3.7 does not fix*, above (*Security*).
+9. **An ARC seal attests this server's own results, and says whose they are.** With `ArcSealingEnabled` on, `spf=` is
+   the result this server's own check reached when the message arrived, `none` when the check did not run, and no
+   field of the message is read for it; the sealing domain is the one the server records as sending the message on -
+   the forwarding account's, the rule's, the journal rule's or the list's domain, the submitting account's, the
+   domain of an alias or a distribution list that expanded to an address outside - and a message with none recorded
+   goes unsealed; and the results name `header.d=` for each domain whose signature verified and the SPF domain as
+   `smtp.mailfrom=`. Messages queued or held before the upgrade are sealed with `spf=none`, by an alias's or a
+   submitting account's domain, and otherwise not at all (*Security*).
+10. **The quarantine's file names carry where a message came from.** A quarantined copy's name carries whether it
+    came from outside, its SPF result, the relaying domain and whether its SPF domain was the sender's
+    (`<GUID>.spf-fail.outside.eml`, `.relay-<id>`), which a release reads back; a tool that reads the quarantine
+    folder by name meets the longer names (*Security*).
+11. **A copy of mail from outside keeps its envelope sender unless the message passed DMARC for the organisation its
+    `From` names.** As *Before you upgrade*, above, says: a forward, a redirect or a rule's forward of such mail that
+    did not pass is not `SRS`-rewritten into that organisation; a copy that would still carry an identity of it - a
+    null envelope sender under a host name of that organisation, or the envelope sender the message came with when
+    that is at this server's host name or at a hosted domain or a subdomain of one - is not sent on to an address
+    outside, and the application log names each recipient it was withheld from; a managed list does not distribute
+    such a posting, and a distribution list's bounce address is not given to it. A download from an external account
+    whose `From` is an address hosted here keeps a null envelope sender. A forward of mail that passed, and an
+    ordinary forward of third-party mail, are rewritten and sent on as before (*Security*).
+12. **Strip action.** Under *Remove all attachments and deliver the text*, a message whose one part is an attachment,
+    and an S/MIME message signed as one part, arrive as the action's note alone; a message the server cannot read, or
+    whose file it cannot rewrite, is deleted, and each of its recipients is sent the "message deleted" notice whatever
+    the two notice settings say. A message that is one text part, or encrypted, is delivered as it is. The notices of
+    *Delete the whole message* fill the message's *From* and *To* from the envelope when the message cannot be read,
+    and its recipients' notice now reaches the recipients of a message with an empty envelope sender (*Security*;
+    *Anti-spam, anti-virus and mail flow rules*).
+13. **SASL PLAIN that asks to act as another account is refused.** SMTP, POP3 and ManageSieve refuse an authzid that
+    does not name the account signing in, before the password is looked at and without counting a guess; IMAP takes
+    an authzid naming the client itself as none (*Security*).
+14. **With SRS on, mail from a sender to an SRS address is held to the relay rules.** Only a bounce, with a null
+    reverse-path, is passed back to the original sender; anything else sent to the address is relayed only as the
+    relay rules allow, and otherwise refused at `DATA` or `BDAT` with the reply the `RCPT TO` would have had, and such
+    an address takes a transaction of its own (`452 4.5.3`). SRS and BATV take tomorrow's stamp only in the last hour of
+    today, so of two servers that share the secrets and whose clocks are more than an hour apart, the one behind
+    refuses, near midnight (UTC), the stamps the other made after its own midnight
+    ([ActiveActive.md](hmailserver/docs/ActiveActive.md)); and SRS forwards a sender it cannot rewrite into an address a
+    server would take as it came (*Security*).
+15. **The SMTP log hides every line of a SASL exchange** but the user name of `AUTH LOGIN` and the authentication
+    identity of `AUTH PLAIN`: a log reader that read a bearer token or a SCRAM, OAUTHBEARER or GSSAPI line there
+    finds it hidden (*Security*).
+16. **MariaDB Connector/C 3.4.11, and two plugins fewer.** An upgrade on Windows removes `auth_named_pipe.dll` and
+    `authentication_windows_client.dll` from `Bin\plugin`, so a database account that signs in with MySQL
+    Enterprise's Windows authentication (`authentication_windows`) can no longer sign in, and the server cannot open
+    its database: [ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md) says what to do before upgrading
+    such a server (*Security*).
+17. **A confined credential, a cross-site request and a `serveradmin` role with a list of domains.** A credential
+    confined to named domains is refused a domain's rename, a domain alias, a custom role's creation, change or delete,
+    a domain's or an account's rule's `bind_to_address`, `send_using_route` or `script_function` action, a domain's
+    relay host changed to an address that is not public, and the server-wide metric history, over REST and over
+    COM. A credentialed
+    state-changing REST request a browser reports as cross-site (`Sec-Fetch-Site`, or an `Origin` that is not this
+    server's) is refused, and so are the subscribe form and the password-reset request from another site; scripts,
+    `hmctl` and the PowerShell module send no such header. Over COM an account assigned `serveradmin` with a list of
+    domains is confined to them, and a role is given or taken away only by a credential that takes in what the account
+    holds now and afterwards. **Before upgrading**, give `serveradmin` with no list to an account that is to
+    administer the whole server over COM (*Security*).
+18. **A database write that failed is reported, and a lost connection reconnected.** On MySQL, MariaDB, SQL Server
+    and SQL Server Compact an insert that forgives a duplicate key forgives that alone: any other failure is reported
+    (`HM5032`), where it was taken as done with no row written, and on MySQL and MariaDB a lost connection is
+    reconnected and the statement run again. TLS's error 2026, and MySQL's 4031 for an idle session it closed, are
+    taken for a lost connection too, so the statement after a database restart, a failover or `wait_timeout` no longer
+    fails. On PostgreSQL a transaction in which a statement failed is reported as failed at its commit. An error log
+    that was quiet may now name failures that were hidden (*Correctness*).
+19. **A script's transaction that the database ended is refused, not carried on.** Once the database has ended the
+    transaction of a COM `Database` object - a deadlock, MariaDB's error 1020, a row-lock wait that timed out where
+    `innodb_rollback_on_timeout` is on, a connection lost or closed - every later statement, script and prerequisite of
+    it is refused with the reason, `Database.CommitTransaction` rolls back and fails, and
+    `Database.RollbackTransaction` succeeds; a second `Database.BeginTransaction` rolls back the open one. A script that
+    goes on after a failed `Database.ExecuteSQL` inside a transaction calls `Database.RollbackTransaction` and runs the
+    whole transaction again, or stops (*Correctness*).
+20. **A DNS lookup that fails is a failure, not a name with no addresses** (upstream PR 640). The HELO and PTR tests no
+    longer score a name they could not look up, a DNS blacklist and SURBL no longer read a failed lookup as "not
+    listed" - a blacklist says so in the TCP/IP log and, at most every 15 minutes, the application log, and SURBL asks
+    the message's other names - and a DKIM selector that is a CNAME whose query failed is a `TempFail`, where it was a
+    `PermFail`. The never-ban list asks again a minute later; delivery whose mail servers' lookup failed so tells the
+    sender that the DNS query failed (`4.4.4`), and retries either way (*Correctness*).
+21. **With `DisconnectInvalidClients` on, more refusals count towards `MaxNumberOfInvalidCommands`**: an over-long
+    line, TURN and VRFY, a command out of sequence, a message over the size limit or with bare line feeds or cancelled,
+    the spam score's refusals, an event script's `554`, ETRN for a domain that is no route and a refused XCLIENT. The
+    switch is off by default; the office profile turns it on with a limit of 20 (*Delivery and SMTP*).
+22. **A message over 80 MB goes through the rules, the forwards, a bounce and the spam headers by its header alone.**
+    Header conditions and actions apply; the five conditions that need the body do not match, a rule's script function
+    is not run, and the disclaimers and the signature are not appended, each with a line in the application log; a
+    forward at the rule loop limit is not made. Everything else that reads messages refuses one over 80 MB as before
+    (*Delivery and SMTP*).
+23. **A link's host that is not ASCII is read by UTS 46, and an HTML part's character references as a browser reads
+    them**, for the SURBL test and the sender lists' URL entries: messages whose links escaped the lists that way can
+    now be tagged or held. A URL entry whose host is not ASCII and has a label UTS 46 refuses is refused when it is
+    saved, and an entry written in Unicode is stored in its `xn--` form and covers a link written either way
+    (*Anti-spam, anti-virus and mail flow rules*).
+24. **SpamAssassin is sent a collected message's own `Return-Path`.** spamd is sent the envelope sender ahead of the
+    message, never written into it, so a scan that fails leaves the message exactly as received and a completed one is
+    stored as SpamAssassin returned it; for a message collected from an external account it is sent the path the
+    other server recorded in the topmost `Return-Path`, where it was the guess from the From field, so its SPF and
+    envelope rules may score such mail differently (*Correctness*).
+25. **IMAP.** `COPY` and `MOVE` by message number read their set in the client's numbering: a set that names a
+    message another session has just expunged is refused, `NO [EXPUNGEISSUED]`, for the client to send again. A `COPY`
+    or `MOVE` that fails part way leaves the destination as it was, and a session that copies into the folder it has
+    selected is told of the copies. `SEARCH`, `SORT` and `THREAD` ask a criterion named again beside itself once;
+    `NOT TEXT` is the complement of `TEXT`; a `SEARCH` or `SORT` that names `MODSEQ` carries the item. `FETCH
+    BODY[N.MIME]`, and `BODY[N]` of a multipart, are the stored octets, `BODY` carries no extension data, and
+    `BODYSTRUCTURE` describes a part too deep or broken to read as one part. `APPENDUID` and `COPYUID` go only to a user
+    who may select the folder, a copy or an append keeps only the flags the user may set there, and a refusal by the
+    access control is `NO [NOPERM]` (*IMAP, POP3 and the webmail*).
+26. **POP3 accepts `UTF8` after the login**, until the session's first `STAT`, `LIST`, `UIDL`, `RETR`, `TOP`, `DELE` or
+    `RSET`, so that classic Outlook downloads its mail (work item 85; *IMAP, POP3 and the webmail*).
+27. **A rule's *Run function* is refused when it is saved unless it names a plain function**, for a rule of every
+    owner, over COM and REST; one stored before is still refused when the rule fires, as since 6.3.4. `Rule.Save`
+    changes a rule around an action it would refuse, leaving the action as it is, and moving a rule or an action over
+    COM writes its place alone, where it stored changes made and not saved (*Correctness*).
+28. **Stops, starts and reinitialises of the servers take turns, and the stop gives the message indexer a minute.**
+    Every stop, start and reinitialise holds one lock; COM's `Application.Stop` and `Start`, and an event script's
+    `Application.Reinitialize`, `Stop` or `Start`, wait at most five seconds for one under way and are then refused
+    with an error that says so, and an `OnError` script's reinitialise on the indexer's own thread is refused. The
+    stop waits up to a minute for the indexer's thread; setup, the live update's silent install and the uninstaller
+    wait `ShutdownDrainSeconds` plus 90 seconds for the stop, where they waited plus 30, and the Control Panel's
+    *Restart the service* follows the stop's own wait hint and starts the service once its process has ended
+    (*Correctness*, *Operations*, *Control Panel*). On Windows a stop or a reinitialise no longer waits for a thread of
+    a work queue past the queue's ten seconds - a delivery, a script, an external account's fetch or a lookup held by a
+    host or a database that has stopped answering - where it waited for that thread's task however long it took; it goes
+    on without the thread, and the servers a reinitialise starts listen on every port while the thread runs on
+    (*Correctness*).
+29. **Scheduled tasks run in the second they are due**, and no longer wait an hour when the clocks go back; the mailbox
+    keys' idle sweep runs every ten seconds on a thread of its own (*Correctness*, *Security*).
+30. **With the full-text index on, a search asks the index a window at a time, and a start no longer holds the
+    database for minutes.** The webmail's searches answer after about two and a half seconds where to go on from
+    (`complete: false`) and say how many message files they opened (`opened`); IMAP `SEARCH` and the eDiscovery search
+    ask a window of their messages at a time. The indexer's sweeps of the rows of messages that are gone run in slices
+    once it has caught up after a start, where they were one statement each before its first message (*IMAP, POP3 and
+    the webmail*, *Operations*).
+31. **An HTTP answer that outlasts the request deadline is written whole**, a piece at a time, and one the server ends
+    part way ends with a reset, where it was cut off after its first 64 KB and closed in order (*IMAP, POP3 and the
+    webmail*).
+32. **The Control Panel's pages moved.** Updates is a page of its own under Maintenance; the sidebar has Compliance and
+    Virus scanning groups, and Spam filtering, with its six allow and block lists under Lists; the two TLS pages are TLS
+    certificates and TLS versions & ciphers; API & monitoring is Monitoring & alerts, with the alerts, the webhooks
+    and SNMP, the Windows Event Log is on Logging and ManageSieve a tab of Protocols; the rule limits are a card on
+    Rules, the PROXY protocol and XCLIENT a card on Incoming relays, and the migrations a card on Backup, restore &
+    migration; REST API keys is under Sign-in & access; and before sign-in the Control Panel shows the sign-in card
+    alone. Ctrl+K takes every old title and route to its page. A Control Panel signed in to a server on another
+    computer shows and saves the server's `hMailServer.ini` `[Settings]` values, and no longer reads or writes this
+    computer's file for the `[Database]`, `[SendingLimits]` and `[LDAP]` values, which it cannot read from there,
+    where it showed this computer's file or the defaults as the server's (*Control Panel*).
+33. **Smaller things a script, a monitor or a log reader may notice.**
+    - `HM6281` names the setting that holds an entry of a trusted address list that does not parse, and each entry of
+      each list is reported once (*Correctness*).
+    - A quoted string ManageSieve sends writes a line break and a NUL as a space (*Correctness*).
+    - A criterion or an action added over COM to a new rule after its first save is stored under the rule, and the
+      REST API saves a rule's *Reply* with no `from_address`, as COM does (*Correctness*).
+    - A `ScriptTimeout` above 4,294,967 seconds is taken as that, where it ended every Windows event script at once
+      (*Correctness*).
+    - A backup's outcome, its log line and its event are reported once the next backup may start (*Correctness*).
+    - The VBScript calls of `OnClientValidatePassword`, `OnExternalAccountDownload` and `OnDeliveryFailed` are quoted
+      as every other call is, and `OnDeliveryFailed`'s error keeps its quotes (*Correctness*).
+    - A DNSSEC validation that fails says where and why in the debug log, and the application log's lines for a
+      skipped host end with the reason in brackets (*Delivery and SMTP*).
+    - New errors for a message over 80 MB: `HM7840`, `HM7841` and `HM7842` (*Delivery and SMTP*), and `HM5509` says
+      that SpamAssassin's verdict could not be read (*Correctness*).
+    - On Linux an unexpected exception on one of the server's own threads no longer ends the server, and a SIGTERM
+      during a SIGHUP's reinitialise is acted on at once (*Correctness*).
+    - The REST API's OpenAPI document describes each path once, with every method it answers (*Administration*).
+    - Every Linux install carries the notices of the Unicode and HTML data compiled into the server, and the packages'
+      licence fields name them (*Downloads and the release*).
 
 ### Correctness
 
@@ -846,7 +1364,7 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   was saved again.** A rule's criteria and actions are read when COM first asks for them, and a new rule's were bound
   to the rule as it then was, with no id: once the rule was saved, a criterion or an action added to a collection read
   before the save, through the same `Rule` object, was kept in memory by its own `Save` and stored by nothing but
-  another `Rule.Save` (in every version). In the tree after 6.3.6 `Rule.Save` reads the rule's actions itself, to hold
+  another `Rule.Save` (in every version). In this release `Rule.Save` reads the rule's actions itself, to hold
   them to the rule's owner (*Security*, above), which bound the actions of every rule saved over COM so, and
   `RuleAction.Save` held an action saved that way to no owner: an account's rule took a *Set header value* of `From`,
   which it refuses, though it stored it nowhere and `Rule.Save` and delivery still refused it. A new rule's criteria
@@ -1135,7 +1653,7 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   in any field or made another type, and every action of a rule moved to another account - so that a rule holding an
   action the save refuses, stored so - such a name, or a *Reply* or a *Set header value* the save has refused a
   domain's or an account's rule since 7 October 2026 (*Security*, above) - is changed around it as any other, the
-  action left as it is - where in the tree after 6.3.6 every save of it was refused for that action, and the Control
+  action left as it is - where, before the fix, every save of it was refused for that action, and the Control
   Panel, which stores a criterion or an action before it saves the rule, told of the part it had stored as not saved,
   stored it again at each retry, and left delivery with the rule as it had been, the reload of the owner's rules being
   asked for by the save refused (found by the check of the fix). And the Control Panel's Move up and Move down of an
@@ -1242,8 +1760,8 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   `platform/packaging/docker/artifacthub-repo.yml` now carry them, so the next `package-repos` job writes the chart's
   into `helm/artifacthub-repo.yml` beside the index, and `container-image-artifacthub` - started by hand in `master`'s
   pipeline, and by itself in the next `v*` tag's - pushes the image's under the tag `artifacthub.io`: each gives its
-  listing the Verified publisher label, which neither has yet. A new release's version tag is not tracked by itself:
-  a maintainer adds it to the image repository's tags on Artifact Hub, ten at most.
+  listing the Verified publisher label, which neither listing had when its repository was added. A new release's version
+  tag is not tracked by itself: a maintainer adds it to the image repository's tags on Artifact Hub, ten at most.
 - **A release's page says first what to download, and lists the Windows installers first.** 6.3.6's notes began with
   its `CHANGELOG.md` section, some 420,000 characters, and named no download at the top, and its two installers'
   links, made before the 22 `.deb` and `.rpm` links, were listed 24th and 25th of the 26 under *Assets*, *Packages*,
@@ -1471,38 +1989,6 @@ the old folder is deleted by hand. Found by the project's own review (work item 
   every name of the table where it stands, in a value and in text, and `AntiSpam/Basics.cs` delivers a link to a
   listed name written in double-struck letters and one written with `&uuml;`, and finds each tagged
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
-
-- **The anti-virus action *Remove all attachments and deliver the text* replaces a message that is one attachment
-  with its note, and deletes a message it cannot read.** A message whose one part is not its text - a file, a message
-  carried whole, or a text file declared an attachment, which are attachments as a part of a multipart message is one
-  (`MimeBody::IsAttachment`) - is rewritten as a message with no text part is: its header, the subject marked with
-  the server's *VIRUS_FOUND* text, and the *VIRUS_ATTACHMENT_REMOVED* note with nothing after it, the part's own
-  `Content-` fields left out with the part, so that the note reads as text. A message the stripper cannot read - its
-  file held by another program or gone, or its parse failed - has nothing in it that can be kept, and is deleted, as
-  *Delete the whole message* deletes it: each of its recipients is sent the "message deleted" notice
-  (*VIRUS_NOTIFICATION*) in place of the note, whatever the two notice settings say, and its sender is not told, as
-  this action never tells the sender. The notice is made from the message's header, read once for all of its
-  recipients; when that cannot be read either, nothing is written to the error log, and the notice gives the
-  envelope's sender and the recipient as the message's *From* and *To*. The notices of *Delete the whole message*,
-  which read the file for themselves and say in the error log when they cannot, now fill the two fields from the
-  envelope too when it cannot be read, where they left them empty: a recipient's notice names that recipient alone,
-  and the sender's notice each address the message was taken for, once and before the server resolved it - for mail
-  received by SMTP the `RCPT TO` addresses, a distribution list by its own address and not its members; for mail an
-  external account downloaded, the account it was downloaded into, or, with *Deliver each message to the accounts its
-  headers name* on, the addresses its header and *Received* fields named that it took the message for - and not an
-  address that reached only recipients an earlier address had already reached. An S/MIME message signed as one part -
-  `application/pkcs7-mime` holding signed-data, which is opaque to the server's other readers and is not encrypted -
-  is one such part, and is replaced by the note too: the stripper asks `SealedMessage::IsEncrypted`, which is
-  `IsOpaque` less signed-data. A message that is one text part is delivered as it is, having no attachment to remove,
-  and so is an encrypted one; the application log says which of these each message was. `AntiVirus/StripAction.cs`
-  delivers a message that is one attachment in four shapes, an S/MIME message signed as one part and one encrypted as
-  one part, and one that is one text part, and holds a message's file while the stripper reads it and finds the
-  notice naming the message's sender and recipient and nothing in the error log, and while the delete action's
-  notices are made and finds each recipient's naming that recipient alone and the sender's naming the `RCPT TO`
-  addresses of mail received by SMTP, the account a download went into, or the address a download's header named for
-  it, and not an address that reached no recipient of its own; `SealedMessageTester` holds `IsEncrypted` to the
-  S/MIME and PGP/MIME shapes ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus
-  action").
 
 - **Fixed: the anti-virus "message deleted" notice went to none of the recipients of a message whose envelope
   sender is empty.** With *Notify the recipients* on, the delete action tells every recipient of an infected message

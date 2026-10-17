@@ -359,12 +359,12 @@ neither, **set the public base URL first**: `confidential_base_url`, the address
 the server writes its links to the webmail with
 ([AccountRecovery.md](AccountRecovery.md)), to the address the proxy answers at
 (`https://webmail.example.com`) - or that origin into `passkey_allowed_origins` -
-before the proxy is put in front of the loopback listener, and before upgrading
-a server that sits behind such a proxy to 6.3.6. Until it is set, every request
-through the proxy, the sign-in page's among them, is answered 421 (`the request's
-Host is not one this server answers to`). It is a setting of the database: set it
-on the Control Deck's Settings page, opened on the server itself at
-`http://127.0.0.1:<port>`, whose `Host` always passes; with the Control Panel's
+before the proxy is put in front of the loopback listener, and before upgrading a
+server that sits behind such a proxy to 6.3.6 or a later release. Until it is set,
+every request through the proxy, the sign-in page's among them, is answered 421
+(`the request's Host is not one this server answers to`). It is a setting of the
+database: set it on the Control Deck's Settings page, opened on the server itself
+at `http://127.0.0.1:<port>`, whose `Host` always passes; with the Control Panel's
 *Base address for the link in a message that expires*; or with
 `PUT /api/v1/settings` or `hmctl settings set`. The first refusal in any ten
 minutes is named in the application log.

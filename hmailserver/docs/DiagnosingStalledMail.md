@@ -256,7 +256,7 @@ Delivery runs on a separate, smaller pool. The usual causes:
   signatures or its proof of absence - is skipped (RFC 7672), and with every
   host skipped the delivery is deferred: `Delivery to example.com deferred: ...
   No host was attempted.` The application log line before it names the lookup,
-  and since the release after 6.3.6 ends with the resolver's reason in brackets:
+  and since 6.3.7 ends with the resolver's reason in brackets:
 
   ```
   SMTPDeliverer - Message 123: the MX RRset for example.com failed DNSSEC
@@ -273,8 +273,8 @@ Delivery runs on a separate, smaller pool. The usual causes:
   * *does not match the records as received* - the signature is over other
     records than the ones that came. Either something on the way changed them
     or the zone is broken; ask a validating resolver (`delv`, or `dig +dnssec`
-    against 1.1.1.1 and look for the `ad` flag) or DNSViz. **Until the release
-    after 6.3.6 this was also what every signed domain whose MX answer came
+    against 1.1.1.1 and look for the `ad` flag) or DNSViz. **Until 6.3.7 this
+    was also what every signed domain whose MX answer came
     with its exchange compressed got - nearly every signed domain - through no
     fault of its own (work item 80).** On 6.2.19 to 6.3.6, a signed recipient
     domain whose mail is deferred this way while a validating resolver says it

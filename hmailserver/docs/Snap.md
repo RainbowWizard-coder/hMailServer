@@ -7,15 +7,18 @@ core24, made from the release's own Ubuntu 24.04 `.deb`, running as the account
 Its database is a PostgreSQL or MariaDB/MySQL server of yours, reached over the
 network. GitLab CI builds it for both architectures on linix; it was installed,
 configured, started, asked over SMTP, POP3, IMAP and REST, and removed under snapd on
-2 October 2026 (below). It is not in the Snap Store yet: that waits for the owner's
-account and the name (Roadmap3, "Snap").**
+2 October 2026 (below). Its name is registered in the Snap Store to the owner's
+account, and `SNAPCRAFT_STORE_CREDENTIALS` is set, both by 16 October 2026: after a
+release, `snap-upload`, started by hand on `master`'s pipeline, puts the release's
+snaps on `edge` and `candidate`, and `stable` is promoted by hand (*The Snap Store*,
+below).**
 
 | | |
 |---|---|
 | The packaging | `snap/snapcraft.yaml`, `snap/hooks/configure`, `snap/local/bin/*` |
 | The build | `build/ci/snap-build.sh`, with snapcraft from `build/ci/snap-tools.sh`; the jobs `snap-build-amd64` and `snap-build-arm64` (`.gitlab/ci/snap.yml`) |
 | The test | `build/ci/snap-install-test.sh`, by hand on linix: in a container, or with `--remote` on a VM with AppArmor |
-| The upload | `snap-upload` (`.gitlab/ci/channels.yml`, [Channels.md](Channels.md#snap-store)), dormant until `SNAPCRAFT_STORE_CREDENTIALS` exists |
+| The upload | `snap-upload` (`.gitlab/ci/channels.yml`, [Channels.md](Channels.md#snap-store)), started by hand on `master`'s pipeline after a release: `edge` and `candidate`; `stable` is promoted by hand |
 
 Installing and starting it
 --------------------------

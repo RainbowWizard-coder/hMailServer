@@ -22,7 +22,7 @@
 # The version is checked against Version.h by build/check-linux-version-stamp.sh,
 # as the PKGBUILD's is: stamping a release edits this pkgver too.
 pkgname=hmailserver
-pkgver=6.3.6
+pkgver=6.3.7
 pkgrel=0
 pkgdesc="Mail server for SMTP, IMAP and POP3"
 url="https://gitlab.com/hmailserver/hmailserver"

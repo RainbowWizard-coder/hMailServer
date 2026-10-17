@@ -1233,16 +1233,16 @@ or not at all, and what it runs is what it checked itself.
 
 ### From 6.3.4 and 6.3.5
 
-A server on 6.3.4 or 6.3.5 under this account cannot install 6.3.6 this way: the
-refusal is compiled into those versions, and their *Install update* asks the
-service alone. It is installed by hand once - download the installer from the
-release page, check that `Get-AuthenticodeSignature` reports it `Valid` and signed
-by `CN=Progressive Robot Ltd`, and run it as an administrator, keeping the service
-account on the installer's page. Windows SmartScreen may warn about a file
-downloaded with a browser that it has not yet seen often; the signature is what to
-check. From 6.3.6 on, each update is the one click above, and never meets
-SmartScreen: the installer is not downloaded by a browser, and the Updater starts
-it directly.
+A server on 6.3.4 or 6.3.5 under this account cannot install 6.3.6 or a later
+release this way: the refusal is compiled into those versions, and their
+*Install update* asks the service alone. It is installed by hand once - download
+the installer from the release page, check that `Get-AuthenticodeSignature`
+reports it `Valid` and signed by `CN=Progressive Robot Ltd`, and run it as an
+administrator, keeping the service account on the installer's page. Windows
+SmartScreen may warn about a file downloaded with a browser that it has not yet
+seen often; the signature is what to check. From 6.3.6 on, each update is the one
+click above, and never meets SmartScreen: the installer is not downloaded by a
+browser, and the Updater starts it directly.
 
 The unattended update window does not install under this account: when the window
 is open and an installer is verified, the error log says once per process that an

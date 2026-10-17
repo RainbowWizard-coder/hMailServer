@@ -4493,7 +4493,7 @@ or an alias without its anchor.
 `semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
 holds a change or a release on its findings is the job that reads its report
 after it, `semgrep-sast-gate` for every change and `release` for a tag. It is
-not `allow_failure`, where its template makes it so (after 6.3.6): a scan that
+not `allow_failure`, where its template makes it so (from 6.3.7): a scan that
 fails, or an image that cannot be pulled, fails the pipeline, so that the jobs
 after it read only a report it wrote. **`secret_detection` fails on a finding.** The template cannot:
 its analyzer exits 0 whatever it finds (it did so on linix with thirty

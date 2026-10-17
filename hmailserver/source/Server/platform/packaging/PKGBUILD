@@ -56,7 +56,7 @@ pkgname=hmailserver
 # line with Version.h, and GitLab CI's checkers and linux-build jobs run it.
 # Stamping a release means editing Version.h and this line, and the check is what
 # says so when only one of the two was done.
-pkgver=6.3.6
+pkgver=6.3.7
 pkgrel=1
 pkgdesc="A mail server for SMTP, IMAP and POP3"
 arch=('x86_64' 'aarch64')

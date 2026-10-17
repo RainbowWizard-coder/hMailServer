@@ -455,7 +455,7 @@ def release_summary(description, fallback):
     prose - not the re-hosting note, a heading, a rule, a table or code - as
     plain text, cut to SUMMARY_MAX characters; fallback when there is none. The
     Download table build/ci/release-chain.py begins a release's notes with (from
-    the release after 6.3.6, and 6.3.6's by hand) is a heading and a table, so
+    6.3.7, and 6.3.6's by hand) is a heading and a table, so
     the summary is still the first paragraph of the CHANGELOG section after it."""
     paragraphs = []
     current = []

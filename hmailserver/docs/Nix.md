@@ -33,7 +33,7 @@ the registry is a file that names GitHub; nothing below needs it.
 
 Run the server of a release without installing anything:
 
-    nix run gitlab:hmailserver/hmailserver/v6.3.6 -- --version
+    nix run gitlab:hmailserver/hmailserver/v6.3.7 -- --version
 
 Build it from a checkout:
 
@@ -61,7 +61,7 @@ A system flake names this one as an input and imports the module:
 
 ```nix
 {
-  inputs.hmailserver.url = "gitlab:hmailserver/hmailserver/v6.3.6";
+  inputs.hmailserver.url = "gitlab:hmailserver/hmailserver/v6.3.7";
 
   outputs = { nixpkgs, hmailserver, ... }: {
     nixosConfigurations.mail = nixpkgs.lib.nixosSystem {

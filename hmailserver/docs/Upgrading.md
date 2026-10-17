@@ -115,8 +115,8 @@ not. Under the virtual account the live
 update is checked, downloaded and verified, and an administrator installs it with
 *Install update* in the Control Panel on the server, which asks Windows once and
 checks the installer itself, since the service cannot run an installer - from
-6.3.6; a server on 6.3.4 or 6.3.5 is brought to 6.3.6 from the release page, once,
-as below - and `hMailServer.INI` is read-only to
+6.3.6; a server on 6.3.4 or 6.3.5 is brought to the newest release from the release
+page, once, as below - and `hMailServer.INI` is read-only to
 the service - the administrator password is then changed with
 `hMailServer.exe /SetAdministratorPassword`. [ServiceAccount.md](ServiceAccount.md)
 has the rest.
@@ -405,8 +405,9 @@ is as the earlier version left it**:
   in `GET /api/v1/update` carry it as they carry the others.
 
 An Updater from 6.3.5 or earlier knows neither: it rolls back only when the service
-does not come back, and does not tell the installer to stop. So the update *to* 6.3.6
-from those versions is made as before, and these rules hold from the update after it.
+does not come back, and does not tell the installer to stop. So an update from those
+versions, to 6.3.6 or a later release, is made as before, and these rules hold for an
+update from 6.3.6 on.
 
 **On Linux the live update holds to the same rule.** There the schema step is the
 package's own: the `.deb`'s `postinst` and the `.rpm`'s `%post` run `hmailserver
@@ -435,9 +436,10 @@ server writes) and reinstall the earlier version. A version that cannot be read 
 the install - a database the earlier version's program cannot reach, or a program from
 before 6.3.6, which has no `--schema-version` - leaves nothing to hold the database to
 afterwards, and nothing is put back. On MySQL and MariaDB a step that failed may have
-left part of itself behind without moving the version, as on Windows (above). The update
-*to* 6.3.6 is made by 6.3.5's helper, which puts the earlier version back whenever the
-service does not come back; the rule holds from the update after it.
+left part of itself behind without moving the version, as on Windows (above). An update
+from 6.3.5, to 6.3.6 or a later release, is made by 6.3.5's helper, which puts the
+earlier version back whenever the service does not come back; the rule holds for an
+update from 6.3.6 on.
 `sudo /usr/lib/hmailserver/hmailserver-update check` says whether the database's
 version can be read on a machine.
 

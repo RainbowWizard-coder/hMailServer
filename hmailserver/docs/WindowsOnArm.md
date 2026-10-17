@@ -142,7 +142,7 @@ its variable's value on the command line, and wins over the variable:
 
 For example, from an elevated prompt:
 
-    hMailServer-6.3.6-arm64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART ^
+    hMailServer-6.3.7-arm64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART ^
       /dbtype=PostgreSQL /dbhost=db1.example.com /dbuser=hmailserver ^
       /dbpasswordfile=C:\Deploy\hmailserver-db.txt
 

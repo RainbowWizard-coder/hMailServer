@@ -382,9 +382,10 @@ first as an unattended apply does
 ([docs/ServiceAccount.md](hmailserver/docs/ServiceAccount.md#the-live-update)). The
 Control Deck and the REST API, which cannot be elevated on the server, say so. An
 unattended window still says once in the error log (HM7463) that it cannot install,
-rather than taking a backup for nothing. A 6.3.4 or 6.3.5 server takes 6.3.6 by
-hand once: download the installer from the release page, check its signature and
-run it - never the copy in `Data\Updates`, which the service can write.
+rather than taking a backup for nothing. A 6.3.4 or 6.3.5 server takes the newest
+release by hand once: download the installer from the release page, check its
+signature and run it - never the copy in `Data\Updates`, which the service can
+write.
 
 It is off until you opt in, because a server must not call out to anyone until its
 administrator says it may; when it is on, the request is a plain `GET` of the

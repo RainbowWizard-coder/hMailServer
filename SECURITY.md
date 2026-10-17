@@ -7,7 +7,7 @@
 | 6.3.x   | :white_check_mark: security fixes until 30 September 2027 ([While releases pause](#while-releases-pause)) |
 | < 6.3   | :x:                |
 
-The 6.3 line is the one that receives security fixes. Its latest release is 6.3.6, published on 6 October
+The 6.3 line is the one that receives security fixes. Its latest release is 6.3.7, published on 17 October
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,
@@ -102,7 +102,7 @@ taken under the owner's delegation. The maintainers write here when it changes.
   since: `master` goes on taking finished work during the pause (6.3.7 carried the work under way on 13 October
   2026 and row A1 of Programme A, by the owner's decisions of 13 and 15 October 2026), and a security release is
   cut from `master` like every other release. There is still no maintenance branch, and nothing is
-  back-ported. An installation of 6.3.5, 6.2 or anything older is upgraded in place to the newest release, as
+  back-ported. An installation of 6.3.6, 6.3.5, 6.2 or anything older is upgraded in place to the newest release, as
   [Supported versions](#supported-versions) says.
 - **Until 30 September 2027.** Before that date, the maintainers write here whether support continues. If nothing
   has been written, the 6.3 line is not supported from 1 October 2027, and the table above is changed to say so.

@@ -235,10 +235,10 @@ clean snapshot for each run, against the published 6.3.5 and this feed:
   ([ServiceAccount.md](ServiceAccount.md)): download the installer from the
   release page, check that `Get-AuthenticodeSignature` reports it Valid, and run
   it as an administrator. Nothing was left half-installed. That is still how such
-  a server on 6.3.4 or 6.3.5 reaches 6.3.6, once, since the refusal is compiled
-  into them; from 6.3.6 an administrator installs each release with one click,
-  *Install update* in the Control Panel on the server, which asks Windows once
-  and checks the installer itself (below, and
+  a server on 6.3.4 or 6.3.5 reaches 6.3.6 or a later release, once, since the
+  refusal is compiled into them; from 6.3.6 an administrator installs each
+  release with one click, *Install update* in the Control Panel on the server,
+  which asks Windows once and checks the installer itself (below, and
   [ServiceAccount.md](ServiceAccount.md), "The live update").
 - **On Linux, from the `.deb` and the `.rpm`.** Tried on 29 September 2026 in
   two throwaway systemd containers, each a 6.3.4 server installed from the

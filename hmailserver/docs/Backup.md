@@ -263,15 +263,15 @@ wrong with that order:
   account's second factor and no `[Settings]` secret opened (`HM7495` at the
   reinitialise and at each start).
 
-**If a restore failed that way.** The archive is as it was. Upgrade to 6.3.6 and
-restore again from the same archive: the restore puts back the domains, the
-accounts and the messages, and leaves this installation's key where it is. The
-staged copy the failed restore left in the temp folder (`Temp\{GUID}\DataBackup`,
-named in its `HM5014` line) holds the same messages as the archive; delete it once
-the restore has completed. On 6.3.4 or 6.3.5, without upgrading: give the service
-the rights to remove the key first - Delete, and Write attributes and Write
-extended attributes, which the removal asks for as well (Delete alone still
-fails with `HM5700`) -
+**If a restore failed that way.** The archive is as it was. Upgrade to 6.3.6 or a
+later release and restore again from the same archive: the restore puts back the
+domains, the accounts and the messages, and leaves this installation's key where
+it is. The staged copy the failed restore left in the temp folder
+(`Temp\{GUID}\DataBackup`, named in its `HM5014` line) holds the same messages as
+the archive; delete it once the restore has completed. On 6.3.4 or 6.3.5, without
+upgrading: give the service the rights to remove the key first - Delete, and Write
+attributes and Write extended attributes, which the removal asks for as well
+(Delete alone still fails with `HM5700`) -
 `icacls "<data folder>\Certificates\self-signed-key.pem" /grant "NT SERVICE\hMailServer:(D,WA,WEA)"` -
 and restore again. That restore puts the archive's copy of the key in its place
 with the data folder's permissions, which up to 6.3.5 let every user of the
