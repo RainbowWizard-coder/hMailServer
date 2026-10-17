@@ -408,7 +408,10 @@ namespace HM
             }
             catch (...)
             {
-               // A destructor, on the way out of the test.
+               // A destructor, on the way out of the test: the transaction's
+               // roll-back, which follows, takes the rows on every engine but
+               // a MySQL database that is not transactional.
+               LOG_DEBUG("MessageMetaDataTester: the test's rows could not be taken out by hand; the transaction's roll-back takes them.");
             }
          }
       };
