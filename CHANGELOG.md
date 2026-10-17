@@ -1530,6 +1530,27 @@ the old folder is deleted by hand. Found by the project's own review
   last second in the re-check's run, whose process ended without a close another way. A connection made after the
   close, and that SQL Server Compact writes what was committed when any of its connections closes, were found by the
   re-check after that.
+- **Fixed: a message deleted while the message indexer was writing the sort's copy of its headers put an error in the
+  log, HM5032, and the indexer gave up the rest of its batch until its next minute.** The indexer reads the delivered
+  messages that have no row of `hm_message_metadata` yet, then for each loads the header from its file and writes the
+  row - From, To, Cc, Subject and the date, the copy that IMAP `SORT` reads. A message expunged, a mailbox emptied or a
+  folder deleted between that query and the write has no row of `hm_messages` by then, and since schema 6030 (6.3.6)
+  the metadata table's foreign key on it refuses the write: "Value violated the integrity constraints for a column or
+  table" on SQL Server Compact, the foreign key's refusal on each of the others. `DALConnection::Execute` reported the
+  refusal at High and the indexer gave the batch up, leaving the messages after that one for its next pass, a minute
+  later. The row is now written as an `INSERT ... SELECT` from the message's own row of `hm_messages`, as the full-text
+  index writes a term (the plain `INSERT` was in every version since 5.2.0, and refused since the foreign key), so a
+  message that is gone inserts nothing and the write succeeds, which is the truth of it; the next pass does not ask for
+  it. The account and folder are read from the message's row, the ones the query read; a date older than 1800, or none,
+  is NULL, and each header field is cut to a hundred characters, as before. The header fields go into the statement as
+  literals - escaped, `N'...'` on SQL Server and Compact, since Compact allows no parameter in a select list - which the
+  slow-query line and the trace redact as they redact every literal. `MessageMetaDataTester`, inside the server on Windows
+  (`ClassTester`), writes the sort's copy for a message id above every message the database has, with a quote, a
+  backslash, a non-ASCII character and a date in its fields, and holds the write to succeeding and leaving no row; the
+  regression suite's `IMAP.MessageIndexing` tests hold the rows of messages that exist to being written and sorted by on
+  every backend. Seen twice in the `windows-gate-s1vm` half of the batch's pipeline on 17 October 2026, both at a test's
+  setup, which clears the last test's mail the moment the servers start while the indexer catches up with it:
+  `Infrastructure.Migration` and `SMTP.XOriginalRcptHeaderTests` found the error in the log and failed.
 - **Fixed: a service stop, a Windows shutdown or a SIGTERM during a reinitialise closed the database under the
   reinitialise, and the process could end in a fault.** A reinitialise - COM's `Application.Reinitialize`, the REST
   API's `POST /api/v1/server/reinitialize`, a backup restore's, an ACME deployment's - runs on a thread of its own,

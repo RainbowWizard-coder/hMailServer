@@ -31,6 +31,11 @@ namespace HM
 
       bool DeleteForMessage(std::shared_ptr<Message> message);
       void GetMetaData(int accountID, int folderID, const String &headerField, std::map<__int64, String > &result);
+
+      // The sort's copy of a message's headers, written as an INSERT ... SELECT
+      // from the message's own row: a message deleted since the indexer's query
+      // inserts nothing and succeeds (the .cpp says why). False when the
+      // database refused or failed the write, which is reported as HM5032.
       bool SaveObject(std::shared_ptr<MessageMetaData> metaData);
 
       // The metadata of messages that no longer exist, a thousand message ids a
@@ -40,5 +45,16 @@ namespace HM
       bool DeleteOrphanedItems();
       int GetTotalMessageCount();
       void Clear();
+   };
+
+   // SaveObject for a message that is gone - an id above every message the
+   // database has - inserts nothing and succeeds, and leaves no row for that id;
+   // the fields carry a quote, a backslash and a non-ASCII character, as headers
+   // do. Runs inside the server on Windows, through ClassTester, against the
+   // bench's database. Throws std::logic_error naming what did not hold.
+   class MessageMetaDataTester
+   {
+   public:
+      void Test();
    };
 }

@@ -62,6 +62,7 @@
 #include "MigrationSources.h"
 #include "../Application/MigrationJob.h"
 #include "../Application/MessageIndexer.h"
+#include "../Persistence/PersistentMessageMetaData.h"
 #include "../Application/RoleManager.h"
 #include "../Pst/PstTester.h"
 #include "../Pst/PstItemsTester.h"
@@ -1059,6 +1060,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SQLStatement parameter substitution\n"));
       SQLStatementTester sqlStatementTester;
       sqlStatementTester.Test();
+
+      // The sort's copy of the headers of a message that is gone by the time the
+      // indexer writes it: inserted as nothing, against the bench's database.
+      OutputDebugString(_T("hMailServer: Testing the write of the sort's copy for a message that is gone\n"));
+      MessageMetaDataTester messageMetaDataTester;
+      messageMetaDataTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing TimeoutCalculator\n"));
       TimeoutCalculatorTester timeoutCalculatortester;

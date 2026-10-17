@@ -9,7 +9,11 @@
 #include "../BO/Message.h"
 
 #include "../SQL/SQLStatement.h"
+#include "../SQL/DatabaseSettings.h"
+#include "../Application/IniFileSettings.h"
 #include "../Util/Time.h"
+
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -173,28 +177,70 @@ namespace HM
    }
 
 
-   bool 
+   bool
    PersistentMessageMetaData::SaveObject(std::shared_ptr<MessageMetaData> metaData)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Writes the sort's copy of a message's headers, the row the message indexer
+   // makes once for each delivered message, as an INSERT ... SELECT from
+   // hm_messages of the message's own row - its id, account and folder - as
+   // PersistentMessageIndex::SaveTermForMessage writes a term of the full-text
+   // index. A message that is deleted between the indexer's query and this
+   // write - a message expunged or a mailbox emptied while the indexer catches
+   // up, the regression suite's setup clearing the last test's mail at the start
+   // of the next while the indexer indexes it - then inserts nothing and
+   // succeeds, which is the truth of it: the row of a message that is gone is
+   // not wanted, and the indexer's next pass does not ask for it. The plain
+   // INSERT of the values this was, in every version to 6.3.6, was refused for
+   // such a message by the foreign key hm_message_metadata has had on
+   // hm_messages since schema 6030 - "Value violated the integrity constraints"
+   // on SQL Server Compact - which DALConnection::Execute reported at High as
+   // HM5032, and the indexer gave the batch up (MessageIndexer::IndexMessages_).
+   // Seen twice in batch48's windows-gate-s1vm run of 17 October 2026, both at a
+   // test's setup. The values are literals, the header fields escaped and
+   // N'...' on SQL Server and Compact as the term is, since SQL Server Compact
+   // allows no parameter in a select list, and each of the four fields is cut to
+   // a hundred characters, as the INSERT cut them; a date older than 1800, or
+   // none, is NULL, as SQLStatement::AddColumnDate makes it. The account and
+   // folder are read from the message's row, the ones the indexer's query read.
+   // Nothing reads the row's id after the write, which the INSERT fetched.
+   //---------------------------------------------------------------------------()
    {
-      SQLStatement statement;
-      statement.SetTable("hm_message_metadata");
-      statement.SetStatementType(SQLStatement::STInsert);
-      statement.SetIdentityColumn("metadata_id");
-      statement.AddColumn("metadata_accountid", metaData->GetAccountID());
-      statement.AddColumn("metadata_folderid", metaData->GetFolderID());
-      statement.AddColumnInt64("metadata_messageid", metaData->GetMessageID());
-      statement.AddColumnDate("metadata_dateutc", metaData->GetDate());
-      statement.AddColumn("metadata_from", metaData->GetFrom(), 100);
-      statement.AddColumn("metadata_subject", metaData->GetSubject(), 100);
-      statement.AddColumn("metadata_to", metaData->GetTo(), 100);
-      statement.AddColumn("metadata_cc", metaData->GetCC(), 100);
+      const DatabaseSettings::SQLDBType databaseType = IniFileSettings::Instance()->GetDatabaseType();
+      const bool unicodeLiteral = databaseType == DatabaseSettings::TypeMSSQLServer ||
+                                  databaseType == DatabaseSettings::TypeMSSQLCompactEdition;
 
-      // Save and fetch ID
-      __int64 iDBID = 0;
-      bool bRetVal = Application::Instance()->GetDBManager()->Execute(statement, &iDBID);
-      metaData->SetID((int) iDBID);
+      const auto headerLiteral = [unicodeLiteral](const String &value) -> String
+      {
+         String cut = value;
 
-      return bRetVal;
+         if (cut.GetLength() > 100)
+            cut = cut.Mid(0, 100);
+
+         return String(unicodeLiteral ? _T("N'") : _T("'")) + SQLStatement::Escape(cut) + _T("'");
+      };
+
+      const DateTime date = metaData->GetDate();
+      String dateLiteral;
+
+      if (date.GetStatus() == DateTime::invalid || date.GetYear() < 1800)
+         dateLiteral = _T("NULL");
+      else
+         dateLiteral = _T("'") + Time::GetTimeStampFromDateTime(date) + _T("'");
+
+      String sql = _T("insert into hm_message_metadata (metadata_accountid, metadata_folderid, metadata_messageid, metadata_dateutc, metadata_from, metadata_subject, metadata_to, metadata_cc) ");
+      sql += _T("select messageaccountid, messagefolderid, messageid, ");
+      sql += dateLiteral + _T(", ");
+      sql += headerLiteral(metaData->GetFrom()) + _T(", ");
+      sql += headerLiteral(metaData->GetSubject()) + _T(", ");
+      sql += headerLiteral(metaData->GetTo()) + _T(", ");
+      sql += headerLiteral(metaData->GetCC());
+      sql += _T(" from hm_messages where messageid = @MESSAGEID");
+
+      SQLCommand command(sql);
+      command.AddParameter("@MESSAGEID", metaData->GetMessageID());
+
+      return Application::Instance()->GetDBManager()->Execute(command);
    }
 
    bool 
@@ -284,9 +330,72 @@ namespace HM
    PersistentMessageMetaData::Clear()
    {
       SQLStatement statement (SQLStatement::STDelete, "hm_message_metadata");
- 
+
       Application::Instance()->GetDBManager()->Execute(statement);
 
+   }
+
+   namespace
+   {
+      void MetaDataFailed(const char *why)
+      {
+         throw std::logic_error(std::string("MessageMetaDataTester: ") + why);
+      }
+
+      // The rows of hm_message_metadata for one message id.
+      __int64 MetaDataRowsFor(__int64 messageId)
+      {
+         SQLCommand command(_T("select count(*) as c from hm_message_metadata where metadata_messageid = @MESSAGEID"));
+         command.AddParameter("@MESSAGEID", messageId);
+
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!pRS)
+            MetaDataFailed("the rows of the sort's copy for a message could not be counted.");
+
+         return pRS->GetInt64Value("c");
+      }
+   }
+
+   void
+   MessageMetaDataTester::Test()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The write of the sort's copy for a message that is gone: an id a million
+   // above the newest message the database has - the suite makes thousands of
+   // messages in a minute, not a million in the milliseconds this takes - which
+   // no row of hm_messages has, as a message deleted between the indexer's
+   // query and its write has none. The write must succeed, as it inserts
+   // nothing, and leave no row for the id. The fields carry what headers carry
+   // - a quote, a backslash, a character outside ASCII - and a date, so that
+   // the literals the write makes of them are read by the database at hand:
+   // SQL Server Compact or SQL Server on the Windows bench. An error the write
+   // reported would be in the error log, which the regression test that runs
+   // the suite (MainOperations.TestInternals) holds empty.
+   //---------------------------------------------------------------------------()
+   {
+      PersistentMessage persistentMessage;
+      const __int64 gone = (__int64) persistentMessage.GetLatestMessageId() + 1000000;
+
+      if (MetaDataRowsFor(gone) != 0)
+         MetaDataFailed("a message id a million above the newest message already has a row of the sort's copy.");
+
+      std::shared_ptr<MessageMetaData> metaData = std::make_shared<MessageMetaData>();
+      metaData->SetAccountID(1);
+      metaData->SetFolderID(1);
+      metaData->SetMessageID(gone);
+      metaData->SetDate(DateTime(2026, 10, 17, 6, 9, 53));
+      metaData->SetFrom(_T("\"O'Brien, Pat\" <pat@example.test>"));
+      metaData->SetSubject(_T("It's gone; a backslash \\ and a tilde ~ and r\u00e9sum\u00e9"));
+      metaData->SetTo(_T("someone@example.test"));
+      metaData->SetCC(_T(""));
+
+      PersistentMessageMetaData persistentMetaData;
+
+      if (!persistentMetaData.SaveObject(metaData))
+         MetaDataFailed("the write of the sort's copy for a message that is gone failed, where it inserts nothing and succeeds.");
+
+      if (MetaDataRowsFor(gone) != 0)
+         MetaDataFailed("the write of the sort's copy for a message that is gone inserted a row.");
    }
 
 }
