@@ -1155,6 +1155,21 @@ the old folder is deleted by hand. Found by the project's own review
   each answered three seconds after it is asked; each requires port 25 to greet while the script or the check still
   runs, and again once it has ended, and the `OnAcceptMessage` tests a message to be taken and delivered after it.
 
+- **Fixed: on Windows, a work queue's stop that gives up on a thread still inside it did so after about twenty
+  seconds, not the ten it promises, and the destructor's five more were about ten.** The wait was a count of passes,
+  four hundred of 25 ms for the stop, each pass taken for its interval - and a pass is longer than that: its sleep and
+  its one-millisecond join each end at a tick of the system timer, 15.6 ms apart on Windows unless something in the
+  process has asked for finer ones, so that a pass took about 50 ms and the four hundred about twenty seconds (since
+  the interval became 25 ms; at the 250 ms before it the ticks added little). A stop of the servers with a thread
+  stuck in each of several queues - a delivery, a script, a lookup held by a host that has stopped answering - waited
+  twice as long as the log says, queue after queue, and a service stop that long is one the service controller gives
+  up on. The wait is now bounded by the clock, after at least one pass; the interval and the diagnostic line's cadence
+  stay as they were. Found by the `windows-gate-s1vm` half of the batch's pipeline on 17 October 2026:
+  `WorkQueueTeardownTester`'s two stops (above), whose tasks wait twenty seconds so as to outlast a ten-second stop,
+  returned only as the tasks ended, 19.99 seconds after each had begun, and `MainOperations.TestInternals` failed,
+  where the runs before it had passed by the few milliseconds the join ended ahead of the task. The tester holds the
+  stop to returning before its task ends, on Windows and in `workqueue-teardown-tests` on Linux.
+
 - **Fixed: on MySQL and MariaDB, the statement after the database had ended a TLS session, or after MySQL had closed
   one for being idle, failed instead of being run again on a new connection.** The database layer runs a statement
   again on a new connection when the old one turns out to be gone, which it recognised by the client's errors 2006 and
