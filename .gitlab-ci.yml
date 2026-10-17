@@ -658,7 +658,7 @@ pages:
   extends: .own-runners
   tags: [$HM_RUNNER_BUILD]
   image:
-    name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-68dd5409068c@sha256:4b93f211b5ad847525401774ac788ef571bcb773a78e5322df008b187a8e1b0c
+    name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-68dd5409068c@sha256:952745b5eb6348251e03128f5adc0db14e3101355044d8af686f6ad0598203f5
     pull_policy: [if-not-present, always]
   before_script:
     - python3 build/check-ci-image.py --job

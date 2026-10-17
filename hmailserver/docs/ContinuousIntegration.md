@@ -2016,8 +2016,15 @@ once; since 6 October 2026 it names it by digest:
   runtime 10.0.13) and the image, built on linix from that Dockerfile, was
   pushed under the new tag its hash makes,
   `ci-linux:26.04-68dd5409068c@sha256:4b93f211b5ad847525401774ac788ef571bcb773a78e5322df008b187a8e1b0c`,
+  which `.linix` named until 17 October 2026, when the image was built again from
+  the same Dockerfile, for Ubuntu's curl update (8.18.0-1ubuntu2.8, CVE-2026-92392,
+  which `dependency-scan` had reported against the image and the release job would
+  have held on), and pushed: the same tag, moved to
+  `sha256:952745b5eb6348251e03128f5adc0db14e3101355044d8af686f6ad0598203f5`,
   which `.linix` has named since, and the runners with the tag, linix, server2
-  and s1-linux, pull it by that digest. The 6 October digest was left with no tag,
+  and s1-linux, pull it by that digest; the 16 October digest kept its dated tag,
+  `26.04-68dd5409068c-20261017`, by the script's own copy inside the registry. The 6
+  October digest was left with no tag,
   which the registry does not keep: GitLab.com's registry removes an untagged
   manifest that nothing references about 24 hours later (its online garbage
   collection; the cleanup policy, switched off, governs tags alone). So on 8
