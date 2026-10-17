@@ -10,6 +10,8 @@
 
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DatabaseSettings.h"
+#include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseTransaction.h"
 #include "../Application/IniFileSettings.h"
 #include "../Util/Time.h"
 
@@ -184,26 +186,46 @@ namespace HM
    // Writes the sort's copy of a message's headers, the row the message indexer
    // makes once for each delivered message, as an INSERT ... SELECT from
    // hm_messages of the message's own row - its id, account and folder - as
-   // PersistentMessageIndex::SaveTermForMessage writes a term of the full-text
-   // index. A message that is deleted between the indexer's query and this
-   // write - a message expunged or a mailbox emptied while the indexer catches
-   // up, the regression suite's setup clearing the last test's mail at the start
-   // of the next while the indexer indexes it - then inserts nothing and
-   // succeeds, which is the truth of it: the row of a message that is gone is
-   // not wanted, and the indexer's next pass does not ask for it. The plain
-   // INSERT of the values this was, in every version to 6.3.6, was refused for
-   // such a message by the foreign key hm_message_metadata has had on
-   // hm_messages since schema 6030 - "Value violated the integrity constraints"
-   // on SQL Server Compact - which DALConnection::Execute reported at High as
-   // HM5032, and the indexer gave the batch up (MessageIndexer::IndexMessages_).
-   // Seen twice in batch48's windows-gate-s1vm run of 17 October 2026, both at a
-   // test's setup. The values are literals, the header fields escaped and
-   // N'...' on SQL Server and Compact as the term is, since SQL Server Compact
-   // allows no parameter in a select list, and each of the four fields is cut to
-   // a hundred characters, as the INSERT cut them; a date older than 1800, or
-   // none, is NULL, as SQLStatement::AddColumnDate makes it. The account and
-   // folder are read from the message's row, the ones the indexer's query read.
-   // Nothing reads the row's id after the write, which the INSERT fetched.
+   // PersistentMessageIndex::InsertTerm_ writes a term of the full-text index.
+   // A message that is deleted between the indexer's query and this write - a
+   // message expunged or a mailbox emptied while the indexer catches up, the
+   // regression suite's setup clearing the last test's mail at the start of the
+   // next while the indexer indexes it - then inserts nothing and succeeds,
+   // which is the truth of it: the row of a message that is gone is not wanted,
+   // and the indexer's next pass does not ask for it. The plain INSERT of the
+   // values this was, in every version to 6.3.6, was refused for such a message
+   // by the foreign key hm_message_metadata has had on hm_messages since schema
+   // 6030 - "Value violated the integrity constraints" on SQL Server Compact -
+   // which DALConnection::Execute reported at High as HM5032, and the indexer
+   // gave the batch up (MessageIndexer::IndexMessages_). Seen twice in batch48's
+   // windows-gate-s1vm run of 17 October 2026, both at a test's setup.
+   //
+   // The statement carries no parameter: the message id is written as a number,
+   // and the date and the four header fields as literals, since SQL Server
+   // Compact allows no parameter in a select list. A statement with a parameter
+   // is read whole for the parameter's name - by SQLStatement::GenerateFromCommand
+   // on MySQL and PostgreSQL, which put the values into the text, and by
+   // ADOConnection on SQL Server, which puts a ? for the name - and a header that
+   // held the name would have been rewritten (the re-check of 17 October 2026).
+   // The header fields are cut to a hundred characters, as the INSERT cut them,
+   // their quotes doubled by SQLStatement::Escape, which doubles backslashes too
+   // where the engine reads them as escapes (MySQL, and PostgreSQL without
+   // standard_conforming_strings), and they are N'...' on SQL Server and Compact,
+   // where a bare '...' is the database's code page. There a backslash that a
+   // line break follows inside a literal is a line continuation, and both are
+   // dropped - a lone CR or LF reaches a decoded header from an encoded word - so
+   // on those two every backslash is written as NCHAR(92) between two literals,
+   // which keeps the text free of backslashes for the two scanners that read a
+   // statement's literals, DatabaseConnectionManager::RedactSqlLiterals_ and
+   // DALConnection::HasIgnoreErrorsMarker, which take a backslash for an escape
+   // (the re-check of 17 October 2026). A date older than 1800, or none, is
+   // NULL, as SQLStatement::AddColumnDate makes it. The account and folder are
+   // read from the message's row, the ones the indexer's query read. Nothing
+   // reads the row's id after the write, which the INSERT fetched. A failure of
+   // the write - a timeout, a lost connection - is reported with the statement's
+   // text, the fields in it, on SQL Server and Compact as it always was on MySQL
+   // and PostgreSQL. MessageMetaDataTester holds the fields to a verbatim
+   // round trip and a message that is gone to no row.
    //---------------------------------------------------------------------------()
    {
       const DatabaseSettings::SQLDBType databaseType = IniFileSettings::Instance()->GetDatabaseType();
@@ -217,7 +239,12 @@ namespace HM
          if (cut.GetLength() > 100)
             cut = cut.Mid(0, 100);
 
-         return String(unicodeLiteral ? _T("N'") : _T("'")) + SQLStatement::Escape(cut) + _T("'");
+         String escaped = SQLStatement::Escape(cut);
+
+         if (unicodeLiteral)
+            escaped.Replace(_T("\\"), _T("' + NCHAR(92) + N'"));
+
+         return String(unicodeLiteral ? _T("N'") : _T("'")) + escaped + _T("'");
       };
 
       const DateTime date = metaData->GetDate();
@@ -235,12 +262,9 @@ namespace HM
       sql += headerLiteral(metaData->GetSubject()) + _T(", ");
       sql += headerLiteral(metaData->GetTo()) + _T(", ");
       sql += headerLiteral(metaData->GetCC());
-      sql += _T(" from hm_messages where messageid = @MESSAGEID");
+      sql += _T(" from hm_messages where messageid = ") + StringParser::IntToString(metaData->GetMessageID());
 
-      SQLCommand command(sql);
-      command.AddParameter("@MESSAGEID", metaData->GetMessageID());
-
-      return Application::Instance()->GetDBManager()->Execute(command);
+      return Application::Instance()->GetDBManager()->Execute(SQLCommand(sql));
    }
 
    bool 
@@ -356,46 +380,181 @@ namespace HM
       }
    }
 
+   namespace
+   {
+      // Takes the tester's rows out again on every way out, for a database
+      // that is not transactional (MySQL's MyISAM), where the transaction's
+      // roll-back undoes nothing; on the others the roll-back, which comes
+      // after this, undoes the deletes with the rest.
+      struct TesterRows
+      {
+         std::shared_ptr<DatabaseConnectionManager> manager;
+         __int64 messageId = 0;
+
+         ~TesterRows()
+         {
+            if (messageId <= 0)
+               return;
+
+            try
+            {
+               SQLCommand metaData(_T("delete from hm_message_metadata where metadata_messageid = @MESSAGEID"));
+               metaData.AddParameter("@MESSAGEID", messageId);
+               manager->Execute(metaData);
+
+               SQLCommand message(_T("delete from hm_messages where messageid = @MESSAGEID"));
+               message.AddParameter("@MESSAGEID", messageId);
+               manager->Execute(message);
+            }
+            catch (...)
+            {
+               // A destructor, on the way out of the test.
+            }
+         }
+      };
+   }
+
    void
    MessageMetaDataTester::Test()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // The write of the sort's copy for a message that is gone: an id a million
-   // above the newest message the database has - the suite makes thousands of
-   // messages in a minute, not a million in the milliseconds this takes - which
-   // no row of hm_messages has, as a message deleted between the indexer's
-   // query and its write has none. The write must succeed, as it inserts
-   // nothing, and leave no row for the id. The fields carry what headers carry
-   // - a quote, a backslash, a character outside ASCII - and a date, so that
-   // the literals the write makes of them are read by the database at hand:
-   // SQL Server Compact or SQL Server on the Windows bench. An error the write
-   // reported would be in the error log, which the regression test that runs
-   // the suite (MainOperations.TestInternals) holds empty.
+   // Two writes of the sort's copy, against the database at hand - SQL Server
+   // Compact or SQL Server on the Windows bench, where ClassTester runs. An
+   // error either write reported would be in the error log, which the
+   // regression test that runs the suite (MainOperations.TestInternals) holds
+   // empty.
+   //
+   // 1. A message that is gone: an id a million above the newest message the
+   //    database has - the suite makes thousands of messages in a minute, not a
+   //    million in the milliseconds this takes - which no row of hm_messages
+   //    has, as a message deleted between the indexer's query and its write has
+   //    none. The write must succeed, as it inserts nothing, and leave no row
+   //    for the id.
+   //
+   // 2. A message that exists: a row of hm_messages written for the test, in a
+   //    transaction rolled back at the end (the rows taken out by hand too, for
+   //    a database that is not transactional), of a type the indexer's query
+   //    does not ask for. The write must succeed and leave one row, with the
+   //    date and the four fields read back verbatim: the fields carry the
+   //    name of a parameter, a quote, backslashes - one before a line break,
+   //    one at the end - a comment's delimiters and the DAL's own marker text,
+   //    a tilde and a character outside ASCII, what headers carry and what the
+   //    re-check of 17 October 2026 found the first literals lose or rewrite
+   //    (SaveObject says how). The account and folder read back are the
+   //    message's.
    //---------------------------------------------------------------------------()
    {
+      PersistentMessageMetaData persistentMetaData;
+
+      // 1. A message that is gone.
       PersistentMessage persistentMessage;
       const __int64 gone = (__int64) persistentMessage.GetLatestMessageId() + 1000000;
 
       if (MetaDataRowsFor(gone) != 0)
          MetaDataFailed("a message id a million above the newest message already has a row of the sort's copy.");
 
-      std::shared_ptr<MessageMetaData> metaData = std::make_shared<MessageMetaData>();
-      metaData->SetAccountID(1);
-      metaData->SetFolderID(1);
-      metaData->SetMessageID(gone);
-      metaData->SetDate(DateTime(2026, 10, 17, 6, 9, 53));
-      metaData->SetFrom(_T("\"O'Brien, Pat\" <pat@example.test>"));
-      metaData->SetSubject(_T("It's gone; a backslash \\ and a tilde ~ and r\u00e9sum\u00e9"));
-      metaData->SetTo(_T("someone@example.test"));
-      metaData->SetCC(_T(""));
+      std::shared_ptr<MessageMetaData> ofGone = std::make_shared<MessageMetaData>();
+      ofGone->SetAccountID(1);
+      ofGone->SetFolderID(1);
+      ofGone->SetMessageID(gone);
+      ofGone->SetDate(DateTime(2026, 10, 17, 6, 9, 53));
+      ofGone->SetFrom(_T("\"O'Brien, Pat\" <pat@example.test>"));
+      ofGone->SetSubject(_T("It's gone; a backslash \\ and a tilde ~ and r\u00e9sum\u00e9"));
+      ofGone->SetTo(_T("someone@example.test"));
+      ofGone->SetCC(_T(""));
 
-      PersistentMessageMetaData persistentMetaData;
-
-      if (!persistentMetaData.SaveObject(metaData))
+      if (!persistentMetaData.SaveObject(ofGone))
          MetaDataFailed("the write of the sort's copy for a message that is gone failed, where it inserts nothing and succeeds.");
 
       if (MetaDataRowsFor(gone) != 0)
          MetaDataFailed("the write of the sort's copy for a message that is gone inserted a row.");
+
+      // 2. A message that exists.
+      std::shared_ptr<DatabaseConnectionManager> manager = Application::Instance()->GetDBManager();
+      if (!manager)
+         MetaDataFailed("there is no database manager to write the sort's copy with.");
+
+      DatabaseTransaction transaction(manager);
+      if (!transaction.IsOpen())
+         MetaDataFailed("a transaction for the sort's copy of a message that exists could not be begun.");
+
+      TesterRows rows = { manager, 0 };
+
+      SQLStatement row;
+      row.SetTable("hm_messages");
+      row.SetStatementType(SQLStatement::STInsert);
+      row.SetIdentityColumn("messageid");
+      row.AddColumnInt64("messageaccountid", 0);
+      row.AddColumnInt64("messagefolderid", 0);
+      row.AddColumn("messagefilename", String(_T("MessageMetaDataTester")));
+      row.AddColumn("messagetype", 1);
+      row.AddColumn("messagefrom", String(_T("tester@example.test")));
+      row.AddColumn("messagesize", 0);
+      row.AddColumn("messageflags", 0);
+      row.AddColumn("messagekeywords", String());
+      row.AddColumnInt64("messagesubmitterid", 0);
+      row.AddColumn("messageauthdomains", String());
+      row.AddColumnInt64("messageuid", 0);
+      row.AddColumnInt64("messagemodseq", 0);
+      row.AddColumn("messagelocked", 0);
+      row.AddColumn("messagecreatetime", Time::GetCurrentDateTime());
+      row.AddColumn("messagesavedate", Time::GetCurrentDateTime());
+      row.AddColumn("messageemailid", String(_T("MMessageMetaDataTester")));
+      row.AddColumn("messagecurnooftries", 0);
+      row.AddColumn("messagenexttrytime", String(_T("1901-01-01")));
+
+      __int64 messageId = 0;
+      if (!transaction.Execute(row, &messageId) || messageId <= 0)
+         MetaDataFailed("a message row for the sort's copy of a message that exists could not be written.");
+
+      rows.messageId = messageId;
+
+      const String from = _T("\"O'Brien, Pat\" <pat@example.test> \\");
+      const String subject = _T("Ticket @MESSAGEID resolved: C:\\Reports\\\nnext line; a tilde ~ and r\u00e9sum\u00e9");
+      const String to = _T("root@MESSAGEIDS.example");
+      const String cc = _T("/* [IGNORE-ERRORS] */ cc@example.test -- ' \" `");
+
+      std::shared_ptr<MessageMetaData> ofExisting = std::make_shared<MessageMetaData>();
+      ofExisting->SetAccountID(0);
+      ofExisting->SetFolderID(0);
+      ofExisting->SetMessageID(messageId);
+      ofExisting->SetDate(DateTime(2026, 10, 17, 6, 9, 53));
+      ofExisting->SetFrom(from);
+      ofExisting->SetSubject(subject);
+      ofExisting->SetTo(to);
+      ofExisting->SetCC(cc);
+
+      if (!persistentMetaData.SaveObject(ofExisting))
+         MetaDataFailed("the write of the sort's copy for a message that exists failed.");
+
+      if (MetaDataRowsFor(messageId) != 1)
+         MetaDataFailed("the write of the sort's copy for a message that exists did not leave one row.");
+
+      SQLCommand read(_T("select metadata_accountid, metadata_folderid, metadata_from, metadata_subject, metadata_to, metadata_cc from hm_message_metadata where metadata_messageid = @MESSAGEID and metadata_dateutc = '2026-10-17 06:09:53'"));
+      read.AddParameter("@MESSAGEID", messageId);
+
+      std::shared_ptr<DALRecordset> pRS = manager->OpenRecordset(read);
+      if (!pRS || pRS->IsEOF())
+         MetaDataFailed("the sort's copy for a message that exists was not read back by its id and its date.");
+
+      if (pRS->GetLongValue("metadata_accountid") != 0 || pRS->GetLongValue("metadata_folderid") != 0)
+         MetaDataFailed("the sort's copy for a message that exists does not carry the message's account and folder.");
+
+      if (pRS->GetStringValue("metadata_from") != from)
+         MetaDataFailed("the From of the sort's copy did not come back as written: a value that ends in a backslash.");
+
+      if (pRS->GetStringValue("metadata_subject") != subject)
+         MetaDataFailed("the Subject of the sort's copy did not come back as written: a parameter's name, a backslash before a line break, a character outside ASCII.");
+
+      if (pRS->GetStringValue("metadata_to") != to)
+         MetaDataFailed("the To of the sort's copy did not come back as written: a parameter's name inside an address.");
+
+      if (pRS->GetStringValue("metadata_cc") != cc)
+         MetaDataFailed("the Cc of the sort's copy did not come back as written: a comment's delimiters, the marker text, quotes.");
+
+      pRS.reset();
+
+      // The rows go with TesterRows, then the transaction rolls back.
    }
 
 }

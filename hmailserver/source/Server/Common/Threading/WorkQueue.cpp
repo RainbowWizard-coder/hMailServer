@@ -839,25 +839,28 @@ namespace HM
       // rather than by the penalty for asking too early.
       const int interval_ms = 25;
 
-      // The diagnostic line keeps its old once-a-second cadence: at the new
-      // interval it would otherwise repeat forty times a second into the
+      // The diagnostic line keeps its old cadence of forty passes - a second of
+      // them as counted, about two at Windows' default timer tick (below): at the
+      // new interval it would otherwise repeat forty times a second into the
       // debug log of every slow shutdown it exists to explain.
       const int passes_per_log = 1000 / interval_ms;
 
       // Bounded by the clock, after at least one pass. Until 17 October 2026 the
       // bound was a count of passes, max_wait_ms / interval_ms, each pass taken
       // for its interval - and a pass is longer than that: its Sleep and the
-      // timed_join of one millisecond above each end at a tick of the system
-      // timer, 15.6 ms apart on Windows unless something in the process has
-      // asked for finer ones, so that a pass of 25 ms took about 50. On a Windows
-      // server at the default timer resolution the ten seconds Stop promises (the
-      // "Gave up waiting" line below it) were about twenty - for every queue a
-      // stop gave up on a thread in, one after another - and the destructor's
-      // five about ten. Measured on batch48's windows-gate-s1vm run of 17 October
-      // 2026: the two stops of WorkQueueTeardownTester, whose tasks wait twenty
-      // seconds so as to outlast a ten-second stop, returned only as the tasks
-      // ended, 19.99 s after each had begun, and the test failed. The interval
-      // stays what it is; what ends the wait is the clock.
+      // timed_join of one millisecond below each end at a tick of the system
+      // timer, 15.6 ms apart on Windows unless something has asked for finer
+      // ones - the process itself from Windows 10 version 2004 and Server 2022,
+      // any process before, where the resolution is the system's - so that a
+      // pass of 25 ms took about 50. On a Windows server at the default timer
+      // resolution the ten seconds Stop promises (the "Gave up waiting" line
+      // below it) were about twenty - for every queue a stop gave up on a thread
+      // in, one after another - and the destructor's five about ten. Measured on
+      // batch48's windows-gate-s1vm run of 17 October 2026: the two stops of
+      // WorkQueueTeardownTester, whose tasks wait twenty seconds so as to outlast
+      // a ten-second stop, returned only as the tasks ended, 19.99 s after each
+      // had begun, and the test failed. The interval stays what it is; what ends
+      // the wait is the clock.
       const std::chrono::steady_clock::time_point until =
          std::chrono::steady_clock::now() + std::chrono::milliseconds(max_wait_ms);
 

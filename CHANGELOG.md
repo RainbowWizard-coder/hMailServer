@@ -1158,8 +1158,9 @@ the old folder is deleted by hand. Found by the project's own review
 - **Fixed: on Windows, a work queue's stop that gives up on a thread still inside it did so after about twenty
   seconds, not the ten it promises, and the destructor's five more were about ten.** The wait was a count of passes,
   four hundred of 25 ms for the stop, each pass taken for its interval - and a pass is longer than that: its sleep and
-  its one-millisecond join each end at a tick of the system timer, 15.6 ms apart on Windows unless something in the
-  process has asked for finer ones, so that a pass took about 50 ms and the four hundred about twenty seconds (since
+  its one-millisecond join each end at a tick of the system timer, 15.6 ms apart on Windows unless something has asked
+  for finer ones (the process itself from Windows 10 version 2004 and Server 2022; any process before, where the
+  resolution is the system's), so that a pass took about 50 ms and the four hundred about twenty seconds (since
   the interval became 25 ms; at the 250 ms before it the ticks added little). A stop of the servers with a thread
   stuck in each of several queues - a delivery, a script, a lookup held by a host that has stopped answering - waited
   twice as long as the log says, queue after queue, and a service stop that long is one the service controller gives
@@ -1534,7 +1535,7 @@ the old folder is deleted by hand. Found by the project's own review
   log, HM5032, and the indexer gave up the rest of its batch until its next minute.** The indexer reads the delivered
   messages that have no row of `hm_message_metadata` yet, then for each loads the header from its file and writes the
   row - From, To, Cc, Subject and the date, the copy that IMAP `SORT` reads. A message expunged, a mailbox emptied or a
-  folder deleted between that query and the write has no row of `hm_messages` by then, and since schema 6030 (6.3.6)
+  folder deleted between that query and the write has no row of `hm_messages` by then, and since schema 6030 (6.2.25)
   the metadata table's foreign key on it refuses the write: "Value violated the integrity constraints for a column or
   table" on SQL Server Compact, the foreign key's refusal on each of the others. `DALConnection::Execute` reported the
   refusal at High and the indexer gave the batch up, leaving the messages after that one for its next pass, a minute
@@ -1542,13 +1543,24 @@ the old folder is deleted by hand. Found by the project's own review
   index writes a term (the plain `INSERT` was in every version since 5.2.0, and refused since the foreign key), so a
   message that is gone inserts nothing and the write succeeds, which is the truth of it; the next pass does not ask for
   it. The account and folder are read from the message's row, the ones the query read; a date older than 1800, or none,
-  is NULL, and each header field is cut to a hundred characters, as before. The header fields go into the statement as
-  literals - escaped, `N'...'` on SQL Server and Compact, since Compact allows no parameter in a select list - which the
-  slow-query line and the trace redact as they redact every literal. `MessageMetaDataTester`, inside the server on Windows
-  (`ClassTester`), writes the sort's copy for a message id above every message the database has, with a quote, a
-  backslash, a non-ASCII character and a date in its fields, and holds the write to succeeding and leaving no row; the
-  regression suite's `IMAP.MessageIndexing` tests hold the rows of messages that exist to being written and sorted by on
-  every backend. Seen twice in the `windows-gate-s1vm` half of the batch's pipeline on 17 October 2026, both at a test's
+  is NULL, and each header field is cut to a hundred characters, as before. The statement carries no parameter - the
+  message id is a number in it, since a statement with a parameter is read whole for the parameter's name on MySQL,
+  PostgreSQL and SQL Server, and a header that held the name would have been rewritten - and the header fields go into
+  it as literals: escaped, `N'...'` on SQL Server and Compact, since Compact allows no parameter in a select list, and
+  there every backslash written as `NCHAR(92)` between two literals, because inside a literal those two engines drop a
+  backslash and the line break after it as a line continuation, and because the two readers of a statement's literals -
+  the slow-query line's and the trace's masking, and the check for the `[IGNORE-ERRORS]` marker - take a backslash for
+  an escape, which a header ending in one would have put out of step (both found by the re-check of the fix). A failure
+  of the write - a timeout, a lost connection - is reported as HM5032 with the statement's text, the fields in it, on
+  SQL Server and Compact as it always was on MySQL and PostgreSQL. `MessageMetaDataTester`, inside the server on Windows
+  (`ClassTester`), writes the sort's copy for a message id above every message the database has and holds the write to
+  succeeding and leaving no row, and for a message of its own, in a transaction rolled back, holds the date and the four
+  fields to coming back verbatim - a parameter's name, quotes, a backslash before a line break and one at the end, a
+  comment's delimiters and the marker text, a character outside ASCII. The Windows suite's `IMAP.MessageIndexing` and
+  `IMAP.Sort` tests hold the rows of messages that exist to being written and sorted by on SQL Server Compact, and the
+  Linux suite's `IMAP.FullTextSearch` waits for every message to be indexed on PostgreSQL; no suite runs on MySQL,
+  MariaDB or SQL Server, where the statement is read from the code. Seen twice in the `windows-gate-s1vm` half of the
+  batch's pipeline on 17 October 2026, both at a test's
   setup, which clears the last test's mail the moment the servers start while the indexer catches up with it:
   `Infrastructure.Migration` and `SMTP.XOriginalRcptHeaderTests` found the error in the log and failed.
 - **Fixed: a service stop, a Windows shutdown or a SIGTERM during a reinitialise closed the database under the

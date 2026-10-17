@@ -745,8 +745,10 @@ namespace HM
          a string parameter carries its own surrounding quotes, so that ends the
          string literal early and splices the other parameter's value into the
          statement as SQL. Escape() cannot defend against it, because the value
-         is escaped before it is put at risk. hm_message_metadata is written
-         with four attacker-supplied header fields in a single INSERT, so this
+         is escaped before it is put at risk. hm_message_metadata was written
+         with four attacker-supplied header fields in a single INSERT until
+         17 October 2026 (an INSERT ... SELECT with the fields as literals and
+         no parameter since, PersistentMessageMetaData::SaveObject), so this
          was reachable by sending a mail whose From header contained the text
          "@metadata_cc9".
 
@@ -1193,8 +1195,10 @@ namespace HM
       string literal early and splices the later value into the statement as SQL.
 
       The names and the column order here are the ones
-      PersistentMessageMetaData::SaveObject generates, where every one of the four
-      string values is a header field taken straight off an incoming message.
+      PersistentMessageMetaData::SaveObject generated until 17 October 2026, when
+      every one of the four string values was a header field taken straight off
+      an incoming message; it writes an INSERT ... SELECT with the fields as
+      literals and no parameter since, and the test keeps the shape.
    */
    void
    SQLStatementTester::TestParameterNameInsideValue_()

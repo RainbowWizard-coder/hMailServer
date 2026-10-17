@@ -49,9 +49,13 @@ namespace HM
 
    // SaveObject for a message that is gone - an id above every message the
    // database has - inserts nothing and succeeds, and leaves no row for that id;
-   // the fields carry a quote, a backslash and a non-ASCII character, as headers
-   // do. Runs inside the server on Windows, through ClassTester, against the
-   // bench's database. Throws std::logic_error naming what did not hold.
+   // and for a message that exists - a row of the tester's own, in a transaction
+   // rolled back - leaves one row, whose date and four fields read back verbatim:
+   // a parameter's name, quotes, a backslash before a line break and one at the
+   // end, a comment's delimiters and the DAL's marker text, a character outside
+   // ASCII, as headers carry them. Runs inside the server on Windows, through
+   // ClassTester, against the bench's database. Throws std::logic_error naming
+   // what did not hold.
    class MessageMetaDataTester
    {
    public:
