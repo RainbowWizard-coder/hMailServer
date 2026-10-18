@@ -73,7 +73,33 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.7, not yet released
 
-Nothing yet.
+### Build and tests
+
+- **`.gitlab/security-exceptions.yml` no longer accepts the two semgrep-sast findings whose lines 6.3.7 rewrote.**
+  The entries for the help pane's ShellExecute of the wiki page in `HelpPane.OpenWiki_` (`d47e3a059aee686ad374`) and
+  for the elevated restart's argument line in `ServiceRestart.TryRestart` (`1a5b94ee86ee3748e0e8`) named lines that
+  6.3.7's Control Panel changes rewrote, and the two entries that accept the new lines landed before those changes,
+  in a change of their own; the semgrep-sast report of the `v6.3.7` tag's pipeline has neither fingerprint, and the
+  release's security gate, run over that pipeline's reports, gives the same verdict without the two as with them. The
+  file holds 491 entries on 18 October 2026, in nine groups, and its header now says so: it gave the total and the
+  scans' counts of the file without the two new entries that landed on 17 October 2026, in eight groups, and it now
+  lists the ninth, of the two, and counts the first group's entries and the eighth's as 159 and 3.
+
+### Documentation
+
+- **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
+  release's federated credential goes on by the CI/CD variable `AZURE_CLIENT_ID`.** SECURITY.md's table of what must
+  stay valid gives, on 18 October 2026, 491 accepted findings, 157 of them expiring on 25 September 2027 and 3 on 12
+  October 2027, where it gave the 493, 158 and 4 of 17 October 2026; "Why that date" gives the last 159 of those
+  accepted by 29 September 2026 on 25 and 27 September 2027 and the 42 accepted after that day from 1 to 15 October
+  2027, where it said 160 and 43; the 290 that expire in March 2027 are as they were. RELEASE.md's "On GitLab, from
+  6.3.5" step 1 put the credential on the app registration that holds the *Artifact Signing Certificate Profile
+  Signer* role on the certificate profile, "the one used for 6.3.1 to 6.3.4"; two registrations hold that role, the
+  job signs only as the one the project's protected CI/CD variable `AZURE_CLIENT_ID` names, and by that sentence a
+  credential was made on the other for 6.3.6 and again for 6.3.7, beside the one the job used, where it signed
+  nothing. Step 1 now names the registration by the variable, with how to read it
+  (`glab api projects/86730559/variables/AZURE_CLIENT_ID`), and the pause section's step 4, which sends the reader
+  there, names it the same way.
 
 ---
 

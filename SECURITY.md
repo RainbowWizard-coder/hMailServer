@@ -111,8 +111,8 @@ taken under the owner's delegation. The maintainers write here when it changes.
   - the GitLab tokens used by the maintainers' machine, Renovate and SonarQube Cloud expire on 26 and
     27 September 2027 ([What must stay valid](#what-must-stay-valid-for-a-security-release), below);
   - of the findings that `.gitlab/security-exceptions.yml` accepts, those accepted by 29 September 2026 expire by
-    27 September 2027, the last 160 of them on 25 and 27 September 2027, and the 43 accepted after that day expire
-    from 1 to 15 October 2027 (counted on 17 October 2026). After its expiry, a finding holds every release again
+    27 September 2027, the last 159 of them on 25 and 27 September 2027, and the 42 accepted after that day expire
+    from 1 to 15 October 2027 (counted on 18 October 2026). After its expiry, a finding holds every release again
     until it has been read again.
 
   A later date would be a promise that rests on renewals nobody has made yet. A year is also long enough for
@@ -126,7 +126,7 @@ taken under the owner's delegation. The maintainers write here when it changes.
   the bench down every hour, and without it no release is made and no batch lands but one of documents alone; so
   before then the maintainers rearm it, if a rearm is left, license it or rebuild it. Then 290 of the accepted
   findings (263 of *static-analysis*, 23 of *semgrep-sast* and 4 of *semgrep*) expire on 26 and 27 March 2027
-  (counted on 17 October 2026). From the day after, the release job refuses a release while any of them is still
+  (counted on 18 October 2026). From the day after, the release job refuses a release while any of them is still
   found and has not been read again (`build/ci/security-gate.py`). So the maintainers read them again before
   26 March 2027, and give each a new expiry. Otherwise, a report that arrives after either date waits on the bench
   or on that reading as well as on its fix.
@@ -224,9 +224,9 @@ Sigstore bundle. No server installs such a release by live update. Each installa
 
 What a release depends on that expires, as recorded on 29 September 2026, when the GitLab tokens' dates were read
 through GitLab's API, and read again on 14 October 2026, when the tokens, the project's CI/CD variables (by name)
-and its members were read through the API and the exceptions file was counted; the Azure rows are as recorded on
-the first day, S1-WINBENCH's licence as read on that bench on 15 October 2026, and bench150's from the day it was
-installed. No value of any of them is in the repository, and none is written here.
+and its members were read through the API and the exceptions file was counted, as it was again on 18 October 2026;
+the Azure rows are as recorded on the first day, S1-WINBENCH's licence as read on that bench on 15 October 2026, and
+bench150's from the day it was installed. No value of any of them is in the repository, and none is written here.
 
 | What | Used for | Expires |
 |---|---|---|
@@ -235,7 +235,7 @@ installed. No value of any of them is in the repository, and none is written her
 | Azure Artifact Signing's identity validation | Every Authenticode signature | It must be renewed, and signing stops if it lapses. **The date is not recorded here**: it is read in the Azure portal (the Artifact Signing account, *Identity validations*), which has no API for it |
 | The Azure subscription (pay-as-you-go) | The Artifact Signing account | It does not expire, but it must be kept paid |
 | The app registration's client secret, made for the GitHub workflow on 10 September 2026 | Nothing since the move to GitLab: the pipeline needs no secret | 10 September 2028. It should be deleted (`az ad app credential delete`), not left to run out |
-| `.gitlab/security-exceptions.yml`, 493 accepted findings | The release job's security gate | Each finding has its own date: 278 expire on 26 March 2027, 12 on 27 March 2027, 158 on 25 September 2027, 2 on 27 September 2027, 21 on 1 October 2027, 6 on 2 October 2027, 10 on 4 October 2027, 4 on 12 October 2027 and 2 on 15 October 2027. After its date, a finding holds every release until it has been read again and given a new expiry |
+| `.gitlab/security-exceptions.yml`, 491 accepted findings | The release job's security gate | Each finding has its own date: 278 expire on 26 March 2027, 12 on 27 March 2027, 157 on 25 September 2027, 2 on 27 September 2027, 21 on 1 October 2027, 6 on 2 October 2027, 10 on 4 October 2027, 3 on 12 October 2027 and 2 on 15 October 2027. After its date, a finding holds every release until it has been read again and given a new expiry |
 | bench150's Windows licence: Windows Server 2025 Standard Evaluation, installed on 16 September 2026 | The Windows bench of every release: half of the Windows suite (`windows-gate`), `windows-dotnet`, and the jobs no other machine of the project's can run - `windows-installer`, `release-authenticode` and the Windows package jobs | 180 days from its activation: 15 March 2027 at the earliest (`slmgr /xpr` on the bench gives the day, and `slmgr /dlv` the rearms left). A rearm, if one is left, gives 180 days from the day it is taken, so that taken before the licence ends it ends before 30 September 2027. Before then, a licensed key (`DISM /Online /Set-Edition`) or a rebuild ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "bench150") |
 | S1-WINBENCH's Windows licence: Windows Server 2025 Standard Evaluation, activated on 14 October 2026 | The other half of the Windows suite (`windows-gate-s1vm`), which `windows-installer`, the Windows package jobs and `release` wait for | 12 April 2027. One rearm is left: taken between 4 and 11 April 2027, it carries the bench past 30 September 2027. After that, a licensed key or a rebuild. While S1-WINBENCH is down, bench150 can take its half, by a runner tag and no commit ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "S1-WINBENCH") |
 | `RENOVATE_TOKEN`, the owner's personal access token `renovate` | Renovate's merge requests | 27 September 2027 |

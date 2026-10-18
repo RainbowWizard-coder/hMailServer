@@ -63,15 +63,18 @@
 # own, counts when the release job is retried.
 #
 # The file holds 491 entries: 223 of semgrep-sast, 264 of static-analysis and 4 of
-# semgrep, in eight groups, each headed by a comment that says how it was read. 290 of
+# semgrep, in nine groups, each headed by a comment that says how it was read. 290 of
 # them expire on 26 and 27 March 2027, the rest from 25 September 2027. On 6 October
 # 2026 it held 500, in the first seven groups; the eighth, of four, was added on 13
 # October 2026, and on 14 and 15 October thirteen semgrep-sast entries that no longer
 # matched any finding were taken out - three of the fourth group's (the eighth group's
 # comment says which), nine of the first's (below) and one of the fifth's (its comment).
+# The ninth, of two, was added on 17 October 2026, and on 18 October the two entries
+# whose findings it replaced, one of the first group's and one of the eighth's, were
+# taken out (the ninth group's comment says which).
 # The groups, in the file's order:
 #
-#   - 160 entries: 158 of the 169 semgrep-sast findings judged not exploitable on 26
+#   - 159 entries: 157 of the 169 semgrep-sast findings judged not exploitable on 26
 #     September 2026 (below), and two of 28 September 2026 for UpdateChecker.cpp's
 #     getenv, one of static-analysis and one of semgrep-sast;
 #   - 2 semgrep-sast findings in the webmail's Portal.js, read on 27 September 2026;
@@ -81,7 +84,8 @@
 #   - 21 semgrep-sast findings read on 2 October 2026 and 6 read on 3 October 2026,
 #     each against 6.3.6's code;
 #   - 10 semgrep-sast findings in 6.3.6's new code, read on 5 October 2026;
-#   - 4 semgrep-sast findings in batch47's Control Panel code, read on 13 October 2026.
+#   - 3 semgrep-sast findings in batch47's Control Panel code, read on 13 October 2026;
+#   - 2 semgrep-sast findings in batch48's Control Panel code, read on 16 October 2026.
 #
 # The 169 findings of GitLab's semgrep analyzer (semgrep-sast) that began the first
 # group, run on linix over master at 40c7d3e0c, were judged not exploitable. Each was
@@ -101,7 +105,9 @@
 # the About page's rewrite of 10 October 2026 (bda80a377) left one; DnssecResolver.cpp's
 # copy of a name server's address in the Windows arm of its lookup, which b42-secfix-net2
 # rewrote (6feb74de7); and UpdateChecker.cpp's system() asking rpm whether it owns the
-# package, which 7f3e622ff made a run of ProcessLauncher.
+# package, which 7f3e622ff made a run of ProcessLauncher. HelpPane.OpenWiki_'s
+# ShellExecute of the wiki page's address, whose line batch48 rewrote, was taken out
+# on 18 October 2026 (the ninth group's comment).
 #
 # The seven High findings judged real have no entry: each was fixed instead, in the
 # tree 6.3.4 is released from (batch40's fold of the branch sast-fix, 26 September
@@ -1320,15 +1326,6 @@ exceptions:
     finding: 100f9e87bccf75b36125
     what: Process.Start of the elevated cmd.exe start info in RunElevated_
     reason: 'RunElevated_ starts cmd.exe by its full System32 path with only the quoted server executable path, the GUID-named temporary report path and CommandFor_''s constant switches, so there is no bare-name lookup and no text an attacker chooses.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-
-  # hmailserver/source/Tools/ControlPanel/Views/HelpPane.cs
-  - scan: semgrep-sast
-    finding: d47e3a059aee686ad374
-    what: ShellExecute of the wiki page URL in HelpPane.OpenWiki_
-    reason: 'The URL always starts with http:// or https://: HelpPages.WikiBaseUrlOrEmpty clears any other base, OpenWiki_ returns on an empty one, and the page is one of the assembly''s embedded help resources. ShellExecute therefore hands it to the browser as a URL, and only the server administrator sets the base.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
@@ -3966,19 +3963,14 @@ exceptions:
   # owner, so reviewed-by names the owner, who delegated the reading. They landed on master
   # before batch47, in a change of their own. With batch47 on master those three entries
   # accepted nothing, the method gone from FeatureSettingsView.xaml.cs, and were taken out
-  # in a change of their own.
+  # in a change of their own. The entry for the argument line, 1a5b94ee86ee3748e0e8, was
+  # taken out on 18 October 2026, batch48 having rewritten the line (the next group's
+  # comment).
   # hmailserver/source/Tools/ControlPanel/Services/ServiceRestart.cs
   - scan: semgrep-sast
     finding: 0376f275140223bb1f6d
     what: FileName of the elevated cmd.exe in ServiceRestart.TryRestart
     reason: 'In ServiceRestart.TryRestart, FileName is Path.Combine(system, "cmd.exe"), where system is Environment.SystemDirectory (line 97), which comes from GetSystemDirectoryW, not from the environment; WorkingDirectory is System32 too (line 103), so ShellExecuteEx searches nothing and nothing in the current directory can stand in for cmd.exe. No user or file text reaches this line. It is TryRestartService''s line (367dce7d1426591b4bd1), moved with its method from FeatureSettingsView.xaml.cs unchanged.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-10-13
-    expires: 2027-10-12
-  - scan: semgrep-sast
-    finding: 1a5b94ee86ee3748e0e8
-    what: Arguments of the elevated cmd.exe (net stop and start hMailServer) in ServiceRestart.TryRestart
-    reason: 'In ServiceRestart.TryRestart, the argument line is constant text and net, which is Path.Combine(Environment.SystemDirectory, "net.exe") (lines 97-98): a GetSystemDirectoryW path with no quote in it, quoted in the line. /d skips Command Processor AutoRun, and with /s cmd takes off only the outer pair of quotes, so what runs is exactly "<System32>\net.exe" stop hMailServer & "<System32>\net.exe" start hMailServer. It is TryRestartService''s line (3a98ec300b45c7a6ab8c), moved unchanged.'
     reviewed-by: Progressiverobot
     reviewed: 2026-10-13
     expires: 2027-10-12
@@ -4009,10 +4001,11 @@ exceptions:
   # it opened the base with the document's name (d47e3a059aee686ad374). Each was read
   # against the code of batch48 at 052cee9b8 by an AI agent, which then tried to show it
   # exploitable and could not, under the owner's delegation and not line by line by the
-  # owner, so reviewed-by names the owner, who delegated the reading. They land on master
-  # before batch48, in a change of their own. With batch48 on master the two entries they
-  # replace accept nothing, their lines gone, and are to be taken out in a change of their
-  # own.
+  # owner, so reviewed-by names the owner, who delegated the reading. They landed on
+  # master before batch48, in a change of their own. With batch48 on master the two
+  # entries they replaced accepted nothing, their lines gone - v6.3.7's semgrep-sast
+  # report has neither fingerprint - and were taken out on 18 October 2026, in a change
+  # of their own.
   # hmailserver/source/Tools/ControlPanel/Services/ServiceRestart.cs
   - scan: semgrep-sast
     finding: de2781975dd86a8f0ccc

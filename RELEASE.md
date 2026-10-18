@@ -444,8 +444,9 @@ particular, check five things:
    (GOVERNANCE.md, Review). The change is then reviewed on its merge request
    afterwards, when a reviewer can.
 4. **Owner: the federated credential for the tag**, made before the tag is
-   pushed, as [On GitLab, from 6.3.5](#on-gitlab-from-635) step 1 says. Use the
-   project's path of that day in the subject.
+   pushed, on the app registration that the protected CI/CD variable
+   `AZURE_CLIENT_ID` names, as [On GitLab, from 6.3.5](#on-gitlab-from-635)
+   step 1 says. Use the project's path of that day in the subject.
 5. **Owner: the tag.** Sign it with the key in `.gitlab/allowed_signers`, check
    it, and push it (step 2 of [The release on GitLab](#the-release-on-gitlab)).
    No one else holds that key, and `release` refuses a tag signed by any other.
@@ -985,10 +986,13 @@ refuses the token it prints Entra's own answer, which names the subject the
 token carried. What the owner creates:
 
 1. **A federated credential for each release, made for its tag alone**, on the
-   app registration that holds the *Artifact Signing Certificate Profile
-   Signer* role on the certificate profile (the one used for 6.3.1 to 6.3.4
-   will do), before the tag is pushed: issuer `https://gitlab.com`, subject
-   `project_path:hmailserver/hmailserver:ref_type:tag:ref:vX.Y.Z` - a
+   app registration that the project's protected CI/CD variable
+   `AZURE_CLIENT_ID` names
+   (`glab api projects/86730559/variables/AZURE_CLIENT_ID`), which holds the
+   *Artifact Signing Certificate Profile Signer* role on the certificate
+   profile - another registration may hold the role too, but the job signs as
+   this one alone - before the tag is pushed: issuer `https://gitlab.com`,
+   subject `project_path:hmailserver/hmailserver:ref_type:tag:ref:vX.Y.Z` - a
    GitLab ID token's subject for that tag, which Entra ID matches exactly -
    and audience `api://AzureADTokenExchange`. The portal has it under the app
    registration's Certificates & secrets, Federated credentials, *Other
