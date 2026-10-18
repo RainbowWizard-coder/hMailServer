@@ -59,7 +59,7 @@ Contents:
 | Issues | <https://gitlab.com/hmailserver/hmailserver/-/issues>, or <https://github.com/RainbowWizard-coder/hMailServer/issues>; both are accepted |
 | Merge requests | <https://gitlab.com/hmailserver/hmailserver/-/merge_requests>. A pull request at <https://github.com/RainbowWizard-coder/hMailServer/pulls> is accepted too, and landed through a GitLab merge request ([Merge requests](#merge-requests)) |
 | Releases | <https://gitlab.com/hmailserver/hmailserver/-/releases>; the latest is always at <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. Each is published there first and then copied, file for file, to <https://github.com/RainbowWizard-coder/hMailServer/releases>, where a release published after the copies of 18 October 2026 is immutable |
-| The wiki | <https://gitlab.com/hmailserver/hmailserver/-/wikis/home> |
+| The wiki | <https://gitlab.com/hmailserver/hmailserver/-/wikis/home>; the same pages at <https://github.com/RainbowWizard-coder/hMailServer/wiki> since 18 October 2026, pushed from GitLab's wiki, which is the one that is edited |
 | The issue board | <https://gitlab.com/hmailserver/hmailserver/-/boards> |
 | The forum | <https://www.hmailserver.co.uk/> |
 | Discussions | <https://github.com/RainbowWizard-coder/hMailServer/discussions>, for a question. GitLab has no equivalent: there a question is an issue with the `question` label |

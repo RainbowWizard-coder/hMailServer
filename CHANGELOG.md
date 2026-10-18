@@ -146,8 +146,9 @@ with `--check`).
   (`.gitlab/ci/no-github.yml`); the rule's reason is now the project's independence - it builds from GitLab
   alone, so that no forge's suspension can stop a build again - where it was GitHub being unavailable.
   The old account, `Progressiverobot`, stays suspended: every `github.com/Progressiverobot` address answers 404,
-  and the issues, pull requests and discussions it held are gone. The wiki and the container image are not on
-  GitHub yet, and until GitLab's push mirror to GitHub runs, GitHub is pushed from a maintainer's clone. Nothing in
+  and the issues, pull requests and discussions it held are gone. GitLab's wiki, 74 pages, was pushed to GitHub's
+  wiki the same day; the container image is not on GitHub yet, and until GitLab's push mirror to GitHub runs,
+  GitHub is pushed from a maintainer's clone. Nothing in
   the code or the build changes: the documents that said the project was on GitLab alone, or sent a reader to
   GitLab only, now name both forges - README.md, CONTRIBUTING.md, SUPPORT.md, SECURITY.md, GOVERNANCE.md,
   CHANGELOG.md, RELEASE.md, Roadmap.md, Roadmap3.md, ASSURANCE-CASE.md and CODE_OF_CONDUCT.md, and under

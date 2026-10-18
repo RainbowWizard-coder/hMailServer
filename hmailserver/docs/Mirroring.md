@@ -18,8 +18,10 @@ checked each against the SHA-256 that GitLab's package registry records for it (
 notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and
 attached whole as a file, and GitHub writes "." where a file name has "~", so the
 per-distribution .deb files are renamed there); and the labels, the milestones, the
-issues and the discussions are there as well. The boards and the wiki are still
-GitLab's alone. This document is how the second copy is kept. It has two halves:
+issues and the discussions are there as well, and so is the wiki, pushed whole -
+its 74 pages, 59 images and every commit - to GitHub's wiki on 18 October 2026
+from GitLab's, which stays the one that is edited. The boards are still GitLab's
+alone. This document is how the second copy is kept. It has two halves:
 
 - **a push mirror** to GitHub, which GitLab keeps up to date after every push, for
   the git history: every protected branch and every tag;
@@ -256,8 +258,9 @@ Using a copy
   <https://github.com/RainbowWizard-coder/hMailServer>.
 - **The wiki**: `git clone wiki.bundle wiki`, then push it to the second forge's
   wiki (on GitHub, `https://github.com/RainbowWizard-coder/hMailServer.wiki.git`,
-  once the wiki there has a first page; on 18 October 2026 it has none, and the
-  wiki is GitLab's alone).
+  once the wiki there has a first page, which GitHub makes the repository from;
+  done on 18 October 2026, when GitLab's wiki was pushed over that page whole, with
+  `git push --force <that address> HEAD:master` from a clone of GitLab's wiki).
 - **The issues, merge requests and releases**: `issues.json`,
   `merge_requests.json` and `releases.json` are GitLab's own API answers. They are
   for reading and for a script to import.
