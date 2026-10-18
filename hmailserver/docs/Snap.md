@@ -241,8 +241,9 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    revision, each held to the SHA3-384 of the store's signed assertion for that
    revision, and unpacked where snapd would mount them; `/usr/local/bin/snapcraft`
    runs snapcraft with the environment snapd would give it. snapd's `snap pack`,
-   squashfs-tools, Python and curl come from Ubuntu's archive. Nothing comes from
-   GitHub, and nothing needs privilege.
+   squashfs-tools, Python, curl, git and openssh-client (`snap-upload` holds the
+   pipeline's commit to the release tag's with `git fetch` and `git verify-tag`) come
+   from Ubuntu's archive. Nothing comes from GitHub, and nothing needs privilege.
 2. The `.deb` goes where `snapcraft.yaml`'s part reads it, and `snapcraft pack
    --destructive-mode` builds the snap in the job's own container - no LXD, no remote
    build - since core24 is Ubuntu 24.04, as the container is. The part unpacks the

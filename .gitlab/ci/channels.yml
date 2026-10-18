@@ -364,7 +364,8 @@ snap-upload:
     url: https://snapcraft.io/hmailserver
   before_script:
     - !reference [.no-github, before_script]
-    # snapcraft, unsquashfs and python3 (snap-tools.sh says from where).
+    # snapcraft, unsquashfs, python3 and git - snap-upload.py holds the pipeline's commit to the tag's with
+    # git fetch, which the image does not have (18 October 2026) - (snap-tools.sh says from where).
     - bash build/ci/snap-tools.sh
   script:
     - python3 build/ci/channels/snap-upload.py --snaps snap --out snap-upload

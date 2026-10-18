@@ -14,8 +14,9 @@
 # them, /snap/<name>/current, where snapcraft's own programs look for their
 # interpreter and libraries. A /usr/local/bin/snapcraft then runs it as snapd would,
 # with the environment snapd gives it. snapcraft packs with snapd's own snap pack,
-# which needs no daemon either: that, squashfs-tools, python3 and curl come from
-# Ubuntu's archive. Nothing comes from GitHub.
+# which needs no daemon either: that, squashfs-tools, python3, curl, git and
+# openssh-client (snap-upload holds the pipeline's commit to the release tag's with
+# git fetch and git verify-tag) come from Ubuntu's archive. Nothing comes from GitHub.
 #
 # A newer snapcraft or core24: the revision and SHA3-384 for each architecture from
 # the store's answer (Snap.md, "Moving snapcraft"), and then a snap-build.
@@ -52,11 +53,11 @@ case "$arch" in
    *) fail "no pinned snapcraft for $arch" ;;
 esac
 
-say "squashfs-tools, snapd (for snap pack), python3 and curl from Ubuntu's archive"
+say "squashfs-tools, snapd (for snap pack), python3, curl, git and openssh-client (for snap-upload's check of the tag and its signature) from Ubuntu's archive"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
-   ca-certificates curl python3 squashfs-tools snapd sudo > /dev/null
+   ca-certificates curl git openssh-client python3 squashfs-tools snapd sudo > /dev/null
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT

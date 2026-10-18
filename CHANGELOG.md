@@ -85,6 +85,15 @@ with `--check`).
   scans' counts of the file without the two new entries that landed on 17 October 2026, in eight groups, and it now
   lists the ninth, of the two, and counts the first group's entries and the eighth's as 159 and 3.
 
+- **The `snap-upload` job has `git`.** `build/ci/snap-tools.sh` installs it with the job's other packages, since
+  `build/ci/channels/snap-upload.py` holds the pipeline's commit to the release tag's with a `git fetch` of the tag,
+  through `release-chain.py`'s `check_tag`, and the Ubuntu 24.04 image the job runs in has none: on 18 October 2026
+  the upload of 6.3.7's two snaps, both built and checked in `master`'s pipeline, stopped at that call
+  (`FileNotFoundError: 'git'`) before the store or the credential was reached, and 6.3.7 is not on the Snap Store.
+  The next release's upload is the first this fixes, since a snap of `master` after a release is refused; the job's
+  comment in `.gitlab/ci/channels.yml` names the tools and why, and openssh-client, which `git verify-tag` needs, is
+  installed by name rather than reached through snapd.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
