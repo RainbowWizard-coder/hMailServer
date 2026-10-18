@@ -322,10 +322,15 @@ per-distribution `.deb` files are renamed there; no server reads that copy,
 since the update feed is GitLab's. GitHub's immutable-releases setting is on, so
 a release published there after the copies of 18 October 2026 cannot be
 changed; the copies, published before the switch, can. Its tag reaches GitHub
-as `master` does, from a maintainer's clone
-until GitLab's push mirror to GitHub, which is being arranged, runs; no
-pipeline of the project runs on GitHub, and GitHub Actions runs none of its
-workflows.
+as `master` does, by GitLab's push mirror, which has pushed every tag and every
+protected branch there after each push since 18 October 2026
+([Mirroring.md](hmailserver/docs/Mirroring.md)). No pipeline of the project runs
+on GitHub; of its workflows GitHub Actions runs one,
+`.github/workflows/scorecard.yml`, which no release starts. The old release
+workflows `sbom.yml` and `sign-release.yml`, in the trees of the tags up to
+`v6.3.3`, ran once there on 18 October 2026, on the copies of the releases up to
+6.2.22-pre6, and have been disabled since ([ASSURANCE-CASE.md](ASSURANCE-CASE.md));
+a tag after 6.3.3 carries neither.
 
 **The rehearsal.** Every protected `batch*` branch's pipeline rehearses steps 3
 to 4 (`.gitlab/ci/release-rehearsal.yml`): `release-rehearsal` collects every file
@@ -965,9 +970,9 @@ that administrators upgrade by hand.
     signed installer is not the built installer: signing changes the bytes, and a
     package manager handing out a mismatched hash is a broken install for every
     user of it.
-14. **Close the loop**: answer every issue the release resolves, on GitLab and,
-    since 18 October 2026, on GitHub (and close them), update the ones it does
-    not resolve saying so plainly.
+14. **Close the loop**: answer every issue the release resolves on GitLab (and
+    close them), update the ones it does not resolve saying so plainly; the
+    repository on GitHub has no Issues.
 
 ## Standing rules
 

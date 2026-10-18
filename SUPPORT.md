@@ -2,14 +2,14 @@
 
 The project's home is GitLab since 22 September 2026, in the group `hmailserver` since 29 September 2026:
 <https://gitlab.com/hmailserver/hmailserver>. GitHub is a second home since 18 October 2026, under the account
-`RainbowWizard-coder`: <https://github.com/RainbowWizard-coder/hMailServer>, with the repository, the
-releases, issues and discussions; GitLab stays canonical. The former GitHub account, `Progressiverobot`,
+`RainbowWizard-coder`: <https://github.com/RainbowWizard-coder/hMailServer>, GitLab's mirror, with the
+repository, the releases and Discussions, and no Issues; GitLab stays canonical, and the one place the project is
+worked on. The former GitHub account, `Progressiverobot`,
 has been suspended since 18 September 2026, and older links to its issues, discussions and releases still
 answer 404.
 
-**Something is broken** — open an [issue](https://gitlab.com/hmailserver/hmailserver/-/issues) with the
-**Bug** template, or an [issue on GitHub](https://github.com/RainbowWizard-coder/hMailServer/issues), with the
-same information.
+**Something is broken** — open an [issue](https://gitlab.com/hmailserver/hmailserver/-/issues) on GitLab with
+the **Bug** template. Issues are opened on GitLab alone: the repository on GitHub has no Issues.
 
 The most useful report contains, in order of value:
 
@@ -31,8 +31,9 @@ confidential issue, or a private vulnerability report on the GitHub repository, 
 "has anyone got X working" are issues too; on GitHub they go to
 [Discussions](https://github.com/RainbowWizard-coder/hMailServer/discussions).
 
-**No GitLab account** — with a GitHub account, open the issue or the discussion on the GitHub repository
-instead. With neither, email the report or the question to the project's Service Desk address,
+**No GitLab account** — with a GitHub account, a question can go to the Q&A of the GitHub repository's
+Discussions. A report, or a question from someone with neither account, goes by email to the project's Service
+Desk address,
 [contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com).
 GitLab files the message as a confidential issue, which only the maintainers see, and their replies reach you by
 email.
@@ -52,4 +53,4 @@ Two commitments in return:
 
 - Check the [releases](https://gitlab.com/hmailserver/hmailserver/-/releases) — the newest version may already address it.
 - Check [Roadmap2.md](Roadmap2.md) for the work planned now, [Roadmap3.md](Roadmap3.md) for the packages, the container image and the places to install from that are still to come, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
-- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues), and the [issues](https://github.com/RainbowWizard-coder/hMailServer/issues) and [discussions](https://github.com/RainbowWizard-coder/hMailServer/discussions) on GitHub. The issues and discussions of the former GitHub project, under the account `Progressiverobot`, which stays suspended, are still gone; a number written as "GitHub issue N" in this repository refers to them, and one on the new repository, which numbers its issues from 1 again, is written with the account named: "GitHub issue N (RainbowWizard-coder)".
+- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues), and the [discussions](https://github.com/RainbowWizard-coder/hMailServer/discussions) on GitHub. The issues and discussions of the former GitHub project, under the account `Progressiverobot`, which stays suspended, are still gone; a number written as "GitHub issue N" in this repository refers to them, and one on the new repository, which has no Issues and numbers its pull requests and discussions from 1 again, is written with the account named: "GitHub discussion N (RainbowWizard-coder)".

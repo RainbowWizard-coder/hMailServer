@@ -195,7 +195,8 @@ changed:
   <https://github.com/RainbowWizard-coder/hMailServer>, on each push to `master`,
   on each pull request and weekly, and the maintainers read its findings, nothing
   more: it is GitHub's, not a workflow of
-  the project's, and GitHub Actions runs none of the project's workflows there.
+  the project's. GitHub Actions runs one workflow of the project's there,
+  `.github/workflows/scorecard.yml`, OpenSSF Scorecard over that copy.
   A full regression suite gating every release.
 * Release notes that name unfixed known issues rather than omitting them.
 * Security-update distribution with integrity verification, shipped in 6.2.28
@@ -217,9 +218,13 @@ made by GitHub Actions workflows, the Azure identity that signs the installer wa
 reached through GitHub Actions' secrets, and a server up to 6.3.3 accepts an
 update only when its Sigstore bundle names that workflow's GitHub identity. None
 of the workflows has run since GitHub suspended the project's account on 18
-September 2026, and none runs in the repository the project has had on GitHub
-again since 18 October 2026, where GitHub Actions runs nothing of the
-project's: a release there is a copy of the one on GitLab, with the same files
+September 2026 but for two: `sbom.yml` and `sign-release.yml`, in the trees of
+the old tags, ran once on 18 October 2026 in the repository the project has had on
+GitHub again since that day, on the copies of the releases up to 6.2.22-pre6,
+what they wrote was undone, and both have been disabled there since
+([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)). The one workflow of the project's
+that GitHub Actions runs there, OpenSSF Scorecard's, signs and publishes nothing
+of a release: a release there is a copy of the one on GitLab, with the same files
 byte for byte, and a release is built, signed and published on GitLab first and
 then copied there. The releases up to 6.3.3 are on GitLab with their original
 signatures; 6.3.4 was built and Authenticode-signed by hand and carries no

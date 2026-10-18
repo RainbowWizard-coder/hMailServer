@@ -616,8 +616,9 @@ pages:
 # here, with rules of their own): it must not start the gates.
 #
 # Nor does a push that changes documentation alone: the jobs here run when the push
-# changes any file but a Markdown file at the root of the tree or under .gitlab/ (the
-# issue and merge request templates). Every other Markdown file counts as code:
+# changes any file but a Markdown file at the root of the tree or under a top-level
+# directory whose name begins with a dot (.gitlab/'s issue and merge request templates,
+# .github/'s pull request template). Every other Markdown file counts as code:
 # hmailserver/docs/*.md is compiled into the server (HelpPagesData.cpp) and read by the
 # suites, and the READMEs further down are read by tests and packaging. GitLab matches
 # the paths with Ruby's File.fnmatch (FNM_PATHNAME, FNM_DOTMATCH, FNM_EXTGLOB), which

@@ -14,16 +14,21 @@ issues, pull requests and discussions it held are still gone. The project's
 home has been GitLab since 22 September 2026, and GitLab is canonical. Since
 18 October 2026 the project is published on GitHub again, as a second home, at
 <https://github.com/RainbowWizard-coder/hMailServer>, under the account
-`RainbowWizard-coder`: the repository (`master` and every tag), every release
-so far, 6.0.0-B1 to 6.3.7, with the same files byte for byte, and the project's
-labels and milestones, issues and discussions. Issues and pull requests are accepted on both forges; a pull
-request is landed through GitLab, as a `batch*` branch and a merge request,
-keeping its author and sign-off, so a change reaches `master` only through
-GitLab, by the merge request described below. The pipelines run on GitLab and
-nowhere else: GitHub Actions runs none of the project's workflows, and GitHub's
-own CodeQL default setup analyses the code there on each push to `master`, on
-each pull request and weekly, and the maintainers read its findings, nothing
-more. Where this document describes the
+`RainbowWizard-coder`, as GitLab's mirror: the repository (`master`, the
+`batch*` branches and every tag, which GitLab's push mirror has pushed there after
+every push since that day), every release so far, 6.0.0-B1 to 6.3.7, with the
+same files byte for byte, the project's labels and milestones, the wiki's copy and
+Discussions. GitLab is the one place the project is worked on: an issue is opened
+there alone, since the GitHub repository has no Issues, and a pull request on
+GitHub is read and, if it is accepted, landed through GitLab, as a `batch*` branch
+and a merge request, keeping its author and sign-off, so a change reaches `master`
+only through GitLab, by the merge request described below. The pipelines run on
+GitLab and nowhere else: GitHub Actions runs one workflow of the project's,
+`.github/workflows/scorecard.yml`, which scores the repository with OpenSSF
+Scorecard and builds, signs and publishes nothing of a release, and GitHub's own
+CodeQL default setup analyses the code there on each push to `master`, on each
+pull request and weekly, and the maintainers read its findings, nothing more.
+Where this document describes the
 `Progressiverobot` account's GitHub repository - its ruleset and the approval
 it required, repository admin, private vulnerability reporting, and release
 signing through GitHub's token service - it describes how the project ran
@@ -102,10 +107,13 @@ Roles and responsibilities
 ### Maintainers
 
 **Currently: Christopher Holloway (`Progressiverobot` on GitLab, the Owner;
-`chrisholloway5` on GitHub, and on GitLab an older account of his that was a
+`RainbowWizard-coder` on GitHub since 18 October 2026, the account the project's
+repository there belongs to and its only administrator; `chrisholloway5`, an
+earlier GitHub account of his, and on GitLab an older account of his that was a
 Developer in the project until 13 October 2026) and Zain Ul Abidin
 (`zainulabidin1990` on GitLab, a Developer in the project from 26 September to
-13 October 2026 and not a member of it since; `Zainulabidin90` on GitHub).**
+13 October 2026 and not a member of it since; `Zainulabidin90` on GitHub, removed
+from the project's repository there on 18 October 2026).**
 
 The maintainers are accountable for the project. In practice this means:
 
@@ -139,7 +147,13 @@ path. On GitHub, until 18 September 2026, he held admin rights on the
 repository, and Zain Ul Abidin held write access, which was enough to review and
 merge pull requests and to run the release workflows. On GitLab, Zain Ul Abidin
 held the Developer role from 26 September 2026, the owner's decision, and holds
-no role in the project since 13 October 2026. Three of the duties above need
+no role in the project since 13 October 2026. On GitHub, since 18 October 2026,
+the project's repository, <https://github.com/RainbowWizard-coder/hMailServer>,
+belongs to Christopher Holloway's account `RainbowWizard-coder`, which administers
+it, and nobody else holds write access there (its collaborators, read through
+GitHub's API on 18 October 2026): Zain Ul Abidin's account `Zainulabidin90`, a
+collaborator there at first, was removed from it that day, in line with his
+holding no role in the project since 13 October 2026. Three of the duties above need
 more than GitLab's Developer role gives, or a decision not yet made:
 
 1. **Releasing** is the owner's alone. **Release tags are created by

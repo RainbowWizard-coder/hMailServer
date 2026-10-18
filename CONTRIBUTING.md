@@ -2,7 +2,9 @@
 
 hMailServer is a free, open-source mail server: SMTP, IMAP and POP3, with a webmail, a REST API, the desktop
 Control Panel and the browser Control Deck. It runs on Windows and, since 6.3.0, on Linux for x86-64 and
-AArch64. This repository is a maintained fork of the original project, which is no longer developed upstream.
+AArch64. This repository is a maintained fork of the original project, which went quiet for years: Progressive
+Robot Ltd forked it in 2026 and released 6.0.0 on 12 June 2026, and the original project has since resumed
+development separately.
 It is maintained by Christopher Holloway / [Progressive Robot Ltd](https://www.progressiverobot.com) and
 licensed under the GNU Affero General Public License, version 3 or later.
 
@@ -27,9 +29,10 @@ for `master`, `batch*` branches and `v*` tags only** - never for a merge request
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for your branch
 they are still run by hand, by you before you open a merge request or a pull request, and so are two PowerShell
 checks everywhere. [The checkers](#the-checkers) says which is which. No pipeline of the project's runs on
-GitHub: GitHub Actions runs none of its workflows. GitHub's own CodeQL default setup analyses the code there on
-each push to `master`, on each pull request and weekly, and the maintainers read its findings; that is all that
-runs there.
+GitHub. GitHub Actions runs one workflow of the project's there, `.github/workflows/scorecard.yml`, which scores
+the repository with OpenSSF Scorecard and publishes the result, and GitHub's own CodeQL default setup analyses the
+code there on each push to `master`, on each pull request and weekly, and the maintainers read its findings;
+neither builds, tests or releases anything.
 
 Contents:
 
@@ -55,16 +58,16 @@ Contents:
 | What | Where |
 |---|---|
 | The project | <https://gitlab.com/hmailserver/hmailserver> |
-| The second home, on GitHub since 18 October 2026 | <https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository, every release, the labels and milestones, issues, pull requests and discussions. GitLab stays canonical, and no pipeline of the project's runs on GitHub |
-| Issues | <https://gitlab.com/hmailserver/hmailserver/-/issues>, or <https://github.com/RainbowWizard-coder/hMailServer/issues>; both are accepted |
+| The second home, on GitHub since 18 October 2026 | <https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`, GitLab's mirror: the repository, every release, the labels and milestones, the wiki's copy, pull requests and Discussions, and no Issues. GitLab stays canonical and the one place the project is worked on, and no pipeline of the project's runs on GitHub |
+| Issues | <https://gitlab.com/hmailserver/hmailserver/-/issues>, and nowhere else: the repository on GitHub has no Issues |
 | Merge requests | <https://gitlab.com/hmailserver/hmailserver/-/merge_requests>. A pull request at <https://github.com/RainbowWizard-coder/hMailServer/pulls> is accepted too, and landed through a GitLab merge request ([Merge requests](#merge-requests)) |
 | Releases | <https://gitlab.com/hmailserver/hmailserver/-/releases>; the latest is always at <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. Each is published there first and then copied, file for file, to <https://github.com/RainbowWizard-coder/hMailServer/releases>, where a release published after the copies of 18 October 2026 is immutable |
 | The wiki | <https://gitlab.com/hmailserver/hmailserver/-/wikis/home>; the same pages at <https://github.com/RainbowWizard-coder/hMailServer/wiki> since 18 October 2026, pushed from GitLab's wiki, which is the one that is edited |
 | The issue board | <https://gitlab.com/hmailserver/hmailserver/-/boards> |
 | The forum | <https://www.hmailserver.co.uk/> |
-| Discussions | <https://github.com/RainbowWizard-coder/hMailServer/discussions>, for a question. GitLab has no equivalent: there a question is an issue with the `question` label |
+| Discussions | <https://github.com/RainbowWizard-coder/hMailServer/discussions>: the announcements, and questions in Q&A. GitLab has no equivalent: there a question is an issue with the `question` label |
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
-| Copies off GitLab | The repository on GitHub, above, pushed from a maintainer's clone until GitLab's push mirror to it runs, and the issues, merge requests, releases and wiki by the weekly `forge-export` job: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for setting both up |
+| Copies off GitLab | The repository on GitHub, above - `master`, the `batch*` branches and every tag - pushed there by GitLab's push mirror after every push since 18 October 2026; and the issues, merge requests, releases and wiki by the weekly `forge-export` job, still to be set up: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for both |
 
 The latest release is **6.3.7, published on 17 October 2026**. Anything this repository describes that
 arrived after it is in the tree after 6.3.7 and not yet released.
@@ -98,17 +101,17 @@ The tree:
 | `libraries/` | The scripts that build OpenSSL, Boost and libpq, and vendored third-party code |
 | `fuzz/` | The libFuzzer harnesses |
 | `.gitlab/` | The issue and merge-request templates GitLab offers, and three files that are not GitLab's: `allowed_signers`, the SSH keys release tags are signed with; `hmailserver.openvex.json`, the project's VEX document; and `upstream-sync`, the upstream hMailServer commit this tree was last compared against |
+| `.github/` | The two files GitHub reads for the copy there and GitLab does not: `PULL_REQUEST_TEMPLATE.md`, which fills a new pull request's description with the merge-request template's checklist, and `workflows/scorecard.yml`, the one workflow of the project's that GitHub Actions runs ([OpenSSF Scorecard](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)) |
 | `.gitlab-ci.yml` | The checks GitLab CI runs on a push and a merge request ([the checkers](#the-checkers)) |
 | `renovate.json` | What Renovate, the project's dependency-update bot, keeps current, and how ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)) |
 
 ## Reporting, asking and proposing
 
-An issue goes to GitLab, which needs a GitLab account, or, since 18 October 2026, to GitHub,
-<https://github.com/RainbowWizard-coder/hMailServer/issues>, which needs a GitHub one; both are accepted, and
-only a security report can also go by email, as below. A question is an issue with the `question` label on
-either, or a GitHub Discussion; GitLab has no equivalent of Discussions. The templates are GitLab's: each kind of
-issue has one, chosen from the description-template list when you open the issue there, and an issue on GitHub
-says which kind it is and gives what that kind's template asks for.
+An issue goes to GitLab, which needs a GitLab account. GitLab is the one place the project is worked on, so an
+issue is opened there and nowhere else: the repository on GitHub, its mirror, has no Issues. Only a security
+report can also go by email, as below. A question is an issue with the `question` label, or a thread in the Q&A
+of GitHub's Discussions; GitLab has no equivalent of Discussions. The templates are GitLab's: each kind of issue
+has one, chosen from the description-template list when you open the issue there.
 
 * **A defect**: the **Bug** template. The log matters more than anything else in the report;
   [SUPPORT.md](SUPPORT.md) says which log and how to get it.
@@ -143,17 +146,15 @@ The labels:
 | `needs-info` | Waiting for the reporter |
 
 The templates add their label with a quick action. GitLab runs a quick action only for someone who is allowed
-to do what it does, so if the label does not appear on your issue, the maintainer adds it; on GitHub, which has
-the same labels, the maintainer adds it.
+to do what it does, so if the label does not appear on your issue, the maintainer adds it.
 
 **Small tasks.** The issues labelled
 [`good first issue`](https://gitlab.com/hmailserver/hmailserver/-/issues/?label_name%5B%5D=good%20first%20issue)
-on GitLab, and [on GitHub](https://github.com/RainbowWizard-coder/hMailServer/labels/good%20first%20issue),
-are real, bounded pieces of work, each of which closes a gap recorded in the roadmap; none is make-work. Each
+on GitLab are real, bounded pieces of work, each of which closes a gap recorded in the roadmap; none is make-work. Each
 says what it is for, where to look, how to check it, and what "done" means. Comment on one to claim it. If it
 turns out to be larger than it looked, say so on the issue rather than growing the change. The ones filed under
 that label on the former GitHub project, under `Progressiverobot`, are still out of reach - that account's issues
-are gone - so if both lists are empty, ask on an issue.
+are gone - so if the list is empty, ask on an issue.
 
 ## Issue numbers from GitHub and from GitLab
 
@@ -161,13 +162,13 @@ Every issue, pull-request and discussion number written in this repository befor
 commit messages, release notes, `Roadmap.md`, code comments and documents - is a number on the former GitHub
 project, or, where the text says so, on upstream hMailServer's. GitLab numbers its issues from 1 again, and it turns `#6` in a commit message, an issue, a merge
 request or a Markdown file into a link to GitLab issue 6, which is something else. The repository on GitHub since
-18 October 2026, under `RainbowWizard-coder`, numbers its issues and pull requests from 1 again too, in one
-sequence, and GitHub turns `#6` in a commit message, an issue, a pull request or a discussion it shows into a link
-to that repository's issue or pull request 6, a third thing. So, in anything you write:
+18 October 2026, under `RainbowWizard-coder`, numbers its pull requests and discussions from 1 again too, in one
+sequence (it has no Issues), and GitHub turns `#6` in a commit message, a pull request or a discussion it shows
+into a link to that repository's pull request or discussion 6, a third thing. So, in anything you write:
 
 * Write a GitHub number in words: "GitHub issue 158", "GitHub PR 264", "GitHub discussion 18"; written so, it is
   the former project's. A number of the repository under `RainbowWizard-coder` names the account: "GitHub
-  issue 7 (RainbowWizard-coder)", "GitHub PR 3 (RainbowWizard-coder)". Upstream hMailServer's numbers are
+  PR 3 (RainbowWizard-coder)", "GitHub discussion 2 (RainbowWizard-coder)". Upstream hMailServer's numbers are
   "upstream issue 592" and "upstream PR 441".
 * Write `#N` only for an issue opened on GitLab, and `!N` only for a GitLab merge request.
 * Put a username from the forum, or from the other forge, in backticks. Written bare, `@name` links to whichever
@@ -176,8 +177,8 @@ to that repository's issue or pull request 6, a third thing. So, in anything you
   username in backticks.
 
 Existing text that writes a GitHub number with a hash is history. Leave it as it is, and do not turn it into a
-GitLab link, nor into a link to the repository under `RainbowWizard-coder`, whose issue of that number is
-something else.
+GitLab link, nor into a link to the repository under `RainbowWizard-coder`, whose pull request or discussion of
+that number is something else.
 
 ## Prerequisites
 
@@ -886,7 +887,9 @@ maintainer lands it through GitLab, as a `batch*` branch and a merge request, ke
 sign-off. The steps below are a merge request's; a pull request is held to the same - one logical change, every
 commit signed off, the checks you ran named in its description, a review, and the gate on the batch - and, as no
 pipeline of the project's runs on GitHub, none of the project's checks runs for it until a maintainer puts it on a
-batch, so run them yourself before you open it.
+batch, so run them yourself before you open it. GitHub fills a new pull request's description from
+`.github/PULL_REQUEST_TEMPLATE.md`, which carries the merge-request template's checklist whole and says how a pull
+request is landed.
 
 1. **Fork** the project on GitLab and clone your fork.
 2. **Branch from the current `master`.** There are no version branches: releases are tags such as `v6.3.3`, and
@@ -958,7 +961,7 @@ the COM interface or the release path, open an issue to discuss it before writin
   the issue tracker, with a reason written down.
 * The [Code of Conduct](CODE_OF_CONDUCT.md) is the Contributor Covenant 2.1. It applies on the GitLab project -
   issues, merge requests, code review, commit messages and the wiki - and, since 18 October 2026, on the GitHub
-  repository - issues, pull requests, discussions and code review - and names how to report a problem.
+  repository - pull requests, discussions and code review - and names how to report a problem.
 * **Licence.** hMailServer is licensed under the [GNU Affero General Public License](LICENSE), version 3 or
   later (`SPDX-License-Identifier: AGPL-3.0-or-later` in every header). By contributing you agree that your
   contribution is licensed the same way. There is no CLA. Third-party components' licences are in

@@ -388,22 +388,24 @@ which renames the per-distribution `.deb` files there, and the notes of 6.3.6
 and 6.3.7, longer than its limit of 125,000 characters, are cut there and
 attached whole as a file.
 
-Until that row is done, **a new release is built and signed by hand**, as
-6.3.4 was, with Authenticode and no Sigstore bundle. The GitLab jobs that
-replace GitHub's signing and packaging workflows are in `.gitlab-ci.yml` for
-6.3.5 onwards and have not run ([ContinuousIntegration.md](ContinuousIntegration.md),
-*The release*); the package-manager manifests are rendered by hand, and the
-container image appears in the project's container registry, as
+That row is done: **since 6.3.5 every release is built, signed and published by
+its tag's GitLab pipeline**, every file with a Sigstore bundle the pipeline signs,
+6.3.7 on 17 October 2026 the latest; 6.3.4 alone was built and signed by hand,
+with Authenticode and no Sigstore bundle ([ContinuousIntegration.md](ContinuousIntegration.md),
+*The release*). The package-manager manifests are rendered by hand, and the
+container image is in the project's container registry, as
 `registry.gitlab.com/hmailserver/hmailserver`, pushed from a release's own
-pipeline by jobs a maintainer starts, which refuse until the project variable
-`HM_PUBLISH_IMAGE` is 1 (unset until the project's move to the group
+pipeline by jobs a maintainer starts, which refuse unless the project variable
+`HM_PUBLISH_IMAGE` is 1 (it has been since 6 October 2026, after the project's move to the group
 `hmailserver` on 29 September 2026; nothing is pushed from any other path), signed with Sigstore
-as the same pipeline ([ContainerImage.md](ContainerImage.md)); 6.3.4 has none. The rest of the row is in this tree: an installed server's update check reads the project's own feed,
+as the same pipeline ([ContainerImage.md](ContainerImage.md)); the first image is 6.3.6's, and 6.3.4 and 6.3.5
+have none. The rest of the row is in this tree too: an installed server's update check reads the project's own feed,
 https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
 signers - the GitHub workflow identity for the releases up to 6.3.3, and this
-project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). No
-release has been signed on GitLab yet. A server from 6.2.28 to 6.3.3 still reads
+project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). Every
+release from 6.3.5 on has been signed on GitLab, by its tag's pipeline. A server
+from 6.2.28 to 6.3.3 still reads
 the suspended account's GitHub address, which the project's return to GitHub does
 not bring back, until one line of its settings points it at the feed
 (UpdateFeed.md).

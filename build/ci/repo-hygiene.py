@@ -6,7 +6,9 @@
 """The repository-hygiene checks OpenSSF Scorecard ran, answered from GitLab.
 
 Scorecard (the GitHub workflow scorecard.yml) stopped with the GitHub account on 18
-September 2026, and it reads GitHub's API only. This is the part of it that GitLab
+September 2026, and it reads GitHub's API only; the scorecard job runs it over the
+GitLab project since 6.3.6, and since 18 October 2026 .github/workflows/scorecard.yml
+over the project's copy on GitHub. This is the part of it that GitLab
 and the tree can answer, as the repo-hygiene job of .gitlab-ci.yml runs it. Six
 checks, each PASS, FAIL or UNKNOWN (UNKNOWN when the answer is not public, and never
 counted as a pass):
@@ -23,6 +25,8 @@ counted as a pass):
                        includes (.gitlab/ci/*.yml), and every FROM in a Dockerfile,
                        pinned by digest (or, for the CI image, by the tag made from
                        its Dockerfile's hash that build/check-ci-image.py enforces);
+                       every action a workflow under .github/workflows/ uses (the
+                       copy on GitHub's) pinned by a full commit;
                        no pip install from an index without hashes, npm install,
                        or piped curl in those CI files or a shell script under
                        build/; a NuGet lock file beside every project that has
@@ -404,9 +408,29 @@ def check_pinned_dependencies(files):
     else:
         r.ok("every FROM in the %d Dockerfile(s) pinned by digest" % len(dockerfiles))
 
-    # No GitHub workflow is left to check: .github/workflows left the tree on 26
-    # September 2026 (they are in the history, at v6.3.3 for instance), so the
-    # check that their actions were pinned by commit is retired with them.
+    # The GitHub workflows left the tree on 26 September 2026 (they are in the
+    # history, at v6.3.3 for instance), and since 18 October 2026 it has one again,
+    # .github/workflows/scorecard.yml, for the copy on GitHub: every action a
+    # workflow uses is pinned by a full commit, as that repository's Actions settings
+    # require too. A local action (./) and a docker:// image are not actions of
+    # another repository.
+    workflows = [f for f in files if f.startswith(".github/workflows/") and f.endswith((".yml", ".yaml"))]
+    actions = 0
+    loose_actions = []
+    for path in workflows:
+        for i, line in enumerate(read(path).splitlines()):
+            m = re.match(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", line)
+            if not m or m.group(1).startswith("./") or m.group(1).startswith("docker://"):
+                continue
+            actions += 1
+            ref = m.group(1).rsplit("@", 1)[-1] if "@" in m.group(1) else ""
+            if not re.fullmatch(r"[0-9a-f]{40}", ref):
+                loose_actions.append("%s line %d: %s" % (path, i + 1, m.group(1)))
+    if loose_actions:
+        r.fail("%d GitHub action reference(s) not pinned by a full commit: %s" % (
+            len(loose_actions), "; ".join(loose_actions[:10])))
+    elif workflows:
+        r.ok("all %d action references in the %d GitHub workflow(s) pinned by a full commit" % (actions, len(workflows)))
 
     ci_paths = [path for path, _ in ci_texts]
     scripts = ci_paths + [f for f in files if f not in ci_paths and (re.match(r"^build/.+\.sh$", f)
@@ -1581,9 +1605,48 @@ def self_test_pinned():
                 for line in result.lines:
                     if line.startswith("FAIL"):
                         print("         " + line[9:][:300])
+        # A workflow under .github/workflows/ (the copy on GitHub's), beside the pinned
+        # base: an action pinned by a full commit passes, one named by a tag fails.
+        for name, uses, must_fail in PINNED_WORKFLOW_CASES:
+            scratch = tempfile.mkdtemp(prefix="repo-hygiene-self-test-")
+            try:
+                ROOT = scratch
+                os.makedirs(os.path.join(scratch, ".gitlab", "ci"))
+                os.makedirs(os.path.join(scratch, ".github", "workflows"))
+                with open(os.path.join(scratch, ".gitlab-ci.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(PINNED_TEST_BASE)
+                with open(os.path.join(scratch, ".gitlab", "ci", "included.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(PINNED_TEST_INCLUDED)
+                with open(os.path.join(scratch, ".github", "workflows", "w.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write("jobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./local\n"
+                            "      - uses: %s\n" % uses)
+                result = check_pinned_dependencies([".gitlab-ci.yml", ".gitlab/ci/included.yml", ".github/workflows/w.yml"])
+            finally:
+                ROOT = saved
+                shutil.rmtree(scratch, ignore_errors=True)
+            failed = result.status == "FAIL"
+            right = failed == must_fail
+            wrong += 0 if right else 1
+            print("%-6s Pinned-Dependencies, %s: %s, as %s" % (
+                "ok" if right else "WRONG", name, result.status,
+                "it must" if right else ("it must fail" if must_fail else "it must not fail")))
+            if not right or failed:
+                for line in result.lines:
+                    if line.startswith("FAIL"):
+                        print("         " + line[9:][:300])
     finally:
         ROOT = saved
     return wrong
+
+
+# Pinned-Dependencies over a workflow of the copy on GitHub: (name, the second step's
+# uses:, whether the check must fail). The first step, a local action, is never asked
+# for a commit.
+PINNED_WORKFLOW_CASES = [
+    ("a GitHub workflow's action pinned by a full commit",
+     "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1", False),
+    ("a GitHub workflow's action named by a tag that can move", "actions/checkout@v4", True),
+]
 
 
 def self_test():
@@ -1630,7 +1693,8 @@ def self_test():
         right = len(got[0]) == signatures and got[1] == provenance
         wrong += 0 if right else 1
         print("%-6s Signed-Releases, %s: %d signature(s), provenance %s" % ("ok" if right else "WRONG", name, len(got[0]), got[1]))
-    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1 + len(PINNED_TEST_CASES) + 1 + 3, wrong))
+    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1 + len(PINNED_TEST_CASES) + 1 + len(PINNED_WORKFLOW_CASES) + 3,
+                                             wrong))
     return 1 if wrong else 0
 
 

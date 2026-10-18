@@ -36,10 +36,12 @@
     <description><![CDATA[
 hMailServer is a free, open-source mail server implementing SMTP, IMAP and POP3, with a Windows
 administration program, a browser administration console, a webmail client and a REST API. This is
-the maintained fork of the original project, which is no longer developed upstream: a current
-toolchain, current cryptography, and the transport-security and authentication standards a mail
-server is expected to speak in 2026 - while remaining a drop-in upgrade for an existing hMailServer
-installation, with a continuous database upgrade chain from every earlier version.
+a maintained fork of the original project, which went quiet for years: Progressive Robot Ltd forked
+it in 2026 and released 6.0.0 on 12 June 2026, and the original project has since resumed
+development separately. The fork brings a current toolchain, current cryptography, and the
+transport-security and authentication standards a mail server is expected to speak in 2026, while
+remaining a drop-in upgrade for an existing hMailServer installation, with a continuous database
+upgrade chain from every earlier version.
 
 ### What it does
 

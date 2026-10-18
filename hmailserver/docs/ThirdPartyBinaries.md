@@ -260,10 +260,10 @@ workflow fetched the build inputs, checked their hashes, and checked the
 signature of every fetched file the manifest records as signed.
 
 On GitLab, from 6.3.6, two jobs do what it did, and nothing does on the
-repository published on GitHub again since 18 October 2026: GitHub Actions
-runs none of the project's workflows, and a pull request made there is checked
-when a maintainer lands it through GitLab, as a `batch*` branch and a merge
-request. `checkers` runs
+repository published on GitHub again since 18 October 2026: the one workflow of
+the project's that GitHub Actions runs there is OpenSSF Scorecard's, and a pull
+request made there is checked when a maintainer lands it through GitLab, as a
+`batch*` branch and a merge request. `checkers` runs
 `build/check-binary-manifest.py` in every pipeline, merge requests included: the
 first and third questions over every tracked file. And `build-inputs-authenticode`,
 on bench150 for every protected ref (`.gitlab/ci/packages-windows.yml`), runs

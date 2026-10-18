@@ -137,8 +137,8 @@ refuses it. This checker holds them to each other. It fails when:
     documentation alone, or skip one that changes anything else: the rules:changes
     paths of .own-runners (which db-matrix shares) are matched against every file
     of the tree as GitLab matches them, and must leave out exactly the Markdown
-    files at the root and under .gitlab/ - hmailserver/docs/*.md is compiled into
-    the server;
+    files at the root and under a top-level directory whose name begins with a dot
+    (.gitlab/ and .github/) - hmailserver/docs/*.md is compiled into the server;
   * linux-suite, windows-gate or windows-gate-s1vm can be cancelled by a later push
     (interruptible), or a gate that lets a busy bench's exit 10 pass (allow_failure:
     exit_codes, its own or a template's) can do so in a v* tag's pipeline, where
@@ -940,10 +940,12 @@ def read(relative):
 
 def docs_only(path):
     """The Markdown files a push may change without starting the project's own
-    runners: at the root of the tree, and under .gitlab/ (the issue and merge request
-    templates). Every other one counts as code: hmailserver/docs/*.md is compiled
-    into the server, and the READMEs further down are read by tests and packaging."""
-    return path.endswith(".md") and ("/" not in path or path.startswith(".gitlab/"))
+    runners: at the root of the tree, and under a top-level directory whose name
+    begins with a dot - .gitlab/ (the issue and merge request templates) and .github/ (the pull
+    request template GitHub reads), as land-via-mr.py's documents_only has it. Every
+    other one counts as code: hmailserver/docs/*.md is compiled into the server, and
+    the READMEs further down are read by tests and packaging."""
+    return path.endswith(".md") and ("/" not in path or path.startswith("."))
 
 
 def glob_regex(glob):
@@ -3118,7 +3120,7 @@ def check(texts, chain, feed):
                 problems.append(".own-runners' paths match none of %d file(s) that are not documentation, so a push changing only "
                                 "those would skip the gates: %s" % (len(skipped_code), ", ".join(skipped_code[:8])))
             if started_by_docs:
-                problems.append(".own-runners' paths match %d Markdown file(s) at the root or under .gitlab/, so a push changing "
+                problems.append(".own-runners' paths match %d Markdown file(s) at the root or under a top-level dot-directory, so a push changing "
                                 "only documentation would start the gates: %s" % (len(started_by_docs), ", ".join(started_by_docs[:8])))
             if not any(f.startswith("hmailserver/docs/") and f.endswith(".md") for f in texts["tree"]):
                 problems.append("the tree has no hmailserver/docs/*.md to check the paths against")

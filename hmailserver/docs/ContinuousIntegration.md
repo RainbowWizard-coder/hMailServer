@@ -29,7 +29,10 @@ runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)). Sin
 18 October 2026 the project is published on GitHub again, as a second home
 (<https://github.com/RainbowWizard-coder/hMailServer>), and GitLab,
 <https://gitlab.com/hmailserver/hmailserver>, stays canonical: the pipelines run
-there and nowhere else, GitHub Actions runs no workflow of the project's, and no
+there and nowhere else, GitHub Actions runs one workflow of the project's, OpenSSF
+Scorecard's ([OpenSSF Scorecard](#openssf-scorecard)), and nothing of a build or a
+release, GitLab's push mirror pushes `master`, the `batch*` branches and the tags
+there after every push ([Mirroring.md](Mirroring.md)), and no
 build step downloads from GitHub, as before - the project builds from GitLab
 alone, so that no forge's suspension can stop a build again ([Where the tools
 come from](#where-the-tools-come-from)).
@@ -2394,7 +2397,9 @@ From GitHub Actions to GitLab CI
 --------------------------------
 
 Every job of the old `.github/workflows`, and where it went. The workflows were
-removed from the tree when the project moved to GitLab. They are in the git
+removed from the tree when the project moved to GitLab; since 18 October 2026 the
+tree has one workflow again, `.github/workflows/scorecard.yml`, for the copy on
+GitHub alone ([OpenSSF Scorecard](#openssf-scorecard)). The old ones are in the git
 history, unchanged from `faca023d4` until `6593259e0` removed them on
 26 September 2026 (its parent, `d8ba4b646`, is the last commit that has them),
 and the ones that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
@@ -2449,7 +2454,9 @@ not hold it.
   services: the first reads GitHub's advisory database for a pull request's
   dependency changes, the second scores the repository through GitHub's API and
   publishes to the OpenSSF API from a verified GitHub workflow. What each did
-  is done another way since 6.3.6 (the table above).
+  is done another way since 6.3.6 (the table above). A Scorecard workflow of the
+  project's runs again on the copy on GitHub since 18 October 2026, over that
+  copy alone ([OpenSSF Scorecard](#openssf-scorecard)).
 - `upstream-watch.yml`. It reads upstream hMailServer's repository, which is on
   GitHub, and files an issue there.
 - `package-managers.yml` manifests, and the SLSA provenance and the `.sigstore.json` copies of the
@@ -4862,7 +4869,7 @@ which this tree has.
 | `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
-| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The OpenSSF API's copy of the score, which takes results from GitHub's action alone, and the checks Scorecard cannot answer on GitLab |
+| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its one workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
 | Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
@@ -5344,7 +5351,8 @@ Left out of Scorecard's checks, each for a reason:
 
 The OpenSSF API's published score, and the badge it serves, are GitHub-only: the
 API accepts a result only from a GitHub Actions run. Since 6.3.6 the project runs
-Scorecard itself and publishes the result on its own site ([OpenSSF
+Scorecard itself and publishes the result on its own site, and since 18 October
+2026 a workflow of the copy on GitHub sends that API the copy's own ([OpenSSF
 Scorecard](#openssf-scorecard)); `repo-hygiene` stays, on every protected
 pipeline, and answers Token-Permissions, which Scorecard does not on GitLab.
 
@@ -5365,7 +5373,10 @@ Every later deployment of the site - a push to `master`, a release, the feed's
 schedule - reads the result the site serves, checks that it is Scorecard's, and
 publishes it again with a badge made afresh, so a deployment never drops it; a
 result it cannot fetch or read is a warning in `package-repos`' log and no
-`scorecard/`, never a failed deployment. The README's badge is that SVG, linked to the JSON.
+`scorecard/`, never a failed deployment. That SVG, linked to the JSON, is to be the README's badge for the
+GitLab project: until the job's first result there is none to show, both addresses answer 404, and the README
+takes the badge once the first result is published, carrying until then only the badge of the copy on GitHub
+(below).
 
 **Where Scorecard comes from.** Its releases, its `ghcr.io` image and Homebrew's
 bottles are on GitHub; its `gcr.io/openssf/scorecard` image answered "This API
@@ -5420,7 +5431,9 @@ owner's:
    to the job log, where GitLab masks it, and the artifact holds the result
    alone.
 3. A pipeline schedule on `master` described exactly `scorecard`, weekly, with no
-   variables (the project refuses a schedule's), made by a maintainer.
+   variables (the project refuses a schedule's), made by a maintainer. Made on
+   18 October 2026: schedule 4498073, Mondays at 03:30 UTC (`30 3 * * 1`). Steps 1
+   and 2 are still to be done, so the job says "not configured" until then.
 
 Until the variable exists the job says "not configured", exits 0 and publishes
 nothing, and the site has no `scorecard/`. The token expires in a year: a
@@ -5431,10 +5444,45 @@ rather than publish an empty one.
 `POST /projects/{platform}/{org}/{repo}` from GitHub's Scorecard action, with an
 OIDC token GitHub issues; its weekly scan reads GitHub projects only, and adding
 one to its list is a pull request on GitHub. So neither the OpenSSF API nor
-deps.dev, which shows the API's scores, can carry this project's; the copy on
-GitHub since 18 October 2026, the project's second home, runs no workflow of
-the project's, GitHub's Scorecard action among them. The site's copy is the
+deps.dev, which shows the API's scores, can carry this project's: what they carry
+is the score of the copy on GitHub (below). The site's copy is the
 project's own, run by its own CI from a pinned build, and says so.
+
+**The copy on GitHub.** Since 18 October 2026 the project's copy on GitHub,
+<https://github.com/RainbowWizard-coder/hMailServer>, has one workflow of the
+project's, `.github/workflows/scorecard.yml`, the only one GitHub Actions runs
+there. It runs `ossf/scorecard-action` v2.5.0 over that repository on each push to
+`master` - which GitLab's push mirror makes - weekly (Mondays at 04:30 UTC) and
+when a branch protection rule changes. Its permissions are read-only but for the
+job's `security-events: write`, to upload the result as SARIF to the repository's
+code scanning, and `id-token: write`, to publish it to the OpenSSF API, which
+shows it at <https://scorecard.dev/viewer/?uri=github.com/RainbowWizard-coder/hMailServer>
+and serves the README's Scorecard badge,
+`https://api.scorecard.dev/projects/github.com/RainbowWizard-coder/hMailServer/badge`;
+the SARIF file is also kept for five days as the run's artifact. Each action is
+pinned by a full commit with its version beside it - `actions/checkout` v7.0.1,
+`ossf/scorecard-action` v2.5.0, `actions/upload-artifact` v7.0.2 and
+`github/codeql-action/upload-sarif` v4.39.0 - as the
+repository's Actions settings require: they allow GitHub's own actions and
+`ossf/scorecard-action` alone, and only by commit; and `repo-hygiene`'s
+Pinned-Dependencies holds every action a workflow under `.github/workflows/` uses
+to a full commit. The workflow builds, signs and publishes nothing of a release,
+and nothing it makes reaches a build. The README's badge shows a score minutes
+after the workflow's first run on `master`, once the workflow is there; the site's
+badge answers 404 until the owner's token is set and the `scorecard` schedule has
+run with it.
+
+**Why the two scores may differ.** scorecard.dev scores the copy on GitHub and
+`scorecard` the canonical project on GitLab, and several checks read the forge
+rather than the tree. What happens only on GitLab is not seen on GitHub: the merge
+requests and their review (Code-Review), the pipelines that test every change
+(CI-Tests), and GitLab's branch and tag protection (Branch-Protection). On the
+copy every change arrives by the mirror's push, with no pull request, review or
+check of GitHub's beside it, and those checks read what GitHub has. The other way
+round, Dangerous-Workflow, Dependency-Update-Tool, SAST and Token-Permissions,
+which Scorecard does not answer on GitLab (above), are answered for the copy on
+GitHub. Neither score is the other's, and each names the repository it was taken
+from.
 
 ### SonarQube Cloud
 
@@ -5626,12 +5674,12 @@ What is still done by hand
   ([The release](#the-release)), and pushing the image and the package
   managers' manifests, which are still the Roadmap2 row "The release chain off
   a single forge".
-- Pushing `master` and every tag to GitHub, the project's second home since
-  18 October 2026
-  (<https://github.com/RainbowWizard-coder/hMailServer>), from a maintainer's
-  clone, until GitLab's push mirror to GitHub, which is being arranged, runs;
-  and copying each release there once `release-publish` has created it on
-  GitLab, where every release is built, signed and published first.
+- Copying each release to GitHub, the project's second home since
+  18 October 2026 (<https://github.com/RainbowWizard-coder/hMailServer>), once
+  `release-publish` has created it on GitLab, where every release is built,
+  signed and published first. `master`, the `batch*` branches and every tag are
+  not pushed there by hand: GitLab's push mirror 4137207 has pushed them after
+  every push since 18 October 2026 ([Mirroring.md](Mirroring.md)).
 - The installer smoke test, which runs from the VMware host with
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke
@@ -5639,6 +5687,7 @@ What is still done by hand
 - Building the Linux job image, and pushing it to the project's registry, when
   its Dockerfile changes (see [The image](#the-image)), and creating the fuzz
   schedule once (see [The fuzz schedule](#the-fuzz-schedule)) and the Scorecard
-  schedule and its token (see [OpenSSF Scorecard](#openssf-scorecard)).
+  schedule's token, the schedule itself made on 18 October 2026 (see [OpenSSF
+  Scorecard](#openssf-scorecard)).
 - Bringing a runner back when its machine has been rebuilt (see
   [Re-creating a runner](#re-creating-a-runner)).

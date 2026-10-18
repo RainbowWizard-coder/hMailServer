@@ -24,7 +24,7 @@ older text now answers 404. Since 18 October 2026 the project is published on Gi
 6.0.0-B1 to 6.3.7 with GitLab's files byte for byte, each checked against the SHA-256 that GitLab's package registry
 records for it (the notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as
 a file, and GitHub writes "." where a file name has "~", so the per-distribution `.deb` files are renamed there), and
-the project's labels and milestones, issues and discussions. GitLab stays canonical: a release is built, signed and
+the project's labels and milestones and Discussions; it has no Issues. GitLab stays canonical: a release is built, signed and
 published there first and then copied to GitHub, and the update feed, the package repositories and the container
 registry are GitLab's. GitHub's immutable-releases setting is on, so a release published there after the copies of
 18 October 2026 cannot be changed; the copies, published before the switch, can. Every release up to 6.3.3 has been
@@ -62,9 +62,9 @@ Every issue, pull-request and discussion number written before 24 September 2026
 `Progressiverobot`, the project's home until GitHub suspended it on 18 September 2026, and this file writes it in
 words: "GitHub issue 263", "GitHub PR 12", "GitHub discussion 18"; those issues, pull requests and discussions are
 gone with the account. The repository the project has had on GitHub again since 18 October 2026, under
-`RainbowWizard-coder`, numbers its issues and pull requests from 1 again, so a number of it is written with the
-account named, "GitHub issue 7 (RainbowWizard-coder)", and a GitHub number with no account named is the suspended
-account's. GitLab numbers its own issues from 1 again and links a bare `#` and a number to its own issue of that
+`RainbowWizard-coder`, has no Issues and numbers its pull requests and discussions from 1 again, so a number of it
+is written with the account named, "GitHub PR 7 (RainbowWizard-coder)", and a GitHub number with no account named
+is the suspended account's. GitLab numbers its own issues from 1 again and links a bare `#` and a number to its own issue of that
 number, so no number is written that way here. Upstream hMailServer's numbers are written the same way, as
 "upstream PR 552" or "upstream issue N". A person's handle on either forge is written in a code span, so that nobody
 is notified.
@@ -109,6 +109,31 @@ with `--check`).
   comment in `.gitlab/ci/channels.yml` names the tools and why, and openssh-client, which `git verify-tag` needs, is
   installed by name rather than reached through snapd.
 
+- **The copy on GitHub has a pull-request template and one workflow of the project's, OpenSSF Scorecard, whose
+  result the README shows.** GitHub reads `.github/`, not `.gitlab/`, and GitLab reads
+  neither file. `.github/PULL_REQUEST_TEMPLATE.md` fills a new pull request's description with the merge-request
+  template's checklist, whole, and says that a change lands on `master` only through a GitLab merge request after
+  review, that a pull request is read and, if accepted, made again on GitLab as a `batch*` branch keeping its
+  author and sign-off, and that every commit needs the sign-off trailer. `.github/workflows/scorecard.yml`, the one
+  workflow of the project's that GitHub Actions runs, runs `ossf/scorecard-action` v2.5.0 over the copy on GitHub
+  on each push to `master`, weekly (Mondays at 04:30 UTC) and when a branch protection rule changes, read-only but
+  for its job's SARIF upload to the repository's code scanning and its publication to scorecard.dev, each action
+  pinned by a full commit with its version beside it, as the repository's Actions settings require: they allow
+  GitHub's own actions and `ossf/scorecard-action` alone. It builds, signs and publishes nothing of a release.
+  `build/ci/repo-hygiene.py`'s Pinned-Dependencies again holds every action a workflow under `.github/workflows/`
+  uses to a full commit, as it did until the workflows left the tree on 26 September 2026, and
+  `build/check-release-chain.py` counts a Markdown file under a top-level directory whose name begins with a dot as
+  documentation, as the CI files' paths and `build/land-via-mr.py` already did, so that the pull-request template
+  starts no job on the project's own runners by itself, as `.gitlab/`'s templates do not. On GitLab, Scorecard's
+  weekly schedule, `scorecard`, was made on 18 October 2026 (Mondays at 03:30 UTC), and its job says "not
+  configured" until the owner's `GITLAB_AUTH_TOKEN` is set. The README carries one Scorecard badge now,
+  scorecard.dev's for the copy on GitHub, which shows a score minutes after the workflow's first run on `master`;
+  the badge the project publishes for GitLab's run,
+  `https://updates.progressiverobot.com/scorecard/badge.svg`, answers 404 until the token exists and the first
+  weekly run has published, and the README takes it then. The two scores may differ, since scorecard.dev scores the
+  copy on GitHub, where the merge requests, their review, the pipelines and GitLab's protection rules are not seen
+  (ContinuousIntegration.md, "OpenSSF Scorecard").
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
@@ -125,35 +150,55 @@ with `--check`).
   (`glab api projects/86730559/variables/AZURE_CLIENT_ID`), and the pause section's step 4, which sends the reader
   there, names it the same way.
 
-- **The project is on GitHub again, as a second home, and GitLab stays canonical; this batch is documents only.**
+- **The project is on GitHub again, as GitLab's mirror, and GitLab stays canonical and the one place it is worked on.**
   Since 18 October 2026 the project is published on GitHub again, at
   <https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository -
-  `master` and every tag - and every release from 6.0.0-B1 to 6.3.7 with GitLab's files byte for byte, and the
-  project's labels and milestones, issues and discussions ([Where the releases are](#where-the-releases-are),
-  above). Pull requests are accepted there, and a maintainer lands one through GitLab, as a `batch*` branch and a
-  merge request, keeping its author and sign-off; issues are accepted on both forges, and questions go to the forum
-  (<https://www.hmailserver.co.uk/>), to GitHub Discussions or to an issue with the `question` label;
-  a vulnerability is reported by a confidential GitLab issue or to the Service Desk address, as before, or through
-  GitHub's private vulnerability reporting, which is switched on for the repository and read by the maintainers.
-  The pipelines run on GitLab and nowhere else: a release is built, signed and published there first and then
-  copied to GitHub; the update feed, the package repositories and the container registry are GitLab's; a change
-  lands on `master` only through a GitLab merge request (GOVERNANCE.md); the project runs no pipeline on GitHub;
-  GitHub's own CodeQL default setup analyses the code there on each push to `master`, on each pull request and
-  weekly, and the maintainers read its findings, nothing more (GitHub Actions stays enabled there for it; the
-  project's old workflows, still in the trees of the tags up to `v6.2.22-pre6`, ran once on 18 October 2026 when
-  those releases' copies were published, and what they wrote was undone - ASSURANCE-CASE.md). No build step
-  downloads from GitHub, as before, and `.no-github` keeps GitHub out of every CI job
-  (`.gitlab/ci/no-github.yml`); the rule's reason is now the project's independence - it builds from GitLab
+  `master`, the `batch*` branches and every tag - and every release from 6.0.0-B1 to 6.3.7 with GitLab's files byte
+  for byte, the project's labels and milestones, and Discussions, for announcements and questions
+  ([Where the releases are](#where-the-releases-are), above). The repository there has no Issues: an issue - a
+  defect, a feature, or a question with the Question template - is opened on GitLab alone. Pull requests are read
+  there and, if accepted, a maintainer lands one through GitLab, as a `batch*` branch and a merge request, keeping
+  its author and sign-off; questions go to the forum (<https://www.hmailserver.co.uk/>), to GitHub Discussions or to
+  an issue with the `question` label; a vulnerability is reported by a confidential GitLab issue or to the Service
+  Desk address, as before, or through GitHub's private vulnerability reporting, which is switched on for the
+  repository and read by the maintainers. The pipelines run on GitLab and nowhere else: a release is built, signed
+  and published there first and then copied to GitHub; the update feed, the package repositories and the container
+  registry are GitLab's; a change lands on `master` only through a GitLab merge request (GOVERNANCE.md); the
+  project runs no pipeline on GitHub, where GitHub Actions runs one workflow of the project's, OpenSSF Scorecard's
+  (*Build and tests*, above), and GitHub's own CodeQL default setup analyses the code on each push to `master`, on
+  each pull request and weekly, and the maintainers read its findings, nothing more. The project's old release
+  workflows, `sbom.yml` in the trees of the tags from `v6.2.3` to `v6.3.3` and `build-inputs-1`, and
+  `sign-release.yml` in those from `v6.2.19` and `build-inputs-1`, ran once on 18 October 2026, when the copies of
+  the releases up to
+  6.2.22-pre6 were published there; what they wrote was undone, and both have been disabled there since
+  (ASSURANCE-CASE.md). No build step downloads from GitHub, as before, and `.no-github` keeps GitHub out of every
+  CI job (`.gitlab/ci/no-github.yml`); the rule's reason is now the project's independence - it builds from GitLab
   alone, so that no forge's suspension can stop a build again - where it was GitHub being unavailable.
   The old account, `Progressiverobot`, stays suspended: every `github.com/Progressiverobot` address answers 404,
-  and the issues, pull requests and discussions it held are gone. GitLab's wiki, 74 pages, was pushed to GitHub's
-  wiki the same day; the container image is not on GitHub yet, and until GitLab's push mirror to GitHub runs,
-  GitHub is pushed from a maintainer's clone. Nothing in
-  the code or the build changes: the documents that said the project was on GitLab alone, or sent a reader to
-  GitLab only, now name both forges - README.md, CONTRIBUTING.md, SUPPORT.md, SECURITY.md, GOVERNANCE.md,
+  and the issues, pull requests and discussions it held are gone. The same day GitLab's wiki, 74 pages, was pushed
+  to GitHub's wiki; GitLab's push mirror to GitHub, remote mirror 4137207, finished its first sync at 17:30 UTC and
+  has pushed `master`, the `batch*` branches and the tags there after every push since, where a maintainer's clone
+  pushed them before, and the two forges carry the same 53 tags (Mirroring.md); the container image was copied to
+  `ghcr.io/rainbowwizard-coder/hmailserver` with its signatures and attestations - `6.3.7`, `6.3`, `latest` and
+  `6.3.6`, each with GitLab's digest - and is private there until the owner makes it public
+  (ContainerImage.md), `registry.gitlab.com/hmailserver/hmailserver` staying the image's address; and Zain Ul
+  Abidin's GitHub account, `Zainulabidin90`, was removed from the repository, so that nobody but the owner's
+  account, `RainbowWizard-coder`, which administers it, holds write access there (GOVERNANCE.md). Nothing in the
+  server or its build changes: the documents that said the project was on GitLab alone, or sent a reader to
+  GitLab only, now say what each forge holds - README.md, CONTRIBUTING.md, SUPPORT.md, SECURITY.md, GOVERNANCE.md,
   CHANGELOG.md, RELEASE.md, Roadmap.md, Roadmap3.md, ASSURANCE-CASE.md and CODE_OF_CONDUCT.md, and under
   `hmailserver/docs` README.md, Mirroring.md, EvidencePack.md, UpdateFeed.md, ContainerImage.md,
-  ThirdPartyBinaries.md, RegulatoryScope.md and ContinuousIntegration.md.
+  ThirdPartyBinaries.md, RegulatoryScope.md and ContinuousIntegration.md. Roadmap3.md's rows for the push mirror
+  and for the internationalised link hosts, which 6.3.7 shipped (item 23 of its *What changes on upgrade without a
+  switch*), are done.
+
+- **README.md, CONTRIBUTING.md, Roadmap.md and the Chocolatey package's description say what became of the
+  original project, and README.md names the licence as CONTRIBUTING.md does.** The first three and the
+  description (`hmailserver/installation/chocolatey/hmailserver.nuspec.in`) said the original hMailServer was no
+  longer developed upstream, or largely dormant; it went quiet for years, Progressive Robot Ltd forked it in 2026
+  and released 6.0.0 on 12 June 2026, and the original project has since resumed development separately, which
+  they now say. README.md's *License* gave the GNU Affero General Public License as "v3.0 (AGPLv3)"; it is version
+  3 or later, `AGPL-3.0-or-later`, as every header has it.
 
 ---
 

@@ -60,7 +60,7 @@ For this project, community spaces include the GitLab project at
 <https://gitlab.com/hmailserver/hmailserver> — issues, merge requests, code
 review, commit messages and the wiki — and, since 18 October 2026, the GitHub
 repository at <https://github.com/RainbowWizard-coder/hMailServer>, with its
-issues, pull requests, discussions and code review. The GitHub repository of
+pull requests, discussions and code review. The GitHub repository of
 the `Progressiverobot` account was a community space while it was the
 project's home, until GitHub suspended the account on 18 September 2026.
 

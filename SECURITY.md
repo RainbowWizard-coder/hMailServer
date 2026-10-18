@@ -44,7 +44,8 @@ This file sent reports to GitHub Security Advisories on the project's old reposi
 `Progressiverobot`, until GitHub suspended that account on 18 September 2026. The account stays suspended: every
 link to github.com/Progressiverobot, the old repository's advisories included, still answers 404; so if you reported
 something there and had no answer, send it again by one of the routes above. The project's repository on GitHub
-since 18 October 2026, under `RainbowWizard-coder`, is a new one, and the third route above is on it.
+since 18 October 2026, under `RainbowWizard-coder`, is a new one: GitLab's mirror, kept by GitLab's push mirror
+([Mirroring.md](hmailserver/docs/Mirroring.md)), with no Issues. The third route above is on it.
 
 ## What to include
 

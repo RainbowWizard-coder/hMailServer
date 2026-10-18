@@ -379,9 +379,12 @@ project's to keep, and because the feed is not the project's word either:
   from the suspension on is refused, by its notBefore, which Fulcio signs. The
   80 bundles on the re-hosted releases were all issued by 2026-09-15T01:00:18Z,
   and all record the id `1267388815`. The project's repository on GitHub since
-  18 October 2026, `RainbowWizard-coder/hMailServer`, runs no workflow of the
-  project's, and a certificate for a workflow there would name another identity
-  and another repository id, which no server trusts, so it changes nothing here.
+  18 October 2026, `RainbowWizard-coder/hMailServer`, ran the old release
+  workflows of the copied tags once that day and has had them disabled since
+  ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)), and the one workflow of the
+  project's that runs there, OpenSSF Scorecard's, signs no release file; a
+  certificate for a workflow there names another identity and another repository
+  id, which no server trusts, so it changes nothing here.
 - **The GitLab signer is held to the project, not the path.** The project
   lived in a personal namespace until 29 September 2026, and a path can pass to
   someone else after a rename or a move. Fulcio records the project's id beside

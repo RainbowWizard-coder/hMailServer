@@ -10,29 +10,45 @@ second home, under the account `RainbowWizard-coder`
 (<https://github.com/RainbowWizard-coder/hMailServer>). GitLab stays canonical: the
 pipelines run there and nowhere else, a release is built, signed and published there
 first and then copied to GitHub, and a change lands on `master` only through a
-GitLab merge request ([GOVERNANCE.md](../../GOVERNANCE.md)). Nothing GitHub holds
-came through a mirror: the repository - `master` and every tag - was pushed from
-a maintainer's clone; every release from
+GitLab merge request ([GOVERNANCE.md](../../GOVERNANCE.md)). GitLab is the one
+place the project is worked on, and GitHub is its mirror. The repository -
+`master` and every tag - was first pushed there from a maintainer's clone; since
+the first sync of GitLab's push mirror to GitHub finished, at 17:30 UTC that day,
+GitLab has pushed `master`, the `batch*` branches and the tags there after every
+push, and the two forges carry the same 53 tags (one that only that clone had was
+deleted from GitHub). Nothing else GitHub holds came through the mirror: every
+release from
 6.0.0-B1 to 6.3.7, with the same files byte for byte, was copied by a script that
 checked each against the SHA-256 that GitLab's package registry records for it (the
 notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and
 attached whole as a file, and GitHub writes "." where a file name has "~", so the
-per-distribution .deb files are renamed there); and the labels, the milestones, the
-issues and the discussions are there as well, and so is the wiki, pushed whole -
-its 74 pages, 59 images and every commit - to GitHub's wiki on 18 October 2026
-from GitLab's, which stays the one that is edited. The boards are still GitLab's
-alone. This document is how the second copy is kept. It has two halves:
+per-distribution .deb files are renamed there); the labels and the milestones are
+there as well; Discussions - announcements, and questions in Q&A - are GitHub's
+alone; the wiki is there too, pushed whole - its 74 pages, 59 images and every
+commit - to GitHub's wiki on 18 October 2026 from GitLab's, which stays the one
+that is edited; and so is a copy of the container image
+([ContainerImage.md](ContainerImage.md)). The issues and the boards are GitLab's
+alone: the repository on GitHub has no Issues. This document is how the second
+copy is kept. It has two halves:
 
 - **a push mirror** to GitHub, which GitLab keeps up to date after every push, for
   the git history: every protected branch and every tag;
 - **a weekly export**, the `forge-export` job, for what a mirror does not carry: the
   issues, the merge requests, the releases and the wiki.
 
-On 26 September 2026 neither exists yet: the project has no push mirror
-(`GET /projects/86730559/remote_mirrors` answers `[]`), and the export job waits
-for its token and its schedule. On 18 October 2026 the mirror is being set up, to
-<https://github.com/RainbowWizard-coder/hMailServer>; until it runs, GitHub is
-pushed from a maintainer's clone. Both are the owner's to set up, in
+On 26 September 2026 neither existed: the project had no push mirror
+(`GET /projects/86730559/remote_mirrors` answered `[]`), and the export job waited
+for its token and its schedule. **The push mirror has run since 18 October
+2026:** GitLab's remote mirror 4137207, to
+`https://github.com/RainbowWizard-coder/hMailServer.git`, enabled, for the
+protected branches alone - `master` and `batch*` - and keeping no divergent ref
+(see the checklist's step 4), so that GitHub carries GitLab's refs. Its first sync
+finished at 17:30 UTC that day, and `GET
+/projects/86730559/remote_mirrors` shows its `last_successful_update_at` and no
+`last_error`; `master`, moved on GitLab at 18:32:09 UTC, was on GitHub at
+18:32:11. The export still waits for its token and its schedule: on 18 October
+2026 the project has neither `HM_EXPORT_TOKEN` nor a schedule described `export`.
+Both halves are the owner's to set up, in
 [The owner's checklist](#the-owners-checklist).
 
 What a push mirror carries, and what it does not
@@ -54,15 +70,22 @@ pushes the project's repository on to the mirror.
 So a mirror is enough to build every release again from its tag on another
 forge, and nothing else. The rest is the export's.
 
-The mirror carries nothing else of what GitHub holds - the labels, milestones,
-issues, discussions and releases it was given for the return of 18 October 2026,
-and whatever is opened there since. Issues are accepted on both forges. A pull
-request is accepted on GitHub and landed through GitLab, as a `batch*` branch and a
-merge request that keep its author and sign-off, never by a merge on GitHub, whose
-`master` is GitLab's copy and nothing else. No pipeline of the project's runs on
-GitHub: GitHub Actions runs none of its workflows; GitHub's own CodeQL default setup
-analyses the code there on each push to `master`, on each pull request and weekly,
-and the maintainers read its findings, nothing more.
+The mirror carries nothing else of what GitHub holds - the labels, milestones and
+releases it was given for the return of 18 October 2026, the copies of the wiki
+and the container image, its Discussions and whatever is opened there since. An
+issue is opened on GitLab alone, since the repository on GitHub has no Issues. A
+pull request is read on GitHub and, if it is accepted, landed through GitLab, as a
+`batch*` branch and a merge request that keep its author and sign-off, never by a
+merge on GitHub, whose `master` is GitLab's copy and nothing else. No pipeline of
+the project's runs on GitHub. GitHub Actions runs one workflow of the project's
+there, `.github/workflows/scorecard.yml`, which scores the repository with OpenSSF
+Scorecard and publishes the result ([ContinuousIntegration.md](ContinuousIntegration.md#openssf-scorecard)),
+and nothing of a build or a release; the two old release workflows that ran there,
+`sbom.yml` and `sign-release.yml`, still in the trees of the tags up to `v6.3.3`,
+have been disabled since 18 October 2026 ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)).
+GitHub's own CodeQL default setup analyses the code there on each push to
+`master`, on each pull request and weekly, and the maintainers read its findings,
+nothing more.
 
 The weekly export
 -----------------
@@ -87,8 +110,8 @@ Run by hand against the project on 26 September 2026, it took 21 seconds and wro
 6.1 MiB: 46 issues (one confidential) with 63 notes, no merge request, 40 labels,
 2 milestones, 2 boards, 42 releases and the wiki's 79 commits.
 
-The export is of the GitLab project alone: an issue, a pull request or a discussion
-opened on GitHub is not in it.
+The export is of the GitLab project alone: a pull request or a discussion opened on
+GitHub is not in it.
 
 **GitLab's own project export**, when the second token is set: the job asks
 GitLab for it (`POST /projects/86730559/export`), waits for it and downloads it.
@@ -167,24 +190,42 @@ issues or the wiki.
 The owner's checklist
 ---------------------
 
-**The push mirror.**
+**The push mirror.** Done on 18 October 2026: steps 1 to 5 say how it was made,
+and how to make it again.
 
 1. The account on the second forge: `RainbowWizard-coder` on GitHub, since
-   18 October 2026.
+   18 October 2026. Done.
 2. The repository there: <https://github.com/RainbowWizard-coder/hMailServer>, since
-   18 October 2026, pushed from a maintainer's clone with `master` and every tag as
-   GitLab has them; the protected `batch*` branches follow when the mirror runs, since
-   it carries every protected branch.
+   18 October 2026, first pushed from a maintainer's clone with `master` and every
+   tag as GitLab has them; the protected `batch*` branches followed when the mirror
+   ran, since it carries every protected branch. Done; the stub branch `main` the
+   repository had at first was deleted at 17:27 UTC, before the mirror's first
+   sync.
 3. Make a token on GitHub that can push to it: *Settings*, *Developer settings*,
    *Personal access tokens*, *Fine-grained tokens*, *Generate new token*, for that
-   repository alone, with *Contents* read and write. Note its expiry date.
+   repository alone, with *Contents* and *Workflows* read and write (*Workflows*
+   because `master` carries `.github/workflows/scorecard.yml`, and GitHub refuses a
+   push that adds or changes a workflow file from a token without it). Note its
+   expiry date. Mirror 4137207 was made on 18 October 2026 with the owner's
+   classic token, which acts for his whole account and which `gh` holds (its
+   scopes include `repo` and `workflow`); replacing it with a token like this one,
+   *Workflows* included, is the owner's.
 4. On GitLab: *Settings*, *Repository*, *Mirroring repositories*, *Add new*:
    - Git repository URL: `https://github.com/RainbowWizard-coder/hMailServer.git`;
    - Mirror direction: Push;
    - Authentication method: Username and Password; the username is
      `RainbowWizard-coder`, the password is the token;
    - tick *Mirror only protected branches*; leave *Keep divergent refs* unticked,
-     so the mirror is always GitLab's copy.
+     so the mirror is always GitLab's copy: a ref changed on GitHub is overwritten
+     with GitLab's at the next push, and a `batch*` branch deleted on GitLab once
+     it has landed on `master` is deleted from GitHub at the next push (GitLab
+     keeps on the mirror a deleted branch with commits `master` does not have).
+     The mirror made on 18 October 2026, 4137207, was made with the box ticked;
+     it has been unticked since about 19:00 UTC that day, through the remote
+     mirrors API, the one way to change it once a mirror exists (`GET
+     projects/86730559/remote_mirrors` shows `keep_divergent_refs` false and
+     `only_protected_branches` true), after the one branch it had left on GitHub
+     was deleted there by hand. Done.
 
    Or the same with `glab`, signed in as a Maintainer, with the token read into a
    variable rather than typed on the command line. The command was written for a
@@ -204,7 +245,23 @@ The owner's checklist
 5. Press *Update now* beside the mirror (or `POST
    projects/86730559/remote_mirrors/<id>/sync`), then check that the second forge
    has `master` and the `v*` tags, and that `GET projects/86730559/remote_mirrors`
-   shows `last_successful_update_at` and no `last_error`.
+   shows `last_successful_update_at` and no `last_error`. Done on 18 October 2026:
+   the first sync finished at 17:30 UTC with no error, and GitHub has had `master`
+   and the same 53 tags as GitLab since a tag that only a maintainer's clone had,
+   pushed with the rest, was deleted from it at 18:22 UTC.
+
+**The copies on GitHub that the mirror does not make**, each made by hand:
+
+- the wiki, pushed whole from a clone of GitLab's over the first page GitHub's
+  wiki needs ([Using a copy](#using-a-copy)). Done on 18 October 2026;
+- the releases, each copied once GitLab has published it ([RELEASE.md](../../RELEASE.md),
+  "The copy on GitHub"). Done for all 47 on 18 October 2026: every one from 6.0.0-B1
+  to 6.3.7 (45) and `build-inputs-1` and `build-inputs-2`;
+- the container image, copied to `ghcr.io/rainbowwizard-coder/hmailserver` with
+  its signatures and attestations ([ContainerImage.md](ContainerImage.md)). Done on
+  18 October 2026 for 6.3.7 and 6.3.6; the package is still private there, and the
+  owner makes it public in GitHub's package settings (*Change visibility*), which no
+  API changes.
 
 **The export.**
 

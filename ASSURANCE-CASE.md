@@ -38,19 +38,28 @@ changed; the copies themselves, published before the setting was switched on,
 can.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
 GitHub until 18 September 2026 and do not run on GitLab. No pipeline of the
-project's runs on GitHub: no workflow of the project's is in the tree, and
-GitHub Actions is enabled there for GitHub's own CodeQL default setup alone,
-which analyses the code on each push to `master`, on each pull request and
-weekly from 18 October 2026; the maintainers read its findings, nothing more.
-One thing ran there once. The tags from `v6.2.3` to `v6.2.22-pre6` still carry
-the chain's `sbom.yml`, and those from `v6.2.19` on its `sign-release.yml`, in
-their trees, and GitHub ran them on the publication of those releases' copies on
-18 October 2026 (`sign-release.yml` failed for `v6.2.19`): they wrote SBOMs and
-signature bundles of their own over 62 of the copied files and added three. Each
-of the 62 was put back from the copy checked against GitLab's SHA-256, the three
-were removed, and every release was checked again; the runs are on the
-repository's Actions page. A release of a later tag carries no workflow, so no
-later release starts one. The update path was not exposed: its feed is GitLab's,
+project's runs on GitHub. One workflow of the project's is in the tree,
+`.github/workflows/scorecard.yml`, which scores the GitHub copy with OpenSSF
+Scorecard and publishes the result to scorecard.dev and to that repository's code
+scanning; it builds, signs and publishes nothing of a release, and the job's two
+write permissions are for those two publications alone. GitHub Actions is enabled
+there for it, for GitHub's own CodeQL default setup, which analyses the code on
+each push to `master`, on each pull request and weekly from 18 October 2026, and
+for the jobs GitHub runs itself to build the repository's dependency graph; it
+allows GitHub's own actions and `ossf/scorecard-action` alone, each pinned by a
+full commit. The maintainers read CodeQL's findings, nothing more.
+Old workflows ran there once. The tags from `v6.2.3` to `v6.3.3`, and
+`build-inputs-1`, still carry the chain's `sbom.yml` in their trees, and those
+from `v6.2.19`, and `build-inputs-1`, its `sign-release.yml`, and GitHub ran them
+on the publication of
+the copies of the releases from 6.2.3 to 6.2.22-pre6 on 18 October 2026
+(`sign-release.yml` failed for `v6.2.19`): they wrote SBOMs and signature bundles
+of their own over 62 of the copied files and added three. Each of the 62 was put
+back from the copy checked against GitLab's SHA-256, the three were removed, and
+every release was checked again; the runs are on the repository's Actions page.
+They ran for no later copy - those of 6.2.23 Alpha 1 to 6.3.3 started neither -
+and both have been disabled there since 18 October 2026; a tag after 6.3.3
+carries neither. The update path was not exposed: its feed is GitLab's,
 and `SigstoreVerifier`, below, trusts the GitHub signer only under the old
 repository's path, `Progressiverobot/hmailserver`, and only for certificates
 issued before 18 September 2026, and a bundle those runs made meets neither.
