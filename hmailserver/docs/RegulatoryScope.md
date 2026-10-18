@@ -21,12 +21,18 @@ facts staying true:
 
 * AGPLv3, source public, no paid edition, no paid support, no hosted service.
 * Released as an installer and source on GitLab
-  (<https://gitlab.com/hmailserver/hmailserver>), and on GitHub until GitHub
-  suspended the project's account on 18 September 2026; every release up to 6.3.3
-  is re-published on GitLab, byte for byte, with its original signatures. No
-  charge, no licence key, no mandatory registration, no telemetry. Where the
-  project is hosted is not one of the review triggers below, and the move changed
-  nothing else on this list.
+  (<https://gitlab.com/hmailserver/hmailserver>), which is canonical, and on
+  GitHub, at <https://github.com/RainbowWizard-coder/hMailServer> under the
+  account `RainbowWizard-coder` since 18 October 2026, where every release from
+  6.0.0-B1 to 6.3.7 is a copy of GitLab's, with the same files byte for byte; a
+  release is built, signed and published on GitLab first and then copied there.
+  The project was on GitHub before, under the account
+  `Progressiverobot`, until GitHub suspended that account on 18 September 2026;
+  every release up to 6.3.3 is re-published on GitLab, byte for byte, with its
+  original signatures. No charge, no licence key, no mandatory registration, no
+  telemetry. Where the project is hosted is not one of the review triggers
+  below, and neither the move nor the return changed anything else on this
+  list.
 * Maintained by one individual, not a company or foundation.
 * Donations, sponsorship and paid consulting: **none currently**, and see the
   triggers below before that changes.
@@ -183,15 +189,22 @@ changed:
   GitLab CI runs replacements for `master`, `batch*` branches and release tags,
   not yet blocking: cppcheck, clang-tidy and Semgrep, dependency scanning with
   Trivy and OSV, and a check of the repository settings Scorecard read
-  ([ContinuousIntegration.md](ContinuousIntegration.md#security-scanning)). A full regression suite
-  gating every release.
+  ([ContinuousIntegration.md](ContinuousIntegration.md#security-scanning)).
+  Since 18 October 2026 GitHub's own CodeQL default setup analyses the code of
+  the project's repository on GitHub,
+  <https://github.com/RainbowWizard-coder/hMailServer>, on each push to `master`,
+  on each pull request and weekly, and the maintainers read its findings, nothing
+  more: it is GitHub's, not a workflow of
+  the project's, and GitHub Actions runs none of the project's workflows there.
+  A full regression suite gating every release.
 * Release notes that name unfixed known issues rather than omitting them.
 * Security-update distribution with integrity verification, shipped in 6.2.28
   (8 September 2026): the server can check the release feed,
   fetch a newer installer with its Sigstore bundle, verify the bundle in-process
   against the release signers compiled into it, and apply it inside a
   configured window after a backup. A server up to 6.3.3 trusts one signer, the
-  repository's GitHub release workflow; a server built after 6.3.3 trusts that
+  GitHub release workflow of the repository under the project's former account,
+  `Progressiverobot`; a server built after 6.3.3 trusts that
   workflow for the releases up to 6.3.3 and this project's GitLab CI pipeline
   for the later ones, at the path the project began at and at the group's it
   moved to on 29 September 2026 (`SigstoreVerifier.cpp`,
@@ -204,7 +217,11 @@ made by GitHub Actions workflows, the Azure identity that signs the installer wa
 reached through GitHub Actions' secrets, and a server up to 6.3.3 accepts an
 update only when its Sigstore bundle names that workflow's GitHub identity. None
 of the workflows has run since GitHub suspended the project's account on 18
-September 2026. The releases up to 6.3.3 are on GitLab with their original
+September 2026, and none runs in the repository the project has had on GitHub
+again since 18 October 2026, where GitHub Actions runs nothing of the
+project's: a release there is a copy of the one on GitLab, with the same files
+byte for byte, and a release is built, signed and published on GitLab first and
+then copied there. The releases up to 6.3.3 are on GitLab with their original
 signatures; 6.3.4 was built and Authenticode-signed by hand and carries no
 Sigstore bundle or provenance; and the GitLab release jobs that replace the workflows made 6.3.5 on 29
 September 2026, with its SBOMs, its Sigstore bundles and its Authenticode

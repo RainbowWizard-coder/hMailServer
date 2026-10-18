@@ -7,12 +7,27 @@ is run: who decides what, how decisions are made, and what each role is
 expected to do. It describes the project as it actually is today, not as an
 aspirational structure.
 
-**Status since 18 September 2026.** GitHub has been unavailable to the project
-since 18 September 2026, and its home has been GitLab since 22 September 2026.
-Where this document describes the GitHub repository - its ruleset and the
-approval it required, repository admin, private vulnerability reporting, and
-release signing through GitHub's token service - it describes how the project
-ran there. On GitLab, up to and including 6.3.4, no approval was required (the
+**Status since 18 September 2026.** The `Progressiverobot` account on GitHub,
+the project's home there, was suspended on 18 September 2026 and stays
+suspended: every link to github.com/Progressiverobot still answers 404, and the
+issues, pull requests and discussions it held are still gone. The project's
+home has been GitLab since 22 September 2026, and GitLab is canonical. Since
+18 October 2026 the project is published on GitHub again, as a second home, at
+<https://github.com/RainbowWizard-coder/hMailServer>, under the account
+`RainbowWizard-coder`: the repository (`master` and every tag), every release
+so far, 6.0.0-B1 to 6.3.7, with the same files byte for byte, and the project's
+labels and milestones, issues and discussions. Issues and pull requests are accepted on both forges; a pull
+request is landed through GitLab, as a `batch*` branch and a merge request,
+keeping its author and sign-off, so a change reaches `master` only through
+GitLab, by the merge request described below. The pipelines run on GitLab and
+nowhere else: GitHub Actions runs none of the project's workflows, and GitHub's
+own CodeQL default setup analyses the code there on each push to `master`, on
+each pull request and weekly, and the maintainers read its findings, nothing
+more. Where this document describes the
+`Progressiverobot` account's GitHub repository - its ruleset and the approval
+it required, repository admin, private vulnerability reporting, and release
+signing through GitHub's token service - it describes how the project ran
+there. On GitLab, up to and including 6.3.4, no approval was required (the
 GitHub ruleset had stopped requiring one on 14 September 2026): `master` is
 protected, and a change that had passed the regression gate landed on it by
 fast-forward. From the first change after 6.3.4, every change is to land
@@ -31,12 +46,19 @@ checks has landed through them ([SECURITY.md](SECURITY.md), "Every change"); it
 landed on 9 October 2026 (`batch44`), and on 14 October 2026 `master` still let
 Maintainers push, so until he does, he can still push a gated tree to `master`
 directly, as he did with 6.3.6's release fixes on 5 October 2026. Security
-reports go by the routes in [SECURITY.md](SECURITY.md). The release chain ran on
+reports go by the routes in [SECURITY.md](SECURITY.md); since 18 October 2026
+GitHub's private vulnerability reporting is switched on for the repository
+there too, and the maintainers read it. The release chain ran on
 GitHub Actions up to 6.3.3; 6.3.4, published on 27 September 2026, was built and
 signed by hand; and the chain's replacement, the release jobs of
 `.gitlab-ci.yml`, made 6.3.5 on 29 September 2026 and 6.3.6 on 6 October 2026.
+A release is built, signed and published on GitLab first and, since
+18 October 2026, then copied to GitHub, where a release published after that
+day's copies is immutable; the update feed <https://updates.progressiverobot.com>, the package
+repositories and the container registry are GitLab's.
 The installer's fetched build inputs come from the project's package registry
-on GitLab.
+on GitLab, and no build step downloads from GitHub: the project builds from
+GitLab alone, so that no forge's suspension can stop a build again.
 
 The short version
 -----------------
@@ -87,8 +109,10 @@ Developer in the project until 13 October 2026) and Zain Ul Abidin
 
 The maintainers are accountable for the project. In practice this means:
 
-- **Accepting changes.** Reviewing and merging merge requests (pull requests,
-  on GitHub), and deciding what does and does not belong in the fork.
+- **Accepting changes.** Reviewing merge requests on GitLab and, since
+  18 October 2026, pull requests on GitHub, landing them on `master` through a
+  GitLab merge request (a pull request as a `batch*` branch, keeping its author
+  and sign-off), and deciding what does and does not belong in the fork.
 - **Releasing.** Producing releases according to [RELEASE.md](RELEASE.md),
   including running the full regression suite against the exact binary being
   shipped, and signing every release asset.
@@ -142,7 +166,10 @@ more than GitLab's Developer role gives, or a decision not yet made:
    confidential issues on GitLab, opened directly or by mail to the Service
    Desk address ([SECURITY.md](SECURITY.md)), and GitLab shows a confidential
    issue only to its author, its assignees and the project's members with the
-   Planner role or above. Zain Ul Abidin was a member of the GitLab project
+   Planner role or above; since 18 October 2026 a report may also arrive
+   through private vulnerability reporting, switched on for the project's
+   GitHub repository <https://github.com/RainbowWizard-coder/hMailServer>, which
+   the maintainers read. Zain Ul Abidin was a member of the GitLab project
    from 24 September 2026 (`zainulabidin1990`), a Developer from 26 September
    2026, and so could see every report, until 13 October 2026; since then he is
    not a member, and sees none. Security response rests on Christopher
@@ -200,7 +227,11 @@ whoever decides, a change lands on `master` through the owner, the one member
 with the Maintainer role (note 3 under [Maintainers](#maintainers)), and, from
 the first batch it lands, through a merge request: the owner's own work as a
 `batch*` branch that `build/land-via-mr.py` lands
-([CONTRIBUTING.md](CONTRIBUTING.md), "Merge requests").
+([CONTRIBUTING.md](CONTRIBUTING.md), "Merge requests"). Since 18 October 2026 a
+pull request on GitHub is accepted too, and lands the same way: a maintainer
+puts it on a `batch*` branch, keeping its author and sign-off, and a merge
+request lands it, so whichever forge a change is proposed on, it lands on
+`master` only through a GitLab merge request.
 
 **Review.** From the first change after 6.3.4, every change lands on `master`
 through a merge request, which Christopher Holloway, the owner, merges - by
@@ -281,11 +312,11 @@ lands only with
 `--gates-read "<reason>"`, the
 word of the person who read that change whole, which the landing note records:
 a change to what judges every change is read by a person, not by the gates it
-changes. A contributor's merge request is
-approved by a maintainer on the contributor's own merge request before its
-commits are put on a batch; a fork's pipeline runs in the fork, so its result
-is not the gate, and the batch's pipeline is
-([SECURITY.md](SECURITY.md), "Every change").
+changes. A contributor's merge request on GitLab, or pull request on GitHub, is
+approved by a maintainer on that merge request or pull request before its
+commits are put on a batch; a fork's pipeline runs in the fork, and no pipeline
+of the project's runs on GitHub, so neither result is the gate, and the batch's
+pipeline is ([SECURITY.md](SECURITY.md), "Every change").
 
 On GitHub, until 14 September 2026, a pull request authored by one maintainer,
 or opened by an agent on one maintainer's behalf, was approved by the other
@@ -431,9 +462,10 @@ The mitigations that were in place for a single maintainer still hold:
   reproducible by someone else without tacit knowledge.
 - Release-asset signing requires no inherited private key, and a tag-signing
   key is replaced rather than inherited.
-- The repository is public, and the licence (AGPLv3) permits anyone to
-  continue the work — a fork is always available as a last resort, which is
-  precisely how this project itself came to exist.
+- The repository is public, on GitLab and, since 18 October 2026, on GitHub
+  too, and the licence (AGPLv3) permits anyone to continue the work — a fork is
+  always available as a last resort, which is precisely how this project itself
+  came to exist.
 
 The project is open to further maintainers; see
 [Becoming a maintainer](#becoming-a-maintainer).
@@ -441,5 +473,6 @@ The project is open to further maintainers; see
 Changing this document
 ----------------------
 
-Propose changes the same way as any other change: open a merge request. The
-maintainers decide, and, as everywhere else in this project, give a reason.
+Propose changes the same way as any other change: open a merge request on
+GitLab, or a pull request on GitHub. The maintainers decide, and, as everywhere
+else in this project, give a reason.

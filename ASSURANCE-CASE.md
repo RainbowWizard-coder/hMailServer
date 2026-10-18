@@ -10,10 +10,16 @@ It is deliberately *not* a marketing document. Where a claim is limited, the
 limit is stated. Where a risk is accepted rather than eliminated, it is named
 in [Residual risk](#8-residual-risk).
 
-**Status since 18 September 2026.** GitHub has been unavailable to the project
-since 18 September 2026, and its home has been
+**Status since 18 September 2026.** The project's GitHub account,
+`Progressiverobot`, was suspended on 18 September 2026 and stays so, and the
+project's home has been
 [GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September
-2026 (in the group `hmailserver` since 29 September 2026). Claim C7 rests on the release chain that ran on GitHub Actions
+2026 (in the group `hmailserver` since 29 September 2026). Since 18 October
+2026 the project is published on GitHub again, at
+<https://github.com/RainbowWizard-coder/hMailServer>, as a second home, and
+GitLab is canonical: the project's pipelines run there and nowhere else, and a
+release is built, signed and published there first.
+Claim C7 rests on the release chain that ran on GitHub Actions
 (`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`, in the git
 history at `v6.3.3`). It holds for the releases that chain signed, 6.2.19 to
 6.3.3, whose Sigstore bundles verify without GitHub. 6.3.4 was built and signed
@@ -21,9 +27,34 @@ by hand and carries no Sigstore bundle. The chain's replacement, the release job
 ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release)),
 made 6.3.5 on 29 September 2026: every file of it carries a Sigstore bundle
 signed by the tag's pipeline, which verifies without GitHub, so the claim holds
-for 6.3.5 and for each later release the jobs make.
+for 6.3.5 and for each later release the jobs make. Since 18 October 2026 the
+releases are published on GitHub too - every one from 6.0.0-B1 to 6.3.7 that
+day, and each later one after GitLab has published it - with the same files
+byte for byte, each checked against the SHA-256 that GitLab's package registry
+records for it, under the same names but for the per-distribution `.deb`
+files, whose `~` GitHub writes as `.`. GitHub's immutable-releases setting is on
+there, so a release published after the copies of 18 October 2026 cannot be
+changed; the copies themselves, published before the setting was switched on,
+can.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
-GitHub and do not run on GitLab. Since 25 September 2026 GitLab CI has
+GitHub until 18 September 2026 and do not run on GitLab. No pipeline of the
+project's runs on GitHub: no workflow of the project's is in the tree, and
+GitHub Actions is enabled there for GitHub's own CodeQL default setup alone,
+which analyses the code on each push to `master`, on each pull request and
+weekly from 18 October 2026; the maintainers read its findings, nothing more.
+One thing ran there once. The tags from `v6.2.3` to `v6.2.22-pre6` still carry
+the chain's `sbom.yml`, and those from `v6.2.19` on its `sign-release.yml`, in
+their trees, and GitHub ran them on the publication of those releases' copies on
+18 October 2026 (`sign-release.yml` failed for `v6.2.19`): they wrote SBOMs and
+signature bundles of their own over 62 of the copied files and added three. Each
+of the 62 was put back from the copy checked against GitLab's SHA-256, the three
+were removed, and every release was checked again; the runs are on the
+repository's Actions page. A release of a later tag carries no workflow, so no
+later release starts one. The update path was not exposed: its feed is GitLab's,
+and `SigstoreVerifier`, below, trusts the GitHub signer only under the old
+repository's path, `Progressiverobot/hmailserver`, and only for certificates
+issued before 18 September 2026, and a bundle those runs made meets neither.
+Since 25 September 2026 GitLab CI has
 replacements, not yet blocking - cppcheck, clang-tidy and Semgrep for CodeQL,
 Trivy with OSV for the dependency checks - and [SECURITY.md](SECURITY.md) says
 what runs.
@@ -372,7 +403,7 @@ credible.
   the job has not run on GitLab and the Windows script has not run from the
   tree, so the figures are not yet repeated for each release. The .NET Control
   Panel's coverage was collected by CI on GitHub (`ci.yml`) until 18 September
-  2026 and is not collected on GitLab yet.
+  2026 and is not collected on GitLab yet, nor on GitHub since then.
 - **Reproducibility has been shown on the project's own machines only.**
   ([hmailserver/docs/ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)
   has the procedure and the evidence.) Since 22 August 2026 two clean Release
@@ -439,4 +470,6 @@ This assurance case should be revisited whenever the threat model changes — a
 new listener, a new external integration, a new authentication mechanism — and
 at minimum reviewed against the codebase once a year. Corrections are welcome
 through the normal merge-request process described in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+[CONTRIBUTING.md](CONTRIBUTING.md), or as a pull request on GitHub, which a
+maintainer lands through GitLab as a `batch*` branch and a merge request,
+keeping its author and sign-off.

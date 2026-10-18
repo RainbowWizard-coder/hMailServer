@@ -25,7 +25,14 @@ runners](#every-job-on-the-projects-own-runners)). Since 13 October 2026, with t
 group on GitLab's open-source plan, the owner can send a class of the jobs on the
 project's runners that need nothing of the project's to GitLab's hosted runners as
 well, by a project variable, and nothing goes there until one is set ([GitLab's hosted
-runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)).
+runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)). Since
+18 October 2026 the project is published on GitHub again, as a second home
+(<https://github.com/RainbowWizard-coder/hMailServer>), and GitLab,
+<https://gitlab.com/hmailserver/hmailserver>, stays canonical: the pipelines run
+there and nowhere else, GitHub Actions runs no workflow of the project's, and no
+build step downloads from GitHub, as before - the project builds from GitLab
+alone, so that no forge's suspension can stop a build again ([Where the tools
+come from](#where-the-tools-come-from)).
 
 **The jobs have run since 26 September 2026.** The first pipeline, 2884863496
 on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
@@ -752,7 +759,11 @@ fork's CI files, on runners the fork's owner can choose: what it says is the
 fork's to report. Such a change lands through a batch, whose pipeline runs here,
 or on a pipeline a maintainer runs for the merge request in this project after
 reading its CI files; `build/land-via-mr.py` refuses a pipeline another project
-ran. The change checks run in each - on linix, server2 or s1-linux in a batch's pipeline,
+ran. A pull request on GitHub, the project's second home since 18 October 2026,
+runs no pipeline of the project's: a maintainer lands it through GitLab, as a
+`batch*` branch and a merge request, keeping its author and sign-off, and that
+batch's pipeline is its gate.
+The change checks run in each - on linix, server2 or s1-linux in a batch's pipeline,
 on GitLab's hosted runner in a merge request's - (`.gitlab/ci/mr-checks.yml`,
 `.gitlab/ci/gitlab-security.yml` and one checker),
 and they hold the policy of [SECURITY.md](../../SECURITY.md), "Vulnerability
@@ -3776,7 +3787,7 @@ Dependency updates
 
 Renovate proposes the project's dependency updates as merge requests on GitLab,
 the work Dependabot did on GitHub. Dependabot's updater comes from GitHub's own
-registry, and this project takes nothing from GitHub. Renovate is open source, its
+registry, and this project downloads nothing from GitHub. Renovate is open source, its
 image is on Docker Hub (`renovate/renovate`, pinned by digest in the CI file), and
 it supports GitLab itself. `renovate.json` at the repository root is its
 configuration. The `renovate` job runs it on linix, in a scheduled pipeline and in
@@ -4397,6 +4408,10 @@ rule, not a database. On a `batch*` branch they judge the batch's changes from
 `static-analysis` and `semgrep` fail a pipeline on a new finding that `master`'s
 exceptions file does not accept; the other scans are `allow_failure`. Four of
 them hold a release ([Before a release](#before-a-release-the-scans-hold-it)).
+GitHub's own CodeQL default setup analyses the code on GitHub, the project's
+second home since 18 October 2026, on each push to `master`, on each pull
+request and weekly, and the maintainers read its findings, nothing more: it is no job of this project's, and no pipeline of the
+project's runs on GitHub.
 
 `static-analysis` and `semgrep` lost `allow_failure` in 6.3.6 (follow-up N02),
 once each had passed over `batch42` with that change folded in, run on linix in
@@ -5416,8 +5431,10 @@ rather than publish an empty one.
 `POST /projects/{platform}/{org}/{repo}` from GitHub's Scorecard action, with an
 OIDC token GitHub issues; its weekly scan reads GitHub projects only, and adding
 one to its list is a pull request on GitHub. So neither the OpenSSF API nor
-deps.dev, which shows the API's scores, can carry this project's. The site's
-copy is the project's own, run by its own CI from a pinned build, and says so.
+deps.dev, which shows the API's scores, can carry this project's; the copy on
+GitHub since 18 October 2026, the project's second home, runs no workflow of
+the project's, GitHub's Scorecard action among them. The site's copy is the
+project's own, run by its own CI from a pinned build, and says so.
 
 ### SonarQube Cloud
 
@@ -5609,6 +5626,12 @@ What is still done by hand
   ([The release](#the-release)), and pushing the image and the package
   managers' manifests, which are still the Roadmap2 row "The release chain off
   a single forge".
+- Pushing `master` and every tag to GitHub, the project's second home since
+  18 October 2026
+  (<https://github.com/RainbowWizard-coder/hMailServer>), from a maintainer's
+  clone, until GitLab's push mirror to GitHub, which is being arranged, runs;
+  and copying each release there once `release-publish` has created it on
+  GitLab, where every release is built, signed and published first.
 - The installer smoke test, which runs from the VMware host with
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke

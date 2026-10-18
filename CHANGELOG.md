@@ -18,8 +18,18 @@ and will carry a version number when a release is cut.
 The project's home is <https://gitlab.com/hmailserver/hmailserver>, in the group `hmailserver` since 29 September
 2026 (its first path on GitLab, `Progressiverobot/hmailserver`, redirects there). Its releases were published on
 GitHub until GitHub suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in
-older text now answers 404. Every release up to 6.3.3 has been re-created on GitLab from the GitHub original, under
-its original date and with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved:
+older text now answers 404. Since 18 October 2026 the project is published on GitHub again, as a second home, at
+<https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository -
+`master` and every tag - and, at <https://github.com/RainbowWizard-coder/hMailServer/releases>, every release from
+6.0.0-B1 to 6.3.7 with GitLab's files byte for byte, each checked against the SHA-256 that GitLab's package registry
+records for it (the notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as
+a file, and GitHub writes "." where a file name has "~", so the per-distribution `.deb` files are renamed there), and
+the project's labels and milestones, issues and discussions. GitLab stays canonical: a release is built, signed and
+published there first and then copied to GitHub, and the update feed, the package repositories and the container
+registry are GitLab's. GitHub's immutable-releases setting is on, so a release published there after the copies of
+18 October 2026 cannot be changed; the copies, published before the switch, can. Every release up to 6.3.3 has been
+re-created on GitLab from the GitHub original, under its original date and with its files byte for byte, but for 6.2.0
+and 6.0.0-B4, whose files were not preserved:
 <https://gitlab.com/hmailserver/hmailserver/-/releases>, with the latest always at
 <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. A tag with no release is at
 `https://gitlab.com/hmailserver/hmailserver/-/tags/<tag>`.
@@ -48,11 +58,16 @@ Server Compact runtime is still used.
 
 ## Issue and pull-request numbers
 
-Every issue, pull-request and discussion number written before 24 September 2026 is GitHub's, from the project's
-former home, and this file writes it in words: "GitHub issue 263", "GitHub PR 12", "GitHub discussion 18". GitLab
-numbers its own issues from 1 again and links a bare `#` and a number to its own issue of that number, so no
-number is written that way here. Upstream hMailServer's numbers are written the same way, as "upstream PR 552" or
-"upstream issue N". A person's handle on either forge is written in a code span, so that nobody is notified.
+Every issue, pull-request and discussion number written before 24 September 2026 is GitHub's, from the account
+`Progressiverobot`, the project's home until GitHub suspended it on 18 September 2026, and this file writes it in
+words: "GitHub issue 263", "GitHub PR 12", "GitHub discussion 18"; those issues, pull requests and discussions are
+gone with the account. The repository the project has had on GitHub again since 18 October 2026, under
+`RainbowWizard-coder`, numbers its issues and pull requests from 1 again, so a number of it is written with the
+account named, "GitHub issue 7 (RainbowWizard-coder)", and a GitHub number with no account named is the suspended
+account's. GitLab numbers its own issues from 1 again and links a bare `#` and a number to its own issue of that
+number, so no number is written that way here. Upstream hMailServer's numbers are written the same way, as
+"upstream PR 552" or "upstream issue N". A person's handle on either forge is written in a code span, so that nobody
+is notified.
 
 ## How this file is kept
 
@@ -109,6 +124,35 @@ with `--check`).
   nothing. Step 1 now names the registration by the variable, with how to read it
   (`glab api projects/86730559/variables/AZURE_CLIENT_ID`), and the pause section's step 4, which sends the reader
   there, names it the same way.
+
+- **The project is on GitHub again, as a second home, and GitLab stays canonical; this batch is documents only.**
+  Since 18 October 2026 the project is published on GitHub again, at
+  <https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository -
+  `master` and every tag - and every release from 6.0.0-B1 to 6.3.7 with GitLab's files byte for byte, and the
+  project's labels and milestones, issues and discussions ([Where the releases are](#where-the-releases-are),
+  above). Pull requests are accepted there, and a maintainer lands one through GitLab, as a `batch*` branch and a
+  merge request, keeping its author and sign-off; issues are accepted on both forges, and questions go to the forum
+  (<https://www.hmailserver.co.uk/>), to GitHub Discussions or to an issue with the `question` label;
+  a vulnerability is reported by a confidential GitLab issue or to the Service Desk address, as before, or through
+  GitHub's private vulnerability reporting, which is switched on for the repository and read by the maintainers.
+  The pipelines run on GitLab and nowhere else: a release is built, signed and published there first and then
+  copied to GitHub; the update feed, the package repositories and the container registry are GitLab's; a change
+  lands on `master` only through a GitLab merge request (GOVERNANCE.md); the project runs no pipeline on GitHub;
+  GitHub's own CodeQL default setup analyses the code there on each push to `master`, on each pull request and
+  weekly, and the maintainers read its findings, nothing more (GitHub Actions stays enabled there for it; the
+  project's old workflows, still in the trees of the tags up to `v6.2.22-pre6`, ran once on 18 October 2026 when
+  those releases' copies were published, and what they wrote was undone - ASSURANCE-CASE.md). No build step
+  downloads from GitHub, as before, and `.no-github` keeps GitHub out of every CI job
+  (`.gitlab/ci/no-github.yml`); the rule's reason is now the project's independence - it builds from GitLab
+  alone, so that no forge's suspension can stop a build again - where it was GitHub being unavailable.
+  The old account, `Progressiverobot`, stays suspended: every `github.com/Progressiverobot` address answers 404,
+  and the issues, pull requests and discussions it held are gone. The wiki and the container image are not on
+  GitHub yet, and until GitLab's push mirror to GitHub runs, GitHub is pushed from a maintainer's clone. Nothing in
+  the code or the build changes: the documents that said the project was on GitLab alone, or sent a reader to
+  GitLab only, now name both forges - README.md, CONTRIBUTING.md, SUPPORT.md, SECURITY.md, GOVERNANCE.md,
+  CHANGELOG.md, RELEASE.md, Roadmap.md, Roadmap3.md, ASSURANCE-CASE.md and CODE_OF_CONDUCT.md, and under
+  `hmailserver/docs` README.md, Mirroring.md, EvidencePack.md, UpdateFeed.md, ContainerImage.md,
+  ThirdPartyBinaries.md, RegulatoryScope.md and ContinuousIntegration.md.
 
 ---
 

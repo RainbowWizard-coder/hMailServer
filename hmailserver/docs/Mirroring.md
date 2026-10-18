@@ -2,19 +2,35 @@ Mirroring and exports
 =====================
 
 On 18 September 2026 GitHub suspended the project's account, and with it went the
-only other copy of the repository, the issues and the wiki. Since 22 September the
-project lives on GitLab alone (<https://gitlab.com/hmailserver/hmailserver>,
-project 86730559): the 46 issues, the labels, the boards and the wiki exist nowhere
-else. This document is how that stops being true. It has two halves:
+only other copy of the repository, the issues and the wiki. From 22 September the
+project lived on GitLab alone (<https://gitlab.com/hmailserver/hmailserver>,
+project 86730559): the 46 issues, the labels, the boards and the wiki existed
+nowhere else. Since 18 October 2026 the project is published on GitHub again, as a
+second home, under the account `RainbowWizard-coder`
+(<https://github.com/RainbowWizard-coder/hMailServer>). GitLab stays canonical: the
+pipelines run there and nowhere else, a release is built, signed and published there
+first and then copied to GitHub, and a change lands on `master` only through a
+GitLab merge request ([GOVERNANCE.md](../../GOVERNANCE.md)). Nothing GitHub holds
+came through a mirror: the repository - `master` and every tag - was pushed from
+a maintainer's clone; every release from
+6.0.0-B1 to 6.3.7, with the same files byte for byte, was copied by a script that
+checked each against the SHA-256 that GitLab's package registry records for it (the
+notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and
+attached whole as a file, and GitHub writes "." where a file name has "~", so the
+per-distribution .deb files are renamed there); and the labels, the milestones, the
+issues and the discussions are there as well. The boards and the wiki are still
+GitLab's alone. This document is how the second copy is kept. It has two halves:
 
-- **a push mirror** to a second forge, which GitLab keeps up to date after every
-  push, for the git history: every protected branch and every tag;
+- **a push mirror** to GitHub, which GitLab keeps up to date after every push, for
+  the git history: every protected branch and every tag;
 - **a weekly export**, the `forge-export` job, for what a mirror does not carry: the
   issues, the merge requests, the releases and the wiki.
 
 On 26 September 2026 neither exists yet: the project has no push mirror
 (`GET /projects/86730559/remote_mirrors` answers `[]`), and the export job waits
-for its token and its schedule. Both are the owner's to set up, in
+for its token and its schedule. On 18 October 2026 the mirror is being set up, to
+<https://github.com/RainbowWizard-coder/hMailServer>; until it runs, GitHub is
+pushed from a maintainer's clone. Both are the owner's to set up, in
 [The owner's checklist](#the-owners-checklist).
 
 What a push mirror carries, and what it does not
@@ -35,6 +51,16 @@ pushes the project's repository on to the mirror.
 
 So a mirror is enough to build every release again from its tag on another
 forge, and nothing else. The rest is the export's.
+
+The mirror carries nothing else of what GitHub holds - the labels, milestones,
+issues, discussions and releases it was given for the return of 18 October 2026,
+and whatever is opened there since. Issues are accepted on both forges. A pull
+request is accepted on GitHub and landed through GitLab, as a `batch*` branch and a
+merge request that keep its author and sign-off, never by a merge on GitHub, whose
+`master` is GitLab's copy and nothing else. No pipeline of the project's runs on
+GitHub: GitHub Actions runs none of its workflows; GitHub's own CodeQL default setup
+analyses the code there on each push to `master`, on each pull request and weekly,
+and the maintainers read its findings, nothing more.
 
 The weekly export
 -----------------
@@ -58,6 +84,9 @@ archive, `hmailserver-hmailserver-export-<UTC time>.tar.gz` (the project's path 
 Run by hand against the project on 26 September 2026, it took 21 seconds and wrote
 6.1 MiB: 46 issues (one confidential) with 63 notes, no merge request, 40 labels,
 2 milestones, 2 boards, 42 releases and the wiki's 79 commits.
+
+The export is of the GitLab project alone: an issue, a pull request or a discussion
+opened on GitHub is not in it.
 
 **GitLab's own project export**, when the second token is set: the job asks
 GitLab for it (`POST /projects/86730559/export`), waits for it and downloads it.
@@ -138,24 +167,29 @@ The owner's checklist
 
 **The push mirror.**
 
-1. Make an account on the second forge, for example Codeberg (<https://codeberg.org>),
-   which takes free, open-source projects; a Forgejo of Progressive Robot's own
-   would do as well.
-2. Create an empty repository there, `hmailserver`, with no README, licence or
-   `.gitignore`, so that the first push is not refused as diverging.
-3. Make a token on that forge that can push to it (on Codeberg and Forgejo,
-   *Settings*, *Applications*, *Generate new token*, with write access to
-   repositories). Note its expiry date.
+1. The account on the second forge: `RainbowWizard-coder` on GitHub, since
+   18 October 2026.
+2. The repository there: <https://github.com/RainbowWizard-coder/hMailServer>, since
+   18 October 2026, pushed from a maintainer's clone with `master` and every tag as
+   GitLab has them; the protected `batch*` branches follow when the mirror runs, since
+   it carries every protected branch.
+3. Make a token on GitHub that can push to it: *Settings*, *Developer settings*,
+   *Personal access tokens*, *Fine-grained tokens*, *Generate new token*, for that
+   repository alone, with *Contents* read and write. Note its expiry date.
 4. On GitLab: *Settings*, *Repository*, *Mirroring repositories*, *Add new*:
-   - Git repository URL: `https://codeberg.org/<account>/hmailserver.git`;
+   - Git repository URL: `https://github.com/RainbowWizard-coder/hMailServer.git`;
    - Mirror direction: Push;
-   - Authentication method: Username and Password; the username is the account on
-     the second forge, the password is the token;
+   - Authentication method: Username and Password; the username is
+     `RainbowWizard-coder`, the password is the token;
    - tick *Mirror only protected branches*; leave *Keep divergent refs* unticked,
      so the mirror is always GitLab's copy.
 
    Or the same with `glab`, signed in as a Maintainer, with the token read into a
-   variable rather than typed on the command line:
+   variable rather than typed on the command line. The command was written for a
+   Codeberg repository; for GitHub, the repository URL and the username named above
+   go in place of its placeholders - `RainbowWizard-coder` for the `<account>` before
+   the token, and `github.com/RainbowWizard-coder/hMailServer.git` for
+   `codeberg.org/<account>/hmailserver.git`:
 
    ```sh
    read -rs MIRROR_TOKEN
@@ -218,14 +252,15 @@ project, and the job reads the project's id and address from the pipeline.
 Using a copy
 ------------
 
-- **The repository**: clone it from the mirror.
+- **The repository**: clone it from GitHub,
+  <https://github.com/RainbowWizard-coder/hMailServer>.
 - **The wiki**: `git clone wiki.bundle wiki`, then push it to the second forge's
-  wiki (on Forgejo, `https://codeberg.org/<account>/hmailserver.wiki.git`, once
-  the wiki has a first page).
+  wiki (on GitHub, `https://github.com/RainbowWizard-coder/hMailServer.wiki.git`,
+  once the wiki there has a first page; on 18 October 2026 it has none, and the
+  wiki is GitLab's alone).
 - **The issues, merge requests and releases**: `issues.json`,
   `merge_requests.json` and `releases.json` are GitLab's own API answers. They are
-  for reading and for a script to import; while GitLab is reachable, Forgejo's own
-  migration from GitLab is the quicker way to carry the issues over.
+  for reading and for a script to import.
 - **All of it at once**: GitLab's project export imports into any GitLab
   (*New project*, *Import project*, *GitLab export*), a self-managed one included.
 

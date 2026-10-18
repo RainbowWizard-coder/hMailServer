@@ -58,8 +58,11 @@ representative at an online or offline event.
 
 For this project, community spaces include the GitLab project at
 <https://gitlab.com/hmailserver/hmailserver> — issues, merge requests, code
-review, commit messages and the wiki — and, while it was the project's home, the
-GitHub repository.
+review, commit messages and the wiki — and, since 18 October 2026, the GitHub
+repository at <https://github.com/RainbowWizard-coder/hMailServer>, with its
+issues, pull requests, discussions and code review. The GitHub repository of
+the `Progressiverobot` account was a community space while it was the
+project's home, until GitHub suspended the account on 18 September 2026.
 
 ## Enforcement
 
@@ -82,7 +85,9 @@ Serious cases — threats, targeted harassment, or anything requiring platform
 intervention — can also be reported directly to GitLab with its **Report abuse**
 action, on the user's profile or on the issue, merge request or comment
 concerned. The report goes to GitLab.com's administrators, who can act on
-accounts in ways a project maintainer cannot.
+accounts in ways a project maintainer cannot. An incident on the GitHub
+repository goes to GitHub instead, through
+[GitHub's abuse reporting](https://github.com/contact/report-abuse).
 
 ## Enforcement Guidelines
 

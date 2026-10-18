@@ -311,9 +311,9 @@ larger than 40 MB.
 `get-installer-binaries.ps1` fetches `build-inputs-1` and `build-inputs-2` from
 the project's package registry on GitLab: the first was re-published there byte
 for byte after GitHub suspended the project's account (until 26 September 2026
-the script fetched GitHub's copy, which has answered 404 since 18 September), and
-the second, the MariaDB Connector/C 3.4.11 client built from MariaDB's source, has
-been there alone
+the script fetched the suspended account's copy, which has answered 404 since
+18 September), and the second, the MariaDB Connector/C 3.4.11 client built from
+MariaDB's source, has been there alone
 ([ThirdPartyBinaries.md](ThirdPartyBinaries.md)).
 
 OpenSSL, Boost and libpq are built from their upstream source archives by
@@ -370,11 +370,23 @@ of which checks the archive against a SHA-256 pinned in the script.
 ### Since 18 September 2026: the release chain and GitLab
 
 GitHub suspended the project's account on 18 September 2026, and the project's
-home has been GitLab since 22 September. Every release up to 6.3.3 is
-re-published on GitLab with its original files and signatures, byte for byte
-(Roadmap2, *The release chain off a single forge*); a bundle names the GitHub
-workflow that signed it, and the cosign command in SECURITY.md verifies it
-without contacting GitHub.
+home has been GitLab since 22 September; since 18 October 2026 the project is
+published on GitHub again, at <https://github.com/RainbowWizard-coder/hMailServer>
+under the account `RainbowWizard-coder`, as a second home, and GitLab,
+<https://gitlab.com/hmailserver/hmailserver>, stays canonical. Every release up
+to 6.3.3 is re-published on GitLab with its original files and signatures, byte
+for byte (Roadmap2, *The release chain off a single forge*); a bundle names the
+GitHub workflow that signed it, and the cosign command in SECURITY.md verifies it
+without contacting GitHub. A release is built, signed and published on GitLab
+first and then copied to GitHub: since 18 October 2026 every release from
+6.0.0-B1 to 6.3.7 is there too with the same files byte for byte, each checked
+against the SHA-256 GitLab's package registry records for it; GitHub's
+immutable-releases setting is on, so a release published there after those
+copies cannot be changed, while the copies, published before the switch, can.
+GitHub writes "." where a file name has "~",
+which renames the per-distribution `.deb` files there, and the notes of 6.3.6
+and 6.3.7, longer than its limit of 125,000 characters, are cut there and
+attached whole as a file.
 
 Until that row is done, **a new release is built and signed by hand**, as
 6.3.4 was, with Authenticode and no Sigstore bundle. The GitLab jobs that
@@ -391,16 +403,20 @@ https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
 signers - the GitHub workflow identity for the releases up to 6.3.3, and this
 project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). No
-release has been signed on GitLab yet. A server from 6.2.28 to 6.3.3 still reads GitHub's
-address until one line of its settings points it at the feed (UpdateFeed.md).
+release has been signed on GitLab yet. A server from 6.2.28 to 6.3.3 still reads
+the suspended account's GitHub address, which the project's return to GitHub does
+not bring back, until one line of its settings points it at the feed
+(UpdateFeed.md).
 
 Vulnerability handling
 ----------------------
 
 **Reporting.** Privately, by a confidential GitLab issue or by mail to the
 project's Service Desk address, which GitLab files as a confidential issue
-([SECURITY.md](../../SECURITY.md), *Reporting a vulnerability*). The targets,
-as SECURITY.md states them:
+([SECURITY.md](../../SECURITY.md), *Reporting a vulnerability*); since
+18 October 2026 GitHub's private vulnerability reporting is switched on for
+<https://github.com/RainbowWizard-coder/hMailServer> too, and the maintainers
+read it. The targets, as SECURITY.md states them:
 
 | Stage | Target |
 |---|---|
@@ -490,9 +506,12 @@ project rule ([CONTRIBUTING.md](../../CONTRIBUTING.md)), and
 `build/check-sql-parameters.py` checks the order parameters are bound in.
 CodeQL ran on GitHub until 18 September 2026 - the C# tools on every push and
 pull request, the C++ server on every push to `master`, weekly and on demand
-([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)) - and does not run on GitLab.
-It has also been run by hand, which is how 6.2.10's COM authorisation defects
-were found. More than thirty checkers under `build/` hold rules that past
+([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)) - and does not run on GitLab;
+since 18 October 2026 GitHub's own CodeQL default setup analyses the code at
+<https://github.com/RainbowWizard-coder/hMailServer> on each push to `master`, on
+each pull request and weekly, and the maintainers read its findings; no pipeline of the project's runs on GitHub. CodeQL has also
+been run by hand, which is how 6.2.10's COM authorisation defects were found.
+More than thirty checkers under `build/` hold rules that past
 defects taught (CONTRIBUTING.md, *The checkers*). What runs now, and the
 remediation thresholds, are in SECURITY.md, *Vulnerability management policy*.
 
@@ -777,8 +796,11 @@ Not in place, in one list
   6.3.3 trusts only the GitHub signing identity.
 * CI on GitLab blocking on the security scans: they run on the project's own
   runner but do not fail a pipeline yet ([ContinuousIntegration.md](ContinuousIntegration.md)).
-* CodeQL, the dependency review and the nightly fuzzing: none has run since
-  18 September 2026.
+* CodeQL as a job of the project's own, the dependency review and the nightly
+  fuzzing: none has run since 18 September 2026. Since 18 October 2026 GitHub's
+  own CodeQL default setup analyses the code of the project's new GitHub
+  repository on each push to `master`, on each pull request and weekly, and the
+  maintainers read its findings.
 * Fuzz harnesses beyond MIME.
 * Versions for the Linux packages' system libraries at run time: each package's
   own SBOM names the version it was built against and the range it requires, and

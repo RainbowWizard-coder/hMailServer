@@ -75,8 +75,14 @@ project's account on 18 September 2026
 (<https://gitlab.com/hmailserver/hmailserver/-/releases/build-inputs-1>), and
 where `build-inputs-2` was published first
 (<https://gitlab.com/hmailserver/hmailserver/-/releases/build-inputs-2>).
-Until 26 September 2026 it downloaded from GitHub's address, which has answered
-404 since. A file already in the script's cache
+Until 26 September 2026 it downloaded from the suspended account's address on
+GitHub, which has answered 404 since. A `build-inputs-<n>` release's files come
+from GitLab alone - both releases are copied to GitHub with the others, and the
+build never reads them there - by a rule unchanged since the project's return to GitHub on
+18 October 2026 (<https://github.com/RainbowWizard-coder/hMailServer>, a second
+home; GitLab stays canonical): no build step downloads from GitHub, so that no
+forge's suspension can stop a build again, and `.no-github` keeps GitHub out of
+every CI job (`.gitlab/ci/no-github.yml`). A file already in the script's cache
 (`%LOCALAPPDATA%\hmailserver\build-inputs`, or the folder given to `-Cache`)
 with the manifest's hash is used without downloading anything, and every
 download is checked against the hash whatever its address.
@@ -253,7 +259,11 @@ extension (the `.tlb` type libraries were two). A Windows job of the same
 workflow fetched the build inputs, checked their hashes, and checked the
 signature of every fetched file the manifest records as signed.
 
-On GitLab, from 6.3.6, two jobs do what it did. `checkers` runs
+On GitLab, from 6.3.6, two jobs do what it did, and nothing does on the
+repository published on GitHub again since 18 October 2026: GitHub Actions
+runs none of the project's workflows, and a pull request made there is checked
+when a maintainer lands it through GitLab, as a `batch*` branch and a merge
+request. `checkers` runs
 `build/check-binary-manifest.py` in every pipeline, merge requests included: the
 first and third questions over every tracked file. And `build-inputs-authenticode`,
 on bench150 for every protected ref (`.gitlab/ci/packages-windows.yml`), runs

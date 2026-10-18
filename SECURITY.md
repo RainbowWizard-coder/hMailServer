@@ -19,7 +19,7 @@ and it is cut from `master` with whatever finished work `master` holds then.
 
 ## Reporting a vulnerability
 
-Report it privately, by either route:
+Report it privately, by one of these routes:
 
 - **A confidential issue on GitLab:**
   <https://gitlab.com/hmailserver/hmailserver/-/issues/new?issue[confidential]=true>. The link ticks
@@ -31,14 +31,20 @@ Report it privately, by either route:
   [contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com).
   GitLab files the message as a confidential issue, and the maintainers' replies reach you by email, so no
   GitLab account is needed.
+- **GitHub's private vulnerability reporting**, on the project's repository there (since 18 October 2026):
+  <https://github.com/RainbowWizard-coder/hMailServer/security/advisories/new>, the repository's *Security* tab,
+  *Report a vulnerability*. A GitHub account is needed. The maintainers read the reports made there.
 
-Do **not** open a public issue or merge request, or edit the wiki, for a security problem, and do not post it to
-the hMailServer forum. A public report starts the clock for everyone running the server, not just for us. If a
-report was made public by mistake, say so by either route above and the maintainer makes it confidential.
+Do **not** open a public issue, merge request or pull request on either forge, start a GitHub discussion, or edit
+the wiki, for a security problem, and do not post it to the hMailServer forum. A public report starts the clock for
+everyone running the server, not just for us. If a report was made public by mistake, say so by any route above and
+the maintainer makes it confidential.
 
-This file used to send reports to GitHub Security Advisories. GitHub has been unavailable to the project since
-18 September 2026, so if you reported something there and had no answer, send it again by one of the routes
-above.
+This file sent reports to GitHub Security Advisories on the project's old repository, under the account
+`Progressiverobot`, until GitHub suspended that account on 18 September 2026. The account stays suspended: every
+link to github.com/Progressiverobot, the old repository's advisories included, still answers 404; so if you reported
+something there and had no answer, send it again by one of the routes above. The project's repository on GitHub
+since 18 October 2026, under `RainbowWizard-coder`, is a new one, and the third route above is on it.
 
 ## What to include
 
@@ -160,12 +166,15 @@ list above, and step 3's window of about a day, stand for every release after 6.
 
 ### How a report is handled
 
-The routes, the targets and the 90-day disclosure timetable above are unchanged. Security response rests on
-Christopher Holloway ([GOVERNANCE.md](GOVERNANCE.md#maintainers)), and he is the only person who sees a report:
-GitLab shows a confidential issue to its author, its assignees and the project's members with the Planner role or
-above, and since 13 October 2026 he is the only person who is a member of the project. Zain Ul Abidin, a
-Developer from 26 September 2026, could see every report until that day, and is not a member since; whether he
-takes the duty on, should he be a member again, is the maintainers' decision.
+The routes, the targets and the 90-day disclosure timetable above are unchanged by the pause. Security response
+rests on Christopher Holloway ([GOVERNANCE.md](GOVERNANCE.md#maintainers)), and he is the only person who sees a
+report on GitLab: GitLab shows a confidential issue to its author, its assignees and the project's members with the
+Planner role or above, and since 13 October 2026 he is the only person who is a member of the project. Zain Ul
+Abidin, a Developer from 26 September 2026, could see every report until that day, and is not a member since; whether
+he takes the duty on, should he be a member again, is the maintainers' decision. A report made through GitHub's
+private vulnerability reporting is seen by the maintainers and by the GitHub repository's administrators; the owner
+carries it into a confidential GitLab issue, from which the steps below run, and the GitHub advisory stays
+unpublished and, at disclosure, points to that issue.
 
 1. **Acknowledge** within 5 working days, and **assess** within 10: reproduce it, or ask for what is missing.
 2. **Fix** with a regression test that fails against the build before the fix. The fix is built and tested by
@@ -279,10 +288,18 @@ a pointer back here:
 
 ## Verifying a release
 
-Releases are at <https://gitlab.com/hmailserver/hmailserver/-/releases>. Every release up to and including
-6.3.3 was first published on GitHub. Where GitLab's releases page carries a file from one of them, it is the same
-file, byte for byte, with the same signatures and Sigstore bundle, so everything below verifies it exactly as it
-verified the original.
+Releases are at <https://gitlab.com/hmailserver/hmailserver/-/releases>, and since 18 October 2026 at
+<https://github.com/RainbowWizard-coder/hMailServer/releases> as well. Every release up to and including
+6.3.3 was first published on GitHub, under the old account `Progressiverobot`. Where GitLab's releases page carries
+a file from one of them, it is the same file, byte for byte, with the same signatures and Sigstore bundle, so
+everything below verifies it exactly as it verified the original. GitHub's releases page, since 18 October 2026, is
+a copy of GitLab's: a release is built, signed and published on GitLab first and then copied there, and every
+release from 6.0.0-B1 to 6.3.7 is there with the same files, byte for byte, each checked against the SHA-256 that
+GitLab's package registry records for it; so everything below verifies a file from either page the same way. GitHub
+writes "." where a file name has "~", so the per-distribution `.deb` files are renamed there, their bytes the same;
+the notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file; and
+GitHub's immutable-releases setting is on, so a release published there after the copies of 18 October 2026 cannot
+be changed, while the copies, published before the switch, can.
 
 - **The release tag** (from `v6.2.23-alpha2` on) is an annotated tag signed with a maintainer's SSH key listed in
   `.gitlab/allowed_signers`. That allow list is in the repository, so a clone can check it without trusting
@@ -737,7 +754,10 @@ scanning".
   MSVC build compiles.
 - **What ran on GitHub.** CodeQL (the workflow `codeql.yml` and its configuration, in the git history at `v6.3.3`) analysed the
   repository on every pull request and every push to `master`, and the `master` ruleset required its results. It
-  does not run on GitLab: its command-line tool and its query packs are published only on GitHub.
+  does not run on GitLab: its command-line tool and its query packs are published only on GitHub. Since
+  18 October 2026 GitHub's own CodeQL default setup analyses the repository there on each push to `master`, on each
+  pull request and weekly, with no workflow of the project's; the maintainers read its findings, and it holds no
+  change and no release.
 - **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, is
   fixed before merge, or declared not exploitable before the change that needs it. A medium finding is fixed within
   30 days; a low or note-level one with the next change to that file, or declared not exploitable with its reason. A

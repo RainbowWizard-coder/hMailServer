@@ -3,10 +3,20 @@
 The order below is not advisory. Each rule exists because violating it has
 already cost a release cycle or nearly shipped a defect.
 
-**Status since 18 September 2026.** GitHub has been unavailable to the project
-since 18 September 2026, and its home has been
+**Status since 18 September 2026.** GitHub was unavailable to the project from
+18 September 2026, when it suspended the account `Progressiverobot` (it stays
+suspended), to 18 October 2026, and its home has been
 [GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September
-2026, in the group `hmailserver` since 29 September 2026. Steps 11 to 13
+2026, in the group `hmailserver` since 29 September 2026. GitLab is canonical:
+the pipelines run there and nowhere else, a release is built, signed and
+published there first, and the update feed, the package repositories and the
+container registry are GitLab's. Since 18 October 2026 the project is published
+on GitHub again, under the account `RainbowWizard-coder`
+(<https://github.com/RainbowWizard-coder/hMailServer>): a second home, which
+holds the repository and every release from 6.0.0-B1 to 6.3.7 with the same
+files byte for byte; a release is copied there once it is published on GitLab
+([The release on GitLab](#the-release-on-gitlab), "The copy on GitHub"), and no
+pipeline of the project runs on GitHub. Steps 11 to 13
 below describe the release chain as it ran on GitHub -
 the draft release, the Linux packages, the SBOMs, Sigstore and Authenticode
 signing, the installer smoke test and the package managers as GitHub Releases
@@ -300,6 +310,22 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
 
 7. **The package managers** (step 13) are still by hand: the manifests job was
    not ported.
+
+**The copy on GitHub.** Since 18 October 2026 a release, once `release-publish`
+has created it here, is copied by hand to the project's GitHub repository,
+<https://github.com/RainbowWizard-coder/hMailServer/releases>, with the same
+files byte for byte, each checked against the SHA-256 the package
+`hmailserver/X.Y.Z` records for it, and the same notes (6.3.6's and 6.3.7's,
+longer than GitHub's limit of 125,000 characters, are cut at it there and
+attached whole as a file). GitHub writes `.` where a file name has `~`, so the
+per-distribution `.deb` files are renamed there; no server reads that copy,
+since the update feed is GitLab's. GitHub's immutable-releases setting is on, so
+a release published there after the copies of 18 October 2026 cannot be
+changed; the copies, published before the switch, can. Its tag reaches GitHub
+as `master` does, from a maintainer's clone
+until GitLab's push mirror to GitHub, which is being arranged, runs; no
+pipeline of the project runs on GitHub, and GitHub Actions runs none of its
+workflows.
 
 **The rehearsal.** Every protected `batch*` branch's pipeline rehearses steps 3
 to 4 (`.gitlab/ci/release-rehearsal.yml`): `release-rehearsal` collects every file
@@ -745,6 +771,9 @@ that administrators upgrade by hand.
    be `master`'s. A release made by hand runs the scans on linix against the
    release's commit, and the gate over what they wrote in the same way.
    Up to 6.3.3 these were GitHub's Code Scanning and Dependabot alert pages.
+   Since 18 October 2026 GitHub's own CodeQL default setup, no workflow of the
+   project's, analyses the code there on each push to `master`, on each pull
+   request and weekly; the maintainers read its findings, and the gate does not.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is
    described as hardening or diagnostics. Unfixed known issues are named as
@@ -936,8 +965,9 @@ that administrators upgrade by hand.
     signed installer is not the built installer: signing changes the bytes, and a
     package manager handing out a mismatched hash is a broken install for every
     user of it.
-14. **Close the loop**: answer every issue the release resolves (and close
-    them), update the ones it does not resolve saying so plainly.
+14. **Close the loop**: answer every issue the release resolves, on GitLab and,
+    since 18 October 2026, on GitHub (and close them), update the ones it does
+    not resolve saying so plainly.
 
 ## Standing rules
 

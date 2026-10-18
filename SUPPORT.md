@@ -1,12 +1,15 @@
 # Getting help
 
 The project's home is GitLab since 22 September 2026, in the group `hmailserver` since 29 September 2026:
-<https://gitlab.com/hmailserver/hmailserver>. GitHub
-has been unavailable to the project since 18 September 2026, so older links to its issues, discussions and
-releases answer 404.
+<https://gitlab.com/hmailserver/hmailserver>. GitHub is a second home since 18 October 2026, under the account
+`RainbowWizard-coder`: <https://github.com/RainbowWizard-coder/hMailServer>, with the repository, the
+releases, issues and discussions; GitLab stays canonical. The former GitHub account, `Progressiverobot`,
+has been suspended since 18 September 2026, and older links to its issues, discussions and releases still
+answer 404.
 
 **Something is broken** — open an [issue](https://gitlab.com/hmailserver/hmailserver/-/issues) with the
-**Bug** template.
+**Bug** template, or an [issue on GitHub](https://github.com/RainbowWizard-coder/hMailServer/issues), with the
+same information.
 
 The most useful report contains, in order of value:
 
@@ -20,14 +23,16 @@ If mail is being accepted but not delivered, or a session appears to hang, say w
 Redact passwords, keys and real email addresses from anything you paste: an issue is public.
 
 **Something might be a security problem** — do not open a public issue. See [SECURITY.md](SECURITY.md): a
-confidential issue, or an email to the project's Service Desk address, which GitLab files as a confidential
-issue.
+confidential issue on GitLab, an email to the project's Service Desk address, which GitLab files as a
+confidential issue, or a private vulnerability report on the GitHub repository, which the maintainers read too.
 
 **A question rather than a defect** — open an issue with the **Question** template, which gives it the
 `question` label. GitLab has no Discussions, so configuration questions, "is this supposed to work like this" and
-"has anyone got X working" are issues too.
+"has anyone got X working" are issues too; on GitHub they go to
+[Discussions](https://github.com/RainbowWizard-coder/hMailServer/discussions).
 
-**No GitLab account** — email the report or the question to the project's Service Desk address,
+**No GitLab account** — with a GitHub account, open the issue or the discussion on the GitHub repository
+instead. With neither, email the report or the question to the project's Service Desk address,
 [contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com).
 GitLab files the message as a confidential issue, which only the maintainers see, and their replies reach you by
 email.
@@ -47,4 +52,4 @@ Two commitments in return:
 
 - Check the [releases](https://gitlab.com/hmailserver/hmailserver/-/releases) — the newest version may already address it.
 - Check [Roadmap2.md](Roadmap2.md) for the work planned now, [Roadmap3.md](Roadmap3.md) for the packages, the container image and the places to install from that are still to come, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
-- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.
+- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues), and the [issues](https://github.com/RainbowWizard-coder/hMailServer/issues) and [discussions](https://github.com/RainbowWizard-coder/hMailServer/discussions) on GitHub. The issues and discussions of the former GitHub project, under the account `Progressiverobot`, which stays suspended, are still gone; a number written as "GitHub issue N" in this repository refers to them, and one on the new repository, which numbers its issues from 1 again, is written with the account named: "GitHub issue N (RainbowWizard-coder)".

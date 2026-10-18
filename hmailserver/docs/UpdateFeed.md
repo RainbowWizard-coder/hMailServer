@@ -7,12 +7,17 @@ release feed (`UpdateCheckEnabled`, the Control Panel's Updates page, `POST
 API for this project. GitHub suspended the project's account that day, and the
 API has answered 404 since, so every server's check has failed with "The update
 feed answered HTTP 404." Nothing else breaks: the check reports and the server
-runs on.
+runs on. Since 18 October 2026 the project is published on GitHub again, at
+<https://github.com/RainbowWizard-coder/hMailServer>, with every release copied
+there from GitLab. No server reads a feed there: the address compiled into
+6.2.28 to 6.3.3 is the suspended account's, `Progressiverobot`, which still
+answers 404, and every server built after 6.3.3 reads the feed below.
 
 The feed is now **https://updates.progressiverobot.com**. GitLab Pages serves it
 from this project, and it is made from the project's releases on GitLab. A
 server built after 6.3.3 reads it without being told. A server from 6.2.28 to
-6.3.3 still reads GitHub, and one line in its configuration points it here.
+6.3.3 still reads the suspended account's Releases API on GitHub, and one line
+in its configuration points it here.
 
 *The site has been deployed since 26 September 2026 and answers over HTTPS with a
 certificate for its name. 6.3.5, published on 29 September 2026, is the first
@@ -128,8 +133,9 @@ checks](#what-a-server-built-after-633-checks)).
   6.3.3 by the live update as before, with a rollback image.
 - **A release signed on GitLab does not install through an old server's live
   update.** From 6.3.5 the releases are signed by this project's GitLab CI
-  pipeline for their `v*` tag, since nothing can be signed on GitHub any more.
-  6.3.4 itself was built and
+  pipeline for their `v*` tag, since the project's pipelines run on GitLab and
+  nowhere else, and the signer those servers trust, the suspended account's
+  workflow, can sign nothing again. 6.3.4 itself was built and
   Authenticode-signed by hand and carries no Sigstore bundle, so no server
   installs it by the live update: one offered it says it cannot be verified and
   downloads nothing (`UpdateDownloader.cpp`; the feed's check lets it through
@@ -367,12 +373,15 @@ repository id.
 The rows after the repository are there because the names are not the
 project's to keep, and because the feed is not the project's word either:
 
-- **The GitHub signer is held to the past.** Nothing can be signed there by
-  this project any more, and if the name were ever given to someone else, they
-  could make a certificate that matches it. So a certificate issued from the
-  suspension on is refused, by its notBefore, which Fulcio signs. The 80
-  bundles on the re-hosted releases were all issued by 2026-09-15T01:00:18Z,
-  and all record the id `1267388815`.
+- **The GitHub signer is held to the past.** Nothing can be signed under that
+  name by this project any more, and if the name were ever given to someone
+  else, they could make a certificate that matches it. So a certificate issued
+  from the suspension on is refused, by its notBefore, which Fulcio signs. The
+  80 bundles on the re-hosted releases were all issued by 2026-09-15T01:00:18Z,
+  and all record the id `1267388815`. The project's repository on GitHub since
+  18 October 2026, `RainbowWizard-coder/hMailServer`, runs no workflow of the
+  project's, and a certificate for a workflow there would name another identity
+  and another repository id, which no server trusts, so it changes nothing here.
 - **The GitLab signer is held to the project, not the path.** The project
   lived in a personal namespace until 29 September 2026, and a path can pass to
   someone else after a rename or a move. Fulcio records the project's id beside

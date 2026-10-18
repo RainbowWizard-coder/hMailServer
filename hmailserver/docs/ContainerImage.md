@@ -22,7 +22,10 @@ under everyone who pulled it. So no image is pushed from that path, and a releas
 built by hand, 6.3.4 among them, has none; nor has 6.3.5, whose pipeline has no
 image jobs (Publishing, below), so the first image is 6.3.6's. The images published before GitHub
 suspended the project's account on 18 September 2026 were on `ghcr.io`, which has
-answered 404 since.
+answered 404 since. Since 18 October 2026 the project is published on GitHub again,
+under the account `RainbowWizard-coder` (<https://github.com/RainbowWizard-coder/hMailServer>),
+and no image is published on `ghcr.io` under that account: the container registry is
+GitLab's, and `registry.gitlab.com/hmailserver/hmailserver` is the image's only address.
 
 ## The image
 
