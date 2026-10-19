@@ -354,17 +354,22 @@ with `--check`).
   `MailImporter::Import`), so after a move it would have imported every such message a second time, the first row
   still reading the old tree, and its other mode would have deleted the copies: step 0 now runs it, in its import
   mode, on the installation before anything is copied - as ServiceAccount.md and the server's own message about such
-  a row have it - says what else that mode imports, and step 8 checks that none is left and says what to do if one
-  is. Step 4 said the server reads `hMailServer.ini` beside the running executable first and the registry second:
-  `Utilities::GetBinDirectory` takes `Bin` under the 32-bit registry's `InstallLocation` and falls back to the
-  executable's folder only when that value cannot be read, so the edited copy is read only once step 5 has
-  repointed the value. Steps 1 and 4 said an edit of a stored setting in the file is put back at the next start
-  (HM5804): the stored value is used either way, but the line is put back only where the service may write the
-  file; under `NT SERVICE\hMailServer` the edit stays in the file and is named once (`IniSettingStore::Synchronize`),
-  and step 9 says a setting changed there does not reach the file's copy (`IniSettingStore::WriteSetting`). Eight
-  line references that no longer pointed at what they named are corrected. Backup.md said a restore extracts an
-  archive as `LocalSystem` on Windows: it does so as the service's account, `NT SERVICE\hMailServer` for an
-  installation made from 6.3.4 on and LocalSystem where it was chosen, kept or could not be left.
+  a row have it - says what else that mode imports, and has a row that names a file outside the data directory
+  converted first, in the folder it names, which is then copied over the data folder in use. Step 8 checks that none
+  is left and says what to do if one is: the new data folder's copies of the files the synchronizer will move under
+  new names are deleted before it runs, since `robocopy /E` removes nothing and a later import would take each for a
+  new message, and the run imports again the old tree's copy of each file the moved server has deleted since it
+  started, so the check comes at once. Step 4 said the server reads `hMailServer.ini` beside the running executable
+  first and the registry second: `Utilities::GetBinDirectory` takes `Bin` under the 32-bit registry's
+  `InstallLocation` and falls back to the executable's folder only when that value cannot be read, so the edited copy
+  is read only once step 5 has repointed the value. Steps 1 and 4 said an edit of a stored setting in the file is put
+  back at the next start (HM5804): the stored value is used either way, but the line is put back only where the
+  service may write the file; under `NT SERVICE\hMailServer` the edit stays in the file and is named as an edit once
+  (`IniSettingStore::Synchronize`), and step 9 says a setting changed there does not reach the file's copy
+  (`IniSettingStore::WriteSetting`). Eight line references that no longer pointed at what they named are corrected.
+  Backup.md said a restore extracts an archive as `LocalSystem` on Windows: it does so as the service's account,
+  `NT SERVICE\hMailServer` for an installation made from 6.3.4 on and LocalSystem where it was chosen, kept or could
+  not be left.
 
 - **ServiceAccount.md's reinstall into a new folder moves the settings file's other paths out of the old installation,
   deletes the lines the site did not set in `[Directories]`, the live update's trust, `[SettingsOverride]`, `[LDAP]`

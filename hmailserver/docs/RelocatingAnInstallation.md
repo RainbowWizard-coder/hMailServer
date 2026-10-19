@@ -11,7 +11,7 @@ where the honest answer is "there is no clean fix".
 It is written for 6.3.0, and steps 1, 4 and 9 were revised on 15 September 2026
 for schema 6042, which made the database the store for the settings the
 `[Settings]` section of `hMailServer.ini` used to hold; steps 0, 1, 3, 4, 6, 8,
-9, 11 and 12 were revised on 19 October 2026 for 6.3.7: the copy's permissions
+9, 11 and 12 were revised on 19 and 20 October 2026 for 6.3.7: the copy's permissions
 and `hMailServer.exe /ProtectFolders`, a certificate's files changed with
 **Edit…**, setup run again at the new root, full message paths converted before
 the copy rather than after it, and which `hMailServer.ini` the server reads and
@@ -67,7 +67,9 @@ whether yours does, and converts them before anything is copied.
      whose full path a row holds it writes the row's partial name instead
      (`MailImporter::Import` → `ReplaceMessagePath_`,
      `Common/Util/MailImporter.cpp`); a file not in the layout the server builds
-     paths from is first moved into it, under a new name.
+     paths from - an `.eml` or `.hma` file directly in an account's folder or in
+     `#Public`, or in a folder of theirs not named for the two characters after
+     the `{` of its name - is first moved into it, under a new name.
    - It imports every file there that no row names as well: such a file at the
      data directory's root is imported into the queue and delivered to its local
      recipients, and one in an account's folder becomes a message in that
@@ -78,8 +80,21 @@ whether yours does, and converts them before anything is copied.
      names a file outside the data directory - the diagnostic's other error,
      `Messages exists which are located outside of the data directory` - is
      converted by putting `DataFolder` back to the folder it names, restarting
-     the service and running the synchronizer there, as the server's own message
-     about such a row says.
+     the service and running the synchronizer there, and the two folders are then
+     brought together, as the server's own message about such a row says: stop
+     the service, copy that folder over the data folder you were using
+     (`robocopy "<folder the rows named>" "<data folder>" /E`), put `DataFolder`
+     back to the data folder you were using and start the service. Until then the
+     file of a message whose row holds a partial name is looked for below the
+     folder the rows named, where that of each message written since the data
+     left it is not. Where the diagnostic reports this error, do this before the
+     run the first point describes: the data folder you were using can hold a
+     copy, left by that move, of a file such a row names, which that run would
+     take for one no row names and import a second time. Before the run in the
+     folder the rows named, delete from the data folder you were using its copy,
+     at the same place, of each file outside the layout there, as step 8 does and
+     for the same reason; and a copy that move left of a message deleted since is
+     imported again by either run, as any file no row names is.
    - Run the diagnostic again. It should report that relative message paths are
      stored for all messages before you go on.
 
@@ -229,10 +244,12 @@ file - LocalSystem, or an account given write to it - puts the line back to the
 old path, and the message says so. One that may only read it -
 `NT SERVICE\hMailServer`, to which the file is read-only
 ([ServiceAccount.md](ServiceAccount.md), *`hMailServer.INI` is read-only to the
-service*) - leaves the edit in the file, says that it has, and does not name it
-again at a later start, while the old path goes on being used: the file then
-shows a path the server is not using. They move in step 9, once the moved server
-is running.
+service*) - leaves the edit in the file and says that it has. `HM5804` does not
+name it again; the application log's line on the read-only file, which a
+reinitialise writes where application logging is on, counts it by name among the
+settings whose line there is older than the stored value. The old path goes on
+being used, and the file shows a path the server is not using. They move in step
+9, once the moved server is running.
 
 What is still read from this file, and only from it, is what the server needs to
 reach the database or to let an administrator in without one: `[Directories]`,
@@ -249,7 +266,7 @@ The file is not looked for beside the running `hMailServer.exe` first. It is
 `Bin\hMailServer.ini` under the folder the registry's `InstallLocation` names, in
 the 32-bit view (step 5), and only when that value cannot be read the one in the
 folder the executable is in (`Utilities::GetBinDirectory`,
-`Common/Util/Utilities.cpp:179`; `IniFileSettings::GetInitializationFile`). Until
+`Common/Util/Utilities.cpp:156`; `IniFileSettings::GetInitializationFile`). Until
 step 5 has repointed that value, the server - and `hMailServer.exe` run from the
 new `Bin` - reads the old tree's file, not the copy you have just edited; from
 step 5 on it reads the copy.
@@ -352,9 +369,9 @@ that the log file you are reading is under the new log directory.
 
 ## 8. Check that no full message paths are left
 
-Run *Test message file locations* again, on the moved server. It should report
-that relative message paths are stored for all messages, as it did at the end of
-step 0.
+Run *Test message file locations* again, on the moved server, as soon as it has
+started. It should report that relative message paths are stored for all
+messages, as it did at the end of step 0.
 
 `ERROR: Full paths are stored in the database` here means that step 0's
 conversion was not made or not finished. Those rows still name files in the old
@@ -364,14 +381,33 @@ tree, and the moved server reads them there - a full path is used as it is
 none of those rows matches a file there, and it would import each of those
 messages again (step 0). Instead, as the server's own message about such a row
 says (`MessageStoreMaintenance.cpp`): put `DataFolder` in the new
-`hMailServer.ini` back to the old data folder and restart the service, run the
-synchronizer there as step 0 does, stop the service, copy the old data folder
-over the new one again (`robocopy "<old data folder>" "<new data folder>" /E`),
-put `DataFolder` back to the new data folder, run `hMailServer.exe
-/ProtectFolders` from the new `Bin` again for the file you edited (step 6), and
-start the service. The synchronizer is the supported converter; an
-`UPDATE hm_messages SET ...` is not, because the rows are not uniform and the
-file layout is derived, not stored.
+`hMailServer.ini` back to the old data folder and restart the service, delete
+from the new data folder its copy of each file the old one holds outside the
+layout (step 0), run the synchronizer there as step 0 does, stop the service,
+copy the old data folder over the new one again
+(`robocopy "<old data folder>" "<new data folder>" /E`), put `DataFolder` back
+to the new data folder, run `hMailServer.exe /ProtectFolders` from the new `Bin`
+again for the file you edited (step 6), and start the service. The synchronizer
+is the supported converter; an `UPDATE hm_messages SET ...` is not, because the
+rows are not uniform and the file layout is derived, not stored.
+
+Those copies go before the run because the synchronizer first moves under a new
+name each file outside the layout that it converts or imports, and `/E` adds and
+refreshes and removes nothing: the copy step 3 made would stay in the new data
+folder under the old name, where no row names it - a partial name names a file
+in the layout alone (`PersistentMessage::GetFileName`) - and a later run of the
+synchronizer's import mode on the moved server would import each one in an
+account's folder as a new message in its Inbox, as it does any file no row names,
+and, with the public folders included, list each one in `#Public` as skipped.
+
+Nor does this put right what the moved server has done since it started, which is
+why the check comes at once. The old data folder still holds its copy of each file
+the moved server has since deleted or moved in the new one - a message deleted, a
+queued one delivered - and where no row names that copy any longer the run
+imports it again, as step 0 says of any such file, a queued one to be delivered
+again to its local recipients. And where a message whose row held a full path was
+deleted, the file deleted was the old tree's, so the copy step 3 made stays in the
+new data folder, where no row names it either.
 
 ---
 
