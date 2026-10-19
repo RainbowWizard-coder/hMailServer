@@ -643,11 +643,40 @@ of it):
      `7za.exe` from (`ProgramFolder`) and the event scripts from (`EventFolder`),
      and those of its data, logs and temporary files. Delete each of its lines that
      names a folder in the old installation; setup writes the new folder's instead.
+     Setup keeps every other line but `ProgramFolder`, which it always writes, so
+     delete as well a line that names a folder outside both installations and that
+     you did not set - an `EventFolder` of somebody's own, say, which anybody who
+     could change `Bin` could have written.
    - `AdministratorPassword`, in `[Security]`, is the administrator password's
      hash. Delete it, and setup asks for a new password; a silent setup takes it
      from `HM_ADMIN_PASSWORD`.
    - `[Database]` names the database the server opens, and `AutoBanCommand`, in
      `[Settings]` or `[SettingsOverride]`, a program it runs.
+   - Any other line with a path into the old installation still names it after
+     setup, and the new service goes on reading that file from the old folder:
+     `PostgreSQLSslRootCert` and `TlsCaFile`, in `[Database]`, the CA files the
+     database server's certificate is checked against; `UpdateTrustRootsFile`
+     and `UpdateLogPublicKeyFile`, in `[Settings]`, which are read from this file
+     alone; and a path in `[SettingsOverride]`. Change each as step 4 of
+     [RelocatingAnInstallation.md](RelocatingAnInstallation.md) changes it, to a
+     copy in the new folder of what it names - read before it is copied, as the
+     event script is below, or taken again from where it came from. The two CA
+     files and the two trust files go where nobody but the administrators may
+     change them, the new `Bin` say, and not in `Data`, which the service may
+     change: an administrator's install of an update refuses a trust file anybody
+     else may change ("The live update", below). The two trust files are the live
+     update's trust with `UpdateSigningIdentity`, `UpdateSigningIssuer` and
+     `UpdateSourceRepository` beside them in `[Settings]`, and decide whose
+     signature an update is installed on: delete any of the five your site did
+     not set, and an update is checked against the project's own signers
+     ([UpdateFeed.md](UpdateFeed.md), "Where the trust is read from").
+   - Delete as well any other line your site did not set in `[SettingsOverride]`,
+     each of which takes the place of the database's value of its `[Settings]`
+     key at every start, any key but those five; in `[LDAP]`, which the server
+     reads from this file alone, and which decides where and how the password of
+     a directory-linked account is checked; and in `[SendingLimits]` and
+     `[SendingLimitsOverrides]`, read from it alone too, which limit what an
+     account may send.
 
    Read what is in the old `Events` - the event script - as well, and only then
    copy it:
@@ -676,9 +705,45 @@ of it):
    keys again rather than copy `Bin\hMailServerApiKeys.ini`, to which anybody who
    could change `Bin` could have added one. A path the database holds into the old
    folder - a certificate's, a DKIM key's, the backup folder - still names it: step
-   9 of [RelocatingAnInstallation.md](RelocatingAnInstallation.md) moves each. Then,
-   once nothing names it, delete the old folder - by hand, never with its
-   uninstaller.
+   9 of [RelocatingAnInstallation.md](RelocatingAnInstallation.md) moves each.
+   Until nothing names it, keep the old folder private to SYSTEM and the
+   Administrators: where 6.3.5 or earlier left its `Data`, `Logs`, `Database` and
+   `Bin\hMailServer.INI` taking the permissions of the folder they are in, every
+   user may still read the mail, the logs, the built-in database and the settings
+   file there, and nothing runs `/ProtectFolders` on a folder no installation is
+   in. As soon as step 1 has copied what it copies - for a service running as
+   `NT SERVICE\hMailServer`, once the paths named at the end of this step are
+   moved too - make the Administrators the old folder's owner and replace what it
+   inherits. The folder alone has its owner changed, and on a large message store
+   the second line takes minutes, as above:
+
+   ```
+   icacls "C:\hMailServer" /setowner *S-1-5-32-544
+   icacls "C:\hMailServer" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F
+   ```
+
+   Then take away each entry of its own but SYSTEM's and the Administrators', as
+   step 2 of *Before upgrading an installation at a drive's root* does. Where
+   those steps, or the `/ProtectFolders` of 6.3.7 or later, were run on the old
+   folder, `Bin` and `ControlPanel` inherit nothing from it and keep any Read &
+   execute the Users were given, and a settings file that 6.3.5 or earlier left
+   taking `Bin`'s permissions takes it from `Bin`: take that entry away from both
+   as well, from `ControlPanel` where the installation has one:
+
+   ```
+   icacls "C:\hMailServer\Bin" /remove:g *S-1-5-32-545
+   icacls "C:\hMailServer\ControlPanel" /remove:g *S-1-5-32-545
+   ```
+
+   Any other entry of its own that a folder in it has stays - the grant's for the
+   service among them, on each folder that was in it when the old installation's
+   grant last ran - so the service still reaches what the database names in those.
+   A service running as `NT SERVICE\hMailServer` may have reached what the
+   database names directly in the old folder, or in a folder made in it since
+   then, only through what the Users and Authenticated Users were given there,
+   which this step takes away: move each first, by step 9 of
+   [RelocatingAnInstallation.md](RelocatingAnInstallation.md). Then, once nothing
+   names it, delete the old folder - by hand, never with its uninstaller.
 
 Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
 it); 1 one could not be, and its line says why - a link somebody else controls,

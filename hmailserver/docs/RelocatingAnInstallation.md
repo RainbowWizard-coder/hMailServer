@@ -58,6 +58,7 @@ path; step 0 tells you whether yours does.
 | `[Directories]` | `TempFolder` | Message assembly and backup staging |
 | `[Directories]` | `EventFolder` | Event scripts are not found; events stop running |
 | `[Database]` | `PostgreSQLSslRootCert` | PostgreSQL TLS verification fails |
+| `[Database]` | `TlsCaFile` | On MySQL, MariaDB and PostgreSQL, `TlsMode=verify-full` reads it, and refuses to connect once it is gone (HM7531) |
 
 Leave the `[Database]` connection keys alone. They name a server, not a path.
 
@@ -140,7 +141,7 @@ write its log directory starts and then says nothing.
 
 Edit `<new root>\Bin\hMailServer.ini` and change the keys from step 1's
 `hMailServer.ini` table whose value was under the old root: the `[Directories]`
-folders and `[Database]` `PostgreSQLSslRootCert`. Nothing else.
+folders and `[Database]` `PostgreSQLSslRootCert` and `TlsCaFile`. Nothing else.
 
 **Not the settings-store paths.** Editing one of them in the `[Settings]` section
 changes nothing: at the next start the stored value is used, the edit is named in
@@ -292,10 +293,10 @@ is deleted, the only rollback is the step 0 backup.
 
 The Control Panel's *Monitoring & troubleshooting → Diagnostics* page has an **Installation paths**
 section that lists the registry root, every `[Directories]` key, the derived
-directories, and every path-shaped setting the running server holds, with the
-ones that do not exist marked. It changes nothing; it is there so that the
-inventory in step 1 can be read off a running server rather than assembled by
-hand.
+directories, and every path-shaped setting the running server holds but
+`[Database]` `TlsCaFile`, with the ones that do not exist marked. It changes
+nothing; it is there so that the inventory in step 1 can be read off a running
+server rather than assembled by hand.
 
 ## Why the paths are not one setting
 

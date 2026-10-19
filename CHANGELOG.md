@@ -255,6 +255,30 @@ with `--check`).
 
 ### Documentation
 
+- **ServiceAccount.md's reinstall into a new folder moves the settings file's other paths out of the old installation,
+  deletes the lines the site did not set in `[Directories]`, the live update's trust, `[SettingsOverride]`, `[LDAP]`
+  and the sending limits, and keeps the old folder private until it is deleted.** Its steps changed the
+  `[Directories]` lines and, through RelocatingAnInstallation.md's step 9, the database's paths, and left three things
+  as they were: the settings file's other paths into the old installation, `[Database]` `PostgreSQLSslRootCert` and
+  `TlsCaFile`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` in `[Settings]` and a path in `[SettingsOverride]`,
+  which setup does not write, so that the new service went on reading those files from the old folder and, with
+  `TlsMode=verify-full` on MySQL, MariaDB or PostgreSQL, could not connect to its database once that folder was
+  deleted (HM7531); the lines that anybody who could change `Bin` could have written while the file took its
+  permissions, which setup keeps: a `[Directories]` line naming a folder outside both installations, and a line in
+  `[SettingsOverride]`, used in place of the database's value of its `[Settings]` key at every start, in `[LDAP]`,
+  which decides how a directory-linked account's password is checked, or in `[SendingLimits]` and
+  `[SendingLimitsOverrides]`; and the old folder itself, kept until nothing names it, whose mail, logs, built-in
+  database and settings file every user could still read where 6.3.5 or earlier left them taking the permissions of
+  the folder they are in. Step 2 now has each of those paths changed as RelocatingAnInstallation.md's step 4 changes
+  it, to a copy read first or taken again, the two CA files and the two trust files where nobody but the
+  administrators may change them (an administrator's install of an update refuses a trust file anybody else may
+  change), any of the live update's five trust settings the site did not set deleted, and those of such lines that the
+  site did not set deleted too; step 4 makes the old folder private to SYSTEM and the Administrators, its owner the
+  Administrators, nothing inherited and the Users' entries of its `Bin` and `ControlPanel` taken away, until it is
+  deleted. Every other step is as it was. RelocatingAnInstallation.md's steps 1 and 4 name `TlsCaFile` beside
+  `PostgreSQLSslRootCert`, and its *Seeing where the paths are* says that the Diagnostics page's *Installation paths*
+  lists every path-shaped setting the server holds but that one, where it said every one.
+
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
   release's federated credential goes on by the CI/CD variable `AZURE_CLIENT_ID`.** SECURITY.md's table of what must
   stay valid gives, on 18 October 2026, 491 accepted findings, 157 of them expiring on 25 September 2027 and 3 on 12
