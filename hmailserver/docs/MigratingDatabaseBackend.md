@@ -293,12 +293,15 @@ case-insensitively; `Internal=0` is anything other than the embedded engine;
 
 **Not `DBSetupQuick.exe`.** It creates only the built-in SQL Server Compact
 database, when `[Database]` names no type; once the section names any other
-backend it starts DBUpdater, the schema upgrader, which has no path from an
-empty database - its first step, 0 to 1100, exists for SQL Server and MySQL
-only and alters a table the create script makes, and on PostgreSQL the step's
-script is not there. Pointing `hMailServer.ini` at an empty database by hand and
-running DBSetupQuick, which this page said to do until 19 October 2026, created
-nothing.
+backend it starts DBUpdater, the schema upgrader, which cannot build a schema
+from an empty database: its first step, 0 to 1100, makes `hm_dbversion` and
+then alters `hm_messages`, which only the create script makes - on SQL Server
+the step fails and its transaction takes `hm_dbversion` back, on MySQL and
+MariaDB the step fails and leaves `hm_dbversion` at 1100 behind, which the
+server then refuses as too old (drop that database before step 3), and on
+PostgreSQL the step's script does not exist. Pointing `hMailServer.ini` at an
+empty database by hand and running DBSetupQuick, which this page said to do
+until 19 October 2026, made no usable database.
 
 **A service that runs as `NT SERVICE\hMailServer`** may not write
 `hMailServer.ini`, so either run of DBSetup is refused before anything is made,
