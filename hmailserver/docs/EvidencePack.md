@@ -344,21 +344,25 @@ of which checks the archive against a SHA-256 pinned in the script.
   package-manager signature of their own; their Sigstore bundle, below, is what
   verifies them.
 * **Sigstore.** Every asset of every release from 6.2.19 to 6.3.3 (the
-  withdrawn 6.2.22-pre4 and the superseded -pre5 aside) has a keyless cosign
-  bundle, recorded in the public Rekor log and verified in the same job before
-  upload (the GitHub workflow `sign-release.yml`, in the git history at
-  `v6.3.3`). 6.3.4, built and signed by hand, has none; from 6.3.5 the
-  `release-sign` and `release-verify` jobs of `.gitlab-ci.yml` make and check
-  them, and have not run yet. [SECURITY.md](../../SECURITY.md), *Verifying a
-  release*, has the command.
+  withdrawn 6.2.22-pre4 and the superseded -pre5 aside, and 6.2.22-pre3's two
+  SBOMs, which carry none) has a keyless cosign bundle, recorded in the public
+  Rekor log and verified in the same job before upload (the GitHub workflow
+  `sign-release.yml`, in the git history at `v6.3.3`). 6.3.4, built and signed
+  by hand, has none; from 6.3.5 the `release-sign` and `release-verify` jobs of
+  `.gitlab-ci.yml` make and check them, and have for every release since.
+  [SECURITY.md](../../SECURITY.md), *Verifying a release*, has the command.
 * **SLSA provenance.** From 6.3.2, each release carries
   `hmailserver-<tag>.intoto.jsonl`, made by the SLSA project's generic generator
   over the digests of the assets as attached, and checked with `slsa-verifier`
   before publication (`sign-release.yml`, the `provenance` and
   `attach-provenance` jobs; RELEASE.md step 12 says 6.3.1 and earlier have none).
   The generator is a GitHub reusable workflow, so 6.3.3 is the last release
-  with provenance; the GitLab release jobs make none
-  ([ContinuousIntegration.md](ContinuousIntegration.md), *The release*).
+  with provenance from it; 6.3.4 and 6.3.5 have none, and from 6.3.6 the GitLab
+  release jobs make the release's own,
+  `hmailserver-<version>.intoto.sigstore.json`, an SLSA v1 statement that
+  `release-sbom` writes and `release-sign` attests
+  ([SECURITY.md](../../SECURITY.md), *Build provenance*;
+  [ContinuousIntegration.md](ContinuousIntegration.md), *The release*).
 * **Signed tags.** Release tags from `v6.2.23-alpha2` on are annotated and
   signed with a maintainer's SSH key listed in `.gitlab/allowed_signers`, which
   holds one key today.
@@ -375,7 +379,9 @@ published on GitHub again, at <https://github.com/RainbowWizard-coder/hMailServe
 under the account `RainbowWizard-coder`, as a second home, and GitLab,
 <https://gitlab.com/hmailserver/hmailserver>, stays canonical. Every release up
 to 6.3.3 is re-published on GitLab with its original files and signatures, byte
-for byte (Roadmap2, *The release chain off a single forge*); a bundle names the
+for byte (Roadmap2, *The release chain off a single forge*), but for 6.2.0 and
+6.0.0-B4, re-published as notes only: their files are nowhere but the suspended
+account (Roadmap3, *The files GitLab does not have*); a bundle names the
 GitHub workflow that signed it, and the cosign command in SECURITY.md verifies it
 without contacting GitHub. A release is built, signed and published on GitLab
 first and then copied to GitHub: since 18 October 2026 every release from

@@ -326,8 +326,9 @@ be changed, while the copies, published before the switch, can.
   file (`--ignore-missing` when you downloaded only some). A release made by the GitLab pipeline, from 6.3.5, has
   no `.sig`: the pipeline cannot hold that key, so its files are signed by Sigstore instead, as below.
 
-- **The assets of every release from 6.2.19 on** (the withdrawn 6.2.22-pre4 and the superseded -pre5 aside) carry
-  Sigstore bundles (`<asset>.cosign.bundle`), keyless and recorded in the public Rekor log. For the releases up to
+- **The assets of every release from 6.2.19 on** (the withdrawn 6.2.22-pre4 and the superseded -pre5 aside,
+  6.2.22-pre3's two SBOMs, which carry none, and 6.3.4, built by hand, below) carry Sigstore bundles
+  (`<asset>.cosign.bundle`), keyless and recorded in the public Rekor log. For the releases up to
   6.3.3 the signing certificate names this repository's GitHub workflow, because that is where they were signed, so
   the identity and the issuer below are facts about those files and stay right for them wherever they are hosted.
   The bundle carries the certificate and the log's proof, and nothing in the check contacts GitHub. With

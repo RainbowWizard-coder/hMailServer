@@ -28,11 +28,11 @@ facts staying true:
   release is built, signed and published on GitLab first and then copied there.
   The project was on GitHub before, under the account
   `Progressiverobot`, until GitHub suspended that account on 18 September 2026;
-  every release up to 6.3.3 is re-published on GitLab, byte for byte, with its
-  original signatures. No charge, no licence key, no mandatory registration, no
-  telemetry. Where the project is hosted is not one of the review triggers
-  below, and neither the move nor the return changed anything else on this
-  list.
+  every release up to 6.3.3 whose files GitLab has is re-published there, byte
+  for byte, with its original signatures (6.2.0 and 6.0.0-B4 are notes-only).
+  No charge, no licence key, no mandatory registration, no telemetry. Where the
+  project is hosted is not one of the review triggers below, and neither the
+  move nor the return changed anything else on this list.
 * Maintained by one individual, not a company or foundation.
 * Donations, sponsorship and paid consulting: **none currently**, and see the
   triggers below before that changes.
@@ -164,7 +164,8 @@ changed:
   lists as fetched was committed after all. The SBOM answers "what does this link
   against"; this answers the separate question "what unreviewable files are in
   the source tree, and who made them".
-* **The release assets from 6.2.19 to 6.3.3 signed**, with Sigstore cosign, keyless via
+* **The release assets from 6.2.19 to 6.3.3 signed** - but for the two SBOMs of
+  6.2.22-pre3, which carry no bundle - with Sigstore cosign, keyless via
   OIDC, the signature recorded in the public Rekor transparency log and verified in
   the same job so a malformed bundle cannot reach a user
   (the GitHub workflow `sign-release.yml`, in the git history at `v6.3.3`). Keyless
@@ -177,8 +178,10 @@ changed:
   complementary rather than alternatives — SmartScreen and the UAC prompt read
   Authenticode and know nothing about Sigstore. The Linux packages carry no
   Authenticode, and the installers of the releases before 6.3.1 stay without it:
-  every release up to 6.3.3 is published with its original files, byte for byte,
-  on GitLab and in its copy on GitHub.
+  the releases up to 6.3.3 are published with their original files, byte for
+  byte, on GitLab and in its copy on GitHub - 6.2.0 and 6.0.0-B4 with none,
+  which only the suspended account has ([Roadmap3.md](../../Roadmap3.md), *The
+  files GitLab does not have*).
 * A documented security policy and private disclosure route
   ([SECURITY.md](../../SECURITY.md)), plus a machine-readable `security.txt`
   (RFC 9116) served at `/.well-known/security.txt` by the web services listener.
