@@ -23,9 +23,9 @@
 # from one that answers wrongly. On 19 October 2026 one listed mirror,
 # opensuse.mirror-services.net, answered every path with the same unrelated page,
 # and every openSUSE job that drew it failed, for hours. For the origin,
-# downloadcontent.opensuse.org, libzypp asks no mirror list and takes every file
-# from the origin itself (0 mirror-list requests that day, every repository
-# refreshed).
+# downloadcontent.opensuse.org, libzypp asks no mirror list and takes the
+# repository's files from the origin itself (0 mirror-list requests that day,
+# every repository refreshed).
 #
 # So the refresh is tried up to three times when it failed only to reach a
 # repository, as the scripts' installs are; and when it failed on a digest or an
@@ -36,6 +36,10 @@
 # once more. Leap 16's repositories are made by a service (openSUSE, a repository
 # index in the image itself, refreshed by every zypper command) that would write
 # the old addresses back, so a service's automatic refresh is turned off first.
+# In a repository's file only its baseurl changes: the key that Leap 16's
+# repositories name with a gpgkey line is fetched from cdn.opensuse.org itself,
+# with no mirror list, and the refresh passes without it when that host cannot
+# be reached.
 # zypper reports a repository invalid too when download.opensuse.org or
 # cdn.opensuse.org itself could not be reached three times running, and the origin
 # is then tried as well. Without such a failure nothing is changed.
@@ -102,7 +106,7 @@ if [ "${#services[@]}" -gt 0 ]; then
   zypper -n "${global[@]}" modifyservice --no-refresh --all >> "$log" 2>&1 || exit 1
 fi
 sed -i -E "s#^(baseurl=https?://)(download|cdn)\.opensuse\.org/#\1$origin/#" "${on_mirrors[@]}" || exit 1
-moved="the ${#on_mirrors[@]} repositories on download.opensuse.org or cdn.opensuse.org now take"
-[ "${#on_mirrors[@]}" -eq 1 ] && moved="the repository on download.opensuse.org or cdn.opensuse.org now takes"
-echo "zypper refresh: $reason; $moved every file from the origin, $origin, for which libzypp asks no mirror list, and the refresh is tried once more."
+moved="the ${#on_mirrors[@]} repositories on download.opensuse.org or cdn.opensuse.org now point"
+[ "${#on_mirrors[@]}" -eq 1 ] && moved="the repository on download.opensuse.org or cdn.opensuse.org now points"
+echo "zypper refresh: $reason; $moved at the origin, $origin, for which libzypp asks no mirror list, and the refresh is tried once more."
 refresh

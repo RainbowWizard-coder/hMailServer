@@ -219,10 +219,11 @@ retry_fetch() {
 
 step "the build container's packages"
 # zypper's repositories are refreshed first, by zypper-refresh.sh, which points
-# them at openSUSE's origin when a mirror serves a wrong file and says so; the
-# install then finds them fresh. Nothing auto-imports a key: the image already
-# trusts its distribution's keys, and a package built for a release must not come
-# from a repository that presented a new one.
+# those on download.opensuse.org or cdn.opensuse.org at openSUSE's origin when a
+# mirror serves a wrong file and says so; the install then finds them fresh.
+# Nothing auto-imports a key: the image already trusts its distribution's keys,
+# and a package built for a release must not come from a repository that
+# presented a new one.
 if [ "$family" = zypper ]; then
   bash "$zypper_refresh" "$out/host-refresh.log" \
     || { tail -n 40 "$out/host-refresh.log"; echo "FAILED: the build container's repositories did not refresh."; exit 3; }

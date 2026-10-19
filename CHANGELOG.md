@@ -285,10 +285,13 @@ with `--check`).
   tried up to three times, as the installs are, and without either failure nothing is changed. Shown on linix in the
   jobs' images by their digests: with the first mirror of the current list mapped to the dead mirror's address, or
   with no mapping where it was listed first, the refresh of Leap 16.0 and Tumbleweed, x86_64 and aarch64, and of
-  the aarch64 sysroot failed, then refreshed every repository from the origin with no mirror-list request;
-  `srcpkg-install.sh` and `rpm-install-test.sh` installed and tested 6.3.7's packages from there, and `rpm-build.sh`
-  built Tumbleweed's aarch64 package after it; with the mirror refused the refresh passed and changed nothing. `hmailserver/docs/PackagesRpm.md`'s openSUSE section says so,
-  and `SourcePackages.md` names the refresh.
+  both aarch64 sysroots, their repositories given over http (the https mirror lists they use named no such mirror),
+  failed, then refreshed the repositories on those two hosts from the origin with no mirror-list request - all but
+  the key Leap 16.0's repositories name on `cdn.opensuse.org`, which came from that host itself - and the openh264
+  codec's, on `codecs.opensuse.org` and left as it was, from there as before; `srcpkg-install.sh` and
+  `rpm-install-test.sh` installed and tested 6.3.7's packages with what they require from the origin, and
+  `rpm-build.sh` built Tumbleweed's aarch64 package after it; with the mirror refused the refresh passed and changed
+  nothing. `hmailserver/docs/PackagesRpm.md`'s openSUSE section says so, and `SourcePackages.md` names the refresh.
 
 ### Documentation
 

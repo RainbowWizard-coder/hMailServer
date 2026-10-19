@@ -124,8 +124,9 @@ server_rpm=$(ls "$dir"/hmailserver-[0-9]*.x86_64.rpm)
 cli_rpm=$(ls "$dir"/hmailserver-cli-*.noarch.rpm)
 
 step "install the two packages, with what they require from $PRETTY_NAME"
-# zypper's repositories first, by zypper-refresh.sh, which points them at
-# openSUSE's origin when a mirror serves a wrong file and says so.
+# zypper's repositories first, by zypper-refresh.sh, which points those on
+# download.opensuse.org or cdn.opensuse.org at openSUSE's origin when a mirror
+# serves a wrong file and says so.
 if [ "$family" = zypper ]; then
   bash build/ci/packages/zypper-refresh.sh /tmp/hm-refresh.log \
     || { tail -n 30 /tmp/hm-refresh.log; fail "zypper could not refresh $PRETTY_NAME's repositories"; }

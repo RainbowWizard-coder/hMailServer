@@ -136,9 +136,9 @@ install_packages() {
 }
 
 step "the packaging tools, with the network"
-# zypper's repositories first, by zypper-refresh.sh, which points them at
-# openSUSE's origin when a mirror serves a wrong file and says so; the installs
-# below find them fresh.
+# zypper's repositories first, by zypper-refresh.sh, which points those on
+# download.opensuse.org or cdn.opensuse.org at openSUSE's origin when a mirror
+# serves a wrong file and says so; the installs below find them fresh.
 if [ "$family" = zypper ]; then
   bash build/ci/packages/zypper-refresh.sh "$out/refresh.log" \
     || { tail -n 30 "$out/refresh.log"; fail "zypper could not refresh $PRETTY_NAME's repositories"; }

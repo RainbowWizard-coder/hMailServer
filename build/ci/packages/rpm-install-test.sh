@@ -106,9 +106,10 @@ retry_fetch() {
   return 1
 }
 # zypper's repositories are refreshed before the first install by
-# zypper-refresh.sh, which points them at openSUSE's origin when a mirror serves
-# a wrong file and says so; zypper trusts only the keys the image already holds:
-# nothing is auto-imported. dnf without weak dependencies: the converters are
+# zypper-refresh.sh, which points those on download.opensuse.org or
+# cdn.opensuse.org at openSUSE's origin when a mirror serves a wrong file and
+# says so; zypper trusts only the keys the image already holds: nothing is
+# auto-imported. dnf without weak dependencies: the converters are
 # required on Fedora and EL. zypper with them, as a system installs
 # (solver.onlyRequires off, its default; the images set it on): on openSUSE the
 # converters are a recommendation, rpm -Uvh being the live update's install there.
