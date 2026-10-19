@@ -506,10 +506,10 @@ particular, check five things:
     "Signing, and who installs this release by the live update"). A server
     from 6.2.28 to 6.3.3 is upgraded by hand, once, after the backup
     `hmailserver/docs/Upgrading.md` describes: it trusts only the GitHub
-    workflow that signed the releases up to 6.3.3, so its live update refuses a
-    release signed on GitLab, even with the `UpdateFeedUrl` line that points it
-    at the feed; so is a server installed from an AArch64 package or an
-    AppImage whose last release was 6.3.3. After that one upgrade the server
+    workflow that signed the releases from 6.2.19 to 6.3.3, so its live update
+    refuses a release signed on GitLab, even with the `UpdateFeedUrl` line that
+    points it at the feed; so is a server installed from an AArch64 package or
+    an AppImage whose last release was 6.3.3. After that one upgrade the server
     trusts the group's signer and reads the feed without the line
     (`hmailserver/docs/UpdateFeed.md`, "A server from 6.2.28 to 6.3.3").
 

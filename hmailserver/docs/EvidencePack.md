@@ -408,10 +408,10 @@ as the same pipeline ([ContainerImage.md](ContainerImage.md)); the first image i
 have none. The rest of the row is in this tree too: an installed server's update check reads the project's own feed,
 https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
-signers - the GitHub workflow identity for the releases up to 6.3.3, and this
-project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). Every
-release from 6.3.5 on has been signed on GitLab, by its tag's pipeline. A server
-from 6.2.28 to 6.3.3 still reads
+signers - the GitHub workflow identity for the releases from 6.2.19 to 6.3.3,
+and this project's GitLab CI pipeline for those from 6.3.5
+(`SigstoreVerifier.cpp`). Every release from 6.3.5 on has been signed on GitLab,
+by its tag's pipeline. A server from 6.2.28 to 6.3.3 still reads
 the suspended account's GitHub address, which the project's return to GitHub does
 not bring back, until one line of its settings points it at the feed
 (UpdateFeed.md).

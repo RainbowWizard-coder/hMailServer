@@ -378,9 +378,12 @@ with `--check`).
   say so beside the range, where EvidencePack.md also said that the `release-sign` and `release-verify` jobs had not
   run yet and that the GitLab release jobs make no provenance: they have signed every release from 6.3.5, and from
   6.3.6 `release-sbom` and `release-sign` make the release's own, `hmailserver-<version>.intoto.sigstore.json`.
-  README.md's *Quality gates* said every release ships SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the
-  five earlier releases that carry an installer having a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply
-  chain*, which lists the five, as RegulatoryScope.md's sentence does.
+  GOVERNANCE.md's note on keyless signing, RELEASE.md's step on who installs a security release by the live update and
+  EvidencePack.md's account of the two signers that update trusts say that the GitHub workflow signed the releases
+  from 6.2.19 to 6.3.3, where they said the releases up to 6.3.3. README.md's *Quality gates* said every release ships
+  SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the five earlier releases that carry an installer having
+  a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply chain*, which lists the five, as RegulatoryScope.md's
+  sentence does.
 
 - **CommandLine.md's two queue examples filter on `tries`, the field a queue item has.** `hmctl queue list --json |
   jq '.[] | select(.retry_count > 3)'` and `Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery`

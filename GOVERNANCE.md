@@ -408,8 +408,8 @@ committed to this repository and documented — in
 on knowledge that exists only in one maintainer's head.
 
 Note that release-asset signing is **keyless** (Sigstore, via the CI's OIDC
-token: GitHub's for the releases up to 6.3.3, GitLab's from 6.3.5), so
-there is no private key behind it to inherit or to lose, which removes the
+token: GitHub's for the releases from 6.2.19 to 6.3.3, GitLab's from 6.3.5),
+so there is no private key behind it to inherit or to lose, which removes the
 single most common continuity failure for a small project. Release *tags* are
 signed with the owner's own SSH key, the one key
 [.gitlab/allowed_signers](.gitlab/allowed_signers) may hold, Christopher
