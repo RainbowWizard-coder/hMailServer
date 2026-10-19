@@ -29,4 +29,4 @@
 # then put this file's three header lines back at the top of the output.
 PyYAML==6.0.3
 jsonschema==4.26.0
-playwright==1.63.0
+playwright==1.64.0

@@ -14,4 +14,4 @@
 #
 # then run build/ci/semgrep.sh and regenerate its baseline if the new version finds
 # something the old one did not (docs/ContinuousIntegration.md, "Security scanning").
-semgrep==1.178.0
+semgrep==1.181.0

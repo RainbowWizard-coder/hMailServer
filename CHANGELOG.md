@@ -159,6 +159,24 @@ with `--check`).
   `dotnet restore -r win-arm64` keeps the project's own `win-x64` beside it and writes a section the publish does not.
   ControlPanel.Tests passes 4,572 of 4,572 tests, DBSetup.Tests 45 of 45 and ImportTool.Tests 15 of 15.
 
+- **Semgrep 1.181.0 and PyJWT 2.15.1 for the semgrep job, Playwright 1.64.0 for the build scripts, and the VEX
+  document's twelve PyJWT 2.13.0 statements retired.** Renovate's Python merge request of 19 October 2026 moved the
+  two `.in` files; `build/ci/requirements.txt` and `build/requirements-dev.txt` are remade with the `uv pip compile`
+  command each file's header gives, in the `python:3.14-slim-trixie` image the semgrep job runs in, at the digest it
+  pins. Semgrep 1.179.0 allows PyJWT 2.15 and later where 1.178.0 held it to 2.13, so the semgrep job's PyJWT moves
+  from 2.13.0 to 2.15.1; nothing else in either file moves (Semgrep 1.181.0 still pins mcp 1.29.0, OpenTelemetry 1.37
+  and click 8.4). With PyJWT 2.13.0 gone, the twelve statements that dismissed its advisories, each fixed in 2.14.0 or
+  2.15.0, are taken out of `.gitlab/hmailserver.openvex.json`. OSV names no advisory against PyJWT 2.15.1. Of the
+  three advisories GitHub's Dependabot listed against `build/ci/requirements.txt` on 18 October 2026 with no
+  statement, two are PyJWT 2.13.0's - inconsistent OKP keys, fixed in 2.15.0, and the reuse of a caller's options,
+  which affects 2.11.0 to 2.13.0 - and the new file has neither; the third, against mcp 1.29.0 (medium, fixed in
+  1.30.0), is the Streamable HTTP server's unbounded sessions, and since Semgrep pins mcp 1.29.0 it gets a statement:
+  Semgrep serves MCP only from its `semgrep mcp` command, and the job runs `semgrep scan` alone. Run with
+  build/ci/semgrep.sh on the same day, rules and tree, Semgrep 1.178.0 and 1.181.0 give the same 125 findings, all in
+  the baseline, and the same 35 warnings; the release notes of 1.179.0 to 1.181.0 change Python's parsing of `except
+  A, B:` (PEP 758) and nothing in C#, JavaScript or shell that the job reads. Playwright 1.64.0, which no job
+  installs, adds WebMCP and video options; both files install with `pip --require-hashes`, the second on Windows too.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
