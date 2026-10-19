@@ -220,6 +220,18 @@ with `--check`).
   matching disables both moves and keeps both images' digest moves, where `master`'s file let them through. The merge
   request itself is not taken by this change. ContinuousIntegration.md's "What stays put" gives both rules.
 
+- **The in-server test of the TCP/IP service's lifetime waits for a port to listen before it holds one's handler.**
+  `IOServiceLifetimeTester`'s second case, a handler held on a listener's strand, looked once for a listening port
+  the moment its first case had started the servers again, and a start can return before any port listens: the
+  listeners are made by `IOService::DoWork`, the service's own task on the main server queue, which sets the event
+  `StartServers` waits for before it makes the first of them. On bench150 the case found none on 17 October 2026, and
+  on 18 October 2026 in two runs in a row ("no port of the TCP/IP service was listening."), on the 17th with "Servers
+  started." logged 35 milliseconds before the service's task began the first listener's first accept. On the 17th a
+  retry passed; on the 18th neither run was retried, and the bench's next run, in the next pipeline, passed; on 19
+  October 2026 it failed so once more, in `master`'s pipeline, with "Servers started." logged 5 milliseconds before
+  the first accept, and a retry passed. It now waits up to five seconds, by the steady clock, for a port to listen,
+  and says how long it waited when none does. Nothing else in the test, and nothing in the server, changes.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a

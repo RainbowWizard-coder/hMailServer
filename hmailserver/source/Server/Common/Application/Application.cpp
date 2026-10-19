@@ -3935,7 +3935,15 @@ namespace HM
       // OnClientConnect script, on one of the TCP/IP service's own threads -
       // those of the IOCP queue, which is given the service to keep alive
       // (IOService::DoWork).
+      //
+      // Looked for over a few seconds, not once: the listeners are made by that
+      // DoWork, the service's own task on a thread of the main server queue,
+      // which sets the event StartServers waits for before it makes the first
+      // of them, so the start that ends TestAQueueTaskHeld_ can return - and
+      // say "Servers started." - before any port listens.
+      const int listenerWaitSeconds = 5;
       std::shared_ptr<TCPServer> listener;
+      WaitUntil(std::chrono::seconds(listenerWaitSeconds), [&service, &listener]()
       {
          boost::lock_guard<boost::mutex> guard(service->tcp_servers_mutex_);
          for (const std::shared_ptr<TCPServer> &candidate : service->tcp_servers_)
@@ -3943,13 +3951,15 @@ namespace HM
             if (candidate->IsListening())
             {
                listener = candidate;
-               break;
+               return true;
             }
          }
-      }
+
+         return false;
+      });
 
       if (!listener)
-         return _T("no port of the TCP/IP service was listening.");
+         return Formatter::Format(_T("no port of the TCP/IP service was listening {0} seconds after the servers had started."), listenerWaitSeconds);
 
       const IPAddress address = listener->GetAddress();
       const int port = listener->GetPort();
