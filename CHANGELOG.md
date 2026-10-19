@@ -140,7 +140,8 @@ with `--check`).
   on a server holding a refuse threshold at or below its mark threshold, and refused every save from the page until
   the pair was changed.** The server takes any pair: COM's `SpamMarkThreshold` and `SpamDeleteThreshold` and the
   REST API's `spam_mark_threshold` and `spam_delete_threshold` check neither against the other, and the server tests
-  the refuse threshold first, so that such a pair refuses every message that reaches it, and a white
+  the refuse threshold first, so that such a pair refuses every message that reaches it, or holds it while the
+  quarantine is on, and a white
   domain's message, which it does not refuse, is marked only where its score reaches the mark threshold; the
   regression suite leaves both at 10000. The page's check of the pair, which refuses a refuse threshold
   at or below a mark threshold above 0 as the two are typed, also ran as the page opened, on the pair as read, so
