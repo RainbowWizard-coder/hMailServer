@@ -2086,6 +2086,12 @@ namespace hMailServer.ControlPanel.Views
       // save shows whatever tab it was made from (Save_).
       private ComText thresholdField_;
 
+      // The mark threshold's field, and the pair the server holds - as the page read
+      // it, and as the last save that wrote every row left it - which the check does
+      // not refuse, whatever it is: the server takes any pair (WireThresholdCheck_).
+      private ComText thresholdMarkField_;
+      private (int Mark, int Refuse) thresholdsHeld_;
+
       // What each editor held once the page settled after it was read, or after the
       // last save, so that a save says what it changed rather than how many rows it
       // wrote (review finding F263).
@@ -7243,13 +7249,21 @@ namespace hMailServer.ControlPanel.Views
       /// would only mark - the server tests the refuse threshold first - and is
       /// refused on its field, and a save then writes nothing; either at 0 is warned
       /// of under the two, since 0 there means "never". The pair saved silently
-      /// (review finding F263).
+      /// (review finding F263). The pair the server holds is not refused: the server
+      /// takes any pair, over COM and the REST API alike, and the check ran as the
+      /// page opened, so a server holding one at or below the mark - the regression
+      /// suite leaves both at 10000 - opened the page with the refuse threshold in
+      /// error and refused every save from it, of any setting, until the pair was
+      /// changed. That pair is said under the two, as the overview's verdict says it,
+      /// and saved as it is; an edit that makes or keeps such a pair is refused
+      /// (SpamPipeline.ThresholdProblem).
       /// </summary>
       private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)
       {
          thresholdProblem_ = null;
          thresholdRefusal_ = null;
          thresholdField_ = null;
+         thresholdMarkField_ = null;
 
          // The warning's row, collapsed until the check has something to say - and for
          // good where the thresholds could not be read, which leaves nothing to check.
@@ -7261,18 +7275,16 @@ namespace hMailServer.ControlPanel.Views
 
          Wpf.Ui.Controls.NumberBox markBox = mark.Number, refuseBox = refuse.Number;
          thresholdField_ = refuse;
+         thresholdMarkField_ = mark;
 
-         // The box's words, which lead its value while it is typed in.
-         static int ValueOf_(Wpf.Ui.Controls.NumberBox box)
-            => int.TryParse((box.Text ?? "").Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.CurrentCulture, out int typed)
-               ? typed
-               : (int)(box.Value ?? 0);
+         // The pair as the server holds it, which the boxes were filled with.
+         thresholdsHeld_ = (ThresholdTyped_(markBox), ThresholdTyped_(refuseBox));
 
          void Check()
          {
-            int markAt = ValueOf_(markBox), refuseAt = ValueOf_(refuseBox);
+            int markAt = ThresholdTyped_(markBox), refuseAt = ThresholdTyped_(refuseBox);
 
-            thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt);
+            thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt, thresholdsHeld_.Mark, thresholdsHeld_.Refuse);
             if (refuseBox.Parent is Scaffold.FieldRow row)
                row.Error = thresholdProblem_;
 
@@ -7284,7 +7296,8 @@ namespace hMailServer.ControlPanel.Views
                thresholdRefusal_ = null;
             }
 
-            string warning = SpamPipeline.ThresholdWarning(markAt, refuseAt);
+            // The pair refused is said on its field, and not again under the two.
+            string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt) : null;
             notice.Notice.Text = warning;
             shown.Visibility = warning == null ? Visibility.Collapsed : Visibility.Visible;
          }
@@ -7299,6 +7312,12 @@ namespace hMailServer.ControlPanel.Views
 
          Check();
       }
+
+      /// <summary>A threshold box's words, which lead its value while it is typed in.</summary>
+      private static int ThresholdTyped_(Wpf.Ui.Controls.NumberBox box)
+         => int.TryParse((box.Text ?? "").Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.CurrentCulture, out int typed)
+            ? typed
+            : (int)(box.Value ?? 0);
 
       private static void WireChaChaDependency(ComBool preferServer, ComBool chacha, ComBool tls12, ComBool tls13)
       {
@@ -7705,6 +7724,10 @@ namespace hMailServer.ControlPanel.Views
          {
             Services.Toast.Success(saveSentence);
             RecordBaseline_();
+
+            // The pair the server now holds, which the thresholds' check takes as held.
+            if (thresholdMarkField_?.Number != null && thresholdField_?.Number != null)
+               thresholdsHeld_ = (ThresholdTyped_(thresholdMarkField_.Number), ThresholdTyped_(thresholdField_.Number));
          }
          else
             Services.Toast.Failure(Plural(failed, "{0} setting could not be written.", "{0} settings could not be written."), L("Partly saved"));

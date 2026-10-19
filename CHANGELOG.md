@@ -136,6 +136,20 @@ with `--check`).
   already: the route answers `unknown` for 0 and its schema says that it behaves as file, which the Deck shows
   beside the list, and the Deck sends only a field that was changed.
 
+- **Fixed: the Control Panel's Anti-spam settings opened with "The refuse threshold must be above the mark threshold"
+  on a server holding a refuse threshold at or below its mark threshold, and refused every save from the page until
+  the pair was changed.** The server takes any pair: COM's `SpamMarkThreshold` and `SpamDeleteThreshold` and the
+  REST API's `spam_mark_threshold` and `spam_delete_threshold` check neither against the other, and the server tests
+  the refuse threshold first, so that such a pair refuses every message that reaches it and marks a white domain's
+  instead; the regression suite leaves both at 10000. The page's check of the pair, which refuses a refuse threshold
+  at or below a mark threshold above 0 as the two are typed, also ran as the page opened, on the pair as read, so
+  that the field opened in error and a save of any setting on any of the page's tabs wrote nothing. The pair the
+  server holds is now shown without an error and saved as it is, with a Warning under the two saying what it does -
+  the overview's verdict, "A message scoring 10000 or more is refused (550 before the body, 554 after it). None is
+  only marked: the mark threshold, 10000, is not below that." - and an edit that makes or keeps such a pair is
+  refused on its field as before; after a save that wrote every row, the pair saved is the one held.
+  `AntiSpamPageTests` holds the rule and the page's wiring.
+
 ### Build and tests
 
 - **The administrator-update testers say why a fixture could not be used, and on which computer.**

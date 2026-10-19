@@ -83,8 +83,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData(5, 20, false, null)]
-      [InlineData(5, 5, true, null)]
-      [InlineData(20, 5, true, null)]
+      [InlineData(5, 5, true, "A message scoring 5 or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, 5, is not below that.")]
+      [InlineData(20, 5, true, "A message scoring 5 or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, 20, is not below that.")]
       [InlineData(0, 20, false, "The mark threshold is 0, so no message is marked as spam: 0 means never.")]
       [InlineData(5, 0, false, "The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")]
       [InlineData(0, 0, false, "Both thresholds are 0, so no score marks, refuses or holds any message.")]
@@ -95,6 +95,34 @@ namespace hMailServer.ControlPanel.Tests.Services
          if (refused)
             Assert.Contains(mark.ToString(System.Globalization.CultureInfo.InvariantCulture), problem, StringComparison.Ordinal);
          Assert.Equal(warning, SpamPipeline.ThresholdWarning(mark, refuse));
+      }
+
+      /// <summary>
+      /// The server takes any pair of thresholds - COM's put_SpamMarkThreshold and
+      /// put_SpamDeleteThreshold and the REST API's settings rows check neither against
+      /// the other - and the regression suite leaves both at 10000; the page checked the
+      /// pair as it opened, so on such a server it opened with "The refuse threshold must
+      /// be above the mark threshold" on the field and refused every save. The pair the
+      /// server holds is not refused, whatever it is, and is said under the two; an edit
+      /// that makes or keeps a pair at or below the mark is refused as before.
+      /// </summary>
+      [Theory]
+      [InlineData(10000, 10000, 10000, 10000, false)]
+      [InlineData(20, 5, 20, 5, false)]
+      [InlineData(10000, 10000, 10000, 9000, true)]
+      [InlineData(10000, 10000, 10000, 10001, false)]
+      [InlineData(5, 20, 5, 5, true)]
+      [InlineData(5, 20, 20, 20, true)]
+      [InlineData(5, 20, 5, 30, false)]
+      [InlineData(5, 20, 0, 20, false)]
+      public void ThePairTheServerHolds_IsNotRefused_AndAnEditThatContradictsItselfIs(int heldMark, int heldRefuse, int mark, int refuse, bool refused)
+      {
+         Assert.Equal(refused, SpamPipeline.ThresholdProblem(mark, refuse, heldMark, heldRefuse) != null);
+
+         // As read, the bench's pair opens the page with no error and says what it does.
+         Assert.Null(SpamPipeline.ThresholdProblem(heldMark, heldRefuse, heldMark, heldRefuse));
+         if (heldMark > 0 && heldRefuse > 0 && heldRefuse <= heldMark)
+            Assert.Contains("None is only marked", SpamPipeline.ThresholdWarning(heldMark, heldRefuse), StringComparison.Ordinal);
       }
 
       [Fact]
@@ -110,9 +138,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          string page = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          string check = WithheldRowTests.MemberText(page, "private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)");
          Assert.True(check != null, "ServerSettingsView.WireThresholdCheck_ is gone.");
-         Assert.Contains("thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt);", check, StringComparison.Ordinal);
+         Assert.Contains("thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt, thresholdsHeld_.Mark, thresholdsHeld_.Refuse);", check, StringComparison.Ordinal);
          Assert.Contains("row.Error = thresholdProblem_;", check, StringComparison.Ordinal);
-         Assert.Contains("string warning = SpamPipeline.ThresholdWarning(markAt, refuseAt);", check, StringComparison.Ordinal);
+         Assert.Contains("string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt) : null;", check, StringComparison.Ordinal);
+
+         // The pair held is the one the boxes were filled with, taken before the first
+         // check, which runs as the page opens.
+         int held = check.IndexOf("thresholdsHeld_ = (ThresholdTyped_(markBox), ThresholdTyped_(refuseBox));", StringComparison.Ordinal);
+         int first = check.LastIndexOf("Check();", StringComparison.Ordinal);
+         Assert.True(held >= 0 && first > held, "WireThresholdCheck_ does not take the pair the server holds before its first check.");
 
          // A save writes nothing while the pair is refused.
          string save = WithheldRowTests.MemberText(page, "private bool Save_()");
@@ -135,6 +169,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          int notice = save.IndexOf("ShowNotice_(thresholdRefusal_, StatusLevel.Critical);", StringComparison.Ordinal);
          int reveal = save.IndexOf("RevealSetting(thresholdField_.Path, null);", StringComparison.Ordinal);
          Assert.True(notice >= 0 && reveal > notice && reveal < write, "A refused save does not show the refuse threshold.");
+
+         // A save that wrote every row makes what it wrote the pair held.
+         int baseline = save.IndexOf("RecordBaseline_();", StringComparison.Ordinal);
+         int heldAfter = save.IndexOf("thresholdsHeld_ = (ThresholdTyped_(thresholdMarkField_.Number), ThresholdTyped_(thresholdField_.Number));", StringComparison.Ordinal);
+         Assert.True(baseline >= 0 && heldAfter > baseline, "A save does not take the pair it wrote as the pair held.");
 
          // The sentence after a save names what it changed.
          Assert.Contains("ServerSettingsPageStatus.SavedChangesSentence(changed, failed, DateTime.Now.ToLongTimeString(), waiting)", save, StringComparison.Ordinal);

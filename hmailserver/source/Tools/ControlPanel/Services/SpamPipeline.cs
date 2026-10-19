@@ -497,7 +497,30 @@ namespace hMailServer.ControlPanel.Services
             ? F("The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead.", mark)
             : null;
 
-      /// <summary>What a threshold at 0 means, said under the two on the settings page; null while both are above 0.</summary>
+      /// <summary>
+      /// What the page refuses of the pair typed in, given the pair the server holds:
+      /// nothing while the two are what it holds, whatever they are, and otherwise what
+      /// <see cref="ThresholdProblem(int, int)"/> refuses. The server takes any pair -
+      /// COM's put_SpamMarkThreshold and put_SpamDeleteThreshold and the REST API's
+      /// spam_mark_threshold and spam_delete_threshold check neither against the other -
+      /// and acts on one at or below the mark as it always has, refusing what reaches
+      /// it, a white domain's message being marked instead; the regression suite leaves
+      /// both at 10000. Refused as it was read, such a pair opened the page in error,
+      /// every save from it refused until the pair was changed, where the rule is for
+      /// an edit: a pair typed in is refused, the one the server holds is said
+      /// (<see cref="ThresholdWarning"/>) and saved as it is.
+      /// </summary>
+      public static string ThresholdProblem(int mark, int refuse, int heldMark, int heldRefuse)
+         => mark == heldMark && refuse == heldRefuse ? null : ThresholdProblem(mark, refuse);
+
+      /// <summary>
+      /// What the pair means where it does not do what the two names say, said under
+      /// them on the settings page: a threshold at 0 means never, and a refuse
+      /// threshold at or below a mark threshold above 0 - a pair the server holds,
+      /// which the page does not refuse (<see cref="ThresholdProblem(int, int, int, int)"/>) -
+      /// refuses every message the mark would mark, as the overview's verdict says.
+      /// Null while both are above 0 and the refuse threshold is above the mark.
+      /// </summary>
       public static string ThresholdWarning(int mark, int refuse)
          => mark <= 0 && refuse <= 0
             ? L("Both thresholds are 0, so no score marks, refuses or holds any message.")
@@ -505,7 +528,13 @@ namespace hMailServer.ControlPanel.Services
             ? L("The mark threshold is 0, so no message is marked as spam: 0 means never.")
             : refuse <= 0
             ? L("The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")
+            : refuse <= mark
+            ? RefusedNoneMarked_(refuse, mark)
             : null;
+
+      /// <summary>The verdict on a refuse threshold at or below a mark threshold above 0.</summary>
+      private static string RefusedNoneMarked_(int refuse, int mark)
+         => F("A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that.", refuse, mark);
 
       /// <summary>
       /// What the total score does to the message, in one sentence, including the
@@ -530,7 +559,7 @@ namespace hMailServer.ControlPanel.Services
          // delivered; 10000 or more is refused" said both of one message.
          if (marks && refuses && config.DeleteThreshold <= config.MarkThreshold)
          {
-            return F("A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that.", config.DeleteThreshold, config.MarkThreshold);
+            return RefusedNoneMarked_(config.DeleteThreshold, config.MarkThreshold);
          }
 
          if (marks && refuses)
