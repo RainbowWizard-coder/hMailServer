@@ -504,11 +504,11 @@ namespace hMailServer.ControlPanel.Services
       /// COM's put_SpamMarkThreshold and put_SpamDeleteThreshold and the REST API's
       /// spam_mark_threshold and spam_delete_threshold check neither against the other -
       /// and acts on one at or below the mark as it always has, refusing what reaches
-      /// it, a white domain's message being marked instead; the regression suite leaves
-      /// both at 10000. Refused as it was read, such a pair opened the page in error,
-      /// every save from it refused until the pair was changed, where the rule is for
-      /// an edit: a pair typed in is refused, the one the server holds is said
-      /// (<see cref="ThresholdWarning"/>) and saved as it is.
+      /// it, a white domain's message being marked at the mark threshold instead; the
+      /// regression suite leaves both at 10000. Refused as it was read, such a pair
+      /// opened the page in error, every save from it refused until the pair was
+      /// changed, where the rule is for an edit: a pair typed in is refused, the one
+      /// the server holds is said (<see cref="ThresholdWarning"/>) and saved as it is.
       /// </summary>
       public static string ThresholdProblem(int mark, int refuse, int heldMark, int heldRefuse)
          => mark == heldMark && refuse == heldRefuse ? null : ThresholdProblem(mark, refuse);
