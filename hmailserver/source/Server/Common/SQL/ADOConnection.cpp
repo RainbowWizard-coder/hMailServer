@@ -536,7 +536,7 @@ namespace HM
          // A connection problem is returned so DALConnection::Execute reconnects
          // and tries again, and reports the statement as failed if it cannot.
          if (dbErr != DALConnection::DALConnectionProblem &&
-             HasIgnoreErrorsMarker(queryString))
+             HasIgnoreErrorsMarker(queryString, GetBackslashEscapesInLiterals()))
          {
             if (rowsAffected != nullptr)
                *rowsAffected = 0;

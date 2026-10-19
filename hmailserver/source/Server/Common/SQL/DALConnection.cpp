@@ -5,10 +5,14 @@
 #include "stdafx.h"
 
 #include "DALConnection.h"
+#include "DatabaseConnectionManager.h"
 #include "DatabaseSettings.h"
 #include "DatabaseTls.h"
 #include "../Cache/CacheContainer.h"
 #include "../Util/Unicode.h"
+
+#include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -147,8 +151,58 @@ namespace HM
       return Unicode::ToUtf8Exact(value, bytes);
    }
 
+   int
+   DALConnection::EndOfLiteral(const String &sql, int open, bool backslashEscapes)
+   {
+      const int length = sql.GetLength();
+
+      bool escapes = backslashEscapes;
+
+      if (!escapes && open > 0 && (sql[open - 1] == _T('E') || sql[open - 1] == _T('e')))
+      {
+         // PostgreSQL's escape string, unless the E ends a longer word.
+         bool endsWord = false;
+
+         if (open > 1)
+         {
+            const TCHAR before = sql[open - 2];
+            endsWord = (before >= _T('a') && before <= _T('z')) || (before >= _T('A') && before <= _T('Z')) ||
+                       (before >= _T('0') && before <= _T('9')) || before == _T('_') || before == _T('$') ||
+                       (unsigned int) before > 127;
+         }
+
+         escapes = !endsWord;
+      }
+
+      for (int i = open + 1; i < length; i++)
+      {
+         const TCHAR c = sql[i];
+
+         if (escapes && c == _T('\\'))
+         {
+            // The character after it cannot close the literal.
+            i++;
+            continue;
+         }
+
+         if (c == _T('\''))
+         {
+            if (i + 1 < length && sql[i + 1] == _T('\''))
+            {
+               // Doubled '' - still inside the literal.
+               i++;
+               continue;
+            }
+
+            return i;
+         }
+      }
+
+      return length;
+   }
+
    bool
-   DALConnection::HasIgnoreErrorsMarker(const String &sql)
+   DALConnection::HasIgnoreErrorsMarker(const String &sql, bool backslashEscapes)
    {
       // See the comment on the declaration in DALConnection.h for why this is a
       // scan rather than a Find().
@@ -156,38 +210,12 @@ namespace HM
       const int markerLength = marker.GetLength();
       const int length = sql.GetLength();
 
-      bool inLiteral = false;
       bool inLineComment = false;
       bool inBlockComment = false;
 
       for (int i = 0; i < length; i++)
       {
          TCHAR c = sql[i];
-
-         if (inLiteral)
-         {
-            if (c == _T('\\') && i + 1 < length)
-            {
-               // Backslash escape (MySQL default sql_mode): the next character
-               // cannot close the literal.
-               i++;
-               continue;
-            }
-
-            if (c == _T('\''))
-            {
-               if (i + 1 < length && sql[i + 1] == _T('\''))
-               {
-                  // Doubled '' - still inside the literal.
-                  i++;
-                  continue;
-               }
-
-               inLiteral = false;
-            }
-
-            continue;
-         }
 
          if (inLineComment)
          {
@@ -210,7 +238,8 @@ namespace HM
          {
             if (c == _T('\''))
             {
-               inLiteral = true;
+               // Past the literal, to its closing quote (the loop steps over it).
+               i = EndOfLiteral(sql, i, backslashEscapes);
                continue;
             }
 
@@ -310,6 +339,110 @@ namespace HM
       return true;
    }
 
+   void
+   SqlLiteralScanTester::Test()
+   {
+      struct Engine
+      {
+         const char *name;
+         bool backslashEscapes;
+         const TCHAR *prefix;
+      };
 
+      // Each engine's reading of a literal, and the prefix it is written with:
+      // N'...' on SQL Server and Compact (PersistentMessageMetaData::SaveObject).
+      const Engine engines[] =
+      {
+         { "MySQL", true, _T("") },
+         { "PostgreSQL with standard_conforming_strings off", true, _T("") },
+         { "PostgreSQL with standard_conforming_strings on", false, _T("") },
+         { "SQL Server and Compact", false, _T("N") },
+      };
+
+      const TCHAR *values[] =
+      {
+         _T(""), _T("plain"), _T("ends in a backslash\\"), _T("\\"), _T("\\\\"), _T("a\\'b"), _T("'"), _T("''"),
+         _T("it's"), _T("/* [IGNORE-ERRORS] */"), _T("-- [IGNORE-ERRORS]"), _T("*/ [IGNORE-ERRORS] /*"),
+         _T("\\' /* [IGNORE-ERRORS] */ '"), _T("x\\\\' -- [IGNORE-ERRORS]"), _T("E'\\' /* [IGNORE-ERRORS] */"),
+      };
+
+      // No marker, the marker in a block comment, and in a line comment.
+      const TCHAR *suffixes[] = { _T(""), _T(" /* [IGNORE-ERRORS] */"), _T("\n--- [IGNORE-ERRORS]") };
+
+      for (const Engine &engine : engines)
+      {
+         const String masked = String(engine.prefix) + _T("'?'");
+
+         for (const TCHAR *first : values)
+         {
+            for (const TCHAR *second : values)
+            {
+               for (int s = 0; s < 3; s++)
+               {
+                  // Two values as Escape writes them for the engine, the way
+                  // SqlLogDevice's batch and the sort's copy of the headers put
+                  // theirs into a statement.
+                  const String sql = _T("insert into hm_log (a, b, c) values (") +
+                     String(engine.prefix) + _T("'") + SQLStatement::EscapeFor(first, engine.backslashEscapes) + _T("', ") +
+                     String(engine.prefix) + _T("'") + SQLStatement::EscapeFor(second, engine.backslashEscapes) + _T("', 5)") +
+                     suffixes[s];
+                  const String expected = _T("insert into hm_log (a, b, c) values (") + masked + _T(", ") + masked +
+                     _T(", 5)") + suffixes[s];
+
+                  if (DALConnection::HasIgnoreErrorsMarker(sql, engine.backslashEscapes) != (s != 0))
+                     throw std::logic_error(std::string("SqlLiteralScanTester: on ") + engine.name + ", the marker is " +
+                        (s != 0 ? "not found in [" : "found in [") + Unicode::ToUtf8(sql).c_str() + "]");
+
+                  const String redacted = DatabaseConnectionManager::RedactSqlLiterals_(sql, engine.backslashEscapes);
+
+                  if (redacted.Compare(expected) != 0)
+                     throw std::logic_error(std::string("SqlLiteralScanTester: on ") + engine.name + ", [" +
+                        Unicode::ToUtf8(sql).c_str() + "] is masked as [" + Unicode::ToUtf8(redacted).c_str() + "]");
+               }
+            }
+         }
+      }
+
+      struct Reading
+      {
+         const TCHAR *sql;
+         bool backslashEscapes;
+         bool marked;
+         const TCHAR *redacted;
+      };
+
+      // Statements read differently by the engines that take a backslash for an
+      // escape and those that do not; PostgreSQL's E'...', which takes one on
+      // every setting, and a word ending in an e before a literal, which is no
+      // E'...'; a literal nothing closes.
+      const Reading readings[] =
+      {
+         { _T("select 'a\\' /* [IGNORE-ERRORS] */"), false, true, _T("select '?' /* [IGNORE-ERRORS] */") },
+         { _T("select 'a\\' /* [IGNORE-ERRORS] */"), true, false, _T("select '?") },
+         { _T("select E'it\\'s', 'b' /* [IGNORE-ERRORS] */"), false, true, _T("select E'?', '?' /* [IGNORE-ERRORS] */") },
+         { _T("select e'it\\'s /* [IGNORE-ERRORS] */'"), false, false, _T("select e'?'") },
+         { _T("select 1 where a like'x\\' /* [IGNORE-ERRORS] */"), false, true, _T("select 1 where a like'?' /* [IGNORE-ERRORS] */") },
+         { _T("select 'it''s' -- [IGNORE-ERRORS]"), false, true, _T("select '?' -- [IGNORE-ERRORS]") },
+         { _T("select 'abc"), false, false, _T("select '?") },
+         { _T("select '"), true, false, _T("select '") },
+      };
+
+      for (const Reading &reading : readings)
+      {
+         const String sql = reading.sql;
+
+         if (DALConnection::HasIgnoreErrorsMarker(sql, reading.backslashEscapes) != reading.marked)
+            throw std::logic_error(std::string("SqlLiteralScanTester: the marker is ") +
+               (reading.marked ? "not found in [" : "found in [") + Unicode::ToUtf8(sql).c_str() + "]" +
+               (reading.backslashEscapes ? " with backslash escapes" : " without backslash escapes"));
+
+         const String redacted = DatabaseConnectionManager::RedactSqlLiterals_(sql, reading.backslashEscapes);
+
+         if (redacted.Compare(reading.redacted) != 0)
+            throw std::logic_error(std::string("SqlLiteralScanTester: [") + Unicode::ToUtf8(sql).c_str() +
+               "] is masked as [" + Unicode::ToUtf8(redacted).c_str() + "]" +
+               (reading.backslashEscapes ? " with backslash escapes" : " without backslash escapes"));
+      }
+   }
 
 }

@@ -88,6 +88,13 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.7, not yet released
 
+### Security
+
+- **Fixed: the redaction of a statement's literals in the log and the trace, and the test for the marker that lets a
+  statement's error be ignored, now read a literal as each engine does.** `SqlLiteralScanTester` holds both to each
+  engine's reading, inside the server on Windows (`ClassTester`) and in `connection-string-tests` on Linux. Found by
+  the project's own review.
+
 ### Correctness
 
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the

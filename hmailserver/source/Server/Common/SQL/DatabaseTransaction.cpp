@@ -471,7 +471,8 @@ namespace HM
       // PostgreSQL either aborts the transaction, so the statement runs under a
       // savepoint that is rolled back to when it failed.
       const bool ignoreDuplicate = (iIgnoreErrors & DALConnection::DALErrorInSQL) != 0;
-      const bool marked = DALConnection::HasIgnoreErrorsMarker(command.GetQueryString());
+      const bool marked = DALConnection::HasIgnoreErrorsMarker(command.GetQueryString(),
+                                                               connection->GetBackslashEscapesInLiterals());
       const bool savepoint = root->transactional_ && connection->GetFailedStatementEndsTransaction() &&
                              (ignoreDuplicate || marked);
 

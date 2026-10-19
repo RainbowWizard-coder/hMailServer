@@ -214,18 +214,17 @@ namespace HM
    // where a bare '...' is the database's code page. There a backslash that a
    // line break follows inside a literal is a line continuation, and both are
    // dropped - a lone CR or LF reaches a decoded header from an encoded word - so
-   // on those two every backslash is written as NCHAR(92) between two literals,
-   // which keeps the text free of backslashes for the two scanners that read a
-   // statement's literals, DatabaseConnectionManager::RedactSqlLiterals_ and
-   // DALConnection::HasIgnoreErrorsMarker, which take a backslash for an escape
-   // (the re-check of 17 October 2026). A date older than 1800, or none, is
-   // NULL, as SQLStatement::AddColumnDate makes it. The account and folder are
-   // read from the message's row, the ones the indexer's query read. Nothing
-   // reads the row's id after the write, which the INSERT fetched. A failure of
-   // the write - a timeout, a lost connection - is reported with the statement's
-   // text, the fields in it, on SQL Server and Compact as it always was on MySQL
-   // and PostgreSQL. MessageMetaDataTester holds the fields to a verbatim
-   // round trip and a message that is gone to no row.
+   // on those two every backslash is written as NCHAR(92) between two literals.
+   // The two readers of a statement's literals, DatabaseConnectionManager::
+   // RedactSqlLiterals_ and DALConnection::HasIgnoreErrorsMarker, read each
+   // literal as the engine does (DALConnection::EndOfLiteral). A date older
+   // than 1800, or none, is NULL, as SQLStatement::AddColumnDate makes it. The
+   // account and folder are read from the message's row, the ones the indexer's
+   // query read. Nothing reads the row's id after the write, which the INSERT
+   // fetched. A failure of the write - a timeout, a lost connection - is reported
+   // with the statement's text, the fields in it, on SQL Server and Compact as it
+   // always was on MySQL and PostgreSQL. MessageMetaDataTester holds the fields
+   // to a verbatim round trip and a message that is gone to no row.
    //---------------------------------------------------------------------------()
    {
       const DatabaseSettings::SQLDBType databaseType = IniFileSettings::Instance()->GetDatabaseType();

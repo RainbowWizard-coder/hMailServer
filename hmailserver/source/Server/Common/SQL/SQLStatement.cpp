@@ -688,17 +688,29 @@ namespace HM
    String
    SQLStatement::Escape(const String &input)
    {
+      return EscapeFor(input, BackslashEscapesInLiterals());
+   }
+
+   String
+   SQLStatement::EscapeFor(const String &input, bool backslashEscapes)
+   {
       String sRetVal = input;
 
       sRetVal.Replace(_T("'"), _T("''"));
 
-      HM::DatabaseSettings::SQLDBType iType = IniFileSettings::Instance()->GetDatabaseType();
-
-      if (iType == DatabaseSettings::TypeMYSQLServer ||
-          (iType == DatabaseSettings::TypePGServer && !PGConnection::StandardConformingStrings()))
+      if (backslashEscapes)
          sRetVal.Replace(_T("\\"), _T("\\\\"));
 
       return sRetVal;
+   }
+
+   bool
+   SQLStatement::BackslashEscapesInLiterals()
+   {
+      HM::DatabaseSettings::SQLDBType iType = IniFileSettings::Instance()->GetDatabaseType();
+
+      return iType == DatabaseSettings::TypeMYSQLServer ||
+             (iType == DatabaseSettings::TypePGServer && !PGConnection::StandardConformingStrings());
    }
 
    /*

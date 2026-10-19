@@ -75,6 +75,12 @@ namespace HM
       virtual void SetTimeout(int seconds);
 
       virtual bool GetSupportsCommandParameters() const {return false; }
+
+      // A backslash is an escape in MySQL's default sql_mode. Under
+      // NO_BACKSLASH_ESCAPES it is not, but SQLStatement::Escape doubles every
+      // backslash of a value here, and a literal so written ends at the same quote
+      // read either way (DALConnection::EndOfLiteral).
+      virtual bool GetBackslashEscapesInLiterals() const { return true; }
       ColumnPositionCache& GetColumnPositionCache() {return column_position_cache_;}
 
       virtual bool CheckServerVersion(String &errorMessage);

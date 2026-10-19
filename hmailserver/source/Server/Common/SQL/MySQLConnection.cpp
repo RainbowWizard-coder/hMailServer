@@ -518,7 +518,7 @@ namespace HM
                // "This object may already exist" - never "the server did not
                // hear the statement". See DALConnection::HasIgnoreErrorsMarker.
                bool ignoreByMarker = result != DALConnection::DALConnectionProblem &&
-                                     HasIgnoreErrorsMarker(SQL);
+                                     HasIgnoreErrorsMarker(SQL, GetBackslashEscapesInLiterals());
 
                // A caller that passes DALErrorInSQL forgives a row the unique index
                // refused (1062) and nothing else (DALConnection::TryExecute), and

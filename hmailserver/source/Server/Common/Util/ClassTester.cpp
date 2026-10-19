@@ -1061,6 +1061,13 @@ namespace HM
       SQLStatementTester sqlStatementTester;
       sqlStatementTester.Test();
 
+      // The two readers of a statement's literals - the marker test and the
+      // masking of the slow-query line and the trace - each literal read as each
+      // engine reads it (DALConnection::EndOfLiteral).
+      OutputDebugString(_T("hMailServer: Testing the reading of a statement's literals\n"));
+      SqlLiteralScanTester sqlLiteralScanTester;
+      sqlLiteralScanTester.Test();
+
       // The sort's copy of the headers of a message that is gone by the time the
       // indexer writes it: inserted as nothing, against the bench's database.
       OutputDebugString(_T("hMailServer: Testing the write of the sort's copy for a message that is gone\n"));

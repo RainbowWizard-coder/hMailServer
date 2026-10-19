@@ -118,6 +118,12 @@ namespace HM
       virtual LastFailure ClassifyLastFailure(ExecutionResult result);
       virtual void ForgetLastFailure();
       virtual bool GetFailedStatementEndsTransaction() const { return true; }
+
+      // A backslash is an escape in a '...' literal only while the server says
+      // standard_conforming_strings is off (StandardConformingStrings), as
+      // SQLStatement::Escape reads it; in an E'...' always (DALConnection::
+      // EndOfLiteral).
+      virtual bool GetBackslashEscapesInLiterals() const { return !StandardConformingStrings(); }
       virtual bool IsTransactionFailed() const;
 
    protected:

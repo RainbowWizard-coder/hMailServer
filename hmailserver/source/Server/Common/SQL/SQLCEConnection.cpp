@@ -677,7 +677,7 @@ namespace HM
          // this backend today, so the test costs nothing here and stops the next
          // person who adds a mapping from re-opening the hole.
          if (dbErr != DALConnection::DALConnectionProblem &&
-             HasIgnoreErrorsMarker(queryString))
+             HasIgnoreErrorsMarker(queryString, GetBackslashEscapesInLiterals()))
          {
             if (rowsAffected != nullptr)
                *rowsAffected = 0;

@@ -119,6 +119,20 @@ namespace HM
       static String GetTopRows(const String &tableName, int rows);
 
       static String Escape(const String &input);
+
+      // Escape's rule for an engine that reads a backslash inside a literal as an
+      // escape (backslashEscapes) or as an ordinary character: every quote
+      // doubled, and every backslash too where it is an escape.
+      static String EscapeFor(const String &input, bool backslashEscapes);
+
+      // Whether a backslash inside a '...' literal is an escape on the database
+      // the server is configured for: on MySQL and MariaDB, and on PostgreSQL
+      // while its server says standard_conforming_strings is off
+      // (PGConnection::StandardConformingStrings); not on SQL Server or Compact.
+      // Escape doubles backslashes then, and the masking of the slow-query line
+      // and the trace reads literals so (DatabaseConnectionManager::
+      // RedactSqlLiterals_).
+      static bool BackslashEscapesInLiterals();
       
       static String ConvertWildcardToLike(String input);
       static String ConvertLikeToWildcard(String input);

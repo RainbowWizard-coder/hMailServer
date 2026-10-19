@@ -339,7 +339,7 @@ namespace HM
             }
 
             bool ignoreByMarker = result != DALConnection::DALConnectionProblem &&
-                                  HasIgnoreErrorsMarker(SQL);
+                                  HasIgnoreErrorsMarker(SQL, GetBackslashEscapesInLiterals());
 
             if (!ignoreByMarker)
             {

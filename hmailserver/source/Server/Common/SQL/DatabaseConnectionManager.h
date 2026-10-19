@@ -142,6 +142,7 @@ namespace HM
    private:
 
       friend class DatabaseConnectionManagerTester;
+      friend class SqlLiteralScanTester;
 
       DALConnection::ConnectionResult Connect_(std::shared_ptr<DatabaseSettings> settings, int connections, String &sErrorMessage);
 
@@ -187,8 +188,10 @@ namespace HM
 
       // Returns the statement text with the contents of every single-quoted string
       // literal replaced by '?', so any value inlined into the SQL is never written
-      // to the slow-query log.
-      static String RedactSqlLiterals_(const String &sql);
+      // to the slow-query log. Each literal is read as the engine reads it
+      // (DALConnection::EndOfLiteral): backslashEscapes is
+      // SQLStatement::BackslashEscapesInLiterals.
+      static String RedactSqlLiterals_(const String &sql, bool backslashEscapes);
  
       boost::recursive_mutex mutex_;
       

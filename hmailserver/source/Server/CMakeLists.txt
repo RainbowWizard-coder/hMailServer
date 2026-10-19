@@ -1065,7 +1065,10 @@ set_target_properties(language-tests PROPERTIES OUTPUT_NAME language-tests)
 # ClassTester, which nothing reaches here. The conninfo the server hands libpq,
 # read back by libpq's own parser: passwords, users and database names with
 # quotes, backslashes and spaces byte for byte, and none moving the host, the port
-# or sslmode. No database, configuration or network. Not installed; a bench tool.
+# or sslmode; and SqlLiteralScanTester (Common/SQL/DALConnection.h), a statement's
+# literals read as each engine reads them by the [IGNORE-ERRORS] marker's test and
+# the masking of the slow-query line and the trace. No database, configuration or
+# network. Not installed; a bench tool.
 add_executable(connection-string-tests ${SERVER_DIR}/platform/connection_string_tests_main.cpp)
 target_link_libraries(connection-string-tests PRIVATE hmailserver_core)
 set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-string-tests)

@@ -75,17 +75,35 @@ namespace HM
       // logged protocol command - so that was reachable from outside, and what it
       // bought the attacker was one silently discarded write.
       //
-      // This scan therefore skips over single-quoted string literals (handling
-      // both the doubled '' and the MySQL backslash escape, so a literal is not
-      // closed early) and honours the marker only where it appears inside a
-      // comment. A value can reach neither.
+      // This scan therefore skips over single-quoted string literals, each read
+      // as the engine reads it (EndOfLiteral, with backslashEscapes the
+      // connection's GetBackslashEscapesInLiterals), and honours the marker only
+      // where it appears inside a comment. A value can reach neither.
       //
       // What it does NOT decide is which errors are then discarded; see the
       // callers. A lost connection is never discarded, because "the statement was
       // already applied" and "the statement never reached the server" are not the
       // same thing, and it was the second one masquerading as the first that
       // stamped schema version 6006 onto databases that had not got the column.
-      static bool HasIgnoreErrorsMarker(const String &sql);
+      static bool HasIgnoreErrorsMarker(const String &sql, bool backslashEscapes);
+
+      // The index of the quote that closes the single-quoted literal whose
+      // opening quote is at open, or the statement's length when none does, read
+      // as the engine reads the literal. A doubled '' is a quote inside it on
+      // every engine. A backslash takes the character after it into the literal
+      // where backslashEscapes says the engine reads it as an escape - MySQL and
+      // MariaDB, and PostgreSQL with standard_conforming_strings off, where
+      // SQLStatement::Escape doubles every backslash of a value (so that a MySQL
+      // server running with NO_BACKSLASH_ESCAPES ends the literal at the same
+      // quote) - and in PostgreSQL's escape string, E'...', an E right before the
+      // quote that is not the end of a longer word, which takes escapes whatever
+      // that setting says. On SQL Server, on Compact and on PostgreSQL with
+      // standard_conforming_strings on, its default since 9.1, a backslash is an
+      // ordinary character, and Escape leaves it as it is. The two readers of a
+      // statement's literals, HasIgnoreErrorsMarker above and the masking of the
+      // slow-query line and the trace (DatabaseConnectionManager::
+      // RedactSqlLiterals_), read them here.
+      static int EndOfLiteral(const String &sql, int open, bool backslashEscapes);
 
       // A value of the connection - the server's name, the user, the password, the
       // database's name - as the bytes a client library is handed for it (libpq's
@@ -222,6 +240,12 @@ namespace HM
       // caller means to ignore needs a savepoint there (DatabaseTransaction).
       virtual bool GetFailedStatementEndsTransaction() const { return false; }
 
+      // Whether a backslash inside a '...' literal escapes the character after it
+      // on this connection's engine (EndOfLiteral): on MySQL and MariaDB, and on
+      // PostgreSQL while the server says standard_conforming_strings is off - not
+      // on SQL Server or Compact. What the backend hands HasIgnoreErrorsMarker.
+      virtual bool GetBackslashEscapesInLiterals() const { return false; }
+
       // Whether the database has ended the transaction BeginTransaction began on
       // this connection, at a statement in it that failed - answered as a failure,
       // or as a success where the [IGNORE-ERRORS] marker or the caller let the
@@ -346,6 +370,20 @@ namespace HM
       // (Reconnect).
       bool transaction_open_;
       bool transaction_session_lost_;
+   };
+
+   // The two readers of a statement's literals - HasIgnoreErrorsMarker and the
+   // masking of the slow-query line and the trace (DatabaseConnectionManager::
+   // RedactSqlLiterals_) - held, for each engine's reading of a literal, to the
+   // literals SQLStatement::Escape writes there: values with backslashes, quotes,
+   // comment delimiters and the marker's text, each literal masked whole and the
+   // marker found where the statement carries it and nowhere else. ClassTester
+   // runs it inside the server on Windows, and connection-string-tests on Linux.
+   // No database or configuration.
+   class SqlLiteralScanTester
+   {
+   public:
+      void Test();
    };
 
 }

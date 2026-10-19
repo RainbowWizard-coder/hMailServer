@@ -567,7 +567,8 @@ namespace HM
       {
          String logLine;
          logLine.Format(_T("Slow database query (%I64u ms): %s"),
-            microseconds / 1000, RedactSqlLiterals_(command.GetQueryString()).c_str());
+            microseconds / 1000,
+            RedactSqlLiterals_(command.GetQueryString(), SQLStatement::BackslashEscapesInLiterals()).c_str());
          LOG_APPLICATION(logLine);
       }
 
@@ -591,7 +592,7 @@ namespace HM
 
          OtelAttribute statement;
          statement.key = "db.statement";
-         statement.value = RedactSqlLiterals_(command.GetQueryString());
+         statement.value = RedactSqlLiterals_(command.GetQueryString(), SQLStatement::BackslashEscapesInLiterals());
          attributes.push_back(statement);
 
          OtelTracer::Instance()->RecordCompletedSpan("db.query", OtelSpanKindClient, microseconds, attributes);
@@ -599,62 +600,38 @@ namespace HM
    }
 
    String
-   DatabaseConnectionManager::RedactSqlLiterals_(const String &sql)
+   DatabaseConnectionManager::RedactSqlLiterals_(const String &sql, bool backslashEscapes)
    {
       // Replace the contents of every single-quoted string literal with a single
-      // '?' so any secret inlined into the statement text is never logged. Handles
-      // the SQL '' escaped quote and the MySQL \' backslash escape so a literal is
-      // not closed prematurely. Over-masking on a malformed/unbalanced quote is
-      // acceptable (it only ever removes more, never less).
+      // '?' so any secret inlined into the statement text is never logged. Each
+      // literal ends at the quote the engine ends it at (DALConnection::
+      // EndOfLiteral), a doubled '' and, where the engine takes one, a backslash
+      // escape inside it. A literal nothing closes masks the rest of the
+      // statement (it only ever removes more, never less).
       String result;
-      int len = sql.GetLength();
-      bool inString = false;
-      bool maskedCurrent = false;
+      const int len = sql.GetLength();
 
       for (int i = 0; i < len; i++)
       {
-         TCHAR c = sql[i];
+         const TCHAR c = sql[i];
+         result += c;
 
-         if (!inString)
-         {
-            result += c;
-            if (c == _T('\''))
-            {
-               inString = true;
-               maskedCurrent = false;
-            }
+         if (c != _T('\''))
             continue;
-         }
 
-         // Inside a string literal.
-         if (c == _T('\\') && i + 1 < len)
+         const int end = DALConnection::EndOfLiteral(sql, i, backslashEscapes);
+
+         if (end >= len)
          {
-            // Backslash escape (MySQL default): consume the escaped character too.
-            i++;
-            if (!maskedCurrent) { result += _T('?'); maskedCurrent = true; }
-            continue;
-         }
-
-         if (c == _T('\''))
-         {
-            if (i + 1 < len && sql[i + 1] == _T('\''))
-            {
-               // Doubled '' escaped quote: still inside the literal.
-               i++;
-               if (!maskedCurrent) { result += _T('?'); maskedCurrent = true; }
-               continue;
-            }
-
-            // Closing quote.
-            if (!maskedCurrent)
+            if (i + 1 < len)
                result += _T('?');
-            result += _T('\'');
-            inString = false;
-            continue;
+            break;
          }
 
-         // Ordinary character inside the literal: emit one '?' for the whole run.
-         if (!maskedCurrent) { result += _T('?'); maskedCurrent = true; }
+         // One '?' for the whole literal, and its closing quote.
+         result += _T('?');
+         result += _T('\'');
+         i = end;
       }
 
       return result;
