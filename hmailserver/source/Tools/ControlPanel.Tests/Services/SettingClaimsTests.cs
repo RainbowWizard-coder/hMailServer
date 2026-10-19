@@ -329,6 +329,78 @@ namespace hMailServer.ControlPanel.Tests.Services
             "asking for the same tab will produce two tabs with the same name again.");
       }
 
+      /// <summary>
+      /// Every CreateTables script inserts logdevice 0 (hLogDeviceUnknown), and
+      /// Logger::SetLogDevice writes the log files for it as it does for 2: it
+      /// starts the database destination for 1 alone. The Logging page named that
+      /// 0 "0 (a value this Control Panel does not know)" on every installation
+      /// that had never chosen a destination. It is shown as Files on disk, and
+      /// carried as 0, so a save that leaves the list alone writes 0 back.
+      /// </summary>
+      [Fact]
+      public void LogDevice_TheValueEveryInstallationStartsWith_IsShownAsFilesOnDisk()
+      {
+         Assert.Equal(0, SettingClaims.LogDeviceUnknown);
+
+         var offered = ChoiceOptions.WithUnknown(SettingClaims.LogDeviceOptions, SettingClaims.LogDeviceUnknown,
+            null, SettingClaims.LogDeviceSameAs);
+
+         string files = SettingClaims.LogDeviceOptions.Single(o => o.Value == SettingClaims.LogDeviceFile).Label;
+         string database = SettingClaims.LogDeviceOptions.Single(o => o.Value == SettingClaims.LogDeviceSql).Label;
+
+         // Two entries, as for 1 or 2: nothing the reader has to work out.
+         Assert.Equal(SettingClaims.LogDeviceOptions.Count, offered.Count);
+         Assert.DoesNotContain(offered, o => o.Label == ChoiceOptions.UnknownLabel("0"));
+
+         // Files on disk is the entry selected for 0, first as ever, and holds 0 -
+         // what an unchanged save writes back.
+         Assert.Equal((SettingClaims.LogDeviceUnknown, files), offered[0]);
+         Assert.Equal((SettingClaims.LogDeviceSql, database), offered[1]);
+      }
+
+      /// <summary>The two values the list offers are offered as they are.</summary>
+      [Theory]
+      [InlineData(SettingClaims.LogDeviceSql)]
+      [InlineData(SettingClaims.LogDeviceFile)]
+      public void LogDevice_AChosenValue_IsOfferedUnchanged(int stored)
+      {
+         var offered = ChoiceOptions.WithUnknown(SettingClaims.LogDeviceOptions, stored, null,
+            SettingClaims.LogDeviceSameAs);
+
+         Assert.Equal(SettingClaims.LogDeviceOptions.ToArray(), offered.ToArray());
+      }
+
+      /// <summary>A value the server corrects to files is still shown for what it is.</summary>
+      [Fact]
+      public void LogDevice_AnOutOfRangeValue_IsStillNamedByItsNumber()
+      {
+         var offered = ChoiceOptions.WithUnknown(SettingClaims.LogDeviceOptions, 7, null,
+            SettingClaims.LogDeviceSameAs);
+
+         Assert.Equal(SettingClaims.LogDeviceOptions.Count + 1, offered.Count);
+         Assert.Equal((7, ChoiceOptions.UnknownLabel("7")), offered[^1]);
+      }
+
+      /// <summary>
+      /// The Logging page's combo is the one that has to pass the mapping: without
+      /// it the page names 0 by its number again. Source-scanned, as above.
+      /// </summary>
+      [Fact]
+      public void LoggingPage_PassesTheLogDeviceMappingToItsCombo()
+      {
+         string source = ReadView("ServerSettingsView.xaml.cs");
+         Assert.False(source == null, "ServerSettingsView.xaml.cs could not be found from the test binaries.");
+
+         int row = source.IndexOf("Path = \"Logging.Device\"", StringComparison.Ordinal);
+         Assert.True(row >= 0, "The Logging.Device row has been renamed or removed.");
+
+         int end = source.IndexOf("});", row, StringComparison.Ordinal);
+         Assert.True(end > row);
+
+         Assert.Contains("SameAs = SettingClaims.LogDeviceSameAs", source.Substring(row, end - row));
+         Assert.Contains("ChoiceOptions.WithUnknown(Options, sel, UnknownText, SameAs)", source);
+      }
+
       /// <summary>Walks up from the test binaries to a settings page source.</summary>
       private static string ReadView(string fileName)
       {

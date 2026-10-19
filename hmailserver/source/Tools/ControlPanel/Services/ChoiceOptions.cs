@@ -28,13 +28,32 @@ namespace hMailServer.ControlPanel.Services
       /// The choices, with one more after them when <paramref name="current"/> is
       /// none of them: the value itself, said as <paramref name="shownAs"/> when
       /// given (a word the server answers) and as its number otherwise.
+      ///
+      /// <paramref name="sameAs"/> names the stored values the server reads as one
+      /// of the choices - each key read as the choice its value names. When
+      /// <paramref name="current"/> is such a value, it is not unknown: that
+      /// choice is offered with its own words and carries <paramref name="current"/>,
+      /// so the list shows what the server does with the value, and a save that
+      /// leaves the list alone writes back the value it read rather than the
+      /// choice's own number.
       /// </summary>
       public static IReadOnlyList<(int Value, string Label)> WithUnknown(
-         IReadOnlyList<(int Value, string Label)> options, int current, string shownAs = null)
+         IReadOnlyList<(int Value, string Label)> options, int current, string shownAs = null,
+         IReadOnlyDictionary<int, int> sameAs = null)
       {
          var result = new List<(int Value, string Label)>(options ?? new (int, string)[0]);
          if (result.Any(option => option.Value == current))
             return result;
+
+         if (sameAs != null && sameAs.TryGetValue(current, out int readAs))
+         {
+            int index = result.FindIndex(option => option.Value == readAs);
+            if (index >= 0)
+            {
+               result[index] = (current, result[index].Label);
+               return result;
+            }
+         }
 
          result.Add((current, UnknownLabel(shownAs ?? current.ToString(CultureInfo.InvariantCulture))));
          return result;

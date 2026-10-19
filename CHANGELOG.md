@@ -123,6 +123,19 @@ with `--check`).
   fixture passed eight times in a row on its own: whether the interruption is met depends on what else holds the
   database at that moment.
 
+### Control Panel
+
+- **Fixed: the Logging page named the log destination "0 (a value this Control Panel does not know)" on every
+  installation that had never chosen one.** Every CreateTables script inserts `logdevice` 0, `hLogDeviceUnknown`, and
+  the server writes the log files for it as it does for 2, `hLogDeviceFile`: `Logger::SetLogDevice` starts the
+  database destination for 1 alone, and only 1 sends an entry there. The list offered 1 and 2 only, so it showed the 0
+  as a value of its own. It now shows 0 as Files on disk, and carries it as 0: a save that leaves the list alone
+  writes 0 back, so the setting stays as the installation made it, choosing Database writes 1 as before, and
+  choosing Files on disk again before the save writes 0, which the server reads as files. A value that is none of
+  the three is still named by its number. The Control Deck and the REST API's `/api/v1/settings/logging` were right
+  already: the route answers `unknown` for 0 and its schema says that it behaves as file, which the Deck shows
+  beside the list, and the Deck sends only a field that was changed.
+
 ### Build and tests
 
 - **The administrator-update testers say why a fixture could not be used, and on which computer.**

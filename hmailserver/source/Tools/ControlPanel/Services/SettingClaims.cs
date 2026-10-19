@@ -124,6 +124,15 @@ namespace hMailServer.ControlPanel.Services
 
       // ---- Logging.Device ----------------------------------------------------
 
+      /// <summary>
+      /// eLogDevice hLogDeviceUnknown: the logdevice row every CreateTables script
+      /// inserts, so the value of every installation whose destination was never
+      /// chosen. Logger::SetLogDevice takes it as files - it starts the database
+      /// destination for hLogDeviceSQL alone - so it is not offered as a choice of
+      /// its own but shown as "Files on disk" (<see cref="LogDeviceSameAs"/>).
+      /// </summary>
+      public const int LogDeviceUnknown = 0;
+
       /// <summary>eLogDevice hLogDeviceSQL.</summary>
       public const int LogDeviceSql = 1;
 
@@ -141,6 +150,19 @@ namespace hMailServer.ControlPanel.Services
             (LogDeviceFile, N("Files on disk")),
             (LogDeviceSql, N("Database (SQL)"))
          };
+
+      /// <summary>
+      /// The stored log destinations the server reads as one of
+      /// <see cref="LogDeviceOptions"/>: 0, which the server writes to the log
+      /// files exactly as it does 2. The combo used to name it "0 (a value this
+      /// Control Panel does not know)" on every installation that had never
+      /// chosen a destination. Shown as "Files on disk", it is still carried as 0,
+      /// so a save that leaves the combo alone writes 0 back and the row stays as
+      /// the installation made it; choosing Database writes 1, and choosing Files
+      /// on disk again before the save writes 0, which the server reads as files.
+      /// </summary>
+      public static readonly IReadOnlyDictionary<int, int> LogDeviceSameAs =
+         new Dictionary<int, int> { [LogDeviceUnknown] = LogDeviceFile };
 
       // ---- Logging.SyslogTransport -------------------------------------------
 

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -53,6 +54,33 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheLabel_SaysTheValueIsNotOneThisProgramKnows()
       {
          Assert.Equal("5 (a value this Control Panel does not know)", ChoiceOptions.UnknownLabel("5"));
+      }
+
+      private static readonly Dictionary<int, int> NineIsNone = new() { [9] = 0 };
+
+      [Fact]
+      public void AValueTheServerReadsAsAChoice_IsShownAsThatChoice_AndCarriedAsItself()
+      {
+         var offered = ChoiceOptions.WithUnknown(Security, 9, null, NineIsNone);
+
+         Assert.Equal(Security.Length, offered.Count);
+         Assert.Equal((9, "None"), offered[0]);
+         Assert.Equal(Security.Skip(1), offered.Skip(1));
+      }
+
+      [Fact]
+      public void TheChoiceItself_IsOfferedAsItIs_WhenItIsTheValue()
+      {
+         Assert.Equal(Security, ChoiceOptions.WithUnknown(Security, 0, null, NineIsNone).ToArray());
+      }
+
+      [Fact]
+      public void AMappingToAChoiceNotOffered_LeavesTheValueUnknown()
+      {
+         var offered = ChoiceOptions.WithUnknown(Security, 9, null, new Dictionary<int, int> { [9] = 42 });
+
+         Assert.Equal(Security.Length + 1, offered.Count);
+         Assert.Equal((9, ChoiceOptions.UnknownLabel("9")), offered[^1]);
       }
 
       [Fact]

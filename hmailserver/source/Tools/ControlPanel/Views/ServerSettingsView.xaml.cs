@@ -1079,6 +1079,14 @@ namespace hMailServer.ControlPanel.Views
       private class ComCombo : ComSetting
       {
          public (int Value, string Label)[] Options;
+
+         /// <summary>
+         /// Stored values the server reads as one of Options, each key as the choice
+         /// its value names (ChoiceOptions.WithUnknown): shown with that choice's
+         /// words and written back as read. Null for none.
+         /// </summary>
+         public IReadOnlyDictionary<int, int> SameAs;
+
          private ComboBox combo_;
 
          /// <summary>The created combo (for cross-field dependency wiring).</summary>
@@ -1104,7 +1112,7 @@ namespace hMailServer.ControlPanel.Views
             // A value that is none of the choices is offered as itself, so that the
             // page - which saves every row - writes back what it read rather than
             // the first choice (Services/ChoiceOptions).
-            foreach ((int v, string l) in ChoiceOptions.WithUnknown(Options, sel, UnknownText))
+            foreach ((int v, string l) in ChoiceOptions.WithUnknown(Options, sel, UnknownText, SameAs))
             {
                var item = new ComboBoxItem { Content = l, Tag = v };
                combo_.Items.Add(item);
@@ -3960,6 +3968,8 @@ namespace hMailServer.ControlPanel.Views
             Path = "Logging.Device",
             Label = L("Log destination"),
             Options = ToOptions(SettingClaims.LogDeviceOptions),
+            // 0, the value of every installation that never chose, is files.
+            SameAs = SettingClaims.LogDeviceSameAs,
             Blurb = L(SettingClaims.NoteFor("Logging.Device"))
          });
 
