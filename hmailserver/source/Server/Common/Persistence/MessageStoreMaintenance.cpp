@@ -95,6 +95,14 @@ namespace HM
             {
                MessageStoreMaintenance::MeasureNow();
             }
+            catch (const boost::thread_interrupted&)
+            {
+               // A stop's interruption, not a fault: see WorkQueue::Stop. Task::Run
+               // takes it as the shutdown.
+               boost::this_thread::disable_interruption disabled;
+               LOG_DEBUG("MessageStoreMeasureTask: a stop of the servers interrupted the measurement of the message store; the last measurement is kept.");
+               throw;
+            }
             catch (...)
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7352, "MessageStoreMeasureTask::DoWork",

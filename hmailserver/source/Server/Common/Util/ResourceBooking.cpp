@@ -3086,6 +3086,13 @@ namespace HM
 
          WakeDrain(resource->GetID());
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("ResourceBooking::OnDelivery: a stop of the servers interrupted the queuing of an invitation or a cancellation to " + resource->GetAddress() + "; it is in the resource's mailbox.");
+         throw;
+      }
       catch (...)
       {
          // Delivery has happened; nothing here may undo it.

@@ -27,6 +27,18 @@
 #include "../Common/SQL/SQLStatement.h"
 #include "RecipientParser.h"
 #include "SMTPConfiguration.h"
+#include "../Common/SQL/DatabaseConnectionManager.h"
+
+#ifndef HM_PLATFORM_POSIX
+#include "../COM/COMError.h"
+#endif
+
+#include <atomic>
+#include <chrono>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
 #include "../Common/BO/MessageRecipients.h"
 
 #ifdef _DEBUG
@@ -385,6 +397,14 @@ namespace HM
          Application::Instance()->GetDBManager()->Execute(statement, 0, DALConnection::DALErrorInSQL);
          return true;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. No reply is
+         // sent, as on any error here.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SMTPVacationMessageCreator::CanSendVacationMessage_: a stop of the servers interrupted the lookup of who has been answered; no reply is sent.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5022, "SMTPVacationMessageCreator::CanSendVacationMessage", "Error when doing lookup of who has been answered.");
@@ -409,6 +429,13 @@ namespace HM
          std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(sUserAddress);
          if (account)
             ForgetAccount_(account->GetID());
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SMTPVacationMessageCreator::VacationMessageTurnedOff: a stop of the servers interrupted the removal of the answered senders of " + sUserAddress + ".");
+         throw;
       }
       catch (...)
       {
@@ -439,9 +466,198 @@ namespace HM
                ForgetAccount_(account->GetID());
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SMTPVacationMessageCreator::DomainVacationMessageTurnedOff: a stop of the servers interrupted the removal of the answered senders of " + sDomainName + ".");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6320, "SMTPVacationMessageCreator::DomainVacationMessageTurnedOff", "Error when removing the answered senders of " + sDomainName);
+      }
+   }
+
+   namespace
+   {
+      [[noreturn]] void StopInterruptionFailed(const std::string &why)
+      {
+         throw std::logic_error("VacationStopInterruptionTester: " + why);
+      }
+
+      // What VacationMessageTurnedOff did with a stop's interruption, on a thread
+      // interrupted as WorkQueue::Stop interrupts a worker.
+      enum class StopInterruptionOutcome
+      {
+         // Passed it on, as it is to.
+         PassedOn,
+         // Returned as from any lookup, with the request gone: the interruption
+         // was met and taken in a catch (...) for a fault, as HM5023 took it until
+         // 19 October 2026.
+         Swallowed,
+         // Returned with the request still pending: no interruption point was
+         // met, because the lookup did not wait - it was handed a connection
+         // another thread gave back, or the pool had none to wait for.
+         NotMet,
+         // Ended in another exception.
+         OtherException,
+         // Did not end within a minute.
+         DidNotEnd
+      };
+
+      // One round: every free connection of the server's pool held, as statements
+      // in flight hold them, so that the lookup has to wait for one
+      // (DatabaseConnectionManager::GetConnection_) - the interruption point a
+      // stop's interruption is met at - and a thread of the test's own, interrupted
+      // before its lookup begins, looks up an address nothing has looked up, so
+      // that the account cache sends the lookup to the database. The pool is handed
+      // back on every path.
+      StopInterruptionOutcome InterruptALookup(DatabaseConnectionManager &manager, int round)
+      {
+         std::vector<std::shared_ptr<DALConnection> > held;
+         String error;
+
+         auto handBack = [&manager, &held, &error]()
+         {
+            for (const std::shared_ptr<DALConnection> &connection : held)
+               manager.RollbackTransaction(connection, error);
+            held.clear();
+         };
+
+         std::atomic<StopInterruptionOutcome> outcome(StopInterruptionOutcome::DidNotEnd);
+         bool joined = false;
+
+         try
+         {
+            while (manager.GetAvailableConnectionCount() > 0)
+            {
+               std::shared_ptr<DALConnection> connection = manager.BeginTransaction(error);
+               if (!connection)
+                  StopInterruptionFailed("a free connection of the server's database pool could not be held: " + std::string(AnsiString(error)));
+
+               held.push_back(connection);
+            }
+
+            const String address = Formatter::Format("stop-interruption-{0}-{1}@stop-interruption.invalid", (__int64) time(nullptr), round);
+
+            boost::thread worker([&outcome, address]()
+            {
+               // The lookup begins once the thread has been interrupted, as the
+               // work on a worker that a stop interrupted goes on: the request
+               // then waits for the lookup's first interruption point, and a
+               // lookup that returns with it still pending met none. Neither the
+               // question nor the yield is an interruption point.
+               while (!boost::this_thread::interruption_requested())
+                  std::this_thread::yield();
+
+               try
+               {
+                  SMTPVacationMessageCreator::Instance()->VacationMessageTurnedOff(address);
+
+                  outcome = boost::this_thread::interruption_requested() ? StopInterruptionOutcome::NotMet : StopInterruptionOutcome::Swallowed;
+               }
+               catch (const boost::thread_interrupted &)
+               {
+                  outcome = StopInterruptionOutcome::PassedOn;
+               }
+               catch (...)
+               {
+                  outcome = StopInterruptionOutcome::OtherException;
+               }
+            });
+
+            // As WorkQueue::Stop interrupts a worker.
+            worker.interrupt();
+
+            joined = worker.timed_join(boost::posix_time::seconds(60));
+
+            handBack();
+
+            if (!joined)
+               worker.join();
+         }
+         catch (...)
+         {
+            handBack();
+            throw;
+         }
+
+         return joined ? outcome.load() : StopInterruptionOutcome::DidNotEnd;
+      }
+   }
+
+   void
+   VacationStopInterruptionTester::Test()
+   {
+#ifndef HM_PLATFORM_POSIX
+      // The COM half, which needs no database: a method's catch (...) that ends
+      // in GenerateGenericMessage marks the thread for a stop's interruption, the
+      // mark is taken once, and any other exception leaves no mark.
+      COMError::TakeStopInterruption();
+
+      try
+      {
+         throw boost::thread_interrupted();
+      }
+      catch (...)
+      {
+         COMError::GenerateGenericMessage();
+      }
+
+      if (!COMError::StopInterruptionPending())
+         StopInterruptionFailed("a COM method's catch (...) that took a stop's interruption did not mark the thread for the script's host.");
+      if (!COMError::TakeStopInterruption() || COMError::TakeStopInterruption())
+         StopInterruptionFailed("the mark of a stop's interruption was not taken exactly once.");
+
+      try
+      {
+         throw std::runtime_error("not a stop");
+      }
+      catch (...)
+      {
+         COMError::GenerateGenericMessage();
+      }
+
+      if (COMError::TakeStopInterruption())
+         StopInterruptionFailed("a COM method's catch (...) that took an exception other than a stop's interruption marked the thread.");
+
+      // Not this test's to leave on the thread.
+      SetErrorInfo(0, NULL);
+#endif
+
+      std::shared_ptr<DatabaseConnectionManager> manager = Application::Instance()->GetDBManager();
+      if (!manager || !manager->GetIsConnected())
+         StopInterruptionFailed("the server has no database connection to hold.");
+
+      // The servers run while ClassTester does, so a connection another thread
+      // has out when a round holds the pool's free ones is not held, and given
+      // back before the lookup asks, it is the lookup's at once: no wait, and no
+      // interruption met. Such a round shows nothing - the interruption's request
+      // is still pending when the lookup returns, where one met and taken is
+      // gone - and is made again, for thirty seconds at most.
+      const std::chrono::steady_clock::time_point giveUp = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+
+      for (int round = 1; ; round++)
+      {
+         switch (InterruptALookup(*manager, round))
+         {
+         case StopInterruptionOutcome::PassedOn:
+            return;
+         case StopInterruptionOutcome::Swallowed:
+            StopInterruptionFailed("VacationMessageTurnedOff met a stop's interruption at the wait for a pooled connection and took it for a fault (HM5023), where it is to pass it on.");
+         case StopInterruptionOutcome::OtherException:
+            StopInterruptionFailed("VacationMessageTurnedOff, interrupted at the wait for a pooled connection, ended in an exception other than the interruption.");
+         case StopInterruptionOutcome::DidNotEnd:
+            StopInterruptionFailed("the interrupted thread did not end within a minute while the free connections of the server's database pool were held.");
+         case StopInterruptionOutcome::NotMet:
+            break;
+         }
+
+         if (std::chrono::steady_clock::now() >= giveUp)
+            StopInterruptionFailed(Formatter::FormatAsAnsi("in {0} rounds over thirty seconds the lookup never waited for a pooled connection, and so never met the interruption: each time it was given a connection that another thread had out and gave back before it asked, or the pool had none to wait for.", round));
+
+         Sleep(50);
       }
    }
 }

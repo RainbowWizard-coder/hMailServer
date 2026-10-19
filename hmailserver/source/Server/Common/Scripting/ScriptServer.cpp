@@ -962,6 +962,26 @@ namespace HM
          const LoadOutcome committed = { true, false, ++loads_committed_ };
          return committed;
       }
+      catch (const boost::thread_interrupted &)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. The scripts are
+         // loaded on the calling thread, and an event script that calls
+         // Scripting.Reload or switches scripting on (InterfaceScripting::Reload,
+         // put_Enabled, Configuration::SetUseScriptServer's SwitchOn) loads them on
+         // the thread that fired its event, a delivery's or a session's, which a
+         // stop interrupts. Met there in a report the load makes (ReportRejectedLoad_,
+         // CompileContents_'s HM5021, ReportInterruption_), whose OnError script's
+         // call can meet the stop, or by a call of the script file's own top level,
+         // which CompileContents_ and DoesFunctionExist_ pass on. Nothing is
+         // installed before the commit above, so the scripts loaded before stay in
+         // force; the COM method the event script called answers that the server
+         // is stopping, and that script's FireEvent passes the stop on. On a start's
+         // and a reinitialise's own thread, which a stop does not interrupt, this is
+         // never reached.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("ScriptServer::LoadScripts: a stop of the servers interrupted the loading of the scripts; those loaded before stay in force.");
+         throw;
+      }
       catch (...)
       {
          // Nothing is installed before the commit above, and the commit itself only
@@ -994,9 +1014,23 @@ namespace HM
 
 #ifndef HM_PLATFORM_POSIX
    bool
-   ScriptServer::RunInterruptible_(CComObject<CScriptSiteBasic> *pBasic)
+   ScriptServer::RunInterruptible_(CComObject<CScriptSiteBasic> *pBasic, bool &stopInterruptionMet)
    {
       ScriptWatchdog watchdog(pBasic->GetEngine(), IniFileSettings::Instance()->GetScriptTimeout());
+
+      // The stop's mark this run answers for is its own (COMError.h). A mark set
+      // before it is not: one a COM call made outside any script left, and one a
+      // call of an outer script's left - for a script can fire another on the same
+      // thread before it has finished, an OnError run by a report that a later call
+      // of the outer script made (scripts_running_on_thread, which the run's
+      // ScriptActorBoundary has counted already, is above one then). Cleared for
+      // the run, so that the script's errors are judged by its own calls
+      // (CScriptSiteBasic::HandleScriptError); read after it; and an outer
+      // script's put back, so that the outer FireEvent still passes its stop on
+      // where, cleared here, it was lost and the event completed. A FireEvent
+      // throws only for a stop its own script's call met, so that a report made
+      // with interruption held off - a destructor's - never throws.
+      const bool outerMark = COMError::TakeStopInterruption();
 
       pBasic->Run();
 
@@ -1004,6 +1038,9 @@ namespace HM
       // flight while the caller decides what to do, and so that it can never run
       // concurrently with the Terminate which follows.
       watchdog.Disarm();
+
+      stopInterruptionMet = COMError::TakeStopInterruption();
+      COMError::RestoreStopInterruption(outerMark && scripts_running_on_thread > 1);
 
       return watchdog.Fired();
    }
@@ -1123,9 +1160,26 @@ namespace HM
       spUnk = pBasic;
       pBasic->Initiate(language, NULL);
       pBasic->AddScript(contents);
-      bool interrupted = RunInterruptible_(pBasic);
+      bool stopMet = false;
+      bool interrupted = RunInterruptible_(pBasic, stopMet);
       bool bExists = pBasic->ProcedureExists(sProcedure);
       pBasic->Terminate();
+
+      // A stop that a call of the script's top level met (COMError.h). The scripts
+      // are loaded on the calling thread: a start's or a reinitialise's, which a
+      // stop does not interrupt, but also, for an event script that calls
+      // Scripting.Reload or switches scripting on, the thread that fired its event,
+      // which a stop does. Passed on as FireEvent passes its own - through
+      // LoadScripts_'s handler to the COM method's GenerateGenericMessage, which
+      // marks the thread for that script's FireEvent - rather than left for the
+      // load to take for a script that could not be searched. This run's own mark
+      // alone (RunInterruptible_), so that a load made with interruption held off
+      // never throws.
+      if (stopMet)
+      {
+         LOG_DEBUG("ScriptServer::DoesFunctionExist_: a stop of the servers interrupted a call the script's top level made; the scripts are not loaded.");
+         throw boost::thread_interrupted();
+      }
 
       if (interrupted)
       {
@@ -1275,8 +1329,21 @@ namespace HM
       pBasic->Initiate(sLanguage, NULL);
       // pBasic->SetObjectContainer(pObjects);
       pBasic->AddScript(sContents);
-      bool interrupted = RunInterruptible_(pBasic);
+      bool stopMet = false;
+      bool interrupted = RunInterruptible_(pBasic, stopMet);
       pBasic->Terminate();
+
+      // A stop that a call of the script's top level met, on the thread that fired
+      // the event of a script that checks or loads the scripts (Scripting.CheckSyntax,
+      // Scripting.Reload): passed on, as in DoesFunctionExist_, rather than written
+      // as a compile error that abandons the load (HM5016 or HM5710) and that
+      // CheckSyntax answers. The COM method's GenerateGenericMessage marks the thread for that
+      // script's FireEvent.
+      if (stopMet)
+      {
+         LOG_DEBUG("ScriptServer::CompileContents_: a stop of the servers interrupted a call the script's top level made; the script is not compiled.");
+         throw boost::thread_interrupted();
+      }
 
       String sErrorMessage = pBasic->GetLastError();
 
@@ -1615,8 +1682,23 @@ namespace HM
       pBasic->Initiate(script_language, NULL);
       pBasic->SetObjectContainer(pObjects);
       pBasic->AddScript(sScript);
-      bool interrupted = RunInterruptible_(pBasic);
+      bool stopMet = false;
+      bool interrupted = RunInterruptible_(pBasic, stopMet);
       pBasic->Terminate();
+
+      // A call the script made met a stop of the servers - its thread interrupted
+      // by WorkQueue::Stop - and failed with "the server is stopping", which a COM
+      // method cannot pass through the engine (COMError.h). Passed on now that the
+      // engine has returned, as the JavaScript binding passes it on: the stop, not
+      // the script, ends the event, and the task's own barrier takes it as the
+      // shutdown it is. This run's own mark (RunInterruptible_): an OnError fired
+      // inside a call of an outer script's leaves that script's mark for the outer
+      // FireEvent to pass on.
+      if (stopMet)
+      {
+         LOG_DEBUG("Event " + event_name + ": a stop of the servers interrupted a call the script made; the event ends here.");
+         throw boost::thread_interrupted();
+      }
 
       if (interrupted)
       {

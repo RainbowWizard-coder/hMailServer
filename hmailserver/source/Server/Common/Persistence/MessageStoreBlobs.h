@@ -130,4 +130,24 @@ namespace HM
       // row is, so that a count raised in between keeps it.
       static void DeleteIfNone_(const AnsiString &sha256);
    };
+
+   // A stop of the servers reaching the end of a restore's hold (WorkQueue::Stop):
+   // every free connection of the server's own database pool held, as statements
+   // in flight hold them, a thread of the test's own interrupted as WorkQueue::Stop
+   // interrupts a worker, and a hold that asks for the recount ended on it, so that
+   // the recount has to wait for a connection with the interruption's request
+   // pending. The end of the hold is to hold the interruption off - waiting out
+   // the pool, which is handed back after half a second, and rebuilding the counts
+   // - and return with the request still pending, where until 20 October 2026 the
+   // recount's catch (...) took it at that wait and reported it as HM7352. An end
+   // that returned while the pool was still held, the request pending, never
+   // waited - it was handed a connection another thread had out and gave back -
+   // and the round is made again, for thirty seconds at most. The pool is handed
+   // back on every path. Run inside the server on Windows by ClassTester. Throws
+   // std::logic_error naming what did not hold.
+   class DeletionHoldStopInterruptionTester
+   {
+   public:
+      void Test();
+   };
 }

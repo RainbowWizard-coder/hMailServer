@@ -2395,6 +2395,13 @@ namespace HM
             }
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("iMIP: a stop of the servers interrupted the filing of a calendar message delivered to " + (account ? account->GetAddress() : String()) + "; the message is in the mailbox.");
+         throw;
+      }
       catch (...)
       {
          // Delivery has happened; nothing here may undo it. Said as

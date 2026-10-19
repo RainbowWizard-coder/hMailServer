@@ -733,6 +733,16 @@ namespace HM
 
          return result;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Passed on: the
+         // task that runs this takes it as the shutdown, and a COM method that called
+         // it ends in COMError::GenerateGenericMessage, which passes it to the script
+         // that called it.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("DirectorySync::Run: a stop of the servers interrupted the directory synchronisation; every action that completed is applied.");
+         throw;
+      }
       catch (...)
       {
          // The barrier. This is reachable from COM, and an exception crossing that

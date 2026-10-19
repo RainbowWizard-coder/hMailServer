@@ -139,6 +139,14 @@ namespace HM
 
          Application::Instance()->GetDBManager()->Execute(statement, &dbid);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Passed on: it is
+         // the stop that ends the delivery here, not the trace.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("MessageTrace::Record: a stop of the servers interrupted the recording of a message trace event.");
+         throw;
+      }
       catch (...)
       {
          // Swallowed on purpose: this runs on the delivery path, and a trace that

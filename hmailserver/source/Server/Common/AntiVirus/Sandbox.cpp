@@ -2044,6 +2044,13 @@ namespace HM
 
          return Examined(message);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("Sandbox::Examine: a stop of the servers interrupted the sandbox's examination of a message.");
+         throw;
+      }
       catch (...)
       {
          ReportSandboxError(7275, _T("Sandbox::Examine"),

@@ -150,6 +150,15 @@ namespace HM
 
          RecordLoginAt(accountAddress, time(nullptr));
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in
+         // RecordLoginAt's report of a full table, whose OnError script a stop
+         // can interrupt.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("Pop3LoginDelay::RecordLogin: a stop of the servers interrupted the recording of a POP3 logon of " + accountAddress + ".");
+         throw;
+      }
       catch (...)
       {
          ReportSwallowedException_("RecordLogin");

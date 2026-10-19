@@ -461,6 +461,19 @@ namespace HM
 
          return true;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a
+         // report of FileUtilities' (Save_: a directory that could not be made, a
+         // file that could not be renamed or deleted), whose OnError script's call
+         // to the server a stop can interrupt, on the delivery thread that
+         // SieveVacationResponder::Respond runs on. No reply is sent, as on any
+         // failure here, and Respond passes the interruption on; the lock unwinds,
+         // and a .tmp file a rename left is written over by the next save.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SieveVacationTracker::ClaimResponse: a stop of the servers interrupted the claim of an auto-reply to " + sender + " for " + accountAddress + "; none is sent.");
+         throw;
+      }
       catch (...)
       {
          // Same direction as every other failure in here: an unexpected failure must
@@ -491,6 +504,16 @@ namespace HM
          String temporaryPath = path + _T(".tmp");
          if (FileUtilities::Exists(temporaryPath))
             FileUtilities::DeleteFile(temporaryPath);
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a
+         // report of FileUtilities' (a file that could not be deleted), whose
+         // OnError script a stop can interrupt - through Account.SieveScript, a
+         // COM call an event script makes on the thread that fired the event.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SieveVacationTracker::Forget: a stop of the servers interrupted the clearing of the vacation response records of " + accountAddress + ".");
+         throw;
       }
       catch (...)
       {

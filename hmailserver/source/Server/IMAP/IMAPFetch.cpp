@@ -2148,6 +2148,16 @@ namespace HM
          }
 
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a
+         // report the store's read makes (MessageStore::LoadMime,
+         // PersistentMessage::LoadHeader), whose OnError script a stop can
+         // interrupt; passed on, so no blank body is answered for it.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("IMAPFetch::LoadMimeBody_: a stop of the servers interrupted the reading of " + fileName + ".");
+         throw;
+      }
       catch (...)
       {
          // A read the store refused has been said already, by the store, at the

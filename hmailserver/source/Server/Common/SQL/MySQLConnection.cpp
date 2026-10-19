@@ -237,6 +237,20 @@ namespace HM
          LoadTimeoutMechanism_();
          ApplyDefaultTimeout();
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a report
+         // made inside the connect (DatabaseTls' reading of TlsMode, the character
+         // set's, the TryExecute and recordsets of the session's set-up), whose OnError
+         // script's call to the server can meet the stop. Passed on, with the
+         // connection closed, as a refused connect leaves it, rather than half made;
+         // DALConnection::Reconnect and DatabaseConnectionManager's HeldConnection_ do
+         // the rest.
+         boost::this_thread::disable_interruption disabled;
+         Disconnect();
+         LOG_DEBUG("MySQLConnection::Connect: a stop of the servers interrupted the connection to the database, which is left closed.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5008, "MySQLConnection::Connect", "An unhandled error occurred when connecting to the database.");
@@ -586,6 +600,20 @@ namespace HM
          {
             *iInsertID = failureIgnored ? 0 : MySQLInterface::Instance()->p_mysql_insert_id(dbconn_);
          }
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in the report
+         // of a statement that could not be converted (HM5105), whose OnError script's
+         // call to the server can meet the stop. Passed on, where the catch below
+         // answered it as a failure of the statement that DALConnection::Execute then
+         // reported as HM5032; nothing has been sent. DatabaseConnectionManager's
+         // HeldConnection_ gives the connection back.
+         boost::this_thread::disable_interruption disabled;
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+         LOG_DEBUG("MySQLConnection::TryExecute: a stop of the servers interrupted a statement.");
+         throw;
       }
       catch (...)
       {

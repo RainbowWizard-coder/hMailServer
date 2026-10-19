@@ -851,9 +851,39 @@ namespace HM
       if (taken.empty())
          return;
 
+      // Answered, one way or another: the recipient goes, from the database
+      // and from the message, so that neither local nor external delivery
+      // ever tries to deliver to a list address. Taken off AFTER it was
+      // answered - a delivery thread that dies in between distributes again
+      // on the next pass rather than not at all.
+      auto takeOff = [&message, &recipients](const Taken &entry)
+      {
+         if (!PersistentMessageRecipient::DeleteObject(entry.recipient))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7250, "ListManager::TakeListRecipients",
+               Formatter::Format("Message {0} was answered for {1} but that recipient could not be removed from the database.",
+                  message->GetID(), entry.recipient->GetAddress()));
+         }
+
+         // owned by this call: the recipients of the message this delivery holds, erased through the reference
+         std::vector<std::shared_ptr<MessageRecipient> > &live = recipients->GetVector();
+         for (auto it = live.begin(); it != live.end(); it++)
+         {
+            if (*it == entry.recipient)
+            {
+               live.erase(it);
+               break;
+            }
+         }
+      };
+
       for (const Taken &entry : taken)
       {
          bool answered = true;
+
+         // Set where a stop's interruption has been dealt with for this entry
+         // already, so that the catch around the whole of it passes it on alone.
+         bool interruptionHandled = false;
 
          try
          {
@@ -866,6 +896,26 @@ namespace HM
                try
                {
                   answered = Distribute_(message, entry.list, started);
+               }
+               catch (const boost::thread_interrupted&)
+               {
+                  // A stop's interruption, not a fault: see WorkQueue::Stop. What
+                  // any failure here does is done, and the interruption passed on:
+                  // a posting whose first member's copy was queued is taken off,
+                  // since a second try would send the members already queued a
+                  // second copy, and one not yet started stays, its row with it,
+                  // for the next pass to distribute. Interruption is held off
+                  // while the recipient is taken off, which reads the database.
+                  boost::this_thread::disable_interruption disabled;
+                  LOG_DEBUG(Formatter::Format("ListManager: a stop of the servers interrupted the distribution of posting {0} to {1}; {2}.",
+                     message->GetID(), entry.recipient->GetAddress(),
+                     started ? String(_T("the members already queued are sent it, and it is not tried again")) : String(_T("it is kept in the queue and tried again"))));
+
+                  interruptionHandled = true;
+                  if (started)
+                     takeOff(entry);
+
+                  throw;
                }
                catch (...)
                {
@@ -909,6 +959,22 @@ namespace HM
                break;
             }
          }
+         catch (const boost::thread_interrupted&)
+         {
+            // A stop's interruption, not a fault: see WorkQueue::Stop. Taken off
+            // the queue for this recipient as any failure here is, and passed on.
+            boost::this_thread::disable_interruption disabled;
+
+            if (!interruptionHandled)
+            {
+               LOG_DEBUG(Formatter::Format("ListManager: a stop of the servers interrupted the handling of message {0} to {1}; it has been taken off the queue for that recipient.",
+                  message->GetID(), entry.recipient->GetAddress()));
+
+               takeOff(entry);
+            }
+
+            throw;
+         }
          catch (...)
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7250, "ListManager::TakeListRecipients",
@@ -926,28 +992,8 @@ namespace HM
             continue;
          }
 
-         // Answered, one way or another: the recipient goes, from the database
-         // and from the message, so that neither local nor external delivery
-         // ever tries to deliver to a list address. Taken off AFTER it was
-         // answered - a delivery thread that dies in between distributes again
-         // on the next pass rather than not at all.
-         if (!PersistentMessageRecipient::DeleteObject(entry.recipient))
-         {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7250, "ListManager::TakeListRecipients",
-               Formatter::Format("Message {0} was answered for {1} but that recipient could not be removed from the database.",
-                  message->GetID(), entry.recipient->GetAddress()));
-         }
-
-         // owned by this call: the recipients of the message this delivery holds, erased through the reference
-         std::vector<std::shared_ptr<MessageRecipient> > &live = recipients->GetVector();
-         for (auto it = live.begin(); it != live.end(); it++)
-         {
-            if (*it == entry.recipient)
-            {
-               live.erase(it);
-               break;
-            }
-         }
+         // Answered, one way or another: taken off (takeOff, above).
+         takeOff(entry);
       }
    }
 

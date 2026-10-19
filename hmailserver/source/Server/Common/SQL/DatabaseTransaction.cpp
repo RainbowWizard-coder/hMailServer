@@ -94,7 +94,53 @@ namespace HM
       joined_open_(0),
       failure_(FailureNone)
    {
-      Open_();
+      try
+      {
+         Open_();
+      }
+      catch (...)
+      {
+         // A constructor that throws has no destructor run, and Open_ has by then
+         // put this scope on the thread's chain and may hold a pooled connection:
+         // a stop's interruption met at the wait for one (GetConnection_), or
+         // passed on through a report made inside the BEGIN or the reconnect
+         // (see WorkQueue::Stop), left the chain pointing at a scope that no longer
+         // existed - read by every later statement of the thread's
+         // (DatabaseTransaction::Current_) - and the connection out of the pool for
+         // good. Undone here, interruption held off, and the exception passed on.
+         // No BEGIN is open on the connection: each report it can come from is made
+         // before the BEGIN is sent or on a session the reconnect has just made or
+         // closed.
+         boost::this_thread::disable_interruption disabled;
+
+         if (root_ != this)
+         {
+            root_->joined_open_--;
+         }
+         else if (connection_)
+         {
+            try
+            {
+               Release_();
+            }
+            catch (...)
+            {
+               if (connection_)
+               {
+                  manager_->ReleaseConnection_(connection_);
+                  connection_.reset();
+               }
+            }
+         }
+
+         if (linked_ && current_ == this)
+         {
+            current_ = previous_;
+            linked_ = false;
+         }
+
+         throw;
+      }
    }
 
    void
@@ -216,6 +262,14 @@ namespace HM
       // A scope ends on the thread that made it, where its place in the thread's
       // chain is.
       HM_ASSERT(std::this_thread::get_id() == thread_);
+
+      // Interruption held off, as a destructor cannot pass a stop's interruption on
+      // (WorkQueue::Stop): the rollback, a reconnect the scope asks for and the
+      // connection's return to the pool complete, rather than end at a report
+      // whose OnError script's call met the stop - which the catch below would
+      // take, with the connection still out of the pool. A request made meanwhile
+      // stays pending for the next interruption point after the scope.
+      boost::this_thread::disable_interruption disabled;
 
       try
       {

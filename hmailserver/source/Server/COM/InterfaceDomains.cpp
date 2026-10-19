@@ -67,6 +67,12 @@ STDMETHODIMP InterfaceDomains::Refresh()
          else
             objects_->Refresh(authentication_->GetDomainID());
       }
+      catch (const boost::thread_interrupted &)
+      {
+         // A stop of the servers, which a script calling this on its thread met:
+         // said as every method says it (COMError::GenerateGenericMessage).
+         return COMError::GenerateGenericMessage();
+      }
       catch (...)
       {
          return COMError::GenerateError("It was not possible to retrieve a list of domains from the database.\r\nPlease check the hMailServer log for details.");          

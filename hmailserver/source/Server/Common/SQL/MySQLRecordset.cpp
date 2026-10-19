@@ -82,6 +82,19 @@ namespace HM
          // Cache positions so we don't have to pick them up later...
          column_positions_ = pConn->GetColumnPositionCache().GetPositions(sQuery, this);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in the report
+         // of a query that could not be converted (HM5108), made before it is sent,
+         // whose OnError script's call to the server can meet the stop. Passed on,
+         // where the catch below answered it as a failed query (HM4202) that
+         // DALRecordset::Open then reported as HM5033; a result already stored is the
+         // recordset's, which its destructor frees, and DatabaseConnectionManager's
+         // HeldConnection_ gives the connection back.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("MySQLRecordset::TryOpen: a stop of the servers interrupted a query.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 4202, "MySQLRecordset::TryOpen", "An unknown error occurred while executing " + sSQL);
@@ -253,6 +266,14 @@ namespace HM
          }
 
          return sOutput;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault (WorkQueue::Stop), met in the
+         // report above: passed on, as every exception here is, not reported.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("MySQLRecordset::GetStringValue: a stop of the servers interrupted the reading of a value.");
+         throw;
       }
       catch (...)
       {

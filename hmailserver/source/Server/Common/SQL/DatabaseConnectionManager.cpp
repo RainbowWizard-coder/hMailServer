@@ -210,13 +210,15 @@ namespace HM
          return DALConnection::FatalError;
       }
 
+      HeldConnection_ held(*this, pConnection);
+
       const bool versionAccepted = pConnection->CheckServerVersion(sErrorMessage);
       if (versionAccepted)
          pConnection->OnConnected();
 
       // Back in the pool - or closed, when the close before the process ends
       // began meanwhile.
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       if (!versionAccepted)
          return DALConnection::FatalError;
@@ -412,6 +414,9 @@ namespace HM
          return false;
       }
 
+      // Given back however the statement ends (HeldConnection_).
+      HeldConnection_ held(*this, pDALConn);
+
       boost::chrono::steady_clock::time_point queryStart = boost::chrono::steady_clock::now();
 
       bool bResult = pDALConn->Execute(command, sErrorMessage, iInsertID, iIgnoreErrors, rowsAffected, reconnected);
@@ -420,7 +425,7 @@ namespace HM
          boost::chrono::steady_clock::now() - queryStart).count();
       MeasureQuery_(command, elapsedMicros);
 
-      ReleaseConnection_(pDALConn);
+      held.Release();
 
       // The audit trail's one chokepoint for object changes. It is AFTER the
       // release on purpose: the row it may write is itself a statement through
@@ -528,11 +533,16 @@ namespace HM
          return pRecordset;
       }
 
-      pRecordset = pDALConn->CreateRecordset();
+      // Given back however the query ends (HeldConnection_). The recordset is
+      // declared after the hold, so that one an exception leaves behind is
+      // closed before its connection goes back to the pool.
+      HeldConnection_ held(*this, pDALConn);
+
+      std::shared_ptr<DALRecordset> pOpened = pDALConn->CreateRecordset();
 
       boost::chrono::steady_clock::time_point queryStart = boost::chrono::steady_clock::now();
 
-      bool bOpened = pRecordset->Open(pDALConn, command);
+      bool bOpened = pOpened->Open(pDALConn, command);
 
       unsigned __int64 elapsedMicros = (unsigned __int64) boost::chrono::duration_cast<boost::chrono::microseconds>(
          boost::chrono::steady_clock::now() - queryStart).count();
@@ -545,12 +555,12 @@ namespace HM
          // locked table reaches here rather than the acquisition failure above.
          DatabaseUnavailableMarker::Mark();
 
-         pRecordset.reset();
+         pOpened.reset();
       }
 
-      ReleaseConnection_(pDALConn);
+      held.Release();
 
-      return pRecordset;
+      return pOpened;
 
 
    }
@@ -673,7 +683,80 @@ namespace HM
       connection_released_.notify_one();
    }
 
-   int 
+   DatabaseConnectionManager::HeldConnection_::HeldConnection_(DatabaseConnectionManager &manager, const std::shared_ptr<DALConnection> &connection) :
+      manager_(manager),
+      connection_(connection)
+   {
+   }
+
+   DatabaseConnectionManager::HeldConnection_::~HeldConnection_()
+   {
+      if (!connection_)
+         return;
+
+      // Still held: the call left by an exception before it gave the connection
+      // back. What such an exception leaves on the session is a statement that
+      // has ended, failed or not begun - each report it can come from is made
+      // before a statement is sent or after its answer has been read, and a
+      // connect cut part way is closed (DALConnection::Reconnect) - so the
+      // connection goes back as it is, as after any failed statement, and a
+      // closed one is opened again at its next use. Held off, since a destructor
+      // cannot pass an interruption on, and so that a report the rollback below
+      // makes cannot throw one (ScriptServer::RunInterruptible_).
+      boost::this_thread::disable_interruption disabled;
+
+      try
+      {
+         // But for a transaction begun on it that the call did not end - a schema
+         // upgrade's step, a COMMIT that the exception cut short before it was
+         // sent - which is rolled back first, so that the next caller's
+         // statements do not run inside it; a session that refuses the ROLLBACK
+         // is opened again, as DatabaseTransaction opens one it cannot vouch for.
+         if (connection_->IsTransactionOpenOnSession())
+         {
+            String rollbackError;
+            if (!connection_->RollbackTransaction(rollbackError))
+            {
+               String reconnectError;
+               connection_->Reconnect(reconnectError);
+            }
+         }
+      }
+      catch (...)
+      {
+         LOG_DEBUG("DatabaseConnectionManager: a transaction left open on a connection by a call that ended with an exception could not be rolled back.");
+      }
+
+      try
+      {
+         manager_.ReleaseConnection_(connection_);
+      }
+      catch (...)
+      {
+         LOG_DEBUG("DatabaseConnectionManager: a connection could not be given back to the pool as the call holding it ended with an exception.");
+      }
+   }
+
+   void
+   DatabaseConnectionManager::HeldConnection_::Release()
+   {
+      if (!connection_)
+         return;
+
+      std::shared_ptr<DALConnection> connection = connection_;
+      connection_.reset();
+      manager_.ReleaseConnection_(connection);
+   }
+
+   std::shared_ptr<DALConnection>
+   DatabaseConnectionManager::HeldConnection_::Keep()
+   {
+      std::shared_ptr<DALConnection> connection = connection_;
+      connection_.reset();
+      return connection;
+   }
+
+   int
    DatabaseConnectionManager::GetCurrentDatabaseVersion()
    {
       SQLCommand command("select * from hm_dbversion");
@@ -911,25 +994,31 @@ namespace HM
          return pDALConnection;
       }
 
+      // Given back if the BEGIN fails or an exception leaves it (HeldConnection_).
+      HeldConnection_ held(*this, pDALConnection);
+
       if (!pDALConnection->BeginTransaction(sErrorMessage))
       {
          // Could not start the transaction. The connection must go back to the
          // pool - leaking it here permanently shrank the pool, and once it was
          // exhausted every SMTP, IMAP and POP3 operation blocked forever.
-         ReleaseConnection_(pDALConnection);
+         held.Release();
 
          std::shared_ptr<DALConnection> pEmpty;
          return pEmpty;
       }
 
-      return pDALConnection;
+      return held.Keep();
    }
 
    bool
    DatabaseConnectionManager::CommitTransaction(std::shared_ptr<DALConnection> pConnection, String &sErrorMessage)
    {
+      // Back in the pool however the COMMIT ends (HeldConnection_).
+      HeldConnection_ held(*this, pConnection);
+
       bool bResult = pConnection->CommitTransaction(sErrorMessage);
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       return bResult;
    }
@@ -937,8 +1026,11 @@ namespace HM
    bool
    DatabaseConnectionManager::RollbackTransaction(std::shared_ptr<DALConnection> pConnection, String &sErrorMessage)
    {
+      // Back in the pool however the ROLLBACK ends (HeldConnection_).
+      HeldConnection_ held(*this, pConnection);
+
       bool bResult = pConnection->RollbackTransaction(sErrorMessage);
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       return bResult;
    }
@@ -987,10 +1079,12 @@ namespace HM
          return false;
       }
 
+      HeldConnection_ held(*this, pConnection);
+
       SQLScriptRunner scriptRunner;
       bool result = scriptRunner.ExecuteScript(pConnection, sFile, sErrorMessage);
 
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       return result;
    }
@@ -1009,9 +1103,11 @@ namespace HM
          return outcome;
       }
 
+      HeldConnection_ held(*this, pConnection);
+
       SchemaUpgrader::Outcome outcome = SchemaUpgrader::Upgrade(pConnection, scriptDirectory, required, report);
 
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       return outcome;
    }
@@ -1030,9 +1126,11 @@ namespace HM
          return false;
       }
 
+      HeldConnection_ held(*this, pConnection);
+
       bool result = prerequisites.Ensure(pConnection, DBVersion, sErrorMessage);
 
-      ReleaseConnection_(pConnection);
+      held.Release();
 
       return result;
    }
@@ -1054,6 +1152,8 @@ namespace HM
          bool Disconnect() override { closed_.store(true); return true; }
          ExecutionResult TryExecute(const SQLCommand &/*command*/, String &/*sErrorMessage*/, __int64 * /*iInsertID*/, int /*iIgnoreErrors*/, __int64 *rowsAffected) override
          {
+            ThrowIfAsked_();
+
             // A statement that matched no row (DALConnection::TryExecute's count).
             if (rowsAffected != nullptr)
                *rowsAffected = 0;
@@ -1062,9 +1162,15 @@ namespace HM
          }
          bool IsConnected() const override { return !closed_.load(); }
          void OnConnected() override { connected_open_.store(!closed_.load()); }
-         bool BeginTransaction(String &/*sErrorMessage*/) override { return true; }
-         bool CommitTransaction(String &/*sErrorMessage*/) override { return true; }
-         bool RollbackTransaction(String &/*sErrorMessage*/) override { return true; }
+         bool BeginTransaction(String &/*sErrorMessage*/) override { ThrowIfAsked_(); SetTransactionOpen_(true); return true; }
+         bool CommitTransaction(String &/*sErrorMessage*/) override { ThrowIfAsked_(); SetTransactionOpen_(false); return true; }
+         bool RollbackTransaction(String &/*sErrorMessage*/) override
+         {
+            rollbacks_asked_++;
+            ThrowIfAsked_();
+            SetTransactionOpen_(false);
+            return true;
+         }
          void SetTimeout(int /*seconds*/) override {}
          bool GetSupportsCommandParameters() const override { return true; }
          bool CheckServerVersion(String &/*errorMessage*/) override
@@ -1075,7 +1181,7 @@ namespace HM
             return true;
          }
          void EscapeString(String &/*sInput*/) override {}
-         std::shared_ptr<DALRecordset> CreateRecordset() override { return std::shared_ptr<DALRecordset>(); }
+         std::shared_ptr<DALRecordset> CreateRecordset() override { ThrowIfAsked_(); return std::shared_ptr<DALRecordset>(); }
          std::shared_ptr<IMacroExpander> CreateMacroExpander() override { return std::shared_ptr<IMacroExpander>(); }
 
          bool IsClosed() const { return closed_.load(); }
@@ -1087,9 +1193,25 @@ namespace HM
          // OnConnected ran, on a connection that was still open.
          bool WasConnectedOpen() const { return connected_open_.load(); }
 
+         // Each statement, transaction call and recordset made from now on throws
+         // a stop's interruption, as a report made inside one does once its
+         // OnError script's call has met the stop (WorkQueue::Stop).
+         void ThrowAStopsInterruption(bool throwIt) { throw_.store(throwIt); }
+
+         // How many times RollbackTransaction has been asked for.
+         int RollbacksAsked() const { return rollbacks_asked_.load(); }
+
       private:
+         void ThrowIfAsked_() const
+         {
+            if (throw_.load())
+               throw boost::thread_interrupted();
+         }
+
          std::atomic<bool> closed_{false};
          std::atomic<bool> connected_open_{false};
+         std::atomic<bool> throw_{false};
+         std::atomic<int> rollbacks_asked_{0};
          std::function<void()> during_check_;
       };
 
@@ -1108,6 +1230,7 @@ namespace HM
       TestTheWaitForAConnectionInUse_();
       TestAConnectionMadeAfterTheCloseIsClosed_();
       TestTheChecksOnAConnectionMadeHoldIt_();
+      TestAConnectionComesBackWhenTheCallThrows_();
    }
 
    std::shared_ptr<DatabaseConnectionManager>
@@ -1329,5 +1452,81 @@ namespace HM
       ExpectOfTheClose(connection->IsClosed(), "the connection the checks ran on was not closed when they ended after the close.");
       ExpectOfTheClose(manager.GetAvailableConnectionCount() == 0 && manager.GetBusyConnectionCount() == 0, "the connection the checks ran on went back to the pool after the close.");
       ExpectOfTheClose(result == DALConnection::FatalError && !error.IsEmpty(), "the checks answered that the connection made had connected, with nothing said, after the close had begun during them.");
+   }
+   void
+   DatabaseConnectionManagerTester::TestAConnectionComesBackWhenTheCallThrows_()
+   {
+      // A stop's interruption passed on through a report made while a call holds
+      // its pooled connection - DALConnection::Execute's HM5032, whose OnError
+      // script's call met the stop - left the connection in the busy set for good,
+      // and on SQL Server Compact, whose pool holds one, every later statement
+      // waited DBConnectionAcquireTimeout and failed (HeldConnection_). One
+      // connection, as Compact's pool has, so that a call that kept it is seen at
+      // once.
+      std::shared_ptr<DatabaseConnectionManager> manager = std::make_shared<DatabaseConnectionManager>();
+      std::shared_ptr<StandInConnection> connection = std::make_shared<StandInConnection>();
+      manager->available_connections_.insert(connection);
+
+      String error;
+      auto expectBack = [&manager](const std::string &call, const std::function<void()> &run)
+      {
+         bool passedOn = false;
+         try
+         {
+            run();
+         }
+         catch (const boost::thread_interrupted &)
+         {
+            passedOn = true;
+         }
+
+         ExpectOfTheClose(passedOn, (call + " did not pass on a stop's interruption met inside it.").c_str());
+         ExpectOfTheClose(manager->GetBusyConnectionCount() == 0 && manager->GetAvailableConnectionCount() == 1,
+            (call + " left its connection out of the pool when a stop's interruption left it.").c_str());
+      };
+
+      connection->ThrowAStopsInterruption(true);
+
+      expectBack("Execute", [&manager, &error]() { manager->Execute(SQLCommand("update hm_settings set settingname = settingname"), 0, 0, error); });
+      expectBack("OpenRecordset", [&manager]() { manager->OpenRecordset(SQLCommand("select settingname from hm_settings")); });
+      expectBack("BeginTransaction", [&manager, &error]() { manager->BeginTransaction(error); });
+
+      // A database transaction of the thread's whose BEGIN met it: the connection
+      // back, and no scope left on the thread's chain, which a constructor that
+      // throws has no destructor to take it off.
+      expectBack("A DatabaseTransaction's construction", [&manager]() { DatabaseTransaction transaction(manager); });
+      ExpectOfTheClose(DatabaseTransaction::Current_(manager.get()) == nullptr,
+         "a DatabaseTransaction whose construction a stop's interruption left stayed on its thread's chain of scopes.");
+
+      connection->ThrowAStopsInterruption(false);
+      std::shared_ptr<DALConnection> inUse = manager->BeginTransaction(error);
+      ExpectOfTheClose(inUse == connection, "the pool's one connection was not handed out once nothing threw.");
+      connection->ThrowAStopsInterruption(true);
+      const int rollbacksBefore = connection->RollbacksAsked();
+      expectBack("CommitTransaction", [&manager, &inUse, &error]() { manager->CommitTransaction(inUse, error); });
+
+      // The transaction the COMMIT left open rolled back before the connection
+      // went back - asked for, though the stand-in's ROLLBACK threw too - and
+      // nothing of it left on the connection the pool has back.
+      ExpectOfTheClose(connection->RollbacksAsked() == rollbacksBefore + 1,
+         "a transaction a COMMIT that a stop's interruption left had begun was not rolled back before its connection went back to the pool.");
+      ExpectOfTheClose(!connection->IsTransactionOpenOnSession(),
+         "a connection a stop's interruption left a COMMIT holding went back to the pool with its transaction open.");
+
+      connection->ThrowAStopsInterruption(false);
+      inUse = manager->BeginTransaction(error);
+      ExpectOfTheClose(inUse == connection, "the pool's one connection was not handed out once nothing threw.");
+      connection->ThrowAStopsInterruption(true);
+      expectBack("RollbackTransaction", [&manager, &inUse, &error]() { manager->RollbackTransaction(inUse, error); });
+
+      connection->ThrowAStopsInterruption(false);
+      connection->RunDuringTheCheck([]() { throw boost::thread_interrupted(); });
+      expectBack("The checks on a connection made", [&manager, &error]() { manager->CheckConnectionMade_(error); });
+      connection->RunDuringTheCheck(std::function<void()>());
+
+      // And the pool still hands it out.
+      inUse = manager->BeginTransaction(error);
+      ExpectOfTheClose(inUse == connection, "the pool's one connection was not handed out after the calls a stop's interruption left.");
+      manager->RollbackTransaction(inUse, error);
    }
 }

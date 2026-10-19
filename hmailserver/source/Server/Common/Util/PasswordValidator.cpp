@@ -717,6 +717,13 @@ namespace HM
             return currentEncryption;
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("PasswordValidator::UpgradeStoredPasswordHash_: a stop of the servers interrupted the upgrade of the password hash of " + pAccount->GetAddress() + "; it keeps its existing hash.");
+         throw;
+      }
       catch (...)
       {
          String sError;

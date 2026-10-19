@@ -78,6 +78,13 @@ namespace HM
 
          return false;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("PasswordHistory::IsReuse: a stop of the servers interrupted the password history check.");
+         throw;
+      }
       catch (...)
       {
          // Fail open: refusing a password change because the history table could not
@@ -147,6 +154,13 @@ namespace HM
             deleteCommand.AddParameter("@PHID", id);
             Application::Instance()->GetDBManager()->Execute(deleteCommand);
          }
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("PasswordHistory::Record: a stop of the servers interrupted the recording of the previous password in the reuse history.");
+         throw;
       }
       catch (...)
       {

@@ -209,11 +209,14 @@ namespace HM
       // handler flags.
 
 #ifdef _MSC_VER
-      bool RunInterruptible_(CComObject<CScriptSiteBasic> *pBasic);
+      bool RunInterruptible_(CComObject<CScriptSiteBasic> *pBasic, bool &stopInterruptionMet);
       // Runs the script which has been added to pBasic, under a watchdog which
       // aborts execution once the configured script timeout has elapsed. A
       // timeout of zero means the administrator has disabled the limit.
       // Returns true if the watchdog had to interrupt the script.
+      // stopInterruptionMet says whether a COM call of this run's met a stop's
+      // interruption (COMError::TakeStopInterruption); a mark an outer script's
+      // call left is kept for that script's FireEvent.
 #endif
 
       void ReportInterruption_(const String &sContext, bool bReportError);

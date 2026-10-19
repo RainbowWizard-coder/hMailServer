@@ -898,8 +898,9 @@ namespace HM
       // Everything below runs inside a MAIL FROM. An exception escaping to
       // TCPConnection::AsyncReadCompleted is reported as HM5136, drops the session
       // and is rethrown so the worker writes a minidump; failing to count one
-      // message is a much smaller problem than that, so nothing propagates and the
-      // fallback is to allow. See ReportSwallowedException_.
+      // message is a much smaller problem than that, so nothing propagates but a
+      // stop's interruption (WorkQueue::Stop), which AsyncReadCompleted takes as
+      // the stop, and the fallback is to allow. See ReportSwallowedException_.
       try
       {
          String key = NormalizeAccountKey_(accountAddress);
@@ -922,6 +923,15 @@ namespace HM
          EmitQueuedReport_();
 
          return result;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in
+         // EmitQueuedReport_, whose report runs an installed OnError script;
+         // what was counted stays counted, as on any failure after the count.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::TryConsumeAccountMessage: a stop of the servers interrupted the counting of a message against the sending quota of " + accountAddress + ".");
+         throw;
       }
       catch (...)
       {
@@ -954,6 +964,14 @@ namespace HM
          EmitQueuedReport_();
 
          return result;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop, and
+         // TryConsumeAccountMessage above.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::TryConsumeAccountRecipients: a stop of the servers interrupted the counting of recipients against the sending quota of " + accountAddress + ".");
+         throw;
       }
       catch (...)
       {
@@ -1018,6 +1036,15 @@ namespace HM
 
          SaveUsage_(false);
          EmitQueuedReport_();
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop, and
+         // TryConsumeAccountMessage above. CountedUsage's destructor, which
+         // cannot pass it on, holds interruption off while it calls this.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::RefundAccountUsage: a stop of the servers interrupted the giving back of the sending quota of " + accountAddress + ".");
+         throw;
       }
       catch (...)
       {
@@ -1103,6 +1130,15 @@ namespace HM
          boost::unique_lock<boost::mutex> saveGuard(save_mutex_);
          FileUtilities::DeleteFile(GetStateFileName_());
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop, and
+         // TryConsumeAccountMessage above - met in FileUtilities' report of a
+         // file that could not be deleted.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::ClearAccountUsage: a stop of the servers interrupted the clearing of the sending quotas' state.");
+         throw;
+      }
       catch (...)
       {
          ReportSwallowedException_("ClearAccountUsage");
@@ -1116,6 +1152,14 @@ namespace HM
       {
          SaveUsage_(true);
          EmitQueuedReport_();
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop, and
+         // TryConsumeAccountMessage above.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::FlushAccountUsage: a stop of the servers interrupted the writing of the sending quotas' state.");
+         throw;
       }
       catch (...)
       {
@@ -1404,6 +1448,13 @@ namespace HM
          }
 
          return limits;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("RateLimiter::GetAccountLimits: a stop of the servers interrupted the reading of the sending limits of " + accountAddress + ".");
+         throw;
       }
       catch (...)
       {

@@ -279,6 +279,19 @@ namespace HM
          
          return DALConnection::Connected;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a report
+         // made inside the connect (HM5097, a refused open's), whose OnError script's
+         // call to the server can meet the stop. Passed on, with the connection closed,
+         // as a refused connect leaves it, rather than half made;
+         // DALConnection::Reconnect and DatabaseConnectionManager's HeldConnection_ do
+         // the rest.
+         boost::this_thread::disable_interruption disabled;
+         Disconnect();
+         LOG_DEBUG("SQLCEConnection::Connect: a stop of the servers interrupted the connection to the database, which is left closed.");
+         throw;
+      }
       catch ( _com_error &err )
       {
          String sErrSource = err.Source();
@@ -702,6 +715,21 @@ namespace HM
          sErrorMessage += sErrDesc;
 
          return dbErr;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in
+         // GetIdentityFromRS_'s report of an insert's identity it could not read
+         // (HM5100), whose OnError script's call to the server can meet the stop.
+         // Passed on, where the catch below answered it as a failure of the statement
+         // that DALConnection::Execute then reported as HM5032; the statement has run,
+         // and the identity's recordset unwinds. DatabaseConnectionManager's
+         // HeldConnection_ gives the connection back.
+         boost::this_thread::disable_interruption disabled;
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+         LOG_DEBUG("SQLCEConnection::TryExecute: a stop of the servers interrupted a statement.");
+         throw;
       }
       catch ( ... )
       {

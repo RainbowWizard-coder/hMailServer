@@ -221,6 +221,19 @@ namespace HM
          // statement and declines to run one on a connection that is not up yet.
          ApplyDefaultTimeout();
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a report
+         // made inside the connect (PostgreSQLSslMode's HM5563, DatabaseTls' reading of
+         // TlsMode, the statement timeout's), whose OnError script's call to the server
+         // can meet the stop. Passed on, with the connection closed, as a refused
+         // connect leaves it, rather than half made; DALConnection::Reconnect and
+         // DatabaseConnectionManager's HeldConnection_ do the rest.
+         boost::this_thread::disable_interruption disabled;
+         Disconnect();
+         LOG_DEBUG("PGConnection::Connect: a stop of the servers interrupted the connection to the database, which is left closed.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5085, "PGConnection::Connect", "An unhandled error occurred when connecting to the database");
@@ -373,6 +386,20 @@ namespace HM
          if (pResult != 0)
             PQclear(pResult);
         
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in the report
+         // of a statement that could not be converted (HM5106), whose OnError script's
+         // call to the server can meet the stop. Passed on, where the catch below
+         // answered it as a failure of the statement that DALConnection::Execute then
+         // reported as HM5032; nothing has been sent. DatabaseConnectionManager's
+         // HeldConnection_ gives the connection back.
+         boost::this_thread::disable_interruption disabled;
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+         LOG_DEBUG("PGConnection::TryExecute: a stop of the servers interrupted a statement.");
+         throw;
       }
       catch (...)
       {

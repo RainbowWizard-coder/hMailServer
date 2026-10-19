@@ -832,6 +832,13 @@ STDMETHODIMP InterfaceUtilities::RunTestSuite(BSTR sTestPassword)
       // thirty, had failed.
       return COMError::GenerateError(HM::String(HM::AnsiString("The internal test suite failed: ") + failure.what()));
    }
+   catch (const boost::thread_interrupted &)
+   {
+      // A stop of the servers, which a script calling this on its thread met - not
+      // a tester's failure: said as every method says it
+      // (COMError::GenerateGenericMessage).
+      return COMError::GenerateGenericMessage();
+   }
    catch (...)
    {
       return COMError::GenerateError(_T("The internal test suite failed in a tester that threw without saying why. Run it under a debugger with OutputDebugString captured: the last \"hMailServer: Testing\" line names it."));

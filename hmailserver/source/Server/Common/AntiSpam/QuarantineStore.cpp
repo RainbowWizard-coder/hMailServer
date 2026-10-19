@@ -597,6 +597,13 @@ namespace HM
 
          return true;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("QuarantineStore::Quarantine: a stop of the servers interrupted the quarantining of a message; it was not quarantined.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6200, "QuarantineStore::Quarantine",

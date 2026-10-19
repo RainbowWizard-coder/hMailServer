@@ -1285,6 +1285,13 @@ namespace HM
                "Its mail stays unreadable, and IMAP and POP3 refuse it, until an administrator opens the key with the domain's recovery key (POST /api/v1/accounts/{address}/mailbox-encryption/recover), which wraps it by a password again.");
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("MailboxKeys::OnPasswordLogon: a stop of the servers interrupted the opening of a mailbox key at a sign-in; the key stays as it was.");
+         throw;
+      }
       catch (...)
       {
          // On the success path of a sign-in, which has been proved: the key

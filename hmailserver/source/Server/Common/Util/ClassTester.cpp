@@ -53,6 +53,7 @@
 #include "../AntiSpam/DKIM/Arc.h"
 #include "../Persistence/PersistentDkimRotation.h"
 #include "../../SMTP/BounceClassifier.h"
+#include "../../SMTP/SMTPVacationMessageCreator.h"
 #include "BrandLogo.h"
 #include "InertMediaType.h"
 #include "Compression.h"
@@ -90,6 +91,7 @@
 #include "../../SMTP/GreyListing.h"
 #include "ServiceAccount.h"
 #include "../Persistence/MessageStoreFormat.h"
+#include "../Persistence/MessageStoreBlobs.h"
 #include "MailboxCrypto.h"
 #include "MailboxKeys.h"
 #include "../../SMTP/DeliveryReportParser.h"
@@ -1045,11 +1047,37 @@ namespace HM
       // closed at once and one in use only when it is handed back, nothing is
       // handed out meanwhile, and SQL Server Compact's flush interval is waited
       // out for one still in use; a connection made after the close is closed,
-      // not pooled, and one the start's checks run on is held for them. The
-      // server's own manager is not touched.
+      // not pooled, and one the start's checks run on is held for them; and a
+      // call that a stop's interruption leaves - a statement, a query, a
+      // transaction's begin, commit or rollback, a DatabaseTransaction's start,
+      // the start's checks - gives its connection back. The server's own manager
+      // is not touched.
       OutputDebugString(_T("hMailServer: Testing the database's close before the process ends\n"));
       DatabaseConnectionManagerTester databaseConnectionManagerTester;
       databaseConnectionManagerTester.Test();
+
+      // A stop of the servers met by a thread whose work is in a catch (...) that
+      // reports: the free connections of the server's own pool held for as long
+      // as one lookup takes, a thread of the test's own interrupted as
+      // WorkQueue::Stop interrupts a worker, and the lookup's site passing the
+      // interruption on where it reported HM5023 until 19 October 2026 - a round
+      // whose lookup did not wait, because another thread gave back a connection
+      // first, made again; and a COM method's catch (...) marking the thread for
+      // the script's host (COMError.h).
+      OutputDebugString(_T("hMailServer: Testing a stop's interruption passed on, not reported\n"));
+      VacationStopInterruptionTester vacationStopInterruptionTester;
+      vacationStopInterruptionTester.Test();
+
+      // A stop of the servers met by a destructor, which cannot pass it on: the end
+      // of a restore's hold of the blobs, on a thread of the test's own interrupted
+      // as WorkQueue::Stop interrupts a worker, with the free connections of the
+      // server's own pool held for half a second - the interruption held off while
+      // the recount waits them out and rebuilds the counts, where until 20 October
+      // 2026 the recount's catch (...) took it at that wait and reported it as
+      // HM7352; a round whose recount did not wait made again.
+      OutputDebugString(_T("hMailServer: Testing the end of a blob hold under a stop's interruption\n"));
+      DeletionHoldStopInterruptionTester deletionHoldStopInterruptionTester;
+      deletionHoldStopInterruptionTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

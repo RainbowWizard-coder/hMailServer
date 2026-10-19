@@ -286,6 +286,7 @@ namespace HM
    private:
 
       friend class DatabaseConnectionManager;
+      friend class DatabaseConnectionManagerTester;
       friend class DatabaseTransactionTester;
 
       void Open_();

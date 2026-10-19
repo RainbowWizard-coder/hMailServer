@@ -37,10 +37,12 @@ namespace HM
       }
       catch (...)
       {
-         // A destructor may not throw. The connection stays with the pool's busy
-         // set, as the Database object's did when its rollback failed, and the
+         // A destructor may not throw. The pool has the connection back already -
+         // DatabaseConnectionManager's HeldConnection_ gives it back however
+         // RollbackTransaction leaves, a stop's interruption passed on through a
+         // report among them (WorkQueue::Stop), which is swallowed here - and the
          // debug log says so.
-         LOG_DEBUG(_T("ScriptTransaction: a transaction still open at its end could not be rolled back."));
+         LOG_DEBUG(_T("ScriptTransaction: a transaction still open at its end could not be rolled back; its connection is back in the pool."));
       }
    }
 

@@ -135,13 +135,22 @@ namespace HM
       //
       // Every member of the per-account quota API - GetAccountLimits,
       // TryConsumeAccountMessage, TryConsumeAccountRecipients, GetAccountUsage,
-      // ClearAccountUsage, FlushAccountUsage - is reached from an SMTP connection
-      // thread and none of them throws: an unexpected failure is reported once and
-      // the command is allowed. Refusing mail because of an internal error - or
-      // worse, letting an exception reach TCPConnection, which reports HM5136,
+      // ClearAccountUsage, FlushAccountUsage - is written for an SMTP connection
+      // thread, and none of them throws but a stop's interruption, which each passes
+      // on (WorkQueue::Stop) and AsyncReadCompleted takes as the stop: an
+      // unexpected failure is reported once and the command is allowed.
+      // Refusing mail because of an internal error - or worse, letting an
+      // exception reach TCPConnection, which reports HM5136,
       // drops the session and rethrows so the worker writes a minidump - would be
       // a worse outcome than not counting one message. Keep it that way when
-      // editing; these members read files and allocate.
+      // editing; these members read files and allocate. GetAccountLimits and the
+      // two TryConsume members are what SMTPConnection calls. ClearAccountUsage and
+      // FlushAccountUsage have no caller in the server today, and
+      // RefundAccountUsage, which passes the interruption on in the same way, is
+      // reached only from CountedUsage::Refund, on the REST API's threads, which a
+      // stop never interrupts, and from ~CountedUsage with interruption held off:
+      // none of those three meets a stop now, and each has the handler so that the
+      // API stays as said for a caller to come.
       //
       // TryConsume and Clear above are older and are not wrapped this way.
       AccountQuotaResult TryConsumeAccountMessage(const String &accountAddress, const AccountSendingLimits &limits);
@@ -311,7 +320,16 @@ namespace HM
    {
    public:
       CountedUsage() : kept_(false) { }
-      ~CountedUsage() { if (!kept_) Refund(); }
+      // Interruption held off: a destructor cannot pass a stop's interruption on
+      // (WorkQueue::Stop), and the refund it promises completes.
+      ~CountedUsage()
+      {
+         if (!kept_)
+         {
+            boost::this_thread::disable_interruption disabled;
+            Refund();
+         }
+      }
 
       // An event TryConsume recorded under key.
       void Event(const String &key) { events_.push_back(key); }

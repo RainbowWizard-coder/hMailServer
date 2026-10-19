@@ -13,6 +13,28 @@ public:
    static HRESULT GenerateGenericMessage();
    static HRESULT GenerateError(HM::String sDescription);
 
+   // A STOP OF THE SERVERS THAT REACHED A COM METHOD.
+   //
+   // An event script runs on the thread that fired its event - a delivery, a
+   // session's command - and the COM methods it calls run there too. A stop of the
+   // servers interrupts that thread (WorkQueue::Stop), and a method that meets the
+   // interruption at a wait for a pooled database connection ends in the catch
+   // (...) every method ends in, and so in GenerateGenericMessage. A C++ exception
+   // cannot be passed through the script engine, so the method fails as any
+   // method fails, with "the server is stopping", and the thread is marked: the
+   // script's host does not write the script error that follows to the error log
+   // (CScriptSiteBasic::HandleScriptError), and once the script has returned it
+   // passes the interruption on (ScriptServer::FireEvent), as the JavaScript
+   // binding of the Linux builds does (ScriptBinding's Guard_).
+   //
+   // TakeStopInterruption answers whether the mark is set and clears it;
+   // StopInterruptionPending answers without clearing it; RestoreStopInterruption
+   // sets it again to what a TakeStopInterruption answered, for a script run inside
+   // another's call (ScriptServer::RunInterruptible_). Per thread.
+   static bool TakeStopInterruption();
+   static bool StopInterruptionPending();
+   static void RestoreStopInterruption(bool met);
+
    // A FAILURE THAT CARRIES NO SENTENCE OF ITS OWN.
    //
    // GenerateError calls SetErrorInfo, which puts an IErrorInfo on the THREAD,

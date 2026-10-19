@@ -373,6 +373,15 @@ namespace HM
 
          return LdapAuthenticationResult::ResultUnavailable;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a
+         // report above, whose OnError script a stop can interrupt; the logon
+         // goes no further, and the connections close as they go out of scope.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("LdapDirectoryAuthenticator::ValidateUser: a stop of the servers interrupted the LDAP authentication of " + accountAddress + ".");
+         throw;
+      }
       catch (...)
       {
          // The barrier. Nothing above should throw, but this runs on a protocol

@@ -182,6 +182,17 @@ namespace HM
             return false;
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in a
+         // report made inside the load (6060 above, or the parser's 4228), whose
+         // OnError script a stop can interrupt. Nor is it a message that could not
+         // be parsed: nothing is copied to "Problematic messages", and the load is
+         // left failed (load_failed_).
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("MessageData::LoadFromMessage: a stop of the servers interrupted the loading of " + message_file_name_ + ".");
+         throw;
+      }
       catch (...)
       {
          try
@@ -203,6 +214,14 @@ namespace HM
             sErrorMessage.Format(_T("An unknown error occurred while loading message. File: %s. Backuped to: %s"), message_file_name_.c_str(), sMessageBackupPath.c_str());
 
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4218, "MessageData::LoadFromMessage", sErrorMessage);
+         }
+         catch (const boost::thread_interrupted&)
+         {
+            // The stop met while the failure was copied aside or reported:
+            // passed on, not reported again (WorkQueue::Stop).
+            boost::this_thread::disable_interruption disabled;
+            LOG_DEBUG("MessageData::LoadFromMessage: a stop of the servers interrupted the report of a message that could not be loaded, " + message_file_name_ + ".");
+            throw;
          }
          catch (...)
          {

@@ -125,6 +125,14 @@ namespace HM
 
          Application::Instance()->SubmitPendingEmail();
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Passed on: it is
+         // the stop that ends the delivery here, not the warning.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("QuotaWarner::NotifyIfThresholdCrossed: a stop of the servers interrupted a mailbox quota warning; it was not sent.");
+         throw;
+      }
       catch (...)
       {
          // Swallowed, like the message trace and for the same reason: this runs on the

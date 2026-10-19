@@ -267,6 +267,13 @@ namespace HM
             (time_t) IniFileSettings::Instance()->GetAccountLockoutWindowMinutes() * 60,
             (time_t) IniFileSettings::Instance()->GetAccountLockoutMinutes() * 60);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("AccountLockout::RecordFailure: a stop of the servers interrupted the recording of a failed authentication.");
+         throw;
+      }
       catch (...)
       {
          // Contained rather than propagated for the reason IsLockedOut states -

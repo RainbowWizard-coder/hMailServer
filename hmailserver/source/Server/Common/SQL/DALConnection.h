@@ -302,6 +302,13 @@ namespace HM
       // transaction BeginTransaction began is open.
       bool IsTransactionSessionGone() const;
 
+      // Whether a transaction BeginTransaction began is open on the session the
+      // connection holds now: begun, not ended by CommitTransaction or
+      // RollbackTransaction, and its session not gone. What the pool rolls back
+      // before it takes back a connection that an exception left a call holding
+      // (DatabaseConnectionManager::HeldConnection_).
+      bool IsTransactionOpenOnSession() const { return transaction_open_ && !IsTransactionSessionGone(); }
+
       // What BeginTransaction recorded, forgotten: the connection holds no
       // transaction of its caller's any more. The pool says it as it takes a
       // connection back (DatabaseConnectionManager::ReleaseConnection_), so that a

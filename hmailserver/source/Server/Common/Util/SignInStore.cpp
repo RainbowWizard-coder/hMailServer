@@ -297,6 +297,13 @@ namespace HM
 
          return device;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SignInStore::RecordFrom: a stop of the servers interrupted the recording of a sign-in.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6991, "SignInStore::RecordFrom",
@@ -351,6 +358,13 @@ namespace HM
 
             Application::Instance()->GetDBManager()->Execute(remove);
          }
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("SignInStore::PruneAccount_: a stop of the servers interrupted the keeping of an account's list of devices to its limit.");
+         throw;
       }
       catch (...)
       {

@@ -8,12 +8,19 @@
 #include "MessageStore.h"
 #include "MessageStoreMaintenance.h"
 
+#include "../SQL/DALConnection.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/DatabaseConnectionManager.h"
 
+#include <atomic>
+#include <chrono>
 #include <ctime>
 #include <map>
 #include <set>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -394,6 +401,19 @@ namespace HM
 
    MessageStoreBlobs::DeletionHold::~DeletionHold()
    {
+      // A STOP OF THE SERVERS is held off for all that the end of a hold does
+      // (WorkQueue::Stop): a destructor cannot pass its interruption on. A restore
+      // runs on the maintenance queue, whose threads a stop interrupts, and one the
+      // stop cut short ends its hold here as the interruption unwinds it. Met at
+      // the recount's first wait for a pooled connection, the interruption cut the
+      // recount the hold promises at its end, the restore done or stopped
+      // part-way, and was reported as HM7352 with the counts left unbuilt; met at
+      // a deletion's wait below, or by the OnError script the report runs
+      // (ScriptServer::FireEvent passes it on), it left this destructor, and
+      // std::terminate ended the process. A request made while it is held off
+      // stays pending, for the next interruption point after the hold.
+      boost::this_thread::disable_interruption disabled;
+
       bool recount = false;
       {
          boost::recursive_mutex::scoped_lock lock(blob_lock);
@@ -641,5 +661,156 @@ namespace HM
       }
 
       return true;
+   }
+
+   namespace
+   {
+      [[noreturn]] void HoldStopInterruptionFailed(const std::string &why)
+      {
+         throw std::logic_error("DeletionHoldStopInterruptionTester: " + why);
+      }
+
+      // What the end of a hold did with a stop's interruption, on a thread
+      // interrupted as WorkQueue::Stop interrupts a worker.
+      enum class HoldEndOutcome
+      {
+         // Waited for the pool with the interruption held off and returned once
+         // the pool was handed back, the request still pending: as it is to.
+         HeldOff,
+         // Returned with the request gone: the interruption was met at the
+         // recount's wait and taken for a fault, as HM7352 took it until 20
+         // October 2026.
+         Taken,
+         // Returned while the pool was still held, the request pending: it did
+         // not wait, being handed a connection that another thread had out and
+         // gave back.
+         NotMet,
+         // Did not end within two minutes of the pool's being handed back.
+         DidNotEnd
+      };
+
+      // One round: every free connection of the server's pool held, as statements
+      // in flight hold them, so that the recount at the end of the hold has to
+      // wait for one (DatabaseConnectionManager::GetConnection_) - the
+      // interruption point a stop's interruption is met at - and a thread of the
+      // test's own, interrupted before the hold ends, ends a hold that asks for
+      // the recount. The pool is handed back after half a second, and on every
+      // path.
+      HoldEndOutcome InterruptAHoldsEnd(DatabaseConnectionManager &manager)
+      {
+         std::vector<std::shared_ptr<DALConnection> > held;
+         String error;
+
+         auto handBack = [&manager, &held, &error]()
+         {
+            for (const std::shared_ptr<DALConnection> &connection : held)
+               manager.RollbackTransaction(connection, error);
+            held.clear();
+         };
+
+         std::atomic<bool> handedBack(false);
+         std::atomic<HoldEndOutcome> outcome(HoldEndOutcome::DidNotEnd);
+         bool joined = false;
+
+         try
+         {
+            while (manager.GetAvailableConnectionCount() > 0)
+            {
+               std::shared_ptr<DALConnection> connection = manager.BeginTransaction(error);
+               if (!connection)
+                  HoldStopInterruptionFailed("a free connection of the server's database pool could not be held: " + std::string(AnsiString(error)));
+
+               held.push_back(connection);
+            }
+
+            boost::thread worker([&outcome, &handedBack]()
+            {
+               // The hold ends once the thread has been interrupted, as a restore's
+               // hold ends on a worker that a stop interrupted. Neither the
+               // question nor the yield is an interruption point.
+               while (!boost::this_thread::interruption_requested())
+                  std::this_thread::yield();
+
+               {
+                  MessageStoreBlobs::DeletionHold hold(true);
+               }
+
+               if (!boost::this_thread::interruption_requested())
+                  outcome = HoldEndOutcome::Taken;
+               else
+                  outcome = handedBack ? HoldEndOutcome::HeldOff : HoldEndOutcome::NotMet;
+            });
+
+            // As WorkQueue::Stop interrupts a worker.
+            worker.interrupt();
+
+            // Half a second for the recount to reach its first wait for a
+            // connection, which it is to wait out: an end of the hold within it,
+            // the pool still held, did not wait - or took the interruption.
+            joined = worker.timed_join(boost::posix_time::milliseconds(500));
+
+            // Handed back before it is said to be: an end of the hold between the
+            // two is taken for one that did not wait, and the round made again.
+            handBack();
+            handedBack = true;
+
+            if (!joined)
+            {
+               joined = worker.timed_join(boost::posix_time::minutes(2));
+
+               if (!joined)
+                  worker.join();
+            }
+         }
+         catch (...)
+         {
+            handBack();
+            throw;
+         }
+
+         return joined ? outcome.load() : HoldEndOutcome::DidNotEnd;
+      }
+   }
+
+   void
+   DeletionHoldStopInterruptionTester::Test()
+   {
+      std::shared_ptr<DatabaseConnectionManager> manager = Db();
+      if (!manager || !manager->GetIsConnected())
+         HoldStopInterruptionFailed("the server has no database connection to hold.");
+
+      // Another hold in force - a restore's - would make this one's end the end
+      // of an inner hold, which recounts nothing.
+      if (MessageStoreBlobs::IsHeld())
+         HoldStopInterruptionFailed("a hold of the blobs is in force already: a restore is running.");
+
+      // The servers run while ClassTester does, so a connection another thread
+      // has out when a round holds the pool's free ones is not held, and given
+      // back before the recount asks, it is the recount's at once: no wait, and no
+      // interruption met. Such a round shows nothing - its hold ends while the
+      // pool is still held - and is made again, for thirty seconds at most.
+      const std::chrono::steady_clock::time_point giveUp = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+
+      for (int round = 1; ; round++)
+      {
+         switch (InterruptAHoldsEnd(*manager))
+         {
+         case HoldEndOutcome::HeldOff:
+            if (MessageStoreBlobs::IsHeld())
+               HoldStopInterruptionFailed("the hold was still in force after it ended.");
+            return;
+         case HoldEndOutcome::Taken:
+            HoldStopInterruptionFailed("the end of a blob hold met a stop's interruption at the recount's wait for a pooled connection and took it for a fault (HM7352), where it is to hold the interruption off and rebuild the counts.");
+         case HoldEndOutcome::DidNotEnd:
+            HoldStopInterruptionFailed("the end of a blob hold on an interrupted thread did not end within two minutes of the server's database pool being handed back.");
+         case HoldEndOutcome::NotMet:
+            break;
+         }
+
+         if (std::chrono::steady_clock::now() >= giveUp)
+            HoldStopInterruptionFailed("in " + std::to_string(round) + " rounds over thirty seconds the end of the hold never waited for a pooled connection: each time it was given a connection that another thread had out and gave back before it asked.");
+
+         Sleep(50);
+      }
    }
 }

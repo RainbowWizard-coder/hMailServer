@@ -327,7 +327,24 @@ namespace HM
       Disconnect();
 
       // ... and now try to reconnect.
-      const bool connected = Connect(sErrorMessage) == Connected;
+      bool connected = false;
+      try
+      {
+         connected = Connect(sErrorMessage) == Connected;
+      }
+      catch (...)
+      {
+         // A connect cut part way - by a stop's interruption passed on through a
+         // report it made (WorkQueue::Stop), which DatabaseConnectionManager's
+         // HeldConnection_ then gives back to the pool - is left closed, as a
+         // refused one is, rather than half made: a session that has not been
+         // told its character set, database or timeout. The next statement on it
+         // finds it closed and connects again.
+         boost::this_thread::disable_interruption disabled;
+         transaction_session_lost_ = transactionLost;
+         Disconnect();
+         throw;
+      }
 
       transaction_session_lost_ = transactionLost;
 

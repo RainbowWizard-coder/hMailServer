@@ -123,6 +123,55 @@ with `--check`).
   fixture passed eight times in a row on its own: whether the interruption is met depends on what else holds the
   database at that moment.
 
+- **Fixed: work that outlasted a stop of the servers no longer reports the stop as an error of its own.** The same shape
+  as HM5136 above, everywhere else it was: a stop - a reinitialise among them - interrupts the threads of the delivery
+  queue, the TCP/IP service, the asynchronous tasks and the scheduled tasks and goes on without one that does not leave
+  in time, and the work on such a thread met the interruption at its next interruption point - a wait for a pooled
+  database connection while every one is in use, the one these meet. Twenty-seven places took it for a failure of their
+  own and wrote it to the error log, which also runs an installed OnError script: the out-of-office memory (HM5022,
+  HM5023, HM6320), the spam quarantine (HM6200), the Sieve vacation reply (HM5899), the filing of a calendar reply
+  (HM7555) and a room's booking (HM7434), the list manager (HM7250), the message trace (HM7554), the mailbox quota
+  warning (HM6161), the sandbox's examination (HM7275), the password hash's upgrade at a sign-in (HM5741), the record of
+  a sign-in's device (HM6991), the opening of a mailbox key at a sign-in (HM7366), the account lockout (HM6191) and the
+  sending limits (HM5816), the compromised-account verdict, sweep, locks, unlock and the deletion of an account's held
+  mail (HM6811, HM6812, HM6813, HM7561, HM7562), the password history (HM6201, HM6202), the directory synchronisation
+  (HM6180) and the measurement of the message store (HM7352). Twelve more met it in a report of a failure of their own
+  made first, whose OnError script's call to the server waited for a connection - on Linux, where a JavaScript handler's
+  call passed the interruption on, and on Windows too once this change passes it on from an event script's call (below):
+  the per-account sending quota's count of a message and of its recipients (HM5816), LDAP authentication (HM5924), the
+  loading of a message (HM4218, both of its reports, the first after copying the message to "Problematic messages"), an
+  IMAP FETCH's reading of a message (HM5062), the POP3 logon delay (HM6197), the clearing of an account's Sieve vacation
+  records (HM5898), the record of a Sieve vacation reply (HM5897) and the database drivers' reading of a value and, on
+  PostgreSQL, running of a statement (HM4207, HM5088, HM5085). And eight of the database drivers' own handlers answered
+  it as the failure of a connection, a query or a statement, which was then reported: a connection's on MySQL,
+  PostgreSQL and SQL Server Compact (HM5008, HM5085, HM5099), a query's on MySQL (HM4202, then HM5033) and a statement's
+  on all four engines (then HM5032). Each now cleans up as it does on any failure - but for a message being loaded,
+  which is not copied aside for a stop - writes a line to the debug log in place of the error, and passes the
+  interruption on, so that the thread leaves as the stop asked; a connection to the database that the stop cut part way
+  is left closed, as a refused one is, rather than half made, and the next statement on it connects again. A database
+  connection the interruption found a call holding, when it was passed on through such a report - after a statement that
+  failed (HM5032, HM5033) or inside a driver - stayed out of the pool until the process ended, on Linux already and on
+  Windows once this change passed it on: on SQL Server Compact, whose pool holds one connection, every later statement
+  then waited a minute (`DBConnectionAcquireTimeout`) and failed with HM5180. It now goes back to the pool however the
+  call ends - a transaction the call left open on it rolled back first - and a database transaction whose start the
+  interruption cut short no longer stays on its thread's list of open transactions, which every later statement of the
+  thread read. A list posting whose first member's copy was already queued is still taken off the queue, so that no
+  member is sent it twice. The end of a restore - on the maintenance queue's thread, which a stop interrupts as well,
+  whether the stop cut the restore short or met it as it ended - now holds the interruption off while it rebuilds the
+  blob counts, as it promises to: the stop cut that recount, which was reported as HM7352 and left the counts for
+  `hmailserver --recount-store` to rebuild, and an interruption met by the deletions after it, or on Linux by a
+  JavaScript OnError handler that the report ran, ended the service. An event script on such a thread whose call to the
+  server met the stop - a VBScript or JScript handler on Windows - failed with "An error occurred processing the
+  request." and a "Script Error" line in the error log; the call now fails with "The server is stopping. The request was
+  not completed.", the script error goes to the debug log, and the event ends there, as it already did for a JavaScript
+  handler on Linux - and an OnError handler run inside such a script's later call does not take that end away from it.
+  The same for an event script that reloads, checks or switches on the scripts (`Scripting.Reload`,
+  `Scripting.CheckSyntax`, `Scripting.Enabled`), which load or check them on its event's thread: a stop met by a call
+  of the script file's own code was written as a script that did not compile (HM5016 or HM5710) by a reload or a
+  switch-on, and answered as the check's result by `Scripting.CheckSyntax`, with a Script Error line in the error log;
+  one met in a report the load made as HM5017; the call now fails as above, nothing is written to the error log, and
+  the scripts loaded before stay in force.
+
 ### Control Panel
 
 - **Fixed: the Logging page named the log destination "0 (a value this Control Panel does not know)" on every
@@ -153,6 +202,24 @@ with `--check`).
   `AntiSpamPageTests` holds the rule and the page's wiring.
 
 ### Build and tests
+
+- **The internal suite holds the database pool and interrupts a thread waiting for a connection.**
+  `VacationStopInterruptionTester`, run inside the server on Windows by `ClassTester`, holds every free connection of
+  the server's own pool for as long as one lookup takes, interrupts a thread of its own as a stop interrupts a worker
+  before the lookup begins, and requires the out-of-office memory's lookup to pass the interruption on rather than
+  report HM5023, as it did until this change. The servers run while the suite does, so that a connection another thread
+  had out can be given back to the lookup, which then does not wait: such a round is told by the interruption still
+  pending when the lookup returns, and made again, for thirty seconds at most, where an interruption met and taken fails
+  the test. It also requires a COM method's failure on an interrupted thread to mark the thread for the script's host,
+  and no other failure to. `DeletionHoldStopInterruptionTester`, run after it, holds the pool the same way for half a
+  second while a thread of its own, interrupted, ends a hold of the blobs that asks for the recount a restore ends with,
+  and requires the end of the hold - a destructor, which cannot pass the interruption on - to wait the pool out with the
+  interruption held off and still pending and then rebuild the counts, rather than report HM7352; a round whose recount
+  did not wait, given a connection that another thread gave back, is made again. `DatabaseConnectionManagerTester`,
+  which the internal suite and the Linux builds' business-object test program run, has a pool of one stand-in connection
+  throw a stop's interruption out of a statement, a query, a transaction's begin, commit and rollback, a database
+  transaction's start and the checks on a connection made, and requires each to pass it on with the connection back in
+  the pool and no transaction left on the thread.
 
 - **The administrator-update testers say why a fixture could not be used, and on which computer.**
   `AdminUpdateTester` and `AdminUpdateStageTester`, which the internal suite runs on Windows against the real signed

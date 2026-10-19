@@ -563,6 +563,21 @@ namespace HM
 
          return dbErr;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Met in
+         // GetIdentityFromRS_'s report of an insert's identity it could not read
+         // (HM5030), whose OnError script's call to the server can meet the stop.
+         // Passed on, where the catch below answered it as a failure of the statement
+         // that DALConnection::Execute then reported as HM5032; the statement has run,
+         // and the identity's recordset unwinds. DatabaseConnectionManager's
+         // HeldConnection_ gives the connection back.
+         boost::this_thread::disable_interruption disabled;
+         if (rowsAffected != nullptr)
+            *rowsAffected = -1;
+         LOG_DEBUG("ADOConnection::TryExecute: a stop of the servers interrupted a statement.");
+         throw;
+      }
       catch ( ... )
       {
          if (rowsAffected != nullptr)

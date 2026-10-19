@@ -85,4 +85,26 @@ namespace HM
                                            String &reason);
 
    };
+
+   // A stop of the servers reaching a thread whose work is in a catch (...) that
+   // reports what it catches (WorkQueue::Stop): every free connection of the
+   // server's own database pool held, as statements in flight hold them, so that a
+   // lookup has to wait for a connection, a thread of the test's own interrupted as
+   // WorkQueue::Stop interrupts a worker before its lookup begins, and
+   // VacationMessageTurnedOff - whose catch (...) took the interruption at that
+   // wait and reported it as HM5023 until 19 October 2026 - passes it on instead.
+   // What the lookup did is read from the interruption's request: still pending
+   // when it returns, it was never met - the lookup was handed a connection that
+   // another thread, which had it out, gave back, and did not wait - and the round
+   // is made again, for thirty seconds at most; gone, it was met and taken for a
+   // fault. On Windows also the COM half: a method's catch (...) on such a thread
+   // marks it (COMError::GenerateGenericMessage) for the script's host to pass it
+   // on, and nothing else does. The pool is held for as long as one lookup takes;
+   // it is handed back on every path. Run inside the server on Windows by
+   // ClassTester. Throws std::logic_error naming what did not hold.
+   class VacationStopInterruptionTester
+   {
+   public:
+      void Test();
+   };
 }

@@ -81,6 +81,14 @@ namespace HM
          // We're at the first row.
          cur_row_num_ = 0;
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault (WorkQueue::Stop), met in the
+         // report above: passed on, as every exception here is, not reported.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("PGRecordset::TryOpen: a stop of the servers interrupted a statement.");
+         throw;
+      }
       catch (...)
       {
          ErrorManager::Instance()->ReportError(HM::ErrorManager::High, 5085, "PGConnection::TryOpen", "An unknown error occurred while executing" + sSQL);
@@ -192,6 +200,14 @@ namespace HM
          }
 
          return sOutput;
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault (WorkQueue::Stop), met in the
+         // report above: passed on, as every exception here is, not reported.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("PGRecordset::GetStringValue: a stop of the servers interrupted the reading of a value.");
+         throw;
       }
       catch (...)
       {

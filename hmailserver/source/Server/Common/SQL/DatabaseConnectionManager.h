@@ -173,6 +173,35 @@ namespace HM
       std::shared_ptr<DALConnection> GetConnection_();
       void ReleaseConnection_(std::shared_ptr<DALConnection> pConn);
 
+      // A connection GetConnection_ has handed out - or one a caller hands back
+      // through CommitTransaction or RollbackTransaction - given back to the pool
+      // however the call holding it leaves: by Release, or by the destructor when
+      // an exception leaves the call first. A stop's interruption is one (see
+      // WorkQueue::Stop): passed on through a report made while the connection is
+      // held - DALConnection::Execute's HM5032, DALRecordset::Open's HM5033, a
+      // driver's own, each running an installed OnError script whose call to the
+      // server can meet the stop - it left the connection in busy_connections_
+      // until the process ended, and on SQL Server Compact, whose pool holds one
+      // connection, every later statement waited DBConnectionAcquireTimeout and
+      // failed with HM5180. Keep hands the connection to the caller, who gives it
+      // back itself (BeginTransaction).
+      class HeldConnection_
+      {
+      public:
+         HeldConnection_(DatabaseConnectionManager &manager, const std::shared_ptr<DALConnection> &connection);
+         ~HeldConnection_();
+
+         HeldConnection_(const HeldConnection_ &) = delete;
+         HeldConnection_ &operator=(const HeldConnection_ &) = delete;
+
+         void Release();
+         std::shared_ptr<DALConnection> Keep();
+
+      private:
+         DatabaseConnectionManager &manager_;
+         std::shared_ptr<DALConnection> connection_;
+      };
+
       // One connection closed for CloseWhenIdle, and said when it cannot be.
       static void CloseBeforeExit_(const std::shared_ptr<DALConnection> &pConnection);
 
@@ -248,5 +277,6 @@ namespace HM
       void TestTheWaitForAConnectionInUse_();
       void TestAConnectionMadeAfterTheCloseIsClosed_();
       void TestTheChecksOnAConnectionMadeHoldIt_();
+      void TestAConnectionComesBackWhenTheCallThrows_();
    };
 }

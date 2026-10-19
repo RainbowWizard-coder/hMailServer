@@ -51,6 +51,10 @@
 #include <servprov.h>
 #include "ScriptObjectContainer.h"
 #include "ScriptObjectPolicy.h"
+#ifndef HM_PLATFORM_POSIX
+// The COM layer, which only the Windows build has; so does this host (ScriptServer.h).
+#include "../../COM/COMError.h"
+#endif
 
 
 
@@ -229,7 +233,16 @@ public:
       sMsg.Format(_T("Script Error: Source: %ws - Error: %08X - Description: %ws - Line: %d Column: %d - Code: %ws"),
                   pei->bstrSource,pei->scode,pei->bstrDescription,ulLine+1,lPos,src);
       
-      HM::Logger::Instance()->LogError(sMsg);
+      // A call the script made met a stop of the servers (COMError.h): the error
+      // the script stopped at is the stop, not the script's fault, and goes to the
+      // debug log; ScriptServer::FireEvent passes the interruption on.
+      if (COMError::StopInterruptionPending())
+      {
+         if (HM::Logger::Instance()->GetLogMask() & HM::Logger::LSDebug)
+            HM::Logger::Instance()->LogDebug(_T("A stop of the servers interrupted a call the script made. ") + sMsg);
+      }
+      else
+         HM::Logger::Instance()->LogError(sMsg);
 
       last_error_message_ = sMsg;
 

@@ -766,6 +766,13 @@ namespace HM
          AlertManager::Instance()->RaiseOccurrence(AlertManager::ConditionAccountCompromised, ErrorManager::High, summary, detail);
          LOG_APPLICATION("CompromiseDetector: " + summary);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("CompromiseDetector::Apply: a stop of the servers interrupted the carrying through of the verdict on " + assessment.account + ".");
+         throw;
+      }
       catch (...)
       {
          // The message is saved and, when it was to be held, held: what
@@ -1156,6 +1163,13 @@ namespace HM
          Execute(update);
          AccountLockout::Instance()->Release(address);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("CompromiseDetector::Unlock: a stop of the servers interrupted the lifting of the compromise lock of " + address + ".");
+         throw;
+      }
       catch (...)
       {
          // A code of its own: HM6813 is the locks not read at start, which an
@@ -1189,6 +1203,13 @@ namespace HM
 
          AccountLockout::Instance()->Release(address);
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("CompromiseDetector::ForgetAccount: a stop of the servers interrupted the discarding of the messages held for review from " + address + "; the sweep discards what is left.");
+         throw;
+      }
       catch (...)
       {
          // A code of its own: HM6812 is the sweep's, which runs on its own and
@@ -1220,6 +1241,13 @@ namespace HM
             recordset->MoveNext();
          }
          AccountLockout::Instance()->SetHeld(names);
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("CompromiseDetector::LoadLocks: a stop of the servers interrupted the reading of the compromise locks.");
+         throw;
       }
       catch (...)
       {
@@ -1331,6 +1359,13 @@ namespace HM
          }
 
          LoadLocks();
+      }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("CompromiseDetector::Sweep: a stop of the servers interrupted the compromised-account sweep; what it had not reached waits for its next run.");
+         throw;
       }
       catch (...)
       {

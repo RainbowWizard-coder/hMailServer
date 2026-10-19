@@ -9,6 +9,13 @@
 
 #include <exception>
 
+namespace
+{
+   // Set by GenerateGenericMessage when the exception it was called for is a stop's
+   // interruption: see COMError.h.
+   thread_local bool stop_interruption_met = false;
+}
+
 COMError::COMError(void)
 {
 }
@@ -38,12 +45,40 @@ COMError::GenerateGenericMessage()
       {
          return GenerateError(refusal.Sentence());
       }
+      catch (const boost::thread_interrupted &)
+      {
+         // A stop of the servers, which reached the thread a script runs this
+         // method on: not passed through the engine, which a C++ exception cannot
+         // cross, but marked for the script's host to pass on (COMError.h).
+         stop_interruption_met = true;
+         return GenerateError("The server is stopping. The request was not completed.");
+      }
       catch (...)
       {
       }
    }
 
    return GenerateError("An error occurred processing the request.");
+}
+
+bool
+COMError::TakeStopInterruption()
+{
+   const bool met = stop_interruption_met;
+   stop_interruption_met = false;
+   return met;
+}
+
+bool
+COMError::StopInterruptionPending()
+{
+   return stop_interruption_met;
+}
+
+void
+COMError::RestoreStopInterruption(bool met)
+{
+   stop_interruption_met = met;
 }
 
 HRESULT

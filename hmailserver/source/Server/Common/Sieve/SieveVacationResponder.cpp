@@ -587,6 +587,14 @@ namespace HM
             LOG_DEBUG(message);
          }
       }
+      catch (const boost::thread_interrupted&)
+      {
+         // A stop's interruption, not a fault: see WorkQueue::Stop. Passed on: the
+         // stop ends the delivery, not the auto-reply.
+         boost::this_thread::disable_interruption disabled;
+         LOG_DEBUG("Sieve vacation: a stop of the servers interrupted the auto-reply; it was not sent.");
+         throw;
+      }
       catch (...)
       {
          // An exception here must not propagate into the delivery path: the message

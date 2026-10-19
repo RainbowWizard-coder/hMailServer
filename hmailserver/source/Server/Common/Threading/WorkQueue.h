@@ -65,6 +65,51 @@ namespace HM
       void AddTask(std::shared_ptr<Task> pTask, TaskClass task_class = TaskNormal);
       void Start();
 
+      // Stops the queue: its io_context first, so that no task starts from here on,
+      // and then every worker thread interrupted (JoinWorkers_), again on each pass
+      // of up to ten seconds, and given up on when it does not leave in time.
+      //
+      // WHAT THE INTERRUPTION IS TO THE CODE IT REACHES. A task that outlasted the
+      // stop - a delivery, a session's command, a scheduled task - meets the
+      // interruption as boost::thread_interrupted at its next interruption point
+      // once it goes on: a wait for a pooled database connection
+      // (DatabaseConnectionManager::GetConnection_ when every connection is in
+      // use), an Event's wait, a boost sleep - and so a report to the error log
+      // (ErrorManager::ReportError), whose installed OnError script's call can
+      // meet the first of those, and which passes the interruption on
+      // (ScriptServer::FireEvent). That is the stop, not a fault, and a
+      // catch (...) on such a thread that takes it is not to report it as one - an
+      // error-log line, which an installed OnError script is run for too. Each
+      // catch (...) whose try can reach an interruption point - a report among
+      // them - and which reports what it catches therefore catches
+      // boost::thread_interrupted first, holds further interruption off
+      // (boost::this_thread::disable_interruption: the stop interrupts its
+      // threads again on every pass) while it cleans up as it would on any
+      // error, writes one line to the debug log and passes the interruption on,
+      // as ErrorManager::ReportError, AsynchronousTask and
+      // TCPConnection::AsyncReadCompleted pass it on; the task's own barrier takes
+      // it as the shutdown it is (ExceptionHandler::RunWithStandardExceptions,
+      // Task::Run, WorkQueue::ExecuteTask), and the worker leaves, since the
+      // io_context it runs is stopped. A COM method a script calls on such a thread
+      // ends in COMError::GenerateGenericMessage, which tells the script's host
+      // (COMError::TakeStopInterruption), and the script's FireEvent passes it on
+      // once the engine has returned - for a call of that script's own, so that
+      // an OnError fired inside an outer script's call leaves the outer script's
+      // mark to it (ScriptServer::RunInterruptible_). A destructor, which cannot
+      // pass it on, holds interruption off for all it does instead
+      // (MessageStoreBlobs::DeletionHold, CountedUsage, DatabaseTransaction,
+      // DatabaseConnectionManager's HeldConnection_), so that what it promises
+      // completes and nothing it calls throws the interruption out of it, which
+      // std::terminate would answer; a report it makes then never throws, since
+      // its OnError script's calls meet no interruption point. Swallowing it
+      // instead consumed the request: the thread went on with work the stop had
+      // asked it to leave. Nothing held is lost on the way out: a pooled
+      // connection goes back to the pool however the call holding it leaves
+      // (DatabaseConnectionManager's HeldConnection_), a DatabaseTransaction
+      // whose construction the interruption left is taken off the thread's chain
+      // and its connection given back, a connect it cut is left closed
+      // (DALConnection::Reconnect), and the database drivers' own handlers pass
+      // it on like the rest.
       void Stop();
 
       // How many worker threads a stop gave up on are still running, in every
