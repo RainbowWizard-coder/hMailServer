@@ -17,7 +17,7 @@ The short version
 
 1. Stop the service.
 2. Take a backup with **domains, settings and messages** selected.
-3. Create an empty database on the new backend and point `hMailServer.ini` at it.
+3. Run `DBSetup.exe`, which creates the database and its schema on the new backend and points `hMailServer.ini` at it.
 4. Start the service and restore the backup.
 
 Your mail files never move. Nothing is exported to an intermediate format you
@@ -107,19 +107,28 @@ refused before, when neither could be stored at all. Three columns compare exact
 (`utf8mb4_bin`), as they did in `utf8_bin`: a known sender's address, the address
 an automatic reply went to, and the domain of a day's statistics.
 
-**Creating the database yourself.** Make it `utf8mb4` too, and give the account the
-server connects with every privilege on it:
+**The database and the account.** On Windows, DBSetup makes the database itself,
+`utf8mb4`, in step 3 - and refuses a name that exists, since the backend refuses
+its `CREATE DATABASE` - so what you make beforehand is the account, with every
+privilege on the database's name, which on MySQL and MariaDB also lets it create
+the database:
+
+```sql
+GRANT ALL PRIVILEGES ON hmailserver.* TO 'hmailserver'@'%';
+```
+
+On Linux, `hmailserver --create-database` makes the database the same way, and
+also makes the schema in an empty database that exists already; one you make
+yourself, make `utf8mb4` too:
 
 ```sql
 CREATE DATABASE hmailserver CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-GRANT ALL PRIVILEGES ON hmailserver.* TO 'hmailserver'@'%';
 ```
 
 Every table names its own character set, so a database made with another default
 still works, but the upgrade steps create, alter and index tables, and the 6102
 step also changes the database's own default character set, which needs the ALTER
-privilege on the database. A database the server creates itself (DBSetup, or
-`hmailserver --create-database`) is made `utf8mb4` already.
+privilege on the database.
 
 Before you start
 ----------------
@@ -214,7 +223,8 @@ and back achieves nothing.
 The setting has to be identical for the backup and the restore, and the restore
 runs against the new database, which has a settings store of its own. It comes
 across without being set again, the way every setting does (see step 4): the new
-database's store starts empty, and the first start against it adopts the
+database's store starts empty, and the first open of it - DBSetup's restart of
+the server, in step 3 - adopts the
 `[Settings]` section of `hMailServer.ini`, which is the server's copy of the old
 store and has held `BackupMessagesDBOnly=1` since the moment it was stored. Check it
 on the new database before you restore (`hmctl ini get BackupMessagesDBOnly`, or the
@@ -224,11 +234,43 @@ the same place, so your ordinary scheduled backups go back to including the file
 
 ### 3. Create the new database
 
-Create an **empty** database on the target server, and a login with rights to
-create tables in it. Do not create any tables — the next step does that. On MySQL
-or MariaDB, make it `utf8mb4`, as [MySQL and MariaDB](#mysql-and-mariadb) shows.
+Run the database setup wizard from the installation's `Bin` folder,
+`C:\Program Files\hMailServer\Bin\DBSetup.exe`, and choose **Create a new
+hMailServer database**, then the backend, the server, a name for the database
+and the login. The wizard creates the database on the server, runs the create
+script in it, writes the `[Database]` section of `hMailServer.ini` through the
+service and restarts the server on the new database. So the login must be
+allowed to create a database - `dbcreator` on SQL Server, `CREATEDB` on
+PostgreSQL, every privilege on the database's name on MySQL and MariaDB
+([MySQL and MariaDB](#mysql-and-mariadb)) - and the database must not exist
+yet: the backend refuses the wizard's `CREATE DATABASE` of a name that exists,
+and the wizard's other choice, **Select a new hMailServer default database**,
+creates no schema, so an empty database named that way is refused by the server
+as too old, and DBUpdater has no path from it.
 
-Then edit `hMailServer.ini` to point at it:
+Without a window, the same step is `DBSetup.exe /unattended`, from an elevated
+prompt, with the database in the variables the installer's `/db` switches set
+and the administrator password in `HM_ADMIN_PASSWORD`
+([WindowsOnArm.md](WindowsOnArm.md), *A new installation without a window*,
+has the table of them and the exit codes). It is a Windows program without a
+console, so the lines it writes go to the files the block names:
+
+```powershell
+$env:HM_DB_TYPE = 'MSSQL'            # MSSQL, PostgreSQL or MySQL (MariaDB too)
+$env:HM_DB_HOST = 'sql01.example.com'
+$env:HM_DB_NAME = 'hMailServer'
+$env:HM_DB_USER = 'hmailserver'
+$env:HM_DB_PASSWORD_FILE = 'C:\secure\hmailserver-db-password.txt'
+$env:HM_ADMIN_PASSWORD = '<administrator password>'
+$setup = Start-Process -FilePath 'C:\Program Files\hMailServer\Bin\DBSetup.exe' -ArgumentList '/unattended' `
+   -Wait -PassThru -RedirectStandardOutput "$env:TEMP\dbsetup.txt" -RedirectStandardError "$env:TEMP\dbsetup-error.txt"
+Remove-Item Env:HM_ADMIN_PASSWORD
+if ($setup.ExitCode -ne 0) { throw "Database setup failed with exit code $($setup.ExitCode): $(Get-Content "$env:TEMP\dbsetup-error.txt")" }
+```
+
+It checks every setting before it contacts the server, and a setting it refuses
+changes nothing; it exits with a non-zero code when the step fails, so it is
+safe to run from a script. Either way, the section it writes is:
 
 ```ini
 [Database]
@@ -242,37 +284,39 @@ Internal=0
 ```
 
 `Type` is one of `MSSQL`, `MYSQL`, `PostgreSQL` or `MSSQLCE`, matched
-case-insensitively. Set `Internal=0` for anything other than the embedded engine.
-Leave `Port=0` to use the backend's default.
+case-insensitively; `Internal=0` is anything other than the embedded engine;
+`Port=0` is the backend's default. This is the section
+[Rolling back](#rolling-back) puts back by hand.
 
-Now create the schema by running the database setup tool from the installation's
-`Bin` folder:
+**Not `DBSetupQuick.exe`.** It creates only the built-in SQL Server Compact
+database, when `[Database]` names no type; once the section names any other
+backend it starts DBUpdater, the schema upgrader, which has no path from an
+empty database - its first step, 0 to 1100, exists for SQL Server and MySQL
+only and alters a table the create script makes, and on PostgreSQL the step's
+script is not there. Pointing `hMailServer.ini` at an empty database by hand and
+running DBSetupQuick, which this page said to do until 19 October 2026, created
+nothing.
 
-```powershell
-& "C:\Program Files\hMailServer\Bin\DBSetupQuick.exe"
-if ($LASTEXITCODE -ne 0) { throw "Database setup failed with exit code $LASTEXITCODE" }
-```
-
-It reads the connection details you just wrote, sees no database, and creates one
-at the current schema version. It returns a non-zero exit code if it fails —
-that is what the installer checks — so it is safe to run from a script.
-
-`DBSetup.exe`, in the same folder, is the interactive wizard and does the same
-job with prompts. Use it if you would rather enter the connection details in a
-dialog than edit the ini file by hand; it writes the same `[Database]` section.
+**A service that runs as `NT SERVICE\hMailServer`** may not write
+`hMailServer.ini`, so either run of DBSetup is refused before anything is made,
+and the refusal says what to do: move the service to LocalSystem for this step
+and back afterwards ([ServiceAccount.md](ServiceAccount.md), *Moving it, and
+going back*).
 
 ### 4. Restore
 
-When the server first starts against the new database it finds the settings store
-empty and adopts every line of the `[Settings]` section of `hMailServer.ini` into
-it - the server's copy of the old store, as of the last time a setting was written
-into the file - and says so in the application log ("setting(s) from the
+When the server first opens the new database - at the restart DBSetup asks for
+at the end of step 3 - it finds the settings store empty and adopts every line
+of the `[Settings]` section of `hMailServer.ini` into it - the server's copy of
+the old store, as of the last time a setting was written into the file - and
+says so in the application log ("setting(s) from the
 [Settings] section of hMailServer.INI are now stored in the database"). A setting
 the old server could not write into the file, which it reported as `HM5806` or
 `HM5803`, is not in that copy. Restoring with **Back up settings**, below, writes
 the archived settings over the adopted ones either way.
 
-Start the service and restore the archive:
+The service has been running on the new database since that restart, so
+`Start-Service` below does nothing on its own; restore the archive:
 
 ```powershell
 Start-Service hMailServer
@@ -352,7 +396,8 @@ ordinary rows in `hm_log`.
 **The schema is created in no transaction, on every backend.** The create script
 runs statement by statement, so a creation in step 3 that fails part-way leaves
 the database partly built, on all four. Drop it and start step 3 again rather than
-re-running the tool over the remains.
+re-running the tool over the remains, which it refuses anyway: the backend refuses
+a `CREATE DATABASE` of a name that exists.
 
 What this does not cover
 ------------------------
