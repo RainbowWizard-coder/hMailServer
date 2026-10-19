@@ -146,7 +146,7 @@ changed:
   dependencies — OpenSSL, Boost and libpq — that a source-tree scan does not see.
   The five releases before 6.2.3 that carry an installer have a CycloneDX SBOM of
   it alone, made afterwards from the installer itself
-  ([SECURITY.md](../../SECURITY.md#dependencies-software-composition-analysis)).
+  ([SECURITY.md](../../SECURITY.md#supply-chain), *Supply chain*).
   That matters for exactly the purpose an SBOM has: without them, anyone checking a
   release against a CVE feed would have concluded this server does not link OpenSSL.
 * **No executable binary is committed to the repository.** Forty were until 11
