@@ -598,6 +598,36 @@ openSUSE
   `zypper refresh` in each pinned image passed without it on 26 September
   2026), and a package built for a release must not come from a repository that
   presented a key the image did not already trust.
+- **A mirror that serves wrong files does not stop a job.** For a repository on
+  `download.opensuse.org` or `cdn.opensuse.org` - every repository of both
+  images, and the aarch64 sysroot's - libzypp 17.38 asks that host for the
+  directory's mirror list (`?mirrorlist`) and takes the repository's files from
+  the mirrors it names; a file that fails its checksum there is discarded and not
+  fetched from another mirror, and the refresh fails ("Digest verification
+  failed", then "Repository '...' is invalid"). On 19 October 2026 one listed
+  mirror, `opensuse.mirror-services.net`, answered every path with the same
+  unrelated page, and the openSUSE jobs that drew it failed for hours. So every
+  zypper path of the openSUSE jobs - `rpm-build.sh` for the build container and
+  the aarch64 sysroot, `rpm-install-test.sh`, and the source packages'
+  `srcpkg-rpm.sh` and `srcpkg-install.sh` - refreshes the repositories first with
+  `build/ci/packages/zypper-refresh.sh`. When that refresh fails on a digest or
+  an invalid repository, it points every repository on those two hosts at the
+  origin, `downloadcontent.opensuse.org`, for which libzypp asks no mirror list
+  and from which it takes every file; turns off the automatic refresh of the
+  service Leap 16.0's repositories come from, which would write the old
+  addresses back at the next zypper command; says so in one line of the job's
+  log, naming the repository and the reason; and refreshes once more. The
+  metadata is verified against the keys the image trusts, as before. A refresh
+  that could not reach a repository is tried up to three times, as the installs
+  are; without either failure the repositories are left as they are. On linix on
+  19 October 2026, in the jobs' images by their digests, with the first mirror of
+  the current list mapped to the dead mirror's address (and, for Tumbleweed's
+  aarch64 repositories, which listed it first again that evening, with no
+  mapping at all), the refresh of Leap 16.0 and Tumbleweed, x86_64 and aarch64,
+  and of the aarch64 sysroot failed, then refreshed every repository from the
+  origin with no mirror-list request, and the installs after it took their
+  packages from the origin; with the mirror refused, as libzypp falls back from
+  a refused connection, the refresh passed and changed nothing.
 
 The packages the build passes to CPack
 --------------------------------------

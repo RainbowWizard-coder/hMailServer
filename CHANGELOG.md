@@ -267,6 +267,29 @@ with `--check`).
   closes a connection idle for 10 seconds and lends none 240 seconds old, so any test that waits about half a minute
   between two calls opens a new one. The Windows suite, which sets the same settings over COM, was never exposed.
 
+- **The openSUSE package jobs survive a mirror that serves wrong files.** For a repository on
+  `download.opensuse.org` or `cdn.opensuse.org` libzypp 17.38 asks that host for the directory's mirror list and
+  takes the repository's files from the mirrors it names, and a file that fails its checksum is discarded, not
+  fetched from another mirror: zypper says "Digest verification failed" and "Repository '...' is invalid", and the
+  refresh fails. On 19 October 2026 `opensuse.mirror-services.net`, which openSUSE's mirror lists named, answered
+  every path with one unrelated page, and the openSUSE jobs that drew it failed for hours,
+  `rpm-tumbleweed-aarch64-install` four times; openSUSE dropped it from the lists at 12:10 UTC and listed it again,
+  first for Tumbleweed's aarch64 repositories, by 17:45 UTC. Every zypper path of the `rpm-leap16-*`,
+  `rpm-tumbleweed-*`, `srcpkg-leap16` and `srcpkg-tumbleweed` jobs and their install jobs -
+  `build/ci/packages/rpm-build.sh` for the build container and the aarch64 sysroot, `rpm-install-test.sh`,
+  `srcpkg-rpm.sh` and `srcpkg-install.sh` - now refreshes the repositories first with the new
+  `build/ci/packages/zypper-refresh.sh`. On such a failure it points every repository on those two hosts at the
+  origin, `downloadcontent.opensuse.org`, for which libzypp asks no mirror list, turns off the automatic refresh of
+  the service Leap 16.0's repositories come from (which would write the old addresses back), says so in one line
+  naming the repository and the reason, and refreshes once more; a refresh that could not reach a repository is
+  tried up to three times, as the installs are, and without either failure nothing is changed. Shown on linix in the
+  jobs' images by their digests: with the first mirror of the current list mapped to the dead mirror's address, or
+  with no mapping where it was listed first, the refresh of Leap 16.0 and Tumbleweed, x86_64 and aarch64, and of
+  the aarch64 sysroot failed, then refreshed every repository from the origin with no mirror-list request;
+  `srcpkg-install.sh` and `rpm-install-test.sh` installed and tested 6.3.7's packages from there, and `rpm-build.sh`
+  built Tumbleweed's aarch64 package after it; with the mirror refused the refresh passed and changed nothing. `hmailserver/docs/PackagesRpm.md`'s openSUSE section says so,
+  and `SourcePackages.md` names the refresh.
+
 ### Documentation
 
 - **ServiceAccount.md's reinstall into a new folder moves the settings file's other paths out of the old installation,

@@ -72,6 +72,7 @@ jobs="${HM_BUILD_JOBS:-6}"
 out_root="${HM_OUT_ROOT:-packages-rpm}"
 boost_tarball_cache="${HM_BOOST_TARBALL_CACHE:-$PWD/.cache/boost-tarball}"
 fetch_boost="$(cd "$(dirname "$0")" && pwd)/fetch-boost.sh"
+zypper_refresh="$(cd "$(dirname "$0")" && pwd)/zypper-refresh.sh"
 
 # .gitlab/ci/packages-rpm.yml's tarball cache is keyed by this SHA-256.
 BOOST_VERSION=1.92.0
@@ -217,9 +218,15 @@ retry_fetch() {
 }
 
 step "the build container's packages"
-# zypper refreshes a repository it installs from by itself. Nothing auto-imports
-# a key: the image already trusts its distribution's keys, and a package built
-# for a release must not come from a repository that presented a new one.
+# zypper's repositories are refreshed first, by zypper-refresh.sh, which points
+# them at openSUSE's origin when a mirror serves a wrong file and says so; the
+# install then finds them fresh. Nothing auto-imports a key: the image already
+# trusts its distribution's keys, and a package built for a release must not come
+# from a repository that presented a new one.
+if [ "$family" = zypper ]; then
+  bash "$zypper_refresh" "$out/host-refresh.log" \
+    || { tail -n 40 "$out/host-refresh.log"; echo "FAILED: the build container's repositories did not refresh."; exit 3; }
+fi
 install_host() {
   case "$family" in
     dnf) retry_fetch "$out/host-packages.log" dnf -y -q --setopt=install_weak_deps=False install "$@" ;;
@@ -298,7 +305,9 @@ if [ "$arch" = aarch64 ]; then
         rpm --root "$zroot" --import /usr/lib/rpm/gnupg/keys/*.asc
         ZYPP_CONF=$zypp_conf zypper -n --root "$zroot" addrepo "$oss" oss
       } > "$out/sysroot.log" 2>&1 || { tail -n 40 "$out/sysroot.log"; echo "FAILED: the aarch64 repository could not be added."; exit 3; }
-      retry_fetch "$out/sysroot-refresh.log" env ZYPP_CONF="$zypp_conf" zypper -n --root "$zroot" refresh \
+      # Refreshed as the build container's are (zypper-refresh.sh), in the sysroot's
+      # own root and architecture.
+      ZYPP_CONF=$zypp_conf bash "$zypper_refresh" "$out/sysroot-refresh.log" --root "$zroot" \
         || { tail -n 40 "$out/sysroot-refresh.log"; echo "FAILED: the aarch64 repository's metadata did not download."; exit 3; }
       # shellcheck disable=SC2086
       retry_fetch "$out/sysroot-download.log" env ZYPP_CONF="$zypp_conf" \

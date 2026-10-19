@@ -105,12 +105,13 @@ retry_fetch() {
   done
   return 1
 }
-# zypper refreshes its repositories by itself before it installs, and trusts
-# only the keys the image already holds: nothing is auto-imported. dnf without
-# weak dependencies: the converters are required on Fedora and EL. zypper with
-# them, as a system installs (solver.onlyRequires off, its default; the images set
-# it on): on openSUSE the converters are a recommendation, rpm -Uvh being the live
-# update's install there.
+# zypper's repositories are refreshed before the first install by
+# zypper-refresh.sh, which points them at openSUSE's origin when a mirror serves
+# a wrong file and says so; zypper trusts only the keys the image already holds:
+# nothing is auto-imported. dnf without weak dependencies: the converters are
+# required on Fedora and EL. zypper with them, as a system installs
+# (solver.onlyRequires off, its default; the images set it on): on openSUSE the
+# converters are a recommendation, rpm -Uvh being the live update's install there.
 install_rpm() {
   case "$family" in
     dnf) retry_fetch "$2" dnf -y -q --setopt=install_weak_deps=False install "./$1" ;;
@@ -170,6 +171,10 @@ fi
 
 echo ""
 echo "== install it, with what $family resolves for it from $PRETTY_NAME's repositories"
+if [ "$family" = zypper ]; then
+  bash "$(dirname "$0")/zypper-refresh.sh" /tmp/refresh.log \
+    || { tail -n 40 /tmp/refresh.log; echo "FAILED: zypper could not refresh $PRETTY_NAME's repositories"; exit 1; }
+fi
 install_rpm "$rpm_file" /tmp/install.log \
   || { cat /tmp/install.log; echo "FAILED: $family could not install $(basename "$rpm_file")"; exit 1; }
 grep -iE 'installing|installed|hMailServer is installed' /tmp/install.log | head -n 5 || true

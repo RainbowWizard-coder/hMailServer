@@ -169,7 +169,9 @@ a distribution's build takes Boost from the distribution, in CodeReady Builder o
 from the checkout, so what is built is what the tarball carries. With the network,
 it installs the packaging tools and then the build's dependencies as the packaging
 names them (`apt-get build-dep` on the source tree; `rpmspec -q --buildrequires`
-for dnf or zypper). Then it builds with the network refused - `dpkg-buildpackage -us
+for dnf or zypper; on openSUSE after `build/ci/packages/zypper-refresh.sh` has refreshed the repositories,
+which turns to openSUSE's origin when a mirror serves a wrong file - [PackagesRpm.md](PackagesRpm.md),
+"openSUSE"). Then it builds with the network refused - `dpkg-buildpackage -us
 -uc` or `rpmbuild -ba` - and runs lintian or rpmlint over what it built: an error
 fails the job, and every warning is printed in the log and kept in `lintian.txt` or
 `rpmlint.txt`. lintian runs with Debian's profile on the Ubuntu releases too: the
