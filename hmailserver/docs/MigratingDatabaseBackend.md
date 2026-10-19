@@ -251,9 +251,10 @@ could not be detected") - and `/unattended` with `HM_CREATE_DATABASE=0` stops
 there, saying the database holds no hMailServer schema, without starting
 DBUpdater.
 
-Without a window, the same step is `DBSetup.exe /unattended`, from an elevated
-prompt, with the database in the variables the installer's `/db` switches set
-and the administrator password in `HM_ADMIN_PASSWORD`
+Without a window, the same step is `DBSetup.exe /unattended` - it needs no
+elevation here, since the service writes the file - with the database in the
+variables the installer's `/db` switches set and the administrator password
+in `HM_ADMIN_PASSWORD`
 ([WindowsOnArm.md](WindowsOnArm.md), *A new installation without a window*,
 has the table of them and the exit codes). It is a Windows program without a
 console, so the lines it writes go to the files the block names:
