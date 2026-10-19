@@ -1557,9 +1557,23 @@ namespace HM
       // queued holding a connection; then stop the context whether or not they
       // all did. A handler that is in the database keeps its thread until it
       // returns; the join below waits for it, as Stop() always has.
-      for (int waited = 0; waited < StopDrainMilliseconds; waited += 50)
+      //
+      // Bounded by the clock, the drain looked at once at least and looked at
+      // again before the deadline ends the wait, as WorkQueue::JoinWorkers_ is.
+      // The bound was a count of passes, StopDrainMilliseconds / 50 of them,
+      // each taken for its 50 ms - and on Windows a Sleep ends at a tick of the
+      // system timer, 15.625 ms apart at the default resolution, so that a pass
+      // could take 62.5 ms and the five seconds about six and a quarter. The
+      // interval stays what it is; what ends the wait is the clock.
+      const std::chrono::steady_clock::time_point until =
+         std::chrono::steady_clock::now() + std::chrono::milliseconds(StopDrainMilliseconds);
+
+      for (;;)
       {
          if (GetConnectionCount() == 0 && pending_accepts_ == 0)
+            break;
+
+         if (std::chrono::steady_clock::now() >= until)
             break;
 
          std::this_thread::sleep_for(std::chrono::milliseconds(50));

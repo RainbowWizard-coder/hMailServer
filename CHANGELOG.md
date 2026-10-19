@@ -88,6 +88,20 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.7, not yet released
 
+### Correctness
+
+- **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
+  connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
+  connection, then waits for the closes and the aborted accepts to run before it stops the listener's threads; it
+  bounded that wait by counting a hundred passes of 50 ms, and on Windows a sleep ends at a tick of the system
+  timer, 15.625 ms apart at the default resolution, so that a pass could take 62.5 ms and a drain that did not
+  finish could wait about 6.25 s rather than 5. A request whose handler is still running holds its connection until
+  the handler returns: the drain waits for the handler up to its bound, and the join after the drain waits for the
+  rest, as it always has, so that a stop held by a running request lasts as long as the request, before this change
+  and after it. The wait is now bounded by the clock (`std::chrono::steady_clock`), as `WorkQueue::JoinWorkers_`'s
+  has been since 6.3.7, the drain looked at once at least and again before the deadline ends it; the interval and
+  everything else the stop does are unchanged, and a drain that finishes sooner ends when it did.
+
 ### Build and tests
 
 - **`.gitlab/security-exceptions.yml` no longer accepts the two semgrep-sast findings whose lines 6.3.7 rewrote.**
