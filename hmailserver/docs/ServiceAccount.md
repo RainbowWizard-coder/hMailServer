@@ -737,11 +737,14 @@ of it):
 
    Any other entry of its own that a folder in it has stays - the grant's for the
    service among them, on each folder that was in it when the old installation's
-   grant last ran - so the service still reaches what the database names in those.
+   grant last ran - so the service still reads what the database names in those,
+   and writes what it names in Data, Logs, Temp and Database.
    A service running as `NT SERVICE\hMailServer` may have reached what the
    database names directly in the old folder, or in a folder made in it since
-   then, only through what the Users and Authenticated Users were given there,
-   which this step takes away: move each first, by step 9 of
+   then, and a folder it writes in anywhere else in it - a backup or archive
+   folder, which the grant gives no more than Read there ("Never granted,
+   approved or not", above) - only through what the Users and Authenticated
+   Users were given there, which this step takes away: move each first, by step 9 of
    [RelocatingAnInstallation.md](RelocatingAnInstallation.md). Then, once nothing
    names it, delete the old folder - by hand, never with its uninstaller.
 

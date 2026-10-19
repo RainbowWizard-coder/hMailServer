@@ -141,7 +141,9 @@ write its log directory starts and then says nothing.
 
 Edit `<new root>\Bin\hMailServer.ini` and change the keys from step 1's
 `hMailServer.ini` table whose value was under the old root: the `[Directories]`
-folders and `[Database]` `PostgreSQLSslRootCert` and `TlsCaFile`. Nothing else.
+folders and `[Database]` `PostgreSQLSslRootCert` and `TlsCaFile`. Nothing else of
+that table; a path in `[SettingsOverride]` and the two trust files named below move
+here too.
 
 **Not the settings-store paths.** Editing one of them in the `[Settings]` section
 changes nothing: at the next start the stored value is used, the edit is named in
