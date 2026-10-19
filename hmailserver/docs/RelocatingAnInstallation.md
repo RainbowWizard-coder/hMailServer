@@ -10,11 +10,14 @@ where the honest answer is "there is no clean fix".
 
 It is written for 6.3.0, and steps 1, 4 and 9 were revised on 15 September 2026
 for schema 6042, which made the database the store for the settings the
-`[Settings]` section of `hMailServer.ini` used to hold; steps 3, 6, 9, 11 and 12
-were revised on 19 October 2026 for 6.3.7: the copy's permissions and
-`hMailServer.exe /ProtectFolders`, a certificate's files changed with **Edit…**,
-and setup run again at the new root. Every claim below was read out of the code;
-the file and line references are there so you can check any of them.
+`[Settings]` section of `hMailServer.ini` used to hold; steps 0, 1, 3, 4, 6, 8,
+9, 11 and 12 were revised on 19 October 2026 for 6.3.7: the copy's permissions
+and `hMailServer.exe /ProtectFolders`, a certificate's files changed with
+**Edit…**, setup run again at the new root, full message paths converted before
+the copy rather than after it, and which `hMailServer.ini` the server reads and
+what it does with an edit of a stored setting under each account. Every claim
+below was read out of the code; the file and line references are there so you
+can check any of them.
 
 **Installing somewhere new is a different, solved problem.** `/DIR="<path>"` on
 the installer puts a *fresh* installation wherever you want. This document is
@@ -33,12 +36,13 @@ paths by this document's step 9.
 
 **The good news, first.** The mail store itself is already relocatable. Message
 rows hold a bare `{guid}.eml` with no directory (`Message::GenerateFileName`,
-`Common/BO/Message.cpp:261`), and the path is rebuilt at every read against the
+`Common/BO/Message.cpp:576`), and the path is rebuilt at every read against the
 data directory (`PersistentMessage::GetFileName`,
-`Common/Persistence/PersistentMessage.cpp:1502`). Moving the data directory and
+`Common/Persistence/PersistentMessage.cpp:2039`). Moving the data directory and
 pointing `DataFolder` at its new home moves every message with it. The exception
 is a database that predates hMailServer 5.4, where the column can hold a full
-path; step 0 tells you whether yours does.
+path, which is used as it is wherever the data directory is; step 0 tells you
+whether yours does, and converts them before anything is copied.
 
 ---
 
@@ -50,8 +54,41 @@ path; step 0 tells you whether yours does.
 2. **Ask the server whether its message rows are relative.** In the Control
    Panel, *Monitoring & troubleshooting → Diagnostics → Test message file locations*
    (`Common/Diagnostics/TestDataDirectory.cpp:31`). If it reports
-   `ERROR: Full paths are stored in the database`, the move is still possible but
-   step 8 becomes mandatory rather than optional.
+   `ERROR: Full paths are stored in the database`, the move is still possible, but
+   those paths are converted **now, on this installation, before step 2** - after
+   the copy they no longer can be:
+
+   - With the service running, run the **Data Directory Synchronizer**
+     (`<old root>\Addons\DataDirectorySynchronizer\DataDirectorySynchronizer.exe`,
+     or *Addons → Data Directory Synchronizer* in the Start menu) and sign in as
+     the administrator. Choose *Import messages which are not in the database into
+     the database*, select every domain, and include the public folders if you
+     have any. It walks the data directory `DataFolder` names, and for each file
+     whose full path a row holds it writes the row's partial name instead
+     (`MailImporter::Import` → `ReplaceMessagePath_`,
+     `Common/Util/MailImporter.cpp`); a file not in the layout the server builds
+     paths from is first moved into it, under a new name.
+   - It imports every file there that no row names as well: such a file at the
+     data directory's root is imported into the queue and delivered to its local
+     recipients, and one in an account's folder becomes a message in that
+     account's Inbox. A file it could not place is listed as skipped.
+   - It converts only a row whose full path is where the file is now, below the
+     data directory `DataFolder` names: `PersistentMessage::GetMessageID` looks the
+     file up by its partial name and then by its full path as found. A row that
+     names a file outside the data directory - the diagnostic's other error,
+     `Messages exists which are located outside of the data directory` - is
+     converted by putting `DataFolder` back to the folder it names, restarting
+     the service and running the synchronizer there, as the server's own message
+     about such a row says.
+   - Run the diagnostic again. It should report that relative message paths are
+     stored for all messages before you go on.
+
+   Never run it after the copy, against the new data directory: a row that holds
+   a full path still names the file in the old tree, the copy is found under the
+   new one, the two do not match, and in the import mode every such message is
+   imported a second time while the first row goes on reading the old tree; in
+   the other mode, *Deletes message which are not in the database from disk*,
+   the copies are deleted.
 
 3. **Write down what you are about to strand.** The inventory is in step 1. Doing
    it afterwards means finding out from a failure.
@@ -64,7 +101,7 @@ path; step 0 tells you whether yours does.
 
 | Section | Key | What breaks if it is left pointing at the old tree |
 |---|---|---|
-| `[Directories]` | `ProgramFolder` | Language files, the database scripts and 7-Zip for backups are looked for under it (`IniFileSettings.cpp:154`, `:1072`, `Compression.cpp:84`) |
+| `[Directories]` | `ProgramFolder` | Language files, the database scripts and 7-Zip for backups are looked for under it (`IniFileSettings.cpp:1915`, `:268`, `Compression.cpp:727`) |
 | `[Directories]` | `DataFolder` | Every message path is rebuilt from it. The store appears empty |
 | `[Directories]` | `DatabaseFolder` | The SQL Server Compact database file, if you use that backend |
 | `[Directories]` | `LogFolder` | Logs are written to the old tree, silently |
@@ -78,8 +115,10 @@ Leave the `[Database]` connection keys alone. They name a server, not a path.
 ### In the settings store (`hm_inisettings`)
 
 These were `[Settings]` keys of `hMailServer.ini`, and the file still holds a copy
-of each. Since schema 6042 the database is where they are stored: a value edited
-into the file is named in the error log as `HM5804` and put back at the next start
+of each. Since schema 6042 the database is where they are stored: at the next
+start a value edited into the file is named in the error log as `HM5804` and the
+stored value is used instead - the line is put back where the service may write
+the file, and left as edited where it may not, the virtual account's case
 (`IniSettingStore::Synchronize`). They are changed in step 9, not in step 4.
 
 | Setting | What breaks if it is left pointing at the old tree |
@@ -101,7 +140,7 @@ into the file is named in the error log as `HM5804` and put back at the next sta
 | `InstallLocation`, `UninstallString`, `DisplayIcon` | `HKLM\...\Uninstall\hMailServer_is1` | Nothing. See step 11 |
 
 The 32-bit view is not a mistake and not optional. The server reads that value
-through `KEY_WOW64_32KEY` (`Common/Util/Registry.cpp:40`), and the installer
+through `KEY_WOW64_32KEY` (`Common/Util/Registry.cpp:67`), and the installer
 writes it there for the same reason
 (`hmailserver/installation/section_registry.iss`). **Writing the 64-bit view
 changes nothing and looks like it worked.**
@@ -124,7 +163,7 @@ anything, and there is no function that enumerates them.
 | `hm_archiveindex.archivepath` | One row per archived copy |
 | `hm_quarantine.quarantinefilename` | Held messages |
 | `hm_rule_actions.actionfilename` | A rule that runs a program or writes a file |
-| `hm_messages.messagefilename` | Relative since 5.4; see step 8 |
+| `hm_messages.messagefilename` | Relative since 5.4; a full path an older server wrote is converted in step 0 |
 
 ---
 
@@ -140,7 +179,7 @@ stopped, before anything is copied.
 Copy, do not move. The old tree is the rollback.
 
 Include `Bin\hMailServerApiKeys.ini` if it exists: the REST API key store lives
-there (`Common/Util/RestApiServer.cpp:2414`), and no installer manifest mentions
+there (`Common/Util/RestApiServer.cpp:10827`), and no installer manifest mentions
 it.
 
 **A copy takes the permissions of the folder it lands in**, not those of the tree
@@ -184,9 +223,16 @@ that table; a path in `[SettingsOverride]` and the two trust files named below m
 here too.
 
 **Not the settings-store paths.** Editing one of them in the `[Settings]` section
-changes nothing: at the next start the stored value is used, the edit is named in
-the error log as `HM5804`, and the line is put back to the old path. They move in
-step 9, once the moved server is running.
+changes nothing: at the next start the stored value - the old path - is used and
+the edit is named in the error log as `HM5804`. A service that may write the
+file - LocalSystem, or an account given write to it - puts the line back to the
+old path, and the message says so. One that may only read it -
+`NT SERVICE\hMailServer`, to which the file is read-only
+([ServiceAccount.md](ServiceAccount.md), *`hMailServer.INI` is read-only to the
+service*) - leaves the edit in the file, says that it has, and does not name it
+again at a later start, while the old path goes on being used: the file then
+shows a path the server is not using. They move in step 9, once the moved server
+is running.
 
 What is still read from this file, and only from it, is what the server needs to
 reach the database or to let an administrator in without one: `[Directories]`,
@@ -199,9 +245,14 @@ is applied over the store at every start (a path in it moves here too); and six
 not a path, and from 6.3.6 the live update's trust, of which
 `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` are paths and move here too.
 
-The file is read from the directory the running `hMailServer.exe` sits in when
-one is there, and otherwise from the registry (`Common/Util/Utilities.cpp:102`),
-so the copy you edit is the one the moved server will read.
+The file is not looked for beside the running `hMailServer.exe` first. It is
+`Bin\hMailServer.ini` under the folder the registry's `InstallLocation` names, in
+the 32-bit view (step 5), and only when that value cannot be read the one in the
+folder the executable is in (`Utilities::GetBinDirectory`,
+`Common/Util/Utilities.cpp:179`; `IniFileSettings::GetInitializationFile`). Until
+step 5 has repointed that value, the server - and `hMailServer.exe` run from the
+new `Bin` - reads the old tree's file, not the copy you have just edited; from
+step 5 on it reads the copy.
 
 ---
 
@@ -227,7 +278,7 @@ hMailServer.exe /ProtectFolders
 ```
 
 `/Register` repairs the service's `ImagePath`
-(`ServiceManager.cpp:45` → `ChangeServiceConfig`), all 79 `LocalServer32`
+(`ServiceManager.cpp:162` → `ChangeServiceConfig`), all 79 `LocalServer32`
 registrations, the 15 `InprocServer32` ones, and the type library's `win64` and
 `HELPDIR` values, and keeps the account the service runs as. It must run elevated,
 and it must run from the new tree - it registers the path of the executable that
@@ -299,15 +350,28 @@ that the log file you are reading is under the new log directory.
 
 ---
 
-## 8. Convert full message paths, if step 0 found any
+## 8. Check that no full message paths are left
 
-Only if *Test message file locations* reported full paths.
+Run *Test message file locations* again, on the moved server. It should report
+that relative message paths are stored for all messages, as it did at the end of
+step 0.
 
-Run the **Data Directory Synchronizer** against the new data directory. It walks
-the data directory and converts each absolute row to a partial name
-(`Tools/DataDirectorySynchronizer`, `MailImporter::ReplaceMessagePath_`). It is
-the supported converter; a `UPDATE hm_messages SET ...` is not, because the rows
-are not uniform and the file layout is derived, not stored.
+`ERROR: Full paths are stored in the database` here means that step 0's
+conversion was not made or not finished. Those rows still name files in the old
+tree, and the moved server reads them there - a full path is used as it is
+(`PersistentMessage::GetFileName`) - so the old tree must stay where it is (step
+12). Do not run the Data Directory Synchronizer against the new data directory:
+none of those rows matches a file there, and it would import each of those
+messages again (step 0). Instead, as the server's own message about such a row
+says (`MessageStoreMaintenance.cpp`): put `DataFolder` in the new
+`hMailServer.ini` back to the old data folder and restart the service, run the
+synchronizer there as step 0 does, stop the service, copy the old data folder
+over the new one again (`robocopy "<old data folder>" "<new data folder>" /E`),
+put `DataFolder` back to the new data folder, run `hMailServer.exe
+/ProtectFolders` from the new `Bin` again for the file you edited (step 6), and
+start the service. The synchronizer is the supported converter; an
+`UPDATE hm_messages SET ...` is not, because the rows are not uniform and the
+file layout is derived, not stored.
 
 ---
 
@@ -319,9 +383,10 @@ under the old root:
 - **The settings-store paths.** In the Control Panel under **Settings**, whose
   search box finds each one by name; or `Settings.SetIniSetting` over COM,
   `PUT /api/v1/settings/ini/{name}`, or `hmctl ini set <name> <value>`. Each
-  stores the new value in the database, writes it into the file's copy as well,
-  and applies it - except the listeners' certificate paths and the ACME
-  certificate directory, which are bound when the servers start and wait for a
+  stores the new value in the database, writes it into the file's copy as well
+  where the service may write the file (under `NT SERVICE\hMailServer` the copy
+  is left as it is, `IniSettingStore::WriteSetting`), and applies it - except
+  the listeners' certificate paths and the ACME certificate directory, which are bound when the servers start and wait for a
   reinitialise (**Apply now**, or `POST /api/v1/server/reinitialize`;
   [SettingsApply.md](SettingsApply.md) lists them). Until then the server runs on
   those old paths, which still resolve because step 3 copied the tree rather than

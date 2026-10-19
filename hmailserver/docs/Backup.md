@@ -511,8 +511,14 @@ unencrypted archive hands those to whoever can read the destination folder.
 What a restore will not extract
 -------------------------------
 
-A restore extracts whatever archive it is pointed at, as the service account —
-`LocalSystem` on Windows. So since 25 September 2026 every way a restore opens
+A restore extracts whatever archive it is pointed at, as the account the service
+runs as: the service runs 7-Zip itself, under its own account. On Windows that is
+`NT SERVICE\hMailServer`, the service's virtual account, for an installation made
+from 6.3.4 on, and `LocalSystem` where setup was told to use it, where an upgrade
+kept it, or where the move to the virtual account could not be made
+([ServiceAccount.md](ServiceAccount.md)); on Linux it is the packages'
+`hmailserver` user. Under the virtual account it reads only an archive the
+account may read. So since 25 September 2026 every way a restore opens
 an archive — loading it, a whole restore, the check of the archive a backup has
 just written, and a mailbox or a message restored from one — first lists its
 entries (`7za l -slt`, which reads only the archive's headers, with the
