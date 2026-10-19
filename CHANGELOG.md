@@ -408,21 +408,21 @@ with `--check`).
 
 - **MigratingDatabaseBackend.md's step 3 names the tool that creates the database and its schema on an external
   backend.** It said to create an empty database, point `hMailServer.ini` at it by hand and run `DBSetupQuick.exe`,
-  which "sees no database, and creates one": DBSetupQuick creates only the built-in SQL Server Compact database,
-  when `[Database]` names no type (`DBSetupQuick/Program.cs`, `InterfaceDatabase::get_DatabaseExists`), and with
-  the section naming any other backend it starts DBUpdater, which has no path from an empty database - its first
-  step, 0 to 1100, exists for SQL Server and MySQL only and alters `hm_messages`, which the create script makes,
-  and on PostgreSQL the step's script is not there - so the page's step created nothing. What creates the database
-  and its schema is `DBSetup.exe`, the wizard's *Create a new hMailServer database* or `DBSetup.exe /unattended`
-  with the `HM_DB_*` variables and `HM_ADMIN_PASSWORD` (`CreateExternalDatabase`: the backend's `CREATE DATABASE`,
-  which refuses a name that exists, then the create script, then `[Database]` written through the service and the
-  server restarted on it), and the step now says so, with the login each backend needs for the create, that the
-  database must not exist yet (the wizard's other choice creates no schema, and the server refuses an empty
-  database as too old), that DBSetupQuick is not the tool, and that a service running as `NT SERVICE\hMailServer`
-  has DBSetup refused until it is moved to LocalSystem for the step (ServiceAccount.md). The short version, the
-  MySQL section's account of who creates the database on each platform (the Linux `--create-database` also makes
-  the schema in an empty database that exists; DBSetup does not), and step 4's "first start", which is the restart
-  DBSetup asks for, follow.
+  which "sees no database, and creates one": DBSetupQuick creates only the built-in SQL Server Compact database, when
+  `[Database]` names no type (`DBSetupQuick/Program.cs`, `InterfaceDatabase::get_DatabaseExists`), and with the
+  section naming any other backend it starts DBUpdater, which has no path from an empty database - its first step, 0
+  to 1100, exists for SQL Server and MySQL only and alters `hm_messages`, which the create script makes, and on
+  PostgreSQL the step's script is not there - so the page's step created nothing. What creates the database and its
+  schema is `DBSetup.exe`, the wizard's *Create a new hMailServer database* or `DBSetup.exe /unattended` with the
+  `HM_DB_*` variables and `HM_ADMIN_PASSWORD` (`CreateExternalDatabase`: the backend's `CREATE DATABASE`, which
+  refuses a name that exists, then the create script, then `[Database]` written through the service and the server
+  restarted on it), and the step now says so, with the login each backend needs for the create, that the database must
+  not exist yet (the wizard's other choice creates no schema, and the server reads no schema version from an empty
+  database, HM5010), that DBSetupQuick is not the tool, and that a service running as `NT SERVICE\hMailServer` has
+  DBSetup refused until it is moved to LocalSystem for the step (ServiceAccount.md). The short version, the MySQL
+  section's account of who creates the database on each platform (the Linux `--create-database` also makes the schema
+  in an empty database that exists; DBSetup does not), and step 4's "first start", which is the restart DBSetup asks
+  for, follow.
 
 ---
 

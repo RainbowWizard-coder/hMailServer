@@ -245,8 +245,11 @@ PostgreSQL, every privilege on the database's name on MySQL and MariaDB
 ([MySQL and MariaDB](#mysql-and-mariadb)) - and the database must not exist
 yet: the backend refuses the wizard's `CREATE DATABASE` of a name that exists,
 and the wizard's other choice, **Select a new hMailServer default database**,
-creates no schema, so an empty database named that way is refused by the server
-as too old, and DBUpdater has no path from it.
+creates no schema, so an empty database named that way is refused at the
+restart - the server reads no schema version from it (HM5010, "Database version
+could not be detected") - and `/unattended` with `HM_CREATE_DATABASE=0` stops
+there, saying the database holds no hMailServer schema, without starting
+DBUpdater.
 
 Without a window, the same step is `DBSetup.exe /unattended`, from an elevated
 prompt, with the database in the variables the installer's `/db` switches set
