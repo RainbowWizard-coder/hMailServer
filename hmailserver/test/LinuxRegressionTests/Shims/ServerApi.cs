@@ -77,7 +77,26 @@ namespace RegressionTests.Shared
       // session while a second factor stands (below), set by hand on the requests
       // that are meant to carry it - a cookie jar would put it on every request,
       // the ones made with an account's own credentials included.
-      private static readonly HttpClient Client = new HttpClient(new HttpClientHandler { UseCookies = false })
+      //
+      // And a kept-alive connection is not used again once it is near a deadline
+      // of the server's. The REST listener closes a connection that has sent no
+      // request for 30 seconds, and every connection 300 seconds after it was
+      // accepted (RestApiServer.cpp, RequestSeconds and ConnectionSeconds;
+      // HttpServer.cpp), and a request sent as that close is on its way is
+      // answered with nothing: "The response ended prematurely". A test that
+      // waits about thirty seconds between two calls met it: on 18 October 2026
+      // Sieve/ManageSieveSecurity's test of a connection that runs out of time
+      // before signing in, whose silent ManageSieve connection is cut off after
+      // its 30 seconds, sent its next PUT just over 30 seconds after the last
+      // answer. So this side closes a connection that has been idle for 10
+      // seconds (the pool's sweep comes a few seconds later at most), and lends
+      // none that is 240 seconds old; the next request opens another.
+      private static readonly HttpClient Client = new HttpClient(new SocketsHttpHandler
+      {
+         UseCookies = false,
+         PooledConnectionIdleTimeout = TimeSpan.FromSeconds(10),
+         PooledConnectionLifetime = TimeSpan.FromSeconds(240)
+      })
       {
          BaseAddress = new Uri(TestTarget.RestBaseUrl),
          Timeout = TimeSpan.FromSeconds(60)

@@ -232,6 +232,20 @@ with `--check`).
   the first accept, and a retry passed. It now waits up to five seconds, by the steady clock, for a port to listen,
   and says how long it waited when none does. Nothing else in the test, and nothing in the server, changes.
 
+- **The Linux suite's REST client does not send a request on a connection the REST listener is closing.** The
+  listener closes a kept-alive connection that has sent no request for 30 seconds, and every connection 300 seconds
+  after it was accepted, and a request sent as that close is on its way is answered with nothing. On 18 October 2026
+  in the Alpine suite `Sieve/ManageSieveSecurity`'s
+  `AConnectionThatRunsOutOfTimeBeforeSigningInCountsTowardsTheAutoBan` failed that way ("The response ended
+  prematurely") after its check had passed: its silent ManageSieve connection is cut off after its 30 seconds, and
+  the PUT that turns the auto-ban off again went just over 30 seconds after the REST API's last answer, on the
+  connection that answer had come on. It was not the auto-ban: the ban was for the container's own address, which the
+  test connects to ManageSieve from, and the REST API, reached at 127.0.0.1, consults no auto-ban range: it refuses
+  only an address that has tripped the auto-ban by failing to authenticate to the API itself, never 127.0.0.1 or ::1,
+  or one the country policy blocks. The client in `hmailserver/test/LinuxRegressionTests/Shims/ServerApi.cs` now
+  closes a connection idle for 10 seconds and lends none 240 seconds old, so any test that waits about half a minute
+  between two calls opens a new one. The Windows suite, which sets the same settings over COM, was never exposed.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
