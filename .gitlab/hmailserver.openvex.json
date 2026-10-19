@@ -4,8 +4,8 @@
   "author": "The hMailServer maintainers, Progressive Robot Ltd",
   "role": "Project maintainers",
   "timestamp": "2026-09-12T03:00:00Z",
-  "last_updated": "2026-10-19T04:30:00Z",
-  "version": 9,
+  "last_updated": "2026-10-19T15:05:00Z",
+  "version": 10,
   "tooling": "Written by hand; one statement per advisory dismissed as not affecting the project, as SECURITY.md (Vulnerability management policy) requires. No statements means every advisory raised against a component of this project has been fixed rather than dismissed.",
   "statements": [
     {
@@ -174,7 +174,7 @@
       ],
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
-      "impact_statement": "mcp 1.29.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.181.0, which pins it to mcp==1.29.0. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. Semgrep serves MCP only from its `semgrep mcp` command, whose streamable-http transport starts the server this advisory is about (semgrep/commands/mcp.py); the job runs `semgrep scan --metrics off --oss-only` alone, which starts no MCP server and listens on no port, so the session store the advisory is in is never created. mcp moves to 1.30.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
+      "impact_statement": "mcp 1.29.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.181.0, which pins it to mcp==1.29.0. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. Semgrep serves MCP only from its `semgrep mcp` command, whose streamable-http transport starts the server this advisory is about (semgrep/commands/mcp.py); the job runs Semgrep twice, as `semgrep --version` and as `semgrep scan --metrics off --disable-version-check --oss-only` with the rules it has fetched (build/ci/semgrep.sh), and neither starts an MCP server or listens on a port, so the session store the advisory is in is never created. mcp moves to 1.30.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
     }
   ]
 }

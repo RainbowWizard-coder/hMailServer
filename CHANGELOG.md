@@ -203,7 +203,7 @@ with `--check`).
   statement, two are PyJWT 2.13.0's - inconsistent OKP keys, fixed in 2.15.0, and the reuse of a caller's options,
   which affects 2.11.0 to 2.13.0 - and the new file has neither; the third, against mcp 1.29.0 (medium, fixed in
   1.30.0), is the Streamable HTTP server's unbounded sessions, and since Semgrep pins mcp 1.29.0 it gets a statement:
-  Semgrep serves MCP only from its `semgrep mcp` command, and the job runs `semgrep scan` alone. Run with
+  Semgrep serves MCP only from `semgrep mcp`, and the job runs only `semgrep --version` and `semgrep scan`. Run with
   build/ci/semgrep.sh on the same day, rules and tree, Semgrep 1.178.0 and 1.181.0 give the same 125 findings, all in
   the baseline, and the same 35 warnings; the release notes of 1.179.0 to 1.181.0 change Python's parsing of `except
   A, B:` (PEP 758) and nothing in C#, JavaScript or shell that the job reads. Playwright 1.64.0, which no job
