@@ -59,7 +59,7 @@ Choosing a target
 | Target | Choose it when |
 |---|---|
 | **MS SQL Server** (including Express and LocalDB) | You already run SQL Server, or you want the strongest transaction support of the four. Note that the session runs at READ UNCOMMITTED. Install the Microsoft OLE DB Driver for SQL Server: through its provider, MSOLEDBSQL, the whole session is encrypted by default, the certificate unchecked, and `TlsMode=verify-full` under `[Database]` checks it against the Windows certificate store; without it the server falls back to SQLOLEDB, which encrypts only the login unless `TlsMode` asks for more ([DatabaseTls.md](DatabaseTls.md)). |
-| **PostgreSQL** | You want the best-behaved backend in this codebase. It is the only one of the four where DDL is transactional, so a failed schema upgrade rolls back cleanly. To require and verify TLS to it, set `TlsMode=verify-full` and `TlsCaFile=<path to the CA file>` under `[Database]` - or libpq's own `PostgreSQLSslMode` and `PostgreSQLSslRootCert`, which win when set; without them libpq encrypts when the server offers it and verifies nothing ([DatabaseTls.md](DatabaseTls.md)). |
+| **PostgreSQL** | You want the best-behaved backend in this codebase. Its DDL is transactional, as SQL Server's and SQL Server Compact's are, so a failed schema upgrade is taken back whole; only MySQL and MariaDB commit each step's DDL as it runs ([Upgrading.md](Upgrading.md)). To require and verify TLS to it, set `TlsMode=verify-full` and `TlsCaFile=<path to the CA file>` under `[Database]` - or libpq's own `PostgreSQLSslMode` and `PostgreSQLSslRootCert`, which win when set; without them libpq encrypts when the server offers it and verifies nothing ([DatabaseTls.md](DatabaseTls.md)). |
 | **MySQL / MariaDB** | You already run it. It must be MySQL 5.7.9 or MariaDB 10.2.2 or later, and every table is `utf8mb4` - see [MySQL and MariaDB](#mysql-and-mariadb) below. Make sure every table ends up InnoDB — the server only issues transactions if they all report it at connect time, and silently does not if any table does not. The connection is encrypted whenever the server offers TLS, and made without it when the server has none; `TlsMode=verify-full` and `TlsCaFile` under `[Database]` require TLS and check the server's certificate ([DatabaseTls.md](DatabaseTls.md)). Until 25 September 2026 it was never encrypted through MariaDB Connector/C - the bundled client on Windows and Ubuntu's on Linux - whatever this page said. |
 | **SQL Server Compact** | Only if you are migrating *to* a test rig. It is the default and it is the one real dependency liability in this tree; see the SQL Server Compact row in [Roadmap.md](../../Roadmap.md) for the three defects that are specific to it. |
 
@@ -349,10 +349,10 @@ SQL (`Logging.Device = hLogDeviceSQL`, the Control Panel's Logging page), histor
 log rows stay in the old database. Export them separately if you need them; they are
 ordinary rows in `hm_log`.
 
-**MySQL and SQL Server Compact commit DDL as it executes.** If the schema
-creation in step 3 fails halfway on those two, the database is left partly built
-rather than rolled back. Drop it and start step 3 again rather than re-running the
-tool over the remains.
+**The schema is created in no transaction, on every backend.** The create script
+runs statement by statement, so a creation in step 3 that fails part-way leaves
+the database partly built, on all four. Drop it and start step 3 again rather than
+re-running the tool over the remains.
 
 What this does not cover
 ------------------------

@@ -378,6 +378,17 @@ with `--check`).
   `RestApiSandbox.cpp`), so each example matched nothing and retried nothing, without a word, where `hmctl`'s own
   table and the module's examples read `tries`. Both now say `tries`.
 
+- **MigratingDatabaseBackend.md's backend table and its note on a failed schema creation say what the code
+  does.** The PostgreSQL row called it the only backend of the four where DDL is transactional; the upgrade's one
+  transaction takes the schema's changes back on SQL Server Compact, SQL Server and PostgreSQL alike, and only
+  MySQL and MariaDB commit each step's DDL as it runs (Upgrading.md; `DBUpdater/SchemaVerification.cs`), which the
+  row now says. The note after the restore said that MySQL and SQL Server Compact commit DDL as it executes, so
+  that a schema creation that fails half-way is left partly built on those two "rather than rolled back"; the
+  create script runs statement by statement in no transaction on every backend (`SQLScriptRunner`, run by
+  `CreateInternalDatabase` and `CreateExternalDatabase`, which DBSetupQuick and DBSetup call, and by the Linux
+  `--create-database`), so a creation that fails part-way leaves the database partly built on all four, and the
+  note says so.
+
 ---
 
 ## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17
