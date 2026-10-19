@@ -302,18 +302,29 @@
       "enabled": false
     },
     {
-      "description": "A distribution's own image names a release, and a new release is a change made by hand, so only each tag's digest moves. Most name a release a package is built for or installed on (Debian 12 and 13, Ubuntu 24.04 and 26.04, Fedora 43 and 44, UBI 9 and 10, openSUSE Leap 16.0 and Tumbleweed, AlmaLinux 10 and Alpine 3.24: .gitlab/ci/packages-*.yml, source-packages.yml, alpine.yml and .gitlab-ci.yml's linux-package-* jobs), where a new release is a new target with jobs of its own and moving the tag would drop the target it names. The Linux CI image's Ubuntu is the one linux-build makes the .deb and the .rpm in, and the container image's Ubuntu the release its .deb was built on (its Dockerfile says why). The rest run a tool from the release's own packages (editorconfig, chart-and-compose, update-helper, package-repos, ppa-upload, helm-chart-package, several pinning a package job's image on purpose), where a new release is a new version of the tool. On 30 September 2026 the dashboard offered Debian 12 to 13, Ubuntu 24.04 to 26.04, Fedora 43 and 44 to 46 (Rawhide in Fedora's registry that day) and openSUSE Leap 16.0 to 16.1 and to 42.3, the 2017 release, which Renovate's versioning ranks above 16.",
+      "description": "A distribution's own image names a release, and a new release is a change made by hand, so only each tag's digest moves. Most name a release a package is built for or installed on (Debian 12 and 13, Ubuntu 24.04 and 26.04, Fedora 43 and 44, UBI 9 and 10, openSUSE Leap 16.0 and Tumbleweed, AlmaLinux 10 and Alpine 3.24: .gitlab/ci/packages-*.yml, source-packages.yml, alpine.yml and .gitlab-ci.yml's linux-package-* jobs), where a new release is a new target with jobs of its own and moving the tag would drop the target it names. The Linux CI image's Ubuntu is the one linux-build makes the .deb and the .rpm in, and the container image's Ubuntu the release its .deb was built on (its Dockerfile says why). The rest run a tool from the release's own packages (editorconfig, chart-and-compose, update-helper, package-repos, ppa-upload, helm-chart-package, several pinning a package job's image on purpose), where a new release is a new version of the tool. On 30 September 2026 the dashboard offered Debian 12 to 13, Ubuntu 24.04 to 26.04, Fedora 43 and 44 to 46 (Rawhide in Fedora's registry that day) and openSUSE Leap 16.0 to 16.1 and to 42.3, the 2017 release, which Renovate's versioning ranks above 16. Docker Hub's images are named here as written both ways, ubuntu and docker.io/library/ubuntu, because Renovate matches the name a file writes: on 19 October 2026 the container-image merge request moved build/ci/package-systemd-test.sh's docker.io/library/ubuntu:26.04 to 26.10, a release no package job builds for.",
       "matchDatasources": ["docker"],
       "matchPackageNames": [
         "ubuntu",
         "debian",
         "alpine",
         "almalinux",
+        "docker.io/library/ubuntu",
+        "docker.io/library/debian",
+        "docker.io/library/alpine",
+        "docker.io/library/almalinux",
         "registry.fedoraproject.org/fedora",
         "registry.access.redhat.com/**",
         "registry.opensuse.org/**"
       ],
       "matchUpdateTypes": ["major", "minor", "patch"],
+      "enabled": false
+    },
+    {
+      "description": "Docker Hub's Python images stay on Python 3.14, the python:3.14-slim-trixie that every job on Docker Hub's Python image runs in, and only each tag's digest moves. build/ci/requirements.txt is compiled for 3.14 (uv's --python-version 3.14, its header says so) and hashes only the files PyPI has for the versions it pins, and so does build/ci/cli-packages-requirements.txt, which the cli-packages and pypi-publish jobs install the same way in the same image. Semgrep's own wheels (1.181.0), tagged py310 to py314 with no ABI, are ones pip takes on 3.15 too, but ruamel.yaml.clib 0.2.15, which Semgrep pins, has CPython wheels up to cp314 alone, and so has pydantic-core 2.46.5, which both files hold through pydantic 2.13.5 (the first for mcp, which Semgrep pins and which needs pydantic 2.12 or later, the second for pypi-attestations and sigstore), though pydantic-core 2.48.0 and later have wheels for 3.15. So in python:3.15-slim-trixie pip --require-hashes has to build them from source - both for the first file, pydantic-core for the second - with no compiler in the slim image, and fails (tried with each file on 19 October 2026): the semgrep job, one of the scans the release reads, would fail with it, and so would cli-packages and pypi-publish, which sends the release's hmailserver-cli to PyPI. On 19 October 2026 the container-image merge request moved all 24 of the CI files' python:3.14-slim-trixie pins to 3.15. A new Python is a change made by hand: both locked files remade for it with uv, each with --upgrade-package pydantic, once the ruamel.yaml.clib Semgrep pins has wheels for it, and this rule changed.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["python", "docker.io/library/python"],
+      "matchUpdateTypes": ["major", "minor"],
       "enabled": false
     },
     {
@@ -324,9 +335,9 @@
       "enabled": false
     },
     {
-      "description": "The databases the CI jobs test against - PostgreSQL 18 for the Linux suite, the upgrade gates and the package, live-update and container start tests, MariaDB 13 for the MySQL upgrade gate - and the packaging compose file's PostgreSQL, which is what users deploy: a PostgreSQL major version does not open the data directory of the one before, so a new one there is a move of each deployment's hm-db volume, as 16 to 18 was (docs/ContainerImage.md, Updates). And GitLab's security analyzers, where a file names one on GitLab's registry: semgrep-sast is one of the four scans the release job reads (build/ci/security-gate.py), with its accepted findings in .gitlab/security-exceptions.yml, and an analyzer's major version changes its rules and so its findings. Each stays on its major version, and its digest moves; a new major version is a decision and a run, made by hand by changing this rule. semgrep-sast and secret_detection run the project's copies of them instead (the rule below).",
+      "description": "The databases the CI jobs test against - PostgreSQL 18 for the Linux suite, the upgrade gates and the package, live-update and container start tests, MariaDB 13 for the MySQL upgrade gate - and the packaging compose file's PostgreSQL, which is what users deploy: a PostgreSQL major version does not open the data directory of the one before, so a new one there is a move of each deployment's hm-db volume, as 16 to 18 was (docs/ContainerImage.md, Updates). And GitLab's security analyzers, where a file names one on GitLab's registry: semgrep-sast is one of the four scans the release job reads (build/ci/security-gate.py), with its accepted findings in .gitlab/security-exceptions.yml, and an analyzer's major version changes its rules and so its findings. Each stays on its major version, and its digest moves; a new major version is a decision and a run, made by hand by changing this rule. Docker Hub's names are given in both spellings, as in the distributions' rule above. semgrep-sast and secret_detection run the project's copies of them instead (the rule below).",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["postgres", "mariadb", "mysql", "registry.gitlab.com/security-products/**"],
+      "matchPackageNames": ["postgres", "mariadb", "mysql", "docker.io/library/postgres", "docker.io/library/mariadb", "docker.io/library/mysql", "registry.gitlab.com/security-products/**"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },

@@ -3923,6 +3923,33 @@ the Linux CI image, `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, whic
     the dashboard offered Debian 12 to 13, Ubuntu 24.04 to 26.04, Fedora 43 and
     44 to 46 (Rawhide in Fedora's registry that day) and openSUSE Leap 16.0 to
     16.1 and to 42.3, the 2017 release, which Renovate's versioning ranks above 16.
+    Renovate matches an image by the name a file writes, so the rule names Docker
+    Hub's images both ways, `ubuntu` and `docker.io/library/ubuntu`: on 19 October
+    2026 the container-image merge request moved
+    `build/ci/package-systemd-test.sh`'s `docker.io/library/ubuntu:26.04` to
+    26.10, which the rule, naming `ubuntu` alone, had not held. The databases'
+    rule below names both spellings too.
+  - Docker Hub's Python images stay on Python 3.14, the
+    `python:3.14-slim-trixie` that every job on Docker Hub's Python image runs
+    in; their digests move. `build/ci/requirements.txt` is compiled for 3.14 and
+    hashes only the files PyPI has for the versions it pins, and so does
+    `build/ci/cli-packages-requirements.txt`, which the `cli-packages` and
+    `pypi-publish` jobs install the same way in the same image. Semgrep's own
+    wheels, tagged py310 to py314 with no ABI, are ones pip takes on 3.15 too,
+    but ruamel.yaml.clib 0.2.15, which Semgrep pins, has CPython wheels up to
+    cp314 alone, and so has pydantic-core 2.46.5, which both files hold through
+    pydantic 2.13.5 (the first for mcp, which Semgrep pins and which needs
+    pydantic 2.12 or later, the second for pypi-attestations and sigstore),
+    though pydantic-core 2.48.0 and later have wheels for 3.15. So in
+    `python:3.15-slim-trixie` `pip --require-hashes` has to build them from
+    source - both for the first file, pydantic-core for the second - with no
+    compiler in the image, and fails (tried with each file on 19 October 2026,
+    when the container-image merge request moved all 24 of the CI files' Python
+    pins to 3.15): the `semgrep` job would fail with it, and so would
+    `cli-packages` and `pypi-publish`. A new Python is taken by hand: both
+    locked files remade for it with uv, each with `--upgrade-package pydantic`,
+    once the ruamel.yaml.clib Semgrep pins has wheels for it, and the rule
+    changed.
   - The test lab (`build/lab/docker-compose.yml`) moves by digest only: its
     matrix is chosen, and [TestLab.md](TestLab.md)'s results are for those
     versions.

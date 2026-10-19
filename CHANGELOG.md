@@ -177,6 +177,24 @@ with `--check`).
   A, B:` (PEP 758) and nothing in C#, JavaScript or shell that the job reads. Playwright 1.64.0, which no job
   installs, adds WebMCP and video options; both files install with `pip --require-hashes`, the second on Windows too.
 
+- **Renovate keeps the Python images on 3.14 and a distribution image named `docker.io/library/<name>` on its
+  release.** Renovate's container-image merge request of 19 October 2026 moved every one of the CI files' 24
+  `python:3.14-slim-trixie` pins to 3.15 and `build/ci/package-systemd-test.sh`'s `docker.io/library/ubuntu:26.04` to
+  26.10. `renovate.json`'s rule that moves a distribution's image by digest alone named Docker Hub's images by their
+  short names only, and Renovate matches the name a file writes, so it now names `docker.io/library/ubuntu`, `debian`,
+  `alpine` and `almalinux` too, as the databases' rule now does for `postgres`, `mariadb` and `mysql`. A new rule
+  keeps Docker Hub's Python images on 3.14, their digests moving: `build/ci/requirements.txt` is compiled for 3.14 and
+  hashes only the files PyPI has for its versions, and so does `build/ci/cli-packages-requirements.txt`, which the
+  `cli-packages` and `pypi-publish` jobs install the same way in the same image. In `python:3.15-slim-trixie`
+  `pip --require-hashes` finds no wheel of pydantic-core 2.46.5, which both files hold through pydantic 2.13.5
+  (pydantic-core 2.48.0 and later have wheels for 3.15), nor, in the first, of ruamel.yaml.clib 0.2.15, which Semgrep
+  pins and whose CPython wheels stop at 3.14, and fails building them with no compiler in the image, so the semgrep
+  job would fail, and so would cli-packages and pypi-publish; a new Python waits for wheels of the ruamel.yaml.clib
+  Semgrep pins, with both files remade for it and pydantic moved in each relock. Renovate 44.115.13's own validator,
+  `renovate-config-validator --strict` in the image the `renovate` job pins, accepts the file, and its own rule
+  matching disables both moves and keeps both images' digest moves, where `master`'s file let them through. The merge
+  request itself is not taken by this change. ContinuousIntegration.md's "What stays put" gives both rules.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
