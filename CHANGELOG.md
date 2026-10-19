@@ -417,11 +417,10 @@ with `--check`).
   backend.** It said to create an empty database, point `hMailServer.ini` at it by hand and run `DBSetupQuick.exe`,
   which "sees no database, and creates one": DBSetupQuick creates only the built-in SQL Server Compact database, when
   `[Database]` names no type (`DBSetupQuick/Program.cs`, `InterfaceDatabase::get_DatabaseExists`), and with the
-  section naming any other backend it starts DBUpdater, which cannot build a schema from an empty database - its first
-  step, 0 to 1100, makes `hm_dbversion` and then alters `hm_messages`, which only the create script makes, so on SQL
-  Server the step fails and its transaction takes `hm_dbversion` back, on MySQL and MariaDB it fails and leaves
-  `hm_dbversion` at 1100 behind, which the server then refuses as too old, and on PostgreSQL the step's script is not
-  there - so the page's step made no usable database, and on MySQL and MariaDB left `hm_dbversion` behind. What
+  section naming any other backend it starts DBUpdater, which cannot build a schema from an empty database - its run
+  stops before its first step, at the prerequisite of step 6107, which reads `hm_dbversion`, a table an empty database
+  does not have, so nothing is made and the server refuses the database as one whose version it cannot read (HM5010),
+  and on PostgreSQL the first step's script is not there - so the page's step made no usable database. What
   creates the database and its schema is `DBSetup.exe`, the wizard's *Create a new hMailServer database* or
   `DBSetup.exe /unattended` with the `HM_DB_*` variables and `HM_ADMIN_PASSWORD` (`CreateExternalDatabase`: the
   backend's `CREATE DATABASE`, which refuses a name that exists, then the create script, then `[Database]` written

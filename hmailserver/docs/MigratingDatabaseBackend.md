@@ -274,7 +274,9 @@ if ($setup.ExitCode -ne 0) { throw "Database setup failed with exit code $($setu
 
 It checks every setting before it contacts the server, and a setting it refuses
 changes nothing; it exits with a non-zero code when the step fails, so it is
-safe to run from a script. Either way, the section it writes is:
+safe to run from a script. Either way, the section it writes has this shape, the
+password encrypted rather than as typed (`PasswordEncryption=6`, the machine's
+secret store; [SecretsAtRest.md](SecretsAtRest.md)):
 
 ```ini
 [Database]
@@ -282,7 +284,8 @@ Type=MSSQL
 Server=sql01.example.com
 Database=hMailServer
 Username=hmailserver
-Password=<password>
+Password=<the password, encrypted>
+PasswordEncryption=6
 Port=0
 Internal=0
 ```
@@ -295,14 +298,16 @@ case-insensitively; `Internal=0` is anything other than the embedded engine;
 **Not `DBSetupQuick.exe`.** It creates only the built-in SQL Server Compact
 database, when `[Database]` names no type; once the section names any other
 backend it starts DBUpdater, the schema upgrader, which cannot build a schema
-from an empty database: its first step, 0 to 1100, makes `hm_dbversion` and
-then alters `hm_messages`, which only the create script makes - on SQL Server
-the step fails and its transaction takes `hm_dbversion` back, on MySQL and
-MariaDB the step fails and leaves `hm_dbversion` at 1100 behind, which the
-server then refuses as too old (drop that database before step 3), and on
-PostgreSQL the step's script does not exist. Pointing `hMailServer.ini` at an
-empty database by hand and running DBSetupQuick, which this page said to do
-until 19 October 2026, made no usable database.
+from an empty database: on SQL Server and on MySQL and MariaDB its run stops
+before its first step, at the prerequisite of step 6107, which reads
+`hm_dbversion` - a table an empty database does not have (the error names the
+greylisting triplets' keys) - so nothing is made, and the server goes on
+refusing the database as one whose version it cannot read (HM5010); on
+PostgreSQL the first step's script, 0 to 1100, does not exist, and no path is
+built. Pointing `hMailServer.ini` at an empty database by hand and running
+DBSetupQuick, which this page said to do until 19 October 2026, made no usable
+database. Drop that database before step 3: DBSetup's `CREATE DATABASE`
+refuses a name that exists.
 
 **A service that runs as `NT SERVICE\hMailServer`** may not write
 `hMailServer.ini`, so either run of DBSetup is refused before anything is made,
