@@ -118,7 +118,7 @@ hmctl settings set --set session_idle_seconds=900 --set session_bind_to_address=
 hmctl domain update example.com --set session_lifetime_seconds=28800 --set session_one_per_device=1
 hmctl device ann@example.com list
 hmctl device ann@example.com revoke 0123456789abcdef0123456789abcdef --credential
-hmctl queue list --json | jq '.[] | select(.retry_count > 3)'
+hmctl queue list --json | jq '.[] | select(.tries > 3)'
 hmctl match contains viagra "cheap viagra here"
 hmctl dkim status example.com
 hmctl report sections
@@ -598,7 +598,7 @@ New-HmAccount -Domain example.com -Address ann@example.com -Password (Read-Host 
 Set-HmAccount -Address ann@example.com -Property @{ max_size_mb = 500 }
 Set-HmSetting -Group antispam -Property @{ use_spf = $true }
 Test-HmBreachCheckEndpoint -Url https://mirror.example/range/
-Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery
+Get-HmQueue | Where-Object tries -gt 3 | Start-HmQueueDelivery
 Get-HmDkimRotation -Domain example.com -Records | Where-Object Action -eq publish
 Get-HmChangedSetting | Format-Table store, name, value, default
 Get-HmSuppression -Domain example.com | Where-Object category -eq 'hard' | Format-Table address, status, created

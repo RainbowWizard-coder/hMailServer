@@ -371,6 +371,13 @@ with `--check`).
   (SECURITY.md). The reason is that every release up to 6.3.3 is published with its original files, byte for byte,
   which the document says already, and the sentence now gives it.
 
+- **CommandLine.md's two queue examples filter on `tries`, the field a queue item has.** `hmctl queue list --json |
+  jq '.[] | select(.retry_count > 3)'` and `Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery`
+  named a field no item of `GET /api/v1/queue` carries: an item's keys are `id`, `created`, `from`, `recipients`,
+  `next_try`, `locked` and `tries`, with `held` for a message a sandbox holds (`RestApiServer.cpp`,
+  `RestApiSandbox.cpp`), so each example matched nothing and retried nothing, without a word, where `hmctl`'s own
+  table and the module's examples read `tries`. Both now say `tries`.
+
 ---
 
 ## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17
