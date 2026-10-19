@@ -389,6 +389,14 @@ with `--check`).
   `--create-database`), so a creation that fails part-way leaves the database partly built on all four, and the
   note says so.
 
+- **Migration.md gives the Import Tool's Start menu entry as the installer makes it, and the documents name the
+  rule action that calls a script function as the Control Panel does.** Migration.md said `Start menu >
+  hMailServer > Import Tool`; the installer puts the shortcut under `Addons` (`section_icons.iss`), so it is
+  `Start menu > hMailServer > Addons > Import Tool`. EventScripts.md, MailFlowRules.md and Roadmap2.md called the
+  rule action that calls a function of the event script "Run function"; the Control Panel's action dialog lists it
+  as "Run script function" (`RuleActionDialog.cs`), and the REST API and the Deck call it `script_function`, so the
+  three now say "Run script function".
+
 ---
 
 ## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17

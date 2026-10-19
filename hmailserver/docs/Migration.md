@@ -533,7 +533,7 @@ Compact and PostgreSQL; see
 From mbox files
 ---------------
 
-The Import Tool (`Start menu > hMailServer > Import Tool`, or
+The Import Tool (`Start menu > hMailServer > Addons > Import Tool`, or
 `Addons\ImportTool\ImportTool.exe` under the installation) imports a folder of mbox
 files into one account, one IMAP folder per file, named after the file without its
 extension; `Inbox` (any case) is the INBOX. Thunderbird's profile keeps its

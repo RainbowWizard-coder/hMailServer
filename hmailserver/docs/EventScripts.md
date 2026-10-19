@@ -8,7 +8,7 @@ Events directory, holding functions named after the events they handle -
 is switched on, the server calls the function for each event as it happens, hands it
 the objects the event is about - the client, the message, the account - and reads
 back what the function decided through the `Result` object: refuse this message,
-deny this logon, keep that download on the remote server. A rule's "Run function"
+deny this logon, keep that download on the remote server. A rule's "Run script function"
 action calls a function of the same file by name.
 
 No handler is called until you switch scripting on: the switch is off as shipped,
@@ -57,7 +57,7 @@ once per event: the load refuses, nothing of the new file is registered, and no 
 tries it. While scripting is switched off the file is read but not run and nothing is
 reported; a script loaded then registers no handler, and if the load that switches
 scripting on refuses the file, that script stays in force, never compiled: the first
-event that reaches it - a rule's "Run function" action, the one call no handler gates
+event that reaches it - a rule's "Run script function" action, the one call no handler gates
 - is reported (HM5018) and the rest are skipped without a line until the next load.
 
 `GET /api/v1/status` says which languages this build runs, under `build`:
@@ -130,7 +130,7 @@ and `Result` in `OnClientLogon`, `OnRecipientUnknown`, `OnTooManyInvalidCommands
 | `OnBackupCompleted()` | nothing | nothing |
 | `OnBackupFailed(reason)` | the reason | nothing |
 | `OnError(severity, code, source, description)` | the error, as the ERROR log has it | nothing |
-| a rule's "Run function" | the message | nothing; a function the file does not define is a Script Error |
+| a rule's "Run script function" | the message | nothing; a function the file does not define is a Script Error |
 
 A `554` from `OnHELO`, `OnAcceptMessage` or `OnSMTPData` counts towards the session's
 limit of invalid commands (`MaxNumberOfInvalidCommands`), as the server's own refusal
@@ -181,7 +181,7 @@ trimmed of the white space at either end; on VBScript, as before, the trim does 
 reach into a CR LF pair - the hand-quoting joined each pair in before it trimmed - so a
 VBScript handler is handed the CR LF that ends the error's last line, which a JScript
 or JavaScript one is not.
-A rule's "Run function" name is written
+A rule's "Run script function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
 digits, `_` and `$`, not starting with a digit, at most 255 characters - is refused
 (HM5018) and nothing is run. On Linux no call text is built, but the handler is
@@ -468,11 +468,11 @@ is that the script cannot reach past the objects it is given.
 | A handler stopped at the timeout | HM7341 |
 | A handler stopped at the memory ceiling | HM7342 |
 | The engine could not be started (memory) | HM7340 |
-| An event that reaches a script loaded while scripting was off and never compiled since - the load that switched scripting on refused it, in a language this build does not run or one that does not compile - in practice a rule's "Run function" | HM5018, once per load |
+| An event that reaches a script loaded while scripting was off and never compiled since - the load that switched scripting on refused it, in a language this build does not run or one that does not compile - in practice a rule's "Run script function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
-| A rule's "Run function" saved naming no function, or a name that is not a plain identifier | refused by the save, with the reason - a COM error from `RuleAction.Save` or `Rule.Save`, a 400 from the REST API's rule routes; nothing is stored, and nothing is written to the ERROR log |
-| On Windows, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | HM5018, each time the rule matches; the function is not run |
-| On Linux, a rule's "Run function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
+| A rule's "Run script function" saved naming no function, or a name that is not a plain identifier | refused by the save, with the reason - a COM error from `RuleAction.Save` or `Rule.Save`, a 400 from the REST API's rule routes; nothing is stored, and nothing is written to the ERROR log |
+| On Windows, a rule's "Run script function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | HM5018, each time the rule matches; the function is not run |
+| On Linux, a rule's "Run script function" whose name is not a plain identifier - stored before the save refused it, restored from a backup or written to the database | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
 
 The load is all or nothing on every engine: a script that does not compile installs
 nothing, and whatever was loaded before stays in force - so a typo in a reload never
