@@ -140,10 +140,13 @@ Not because either instrument compels it, but because they are the right shape
 for a security-relevant product and they would be prerequisites if scope ever
 changed:
 
-* SPDX and CycloneDX SBOMs attached to every release up to 6.3.3
-  (the GitHub workflow `sbom.yml`, in the git history at `v6.3.3`; on GitLab the
+* SPDX and CycloneDX SBOMs attached to every release from 6.2.3 (up to 6.3.3 by
+  the GitHub workflow `sbom.yml`, in the git history at `v6.3.3`; on GitLab the
   `linux-sbom` job makes them), including the native
   dependencies — OpenSSL, Boost and libpq — that a source-tree scan does not see.
+  The five releases before 6.2.3 that carry an installer have a CycloneDX SBOM of
+  it alone, made afterwards from the installer itself
+  ([SECURITY.md](../../SECURITY.md#dependencies-software-composition-analysis)).
   That matters for exactly the purpose an SBOM has: without them, anyone checking a
   release against a CVE feed would have concluded this server does not link OpenSSL.
 * **No executable binary is committed to the repository.** Forty were until 11
@@ -161,7 +164,7 @@ changed:
   lists as fetched was committed after all. The SBOM answers "what does this link
   against"; this answers the separate question "what unreviewable files are in
   the source tree, and who made them".
-* **Every release asset up to 6.3.3 signed**, with Sigstore cosign, keyless via
+* **The release assets from 6.2.19 to 6.3.3 signed**, with Sigstore cosign, keyless via
   OIDC, the signature recorded in the public Rekor transparency log and verified in
   the same job so a malformed bundle cannot reach a user
   (the GitHub workflow `sign-release.yml`, in the git history at `v6.3.3`). Keyless
@@ -173,8 +176,9 @@ changed:
   ([RELEASE.md](../../RELEASE.md), *Authenticode*). Cosign and Authenticode are
   complementary rather than alternatives — SmartScreen and the UAC prompt read
   Authenticode and know nothing about Sigstore. The Linux packages carry no
-  Authenticode, and the releases before 6.3.1 stay unsigned because a published
-  release is immutable.
+  Authenticode, and the installers of the releases before 6.3.1 stay without it:
+  every release up to 6.3.3 is published with its original files, byte for byte,
+  on GitLab and in its copy on GitHub.
 * A documented security policy and private disclosure route
   ([SECURITY.md](../../SECURITY.md)), plus a machine-readable `security.txt`
   (RFC 9116) served at `/.well-known/security.txt` by the web services listener.

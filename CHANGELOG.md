@@ -358,6 +358,19 @@ with `--check`).
   they now say. README.md's *License* gave the GNU Affero General Public License as "v3.0 (AGPLv3)"; it is version
   3 or later, `AGPL-3.0-or-later`, as every header has it.
 
+- **ASSURANCE-CASE.md and RegulatoryScope.md say which releases GitHub's workflows signed and gave SBOMs, and why
+  the releases before 6.3.1 carry no Authenticode signature.** ASSURANCE-CASE.md's paragraph on `SigstoreVerifier`
+  said that GitHub's token service signed every release up to 6.3.3; only the releases from 6.2.19 to 6.3.3 carry
+  Sigstore bundles, as its claim C7 and SECURITY.md say, and it now says so. RegulatoryScope.md's "What we do
+  anyway" said that SPDX and CycloneDX SBOMs are attached to every release up to 6.3.3, and that every release
+  asset up to 6.3.3 is signed: both kinds of SBOM are attached from 6.2.3, the five earlier releases that carry an
+  installer have a CycloneDX SBOM of it alone, made afterwards, and the bundles are those of 6.2.19 to 6.3.3, read
+  from the 47 releases on GitLab on 19 October 2026. The same list gave "a published release is immutable" as the
+  reason the releases before 6.3.1 stay without an Authenticode signature; a release on GitLab can be changed, and
+  so can the copies on GitHub published on 18 October 2026, before its immutable-releases setting was switched on
+  (SECURITY.md). The reason is that every release up to 6.3.3 is published with its original files, byte for byte,
+  which the document says already, and the sentence now gives it.
+
 ---
 
 ## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17

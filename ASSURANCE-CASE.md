@@ -337,7 +337,7 @@ New in 6.2.28, the server's own update path applies the same verification. `Upda
 the file's SHA-256 is the one signed and the one Rekor recorded, the certificate
 chains to the embedded Sigstore trust root, and its identity must be one of this
 project's two release signers, whole: the `sign-release.yml` workflow issued by
-GitHub's token service, which signed every release up to 6.3.3 and is trusted
+GitHub's token service, which signed the releases from 6.2.19 to 6.3.3 and is trusted
 only for certificates issued before the account's suspension on 18 September
 2026, or this project's GitLab CI pipeline issued by GitLab's, for the `v*` tag
 of the release being installed, which signs the releases after, from 6.3.5 -
