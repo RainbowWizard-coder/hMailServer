@@ -369,18 +369,18 @@ with `--check`).
   before 6.3.1 stay without an Authenticode signature; a release on GitLab can be changed, and so can the copies on
   GitHub published on 18 October 2026, before its immutable-releases setting was switched on (SECURITY.md). The reason
   is that the releases up to 6.3.3 are published with their original files, byte for byte, 6.2.0 and 6.0.0-B4 apart,
-  which have none (only the suspended account has them; Roadmap3.md's row on the files GitLab does not have), and the
-  sentence now gives it; the document's opening list, which said every release up to 6.3.3 is re-published on GitLab
-  byte for byte, its account of what the one workflow GitHub Actions runs signs there, which said the releases up to
-  6.3.3 are on GitLab with their original signatures, and EvidencePack.md's account of the move, which said the same,
-  now say so of those two. The signed range is said exactly as well: 6.2.22-pre3's two SBOMs carry no bundle, and
-  RegulatoryScope.md, SECURITY.md's *Verifying a release* and EvidencePack.md's *Sigstore* say so beside the range,
-  where EvidencePack.md also said that the `release-sign` and `release-verify` jobs had not run yet and that the
-  GitLab release jobs make no provenance: they have signed every release from 6.3.5, and from 6.3.6 `release-sbom` and
-  `release-sign` make the release's own, `hmailserver-<version>.intoto.sigstore.json`. README.md's *Quality gates*
-  said every release ships SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the five earlier releases that
-  carry an installer having a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply chain*, which lists the
-  five, as RegulatoryScope.md's sentence does.
+  which have none (only the suspended account, or someone's old download, has them; Roadmap3.md's row on the files
+  GitLab does not have), and the sentence now gives it; the document's opening list, which said every release up to
+  6.3.3 is re-published on GitLab byte for byte, its account of what the one workflow GitHub Actions runs signs there,
+  which said the releases up to 6.3.3 are on GitLab with their original signatures, and EvidencePack.md's account of
+  the move, which said the same, now say so of those two. The signed range is said exactly as well: 6.2.22-pre3's two
+  SBOMs carry no bundle, and RegulatoryScope.md, SECURITY.md's *Verifying a release* and EvidencePack.md's *Sigstore*
+  say so beside the range, where EvidencePack.md also said that the `release-sign` and `release-verify` jobs had not
+  run yet and that the GitLab release jobs make no provenance: they have signed every release from 6.3.5, and from
+  6.3.6 `release-sbom` and `release-sign` make the release's own, `hmailserver-<version>.intoto.sigstore.json`.
+  README.md's *Quality gates* said every release ships SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the
+  five earlier releases that carry an installer having a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply
+  chain*, which lists the five, as RegulatoryScope.md's sentence does.
 
 - **CommandLine.md's two queue examples filter on `tries`, the field a queue item has.** `hmctl queue list --json |
   jq '.[] | select(.retry_count > 3)'` and `Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery`

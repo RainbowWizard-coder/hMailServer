@@ -380,19 +380,19 @@ under the account `RainbowWizard-coder`, as a second home, and GitLab,
 <https://gitlab.com/hmailserver/hmailserver>, stays canonical. Every release up
 to 6.3.3 is re-published on GitLab with its original files and signatures, byte
 for byte (Roadmap2, *The release chain off a single forge*), but for 6.2.0 and
-6.0.0-B4, re-published as notes only: their files are nowhere but the suspended
-account (Roadmap3, *The files GitLab does not have*); a bundle names the
-GitHub workflow that signed it, and the cosign command in SECURITY.md verifies it
-without contacting GitHub. A release is built, signed and published on GitLab
-first and then copied to GitHub: since 18 October 2026 every release from
-6.0.0-B1 to 6.3.7 is there too with the same files byte for byte, each checked
-against the SHA-256 GitLab's package registry records for it; GitHub's
-immutable-releases setting is on, so a release published there after those
-copies cannot be changed, while the copies, published before the switch, can.
-GitHub writes "." where a file name has "~",
-which renames the per-distribution `.deb` files there, and the notes of 6.3.6
-and 6.3.7, longer than its limit of 125,000 characters, are cut there and
-attached whole as a file.
+6.0.0-B4, re-published as notes only: only the suspended account, or someone's
+old download, has their files (Roadmap3, *The files GitLab does not have*); a
+bundle names the GitHub workflow that signed it, and the cosign command in
+SECURITY.md verifies it without contacting GitHub. A release is built, signed
+and published on GitLab first and then copied to GitHub: since 18 October 2026
+every release from 6.0.0-B1 to 6.3.7 is there too with the same files byte for
+byte, each checked against the SHA-256 GitLab's package registry records for it;
+GitHub's immutable-releases setting is on, so a release published there after
+those copies cannot be changed, while the copies, published before the switch,
+can. GitHub writes "." where a file name has "~", which renames the
+per-distribution `.deb` files there, and the notes of 6.3.6 and 6.3.7, longer
+than its limit of 125,000 characters, are cut there and attached whole as a
+file.
 
 That row is done: **since 6.3.5 every release is built, signed and published by
 its tag's GitLab pipeline**, every file with a Sigstore bundle the pipeline signs,

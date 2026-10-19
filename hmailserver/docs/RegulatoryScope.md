@@ -180,8 +180,8 @@ changed:
   Authenticode, and the installers of the releases before 6.3.1 stay without it:
   the releases up to 6.3.3 are published with their original files, byte for
   byte, on GitLab and in its copy on GitHub - 6.2.0 and 6.0.0-B4 with none,
-  which only the suspended account has ([Roadmap3.md](../../Roadmap3.md), *The
-  files GitLab does not have*).
+  which only the suspended account, or someone's old download, has
+  ([Roadmap3.md](../../Roadmap3.md), *The files GitLab does not have*).
 * A documented security policy and private disclosure route
   ([SECURITY.md](../../SECURITY.md)), plus a machine-readable `security.txt`
   (RFC 9116) served at `/.well-known/security.txt` by the web services listener.
