@@ -109,6 +109,20 @@ with `--check`).
   has been since 6.3.7, the drain looked at once at least and again before the deadline ends it; the interval and
   everything else the stop does are unchanged, and a drain that finishes sooner ends when it did.
 
+- **Fixed: a session whose command outlasted a stop of the servers no longer reports HM5136, "An error occured while
+  parsing data", when the stop's interruption reaches it.** A stop - a reinitialise among them - interrupts the
+  threads of the TCP/IP service and goes on without one that does not leave in time, and the handler of a session
+  that outlasted it, an SPF check whose lookups each answer slowly for one, met that interruption at its next
+  interruption point once it went on, a wait for a pooled database connection among them. `TCPConnection`'s read
+  completion took it for a command it could not parse: it logged HM5136 at Medium severity, which also runs an
+  installed OnError script, and closed the session. It now closes the session as before, with a line in the debug
+  log, and passes the interruption on to the worker, which ends there, as the server's other handlers pass it on.
+  Seen on 19 October 2026 on the project's Windows test bench: `AntiSpam.SpfEvaluation`'s
+  `APolicyEndingInTildeAllSoftFails` failed in its setup on the HM5136 that the session of the test before it,
+  `AnSpfCheckThatOutlastsAReinitialiseLeavesTheServersRunning`, logged as its 48-second check ended, while the same
+  fixture passed eight times in a row on its own: whether the interruption is met depends on what else holds the
+  database at that moment.
+
 ### Build and tests
 
 - **The administrator-update testers say why a fixture could not be used, and on which computer.**

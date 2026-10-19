@@ -1198,6 +1198,31 @@ namespace HM
                operation_queue_.Pop(IOOperation::BCTRead);
                throw;
             }
+            catch (const boost::thread_interrupted&)
+            {
+               // A stop of the work queue (WorkQueue::Stop's JoinWorkers_; a reinitialise
+               // stops the TCP/IP service's) interrupts its threads and goes on without one
+               // that does not leave in time, and a handler that outlasted the stop - an SPF
+               // check whose lookups each answer slowly, say - meets the interruption at its
+               // next interruption point once it goes on: a wait for a pooled database
+               // connection, for one. That is the stop reaching this session's thread, not
+               // data that could not be parsed, so it is not reported as HM5136, which an
+               // operator reads as a fault: the read is retired and the session closed as
+               // below, and the interruption passed on, as the server's other handlers pass
+               // it on (ErrorManager::ReportError, AsynchronousTask):
+               // ExceptionHandler::RunWithStandardExceptions, which runs
+               // IOCPQueueWorkerTask::DoWorkInner, takes it as the shutdown it is, and the
+               // worker then leaves, since WorkQueue::Stop has stopped its queue's
+               // io_context (WorkQueue::RunWorker_'s run() returns). Further interruption is
+               // held off until that is done, as the worker's own catch holds it off: a
+               // stop still waiting for its threads interrupts them again on each pass.
+               boost::this_thread::disable_interruption disabled;
+               LOG_DEBUG(Formatter::Format("Session {0}: a stop of the servers interrupted the handling of the "
+                                           "data it had received; the session is closed.", session_id_));
+               operation_queue_.Pop(IOOperation::BCTRead);
+               EnqueueDisconnect();
+               throw;
+            }
             catch (...)
             {
                String message;
@@ -1267,6 +1292,16 @@ namespace HM
                // Retire the read on the way out, as the paths below do; the queue must
                // not remember a read that will never complete (upstream #580).
                operation_queue_.Pop(IOOperation::BCTRead);
+               throw;
+            }
+            catch (const boost::thread_interrupted&)
+            {
+               // A stop's interruption, not a parse error: as in the binary branch above.
+               boost::this_thread::disable_interruption disabled;
+               LOG_DEBUG(Formatter::Format("Session {0}: a stop of the servers interrupted the handling of the "
+                                           "data it had received; the session is closed.", session_id_));
+               operation_queue_.Pop(IOOperation::BCTRead);
+               EnqueueDisconnect();
                throw;
             }
             catch (...)
