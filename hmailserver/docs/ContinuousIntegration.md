@@ -3965,7 +3965,19 @@ Each merge request carries its own note of these steps.
   and commit what they write; without `--force-evaluate` a restore that finds its
   `project.assets.json` current writes nothing (tried on 29 September 2026 with
   Renovate's Control Panel lock file: up to date, left as Renovate wrote it). Otherwise the Windows gate's build rewrites them on bench150 and
-  leaves the bench's checkout modified.
+  leaves the bench's checkout modified. Renovate's restore does not write the
+  ARM64 publish's own lock files, `packages.arm64.lock.json`, either: where the
+  merge request moves a package of the Control Panel or DBSetup, the two of the
+  seven projects `build/build-tools.ps1 -Platform ARM64` restores that have
+  packages of their own, restore each of them as that publish does, from the
+  repository's root,
+  `dotnet restore hmailserver/source/Tools/ControlPanel/ControlPanel.csproj -p:RuntimeIdentifier=win-arm64 -p:PlatformTarget=ARM64 -p:NuGetLockFilePath=packages.arm64.lock.json --force-evaluate`
+  and the same for `DBSetup/DBSetup.csproj`, and commit those too; otherwise
+  `windows-packages-arm64`'s publish rewrites them and the job fails on a tracked
+  file its build changed. The runtime goes as a property, not as `-r`, which
+  keeps the project's own `win-x64` beside it and writes a section the publish
+  does not (tried on 19 October 2026). Renovate's merge request of that day moved
+  both projects' packages and left their ARM64 lock files at the old versions.
 - **Python: remake the locked files.** Renovate changes a version in an `.in`
   file only. Run the `uv pip compile` command the matching `.txt` file's header
   gives, in the image its job runs in (the `.in` file says which), which resolves

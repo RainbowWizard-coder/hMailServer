@@ -134,6 +134,31 @@ with `--check`).
   copy on GitHub, where the merge requests, their review, the pipelines and GitLab's protection rules are not seen
   (ContinuousIntegration.md, "OpenSSF Scorecard").
 
+- **The NuGet updates of Renovate's merge request of 19 October 2026: the .NET 10.0.13 libraries, QRCoder 1.8.1 and
+  the test packages, with lock files restored on Windows.** The merge request's project-file edits are taken, without
+  the lock files it wrote. The Control Panel's `System.Management` and `System.ServiceProcess.ServiceController`, and
+  DBSetup's `System.ServiceProcess.ServiceController`, move from 10.0.12 to 10.0.13, the packages of .NET 10.0.13,
+  Microsoft's servicing release of 13 October 2026; QRCoder, which draws the Control Panel's two-factor enrolment
+  codes, moves from 1.8.0 to 1.8.1, whose release notes list clean-ups and speed-ups of its generator and renderers
+  only. nuget.org lists no advisory against any version left behind. The test projects take Microsoft.NET.Test.Sdk
+  18.11.0, `xunit.v3.mtp-off` 4.0.2 (fixes to xUnit.net's new parallel scheduling, which could run a test marked
+  non-parallel in parallel), `xunit.runner.visualstudio` 4.0.1, `coverlet.collector` 10.1.0 and, in
+  LinuxRegressionTests, NUnit3TestAdapter 6.3.1, a fix for a regression of 6.3.0 under Microsoft.Testing.Platform in
+  Visual Studio. Renovate restored the lock files on Linux, which for these `net10.0-windows` projects lists
+  `System.CodeDom` and `System.Diagnostics.EventLog` under the Control Panel's, DBSetup's and DBSetup.Tests' packages,
+  packages the Windows Desktop runtime carries; restored on Windows with `dotnet restore --force-evaluate` of the two
+  solutions and of LinuxRegressionTests, as `master`'s are, each lock file moves the updated packages and their own
+  dependencies and nothing else, and ControlPanel.Tests', ImportTool.Tests' and LinuxRegressionTests' come out as
+  Renovate wrote them. Renovate's restore does not write the ARM64 publish's own lock files, so the Control Panel's
+  and DBSetup's `packages.arm64.lock.json` still named 10.0.12, which the publish of
+  `build/build-tools.ps1 -Platform ARM64` would have rewritten and `windows-packages-arm64` refuses as a tracked file
+  its build changed; they are restored with that publish's runtime, platform and lock-file properties (the Control
+  Panel's moving its three packages and DBSetup's its one, and nothing else), and a restore of every changed lock file
+  in locked mode passes. The NuGet merge request's note in `renovate.json` and ContinuousIntegration.md's "What a
+  merge request still needs from a person" now give that restore too, with the runtime as a property:
+  `dotnet restore -r win-arm64` keeps the project's own `win-x64` beside it and writes a section the publish does not.
+  ControlPanel.Tests passes 4,572 of 4,572 tests, DBSetup.Tests 45 of 45 and ImportTool.Tests 15 of 15.
+
 ### Documentation
 
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
