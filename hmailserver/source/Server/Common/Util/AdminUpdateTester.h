@@ -51,7 +51,9 @@ namespace HM
    // HMAILSERVER_INSTALLER_FIXTURES names, or C:\HMTest\Installers, filled by
    // build/fetch-installer-fixtures.ps1, which fetches each by its SHA-256. A
    // missing one FAILS this tester, naming the script: a check whose test never
-   // runs looks exactly like one that does not work.
+   // runs looks exactly like one that does not work. The sentence names the
+   // computer the tester ran on and Windows' error, and says "missing" only
+   // where Windows says there is no such file or path.
    //
    // Win32 and the C++ library only, so that the same file runs in the internal
    // suite (Utilities.RunTestSuite, as SYSTEM) and alone; a failure throws
@@ -72,6 +74,13 @@ namespace HM
 
       // The fixtures folder the tester reads.
       static std::wstring FixturesFolder();
+
+      // Empty when the fixture at path is there; otherwise the sentence a
+      // failure gives - missing, with the script to run, where Windows answers
+      // that the file or the path is not found, and could not be read where it
+      // answers anything else - with the computer's name and Windows' error, its
+      // number and its text. AdminUpdateStageTester asks it too.
+      static std::wstring FixtureProblem(const std::wstring &path);
 
    private:
       void TestPatterns_();

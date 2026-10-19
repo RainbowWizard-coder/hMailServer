@@ -104,6 +104,17 @@ with `--check`).
 
 ### Build and tests
 
+- **The administrator-update testers say why a fixture could not be used, and on which computer.**
+  `AdminUpdateTester` and `AdminUpdateStageTester`, which the internal suite runs on Windows against the real signed
+  installers that `build/fetch-installer-fixtures.ps1` fetches, said that a fixture was missing whenever
+  `GetFileAttributesW` - or, for the .NET runtime's installer, `FindFirstFileW` - failed, whatever Windows answered.
+  They now take Windows' error at once and give its number and its text, say "missing", with the script to run, only
+  where the answer is that the file or the path is not found, and "could not be read" for any other (or, of the
+  folder searched for the .NET runtime's installer, "could not be searched"), and name the computer the test ran on:
+  on 17 October 2026 the sentence, true on the CI bench it came from, whose fixtures had never been fetched, was
+  read for another machine, which had them, and the cause took hours to find. A missing or unreadable fixture fails
+  the tester, as a missing one did.
+
 - **`.gitlab/security-exceptions.yml` no longer accepts the two semgrep-sast findings whose lines 6.3.7 rewrote.**
   The entries for the help pane's ShellExecute of the wiki page in `HelpPane.OpenWiki_` (`d47e3a059aee686ad374`) and
   for the elevated restart's argument line in `ServiceRestart.TryRestart` (`1a5b94ee86ee3748e0e8`) named lines that

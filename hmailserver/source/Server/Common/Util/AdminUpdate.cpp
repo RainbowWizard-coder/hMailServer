@@ -1741,8 +1741,11 @@ namespace HM
       const std::wstring fixtures = AdminUpdateTester::FixturesFolder();
       const std::wstring installerPath = Join_(fixtures, L"hMailServer-6.3.5-x64.exe");
       const std::wstring bundlePath = installerPath + L".cosign.bundle";
-      expect(GetFileAttributesW(installerPath.c_str()) != INVALID_FILE_ATTRIBUTES && GetFileAttributesW(bundlePath.c_str()) != INVALID_FILE_ATTRIBUTES,
-             "the fixtures hMailServer-6.3.5-x64.exe and its .cosign.bundle are missing from " + Utf8_(fixtures) + "; run build/fetch-installer-fixtures.ps1");
+      for (const std::wstring &fixture : { installerPath, bundlePath })
+      {
+         const std::wstring problem = AdminUpdateTester::FixtureProblem(fixture);
+         expect(problem.empty(), Utf8_(problem));
+      }
       AnsiString realBundle;
       expect(SigstoreVerifier::ReadBundle(String(bundlePath.c_str()), realBundle), "the 6.3.5 bundle could not be read");
       std::vector<unsigned char> realDigest;

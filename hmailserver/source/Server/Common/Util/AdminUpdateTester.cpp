@@ -47,6 +47,36 @@ namespace HM
          return folder.empty() || folder.back() == L'\\' ? folder + name : folder + L"\\" + name;
       }
 
+      // "Windows error 5: Access is denied." - the number and the system's text
+      // for it, or the number alone where the system has none.
+      std::wstring WindowsError_(DWORD error)
+      {
+         LPWSTR buffer = nullptr;
+         const DWORD length = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                             nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, nullptr);
+         std::wstring text = length > 0 && buffer != nullptr ? std::wstring(buffer, length) : std::wstring();
+         if (buffer != nullptr)
+            LocalFree(buffer);
+         while (!text.empty() && (text.back() == L'\r' || text.back() == L'\n' || text.back() == L' '))
+            text.pop_back();
+         return L"Windows error " + std::to_wstring(error) + (text.empty() ? std::wstring(L", which the system has no text for") : L": " + text);
+      }
+
+      // The computer the tester runs on, which a failure names: the fixtures are
+      // per machine, and a bench's sentence read for another sends the reader to
+      // the wrong one.
+      std::wstring ComputerName_()
+      {
+         wchar_t name[MAX_COMPUTERNAME_LENGTH + 1];
+         DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
+         return GetComputerNameW(name, &size) ? std::wstring(name, size) : std::wstring(L"this computer");
+      }
+
+      bool NotFound_(DWORD error)
+      {
+         return error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND;
+      }
+
       bool IsElevated_()
       {
          BYTE buffer[SECURITY_MAX_SID_SIZE];
@@ -326,6 +356,20 @@ namespace HM
       if (length > 0 && length < MAX_PATH)
          return std::wstring(buffer, length);
       return L"C:\\HMTest\\Installers";
+   }
+
+   std::wstring
+   AdminUpdateTester::FixtureProblem(const std::wstring &path)
+   {
+      if (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES)
+         return std::wstring();
+
+      // Taken at once: whatever is called next may set it again.
+      const DWORD error = GetLastError();
+      if (NotFound_(error))
+         return L"the fixture " + path + L" is missing on " + ComputerName_() + L" (" + WindowsError_(error) +
+                L"); run build/fetch-installer-fixtures.ps1 there, which fetches the real installers by their SHA-256 (or set HMAILSERVER_INSTALLER_FIXTURES)";
+      return L"the fixture " + path + L" on " + ComputerName_() + L" could not be read (" + WindowsError_(error) + L")";
    }
 
    void
@@ -928,8 +972,8 @@ namespace HM
       auto fixture = [&](const std::wstring &name) -> std::wstring
       {
          const std::wstring path = Join_(fixtures, name);
-         Expect_(GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES,
-                 L"the fixture " + path + L" is missing; run build/fetch-installer-fixtures.ps1, which fetches the real installers by their SHA-256 (or set HMAILSERVER_INSTALLER_FIXTURES)");
+         const std::wstring problem = FixtureProblem(path);
+         Expect_(problem.empty(), problem);
          return path;
       };
 
@@ -1009,12 +1053,18 @@ namespace HM
          std::wstring runtime;
          WIN32_FIND_DATAW data;
          HANDLE search = FindFirstFileW(Join_(fixtures, L"windowsdesktop-runtime-*-win-x64.exe").c_str(), &data);
+         // Taken at once, as FixtureProblem takes GetFileAttributesW's.
+         const DWORD searchError = search == INVALID_HANDLE_VALUE ? GetLastError() : ERROR_SUCCESS;
          if (search != INVALID_HANDLE_VALUE)
          {
             runtime = Join_(fixtures, data.cFileName);
             FindClose(search);
          }
-         Expect_(!runtime.empty(), L"the fixture windowsdesktop-runtime-*-win-x64.exe is missing from " + fixtures + L"; run build/fetch-installer-fixtures.ps1");
+         if (runtime.empty() && NotFound_(searchError))
+            Fail_(L"the fixture windowsdesktop-runtime-*-win-x64.exe is missing from " + fixtures + L" on " + ComputerName_() + L" (" + WindowsError_(searchError) +
+                  L"); run build/fetch-installer-fixtures.ps1 there");
+         Expect_(!runtime.empty(), L"the fixtures folder " + fixtures + L" on " + ComputerName_() + L" could not be searched for windowsdesktop-runtime-*-win-x64.exe (" +
+                                   WindowsError_(searchError) + L")");
          const Result result = verify(runtime, ProjectPin(), false, 120000);
          Expect_(result.status == ERROR_SUCCESS, L"the .NET runtime installer is not validly signed, so it proves nothing: " + result.why);
          Expect_(result.outcome == WrongPublisher, L"Microsoft's .NET runtime installer was not refused as another publisher: " + result.why);
