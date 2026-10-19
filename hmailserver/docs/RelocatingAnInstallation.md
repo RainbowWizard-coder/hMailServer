@@ -94,7 +94,8 @@ whether yours does, and converts them before anything is copied.
      folder the rows named, delete from the data folder you were using its copy,
      at the same place, of each file outside the layout there, as step 8 does and
      for the same reason; and a copy that move left of a message deleted since is
-     imported again by either run, as any file no row names is.
+     imported again by the run in the folder that holds it, as any file no row
+     names is.
    - Run the diagnostic again. It should report that relative message paths are
      stored for all messages before you go on.
 
