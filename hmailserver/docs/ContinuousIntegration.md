@@ -1916,8 +1916,14 @@ at the same time as `windows-gate` runs the rest on bench150. The host has what
 the list above asks of bench150 for the gate: the bench itself
 ([RegressionEnvironment.md](RegressionEnvironment.md)), PowerShell 7 and Git for
 the machine, the `safe.directory`, access to `gitlab.com` and `api.nuget.org`,
-and nothing from GitHub in its hosts file. It has neither Inno Setup, nor the
-Artifact Signing Client Tools, nor Visual Studio's ARM64 tools, so
+and nothing from GitHub in its hosts file. Since 17 October 2026 it has the
+release installers too, which `build/fetch-installer-fixtures.ps1` puts in
+`C:\HMTest\Installers` and which its set-up of 13 October had left out: without
+them `Infrastructure.MainOperations.TestInternals`, the one test in its half that
+runs the internal suite, fails in `AdminUpdateTester`, and `windows-gate-s1vm`
+failed so twice that day, until the script was run there
+(RegressionEnvironment.md lists them for every bench). It has neither Inno
+Setup, nor the Artifact Signing Client Tools, nor Visual Studio's ARM64 tools, so
 `windows-installer`, `release-authenticode` and the Windows package jobs stay on
 bench150; `windows-dotnet` would run here as well (the .NET SDK 10.0.401, and the
 Build Tools' MIDL and `TlbImp.exe`, are there), but it names `bench150`.

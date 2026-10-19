@@ -195,6 +195,25 @@ the list of what any new bench needs beyond this document:
   `libraries\msado28`, `libraries\mariadb-connector-c-3.4.11`,
   `installation\Extras\7za.exe` and the two `Languages\*.ini` files of the Release
   output. SQL Server Compact 4.0 from `installation\SQLCE` (also untracked).
+* The release installers the internal suite checks an administrator's install of
+  an update against - the x64 installers of 6.3.0, 6.3.1, 6.3.3, 6.3.4 and
+  6.3.5, 6.3.5's Sigstore bundle and Microsoft's .NET Desktop Runtime installer,
+  about 475 MB, not in git - in `C:\HMTest\Installers`. Run
+  `build/fetch-installer-fixtures.ps1` from the checkout once, and again when
+  its list changes: it fetches each from the project's GitLab releases (the
+  runtime from Microsoft's download site) and keeps each installer only when its
+  hash is the released file's; the bundle has no hash there, and is checked by
+  the Sigstore verification of 6.3.5's installer that it is for.
+  `AdminUpdateTester` and `AdminUpdateStageTester`, which the internal suite runs
+  last, inside the service, look there, or in the folder a machine-wide
+  `HMAILSERVER_INSTALLER_FIXTURES` names (a service may not see a new one before
+  Windows restarts). Without them they fail, naming the script - a check whose
+  test never runs would look like one that works - and with them the two tests
+  that run the internal suite, `Infrastructure.MainOperations.TestInternals` and
+  `API.Events.AnOnErrorScriptRunsOutsideTheDatabaseTransactionItIsReportedFrom`:
+  S1-WINBENCH, set up on 13 October 2026 without them, failed
+  `windows-gate-s1vm` twice on 17 October 2026 in `TestInternals`, the one of
+  the two in its half of the suite, until the script was run there.
 * ClamAV at `C:\clamav`, run as a scheduled task at start-up rather than from a
   shell - a process started from an SSH session dies with the session - and
   SpamAssassin as the `SpamAssassinJAM` service (the JAM build under Strawberry

@@ -1476,7 +1476,7 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   others' rights and a junction refused; the copy through a junction, a link and a
   stream refused; the architecture marker; the pin alone, a subject with an attribute
   more or less, another chain, no code-signing use; and the real signed installers of
-  6.3.1 to 6.3.5 (fetched onto the bench by `build/fetch-installer-fixtures.ps1`,
+  6.3.1 and 6.3.3 to 6.3.5 (put on the bench by `build/fetch-installer-fixtures.ps1`,
   checked by their SHA-256) passing, with 6.3.0 (unsigned), a byte changed, a file
   cut short or grown, the .NET runtime's installer (another publisher, trusted by
   Windows) and a catalogue-signed system file refused, the site-signer path held to

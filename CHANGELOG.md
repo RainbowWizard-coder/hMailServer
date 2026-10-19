@@ -279,6 +279,21 @@ with `--check`).
   `PostgreSQLSslRootCert`, and its *Seeing where the paths are* says that the Diagnostics page's *Installation paths*
   lists every path-shaped setting the server holds but that one, where it said every one.
 
+- **RegressionEnvironment.md's list of what a new Windows bench needs names the release installers that
+  `build/fetch-installer-fixtures.ps1` fetches into `C:\HMTest\Installers`.** `AdminUpdateTester` and
+  `AdminUpdateStageTester`, which the internal suite runs last inside the service, hold an administrator's install of
+  an update to the real installers of 6.3.0, 6.3.1 and 6.3.3 to 6.3.5, Microsoft's .NET Desktop Runtime installer and
+  6.3.5's Sigstore bundle, and fail when one is missing, and with them the two tests that run the internal suite,
+  `Infrastructure.MainOperations.TestInternals` and
+  `API.Events.AnOnErrorScriptRunsOutsideTheDatabaseTransactionItIsReportedFrom`: S1-WINBENCH, set up on 13 October
+  2026 from that list, which did not name them, failed `windows-gate-s1vm` so twice on 17 October 2026, in the first
+  of the two, the one its half of the suite holds, until the script was run there. The list now says what they are,
+  where they go, how to fetch them, that the script keeps each installer only when its hash is the released file's,
+  that the bundle, which it holds to no hash, is checked by the Sigstore verification of 6.3.5's installer it is for,
+  and what fails without them; ContinuousIntegration.md's S1-WINBENCH section says the bench has them since that day;
+  and ServiceAccount.md's account of the live update's internal tests names the signed installers that must pass the
+  publisher pin there, 6.3.1 and 6.3.3 to 6.3.5, where it said 6.3.1 to 6.3.5: 6.3.2 is not one of the fixtures.
+
 - **SECURITY.md counts the accepted findings again on 18 October 2026, and RELEASE.md names the app registration a
   release's federated credential goes on by the CI/CD variable `AZURE_CLIENT_ID`.** SECURITY.md's table of what must
   stay valid gives, on 18 October 2026, 491 accepted findings, 157 of them expiring on 25 September 2027 and 3 on 12
