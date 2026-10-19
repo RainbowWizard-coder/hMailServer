@@ -233,8 +233,9 @@ what they wrote was undone, and both have been disabled there since
 that GitHub Actions runs there, OpenSSF Scorecard's, signs and publishes nothing
 of a release: a release there is a copy of the one on GitLab, with the same files
 byte for byte, and a release is built, signed and published on GitLab first and
-then copied there. The releases up to 6.3.3 are on GitLab with their original
-signatures; 6.3.4 was built and Authenticode-signed by hand and carries no
+then copied there. The releases up to 6.3.3 whose files GitLab has are on
+GitLab with their original signatures (6.2.0 and 6.0.0-B4 are notes-only);
+6.3.4 was built and Authenticode-signed by hand and carries no
 Sigstore bundle or provenance; and the GitLab release jobs that replace the workflows made 6.3.5 on 29
 September 2026, with its SBOMs, its Sigstore bundles and its Authenticode
 signature, the Azure identity reached through a federated credential for the tag
