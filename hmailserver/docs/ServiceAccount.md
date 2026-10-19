@@ -614,9 +614,13 @@ it is given the new one with `/DIR`; and setup run into a folder without a setti
 file sets up a new server there - an empty one, without this installation's mail,
 accounts or settings - so the settings file and the data go into the new folder
 first. Bring nothing else from the old folder, and read what you bring, as you would
-read a program. From the elevated prompt, with the new folder in place of
-`C:\Program Files\hMailServer` (the Control Panel alone brings nothing: step 3 is all
-of it):
+read a program. (Where nobody but the administrators could have changed the old
+folder's programs, [RelocatingAnInstallation.md](RelocatingAnInstallation.md) moves
+the whole installation instead, its programs copied with it: its step 6 runs
+`/ProtectFolders` on the copy, which a copy by hand does not get otherwise, and its
+step 11 runs setup at the new folder as step 3 below does.) From the elevated
+prompt, with the new folder in place of `C:\Program Files\hMailServer` (the Control
+Panel alone brings nothing: step 3 is all of it):
 
 1. Stop the service. Make the new folder's `Bin`, `Data`, `Database` and `Events` -
    the last three private to SYSTEM and the Administrators before anything is in

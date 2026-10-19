@@ -324,6 +324,29 @@ with `--check`).
 
 ### Documentation
 
+- **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
+  certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
+  32-bit uninstall entry taken away first.** Step 3 had the administrator "grant the service account access" without
+  saying how, and said nothing of what a copy loses: it takes the permissions of the folder it lands in, which under
+  Program Files gives every user Read on the new `Data`, `Logs`, `Temp`, `Database`, `Events` and `hMailServer.INI`,
+  and at a client's drive root Authenticated Users Modify on the programs too, and the old grant's entries for
+  `NT SERVICE\hMailServer` are not copied. Step 3 now makes the new root with the permissions setup gives a program
+  folder before the copy, and step 6 runs `/ProtectFolders` from the new `Bin` after `/Register` - setup runs it at
+  every installation and upgrade, and a copy by hand gets it from nothing else - says what it makes private and
+  hardens, and has a service that runs as anything but LocalSystem granted its folders again with
+  `/GrantServiceAccess`, run again after step 9. Step 9 said the certificate grid was read-only but for the
+  passphrase, so that each certificate had to be deleted and added again: the TLS certificates page's Edit…
+  changes its name and files and keeps its id, so every port keeps it, while a deleted certificate leaves each port
+  that presented it with none, and such a port does not start (HM5113). Step 11 said to re-run the installer at the
+  new root: setup run over an installation installs into the folder it finds, so it takes `/DIR`, and an
+  installation that began in Program Files (x86) has an uninstall entry in the 32-bit view whose folder setup takes
+  whatever `/DIR` says - the steps of ServiceAccount.md's *Reinstalling into a new folder*, which the two pages now
+  both name; it also says never to run the old uninstaller, which unregisters the service the new tree holds, and
+  step 12 keeps the old tree private until it is deleted by hand. The introduction sends an installation whose
+  programs others may have changed to that reinstall instead; step 7 names the Diagnostics page's Installation
+  paths, where it named a Directories page the Control Panel does not have; and step 9 finds the TCP/IP ports page
+  under Connections & protocols, where it had it under Advanced.
+
 - **ServiceAccount.md's reinstall into a new folder moves the settings file's other paths out of the old installation,
   deletes the lines the site did not set in `[Directories]`, the live update's trust, `[SettingsOverride]`, `[LDAP]`
   and the sending limits, and keeps the old folder private until it is deleted.** Its steps changed the
