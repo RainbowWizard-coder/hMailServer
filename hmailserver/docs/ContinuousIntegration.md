@@ -5525,11 +5525,14 @@ run with it.
 
 **CodeQL on the copy.** `.github/workflows/codeql.yml` runs GitHub's CodeQL over
 the copy as GitHub's default setup ran it from 18 October 2026, read from the
-default setup's analyses of 19 October 2026: C and C++, C#, JavaScript and
-TypeScript, and Python, each with no build (`build-mode: none`), the default
-query suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and
-the categories `/language:<language>`, so that the default setup's alerts carry
-over, in four jobs named `Analyze (<language>)`, as the default setup's were. It
+default setup's analyses of 19 and 20 October 2026: C and C++, C#, JavaScript
+and TypeScript, Python, and GitHub Actions workflows - which GitHub added to the
+copy's default setup on 20 October 2026, as it does to a default setup once it
+detects workflow files on the default branch (GitHub's changelog of 22 April
+2025) - each with no build (`build-mode: none`), the default query suite, CodeQL
+2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and the categories
+`/language:<language>`, so that the default setup's alerts carry over, in five
+jobs named `Analyze (<language>)`, as the default setup's were. It
 runs on each push to `master`, on each pull request to `master`, weekly
 (Wednesdays at 03:41 UTC) and by hand. It takes the default setup's place because
 Scorecard's SAST check counts CodeQL only from a workflow under
