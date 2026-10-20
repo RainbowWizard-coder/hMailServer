@@ -5531,8 +5531,10 @@ copy's default setup on 20 October 2026, as it does to a default setup once it
 detects workflow files on the default branch (GitHub's changelog of 22 April
 2025) - each with no build (`build-mode: none`), the default query suite, CodeQL
 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and the categories
-`/language:<language>`, so that the default setup's alerts carry over, in five
-jobs named `Analyze (<language>)`, as the default setup's were. It
+`/language:<language>`, the default setup's own, in five jobs named
+`Analyze (<language>)`, as the default setup's were. GitHub matches an alert
+across configurations by the query that found it and its location, so the
+alerts the default setup raised carry over to the workflow's analyses. It
 runs on each push to `master`, on each pull request to `master`, weekly
 (Wednesdays at 03:41 UTC) and by hand. It takes the default setup's place because
 Scorecard's SAST check counts CodeQL only from a workflow under

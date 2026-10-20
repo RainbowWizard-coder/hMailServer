@@ -285,7 +285,8 @@ with `--check`).
   Python, and GitHub Actions workflows (which GitHub added to the copy's default setup on 20 October 2026, as it does
   to a default setup once it detects workflow files on the default branch), each with no build, the default query
   suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and the categories `/language:<language>`,
-  so that the default setup's alerts carry over; on each push to `master`, on a pull request to `master`, weekly
+  the default setup's own (GitHub matches an alert across configurations by the query that found it and its location,
+  so the default setup's alerts carry over); on each push to `master`, on a pull request to `master`, weekly
   (Wednesdays at 03:41 UTC) and by hand. Its token reads the repository, and its job may write only the results to
   code scanning; `actions/checkout` keeps no credential, and `actions/checkout` v7.0.1 and
   `github/codeql-action/init` and `/analyze` v4.39.0 are each pinned by the commit of its release, checked against

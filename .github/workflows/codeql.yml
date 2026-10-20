@@ -9,22 +9,24 @@
 # setup once it detects workflow files on the default branch), each with no build
 # (build-mode none), the default query suite, the CodeQL bundle that
 # github/codeql-action's release below brings, and the categories
-# /language:<language>, so that the alerts the default setup raised carry over to
-# this workflow's analyses. It runs on each push to master, on a pull request to
-# master, weekly and by hand. It replaces the default setup because OpenSSF
-# Scorecard's SAST check counts CodeQL from a workflow under .github/workflows
-# that runs github/codeql-action/analyze, or from the check runs of merged pull
-# requests, and not from the default setup's analyses of master, which no workflow
-# file records: it sees the default setup only through those check runs, and the
-# copy has no merged pull request. GitHub refuses a workflow's CodeQL analysis
-# while the default setup is on, so the default setup is switched off when this
-# workflow reaches master. It builds, tests, signs and publishes nothing - it
-# uploads its results to the repository's code scanning and nothing else, keeps no
-# artifact, and nothing it makes reaches a release. GitLab's pipelines remain
-# where the project is built, tested, signed and published, and where its own
-# static analysis runs (hmailserver/docs/ContinuousIntegration.md). Every action
-# below is pinned by a full commit, with its version beside it, as the
-# repository's Actions settings require.
+# /language:<language>, the default setup's own. GitHub matches an alert across
+# configurations by the query that found it and its location, so the alerts the
+# default setup raised carry over to this workflow's analyses. It runs on each
+# push to master, on a pull request to master, weekly and by hand. It replaces
+# the default setup because OpenSSF Scorecard's SAST check counts CodeQL from a
+# workflow under .github/workflows that runs github/codeql-action/analyze, or
+# from the check runs of merged pull requests, and not from the default setup's
+# analyses of master, which no workflow file records: it sees the default setup
+# only through those check runs, and the copy has no merged pull request. GitHub
+# refuses a workflow's CodeQL analysis while the default setup is on, so the
+# default setup is switched off when this workflow reaches master. It builds,
+# tests, signs and publishes nothing - it uploads its results to the
+# repository's code scanning and nothing else, keeps no artifact, and nothing it
+# makes reaches a release. GitLab's pipelines remain where the project is built,
+# tested, signed and published, and where its own static analysis runs
+# (hmailserver/docs/ContinuousIntegration.md). Every action below is pinned by a
+# full commit, with its version beside it, as the repository's Actions settings
+# require.
 
 name: CodeQL
 
