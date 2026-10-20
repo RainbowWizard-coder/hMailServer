@@ -46,7 +46,9 @@ publications alone; and `.github/workflows/codeql.yml`, which analyses its code
 with CodeQL on each push to `master`, on each pull request and weekly, and whose
 one write permission is the upload of its results to code scanning. It takes the
 place of GitHub's CodeQL default setup, which did the same from 18 October 2026
-with no workflow file, and which Scorecard's SAST check therefore did not count
+with no workflow file, and which Scorecard's SAST check did not count, since it
+sees the default setup only through the check runs of merged pull requests, of
+which the copy has none
 ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)).
 Neither builds, signs or publishes anything of a release. GitHub Actions is
 enabled there for those two and for the jobs GitHub runs itself to build the

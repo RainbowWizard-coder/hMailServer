@@ -5534,20 +5534,27 @@ runs on each push to `master`, on each pull request to `master`, weekly
 (Wednesdays at 03:41 UTC) and by hand. It takes the default setup's place because
 Scorecard's SAST check counts CodeQL only from a workflow under
 `.github/workflows` with a step that uses `github/codeql-action/analyze`, or from
-the check runs of merged pull requests, of which the copy has none, and never from
-the default setup, which has no workflow file; GitHub takes no workflow's analysis
-while the default setup is on, so the default setup is switched off when the
-workflow reaches `master`. Its token reads the repository, and its job may write
-only its results to code scanning (`security-events: write`, beside
-`actions: read` and `contents: read`); `actions/checkout` keeps no credential; and
-`actions/checkout` v7.0.1 and `github/codeql-action/init` and `/analyze` v4.39.0
-are pinned by commit, as `scorecard.yml`'s actions are. It builds, signs and
-publishes nothing and keeps no artifact. The project's own static analysis is
-`static-analysis` and `semgrep` ([Security scanning](#security-scanning)), and
-GitLab's pipelines remain where the project is built, tested, signed and
-published. On a pull request, GitHub's code scanning reports CodeQL's results as
-a check named `CodeQL`, in every configuration of code scanning, which is the
-check `master`'s ruleset there requires ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)).
+the check runs of merged pull requests, and not from the default setup's analyses
+of `master`, which no workflow file records: it sees the default setup only
+through those check runs, and the copy has no merged pull request. GitHub takes no
+workflow's CodeQL analysis while the default setup is on, so the default setup is
+switched off when the workflow reaches `master`. Its token reads the repository,
+and its job may write only its results to code scanning (`security-events: write`,
+beside `actions: read` and `contents: read`); `actions/checkout` keeps no
+credential; and `actions/checkout` v7.0.1 and `github/codeql-action/init` and
+`/analyze` v4.39.0 are pinned by commit, as `scorecard.yml`'s actions are. It
+builds, signs and publishes nothing and keeps no artifact. The project's own
+static analysis is `static-analysis` and `semgrep`
+([Security scanning](#security-scanning)), and GitLab's pipelines remain where the
+project is built, tested, signed and published. GitHub's documentation names the
+check that holds a pull request's code-scanning results, in every configuration of
+code scanning, *Code scanning results*, with each tool's results shown separately;
+the tool's own check run is named for the tool, `CodeQL`, which is the check
+`master`'s ruleset there requires
+([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)): GitHub's API showed a
+check run of that name on 20 October 2026 on the pull requests of two public
+repositories, one with a CodeQL workflow and one under the default setup. The copy
+has had no pull request yet, so the check has not been seen there.
 
 **What the copy scores.** scorecard.dev's reading of 19 October 2026 (05:52 UTC,
 Scorecard v5.6.0, at `f14412d39`; read from the OpenSSF API on 20 October 2026)
@@ -5557,7 +5564,7 @@ gives the copy 5.7:
 |---|---|---|
 | Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing, License, Pinned-Dependencies, Security-Policy, Token-Permissions | 10 | No binary tracked; no workflow pattern Scorecard counts as dangerous; Renovate (`renovate.json`); the libFuzzer harnesses under `fuzz/`; `LICENSE`; every action pinned by commit and every image by digest; `SECURITY.md`; every workflow's token read-only but for its job's own writes. They stay 10 (*Measured on the tree*, below) |
 | Branch-Protection | 3 | `master`'s rules then forbade its deletion and a force push, and required no pull request, review or status check. Since 20 October 2026 a ruleset requires a pull request with two approvals, the code owner's among them, and CodeQL's check on an up-to-date branch ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)): Scorecard 5.6.0, run that day with the owner's token, gave 9. The one warning left, that the rules do not apply to administrators, stays: Scorecard reads a ruleset that any role may bypass as one that administrators are not held to, and the push mirror writes `master` as the repository's administrator, past those rules, as it must |
-| SAST | 0 | "No SAST tool detected": the default setup analysed every push, but has no workflow file. 10 once `codeql.yml` is on `master` |
+| SAST | 0 | "No SAST tool detected": the default setup analysed every push, but has no workflow file, and the copy has no merged pull request through whose checks Scorecard could see it. 10 once `codeql.yml` is on `master` |
 | Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). 10 once both are on `master` |
 | Signed-Releases | 4 | Below |
 | Code-Review, Maintained, CII-Best-Practices, Contributors | 0 | Below |

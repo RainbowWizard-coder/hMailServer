@@ -278,19 +278,20 @@ with `--check`).
 - **The copy on GitHub runs CodeQL from a workflow of the project's, `.github/workflows/codeql.yml`, in place of
   GitHub's default setup, so that OpenSSF Scorecard's SAST check counts it.** The check counts CodeQL from a workflow
   under `.github/workflows` that runs `github/codeql-action/analyze`, or from the check runs of merged pull requests,
-  of which the copy has none, and never from the default setup, which has no workflow file: scorecard.dev scored SAST
-  0, "no SAST tool detected", on 19 October 2026, while the default setup analysed every push. The workflow runs
-  CodeQL as the default setup did, read from its analyses of that day: C and C++, C#, JavaScript and TypeScript, and
-  Python, each with no build, the default query suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0
-  brings) and the categories `/language:<language>`, so that the default setup's alerts carry over; on each push to
-  `master`, on a pull request to `master`, weekly (Wednesdays at 03:41 UTC) and by hand. Its token reads the
-  repository, and its job may write only the results to code scanning; `actions/checkout` keeps no credential, and
-  `actions/checkout` v7.0.1 and `github/codeql-action/init` and `/analyze` v4.39.0 are each pinned by the commit of
-  its release, checked against its tag through GitHub's API, as `scorecard.yml` pins them. It builds, signs and
-  publishes nothing and keeps no artifact; GitLab's pipelines remain where the project is built, tested, signed and
-  published. GitHub takes no analysis from a workflow while the default setup is on, so the default setup is switched
-  off when the workflow reaches `master`. `scorecard.yml`'s header, which said it was the one workflow of the
-  project's that GitHub Actions runs, now names the two.
+  and not from the default setup's analyses of `master`, which no workflow file records: it sees the default setup
+  only through those check runs, and the copy has no merged pull request, so scorecard.dev scored SAST 0, "no SAST
+  tool detected", on 19 October 2026, while the default setup analysed every push. The workflow runs CodeQL as the
+  default setup did, read from its analyses of that day: C and C++, C#, JavaScript and TypeScript, and Python, each
+  with no build, the default query suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and the
+  categories `/language:<language>`, so that the default setup's alerts carry over; on each push to `master`, on a
+  pull request to `master`, weekly (Wednesdays at 03:41 UTC) and by hand. Its token reads the repository, and its job
+  may write only the results to code scanning; `actions/checkout` keeps no credential, and `actions/checkout` v7.0.1
+  and `github/codeql-action/init` and `/analyze` v4.39.0 are each pinned by the commit of its release, checked
+  against its tag through GitHub's API, as `scorecard.yml` pins them. It builds, signs and publishes nothing and
+  keeps no artifact; GitLab's pipelines remain where the project is built, tested, signed and published. GitHub takes
+  no CodeQL analysis from a workflow while the default setup is on, so the default setup is switched off when the
+  workflow reaches `master`. `scorecard.yml`'s header, which said it was the one workflow of the project's that
+  GitHub Actions runs, now names the two.
 
 - **OpenSSF Scorecard's Vulnerabilities check no longer counts the semgrep job's mcp 1.29.0 advisory, which the VEX
   document declares not to apply, and a new check holds the two together.** The check runs OSV-Scanner over the tree,

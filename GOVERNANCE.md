@@ -28,10 +28,11 @@ GitLab and nowhere else: GitHub Actions runs two workflows of the project's,
 Scorecard, and `.github/workflows/codeql.yml`, which analyses the code there with
 CodeQL on each push to `master`, on each pull request and weekly, and whose
 findings the maintainers read, nothing more; neither builds, signs or publishes
-anything of a release. GitHub's rules there let GitLab's push mirror alone write
-`master`, the `batch*` branches and the release tags, and hold a pull request to
-two approvals, the code owner's among them (`.github/CODEOWNERS`), and to CodeQL's
-check ([Mirroring.md](hmailserver/docs/Mirroring.md#githubs-rules-for-the-copy)).
+anything of a release. GitHub's rules there let the repository's administrator
+role, as which GitLab's push mirror pushes, alone write `master`, the `batch*`
+branches and the release tags, and hold a pull request to two approvals, the code
+owner's among them (`.github/CODEOWNERS`), and to CodeQL's check
+([Mirroring.md](hmailserver/docs/Mirroring.md#githubs-rules-for-the-copy)).
 Where this document describes the
 `Progressiverobot` account's GitHub repository - its ruleset and the approval
 it required, repository admin, private vulnerability reporting, and release
