@@ -218,8 +218,8 @@ def check_branch_protection():
 # ---------------------------------------------------------------- Signed-Releases
 
 SIGNATURE_SUFFIXES = (".sigstore.json", ".sigstore", ".cosign.bundle", ".sig", ".asc", ".minisig", ".sign")
-# Build provenance: the SLSA generator's JSON Lines of DSSE envelopes, which the GitHub
-# releases to 6.3.3 carried and the only name Scorecard counts as provenance, and from
+# Build provenance: the SLSA generator's hmailserver-v<v>.intoto.jsonl of 6.3.2 and
+# 6.3.3, a Sigstore bundle under the only name Scorecard counts as provenance, and from
 # 6.3.6 this project's own, hmailserver-<v>.intoto.sigstore.json, a Sigstore bundle
 # holding the DSSE envelope (build/ci/release-chain.py, provenance_name), which
 # Scorecard, reading the name alone, counts as one more signature; from the release
@@ -292,8 +292,9 @@ def check_signed_releases():
         else:
             r.fail("%s: no signature asset among its %d asset(s)" % (rel["tag_name"], len(names)))
     r.note("%d of %d carry build provenance (in-toto); Scorecard scores provenance above signatures alone, and counts "
-           "only a *.intoto.jsonl as provenance, which this project's releases carry from the one after 6.3.7; "
-           "before it, their *.intoto.sigstore.json counts there as a signature"
+           "only a *.intoto.jsonl as provenance - 6.3.2's and 6.3.3's, the SLSA generator's Sigstore bundles under "
+           "that name, and this project's own from the release after 6.3.7 - so 6.3.6's and 6.3.7's "
+           "*.intoto.sigstore.json count there as signatures"
            % (with_provenance, len(newest)))
     tags = [rel["tag_name"] for rel in newest]
     verified = verify_tags(tags)

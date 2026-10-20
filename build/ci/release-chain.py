@@ -288,10 +288,10 @@ def statement_name(version):
 
 # The provenance's DSSE envelope again, alone, as one line of JSON: the form of an
 # in-toto attestation bundle, JSON Lines of DSSE envelopes, named *.intoto.jsonl
-# (in-toto's attestation specification, "Bundle layer specification"), as the SLSA
-# generator's provenance on the GitHub releases up to 6.3.3 was. It is also the one
-# name OpenSSF Scorecard's Signed-Releases check counts as provenance (its probe
-# releasesHaveProvenance, which reads an asset's name alone).
+# (in-toto's attestation specification, "Bundle layer specification"); the SLSA
+# generator's provenance of 6.3.2 and 6.3.3 has that name too, two Sigstore bundles
+# under it. It is also the one name OpenSSF Scorecard's Signed-Releases check counts
+# as provenance (its probe releasesHaveProvenance, which reads an asset's name alone).
 PROVENANCE_LINE = ".intoto.jsonl"
 
 

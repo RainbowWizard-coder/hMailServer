@@ -178,17 +178,17 @@ with `--check`).
   of JSON.** It is the DSSE envelope of `hmailserver-<version>.intoto.sigstore.json`, the provenance every release has
   carried since 6.3.6 - the statement and its one signature, each as that Sigstore bundle has it - written again
   alone, in the form in-toto's attestation specification gives a bundle of attestations: JSON Lines, one envelope a
-  line, in a file named `.intoto.jsonl`. It is not a second signature. `release-verify` writes it from the bundle
-  after signing (`build/ci/release-chain.py provenance-line`) and `check-provenance` holds it to the bundle byte for
-  byte; `release-publish` holds it again before it uploads anything, and links it with the release's other files,
-  161 in all; and the copy of the release on GitHub carries it too. It carries neither the certificate nor the
+  line, in a file whose name ends in `.intoto.jsonl`. It is not a second signature. `release-verify` writes it from
+  the bundle after signing (`build/ci/release-chain.py provenance-line`) and `check-provenance` holds it to the bundle
+  byte for byte; `release-publish` holds it again before it uploads anything, and links it with the release's other
+  files, 161 in all; and the copy of the release on GitHub carries it too. It carries neither the certificate nor the
   transparency log's entry, which only the bundle carries, so a download is verified with the bundle, as before
   (SECURITY.md, "Build provenance"). OpenSSF Scorecard's Signed-Releases check reads a file's name alone and counts a
-  release's provenance only from a file named `.intoto.jsonl`, scoring a release with provenance 10 and one with
-  signatures alone 8: the releases up to 6.3.7, which are not changed, carry the bundle alone and count as signed.
-  The rehearsal on a protected `batch*` branch writes and checks the file as a release does, and
-  `build/check-release-chain.py` holds its name, where it is made and checked, and that `release-verify`'s artifact
-  carries it, and nothing else of the signed files, to `release-publish`.
+  release's provenance only from a file whose name ends in `.intoto.jsonl`, scoring a release with provenance 10 and
+  one with signatures alone 8: 6.3.6 and 6.3.7, the releases that carry the bundle, are not changed: they carry it
+  alone, and the check counts it as a signature. The rehearsal on a protected `batch*` branch writes and checks the
+  file as a release does, and `build/check-release-chain.py` holds its name, where it is made and checked, and that
+  `release-verify`'s artifact carries it, and nothing else of the signed files, to `release-publish`.
 
 ### Control Panel
 
