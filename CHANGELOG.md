@@ -557,7 +557,7 @@ with `--check`).
   and published there first and then copied to GitHub; the update feed, the package repositories and the container
   registry are GitLab's; a change lands on `master` only through a GitLab merge request (GOVERNANCE.md); the
   project runs no pipeline on GitHub, where GitHub Actions runs two workflows of the project's, OpenSSF Scorecard's
-  and CodeQL's, which took the place of GitHub's own CodeQL default setup (*Build and tests*, above), and CodeQL
+  and CodeQL's, which takes the place of GitHub's own CodeQL default setup (*Build and tests*, above), and CodeQL
   analyses the code on each push to `master`, on each pull request and weekly, and the maintainers read its
   findings, nothing more. The project's old release
   workflows, `sbom.yml` in the trees of the tags from `v6.2.3` to `v6.3.3` and `build-inputs-1`, and
