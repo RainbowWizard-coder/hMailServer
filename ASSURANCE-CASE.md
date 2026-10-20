@@ -45,16 +45,18 @@ repository's code scanning, the job's two write permissions being for those two
 publications alone; and `.github/workflows/codeql.yml`, which analyses its code
 with CodeQL on each push to `master`, on each pull request and weekly, and whose
 one write permission is the upload of its results to code scanning. It takes the
-place of GitHub's CodeQL default setup, which did the same from 18 October 2026
-with no workflow file, and which Scorecard's SAST check did not count, since it
-sees the default setup only through the check runs of merged pull requests, of
-which the copy has none
+place of GitHub's CodeQL default setup, which has done the same since 18 October
+2026 with no workflow file, and which Scorecard's SAST check does not count,
+since it sees the default setup only through the check runs of merged pull
+requests, of which the copy has none; GitHub takes no workflow's CodeQL analysis
+while the default setup is on, so the default setup is switched off when the
+workflow reaches `master`
 ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)).
 Neither builds, signs or publishes anything of a release. GitHub Actions is
-enabled there for those two and for the jobs GitHub runs itself to build the
-repository's dependency graph; it allows GitHub's own actions and
-`ossf/scorecard-action` alone, each pinned by a full commit. The maintainers read
-CodeQL's findings, nothing more.
+enabled there for those two, for the default setup while it is on, and for the
+jobs GitHub runs itself to build the repository's dependency graph; it allows
+GitHub's own actions and `ossf/scorecard-action` alone, each pinned by a full
+commit. The maintainers read CodeQL's findings, nothing more.
 Old workflows ran there once. The tags from `v6.2.3` to `v6.3.3`, and
 `build-inputs-1`, still carry the chain's `sbom.yml` in their trees, and those
 from `v6.2.19`, and `build-inputs-1`, its `sign-release.yml`, and GitHub ran them
