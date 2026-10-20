@@ -20,8 +20,10 @@
 # only through those check runs, and the copy has no merged pull request. GitHub
 # refuses a workflow's CodeQL analysis while the default setup is on, so the
 # default setup is switched off when this workflow reaches master. It builds,
-# tests, signs and publishes nothing - it uploads its results to the
-# repository's code scanning and nothing else, keeps no artifact, and nothing it
+# tests, signs and publishes nothing - it uploads its results and, from master's
+# analyses, the CodeQL database of each language (github/codeql-action/analyze
+# uploads it unless told not to, as the default setup does) to the repository's
+# code scanning and nothing else, keeps no workflow artifact, and nothing it
 # makes reaches a release. GitLab's pipelines remain where the project is built,
 # tested, signed and published, and where its own static analysis runs
 # (hmailserver/docs/ContinuousIntegration.md). Every action below is pinned by a

@@ -99,7 +99,7 @@ GitHub's rules for the copy
 
 GitHub's rulesets keep the copy GitLab's: only the repository's administrator
 role, as which the push mirror pushes, writes `master`, the `batch*` branches and
-the release tags, and nobody deletes `master` or a tag, moves a tag or
+the release tags, and nobody deletes `master` or a release tag, moves a release tag or
 force-pushes `master`. As read through GitHub's API on 20
 October 2026 (*Settings*, *Rules*, *Rulesets*):
 

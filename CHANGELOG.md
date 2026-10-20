@@ -291,7 +291,9 @@ with `--check`).
   code scanning; `actions/checkout` keeps no credential, and `actions/checkout` v7.0.1 and
   `github/codeql-action/init` and `/analyze` v4.39.0 are each pinned by the commit of its release, checked against
   its tag through GitHub's API, as `scorecard.yml` pins them. It builds, signs and publishes nothing and keeps no
-  artifact; GitLab's pipelines remain where the project is built, tested, signed and published. GitHub takes no
+  workflow artifact; its uploads are its results and, from `master`, each language's CodeQL database, to the
+  repository's code scanning, as the default setup's are; GitLab's pipelines remain where the project is built,
+  tested, signed and published. GitHub takes no
   CodeQL analysis from a workflow while the default setup is on, so the default setup is switched off when the
   workflow reaches `master`. `scorecard.yml`'s header, which said it was the one workflow of the project's that
   GitHub Actions runs, now names the two.

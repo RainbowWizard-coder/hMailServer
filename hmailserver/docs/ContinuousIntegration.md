@@ -5544,11 +5544,13 @@ of `master`, which no workflow file records: it sees the default setup only
 through those check runs, and the copy has no merged pull request. GitHub takes no
 workflow's CodeQL analysis while the default setup is on, so the default setup is
 switched off when the workflow reaches `master`. Its token reads the repository,
-and its job may write only its results to code scanning (`security-events: write`,
+and its job may write only to code scanning (`security-events: write`,
 beside `actions: read` and `contents: read`); `actions/checkout` keeps no
 credential; and `actions/checkout` v7.0.1 and `github/codeql-action/init` and
 `/analyze` v4.39.0 are pinned by commit, as `scorecard.yml`'s actions are. It
-builds, signs and publishes nothing and keeps no artifact. The project's own
+builds, signs and publishes nothing and keeps no workflow artifact; its uploads
+are its results and, from `master`, each language's CodeQL database, to the
+repository's code scanning, as the default setup's are. The project's own
 static analysis is `static-analysis` and `semgrep`
 ([Security scanning](#security-scanning)), and GitLab's pipelines remain where the
 project is built, tested, signed and published. GitHub's documentation names the
