@@ -305,8 +305,8 @@ with `--check`).
   suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and the categories `/language:<language>`,
   the default setup's own (GitHub matches an alert across configurations by the query that found it and its location,
   so the default setup's alerts carry over); on each push to `master`, on a pull request to `master`, weekly
-  (Wednesdays at 03:41 UTC) and by hand. Its token reads the repository, and its job may write only the results to
-  code scanning; `actions/checkout` keeps no credential, and `actions/checkout` v7.0.1 and
+  (Wednesdays at 03:41 UTC) and by hand. Its token reads the repository, and its job may write only to code
+  scanning; `actions/checkout` keeps no credential, and `actions/checkout` v7.0.1 and
   `github/codeql-action/init` and `/analyze` v4.39.0 are each pinned by the commit of its release, checked against
   its tag through GitHub's API, as `scorecard.yml` pins them. It builds, signs and publishes nothing and keeps no
   workflow artifact; its uploads are its results and, from `master`, each language's CodeQL database, to the
