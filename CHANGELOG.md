@@ -698,8 +698,10 @@ with `--check`).
   the mirror needs; SAST from 0 to 10 once `.github/workflows/codeql.yml` is on `master`; and Vulnerabilities from 0
   to 10 once PyJWT 2.15.1 and `build/ci/osv-scanner.toml` are, with a local run of Scorecard 5.6.0 over the tree that
   gave SAST 10 and Vulnerabilities 10 and kept the other eight checks it ran where they were. It says why
-  Signed-Releases stays at 4 (6.3.5's `.cosign.bundle` files and the unsigned `build-inputs-2` among the five newest
-  releases, and provenance named `.intoto.sigstore.json` for what it is, which Scorecard counts as a signature),
+  Signed-Releases stays at 4 until new releases come (6.3.5's `.cosign.bundle` files and the unsigned
+  `build-inputs-2` among the five newest releases, and provenance named `.intoto.sigstore.json` for what it is, which
+  Scorecard counts as a signature, where each release after 6.3.7 also carries the `.intoto.jsonl` that it counts as
+  provenance - *Downloads and the release*, above),
   Code-Review at 0 (no change reaches the copy through an approved pull request, and on GitLab a second person's
   approval is left unmet by the owner's decision of 6 October 2026), Maintained at 0 until 16 January 2027, 90 days
   after the copy was made, CII-Best-Practices at 0 (entry 14949 names the GitLab project's address), Contributors at

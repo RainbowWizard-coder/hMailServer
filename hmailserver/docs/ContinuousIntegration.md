@@ -5619,10 +5619,14 @@ license file does not contain an FSF or OSI license"), and 10 on scorecard.dev.
   6.3.5's signatures are `.cosign.bundle` files, a name it does not count; and
   `build-inputs-2`, the third-party build inputs, is not signed: 8, 0, 8, 0 and 8,
   whose mean, 4.8, is read as 4. The provenance of 6.3.6 and later, `hmailserver-<version>.intoto.sigstore.json`,
-  counts as a signature and not as provenance, and the project names the file for
-  what it is rather than copy it under the name that scores
-  ([SECURITY.md](../../SECURITY.md), "Build provenance"). The score rises as signed
-  releases take the places of `build-inputs-2` and 6.3.5 among the five newest.
+  counts as a signature and not as provenance: the file is named for what it is, a
+  Sigstore bundle. From the release after 6.3.7 a release also carries
+  `hmailserver-<version>.intoto.jsonl`, the bundle's DSSE envelope alone as one
+  line of JSON - the form in-toto's attestation specification gives a file of that
+  name - which the check counts as provenance
+  ([SECURITY.md](../../SECURITY.md), "Build provenance"). The score rises as new
+  releases take the places of the older ones among the five newest, each release
+  after 6.3.7 counting 10 for its `.intoto.jsonl`.
 - **Code-Review** (0, "0/30 approved changesets"). It counts the changes that
   reached the default branch through a pull request approved there, and every
   change reaches the copy by the mirror's push. On GitLab, too, a second person's
