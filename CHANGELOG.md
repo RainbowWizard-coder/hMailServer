@@ -606,7 +606,7 @@ with `--check`).
   has pushed `master`, the `batch*` branches and the tags there after every push since, where a maintainer's clone
   pushed them before, and the two forges carry the same 53 tags (Mirroring.md); the container image was copied to
   `ghcr.io/rainbowwizard-coder/hmailserver` with its signatures and attestations - `6.3.7`, `6.3`, `latest` and
-  `6.3.6`, each with GitLab's digest - and is private there until the owner makes it public
+  `6.3.6`, each with GitLab's digest - and is public there since the owner made it so on 20 October 2026
   (ContainerImage.md), `registry.gitlab.com/hmailserver/hmailserver` staying the image's address; and Zain Ul
   Abidin's GitHub account, `Zainulabidin90`, was removed from the repository, so that nobody but the owner's
   account, `RainbowWizard-coder`, which administers it, holds write access there (GOVERNANCE.md). Nothing in the

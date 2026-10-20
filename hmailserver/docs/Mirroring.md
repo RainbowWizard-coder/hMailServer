@@ -302,9 +302,9 @@ and how to make it again.
   to 6.3.7 (45) and `build-inputs-1` and `build-inputs-2`;
 - the container image, copied to `ghcr.io/rainbowwizard-coder/hmailserver` with
   its signatures and attestations ([ContainerImage.md](ContainerImage.md)). Done on
-  18 October 2026 for 6.3.7 and 6.3.6; the package is still private there, and the
-  owner makes it public in GitHub's package settings (*Change visibility*), which no
-  API changes.
+  18 October 2026 for 6.3.7 and 6.3.6, and the package made public by the owner on
+  20 October 2026 in GitHub's package settings (*Change visibility*, which no API
+  changes and which cannot be undone).
 
 **The export.**
 

@@ -28,9 +28,10 @@ and on that day the image was copied to `ghcr.io/rainbowwizard-coder/hmailserver
 with its cosign signatures and attestations: the tags `6.3.7`, `6.3`, `latest` and
 `6.3.6`, each with the digest GitLab's registry gives it - the index
 `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f` for
-`6.3.7`, `6.3` and `latest`. That copy is private on 18 October 2026, and the owner
-is making it public; until then it cannot be pulled without his GitHub account, and
-nothing here is to be pulled from it. The container registry is GitLab's: each
+`6.3.7`, `6.3` and `latest`. The owner made that copy public on 20 October 2026:
+since then it can be pulled without signing in, at the same digests, and
+`cosign verify` of it with the identity and issuer below passes (both checked
+that day). Nothing here pulls from it. The container registry is GitLab's: each
 release's pipeline pushes and signs its image there, and
 `registry.gitlab.com/hmailserver/hmailserver` is the address the Compose file, the
 chart and these documents give.
