@@ -38,16 +38,21 @@ changed; the copies themselves, published before the setting was switched on,
 can.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
 GitHub until 18 September 2026 and do not run on GitLab. No pipeline of the
-project's runs on GitHub. One workflow of the project's is in the tree,
-`.github/workflows/scorecard.yml`, which scores the GitHub copy with OpenSSF
-Scorecard and publishes the result to scorecard.dev and to that repository's code
-scanning; it builds, signs and publishes nothing of a release, and the job's two
-write permissions are for those two publications alone. GitHub Actions is enabled
-there for it, for GitHub's own CodeQL default setup, which analyses the code on
-each push to `master`, on each pull request and weekly from 18 October 2026, and
-for the jobs GitHub runs itself to build the repository's dependency graph; it
-allows GitHub's own actions and `ossf/scorecard-action` alone, each pinned by a
-full commit. The maintainers read CodeQL's findings, nothing more.
+project's runs on GitHub. Two workflows of the project's are in the tree, for
+the GitHub copy alone: `.github/workflows/scorecard.yml`, which scores it with
+OpenSSF Scorecard and publishes the result to scorecard.dev and to that
+repository's code scanning, the job's two write permissions being for those two
+publications alone; and `.github/workflows/codeql.yml`, which analyses its code
+with CodeQL on each push to `master`, on each pull request and weekly, and whose
+one write permission is the upload of its results to code scanning. It takes the
+place of GitHub's CodeQL default setup, which did the same from 18 October 2026
+with no workflow file, and which Scorecard's SAST check therefore did not count
+([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)).
+Neither builds, signs or publishes anything of a release. GitHub Actions is
+enabled there for those two and for the jobs GitHub runs itself to build the
+repository's dependency graph; it allows GitHub's own actions and
+`ossf/scorecard-action` alone, each pinned by a full commit. The maintainers read
+CodeQL's findings, nothing more.
 Old workflows ran there once. The tags from `v6.2.3` to `v6.3.3`, and
 `build-inputs-1`, still carry the chain's `sbom.yml` in their trees, and those
 from `v6.2.19`, and `build-inputs-1`, its `sign-release.yml`, and GitHub ran them

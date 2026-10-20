@@ -29,10 +29,10 @@ for `master`, `batch*` branches and `v*` tags only** - never for a merge request
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for your branch
 they are still run by hand, by you before you open a merge request or a pull request, and so are two PowerShell
 checks everywhere. [The checkers](#the-checkers) says which is which. No pipeline of the project's runs on
-GitHub. GitHub Actions runs one workflow of the project's there, `.github/workflows/scorecard.yml`, which scores
-the repository with OpenSSF Scorecard and publishes the result, and GitHub's own CodeQL default setup analyses the
-code there on each push to `master`, on each pull request and weekly, and the maintainers read its findings;
-neither builds, tests or releases anything.
+GitHub. GitHub Actions runs two workflows of the project's there: `.github/workflows/scorecard.yml`, which scores
+the repository with OpenSSF Scorecard and publishes the result, and `.github/workflows/codeql.yml`, which analyses
+the code with CodeQL on each push to `master`, on each pull request and weekly, and whose findings the maintainers
+read; neither builds, tests or releases anything.
 
 Contents:
 
@@ -101,7 +101,7 @@ The tree:
 | `libraries/` | The scripts that build OpenSSL, Boost and libpq, and vendored third-party code |
 | `fuzz/` | The libFuzzer harnesses |
 | `.gitlab/` | The issue and merge-request templates GitLab offers, and three files that are not GitLab's: `allowed_signers`, the SSH keys release tags are signed with; `hmailserver.openvex.json`, the project's VEX document; and `upstream-sync`, the upstream hMailServer commit this tree was last compared against |
-| `.github/` | The two files GitHub reads for the copy there and GitLab does not: `PULL_REQUEST_TEMPLATE.md`, which fills a new pull request's description with the merge-request template's checklist, and `workflows/scorecard.yml`, the one workflow of the project's that GitHub Actions runs ([OpenSSF Scorecard](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)) |
+| `.github/` | The files GitHub reads for the copy there and GitLab does not: `PULL_REQUEST_TEMPLATE.md`, which fills a new pull request's description with the merge-request template's checklist; `CODEOWNERS`, which names the code owner a pull request there asks for review (`.gitlab/CODEOWNERS` is GitLab's); and the two workflows of the project's that GitHub Actions runs, `workflows/scorecard.yml` and `workflows/codeql.yml` ([OpenSSF Scorecard](hmailserver/docs/ContinuousIntegration.md#openssf-scorecard)) |
 | `.gitlab-ci.yml` | The checks GitLab CI runs on a push and a merge request ([the checkers](#the-checkers)) |
 | `renovate.json` | What Renovate, the project's dependency-update bot, keeps current, and how ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)) |
 

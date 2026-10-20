@@ -29,9 +29,9 @@ runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)). Sin
 18 October 2026 the project is published on GitHub again, as a second home
 (<https://github.com/RainbowWizard-coder/hMailServer>), and GitLab,
 <https://gitlab.com/hmailserver/hmailserver>, stays canonical: the pipelines run
-there and nowhere else, GitHub Actions runs one workflow of the project's, OpenSSF
-Scorecard's ([OpenSSF Scorecard](#openssf-scorecard)), and nothing of a build or a
-release, GitLab's push mirror pushes `master`, the `batch*` branches and the tags
+there and nowhere else, GitHub Actions runs two workflows of the project's, OpenSSF
+Scorecard's and CodeQL's ([OpenSSF Scorecard](#openssf-scorecard)), and nothing of a
+build or a release, GitLab's push mirror pushes `master`, the `batch*` branches and the tags
 there after every push ([Mirroring.md](Mirroring.md)), and no
 build step downloads from GitHub, as before - the project builds from GitLab
 alone, so that no forge's suspension can stop a build again ([Where the tools
@@ -2404,8 +2404,9 @@ From GitHub Actions to GitLab CI
 
 Every job of the old `.github/workflows`, and where it went. The workflows were
 removed from the tree when the project moved to GitLab; since 18 October 2026 the
-tree has one workflow again, `.github/workflows/scorecard.yml`, for the copy on
-GitHub alone ([OpenSSF Scorecard](#openssf-scorecard)). The old ones are in the git
+tree has workflows again, for the copy on GitHub alone:
+`.github/workflows/scorecard.yml` and, since 20 October 2026,
+`.github/workflows/codeql.yml` ([OpenSSF Scorecard](#openssf-scorecard)). The old ones are in the git
 history, unchanged from `faca023d4` until `6593259e0` removed them on
 26 September 2026 (its parent, `d8ba4b646`, is the last commit that has them),
 and the ones that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
@@ -2455,7 +2456,9 @@ not hold it.
 
 - `codeql.yml`. The CodeQL CLI and its query packs are GitHub's, downloaded
   from GitHub, and its results went to GitHub's code scanning. There is no
-  other source for either.
+  other source for either. A CodeQL workflow of the project's runs again on the
+  copy on GitHub, over that copy alone and in the place of GitHub's default
+  setup there ([OpenSSF Scorecard](#openssf-scorecard)); no job here uses it.
 - `dependency-review.yml` and `scorecard.yml`, as they were. Both are GitHub
   services: the first reads GitHub's advisory database for a pull request's
   dependency changes, the second scores the repository through GitHub's API and
@@ -4460,10 +4463,12 @@ rule, not a database. On a `batch*` branch they judge the batch's changes from
 `static-analysis` and `semgrep` fail a pipeline on a new finding that `master`'s
 exceptions file does not accept; the other scans are `allow_failure`. Four of
 them hold a release ([Before a release](#before-a-release-the-scans-hold-it)).
-GitHub's own CodeQL default setup analyses the code on GitHub, the project's
-second home since 18 October 2026, on each push to `master`, on each pull
-request and weekly, and the maintainers read its findings, nothing more: it is no job of this project's, and no pipeline of the
-project's runs on GitHub.
+CodeQL analyses the code on GitHub, the project's second home since 18 October
+2026, on each push to `master`, on each pull request and weekly - GitHub's
+default setup at first, and then `.github/workflows/codeql.yml` in its place
+([OpenSSF Scorecard](#openssf-scorecard)) - and the maintainers read its
+findings, nothing more: it is no job of this project's pipelines, and no
+pipeline of the project's runs on GitHub.
 
 `static-analysis` and `semgrep` lost `allow_failure` in 6.3.6 (follow-up N02),
 once each had passed over `batch42` with that change folded in, run on linix in
@@ -4914,7 +4919,7 @@ which this tree has.
 | `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
-| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its one workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
+| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its Scorecard workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
 | Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
@@ -5494,9 +5499,10 @@ is the score of the copy on GitHub (below). The site's copy is the
 project's own, run by its own CI from a pinned build, and says so.
 
 **The copy on GitHub.** Since 18 October 2026 the project's copy on GitHub,
-<https://github.com/RainbowWizard-coder/hMailServer>, has one workflow of the
-project's, `.github/workflows/scorecard.yml`, the only one GitHub Actions runs
-there. It runs `ossf/scorecard-action` v2.5.0 over that repository on each push to
+<https://github.com/RainbowWizard-coder/hMailServer>, has had a workflow of the
+project's, `.github/workflows/scorecard.yml`; it and `.github/workflows/codeql.yml`
+(*CodeQL on the copy*, below) are the two GitHub Actions runs there.
+`scorecard.yml` runs `ossf/scorecard-action` v2.5.0 over that repository on each push to
 `master` - which GitLab's push mirror makes - weekly (Mondays at 04:30 UTC) and
 when a branch protection rule changes. Its permissions are read-only but for the
 job's `security-events: write`, to upload the result as SARIF to the repository's
@@ -5516,6 +5522,109 @@ and nothing it makes reaches a build. The README's badge shows a score minutes
 after the workflow's first run on `master`, once the workflow is there; the site's
 badge answers 404 until the owner's token is set and the `scorecard` schedule has
 run with it.
+
+**CodeQL on the copy.** `.github/workflows/codeql.yml` runs GitHub's CodeQL over
+the copy as GitHub's default setup ran it from 18 October 2026, read from the
+default setup's analyses of 19 October 2026: C and C++, C#, JavaScript and
+TypeScript, and Python, each with no build (`build-mode: none`), the default
+query suite, CodeQL 2.27.2 (the bundle `github/codeql-action` v4.39.0 brings) and
+the categories `/language:<language>`, so that the default setup's alerts carry
+over, in four jobs named `Analyze (<language>)`, as the default setup's were. It
+runs on each push to `master`, on each pull request to `master`, weekly
+(Wednesdays at 03:41 UTC) and by hand. It takes the default setup's place because
+Scorecard's SAST check counts CodeQL only from a workflow under
+`.github/workflows` with a step that uses `github/codeql-action/analyze`, or from
+the check runs of merged pull requests, of which the copy has none, and never from
+the default setup, which has no workflow file; GitHub takes no workflow's analysis
+while the default setup is on, so the default setup is switched off when the
+workflow reaches `master`. Its token reads the repository, and its job may write
+only its results to code scanning (`security-events: write`, beside
+`actions: read` and `contents: read`); `actions/checkout` keeps no credential; and
+`actions/checkout` v7.0.1 and `github/codeql-action/init` and `/analyze` v4.39.0
+are pinned by commit, as `scorecard.yml`'s actions are. It builds, signs and
+publishes nothing and keeps no artifact. The project's own static analysis is
+`static-analysis` and `semgrep` ([Security scanning](#security-scanning)), and
+GitLab's pipelines remain where the project is built, tested, signed and
+published. On a pull request, GitHub's code scanning reports CodeQL's results as
+a check named `CodeQL`, in every configuration of code scanning, which is the
+check `master`'s ruleset there requires ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)).
+
+**What the copy scores.** scorecard.dev's reading of 19 October 2026 (05:52 UTC,
+Scorecard v5.6.0, at `f14412d39`; read from the OpenSSF API on 20 October 2026)
+gives the copy 5.7:
+
+| Check | 19 October 2026 | Why, and what moves it |
+|---|---|---|
+| Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing, License, Pinned-Dependencies, Security-Policy, Token-Permissions | 10 | No binary tracked; no workflow pattern Scorecard counts as dangerous; Renovate (`renovate.json`); the libFuzzer harnesses under `fuzz/`; `LICENSE`; every action pinned by commit and every image by digest; `SECURITY.md`; every workflow's token read-only but for its job's own writes. They stay 10 (*Measured on the tree*, below) |
+| Branch-Protection | 3 | `master`'s rules then forbade its deletion and a force push, and required no pull request, review or status check. Since 20 October 2026 a ruleset requires a pull request with two approvals, the code owner's among them, and CodeQL's check on an up-to-date branch ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)): Scorecard 5.6.0, run that day with the owner's token, gave 9. The one warning left, that the rules do not apply to administrators, stays: Scorecard reads a ruleset that any role may bypass as one that administrators are not held to, and the push mirror writes `master` as the repository's administrator, past those rules, as it must |
+| SAST | 0 | "No SAST tool detected": the default setup analysed every push, but has no workflow file. 10 once `codeql.yml` is on `master` |
+| Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). 10 once both are on `master` |
+| Signed-Releases | 4 | Below |
+| Code-Review, Maintained, CII-Best-Practices, Contributors | 0 | Below |
+| CI-Tests, Packaging | Inconclusive | Below |
+
+**The advisory the VEX document declares, and OSV-Scanner.** Scorecard's
+Vulnerabilities check runs OSV-Scanner over the tree, with no VEX document, and
+OSV-Scanner reads the `osv-scanner.toml` in the directory of each manifest it
+scans. Semgrep 1.181.0, the newest release on PyPI on 20 October 2026, pins mcp
+1.29.0 exactly, so the semgrep job's `build/ci/requirements.txt` holds it, and
+GHSA-84m7-p3x7-pcfv (CVE-2026-59951), fixed in 1.30.0, is declared `not_affected`
+in `.gitlab/hmailserver.openvex.json`: the job never starts Semgrep's MCP server
+([SECURITY.md](../../SECURITY.md#declaring-a-finding-not-exploitable)).
+`build/ci/osv-scanner.toml` ignores it, with that reason, until 20 January 2027,
+and the entry goes when a Semgrep release allows mcp 1.30.0 or later. The VEX
+statement is the project's record of the decision, and the file only carries it
+to OSV-Scanner: `build/check-osv-ignores.py`, which `checkers` runs, fails the
+tree when an entry names an advisory that no `not_affected` statement names by
+its name or an alias, when no requirements file beside it pins a version that
+statement covers, when its day has come, or when the file holds anything but
+such entries. The same file is read by GitLab's `scorecard` job, which runs the
+same check over the project.
+
+**Measured on the tree.** Scorecard 5.6.0, run with `--local` over a copy of the
+tree on 20 October 2026, without `codeql.yml` and `osv-scanner.toml` and then
+with them, gave SAST 0 and 10 ("SAST tool detected: CodeQL") and Vulnerabilities
+9 and 10 ("0 existing vulnerabilities detected"), and 10 both times for
+Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing,
+Pinned-Dependencies, Security-Policy and Token-Permissions. License reads 9 in a
+local run, which finds `LICENSE` but has no forge to name its licence ("project
+license file does not contain an FSF or OSI license"), and 10 on scorecard.dev.
+
+**What does not move, and why.**
+
+- **Signed-Releases** (4). Scorecard reads the five newest releases on GitHub -
+  on 19 October 2026 v6.3.7, `build-inputs-2`, v6.3.6, v6.3.5 and v6.3.4 - and
+  scores a release 8 when an asset's name ends in a signature's extension
+  (`.sigstore.json`, `.sig`, `.asc` among them) and 10 when one ends in
+  `.intoto.jsonl`, the one name it counts as provenance. 6.3.7 and 6.3.6 carry
+  `.sigstore.json` bundles and 6.3.4 `hmailserver-6.3.4-SHA256SUMS.txt.sig`;
+  6.3.5's signatures are `.cosign.bundle` files, a name it does not count; and
+  `build-inputs-2`, the third-party build inputs, is not signed: 8, 0, 8, 0 and 8,
+  whose mean, 4.8, is read as 4. The provenance of 6.3.6 and later, `hmailserver-<version>.intoto.sigstore.json`,
+  counts as a signature and not as provenance, and the project names the file for
+  what it is rather than copy it under the name that scores
+  ([SECURITY.md](../../SECURITY.md), "Build provenance"). The score rises as signed
+  releases take the places of `build-inputs-2` and 6.3.5 among the five newest.
+- **Code-Review** (0, "0/30 approved changesets"). It counts the changes that
+  reached the default branch through a pull request approved there, and every
+  change reaches the copy by the mirror's push. On GitLab, too, a second person's
+  approval is left unmet for the moment, by the owner's standing decision of 6
+  October 2026, and every change lands on his override
+  ([GOVERNANCE.md](../../GOVERNANCE.md), Review).
+- **Maintained** (0). Scorecard scores no repository younger than 90 days, and the
+  copy was created on 18 October 2026; it reads the copy's activity from 16 January
+  2027.
+- **CII-Best-Practices** (0). It looks the badge up by the scanned repository's own
+  address. Entry 14949, which holds the passing badge, names
+  `https://gitlab.com/hmailserver/hmailserver`, the project's home, so the copy's
+  address finds none.
+- **Contributors** (0). It counts the companies and organisations of the copy's
+  contributors, as GitHub links commits to accounts: most of the commits' author
+  addresses are linked to no GitHub account, and the contributors GitHub lists for
+  the copy are `dependabot[bot]` and one user, with one commit.
+- **CI-Tests** and **Packaging** (inconclusive). CI-Tests reads the checks of
+  merged pull requests, of which the copy has none; Packaging looks for a
+  workflow that publishes a package, and GitLab's pipelines package and publish.
 
 **Why the two scores may differ.** scorecard.dev scores the copy on GitHub and
 `scorecard` the canonical project on GitLab, and several checks read the forge

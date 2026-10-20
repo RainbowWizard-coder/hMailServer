@@ -325,8 +325,9 @@ changed; the copies, published before the switch, can. Its tag reaches GitHub
 as `master` does, by GitLab's push mirror, which has pushed every tag and every
 protected branch there after each push since 18 October 2026
 ([Mirroring.md](hmailserver/docs/Mirroring.md)). No pipeline of the project runs
-on GitHub; of its workflows GitHub Actions runs one,
-`.github/workflows/scorecard.yml`, which no release starts. The old release
+on GitHub; of its workflows GitHub Actions runs two,
+`.github/workflows/scorecard.yml` and `.github/workflows/codeql.yml`, which no
+release starts and which make nothing a release carries. The old release
 workflows `sbom.yml` and `sign-release.yml`, in the trees of the tags up to
 `v6.3.3`, ran once there on 18 October 2026, on the copies of the releases up to
 6.2.22-pre6, and have been disabled since ([ASSURANCE-CASE.md](ASSURANCE-CASE.md));
@@ -776,9 +777,10 @@ that administrators upgrade by hand.
    be `master`'s. A release made by hand runs the scans on linix against the
    release's commit, and the gate over what they wrote in the same way.
    Up to 6.3.3 these were GitHub's Code Scanning and Dependabot alert pages.
-   Since 18 October 2026 GitHub's own CodeQL default setup, no workflow of the
-   project's, analyses the code there on each push to `master`, on each pull
-   request and weekly; the maintainers read its findings, and the gate does not.
+   Since 18 October 2026 CodeQL analyses the code there on each push to
+   `master`, on each pull request and weekly - GitHub's default setup at first,
+   and then the project's workflow `.github/workflows/codeql.yml` in its place;
+   the maintainers read its findings, and the gate does not.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is
    described as hardening or diagnostics. Unfixed known issues are named as

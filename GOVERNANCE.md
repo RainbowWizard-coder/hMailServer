@@ -23,11 +23,15 @@ there alone, since the GitHub repository has no Issues, and a pull request on
 GitHub is read and, if it is accepted, landed through GitLab, as a `batch*` branch
 and a merge request, keeping its author and sign-off, so a change reaches `master`
 only through GitLab, by the merge request described below. The pipelines run on
-GitLab and nowhere else: GitHub Actions runs one workflow of the project's,
+GitLab and nowhere else: GitHub Actions runs two workflows of the project's,
 `.github/workflows/scorecard.yml`, which scores the repository with OpenSSF
-Scorecard and builds, signs and publishes nothing of a release, and GitHub's own
-CodeQL default setup analyses the code there on each push to `master`, on each
-pull request and weekly, and the maintainers read its findings, nothing more.
+Scorecard, and `.github/workflows/codeql.yml`, which analyses the code there with
+CodeQL on each push to `master`, on each pull request and weekly, and whose
+findings the maintainers read, nothing more; neither builds, signs or publishes
+anything of a release. GitHub's rules there let GitLab's push mirror alone write
+`master`, the `batch*` branches and the release tags, and hold a pull request to
+two approvals, the code owner's among them (`.github/CODEOWNERS`), and to CodeQL's
+check ([Mirroring.md](hmailserver/docs/Mirroring.md#githubs-rules-for-the-copy)).
 Where this document describes the
 `Progressiverobot` account's GitHub repository - its ruleset and the approval
 it required, repository admin, private vulnerability reporting, and release

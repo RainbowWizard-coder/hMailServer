@@ -197,13 +197,13 @@ changed:
   not yet blocking: cppcheck, clang-tidy and Semgrep, dependency scanning with
   Trivy and OSV, and a check of the repository settings Scorecard read
   ([ContinuousIntegration.md](ContinuousIntegration.md#security-scanning)).
-  Since 18 October 2026 GitHub's own CodeQL default setup analyses the code of
-  the project's repository on GitHub,
-  <https://github.com/RainbowWizard-coder/hMailServer>, on each push to `master`,
-  on each pull request and weekly, and the maintainers read its findings, nothing
-  more: it is GitHub's, not a workflow of
-  the project's. GitHub Actions runs one workflow of the project's there,
-  `.github/workflows/scorecard.yml`, OpenSSF Scorecard over that copy.
+  Since 18 October 2026 CodeQL analyses the code of the project's repository on
+  GitHub, <https://github.com/RainbowWizard-coder/hMailServer>, on each push to
+  `master`, on each pull request and weekly, and the maintainers read its
+  findings, nothing more: GitHub's default setup at first, and then the workflow
+  `.github/workflows/codeql.yml` in its place. GitHub Actions runs two workflows
+  of the project's there, that one and `.github/workflows/scorecard.yml`, OpenSSF
+  Scorecard over that copy.
   A full regression suite gating every release.
 * Release notes that name unfixed known issues rather than omitting them.
 * Security-update distribution with integrity verification, shipped in 6.2.28
@@ -229,9 +229,9 @@ September 2026 but for two: `sbom.yml` and `sign-release.yml`, in the trees of
 the old tags, ran once on 18 October 2026 in the repository the project has had on
 GitHub again since that day, on the copies of the releases up to 6.2.22-pre6,
 what they wrote was undone, and both have been disabled there since
-([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)). The one workflow of the project's
-that GitHub Actions runs there, OpenSSF Scorecard's, signs and publishes nothing
-of a release: a release there is a copy of the one on GitLab, with the same files
+([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)). The two workflows of the
+project's that GitHub Actions runs there, OpenSSF Scorecard's and CodeQL's, sign
+and publish nothing of a release: a release there is a copy of the one on GitLab, with the same files
 byte for byte, and a release is built, signed and published on GitLab first and
 then copied there. The releases up to 6.3.3 whose files GitLab has are on
 GitLab with their original signatures (6.2.0 and 6.0.0-B4 are notes-only);

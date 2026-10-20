@@ -77,15 +77,52 @@ issue is opened on GitLab alone, since the repository on GitHub has no Issues. A
 pull request is read on GitHub and, if it is accepted, landed through GitLab, as a
 `batch*` branch and a merge request that keep its author and sign-off, never by a
 merge on GitHub, whose `master` is GitLab's copy and nothing else. No pipeline of
-the project's runs on GitHub. GitHub Actions runs one workflow of the project's
-there, `.github/workflows/scorecard.yml`, which scores the repository with OpenSSF
-Scorecard and publishes the result ([ContinuousIntegration.md](ContinuousIntegration.md#openssf-scorecard)),
-and nothing of a build or a release; the two old release workflows that ran there,
-`sbom.yml` and `sign-release.yml`, still in the trees of the tags up to `v6.3.3`,
-have been disabled since 18 October 2026 ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)).
-GitHub's own CodeQL default setup analyses the code there on each push to
-`master`, on each pull request and weekly, and the maintainers read its findings,
-nothing more.
+the project's runs on GitHub. GitHub Actions runs two workflows of the project's
+there, and nothing of a build or a release: `.github/workflows/scorecard.yml`,
+which scores the repository with OpenSSF Scorecard and publishes the result, and
+`.github/workflows/codeql.yml`, which analyses the code with CodeQL on each push
+to `master`, on each pull request and weekly, and whose findings the maintainers
+read, nothing more ([ContinuousIntegration.md](ContinuousIntegration.md#openssf-scorecard)).
+The CodeQL workflow takes the place of GitHub's CodeQL default setup, which
+analysed the copy in the same way from 18 October 2026 with no workflow file, and
+which OpenSSF Scorecard's SAST check therefore did not count; GitHub takes no
+workflow's analysis while the default setup is on, so the default setup is
+switched off when the workflow reaches `master`. The repository's Actions settings
+allow GitHub's own actions and `ossf/scorecard-action` alone, each pinned by a
+full commit. The two old release workflows that ran there, `sbom.yml` and
+`sign-release.yml`, still in the trees of the tags up to `v6.3.3`, have been
+disabled since 18 October 2026 ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)).
+
+GitHub's rules for the copy
+---------------------------
+
+GitHub's rulesets keep the copy GitLab's: only the repository's administrator
+role, as which the push mirror pushes, writes `master`, the `batch*` branches and
+the release tags, and nobody deletes `master` or a tag, moves a tag or
+force-pushes `master`. As read through GitHub's API on 20
+October 2026 (*Settings*, *Rules*, *Rulesets*):
+
+| Ruleset | On | What it holds | Who may bypass it |
+|---|---|---|---|
+| 25332414, "master: no force push, no deletion, linear history" | `master` | No deletion, no force push, a linear history | Nobody |
+| 25352233, "master: updated by the GitLab mirror alone" | `master` | No update | The repository's administrator role |
+| 25445910, "master: a pull request needs two reviews, a code owner's and CodeQL" (since 20 October 2026) | `master` | A change only through a pull request, with two approvals, the code owner's among them (`.github/CODEOWNERS`), the last push approved by someone other than its author, approvals dismissed by a new push and every review thread resolved; and CodeQL's check, `CodeQL`, passed on a branch up to date with `master` | The repository's administrator role |
+| 25352238, "batch branches: the mirror's copies, not edited here" | `batch*` | No creation, update, deletion or force push | The repository's administrator role |
+| 25352236, "release tags: created by the GitLab mirror alone" | Tags `v*` and `build-inputs-*` | No creation | The repository's administrator role |
+| 25332415, "release tags: no deletion, no moving" | Tags `v*` and `build-inputs-*` | No deletion, update or force push | Nobody |
+
+The mirror pushes with the owner's token, as the repository's administrator, the
+role the bypasses name, and the owner's account is the one that holds it
+([GOVERNANCE.md](../../GOVERNANCE.md), "Maintainers"). The pull-request ruleset
+holds what a merge on GitHub would need; none is made, since a pull request there
+is landed through GitLab, and the mirror's push passes it as it passes the
+others. On a pull request, GitHub's code scanning reports CodeQL's results as a
+check named `CodeQL`, the context the ruleset requires, in every configuration of
+code scanning, the default setup's and a workflow's alike (GitHub's documentation,
+*Triaging code scanning alerts in pull requests*). OpenSSF Scorecard's
+Branch-Protection check reads these rules, and reads the administrator's bypass,
+which the mirror needs, as rules that do not apply to administrators
+([ContinuousIntegration.md](ContinuousIntegration.md#openssf-scorecard)).
 
 The weekly export
 -----------------

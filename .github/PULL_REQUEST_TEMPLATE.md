@@ -3,7 +3,7 @@ Thank you. CONTRIBUTING.md has the detail behind every line of this template.
 This repository is the project's second home. Its canonical home is GitLab, https://gitlab.com/hmailserver/hmailserver, and a change lands on master there alone, through a GitLab merge request, after review.
 A pull request here is read, and if it is accepted a maintainer makes it again on GitLab as a batch* branch and a merge request, keeping your authorship and your sign-off; it is never merged on GitHub, whose master is GitLab's copy (CONTRIBUTING.md, "Merge requests").
 Every commit needs the sign-off trailer, Signed-off-by, with the commit's own author email: git commit -s (CONTRIBUTING.md, "Sign-off").
-No pipeline of the project's runs for a pull request: GitHub's own CodeQL default setup analyses it, and the checkers, the sign-off check, the builds and the suites run on GitLab once the change is on a batch* branch. So run what applies yourself, and say below what you ran, and on what.
+No pipeline of the project's runs for a pull request: CodeQL analyses it (.github/workflows/codeql.yml), and the checkers, the sign-off check, the builds and the suites run on GitLab once the change is on a batch* branch. So run what applies yourself, and say below what you ran, and on what.
 A security fix goes by SECURITY.md's private routes, never a public pull request.
 Text between these comment markers is not shown once the pull request is opened.
 -->

@@ -757,9 +757,10 @@ scanning".
 - **What ran on GitHub.** CodeQL (the workflow `codeql.yml` and its configuration, in the git history at `v6.3.3`) analysed the
   repository on every pull request and every push to `master`, and the `master` ruleset required its results. It
   does not run on GitLab: its command-line tool and its query packs are published only on GitHub. Since
-  18 October 2026 GitHub's own CodeQL default setup analyses the repository there on each push to `master`, on each
-  pull request and weekly, with no workflow of the project's; the maintainers read its findings, and it holds no
-  change and no release.
+  18 October 2026 CodeQL analyses the repository there on each push to `master`, on each pull request and weekly -
+  GitHub's default setup at first, and then `.github/workflows/codeql.yml`, the same languages, queries and categories
+  from a workflow of the project's, which OpenSSF Scorecard's SAST check counts where it did not count the default
+  setup; the maintainers read its findings, and it holds no change and no release.
 - **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, is
   fixed before merge, or declared not exploitable before the change that needs it. A medium finding is fixed within
   30 days; a low or note-level one with the next change to that file, or declared not exploitable with its reason. A

@@ -251,30 +251,29 @@ with `--check`).
   comment in `.gitlab/ci/channels.yml` names the tools and why, and openssh-client, which `git verify-tag` needs, is
   installed by name rather than reached through snapd.
 
-- **The copy on GitHub has a pull-request template and one workflow of the project's, OpenSSF Scorecard, whose
-  result the README shows.** GitHub reads `.github/`, not `.gitlab/`, and GitLab reads
-  neither file. `.github/PULL_REQUEST_TEMPLATE.md` fills a new pull request's description with the merge-request
-  template's checklist, whole, and says that a change lands on `master` only through a GitLab merge request after
-  review, that a pull request is read and, if accepted, made again on GitLab as a `batch*` branch keeping its
-  author and sign-off, and that every commit needs the sign-off trailer. `.github/workflows/scorecard.yml`, the one
-  workflow of the project's that GitHub Actions runs, runs `ossf/scorecard-action` v2.5.0 over the copy on GitHub
-  on each push to `master`, weekly (Mondays at 04:30 UTC) and when a branch protection rule changes, read-only but
-  for its job's SARIF upload to the repository's code scanning and its publication to scorecard.dev, each action
+- **The copy on GitHub has a pull-request template and a workflow of the project's, OpenSSF Scorecard, whose result
+  the README shows.** GitHub reads `.github/`, not `.gitlab/`, and GitLab reads neither file.
+  `.github/PULL_REQUEST_TEMPLATE.md` fills a new pull request's description with the merge-request template's
+  checklist, whole, and says that a change lands on `master` only through a GitLab merge request after review, that a
+  pull request is read and, if accepted, made again on GitLab as a `batch*` branch keeping its author and sign-off,
+  and that every commit needs the sign-off trailer. `.github/workflows/scorecard.yml`, one of the two workflows of the
+  project's that GitHub Actions runs (the CodeQL entry, below), runs `ossf/scorecard-action` v2.5.0 over the copy on
+  GitHub on each push to `master`, weekly (Mondays at 04:30 UTC) and when a branch protection rule changes, read-only
+  but for its job's SARIF upload to the repository's code scanning and its publication to scorecard.dev, each action
   pinned by a full commit with its version beside it, as the repository's Actions settings require: they allow
   GitHub's own actions and `ossf/scorecard-action` alone. It builds, signs and publishes nothing of a release.
-  `build/ci/repo-hygiene.py`'s Pinned-Dependencies again holds every action a workflow under `.github/workflows/`
-  uses to a full commit, as it did until the workflows left the tree on 26 September 2026, and
+  `build/ci/repo-hygiene.py`'s Pinned-Dependencies again holds every action a workflow under `.github/workflows/` uses
+  to a full commit, as it did until the workflows left the tree on 26 September 2026, and
   `build/check-release-chain.py` counts a Markdown file under a top-level directory whose name begins with a dot as
   documentation, as the CI files' paths and `build/land-via-mr.py` already did, so that the pull-request template
   starts no job on the project's own runners by itself, as `.gitlab/`'s templates do not. On GitLab, Scorecard's
-  weekly schedule, `scorecard`, was made on 18 October 2026 (Mondays at 03:30 UTC), and its job says "not
-  configured" until the owner's `GITLAB_AUTH_TOKEN` is set. The README carries one Scorecard badge now,
-  scorecard.dev's for the copy on GitHub, which shows a score minutes after the workflow's first run on `master`;
-  the badge the project publishes for GitLab's run,
-  `https://updates.progressiverobot.com/scorecard/badge.svg`, answers 404 until the token exists and the first
-  weekly run has published, and the README takes it then. The two scores may differ, since scorecard.dev scores the
-  copy on GitHub, where the merge requests, their review, the pipelines and GitLab's protection rules are not seen
-  (ContinuousIntegration.md, "OpenSSF Scorecard").
+  weekly schedule, `scorecard`, was made on 18 October 2026 (Mondays at 03:30 UTC), and its job says "not configured"
+  until the owner's `GITLAB_AUTH_TOKEN` is set. The README carries one Scorecard badge now, scorecard.dev's for the
+  copy on GitHub, which shows a score minutes after the workflow's first run on `master`; the badge the project
+  publishes for GitLab's run, `https://updates.progressiverobot.com/scorecard/badge.svg`, answers 404 until the token
+  exists and the first weekly run has published, and the README takes it then. The two scores may differ, since
+  scorecard.dev scores the copy on GitHub, where the merge requests, their review, the pipelines and GitLab's
+  protection rules are not seen (ContinuousIntegration.md, "OpenSSF Scorecard").
 
 - **The copy on GitHub runs CodeQL from a workflow of the project's, `.github/workflows/codeql.yml`, in place of
   GitHub's default setup, so that OpenSSF Scorecard's SAST check counts it.** The check counts CodeQL from a workflow
@@ -556,9 +555,10 @@ with `--check`).
   repository and read by the maintainers. The pipelines run on GitLab and nowhere else: a release is built, signed
   and published there first and then copied to GitHub; the update feed, the package repositories and the container
   registry are GitLab's; a change lands on `master` only through a GitLab merge request (GOVERNANCE.md); the
-  project runs no pipeline on GitHub, where GitHub Actions runs one workflow of the project's, OpenSSF Scorecard's
-  (*Build and tests*, above), and GitHub's own CodeQL default setup analyses the code on each push to `master`, on
-  each pull request and weekly, and the maintainers read its findings, nothing more. The project's old release
+  project runs no pipeline on GitHub, where GitHub Actions runs two workflows of the project's, OpenSSF Scorecard's
+  and CodeQL's, which took the place of GitHub's own CodeQL default setup (*Build and tests*, above), and CodeQL
+  analyses the code on each push to `master`, on each pull request and weekly, and the maintainers read its
+  findings, nothing more. The project's old release
   workflows, `sbom.yml` in the trees of the tags from `v6.2.3` to `v6.3.3` and `build-inputs-1`, and
   `sign-release.yml` in those from `v6.2.19` and `build-inputs-1`, ran once on 18 October 2026, when the copies of
   the releases up to
@@ -605,7 +605,7 @@ with `--check`).
   is that the releases up to 6.3.3 are published with their original files, byte for byte, 6.2.0 and 6.0.0-B4 apart,
   which have none (only the suspended account, or someone's old download, has them; Roadmap3.md's row on the files
   GitLab does not have), and the sentence now gives it; the document's opening list, which said every release up to
-  6.3.3 is re-published on GitLab byte for byte, its account of what the one workflow GitHub Actions runs signs there,
+  6.3.3 is re-published on GitLab byte for byte, its account of what the workflows GitHub Actions runs sign there,
   which said the releases up to 6.3.3 are on GitLab with their original signatures, and EvidencePack.md's account of
   the move, which said the same, now say so of those two. The signed range is said exactly as well: 6.2.22-pre3's two
   SBOMs carry no bundle, and RegulatoryScope.md, SECURITY.md's *Verifying a release* and EvidencePack.md's *Sigstore*
@@ -665,6 +665,29 @@ with `--check`).
   short version, the MySQL section's account of who creates the database on each platform (the Linux
   `--create-database` also makes the schema in an empty database that exists; DBSetup does not), and step 4's "first
   start", which is the restart DBSetup asks for, follow.
+
+- **ContinuousIntegration.md's "OpenSSF Scorecard" says what the copy on GitHub scores, check by check, what moves
+  each check and what does not, and the documents say what GitHub Actions runs there and which rules hold the copy.**
+  The section has scorecard.dev's reading of 19 October 2026, 5.7 at `f14412d39` with Scorecard v5.6.0, in a table,
+  and says what moves: Branch-Protection from 3 to 9 with the ruleset of 20 October 2026 that requires a reviewed pull
+  request and CodeQL's check, measured that day, its one warning left by the push mirror's administrator bypass, which
+  the mirror needs; SAST from 0 to 10 once `.github/workflows/codeql.yml` is on `master`; and Vulnerabilities from 0
+  to 10 once PyJWT 2.15.1 and `build/ci/osv-scanner.toml` are, with a local run of Scorecard 5.6.0 over the tree that
+  gave SAST 10 and Vulnerabilities 10 and kept the other eight checks it ran where they were. It says why
+  Signed-Releases stays at 4 (6.3.5's `.cosign.bundle` files and the unsigned `build-inputs-2` among the five newest
+  releases, and provenance named `.intoto.sigstore.json` for what it is, which Scorecard counts as a signature),
+  Code-Review at 0 (no change reaches the copy through an approved pull request, and on GitLab a second person's
+  approval is left unmet by the owner's decision of 6 October 2026), Maintained at 0 until 16 January 2027, 90 days
+  after the copy was made, CII-Best-Practices at 0 (entry 14949 names the GitLab project's address), Contributors at
+  0, and CI-Tests and Packaging inconclusive; and a new paragraph says how the CodeQL workflow runs. Mirroring.md has
+  a new section, "GitHub's rules for the copy", with the six rulesets as GitHub's API gave them on 20 October 2026,
+  and its account of GitHub Actions names the two workflows and the default setup's place. README.md, CONTRIBUTING.md,
+  GOVERNANCE.md, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md, Roadmap.md, Roadmap3.md and the pull-request template,
+  and under hmailserver/docs ContinuousIntegration.md's other passages, EvidencePack.md, RegulatoryScope.md,
+  ThirdPartyBinaries.md and UpdateFeed.md, said that GitHub Actions runs one workflow of the project's there,
+  Scorecard's, and that GitHub's own CodeQL default setup analyses the code: they name the two workflows, and CodeQL
+  as GitHub's default setup at first and the workflow in its place. CONTRIBUTING.md's table of the tree lists
+  `.github/CODEOWNERS`.
 
 ---
 

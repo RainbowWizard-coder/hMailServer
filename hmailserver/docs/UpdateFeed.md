@@ -381,8 +381,9 @@ project's to keep, and because the feed is not the project's word either:
   and all record the id `1267388815`. The project's repository on GitHub since
   18 October 2026, `RainbowWizard-coder/hMailServer`, ran the old release
   workflows of the copied tags once that day and has had them disabled since
-  ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)), and the one workflow of the
-  project's that runs there, OpenSSF Scorecard's, signs no release file; a
+  ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)), and the two workflows of the
+  project's that run there, OpenSSF Scorecard's and CodeQL's, sign no release
+  file; a
   certificate for a workflow there names another identity and another repository
   id, which no server trusts, so it changes nothing here.
 - **The GitLab signer is held to the project, not the path.** The project

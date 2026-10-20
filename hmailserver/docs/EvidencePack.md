@@ -515,9 +515,11 @@ project rule ([CONTRIBUTING.md](../../CONTRIBUTING.md)), and
 CodeQL ran on GitHub until 18 September 2026 - the C# tools on every push and
 pull request, the C++ server on every push to `master`, weekly and on demand
 ([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md)) - and does not run on GitLab;
-since 18 October 2026 GitHub's own CodeQL default setup analyses the code at
+since 18 October 2026 CodeQL analyses the code at
 <https://github.com/RainbowWizard-coder/hMailServer> on each push to `master`, on
-each pull request and weekly, and the maintainers read its findings; no pipeline of the project's runs on GitHub. CodeQL has also
+each pull request and weekly - GitHub's default setup at first, and then the
+workflow `.github/workflows/codeql.yml` in its place - and the maintainers read
+its findings; no pipeline of the project's runs on GitHub. CodeQL has also
 been run by hand, which is how 6.2.10's COM authorisation defects were found.
 More than thirty checkers under `build/` hold rules that past
 defects taught (CONTRIBUTING.md, *The checkers*). What runs now, and the
@@ -805,10 +807,11 @@ Not in place, in one list
 * CI on GitLab blocking on the security scans: they run on the project's own
   runner but do not fail a pipeline yet ([ContinuousIntegration.md](ContinuousIntegration.md)).
 * CodeQL as a job of the project's own, the dependency review and the nightly
-  fuzzing: none has run since 18 September 2026. Since 18 October 2026 GitHub's
-  own CodeQL default setup analyses the code of the project's new GitHub
-  repository on each push to `master`, on each pull request and weekly, and the
-  maintainers read its findings.
+  fuzzing: none has run since 18 September 2026. Since 18 October 2026 CodeQL
+  analyses the code of the project's new GitHub repository on each push to
+  `master`, on each pull request and weekly - GitHub's default setup at first,
+  and then the workflow `.github/workflows/codeql.yml` - and the maintainers read
+  its findings.
 * Fuzz harnesses beyond MIME.
 * Versions for the Linux packages' system libraries at run time: each package's
   own SBOM names the version it was built against and the range it requires, and
