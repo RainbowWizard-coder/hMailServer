@@ -333,6 +333,16 @@ with `--check`).
   entries, such as a package override that would hide a package's advisories with no id; CONTRIBUTING.md lists it with
   the other checkers.
 
+- **The VEX document declares the vendored zlib 1.3.2 not affected by CVE-2026-85091, a heap buffer overflow in
+  `gz_vacate`.** OSV's record of the advisory (GHSA-g5fp-32jq-cfw2) gives zlib 1.3.1.2 to 1.3.2, no fixed version and
+  a CVSS 4.0 vector alone, which rates it 8.3, High; `dependency-scan` listed it against
+  `hmailserver/source/Server/zlib` on 20 October 2026, and `dependency-scan-verdict` failed on it. `gz_vacate` is a
+  local function of `gzwrite.c`, the writer of zlib's gzip file interface, which `gzprintf` and `gzvprintf` call after
+  a `gzwrite` to a non-blocking destination has stalled. `gzwrite.c` is not vendored, neither `hMailServer.vcxproj`
+  nor the build of the MariaDB client the x64 installer ships compiles any of zlib's `gz*.c` files, the Linux build
+  links the distribution's zlib, and no hMailServer source calls a `gz*` function. Run against api.osv.dev on the same
+  day with `--skip-trivy`, the scan lists the advisory as dismissed in the VEX document, and its verdict passes.
+
 - **The copy on GitHub names its code owner, `.github/CODEOWNERS`.** GitHub reads the file from `.github/`, the root
   or `docs/`, never from `.gitlab/`, and a file with no owner needs no code owner's approval, so the code-owner review
   that `master`'s ruleset there has required since 20 October 2026 held no pull request while the tree had only
