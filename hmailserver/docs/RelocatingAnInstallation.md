@@ -56,7 +56,9 @@ whether yours does, and converts them before anything is copied.
    (`Common/Diagnostics/TestDataDirectory.cpp:31`). If it reports
    `ERROR: Full paths are stored in the database`, the move is still possible, but
    those paths are converted **now, on this installation, before step 2** - after
-   the copy they no longer can be:
+   the copy they no longer can be. Where it also reports
+   `Messages exists which are located outside of the data directory`, begin with
+   the third point:
 
    - With the service running, run the **Data Directory Synchronizer**
      (`<old root>\Addons\DataDirectorySynchronizer\DataDirectorySynchronizer.exe`,
@@ -78,24 +80,68 @@ whether yours does, and converts them before anything is copied.
      data directory `DataFolder` names: `PersistentMessage::GetMessageID` looks the
      file up by its partial name and then by its full path as found. A row that
      names a file outside the data directory - the diagnostic's other error,
-     `Messages exists which are located outside of the data directory` - is
-     converted by putting `DataFolder` back to the folder it names, restarting
-     the service and running the synchronizer there, and the two folders are then
-     brought together, as the server's own message about such a row says: stop
-     the service, copy that folder over the data folder you were using
-     (`robocopy "<folder the rows named>" "<data folder>" /E`), put `DataFolder`
-     back to the data folder you were using and start the service. Until then the
-     file of a message whose row holds a partial name is looked for below the
-     folder the rows named, where that of each message written since the data
-     left it is not. Where the diagnostic reports this error, do this before the
-     run the first point describes: the data folder you were using can hold a
-     copy, left by that move, of a file such a row names, which that run would
-     take for one no row names and import a second time. Before the run in the
-     folder the rows named, delete from the data folder you were using its copy,
-     at the same place, of each file outside the layout there, as step 8 does and
-     for the same reason; and a copy that move left of a message deleted since is
-     imported again by the run in the folder that holds it, as any file no row
-     names is.
+     `Messages exists which are located outside of the data directory` - names a
+     folder the data was in before an earlier move, and is converted in that
+     folder, as the server's own message about such a row says. Do that before
+     the run the first point describes: the data folder you were using can hold a
+     copy, left by the earlier move, of a file such a row names, which that run
+     would take for one no row names and import a second time. In this order,
+     with `hMailServer.exe /ProtectFolders` run from `Bin` after each edit of
+     `hMailServer.ini`, as step 6 says:
+
+     1. **Let the service write that folder.** A service that runs as anything
+        but LocalSystem (step 6) needs Modify there. `/GrantServiceAccess` gives
+        it that on the program folder's own `Data`, and on another folder once
+        approved - from an elevated prompt in `Bin`,
+        `hMailServer.exe --approve-modify "<folder the rows named>" /GrantServiceAccess`
+        ([ServiceAccount.md](ServiceAccount.md), *Approving a folder*). A folder
+        that is never granted - one in a Program Files folder, such as an earlier
+        installation's `Data` in `C:\Program Files (x86)` - is listed `REFUSED`:
+        run the service as LocalSystem for points 3 and 4 instead, and move it
+        back after them (ServiceAccount.md, *Moving it, and going back*). Without
+        Modify the synchronizer cannot move a file outside the layout there, and
+        lists that file as skipped, as it does each file the service's account
+        may not read.
+     2. **Delete from the data folder you were using its copy**, at the same
+        place, of each file outside the layout in the folder the rows named. The
+        run moves each of those under a new name, and the copy back in point 4
+        removes nothing, so the copy would stay under the old name, where no row
+        names it, for a later run to import as a new message - or, in `#Public`,
+        to list as skipped (step 8). Do it now, while those files still have the
+        names their copies have.
+     3. **Hold the mail still, then convert.** While `DataFolder` names the other
+        folder, the file of each message written since the data left it is not
+        there: a queued one is deleted when it is tried (`HM5006`,
+        `SMTPDeliverer::DeliverMessage`), and one a client opens over IMAP or POP3
+        is given a placeholder there, under its name, and its row the
+        placeholder's size (`PersistentMessage::EnsureFileExistance`). So untick
+        *SMTP server*, *IMAP server* and *POP3 server* on
+        *Connections & protocols → Protocols*, *Services*, save, restart the
+        service, and wait until *Monitoring & troubleshooting → Delivery queue*
+        is empty. Then put `DataFolder` at the folder the rows named, run
+        `/ProtectFolders`, restart the service and run the synchronizer there as
+        the first point says. As it does with any file no row names, it imports
+        again each copy the earlier move left there of a message deleted or
+        delivered since, a queued one to be delivered again to its local
+        recipients.
+     4. **Bring the two folders together**, as the server's message goes on to
+        say: stop the service, give the data folder you were using what the
+        folder the rows named has and it lacks
+        (`robocopy "<folder the rows named>" "<data folder>" /E /XC /XN /XO`,
+        which replaces nothing there: a plain `/E` copies over the file in use
+        each file whose size or time differs, an older copy of a file changed
+        since or a placeholder among them), put `DataFolder` back to the data
+        folder you were using, run `/ProtectFolders` and start the service. Then
+        tick the three services again, save, and restart the service.
+     5. **Run the diagnostic.** Where it reports relative paths for all messages,
+        the conversion is done and the run the first point describes is not
+        needed: on the data folder you were using it would convert nothing, and
+        would import each file there that no row names, each copy the earlier
+        move left of a message deleted or delivered since among them. Where it
+        still reports full paths, the rows left name a file below the data folder
+        you were using, which that run converts, or one the run in the other
+        folder listed as skipped or did not find, which only a run there
+        converts, once the file is where its row names it and point 1 is done.
    - Run the diagnostic again. It should report that relative message paths are
      stored for all messages before you go on.
 
@@ -381,25 +427,31 @@ tree, and the moved server reads them there - a full path is used as it is
 12). Do not run the Data Directory Synchronizer against the new data directory:
 none of those rows matches a file there, and it would import each of those
 messages again (step 0). Instead, as the server's own message about such a row
-says (`MessageStoreMaintenance.cpp`): put `DataFolder` in the new
-`hMailServer.ini` back to the old data folder and restart the service, delete
-from the new data folder its copy of each file the old one holds outside the
-layout (step 0), run the synchronizer there as step 0 does, stop the service,
-copy the old data folder over the new one again
-(`robocopy "<old data folder>" "<new data folder>" /E`), put `DataFolder` back
-to the new data folder, run `hMailServer.exe /ProtectFolders` from the new `Bin`
-again for the file you edited (step 6), and start the service. The synchronizer
-is the supported converter; an `UPDATE hm_messages SET ...` is not, because the
-rows are not uniform and the file layout is derived, not stored.
+says (`MessageStoreMaintenance.cpp`), convert them in the old data folder the way
+step 0 converts a row that names a file outside the data directory, the old data
+folder being the folder the rows named and the new one the data folder you were
+using. Step 0's points 2 to 4 apply as they stand; its point 1 is not needed,
+since the account the service runs as wrote the old data folder before the move,
+and nothing since has changed what it may do there. So the new data folder's
+copy of each file the old one holds outside the layout is deleted first, the mail
+is held still, `DataFolder` in the new `hMailServer.ini` is put back to the old
+data folder and the synchronizer run there; then the service is stopped, the new
+data folder given what the old one has and it lacks
+(`robocopy "<old data folder>" "<new data folder>" /E /XC /XN /XO`) and
+`DataFolder` put back to it. After each of the two edits of the file, run
+`hMailServer.exe /ProtectFolders` from the new `Bin` before the service starts
+on it (step 6), and at the end run the diagnostic again. The synchronizer is the
+supported converter; an `UPDATE hm_messages SET ...` is not, because the rows are
+not uniform and the file layout is derived, not stored.
 
 Those copies go before the run because the synchronizer first moves under a new
-name each file outside the layout that it converts or imports, and `/E` adds and
-refreshes and removes nothing: the copy step 3 made would stay in the new data
-folder under the old name, where no row names it - a partial name names a file
-in the layout alone (`PersistentMessage::GetFileName`) - and a later run of the
-synchronizer's import mode on the moved server would import each one in an
-account's folder as a new message in its Inbox, as it does any file no row names,
-and, with the public folders included, list each one in `#Public` as skipped.
+name each file outside the layout that it converts or imports, and the copy back
+removes nothing: the copy step 3 made would stay in the new data folder under the
+old name, where no row names it - a partial name names a file in the layout alone
+(`PersistentMessage::GetFileName`) - and a later run of the synchronizer's import
+mode on the moved server would import each one in an account's folder as a new
+message in its Inbox, as it does any file no row names, and, with the public
+folders included, list each one in `#Public` as skipped.
 
 Nor does this put right what the moved server has done since it started, which is
 why the check comes at once. The old data folder still holds its copy of each file
