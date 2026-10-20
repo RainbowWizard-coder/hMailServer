@@ -397,10 +397,21 @@ be changed, while the copies, published before the switch, can.
   It says `Verified OK` only when the file's SHA-256 is one the statement names and the statement was signed by that
   identity, at the group's path, where every release that carries a provenance (from 6.3.6) is signed. To read
   the statement itself: `jq -r .dsseEnvelope.payload hmailserver-x.y.z.intoto.sigstore.json | base64 -d | jq .`.
-  The file is named for what it is, a Sigstore bundle (`.sigstore.json`, the name Sigstore's clients take), and not
-  `.intoto.jsonl`, the SLSA generator's name for JSON Lines of bare DSSE envelopes, which the GitHub releases up to
-  6.3.3 carried: OpenSSF Scorecard, which reads a file's name alone, counts it as a signature rather than as
-  provenance, and a copy under the other name would misdescribe its format to get the higher score.
+  The file is named for what it is, a Sigstore bundle (`.sigstore.json`, the name Sigstore's clients take).
+
+  From the release after 6.3.7 the release also carries `hmailserver-<version>.intoto.jsonl`: the bundle's DSSE
+  envelope alone - the statement and its one signature, each as the bundle has it - as one line of JSON. That is the
+  form in-toto's attestation specification gives a bundle of attestations, JSON Lines with one DSSE envelope a line
+  in a file named `.intoto.jsonl`, and the form of the SLSA generator's provenance on the GitHub releases up to
+  6.3.3. It is not a second signature: the release pipeline writes it from the Sigstore bundle after signing, and
+  holds it to the bundle byte for byte before the release is published. It carries neither the certificate that
+  verifies its signature nor the transparency log's entry, which only the bundle carries - the log's dsse entry, in
+  the bundle, records that signature with the certificate and the SHA-256 of the statement - so verify with the
+  bundle, as above, and read the line as the same envelope: `jq -c .dsseEnvelope
+  hmailserver-x.y.z.intoto.sigstore.json` and `jq -c . hmailserver-x.y.z.intoto.jsonl` print the same line. It is
+  there because OpenSSF Scorecard's Signed-Releases check, which reads a file's name alone, counts a release's
+  provenance only from a file of that name, and counts the bundle as a signature; the releases up to 6.3.7 carry
+  the bundle alone.
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed, and from 6.3.6 the PowerShell
   module's `HmailServer.psd1` and `HmailServer.psm1` in the release; the Linux packages are not.

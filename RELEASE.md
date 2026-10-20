@@ -236,9 +236,12 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    the twenty-seven SBOMs of the compiled files and the tarball, and the tree's two.
    Each primary file's bundle goes out a second time as `<file>.sigstore.json`,
    and `hmailserver-X.Y.Z.intoto.sigstore.json` is the provenance, signed as the
-   pipeline with `cosign attest-blob`: 160 links in all. `release-sign` finds every
-   file in the provenance with cosign, and `release-verify` holds the provenance
-   and the copies to the files. Read `release-verify`'s `verification.md`: the identity must
+   pipeline with `cosign attest-blob`; from the release after 6.3.7,
+   `hmailserver-X.Y.Z.intoto.jsonl` is the provenance's DSSE envelope again alone,
+   as one line of JSON, which `release-verify` writes from the bundle (no second
+   signature): 161 links in all. `release-sign` finds every file in the provenance
+   with cosign, and `release-verify` holds the provenance and the copies to the
+   files and the `.intoto.jsonl` to the provenance's bundle byte for byte. Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
    the group's path the project has been at since 29 September 2026 (6.3.5,
    before the move, was signed as `https://gitlab.com/Progressiverobot/hmailserver//...`),
@@ -258,11 +261,12 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    started it, and the package protection rules let only an Owner push to the
    package `hmailserver`: started by anyone else, its uploads are refused
    (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
-   It uploads the release's 160 files - the sixty-two, their bundles, the
-   `.sigstore.json` copies and the provenance - to
+   It uploads the release's 161 files - the sixty-two, their bundles, the
+   `.sigstore.json` copies, the provenance and its `.intoto.jsonl` - to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, a copy that is
-   not its bundle, a provenance that does not name every file, a link GitLab
+   not its bundle, a provenance that does not name every file, a `.intoto.jsonl`
+   that is not the provenance's envelope byte for byte, a link GitLab
    would refuse, a site Pages or a server would not read whole, and a name
    the package holds with other bytes, and not sending again a file it holds
    with the same bytes - reads every record of each name back and holds it to
@@ -315,7 +319,9 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
 has created it here, is copied by hand to the project's GitHub repository,
 <https://github.com/RainbowWizard-coder/hMailServer/releases>, with the same
 files byte for byte, each checked against the SHA-256 the package
-`hmailserver/X.Y.Z` records for it, and the same notes (6.3.6's and 6.3.7's,
+`hmailserver/X.Y.Z` records for it - from the release after 6.3.7
+`hmailserver-X.Y.Z.intoto.jsonl` among them, the one file OpenSSF Scorecard's
+Signed-Releases check counts there as the release's provenance - and the same notes (6.3.6's and 6.3.7's,
 longer than GitHub's limit of 125,000 characters, are cut at it there and
 attached whole as a file). GitHub writes `.` where a file name has `~`, so the
 per-distribution `.deb` files are renamed there; no server reads that copy,
@@ -339,9 +345,10 @@ as `release` does, from the same jobs - the version is `Version.h`'s, and the x6
 installer `windows-packages-x64`'s, built under its commit-stamped name, since
 `windows-installer` runs for a `v*` tag alone - and counts what GitLab and Pages
 would take; `release-rehearsal-sign` signs every file, makes each copy and attests
-the provenance with Sigstore as the branch; `release-rehearsal-verify` holds every
-SBOM, copy and the provenance to the files, and has the server's own verifier read
-each bundle and refuse it at the identity. Servers trust `v*` tags alone, so what a
+the provenance with Sigstore as the branch; `release-rehearsal-verify` writes the
+provenance's `.intoto.jsonl` as `release-verify` does, holds every SBOM, copy and the
+provenance to the files and the `.intoto.jsonl` to the provenance's bundle, and has
+the server's own verifier read each bundle and refuse it at the identity. Servers trust `v*` tags alone, so what a
 rehearsal signs installs nowhere, and it publishes nothing: no job of it uses the
 job token GitLab gives every job, and `release-chain.py` refuses `--rehearse` with
 `publish`. What it does not rehearse is the tag's own checks, the registry and

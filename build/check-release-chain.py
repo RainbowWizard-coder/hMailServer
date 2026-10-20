@@ -2717,6 +2717,56 @@ def check(texts, chain, feed):
     if rehearsal_call not in verify_text or release_call not in verify_text:
         problems.append("build/ci/release-verify.sh no longer holds the .sigstore.json copies and the provenance to the files "
                         "(build/ci/release-chain.py check-provenance), for a rehearsal with --rehearse and for a release without")
+    # The provenance's envelope again alone as one line, hmailserver-<version>.intoto.jsonl,
+    # the one name OpenSSF Scorecard counts as provenance: made by release-verify.sh from
+    # release-sign's bundle (build/ci/release-chain.py provenance-line) after the server's
+    # verifier has read every file - one of that name there before is removed first, so
+    # the loop never takes it for a file of the release - and before check-provenance,
+    # which holds it to the bundle byte for byte, for a rehearsal and for a release;
+    # carried to release-publish by release-verify's artifact, which carries nothing
+    # else of release-signed/; and held again by publish before any upload.
+    if chain.provenance_line_name("${version}") != "hmailserver-${version}.intoto.jsonl" or \
+            'line="hmailserver-${version}.intoto.jsonl"' not in verify_text:
+        problems.append("build/ci/release-chain.py names the provenance's envelope %s, and release-verify.sh does not name "
+                        "it hmailserver-${version}.intoto.jsonl as it does" % chain.provenance_line_name("${version}"))
+    line_name = chain.provenance_line_name("9.9.9")
+    if line_name not in chain.release_files("9.9.9") or chain.is_primary(line_name) or chain.link_type(line_name) != "other":
+        problems.append("build/ci/release-chain.py's release_files does not carry %s as a signature of the release, linked as "
+                        "other" % line_name)
+    loop_at = verify_text.find('for file in "$signed"/*; do')
+    removed_at = verify_text.find('\nrm -f "$signed/$line"\n')
+    if removed_at < 0 or loop_at < 0 or removed_at > loop_at:
+        problems.append("build/ci/release-verify.sh no longer removes a .intoto.jsonl it did not make before the verifier's loop "
+                        "reads release-signed/")
+    line_calls = [verify_text.find(call) for call in (
+        'if [ -n "$rehearse" ]; then\n  python3 build/ci/release-chain.py provenance-line --assets "$signed" --rehearse \\\n    || fail ',
+        'else\n  python3 build/ci/release-chain.py provenance-line --assets "$signed" \\\n    || fail ')]
+    check_calls = [verify_text.find(call) for call in (rehearsal_call, release_call)]
+    counted_at = verify_text.find('[ "$verified" -eq 62 ]')
+    if min(line_calls) < 0 or counted_at < 0 or min(line_calls) < counted_at or min(check_calls) < 0 or max(line_calls) > min(check_calls):
+        problems.append("build/ci/release-verify.sh no longer writes the provenance's envelope as one line "
+                        "(build/ci/release-chain.py provenance-line), for a rehearsal with --rehearse and for a release without, "
+                        "after the server's verifier has read every file and before check-provenance holds it")
+    main_text_ = function_text(texts["chain"], "main")
+    made_at = main_text_.find('if args.command == "provenance-line":')
+    checked_at = main_text_.find('if args.command == "check-provenance":')
+    if made_at < 0 or "write_provenance_line(os.path.join(ROOT, args.assets), version)" not in main_text_[made_at:checked_at if checked_at > made_at else None] \
+            or checked_at < 0 or "provenance_line_problems(assets, version)" not in main_text_[checked_at:main_text_.find('if args.command == "publish":')]:
+        problems.append("build/ci/release-chain.py's provenance-line no longer writes the provenance's envelope as one line, or "
+                        "its check-provenance no longer holds that line to the bundle (provenance_line_problems)")
+    if "provenance_line_name(version)" not in function_text(texts["chain"], "check_registry_before_signing"):
+        problems.append("build/ci/release-chain.py's collect lets the registry hold the provenance's .intoto.jsonl before it "
+                        "is signed: a second signing never makes the same bytes")
+    rehearsal_verify = blocks(texts["rehearsal"]).get("release-rehearsal-verify", "")
+    for name, text in (("release-verify", jobs["release-verify"]), ("release-rehearsal-verify", rehearsal_verify)):
+        kept = re.findall(r"^      - (release-signed/\S*)\s*$", text, re.MULTILINE)
+        if kept != ["release-signed/*.intoto.jsonl"]:
+            problems.append("%s keeps %s of release-signed/, not release-signed/*.intoto.jsonl alone: the provenance's envelope "
+                            "as one line would not reach release-publish, or the job would hand on release-sign's files" % (
+                                name, kept or "nothing"))
+    if not re.search(r"artifacts: true", need_entries(jobs["release-publish"]).get("release-verify", "")):
+        problems.append("release-publish does not bring release-verify's artifacts: the provenance's .intoto.jsonl and the "
+                        "notes' verification would not reach it")
     refusal = "The certificate names {0}, not this repository's release workflow."
     if refusal not in texts["verifier"] or '[ "$code" -ne 0 ] || fail' not in verify_text or \
             '*"The certificate names $identity, not this repository\'s release workflow."*) ;;' not in verify_text:
@@ -2724,8 +2774,8 @@ def check(texts, chain, feed):
                         "rehearsal bundle at its identity, with SigstoreVerifier.cpp's words (%s)" % refusal)
     publish_text = function_text(texts["chain"], "publish")
     first_put = publish_text.find('api.request("PUT"')
-    for needle in ("copy_problems(assets, version)", "provenance_problems(", "link_problems(release_links(version, wanted), description)",
-                   "check_budget(api, tag, version, digests"):
+    for needle in ("copy_problems(assets, version)", "provenance_problems(", "provenance_line_problems(assets, version)",
+                   "link_problems(release_links(version, wanted), description)", "check_budget(api, tag, version, digests"):
         at = publish_text.find(needle)
         if at < 0 or first_put < 0 or at > first_put:
             problems.append("build/ci/release-chain.py's publish uploads before it has held the release to %s" % needle)
@@ -2994,7 +3044,7 @@ def check(texts, chain, feed):
         if name not in rehearsal:
             problems.append("%s has no %s job" % (FILES["rehearsal"], name))
     main_text = function_text(texts["chain"], "main")
-    if 'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):' not in main_text or \
+    if 'if args.rehearse and args.command not in ("collect", "sbom", "provenance-line", "check-provenance"):' not in main_text or \
             'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=None, rehearse=True)' not in main_text:
         problems.append("build/ci/release-chain.py takes --rehearse with a command that publishes or gathers, or gives a "
                         "rehearsal's collect the job's token")
@@ -7778,6 +7828,51 @@ def self_test(chain, feed):
     broken("a rehearsal's provenance checked as a release's", "verify",
            'check-provenance --assets "$signed" --rehearse', 'check-provenance --assets "$signed"', "check-provenance")
     broken("a rehearsal bundle the server accepts", "verify", '[ "$code" -ne 0 ] || fail', 'true || fail', "no longer requires the server's verifier to refuse")
+    # The provenance's envelope as one line.
+    broken("the envelope's line under another name", "verify", 'line="hmailserver-${version}.intoto.jsonl"',
+           'line="hmailserver-${version}.jsonl"', "does not name it hmailserver-${version}.intoto.jsonl")
+    broken("a line left from before kept", "verify", '\nrm -f "$signed/$line"\n', "\n", "no longer removes a .intoto.jsonl")
+    broken("the release's line not made", "verify",
+           'else\n  python3 build/ci/release-chain.py provenance-line --assets "$signed" \\\n    || fail ', "else\n  true \\\n    || fail ",
+           "no longer writes the provenance's envelope as one line")
+    broken("the rehearsal's line not made", "verify", 'provenance-line --assets "$signed" --rehearse', 'check-provenance --assets "$signed" --rehearse',
+           "no longer writes the provenance's envelope as one line")
+    broken("the line made after check-provenance", "verify",
+           '# The provenance\'s DSSE envelope, the one in release-sign\'s bundle, written again alone\n',
+           'if [ -n "$rehearse" ]; then\n'
+           '  python3 build/ci/release-chain.py check-provenance --assets "$signed" --rehearse \\\n    || fail x\nelse\n'
+           '  python3 build/ci/release-chain.py check-provenance --assets "$signed" \\\n    || fail x\nfi\n'
+           '# The provenance\'s DSSE envelope, the one in release-sign\'s bundle, written again alone\n',
+           "no longer writes the provenance's envelope as one line")
+    broken("the line not held by check-provenance", "chain",
+           'problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \\\n'
+           '                provenance_line_problems(assets, version)',
+           'problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \\\n'
+           '                []', "no longer holds that line to the bundle")
+    broken("provenance-line writing nothing", "chain", "            write_provenance_line(os.path.join(ROOT, args.assets), version)\n",
+           "            pass\n", "no longer writes the provenance's envelope as one line")
+    broken("publish uploading before the line is held", "chain", "        provenance_line_problems(assets, version)\n    if unfit:",
+           "        []\n    if unfit:", "held the release to provenance_line_problems(assets, version)")
+    broken("the registry holding a line before signing", "chain",
+           "[provenance_name(version), provenance_line_name(version)]\n    for name in signed_later:",
+           "[provenance_name(version)]\n    for name in signed_later:", "lets the registry hold the provenance's .intoto.jsonl")
+    broken("release-verify keeping no line", "ci", "      - release-verified/\n      - release-signed/*.intoto.jsonl\n",
+           "      - release-verified/\n", "release-verify keeps nothing of release-signed/")
+    broken("release-verify handing on release-sign's files", "ci", "      - release-signed/*.intoto.jsonl\n",
+           "      - release-signed/*.intoto.jsonl\n      - release-signed/\n", "release-verify keeps")
+    broken("the rehearsal's verify keeping no line", "rehearsal", "      - release-signed/*.intoto.jsonl\n", "",
+           "release-rehearsal-verify keeps nothing of release-signed/")
+    broken("release-publish without release-verify's artifacts", "ci",
+           "    - job: release-verify\n      artifacts: true\n  timeout: 30 minutes", "    - job: release-verify\n      artifacts: false\n  timeout: 30 minutes",
+           "release-publish does not bring release-verify's artifacts")
+    held_line = chain.provenance_line_name
+    try:
+        chain.provenance_line_name = lambda version: "hmailserver-%s.intoto.sigstore.jsonl.json" % version
+        found, _ = check(texts, chain, feed)
+        if not any("names the provenance's envelope" in p for p in found):
+            failures.append("the envelope's line named otherwise in release-chain.py is caught: %s" % found)
+    finally:
+        chain.provenance_line_name = held_line
     broken("publish uploading before the provenance is held", "chain", "provenance_problems(\n        assets, version,",
            "list(\n        assets, version,", "held the release to provenance_problems(")
     broken("publish uploading without the budget", "chain", "    unfit = check_budget(api, tag, version, digests,", "    unfit = list(api, tag, version, digests,",
@@ -7919,8 +8014,9 @@ def self_test(chain, feed):
            "the ARM64 installer taken signed")
     broken("a job of the rehearsal's file that is not the rehearsal's", "rehearsal", "\nrelease-rehearsal-verify:\n",
            "\nrelease-rehearsal-publish:\n  script: [true]\n\nrelease-rehearsal-verify:\n", "is not the rehearsal's")
-    broken("--rehearse taken with publish", "chain", 'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):',
-           'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance", "publish"):', "takes --rehearse with a command")
+    broken("--rehearse taken with publish", "chain", 'if args.rehearse and args.command not in ("collect", "sbom", "provenance-line", "check-provenance"):',
+           'if args.rehearse and args.command not in ("collect", "sbom", "provenance-line", "check-provenance", "publish"):',
+           "takes --rehearse with a command")
     broken("a rehearsal's collect given the job's token", "chain",
            'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=None, rehearse=True)',
            'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=GitLab(token), rehearse=True)',

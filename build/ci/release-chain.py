@@ -65,19 +65,27 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             Authenticode signed them, the module each the tree's bytes with one
             signature block appended - for release-sign to attest.
 
+  provenance-line
+            (release-verify) the provenance's DSSE envelope, the one in its
+            Sigstore bundle, written again alone as one line of JSON,
+            hmailserver-<version>.intoto.jsonl (provenance_line_name): no new
+            signature, and neither the certificate nor the log entry, which the
+            bundle alone carries.
+
   check-provenance
-            (release-verify) each primary file's .sigstore.json is its bundle, and
-            the provenance names every file of the release and nothing else, built
-            by this pipeline from this commit.
+            (release-verify) each primary file's .sigstore.json is its bundle, the
+            provenance names every file of the release and nothing else, built
+            by this pipeline from this commit, and the .intoto.jsonl is the
+            provenance's envelope.
 
   publish   every signed file, its <file>.cosign.bundle, each primary file's
-            <file>.sigstore.json and the provenance uploaded to the generic
+            <file>.sigstore.json, the provenance and its .intoto.jsonl uploaded to the generic
             package hmailserver/<version> of this project, read back from the
             registry and held to the SHA-256 it was signed with - nothing is
             uploaded while the package holds a file of that name with other bytes,
             and a file it holds with the same bytes, from an earlier run of the job,
-            is not uploaded again - once every compiled file's SBOM, every copy and
-            the provenance have been held to the files, and every link and the site
+            is not uploaded again - once every compiled file's SBOM, every copy,
+            the provenance and its .intoto.jsonl have been held to the files, and every link and the site
             to what GitLab and Pages take - then the GitLab
             release created with one link per file, named after the file, which is
             what build/generate-update-feed.py and every server require, the two
@@ -106,6 +114,7 @@ Usage, from the repository root:
   python3 build/ci/release-chain.py gather [--out release-packages]
   python3 build/ci/release-chain.py collect [--rehearse] [--out release-assets]
   python3 build/ci/release-chain.py sbom [--rehearse] [--out release-sbom]
+  python3 build/ci/release-chain.py provenance-line [--rehearse] [--assets release-signed]
   python3 build/ci/release-chain.py check-provenance [--rehearse] [--assets release-signed]
   python3 build/ci/release-chain.py publish [--assets release-signed] [--verification release-verified/verification.md]
   python3 build/ci/release-chain.py --self-test      no network, no git, no token
@@ -277,6 +286,77 @@ def statement_name(version):
     return "hmailserver-%s.intoto.json" % version
 
 
+# The provenance's DSSE envelope again, alone, as one line of JSON: the form of an
+# in-toto attestation bundle, JSON Lines of DSSE envelopes, named *.intoto.jsonl
+# (in-toto's attestation specification, "Bundle layer specification"), as the SLSA
+# generator's provenance on the GitHub releases up to 6.3.3 was. It is also the one
+# name OpenSSF Scorecard's Signed-Releases check counts as provenance (its probe
+# releasesHaveProvenance, which reads an asset's name alone).
+PROVENANCE_LINE = ".intoto.jsonl"
+
+
+def provenance_line_name(version):
+    """The provenance's envelope as one line (provenance_line), from the release after
+    6.3.7: made by release-verify from the bundle release-sign wrote, so no second
+    signature - the envelope is the one cosign attest-blob signed - and neither the
+    certificate nor the log entry, which the bundle alone carries. Like the bundle,
+    it has no bundle of its own and is in no sums."""
+    return "hmailserver-%s%s" % (version, PROVENANCE_LINE)
+
+
+def provenance_line(bundle_path):
+    """The bytes of the provenance's .intoto.jsonl: the bundle's dsseEnvelope - its
+    payload, payloadType and signature, each member with the value the bundle gives it
+    and in the bundle's order - written as one line of JSON with no space between its
+    tokens, ending in a line feed. It is not cut out of the bundle's bytes: a Sigstore
+    bundle is written with Go's protojson, which says its output is not stable (6.3.7's
+    has a space after each of its 32 commas), so the envelope is read as JSON and
+    written again. Raises OSError or ValueError when the bundle holds no envelope this
+    can read."""
+    with open(bundle_path, encoding="utf-8") as f:
+        # A key twice is refused, as cosign refuses it: Python's json would take the last.
+        bundle = json.load(f, object_pairs_hook=sigstore_certificate.unique_keys)
+    envelope = bundle.get("dsseEnvelope") if isinstance(bundle, dict) else None
+    if not isinstance(envelope, dict) or not isinstance(envelope.get("payload"), str) \
+            or not isinstance(envelope.get("payloadType"), str) or not isinstance(envelope.get("signatures"), list) \
+            or not envelope["signatures"]:
+        raise ValueError("it holds no DSSE envelope with a payload, a payloadType and a signature")
+    return (json.dumps(envelope, separators=(",", ":"), ensure_ascii=True) + "\n").encode("ascii")
+
+
+def write_provenance_line(assets, version):
+    """release-verify's provenance-line: assets/provenance_line_name, made from
+    assets/provenance_name, which release-sign attested and checked with cosign."""
+    path = os.path.join(assets, provenance_line_name(version))
+    try:
+        line = provenance_line(os.path.join(assets, provenance_name(version)))
+    except (OSError, ValueError) as e:
+        raise ReleaseError("%s could not be made from %s: %s" % (provenance_line_name(version), provenance_name(version), e))
+    with open(path, "wb") as f:
+        f.write(line)
+    say("  %s: the DSSE envelope of %s as one line of JSON, %d bytes" % (provenance_line_name(version), provenance_name(version),
+                                                                         len(line)))
+    return path
+
+
+def provenance_line_problems(assets, version):
+    """The .intoto.jsonl in assets is the envelope of the provenance beside it, byte for
+    byte as provenance_line makes it: that one envelope, on one line, and nothing else."""
+    name, bundle = provenance_line_name(version), provenance_name(version)
+    path = os.path.join(assets, name)
+    if not os.path.isfile(path):
+        return ["%s is not here: release-verify makes it from %s" % (name, bundle)]
+    try:
+        wanted = provenance_line(os.path.join(assets, bundle))
+    except (OSError, ValueError) as e:
+        return ["%s cannot be held to %s: %s" % (name, bundle, e)]
+    with open(path, "rb") as f:
+        held = f.read()
+    if held != wanted:
+        return ["%s is not the DSSE envelope of %s as one line of JSON, byte for byte" % (name, bundle)]
+    return []
+
+
 def tarball_name(version):
     """The source tarball, build/ci/source-tarball.sh's (docs/SourceTarball.md)."""
     return "hmailserver-%s.tar.gz" % version
@@ -423,11 +503,12 @@ def expected_assets(version):
 
 def release_files(version):
     """Every file a release is: expected_assets, a bundle beside each, a .sigstore.json
-    copy of each primary file's bundle, and the provenance. What release-publish
+    copy of each primary file's bundle, the provenance and, from the release after
+    6.3.7, its envelope as one line (provenance_line_name). What release-publish
     uploads and links, and nothing else."""
     expected = expected_assets(version)
     return expected + [n + BUNDLE for n in expected] + [n + BUNDLE_COPY for n in primary_assets(version)] + [
-        provenance_name(version)]
+        provenance_name(version), provenance_line_name(version)]
 
 
 def sums_members(version):
@@ -624,8 +705,8 @@ def sbom_problems(directory, version, names=None):
 
 def is_primary(name):
     """Not a signature: neither a bundle nor a bundle's .sigstore.json copy (nor the
-    provenance, which is a bundle too)."""
-    return not name.endswith((BUNDLE, BUNDLE_COPY))
+    provenance, which is a bundle too, nor its envelope's .intoto.jsonl)."""
+    return not name.endswith((BUNDLE, BUNDLE_COPY, PROVENANCE_LINE))
 
 
 def permalink_name(name, version):
@@ -899,6 +980,8 @@ def download_table(tag, names, digests, arm64_preview=True, image=False, verific
     checking = "Each file the release pipeline made is signed with Sigstore, its bundle beside it as `<file>.cosign.bundle`"
     if provenance_name(version) in names:
         checking += ", and `%s` is the release's SLSA build provenance" % provenance_name(version)
+        if provenance_line_name(version) in names:
+            checking += " (`%s` is its signed envelope alone, as one line of JSON)" % provenance_line_name(version)
     if re.search(r"^## Verification\s*$", verification, re.MULTILINE):
         checking += "; *Verification*, at the end of these notes, gives the identity to check them against"
     checking += " ([SECURITY.md](%s), \"Verifying a release\")." % blob("SECURITY.md#verifying-a-release")
@@ -1347,8 +1430,8 @@ def check_registry_before_signing(api, version, digests):
     final here, and the registry may hold them only with these bytes, as it does
     after a release-publish that stopped part-way. The installer and every bundle are
     made by the jobs after this one (Authenticode, Sigstore), and so are the bundles'
-    .sigstore.json copies and the provenance; a second signing never makes the same
-    bytes, so the registry may not hold them at all: such a release is finished by
+    .sigstore.json copies, the provenance and its .intoto.jsonl; a second signing
+    never makes the same bytes, so the registry may not hold them at all: such a release is finished by
     retrying release-publish of the pipeline that signed them."""
     if api is None:
         return ["there is no CI_JOB_TOKEN to read the package registry with: collect runs in the release job and nowhere else"]
@@ -1361,7 +1444,7 @@ def check_registry_before_signing(api, version, digests):
     final = dict((name, digest) for name, digest in digests.items() if name not in later)
     problems, _ = registry_conflicts(held, final, version)
     signed_later = later + sorted(n + BUNDLE for n in set(digests) | set(later)) + sorted(
-        n + BUNDLE_COPY for n in primary_assets(version)) + [provenance_name(version)]
+        n + BUNDLE_COPY for n in primary_assets(version)) + [provenance_name(version), provenance_line_name(version)]
     for name in signed_later:
         if held.get(name):
             problems.append("the package %s/%s already holds %s, which an earlier run's signing made: signing again makes "
@@ -1458,7 +1541,7 @@ def check_budget(api, tag, version, digests, sizes, out=None, keep=0):
                 document, len(tree[document]), MAX_FEED_BYTES))
     own = [e for e in entries if e["version"] == version]
     out("the release: %d files and %d links (%d primary files, %d SBOMs, %d bundles, %d .sigstore.json copies, "
-        "the provenance)" % (len(expected_assets(version)), len(links), len(primary_assets(version)),
+        "the provenance and its .intoto.jsonl)" % (len(expected_assets(version)), len(links), len(primary_assets(version)),
                              len(compiled_assets(version)), len(expected_assets(version)), len(primary_assets(version))))
     out("the site with it: _redirects %d rules in %d bytes (the feed's %d, the repositories' %d, %d of them this "
         "release's; Pages reads %d rules and %d bytes); releases.json %d bytes and releases/latest %d (a server reads "
@@ -1790,11 +1873,13 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
         if present - wanted:
             parts.append("extra " + ", ".join(sorted(present - wanted)))
         raise ReleaseError("%s is not a release (%s): a release is exactly %s, a bundle beside each, a .sigstore.json "
-                           "copy of each primary file's bundle, and the provenance %s" % (
-                               assets, "; ".join(parts), ", ".join(expected), provenance_name(version)))
+                           "copy of each primary file's bundle, the provenance %s and its envelope %s" % (
+                               assets, "; ".join(parts), ", ".join(expected), provenance_name(version),
+                               provenance_line_name(version)))
 
     unfit = sbom_problems(assets, version) + copy_problems(assets, version) + provenance_problems(
-        assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "")
+        assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "") + \
+        provenance_line_problems(assets, version)
     if unfit:
         raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
     # The SHA-256 of every file, which the notes' Download table gives the installers
@@ -1942,6 +2027,7 @@ def self_test():
                        ("hMailServer-6.3.5-aarch64.AppImage.cdx.json", "hMailServer-aarch64.AppImage.cdx.json"),
                        ("hmailserver-6.3.5.tar.gz", "hmailserver.tar.gz"), ("hmailserver-chart-6.3.5.tgz", "hmailserver-chart.tgz"),
                        ("hmailserver-6.3.5.intoto.sigstore.json", "hmailserver.intoto.sigstore.json"),
+                       ("hmailserver-6.3.5.intoto.jsonl", "hmailserver.intoto.jsonl"),
                        ("hmailserver.spdx.json.sigstore.json", "hmailserver.spdx.json.sigstore.json"),
                        ("hmailserver-linux-6.3.5-SHA256SUMS.txt.cosign.bundle", "hmailserver-linux-SHA256SUMS.txt.cosign.bundle"),
                        ("hMailServer-6.3.5-x64.exe.sigstore.json", "hMailServer-x64.exe.sigstore.json"),
@@ -1949,8 +2035,9 @@ def self_test():
                        ("hMailServer-6.3.5-x64.exe.cdx.json.cosign.bundle", "hMailServer-x64.exe.cdx.json.cosign.bundle")):
         expect(permalink_name(name, version) == path, "%s's permanent name is %s: %s" % (name, path, permalink_name(name, version)))
     expect(link_type("hMailServer-6.3.5-x86_64.AppImage") == "package" and link_type("hmailserver-6.3.5.tar.gz") == "other"
-           and link_type("hmailserver_6.3.5_amd64.deb.sigstore.json") == "other" and link_type(provenance_name(version)) == "other",
-           "an AppImage is a package; the tarball, a bundle's copy and the provenance are other")
+           and link_type("hmailserver_6.3.5_amd64.deb.sigstore.json") == "other" and link_type(provenance_name(version)) == "other"
+           and link_type(provenance_line_name(version)) == "other" and not is_primary(provenance_line_name(version)),
+           "an AppImage is a package; the tarball, a bundle's copy, the provenance and its .intoto.jsonl are other")
     every_link = release_links(version, release_files(version))
     expect(link_problems(every_link) == [], "every link of a release is one GitLab takes: %s" % link_problems(every_link))
     # Where GitLab serves each link (6.3.5's links said /downloads/<name>, and GitLab
@@ -2050,8 +2137,9 @@ def self_test():
     expect("`registry.gitlab.com/hmailserver/hmailserver:6.3.5`" in rows[3]
            and "`:6.3` and `:latest` are moved to it too, unless a later version has either already." in rows[3],
            "the image row names the version's tag and the two that move, only forward: %s" % rows[3])
-    expect("`hmailserver-6.3.5.intoto.sigstore.json`" in rows[4] and "*Verification*" in rows[4],
-           "the checking row names the provenance and the notes' Verification: %s" % rows[4])
+    expect("`hmailserver-6.3.5.intoto.sigstore.json`" in rows[4] and "*Verification*" in rows[4]
+           and "(`hmailserver-6.3.5.intoto.jsonl` is its signed envelope alone, as one line of JSON)" in rows[4],
+           "the checking row names the provenance, its .intoto.jsonl and the notes' Verification: %s" % rows[4])
     links_of = dict((l["name"], download_url(tag, l["direct_asset_path"])) for l in every_link)
     for name in (names["windows"], names["windows-arm64"], sums_name(version)):
         expect("](%s)" % links_of[name] in table, "the table links %s where its link serves it, %s" % (name, links_of[name]))
@@ -2364,10 +2452,11 @@ def self_test():
                "every compiled file and the tarball go out with <file>.cdx.json, the two AppImage sources files, the module "
                "and the chart without, 62 files in all: %d" % len(expected_assets(version)))
         expect(sorted(release_files(version)) == sorted(expected_assets(version) + [n + ".cosign.bundle" for n in expected_assets(version)]
-                                                        + [n + ".sigstore.json" for n in primaries] + ["hmailserver-6.3.5.intoto.sigstore.json"])
-               and len(release_files(version)) == 160,
+                                                        + [n + ".sigstore.json" for n in primaries]
+                                                        + ["hmailserver-6.3.5.intoto.sigstore.json", "hmailserver-6.3.5.intoto.jsonl"])
+               and len(release_files(version)) == 161,
                "a release is those 62, a bundle beside each, a .sigstore.json copy of each of the 35 primary files' bundles, "
-               "and the provenance: 160 files and links: %d" % len(release_files(version)))
+               "the provenance and its envelope as one line: 161 files and links: %d" % len(release_files(version)))
         expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json", names["windows-arm64"] + ".cdx.json"}),
                "collect gathers every one of them but the installers' SBOMs: %s" % sorted(set(expected_assets(version)) - set(gathered)))
         released_sums = b""
@@ -2446,6 +2535,9 @@ def self_test():
                 api=FakeGitLab().seed(names["deb-arm64"] + ".sigstore.json", b"{}"))
         refused("a provenance an earlier run left in the registry", "%s, which an earlier run's signing made" % provenance_name(version),
                 api=FakeGitLab().seed(provenance_name(version), b"{}"))
+        refused("a provenance's .intoto.jsonl an earlier run left in the registry",
+                "%s, which an earlier run's signing made" % provenance_line_name(version),
+                api=FakeGitLab().seed(provenance_line_name(version), b"{}\n"))
         refused("a signed module an earlier run left in the registry", "HmailServer.psm1, which an earlier run's signing made",
                 api=FakeGitLab().seed("HmailServer.psm1", b"function x {}"))
         held = FakeGitLab()
@@ -2837,6 +2929,8 @@ def self_test():
         publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/", "CI_PROJECT_PATH": "hmailserver/hmailserver",
                        "CI_COMMIT_SHA": built, "CI_PIPELINE_URL": "https://gitlab.com/hmailserver/hmailserver/-/pipelines/1"}
         fake_provenance(signed)
+        # And its envelope as one line, as release-verify makes it.
+        write_provenance_line(signed, version)
         verification = "## Verification\n\nSigned by %s%s." % (SIGNER_IDENTITY_PREFIX, tag)
         api = FakeGitLab()
         payload = None
@@ -2846,9 +2940,9 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 160 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "160 links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 160 and link_problems(links) == [],
+            expect(len(links) == 161 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "161 links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 161 and link_problems(links) == [],
                    "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
             expect(paths.get(names["deb-arm64"]) == "/hmailserver_arm64.deb"
@@ -2887,7 +2981,7 @@ def self_test():
                    "the release is created with the installers' links last, x64 the newest: %s" % made[-3:])
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 160 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 161 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -2982,7 +3076,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 155 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 156 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -3166,6 +3260,58 @@ def self_test():
         shutil.copytree(signed, unproven)
         os.remove(os.path.join(unproven, provenance_name(version)))
         refuses("a release without its provenance", "missing %s" % provenance_name(version), assets_dir=unproven)
+        # The provenance's envelope as one line (provenance_line): the bundle's own
+        # envelope, the same members with the same values, one line of JSON and nothing
+        # else, held to the bundle byte for byte.
+        with open(os.path.join(signed, provenance_line_name(version)), "rb") as f:
+            line = f.read()
+        with open(os.path.join(signed, provenance_name(version)), encoding="utf-8") as f:
+            envelope = json.load(f)["dsseEnvelope"]
+        expect(provenance_line_name(version) == "hmailserver-6.3.5.intoto.jsonl" and line.endswith(b"\n") and line.count(b"\n") == 1
+               and b" " not in line and json.loads(line.decode("ascii")) == envelope
+               and list(json.loads(line.decode("ascii"))) == list(envelope) and provenance_line_problems(signed, version) == [],
+               "the .intoto.jsonl is the provenance's DSSE envelope on one line, its members in the bundle's order: %r" % line[:120])
+        statement_ = json.loads(base64.b64decode(json.loads(line.decode("ascii"))["payload"]).decode("utf-8"))
+        expect(sorted(s_["name"] for s_ in statement_["subject"]) == sorted(expected_assets(version)),
+               "the line's payload is the statement over every file of the release")
+        with open(os.path.join(signed, provenance_name(version)), "rb") as f:
+            whole_bundle = f.read()
+        for what, change in (("a space put in", lambda b: b.replace(b'":"', b'": "', 1)),
+                             ("a second envelope", lambda b: b + b),
+                             ("no line feed", lambda b: b[:-1]),
+                             ("a line feed of CR LF", lambda b: b[:-1] + b"\r\n"),
+                             ("another signature", lambda b: b.replace(b'"MEUC"', b'"MEUD"', 1)),
+                             ("the whole bundle", lambda b: whole_bundle + b"\n"),
+                             ("the members in another order", lambda b: (json.dumps(dict(reversed(list(envelope.items()))),
+                                                                                   separators=(",", ":")) + "\n").encode("ascii"))):
+            twisted = os.path.join(work, "line-" + what.replace(" ", "-"))
+            shutil.copytree(signed, twisted)
+            with open(os.path.join(twisted, provenance_line_name(version)), "wb") as f:
+                f.write(change(line))
+            found = provenance_line_problems(twisted, version)
+            expect(any("is not the DSSE envelope of %s as one line of JSON, byte for byte" % provenance_name(version) in p for p in found),
+                   "a .intoto.jsonl with %s is refused: %s" % (what, found))
+            if what == "another signature":
+                refuses("a release whose .intoto.jsonl is not its provenance's envelope", "as one line of JSON, byte for byte",
+                        assets_dir=twisted)
+        unlined = os.path.join(work, "unlined")
+        shutil.copytree(signed, unlined)
+        os.remove(os.path.join(unlined, provenance_line_name(version)))
+        expect(any("is not here" in p for p in provenance_line_problems(unlined, version)), "check-provenance refuses a release without its .intoto.jsonl")
+        refuses("a release without its provenance's .intoto.jsonl", "missing %s" % provenance_line_name(version), assets_dir=unlined)
+        # Made from a bundle that holds an envelope this reads, and from nothing else.
+        for what, text in (("no envelope", '{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json"}'),
+                           ("an envelope without its signature", json.dumps({"dsseEnvelope": dict(envelope, signatures=[])})),
+                           ("its envelope twice", '{"dsseEnvelope": %s, "dsseEnvelope": %s}' % (json.dumps(envelope), json.dumps(envelope))),
+                           ("no JSON", "not json")):
+            with open(os.path.join(unlined, provenance_name(version)), "w", encoding="utf-8") as f:
+                f.write(text)
+            try:
+                write_provenance_line(unlined, version)
+                failures.append("a .intoto.jsonl is not made from a bundle with %s" % what)
+            except ReleaseError as e:
+                expect(provenance_line_name(version) in str(e) and not os.path.isfile(os.path.join(unlined, provenance_line_name(version))),
+                       "a .intoto.jsonl is not made from a bundle with %s: %s" % (what, e))
         # 6.3.5's links, whose paths said /downloads/<name>: refused before any upload.
         held_path = globals()["link_path"]
         globals()["link_path"] = lambda name, version_: DOWNLOADS + "/" + permalink_name(name, version_)
@@ -3181,9 +3327,9 @@ def self_test():
         digests = dict((n, sha256_of(os.path.join(signed, n))) for n in release_files(version))
         sizes = dict((n, os.path.getsize(os.path.join(signed, n))) for n in release_files(version))
         expect(check_budget(None, tag, version, digests, sizes, out=said.append) == [], "one release is well within every limit")
-        expect(len(said) == 2 and "62 files and 160 links (35 primary files, 27 SBOMs, 62 bundles, 35 .sigstore.json copies" in said[0]
+        expect(len(said) == 2 and "62 files and 161 links (35 primary files, 27 SBOMs, 62 bundles, 35 .sigstore.json copies, the provenance and its .intoto.jsonl)" in said[0]
                and "_redirects 33 rules" in said[1] and "the feed's 17, the repositories' 16, 16 of them this release's" in said[1],
-               "the counts: 160 links; _redirects the feed's seventeen rules (the download page and eight kinds of file with their "
+               "the counts: 161 links; _redirects the feed's seventeen rules (the download page and eight kinds of file with their "
                "bundles) and the repositories' sixteen: %s" % said)
         crowded = FakeGitLab()
         for minor in range(40):
@@ -3412,8 +3558,9 @@ def release_sbom(root, env, assets, installers, out, rehearse=False, module_dir=
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("command", nargs="?", choices=["collect", "sbom", "publish", "gather", "check-provenance"])
-    parser.add_argument("--rehearse", action="store_true", help="collect, sbom and check-provenance: the release "
+    parser.add_argument("command", nargs="?", choices=["collect", "sbom", "publish", "gather", "provenance-line",
+                                                       "check-provenance"])
+    parser.add_argument("--rehearse", action="store_true", help="collect, sbom, provenance-line and check-provenance: the release "
                         "rehearsed on a protected batch* branch, published nowhere")
     parser.add_argument("--out", default=None, help="collect: where the files go (release-assets); sbom: where the "
                         "installer's SBOM and the provenance's statement go (release-sbom); gather: where the gathered "
@@ -3428,7 +3575,7 @@ def main():
                         help="sbom: where the signed ARM64 installer is")
     parser.add_argument("--module-dir", default=MODULE_SIGNED_DIR,
                         help="sbom: where the signed PowerShell module's two files are")
-    parser.add_argument("--assets", default="release-signed", help="publish, check-provenance: the signed files and "
+    parser.add_argument("--assets", default="release-signed", help="publish, provenance-line, check-provenance: the signed files and "
                         "their bundles")
     parser.add_argument("--verification", default=os.path.join("release-verified", "verification.md"),
                         help="publish: what release-verify wrote, for the notes")
@@ -3438,7 +3585,7 @@ def main():
     if args.self_test:
         return self_test()
     tag = os.environ.get("CI_COMMIT_TAG", "")
-    if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):
+    if args.rehearse and args.command not in ("collect", "sbom", "provenance-line", "check-provenance"):
         print("REFUSED: a rehearsal collects, describes and checks; it never %s" % (args.command or "runs without a command"))
         return 2
     try:
@@ -3487,17 +3634,27 @@ def main():
             print("gathered %d files for %s, each compiled one and the tarball with its SBOM, in %s." % (
                 len(gathered_builds(version)), version, args.out or GATHERED))
             return 0
+        if args.command == "provenance-line":
+            if args.rehearse:
+                problems = rehearsal_problems(os.environ)
+                if problems:
+                    raise ReleaseError("; ".join(problems))
+            version = read_version_h(ROOT) if args.rehearse else version_of(tag)
+            write_provenance_line(os.path.join(ROOT, args.assets), version)
+            return 0
         if args.command == "check-provenance":
             version = read_version_h(ROOT) if args.rehearse else version_of(tag)
             identity = signing_identity(os.environ, args.rehearse)
             assets = os.path.join(ROOT, args.assets)
-            problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", ""))
+            problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \
+                provenance_line_problems(assets, version)
             for problem in problems:
                 print("PROBLEM: " + problem)
             if problems:
                 return 1
             print("%s names every file of %s by its SHA-256, built by %s from %s; every primary file's .sigstore.json is "
-                  "its bundle." % (provenance_name(version), version, identity, os.environ.get("CI_COMMIT_SHA", "")))
+                  "its bundle, and %s is the provenance's envelope." % (
+                      provenance_name(version), version, identity, os.environ.get("CI_COMMIT_SHA", ""), provenance_line_name(version)))
             return 0
         if args.command == "publish":
             with open(os.path.join(ROOT, CHANGELOG), encoding="utf-8") as f:

@@ -13,7 +13,10 @@
 # Then the rest of what the release carries beside its bundles: each compiled file's
 # SBOM held to the file, each primary file's .sigstore.json held to its bundle, and
 # the SLSA provenance held to the files (build/ci/release-chain.py check-provenance;
-# release-sign found every file in it with cosign).
+# release-sign found every file in it with cosign) - and, made here first, the
+# provenance's DSSE envelope again alone as one line of JSON,
+# hmailserver-<version>.intoto.jsonl (build/ci/release-chain.py provenance-line),
+# held to the bundle byte for byte by check-provenance.
 #
 #   bash build/ci/release-verify.sh              a v* tag's release
 #   bash build/ci/release-verify.sh --rehearse   the release-rehearsal-verify job of
@@ -30,6 +33,10 @@
 #                                          release-publish puts in the release (not
 #                                          in a rehearsal)
 #       release-verified/verify.log        what the verifier said of each file
+#       release-signed/hmailserver-<version>.intoto.jsonl
+#                                          the provenance's envelope as one line, which
+#                                          this job's artifact carries to release-publish
+#                                          beside release-sign's files
 set -uo pipefail
 
 server=release-tools/hmailserver
@@ -79,6 +86,12 @@ esac
 identity="${repository}//.gitlab-ci.yml@${ref}"
 [ -x "$server" ] || fail "$server is not here: the release job's artifact did not arrive"
 [ -d "$signed" ] || fail "$signed is not here: release-sign's artifact did not arrive"
+# The provenance's envelope as one line is this job's own file, made below from
+# release-sign's bundle: one of that name here before it is not, and is removed, so
+# that the loop below never takes it for a file of the release and the one that goes
+# on is the one made here.
+line="hmailserver-${version}.intoto.jsonl"
+rm -f "$signed/$line"
 
 rm -rf "$out"
 mkdir -p "$out"
@@ -174,6 +187,19 @@ for file in "$signed"/*.exe "$signed"/*.deb "$signed"/*.rpm "$signed"/*.AppImage
 done
 [ "$described" -eq 27 ] || fail "$described file(s) held to their SBOM; a release has 27"
 
+# The provenance's DSSE envelope, the one in release-sign's bundle, written again alone
+# as one line of JSON: the in-toto convention for attestations, and the one name
+# OpenSSF Scorecard counts as provenance. No new signature: the envelope is the one
+# cosign attest-blob signed; check-provenance below holds the line to the bundle byte
+# for byte. Two calls, as there, for the same reason.
+if [ -n "$rehearse" ]; then
+  python3 build/ci/release-chain.py provenance-line --assets "$signed" --rehearse \
+    || fail "the provenance's envelope could not be written as $line"
+else
+  python3 build/ci/release-chain.py provenance-line --assets "$signed" \
+    || fail "the provenance's envelope could not be written as $line"
+fi
+
 # Each primary file's .sigstore.json is its bundle, and the provenance names every
 # file of the release by its SHA-256 and nothing else, built by this pipeline from
 # this commit. Two calls, not one with an unquoted ${rehearse:+--rehearse}: the
@@ -193,7 +219,7 @@ if [ -n "$rehearse" ]; then
     echo ""
     echo "All $verified files were signed as \`$identity\`, which no server trusts: the server's own verifier read"
     echo "every bundle and refused each at the identity. Every SBOM describes its file, every .sigstore.json is its"
-    echo "bundle, and the provenance names every file. Nothing was published."
+    echo "bundle, the provenance names every file, and \`$line\` is its envelope. Nothing was published."
   } > "$out/rehearsal.md"
   cat "$out/rehearsal.md"
   exit 0
@@ -273,6 +299,10 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "    cosign verify-blob-attestation --new-bundle-format --bundle $provenance \\"
   echo "      --type slsaprovenance1 --certificate-identity '$identity' \\"
   echo "      --certificate-oidc-issuer https://gitlab.com <file>"
+  echo ""
+  echo "\`$line\` is the same signed envelope alone, the statement and its signature as the bundle has them, on one line"
+  echo "of JSON (in-toto's JSON Lines of DSSE envelopes). It carries neither the certificate nor the transparency log's entry,"
+  echo "which only the bundle does: the bundle is the file to verify with."
   echo ""
   echo "The two Windows installers, x64 and ARM64, are also signed with Authenticode through Azure Artifact Signing, with an"
   echo "RFC 3161 timestamp. The ARM64 one is for Windows on ARM; it is built to run there and has not yet been run on ARM64"

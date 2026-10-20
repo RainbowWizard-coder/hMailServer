@@ -837,7 +837,11 @@ measured with that file and without it; and the same day the ARM64 installer,
 its SBOM, their bundles and the installer's `.sigstore.json` copy added 1,630
 bytes to `releases.json` and 1,600 to `releases/latest` in the same way, and two
 rules, 314 bytes, to `_redirects` (`/download/hMailServer-arm64.exe` and its
-bundle); the table counts them.
+bundle); the table counts them. From the release after 6.3.7 a release has 161
+links: the provenance's envelope as one line, `hmailserver-<version>.intoto.jsonl`
+(SECURITY.md, "Build provenance"), adds 308 bytes to `releases.json` and 302 to
+`releases/latest`, measured by `check_budget` on 20 October 2026 with that file and
+without it, and no rule to `_redirects`, which the table does not yet count.
 
 GitLab's own `/-/releases/permalink/latest` is the release with the latest
 `released_at` date. GitLab has no pre-release flag, so a pre-release, or the

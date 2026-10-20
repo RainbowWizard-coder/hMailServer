@@ -24,8 +24,10 @@
 #                             this branch, refs/heads/<branch>.
 #   release-rehearsal-verify  linix: every bundle read by the server's own verifier, which
 #                             must refuse each at the identity - servers trust v* tags
-#                             alone, so a rehearsal's bundles install nowhere - and every
-#                             SBOM, copy and the provenance held to the files
+#                             alone, so a rehearsal's bundles install nowhere - the
+#                             provenance's envelope written again as one line, its
+#                             .intoto.jsonl, and every SBOM, copy, the provenance and that
+#                             line held to the files and the bundle
 #                             (build/ci/release-verify.sh --rehearse).
 #
 # What it does not rehearse: the tag's own checks (an annotated tag on master signed by
@@ -132,3 +134,4 @@ release-rehearsal-verify:
     expire_in: 7 days
     paths:
       - release-verified/
+      - release-signed/*.intoto.jsonl

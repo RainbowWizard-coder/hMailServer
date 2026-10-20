@@ -362,7 +362,12 @@ of which checks the archive against a SHA-256 pinned in the script.
   `hmailserver-<version>.intoto.sigstore.json`, an SLSA v1 statement that
   `release-sbom` writes and `release-sign` attests
   ([SECURITY.md](../../SECURITY.md), *Build provenance*;
-  [ContinuousIntegration.md](ContinuousIntegration.md), *The release*).
+  [ContinuousIntegration.md](ContinuousIntegration.md), *The release*). From
+  the release after 6.3.7 the release also carries
+  `hmailserver-<version>.intoto.jsonl`, that bundle's DSSE envelope alone as one
+  line of JSON, which `release-verify` writes from the bundle and holds to it
+  byte for byte: the same signature, not a second one, without the certificate
+  and the log entry, which only the bundle carries.
 * **Signed tags.** Release tags from `v6.2.23-alpha2` on are annotated and
   signed with a maintainer's SSH key listed in `.gitlab/allowed_signers`, which
   holds one key today.

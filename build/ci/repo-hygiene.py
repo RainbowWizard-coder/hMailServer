@@ -222,7 +222,9 @@ SIGNATURE_SUFFIXES = (".sigstore.json", ".sigstore", ".cosign.bundle", ".sig", "
 # releases to 6.3.3 carried and the only name Scorecard counts as provenance, and from
 # 6.3.6 this project's own, hmailserver-<v>.intoto.sigstore.json, a Sigstore bundle
 # holding the DSSE envelope (build/ci/release-chain.py, provenance_name), which
-# Scorecard, reading the name alone, counts as one more signature.
+# Scorecard, reading the name alone, counts as one more signature; from the release
+# after 6.3.7 that envelope alone again as hmailserver-<v>.intoto.jsonl
+# (provenance_line_name), which Scorecard counts as provenance.
 PROVENANCE_SUFFIXES = (".intoto.jsonl", ".intoto.sigstore.json")
 
 
@@ -290,7 +292,8 @@ def check_signed_releases():
         else:
             r.fail("%s: no signature asset among its %d asset(s)" % (rel["tag_name"], len(names)))
     r.note("%d of %d carry build provenance (in-toto); Scorecard scores provenance above signatures alone, and counts "
-           "only a *.intoto.jsonl as provenance, so this project's *.intoto.sigstore.json counts there as a signature"
+           "only a *.intoto.jsonl as provenance, which this project's releases carry from the one after 6.3.7; "
+           "before it, their *.intoto.sigstore.json counts there as a signature"
            % (with_provenance, len(newest)))
     tags = [rel["tag_name"] for rel in newest]
     verified = verify_tags(tags)

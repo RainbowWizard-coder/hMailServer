@@ -2210,7 +2210,11 @@ release-sign:
 
 # Every bundle, checked with the verifier every server built after 6.3.3 runs: the
 # hmailserver linux-build made from this commit (kept in release's artifact),
-# --verify-update.
+# --verify-update. It also makes the provenance's DSSE envelope, from release-sign's
+# bundle, again alone as one line of JSON, release-signed/hmailserver-<version>.intoto.jsonl
+# (build/ci/release-chain.py provenance-line), which needs Python and so is not made in
+# cosign's image, and holds it to the bundle byte for byte; its artifact carries that
+# one file of release-signed/ to release-publish, beside release-sign's.
 release-verify:
   extends: .linix
   tags: [linix]
@@ -2231,6 +2235,7 @@ release-verify:
     expire_in: 90 days
     paths:
       - release-verified/
+      - release-signed/*.intoto.jsonl
 
 # Published by hand, once the signed installer (release-sign's artifact) has passed the
 # installer smoke test from the VMware host. The files go to the generic package
