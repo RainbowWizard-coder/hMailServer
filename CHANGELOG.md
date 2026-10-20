@@ -310,6 +310,14 @@ with `--check`).
   entries, such as a package override that would hide a package's advisories with no id; CONTRIBUTING.md lists it with
   the other checkers.
 
+- **The copy on GitHub names its code owner, `.github/CODEOWNERS`.** GitHub reads the file from `.github/`, the root
+  or `docs/`, never from `.gitlab/`, and a file with no owner needs no code owner's approval, so the code-owner review
+  that `master`'s ruleset there has required since 20 October 2026 held no pull request while the tree had only
+  GitLab's `.gitlab/CODEOWNERS`. The file names `@RainbowWizard-coder`, the account the repository belongs to and its
+  only administrator (GOVERNANCE.md, "Maintainers"), for everything, and its header says what GitHub uses it for and
+  that `.gitlab/CODEOWNERS` is GitLab's. Scorecard's Branch-Protection check counts a file named `CODEOWNERS` wherever
+  it is, so its score is the same with the file or without it.
+
 - **The NuGet updates of Renovate's merge request of 19 October 2026: the .NET 10.0.13 libraries, QRCoder 1.8.1 and
   the test packages, with lock files restored on Windows.** The merge request's project-file edits are taken, without
   the lock files it wrote. The Control Panel's `System.Management` and `System.ServiceProcess.ServiceController`, and

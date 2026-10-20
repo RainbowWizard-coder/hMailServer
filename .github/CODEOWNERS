@@ -1,0 +1,21 @@
+# Code owners for the project's copy on GitHub,
+# https://github.com/RainbowWizard-coder/hMailServer, in GitHub's CODEOWNERS format
+# (https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+#
+# GitHub reads this file from .github/, the root or docs/, in that order, and never
+# from .gitlab/. It uses it to ask the owner named below to review a pull request
+# that changes a file the owner owns, and master's ruleset there, which requires a
+# code owner's approval, holds a pull request until that owner has approved it; a
+# file with no owner needs no code owner's approval, so until this file named one the
+# ruleset's requirement held no pull request. The owner is @RainbowWizard-coder, the
+# account the repository belongs to and its only administrator, the one account that
+# holds write access there (GOVERNANCE.md, "Maintainers"); a code owner must have
+# write access to the repository. A change still lands on master only through a
+# GitLab merge request (.github/PULL_REQUEST_TEMPLATE.md), and GitLab's push mirror
+# writes master on GitHub.
+#
+# .gitlab/CODEOWNERS is GitLab's, in GitLab's format, naming the maintainers' GitLab
+# accounts; GitHub does not read it, and GitLab does not read this one.
+
+# Everything in the repository.
+*       @RainbowWizard-coder
