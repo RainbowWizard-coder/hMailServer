@@ -4,9 +4,9 @@
 
 # OpenSSF Scorecard over the project's copy on GitHub, its second home since 18
 # October 2026: the result goes to scorecard.dev, which the README's
-# Scorecard badge shows, and to the repository's code scanning. This is the one
-# workflow of the project's that GitHub Actions runs. It builds, tests, signs and
-# publishes nothing of a release - GitLab's pipelines do that, and nowhere else -
+# Scorecard badge shows, and to the repository's code scanning. It and codeql.yml,
+# GitHub's CodeQL over the same copy, are the two workflows of the project's that
+# GitHub Actions runs. It builds, tests, signs and publishes nothing of a release - GitLab's pipelines do that, and nowhere else -
 # and nothing it makes reaches a build. The repository's Actions settings allow
 # GitHub's own actions and ossf/scorecard-action alone, each pinned by a full
 # commit, as every action below is, with its version beside it. GitLab runs
