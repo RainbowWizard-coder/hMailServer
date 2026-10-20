@@ -293,6 +293,23 @@ with `--check`).
   off when the workflow reaches `master`. `scorecard.yml`'s header, which said it was the one workflow of the
   project's that GitHub Actions runs, now names the two.
 
+- **OpenSSF Scorecard's Vulnerabilities check no longer counts the semgrep job's mcp 1.29.0 advisory, which the VEX
+  document declares not to apply, and a new check holds the two together.** The check runs OSV-Scanner over the tree,
+  which reads the `osv-scanner.toml` in the directory of each manifest it scans and, as Scorecard runs it, no VEX
+  document; with PyJWT 2.15.1 (the entry on Semgrep 1.181.0, below), the one advisory left against
+  `build/ci/requirements.txt` is GHSA-84m7-p3x7-pcfv (CVE-2026-59951) against mcp 1.29.0, which Semgrep 1.181.0, the
+  newest on PyPI on 20 October 2026, pins exactly, and whose `not_affected` statement
+  `.gitlab/hmailserver.openvex.json` has held since 19 October 2026. `build/ci/osv-scanner.toml` ignores it until 20
+  January 2027, with the statement's reason and that the entry goes when a Semgrep release allows mcp 1.30.0 or later;
+  its header says what reads it, that the VEX statement is the project's record of the decision, and that every entry
+  needs one. Scorecard 5.6.0's Vulnerabilities check, run on the tree with and without the file on 20 October 2026,
+  gives 10 and 9. The new `build/check-osv-ignores.py`, which the `checkers` job runs over the tree and with its
+  `--self-test`, fails when an entry of a tracked `osv-scanner.toml` names an advisory that no `not_affected`
+  statement names by its name or an alias, when no requirements file beside it pins a version that statement covers,
+  when it has no reason or its `ignoreUntil` is today or past, or when the file holds anything but `[[IgnoredVulns]]`
+  entries, such as a package override that would hide a package's advisories with no id; CONTRIBUTING.md lists it with
+  the other checkers.
+
 - **The NuGet updates of Renovate's merge request of 19 October 2026: the .NET 10.0.13 libraries, QRCoder 1.8.1 and
   the test packages, with lock files restored on Windows.** The merge request's project-file edits are taken, without
   the lock files it wrote. The Control Panel's `System.Management` and `System.ServiceProcess.ServiceController`, and
