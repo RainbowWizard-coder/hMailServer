@@ -6,10 +6,11 @@
 """Each advisory an osv-scanner.toml ignores has its not_affected statement in the VEX
 document, is still pinned beside it, and is ignored until a day still to come.
 
-OpenSSF Scorecard's Vulnerabilities check runs OSV-Scanner over the tree - over the copy
-on GitHub in scorecard.dev's runs and .github/workflows/scorecard.yml's, and over the
-GitLab project in the scorecard job - and OSV-Scanner reads the osv-scanner.toml in the
-directory of each manifest it scans. Its [[IgnoredVulns]] entries hide an advisory from
+OpenSSF Scorecard's Vulnerabilities check runs OSV-Scanner over a checkout of the tree -
+scorecard.dev's runs and .github/workflows/scorecard.yml's over the copy on GitHub, and a
+run with --local; not GitLab's scorecard job, whose Scorecard GitLab client gives the check
+no local path, so that OSV-Scanner is asked about the commit alone there - and OSV-Scanner
+reads the osv-scanner.toml in the directory of each manifest it scans. Its [[IgnoredVulns]] entries hide an advisory from
 that check, and from nothing else: the project's record of the decision is the advisory's
 statement in .gitlab/hmailserver.openvex.json, which the dependency-scan job and the merge
 requests' dependency check read, and which OSV-Scanner, as Scorecard runs it, does not.

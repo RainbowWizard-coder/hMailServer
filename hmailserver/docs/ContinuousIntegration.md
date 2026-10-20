@@ -5596,8 +5596,11 @@ to OSV-Scanner: `build/check-osv-ignores.py`, which `checkers` runs, fails the
 tree when an entry names an advisory that no `not_affected` statement names by
 its name or an alias, when no requirements file beside it pins a version that
 statement covers, when its day has come, or when the file holds anything but
-such entries. The same file is read by GitLab's `scorecard` job, which runs the
-same check over the project.
+such entries. GitLab's `scorecard` job does not read the file: Scorecard's GitLab
+client gives the Vulnerabilities check no local path (`clients/gitlabrepo/client.go`,
+whose `LocalPath` returns an empty string), so there OSV-Scanner is asked about
+the commit alone and reads no manifest; scorecard.dev's runs and
+`.github/workflows/scorecard.yml`'s scan a checkout of the copy on GitHub, and read it.
 
 **Measured on the tree.** Scorecard 5.6.0, run with `--local` over a copy of the
 tree on 20 October 2026, without `codeql.yml` and `osv-scanner.toml` and then

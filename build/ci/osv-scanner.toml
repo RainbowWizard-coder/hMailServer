@@ -4,10 +4,13 @@
 #
 # OSV-Scanner's configuration for the manifests in this directory, requirements.txt
 # and cli-packages-requirements.txt: OSV-Scanner reads the osv-scanner.toml in the
-# directory of each file it scans. It is read by OSV-Scanner as OpenSSF Scorecard's
-# Vulnerabilities check runs it - over the copy on GitHub, in scorecard.dev's runs and
-# .github/workflows/scorecard.yml's, and over the GitLab project in the scorecard job
-# (.gitlab/ci/scorecard.yml). No other job reads it: the dependency-scan job and the
+# directory of each file it scans. It is read where OpenSSF Scorecard's
+# Vulnerabilities check scans a checkout of the tree: scorecard.dev's runs and
+# .github/workflows/scorecard.yml's over the copy on GitHub, and a run with --local.
+# GitLab's scorecard job (.gitlab/ci/scorecard.yml) does not read it: Scorecard's
+# GitLab client gives that check no local path (clients/gitlabrepo/client.go, whose
+# LocalPath returns ""), so there OSV-Scanner is asked about the commit alone and
+# reads no manifest. No job of the project's reads it: the dependency-scan job and the
 # merge requests' dependency check (build/ci/dependency-scan.py,
 # build/ci/mr-dependency-check.py) take their dismissals from the VEX document.
 #
