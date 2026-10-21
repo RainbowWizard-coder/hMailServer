@@ -1682,8 +1682,9 @@ What the host needs:
 - `postgres:18` at the digest the CI file names. It is pulled on first use, and
   it is on the host already.
 - The other images the ported jobs name, each by digest, each pulled on first
-  use: `mariadb:13` (the MySQL upgrade gate's service) and `ubuntu:26.04` from
-  Docker Hub, `registry.fedoraproject.org/fedora:44`, and
+  use: `mariadb:13` (the service of the MySQL upgrade gate and of the container
+  start tests) and `ubuntu:26.04` from Docker Hub,
+  `registry.fedoraproject.org/fedora:44`, and
   `gcr.io/kaniko-project/executor:v1.24.0-debug`. If the runner's `config.toml`
   restricts images (`allowed_images`) or registries, these must be allowed.
 - The images of the jobs that take `default:`'s tags (since 9 October 2026), each

@@ -200,10 +200,12 @@ with `--check`).
   of the Dockerfile before this change failed it beside MariaDB, at `--create-database`, and the Dockerfile with the
   package taken out stopped at its build. `ContainerImage.md`, the Compose file's comments, the chart's README and
   values, the packaging README, `ContinuousIntegration.md` and `RELEASE.md` say so, and that an older image carries
-  PostgreSQL's client alone. The Compose file's recipe for MariaDB names the root password MariaDB's image needs, of
-  the database's own (`MARIADB_ROOT_PASSWORD_FILE`, or `MARIADB_RANDOM_ROOT_PASSWORD`): without one the image stops
-  before it lays out its data, and the server, which waits for a healthy database, never starts. Found by the project's
-  own audit of its listings.
+  PostgreSQL's client alone, and the description of Renovate's rule for the CI's databases and
+  `ContinuousIntegration.md`'s list of the images a runner of the project's pulls name MariaDB 13 as the start tests'
+  database too. The Compose file's recipe for MariaDB names the root password MariaDB's image needs, of the database's
+  own (`MARIADB_ROOT_PASSWORD_FILE`, or `MARIADB_RANDOM_ROOT_PASSWORD`): without one the image stops before it lays out
+  its data, and the server, which waits for a healthy database, never starts. Found by the project's own audit of its
+  listings.
 
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28
