@@ -202,7 +202,9 @@ with `--check`).
   values, the packaging README, `ContinuousIntegration.md` and `RELEASE.md` say so, and that an older image carries
   PostgreSQL's client alone, and the description of Renovate's rule for the CI's databases and
   `ContinuousIntegration.md`'s list of the images a runner of the project's pulls name MariaDB 13 as the start tests'
-  database too. The Compose file's recipe for MariaDB names the root password MariaDB's image needs, of the database's
+  database too; `ThirdPartyBinaries.md` names `libmariadb3`, with the `mariadb-common` and `mysql-common` it brings,
+  among the packages the image installs from the archive, and the roadmap's row on the container image says that the
+  start jobs start each image beside MariaDB as well as PostgreSQL. The Compose file's recipe for MariaDB names the root password MariaDB's image needs, of the database's
   own (`MARIADB_ROOT_PASSWORD_FILE`, or `MARIADB_RANDOM_ROOT_PASSWORD`): without one the image stops before it lays out
   its data, and the server, which waits for a healthy database, never starts. The chart passes `database.port` only
   when it is set, and its default is now empty, the type's own port, which the image's entrypoint chooses (5432 for

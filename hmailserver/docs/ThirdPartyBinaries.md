@@ -412,8 +412,10 @@ Not pinned, and why:
   2026-07-25_14-20-03_UTC had made them, since publicsuffix.org serves only
   today's list.
 * **The container image's packages.** The Dockerfile pins `ubuntu:24.04` by
-  digest and installs `ca-certificates`, `libcap2-bin`, `7zip` and `python3`
-  from the archive at whatever version it has that day.
+  digest and installs `ca-certificates`, `libcap2-bin`, `7zip`, `python3` and,
+  from the release after 6.3.7, `libmariadb3` (MariaDB Connector/C, which
+  brings `mariadb-common` and `mysql-common`) from the archive at whatever
+  version it has that day.
 * **The toolchains.** Visual Studio (toolset v145, which the project names),
   the Windows SDK, Inno Setup 6 - whose setup loader is part of every
   installer - and Strawberry Perl are installed on the build machine, not
