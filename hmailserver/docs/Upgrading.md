@@ -88,12 +88,20 @@ fork's alone. This fork writes it, from 6.2.0 on and unless
 database or connects to one, the built-in one among them; the original writes `1`.
 Such a database is this fork's own, at `6001` or later, as the original's 5.7
 installer leaves it when it is run over an installation of this fork. The
-original's service cannot read that password, so it never answers the version, and
-setup does not refuse it: it puts this fork's programs back, and this fork's
-server upgrades its own database. Otherwise the original's own upgrade scripts
-past `5708` in the installation's `DBScripts` folder (`Upgrade5708to5709*.sql`)
-decide, and the refusal then says that an installation whose database is at `5708`
-or older is upgraded once its service runs and setup is run again. The version is
+original's service cannot decrypt that password, so it does not answer the
+version (with an empty password, which this fork keeps as `6` too, it connects and
+answers `6001` or later, which is not refused either), and setup does not refuse
+it: it puts this fork's programs back, and this fork's server upgrades its own
+database. Otherwise the original's own upgrade scripts past `5708` in the
+installation's `DBScripts` folder (`Upgrade5708to5709*.sql`) decide, and the
+refusal then says that an installation whose database is at `5708` or older, or is
+this fork's own at `6001` or later, is upgraded once its service runs and setup is
+run again. This fork's own reaches that refusal only where its settings file keeps
+the password as the original can read it - `PasswordEncryption` `1` (or `0`): an
+installation upgraded from the original, one set up before 6.2.0, or one with
+`ProtectStoredSecretsWithDPAPI` off - and the original's service, started, then
+connects, does not start its servers on a database too new for it, and still
+answers the version, which is not refused. The version is
 not held to 5.7, because a build of the original's 5.7 made from its source
 without its build script reports itself as 1.0.0: every 5.7 tag of the original
 commits that placeholder. The refusal says what it found and that nothing has been

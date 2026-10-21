@@ -186,12 +186,17 @@ with `--check`).
   upgraded as before - and where the service is not running or does not answer, the settings file the installed server
   reads is read first - `C:\ProgramData\hMailServer\hMailServer.ini`, which the original's 5.7.0 build 3013 and later
   read before the one in `Bin` and keep a new installation's in, and which this fork never writes, or where there is
-  none the `hMailServer.ini` in the installation's `Bin` folder: a `[Database]` `PasswordEncryption` of 6, the database's password kept with DPAPI,
-  which this fork writes by default from 6.2.0 on and the original neither writes nor reads, makes the database this
-  fork's own, as the original's 5.7 installer leaves it when it is run over an installation of this fork, and it is
-  not refused, the original's service being unable to read that password and so never answering the version; otherwise
-  the original's own upgrade scripts past 5708 in its `DBScripts` folder (`Upgrade5708to5709*.sql`) decide, the
-  refusal then saying that an installation whose database is at 5708 or older is upgraded once its service runs. The
+  none the `hMailServer.ini` in the installation's `Bin` folder: a `[Database]` `PasswordEncryption` of 6, the
+  database's password kept with DPAPI, which this fork writes by default from 6.2.0 on and the original neither writes
+  nor reads, makes the database this fork's own, as the original's 5.7 installer leaves it when it is run over an
+  installation of this fork, and it is not refused, the original's service being unable to decrypt that password and
+  so not answering the version (with an empty password, which this fork keeps as 6 too, it connects and answers 6001
+  or later, which is not refused either); otherwise the original's own upgrade scripts past 5708 in its `DBScripts`
+  folder (`Upgrade5708to5709*.sql`) decide, the refusal then saying that an installation whose database is at 5708 or
+  older, or is this fork's own at 6001 or later, is upgraded once its service runs and setup is run again - this
+  fork's own reaches that refusal only where its settings file keeps `PasswordEncryption` 1 (or 0), the original's,
+  as an installation upgraded from the original, one set up before 6.2.0 or one with `ProtectStoredSecretsWithDPAPI`
+  off does, and the original's service, started, then connects and answers the version, which is not refused. The
   refusal says what was found, that nothing has been changed, and that the way from the original's 5.7 is a migration
   of each mailbox over IMAP (Migration.md, "From the original hMailServer"); a silent setup ends with exit code 1 and
   writes it to its log, with `/LOG` ("Refused: ..."), and with or without one to `hMailServer-setup-refused.txt` in

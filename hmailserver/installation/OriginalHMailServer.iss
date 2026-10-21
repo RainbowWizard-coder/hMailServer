@@ -56,15 +56,24 @@
 //     original writes 1 and reads 0 and 1 alone. Such a database is this
 //     fork's own, at 6001 or later, which the original's 5.7 installer, run over an
 //     installation of this fork, leaves as it was, with the original's scripts
-//     beside this fork's in DBScripts. The original's service cannot read its
-//     password, so it never answers the version however often it is started, and
-//     the database is not refused: this fork's server reads its own password and
-//     upgrades it, as before this test was made;
+//     beside this fork's in DBScripts. The original's service cannot decrypt its
+//     password, so it does not answer the version however often it is started
+//     (with an empty password, which this fork keeps as 6 too, it connects and
+//     answers 6001 or later, which is not refused either), and the database is
+//     not refused: this fork's server reads its own password and upgrades it, as
+//     before this test was made;
 //   * else the scripts the original's 5.7 installs in its DBScripts folder: an
 //     upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
 //     which no development build up to 5708 and no release of this fork carries.
 //     The refusal then says that the files decided, and that an installation whose
-//     database is at 5708 or older is upgraded once its service runs.
+//     database is at 5708 or older, or is this fork's own at 6001 or later, is
+//     upgraded once its service runs and setup is run again. This fork's own
+//     reaches the refusal only where its settings file keeps the password as the
+//     original can read it (PasswordEncryption 0 or 1: an installation upgraded
+//     from the original, one set up before 6.2.0, or one with
+//     ProtectStoredSecretsWithDPAPI off); the original's service then connects,
+//     refuses to start its servers on a database too new for it (HM5011), and
+//     still answers the version, which is not refused.
 // build\check-installer-scripts.py holds the two numbers to the upgrade chain in
 // hmailserver\source\DBScripts: a step from the one to the other, and no step to
 // any version between them.
@@ -173,7 +182,8 @@ begin
 
    Result := szFound + #13#10#13#10 +
              'This installer is Progressive Robot''s fork of hMailServer, which cannot upgrade a database of the original''s 5.7 ' +
-             '(version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA + 1) + ' and later). Installed over it, setup would replace the original''s ' +
+             '(version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA + 1) + ' and later, below this fork''s own, which begin at ' +
+             IntToStr(FORK_FIRST_SCHEMA) + '). Installed over it, setup would replace the original''s ' +
              'programs with a server that refuses that database. ' +
              'Nothing has been changed.' + #13#10#13#10 +
              'To move to this fork, install it on another computer, make the domains and accounts there, and copy each mailbox''s mail ' +
@@ -181,7 +191,8 @@ begin
    if Kind = ORIGINAL_REFUSED_BY_FILES then
       Result := Result + #13#10#13#10 +
                 'If its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
-                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - ' +
+                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - or is this fork''s own, at ' +
+                IntToStr(FORK_FIRST_SCHEMA) + ' or later, as the original''s 5.7 installer leaves an installation of this fork, ' +
                 'start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
 end;
 

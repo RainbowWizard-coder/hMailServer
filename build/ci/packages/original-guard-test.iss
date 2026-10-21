@@ -137,9 +137,9 @@ begin
 
    // The original's 5.7 installer run over an installation of this fork: the
    // original's programs and scripts, and this fork's settings file, whose database
-   // password (PasswordEncryption 6) the original's service cannot read, so that it
-   // never answers the version. The database is this fork's own; a version read
-   // still decides.
+   // password (PasswordEncryption 6) the original's service cannot decrypt, so that
+   // it does not answer the version unless the password is empty. The database is
+   // this fork's own; a version read still decides.
    ExpectKind('the original 5.7''s programs over this fork''s database, version unread, its scripts in DBScripts', 5, 7, -1, True, True, ORIGINAL_NOT_REFUSED);
    ExpectKind('the original 5.7''s programs over this fork''s database, the service answering 0, its scripts in DBScripts', 5, 7, 0, True, True, ORIGINAL_NOT_REFUSED);
    ExpectKind('this fork''s password kept, a database at 5711 read', 5, 7, 5711, True, True, ORIGINAL_REFUSED_BY_DATABASE);
@@ -177,7 +177,7 @@ begin
    ExpectInMessage('the refusal by database says nothing of starting the service', ORIGINAL_REFUSED_BY_DATABASE, 'start the hMailServer service', False);
    ExpectInMessage('the refusal by files says the version was not read', ORIGINAL_REFUSED_BY_FILES, 'could not be read', True);
    ExpectInMessage('the refusal by files says how a development build gets past it', ORIGINAL_REFUSED_BY_FILES, 'start the hMailServer service and run this installer again', True);
-   ExpectInMessage('the refusal by files does not send a database of this fork''s to the service', ORIGINAL_REFUSED_BY_FILES, '6001', False);
+   ExpectInMessage('the refusal by files sends a database of this fork''s own to the service too', ORIGINAL_REFUSED_BY_FILES, '6001 or later', True);
    ExpectInMessage('the refusal by files names the IMAP route', ORIGINAL_REFUSED_BY_FILES, 'Migration.md', True);
 
    // The record a silent setup run without /LOG leaves: written to the file named,
