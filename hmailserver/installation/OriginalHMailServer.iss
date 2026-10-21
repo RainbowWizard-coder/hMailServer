@@ -1,0 +1,142 @@
+// The decision on an installation of the original hMailServer's 5.7, which this
+// fork's setup refuses before it changes anything (OriginalHMailServerRefusal in
+// hMailServerInnoExtension.iss, called first in InitializeSetup). [Code] alone,
+// with no section header: hMailServerInnoExtension.iss includes it inside its own
+// [Code], and so does build\ci\packages\original-guard-test.iss, the self-test the
+// windows-packages jobs compile and run, which is why nothing here reads the
+// registry, a file or the service: what is found is passed in.
+//
+// Both projects' installers register as the uninstall entry hMailServer_is1 (this
+// fork's AppId=hMailServer; the original's AppName=hMailServer, with no AppId), so
+// each one's setup takes an installation of the other for its own. Up to schema
+// 5708 the two share the database's upgrade chain: every release of the original
+// up to 5.6 (5601) and its development builds of 5.7 up to 5708 are upgraded in
+// place. From there the original went on by steps of its own - 5709 in its
+// pre-release builds 2788 and 2843 of 5.7.0 (August 2026), 5710 and 5711 in 5.7.0
+// build 3013, 5.7.1 build 3116 and 5.7.2 build 3124 - and this fork by its own,
+// from 5708 to 6001. DBUpdater has no step from any version between the two, and
+// stops before it changes anything; but setup would run it only after it had
+// replaced the original's programs, and this fork's server refuses such a database
+// as too old (HM5011), so the original's 5.7 could not be put back without a
+// restore. So it is refused before a file is copied.
+//
+// What identifies such an installation:
+//   * its hMailServer.exe's version, in the folder the earlier installation names:
+//     5.7 or later and before 6 (the original's build stamps 5.7.0.3013, 5.7.1.3116
+//     and 5.7.2.3124, and 5.7.0.2788 and 5.7.0.2843, as FILEVERSION). This fork's
+//     programs are 6 and later, and the original's up to 5.6 are 5.6 or older, so
+//     neither is ever looked at further. The original's 5.7 development builds up
+//     to 5708 are 5.7.0 as well, which is why the version alone does not decide;
+//   * then the database's version, hm_dbversion, which the running service answers
+//     without a password (Database.CurrentVersion, the original's as this fork's):
+//     past ORIGINAL_LAST_SHARED_SCHEMA and before FORK_FIRST_SCHEMA is refused, and
+//     anything else is not - which is what upgrades such a development build;
+//   * only where that version cannot be read - the service is not running, or does
+//     not answer - the scripts the original's 5.7 installs in its DBScripts folder:
+//     an upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
+//     which no development build up to 5708 and no release of this fork carries.
+//     The refusal then says that the files decided, and that a development build
+//     whose database is at 5708 or older is upgraded once its service runs.
+// build\check-installer-scripts.py holds the two numbers to the upgrade chain in
+// hmailserver\source\DBScripts: a step from the one to the other, and no step to
+// any version between them.
+
+const
+   // The last schema version the two projects share, and the first of this fork's
+   // own after it: a database past the one and before the other is one only the
+   // original's 5.7 makes.
+   ORIGINAL_LAST_SHARED_SCHEMA = 5708;
+   FORK_FIRST_SCHEMA = 6001;
+
+   // What OriginalHMailServerKind answers.
+   ORIGINAL_NOT_REFUSED = 0;
+   ORIGINAL_REFUSED_BY_DATABASE = 1;
+   ORIGINAL_REFUSED_BY_FILES = 2;
+
+// Whether a database at this version is one the original's 5.7 made and this
+// fork cannot upgrade.
+function IsOriginalOnlySchema(Version: Integer): Boolean;
+begin
+   Result := (Version > ORIGINAL_LAST_SHARED_SCHEMA) and (Version < FORK_FIRST_SCHEMA);
+end;
+
+// Whether a file in the installation's DBScripts folder is one of the original's
+// own steps past 5708: 'Upgrade5708to<version><dialect>.sql', <version> four
+// digits that IsOriginalOnlySchema takes. This fork's own step from 5708,
+// Upgrade5708to6001, is not.
+function IsOriginalOnlyScript(Name: String): Boolean;
+var
+   szName: String;
+   szPrefix: String;
+   szRest: String;
+   iVersion: Integer;
+begin
+   Result := False;
+   szPrefix := 'upgrade' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + 'to';
+   szName := Lowercase(ExtractFileName(Name));
+   if (Copy(szName, 1, Length(szPrefix)) <> szPrefix) or (ExtractFileExt(szName) <> '.sql') then
+      Exit;
+   szRest := Copy(szName, Length(szPrefix) + 1, 4);
+   if Length(szRest) <> 4 then
+      Exit;
+   iVersion := StrToIntDef(szRest, -1);
+   Result := IsOriginalOnlySchema(iVersion);
+end;
+
+// Whether the installed hMailServer.exe's version is 5.7 or later and before 6:
+// the original's 5.7, a release or a development build. -1 for a version that
+// could not be read.
+function IsFiveSevenServer(ServerMajor, ServerMinor: Integer): Boolean;
+begin
+   Result := (ServerMajor = 5) and (ServerMinor >= 7);
+end;
+
+// The decision. ServerMajor and ServerMinor: the installed hMailServer.exe's
+// version, -1 when there is none or it could not be read. DatabaseVersion: the
+// database's version as the running service answers it, -1 (or 0) when it could
+// not be read. OriginalScripts: whether the installation's DBScripts folder holds
+// a script IsOriginalOnlyScript takes.
+function OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts: Boolean): Integer;
+begin
+   Result := ORIGINAL_NOT_REFUSED;
+   if not IsFiveSevenServer(ServerMajor, ServerMinor) then
+      Exit;
+   if DatabaseVersion > 0 then
+   begin
+      if IsOriginalOnlySchema(DatabaseVersion) then
+         Result := ORIGINAL_REFUSED_BY_DATABASE;
+   end
+   else if OriginalScripts then
+      Result := ORIGINAL_REFUSED_BY_FILES;
+end;
+
+// The refusal's words, for the message box and the setup log: what was found, why
+// it is refused, that nothing has been changed, and the way that works instead.
+// Empty for ORIGINAL_NOT_REFUSED.
+function OriginalHMailServerMessage(Kind: Integer; ServerVersion: String; DatabaseVersion: Integer; Folder: String): String;
+var
+   szFound: String;
+begin
+   Result := '';
+   if Kind = ORIGINAL_REFUSED_BY_DATABASE then
+      szFound := 'This computer has the original hMailServer ' + ServerVersion + ' installed, in ' + Folder +
+                 ', and its database is at version ' + IntToStr(DatabaseVersion) + '.'
+   else if Kind = ORIGINAL_REFUSED_BY_FILES then
+      szFound := 'This computer has the original hMailServer ' + ServerVersion + ' installed, in ' + Folder +
+                 ', with the original''s own database upgrade steps past version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
+                 ' in its DBScripts folder. Its database''s version could not be read, because the hMailServer service is not running or did not answer.'
+   else
+      Exit;
+
+   Result := szFound + #13#10#13#10 +
+             'This installer is Progressive Robot''s fork of hMailServer, which cannot upgrade a database of the original''s 5.7 ' +
+             '(version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA + 1) + ' and later). Installed over it, setup would replace the original''s ' +
+             'programs with a server that refuses that database, and the original''s 5.7 could not be put back without restoring a backup. ' +
+             'Nothing has been changed.' + #13#10#13#10 +
+             'To move to this fork, install it on another computer, make the domains and accounts there, and copy each mailbox''s mail ' +
+             'across over IMAP (Migration.md in the documentation, "From the original hMailServer").';
+   if Kind = ORIGINAL_REFUSED_BY_FILES then
+      Result := Result + #13#10#13#10 +
+                'If this is one of the original''s 5.7 development builds and its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
+                ' or older, start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
+end;

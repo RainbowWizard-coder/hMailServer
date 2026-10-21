@@ -97,6 +97,7 @@ hmailserver/tools/VS2005
 hmailserver/installation/Extras/7za.exe.license.txt
 hmailserver/installation/InnoSocketCheck
 hmailserver/installation/License.rtf
+hmailserver/installation/OriginalHMailServer.iss
 hmailserver/installation/Utilities
 hmailserver/installation/chocolatey
 hmailserver/installation/hMailServer64.iss

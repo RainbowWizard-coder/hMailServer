@@ -20,7 +20,10 @@
      2. the version is section_setup_64.iss's AppVersion, which both installer
         scripts take; for a v* tag it must be the tag's;
      3. Inno Setup's compiler is found (HM_ISCC, or Inno Setup 6 installed for the
-        machine), or the job stops saying what to install;
+        machine), or the job stops saying what to install; with it the installer's
+        decision on an installation of the original hMailServer's 5.7 is compiled
+        into a setup that installs nothing and run over its cases, and two broken
+        copies of it must fail one (original-guard-test.ps1);
      4. ARM64 only: the toolchain, checked by check-arm64-toolchain.ps1 with
         vswhere before anything is built - MSVC's ARM64 tools, ATL for ARM64 and
         the Windows SDK's ARM64 libraries in the instance that has MSBuild, and
@@ -76,6 +79,7 @@
         build changed a tracked file
      6  a file the installer packs is built for another processor
      7  the ARM64 OpenSSL cannot be built here: build-openssl.ps1 downloads from GitHub
+     8  the installer's decision on the original hMailServer's 5.7 failed its self-test
 
    Usage:
      pwsh -NoProfile -File build\ci\packages\windows-packages.ps1 -Platform x64 -OutDir packages-windows\x64
@@ -180,6 +184,14 @@ if (-not $iscc) {
 $isccItem = Get-Item -LiteralPath $iscc
 $isccId = "{0}, {1:yyyy-MM-dd}, sha256 {2}" -f $iscc, $isccItem.LastWriteTimeUtc, (Get-FileHash -LiteralPath $iscc -Algorithm SHA256).Hash.Substring(0, 16).ToLowerInvariant()
 "ISCC: $isccId"
+
+# The installer's decision on an installation of the original hMailServer's 5.7,
+# compiled with this ISCC into a setup that installs nothing and run, case by case,
+# with two broken copies of it that must be caught (original-guard-test.ps1).
+"--- the decision on the original hMailServer's 5.7 (original-guard-test.ps1)"
+& $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\packages\original-guard-test.ps1 -Iscc $iscc
+if ($LASTEXITCODE -eq 1) { Stop-Packages 8 "the installer's decision on the original hMailServer's 5.7 failed its self-test (above: the cases)" }
+if ($LASTEXITCODE -ne 0) { Stop-Packages 3 "original-guard-test.ps1 could not compile or run the self-test (exit $LASTEXITCODE)" }
 
 # ---------------------------------------------------------------- 4. the ARM64 toolchain
 if ($Platform -eq 'ARM64') {

@@ -66,6 +66,20 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                password with a space, a double quote or backslashes before one
                reached the database tools changed and the install failed with exit
                code 3.
+  original     An installation of the original hMailServer's 5.7, whose database
+               this fork cannot upgrade, is refused first in InitializeSetup, before
+               anything is installed, stopped or changed: OriginalHMailServer.iss,
+               included in the [Code], decides, and InitializeSetup ends setup on
+               its refusal. Its two bounds, 5708 (the last schema the two projects
+               share) and 6001 (this fork's first after it), are the upgrade
+               chain's: a step from the one to the other is in DBScripts, and no
+               step from or to a version between them. The database's version is
+               read only after hMailServer.exe is found to be 5.7, and only from a
+               running service. The decision's self-test,
+               build/ci/packages/original-guard-test.iss, includes the same file,
+               and windows-packages.ps1 runs it before it compiles the installer,
+               stopping with exit 8 when it fails. That self-test runs the cases;
+               this holds that they are run.
 
 The check proves its own negative controls on every run, on altered copies of the
 texts it reads: an entry without a RunOnceId, two entries sharing one, an
@@ -78,7 +92,11 @@ the installer's argument spelt differently from the server's, the password on
 DBSetupQuick's command line again, HM_ADMIN_PASSWORD left set after DBSetupQuick,
 the password on DBSetup's command line, DBSetup started without the credential,
 HM_ADMIN_PASSWORD left set after DBSetup, DBUpdater's command line built as one
-string and the password on it, must all be refused.
+string and the password on it, the original's shared bound moved past 5708, a step
+of this fork's own to a version between the bounds, the decision not included,
+its refusal not acted on, the refusal asked after a window check, the database
+read from a stopped service, and the self-test not run before the installer is
+built, must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -124,6 +142,14 @@ LOADED_BY_THE_SERVER = [
 ]
 # A [Files] Source in the client's plugin folder, and the file it names.
 PLUGIN_SOURCE = re.compile(r'(?:^|\\)Extras\\plugin\\([^\\]+)$', re.I)
+# The decision on an installation of the original hMailServer's 5.7, its self-test,
+# the job that runs it, and the database scripts whose chain it is held to.
+ORIGINAL = 'OriginalHMailServer.iss'
+GUARD_RUNNER = 'build/ci/packages/original-guard-test.ps1'
+GUARD_HARNESS = 'build/ci/packages/original-guard-test.iss'
+PACKAGES = 'build/ci/packages/windows-packages.ps1'
+DBSCRIPTS = 'hmailserver/source/DBScripts'
+UPGRADE_SCRIPT = re.compile(r'^Upgrade(\d+)to(\d+)', re.I)
 
 
 def read(path):
@@ -140,6 +166,11 @@ def load():
     texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
     texts[AUTHENTICATOR] = read(os.path.join(TOOLS, AUTHENTICATOR))
     texts[MANIFEST] = read(os.path.join(ROOT, *MANIFEST.split('/')))
+    for name in (GUARD_RUNNER, GUARD_HARNESS, PACKAGES):
+        path = os.path.join(ROOT, *name.split('/'))
+        texts[name] = read(path) if os.path.exists(path) else ''
+    # The names of the database scripts, one a line: the upgrade chain's steps.
+    texts[DBSCRIPTS] = '\n'.join(sorted(os.listdir(os.path.join(ROOT, *DBSCRIPTS.split('/')))))
     return texts
 
 
@@ -441,6 +472,76 @@ def check_credential(texts, problems):
                         % AUTHENTICATOR)
 
 
+def check_original(texts, problems):
+    """The original's 5.7 is refused first, before anything is installed, by a
+    decision whose two numbers are the upgrade chain's, and whose self-test the
+    Windows package jobs run before they build the installer."""
+    decision = texts.get(ORIGINAL, '')
+    extension = texts.get(EXTENSION, '')
+    numbers = {}
+    for name in ('ORIGINAL_LAST_SHARED_SCHEMA', 'FORK_FIRST_SCHEMA'):
+        match = re.search(r'^\s*' + name + r'\s*=\s*(\d+)\s*;', decision, re.M)
+        if not match:
+            problems.append('%s: %s is not defined; the decision on the original\'s 5.7 has no bound' % (ORIGINAL, name))
+            return
+        numbers[name] = int(match.group(1))
+    last, first = numbers['ORIGINAL_LAST_SHARED_SCHEMA'], numbers['FORK_FIRST_SCHEMA']
+    steps = []
+    for line in texts.get(DBSCRIPTS, '').split('\n'):
+        match = UPGRADE_SCRIPT.match(line)
+        if match:
+            steps.append((int(match.group(1)), int(match.group(2)), line))
+    if not any(start == last and end == first for start, end, _ in steps):
+        problems.append('%s: the upgrade chain has no step from %d, the last version the decision takes the two projects '
+                        'to share, to %d, the first it takes for this fork\'s own (%s has no Upgrade%dto%d script): the '
+                        'decision would refuse a database this build upgrades, or let through one it does not'
+                        % (ORIGINAL, last, first, DBSCRIPTS, last, first))
+    between = sorted(set(name for start, end, name in steps if last < start < first or last < end < first))
+    if between:
+        problems.append('%s: the upgrade chain has a step from or to a version between %d and %d (%s), which the decision '
+                        'refuses as the original\'s 5.7 alone' % (ORIGINAL, last, first, ', '.join(between[:4])))
+
+    if not re.search(r'^#include\s+"%s"' % re.escape(ORIGINAL), extension, re.M):
+        problems.append('%s: does not #include %s, the decision on the original\'s 5.7' % (EXTENSION, ORIGINAL))
+    refusal = pascal_routine(extension, 'OriginalHMailServerRefusal') or ''
+    if not refusal:
+        problems.append('%s: there is no OriginalHMailServerRefusal, so nothing finds an installation of the original\'s '
+                        '5.7 before setup replaces its programs' % EXTENSION)
+    else:
+        asked = refusal.find('IsFiveSevenServer(')
+        read_at = refusal.find('ReadDatabaseVersion(')
+        if asked < 0 or read_at < 0 or asked > read_at:
+            problems.append('%s: OriginalHMailServerRefusal does not ask whether hMailServer.exe is 5.7 before it reads '
+                            'the database\'s version, so every upgrade of this fork\'s would ask its service too' % EXTENSION)
+        if not re.search(r"if\s+IsServiceRunning\('hMailServer'\)\s+then\s+iDatabase\s*:=\s*ReadDatabaseVersion\(", refusal):
+            problems.append('%s: OriginalHMailServerRefusal reads the database\'s version without the service running; '
+                            'COM activation would start a stopped service for it' % EXTENSION)
+    setup = pascal_routine(extension, 'InitializeSetup') or ''
+    call = re.search(r"szRefusal\s*:=\s*OriginalHMailServerRefusal\(\);\s*if\s+szRefusal\s*<>\s*''\s*then\s*begin(.*?)\bend;",
+                     setup, re.S)
+    if not call:
+        problems.append('%s: InitializeSetup does not refuse what OriginalHMailServerRefusal answers' % EXTENSION)
+    else:
+        if not re.search(r'Result\s*:=\s*false\s*;', call.group(1), re.I) or not re.search(r'\bExit\s*;', call.group(1)):
+            problems.append('%s: InitializeSetup does not end setup (Result := false; Exit;) on the refusal of the '
+                            'original\'s 5.7' % EXTENSION)
+        before = setup[:call.start()]
+        if re.search(r'GetEnv\(|ExpandConstant\(|SuppressibleMsgBox\(|IsServiceRunning\(|CheckForMutexes\(|FindWindowByWindowName\(',
+                     before):
+            problems.append('%s: InitializeSetup does something before it asks OriginalHMailServerRefusal; the refusal '
+                            'of the original\'s 5.7 comes first' % EXTENSION)
+
+    if '#include "..\\..\\..\\hmailserver\\installation\\%s"' % ORIGINAL not in texts.get(GUARD_HARNESS, ''):
+        problems.append('%s: the self-test does not include %s as the installer does' % (GUARD_HARNESS, ORIGINAL))
+    packages = texts.get(PACKAGES, '')
+    runs = packages.find('original-guard-test.ps1 -Iscc')
+    builds = packages.find('& $iscc /Q $iss')
+    if runs < 0 or builds < 0 or runs > builds:
+        problems.append('%s: the Windows package jobs do not run %s before they compile the installer' % (PACKAGES, GUARD_RUNNER))
+    elif 'Stop-Packages 8' not in packages[runs:builds]:
+        problems.append('%s: a failed self-test of the decision on the original\'s 5.7 does not stop the job (exit 8)' % PACKAGES)
+
+
 def check(texts):
     problems = []
     entries = check_run_once(texts, problems)
@@ -451,6 +552,7 @@ def check(texts):
     check_event_source(texts, problems)
     check_upgrade(texts, problems)
     check_credential(texts, problems)
+    check_original(texts, problems)
     return problems, entries
 
 
@@ -531,6 +633,23 @@ def negative_controls(texts):
         ('DBUpdater\'s command line built as one string',
          altered(texts, DBSETUPQUICK, 'upgradeProcess.ArgumentList.Add("/SilentIfOk");',
                  'upgradeProcess.Arguments = "/SilentIfOk";')),
+        ('the decision\'s shared bound moved past 5708',
+         altered(texts, ORIGINAL, 'ORIGINAL_LAST_SHARED_SCHEMA = 5708;', 'ORIGINAL_LAST_SHARED_SCHEMA = 5709;')),
+        ('a step of this fork\'s own to a version the decision refuses',
+         altered(texts, DBSCRIPTS, 'Upgrade5708to6001MSSQL.sql', 'Upgrade5708to6001MSSQL.sql\nUpgrade6001to5900MSSQL.sql')),
+        ('the decision not included',
+         altered(texts, EXTENSION, '#include "OriginalHMailServer.iss"', '// the decision is elsewhere')),
+        ('the refusal not acted on',
+         altered(texts, EXTENSION, "\t\tSuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);\n\t\tResult := false;\n\t\tExit;\n",
+                 "\t\tSuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);\n")),
+        ('the refusal asked after a window check',
+         altered(texts, EXTENSION, "\tResult := true;\n\n\t// An installation of the original hMailServer's 5.7",
+                 "\tResult := true;\n\tif FindWindowByWindowName('x') > 0 then Exit;\n\n\t// An installation of the original hMailServer's 5.7")),
+        ('the database read of a stopped service',
+         altered(texts, EXTENSION, "   if IsServiceRunning('hMailServer') then\n      iDatabase := ReadDatabaseVersion(",
+                 "   if True then\n      iDatabase := ReadDatabaseVersion(")),
+        ('the self-test not run before the installer is built',
+         altered(texts, PACKAGES, 'original-guard-test.ps1 -Iscc', 'original-guard-test.ps1 -Skip')),
         ('the password on DBUpdater\'s command line',
          altered(texts, DBSETUPQUICK, 'upgradeProcess.Environment[Authenticator.PasswordVariable] = password;',
                  'upgradeProcess.ArgumentList.Add("password:" + password);')),
@@ -565,7 +684,8 @@ def main():
           'the files it loads are queued for a restart if still in use; the client\'s plugins are installed by the '
           'manifest\'s names; /Unregister creates nothing and removes the '
           'event source; the upgrade\'s start is marked; the database tools\' password is on no command line; '
-          '%d negative controls refused' % (entries, controls))
+          'the original\'s 5.7 is refused first, by bounds the upgrade chain holds, and its self-test runs before the '
+          'installer is built; %d negative controls refused' % (entries, controls))
     return 0
 
 

@@ -172,6 +172,29 @@ with `--check`).
   one met in a report the load made as HM5017; the call now fails as above, nothing is written to the error log, and
   the scripts loaded before stay in force.
 
+- **Fixed: the Windows installer no longer runs over an installation of the original hMailServer's 5.7; it refuses it
+  before it changes anything.** Both projects' installers register as the uninstall entry `hMailServer_is1`, so this
+  fork's setup took an installation of the original's 5.7 for its own - the pre-release builds 2788 and 2843 of 5.7.0
+  (August 2026, schema 5709), and 5.7.0 build 3013, 5.7.1 and 5.7.2 (schema 5711) - and replaced its programs; its
+  database step then stopped without changing the database, DBUpdater having no step from 5709, 5710 or 5711, and the
+  new server refused the database as too old (HM5011), so that the original's 5.7 could not be put back without a
+  restore. Setup now asks first, in `InitializeSetup`, before a page is shown or anything installed or stopped: when
+  the earlier installation's `hMailServer.exe` is 5.7 or later and before 6, the database's version, which the running
+  service answers without a password, decides - past 5708 and before 6001, this fork's first, is refused, and 5708 or
+  older, a development build of the original's 5.7, is upgraded as before - and where the service is not running or
+  does not answer, the original's own upgrade scripts past 5708 in its `DBScripts` folder (`Upgrade5708to5709*.sql`)
+  decide, the refusal then saying that such a development build is upgraded once its service runs. The refusal says
+  what was found, that nothing has been changed, and that the way from the original's 5.7 is a migration of each
+  mailbox over IMAP (Migration.md, "From the original hMailServer"); a silent setup ends with exit code 1 and writes it
+  to its log ("Refused: ..."). This fork's installations (6.x) and the original's up to 5.6 are not looked at past their
+  `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`. Its self-test,
+  `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that installs
+  nothing, runs 45 cases - this fork's installations, the original up to 5.6, its development builds at 5700 to 5708,
+  its 5.7 at 5709 to 5711 by the database and by the scripts, and the bounds 5708, 5709, 6000 and 6001 - and proves
+  that two broken copies of the decision fail a case; the Windows package jobs run it before they build the installer,
+  and stop with exit code 8 when it fails. `build/check-installer-scripts.py` holds the two bounds to the upgrade
+  chain in `hmailserver/source/DBScripts` and the refusal to its place, with seven negative controls more.
+
 ### Downloads and the release
 
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB

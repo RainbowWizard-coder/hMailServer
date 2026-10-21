@@ -2563,12 +2563,133 @@ begin
 end;
 
 
+// The database's schema version, hm_dbversion, as the hMailServer service reads it:
+// COM's Database.CurrentVersion, which needs no sign-in (InterfaceDatabase.cpp) and
+// which DBUpdater reads the same way. It goes through the service's own connection,
+// and so with the service's account and credentials - which on SQL Server with
+// Windows authentication are not this installer's, so a connection of the
+// installer's own could be refused where the service's is not. -1 when it cannot be
+// read: the service cannot be reached, or has no connection to the database. szWhen
+// says when, for the log. Both objects are released before this returns.
+function ReadDatabaseVersion(szWhen: String): Integer;
+var
+   App: Variant;
+   Database: Variant;
+begin
+   Result := -1;
+   g_szLastDatabaseReadError := '';
+   try
+      App := CreateOleObject('hMailServer.Application');
+      Database := App.Database;
+      Result := Database.CurrentVersion;
+      if Result > 0 then
+         Log('The database is at version ' + IntToStr(Result) + ' ' + szWhen + ' (Database.CurrentVersion, through the hMailServer service).')
+      else
+      begin
+         g_szLastDatabaseReadError := 'the hMailServer service answered ' + IntToStr(Result);
+         Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError + '.');
+         Result := -1;
+      end;
+   except
+      Result := -1;
+      g_szLastDatabaseReadError := Trim(GetExceptionMessage);
+      Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError);
+   end;
+   Database := Unassigned;
+   App := Unassigned;
+end;
+
+#include "OriginalHMailServer.iss"
+
+// Whether the installation this setup would replace is one of the original
+// hMailServer's 5.7 whose database this fork cannot upgrade (OriginalHMailServer.iss
+// says what identifies one and why it is refused): the refusal's words, or '' when
+// it is not. Asked first in InitializeSetup, before anything is installed, stopped
+// or changed. Nothing is asked of a server whose hMailServer.exe is not 5.7 or later
+// before 6 - every installation of this fork's, and the original's up to 5.6 - and
+// a stopped service is not started for it: COM activation would start it.
+function OriginalHMailServerRefusal(): String;
+var
+   szFolder: String;
+   szExe: String;
+   szServerVersion: String;
+   wMajor, wMinor, wRevision, wBuild: Word;
+   iMajor, iMinor: Integer;
+   iDatabase: Integer;
+   bScripts: Boolean;
+   iKind: Integer;
+   FindRec: TFindRec;
+begin
+   Result := '';
+   szFolder := PreviousInstallationFolder();
+   if szFolder = '' then
+      Exit;
+   szExe := AddBackslash(szFolder) + 'Bin\hMailServer.exe';
+   iMajor := -1;
+   iMinor := -1;
+   if FileExists(szExe) and GetVersionComponents(szExe, wMajor, wMinor, wRevision, wBuild) then
+   begin
+      iMajor := wMajor;
+      iMinor := wMinor;
+      szServerVersion := IntToStr(wMajor) + '.' + IntToStr(wMinor) + '.' + IntToStr(wRevision) + ' build ' + IntToStr(wBuild);
+   end;
+   if not IsFiveSevenServer(iMajor, iMinor) then
+      Exit;
+
+   Log('The installation in ' + szFolder + ' has hMailServer.exe ' + szServerVersion + ', which may be the original hMailServer''s 5.7: its database''s version decides.');
+   iDatabase := -1;
+   if IsServiceRunning('hMailServer') then
+      iDatabase := ReadDatabaseVersion('before this installation, to tell the original''s 5.7 from a database this build upgrades')
+   else
+      Log('The hMailServer service is not running, so the database''s version is not read; the DBScripts folder decides.');
+
+   bScripts := False;
+   if iDatabase <= 0 then
+   begin
+      if FindFirst(AddBackslash(szFolder) + 'DBScripts\Upgrade' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + 'to*.sql', FindRec) then
+      begin
+         try
+            repeat
+               if IsOriginalOnlyScript(FindRec.Name) then
+               begin
+                  bScripts := True;
+                  Log('The DBScripts folder holds ' + FindRec.Name + ', a step of the original''s 5.7 past version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + '.');
+               end;
+            until bScripts or (FindNext(FindRec) = False);
+         finally
+            FindClose(FindRec);
+         end;
+      end;
+   end;
+
+   iKind := OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts);
+   Result := OriginalHMailServerMessage(iKind, szServerVersion, iDatabase, szFolder);
+   if Result = '' then
+      Log('Not refused as the original''s 5.7: neither the database''s version nor, with that unread, the DBScripts folder shows a version past ' +
+          IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + '.');
+end;
+
 function InitializeSetup(): Boolean;
 	var
 		sMessage : AnsiString;
+		szRefusal : String;
 		SoftwareVersion: AnsiString;
 begin
 	Result := true;
+
+	// An installation of the original hMailServer's 5.7, whose database this build
+	// cannot upgrade, is refused before anything else: nothing has been installed,
+	// stopped or changed yet (OriginalHMailServerRefusal). Setup then ends with
+	// exit code 1, Inno Setup's for a setup that did not initialise, and the
+	// refusal is in its log.
+	szRefusal := OriginalHMailServerRefusal();
+	if szRefusal <> '' then
+	begin
+		Log('Refused: ' + szRefusal);
+		SuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);
+		Result := false;
+		Exit;
+	end;
 
 	// The .NET tools require the .NET {#DOTNET_MAJOR} Desktop Runtime; it is
 	// bundled and installed automatically when missing, so no up-front framework
@@ -3267,42 +3388,6 @@ begin
              'hMailServer Bin folder.', mbError, MB_OK, IDOK);
       Result := false;
    end;
-end;
-
-// The database's schema version, hm_dbversion, as the hMailServer service reads it:
-// COM's Database.CurrentVersion, which needs no sign-in (InterfaceDatabase.cpp) and
-// which DBUpdater reads the same way. It goes through the service's own connection,
-// and so with the service's account and credentials - which on SQL Server with
-// Windows authentication are not this installer's, so a connection of the
-// installer's own could be refused where the service's is not. -1 when it cannot be
-// read: the service cannot be reached, or has no connection to the database. szWhen
-// says when, for the log. Both objects are released before this returns.
-function ReadDatabaseVersion(szWhen: String): Integer;
-var
-   App: Variant;
-   Database: Variant;
-begin
-   Result := -1;
-   g_szLastDatabaseReadError := '';
-   try
-      App := CreateOleObject('hMailServer.Application');
-      Database := App.Database;
-      Result := Database.CurrentVersion;
-      if Result > 0 then
-         Log('The database is at version ' + IntToStr(Result) + ' ' + szWhen + ' (Database.CurrentVersion, through the hMailServer service).')
-      else
-      begin
-         g_szLastDatabaseReadError := 'the hMailServer service answered ' + IntToStr(Result);
-         Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError + '.');
-         Result := -1;
-      end;
-   except
-      Result := -1;
-      g_szLastDatabaseReadError := Trim(GetExceptionMessage);
-      Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError);
-   end;
-   Database := Unassigned;
-   App := Unassigned;
 end;
 
 // Whether hMailServer.INI sets [Database] UpgradeOnStart, on which the service's own
