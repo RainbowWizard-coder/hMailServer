@@ -542,11 +542,16 @@ def check_pyproject(root):
     if project.get("readme") != "README.md":
         problems.append("%s's readme is %r, not README.md" % (path, project.get("readme")))
     else:
-        readme = read(root, PYTHON_DIR + "/README.md").replace("\r\n", "\n")
-        opening = readme.split("\nInstall\n")[0]
-        if not says_the_fork(opening):
-            problems.append("%s/README.md, the description PyPI shows, does not say before its Install section that"
-                            " hmctl is the client of %s, %s" % (PYTHON_DIR, FORK_WORDS[0], FORK_WORDS[1]))
+        try:
+            readme = read(root, PYTHON_DIR + "/README.md").replace("\r\n", "\n")
+        except OSError as error:
+            # A README.md that is not there at all is reported by check_python_dir.
+            if os.path.exists(os.path.join(root, PYTHON_DIR, "README.md")):
+                problems.append("%s/README.md, the description PyPI shows, cannot be read: %s" % (PYTHON_DIR, error))
+        else:
+            if not says_the_fork(readme.split("\nInstall\n")[0]):
+                problems.append("%s/README.md, the description PyPI shows, does not say before its Install section"
+                                " that hmctl is the client of %s, %s" % (PYTHON_DIR, FORK_WORDS[0], FORK_WORDS[1]))
     urls = project.get("urls", {})
     if not urls or any(not str(u).startswith(PROJECT_URL) for u in urls.values()):
         problems.append("%s's project URLs are not all the project's (%s): %r" % (path, PROJECT_URL, urls))
@@ -901,6 +906,23 @@ def self_test():
             if not caught:
                 failures.append("a committed %s" % name)
         shutil.rmtree(os.path.join(tree, PYTHON_DIR, MODULE), ignore_errors=True)
+
+        readme_path = os.path.join(tree, PYTHON_DIR, "README.md")
+        with open(readme_path, "rb") as f:
+            held = f.read()
+        os.remove(readme_path)
+        try:
+            found = run(tree)
+            caught = "%s/README.md is missing" % PYTHON_DIR in found
+        except Exception as error:
+            found = ["%s: %s" % (type(error).__name__, error)]
+            caught = False
+        finally:
+            with open(readme_path, "wb") as f:
+                f.write(held)
+        print("%s  a python/ without README.md" % ("ok  " if caught else "FAIL"))
+        if not caught:
+            failures.append("a python/ without README.md (found: %s)" % ("; ".join(found) or "nothing"))
 
         for what, kwargs, needle in [
                 ("a .pth in the wheel", {"extra_wheel": {"hmailserver_cli.pth": "import os"}}, "hmailserver_cli.pth"),

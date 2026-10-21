@@ -190,7 +190,8 @@ with `--check`).
   by Martin Knafve, which has none"; and the module's Tags add `ProgressiveRobot`, the package's keywords `progressive
   robot`. `build/check-cli-packages.py` refuses a summary, an opening of the README or a first sentence of the
   Description that does not say so, and a summary that is not one line of at most 512 characters, PyPI's limit; its
-  self-test breaks each and sees it refused. The package built from the tree carries the new summary and description,
+  self-test breaks each and sees it refused, and sees a `python/` with no `README.md` reported as missing, as it was
+  before the README was read. The package built from the tree carries the new summary and description,
   `twine check --strict` passes them, `build/ci/cli-powershell.ps1` (`Test-ModuleManifest`, the import and
   PSScriptAnalyzer 1.25.0, which finds nothing) passes under Windows PowerShell 5.1 and PowerShell 7.5, and
   `build/check-cli.py` passes with both clients.
