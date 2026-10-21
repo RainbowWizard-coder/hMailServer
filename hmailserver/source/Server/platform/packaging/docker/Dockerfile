@@ -125,7 +125,7 @@ ENV HM_INSTALL_KIND=container
 ARG HM_IMAGE_VERSION
 LABEL org.opencontainers.image.title="hMailServer (Progressive Robot's fork)" \
       org.opencontainers.image.version="${HM_IMAGE_VERSION:-local}" \
-      org.opencontainers.image.description="Progressive Robot's fork of hMailServer, not the original: a mail server for SMTP, IMAP and POP3, on Linux - the release's own .deb, run as its own user, beside a PostgreSQL or MariaDB server of yours" \
+      org.opencontainers.image.description="Progressive Robot's fork of hMailServer, not the original hMailServer by Martin Knafve: a mail server for SMTP, IMAP and POP3, on Linux - the release's own .deb, run as its own user, beside a PostgreSQL or MariaDB server of yours" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
       org.opencontainers.image.vendor="Progressive Robot Ltd" \
       org.opencontainers.image.url="https://gitlab.com/hmailserver/hmailserver" \

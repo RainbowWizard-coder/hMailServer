@@ -24,7 +24,7 @@
 pkgname=hmailserver
 pkgver=6.3.7
 pkgrel=0
-pkgdesc="Mail server for SMTP, IMAP and POP3"
+pkgdesc="Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3"
 url="https://gitlab.com/hmailserver/hmailserver"
 # The two architectures the project builds and tests; the pipeline builds this on
 # x86_64 (Alpine.md).

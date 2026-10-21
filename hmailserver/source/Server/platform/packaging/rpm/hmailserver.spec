@@ -39,7 +39,7 @@
 Name:           hmailserver
 Version:        6.3.7
 Release:        1%{?dist}
-Summary:        Mail server for SMTP, IMAP and POP3
+Summary:        Progressive Robot's fork of hMailServer: mail server for SMTP, IMAP and POP3
 # The server is the project's (AGPL-3.0-or-later); compiled into it are QuickJS
 # (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice),
 # the Public Suffix List's rules (MPL-2.0), Unicode's data for UTS 46
@@ -117,20 +117,23 @@ Suggests:       mariadb-connector-c
 %endif
 
 %description
-hMailServer is a mail server: SMTP for sending and receiving, IMAP and
-POP3 for reading, with SPF, DKIM, DMARC and ARC, DNS block lists and
-gray listing, TLS with certificates from ACME, and a REST API with a
+Progressive Robot's fork of hMailServer, not the original hMailServer by
+Martin Knafve, which is developed separately and has releases of its own.
+
+It is a mail server: SMTP for sending and receiving, IMAP and POP3 for
+reading, with SPF, DKIM, DMARC and ARC, DNS block lists and gray
+listing, TLS with certificates from ACME, and a REST API with a
 browser-based administration page, the Control Deck. Its accounts,
 messages' metadata and settings are kept in PostgreSQL, or in MySQL or
 MariaDB through the MariaDB client library, which it loads when it is
 configured to.
 
-This is a maintained fork of the Windows mail server of that name,
-ported to Linux. This build has no live update of its own: the package
-manager updates it, and the server's update check names that command.
+Progressive Robot Ltd maintains the fork, on Linux as well as Windows.
+This build has no live update of its own: the package manager updates
+it, and the server's update check names that command.
 
 %package cli
-Summary:        Command-line client for hMailServer's REST API
+Summary:        Progressive Robot's fork of hMailServer: command-line client for its REST API
 %if 0%{?suse_version}
 Group:          Productivity/Networking/Email/Servers
 %endif
@@ -138,10 +141,12 @@ BuildArch:      noarch
 Requires:       python3
 
 %description cli
-hmctl administers an hMailServer over its REST API - domains, accounts,
+hmctl, the command-line client of Progressive Robot's fork of hMailServer,
+administers a server of that fork over its REST API - domains, accounts,
 aliases, settings, the queue, certificates and the rest - from a shell, on the
 server itself or on another machine, Linux or Windows. It is one Python 3 file
-that needs nothing beyond the standard library.
+that needs nothing beyond the standard library. It does not work with the
+original hMailServer by Martin Knafve, which has no REST API.
 
 %prep
 %autosetup -p1

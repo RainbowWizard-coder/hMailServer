@@ -26,7 +26,7 @@
 # database is configured. QuickJS is compiled from the copy in the tree. The live
 # update is off: Nix replaces the package, not the server (nix/package.nix).
 {
-  description = "hMailServer, a mail server for SMTP, IMAP and POP3";
+  description = "Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3";
 
   inputs.nixpkgs = {
     url = "https://releases.nixos.org/nixos/26.05/nixos-26.05.10882.7fc6f2c20af0/nixexprs.tar.xz";

@@ -58,7 +58,7 @@ pkgname=hmailserver
 # says so when only one of the two was done.
 pkgver=6.3.7
 pkgrel=1
-pkgdesc="A mail server for SMTP, IMAP and POP3"
+pkgdesc="Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3"
 arch=('x86_64' 'aarch64')
 # The project's home since GitHub suspended its account on 18 September 2026, at
 # the group's path it moved to on 29 September 2026 (its first path,

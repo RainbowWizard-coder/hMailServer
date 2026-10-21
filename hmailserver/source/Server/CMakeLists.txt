@@ -1388,10 +1388,24 @@ install(PROGRAMS ${SERVER_DIR}/../Tools/Cli/hmctl
 set(CPACK_PACKAGE_NAME hmailserver)
 set(CPACK_PACKAGE_VENDOR "Progressive Robot Ltd")
 set(CPACK_PACKAGE_CONTACT "chris.holloway@progressiverobot.com")
+# What apt show, dnf info and zypper info print, which says whose package this is:
+# the original hMailServer, Martin Knafve's, is developed separately, and a package
+# called hMailServer that did not say so would read as the original's. The source
+# packages' texts (debian-src/debian/control, rpm/hmailserver.spec) say the same,
+# and build/check-package-texts.py holds all of them to it.
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Progressive Robot's fork of hMailServer: mail server for SMTP, IMAP and POP3")
+set(CPACK_PACKAGE_DESCRIPTION "Progressive Robot's fork of hMailServer, not the original hMailServer by
+Martin Knafve, which is developed separately and has releases of its own.
+
+It is a mail server: SMTP for sending and receiving, IMAP and POP3 for
+reading, with SPF, DKIM, DMARC and ARC, TLS with certificates from ACME,
+and a REST API with a browser-based administration page, the Control
+Deck. The package carries hmctl, its command-line client, too.
+Progressive Robot Ltd maintains the fork, on Linux as well as Windows.")
+set(CPACK_RPM_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
 # The .deb's Maintainer, with the name Debian's policy asks for beside the address
 # (CPack would otherwise write CPACK_PACKAGE_CONTACT alone).
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Christopher Holloway <${CPACK_PACKAGE_CONTACT}>")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "hMailServer, a mail server for SMTP, IMAP and POP3")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://gitlab.com/hmailserver/hmailserver")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGING_INSTALL_PREFIX /usr)

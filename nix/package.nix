@@ -115,11 +115,13 @@ stdenv.mkDerivation {
   '';
 
   meta = {
-    description = "Mail server for SMTP, IMAP and POP3";
+    description = "Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3";
     longDescription = ''
-      hMailServer is a mail server for SMTP, IMAP and POP3, with anti-spam, DKIM,
-      DMARC and ARC, a REST API and a web administration page. This is its Linux
-      server, which keeps its settings and mail index in PostgreSQL or MySQL/MariaDB.
+      Progressive Robot's fork of hMailServer, not the original hMailServer by
+      Martin Knafve, which is developed separately and has releases of its own.
+      It is a mail server for SMTP, IMAP and POP3, with anti-spam, DKIM, DMARC and
+      ARC, a REST API and a web administration page. This is its Linux server,
+      which keeps its settings and mail index in PostgreSQL or MySQL/MariaDB.
     '';
     homepage = "https://gitlab.com/hmailserver/hmailserver";
     changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/v${version}/CHANGELOG.md";

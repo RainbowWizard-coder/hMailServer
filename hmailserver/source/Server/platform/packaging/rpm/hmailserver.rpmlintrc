@@ -30,3 +30,9 @@ addFilter("non-readable /etc/hmailserver/hMailServer.ini 640")
 # maintainer, in SourcePackages.md).
 addFilter("script-without-shebang /usr/bin/dh2048.pem")
 addFilter("wrong-script-end-of-line-encoding /usr/bin/dh2048.pem")
+
+# The summary says whose package this is, "Progressive Robot's fork of hMailServer",
+# and so repeats the package's name: the original hMailServer, Martin Knafve's, is
+# developed separately, and a summary without that name would not say which
+# hMailServer this is (build/check-package-texts.py holds the summary to it).
+addFilter("name-repeated-in-summary hMailServer")
