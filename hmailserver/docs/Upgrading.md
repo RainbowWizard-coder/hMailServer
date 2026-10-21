@@ -72,19 +72,21 @@ so that the original's 5.7 could not be put back without restoring a backup.
 **So the installer refuses an installation of the original's 5.7, before it changes
 anything** - from the release after 6.3.7; the installers of 6.3.7 and earlier do
 not look, and must not be run over one. Setup's first step, before a page is shown,
-reads the version of the earlier installation's `hMailServer.exe`. At 5.7 or later
-and before 6 it asks the running hMailServer service for the database's version: a
-version past `5708` and before `6001`, this fork's first after it, is refused, and
-`5708` or older - one of the original's 5.7 development builds - is upgraded as any
-other. Where the service is not running, or does not answer, the original's own
-upgrade scripts past `5708` in the installation's `DBScripts` folder
-(`Upgrade5708to5709*.sql`) decide instead, and the refusal then says that a
-development build whose database is at `5708` or older is upgraded once its service
-runs and setup is run again. The refusal says what it found and that nothing has
-been changed; a silent setup ends with exit code 1, and its log (`/LOG`) has the
-refusal on a line that begins "Refused:". Installations of this fork, and of the
-original up to 5.6, are not looked at past their `hMailServer.exe`'s version. The
-decision is `hmailserver/installation/OriginalHMailServer.iss`, and the Windows
+reads the version of the earlier installation's `hMailServer.exe`. Before 6 - that
+is, not this fork's - it asks the running hMailServer service for the database's
+version: a version past `5708` and before `6001`, this fork's first after it, is
+refused, and `5708` or older - a release of the original up to 5.6, or one of its
+5.7 development builds - is upgraded as any other. Where the service is not
+running, or does not answer, the original's own upgrade scripts past `5708` in the
+installation's `DBScripts` folder (`Upgrade5708to5709*.sql`) decide instead, and
+the refusal then says that an installation whose database is at `5708` or older is
+upgraded once its service runs and setup is run again. The version is not held to
+5.7, because a build of the original's 5.7 made from its source without its build
+script reports itself as 1.0.0: every 5.7 tag of the original commits that
+placeholder. The refusal says what it found and that nothing has been changed; a
+silent setup ends with exit code 1, and its log (`/LOG`) has the refusal on a line
+that begins "Refused:". Installations of this fork, whose programs are 6 and later,
+are not looked at past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`, and the Windows
 package jobs run its self-test before they build the installer
 ([PackagesWindows.md](PackagesWindows.md)).
 

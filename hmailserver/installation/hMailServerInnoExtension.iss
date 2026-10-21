@@ -2605,9 +2605,9 @@ end;
 // hMailServer's 5.7 whose database this fork cannot upgrade (OriginalHMailServer.iss
 // says what identifies one and why it is refused): the refusal's words, or '' when
 // it is not. Asked first in InitializeSetup, before anything is installed, stopped
-// or changed. Nothing is asked of a server whose hMailServer.exe is not 5.7 or later
-// before 6 - every installation of this fork's, and the original's up to 5.6 - and
-// a stopped service is not started for it: COM activation would start it.
+// or changed. Nothing is asked of an installation whose hMailServer.exe is 6 or
+// later - every one of this fork's - or is missing or has no version, and a stopped
+// service is not started for it: COM activation would start it.
 function OriginalHMailServerRefusal(): String;
 var
    szFolder: String;
@@ -2633,10 +2633,10 @@ begin
       iMinor := wMinor;
       szServerVersion := IntToStr(wMajor) + '.' + IntToStr(wMinor) + '.' + IntToStr(wRevision) + ' build ' + IntToStr(wBuild);
    end;
-   if not IsFiveSevenServer(iMajor, iMinor) then
+   if not IsServerBeforeThisFork(iMajor, iMinor) then
       Exit;
 
-   Log('The installation in ' + szFolder + ' has hMailServer.exe ' + szServerVersion + ', which may be the original hMailServer''s 5.7: its database''s version decides.');
+   Log('The installation in ' + szFolder + ' has hMailServer.exe ' + szServerVersion + ', which is not this fork''s 6.x and may be the original hMailServer''s 5.7: its database''s version decides.');
    iDatabase := -1;
    if IsServiceRunning('hMailServer') then
       iDatabase := ReadDatabaseVersion('before this installation, to tell the original''s 5.7 from a database this build upgrades')

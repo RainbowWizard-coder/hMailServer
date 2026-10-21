@@ -74,8 +74,8 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                share) and 6001 (this fork's first after it), are the upgrade
                chain's: a step from the one to the other is in DBScripts, and no
                step from or to a version between them. The database's version is
-               read only after hMailServer.exe is found to be 5.7, and only from a
-               running service. The decision's self-test,
+               read only after hMailServer.exe is found to be before 6, not this
+               fork's, and only from a running service. The decision's self-test,
                build/ci/packages/original-guard-test.iss, includes the same file,
                and windows-packages.ps1 runs it before it compiles the installer,
                stopping with exit 8 when it fails. That self-test runs the cases;
@@ -508,10 +508,10 @@ def check_original(texts, problems):
         problems.append('%s: there is no OriginalHMailServerRefusal, so nothing finds an installation of the original\'s '
                         '5.7 before setup replaces its programs' % EXTENSION)
     else:
-        asked = refusal.find('IsFiveSevenServer(')
+        asked = refusal.find('IsServerBeforeThisFork(')
         read_at = refusal.find('ReadDatabaseVersion(')
         if asked < 0 or read_at < 0 or asked > read_at:
-            problems.append('%s: OriginalHMailServerRefusal does not ask whether hMailServer.exe is 5.7 before it reads '
+            problems.append('%s: OriginalHMailServerRefusal does not ask whether hMailServer.exe is older than this fork\'s 6 before it reads '
                             'the database\'s version, so every upgrade of this fork\'s would ask its service too' % EXTENSION)
         if not re.search(r"if\s+IsServiceRunning\('hMailServer'\)\s+then\s+iDatabase\s*:=\s*ReadDatabaseVersion\(", refusal):
             problems.append('%s: OriginalHMailServerRefusal reads the database\'s version without the service running; '

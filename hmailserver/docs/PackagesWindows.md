@@ -101,11 +101,11 @@ the script documents.
    decision is Inno Setup Pascal, which only Inno Setup runs, so the script
    compiles `original-guard-test.iss`, a setup that installs nothing and that
    includes the same file, and runs it with `/VERYSILENT`. Its `InitializeSetup`
-   runs the decision over 45 cases - this fork's installations, the original up
+   runs the decision over 50 cases - this fork's installations, the original up
    to 5.6, the original's 5.7 development builds up to schema 5708, which are
-   upgraded, and its 5.7 at 5709 to 5711, which are refused - writes a line for
-   each and returns False, so that Setup ends with exit code 1 before a page, a
-   folder or a file. Every case must pass, and two altered copies of the
+   upgraded, and its 5.7 at 5709 to 5711, a build of it from source among them,
+   which are refused - writes a line for each and returns False, so that Setup
+   ends with exit code 1 before a page, a folder or a file. Every case must pass, and two altered copies of the
    decision must each fail one. A failure stops the job with exit code 8.
 4. ARM64 only: it checks the toolchain (`check-arm64-toolchain.ps1`, below).
 5. It clears everything git does not track from the installer's inputs and

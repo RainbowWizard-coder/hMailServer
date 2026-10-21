@@ -14,8 +14,9 @@
 ; The cases are the installations the decision must tell apart: this fork's own
 ; (6.x), the original up to 5.6, the original's 5.7 development builds up to schema
 ; 5708, which are upgraded, and the original's 5.7 releases and pre-release builds
-; at 5709 to 5711, which are refused - by the database's version when the service
-; answers it, and by the original's own upgrade scripts when it does not.
+; at 5709 to 5711, and a build of its 5.7 from source, whose hMailServer.exe is
+; 1.0.0.0, which are refused - by the database's version when the service answers
+; it, and by the original's own upgrade scripts when it does not.
 
 [Setup]
 AppName=hMailServer installer self-test
@@ -89,11 +90,22 @@ begin
    ExpectKind('this fork 6.3, database unread, the original''s scripts left in DBScripts', 6, 3, -1, True, ORIGINAL_NOT_REFUSED);
    ExpectKind('this fork 6.3, a database at 5711', 6, 3, 5711, True, ORIGINAL_NOT_REFUSED);
 
-   // The original up to 5.6, upgraded in place.
+   // The original up to 5.6, upgraded in place. Its programs are asked as the 5.7's
+   // are, and the two tests take neither its databases nor its DBScripts folders;
+   // a folder holding the original's steps past 5708 with no database read is one
+   // this fork cannot upgrade whatever hMailServer.exe is in it.
    ExpectKind('the original 5.6, database 5601', 5, 6, 5601, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('the original 5.6, database unread, the 5.7 scripts left in DBScripts', 5, 6, -1, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.6, database 5601, the 5.7 scripts left in DBScripts', 5, 6, 5601, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.6, database unread, the 5.7 scripts left in DBScripts', 5, 6, -1, True, ORIGINAL_REFUSED_BY_FILES);
    ExpectKind('the original 5.4, database unread', 5, 4, -1, False, ORIGINAL_NOT_REFUSED);
    ExpectKind('the original 4.4, database unread', 4, 4, -1, False, ORIGINAL_NOT_REFUSED);
+
+   // The original's 5.7 built from source without its build script: every 5.7 tag
+   // commits the placeholder 1.0.0, so its hMailServer.exe is 1.0.0.0.
+   ExpectKind('the original 5.7 built from source (1.0.0.0), database 5711', 1, 0, 5711, True, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7 built from source (1.0.0.0), database unread, its scripts in DBScripts', 1, 0, -1, True, ORIGINAL_REFUSED_BY_FILES);
+   ExpectKind('a build from source (1.0.0.0), database unread, no script past 5708', 1, 0, -1, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a build from source (1.0.0.0), database 5708', 1, 0, 5708, True, ORIGINAL_NOT_REFUSED);
 
    // The original's 5.7 development builds up to 5708, upgraded in place.
    ExpectKind('a 5.7 development build, database 5708', 5, 7, 5708, False, ORIGINAL_NOT_REFUSED);

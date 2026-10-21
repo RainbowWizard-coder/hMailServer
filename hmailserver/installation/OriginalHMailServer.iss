@@ -22,11 +22,19 @@
 //
 // What identifies such an installation:
 //   * its hMailServer.exe's version, in the folder the earlier installation names:
-//     5.7 or later and before 6 (the original's build stamps 5.7.0.3013, 5.7.1.3116
-//     and 5.7.2.3124, and 5.7.0.2788 and 5.7.0.2843, as FILEVERSION). This fork's
-//     programs are 6 and later, and the original's up to 5.6 are 5.6 or older, so
-//     neither is ever looked at further. The original's 5.7 development builds up
-//     to 5708 are 5.7.0 as well, which is why the version alone does not decide;
+//     before 6. This fork's programs are 6 and later, from its first release
+//     (6.0.0-B1), and are never looked at further. The version does not tell the
+//     original's 5.7 from its earlier releases, and is not held to 5.7: the
+//     original's build stamps 5.7.0.3013, 5.7.1.3116 and 5.7.2.3124, and 5.7.0.2788
+//     and 5.7.0.2843, as FILEVERSION, but every one of its 5.7 tags commits the
+//     placeholder 1.0.0 (Version.h, section_setup_64.iss), so that a build of it
+//     made from source without its build script reports itself as 1.0.0.0, and
+//     its 5.7 development builds up to 5708 are 5.7.0 as well. The two tests below
+//     decide; neither refuses a database at 5708 or older, nor a DBScripts folder
+//     without one of the original's steps past 5708, so the original's releases up
+//     to 5.6 (5601) and its development builds up to 5708 are upgraded as before.
+//     No hMailServer.exe, or one with no version, is not looked at further either:
+//     nothing then says whose installation it is;
 //   * then the database's version, hm_dbversion, which the running service answers
 //     without a password (Database.CurrentVersion, the original's as this fork's):
 //     past ORIGINAL_LAST_SHARED_SCHEMA and before FORK_FIRST_SCHEMA is refused, and
@@ -35,8 +43,8 @@
 //     not answer - the scripts the original's 5.7 installs in its DBScripts folder:
 //     an upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
 //     which no development build up to 5708 and no release of this fork carries.
-//     The refusal then says that the files decided, and that a development build
-//     whose database is at 5708 or older is upgraded once its service runs.
+//     The refusal then says that the files decided, and that an installation whose
+//     database is at 5708 or older is upgraded once its service runs.
 // build\check-installer-scripts.py holds the two numbers to the upgrade chain in
 // hmailserver\source\DBScripts: a step from the one to the other, and no step to
 // any version between them.
@@ -83,12 +91,14 @@ begin
    Result := IsOriginalOnlySchema(iVersion);
 end;
 
-// Whether the installed hMailServer.exe's version is 5.7 or later and before 6:
-// the original's 5.7, a release or a development build. -1 for a version that
-// could not be read.
-function IsFiveSevenServer(ServerMajor, ServerMinor: Integer): Boolean;
+// Whether the installed hMailServer.exe's version is before 6, that is, not one
+// of this fork's: the original's, of any release or build, its 5.7 among them,
+// whose version is not held to 5.7 (a build of it from source is 1.0.0.0). -1
+// for a version that could not be read, which is not taken. The minor version
+// does not decide.
+function IsServerBeforeThisFork(ServerMajor, ServerMinor: Integer): Boolean;
 begin
-   Result := (ServerMajor = 5) and (ServerMinor >= 7);
+   Result := (ServerMajor >= 0) and (ServerMajor < 6);
 end;
 
 // The decision. ServerMajor and ServerMinor: the installed hMailServer.exe's
@@ -99,7 +109,7 @@ end;
 function OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts: Boolean): Integer;
 begin
    Result := ORIGINAL_NOT_REFUSED;
-   if not IsFiveSevenServer(ServerMajor, ServerMinor) then
+   if not IsServerBeforeThisFork(ServerMajor, ServerMinor) then
       Exit;
    if DatabaseVersion > 0 then
    begin
@@ -137,6 +147,6 @@ begin
              'across over IMAP (Migration.md in the documentation, "From the original hMailServer").';
    if Kind = ORIGINAL_REFUSED_BY_FILES then
       Result := Result + #13#10#13#10 +
-                'If this is one of the original''s 5.7 development builds and its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
-                ' or older, start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
+                'If its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
+                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
 end;
