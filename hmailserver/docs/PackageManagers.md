@@ -170,7 +170,22 @@ own, from `hmailserver/installation/section_setup.iss` and `section_setup_64.iss
 The silent switches are `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`.
 `/SUPPRESSMSGBOXES` is not optional: without it a database-setup failure shows a
 message box, silent mode answers it with the default button, and a broken
-install reports success. `/TYPE=full` is deliberately **not** passed, unlike the
+install reports success.
+
+**A failed install says why only in the installer's log**, the message boxes being
+suppressed - a failed database step, or the installer's refusal of an
+installation of the original hMailServer's 5.7, which it makes before it changes
+anything (Upgrading.md, "Where you can upgrade from"). Inno Setup writes a log only
+with `/LOG`. The winget installer manifest declares `Log: /LOG="<LOGPATH>"`, which
+`winget install --log <file>` fills. The Chocolatey install script passes
+`/LOG="%TEMP%\<package id>.<version>.install.log"`, names that log when the
+install fails, and shows the refusal's words, which setup writes, with or without
+a log, to `%TEMP%\hMailServer-setup-refused.txt`. Both end with the installer's
+exit code 1 for a refusal. The log records setup's command line, so give the
+administrator password in `HM_ADMIN_PASSWORD`, set in the elevated prompt, rather
+than with `/adminpassword` in `--override` or `--install-arguments`.
+`build/check-package-manifests.py` refuses a manifest or a package that has lost
+either `/LOG`. `/TYPE=full` is deliberately **not** passed, unlike the
 smoke test: on a first install Inno's default type is the full one anyway, and
 on an upgrade Inno preselects the components already installed — forcing the
 full type would quietly put the Control Panel back on a server where the

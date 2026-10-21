@@ -426,6 +426,9 @@ if ($chocoInstall -notmatch [regex]::Escape($InstallerUrl)) { $problems += 'the 
 if ($chocoInstall -notmatch '/SUPPRESSMSGBOXES') {
     $problems += 'the Chocolatey install script has lost /SUPPRESSMSGBOXES, without which a failed database setup reports success'
 }
+if ($chocoInstall -notmatch '/LOG=') {
+    $problems += 'the Chocolatey install script has lost /LOG=, without which a failed or refused install leaves no record of why'
+}
 
 if ($problems.Count -gt 0) {
     Write-Host ''

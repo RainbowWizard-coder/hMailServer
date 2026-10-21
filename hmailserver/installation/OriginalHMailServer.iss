@@ -4,7 +4,8 @@
 // with no section header: hMailServerInnoExtension.iss includes it inside its own
 // [Code], and so does build\ci\packages\original-guard-test.iss, the self-test the
 // windows-packages jobs compile and run, which is why nothing here reads the
-// registry, a file or the service: what is found is passed in.
+// registry, a file or the service: what is found is passed in, and the one file
+// written, the refusal's record, is named by the caller.
 //
 // Both projects' installers register as the uninstall entry hMailServer_is1 (this
 // fork's AppId=hMailServer; the original's AppName=hMailServer, with no AppId), so
@@ -149,4 +150,20 @@ begin
       Result := Result + #13#10#13#10 +
                 'If its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
                 ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
+end;
+
+// Writes the refusal to FileName, in UTF-8, after a line that says when and which
+// setup refused, so that a silent setup run without /LOG, whose message box is
+// suppressed, leaves the reason where it can be found (InitializeSetup passes the
+// file in the temporary folder, RefusalFileName). True when it was written.
+function WriteOriginalHMailServerRefusal(FileName, Refusal: String): Boolean;
+var
+   Lines: TArrayOfString;
+begin
+   SetArrayLength(Lines, 3);
+   Lines[0] := GetDateTimeString('yyyy-mm-dd hh:nn:ss', '-', ':') + ' ' + ExtractFileName(ExpandConstant('{srcexe}')) +
+               ' refused to install, and changed nothing:';
+   Lines[1] := '';
+   Lines[2] := Refusal;
+   Result := SaveStringsToUTF8File(FileName, Lines, False);
 end;

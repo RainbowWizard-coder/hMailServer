@@ -188,17 +188,19 @@ with `--check`).
   (`Upgrade5708to5709*.sql`) decide, the refusal then saying that an installation whose database is at 5708 or older
   is upgraded once its service runs. The refusal says what was found, that nothing has been changed, and that the way
   from the original's 5.7 is a migration of each mailbox over IMAP (Migration.md, "From the original hMailServer"); a
-  silent setup ends with exit code 1 and writes it to its log ("Refused: ..."). This fork's installations (6.x) are not
-  looked at past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`.
-  Its self-test, `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that
-  installs nothing, runs 53 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its
-  development builds at 5700 to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from
-  source at 1.0.0.0, and the bounds 5708, 5709, 6000 and 6001 - and proves that three broken copies of the decision -
-  the refusal taking in 5708, the fall-back on the scripts left out, and the version gate taking in this fork's 6.x -
-  each fail a case; the Windows package jobs run it before they build the installer, and stop with exit code 8 when it
-  fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py`
-  holds the two bounds to the upgrade chain in `hmailserver/source/DBScripts` and the refusal to its place, with seven
-  negative controls more.
+  silent setup ends with exit code 1 and writes it to its log, with `/LOG` ("Refused: ..."), and with or without one
+  to `hMailServer-setup-refused.txt` in its `%TEMP%`, which a later setup that is not refused deletes, so that a
+  silent install whose message box is suppressed still says why. This fork's installations (6.x) are not looked at
+  past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`. Its
+  self-test, `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that
+  installs nothing, runs 55 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its development
+  builds at 5700 to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from source at
+  1.0.0.0, the bounds 5708, 5709, 6000 and 6001, and the refusal's file written and read back - and proves that three
+  broken copies of the decision - the refusal taking in 5708, the fall-back on the scripts left out, and the version
+  gate taking in this fork's 6.x - each fail a case; the Windows package jobs run it before they build the installer,
+  and stop with exit code 8 when it fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py`
+  holds the two bounds to the upgrade chain in `hmailserver/source/DBScripts`, the refusal to its place and its file,
+  with eight negative controls more.
 
 ### Downloads and the release
 
@@ -311,6 +313,17 @@ with `--check`).
   (`CPACK_DEBIAN_PACKAGE_MAINTAINER`), where it gave the address alone, CPack's default. The PPA's upload, OBS and
   Copr take the packaging from the release's source tarball, so this reaches them with the next release. The principal
   under which the release's checksums are signed (`.gitlab/allowed_signers`) is the signing key's and is unchanged.
+
+- **The Chocolatey package's install passes the installer `/LOG`, and says why when it fails.** It ran the installer
+  with `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` alone, so that a failed database step, or the installer's refusal of
+  an installation of the original hMailServer's 5.7, left Chocolatey's "Exit code was '1'" and no installer log: the
+  message box is suppressed, and Inno Setup writes a log only with `/LOG`. `chocolateyinstall.ps1` now passes
+  `/LOG="%TEMP%\<package id>.<version>.install.log"`, names that log when the install fails, and shows the refusal's
+  words from `%TEMP%\hMailServer-setup-refused.txt` when setup wrote it during the install. The winget installer
+  manifest already declares `Log: /LOG="<LOGPATH>"`, which `winget install --log <file>` fills. The log records
+  setup's command line, so PackageManagers.md says to give the administrator password in `HM_ADMIN_PASSWORD` rather
+  than in Chocolatey's `--install-arguments`. `build/check-package-manifests.py` refuses a winget Log switch that is not
+  `/LOG="<LOGPATH>"` and Chocolatey `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter.
 
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28

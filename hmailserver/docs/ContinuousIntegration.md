@@ -3167,8 +3167,10 @@ then this fork's installer run with `/VERYSILENT /SUPPRESSMSGBOXES /LOG`. It mus
 end with exit code 1 and a log line that begins "Refused:" and names database
 version 5711 (5709 for the builds 2788 and 2843), with the original's
 `hMailServer.exe` still at its version, its service still running, its uninstall
-entry and its database unchanged. Then the same with the original's service
-stopped, where the line must name the original's scripts in `DBScripts` instead.
+entry and its database unchanged, and `hMailServer-setup-refused.txt` in the
+temporary folder holding the same words. Then the same with the original's
+service stopped, where the line must name the original's scripts in `DBScripts`
+instead.
 
 The release
 -----------

@@ -84,11 +84,16 @@ upgraded once its service runs and setup is run again. The version is not held t
 5.7, because a build of the original's 5.7 made from its source without its build
 script reports itself as 1.0.0: every 5.7 tag of the original commits that
 placeholder. The refusal says what it found and that nothing has been changed; a
-silent setup ends with exit code 1, and its log (`/LOG`) has the refusal on a line
-that begins "Refused:". Installations of this fork, whose programs are 6 and later,
-are not looked at past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`, and the Windows
-package jobs run its self-test before they build the installer
-([PackagesWindows.md](PackagesWindows.md)).
+silent setup ends with exit code 1, its log (`/LOG`) has the refusal on a line that
+begins "Refused:", and with or without a log setup writes it to
+`hMailServer-setup-refused.txt` in the temporary folder (`%TEMP%`) of the account it
+runs as, which a later setup that is not refused deletes. The Chocolatey package
+passes `/LOG` and shows that file's words when the install fails, and winget writes
+the log where `winget install --log <file>` says (PackageManagers.md).
+Installations of this fork, whose programs are 6 and later, are not looked at past
+their `hMailServer.exe`'s version. The decision is
+`hmailserver/installation/OriginalHMailServer.iss`, and the Windows package jobs run
+its self-test before they build the installer ([PackagesWindows.md](PackagesWindows.md)).
 
 A server of the original's 5.7 moves its mail to this one over IMAP instead
 ([Migration.md](Migration.md), "From the original hMailServer").

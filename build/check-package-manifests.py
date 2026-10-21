@@ -35,6 +35,9 @@ What it checks, beyond the schemas:
     business, which computes it from the bytes rather than copying it);
   * the nuspec, if one is beside them, is well-formed, carries the same version,
     and its install script carries the same URL and hash as the manifest;
+  * a silent install keeps a record of why it failed or was refused: the
+    installer manifest's Log switch is /LOG="<LOGPATH>", and the Chocolatey
+    install script's silentArgs carry /LOG=;
   * the installer manifest's ReleaseDate is a day, YYYY-MM-DD, and with
     --release-date the release's own: build/make-package-manifests.ps1 takes it
     from the release, and a manifest dated by the day it was rendered is wrong
@@ -291,6 +294,12 @@ def check_winget(version_directory, cache_directory, offline, release_date=None)
                     "shows a message box, silent mode answers it with the default button, and a broken install "
                     "reports success" % (installer_entry, switch)
                 )
+        if "/LOG=" not in (switches.get("Log") or "") or "<LOGPATH>" not in (switches.get("Log") or ""):
+            problem(
+                "%s: the Log switch is not /LOG=\"<LOGPATH>\" - without it `winget install --log` records winget's "
+                "side alone, and a silent install that fails or is refused (an installation of the original "
+                "hMailServer's 5.7) leaves only its exit code" % installer_entry
+            )
         for entry in installer.get("Installers") or []:
             url = entry.get("InstallerUrl", "")
             if not url.startswith(RELEASE_HOST_PREFIX):
@@ -376,6 +385,11 @@ def check_chocolatey(directory, manifests):
 
     with open(install_script, "r", encoding="utf-8-sig") as handle:
         script_text = handle.read()
+
+    if not re.search(r"silentArgs\s*=\s*\"[^\"\n]*/LOG=", script_text):
+        problem("the Chocolatey install script's silentArgs do not carry /LOG= - Chocolatey reports a failed install's "
+                "exit code alone, the message boxes are suppressed, and a refusal (an installation of the original "
+                "hMailServer's 5.7) or a failed database step would leave no record of why")
 
     installer = (manifests or {}).get("installer", (None, {}))[1]
     for entry in installer.get("Installers") or []:

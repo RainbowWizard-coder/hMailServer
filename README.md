@@ -302,6 +302,8 @@ Two things to know about the administrator password:
 
 The installer checks both that the database tool launched *and* its exit code, so a failed or cancelled database create/upgrade cannot report a successful install — the service would otherwise come up against a missing or outdated schema. Treat a non-zero installer exit code as a failed install and read the log.
 
+**An installation of the original hMailServer's 5.7 is refused, with exit code 1, before anything is changed.** This installer is Progressive Robot's fork, which cannot upgrade the original's 5.7 database; the way across is a migration over IMAP ([docs/Upgrading.md](hmailserver/docs/Upgrading.md), "Where you can upgrade from"). The reason is in the log, with `/LOG`, on a line that begins `Refused:`, and with or without a log in `%TEMP%\hMailServer-setup-refused.txt`, since a silent setup's message box is suppressed. The log records setup's command line, `/adminpassword` with it, which is one more reason to give the password in `HM_ADMIN_PASSWORD`.
+
 Do not run the installer on a machine you are also using to build the server: it takes over the service path, the COM `LocalServer32` registration and the 32-bit `InstallLocation` registry value, which is exactly the state a development checkout needs to control.
 
 Update check

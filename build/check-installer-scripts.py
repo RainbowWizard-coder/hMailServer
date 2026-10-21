@@ -70,7 +70,8 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                this fork cannot upgrade, is refused first in InitializeSetup, before
                anything is installed, stopped or changed: OriginalHMailServer.iss,
                included in the [Code], decides, and InitializeSetup ends setup on
-               its refusal. Its two bounds, 5708 (the last schema the two projects
+               its refusal, which it writes to a file in %TEMP% as well as to the
+               log. Its two bounds, 5708 (the last schema the two projects
                share) and 6001 (this fork's first after it), are the upgrade
                chain's: a step from the one to the other is in DBScripts, and no
                step from or to a version between them. The database's version is
@@ -94,7 +95,8 @@ the password on DBSetup's command line, DBSetup started without the credential,
 HM_ADMIN_PASSWORD left set after DBSetup, DBUpdater's command line built as one
 string and the password on it, the original's shared bound moved past 5708, a step
 of this fork's own to a version between the bounds, the decision not included,
-its refusal not acted on, the refusal asked after a window check, the database
+its refusal not acted on, the refusal not written to its file, the refusal
+asked after a window check, the database
 read from a stopped service, and the self-test not run before the installer is
 built, must all be refused.
 
@@ -525,6 +527,9 @@ def check_original(texts, problems):
         if not re.search(r'Result\s*:=\s*false\s*;', call.group(1), re.I) or not re.search(r'\bExit\s*;', call.group(1)):
             problems.append('%s: InitializeSetup does not end setup (Result := false; Exit;) on the refusal of the '
                             'original\'s 5.7' % EXTENSION)
+        if not re.search(r'\bWriteRefusalFile\(szRefusal\)\s*;', call.group(1)):
+            problems.append('%s: InitializeSetup does not write the refusal of the original\'s 5.7 to its file '
+                            '(WriteRefusalFile), so a silent setup run without /LOG leaves no record of why' % EXTENSION)
         before = setup[:call.start()]
         if re.search(r'GetEnv\(|ExpandConstant\(|SuppressibleMsgBox\(|IsServiceRunning\(|CheckForMutexes\(|FindWindowByWindowName\(',
                      before):
@@ -642,6 +647,8 @@ def negative_controls(texts):
         ('the refusal not acted on',
          altered(texts, EXTENSION, "\t\tSuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);\n\t\tResult := false;\n\t\tExit;\n",
                  "\t\tSuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);\n")),
+        ('the refusal not written to its file',
+         altered(texts, EXTENSION, "\t\tWriteRefusalFile(szRefusal);\n", "")),
         ('the refusal asked after a window check',
          altered(texts, EXTENSION, "\tResult := true;\n\n\t// An installation of the original hMailServer's 5.7",
                  "\tResult := true;\n\tif FindWindowByWindowName('x') > 0 then Exit;\n\n\t// An installation of the original hMailServer's 5.7")),

@@ -78,6 +78,8 @@ end;
 function InitializeSetup(): Boolean;
 var
    szResult: String;
+   szRecord: String;
+   szRead: AnsiString;
 begin
    Result := False;
    g_szLines := '';
@@ -158,6 +160,20 @@ begin
    ExpectInMessage('the refusal by files says the version was not read', ORIGINAL_REFUSED_BY_FILES, 'could not be read', True);
    ExpectInMessage('the refusal by files says how a development build gets past it', ORIGINAL_REFUSED_BY_FILES, 'start the hMailServer service and run this installer again', True);
    ExpectInMessage('the refusal by files names the IMAP route', ORIGINAL_REFUSED_BY_FILES, 'Migration.md', True);
+
+   // The record a silent setup run without /LOG leaves: written to the file named,
+   // here beside the result, read back and removed.
+   szResult := ExpandConstant('{param:result|}');
+   if szResult <> '' then
+   begin
+      szRecord := ExtractFilePath(szResult) + 'refusal-record.txt';
+      Report(WriteOriginalHMailServerRefusal(szRecord, OriginalHMailServerMessage(ORIGINAL_REFUSED_BY_DATABASE, '5.7.0 build 3013', 5711, 'C:\Program Files\hMailServer')),
+             'the refusal is written to the file named');
+      Report(LoadStringFromFile(szRecord, szRead) and (Pos('refused to install, and changed nothing:', szRead) > 0) and
+             (Pos('its database is at version 5711.', szRead) > 0) and (Pos('Migration.md', szRead) > 0),
+             'the file says that setup refused and changed nothing, and holds the refusal''s words');
+      DeleteFile(szRecord);
+   end;
 
    g_szLines := g_szLines + 'CASES ' + IntToStr(g_iCases) + ' FAILED ' + IntToStr(g_iFailed) + #13#10;
    szResult := ExpandConstant('{param:result|}');

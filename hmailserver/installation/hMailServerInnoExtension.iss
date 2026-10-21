@@ -2669,6 +2669,32 @@ begin
           IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + '.');
 end;
 
+// The file a refusal is written to as well as the log, so that a silent setup run
+// without /LOG, whose message box is suppressed, still leaves the reason where it
+// can be found: hMailServer-setup-refused.txt in the folder TEMP names in setup's
+// environment - the temporary folder of the account setup runs as, elevated, or
+// the one a package manager that started it set, which Chocolatey's install script
+// reads back - or, with TEMP unset, Inno Setup's own temporary folder.
+// InitializeSetup deletes one an earlier run left when this one is not refused.
+function RefusalFileName(): String;
+begin
+   Result := GetEnv('TEMP');
+   if Result = '' then
+      Result := GetTempDir();
+   Result := AddBackslash(Result) + 'hMailServer-setup-refused.txt';
+end;
+
+procedure WriteRefusalFile(szRefusal: String);
+var
+   szFile: String;
+begin
+   szFile := RefusalFileName();
+   if WriteOriginalHMailServerRefusal(szFile, szRefusal) then
+      Log('The refusal is also in ' + szFile + '.')
+   else
+      Log('The refusal could not be written to ' + szFile + '.');
+end;
+
 function InitializeSetup(): Boolean;
 	var
 		sMessage : AnsiString;
@@ -2681,15 +2707,18 @@ begin
 	// cannot upgrade, is refused before anything else: nothing has been installed,
 	// stopped or changed yet (OriginalHMailServerRefusal). Setup then ends with
 	// exit code 1, Inno Setup's for a setup that did not initialise, and the
-	// refusal is in its log.
+	// refusal is in its log (with /LOG) and in the file RefusalFileName names.
 	szRefusal := OriginalHMailServerRefusal();
 	if szRefusal <> '' then
 	begin
 		Log('Refused: ' + szRefusal);
+		WriteRefusalFile(szRefusal);
 		SuppressibleMsgBox(szRefusal, mbCriticalError, MB_OK, IDOK);
 		Result := false;
 		Exit;
 	end;
+	if FileExists(RefusalFileName()) then
+		DeleteFile(RefusalFileName());
 
 	// The .NET tools require the .NET {#DOTNET_MAJOR} Desktop Runtime; it is
 	// bundled and installed automatically when missing, so no up-front framework
