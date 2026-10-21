@@ -608,7 +608,8 @@ with `--check`).
   `date-released` are stamped with each release (RELEASE.md, step 7, now eighteen files), and the new
   `build/check-citation.py`, which the `checkers` job runs with every other check, holds them to `Version.h` and to
   that version's `CHANGELOG.md` date, and holds the fork's sentence, the reference to the original and the absence of
-  a DOI.
+  a DOI; the same job runs its `--self-test`, which refuses ten faults planted in a fixture, with the other checks'
+  negative controls.
 - **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
   certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
   32-bit uninstall entry taken away first.** Step 3 had the administrator "grant the service account access" without

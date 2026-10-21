@@ -396,7 +396,7 @@ checkers:
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
-      for name in address-parsing authz-choke-point binary-manifest blowfish-constants changelog channels cli-packages collection-iteration com-error-info com-shared-copies \
+      for name in address-parsing authz-choke-point binary-manifest blowfish-constants changelog channels citation cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage elevated-verbs help-map idl-case localisation mnemonics mysql-charset osv-ignores password-choice-sites release-chain \
                   roadmap2 role-choke-point sbom-inputs source-literals source-tarball spacing; do
         check python3 "build/check-$name.py" --self-test

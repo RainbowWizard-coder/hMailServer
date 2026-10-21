@@ -19,7 +19,8 @@ it claims no DOI, since none has been made.
 The schema itself is the format's (citation-file-format.github.io/1.2.0/schema.json);
 `cffconvert --validate -i CITATION.cff` checks the file against it, and needs the
 network to install. This reads the file with nothing but Python, as the checkers job
-runs every build/check-*.py.
+runs every build/check-*.py, and that job runs --self-test too, with the other
+checks' negative controls.
 
   python build/check-citation.py [--self-test]
 """
