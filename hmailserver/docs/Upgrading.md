@@ -65,9 +65,29 @@ original went on from `5708` by steps of its own: `5709` (special-use folders),
 builds of 5.7.0 of August 2026, 2788 and 2843, require `5709`, and 5.7.0 build
 3013, 5.7.1 and 5.7.2 require `5711`. DBUpdater has no step from any of the
 three, and stops before it changes anything: "Upgrade path not found. No upgrade
-script is registered for database version 5711". But setup runs it after it has
-replaced the program files, and this server then refuses the database as too old.
-So do not run this fork's installer over an installation of the original's 5.7.
+script is registered for database version 5711". But setup ran it only after it had
+replaced the program files, and this server then refused the database as too old,
+so that the original's 5.7 could not be put back without restoring a backup.
+
+**So the installer refuses an installation of the original's 5.7, before it changes
+anything** - from the release after 6.3.7; the installers of 6.3.7 and earlier do
+not look, and must not be run over one. Setup's first step, before a page is shown,
+reads the version of the earlier installation's `hMailServer.exe`. At 5.7 or later
+and before 6 it asks the running hMailServer service for the database's version: a
+version past `5708` and before `6001`, this fork's first after it, is refused, and
+`5708` or older - one of the original's 5.7 development builds - is upgraded as any
+other. Where the service is not running, or does not answer, the original's own
+upgrade scripts past `5708` in the installation's `DBScripts` folder
+(`Upgrade5708to5709*.sql`) decide instead, and the refusal then says that a
+development build whose database is at `5708` or older is upgraded once its service
+runs and setup is run again. The refusal says what it found and that nothing has
+been changed; a silent setup ends with exit code 1, and its log (`/LOG`) has the
+refusal on a line that begins "Refused:". Installations of this fork, and of the
+original up to 5.6, are not looked at past their `hMailServer.exe`'s version. The
+decision is `hmailserver/installation/OriginalHMailServer.iss`, and the Windows
+package jobs run its self-test before they build the installer
+([PackagesWindows.md](PackagesWindows.md)).
+
 A server of the original's 5.7 moves its mail to this one over IMAP instead
 ([Migration.md](Migration.md), "From the original hMailServer").
 [ForkAndOriginal.md](ForkAndOriginal.md) says what else differs between the two

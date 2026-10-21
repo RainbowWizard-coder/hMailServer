@@ -1301,8 +1301,10 @@ first.
 
 **From the original's 5.7 releases** (5.7.0, 5.7.1 and 5.7.2) the installer is not
 the route. Their database is at a schema version this fork's upgrade chain does not
-reach, and setup would replace the original's programs and then leave a database
-this server refuses ([Upgrading.md](Upgrading.md), "Where you can upgrade from").
+reach. From the release after 6.3.7 setup finds such an installation and refuses it
+before it changes anything; the installers of 6.3.7 and earlier would replace the
+original's programs and then leave a database this server refuses
+([Upgrading.md](Upgrading.md), "Where you can upgrade from").
 Install this fork on another machine instead, make the domains and the accounts
 there - by hand, or with *Accounts in bulk* below - and bring each mailbox's mail
 across with a migration of kind `imap` whose source is the original server, as

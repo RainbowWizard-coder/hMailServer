@@ -106,12 +106,15 @@ The two share the database's upgrade chain up to schema 5708 and part company th
   on to its own.
 * **From the original's 5.7 releases to this fork: not in place.** 5.7.0 build 3013,
   5.7.1 and 5.7.2 require schema 5711, and the pre-release builds 2788 and 2843 schema
-  5709: steps of the original's own, which this fork's chain does not have. Do not run this
-  fork's installer over such an installation: its database step stops without changing
-  the database, but only after the programs have been replaced, and this fork's server
-  will not run on that database. Move the mail instead: this fork installed on another
-  machine, the domains and accounts made there, and each mailbox copied across over
-  IMAP by a migration ([Migration.md](Migration.md#from-the-original-hmailserver)).
+  5709: steps of the original's own, which this fork's chain does not have. This fork's
+  installer refuses such an installation before it changes anything, from the release
+  after 6.3.7 ([Upgrading.md](Upgrading.md#where-you-can-upgrade-from)); the installers of
+  6.3.7 and earlier do not, and must not be run over one: their database step stops
+  without changing the database, but only after the programs have been replaced, and
+  this fork's server will not run on that database. Move the mail instead: this fork
+  installed on another machine, the domains and accounts made there, and each mailbox
+  copied across over IMAP by a migration
+  ([Migration.md](Migration.md#from-the-original-hmailserver)).
 * **From this fork back to the original: no.** The original's server refuses a
   database newer than the one it requires ("The database is too new for this version
   of hMailServer"), and neither project downgrades a database. The way back from an

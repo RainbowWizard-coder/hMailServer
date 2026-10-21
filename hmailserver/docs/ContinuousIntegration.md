@@ -3152,6 +3152,24 @@ entry that is not `postinstall` before `ssPostInstall`. So the runtime is
 installed from `section_run.iss`, and `InstallDotNetRuntime` at `ssPostInstall`
 is the second attempt.
 
+**The refusal of the original's 5.7 is not one of the smoke test's runs yet.**
+The installer refuses an installation of the original hMailServer's 5.7 in its
+`InitializeSetup`, before it changes anything (Upgrading.md, "Where you can
+upgrade from"). The decision is proved by its self-test, which the Windows
+package jobs run on every protected pipeline
+([PackagesWindows.md](PackagesWindows.md)), and
+`build/check-installer-scripts.py` holds the refusal to its place. What the
+self-test cannot show is the finding on a real installation: the folder, the
+version of its `hMailServer.exe`, the database's version read through the
+original's own service, and the scripts in its `DBScripts` folder. On the VM
+that is: the original's 5.7 installed from its own installer, a domain made, and
+then this fork's installer run with `/VERYSILENT /SUPPRESSMSGBOXES /LOG`. It must
+end with exit code 1 and a log line that begins "Refused:" and names database
+version 5711 (5709 for the builds 2788 and 2843), with the original's
+`hMailServer.exe` still at its version, its service still running, its uninstall
+entry and its database unchanged. Then the same with the original's service
+stopped, where the line must name the original's scripts in `DBScripts` instead.
+
 The release
 -----------
 
