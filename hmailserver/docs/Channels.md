@@ -363,14 +363,19 @@ Windows. Pressing `chocolatey-release` starts both.
 - **The first package.** `chocolatey-publish` (job 17333239753, in `master`'s
   pipeline 2966261322) verified 6.3.7's installer (Authenticode Valid, "Progressive
   Robot Ltd"), packed `hmailserver-progressiverobot.6.3.7.nupkg` and pushed it at
-  23:47 UTC on 20 October 2026 (HTTP 201). The community repository's feed lists it as
-  `Submitted`, not approved (21 October 2026): it is listed, and `choco install
-  hmailserver-progressiverobot` installs it, once Chocolatey's automatic checks and a
-  human moderator have passed it, and every new version waits the same way. That
-  package's title was "hMailServer" alone, and its winget manifest's `ReleaseDate`
-  the job's own day; the package is now rendered with the fork's title and
-  description and dated by the release, and a second press of `chocolatey-release`
-  sends 6.3.7 again in the waiting package's place (point 7 above).
+  23:47 UTC on 20 October 2026 (HTTP 201). It passed Chocolatey's automatic checks,
+  and at 11:31 UTC on 21 October 2026 a moderator returned it to the maintainer
+  ("Waiting for Maintainer to take corrective action"), asking that its `<authors>`
+  also credit the original hMailServer's author, Martin Knafve, and that the same
+  version be resubmitted; the feed still lists it as `Submitted`, not approved. It is
+  listed, and `choco install hmailserver-progressiverobot` installs it, once a
+  moderator has passed it, and every new version waits the same way. That package's
+  title was "hMailServer" alone, its authors and copyright named Progressive Robot
+  alone, and its winget manifest's `ReleaseDate` was the job's own day; the package is
+  now rendered with the fork's title and description, with Martin Knafve credited in
+  its authors and copyright, and dated by the release, and once that is on `master` a
+  second press of `chocolatey-release` sends 6.3.7 again in the waiting package's
+  place (point 7 above).
 
 ### Snap Store
 

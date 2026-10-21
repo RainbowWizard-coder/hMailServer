@@ -246,8 +246,11 @@ with `--check`).
   installer's licence ends, and the authors "Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve
   (the original hMailServer)". winget's Publisher stays Progressive Robot Ltd, the publisher the installer writes in
   the uninstall entry. `build/make-package-manifests.ps1` and `build/check-package-manifests.py` refuse a rendered
-  copyright or author field that does not name Martin Knafve. A published version keeps its texts, so this reaches
-  Chocolatey with the next push of the package.
+  copyright or author field that does not name Martin Knafve. Chocolatey's moderator asked for this on 21 October
+  2026, returning 6.3.7 to the maintainer ("Waiting for Maintainer to take corrective action") with the request that
+  the package's authors credit the original's author and that the same version be resubmitted, and holds 6.3.7 for
+  it: a second press of `chocolatey-release` in master's pipeline sends 6.3.7 again with these texts, in the waiting
+  package's place.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's

@@ -16,17 +16,22 @@ September - and packages of it exist, so every package of this project says
 in its title or name and in its description that it is the fork, and never takes
 an identifier that is the original's.
 
-**Chocolatey: 6.3.7 waits for moderation.** The `chocolatey-publish` job pushed
-`hmailserver-progressiverobot` 6.3.7 at 23:47 UTC on 20 October 2026; the
-community repository's feed lists it as `Submitted`, not yet approved (read on 21
-October 2026), and it is listed, and installs with `choco install
-hmailserver-progressiverobot`, once Chocolatey's automatic checks and a human
-moderator have passed it. Every new version waits for moderation the same way.
-That first package was titled "hMailServer" alone, with a summary that did not
-say fork; the package is now rendered with the fork's title and description, and
-a second press of `chocolatey-release` sends 6.3.7 again with them, in the
-waiting package's place ([Channels.md](Channels.md), "How a channel job
-publishes").
+**Chocolatey: 6.3.7 is returned to the maintainer.** The `chocolatey-publish`
+job pushed `hmailserver-progressiverobot` 6.3.7 at 23:47 UTC on 20 October 2026,
+and it passed Chocolatey's automatic checks. At 11:31 UTC on 21 October 2026 a
+moderator returned it ("Waiting for Maintainer to take corrective action"),
+asking that the package's `<authors>` also credit the original hMailServer's
+author, Martin Knafve, as this is a fork, and that the same version be
+resubmitted; the community repository's feed still lists it as `Submitted`, not
+approved (read that day). That package was titled "hMailServer" alone, with a
+summary that did not say fork, and its authors and copyright named Progressive
+Robot alone. The templates now credit Martin Knafve in the authors and the
+copyright, and give the fork's title, summary and description: once that is on
+master, a second press of `chocolatey-release` in master's pipeline sends 6.3.7
+again with them, in the waiting package's place ([Channels.md](Channels.md),
+"How a channel job publishes"), and it is listed, and installs with `choco
+install hmailserver-progressiverobot`, once a moderator has passed it. Every new
+version waits for moderation the same way.
 
 **winget: not submitted.** The manifests are rendered and validated by hand for
 a release, from the release's own signed installer. The GitHub workflow
