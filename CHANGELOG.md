@@ -699,6 +699,15 @@ with `--check`).
 
 ### Documentation
 
+- **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the
+  release as its latest version.** GitHub's page shows the manifest pushed last as the latest version, with its pull
+  command, and the copy of 18 October 2026 pushed cosign's signatures and attestations after the releases' indexes: on
+  21 October 2026 the page offered a signature's tag as the latest version. The copy by hand now pushes, an older
+  release before a newer one, cosign's tags first, then the release's own tag, which copies both platforms' images and
+  the index after them, then `:<major>.<minor>` and `:latest` where GitLab's tags of those names are the same index,
+  and then holds each tag to GitLab's digest and reads the page. 6.3.7's copy is left as it is; the next release's
+  copy puts its index above it.
+
 - **ContainerImage.md's "What is not shown yet" says what holds on 21 October 2026.** It said that the pipeline had
   made one image, 6.3.6's, and that Artifact Hub listed the chart at 6.3.6 without the Verified publisher label. It
   now says that the pipeline has made two releases' images, 6.3.6's in its tag pipeline 2914690858 and 6.3.7's in its

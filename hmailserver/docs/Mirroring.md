@@ -304,7 +304,28 @@ and how to make it again.
   its signatures and attestations ([ContainerImage.md](ContainerImage.md)). Done on
   18 October 2026 for 6.3.7 and 6.3.6, and the package made public by the owner on
   20 October 2026 in GitHub's package settings (*Change visibility*, which no API
-  changes and which cannot be undone).
+  changes and which cannot be undone). GitHub's package page counts each manifest
+  pushed as a version and shows the one pushed last as the latest, with its pull
+  command: the copy of 18 October 2026 pushed cosign's signatures and attestations
+  after the releases' indexes, and on 21 October 2026 the page showed a signature's
+  tag, that of 6.3.6's arm64 image (`sha256-f684a09e...` with `.sig`), as the
+  latest version. So each release is copied in this order, an older release before
+  a newer one, with `regctl image copy` from
+  `registry.gitlab.com/hmailserver/hmailserver` to the same tag on `ghcr.io`:
+  1. cosign's tags of the release first: `sha256-<index hex>.sig`, the index's
+     signature, the index's digest being the one GitLab's registry gives the tag,
+     and for each platform's image `sha256-<image hex>.sig` and
+     `sha256-<image hex>.att`, the images' digests being the ones
+     `docker manifest inspect` of the tag lists;
+  2. then the release's tag, `:<version>`, which copies both platforms' images
+     and the index after them;
+  3. then `:<major>.<minor>` and `:latest`, each only where GitLab's tag of that
+     name is the same index;
+  4. then each tag on `ghcr.io` held to the digest GitLab's gives it, and the
+     package page read: its latest version is the release's tag.
+
+  6.3.7's copy stays as it is; the next release's copy, made in that order, puts
+  its own index above it.
 
 **The export.**
 
