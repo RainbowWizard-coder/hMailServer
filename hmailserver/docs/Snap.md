@@ -13,6 +13,18 @@ release, `snap-upload`, started by hand on `master`'s pipeline, puts the release
 snaps on `edge` and `candidate`, and `stable` is promoted by hand (*The Snap Store*,
 below).**
 
+**6.3.7 is not in the store, and nothing is.** The store answers that it has no
+snap called `hmailserver` (read on 21 October 2026). 6.3.7's two snaps were built
+and checked in `master`'s pipeline 2958945008 on 18 October 2026, and its
+`snap-upload` (job 17257943981) stopped before it reached the store or the
+credential: the image had no `git` for the job's check of the release tag, which
+`build/ci/snap-tools.sh` installs since. The job cannot be run again for 6.3.7. It
+uploads only from the pipeline of the release's own commit, and a retry of the old
+job runs the old script. The two builds' artifacts are kept, with no expiry (jobs
+17257943944, amd64, and 17257943945, arm64), so that 6.3.7 can still be uploaded by
+hand (*6.3.7 by hand*, at the end of *The Snap Store*, below); if it is not, the
+next release is the first in the store.
+
 | | |
 |---|---|
 | The packaging | `snap/snapcraft.yaml`, `snap/hooks/configure`, `snap/local/bin/*` |
@@ -399,3 +411,18 @@ hmailserver --candidate`), and when it is right, promote each architecture's rev
 with your own login, never the CI credential, which cannot: `snapcraft login`, then
 `snapcraft release hmailserver <revision> stable`, with the revisions `snap-upload`
 printed, and `snapcraft logout`.
+
+**6.3.7 by hand.** `snap-upload` cannot take 6.3.7 (above), so its snaps go up from
+a Linux shell with snapcraft and the owner's own login, in about half an hour:
+
+1. Download the two snaps, `hmailserver_6.3.7_amd64.snap` and
+   `hmailserver_6.3.7_arm64.snap`, from the artifacts of jobs 17257943944 and
+   17257943945 of pipeline 2958945008, which are kept.
+2. `snapcraft login`.
+3. `snapcraft upload --release=edge,candidate hmailserver_6.3.7_<arch>.snap`, for
+   each of the two files.
+4. Install the candidate on a machine of your own (`sudo snap install hmailserver
+   --candidate`) and try it.
+5. `snapcraft release hmailserver <revision> stable`, with each revision the uploads
+   printed, when it is right.
+6. `snapcraft logout`.

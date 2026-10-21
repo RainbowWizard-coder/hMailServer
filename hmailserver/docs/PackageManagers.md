@@ -9,52 +9,96 @@ Linux, `apt` and `dnf` install it from the project's own signed repositories
 Where this stands today
 -----------------------
 
-The manifests and the Chocolatey package are **rendered and validated by hand
-for a release**, from the release's own signed installer. The GitHub workflow
+This project is **Progressive Robot's fork of hMailServer**, not the original
+hMailServer, which is Martin Knafve's. The original is developed again - it
+released 5.7.0 on 28 September 2026, and 5.7.1 and a 5.7.2 pre-release on 29
+September - and has packages of its own, so every package of this project says
+in its title or name and in its description that it is the fork, and never takes
+an identifier that is the original's.
+
+**Chocolatey: 6.3.7 waits for moderation.** The `chocolatey-publish` job pushed
+`hmailserver-progressiverobot` 6.3.7 at 23:47 UTC on 20 October 2026; the
+community repository's feed lists it as `Submitted`, not yet approved (read on 21
+October 2026), and it is listed, and installs with `choco install
+hmailserver-progressiverobot`, once Chocolatey's automatic checks and a human
+moderator have passed it. Every new version waits for moderation the same way.
+That first package was titled "hMailServer" alone, with a summary that did not
+say fork; the package is now rendered with the fork's title and description, and
+a second press of `chocolatey-release` sends 6.3.7 again with them, in the
+waiting package's place ([Channels.md](Channels.md), "How a channel job
+publishes").
+
+**winget: not submitted.** The manifests are rendered and validated by hand for
+a release, from the release's own signed installer. The GitHub workflow
 `package-managers.yml`, which was to do it for every release, arrived on
 15 September 2026 (`6fc7ae91c`), after the `v6.3.3` tag, so no release ran it,
-and it was not ported to GitLab (below). They are **not yet in the
-public repositories**: `winget install hMailServer` does not work, and `choco
-install hmailserver` does not install this project's hMailServer, until the
-first submission has been reviewed and merged by the people who keep those
-repositories, which is a manual step for a package they have not had from this
-project before. This document is the walk for that first submission and for
-everything after it.
+and it was not ported to GitLab (below). winget's community repository takes
+pull requests on GitHub alone, and the project's submissions there are paused,
+so `winget install ProgressiveRobot.hMailServer` does not work yet. This
+document is the walk for that first submission and for everything after it.
 
-On winget, `winget search hmailserver` found nothing on 15 September 2026, so
-the fork takes `ProgressiveRobot.hMailServer`. On Chocolatey the identifier
-`hmailserver` **is taken**. <https://community.chocolatey.org/packages/hmailserver>
-is upstream's hMailServer 5.6.8.2574, approved by a moderator on 4 February
-2022, last updated on 15 January 2022, with `ferventcoder`, `gep13` and
-`chtof` as its maintainers, and **unlisted**: "This package is unlisted and
-hidden from package listings" (read on 28 September 2026). A search of the feed
-does not show an unlisted package, which is why this section said until then
-that the feed had none. To publish under `hmailserver` the project must become
-one of that package's maintainers, or take another identifier, and which is the
-owner's decision: the maintainers drafted the request to them, and
-`hmailserver-progressiverobot` is the other identifier. The nuspec's id is
-rendered from `build/make-package-manifests.ps1 -ChocolateyId`, one of those two.
+**The original's own winget package is on its way.** Pull request 440546 to
+`microsoft/winget-pkgs`, which a community packager opened on 24 September 2026,
+adds the original as `hMailServer.hMailServer` 5.7.1; it had passed validation
+and was waiting for a moderator on 21 October 2026. Once it is merged, `winget
+install hMailServer` installs the original, not this project. And **both
+installers register under the same uninstall entry, `hMailServer_is1`**: the
+original's Inno installer has `AppName=hMailServer` and no `AppId`, which Inno
+then takes from the name (`section_setup.iss` of its 5.7.0 builds, whose tags
+this repository carries), and this project's pins `AppId=hMailServer`, so that
+it upgrades an existing installation in place. So winget may take an installed
+original 5.7 for this package and offer 6.3.7 as its upgrade, or take this
+project's installation for the original's - and this project's database upgrade
+has no step from the original's 5.7 releases, whose database versions are 5709
+and 5711 (its chain runs from 5708 to 6001), so 6.3.7 is no upgrade of them. An
+installation of the original up to 5.6 upgrades in place. A submission of `ProgressiveRobot.hMailServer` has to say so in
+its pull request and ask the moderators how they want it handled
+([The first submission, by hand](#the-first-submission-by-hand)).
 
-**From 6.3.6 the Chocolatey package is published by CI**, from `master`, by the
-jobs `chocolatey-release` and `chocolatey-publish`
-([Channels.md](Channels.md), "Chocolatey"): the release's installer verified
-against its Sigstore bundle, the package rendered from those bytes and packed on
-bench150, and pushed with `CHOCO_API_KEY`, which does not exist yet - until it
-does, the jobs say "not configured". winget stays by hand, and paused: its
-community repository takes pull requests on GitHub alone.
+**The identifiers.** On winget, `winget search hmailserver` found nothing on 15
+September 2026, so the fork takes `ProgressiveRobot.hMailServer`, with the
+moniker `hmailserver-progressiverobot`. On Chocolatey the identifier
+`hmailserver` is the original's: <https://community.chocolatey.org/packages/hmailserver>
+is hMailServer 5.6.8.2574, approved by a moderator on 4 February 2022, last
+updated on 15 January 2022, with `ferventcoder`, `gep13` and `chtof` as its
+maintainers, and **unlisted**: "This package is unlisted and hidden from package
+listings" (read on 28 September 2026). An unlisted package still installs by its
+id, so `choco install hmailserver` installs that package, the original's 5.6.8.
+Until the original was released again the project could have asked its
+maintainers to add the project's account and published under it. The owner chose
+`hmailserver-progressiverobot` instead, and the project does not publish under
+`hmailserver`: with the original developed again, a package of the fork under
+the original's id would have its users take the fork for the original's next
+version. Chocolatey's packaging guidance asks that software already packaged not
+be packaged again, so a moderator may ask why the fork has an id of its own; its
+title and description answer that it is a fork, with releases of its own.
+`HM_CHOCOLATEY_ID` is `hmailserver-progressiverobot` (set on 20 October 2026), and
+`build/make-package-manifests.ps1 -ChocolateyId` and `chocolatey-publish` take
+that id when none is given; `hmailserver` is still accepted when it is asked for
+by name.
+
+**The Chocolatey package is published by CI**, from `master`, by the jobs
+`chocolatey-release` and `chocolatey-publish` ([Channels.md](Channels.md),
+"Chocolatey"): the release's installer verified against its Sigstore bundle, the
+package rendered from those bytes and packed on bench150, and pushed with
+`CHOCO_API_KEY`, which has been set since 20 October 2026. winget stays by hand,
+and paused.
 
 What a user will type
 ---------------------
 
 ```powershell
-winget install ProgressiveRobot.hMailServer      # or: winget install hMailServer
+winget install ProgressiveRobot.hMailServer      # not yet submitted
 winget upgrade ProgressiveRobot.hMailServer
 ```
 
 ```powershell
-choco install hmailserver
-choco upgrade hmailserver
+choco install hmailserver-progressiverobot       # once moderation has approved it
+choco upgrade hmailserver-progressiverobot
 ```
+
+`winget install hMailServer`, once the original's package is merged, and `choco
+install hmailserver` install the original hMailServer, not this project.
 
 Both run the same Authenticode-signed installer the release page offers, with
 the same switches the installer smoke test uses. Both install the server, the
@@ -158,7 +202,12 @@ winget:
    ```
    `wingetcreate` is a single executable from <https://aka.ms/wingetcreate/latest>.
    It opens a pull request against `winget-pkgs` from the fork.
-4. Their pipeline installs the package on a sandbox VM and a moderator reviews a
+4. In the pull request, say that this is Progressive Robot's fork of
+   hMailServer, not the original, and that its installer registers under the
+   same uninstall entry as the original's, `hMailServer_is1` (the
+   `ProductCode` of the installer manifest), and ask the moderators how they want
+   that handled beside the original's `hMailServer.hMailServer`.
+5. Their pipeline installs the package on a sandbox VM and a moderator reviews a
    new identifier. Expect questions the first time; answer them on the pull
    request.
 
@@ -166,17 +215,17 @@ Chocolatey (what `chocolatey-publish` does once `CHOCO_API_KEY` is set, except
 that it pushes with an HTTP request carrying the key in a header rather than on
 `choco push`'s command line):
 
-1. The identifier first. `hmailserver` is upstream's unlisted package (above),
-   so a push under it is refused until the pushing account is one of that
-   package's maintainers. The owner either asks its maintainers, through the
-   package's page, to add the project's account, or chooses another identifier
-   and changes the nuspec's `id`.
+1. The identifier is `hmailserver-progressiverobot` (above). `hmailserver` is
+   the original's unlisted package, and a push under it is refused to an account
+   that is not one of its maintainers.
 2. Make an account on <https://community.chocolatey.org> and take the API key
    from the account page.
-3. `choco push hmailserver.6.3.3.nupkg --source https://push.chocolatey.org/ --api-key <key>`
+3. `choco push hmailserver-progressiverobot.6.3.3.nupkg --source https://push.chocolatey.org/ --api-key <key>`
 4. A new package goes through moderation — automated checks first (the install
    and uninstall are run on a clean machine), then a human. The install script
-   downloads a 76 MB installer, so allow for the verifier taking its time.
+   downloads a 76 MB installer, so allow for the verifier taking its time. A
+   version that a moderator asks to have changed is pushed again as the same
+   version, which takes the waiting package's place.
 
 Arming the automatic submission
 -------------------------------
@@ -556,7 +605,7 @@ What this does not do
   the release's source tarball ([Channels.md](Channels.md)).
 * **No `winget install` of a pre-release.** The workflow refused a tag that was
   not three numbers, and a pre-release is not submitted by hand either, because package managers should not hand an alpha to
-  somebody typing `winget install hmailserver`.
+  somebody typing `winget install ProgressiveRobot.hMailServer`.
 * **No unattended configuration.** Neither package sets an administrator
   password, adds a domain, or opens a firewall port. Installing a mail server is
   one command; configuring one is not, and a package that pretended otherwise

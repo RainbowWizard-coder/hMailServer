@@ -49,11 +49,12 @@ first release, on 12 June 2026.
 hMailServer is a free, open-source mail server implementing SMTP, IMAP and POP3, with a Windows
 administration program, a browser administration console, a webmail client and a REST API. The
 fork brings a current toolchain, current cryptography, and current transport-security and
-authentication standards, while remaining a drop-in upgrade for an existing hMailServer
-installation, with a continuous database upgrade chain from every earlier version. Both installers
-register under the same uninstall entry, hMailServer_is1, so on a machine where the original is
-installed this package's installer takes that installation for its own and installs over it. The
-database upgrade is one-way: take a backup first.
+authentication standards, and upgrades an installation of the original up to 5.6 in place, with a
+continuous database upgrade chain from each of its versions. It does not upgrade the original's 5.7
+releases of September 2026: its database upgrade has no step from their database versions, 5709
+and 5711. Both installers register under the same uninstall entry, hMailServer_is1, so on a machine
+where the original is installed this package's installer takes that installation for its own; do
+not install it over the original's 5.7. The database upgrade is one-way: take a backup first.
 
 ### What it does
 

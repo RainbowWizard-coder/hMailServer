@@ -323,7 +323,7 @@ chocolatey-publish:
       allow_failure: true
   environment:
     name: chocolatey
-    url: https://community.chocolatey.org/packages/hmailserver
+    url: https://community.chocolatey.org/packages/hmailserver-progressiverobot
   variables:
     GIT_TERMINAL_PROMPT: "0"
     GCM_INTERACTIVE: "Never"

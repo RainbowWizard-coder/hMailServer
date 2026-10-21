@@ -98,14 +98,15 @@ param(
     # Fail unless the local installer carries a valid Authenticode signature.
     [switch] $RequireSignedInstaller,
 
-    # The Chocolatey package's id. hmailserver is upstream's package (5.6.8.2574, last
-    # updated January 2022, now unlisted), which the project publishes under once its
-    # maintainers add the project's account; hmailserver-progressiverobot is the id
-    # the owner chose instead if they do not (hmailserver/docs/PackageManagers.md,
-    # hmailserver/docs/Channels.md). The chocolatey-publish job passes its project
-    # variable HM_CHOCOLATEY_ID here.
+    # The Chocolatey package's id: hmailserver-progressiverobot, the id the owner
+    # chose, under which 6.3.7 was first pushed on 20 October 2026. hmailserver is the
+    # original hMailServer's package (5.6.8.2574, unlisted), and with the original
+    # developed again the project does not publish under it
+    # (hmailserver/docs/PackageManagers.md, hmailserver/docs/Channels.md); it is still
+    # accepted here for a render by hand that asks for it. The chocolatey-publish job
+    # passes its project variable HM_CHOCOLATEY_ID here.
     [ValidateSet('hmailserver', 'hmailserver-progressiverobot')]
-    [string] $ChocolateyId = 'hmailserver'
+    [string] $ChocolateyId = 'hmailserver-progressiverobot'
 )
 
 $ErrorActionPreference = 'Stop'

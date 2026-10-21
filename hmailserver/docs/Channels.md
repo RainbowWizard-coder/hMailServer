@@ -12,10 +12,13 @@ Two channels have no job here because nothing is published to them: the Nix flak
 in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
 merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
-**None of these channels is live yet.** Each job is written and was run on a laptop
-against a fixture release (below, [What was tried](#what-was-tried)); each says "not
-configured" and passes until the owner has made the channel's account and a
-maintainer has stored its credential. No release before 6.3.6 can be published to
+**One channel has a package, and none is listed yet.** Chocolatey's job pushed
+`hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which waits for Chocolatey's
+moderation ([Chocolatey](#chocolatey)). Every other job is written and was run on a
+laptop against a fixture release (below, [What was tried](#what-was-tried)), and has
+published nothing; each says "not configured" and passes until the owner has made the
+channel's account and a maintainer has stored its credential. The Snap Store's
+credential is stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). No release before 6.3.6 can be published to
 the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 ([SourceTarball.md](SourceTarball.md)), and the Debian and RPM packaging inside it
 ([SourcePackages.md](SourcePackages.md)), which 6.3.6 is the first to carry.
@@ -29,7 +32,7 @@ the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 | Ubuntu PPA | `sudo add-apt-repository ppa:hmailserver/hmailserver && sudo apt install hmailserver` | `ppa-upload` | `LAUNCHPAD_SIGNING_KEY` |
 | Fedora Copr | `sudo dnf copr enable <owner>/hmailserver && sudo dnf install hmailserver` (the owner's Fedora account, or a group of it) | `copr-build` | `COPR_WEBHOOK_URL` |
 | openSUSE Build Service | `zypper addrepo` of the project's OBS repository, then `zypper install hmailserver` | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
-| Chocolatey | `choco install hmailserver` | `chocolatey-release`, then `chocolatey-publish` | `CHOCO_API_KEY` |
+| Chocolatey | `choco install hmailserver-progressiverobot` | `chocolatey-release`, then `chocolatey-publish` | `CHOCO_API_KEY`, `HM_CHOCOLATEY_ID` |
 | Snap Store | `sudo snap install hmailserver --candidate` | `snap-upload` | `SNAPCRAFT_STORE_CREDENTIALS` |
 
 How a channel job publishes
@@ -331,15 +334,28 @@ Windows. Pressing `chocolatey-release` starts both.
   `X-NuGet-ApiKey` header (not `choco push`, which takes the key on its command
   line). A new package, and every new version, then waits for Chocolatey's
   moderation before it is listed.
-- **The id.** `hmailserver` is upstream's package, 5.6.8.2574, last updated on 15
-  January 2022 and now unlisted (the page does not say since when), maintained by
-  `ferventcoder`, `gep13` and `chtof` ([PackageManagers.md](PackageManagers.md)). The
-  project publishes under it once they add its account as a maintainer; otherwise
-  the owner chooses `hmailserver-progressiverobot`, set as `HM_CHOCOLATEY_ID`.
-- **The owner, once.** An account on community.chocolatey.org, its API key as
-  `CHOCO_API_KEY`, and the id. bench150 needs Chocolatey's CLI
-  (`https://community.chocolatey.org/install.ps1`); the job stops, saying so, where
-  it is not.
+- **The id: `hmailserver-progressiverobot`.** `hmailserver` is the original
+  hMailServer's package, 5.6.8.2574, last updated on 15 January 2022 and now unlisted
+  (the page does not say since when), maintained by `ferventcoder`, `gep13` and
+  `chtof`. With the original developed again, the owner chose an id of the fork's own,
+  and the project does not publish under the original's ([PackageManagers.md](PackageManagers.md)
+  says why). `HM_CHOCOLATEY_ID` holds it, and the job takes it when the variable is
+  unset; it still takes `hmailserver` if the variable names it.
+- **Set up on 20 October 2026.** The owner made the account on community.chocolatey.org,
+  and its API key is `CHOCO_API_KEY`. bench150 has Chocolatey's CLI
+  (`https://community.chocolatey.org/install.ps1`), whose `C:\ProgramData\chocolatey\bin`
+  its runner puts on the job's `PATH`; the job stops, saying so, where it is not.
+- **The first package.** `chocolatey-publish` (job 17333239753, in `master`'s
+  pipeline 2966261322) verified 6.3.7's installer (Authenticode Valid, "Progressive
+  Robot Ltd"), packed `hmailserver-progressiverobot.6.3.7.nupkg` and pushed it at
+  23:47 UTC on 20 October 2026 (HTTP 201). The community repository's feed lists it as
+  `Submitted`, not approved (21 October 2026): it is listed, and `choco install
+  hmailserver-progressiverobot` installs it, once Chocolatey's automatic checks and a
+  human moderator have passed it, and every new version waits the same way. That
+  package's title was "hMailServer" alone, and its winget manifest's `ReleaseDate`
+  the job's own day; the package is now rendered with the fork's title and
+  description and dated by the release, and a second press of `chocolatey-release`
+  sends 6.3.7 again in the waiting package's place (point 7 above).
 
 ### Snap Store
 
@@ -423,7 +439,7 @@ the table says so. A masked value must be one line of letters, digits and `+ / =
 | `OBS_RUNSERVICE_TOKEN` | yes | `obs` | the runservice token |
 | `OBS_PROJECT` | no | `obs` | the OBS project that holds the package (`home:<account>`) |
 | `CHOCO_API_KEY` | yes | `chocolatey` | the community.chocolatey.org API key |
-| `HM_CHOCOLATEY_ID` | no | `chocolatey` | optional: `hmailserver` (default) or `hmailserver-progressiverobot` |
+| `HM_CHOCOLATEY_ID` | no | `chocolatey` | `hmailserver-progressiverobot` (set on 20 October 2026, and the default); `hmailserver`, the original's id, only by name |
 | `SNAPCRAFT_STORE_CREDENTIALS` | yes | `snap-store` | the output of `snapcraft export-login` |
 
 With `glab`, signed in as a maintainer, a secret goes in from standard input and is
@@ -600,10 +616,16 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   Hub has not run since.
 
 Not tried, because the accounts do not exist: a push to Quay.io, ECR Public, the
-AUR, Launchpad, Copr, OBS, Chocolatey or the Snap Store; Launchpad's and
+AUR, Launchpad, Copr or OBS; Launchpad's and
 Copr's builds of what was made; Copr's `make_srpm` builder itself (its `dnf install`
 line, and gcr.io from inside it); OBS's services themselves (whether `download_url`
 follows GitLab's permanent-link redirect, whether `extract_file` takes two patterns,
-and whether `download_files` sees the spec `extract_file` took out); `chocolatey-publish` on
-bench150, which was busy; and `snap-upload` with snapcraft, which runs where
-`snap-build` does.
+and whether `download_files` sees the spec `extract_file` took out); and
+`registry-mirror`'s copy of the project's own image to any of them, with the `.att`
+that 6.3.6's and 6.3.7's images carry - one beside each platform's image in GitLab's
+registry, `sha256-<digest>.att`, with its `.sig` (the registry's tag list, read on 21
+October 2026). `chocolatey-publish` has run on bench150, and pushed 6.3.7
+([Chocolatey](#chocolatey)). `snap-upload` ran for 6.3.7 on 18 October 2026 (job
+17257943981) and stopped before it reached the store or the credential, the image
+having no `git` for its check of the tag; the store's answer to an upload is still
+untried ([Snap.md](Snap.md), "The Snap Store").

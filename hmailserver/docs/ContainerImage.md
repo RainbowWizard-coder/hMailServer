@@ -235,9 +235,12 @@ the organization's home URL has been `https://gitlab.com/hmailserver/hmailserver
 since 6 October 2026, the day the maintainers added its two repositories, the
 chart's and the image's. Each listing gets the Verified publisher label from a
 metadata file that carries its repository ID, which the tree holds from that day
-and which reaches Artifact Hub as each item below says: the image's listing has
-it, from the file pushed on 6 October 2026, and the chart's does not yet
-(Artifact Hub's API, read on 14 October 2026).
+and which reaches Artifact Hub as each item below says. Both listings are at 6.3.7
+and both have the label: Artifact Hub's API gives each repository as a verified
+publisher's, the chart with the versions 6.3.7 and 6.3.6 and the image with 6.3.7,
+`latest` and 6.3.6, and neither with an error at its last tracking - the chart's
+on 18 October 2026, the image's on 20 October (read on 21 October 2026). Neither
+is marked Official.
 
 - **The chart.** The repository `hmailserver`, shown as hMailServer, of kind Helm
   charts, with the URL `https://updates.progressiverobot.com/helm/`, which has
@@ -248,11 +251,10 @@ it, from the file pushed on 6 October 2026, and the chart's does not yet
   beside the index, which gives the listing its Verified publisher label. The
   default branch's `package-repos` has written it since the ID landed there, and
   the file the site serves names it (read on 14 October 2026). Artifact Hub lists
-  the chart at 6.3.6, at
-  `https://artifacthub.io/packages/helm/hmailserver/hmailserver`, without the
-  label: its API gives the repository's last tracking as 6 October 2026 at 03:45
-  UTC, before the ID reached the default branch, with an error reading the file
-  6.3.6's pipeline had written, which said that no ID was there yet. The chart's
+  the chart at `https://artifacthub.io/packages/helm/hmailserver/hmailserver`, at
+  6.3.7, with the label. Until 6.3.7 it listed 6.3.6 without it: its tracking of 6
+  October 2026 at 03:45 UTC, before the ID reached the default branch, read the
+  file 6.3.6's pipeline had written, which said that no ID was there yet. The chart's
   annotations name its licence (`artifacthub.io/license`), its image
   (`artifacthub.io/images`, stamped with the release's version, with the image's
   two platforms, `linux/amd64` and `linux/arm64`, which `helm-chart-package.sh`
@@ -263,8 +265,8 @@ it, from the file pushed on 6 October 2026, and the chart's does not yet
   container image, of kind Container images, with the address
   `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,
   which both platforms' images carry alike, at the tags the repository tracks:
-  `6.3.6`, marked immutable, which Artifact Hub reads once, and `latest`, marked
-  mutable, which it reads again when the tag moves. A maintainer sets those tags
+  `6.3.7` and `6.3.6`, each marked immutable, which Artifact Hub reads once, and
+  `latest`, marked mutable, which it reads again when the tag moves. A maintainer sets those tags
   on Artifact Hub, in its Control Panel or through its API, ten at most; a new
   release's version tag is not tracked by itself, so a maintainer adds it with
   each release. Its Verified publisher label needs a metadata file of its own,

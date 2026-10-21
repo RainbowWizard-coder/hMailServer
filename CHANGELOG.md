@@ -196,8 +196,11 @@ with `--check`).
   a summary that did not say fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary
   and description, and winget's short description and description, open by saying that this is Progressive Robot's
   fork of hMailServer, not the original, that the original is Martin Knafve's and has releases and packages of its
-  own, and that both installers register as `hMailServer_is1`, so that this one installs over the original where it
-  is installed; winget's package name is "hMailServer (Progressive Robot's fork)", and its moniker
+  own, and that both installers register as `hMailServer_is1`, so that this one takes an installation of the original
+  for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases, whose database versions, 5709
+  and 5711, its upgrade has no step from, where the description called the package "a drop-in upgrade for an
+  existing hMailServer installation, with a continuous database upgrade chain from every earlier version"; winget's
+  package name is "hMailServer (Progressive Robot's fork)", and its moniker
   `hmailserver-progressiverobot`, the Chocolatey id, where it was `hmailserver`. The description no longer says that
   the original "is no longer developed upstream", nor that it "went quiet for years". The same job gave the winget
   installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a release of 17 October,
@@ -215,6 +218,10 @@ with `--check`).
   which sent no version the feed answered for, would have sent nothing. It sends a `Submitted` version again now, in
   the waiting package's place, and no other version the feed holds, so that a second press of `chocolatey-release`
   can send 6.3.7 with these texts ([Channels.md](hmailserver/docs/Channels.md), "How a channel job publishes").
+- **The Chocolatey package's id is `hmailserver-progressiverobot` when none is given.** `chocolatey-publish` took
+  `hmailserver`, the original hMailServer's package, when `HM_CHOCOLATEY_ID` was unset, and so did
+  `build/make-package-manifests.ps1` without `-ChocolateyId`; both take `hmailserver-progressiverobot` now, the id set
+  on 20 October 2026, and `hmailserver` only when it is named. The job logs the id, and its self-test holds it.
 - **The Helm chart says that it is Progressive Robot's fork of hMailServer.** Its description, which Artifact Hub
   shows and packages.ecosyste.ms copies from there, began "hMailServer - SMTP, IMAP and POP3" and named neither the
   fork nor the company; it opens with "Progressive Robot's fork of hMailServer, not the original hMailServer by
@@ -559,6 +566,23 @@ with `--check`).
   original up to 5.6 in its row for Upgrading.md, and in its row for Migration.md the original up to 5.6 in place
   and its 5.7 releases by a migration of kind `imap`, where that row had the upstream hMailServer in place.
 
+- **The channel documents say where each channel stands on 21 October 2026.**
+  [PackageManagers.md](hmailserver/docs/PackageManagers.md) says first that this is Progressive Robot's fork of
+  hMailServer and that the original, Martin Knafve's, is developed again; that Chocolatey's `hmailserver` is the
+  original's and why the project's id is `hmailserver-progressiverobot`, under which 6.3.7 waits for moderation; that
+  the original's own winget package, `hMailServer.hMailServer` 5.7.1, waits for a moderator, after which `winget
+  install hMailServer` installs the original, where it gave that command as this project's; and that both installers
+  register as `hMailServer_is1`, so that winget may take one for the other, with no upgrade from the original's 5.7
+  releases (database versions 5709 and 5711), which a winget submission must raise with the moderators.
+  [Channels.md](hmailserver/docs/Channels.md) said that no channel was live and that no release's image carried an
+  attestation; it says that Chocolatey has 6.3.7 in moderation, pushed on 20 October 2026, that bench150 has
+  Chocolatey's CLI, and that 6.3.6's and 6.3.7's images carry an attestation beside each platform's image.
+  [ContainerImage.md](hmailserver/docs/ContainerImage.md) said that Artifact Hub listed the chart at 6.3.6 without
+  the Verified publisher label; both listings are at 6.3.7 with it. [Snap.md](hmailserver/docs/Snap.md) says that
+  6.3.7 is not in the Snap Store, why `snap-upload` cannot send it, that its two builds' artifacts are kept, and how
+  to upload it by hand. [Nix.md](hmailserver/docs/Nix.md) said that a build of `v6.3.6` needed the tag; the tag has
+  existed since 5 October 2026, and the build from it has still not been run. Roadmap2's and Roadmap3's Chocolatey
+  rows say the same.
 - **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
   certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
   32-bit uninstall entry taken away first.** Step 3 had the administrator "grant the service account access" without

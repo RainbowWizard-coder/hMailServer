@@ -16,10 +16,13 @@ nixpkgs is NixOS's own release tarball, pinned by its hash.**
 | Outputs | `packages.<system>.hmailserver` (and `default`), `overlays.default`, `nixosModules.default` (and `hmailserver`), `checks.<system>.hmailserver` and `checks.<system>.nixos`, for `x86_64-linux` and `aarch64-linux` |
 | CI | the `nix` job (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`) on linix, for master and `batch*` |
 
-**Where it stands (29 September 2026):** see [What has run](#what-has-run). The flake
-is in the tree from 6.3.6; `nix build gitlab:hmailserver/hmailserver/v6.3.6` works
-from the day that tag exists, and not for an earlier release, which carries no
-flake. It is not nixpkgs: NixOS's own package set takes packages only as pull
+**Where it stands (21 October 2026):** see [What has run](#what-has-run). The flake
+is in the tree from 6.3.6, and the release tags `v6.3.6` (made on 5 October 2026)
+and `v6.3.7` carry it, so `gitlab:hmailserver/hmailserver/v6.3.6` and `.../v6.3.7`
+name a flake; an earlier release carries none. `nix build` of either tag, fetched
+from GitLab, has not been run yet: the `nix` job builds the checkout of a `master`
+or `batch*` pipeline.
+It is not nixpkgs: NixOS's own package set takes packages only as pull
 requests on GitHub, which the project does not use, so its row was taken off
 Roadmap3 on 13 October 2026 (Roadmap3, "Rows removed").
 
@@ -374,14 +377,15 @@ linix in 1,802 s: the flake's inputs, its evaluation, the package in 1,388 s wit
 its checks, and the NixOS test under TCG in 352 s, SMTP with STARTTLS and IMAP
 answering. In 2897966924 it was cancelled with the pipeline.
 
-Not yet run: `nix build gitlab:hmailserver/hmailserver/v6.3.6`, which needs the
-tag.
+Not yet run: `nix build gitlab:hmailserver/hmailserver/v6.3.6` (or `v6.3.7`), from
+the tag itself. The tags exist, with the flake in them.
 
 What is left
 ------------
 
-- **The tag.** `nix build gitlab:hmailserver/hmailserver/v6.3.6` is the row's test
-  and needs the tag, and the flake must be in it.
+- **A build from the tag.** `nix build gitlab:hmailserver/hmailserver/v6.3.6` is the
+  row's test. The tag has existed since 5 October 2026, with the flake in it, and
+  `v6.3.7` since 17 October; neither has been built from GitLab yet.
 - **nixpkgs itself** cannot be done: its only route is a pull request to
   NixOS/nixpkgs on GitHub, and the NUR is on GitHub too, so on 13 October 2026
   its row was taken off Roadmap3, as the owner decided for what needs GitHub and

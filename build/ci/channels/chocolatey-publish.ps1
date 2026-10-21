@@ -15,9 +15,10 @@
      1. Dormant: without the project's CI/CD variable CHOCO_API_KEY (the
         community.chocolatey.org account's API key; protected, masked) it says "not
         configured" and exits 0.
-     2. The package's id: HM_CHOCOLATEY_ID, hmailserver (upstream's unlisted package,
-        once its maintainers add the project's account) or
-        hmailserver-progressiverobot; hmailserver when unset.
+     2. The package's id: HM_CHOCOLATEY_ID, hmailserver-progressiverobot (the
+        project's, and the id when the variable is unset) or hmailserver (the
+        original hMailServer's unlisted package, which the project does not publish
+        under while the original is developed: hmailserver/docs/PackageManagers.md).
      3. The installer downloaded from the release's address and held to the SHA-256
         chocolatey-release verified, and to a valid Authenticode signature.
      4. A version the community repository has already, listed or not, is not sent
@@ -123,10 +124,11 @@ function Invoke-Publish {
     if ($InstallerFrom -and (Test-InCi)) {
         Stop-Refused '-InstallerFrom is for a run outside CI: the job takes the release''s own installer.'
     }
-    $id = if ($env:HM_CHOCOLATEY_ID) { $env:HM_CHOCOLATEY_ID.Trim() } else { 'hmailserver' }
+    $id = if ($env:HM_CHOCOLATEY_ID) { $env:HM_CHOCOLATEY_ID.Trim() } else { 'hmailserver-progressiverobot' }
     if ($allowedIds -notcontains $id) {
-        Stop-Refused "HM_CHOCOLATEY_ID is '$id': the package is hmailserver or hmailserver-progressiverobot."
+        Stop-Refused "HM_CHOCOLATEY_ID is '$id': the package is hmailserver-progressiverobot or hmailserver."
     }
+    Write-Host "the package: $id"
 
     if (-not (Test-Path -LiteralPath $Verification)) {
         Stop-Refused "$Verification is not here: chocolatey-release did not verify the release's installer."
@@ -284,6 +286,8 @@ function Invoke-SelfTest {
         Expect 'an installer that is not the bytes chocolatey-release verified: refused before anything is packed' (
             $answer[0] -eq 1 -and $answer[1] -match 'not \d*0{64}, the bytes chocolatey-release verified' -and -not (Test-Path (Join-Path $work 'd\manifests')))
         Expect '  ... and the key is not in what it said' ($answer[1] -notmatch 'fixture-key')
+        Expect '  ... and without HM_CHOCOLATEY_ID the package is hmailserver-progressiverobot, never the original''s hmailserver' (
+            $answer[1] -match '(?m)^the package: hmailserver-progressiverobot\r?$')
 
         $answer = Run @{ CHOCO_API_KEY = 'fixture-key'; CI = 'true' } @('-Verification', $json, '-OutDir', (Join-Path $work 'e'), '-InstallerFrom', $installer)
         Expect '-InstallerFrom in a CI job: refused' ($answer[0] -eq 1 -and $answer[1] -match 'outside CI')
