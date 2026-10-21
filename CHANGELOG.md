@@ -583,11 +583,13 @@ with `--check`).
 - **The channel documents say where each channel stands on 21 October 2026.**
   [PackageManagers.md](hmailserver/docs/PackageManagers.md) says first that this is Progressive Robot's fork of
   hMailServer and that the original, Martin Knafve's, is developed again; that Chocolatey's `hmailserver` is the
-  original's and why the project's id is `hmailserver-progressiverobot`, under which 6.3.7 waits for moderation; that
-  the original's own winget package, `hMailServer.hMailServer` 5.7.1, waits for a moderator, after which `winget
-  install hMailServer` installs the original, where it gave that command as this project's; and that both installers
-  register as `hMailServer_is1`, so that winget may take one for the other, with no upgrade from the original's 5.7
-  releases (database versions 5709 and 5711), which a winget submission must raise with the moderators.
+  original's 5.6.8, unlisted, which `choco install hmailserver` does not find, since an unlisted package installs only
+  with its version named (`--version 5.6.8.2574`), where the document gave that command as this project's, and why
+  the project's id is `hmailserver-progressiverobot`, under which 6.3.7 waits for moderation; that the original's own
+  winget package, `hMailServer.hMailServer` 5.7.1, waits for a moderator, after which `winget install hMailServer`
+  installs the original, where it gave that command as this project's too; and that both installers register as
+  `hMailServer_is1`, so that winget may take one for the other, with no upgrade from the original's 5.7 releases
+  (database versions 5709 and 5711), which a winget submission must raise with the moderators.
   [Channels.md](hmailserver/docs/Channels.md) said that no channel was live and that no release's image carried an
   attestation; it says that Chocolatey has 6.3.7 in moderation, pushed on 20 October 2026, that bench150 has
   Chocolatey's CLI, and that 6.3.6's and 6.3.7's images carry an attestation beside each platform's image.

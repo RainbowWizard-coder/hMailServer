@@ -62,8 +62,12 @@ moniker `hmailserver-progressiverobot`. On Chocolatey the identifier
 is hMailServer 5.6.8.2574, approved by a moderator on 4 February 2022, last
 updated on 15 January 2022, with `ferventcoder`, `gep13` and `chtof` as its
 maintainers, and **unlisted**: "This package is unlisted and hidden from package
-listings" (read on 28 September 2026). An unlisted package still installs by its
-id, so `choco install hmailserver` installs that package, the original's 5.6.8.
+listings" (read on 28 September 2026). An unlisted package is hidden from
+search and installs only with its exact version named:
+`choco install hmailserver` finds nothing ("The package was not found with the
+source(s) listed"), and `choco install hmailserver --version 5.6.8.2574`
+installs that package, the original's 5.6.8 (Chocolatey's CLI 2.4.3, run with
+`--noop` on 21 October 2026).
 Until the original was released again the project could have asked its
 maintainers to add the project's account and published under it. The owner chose
 `hmailserver-progressiverobot` instead, and the project does not publish under
@@ -97,8 +101,10 @@ choco install hmailserver-progressiverobot       # once moderation has approved 
 choco upgrade hmailserver-progressiverobot
 ```
 
-`winget install hMailServer`, once the original's package is merged, and `choco
-install hmailserver` install the original hMailServer, not this project.
+`winget install hMailServer`, once the original's package is merged, installs
+the original hMailServer, not this project; `choco install hmailserver` finds
+nothing, and `choco install hmailserver --version 5.6.8.2574` installs the
+original's 5.6.8.
 
 Both run the same Authenticode-signed installer the release page offers, with
 the same switches the installer smoke test uses. Both install the server, the
