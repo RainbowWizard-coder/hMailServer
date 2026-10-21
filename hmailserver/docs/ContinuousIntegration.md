@@ -3174,7 +3174,14 @@ instead. And the other way: this fork installed with its built-in database, the
 original's 5.7 installer run over it, and then this fork's installer again, with
 the hMailServer service stopped and again with it running. Neither run may be
 refused: the log must say that the settings file keeps the database's password as
-only this fork does, and the database step must upgrade this fork's own database.
+only this fork does, and the database step must find this fork's own database, and
+upgrade it when it is older than this build's. And a run over a settings file of
+this fork's left behind: the original's 5.7.2 installed new, which keeps its
+settings in `C:\ProgramData\hMailServer`, 6.3.7's installer run over it, the
+original's installer run again, the original's service stopped, and then this
+fork's installer, which must be refused by the original's scripts: the settings
+file 6.3.7's installer wrote in `Bin` is not the one the original's server reads,
+and the log must name the one in `C:\ProgramData\hMailServer`.
 
 The release
 -----------

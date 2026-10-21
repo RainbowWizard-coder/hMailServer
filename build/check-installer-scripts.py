@@ -77,9 +77,11 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                step from or to a version between them. The database's version is
                read only after hMailServer.exe is found to be before 6, not this
                fork's, and only from a running service; with it unread, the
-               earlier settings file's [Database] PasswordEncryption is read and
-               passed to the decision, so that a database whose password only this
-               fork can read is not refused. The decision's self-test,
+               [Database] PasswordEncryption of the settings file the installed
+               server reads - the one in ProgramData, which the original's 5.7.0
+               build 3013 and later read first, before the earlier installation's
+               own - is read and passed to the decision, so that a database whose
+               password only this fork can read is not refused. The decision's self-test,
                build/ci/packages/original-guard-test.iss, includes the same file,
                and windows-packages.ps1 runs it before it compiles the installer,
                stopping with exit 8 when it fails. That self-test runs the cases;
@@ -101,7 +103,7 @@ of this fork's own to a version between the bounds, the decision not included,
 its refusal not acted on, the refusal not written to its file, the refusal
 asked after a window check, the database
 read from a stopped service, the settings file's password scheme not passed to the
-decision, and the self-test not run before the installer is
+decision, the settings file read in Bin alone, and the self-test not run before the installer is
 built, must all be refused.
 
 Usage: python build/check-installer-scripts.py
@@ -528,6 +530,13 @@ def check_original(texts, problems):
                             'the database\'s password as only this fork does ([Database] PasswordEncryption), so an '
                             'installation of this fork that the original\'s 5.7 installer was run over is refused every '
                             'time' % EXTENSION)
+        if not re.search(r"szSettings\s*:=\s*ExpandConstant\('\{commonappdata\}\\hMailServer\\hMailServer\.ini'\);\s*"
+                         r"if\s+not\s+FileExists\(szSettings\)\s+then\s+szSettings\s*:=\s*PreviousSettingsFile\(szFolder\);",
+                         refusal):
+            problems.append('%s: OriginalHMailServerRefusal does not read the settings file in ProgramData '
+                            '({commonappdata}\\hMailServer\\hMailServer.ini) before the earlier installation\'s own '
+                            '(PreviousSettingsFile): the original\'s 5.7.0 build 3013 and later read that one first, so a '
+                            'stale settings file of this fork\'s in Bin would let a working original 5.7 through' % EXTENSION)
     setup =pascal_routine(extension, 'InitializeSetup') or ''
     call = re.search(r"szRefusal\s*:=\s*OriginalHMailServerRefusal\(\);\s*if\s+szRefusal\s*<>\s*''\s*then\s*begin(.*?)\bend;",
                      setup, re.S)
@@ -668,6 +677,10 @@ def negative_controls(texts):
         ('the settings file\'s password scheme not passed to the decision',
          altered(texts, EXTENSION, 'OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts, bForkSecret)',
                  'OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts, False)')),
+        ('the settings file read in Bin alone',
+         altered(texts, EXTENSION, "      szSettings := ExpandConstant('{commonappdata}\\hMailServer\\hMailServer.ini');\n"
+                 "      if not FileExists(szSettings) then\n         szSettings := PreviousSettingsFile(szFolder);\n",
+                 "      szSettings := PreviousSettingsFile(szFolder);\n")),
         ('the self-test not run before the installer is built',
          altered(texts, PACKAGES, 'original-guard-test.ps1 -Iscc', 'original-guard-test.ps1 -Skip')),
         ('the password on DBUpdater\'s command line',

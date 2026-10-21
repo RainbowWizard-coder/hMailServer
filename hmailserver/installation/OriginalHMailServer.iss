@@ -40,7 +40,15 @@
 //     past ORIGINAL_LAST_SHARED_SCHEMA and before FORK_FIRST_SCHEMA is refused, and
 //     anything else is not - which is what upgrades such a development build;
 //   * only where that version cannot be read - the service is not running, or does
-//     not answer - first the earlier installation's settings file: a [Database]
+//     not answer - first the settings file the installed server reads: the one in
+//     ProgramData, {commonappdata}\hMailServer\hMailServer.ini, which the
+//     original's 5.7.0 build 3013 and later read before the one in Bin and keep a
+//     new installation's in, and which this fork never writes; where there is
+//     none, the earlier installation's own, in Bin (for a very old one, in the
+//     Windows folder). So a settings file of this fork's left in Bin beside the
+//     original's - this fork's installer of 6.3.7 or earlier, run over such a new
+//     installation, writes one there, and the original's installer run again
+//     leaves it - does not decide for a server that reads the other. A [Database]
 //     PasswordEncryption of 6, the database's password kept as a DPAPI envelope, is
 //     this fork's alone. This fork writes it, from 6.2.0 on and while
 //     ProtectStoredSecretsWithDPAPI is on, its default, whenever its database setup

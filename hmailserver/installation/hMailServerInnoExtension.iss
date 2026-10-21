@@ -2657,9 +2657,20 @@ begin
    bForkSecret := False;
    if iDatabase <= 0 then
    begin
-      szSettings := PreviousSettingsFile(szFolder);
+      // The settings file the installed server reads. The original's 5.7.0 build
+      // 3013 and later read hMailServer.ini in ProgramData before the one in Bin,
+      // and keep a new installation's there; this fork never writes that file, so
+      // a stale Bin file of this fork's beside it is not the one the server reads.
+      szSettings := ExpandConstant('{commonappdata}\hMailServer\hMailServer.ini');
+      if not FileExists(szSettings) then
+         szSettings := PreviousSettingsFile(szFolder);
       if szSettings <> '' then
+      begin
+         Log('The installed server''s settings file is ' + szSettings + '.');
          bForkSecret := IsForkOnlyPasswordEncryption(GetIniInt('Database', 'PasswordEncryption', 0, 0, 0, szSettings));
+      end
+      else
+         Log('No settings file of the installation in ' + szFolder + ' was found.');
       if bForkSecret then
          Log('The settings file ' + szSettings + ' keeps the database''s password as only this fork does ([Database] PasswordEncryption ' +
              IntToStr(FORK_PASSWORD_ENCRYPTION) + '), which the original cannot read: the database is this fork''s own, and the DBScripts folder is not asked.')
