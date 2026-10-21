@@ -262,6 +262,7 @@ namespace hMailServer.ControlPanel.Services
          "EnvironmentConfiguration.md",
          "EvidencePack.md",
          "FollowConnection.md",
+         "ForkAndOriginal.md",
          "Fuzzing.md",
          "Help.md",
          "ImpersonationProtection.md",

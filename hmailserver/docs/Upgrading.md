@@ -70,6 +70,8 @@ replaced the program files, and this server then refuses the database as too old
 So do not run this fork's installer over an installation of the original's 5.7.
 A server of the original's 5.7 moves its mail to this one over IMAP instead
 ([Migration.md](Migration.md), "From the original hMailServer").
+[ForkAndOriginal.md](ForkAndOriginal.md) says what else differs between the two
+projects.
 
 **How far back the chain reaches depends on your backend, and this is the one
 qualification worth knowing before you start.** The steps are registered once, for
