@@ -585,9 +585,13 @@ that administrators upgrade by hand.
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, seventeen files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, eighteen files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then eight more:
+   `<Version>` values. Then nine more:
+   * `CITATION.cff` at the root - `version`, and `date-released`, the date of the
+     version's `CHANGELOG.md` heading (step 2): how the release is cited, and what
+     an archive that makes a record of it from the file reads. `build/check-citation.py`
+     fails the `checkers` job while either differs.
    * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
      PowerShell module's version on the PowerShell Gallery. A data file cannot
      read `Version.h`, so it is written; `build/check-cli-packages.py` fails the

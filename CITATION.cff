@@ -1,0 +1,52 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# How to cite this project, in the Citation File Format 1.2.0
+# (https://citation-file-format.github.io/). It describes the release named in
+# version and date-released, and is updated with each release. The original
+# hMailServer, by Martin Knafve, is cited as the work this one is a fork of.
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata from this file. It is
+  Progressive Robot's fork of hMailServer; the original hMailServer is cited in its
+  references.
+type: software
+title: hMailServer
+abstract: >-
+  Progressive Robot's fork of hMailServer, not the original hMailServer by Martin
+  Knafve, which is developed separately. hMailServer is a free, open-source mail
+  server: SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC,
+  ARC, MTA-STS and DANE, a webmail client, a browser administration console and a
+  REST API, on Windows and, from the fork's 6.3.0, on Linux. Progressive Robot Ltd
+  forked it in 2026, and the fork's releases begin at 6.0.0, of 12 June 2026.
+authors:
+  - given-names: Christopher
+    family-names: Holloway
+    affiliation: Progressive Robot Ltd
+  - name: Progressive Robot Ltd
+    website: https://www.progressiverobot.com
+version: 6.3.7
+date-released: 2026-10-17
+license: AGPL-3.0-or-later
+repository-code: https://gitlab.com/hmailserver/hmailserver
+url: https://gitlab.com/hmailserver/hmailserver
+keywords:
+  - mail server
+  - email
+  - SMTP
+  - IMAP
+  - POP3
+  - DKIM
+  - DMARC
+  - webmail
+references:
+  - type: software
+    title: hMailServer
+    abstract: >-
+      The original hMailServer, the open-source mail server for Windows of which this
+      project is a fork.
+    authors:
+      - given-names: Martin
+        family-names: Knafve
+    repository-code: https://github.com/hmailserver/hmailserver

@@ -459,6 +459,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-audit-choke-point.py` | Every administrative change reaches the audit trail, and no write route skips it | |
 | `check-authz-choke-point.py` | Every folder-access decision goes through `ACLManager` | `--self-test` |
 | `check-catalogues.py` | Control Panel translations keep the server's literal words, the page names and the numbers | |
+| `check-citation.py` | `CITATION.cff`'s `version` and `date-released` are `Version.h`'s release and its `CHANGELOG.md` date, and the file says that this is Progressive Robot's fork, cites the original and claims no DOI; `cffconvert --validate -i CITATION.cff` checks it against the format's schema | `--self-test` |
 | `check-cli.py` | `hmctl` and the PowerShell module against a recorded server | The PowerShell half skips itself when neither `pwsh` nor `powershell` is present |
 | `check-cli-packages.py` | The two clients' packages: `HmailServer.psd1`'s version and function list against `Version.h` and the module, and `hmailserver-cli` built from `hmctl` with no dependency and no install-time code ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)) | `--self-test`; `--dist DIR` also checks a built sdist and wheel |
 | `check-collection-iteration.py` | Every loop over a shared collection iterates a locked copy (`GetSnapshot()`) | `--self-test` |

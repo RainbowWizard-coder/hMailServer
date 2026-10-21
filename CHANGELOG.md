@@ -583,6 +583,16 @@ with `--check`).
   to upload it by hand. [Nix.md](hmailserver/docs/Nix.md) said that a build of `v6.3.6` needed the tag; the tag has
   existed since 5 October 2026, and the build from it has still not been run. Roadmap2's and Roadmap3's Chocolatey
   rows say the same.
+- **New: `CITATION.cff`, how the project is cited.** In the Citation File Format 1.2.0, which GitLab and GitHub show
+  as "Cite this repository" and from which an archive such as Zenodo makes a release's record: hMailServer 6.3.7, of
+  17 October 2026, by Christopher Holloway and Progressive Robot Ltd, under AGPL-3.0-or-later, at
+  <https://gitlab.com/hmailserver/hmailserver>, with an abstract that says that it is Progressive Robot's fork of
+  hMailServer and not the original, and the original hMailServer, Martin Knafve's, cited in its references. It claims
+  no DOI, since none has been made. `cffconvert --validate` passes it against the format's schema. Its `version` and
+  `date-released` are stamped with each release (RELEASE.md, step 7, now eighteen files), and the new
+  `build/check-citation.py`, which the `checkers` job runs with every other check, holds them to `Version.h` and to
+  that version's `CHANGELOG.md` date, and holds the fork's sentence, the reference to the original and the absence of
+  a DOI.
 - **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
   certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
   32-bit uninstall entry taken away first.** Step 3 had the administrator "grant the service account access" without
