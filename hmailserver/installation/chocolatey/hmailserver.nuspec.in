@@ -22,6 +22,13 @@
   title of "hMailServer" alone would read as the original's
   (build/make-package-manifests.ps1 and build/check-package-manifests.py hold all
   three to it).
+
+  The copyright and the authors credit the original as the installer's licence
+  does (hmailserver/installation/License.rtf: "a fork of hMailServer, originally
+  created by Martin Knafve, whose copyright in the original work remains"), so
+  that the package page's disclaimer - that the package is not affiliated with or
+  endorsed by its authors - names the original's author too, and not Progressive
+  Robot alone (both scripts hold the two to it).
 -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -30,9 +37,9 @@
     <packageSourceUrl>https://gitlab.com/hmailserver/hmailserver/-/tree/master/hmailserver/installation/chocolatey</packageSourceUrl>
     <owners>Progressive Robot Ltd</owners>
     <title>hMailServer (Progressive Robot's fork)</title>
-    <authors>Christopher Holloway, Progressive Robot Ltd</authors>
+    <authors>Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve (the original hMailServer)</authors>
     <projectUrl>https://gitlab.com/hmailserver/hmailserver</projectUrl>
-    <copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer</copyright>
+    <copyright>Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.</copyright>
     <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver</projectSourceUrl>

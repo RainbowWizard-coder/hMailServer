@@ -25,7 +25,9 @@
    releases of its own, and of which packages exist. The Chocolatey title,
    summary and description, and winget's package name, short description and
    description, say so, and the checks below and build/check-package-manifests.py
-   hold them to it.
+   hold them to it. The Chocolatey copyright and authors, and winget's Copyright
+   and Author, credit the original's author, Martin Knafve, as the installer's
+   licence does.
 
    What it writes, under -OutputDirectory:
 
@@ -370,6 +372,14 @@ foreach ($field in @('ShortDescription', 'Description')) {
 if ($localeManifest -notmatch '(?m)^PackageName:.*Progressive Robot') {
     $problems += "the winget PackageName does not name Progressive Robot: alone, it reads as the original's"
 }
+# The original's author credited where the package names its copyright and its
+# authors, as the installer's licence credits him (hmailserver/installation/License.rtf).
+$original = 'Martin Knafve'
+foreach ($field in @('Copyright', 'Author')) {
+    if ($localeManifest -notmatch "(?m)^${field}:.*$([regex]::Escape($original))") {
+        $problems += "the winget $field does not credit the original's author, $original"
+    }
+}
 
 $nuspec = Join-Path $chocoOut 'hmailserver.nuspec'
 try {
@@ -388,6 +398,11 @@ try {
         # InnerText: the description is CDATA, which the XML adapter gives as a node.
         if ($parsed.package.metadata[$field].InnerText -notmatch [regex]::Escape($fork)) {
             $problems += "the nuspec $field does not say ""$fork"""
+        }
+    }
+    foreach ($field in @('copyright', 'authors')) {
+        if ($parsed.package.metadata[$field].InnerText -notmatch [regex]::Escape($original)) {
+            $problems += "the nuspec $field does not credit the original's author, $original"
         }
     }
 }

@@ -19,6 +19,13 @@
 #~ (the Chocolatey id's), not "hmailserver", which a user would take for the
 #~ original's (build/make-package-manifests.ps1 and
 #~ build/check-package-manifests.py hold them to it).
+#~
+#~ Copyright and Author credit the original as the installer's licence does
+#~ (hmailserver/installation/License.rtf: "a fork of hMailServer, originally
+#~ created by Martin Knafve, whose copyright in the original work remains"). The
+#~ Publisher stays Progressive Robot Ltd, who publishes this package and whose name
+#~ the installer writes as the uninstall entry's publisher (the installer
+#~ manifest's AppsAndFeaturesEntries).
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
 
 # Generated from hmailserver/installation/winget by build/make-package-manifests.ps1.
@@ -28,12 +35,12 @@ PackageLocale: en-US
 Publisher: Progressive Robot Ltd
 PublisherUrl: https://www.progressiverobot.com
 PublisherSupportUrl: https://gitlab.com/hmailserver/hmailserver/-/issues
-Author: Christopher Holloway
+Author: Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve (the original hMailServer)
 PackageName: hMailServer (Progressive Robot's fork)
 PackageUrl: https://gitlab.com/hmailserver/hmailserver
 License: AGPL-3.0-or-later
 LicenseUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
-Copyright: Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer
+Copyright: Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.
 CopyrightUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
 ShortDescription: Progressive Robot's fork of hMailServer, not the original - a free, open-source mail server for Windows with SMTP, IMAP and POP3, anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.
 Description: |-

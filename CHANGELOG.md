@@ -214,6 +214,18 @@ with `--check`).
   `database.port: 3306`. `chart-and-compose` renders the chart for `MySQL` and requires that it pass no port, and that
   a port given is passed on. Found by the project's own audit of its listings.
 
+- **The Chocolatey and winget packages credit the original hMailServer's author.** The nuspec's copyright was
+  "Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer" and its authors "Christopher Holloway, Progressive
+  Robot Ltd", and winget's Copyright and Author the same, so Chocolatey's page for 6.3.7 says that neither the package
+  nor Chocolatey Software is affiliated with or endorsed by "Christopher Holloway, Progressive Robot Ltd", the
+  package's own maintainers, and names nobody else. The copyright is now "Copyright (c) 2026 Progressive Robot Ltd. A
+  fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.", as the
+  installer's licence ends, and the authors "Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve
+  (the original hMailServer)". winget's Publisher stays Progressive Robot Ltd, the publisher the installer writes in
+  the uninstall entry. `build/make-package-manifests.ps1` and `build/check-package-manifests.py` refuse a rendered
+  copyright or author field that does not name Martin Knafve. A published version keeps its texts, so this reaches
+  Chocolatey with the next push of the package.
+
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
   `%changelog` entry, the PKGBUILD's and the APKBUILD's maintainer lines and CPack's contact now give `Christopher

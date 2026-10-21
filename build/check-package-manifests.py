@@ -46,7 +46,11 @@ What it checks, beyond the schemas:
     packages exist: the nuspec's title (not "hMailServer" alone), summary and
     description, and winget's PackageName, ShortDescription and Description,
     with Progressive Robot as winget's Publisher and a Moniker that is not
-    "hmailserver".
+    "hmailserver"; and the nuspec's copyright and authors and winget's Copyright
+    and Author credit the original's author, Martin Knafve, as the installer's
+    licence does (hmailserver/installation/License.rtf), so that Chocolatey's
+    disclaimer - not affiliated with or endorsed by the package's authors - does
+    not name Progressive Robot alone.
 
 Usage:
   python build/check-package-manifests.py <directory> [--offline] [--release-date YYYY-MM-DD]
@@ -108,6 +112,17 @@ FORK = "Progressive Robot's fork of hMailServer"
 def says_fork(where, value):
     if FORK not in " ".join(str(value or "").split()):
         problem("%s does not say %r: it reads as the original hMailServer's" % (where, FORK))
+
+
+# Who the original is, credited where a package names its copyright and its
+# authors: the installer's licence ends "This software is a fork of hMailServer,
+# originally created by Martin Knafve, whose copyright in the original work remains".
+ORIGINAL_AUTHOR = "Martin Knafve"
+
+
+def credits_original(where, value):
+    if ORIGINAL_AUTHOR not in " ".join(str(value or "").split()):
+        problem("%s does not credit the original's author, %s: %r" % (where, ORIGINAL_AUTHOR, value))
 
 
 def check_release_date(entry, value, wanted):
@@ -285,6 +300,8 @@ def check_winget(version_directory, cache_directory, offline, release_date=None)
     if locale:
         for field in ("ShortDescription", "Description"):
             says_fork("%s: %s" % (locale_entry, field), locale.get(field))
+        for field in ("Copyright", "Author"):
+            credits_original("%s: %s" % (locale_entry, field), locale.get(field))
         name = str(locale.get("PackageName") or "")
         if name.strip().lower() == "hmailserver" or "Progressive Robot" not in name:
             problem("%s: PackageName is %r: it names Progressive Robot's fork, or it reads as the original's"
@@ -334,6 +351,8 @@ def check_chocolatey(directory, manifests):
                 % title)
     for field in ("summary", "description"):
         says_fork("the nuspec <%s>" % field, text(field))
+    for field in ("copyright", "authors"):
+        credits_original("the nuspec <%s>" % field, text(field))
 
     install_script = os.path.join(directory, "tools", "chocolateyinstall.ps1")
     uninstall_script = os.path.join(directory, "tools", "chocolateyuninstall.ps1")
