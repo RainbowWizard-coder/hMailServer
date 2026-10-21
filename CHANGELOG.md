@@ -456,6 +456,28 @@ with `--check`).
   `dotnet restore -r win-arm64` keeps the project's own `win-x64` beside it and writes a section the publish does not.
   ControlPanel.Tests passes 4,572 of 4,572 tests, DBSetup.Tests 45 of 45 and ImportTool.Tests 15 of 15.
 
+- **certifi 2026.10.19 for the semgrep job and the command-line packages' jobs, for PYSEC-2026-4320
+  (GHSA-6q48-6c7w-9gw2).** certifi before 2026.10.18 carries the `emSign ECC Root CA - G3` root, to which eight
+  eMudhra intermediate authorities chain whose private keys were compromised and which the authority has revoked, so
+  that a holder of one of those keys could issue a certificate that certifi's users accept for any host name;
+  2026.10.18 took every emSign root out, 2026.10.19 put back those not affected, and OSV's record, published on 20
+  October 2026, gives 2026.10.19 as the fixed version. `build/ci/requirements.txt` and
+  `build/ci/cli-packages-requirements.txt` pinned certifi 2026.7.22, and requests checks a server's certificate
+  against certifi's bundle unless told otherwise: in the semgrep job it is Semgrep's, and in `pypi-publish` it
+  carries twine's upload to PyPI and the Sigstore client's calls that pypi-attestations makes.
+  OpenSSF Scorecard's Vulnerabilities check gave the copy on GitHub 9 for it on 21 October 2026. Both files now pin
+  2026.10.19 with the SHA-256 of the two files PyPI publishes for it, each checked by downloading the file; the `uv
+  pip compile` command each file's header gives, run with `--upgrade-package certifi`, moves certifi alone and
+  leaves every other pin and hash as it was. Nothing else the jobs or the packages install carries certifi's bundle:
+  `build/requirements-dev.txt` has no certifi; pip (26.2.1, the one CPython 3.14.7 bundles, in the
+  `python:3.14-slim-trixie` image the Python jobs pin) checks PyPI's certificate against the image's own store by
+  default (truststore), not its own copy of certifi, and installs only files whose hashes the requirements give;
+  neither the Debian and Ubuntu packages the jobs install for Python (PyYAML, jsonschema, cryptography, and dput and
+  devscripts for the Launchpad upload) nor those of the CI image or the container image depend on
+  `python3-certifi`, which on Debian holds no bundle of its own and returns `/etc/ssl/certs/ca-certificates.crt`;
+  and the AppImage, the snap and the Windows installer carry no Python. Both files install with `pip
+  --require-hashes` (the second into a virtual environment on Windows), and both resolve for Linux on Python 3.14.
+
 - **Semgrep 1.181.0 and PyJWT 2.15.1 for the semgrep job, Playwright 1.64.0 for the build scripts, and the VEX
   document's twelve PyJWT 2.13.0 statements retired.** Renovate's Python merge request of 19 October 2026 moved the
   two `.in` files; `build/ci/requirements.txt` and `build/requirements-dev.txt` are remade with the `uv pip compile`
