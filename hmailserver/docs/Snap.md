@@ -366,10 +366,12 @@ has done this, once:
 2. **The name.** At `https://snapcraft.io/register-snap`, register `hmailserver`. If
    the store holds it for review, the comment to give:
 
-   > hMailServer is an open-source mail server (SMTP, IMAP, POP3), AGPL-3.0-or-later,
-   > maintained by Progressive Robot Ltd at https://gitlab.com/hmailserver/hmailserver,
-   > which continues the project. The snap is built by the project's own CI from its
-   > release packages and published by the project.
+   > This snap is Progressive Robot's fork of hMailServer, an open-source mail server
+   > (SMTP, IMAP, POP3), AGPL-3.0-or-later, maintained by Progressive Robot Ltd at
+   > https://gitlab.com/hmailserver/hmailserver. It is not the original hMailServer by
+   > Martin Knafve, which is developed separately and has releases of its own; the
+   > snap's title, summary and description say so. The snap is built by the fork's own
+   > CI from its release packages and published by the fork's maintainers.
 
 3. **The credentials.** snapcraft runs on Linux; in a terminal on linix, which the
    maintainers open for you, in a throwaway container so that nothing is installed on

@@ -699,6 +699,14 @@ with `--check`).
 
 ### Documentation
 
+- **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
+  hMailServer, not the original.** The comment it gave for registering `hmailserver` called the project the one "which
+  continues the project", which a reviewer reads as the original's successor; the original hMailServer, Martin
+  Knafve's, is developed again and has releases of its own. The comment now says that the snap is Progressive Robot's
+  fork of hMailServer, maintained by Progressive Robot Ltd, that it is not the original by Martin Knafve, and that the
+  snap's title, summary and description say so. The step before the release of the kept 6.3.7 snaps to `stable`,
+  setting the store listing to the fork's texts by hand, is as it was.
+
 - **ForkAndOriginal.md says what this project is beside the original hMailServer by Martin Knafve, for someone
   choosing between the two and for the listings and directories that describe this project.** It says that this
   project is Progressive Robot's fork of hMailServer, where it lives and what it has released, and what the original
