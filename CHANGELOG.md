@@ -175,9 +175,12 @@ with `--check`).
 - **Fixed: the Windows installer no longer runs over an installation of the original hMailServer's 5.7; it refuses it
   before it changes anything.** Both projects' installers register as the uninstall entry `hMailServer_is1`, so this
   fork's setup took an installation of the original's 5.7 for its own - the pre-release builds 2788 and 2843 of 5.7.0
-  (August 2026, schema 5709), and 5.7.0 build 3013, 5.7.1 and 5.7.2 (schema 5711) - and replaced its programs; its
-  database step then stopped without changing the database, DBUpdater having no step from 5709, 5710 or 5711, and the
-  new server refused the database as too old (HM5011). Setup now asks first, in `InitializeSetup`, before a page is
+  (August 2026, schema 5709), and 5.7.0 build 3013, 5.7.1 and 5.7.2 (schema 5711) - and replaced its programs. Over an
+  installation upgraded in place, whose settings are in its `Bin` folder, its database step then stopped without
+  changing the database, DBUpdater having no step from 5709, 5710 or 5711, and the new server refused the database as
+  too old (HM5011); over one that the original's 5.7.0 build 3013 or later made new, which keeps its settings and data
+  in `C:\ProgramData\hMailServer`, read first by the original's server and not at all by this fork's setup, it took it
+  for a new installation and set up a new, empty database beside the original's. Setup now asks first, in `InitializeSetup`, before a page is
   shown or anything installed or stopped: when the earlier installation's `hMailServer.exe` is before 6, that is, not
   this fork's - the version is not held to 5.7, because a build of the original's 5.7 from its source without its
   build script reports itself as 1.0.0, the placeholder every 5.7 tag of the original commits - the database's

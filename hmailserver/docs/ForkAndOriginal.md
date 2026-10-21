@@ -109,9 +109,14 @@ The two share the database's upgrade chain up to schema 5708 and part company th
   5709: steps of the original's own, which this fork's chain does not have. This fork's
   installer refuses such an installation before it changes anything, from the release
   after 6.3.7 ([Upgrading.md](Upgrading.md#where-you-can-upgrade-from)); the installers of
-  6.3.7 and earlier do not, and must not be run over one: their database step stops
-  without changing the database, but only after the programs have been replaced, and
-  this fork's server will not run on that database. Move the mail instead: this fork
+  6.3.7 and earlier do not, and must not be run over one. Over an installation upgraded
+  in place, whose settings are in its `Bin` folder, their database step stops without
+  changing the database, but only after the programs have been replaced, and this
+  fork's server will not run on that database; over one that the original's 5.7.0
+  build 3013 or later made new, whose settings and data are in
+  `C:\ProgramData\hMailServer`, which they do not read, they take it for a new
+  installation and set up a new, empty database beside the original's. Move the mail
+  instead: this fork
   installed on another machine, the domains and accounts made there, and each mailbox
   copied across over IMAP by a migration
   ([Migration.md](Migration.md#from-the-original-hmailserver)).

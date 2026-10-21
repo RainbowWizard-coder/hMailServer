@@ -3170,7 +3170,13 @@ version 5711 (5709 for the builds 2788 and 2843), with the original's
 entry and its database unchanged, and `hMailServer-setup-refused.txt` in the
 temporary folder holding the same words. Then the same with the original's
 service stopped, where the line must name the original's scripts in `DBScripts`
-instead. And the other way: this fork installed with its built-in database, the
+instead. Both are run over the original's 5.7.2 installed new, which keeps its
+settings and data in `C:\ProgramData\hMailServer`, and over a 5.7.2 installed
+over the original's 5.6, whose settings stay in `Bin`; and 6.3.7's installer, run
+over the first on a copy of the VM taken before it, shows which of the two
+outcomes Upgrading.md gives for the installers that do not refuse it happens
+there - the database step stopping after the programs were replaced, or a new,
+empty database set up beside the original's. And the other way: this fork installed with its built-in database, the
 original's 5.7 installer run over it, and then this fork's installer again, with
 the hMailServer service stopped and again with it running. Neither run may be
 refused: the log must say that the settings file keeps the database's password as

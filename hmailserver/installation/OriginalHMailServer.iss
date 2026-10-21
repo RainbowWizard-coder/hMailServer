@@ -15,10 +15,16 @@
 // place. From there the original went on by steps of its own - 5709 in its
 // pre-release builds 2788 and 2843 of 5.7.0 (August 2026), 5710 and 5711 in 5.7.0
 // build 3013, 5.7.1 build 3116 and 5.7.2 build 3124 - and this fork by its own,
-// from 5708 to 6001. DBUpdater has no step from any version between the two, and
-// stops before it changes anything; but setup would run it only after it had
-// replaced the original's programs, and this fork's server refuses such a database
-// as too old (HM5011). So it is refused before a file is copied.
+// from 5708 to 6001. DBUpdater has no step from any version between the two.
+// Over an installation upgraded in place, whose settings are in Bin - the builds
+// 2788 and 2843, and a later 5.7 installed over an earlier release - setup would
+// run it only after it had replaced the original's programs; it stops before it
+// changes anything, and this fork's server refuses such a database as too old
+// (HM5011). Over one that the original's 5.7.0 build 3013 or later made new, whose
+// settings and data are in {commonappdata}\hMailServer - which the original's
+// server reads first and this fork's setup does not read - setup would find no
+// settings file, take it for a new installation and set up a new, empty database
+// beside the original's. So it is refused before a file is copied.
 //
 // What identifies such an installation:
 //   * its hMailServer.exe's version, in the folder the earlier installation names:
@@ -184,7 +190,7 @@ begin
              'This installer is Progressive Robot''s fork of hMailServer, which cannot upgrade a database of the original''s 5.7 ' +
              '(version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA + 1) + ' and later, below this fork''s own, which begin at ' +
              IntToStr(FORK_FIRST_SCHEMA) + '). Installed over it, setup would replace the original''s ' +
-             'programs with a server that refuses that database. ' +
+             'programs with this fork''s, which cannot use that database. ' +
              'Nothing has been changed.' + #13#10#13#10 +
              'To move to this fork, install it on another computer, make the domains and accounts there, and copy each mailbox''s mail ' +
              'across over IMAP (Migration.md in the documentation, "From the original hMailServer").';

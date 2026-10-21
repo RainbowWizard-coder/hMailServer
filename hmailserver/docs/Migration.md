@@ -1303,8 +1303,11 @@ first.
 the route. Their database is at a schema version this fork's upgrade chain does not
 reach. From the release after 6.3.7 setup finds such an installation and refuses it
 before it changes anything; the installers of 6.3.7 and earlier would replace the
-original's programs and then leave a database this server refuses
-([Upgrading.md](Upgrading.md), "Where you can upgrade from").
+original's programs and then, over an installation upgraded in place, leave a
+database this server refuses, or, over one that the original's 5.7.0 build 3013 or
+later made new, with its settings and data in `C:\ProgramData\hMailServer`, set up
+a new, empty database beside the original's ([Upgrading.md](Upgrading.md), "Where
+you can upgrade from").
 Install this fork on another machine instead, make the domains and the accounts
 there - by hand, or with *Accounts in bulk* below - and bring each mailbox's mail
 across with a migration of kind `imap` whose source is the original server, as
