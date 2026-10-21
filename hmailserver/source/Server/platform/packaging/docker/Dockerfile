@@ -32,23 +32,23 @@
 # September 2026 were on ghcr.io, which has answered 404 since.
 #
 # The database is not in the image and never will be: point HM_DB_* at a
-# PostgreSQL or MariaDB server (HM_DB_TYPE PostgreSQL or MySQL: the image carries
-# both clients, libpq and MariaDB Connector/C). On first start the entrypoint
-# writes the [Database] section from those variables, the administrator
-# password as a hash through the server's own --set-admin-password, creates the
-# database if it does not exist, upgrades it if it is behind, stores every
-# setting the environment
-# names - the REST listener from HM_REST_*, and any other setting from
-# HM_SETTING_<key> or HM_PROPERTY_<name>, or their _FILE forms for a secret -
-# through the server's own --apply-environment, and then runs the server in the
-# foreground. On Linux the REST API is the
-# administration (there is no Control Panel and no COM), and the server requires
-# TLS on it unless it is bound to loopback - which inside a container is the
-# container's own loopback - so a reachable API means a certificate and key
-# mounted in, or host networking. See docker-entrypoint.sh for every variable.
-# Ubuntu 24.04 is the base because it has what the package depends on: its
-# dependencies are the sonames and versions of the Ubuntu it was built on (see
-# the roadmap's Linux section), and a base without them would refuse the .deb.
+# PostgreSQL or MariaDB server (HM_DB_TYPE PostgreSQL or MySQL: the image
+# carries both clients, libpq and MariaDB Connector/C). On first start the
+# entrypoint writes the [Database] section from those variables, the
+# administrator password as a hash through the server's own
+# --set-admin-password, creates the database if it does not exist, upgrades it
+# if it is behind, stores every setting the environment names - the REST
+# listener from HM_REST_*, and any other setting from HM_SETTING_<key> or
+# HM_PROPERTY_<name>, or their _FILE forms for a secret - through the server's
+# own --apply-environment, and then runs the server in the foreground. On Linux
+# the REST API is the administration (there is no Control Panel and no COM), and
+# the server requires TLS on it unless it is bound to loopback - which inside a
+# container is the container's own loopback - so a reachable API means a
+# certificate and key mounted in, or host networking. See docker-entrypoint.sh
+# for every variable. Ubuntu 24.04 is the base because it has what the package
+# depends on: its dependencies are the sonames and versions of the Ubuntu it was
+# built on (see the roadmap's Linux section), and a base without them would
+# refuse the .deb.
 #
 # The image is built for linux/amd64 and linux/arm64, each from the .deb of its
 # own architecture: hmailserver_<version>_amd64.deb and hmailserver_<version>_arm64.deb,

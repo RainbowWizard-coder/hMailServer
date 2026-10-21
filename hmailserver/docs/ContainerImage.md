@@ -94,19 +94,19 @@ which no `.deb` the release carries depends on, recommends or suggests (the
 Debian source package the PPA builds suggests it, in its `debian/control`), so
 the Dockerfile installs it by name. The build loads `libmariadb.so.3` as the
 server does, and stops if it cannot. 6.3.7's image and the ones before it carry
-libpq alone: they reach PostgreSQL only, and told
-`HM_DB_TYPE=MySQL` they stop at the entrypoint's `--create-database` with "The
-MySQL client library could not be loaded". Each platform's SBOM lists `libpq5`,
-and from the release after 6.3.7 `libmariadb3` and the two packages it brings,
-`mariadb-common` and `mysql-common`. `HM_DB_WAIT_SECONDS` holds the entrypoint
-until that server accepts a connection, for a database started beside the
-container with nothing else to wait for it. The REST API is the administration
-on Linux, and the server requires TLS on it anywhere but loopback, so a reachable
-API means a certificate mounted in
-(`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`), or the self-signed pair
-`hmailserver --apply-new-install-defaults` makes for a new installation - which a
-container is not given by itself, since only the packaged systemd unit's first
-start applies a new installation's defaults ([SecureDefaults.md](SecureDefaults.md)).
+libpq alone: they reach PostgreSQL only, and told `HM_DB_TYPE=MySQL` they stop at
+the entrypoint's `--create-database` with "The MySQL client library could not be
+loaded". Each platform's SBOM lists `libpq5`, and from the release after 6.3.7
+`libmariadb3` and the two packages it brings, `mariadb-common` and
+`mysql-common`. `HM_DB_WAIT_SECONDS` holds the entrypoint until that server
+accepts a connection, for a database started beside the container with nothing
+else to wait for it. The REST API is the administration on Linux, and the server
+requires TLS on it anywhere but loopback, so a reachable API means a certificate
+mounted in (`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`), or the
+self-signed pair `hmailserver --apply-new-install-defaults` makes for a new
+installation - which a container is not given by itself, since only the packaged
+systemd unit's first start applies a new installation's defaults
+([SecureDefaults.md](SecureDefaults.md)).
 
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,

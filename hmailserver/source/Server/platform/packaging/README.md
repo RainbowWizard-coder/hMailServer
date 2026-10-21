@@ -1008,25 +1008,24 @@ Both name the image `registry.gitlab.com/hmailserver/hmailserver`, the
 project's GitLab container registry in the group `hmailserver`, the image's
 lasting address (the maintainers decided on 27 September 2026 to push the
 first image only once the project was there, as it has been since 29 September
-2026). A `v*` tag's pipeline has the
-image jobs, which a maintainer starts once the release is published and the
-project's CI/CD variable `HM_PUBLISH_IMAGE` is 1: `container-image-deb` takes
-the release's `.deb` from the published release and checks its Sigstore
-bundle, `container-image` builds `docker/Dockerfile` from it and pushes
-`:<version>`, and for a release without a suffix `:<major>.<minor>` and
-`:latest` as well (a pre-release never moves those two),
-`container-image-sign` signs the image by digest as the same pipeline identity
-the release's files carry, and `container-image-start` starts it beside
-PostgreSQL and beside MariaDB and asks each for SMTP and the REST API. A
-release built by hand has no image. The image sets `HM_INSTALL_KIND=container`, so its update check
-names the image to pull instead of installing a file. The chart is also a
-file of each release the pipeline makes, packaged at the release's version and
-served from `https://updates.progressiverobot.com/helm/`
-(`hmailserver/docs/ContainerImage.md` says all of it, with the `cosign
-verify` commands). Until a release has an image, build it from
-`docker/Dockerfile` and name your own tag. The images published before GitHub
-suspended the project's account on 18 September 2026 were on `ghcr.io`, which
-has answered 404 since.
+2026). A `v*` tag's pipeline has the image jobs, which a maintainer starts
+once the release is published and the project's CI/CD variable
+`HM_PUBLISH_IMAGE` is 1: `container-image-deb` takes the release's `.deb` from
+the published release and checks its Sigstore bundle, `container-image` builds
+`docker/Dockerfile` from it and pushes `:<version>`, and for a release without
+a suffix `:<major>.<minor>` and `:latest` as well (a pre-release never moves
+those two), `container-image-sign` signs the image by digest as the same
+pipeline identity the release's files carry, and `container-image-start`
+starts it beside PostgreSQL and beside MariaDB and asks each for SMTP and the
+REST API. A release built by hand has no image. The image sets
+`HM_INSTALL_KIND=container`, so its update check names the image to pull
+instead of installing a file. The chart is also a file of each release the
+pipeline makes, packaged at the release's version and served from
+`https://updates.progressiverobot.com/helm/`
+(`hmailserver/docs/ContainerImage.md` says all of it, with the `cosign verify`
+commands). Until a release has an image, build it from `docker/Dockerfile` and
+name your own tag. The images published before GitHub suspended the project's
+account on 18 September 2026 were on `ghcr.io`, which has answered 404 since.
 
 ### Every setting from the environment
 
