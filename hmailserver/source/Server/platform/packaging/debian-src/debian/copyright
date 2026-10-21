@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: hMailServer
-Upstream-Contact: Christopher Holloway <christopher.j.holloway@outlook.com>
+Upstream-Contact: Christopher Holloway <chris.holloway@progressiverobot.com>
 Source: https://gitlab.com/hmailserver/hmailserver/-/releases
 Comment:
  The upstream source is the release's own tarball, hmailserver-<version>.tar.gz,

@@ -214,6 +214,17 @@ with `--check`).
   `database.port: 3306`. `chart-and-compose` renders the chart for `MySQL` and requires that it pass no port, and that
   a port given is passed on. Found by the project's own audit of its listings.
 
+- **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
+  `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
+  `%changelog` entry, the PKGBUILD's and the APKBUILD's maintainer lines and CPack's contact now give `Christopher
+  Holloway <chris.holloway@progressiverobot.com>`, the address of the project's commits, where they gave an
+  outlook.com address that no Launchpad account holds. From the PPA's first uploads of 6.3.7, on 21 October 2026,
+  Launchpad made of that address a placeholder person, unactivated and not the PPA's owner, which its package pages
+  name as the maintainer. The `.deb` CPack makes now gives the name beside the address
+  (`CPACK_DEBIAN_PACKAGE_MAINTAINER`), where it gave the address alone, CPack's default. The PPA's upload, OBS and
+  Copr take the packaging from the release's source tarball, so this reaches them with the next release. The principal
+  under which the release's checksums are signed (`.gitlab/allowed_signers`) is the signing key's and is unchanged.
+
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28
   September 2026, 5.7.1 and a 5.7.2 pre-release on 29 September), and it has no REST API: programs administer it

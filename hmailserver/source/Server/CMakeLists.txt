@@ -1387,7 +1387,10 @@ install(PROGRAMS ${SERVER_DIR}/../Tools/Cli/hmctl
 
 set(CPACK_PACKAGE_NAME hmailserver)
 set(CPACK_PACKAGE_VENDOR "Progressive Robot Ltd")
-set(CPACK_PACKAGE_CONTACT "christopher.j.holloway@outlook.com")
+set(CPACK_PACKAGE_CONTACT "chris.holloway@progressiverobot.com")
+# The .deb's Maintainer, with the name Debian's policy asks for beside the address
+# (CPack would otherwise write CPACK_PACKAGE_CONTACT alone).
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Christopher Holloway <${CPACK_PACKAGE_CONTACT}>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "hMailServer, a mail server for SMTP, IMAP and POP3")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://gitlab.com/hmailserver/hmailserver")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})

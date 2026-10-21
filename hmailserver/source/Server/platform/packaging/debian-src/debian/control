@@ -1,7 +1,7 @@
 Source: hmailserver
 Section: mail
 Priority: optional
-Maintainer: Christopher Holloway <christopher.j.holloway@outlook.com>
+Maintainer: Christopher Holloway <chris.holloway@progressiverobot.com>
 Rules-Requires-Root: no
 Build-Depends:
  cmake (>= 3.22),

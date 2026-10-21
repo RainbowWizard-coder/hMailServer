@@ -26,4 +26,4 @@ Purging the package removes its configuration and /var/log/hmailserver. It
 leaves the mail store, /var/lib/hmailserver, the database and the hmailserver
 account: remove those by hand once you are sure.
 
- -- Christopher Holloway <christopher.j.holloway@outlook.com>  Mon, 28 Sep 2026 20:00:00 +0000
+ -- Christopher Holloway <chris.holloway@progressiverobot.com>  Mon, 28 Sep 2026 20:00:00 +0000
