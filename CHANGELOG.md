@@ -326,6 +326,14 @@ with `--check`).
   than in Chocolatey's `--install-arguments`. `build/check-package-manifests.py` refuses a winget Log switch that is not
   `/LOG="<LOGPATH>"` and Chocolatey `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter.
 
+- **The Chocolatey and winget descriptions say that the installer refuses the original hMailServer's 5.7.** They said
+  that, both installers registering under the uninstall entry `hMailServer_is1`, this package's installer takes an
+  installation of the original for its own, and not to install it over the original's 5.7; they now say that it
+  upgrades the original up to 5.6 and refuses its 5.7 before it changes anything, with exit code 1 and the reason in
+  `%TEMP%\hMailServer-setup-refused.txt`, and that a 5.7 server's mail moves over IMAP instead. Both listings render
+  from `hmailserver.nuspec.in` and `ProgressiveRobot.hMailServer.locale.en-US.yaml.in`, and `winget upgrade` may offer
+  the package over an installation of the original's 5.7, whose uninstall entry is the same.
+
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28
   September 2026, 5.7.1 and a 5.7.2 pre-release on 29 September), and it has no REST API: programs administer it

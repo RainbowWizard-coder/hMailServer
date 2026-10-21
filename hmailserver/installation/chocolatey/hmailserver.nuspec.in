@@ -60,8 +60,10 @@ authentication standards, and upgrades an installation of the original up to 5.6
 continuous database upgrade chain from each of its versions. It does not upgrade the original's 5.7
 releases of September 2026: its database upgrade has no step from their database versions, 5709
 and 5711. Both installers register under the same uninstall entry, hMailServer_is1, so on a machine
-where the original is installed this package's installer takes that installation for its own; do
-not install it over the original's 5.7. The database upgrade is one-way: take a backup first.
+where the original is installed this package's installer finds that installation as its own: it
+upgrades the original up to 5.6, and refuses the original's 5.7 before it changes anything (exit
+code 1, the reason in %TEMP%\hMailServer-setup-refused.txt) - move a 5.7 server's mail over IMAP
+instead. The database upgrade is one-way: take a backup first.
 
 ### What it does
 
