@@ -185,7 +185,8 @@ with `--check`).
   Dockerfile now installs `libmariadb3` from the archive of its pinned base, and its build loads `libmariadb.so.3` as
   the server does and stops if it cannot; each platform's SBOM will list `libmariadb3`, `mariadb-common` and
   `mysql-common` beside `libpq5`. `container-image-start` and `container-image-start-arm64` start the pushed image
-  twice, once beside PostgreSQL and once beside MariaDB 13 (the image `linux-db-upgrade-mysql` runs, by digest), and
+  twice, once beside PostgreSQL and once beside MariaDB 13 (the image `linux-db-upgrade-mysql` runs, by digest, with
+  root and no password as there, so that the job's log, which carries the services' output, holds no password), and
   `build/ci/container-image-start-test.sh` asks each for SMTP with STARTTLS and the REST API over TLS, and reads from
   each database the schema version the server laid out there, which must be a number and the same in both; by hand,
   `--docker` starts the same four containers (`HM_START_NAMES` names them). `build/check-release-chain.py` holds the

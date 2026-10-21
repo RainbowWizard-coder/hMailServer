@@ -175,7 +175,7 @@ if [ "$mode" = docker ]; then
   maria_db_host="$names-mariadb"
   ( umask 077
     printf 'POSTGRES_USER=hmailserver\nPOSTGRES_DB=hmailserver\nPOSTGRES_PASSWORD=%s\n' "$password" > "$work/db.env"
-    printf 'MARIADB_USER=hmailserver\nMARIADB_DATABASE=hmailserver\nMARIADB_PASSWORD=%s\nMARIADB_RANDOM_ROOT_PASSWORD=1\n' \
+    printf 'MARIADB_USER=hmailserver\nMARIADB_DATABASE=hmailserver\nMARIADB_PASSWORD=%s\nMARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1\n' \
       "$password" > "$work/mariadb.env"
     printf '%s\n' HM_DB_TYPE=PostgreSQL HM_DB_HOST=db HM_DB_NAME=hmailserver HM_DB_USER=hmailserver \
       "HM_DB_PASSWORD=$password" HM_DB_WAIT_SECONDS=120 "HM_ADMIN_PASSWORD=$password" \

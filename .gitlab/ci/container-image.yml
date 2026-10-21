@@ -438,9 +438,11 @@ container_scanning_arm64:
 # database type and address its own service's variables, and HM_DB_WAIT_SECONDS holds
 # the image's entrypoint until the database answers, since all four start at once.
 # The MariaDB is the one linux-db-upgrade-mysql runs (.gitlab-ci.yml), by digest, with
-# the same user, database and throwaway password as PostgreSQL's, and a root password
-# of its own making that nothing reads. Beside MariaDB the server reaches it through
-# MariaDB Connector/C, which the image carries from the release after 6.3.7
+# the same user, database and throwaway password as PostgreSQL's, and root with no
+# password, as linux-db-upgrade-mysql's: the service is reachable from the job's own
+# network alone and nothing logs in as root (MARIADB_RANDOM_ROOT_PASSWORD would print
+# the password it made into this job's log). Beside MariaDB the server reaches it
+# through MariaDB Connector/C, which the image carries from the release after 6.3.7
 # (packaging/docker/Dockerfile): 6.3.7's image has no MariaDB client, and its server
 # stops there. The test reads each database with the job image's own psql and
 # mariadb. CI_DEBUG_SERVICES puts the services' output in the job's log; none prints a
@@ -467,7 +469,7 @@ container-image-start:
     MARIADB_USER: hmailserver
     MARIADB_DATABASE: hmailserver
     MARIADB_PASSWORD: $POSTGRES_PASSWORD
-    MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
     HM_DB_NAME: hmailserver
     HM_DB_USER: hmailserver
     HM_DB_PASSWORD: $POSTGRES_PASSWORD

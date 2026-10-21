@@ -567,13 +567,15 @@ needs no certificate from outside. It then asks each of the two:
   schema version the server laid out there, and the two databases hold the same.
 
 In the job, the runner starts PostgreSQL (`db`), MariaDB (`mariadb`, the image
-`linux-db-upgrade-mysql` runs, by digest) and the image twice (`mail` and
-`mail-mariadb`, each given its database's type and address in its own service's
-variables) as the job's services on a network of the job's own
-(`FF_NETWORK_PER_BUILD`); the test reads the databases with the Linux CI image's
-`psql` and `mariadb`, and `CI_DEBUG_SERVICES` puts the services' output in the
-job's log. An image without the MariaDB client fails the second start: its
-server stops at `--create-database`, and port 25 never answers.
+`linux-db-upgrade-mysql` runs, by digest, and as it runs it, with root and no
+password: `MARIADB_RANDOM_ROOT_PASSWORD` would print the password it made into
+the job's log) and the image twice (`mail` and `mail-mariadb`, each given its
+database's type and address in its own service's variables) as the job's
+services on a network of the job's own (`FF_NETWORK_PER_BUILD`); the test reads
+the databases with the Linux CI image's `psql` and `mariadb`, and
+`CI_DEBUG_SERVICES` puts the services' output in the job's log. An image without
+the MariaDB client fails the second start: its server stops at
+`--create-database`, and port 25 never answers.
 
 `container-image-start-arm64` does the same with the linux/arm64 image, named by
 its own digest (the dotenv report's `HM_IMAGE_ARM64`), as a service of the platform
