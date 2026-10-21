@@ -123,10 +123,20 @@ build\make-package-manifests.ps1 -Version 6.3.3 -ReleaseDate 2026-09-15
 build\make-package-manifests.ps1 -Version 6.3.3 -ReleaseDate 2026-09-15 `
     -InstallerPath C:\...\hMailServer-6.3.3-x64.exe -RequireSignedInstaller
 
-python build\check-package-manifests.py logs\package-manifests
+python build\check-package-manifests.py logs\package-manifests --release-date 2026-09-15
 winget validate --manifest logs\package-manifests\winget\manifests\p\ProgressiveRobot\hMailServer\6.3.3
 choco pack logs\package-manifests\chocolatey\hmailserver.nuspec --outputdirectory logs\package-manifests\chocolatey
 ```
+
+`-ReleaseDate` is the day the release was published, in UTC, which the winget
+installer manifest carries as `ReleaseDate`. Left out, it is read from the
+GitLab release's `released_at` (the script stops if it cannot be read), and it is
+never the day the script runs: the job that published 6.3.7's Chocolatey package,
+at 23:47 UTC on 20 October 2026, was given no date and rendered `2026-10-21`, the
+day on its machine's clock, for a release of 17 October. The `chocolatey-publish`
+job now passes the date `chocolatey-release` read from the same release
+([Channels.md](Channels.md), "Chocolatey"), and `check-package-manifests.py
+--release-date <day>` refuses a manifest dated otherwise.
 
 **Use the installer the release attached, not the one the build produced.** They
 are different files: the release is Authenticode-signed after the build, and

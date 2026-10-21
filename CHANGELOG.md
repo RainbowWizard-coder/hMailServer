@@ -189,6 +189,32 @@ with `--check`).
   alone, and the check counts it as a signature. The rehearsal on a protected `batch*` branch writes and checks the
   file as a release does, and `build/check-release-chain.py` holds its name, where it is made and checked, and that
   `release-verify`'s artifact carries it, and nothing else of the signed files, to `release-publish`.
+- **The Chocolatey package and the winget manifests say that they are Progressive Robot's fork of hMailServer, and
+  are dated by the release.** The original hMailServer, Martin Knafve's, is developed again and has packages of its
+  own, Chocolatey's `hmailserver` among them, and the package published on 20 October 2026 as
+  `hmailserver-progressiverobot` 6.3.7, which waits for Chocolatey's moderation, was titled "hMailServer" alone, with
+  a summary that did not say fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary
+  and description, and winget's short description and description, open by saying that this is Progressive Robot's
+  fork of hMailServer, not the original, that the original is Martin Knafve's and has releases and packages of its
+  own, and that both installers register as `hMailServer_is1`, so that this one installs over the original where it
+  is installed; winget's package name is "hMailServer (Progressive Robot's fork)", and its moniker
+  `hmailserver-progressiverobot`, the Chocolatey id, where it was `hmailserver`. The description no longer says that
+  the original "is no longer developed upstream", nor that it "went quiet for years". The same job gave the winget
+  installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a release of 17 October,
+  because `build/make-package-manifests.ps1` took today when no date was passed. It takes the GitLab release's
+  `released_at` now, as a day in UTC, when no `-ReleaseDate` is given, and stops when it cannot read it;
+  `build/ci/channels/release-files.py verify` writes the release's `released_at` and its day into
+  `verification.json`, and `chocolatey-publish` passes that day and refuses a `verification.json` without one.
+  `build/check-package-manifests.py` refuses a title, summary, description, package name or short description that
+  does not name the fork, a moniker of `hmailserver`, a `ReleaseDate` that is not a day, and, with `--release-date`,
+  one that is not the release's; the `package-templates` job passes it. The self-tests of `release-files.py` and
+  `chocolatey-publish.ps1` cover the release's day (an offset either side of UTC, and a value that is no time), the
+  refusal and the package the job renders, under Windows PowerShell 5.1 and PowerShell 7. Channels.md said that a
+  version waiting in moderation was not in the community repository's feed, so that a second press would send it
+  again; the feed answers for it, with the status `Submitted` (as it did for 6.3.7 on 21 October 2026), and the job,
+  which sent no version the feed answered for, would have sent nothing. It sends a `Submitted` version again now, in
+  the waiting package's place, and no other version the feed holds, so that a second press of `chocolatey-release`
+  can send 6.3.7 with these texts ([Channels.md](hmailserver/docs/Channels.md), "How a channel job publishes").
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since

@@ -518,8 +518,10 @@ def make_fixture(directory, version, files, port, tamper=(), other_signer=(), gr
         for listed in (name, name + ".cosign.bundle"):
             links.append({"name": listed, "url": "https://gitlab.com%s/packages/generic/hmailserver/%s/%s"
                           % (PROJECT_API, version, listed), "link_type": "other"})
+    # released_at as GitLab gives it, which verify writes into verification.json as
+    # the release's date (release-files.py release_date).
     release = {"tag_name": "v" + version, "name": "hMailServer " + version, "draft": False, "prerelease": False,
-               "assets": {"links": links}}
+               "released_at": "2026-01-02T03:04:05.000Z", "assets": {"links": links}}
     feed = os.path.join(directory, "site", "feed")
     os.makedirs(os.path.join(feed, "tags"), exist_ok=True)
     for path in (os.path.join(feed, "latest"), os.path.join(feed, "tags", "v" + version)):

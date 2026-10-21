@@ -1214,7 +1214,7 @@ package-templates:
   script:
     - pwsh -NoProfile -File build/make-package-manifests.ps1 -Check
     - pwsh -NoProfile -File build/make-package-manifests.ps1 -Version 9.9.9 -ReleaseDate 2026-01-01 -Sha256 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -OutputDirectory /tmp/manifests
-    - python3 build/check-package-manifests.py /tmp/manifests --offline
+    - python3 build/check-package-manifests.py /tmp/manifests --offline --release-date 2026-01-01
 
 # roadmap.yml: Roadmap.md's counts are what its tick boxes say (build/check-roadmap.ps1),
 # when either changes. pwsh is the one in Microsoft's .NET SDK image.

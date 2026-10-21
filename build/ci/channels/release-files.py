@@ -23,6 +23,13 @@ the account arrives - with no new release made for it:
                 address build/ci/release-chain.py gave it, and each file is downloaded
                 with <file>.cosign.bundle beside it.
 
+  its date      the same release's released_at, the time GitLab records it was
+                published, and its day in UTC, which verify writes into
+                verification.json as release_date: what a package that is dated
+                carries (winget's ReleaseDate, rendered by
+                build/make-package-manifests.ps1 for the chocolatey-publish job),
+                never the day a job runs.
+
   verified      each file with cosign verify-blob against its bundle, as signed by
                 this project's pipeline for that tag - at either of the two paths a
                 server trusts, Progressiverobot/hmailserver and hmailserver/hmailserver,
@@ -62,6 +69,7 @@ another feed or trust.
 """
 
 import argparse
+import datetime
 import gzip
 import hashlib
 import importlib.util
@@ -234,13 +242,45 @@ def registry_url(version, name):
                                              urllib.parse.quote(name, safe=""))
 
 
-def release_links(version, fix=None):
-    """{name: url} of the GitLab release v<version>'s links, each where
-    build/ci/release-chain.py puts a file."""
+def read_release(version, fix=None):
+    """The GitLab release v<version>, as its API answers anonymously."""
     tag = "v" + version
     status, answer = http_json("%s/releases/%s" % (API, urllib.parse.quote(tag, safe="")), fix=fix)
     if status != 200 or not isinstance(answer, dict) or answer.get("tag_name") != tag:
         raise Refused("the GitLab release %s could not be read (HTTP %s): it is not published" % (tag, status))
+    return answer
+
+
+RELEASED_AT = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{2})(?:\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})")
+
+
+def release_day(released_at, tag):
+    """The day, YYYY-MM-DD in UTC, of a release's released_at as GitLab writes it
+    (2026-10-17T23:52:13.000Z): the day it was published where it was published,
+    whatever the clock of the job that reads it says."""
+    match = RELEASED_AT.fullmatch(released_at) if isinstance(released_at, str) else None
+    if not match:
+        raise Refused("the GitLab release %s gives released_at %s, not a time this job can read: a package is dated by"
+                      " its release, never by the day the job runs" % (tag, ascii(released_at)))
+    zone = "+00:00" if match.group(3) == "Z" else match.group(3)
+    try:
+        when = datetime.datetime.fromisoformat("%sT%s%s" % (match.group(1), match.group(2), zone))
+    except ValueError:
+        raise Refused("the GitLab release %s gives released_at %s, which is no time" % (tag, ascii(released_at)))
+    return when.astimezone(datetime.timezone.utc).strftime("%Y-%m-%d")
+
+
+def release_date(version, fix=None):
+    """(released_at, its day in UTC) of the GitLab release v<version>."""
+    answer = read_release(version, fix)
+    released_at = answer.get("released_at")
+    return released_at, release_day(released_at, "v" + version)
+
+
+def release_links(version, fix=None):
+    """{name: url} of the GitLab release v<version>'s links, each where
+    build/ci/release-chain.py puts a file."""
+    answer = read_release(version, fix)
     links = {}
     for link in (answer.get("assets") or {}).get("links") or []:
         if isinstance(link, dict) and link.get("name"):
@@ -338,11 +378,14 @@ def verified_files(version, names, into, cosign, fix=None, run=subprocess.run):
     return record
 
 
-def write_record(record, version, where, path):
+def write_record(record, version, where, path, released=None):
     """verification.json: what was verified, for the log, the job's artifact and a
-    later job of the same pipeline."""
+    later job of the same pipeline. released, (released_at, release_date) from
+    release_date(), dates the record by the release itself."""
     document = {"version": version, "tag": "v" + version, "from": where, "issuer": ISSUER,
                 "files": dict((n, dict((k, v) for k, v in e.items() if k != "path")) for n, e in record.items())}
+    if released is not None:
+        document["released_at"], document["release_date"] = released
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(document, f, indent=1, sort_keys=True)
         f.write("\n")
@@ -499,7 +542,9 @@ def verify_command(out, names, environ=None):
     # A name may say {version}: the chocolatey-release job names the installer so.
     names = [n.replace("{version}", version) for n in names] if names else channel_files(version)
     record = verified_files(version, names, os.path.join(out, "files"), cosign, fix)
-    write_record(record, version, where, os.path.join(out, "verification.json"))
+    released = release_date(version, fix)
+    say("the release v%s was published at %s, on %s (UTC)" % (version, released[0], released[1]))
+    write_record(record, version, where, os.path.join(out, "verification.json"), released)
     say("VERIFIED: %d file(s) of v%s, each as this project's pipeline for its tag; nothing was published."
         % (len(record), version))
     return 0
@@ -618,6 +663,39 @@ def self_test(cosign=None):
     finally:
         globals()["http_json"] = held_json
 
+    # The release's day, from its released_at in UTC, and nothing else.
+    expect("released_at in UTC gives its own day", release_day("2026-10-17T23:52:13.000Z", "v6.3.7") == "2026-10-17")
+    expect("  ... and without a fraction", release_day("2026-10-17T23:52:13Z", "v6.3.7") == "2026-10-17")
+    expect("  ... and an offset ahead of UTC gives the UTC day", release_day("2026-10-18T01:30:00.000+02:00", "v6.3.7") == "2026-10-17")
+    expect("  ... and one behind it too", release_day("2026-10-17T20:00:00-05:00", "v6.3.7") == "2026-10-18")
+    for value in (None, "", "2026-10-17", "17 October 2026", "2026-13-01T00:00:00Z", "2026-10-17T23:52:13.000Z\n", 1792281133):
+        refused("released_at %s" % ascii(value), lambda value=value: release_day(value, "v6.3.7"), "released_at")
+    held_json = globals()["http_json"]
+    try:
+        globals()["http_json"] = lambda url, fix=None, data=None, headers=None: (
+            200, {"tag_name": "v9.9.9", "released_at": "2026-10-17T23:52:13.000Z", "assets": {"links": []}})
+        expect("the release's date read from the GitLab release", release_date("9.9.9") == ("2026-10-17T23:52:13.000Z", "2026-10-17"))
+        globals()["http_json"] = lambda url, fix=None, data=None, headers=None: (200, {"tag_name": "v9.9.9", "assets": {"links": []}})
+        refused("a release with no released_at", lambda: release_date("9.9.9"), "never by the day the job runs")
+        globals()["http_json"] = lambda url, fix=None, data=None, headers=None: (404, None)
+        refused("a release that is not there", lambda: release_date("9.9.9"), "could not be read")
+    finally:
+        globals()["http_json"] = held_json
+    work = tempfile.mkdtemp(prefix="hm-channels-")
+    try:
+        path = os.path.join(work, "verification.json")
+        write_record({}, "9.9.9", "fixture", path, ("2026-10-17T23:52:13.000Z", "2026-10-17"))
+        with open(path, encoding="utf-8") as f:
+            written = json.load(f)
+        expect("verification.json carries the release's released_at and its day",
+               written.get("released_at") == "2026-10-17T23:52:13.000Z" and written.get("release_date") == "2026-10-17")
+        write_record({}, "9.9.9", "fixture", path)
+        with open(path, encoding="utf-8") as f:
+            written = json.load(f)
+        expect("  ... and none where the job dated nothing", "release_date" not in written and "released_at" not in written)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
     # The fixture variable: taken outside CI, refused in it.
     refused("HM_CHANNELS_FIXTURE in a CI job", lambda: fixture({"HM_CHANNELS_FIXTURE": "x.json", "CI": "true"}), "in a CI job")
     refused("HM_CHANNELS_COSIGN in a CI job", lambda: tool_path("cosign", ".", {"HM_CHANNELS_COSIGN": "/x", "GITLAB_CI": "true"}),
@@ -649,7 +727,8 @@ def self_test(cosign=None):
             def fake_http(url, data=None, headers=None, method=None, timeout=120, fix=None):
                 if url.endswith("/releases/v" + version):
                     listed = links if links is not None else dict((n, registry_url(version, n)) for n in served)
-                    body = {"tag_name": "v" + version, "assets": {"links": [{"name": n, "url": u} for n, u in listed.items()]}}
+                    body = {"tag_name": "v" + version, "released_at": "2026-01-02T03:04:05.000Z",
+                            "assets": {"links": [{"name": n, "url": u} for n, u in listed.items()]}}
                     return 200, {}, json.dumps(body).encode()
                 for name, data in served.items():
                     if url == registry_url(version, name) and name != missing:
@@ -671,6 +750,8 @@ def self_test(cosign=None):
                    sorted(record) == sorted(names) and state["verify"] == [identities(version)[0], identities(version)[1]] * 2
                    and record[names[0]]["repository_id"] == "86730559"
                    and record[names[0]]["sha256"] == hashlib.sha256(files[names[0]]).hexdigest())
+            expect("  ... and the same release dated by its released_at",
+                   release_date(version) == ("2026-01-02T03:04:05.000Z", "2026-01-02"))
             fake_http, run, state = world(identities(version)[0])
             globals()["http"] = fake_http
             record = verified_files(version, names, os.path.join(work, "b"), "cosign", run=run)

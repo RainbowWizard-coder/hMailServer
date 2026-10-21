@@ -34,10 +34,22 @@ What it checks, beyond the schemas:
     is the size the release published (a HEAD request; the hash is the renderer's
     business, which computes it from the bytes rather than copying it);
   * the nuspec, if one is beside them, is well-formed, carries the same version,
-    and its install script carries the same URL and hash as the manifest.
+    and its install script carries the same URL and hash as the manifest;
+  * the installer manifest's ReleaseDate is a day, YYYY-MM-DD, and with
+    --release-date the release's own: build/make-package-manifests.ps1 takes it
+    from the release, and a manifest dated by the day it was rendered is wrong
+    (the job that published 6.3.7's package, at 23:47 UTC on 20 October 2026,
+    rendered 2026-10-21, the day on its machine's clock, for a release of 17
+    October);
+  * every text a user reads says that the package is Progressive Robot's fork of
+    hMailServer, not the original, which is Martin Knafve's and has packages of
+    its own: the nuspec's title (not "hMailServer" alone), summary and
+    description, and winget's PackageName, ShortDescription and Description,
+    with Progressive Robot as winget's Publisher and a Moniker that is not
+    "hmailserver".
 
 Usage:
-  python build/check-package-manifests.py <directory>
+  python build/check-package-manifests.py <directory> [--offline] [--release-date YYYY-MM-DD]
 
 where <directory> is what build/make-package-manifests.ps1 wrote: the one that
 holds winget\\manifests\\... and chocolatey\\. A version directory may be given
@@ -47,8 +59,10 @@ Exits non-zero, with a list, if anything disagrees.
 """
 
 import argparse
+import datetime
 import json
 import os
+import re
 import ssl
 import sys
 import urllib.error
@@ -82,6 +96,32 @@ RELEASE_HOST_PREFIX = "https://gitlab.com/api/v4/projects/86730559/packages/gene
 
 def problem(message):
     PROBLEMS.append(message)
+
+
+# What every listing says the package is. The original hMailServer, Martin Knafve's,
+# is developed separately and has packages of its own (Chocolatey's hmailserver;
+# winget's hMailServer.hMailServer once its submission is merged), so a listing
+# that does not say this reads as the original's.
+FORK = "Progressive Robot's fork of hMailServer"
+
+
+def says_fork(where, value):
+    if FORK not in " ".join(str(value or "").split()):
+        problem("%s does not say %r: it reads as the original hMailServer's" % (where, FORK))
+
+
+def check_release_date(entry, value, wanted):
+    value = str(value or "")
+    try:
+        datetime.date.fromisoformat(value)
+        if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+            raise ValueError(value)
+    except ValueError:
+        problem("%s: ReleaseDate is %r, not a day, YYYY-MM-DD" % (entry, value))
+        return
+    if wanted and value != wanted:
+        problem("%s: ReleaseDate is %s, not the release's own date, %s - a manifest is dated by its release, "
+                "never by the day it was rendered" % (entry, value, wanted))
 
 
 # The project downloads nothing from GitHub. The aka.ms schema aliases answer with a
@@ -151,7 +191,7 @@ def load_manifest(path):
         return yaml.load(handle, Loader=ManifestLoader)
 
 
-def check_winget(version_directory, cache_directory, offline):
+def check_winget(version_directory, cache_directory, offline, release_date=None):
     manifests = {}
     for entry in sorted(os.listdir(version_directory)):
         if not entry.endswith(".yaml"):
@@ -217,6 +257,7 @@ def check_winget(version_directory, cache_directory, offline):
             )
         if installer.get("InstallerType") != "inno":
             problem("%s: InstallerType is %r, not 'inno'" % (installer_entry, installer.get("InstallerType")))
+        check_release_date(installer_entry, installer.get("ReleaseDate"), release_date)
         switches = installer.get("InstallerSwitches") or {}
         for switch in ("Silent", "SilentWithProgress"):
             if "/SUPPRESSMSGBOXES" not in (switches.get(switch) or ""):
@@ -239,6 +280,19 @@ def check_winget(version_directory, cache_directory, offline):
                     print("  installer URL reachable, %s bytes" % (length or "unknown"))
             except urllib.error.URLError as error:
                 problem("%s: the installer URL is not reachable: %s (%s)" % (installer_entry, url, error))
+
+    locale_entry, locale = manifests.get("defaultLocale", (None, {}))
+    if locale:
+        for field in ("ShortDescription", "Description"):
+            says_fork("%s: %s" % (locale_entry, field), locale.get(field))
+        name = str(locale.get("PackageName") or "")
+        if name.strip().lower() == "hmailserver" or "Progressive Robot" not in name:
+            problem("%s: PackageName is %r: it names Progressive Robot's fork, or it reads as the original's"
+                    % (locale_entry, name))
+        if not str(locale.get("Publisher") or "").startswith("Progressive Robot"):
+            problem("%s: Publisher is %r, not Progressive Robot" % (locale_entry, locale.get("Publisher")))
+        if str(locale.get("Moniker") or "").strip().lower() == "hmailserver":
+            problem("%s: Moniker is 'hmailserver', which a user takes for the original hMailServer" % locale_entry)
 
     return manifests
 
@@ -274,6 +328,12 @@ def check_chocolatey(directory, manifests):
     for required in ("version", "title", "authors", "description", "summary", "projectUrl", "licenseUrl", "tags"):
         if not text(required):
             problem("the nuspec has no <%s>, which Chocolatey requires" % required)
+    title = text("title") or ""
+    if title.lower() == "hmailserver" or "Progressive Robot" not in title or "fork" not in title:
+        problem("the nuspec title is %r, which reads as the original hMailServer's: it names Progressive Robot's fork"
+                % title)
+    for field in ("summary", "description"):
+        says_fork("the nuspec <%s>" % field, text(field))
 
     install_script = os.path.join(directory, "tools", "chocolateyinstall.ps1")
     uninstall_script = os.path.join(directory, "tools", "chocolateyuninstall.ps1")
@@ -305,7 +365,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("directory", help="what build/make-package-manifests.ps1 wrote")
     parser.add_argument("--offline", action="store_true", help="skip the schema fetch and the URL check")
+    parser.add_argument("--release-date", metavar="YYYY-MM-DD",
+                        help="the release's own date, which the installer manifest's ReleaseDate must be")
     arguments = parser.parse_args()
+    if arguments.release_date is not None:
+        try:
+            datetime.date.fromisoformat(arguments.release_date)
+            if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", arguments.release_date):
+                raise ValueError(arguments.release_date)
+        except ValueError:
+            print("--release-date must be a day, YYYY-MM-DD: %r is not" % arguments.release_date, file=sys.stderr)
+            return 2
 
     directory = os.path.abspath(arguments.directory)
     if not os.path.isdir(directory):
@@ -326,7 +396,7 @@ def main():
         manifests = None
         for version_directory in versions:
             print("winget %s" % os.path.basename(version_directory))
-            manifests = check_winget(version_directory, cache_directory, arguments.offline)
+            manifests = check_winget(version_directory, cache_directory, arguments.offline, arguments.release_date)
         chocolatey = os.path.join(directory, "chocolatey")
         if os.path.isdir(chocolatey):
             print("chocolatey")
@@ -334,7 +404,7 @@ def main():
     else:
         # A version directory given directly.
         print("winget %s" % os.path.basename(os.path.normpath(directory)))
-        check_winget(directory, cache_directory, arguments.offline)
+        check_winget(directory, cache_directory, arguments.offline, arguments.release_date)
 
     if PROBLEMS:
         print("")

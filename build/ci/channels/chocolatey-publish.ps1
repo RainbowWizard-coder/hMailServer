@@ -21,9 +21,12 @@
      3. The installer downloaded from the release's address and held to the SHA-256
         chocolatey-release verified, and to a valid Authenticode signature.
      4. A version the community repository has already, listed or not, is not sent
-        again.
-     5. build/make-package-manifests.ps1 renders the package from those bytes, and
-        choco pack packs it.
+        again, unless its feed lists it as Submitted - still waiting in moderation -
+        when it is sent again and takes the waiting package's place.
+     5. build/make-package-manifests.ps1 renders the package from those bytes, dated
+        by the release itself - the release_date chocolatey-release read from the
+        GitLab release's released_at and wrote into verification.json, never the day
+        this job runs - and choco pack packs it.
      6. The .nupkg is pushed with an HTTP PUT to https://push.chocolatey.org/, the key
         in the request's X-NuGet-ApiKey header - never on a command line, which is why
         this does not call choco push. A new package, and every new version, then
@@ -74,6 +77,41 @@ function Get-FileSha256([string] $Path) {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
+# The release's day, YYYY-MM-DD, as verification.json gives it, or $null. Windows
+# PowerShell's ConvertFrom-Json leaves it a string; PowerShell 7 may make a date of
+# it, and either way the day is the one written.
+function Get-ReleaseDay($Value) {
+    if ($Value -is [datetime]) { return $Value.ToString('yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture) }
+    $text = [string] $Value
+    $day = [datetime]::MinValue
+    if ($text -notmatch '^\d{4}-\d{2}-\d{2}$' -or -not [datetime]::TryParseExact($text, 'yyyy-MM-dd',
+            [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref] $day)) {
+        return $null
+    }
+    return $text
+}
+
+# The status the community repository's feed gives a version it holds: Submitted
+# while it waits for moderation, Approved once a moderator passed it, and so on;
+# 'unknown' where the answer names none.
+function Get-HeldStatus([string] $Answer) {
+    $found = [regex]::Match($Answer, '<d:PackageStatus>([^<]*)</d:PackageStatus>')
+    if ($found.Success -and $found.Groups[1].Value.Trim()) { return $found.Groups[1].Value.Trim() }
+    return 'unknown'
+}
+
+# The package's files, rendered by build/make-package-manifests.ps1 into
+# $OutputDirectory: from the installer itself, held to its Authenticode signature,
+# or (the self-test) from a hash alone. Both to the log: in a function anything
+# left on the pipeline would be part of what it returns.
+function New-PackageFiles([string] $Version, [string] $ReleaseDate, [string] $Id, [string] $OutputDirectory,
+        [string] $InstallerPath, [string] $Sha256) {
+    $render = @{ Version = $Version; ReleaseDate = $ReleaseDate; ChocolateyId = $Id; OutputDirectory = $OutputDirectory }
+    if ($InstallerPath) { $render.InstallerPath = $InstallerPath; $render.RequireSignedInstaller = $true }
+    else { $render.Sha256 = $Sha256 }
+    & (Join-Path $root 'build\make-package-manifests.ps1') @render | Out-Host
+}
+
 function Invoke-Publish {
     if (-not $env:CHOCO_API_KEY) {
         Write-Host 'not configured: CHOCO_API_KEY is not set, so nothing was published.'
@@ -96,12 +134,17 @@ function Invoke-Publish {
     $record = Get-Content -LiteralPath $Verification -Raw | ConvertFrom-Json
     $version = [string] $record.version
     if ($version -notmatch '^\d+\.\d+\.\d+$') { Stop-Refused "$Verification names the version '$version'." }
+    # The package is dated by its release, as GitLab records it, never by today.
+    $releaseDate = if ($record.PSObject.Properties['release_date']) { Get-ReleaseDay $record.release_date } else { $null }
+    if (-not $releaseDate) {
+        Stop-Refused "$Verification gives no release_date: chocolatey-release read no date from the GitLab release v$version, and the package is never dated by the day this job runs."
+    }
     $name = "hMailServer-$version-x64.exe"
     $entry = $record.files.$name
     if (-not $entry -or [string]$entry.sha256 -notmatch '^[0-9a-f]{64}$') {
         Stop-Refused "$Verification does not hold $name verified."
     }
-    Write-Host "the release: $version; $name verified as $($entry.identity), SHA-256 $($entry.sha256)"
+    Write-Host "the release: $version, published on $releaseDate (UTC); $name verified as $($entry.identity), SHA-256 $($entry.sha256)"
 
     if (Test-Path -LiteralPath $OutDir) { Remove-Item -LiteralPath $OutDir -Recurse -Force }
     New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
@@ -122,12 +165,23 @@ function Invoke-Publish {
     }
     Write-Host "Authenticode: Valid, $($signature.SignerCertificate.Subject)"
 
-    # A version the repository has, listed or unlisted, is never sent twice.
+    # A version the repository has, listed or unlisted, is never sent twice - but for
+    # one still in moderation, which the feed lists as Submitted whatever its step
+    # (as it listed hmailserver-progressiverobot 6.3.7 on 21 October 2026, the day
+    # after it was pushed): Chocolatey's moderation asks for a package changed during
+    # its review to be pushed again as "the exact same version"
+    # (docs.chocolatey.org/en-us/community-repository/moderation), which takes the
+    # waiting package's place. Approved, rejected or of any other status, it is not
+    # sent again.
     try {
         $held = Invoke-WebRequest -UseBasicParsing -Uri "$feed/Packages(Id='$id',Version='$version')" -Method Get
         if ($held.StatusCode -eq 200) {
-            Write-Host "The community repository has $id $version already. Nothing to publish."
-            return 0
+            $status = Get-HeldStatus $held.Content
+            if ($status -ne 'Submitted') {
+                Write-Host "The community repository has $id $version already ($status). Nothing to publish."
+                return 0
+            }
+            Write-Host "The community repository has $id $version waiting in moderation (Submitted): it is sent again, in the waiting package's place."
         }
     }
     catch {
@@ -145,8 +199,7 @@ function Invoke-Publish {
     # Both to the log: in this function anything left on the pipeline would be part of
     # what it returns, and exit takes that, not the log.
     $manifests = Join-Path $OutDir 'manifests'
-    & (Join-Path $root 'build\make-package-manifests.ps1') -Version $version -InstallerPath $installer `
-        -RequireSignedInstaller -ChocolateyId $id -OutputDirectory $manifests | Out-Host
+    New-PackageFiles -Version $version -ReleaseDate $releaseDate -Id $id -OutputDirectory $manifests -InstallerPath $installer
     $nuspec = Join-Path $manifests 'chocolatey\hmailserver.nuspec'
     & choco pack $nuspec --outputdirectory $OutDir --limit-output | Out-Host
     if ($LASTEXITCODE -ne 0) { Stop-Refused "choco pack failed ($LASTEXITCODE)." }
@@ -209,9 +262,24 @@ function Invoke-SelfTest {
 
         $installer = Join-Path $work 'hMailServer-9.9.9-x64.exe'
         [System.IO.File]::WriteAllBytes($installer, [byte[]] (1, 2, 3))
-        $json = Join-Path $work 'verification.json'
         $other = '0' * 64
-        Set-Content -LiteralPath $json -Value ('{"version": "9.9.9", "files": {"hMailServer-9.9.9-x64.exe": {"sha256": "' + $other + '", "identity": "fixture"}}}')
+        $files = '"files": {"hMailServer-9.9.9-x64.exe": {"sha256": "' + $other + '", "identity": "fixture"}}'
+        $undated = Join-Path $work 'undated.json'
+        Set-Content -LiteralPath $undated -Value ('{"version": "9.9.9", ' + $files + '}')
+        $answer = Run @{ CHOCO_API_KEY = 'fixture-key' } @('-Verification', $undated, '-OutDir', (Join-Path $work 'u'), '-InstallerFrom', $installer, '-NoPush')
+        Expect 'a verification.json with no release_date: refused before anything is downloaded, never dated by today' (
+            $answer[0] -eq 1 -and $answer[1] -match 'gives no release_date' -and -not (Test-Path (Join-Path $work 'u')))
+        $misdated = Join-Path $work 'misdated.json'
+        Set-Content -LiteralPath $misdated -Value ('{"version": "9.9.9", "release_date": "2026-13-45", ' + $files + '}')
+        $answer = Run @{ CHOCO_API_KEY = 'fixture-key' } @('-Verification', $misdated, '-OutDir', (Join-Path $work 'v'), '-InstallerFrom', $installer, '-NoPush')
+        Expect '  ... and one whose release_date is no day: refused' ($answer[0] -eq 1 -and $answer[1] -match 'gives no release_date')
+
+        $json = Join-Path $work 'verification.json'
+        Set-Content -LiteralPath $json -Value ('{"version": "9.9.9", "released_at": "2026-01-02T03:04:05.000Z", "release_date": "2026-01-02", ' + $files + '}')
+        $day = Get-ReleaseDay (Get-Content -LiteralPath $json -Raw | ConvertFrom-Json).release_date
+        Expect 'the release_date read back from verification.json as the day written' ($day -eq '2026-01-02')
+        Expect '  ... and a date PowerShell made of it gives the same day' ((Get-ReleaseDay ([datetime]::new(2026, 1, 2))) -eq '2026-01-02')
+
         $answer = Run @{ CHOCO_API_KEY = 'fixture-key' } @('-Verification', $json, '-OutDir', (Join-Path $work 'd'), '-InstallerFrom', $installer, '-NoPush')
         Expect 'an installer that is not the bytes chocolatey-release verified: refused before anything is packed' (
             $answer[0] -eq 1 -and $answer[1] -match 'not \d*0{64}, the bytes chocolatey-release verified' -and -not (Test-Path (Join-Path $work 'd\manifests')))
@@ -219,6 +287,23 @@ function Invoke-SelfTest {
 
         $answer = Run @{ CHOCO_API_KEY = 'fixture-key'; CI = 'true' } @('-Verification', $json, '-OutDir', (Join-Path $work 'e'), '-InstallerFrom', $installer)
         Expect '-InstallerFrom in a CI job: refused' ($answer[0] -eq 1 -and $answer[1] -match 'outside CI')
+
+        # The files the job packs, rendered as it renders them (New-PackageFiles), from a
+        # hash in place of a signed installer: dated by the release, and saying the fork.
+        $rendered = Join-Path $work 'f'
+        New-PackageFiles -Version '9.9.9' -ReleaseDate $day -Id 'hmailserver-progressiverobot' -OutputDirectory $rendered -Sha256 ('A' * 64)
+        $installerYaml = Get-Content -LiteralPath (Join-Path $rendered 'winget\manifests\p\ProgressiveRobot\hMailServer\9.9.9\ProgressiveRobot.hMailServer.installer.yaml') -Raw
+        Expect "the installer manifest's ReleaseDate is the release's, 2026-01-02, not today" ($installerYaml -match '(?m)^ReleaseDate: "2026-01-02"\r?$')
+        [xml] $nuspec = Get-Content -LiteralPath (Join-Path $rendered 'chocolatey\hmailserver.nuspec') -Raw
+        Expect "the nuspec's id is the fork's, and its title is not the original's" (
+            $nuspec.package.metadata.id -eq 'hmailserver-progressiverobot' -and $nuspec.package.metadata.title -eq "hMailServer (Progressive Robot's fork)")
+        Expect "  ... and its summary says Progressive Robot's fork of hMailServer" ([string] $nuspec.package.metadata.summary -match "^Progressive Robot's fork of hMailServer, not the original")
+
+        # What the feed says of a version it holds: only one waiting in moderation is sent again.
+        $entry = '<entry><m:properties><d:Id>hmailserver-progressiverobot</d:Id><d:PackageStatus>{0}</d:PackageStatus></m:properties></entry>'
+        Expect "a version the feed lists as Submitted, waiting in moderation, is read as such" ((Get-HeldStatus ($entry -f 'Submitted')) -eq 'Submitted')
+        Expect "  ... an approved one as Approved, which is not sent again" ((Get-HeldStatus ($entry -f 'Approved')) -eq 'Approved')
+        Expect "  ... and an answer that names no status as unknown, which is not sent again either" ((Get-HeldStatus '<entry></entry>') -eq 'unknown')
     }
     finally {
         foreach ($k in $saved.Keys) { Set-Item -Path "env:$k" -Value $saved[$k] }

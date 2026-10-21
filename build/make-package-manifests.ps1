@@ -17,6 +17,15 @@
    smoke test uses, and the SHA-256 is computed here from the actual file - either
    a local one or the release asset, downloaded and hashed. A manifest whose hash
    is copied from a release note is a manifest that can be wrong; this one cannot.
+   The release date is the release's own, read from the GitLab release when it is
+   not given, and never the day the script runs.
+
+   Every listing says what the package is: Progressive Robot's fork of
+   hMailServer, not the original hMailServer, which is Martin Knafve's and has
+   releases and packages of its own. The Chocolatey title, summary and
+   description, and winget's package name, short description and description,
+   say so, and the checks below and build/check-package-manifests.py hold them to
+   it.
 
    What it writes, under -OutputDirectory:
 
@@ -39,7 +48,8 @@
      build\make-package-manifests.ps1 -Version 6.3.3 `
          -InstallerPath C:\...\hMailServer-6.3.3-x64.exe
 
-     # From the published release (downloads it once and hashes it):
+     # From the published release (downloads it once and hashes it, and reads
+     # its date from the GitLab release):
      build\make-package-manifests.ps1 -Version 6.3.3
 
      # Render-only shape check, no network, no release needed (CI, on a pull
@@ -69,8 +79,12 @@ param(
     # is available. Computed from the installer when this is not given.
     [string] $Sha256,
 
-    # The release date, YYYY-MM-DD, for the installer manifest's ReleaseDate.
-    # Defaults to today.
+    # The release date, YYYY-MM-DD in UTC, for the installer manifest's
+    # ReleaseDate: the day the release was published. When it is not given it is
+    # read from the GitLab release <Tag>, as its released_at, and the script stops
+    # if it cannot be read. It is never the day the script runs: a package rendered
+    # days after its release (the chocolatey-publish job, which passes the date
+    # chocolatey-release read from the same release) still carries the release's.
     [string] $ReleaseDate,
 
     # Where to write. Defaults to logs\package-manifests (ignored by git).
@@ -120,10 +134,37 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 }
 
 if (-not $Tag) { $Tag = "v$Version" }
-if (-not $ReleaseDate) { $ReleaseDate = (Get-Date -Format 'yyyy-MM-dd') }
 
-if ($ReleaseDate -notmatch '^\d{4}-\d{2}-\d{2}$') {
-    throw "-ReleaseDate must be YYYY-MM-DD: '$ReleaseDate' is not."
+$releaseApi = "https://gitlab.com/api/v4/projects/86730559/releases/$([uri]::EscapeDataString($Tag))"
+if (-not $ReleaseDate) {
+    # The release's own date: its released_at on GitLab, in UTC. Read from the
+    # answer's text rather than from ConvertFrom-Json's object, which in PowerShell 7
+    # turns an ISO 8601 time into a DateTime of the machine's own zone.
+    Write-Host "Reading      $releaseApi"
+    $answer = Invoke-WebRequest -Uri $releaseApi -UseBasicParsing
+    $release = $answer.Content | ConvertFrom-Json
+    if ([string] $release.tag_name -ne $Tag) {
+        throw "$releaseApi answered for '$($release.tag_name)', not $Tag."
+    }
+    $releasedAt = [regex]::Match($answer.Content, '"released_at"\s*:\s*"([^"]*)"')
+    if (-not $releasedAt.Success) {
+        throw "The GitLab release $Tag gives no released_at. Pass -ReleaseDate, the day it was published (UTC); the day this script runs is never it."
+    }
+    $releasedWhen = [datetimeoffset]::MinValue
+    if (-not [datetimeoffset]::TryParseExact($releasedAt.Groups[1].Value,
+            [string[]] @("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", "yyyy-MM-dd'T'HH:mm:ssK"),
+            [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::None, [ref] $releasedWhen)) {
+        throw "The GitLab release $Tag gives released_at '$($releasedAt.Groups[1].Value)', which is not a time this script reads. Pass -ReleaseDate."
+    }
+    $ReleaseDate = $releasedWhen.UtcDateTime.ToString('yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+    Write-Host "Released     $($releasedAt.Groups[1].Value), so $ReleaseDate (UTC)"
+}
+
+$day = [datetime]::MinValue
+if ($ReleaseDate -notmatch '^\d{4}-\d{2}-\d{2}$' -or -not [datetime]::TryParseExact($ReleaseDate, 'yyyy-MM-dd',
+        [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref] $day)) {
+    throw "-ReleaseDate must be a day, YYYY-MM-DD: '$ReleaseDate' is not."
 }
 
 $installerName = "hMailServer-$Version-x64.exe"
@@ -312,6 +353,21 @@ if ($installerManifest -notmatch [regex]::Escape($InstallerUrl)) { $problems += 
 if ($installerManifest -notmatch '(?m)^ProductCode:\s*hMailServer_is1\s*$') {
     $problems += 'the installer manifest has lost ProductCode: hMailServer_is1, which is how winget recognises an installation it did not make and how `winget upgrade` finds this one'
 }
+if ($installerManifest -notmatch "(?m)^ReleaseDate:\s*""$([regex]::Escape($ReleaseDate))""\s*$") {
+    $problems += "the installer manifest's ReleaseDate is not the release's, $ReleaseDate"
+}
+
+# The fork, said where a user reads it: the original hMailServer is another
+# project's, with packages of its own.
+$fork = "Progressive Robot's fork of hMailServer"
+$localeManifest = Get-Content -LiteralPath (Join-Path $wingetOut 'ProgressiveRobot.hMailServer.locale.en-US.yaml') -Raw
+foreach ($field in @('ShortDescription', 'Description')) {
+    $value = [regex]::Match($localeManifest, "(?ms)^${field}:\s*(?:\|-?\s*\r?\n)?(.*?)(?=^\S)").Groups[1].Value
+    if ($value -notmatch [regex]::Escape($fork)) { $problems += "the winget $field does not say ""$fork""" }
+}
+if ($localeManifest -notmatch '(?m)^PackageName:.*Progressive Robot') {
+    $problems += "the winget PackageName does not name Progressive Robot: alone, it reads as the original's"
+}
 
 $nuspec = Join-Path $chocoOut 'hmailserver.nuspec'
 try {
@@ -321,6 +377,16 @@ try {
     }
     if ($parsed.package.metadata.id -ne $ChocolateyId) {
         $problems += "the nuspec id is $($parsed.package.metadata.id), not $ChocolateyId"
+    }
+    $title = $parsed.package.metadata['title'].InnerText.Trim()
+    if ($title -eq 'hMailServer' -or $title -notmatch 'Progressive Robot' -or $title -notmatch 'fork') {
+        $problems += "the nuspec title is '$title', which reads as the original's: it names Progressive Robot's fork"
+    }
+    foreach ($field in @('summary', 'description')) {
+        # InnerText: the description is CDATA, which the XML adapter gives as a node.
+        if ($parsed.package.metadata[$field].InnerText -notmatch [regex]::Escape($fork)) {
+            $problems += "the nuspec $field does not say ""$fork"""
+        }
     }
 }
 catch {

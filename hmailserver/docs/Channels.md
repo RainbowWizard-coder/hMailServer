@@ -91,10 +91,12 @@ loads):
    PPA's version per Ubuntu release, a Chocolatey version the community repository
    lists (listed or unlisted), a snap the store's `edge` and `candidate` both hold.
    The registries are copied again harmlessly, since a copy by digest changes
-   nothing. Two are not held to it: a Chocolatey version still waiting in moderation
-   is not in the repository's feed, so a second press sends it again, and
-   Chocolatey replaces the waiting package with it; and a second `copr-build` starts
-   another Copr build of the same release. A release older than the channel's is
+   nothing. Two are not held to it: a Chocolatey version still waiting in moderation,
+   which the repository's feed lists with the status `Submitted` (it answered so for
+   `hmailserver-progressiverobot` 6.3.7 on 21 October 2026), is sent again by a
+   second press, in the waiting package's place, as Chocolatey's moderation asks of a
+   package changed during its review ("the exact same version"); and a second
+   `copr-build` starts another Copr build of the same release. A release older than the channel's is
    refused by the AUR, the snap (per architecture, against what `edge` and
    `candidate` hold) and OBS (the latest release alone); on the PPA, Chocolatey and
    Copr an older version beside a newer one moves nobody back, since apt, choco and
@@ -315,12 +317,16 @@ Windows. Pressing `chocolatey-release` starts both.
 
 - `chocolatey-release` (linix, server2 or s1-linux): `release-files.py verify
   "hMailServer-{version}-x64.exe"`, the installer verified as above, and
-  `verification.json` handed on.
+  `verification.json` handed on, with the release's `released_at` and its day
+  (`release_date`), as `verify` writes them for every channel.
 - `chocolatey-publish` (bench150, `build/ci/channels/chocolatey-publish.ps1`): the
   installer downloaded from the release and held to that SHA-256 and to a valid
   Authenticode signature; a version the community repository has, listed or not, is
   not sent again; `build/make-package-manifests.ps1` renders the package from those
-  bytes, `choco pack` packs it, and the `.nupkg` is pushed to
+  bytes, dated by the release (the `release_date` that `chocolatey-release` wrote
+  into `verification.json` from the GitLab release's `released_at`, in UTC, and
+  without which the job stops: never the day the job runs), `choco pack` packs it,
+  and the `.nupkg` is pushed to
   `https://push.chocolatey.org/` with an HTTP PUT and the key in its
   `X-NuGet-ApiKey` header (not `choco push`, which takes the key on its command
   line). A new package, and every new version, then waits for Chocolatey's
