@@ -324,8 +324,16 @@ and how to make it again.
   4. then each tag on `ghcr.io` held to the digest GitLab's gives it, and the
      package page read: its latest version is the release's tag.
 
-  6.3.7's copy stays as it is; the next release's copy, made in that order, puts
-  its own index above it.
+  Copying 6.3.7 again does not move it up: GitHub does not make a new version of
+  a manifest it already holds. On 21 October 2026 the 6.3.7 index
+  (`sha256:2a5de4eb...`) was pushed to `:6.3.7` again, byte for byte, and the
+  registry answered `201 Created` with the same digest, but GitHub's packages API
+  still gave that version the creation and update times of 18 October 2026, and
+  the page still showed the signature's tag as the latest version and its pull
+  command. So 6.3.7's copy stays as it is, and the page shows the right tag once
+  the next release's copy, made in that order, pushes its new index last. Until
+  then, pull by the release's tag, `ghcr.io/rainbowwizard-coder/hmailserver:6.3.7`,
+  not the command the page offers.
 
 **The export.**
 

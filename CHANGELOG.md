@@ -708,8 +708,11 @@ with `--check`).
   21 October 2026 the page offered a signature's tag as the latest version. The copy by hand now pushes, an older
   release before a newer one, cosign's tags first, then the release's own tag, which copies both platforms' images and
   the index after them, then `:<major>.<minor>` and `:latest` where GitLab's tags of those names are the same index,
-  and then holds each tag to GitLab's digest and reads the page. 6.3.7's copy is left as it is; the next release's
-  copy puts its index above it.
+  and then holds each tag to GitLab's digest and reads the page. Copying 6.3.7 again does not move it up, GitHub
+  making no new version of a manifest it already holds: its index pushed again on 21 October 2026, byte for byte,
+  kept the times of 18 October in GitHub's packages API, and the page its signature's tag. So the page shows the
+  right tag once the next release's copy pushes its new index last, and until then the document says to pull by the
+  release's tag.
 
 - **ContainerImage.md's "What is not shown yet" says what holds on 21 October 2026.** It said that the pipeline had
   made one image, 6.3.6's, and that Artifact Hub listed the chart at 6.3.6 without the Verified publisher label. It
