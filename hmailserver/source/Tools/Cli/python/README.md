@@ -1,9 +1,15 @@
 hmailserver-cli
 ===============
 
-`hmctl`, the command-line client of [hMailServer](https://gitlab.com/hmailserver/hmailserver):
-administer an hMailServer - on Windows or on Linux, on this machine or another -
-over its REST API, from any shell.
+`hmctl`, the command-line client of
+[Progressive Robot's fork of hMailServer](https://gitlab.com/hmailserver/hmailserver),
+for the fork's REST API - not the original hMailServer by Martin Knafve: it
+administers a server of the fork - on Windows or on Linux, on this machine or
+another - from any shell.
+
+The original hMailServer ([github.com/hmailserver/hmailserver](https://github.com/hmailserver/hmailserver))
+is developed separately and has no REST API - programs administer it through its
+COM API - so `hmctl` does not work with it.
 
 It is the same `hmctl` the server's Linux packages install as `/usr/bin/hmctl`,
 built from the same file, at the server's version. It is one module with nothing

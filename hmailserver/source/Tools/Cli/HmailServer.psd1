@@ -19,7 +19,11 @@
     Author               = 'Christopher Holloway / Progressive Robot Ltd'
     CompanyName          = 'Progressive Robot Ltd'
     Copyright            = '(c) 2026 Christopher Holloway / Progressive Robot Ltd. AGPL-3.0-or-later.'
-    Description          = 'Administer an hMailServer - on Windows or on Linux, on this machine or another - over its REST API from PowerShell: domains, accounts, aliases, lists, settings, the queue, backups, DKIM rotation, webhooks and the rest, as objects. The same vocabulary as hmctl, its command-line twin.'
+    # The Description and the Tags say whose module this is: the original hMailServer,
+    # Martin Knafve's, is developed separately and has no REST API, and a module of
+    # that name that did not say so would read as the original's.
+    # build/check-cli-packages.py holds the first sentence to it.
+    Description          = 'The PowerShell client of Progressive Robot''s fork of hMailServer, for the fork''s REST API - not the original hMailServer by Martin Knafve, which has none. It administers a server of the fork - on Windows or on Linux, on this machine or another - from PowerShell: domains, accounts, aliases, lists, settings, the queue, backups, DKIM rotation, webhooks and the rest, as objects. The same vocabulary as hmctl, its command-line twin.'
 
     # Windows PowerShell 5.1 and PowerShell 7, on any platform PowerShell 7 runs on.
     PowerShellVersion    = '5.1'
@@ -128,7 +132,7 @@
 
     PrivateData          = @{
         PSData = @{
-            Tags         = @('hMailServer', 'mail', 'email', 'smtp', 'imap', 'pop3', 'REST', 'administration',
+            Tags         = @('hMailServer', 'ProgressiveRobot', 'mail', 'email', 'smtp', 'imap', 'pop3', 'REST', 'administration',
                              'PSEdition_Desktop', 'PSEdition_Core', 'Windows', 'Linux')
             ProjectUri   = 'https://gitlab.com/hmailserver/hmailserver'
             LicenseUri   = 'https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE'

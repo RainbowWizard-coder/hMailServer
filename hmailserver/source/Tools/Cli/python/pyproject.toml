@@ -32,13 +32,16 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "hmailserver-cli"
 dynamic = ["version"]
-description = "hmctl: administer an hMailServer over its REST API from a command line"
+# The summary PyPI lists, on one line: the original hMailServer, Martin Knafve's, is
+# developed separately and has no REST API, and a client of that name that did not
+# say whose it is would read as the original's. build/check-cli-packages.py holds it.
+description = "hmctl, the command-line client of Progressive Robot's fork of hMailServer, for the fork's REST API - not the original hMailServer, which has none"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
 authors = [{ name = "Christopher Holloway / Progressive Robot Ltd" }]
-keywords = ["hmailserver", "mail server", "smtp", "imap", "rest", "administration", "cli"]
+keywords = ["hmailserver", "progressive robot", "mail server", "smtp", "imap", "rest", "administration", "cli"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",

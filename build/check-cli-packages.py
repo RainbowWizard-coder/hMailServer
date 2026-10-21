@@ -36,12 +36,19 @@ recorded server; this checks what they are packaged AS, and fails when:
       module exports anything but functions;
     * RootModule, PowerShellVersion 5.1, CompatiblePSEditions Desktop and Core,
       the GUID, the project and licence addresses are not what they must be;
+    * the Description's first sentence does not say that the module is Progressive
+      Robot's fork's and not the original hMailServer's, which is developed
+      separately and has no REST API;
 
   the Python package
     * pyproject.toml declares a dependency, an optional one, an entry point other
       than the hmctl console script, a build backend other than flit_core, a flit
       setting that adds files, or a flit_core range that does not hold the version
       build/ci/cli-packages-requirements.txt pins;
+    * the summary PyPI lists (pyproject.toml's description) is not one line of at
+      most 512 characters, PyPI's limit, or it or the opening of the README PyPI
+      shows does not say that hmctl is Progressive Robot's fork's and not the
+      original hMailServer's;
     * python/ holds anything but pyproject.toml and README.md - a setup.py or
       setup.cfg (code that runs at install), a .pth file, or a committed copy of
       hmctl, which would be a second hmctl;
@@ -108,6 +115,18 @@ CONSOLE_SCRIPTS = {"hmctl": "hmailserver_cli.hmctl:main"}
 COMMITTED_PYTHON_FILES = {"pyproject.toml", "README.md"}
 PACKAGE_MODULES = {"__init__.py", "__main__.py", "hmctl.py"}
 MODULE_GUID = "89f008bd-5dc0-4d6d-9a05-4ac1c8dbf8e5"
+
+# What every listing of the two packages says first: the original hMailServer, Martin
+# Knafve's, is developed separately and has no REST API, and a package of that name
+# that did not say whose it is would read as the original's.
+FORK_WORDS = ("Progressive Robot's fork of hMailServer", "not the original hMailServer")
+PYPI_SUMMARY_LIMIT = 512  # PyPI refuses a longer Summary, and one with a line break
+
+
+def says_the_fork(text):
+    """Whether text, its line breaks read as spaces, names the fork and says it is not the original."""
+    flat = " ".join(str(text).split())
+    return all(words in flat for words in FORK_WORDS)
 
 # Calls hmctl may make at module level: constructors with no effect beyond the value.
 PURE_CALLS = {"frozenset", "set", "dict", "list", "tuple", "object", "str", "int", "float", "bytes",
@@ -371,6 +390,12 @@ def check_manifest(root, version):
     for name in ("Author", "Description", "Copyright"):
         if not isinstance(field(name), str) or not field(name).strip():
             problems.append("%s has no %s" % (PSD1, name))
+    if isinstance(field("Description"), str):
+        first_sentence = field("Description").split(". ")[0]
+        if not says_the_fork(first_sentence):
+            problems.append("%s's Description does not say in its first sentence that the module is the client of %s, %s: the"
+                            " Gallery lists it, and the original is developed separately and has no REST API"
+                            " (first sentence: %r)" % (PSD1, FORK_WORDS[0], FORK_WORDS[1], first_sentence))
 
     listed = as_list("FunctionsToExport")
     exported, export_problems = psm1_exports(module)
@@ -503,6 +528,25 @@ def check_pyproject(root):
         problems.append("%s's license-files is %r, not [\"LICENSE\"]" % (path, project.get("license-files")))
     if not project.get("requires-python"):
         problems.append("%s has no requires-python" % path)
+    summary = project.get("description")
+    if not isinstance(summary, str) or not summary.strip():
+        problems.append("%s has no description, the summary PyPI lists" % path)
+    else:
+        if "\n" in summary or "\r" in summary or len(summary) > PYPI_SUMMARY_LIMIT:
+            problems.append("%s's description is not one line of at most %d characters, which is all PyPI takes as"
+                            " a summary (%d characters)" % (path, PYPI_SUMMARY_LIMIT, len(summary)))
+        if not says_the_fork(summary):
+            problems.append("%s's description does not say that hmctl is the client of %s, %s: PyPI lists it as the summary,"
+                            " and the original is developed separately and has no REST API (%r)"
+                            % (path, FORK_WORDS[0], FORK_WORDS[1], summary))
+    if project.get("readme") != "README.md":
+        problems.append("%s's readme is %r, not README.md" % (path, project.get("readme")))
+    else:
+        readme = read(root, PYTHON_DIR + "/README.md").replace("\r\n", "\n")
+        opening = readme.split("\nInstall\n")[0]
+        if not says_the_fork(opening):
+            problems.append("%s/README.md, the description PyPI shows, does not say before its Install section that"
+                            " hmctl is the client of %s, %s" % (PYTHON_DIR, FORK_WORDS[0], FORK_WORDS[1]))
     urls = project.get("urls", {})
     if not urls or any(not str(u).startswith(PROJECT_URL) for u in urls.values()):
         problems.append("%s's project URLs are not all the project's (%s): %r" % (path, PROJECT_URL, urls))
@@ -811,6 +855,22 @@ def self_test():
                'hmctl = "hmailserver_cli.hmctl:main"\nhmctl2 = "x:y"', "scripts are")
         broken("a URL elsewhere", PYTHON_DIR + "/pyproject.toml", 'Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"',
                'Issues = "https://github.com/x/y/issues"', "project URLs")
+        summary = 'description = "hmctl, the command-line client of Progressive Robot\'s fork of hMailServer'
+        broken("a PyPI summary that does not say whose hmctl is", PYTHON_DIR + "/pyproject.toml", summary,
+               'description = "hmctl: administer an hMailServer over its REST API from a command line"\nx = "',
+               "description does not say that hmctl is the client of Progressive Robot's fork")
+        broken("a PyPI summary of two lines", PYTHON_DIR + "/pyproject.toml", summary,
+               'description = "hmctl\\n, the command-line client of Progressive Robot\'s fork of hMailServer',
+               "is not one line of at most 512 characters")
+        broken("a PyPI summary longer than PyPI takes", PYTHON_DIR + "/pyproject.toml", summary,
+               summary + " " + "x" * 512, "is not one line of at most 512 characters")
+        broken("a README that does not say whose hmctl is", PYTHON_DIR + "/README.md",
+               "[Progressive Robot's fork of hMailServer](", "[hMailServer](",
+               "README.md, the description PyPI shows, does not say")
+        broken("a module Description that does not say whose the module is", PSD1,
+               "'The PowerShell client of Progressive Robot''s fork of hMailServer,",
+               "'Administer an hMailServer. The PowerShell client of Progressive Robot''s fork of hMailServer,",
+               "Description does not say in its first sentence")
         broken("a module-level call in hmctl", HMCTL, "\nVERSION = ", "\nos.system('true')\nVERSION = ",
                "a call to os.system() runs when the module is imported")
         broken("a third-party import in hmctl", HMCTL, "\nimport argparse\n", "\nimport argparse\nimport requests\n",

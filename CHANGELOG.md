@@ -174,6 +174,27 @@ with `--check`).
 
 ### Downloads and the release
 
+- **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
+  hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28
+  September 2026, 5.7.1 and a 5.7.2 pre-release on 29 September), and it has no REST API: programs administer it
+  through its COM API, as its own PHPWebAdmin does, and its repository's tree, read at a843921bb on 21 October 2026,
+  holds no REST API, its one HTTP code being a client for requests it makes (`HTTPClient.cpp`), where this project's
+  server has its `RestApi*` sources. `hmailserver-cli` 6.3.7, on PyPI since 21 October 2026, has the summary "hmctl:
+  administer an hMailServer over its REST API from a command line" and a description that names neither the fork nor
+  Progressive Robot, and the module `HmailServer` 6.3.7 on the PowerShell Gallery a description that opens "Administer
+  an hMailServer"; a published version keeps its texts, and the next release takes the new ones. `pyproject.toml`'s
+  description, the summary PyPI lists, is now "hmctl, the command-line client of Progressive Robot's fork of
+  hMailServer, for the fork's REST API - not the original hMailServer, which has none", and the README PyPI shows
+  opens the same way and says that `hmctl` does not work with the original; the manifest's Description opens "The
+  PowerShell client of Progressive Robot's fork of hMailServer, for the fork's REST API - not the original hMailServer
+  by Martin Knafve, which has none"; and the module's Tags add `ProgressiveRobot`, the package's keywords `progressive
+  robot`. `build/check-cli-packages.py` refuses a summary, an opening of the README or a first sentence of the
+  Description that does not say so, and a summary that is not one line of at most 512 characters, PyPI's limit; its
+  self-test breaks each and sees it refused. The package built from the tree carries the new summary and description,
+  `twine check --strict` passes them, `build/ci/cli-powershell.ps1` (`Test-ModuleManifest`, the import and
+  PSScriptAnalyzer 1.25.0, which finds nothing) passes under Windows PowerShell 5.1 and PowerShell 7.5, and
+  `build/check-cli.py` passes with both clients.
+
 - **New with the next release: `hmailserver-<version>.intoto.jsonl`, the release's SLSA build provenance as one line
   of JSON.** It is the DSSE envelope of `hmailserver-<version>.intoto.sigstore.json`, the provenance every release has
   carried since 6.3.6 - the statement and its one signature, each as that Sigstore bundle has it - written again
