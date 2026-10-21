@@ -1106,6 +1106,18 @@ chart-and-compose:
         grep -q "kind: $kind" rendered.yaml || { echo "the chart rendered no $kind"; exit 1; }
       done
       grep -q HM_REST_CERTIFICATE_FILE rendered.yaml || { echo "the chart does not hand the server its REST certificate"; exit 1; }
+      # With no database.port the chart passes no HM_DB_PORT, and the entrypoint takes
+      # the type's own port, 3306 for MySQL: a chart that passed 5432 whatever the type
+      # had a server told MySQL dial MariaDB on PostgreSQL's port. One given is passed on.
+      helm template mail "$chart" --set database.type=MySQL --set database.host=db \
+        --set database.password=x --set administrator.password=y > mysql.yaml
+      if grep -q HM_DB_PORT mysql.yaml; then
+        echo "the chart passed a database port that its values did not name"; exit 1
+      fi
+      helm template mail "$chart" --set database.type=MySQL --set database.host=db \
+        --set database.port=3307 --set database.password=x --set administrator.password=y > mysql-port.yaml
+      grep -A1 'name: HM_DB_PORT' mysql-port.yaml > mysql-port.txt
+      grep -q 'value: "3307"' mysql-port.txt || { echo "the chart did not pass database.port on"; exit 1; }
       # Without a database host the chart must refuse, not render a broken server.
       if helm template mail "$chart" --set database.password=x --set administrator.password=y > /dev/null 2>&1; then
         echo "the chart rendered without database.host"; exit 1

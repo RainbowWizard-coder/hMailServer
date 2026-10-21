@@ -204,8 +204,13 @@ with `--check`).
   `ContinuousIntegration.md`'s list of the images a runner of the project's pulls name MariaDB 13 as the start tests'
   database too. The Compose file's recipe for MariaDB names the root password MariaDB's image needs, of the database's
   own (`MARIADB_ROOT_PASSWORD_FILE`, or `MARIADB_RANDOM_ROOT_PASSWORD`): without one the image stops before it lays out
-  its data, and the server, which waits for a healthy database, never starts. Found by the project's own audit of its
-  listings.
+  its data, and the server, which waits for a healthy database, never starts. The chart passes `database.port` only
+  when it is set, and its default is now empty, the type's own port, which the image's entrypoint chooses (5432 for
+  PostgreSQL, 3306 for `MySQL`): it passed 5432 whatever `database.type` was, so a chart told `MySQL` had the server
+  dial MariaDB on PostgreSQL's port and stop with "Could not connect to the database server", and neither its
+  README nor its values said that MariaDB needed `database.port: 3306`. `chart-and-compose` renders the chart for
+  `MySQL` and requires that it pass no port, and that a port given is passed on. Found by the project's own audit of
+  its listings.
 
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28

@@ -36,7 +36,10 @@ database:
   # alone - hmailserver/docs/ContainerImage.md says which).
   type: PostgreSQL
   host: ""
-  port: 5432
+  # The database server's port. Empty is the type's own, 5432 for PostgreSQL
+  # and 3306 for MySQL (MariaDB): the chart then passes no port, and the
+  # image's entrypoint chooses it by the type.
+  port: ""
   name: hmailserver
   user: hmailserver
   # Used only when existingSecret is empty.

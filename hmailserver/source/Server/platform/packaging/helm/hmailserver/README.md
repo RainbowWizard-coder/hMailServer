@@ -52,7 +52,8 @@ the administrator password) and `/portal` the webmail.
 ## What it needs
 
 - **A database.** PostgreSQL (`database.type: PostgreSQL`, the default) or MariaDB
-  (`MySQL`), reachable from the cluster. On its first start the server creates the
+  (`MySQL`), reachable from the cluster, on the type's own port (5432 or 3306)
+  unless `database.port` names another. On its first start the server creates the
   database's schema if it is empty, and upgrades it when it is behind
   (`database.create`, `database.upgrade`). The image of the release the chart comes
   with carries the client for each, libpq and MariaDB Connector/C; an older image,
@@ -72,7 +73,7 @@ Every value is in `values.yaml`, with what it does. The ones most installations 
 
 | Value | Default | What it is |
 |---|---|---|
-| `database.type`, `database.host`, `database.port`, `database.name`, `database.user` | `PostgreSQL`, none, `5432`, `hmailserver`, `hmailserver` | where the database is |
+| `database.type`, `database.host`, `database.port`, `database.name`, `database.user` | `PostgreSQL`, none, the type's own (5432, or 3306 for `MySQL`), `hmailserver`, `hmailserver` | where the database is |
 | `database.password`, `administrator.password` | none | the two secrets, unless `existingSecret` is set |
 | `existingSecret` | none | a Secret you made, with the two keys of `existingSecretKeys` |
 | `rest.tlsSecretName` | none | the REST listener's certificate; the listener waits for it |

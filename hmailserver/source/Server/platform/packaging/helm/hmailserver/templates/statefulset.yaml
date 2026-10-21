@@ -42,8 +42,12 @@ spec:
               value: {{ .Values.database.type | quote }}
             - name: HM_DB_HOST
               value: {{ required "database.host is required: the database is not in the chart" .Values.database.host | quote }}
+            {{- /* No port is the type's own, which the entrypoint chooses:
+                   5432 for PostgreSQL, 3306 for MySQL (MariaDB). */}}
+            {{- with .Values.database.port }}
             - name: HM_DB_PORT
-              value: {{ .Values.database.port | quote }}
+              value: {{ . | quote }}
+            {{- end }}
             - name: HM_DB_NAME
               value: {{ .Values.database.name | quote }}
             - name: HM_DB_USER
