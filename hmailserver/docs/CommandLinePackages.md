@@ -10,18 +10,61 @@ administrator installs such a thing from without the server:
 | `hmailserver-cli` | PyPI | the `hmctl` command, with `pipx install hmailserver-cli` (or `pip`) | `hmailserver/source/Tools/Cli/hmctl` and `hmailserver/source/Tools/Cli/python/` |
 | `HmailServer` | the PowerShell Gallery | the module, with `Install-PSResource HmailServer` (PowerShell 7.4 and later) or `Install-Module HmailServer` (Windows PowerShell 5.1) | `hmailserver/source/Tools/Cli/HmailServer.psm1` and its manifest `HmailServer.psd1` |
 
-**Neither is published yet.** Both are built and checked in CI now, and each is
-published by a job that stays dormant until its account exists ([What the owner
-sets](#what-the-owner-sets)). The Gallery is sent the module as a release
-signs it: from 6.3.6 every release carries `HmailServer.psd1` and
-`HmailServer.psm1` Authenticode-signed, each with its Sigstore bundle
-([Publishing](#publishing), step 5). Until then, `hmctl` comes with the `.deb` and
-the `.rpm` as `/usr/bin/hmctl`, and the module is the file in the tree.
+**Both are published, since 21 October 2026,** each by its job in the `master`
+pipeline 2966261322 ([Publishing](#publishing)):
+
+* `hmailserver-cli` 6.3.7 is on PyPI
+  (`https://pypi.org/project/hmailserver-cli/6.3.7/`): `pypi-publish` (job
+  17306495320) rebuilt it from the signed tag `v6.3.7` and uploaded the wheel and the
+  sdist at 00:30 UTC, and PyPI gives each file one publish attestation, from the
+  GitLab trusted publisher (`hmailserver/hmailserver`, `.gitlab-ci.yml`, environment
+  `pypi`).
+* `HmailServer` 6.3.7 is on the PowerShell Gallery
+  (`https://www.powershellgallery.com/packages/HmailServer/6.3.7`), under the owner
+  `progressiverobot`: `psgallery-publish` (job 17306495321) verified the release's
+  Authenticode-signed `HmailServer.psd1` and `HmailServer.psm1` against their Sigstore
+  bundles and published them at 01:26 UTC. The Gallery scans a new version before it
+  lists it; ten minutes later its feed and its search gave 6.3.7 as the latest
+  version, and the package it served matched the SHA-512 it publishes for it and held
+  the two files with the SHA-256s the job had verified.
+
+Read that day, both listings show the texts 6.3.7 was published with, which name
+neither the fork nor Progressive Robot: PyPI's summary is "hmctl: administer an
+hMailServer over its REST API from a command line", and the Gallery's description
+opens "Administer an hMailServer". A published version keeps its texts; the next
+release carries the ones the tree has now ([Whose clients these
+are](#whose-clients-these-are)). A version a channel has is never sent again
+([Publishing](#publishing), step 3). `hmctl` also comes with the `.deb` and the
+`.rpm` as `/usr/bin/hmctl`, and every release from 6.3.6 carries the module's two
+files Authenticode-signed, each with its Sigstore bundle ([Publishing](#publishing),
+step 5).
 
 Both packages are at the server's version: `hmailserver-cli` 6.3.7 and
 `HmailServer` 6.3.7 are the clients as the 6.3.7 release has them. They speak the
 REST API, so either works against any server whose API has the routes it asks for;
 `hmctl api` and `Invoke-HmApi` reach a route newer than the client.
+
+Whose clients these are
+-----------------------
+
+The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28 September
+2026, 5.7.1 and a 5.7.2 pre-release on 29 September, at
+`github.com/hmailserver/hmailserver`), and it has no REST API: programs administer
+it through its COM API, and neither client works with it. So each text a listing
+shows says first that these are the clients of Progressive Robot's fork of
+hMailServer, for the fork's REST API, and not of the original:
+
+| Listing | Text | Says |
+|---|---|---|
+| PyPI's summary | `hmailserver/source/Tools/Cli/python/pyproject.toml`'s `description` | "hmctl, the command-line client of Progressive Robot's fork of hMailServer, for the fork's REST API - not the original hMailServer, which has none" |
+| PyPI's description | `hmailserver/source/Tools/Cli/python/README.md`, before its Install section | the same, and that `hmctl` does not work with the original |
+| The Gallery's description | `hmailserver/source/Tools/Cli/HmailServer.psd1`'s `Description`, its first sentence | "The PowerShell client of Progressive Robot's fork of hMailServer, for the fork's REST API - not the original hMailServer by Martin Knafve, which has none" |
+| The Gallery's tags | `HmailServer.psd1`'s `PrivateData.PSData.Tags` | `ProgressiveRobot` among them |
+
+`build/check-cli-packages.py` refuses a summary, a README or a `Description` that
+does not say so, and a summary that is not one line of at most 512 characters, which
+is all PyPI takes. 6.3.7 was published before they said so, and keeps the texts it
+has.
 
 One hmctl
 ---------
@@ -291,6 +334,8 @@ renewed there.
 Optional: `HM_CHANNEL_VERSION` as a project variable, to publish a release other than
 the feed's latest.
 
+Both were set up by 21 October 2026, when both jobs published 6.3.7 (above).
+
 deps.dev and OpenSSF Package Analysis
 -------------------------------------
 
@@ -298,10 +343,12 @@ Both come with the PyPI package and need nothing else from the project:
 
 * **deps.dev** indexes PyPI. A project appears there only when a package links to
   it: the package's project URLs name this project (an unverified link), and the
-  attested upload links the two as `PYPI_PUBLISH_ATTESTATION`. After the first
-  upload, `api.deps.dev/v3/projects/gitlab.com%2Fhmailserver%2Fhmailserver` should
-  answer with `hmailserver-cli` linked, which is the plan's W7.1 to check. deps.dev
-  shows no Scorecard for a GitLab project.
+  attested upload links the two as `PYPI_PUBLISH_ATTESTATION`. On 21 October 2026,
+  after the first upload,
+  `api.deps.dev/v3/projects/gitlab.com%2Fhmailserver%2Fhmailserver:packageversions`
+  answered with `hmailserver-cli` 6.3.7 linked that way, its attestation verified,
+  naming the commit of the `master` pipeline that published it. deps.dev shows no
+  Scorecard for a GitLab project.
 * **OpenSSF Package Analysis** installs every new PyPI upload in a sandbox, imports
   and runs it, and records the files, addresses and commands it touches. There is nothing
   to opt into; what the project does is keep the package free of install-time and
