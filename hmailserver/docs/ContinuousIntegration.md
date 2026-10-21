@@ -1142,6 +1142,21 @@ public sources; the copy is the image unmodified, for this project's CI (the
 script's header says more). Renovate does not look up the project's own
 registry, so a new analyzer digest is taken by hand, before a release tag.
 
+The image carries a Python and PyPI packages of its own, which
+`build/ci/requirements.txt` does not reach: the analyzer's image is
+`python:3.14-alpine` with `pip install semgrep==1.174.0`, and the copy of 6.26.1
+built on 5 October 2026 has certifi 2026.7.22 beside Semgrep's requests (the
+image's SBOM), a version PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2) affects. The
+analyzer runs Semgrep with `--metrics on` unless `SAST_SEMGREP_METRICS` is
+false, which no CI file sets, so each run posts Semgrep's pseudonymous metrics
+(hashes of the project's address and of the rules, counts, timings, errors and
+versions; no source and no credential) to `metrics.semgrep.dev`, whose
+certificate is checked against that bundle. Setting `SAST_SEMGREP_METRICS` is a
+change of the job's variables, which `semgrep-sast-gate` takes as a narrowing of
+what the scan reads and holds to a change of its own ([Change
+checks](#change-checks)); a new digest brings a newer certifi once GitLab
+publishes an analyzer built with certifi 2026.10.19 or later.
+
 The script handles no token, as `build/ci/build-linux-image.sh` does not: it
 needs a `docker login registry.gitlab.com` made before it runs, by a person
 whose token may write the project's registry, and hands the file that login

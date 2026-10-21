@@ -475,7 +475,18 @@ with `--check`).
   neither the Debian and Ubuntu packages the jobs install for Python (PyYAML, jsonschema, cryptography, and dput and
   devscripts for the Launchpad upload) nor those of the CI image or the container image depend on
   `python3-certifi`, which on Debian holds no bundle of its own and returns `/etc/ssl/certs/ca-certificates.crt`;
-  and the AppImage, the snap and the Windows installer carry no Python. Both files install with `pip
+  and the AppImage, the snap and the Windows installer carry no Python.
+  One job runs a certifi from before the fix that neither file reaches: `semgrep-sast` runs GitLab's Semgrep analyzer
+  6.26.1 in the project's copy of its image, built on 5 October 2026 from `python:3.14-alpine` with `pip install
+  semgrep==1.174.0`, whose SBOM gives certifi 2026.7.22 beside Semgrep's requests (and 2026.6.17 inside pip, which
+  the job does not run). The analyzer runs Semgrep with `--metrics on` unless `SAST_SEMGREP_METRICS` is false, which
+  no CI file sets, so each run posts Semgrep's pseudonymous metrics - hashes of the project's address and of the
+  rules, counts, timings, errors and versions, and no source or credential - to `metrics.semgrep.dev`, whose
+  certificate is checked against that bundle; Semgrep fetches no rules there, the rules being the image's own, and
+  checks for no new version (`--disable-version-check`). Turning the metrics off is a change of the job's variables,
+  which `semgrep-sast-gate` takes as a change of what the scan reads and holds to a change of its own, so this one
+  leaves the job as it is; a new digest of the analyzer (`build/ci/mirror-semgrep.sh`) brings a newer certifi once
+  GitLab publishes one built with 2026.10.19 or later. Both files install with `pip
   --require-hashes` (the second into a virtual environment on Windows), and both resolve for Linux on Python 3.14.
 
 - **Semgrep 1.181.0 and PyJWT 2.15.1 for the semgrep job, Playwright 1.64.0 for the build scripts, and the VEX
