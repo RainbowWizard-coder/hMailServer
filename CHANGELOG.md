@@ -192,8 +192,9 @@ with `--check`).
   nothing, runs 45 cases - this fork's installations, the original up to 5.6, its development builds at 5700 to 5708,
   its 5.7 at 5709 to 5711 by the database and by the scripts, and the bounds 5708, 5709, 6000 and 6001 - and proves
   that two broken copies of the decision fail a case; the Windows package jobs run it before they build the installer,
-  and stop with exit code 8 when it fails. `build/check-installer-scripts.py` holds the two bounds to the upgrade
-  chain in `hmailserver/source/DBScripts` and the refusal to its place, with seven negative controls more.
+  and stop with exit code 8 when it fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py`
+  holds the two bounds to the upgrade chain in `hmailserver/source/DBScripts` and the refusal to its place, with seven
+  negative controls more.
 
 ### Downloads and the release
 

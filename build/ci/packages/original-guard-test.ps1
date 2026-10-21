@@ -35,7 +35,10 @@ param(
    [string] $WorkDir = ''
 )
 
-$ErrorActionPreference = 'Stop'
+# Continue, as windows-packages.ps1 has it: under Stop, Windows PowerShell 5.1 turns
+# ISCC's own error output into an exception, and every outcome here is decided by
+# what was made and what it wrote.
+$ErrorActionPreference = 'Continue'
 $root = (Get-Item (Split-Path -Parent $PSScriptRoot)).Parent.Parent.FullName
 $decision = Join-Path $root 'hmailserver\installation\OriginalHMailServer.iss'
 $harness = Join-Path $PSScriptRoot 'original-guard-test.iss'
@@ -131,6 +134,9 @@ function Test-Guard {
 $status = 2
 try {
    $status = Test-Guard
+} catch {
+   Write-Host "  $_"
+   $status = 2
 } finally {
    if ($ownWorkDir) { Remove-Item -LiteralPath $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
 }
