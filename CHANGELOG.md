@@ -176,7 +176,8 @@ with `--check`).
   before it changes anything.** Both projects' installers register as the uninstall entry `hMailServer_is1`, so this
   fork's setup took an installation of the original's 5.7 for its own - the pre-release builds 2788 and 2843 of 5.7.0
   (August 2026, schema 5709), and 5.7.0 build 3013, 5.7.1 and 5.7.2 (schema 5711) - and replaced its programs. Over an
-  installation upgraded in place, whose settings are in its `Bin` folder, its database step then stopped without
+  installation whose settings are in its `Bin` folder - the builds 2788 and 2843, which have no other layout, or a
+  later 5.7 installed over an earlier release - its database step then stopped without
   changing the database, DBUpdater having no step from 5709, 5710 or 5711, and the new server refused the database as
   too old (HM5011); over one that the original's 5.7.0 build 3013 or later made new, which keeps its settings and data
   in `C:\ProgramData\hMailServer`, read first by the original's server and not at all by this fork's setup, it took it

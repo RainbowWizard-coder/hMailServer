@@ -16,8 +16,9 @@
 // pre-release builds 2788 and 2843 of 5.7.0 (August 2026), 5710 and 5711 in 5.7.0
 // build 3013, 5.7.1 build 3116 and 5.7.2 build 3124 - and this fork by its own,
 // from 5708 to 6001. DBUpdater has no step from any version between the two.
-// Over an installation upgraded in place, whose settings are in Bin - the builds
-// 2788 and 2843, and a later 5.7 installed over an earlier release - setup would
+// Over an installation whose settings are in its Bin folder - the builds 2788 and
+// 2843, which have no other layout, or a later 5.7 installed over an earlier
+// release - setup would
 // run it only after it had replaced the original's programs; it stops before it
 // changes anything, and this fork's server refuses such a database as too old
 // (HM5011). Over one that the original's 5.7.0 build 3013 or later made new, whose

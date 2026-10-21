@@ -109,8 +109,9 @@ The two share the database's upgrade chain up to schema 5708 and part company th
   5709: steps of the original's own, which this fork's chain does not have. This fork's
   installer refuses such an installation before it changes anything, from the release
   after 6.3.7 ([Upgrading.md](Upgrading.md#where-you-can-upgrade-from)); the installers of
-  6.3.7 and earlier do not, and must not be run over one. Over an installation upgraded
-  in place, whose settings are in its `Bin` folder, their database step stops without
+  6.3.7 and earlier do not, and must not be run over one. Over an installation whose
+  settings are in its `Bin` folder - the builds 2788 and 2843, which have no other
+  layout, or a later 5.7 installed over an earlier release - their database step stops without
   changing the database, but only after the programs have been replaced, and this
   fork's server will not run on that database; over one that the original's 5.7.0
   build 3013 or later made new, whose settings and data are in
