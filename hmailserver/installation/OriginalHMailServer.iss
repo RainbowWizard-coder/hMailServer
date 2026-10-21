@@ -18,8 +18,7 @@
 // from 5708 to 6001. DBUpdater has no step from any version between the two, and
 // stops before it changes anything; but setup would run it only after it had
 // replaced the original's programs, and this fork's server refuses such a database
-// as too old (HM5011), so the original's 5.7 could not be put back without a
-// restore. So it is refused before a file is copied.
+// as too old (HM5011). So it is refused before a file is copied.
 //
 // What identifies such an installation:
 //   * its hMailServer.exe's version, in the folder the earlier installation names:
@@ -167,7 +166,7 @@ begin
    Result := szFound + #13#10#13#10 +
              'This installer is Progressive Robot''s fork of hMailServer, which cannot upgrade a database of the original''s 5.7 ' +
              '(version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA + 1) + ' and later). Installed over it, setup would replace the original''s ' +
-             'programs with a server that refuses that database, and the original''s 5.7 could not be put back without restoring a backup. ' +
+             'programs with a server that refuses that database. ' +
              'Nothing has been changed.' + #13#10#13#10 +
              'To move to this fork, install it on another computer, make the domains and accounts there, and copy each mailbox''s mail ' +
              'across over IMAP (Migration.md in the documentation, "From the original hMailServer").';
