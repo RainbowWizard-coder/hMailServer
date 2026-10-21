@@ -243,7 +243,10 @@ with `--check`).
 - **The Chocolatey package's id is `hmailserver-progressiverobot` when none is given.** `chocolatey-publish` took
   `hmailserver`, the original hMailServer's package, when `HM_CHOCOLATEY_ID` was unset, and so did
   `build/make-package-manifests.ps1` without `-ChocolateyId`; both take `hmailserver-progressiverobot` now, the id set
-  on 20 October 2026, and `hmailserver` only when it is named. The job logs the id, and its self-test holds it.
+  on 20 October 2026. The renderer takes `hmailserver` only when it is named, for a render by hand, and the job
+  refuses it, whatever `HM_CHOCOLATEY_ID` says and in any case, before it reads or makes anything, so that nothing it
+  pushes can go out under the original's id. The job logs the id, and its self-test holds both, under Windows
+  PowerShell 5.1 and PowerShell 7.
 - **The Helm chart says that it is Progressive Robot's fork of hMailServer.** Its description, which Artifact Hub
   shows and packages.ecosyste.ms copies from there, began "hMailServer - SMTP, IMAP and POP3" and named neither the
   fork nor the company; it opens with "Progressive Robot's fork of hMailServer, not the original hMailServer by

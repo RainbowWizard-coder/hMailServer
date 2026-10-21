@@ -15,10 +15,11 @@
      1. Dormant: without the project's CI/CD variable CHOCO_API_KEY (the
         community.chocolatey.org account's API key; protected, masked) it says "not
         configured" and exits 0.
-     2. The package's id: HM_CHOCOLATEY_ID, hmailserver-progressiverobot (the
-        project's, and the id when the variable is unset) or hmailserver (the
-        original hMailServer's unlisted package, which the project does not publish
-        under while the original is developed: hmailserver/docs/PackageManagers.md).
+     2. The package's id: hmailserver-progressiverobot, the project's, named by
+        HM_CHOCOLATEY_ID or taken when the variable is unset. hmailserver, the
+        original hMailServer's unlisted package, is refused whatever the variable
+        says: the project does not publish under the original's id
+        (hmailserver/docs/PackageManagers.md); nor is any other id taken.
      3. The installer downloaded from the release's address and held to the SHA-256
         chocolatey-release verified, and to a valid Authenticode signature.
      4. A version the community repository has already, listed or not, is not sent
@@ -63,7 +64,8 @@ $root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot
 $registry = 'https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver'
 $feed = 'https://community.chocolatey.org/api/v2'
 $push = 'https://push.chocolatey.org/api/v2/package/'
-$allowedIds = @('hmailserver', 'hmailserver-progressiverobot')
+# The one id the job publishes under. hmailserver, the original's, is refused by name.
+$allowedIds = @('hmailserver-progressiverobot')
 
 function Stop-Refused([string] $Why) {
     Write-Host "REFUSED: $Why"
@@ -125,8 +127,12 @@ function Invoke-Publish {
         Stop-Refused '-InstallerFrom is for a run outside CI: the job takes the release''s own installer.'
     }
     $id = if ($env:HM_CHOCOLATEY_ID) { $env:HM_CHOCOLATEY_ID.Trim() } else { 'hmailserver-progressiverobot' }
+    # Chocolatey's ids are compared without case, and so is this (-eq, -notcontains).
+    if ($id -eq 'hmailserver') {
+        Stop-Refused "HM_CHOCOLATEY_ID is '$id', the original hMailServer's package: this project publishes under hmailserver-progressiverobot alone (hmailserver/docs/PackageManagers.md)."
+    }
     if ($allowedIds -notcontains $id) {
-        Stop-Refused "HM_CHOCOLATEY_ID is '$id': the package is hmailserver-progressiverobot or hmailserver."
+        Stop-Refused "HM_CHOCOLATEY_ID is '$id': the package is hmailserver-progressiverobot."
     }
     Write-Host "the package: $id"
 
@@ -257,7 +263,14 @@ function Invoke-SelfTest {
         Expect "without CHOCO_API_KEY: 'not configured', exit 0, before anything is read" ($answer[0] -eq 0 -and $answer[1] -match 'not configured')
 
         $answer = Run @{ CHOCO_API_KEY = 'fixture-key'; HM_CHOCOLATEY_ID = 'someone-else' } @('-OutDir', (Join-Path $work 'b'))
-        Expect 'an id other than the two refused' ($answer[0] -eq 1 -and $answer[1] -match "HM_CHOCOLATEY_ID is 'someone-else'")
+        Expect 'an id other than the project''s refused' ($answer[0] -eq 1 -and $answer[1] -match "HM_CHOCOLATEY_ID is 'someone-else'")
+        $answer = Run @{ CHOCO_API_KEY = 'fixture-key'; HM_CHOCOLATEY_ID = 'hmailserver' } @('-OutDir', (Join-Path $work 'b2'))
+        Expect '  ... and the original''s id, hmailserver, refused by name, before anything is read or made' (
+            $answer[0] -eq 1 -and $answer[1] -match "HM_CHOCOLATEY_ID is 'hmailserver', the original hMailServer's package" -and
+            $answer[1] -notmatch '(?m)^the package: ' -and -not (Test-Path (Join-Path $work 'b2')))
+        $answer = Run @{ CHOCO_API_KEY = 'fixture-key'; HM_CHOCOLATEY_ID = ' HMailServer ' } @('-OutDir', (Join-Path $work 'b3'))
+        Expect '  ... in another case and with spaces round it too' (
+            $answer[0] -eq 1 -and $answer[1] -match "HM_CHOCOLATEY_ID is 'HMailServer', the original hMailServer's package")
 
         $answer = Run @{ CHOCO_API_KEY = 'fixture-key' } @('-Verification', (Join-Path $work 'none.json'), '-OutDir', (Join-Path $work 'c'))
         Expect 'no verification from chocolatey-release: refused' ($answer[0] -eq 1 -and $answer[1] -match 'did not verify')

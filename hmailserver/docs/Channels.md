@@ -354,7 +354,8 @@ Windows. Pressing `chocolatey-release` starts both.
   `chtof`. With the original developed again, the owner chose an id of the fork's own,
   and the project does not publish under the original's ([PackageManagers.md](PackageManagers.md)
   says why). `HM_CHOCOLATEY_ID` holds it, and the job takes it when the variable is
-  unset; it still takes `hmailserver` if the variable names it.
+  unset; it refuses `hmailserver`, the original's, if the variable names it, before
+  it reads or makes anything.
 - **Set up on 20 October 2026.** The owner made the account on community.chocolatey.org,
   and its API key is `CHOCO_API_KEY`. bench150 has Chocolatey's CLI
   (`https://community.chocolatey.org/install.ps1`), whose `C:\ProgramData\chocolatey\bin`
@@ -453,7 +454,7 @@ the table says so. A masked value must be one line of letters, digits and `+ / =
 | `OBS_RUNSERVICE_TOKEN` | yes | `obs` | the runservice token |
 | `OBS_PROJECT` | no | `obs` | the OBS project that holds the package (`home:<account>`) |
 | `CHOCO_API_KEY` | yes | `chocolatey` | the community.chocolatey.org API key |
-| `HM_CHOCOLATEY_ID` | no | `chocolatey` | `hmailserver-progressiverobot` (set on 20 October 2026, and the default); `hmailserver`, the original's id, only by name |
+| `HM_CHOCOLATEY_ID` | no | `chocolatey` | `hmailserver-progressiverobot` (set on 20 October 2026, and the default); `hmailserver`, the original's id, is refused |
 | `SNAPCRAFT_STORE_CREDENTIALS` | yes | `snap-store` | the output of `snapcraft export-login` |
 
 With `glab`, signed in as a maintainer, a secret goes in from standard input and is

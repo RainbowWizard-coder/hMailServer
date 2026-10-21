@@ -78,8 +78,8 @@ be packaged again, so a moderator may ask why the fork has an id of its own; its
 title and description answer that it is a fork, with releases of its own.
 `HM_CHOCOLATEY_ID` is `hmailserver-progressiverobot` (set on 20 October 2026), and
 `build/make-package-manifests.ps1 -ChocolateyId` and `chocolatey-publish` take
-that id when none is given; `hmailserver` is still accepted when it is asked for
-by name.
+that id when none is given; the renderer still accepts `hmailserver` when it is
+asked for by name, for a render by hand, and `chocolatey-publish` refuses it.
 
 **The Chocolatey package is published by CI**, from `master`, by the jobs
 `chocolatey-release` and `chocolatey-publish` ([Channels.md](Channels.md),

@@ -104,7 +104,8 @@ param(
     # developed again the project does not publish under it
     # (hmailserver/docs/PackageManagers.md, hmailserver/docs/Channels.md); it is still
     # accepted here for a render by hand that asks for it. The chocolatey-publish job
-    # passes its project variable HM_CHOCOLATEY_ID here.
+    # passes its project variable HM_CHOCOLATEY_ID here, and refuses hmailserver
+    # before it renders anything.
     [ValidateSet('hmailserver', 'hmailserver-progressiverobot')]
     [string] $ChocolateyId = 'hmailserver-progressiverobot'
 )
