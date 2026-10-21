@@ -463,8 +463,11 @@ with `--check`).
   2026.10.18 took every emSign root out, 2026.10.19 put back those not affected, and OSV's record, published on 20
   October 2026, gives 2026.10.19 as the fixed version. `build/ci/requirements.txt` and
   `build/ci/cli-packages-requirements.txt` pinned certifi 2026.7.22, and requests checks a server's certificate
-  against certifi's bundle unless told otherwise: in the semgrep job it is Semgrep's, and in `pypi-publish` it
-  carries twine's upload to PyPI and the Sigstore client's calls that pypi-attestations makes.
+  against certifi's bundle unless told otherwise: in `pypi-publish` it carries twine's upload to PyPI and the Sigstore
+  client's calls that pypi-attestations makes; the semgrep job's Semgrep opens no connection of its own
+  (`build/ci/semgrep.sh` runs it with `--metrics off` and `--disable-version-check` over rules the job fetched first
+  with the image's own Python and its store), so there the pin is what the job installs and what OpenSSF Scorecard's
+  Vulnerabilities check and OSV-Scanner read.
   OpenSSF Scorecard's Vulnerabilities check gave the copy on GitHub 9 for it on 21 October 2026. Both files now pin
   2026.10.19 with the SHA-256 of the two files PyPI publishes for it, each checked by downloading the file; the `uv
   pip compile` command each file's header gives, run with `--upgrade-package certifi`, moves certifi alone and
