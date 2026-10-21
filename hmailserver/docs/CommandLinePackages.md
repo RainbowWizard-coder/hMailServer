@@ -352,8 +352,8 @@ Both come with the PyPI package and need nothing else from the project:
 * **OpenSSF Package Analysis** installs every new PyPI upload in a sandbox, imports
   and runs it, and records the files, addresses and commands it touches. There is nothing
   to opt into; what the project does is keep the package free of install-time and
-  import-time behaviour, which `build/check-cli-packages.py` holds. A rehearsal with
-  the analysis image before the first upload is the plan's W7.1.
+  import-time behaviour, which `build/check-cli-packages.py` holds. The first upload,
+  on 21 October 2026, was made without a rehearsal with the analysis image.
 
 Nothing else the project ships - the installer, the `.deb`, the `.rpm`, the image,
 the chart or the PowerShell module - is analysed by either.
