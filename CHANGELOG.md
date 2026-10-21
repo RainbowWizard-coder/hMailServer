@@ -699,6 +699,16 @@ with `--check`).
 
 ### Documentation
 
+- **ContainerImage.md's "What is not shown yet" says what holds on 21 October 2026.** It said that the pipeline had
+  made one image, 6.3.6's, and that Artifact Hub listed the chart at 6.3.6 without the Verified publisher label. It
+  now says that the pipeline has made two releases' images, 6.3.6's in its tag pipeline 2914690858 and 6.3.7's in its
+  tag pipeline 2958958332, where every image job passed at its first run; which index each of the registry's tags
+  names, read without credentials; that `cosign verify` by hand has passed against the copy on `ghcr.io`, and `cosign
+  verify-attestation` too against the copy on Docker Hub, at the same digests, while `docker compose up` and `helm
+  install` from the published image are not recorded yet; and that both Artifact Hub listings are at 6.3.7 with the
+  Verified publisher label, read through its API, and say that they are the fork from the next release. The document
+  is the image's README on Artifact Hub, which reads it from `master`.
+
 - **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
   hMailServer, not the original.** The comment it gave for registering `hmailserver` called the project the one "which
   continues the project", which a reviewer reads as the original's successor; the original hMailServer, Martin

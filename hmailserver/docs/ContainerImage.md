@@ -761,23 +761,32 @@ and a package whose platforms had changed after the tree's were checked.
 
 ## What is not shown yet
 
-- The pipeline has made one image, 6.3.6's, in its tag pipeline 2914690858 on 6
-  October 2026, where every image job passed (`container-image-deb` on its second
-  run): both platforms' images built, the arm64 one under qemu-user, pushed under
-  one Docker manifest list, signed, attested, scanned and started, the start
-  test's GitLab half for both platforms among them. Read without credentials that
-  day, the registry's `6.3.6`, `6.3` and `latest` named that list, for linux/amd64
-  and linux/arm64/v8, beside cosign's signatures of it and of both images and the
-  attestations of the two images. What *Done when* asks beyond the pipeline's own
-  checks - an anonymous `docker pull`, `cosign verify` and the attestation read by
-  hand against the published image, and `docker compose up` and `helm install`
-  from it - is not recorded yet (Roadmap3.md, section 1b).
+- The pipeline has made two releases' images. 6.3.6's tag pipeline 2914690858 made
+  the first on 6 October 2026, where every image job passed (`container-image-deb`
+  on its second run), and 6.3.7's tag pipeline 2958958332 the second on 17 October
+  2026, where every image job passed at its first run: in each, both platforms'
+  images built, the arm64 one under qemu-user, pushed under one Docker manifest
+  list, signed, attested, scanned and started, the start test's GitLab half for
+  both platforms among them. Read without credentials on 21 October 2026, the
+  registry's `6.3.7`, `6.3` and `latest` name 6.3.7's list,
+  `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`, and
+  `6.3.6` names 6.3.6's,
+  `sha256:0c7320b77209c0ce8eb032272171d60c07ea75bb05e9c4c8a28fb159ade13e8a`, each
+  for linux/amd64 and linux/arm64/v8, beside cosign's signatures of each list and
+  of its two images and the attestations of the images. By hand, without signing
+  in, `cosign verify` has passed against the copy of 6.3.7's index on `ghcr.io`, and
+  `cosign verify` and `cosign verify-attestation` against the copy on Docker Hub
+  and its platforms' images, at the same digests (above).
+  What *Done when* asks beyond that - `docker compose up` and `helm install` from
+  the published image - is not recorded yet (Roadmap3.md, section 1b).
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
-- The chart 6.3.6 is in the Pages site's repository, whose `index.yaml` lists it,
-  its repository was added to Artifact Hub on 6 October 2026, and Artifact Hub
-  lists it at 6.3.6. That the `helm/artifacthub-repo.yml` `package-repos` writes
-  with the ID, which the site serves (read on 14 October 2026), gives the listing
-  the Verified publisher label is not seen yet: Artifact Hub's last tracking of
-  the repository, on 6 October 2026, came before the ID reached the default
-  branch.
+- Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher
+  label (read through its API on 21 October 2026): the chart with the versions
+  6.3.7 and 6.3.6, last tracked on 18 October 2026, and the image with 6.3.7,
+  `latest` and 6.3.6, last tracked on 21 October 2026, neither with a tracking
+  error (*Artifact Hub*, above). The image's listing shows `latest` as its
+  default version, beside 6.3.7. Neither listing's description says yet that it
+  is Progressive Robot's fork: each is the text the release carried, the chart's
+  `Chart.yaml` and the image's description label, and both say so from the next
+  release.
