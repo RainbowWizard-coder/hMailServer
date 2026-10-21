@@ -1268,10 +1268,35 @@ install(FILES ${SERVER_DIR}/../../installation/WebAdmin/index.html
 install(DIRECTORY ${SERVER_DIR}/../../installation/WebAdmin/languages
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/WebAdmin
    FILES_MATCHING PATTERN "*.json")
-# Absolute for the same reason, and /usr/lib rather than /lib because that is
-# where a distribution's own units live and where systemd looks first.
+# Where the systemd units go: HM_SYSTEMD_UNIT_DIR, which every unit's install rule
+# below takes. Left empty, as the project's own packages leave it, it is
+# /usr/lib/systemd/system under the prefix /usr, which they are all built with -
+# absolute for the same reason, and /usr/lib rather than /lib because that is where
+# a distribution's own units live and where systemd looks first - and
+# <prefix>/lib/systemd/system under any other prefix, inside the install rather
+# than outside it: a build for /usr/local puts its units where systemd reads a local
+# administrator's, and a Nix or Guix build, whose prefix is its output in the
+# store, gets them in that output (nix/package.nix leaves them out there, its
+# NixOS module declaring its own) where it cannot write /usr. A packager names the
+# directory instead - Gentoo's $(systemd_get_systemunitdir), for one - as an
+# absolute path, or one relative to the prefix. The units name /usr/bin/hmailserver
+# and /usr/lib/hmailserver whatever the directory (SourcePackages.md, "Another
+# prefix").
+# STRING, not PATH: CMake makes a relative PATH given with -D absolute, against the
+# directory it was run in.
+set(HM_SYSTEMD_UNIT_DIR "" CACHE STRING
+   "Where the systemd units are installed; empty: /usr/lib/systemd/system under the prefix /usr, <prefix>/lib/systemd/system under another")
+string(REGEX REPLACE "/+$" "" HM_INSTALL_PREFIX_TRIMMED "${CMAKE_INSTALL_PREFIX}")
+if(NOT HM_SYSTEMD_UNIT_DIR STREQUAL "")
+   set(HM_SYSTEMD_UNIT_DESTINATION "${HM_SYSTEMD_UNIT_DIR}")
+elseif(HM_INSTALL_PREFIX_TRIMMED STREQUAL "/usr")
+   set(HM_SYSTEMD_UNIT_DESTINATION /usr/lib/systemd/system)
+else()
+   set(HM_SYSTEMD_UNIT_DESTINATION lib/systemd/system)
+endif()
+message(STATUS "systemd units: ${HM_SYSTEMD_UNIT_DESTINATION}")
 install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.service
-   DESTINATION /usr/lib/systemd/system)
+   DESTINATION ${HM_SYSTEMD_UNIT_DESTINATION})
 
 # The live update's apply step: the helper the server cannot be (it runs as its
 # own user under a read-only /usr), and the two units that run it as root when
@@ -1285,7 +1310,7 @@ if(HM_LIVE_UPDATE)
    install(FILES
       ${SERVER_DIR}/platform/packaging/hmailserver-update.path
       ${SERVER_DIR}/platform/packaging/hmailserver-update.service
-      DESTINATION /usr/lib/systemd/system)
+      DESTINATION ${HM_SYSTEMD_UNIT_DESTINATION})
 endif()
 # /etc, written out rather than taken from CMAKE_INSTALL_SYSCONFDIR. CPack
 # prepends the packaging prefix to every RELATIVE destination, and GNUInstallDirs

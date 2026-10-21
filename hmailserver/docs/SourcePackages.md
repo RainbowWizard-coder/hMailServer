@@ -541,6 +541,36 @@ server that cannot start fails the build. The rebuilds of 29 September kept thei
 work directory on a loop-mounted ext4; anything else built in that WSL - a build
 tree, a package, an image - can hold a hole that no one has run into yet.
 
+Another prefix
+--------------
+
+These packages, the project's own `.deb` and `.rpm`, the PKGBUILD and the APKBUILD
+are all built with the prefix `/usr` (`-DCMAKE_INSTALL_PREFIX=/usr`, which `%cmake`
+and debhelper pass as well), and their systemd units go to
+`/usr/lib/systemd/system`. A packager with another prefix says where the units go
+with the CMake cache variable `HM_SYSTEMD_UNIT_DIR`, which configure reports as
+`systemd units: <directory>`:
+
+| `HM_SYSTEMD_UNIT_DIR` | Where `hmailserver.service`, and with `HM_LIVE_UPDATE` `hmailserver-update.path` and `hmailserver-update.service`, are installed |
+|---|---|
+| empty (the default), with the prefix `/usr` | `/usr/lib/systemd/system`, as every package has them |
+| empty, with any other prefix | `<prefix>/lib/systemd/system` |
+| an absolute path | that path, under `DESTDIR` |
+| a relative path | that path under the prefix |
+
+Up to 6.3.7 the install put the units in `/usr/lib/systemd/system` whatever the
+prefix, outside an install for any other, so a Nix or Guix package, whose prefix is
+its output in the store, would have had to patch the rule out. An ebuild can pass
+`-DHM_SYSTEMD_UNIT_DIR="$(systemd_get_systemunitdir)"`. A Gentoo user's ebuild of
+6.3.7, which deletes the rule with `sed` and installs a unit of its own, still
+matches it: the rule keeps its two lines. The project's flake takes the unit out
+of its package, its NixOS module declaring its own ([Nix.md](Nix.md)).
+
+The units themselves name `/usr/bin/hmailserver` (`ExecStartPre` and `ExecStart`)
+and `/usr/lib/hmailserver/hmailserver-update` whatever the prefix and the
+directory, so a package with another prefix edits those lines, or ships units of
+its own.
+
 What is not done
 ----------------
 

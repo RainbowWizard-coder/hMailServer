@@ -80,18 +80,20 @@ stdenv.mkDerivation {
     runHook postCheck
   '';
 
-  # The CMake install writes the configuration, the logrotate rule, the fail2ban
-  # filter and jail and the systemd unit to absolute paths (/etc, /usr/lib/systemd),
-  # which a Nix build cannot write. So it installs into a staging directory, and
-  # $out takes the prefix's part, and the absolute part as examples: the
-  # configuration under $out/etc with ProgramFolder pointing into $out, the rest as
-  # they are. The unit is left out: it names /usr/bin/hmailserver, and the NixOS
-  # module declares its own (nix/module.nix).
+  # The CMake install writes the configuration, the logrotate rule and the fail2ban
+  # filter and jail to absolute paths (/etc), which a Nix build cannot write. So it
+  # installs into a staging directory, and $out takes the prefix's part, and the
+  # absolute part as examples: the configuration under $out/etc with ProgramFolder
+  # pointing into $out, the rest as they are. The systemd unit, which under a prefix
+  # other than /usr the install puts in the prefix (HM_SYSTEMD_UNIT_DIR, empty), is
+  # left out: it names /usr/bin/hmailserver, and the NixOS module declares its own
+  # (nix/module.nix).
   installPhase = ''
     runHook preInstall
     DESTDIR="$PWD/stage" cmake --install .
     mkdir -p "$out" "$cli/bin"
     cp -a "stage$out/." "$out/"
+    rm -r "$out/lib/systemd"
     mv "$out/bin/hmctl" "$cli/bin/hmctl"
     # CMake's FILES_MATCHING install of DBScripts leaves the one subdirectory that
     # holds no .sql behind, empty.

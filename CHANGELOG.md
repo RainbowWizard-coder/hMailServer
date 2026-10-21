@@ -287,6 +287,20 @@ with `--check`).
 
 ### Build and tests
 
+- **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
+  `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
+  whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is
+  its output in the store, would have had to patch out. Left empty, as every package of the project leaves it, the
+  cache variable gives `/usr/lib/systemd/system` under the prefix `/usr`, as before, and `<prefix>/lib/systemd/system`
+  under any other; a packager names an absolute directory, or one relative to the prefix, and configure says which it
+  is. Configured on Ubuntu 26.04 with CMake 4.2.3 before and after the change with the prefix `/usr`, the live update
+  on (the `.deb` and `.rpm`) and off with the distribution's Boost (the source packages), `cmake_install.cmake` is the
+  same, and `cmake --install` into a `DESTDIR`, with a stand-in for the one compiled program, installs the same 625
+  and 622 files, byte for byte; under `/usr/local` the units go to `/usr/local/lib/systemd/system`, and under a Nix
+  store path into that path. The flake's package takes the unit out of its output, as it left it out of it before, its
+  NixOS module declaring its own, and a Gentoo user's ebuild of 6.3.7, which deletes the rule with `sed`, still
+  matches it. [SourcePackages.md](hmailserver/docs/SourcePackages.md), "Another prefix", says how to use it, and that
+  the units name `/usr/bin/hmailserver` whatever the directory.
 - **The internal suite holds the database pool and interrupts a thread waiting for a connection.**
   `VacationStopInterruptionTester`, run inside the server on Windows by `ClassTester`, holds every free connection of
   the server's own pool for as long as one lookup takes, interrupts a thread of its own as a stop interrupts a worker

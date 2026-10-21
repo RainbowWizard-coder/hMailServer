@@ -220,11 +220,14 @@ way, [SourcePackages.md](SourcePackages.md)):
   before `main`, so a server that cannot start fails the build - and then every
   `*-tests` program the build makes, found rather than listed, as
   `linux-build.sh` finds them.
-- **The install** writes the configuration, the logrotate rule, the fail2ban files
-  and the systemd unit to absolute paths, which a Nix build cannot write, so it
+- **The install** writes the configuration, the logrotate rule and the fail2ban
+  files to absolute paths under `/etc`, which a Nix build cannot write, so it
   installs into a staging directory and the package takes the prefix's part, and
-  the configuration and the rest under `etc/` as examples. The unit is left out: it
-  names `/usr/bin/hmailserver`, and the module declares its own.
+  the configuration and the rest under `etc/` as examples. The systemd unit, which
+  the install puts under the prefix when the prefix is not `/usr`
+  (`HM_SYSTEMD_UNIT_DIR`, [SourcePackages.md](SourcePackages.md), "Another prefix"),
+  is taken out of the package again: it names `/usr/bin/hmailserver`, and the module
+  declares its own.
 - **The MySQL and MariaDB client** is opened with `dlopen("libmariadb.so.3")` when
   such a database is configured, and not linked. A Nix binary finds a library only
   on its RUNPATH, so nixpkgs' MariaDB connector's directory is added to it.
