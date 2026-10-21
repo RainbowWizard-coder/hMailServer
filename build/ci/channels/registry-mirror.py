@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """The registry-mirror job of .gitlab/ci/channels.yml: the release's container image,
-copied by its digest with its signature and its SBOM attestation, from the project's
+copied by its digest with its signatures and SBOM attestations, from the project's
 registry to Docker Hub, Quay.io and, when wanted, Amazon ECR Public
 (hmailserver/docs/Channels.md, "Container registries").
 
@@ -16,29 +16,58 @@ registry to Docker Hub, Quay.io and, when wanted, Amazon ECR Public
      (public.ecr.aws/<alias>/hmailserver). Half a pair fails the job.
   2. The release, as every channel takes it (build/ci/channels/release-files.py).
   3. The source, registry.gitlab.com/hmailserver/hmailserver:<version>, resolved to
-     its digest, and verified before anything is sent. The image's manifest by that
-     digest, and cosign's signature and attestation manifests beside it
-     (sha256-<digest>.sig and .att, each tag resolved once and the manifest then
-     fetched by its digest), are written as cosign's own OCI layout; then, of those
-     very bytes, cosign verify --local-image as this project's pipeline for the tag
-     (either path a server trusts), cosign verify-attestation --local-image of its
-     CycloneDX SBOM as the same identity, and the project's id in every signing and
-     attesting certificate naming that identity, read from the manifests in the layout
-     (as for the release's files: required at either path, and refused if another).
+     its digest, and verified before anything is sent. Since 6.3.6 that digest is an
+     image index (a Docker manifest list) over linux/amd64 and linux/arm64
+     (hmailserver/docs/ContainerImage.md, "Checking an image"): the release's pipeline
+     signs the index by its digest, and signs each platform's image and attests its
+     CycloneDX SBOM to that image; nothing is attested to the index. So:
+     - an index: its manifest by that digest and cosign's signature manifest beside it
+       (sha256-<index hex>.sig; the tag resolved once and the manifest then fetched by
+       its digest) are written as cosign's own OCI layout, whose reader takes the index
+       as its dev.cosignproject.cosign/imageIndex; then, of those very bytes, cosign
+       verify --local-image as this project's pipeline for the tag (either path a
+       server trusts), and the project's id in every signing certificate naming that
+       identity, read from the manifest in the layout (as for the release's files:
+       required at either path, and refused if another). Then every entry of that same
+       index manifest, read from the layout, never fetched again: each must be an image
+       manifest of a type IMAGE_MANIFEST_TYPES names, with its platform's os and
+       architecture, no two of one platform, and nothing else (a nested index, an
+       entry without a platform, a build's attestation manifest, an empty index:
+       refused); and each is verified as a single image is, below, in a layout of its
+       own, as the identity the index verified as, its manifest held to the digest,
+       size and media type the index gives it.
+     - a single image (a manifest, not an index, at the version's tag), and each
+       platform's image of an index: its manifest by its digest and cosign's signature
+       and attestation manifests beside it (sha256-<hex>.sig and .att) written as
+       cosign's layout; then cosign verify --local-image as above, cosign
+       verify-attestation --local-image of its CycloneDX SBOM as the same identity,
+       and the project's id in every signing and attesting certificate naming that
+       identity, read from the manifests in the layout.
      No second read of the registry: what cosign verifies is what the id is read
-     from.
+     from, and what is copied of the signatures and attestations.
   4. For each configured destination: regctl image copy of the source BY ITS DIGEST
-     to :<version>; and to :<major>.<minor> and :latest only where the source's own tag
-     of that name is the same digest, so an older release mirrored late never moves
-     them back. Then cosign's signature and attestation manifests (sha256-<digest>.sig
-     and .att) are copied there out of the layout: the manifests that were verified,
-     not whatever the source's tags answer by then - so neither --digest-tags nor
-     --referrers, which would copy the source's as they stand, unverified; a .sig or
-     .att the destination already held at those tags is replaced, not added to. Each
-     tag at the destination is held to its digest, and the image there is verified
+     to :<version> (an index with every platform's image it names: regctl copies each
+     entry of an index unless it is told which platforms); and to :<major>.<minor> and
+     :latest only where the source's own tag of that name is the same digest, so an
+     older release mirrored late never moves them back. Then cosign's manifests are
+     copied there out of the layouts they were verified in - the index's signature at
+     sha256-<index hex>.sig and each platform's signature and attestation at
+     sha256-<platform hex>.sig and .att (a single image's at sha256-<hex>.sig and
+     .att) - the manifests that were verified, not whatever the source's tags answer
+     by then: so neither --digest-tags nor --referrers, which would copy the source's
+     as they stand, unverified; a .sig or .att the destination already held at those
+     tags is replaced, not added to. Each tag at the destination is held to its
+     digest, and the image there (the index and every platform's image) is verified
      again the same way, anonymously, from the destination: by a regctl whose
      configuration directory is a fresh one of its own, which no login has been
      written to - not the one the copies logged in with, whatever its logout did.
+  5. mirror.json, the job's record: the version, the source, its digest, the
+     identity it verified as, "signature" (the signature manifest's digest, the
+     index's for an index), "attestation" (the image's SBOM attestation manifest's
+     digest; null for an index, which has none of its own), "platforms" (for an
+     index, each platform with its image's digest and its signature and attestation
+     manifests' digests; empty for a single image) and each destination's repository
+     and tags.
 
 The tools are cosign and regctl out of their pinned images (release-files.py). The
 credentials reach regctl on its standard input, into a configuration directory of
@@ -46,7 +75,10 @@ the job's own that is removed at the end; none is printed or put on a command li
 
 Usage, from the root of a checkout:
   python3 build/ci/channels/registry-mirror.py [--out DIR]
-  python3 build/ci/channels/registry-mirror.py --self-test
+  python3 build/ci/channels/registry-mirror.py --self-test [--cosign PATH]
+
+With --cosign (a cosign 2.6 binary, as channels-check gives it the pinned one) and the
+cryptography package, the self-test also verifies the layouts it writes with that cosign.
 """
 
 import argparse
@@ -335,16 +367,36 @@ def blob_at(tools, repository, descriptor):
     return data
 
 
-def fetch_layout(tools, repository, digest, layout):
-    """The image repository@digest with its signature and attestation manifests, written
-    as cosign's own OCI layout at layout, for cosign verify --local-image and
-    verify-attestation --local-image and for the certificate reader alike: each tag
-    (sha256-<hex>.sig, .att) resolved once, each manifest then fetched once by its
-    digest and held to it, with its config and layers (not the image's layers, which no
-    verification reads). Nothing of them is fetched again, by cosign or by the reader,
-    so a registry that answers a tag one way and then another cannot have cosign verify
-    one signature manifest and the reader read another; and cosign reads each manifest
-    as this one says it is, whatever a registry calls it. {kind: digest} of the three."""
+def manifest_media(body, where):
+    """The media type a manifest's body names, or None when it names none or is not a
+    JSON object; Refused for one json_object_once refuses (a key twice in some case,
+    or one that is not ASCII), which Go's encoding/json would read otherwise."""
+    try:
+        manifest = json.loads(body.decode("utf-8"), object_pairs_hook=json_object_once)
+    except UnicodeDecodeError:
+        return None
+    except ValueError as error:
+        if "twice" in str(error) or "not ASCII" in str(error):
+            raise Refused("%s cannot be read as cosign and this read alike: %s" % (where, error))
+        return None
+    media = manifest.get("mediaType") if isinstance(manifest, dict) else None
+    return media if isinstance(media, str) else None
+
+
+def fetch_layout(tools, repository, digest, layout, attached=ATTACHED, top=None, entry=None):
+    """The image (or index) repository@digest with its signature and attestation
+    manifests, written as cosign's own OCI layout at layout, for cosign verify
+    --local-image and verify-attestation --local-image and for the certificate reader
+    alike: each tag (sha256-<hex>.sig, .att: those attached names) resolved once, each
+    manifest then fetched once by its digest and held to it, with its config and layers
+    (not the image's layers, which no verification reads). Nothing of them is fetched
+    again, by cosign or by the reader, so a registry that answers a tag one way and then
+    another cannot have cosign verify one signature manifest and the reader read
+    another; and cosign reads each manifest as this one says it is, whatever a registry
+    calls it. top is the manifest's body when it has been read already (by its digest,
+    and held to it); entry, the descriptor of an index's that names this manifest, whose
+    media type and size it must have (index_entries has held it to an image manifest).
+    {kind: digest} of what was written."""
     if os.path.exists(layout):
         shutil.rmtree(layout)
     blobs = os.path.join(layout, "blobs", "sha256")
@@ -354,18 +406,20 @@ def fetch_layout(tools, repository, digest, layout):
         with open(os.path.join(blobs, sha256_digest(data).split(":", 1)[1]), "wb") as f:
             f.write(data)
 
-    image = manifest_at(tools, repository, digest)
-    try:
-        media = json.loads(image.decode("utf-8"), object_pairs_hook=json_object_once).get("mediaType")
-    except (ValueError, UnicodeDecodeError, AttributeError):
-        media = None
+    image = top if top is not None else manifest_at(tools, repository, digest)
+    if sha256_digest(image) != digest:
+        raise Refused("%s@%s is not the manifest of that digest" % (repository, digest))
+    media = manifest_media(image, "%s@%s" % (repository, digest))
     if media not in IMAGE_MANIFEST_TYPES + IMAGE_INDEX_TYPES:
         raise Refused("%s@%s is not an image manifest or an image index naming its media type" % (repository, digest))
+    if entry is not None and (media != entry["mediaType"] or len(image) != entry["size"]):
+        raise Refused("%s@%s is a %s of %d bytes, where the index names a %s of %d"
+                      % (repository, digest, media, len(image), entry["mediaType"], entry["size"]))
     kind = KIND_IMAGE if media in IMAGE_MANIFEST_TYPES else KIND_INDEX
     keep(image)
     manifests = [{"mediaType": media, "size": len(image), "digest": digest, "annotations": {KIND: kind}}]
     held = {kind: digest}
-    for suffix, kind, what in ATTACHED:
+    for suffix, kind, what in attached:
         tag = "%s:sha256-%s%s" % (repository, digest.split(":", 1)[1], suffix)
         at = tools.digest(tag)
         if not at:
@@ -398,6 +452,85 @@ def layout_manifest(layout, kind):
             with open(os.path.join(layout, "blobs", "sha256", descriptor["digest"].split(":", 1)[1]), "rb") as f:
                 return f.read()
     return None
+
+
+# The fields of an image index as go-containerregistry's v1.IndexManifest and the OCI
+# image index name them, and of a platform as v1.Platform does.
+INDEX_FIELDS = ("schemaVersion", "mediaType", "manifests", "annotations", "subject", "artifactType")
+PLATFORM_FIELDS = ("architecture", "os", "os.version", "os.features", "variant", "features")
+
+
+def platform_name(platform):
+    """os/architecture[/variant], as docker and regctl write a platform."""
+    return "/".join(p for p in (platform["os"], platform["architecture"], platform.get("variant")) if p)
+
+
+def index_entries(body):
+    """The entries of an image index (the bytes cosign verified the index's signature
+    over, read from its layout): each an image manifest of a media type
+    IMAGE_MANIFEST_TYPES names, with a SHA-256 digest, a size and a platform naming its
+    os and architecture, no two of one platform or one digest. Refused for an index
+    with no entry, or with any other: a nested index, an entry without a platform, or
+    a build's attestation manifest (unknown/unknown, or annotated as one). The index
+    and each entry are held to the fields their Go types have, spelled as the field is,
+    as attached_manifest holds a signature manifest, so that what regctl and a registry
+    read of the index (Go's encoding/json, which takes "Manifests" or "MANIFESTS" for
+    "manifests") is what this read takes."""
+    try:
+        index = json.loads(body.decode("utf-8"), object_pairs_hook=json_object_once)
+    except (ValueError, UnicodeDecodeError, AttributeError) as error:
+        raise Refused("the image index cannot be read as cosign and this read alike: %s" % error)
+    if not isinstance(index, dict):
+        raise Refused("the image index is not a JSON object")
+    for key in index:
+        if key not in INDEX_FIELDS:
+            raise Refused("the image index holds the key %s, which is not a field of an index spelled as it is (%s)"
+                          % (json.dumps(key), ", ".join(INDEX_FIELDS)))
+    if index.get("mediaType") not in IMAGE_INDEX_TYPES:
+        raise Refused("the image index does not name an index's media type")
+    entries = index.get("manifests")
+    if not isinstance(entries, list) or not entries:
+        raise Refused("the image index names no image: nothing to verify, nothing was copied")
+    platforms, digests, found = set(), set(), []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise Refused("an entry of the image index is not a descriptor")
+        for key in entry:
+            if key not in DESCRIPTOR_FIELDS:
+                raise Refused("an entry of the image index holds the key %s, which is not a field of v1.Descriptor"
+                              " spelled as it is (%s)" % (json.dumps(key), ", ".join(DESCRIPTOR_FIELDS)))
+        at, size = entry.get("digest"), entry.get("size")
+        if not isinstance(at, str) or not DIGEST.match(at) or type(size) is not int or size < 0:
+            raise Refused("an entry of the image index without a SHA-256 digest and a size")
+        if entry.get("mediaType") in IMAGE_INDEX_TYPES:
+            raise Refused("the entry %s of the image index is an index itself: one level of index is verified, no more" % at)
+        if entry.get("mediaType") not in IMAGE_MANIFEST_TYPES:
+            raise Refused("the entry %s of the image index is not an image manifest (%s)" % (at, entry.get("mediaType")))
+        annotations = entry.get("annotations", {})
+        if not isinstance(annotations, dict) or not all(isinstance(v, str) for v in annotations.values()):
+            raise Refused("the entry %s of the image index has annotations that are not an object of strings" % at)
+        platform = entry.get("platform")
+        if not isinstance(platform, dict):
+            raise Refused("the entry %s of the image index names no platform" % at)
+        for key in platform:
+            if key not in PLATFORM_FIELDS:
+                raise Refused("the platform of the entry %s holds the key %s, which is not a field of v1.Platform"
+                              " spelled as it is (%s)" % (at, json.dumps(key), ", ".join(PLATFORM_FIELDS)))
+        if not all(isinstance(platform.get(k), str) and platform.get(k) for k in ("os", "architecture")) \
+                or not all(isinstance(platform.get(k, ""), str) for k in ("variant", "os.version")):
+            raise Refused("the entry %s of the image index names no platform's os and architecture" % at)
+        if "unknown" in (platform["os"], platform["architecture"]) or "vnd.docker.reference.type" in annotations:
+            raise Refused("the entry %s of the image index is a build's attestation manifest (%s), not an image"
+                          % (at, platform_name(platform)))
+        name = (platform["os"], platform["architecture"], platform.get("variant", ""), platform.get("os.version", ""))
+        if name in platforms:
+            raise Refused("the image index names %s twice" % platform_name(platform))
+        if at in digests:
+            raise Refused("the image index names %s twice" % at)
+        platforms.add(name)
+        digests.add(at)
+        found.append({"mediaType": entry["mediaType"], "digest": at, "size": size, "platform": platform_name(platform)})
+    return found
 
 
 def certificate_ids(body, identity, what):
@@ -443,13 +576,11 @@ def held_to_the_project(recorded, identity, what):
                           % (what, "the group's path" if identity.startswith(rf.GROUP_REPOSITORY + "//") else "the project's first path"))
 
 
-def verify_image(tools, repository, digest, identities, issuer, layout):
-    """(identity, repository id, {kind: digest}) of an image that verifies, by digest,
-    as one of the identities, with its SBOM attested by the same: fetched once into
-    layout (fetch_layout), verified there by cosign, and every signing and attesting
-    certificate naming the identity held to the project's id there; Refused otherwise."""
-    reference = "%s@%s" % (repository, digest)
-    held = fetch_layout(tools, repository, digest, layout)
+def verify_layout(tools, reference, digest, identities, issuer, layout, attested=True):
+    """(identity, repository id) of what fetch_layout wrote at layout, verified there by
+    cosign as signed, over digest, by one of the identities, with its SBOM attested by
+    the same when attested; and every signing (and attesting) certificate naming the
+    identity held to the project's id there. Refused otherwise."""
     flags = verify_flags(tools)
     identity, said = None, ""
     for candidate in identities:
@@ -469,18 +600,76 @@ def verify_image(tools, repository, digest, identities, issuer, layout):
     if identity is None:
         raise Refused("%s does not verify as signed by %s: nothing was copied.\n  cosign said: %s"
                       % (reference, " or ".join(identities), said.splitlines()[-1] if said else "nothing"))
-    code, out, err = tools.cosign_("verify-attestation", *flags, "--local-image", "--type", ATTESTATION_TYPE,
-                                   "--certificate-identity", identity, "--certificate-oidc-issuer", issuer, layout)
-    if code != 0:
-        raise Refused("%s has no %s SBOM attested by %s: nothing was copied.\n  cosign said: %s"
-                      % (reference, ATTESTATION_TYPE, identity, (err or out).splitlines()[-1] if (err or out) else ""))
+    if attested:
+        code, out, err = tools.cosign_("verify-attestation", *flags, "--local-image", "--type", ATTESTATION_TYPE,
+                                       "--certificate-identity", identity, "--certificate-oidc-issuer", issuer, layout)
+        if code != 0:
+            raise Refused("%s has no %s SBOM attested by %s: nothing was copied.\n  cosign said: %s"
+                          % (reference, ATTESTATION_TYPE, identity, (err or out).splitlines()[-1] if (err or out) else ""))
     signed = certificate_ids(layout_manifest(layout, KIND_SIGNATURES), identity, "signature")
     held_to_the_project(signed, identity, "signing")
-    # The SBOM's attestation too: cosign verify-attestation holds its certificate to the
-    # identity, and nothing else holds it to the project.
-    held_to_the_project(certificate_ids(layout_manifest(layout, KIND_ATTESTATIONS), identity, "attestation"), identity,
-                        "attestation's")
-    return identity, (rf.PROJECT_ID if rf.PROJECT_ID in signed else None), held
+    if attested:
+        # The SBOM's attestation too: cosign verify-attestation holds its certificate to
+        # the identity, and nothing else holds it to the project.
+        held_to_the_project(certificate_ids(layout_manifest(layout, KIND_ATTESTATIONS), identity, "attestation"),
+                            identity, "attestation's")
+    return identity, (rf.PROJECT_ID if rf.PROJECT_ID in signed else None)
+
+
+def verify_image(tools, repository, digest, identities, issuer, layout, top=None, entry=None):
+    """(identity, repository id, {kind: digest}) of an image that verifies, by digest,
+    as one of the identities, with its SBOM attested by the same: fetched once into
+    layout (fetch_layout, with top and entry as it takes them), verified there by cosign,
+    and every signing and attesting certificate naming the identity held to the
+    project's id there; Refused otherwise."""
+    held = fetch_layout(tools, repository, digest, layout, ATTACHED, top, entry)
+    if KIND_IMAGE not in held:
+        raise Refused("%s@%s is an image index where an image was to be verified" % (repository, digest))
+    identity, recorded = verify_layout(tools, "%s@%s" % (repository, digest), digest, identities, issuer, layout)
+    return identity, recorded, held
+
+
+def verify_index(tools, repository, digest, identities, issuer, layout, top):
+    """(identity, repository id, {kind: digest}, [platform]) of an image index that
+    verifies, by digest, as one of the identities: the index's manifest and its
+    signature manifest (sha256-<hex>.sig; the release's pipeline attests no SBOM to an
+    index, only to each platform's image) fetched once into layout and verified there
+    by cosign, the project's id held in its signing certificates; then every entry of
+    that index manifest - the bytes the signature was verified over, read from the
+    layout, never fetched again - held to index_entries' rules and verified as
+    verify_image verifies a single image, in a layout of its own (layout-platform-<n>),
+    with its own signature and SBOM attestation, as the same identity the index
+    verified as. Each platform: {platform, digest, held, layout}."""
+    held = fetch_layout(tools, repository, digest, layout, ATTACHED[:1], top)
+    if KIND_INDEX not in held:
+        raise Refused("%s@%s is not an image index" % (repository, digest))
+    identity, recorded = verify_layout(tools, "%s@%s" % (repository, digest), digest, identities, issuer, layout,
+                                       attested=False)
+    platforms = []
+    for number, entry in enumerate(index_entries(layout_manifest(layout, KIND_INDEX))):
+        at = "%s-platform-%d" % (layout, number)
+        found, _, kept = verify_image(tools, repository, entry["digest"], [identity], issuer, at, entry=entry)
+        if found != identity:
+            raise Refused("%s@%s (%s) verifies as %s, not as %s, which the index verified as"
+                          % (repository, entry["digest"], entry["platform"], found, identity))
+        platforms.append({"platform": entry["platform"], "digest": entry["digest"], "held": kept, "layout": at})
+    return identity, recorded, held, platforms
+
+
+def verify_source(tools, repository, digest, identities, issuer, layout):
+    """repository@digest verified before anything is copied, or at a destination after:
+    an image index by verify_index, and a single image (a manifest, not an index, at
+    the version's tag) by verify_image. Its manifest is read once, by its digest; what
+    the layouts hold is what is verified and what is copied of the signatures and
+    attestations. {identity, repository_id, held, layout, platforms}, platforms empty
+    for a single image."""
+    top = manifest_at(tools, repository, digest)
+    if manifest_media(top, "%s@%s" % (repository, digest)) in IMAGE_INDEX_TYPES:
+        identity, recorded, held, platforms = verify_index(tools, repository, digest, identities, issuer, layout, top)
+    else:
+        identity, recorded, held = verify_image(tools, repository, digest, identities, issuer, layout, top=top)
+        platforms = []
+    return {"identity": identity, "repository_id": recorded, "held": held, "layout": layout, "platforms": platforms}
 
 
 # ---------------------------------------------------------------- the job
@@ -495,6 +684,24 @@ def mirror_tags(tools, source, digest, version):
         else:
             say("the source's :%s is not %s: not moved" % (tag, digest))
     return tags
+
+
+def attached_copies(checked, repository):
+    """[(layout, manifest digest, destination tag, what)] of the signature and
+    attestation manifests verify_source verified, to copy out of their layouts: the
+    image's .sig and .att at sha256-<hex of its digest>; for an index, the index's .sig
+    at sha256-<hex of the index's digest>, then each platform's .sig and .att at
+    sha256-<hex of that platform's digest>."""
+    found = []
+    subjects = [(checked["layout"], checked["held"], "the index" if checked["platforms"] else "the image")] + [
+        (p["layout"], p["held"], "the %s image" % p["platform"]) for p in checked["platforms"]]
+    for layout, held, whose in subjects:
+        subject = held.get(KIND_IMAGE) or held.get(KIND_INDEX)
+        for suffix, kind, what in ATTACHED:
+            if kind in held:
+                found.append((layout, held[kind], "%s:sha256-%s%s" % (repository, subject.split(":", 1)[1], suffix),
+                              "%s of %s" % (what, whose)))
+    return found
 
 
 def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
@@ -545,16 +752,31 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
                           " those after it) have not pushed it (hmailserver/docs/ContainerImage.md, 'Publishing')"
                           % (source, version))
         say("the source: %s:%s is %s" % (source, version, digest))
-        # What was verified stays in the job's folder, cosign's own layout of it: the
-        # image's manifest, and its signature and attestation manifests with their blobs.
+        # What was verified stays in the job's folder, cosign's own layouts of it: the
+        # image's manifest (or the index's, and each platform's in a layout of its own),
+        # and the signature and attestation manifests with their blobs.
         verified = os.path.join(out, "verified", "source")
-        identity, recorded, held = verify_image(tools, source, digest, identities, issuer, verified)
-        say("verified: %s@%s, signed (%s) and its SBOM attested (%s) as %s (repository id: %s)"
-            % (source, digest, held[KIND_SIGNATURES], held[KIND_ATTESTATIONS], identity, recorded or "none recorded"))
+        checked = verify_source(tools, source, digest, identities, issuer, verified)
+        identity, held = checked["identity"], checked["held"]
+        if checked["platforms"]:
+            say("verified: the index %s@%s, signed (%s) as %s (repository id: %s)"
+                % (source, digest, held[KIND_SIGNATURES], identity, checked["repository_id"] or "none recorded"))
+            for platform in checked["platforms"]:
+                say("verified: its %s image %s, signed (%s) and its SBOM attested (%s) as the same"
+                    % (platform["platform"], platform["digest"], platform["held"][KIND_SIGNATURES],
+                       platform["held"][KIND_ATTESTATIONS]))
+        else:
+            say("verified: %s@%s, signed (%s) and its SBOM attested (%s) as %s (repository id: %s)"
+                % (source, digest, held[KIND_SIGNATURES], held[KIND_ATTESTATIONS], identity,
+                   checked["repository_id"] or "none recorded"))
         tags = mirror_tags(tools, source, digest, version)
 
         record = {"version": version, "source": source, "digest": digest, "identity": identity,
-                  "signature": held[KIND_SIGNATURES], "attestation": held[KIND_ATTESTATIONS], "destinations": {}}
+                  "signature": held[KIND_SIGNATURES], "attestation": held.get(KIND_ATTESTATIONS),
+                  "platforms": [{"platform": p["platform"], "digest": p["digest"],
+                                 "signature": p["held"][KIND_SIGNATURES], "attestation": p["held"][KIND_ATTESTATIONS]}
+                                for p in checked["platforms"]],
+                  "destinations": {}}
         for number, (destination, repository) in enumerate(destinations):
             host = repository.split("/", 1)[0]
             if destination["name"] == "Amazon ECR Public" and not (fix and fix.get("registry_destinations")):
@@ -565,35 +787,38 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
             password = None
             if code != 0:
                 raise Refused("%s refused the login of %s: %s" % (destination["name"], user, err[-300:]))
+            # The image by its digest: an index with every platform's image it names
+            # (regctl copies each entry of an index unless told which platforms).
             for tag in tags:
                 code, _, err = tools.regctl_("image", "copy", "%s@%s" % (source, digest), "%s:%s" % (repository, tag))
                 if code != 0:
                     raise Refused("the copy to %s:%s failed: %s" % (repository, tag, err[-400:]))
             # Then the signature and attestation manifests that were verified, out of the
-            # layout they were verified in: not the source's tags read again, which could
+            # layouts they were verified in: not the source's tags read again, which could
             # answer otherwise by now.
-            attached = "%s:sha256-%s" % (repository, digest.split(":", 1)[1])
-            for suffix, kind, what in ATTACHED:
-                code, _, err = tools.regctl_("image", "copy", "ocidir://%s@%s" % (verified, held[kind]), attached + suffix)
+            copied = attached_copies(checked, repository)
+            for layout, at, tag, what in copied:
+                code, _, err = tools.regctl_("image", "copy", "ocidir://%s@%s" % (layout, at), tag)
                 if code != 0:
-                    raise Refused("the copy of the verified %s to %s failed: %s" % (what, attached + suffix, err[-400:]))
+                    raise Refused("the copy of the verified %s to %s failed: %s" % (what, tag, err[-400:]))
             for tag in tags:
                 at = tools.digest("%s:%s" % (repository, tag))
                 if at != digest:
                     raise Refused("%s:%s is %s after the copy, not %s" % (repository, tag, at, digest))
-            for suffix, kind, what in ATTACHED:
-                at = tools.digest(attached + suffix)
-                if at != held[kind]:
-                    raise Refused("%s is %s after the copy, not the %s verified, %s" % (attached + suffix, at, what, held[kind]))
+            for layout, want, tag, what in copied:
+                at = tools.digest(tag)
+                if at != want:
+                    raise Refused("%s is %s after the copy, not the %s verified, %s" % (tag, at, what, want))
             code, _, err = tools.regctl_("registry", "logout", host)
             if code != 0:
                 say("%s: regctl registry logout %s failed (%s); the check below reads without that login all the same"
                     % (destination["name"], host, err[-200:]))
             # Anonymously: a regctl whose configuration no login has been written to.
-            verify_image(tools_at(anonymous, tools), repository, digest, [identity], issuer,
-                         os.path.join(out, "verified", "destination-%d" % number))
-            say("%s: %s:%s, each %s, verified there as %s"
-                % (destination["name"], repository, ",".join(tags), digest, identity))
+            there = verify_source(tools_at(anonymous, tools), repository, digest, [identity], issuer,
+                                  os.path.join(out, "verified", "destination-%d" % number))
+            say("%s: %s:%s, each %s%s, verified there as %s"
+                % (destination["name"], repository, ",".join(tags), digest,
+                   " (%s)" % ", ".join(p["platform"] for p in there["platforms"]) if there["platforms"] else "", identity))
             record["destinations"][destination["name"]] = {"repository": repository, "tags": tags}
         with open(os.path.join(out, "mirror.json"), "w", encoding="utf-8", newline="\n") as f:
             json.dump(record, f, indent=1, sort_keys=True)
@@ -612,10 +837,17 @@ def real_cosign_cases(expect, cosign, work):
     of the pinned image). With a key of the test's own: cosign verifies the signature and
     the attestation from it, refuses one another key made, and reads a signature
     manifest's keys as Go does - a signature under "Layers" or "layer<long s>", which
-    fetch_layout refuses for that reason. Keyless, as the release's pipeline signs, with
-    fake-sigstore.py's authority: verify_image end to end, which takes the image this
-    project's pipeline signed and attested, and refuses one another project's pipeline
-    signed or attested at the identity, which cosign itself verifies."""
+    fetch_layout refuses for that reason; and of an image index of two platforms, the
+    layout of the index and its signature alone, which cosign verifies over the index's
+    digest, refusing a platform's signature put there. Keyless, as the release's
+    pipeline signs, with fake-sigstore.py's authority: verify_image end to end, which
+    takes the image this project's pipeline signed and attested, and refuses one
+    another project's pipeline signed or attested at the identity, which cosign itself
+    verifies; and verify_source end to end over the index, which takes it signed and
+    each platform's image signed and attested, and refuses it when the index's
+    signature is over a platform's image, a platform's image is signed by another
+    tag's pipeline, or a platform's SBOM is attested by another project's pipeline at
+    the identity (which cosign itself verifies)."""
     try:
         from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import ec
@@ -646,9 +878,9 @@ def real_cosign_cases(expect, cosign, work):
     config = descriptor(b'{"architecture":"","os":"","config":{},"rootfs":{"type":"layers","diff_ids":[]}}',
                         "application/vnd.oci.image.config.v1+json")
 
-    def signature_layer(signer):
+    def signature_layer(signer, subject=None):
         payload = json.dumps({"critical": {"identity": {"docker-reference": repository},
-                                           "image": {"docker-manifest-digest": digest},
+                                           "image": {"docker-manifest-digest": subject or digest},
                                            "type": "cosign container image signature"}, "optional": None}).encode()
         signature = base64.b64encode(signer.sign(payload, ec.ECDSA(hashes.SHA256()))).decode()
         return descriptor(payload, "application/vnd.dev.cosign.simplesigning.v1+json",
@@ -736,14 +968,15 @@ def real_cosign_cases(expect, cosign, work):
     environment = dict(os.environ, HOME=work, **fake.legacy_environment(work))
     group = rf.identities("9.9.9")[1]
 
-    def keyless(attestation=False, rid="86730559", identity=group):
+    def keyless(attestation=False, rid="86730559", identity=group, subject=None):
+        subject = subject or digest
         if attestation:
             payload = json.dumps({"_type": "https://in-toto.io/Statement/v0.1", "predicateType": "https://cyclonedx.org/bom",
-                                  "subject": [{"name": repository, "digest": {"sha256": digest.split(":", 1)[1]}}],
+                                  "subject": [{"name": repository, "digest": {"sha256": subject.split(":", 1)[1]}}],
                                   "predicate": {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}}).encode()
         else:
             payload = json.dumps({"critical": {"identity": {"docker-reference": repository},
-                                               "image": {"docker-manifest-digest": digest},
+                                               "image": {"docker-manifest-digest": subject},
                                                "type": "cosign container image signature"}, "optional": None}).encode()
         data, annotations = fake.image_layer(payload, identity, attestation=attestation, repository=rf.GROUP_REPOSITORY,
                                              repository_id=rid)
@@ -788,6 +1021,85 @@ def real_cosign_cases(expect, cosign, work):
             expect("keyless: %s - refused (%s), where cosign verify and verify-attestation say %s"
                    % (what, said.splitlines()[0][:90], verdicts), needle in said
                    and (verdicts == (True, True) or needle == "does not verify as signed"))
+
+    # An image index of two platforms, as the release's pipeline pushes the image. With
+    # the test's key: the layout fetch_layout writes of the index and its signature
+    # alone, which cosign's layout reader takes as the index (its imageIndex kind) and
+    # verifies over the index's digest; and refuses there a signature over one of the
+    # platforms' images.
+    arm = put(json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[1], "config": descriptor(
+        b'{"architecture":"arm64","os":"linux","variant":"v8","config":{}}',
+        "application/vnd.docker.container.image.v1+json"), "layers": []}).encode())
+    index = put(json.dumps({"schemaVersion": 2, "mediaType": IMAGE_INDEX_TYPES[1], "manifests": [
+        {"mediaType": IMAGE_MANIFEST_TYPES[1], "digest": digest, "size": len(blobs[digest]),
+         "platform": {"architecture": "amd64", "os": "linux"}},
+        {"mediaType": IMAGE_MANIFEST_TYPES[1], "digest": arm, "size": len(blobs[arm]),
+         "platform": {"architecture": "arm64", "os": "linux", "variant": "v8"}}]}).encode())
+    indexed = "%s:sha256-%s" % (repository, index.split(":", 1)[1])
+    index_layout = os.path.join(work, "cosign-index-layout")
+
+    def verify_at(path):
+        answer = subprocess.run([cosign, "verify", "--key", public, "--insecure-ignore-tlog", "--new-bundle-format=false",
+                                 "--local-image", path], capture_output=True, text=True)
+        return answer.returncode, answer.stdout, ((answer.stderr or "").strip().splitlines() or [""])[-1][:100]
+
+    for what, subject in (("the index's", index), ("one of its platforms'", digest)):
+        tags[indexed + ".sig"] = manifest([signature_layer(key, subject)])
+        fetch_layout(Registry(), repository, index, index_layout, ATTACHED[:1])
+        code, out, said = verify_at(index_layout)
+        if subject == index:
+            expect("cosign %s verifies an index's signature in the layout fetch_layout wrote of the index and its"
+                   " signature alone, over the index's digest (%s)" % (os.path.basename(cosign), said),
+                   code == 0 and index in out and digest not in out)
+        else:
+            expect("  ... and refuses there a signature over %s image, not the index (%s)" % (what, said), code != 0)
+
+    # Keyless: verify_source end to end over the index, cosign verifying each layout it
+    # wrote - the index's, and each platform's with its signature and SBOM attestation.
+    def platform_tags(at, signature=None, attestation=None):
+        base = "%s:sha256-%s" % (repository, at.split(":", 1)[1])
+        tags[base + ".sig"] = manifest([signature or keyless(subject=at)])
+        tags[base + ".att"] = manifest([attestation or keyless(True, subject=at)])
+
+    def by_cosign_at(kind, path):
+        command = [cosign, kind, "--new-bundle-format=false", "--local-image", "--certificate-identity", group,
+                   "--certificate-oidc-issuer", rf.ISSUER] + (["--type", ATTESTATION_TYPE] if kind != "verify" else [])
+        return subprocess.run(command + [path], capture_output=True, text=True, env=environment).returncode == 0
+
+    keyless_index = os.path.join(work, "keyless-index")
+    for what, index_signature, arm_signature, arm_attestation, needle in (
+            ("this project's pipeline signed the index and signed and attested each platform's image", None, None, None,
+             None),
+            ("the index's signature over one of its platforms' images", keyless(subject=digest), None, None,
+             "does not verify as signed"),
+            ("a platform's image signed by another tag's pipeline", None,
+             keyless(identity=group.replace("v9.9.9", "v9.9.8"), subject=arm), None, "does not verify as signed by %s:"
+             % group),
+            ("a platform's SBOM attested by another project's pipeline at the identity", None, None,
+             keyless(True, rid="1267388815", subject=arm), "attestation's certificate names the repository id 1267388815")):
+        tags[indexed + ".sig"] = manifest([index_signature or keyless(subject=index)])
+        tags.pop(indexed + ".att", None)
+        platform_tags(digest)
+        platform_tags(arm, arm_signature, arm_attestation)
+        try:
+            found = verify_source(Keyless(), repository, index, rf.identities("9.9.9"), rf.ISSUER, keyless_index)
+            said = "verified as %s, repository id %s, platforms %s" % (
+                found["identity"], found["repository_id"], ", ".join(p["platform"] for p in found["platforms"]))
+        except Refused as error:
+            said = str(error)
+        if needle is None:
+            verdicts = (by_cosign_at("verify", keyless_index),) + tuple(
+                by_cosign_at(kind, "%s-platform-%d" % (keyless_index, n)) for n in (0, 1)
+                for kind in ("verify", "verify-attestation"))
+            expect("keyless: %s - cosign verifies the index's layout and both platforms', and the job takes it (%s)"
+                   % (what, said[:120]), said == "verified as %s, repository id 86730559, platforms linux/amd64, "
+                   "linux/arm64/v8" % group and all(verdicts))
+        elif needle.startswith("attestation's"):
+            expect("keyless: %s - refused (%s), where cosign verify-attestation says %s"
+                   % (what, said.splitlines()[0][:90], by_cosign_at("verify-attestation", keyless_index + "-platform-1")),
+                   needle in said and by_cosign_at("verify-attestation", keyless_index + "-platform-1"))
+        else:
+            expect("keyless: %s - refused, as cosign refuses it (%s)" % (what, said.splitlines()[0][:90]), needle in said)
 
 
 def self_test(cosign=None):
@@ -901,18 +1213,26 @@ def self_test(cosign=None):
         answered in turn, the last one again and again) and the destinations'."""
 
         def __init__(self, signed=True, attested=True, sig=None, att=None, moved=("9.9", "latest"), copies_ok=True,
-                     attached_ok=True, lying=(), logout_ok=True):
+                     attached_ok=True, lying=(), logout_ok=True, top=None, more=None):
             self.calls, self.moved, self.copies_ok, self.attached_ok, self.lying = [], moved, copies_ok, attached_ok, lying
             # The configuration directory this view was made for (None for the one the
             # job is handed whatever it asks), where each call ran (beside calls), and
             # the hosts logged in to from each directory.
             self.home, self.homes, self.logins, self.logout_ok = None, [], {}, logout_ok
-            hexdigest = digest.split(":", 1)[1]
-            self.tags = {"%s:%s" % (SOURCE, version): [digest],
+            # top: what the version's tag names (the image, or an index); more: tags beside
+            # it, each answers or None to take the tag away.
+            top = top or digest
+            hexdigest = top.split(":", 1)[1]
+            self.tags = {"%s:%s" % (SOURCE, version): [top],
                          "%s:sha256-%s.sig" % (SOURCE, hexdigest): sig or [manifest([layer(good=signed)])],
                          "%s:sha256-%s.att" % (SOURCE, hexdigest): att or [manifest([layer(good=attested, attestation=True)])]}
             for tag in ("9.9", "latest"):
-                self.tags["%s:%s" % (SOURCE, tag)] = [digest if tag in moved else other_image]
+                self.tags["%s:%s" % (SOURCE, tag)] = [top if tag in moved else other_image]
+            for tag, answers in (more or {}).items():
+                if answers is None:
+                    self.tags.pop(tag, None)
+                else:
+                    self.tags[tag] = answers
             self.tags = dict((k, v if isinstance(v, list) else [v]) for k, v in self.tags.items())
 
         def at(self, home):
@@ -988,8 +1308,13 @@ def self_test(cosign=None):
                 return 0, "--new-bundle-format", ""
             identity = arguments[arguments.index("--certificate-identity") + 1]
             kind = KIND_SIGNATURES if arguments[0] == "verify" else KIND_ATTESTATIONS
+            subject = digest
             if "--local-image" in arguments:
                 body = layout_manifest(arguments[-1], kind)
+                # cosign answers the digest of what the layout holds, the image or the index.
+                with open(os.path.join(arguments[-1], "index.json"), encoding="utf-8") as f:
+                    subject = next(m["digest"] for m in json.load(f)["manifests"]
+                                   if m["annotations"][KIND] in (KIND_IMAGE, KIND_INDEX))
             else:
                 # cosign given the registry fetches the tag itself: a read of its own.
                 repository, at = arguments[-1].split("@", 1)
@@ -1005,7 +1330,7 @@ def self_test(cosign=None):
                 verifies = annotations.get("test/verifies")
                 if verifies == identity or verifies == "yes" and certificate and identity in rf.sigstore_certificate.uris(
                         base64.b64decode("".join(certificate.group(1).split()))):
-                    return 0, json.dumps([{"critical": {"image": {"docker-manifest-digest": digest}}}]), ""
+                    return 0, json.dumps([{"critical": {"image": {"docker-manifest-digest": subject}}}]), ""
             return 1, "", "Error: no matching signatures"
 
     environ = {"HM_CHANNEL_VERSION": version, "DOCKERHUB_USERNAME": "progressiverobot", "DOCKERHUB_TOKEN": "dckr_pat_secret",
@@ -1205,11 +1530,178 @@ def self_test(cosign=None):
             ("a destination that does not hold the digest after the copy", FakeTools(copies_ok=False), "after the copy"),
             ("a destination that does not hold the verified signature after the copy (the source's changed since)",
              FakeTools(sig=[manifest([layer()]), manifest([layer(rid="1267388815")])], attached_ok=False),
-             "not the signature verified")]
+             "not the signature of the image verified")]
         for what, fake, needle in cases:
             globals()["say"] = lambda line="": None
             try:
                 refused("refused: " + what, lambda: registry_mirror(os.path.join(work, "c"), environ,
+                                                                   tools_for=lambda config: fake), needle)
+            finally:
+                globals()["say"] = held_say
+            if "destination" not in what:
+                expect("  ... and nothing was logged in to or copied",
+                       not any(c[1:3] in (("registry", "login"), ("image", "copy")) for c in fake.calls))
+
+        # An image index of two platforms, as the release's pipeline pushes the image:
+        # the index signed (sha256-<index>.sig, no .att), and each platform's image signed
+        # and its SBOM attested at sha256-<platform>.sig and .att.
+        arm = put(json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[1], "config": descriptor(
+            b'{"architecture":"arm64","os":"linux","variant":"v8","config":{}}',
+            "application/vnd.docker.container.image.v1+json"), "layers": []}).encode())
+        amd64_platform = {"architecture": "amd64", "os": "linux"}
+        arm64_platform = {"architecture": "arm64", "os": "linux", "variant": "v8"}
+
+        def entry(at, platform=None, media=IMAGE_MANIFEST_TYPES[1], **extra):
+            """An index's descriptor of the manifest at; platform False for none."""
+            found = {"mediaType": media, "digest": at, "size": len(blobs[at])}
+            if platform is not False:
+                found["platform"] = platform or amd64_platform
+            found.update(extra)
+            return found
+
+        def index_of(entries, extra=""):
+            return put((json.dumps({"schemaVersion": 2, "mediaType": IMAGE_INDEX_TYPES[1], "manifests": entries})[:-1]
+                        + extra + "}").encode())
+
+        two = index_of([entry(digest), entry(arm, arm64_platform)])
+        ihex, ahex, mhex = two.split(":", 1)[1], hexdigest, arm.split(":", 1)[1]
+
+        def tag_of(at, suffix):
+            return "%s:sha256-%s%s" % (SOURCE, at.split(":", 1)[1], suffix)
+
+        def at_index(of=two, index_sig=None, platforms=None, drop=(), **options):
+            """FakeTools whose version's tag names the index of: its signature (and no
+            attestation) beside it, each platform's signature and attestation beside
+            that platform's image, platforms' tags put over them and drop's taken away."""
+            more = {tag_of(of, ".att"): None}
+            for at in (digest, arm):
+                more[tag_of(at, ".sig")] = [manifest([layer()])]
+                more[tag_of(at, ".att")] = [manifest([layer(attestation=True)])]
+            more.update(platforms or {})
+            for tag in drop:
+                more[tag] = None
+            return FakeTools(top=of, sig=index_sig, more=more, **options)
+
+        fake = at_index()
+        code = job(fake, "i")
+        out = os.path.join(work, "i")
+        record = {}
+        if code == 0:
+            with open(os.path.join(out, "mirror.json"), encoding="utf-8") as f:
+                record = json.load(f)
+        expect("an index of two platforms: the job passes, the index signed and each platform's image signed and"
+               " attested as the release's pipeline does (%s)" % code, code == 0)
+        copies = [c for c in fake.calls if c[:3] == ("regctl", "image", "copy") and not c[-2].startswith("ocidir://")]
+        expect("  ... the index copied by its digest to each tag of both destinations, the platforms' images with it",
+               [c[-1] for c in copies] == [
+                   "docker.io/progressiverobot/hmailserver:9.9.9", "docker.io/progressiverobot/hmailserver:9.9",
+                   "docker.io/progressiverobot/hmailserver:latest", "quay.io/hmailserver/hmailserver:9.9.9",
+                   "quay.io/hmailserver/hmailserver:9.9", "quay.io/hmailserver/hmailserver:latest"]
+               and all(c[3:] == ("%s@%s" % (SOURCE, two), c[-1]) for c in copies))
+        first_copy = fake.calls.index(copies[0]) if copies else 0
+        verifications = [(c[1], os.path.basename(c[-1])) for c in fake.calls[:first_copy]
+                         if c[0] == "cosign" and "--help" not in c]
+        expect("  ... before any login or copy: the index's signature, then each platform's signature and attestation,"
+               " each in a layout of its own",
+               verifications == [("verify", "source"), ("verify", "source"),
+                                 ("verify", "source-platform-0"), ("verify-attestation", "source-platform-0"),
+                                 ("verify", "source-platform-1"), ("verify-attestation", "source-platform-1")]
+               and fake.calls.index(next(c for c in fake.calls if c[1:3] == ("registry", "login"))) > max(
+                   i for i, c in enumerate(fake.calls[:first_copy]) if c[0] == "cosign"))
+        expect("  ... each platform verified as the identity the index verified as, and as no other",
+               all(c[c.index("--certificate-identity") + 1] == group for c in fake.calls
+                   if c[0] == "cosign" and "--help" not in c and "platform" in os.path.basename(c[-1])))
+        resolved = [c[-1] for c in fake.calls if c[1:3] == ("image", "digest")]
+        expect("  ... no attestation asked for beside the index, and each platform's .sig and .att resolved once",
+               tag_of(two, ".att") not in resolved and all(resolved.count(tag_of(at, suffix)) == 1
+                                                           for at in (digest, arm) for suffix in (".sig", ".att")))
+        attached = [c for c in fake.calls if c[:3] == ("regctl", "image", "copy") and c[-2].startswith("ocidir://")]
+        platforms = record.get("platforms") or [{}, {}]
+        wanted = []
+        for repository in ("docker.io/progressiverobot/hmailserver", "quay.io/hmailserver/hmailserver"):
+            wanted += [("source", record.get("signature"), "%s:sha256-%s.sig" % (repository, ihex)),
+                       ("source-platform-0", platforms[0].get("signature"), "%s:sha256-%s.sig" % (repository, ahex)),
+                       ("source-platform-0", platforms[0].get("attestation"), "%s:sha256-%s.att" % (repository, ahex)),
+                       ("source-platform-1", platforms[1].get("signature"), "%s:sha256-%s.sig" % (repository, mhex)),
+                       ("source-platform-1", platforms[1].get("attestation"), "%s:sha256-%s.att" % (repository, mhex))]
+        quay_first = next((i for i, c in enumerate(fake.calls) if c in copies and c[-1].startswith("quay.io/")), 0)
+        expect("  ... then out of those layouts the index's signature and each platform's signature and attestation,"
+               " at the tags beside the digests they were verified over, after the destination's copies",
+               [(os.path.basename(c[-2][len("ocidir://"):].rpartition("@")[0]), c[-2].rpartition("@")[2], c[-1])
+                for c in attached] == wanted
+               and fake.calls.index(attached[0]) > fake.calls.index(copies[2])
+               and fake.calls.index(attached[5]) > quay_first
+               and all(fake.tags[c[-1]] == [c[-2].rpartition("@")[2]] for c in attached))
+        expect("  ... and mirror.json records the index's digest and signature, no attestation of its own, and each"
+               " platform's digest, signature and attestation",
+               record.get("digest") == two and record.get("attestation") is None
+               and record.get("signature") == fake.tags[tag_of(two, ".sig")][0]
+               and [(p.get("platform"), p.get("digest")) for p in platforms] == [("linux/amd64", digest),
+                                                                                 ("linux/arm64/v8", arm)]
+               and all(p.get("signature") == fake.tags[tag_of(p.get("digest"), ".sig")][0]
+                       and p.get("attestation") == fake.tags[tag_of(p.get("digest"), ".att")][0] for p in platforms))
+        again = [(c[1], os.path.basename(c[-1])) for c in fake.calls if c[0] == "cosign" and "--help" not in c
+                 and os.path.basename(c[-1]).startswith("destination-0")]
+        expect("  ... and the index and both platforms verified again at each destination, from there",
+               again == [("verify", "destination-0"), ("verify", "destination-0-platform-0"),
+                         ("verify-attestation", "destination-0-platform-0"), ("verify", "destination-0-platform-1"),
+                         ("verify-attestation", "destination-0-platform-1")]
+               and all(any(c[1:3] == ("manifest", "get") and c[3] == "docker.io/progressiverobot/hmailserver@" + at
+                           for c in fake.calls) for at in (two, digest, arm)))
+
+        other_id = manifest([layer(rid="1267388815")])
+        index_cases = [
+            ("an index without its signature", at_index(drop=[tag_of(two, ".sig")]), "has no signature there"),
+            ("an index whose signature verifies nothing", at_index(index_sig=[manifest([layer(good=False)])]),
+             "does not verify as signed"),
+            ("an index signed by another project's pipeline at the identity", at_index(index_sig=[other_id]),
+             "signing certificate names the repository id 1267388815"),
+            ("a platform without its signature", at_index(drop=[tag_of(digest, ".sig")]), "has no signature there"),
+            ("a platform without its attestation", at_index(drop=[tag_of(arm, ".att")]), "has no attestation there"),
+            ("a platform whose SBOM attestation verifies nothing",
+             at_index(platforms={tag_of(arm, ".att"): [manifest([layer(good=False, attestation=True)])]}), "SBOM attested"),
+            ("a platform that verifies only as another identity than the index's",
+             at_index(platforms={tag_of(arm, ".sig"): [manifest([layer(uris=[first], good=first)])]}),
+             "does not verify as signed by %s:" % group),
+            ("a platform signed by another project's pipeline at the identity",
+             at_index(platforms={tag_of(digest, ".sig"): [other_id]}),
+             "signing certificate names the repository id 1267388815"),
+            ("a platform's SBOM attested by another project's pipeline at the identity",
+             at_index(platforms={tag_of(arm, ".att"): [manifest([layer(rid="1267388815", attestation=True)])]}),
+             "attestation's certificate names the repository id 1267388815"),
+            ("an entry that is not an image manifest",
+             at_index(of=index_of([entry(digest), entry(arm, arm64_platform, media="application/vnd.oci.image.layer.v1.tar")])),
+             "is not an image manifest"),
+            ("a nested index", at_index(of=index_of([entry(digest), entry(two, arm64_platform, media=IMAGE_INDEX_TYPES[1])])),
+             "is an index itself"),
+            ("two entries of one platform", at_index(of=index_of([entry(digest), entry(arm)])), "names linux/amd64 twice"),
+            ("  ... one image twice", at_index(of=index_of([entry(digest), entry(digest, arm64_platform)])), "twice"),
+            ("an entry without a platform", at_index(of=index_of([entry(digest), entry(arm, False)])), "names no platform"),
+            ("  ... a platform without its architecture", at_index(of=index_of([entry(digest), entry(arm, {"os": "linux"})])),
+             "names no platform's os and architecture"),
+            ("a build's attestation manifest beside the images", at_index(of=index_of([
+                entry(digest), entry(arm, arm64_platform),
+                entry(other_image, {"architecture": "unknown", "os": "unknown"}, media=IMAGE_MANIFEST_TYPES[0])])),
+             "attestation manifest"),
+            ("an empty index", at_index(of=index_of([])), "names no image"),
+            ("an entry whose size is not its manifest's",
+             at_index(of=index_of([entry(digest), entry(arm, arm64_platform, size=len(blobs[arm]) + 1)])),
+             "where the index names"),
+            ("an entry whose media type is not its manifest's",
+             at_index(of=index_of([entry(digest), entry(arm, arm64_platform, media=IMAGE_MANIFEST_TYPES[0])])),
+             "where the index names"),
+            ("an index with \"Manifests\" beside \"manifests\"", at_index(of=index_of(
+                [entry(digest)], ', "Manifests": [%s]' % json.dumps(entry(other_image)))), "in some case"),
+            ("  ... a key an index does not have", at_index(of=index_of([entry(digest)], ', "manifestz": []')),
+             "not a field of an index"),
+            ("  ... a platform's key spelled otherwise", at_index(of=index_of([entry(digest), entry(
+                arm, {"architecture": "arm64", "os": "linux", "Variant": "v8"})])), "not a field of v1.Platform"),
+            ("an index whose destination does not hold the index's verified signature after the copy",
+             at_index(attached_ok=False), "not the signature of the index verified")]
+        for what, fake, needle in index_cases:
+            globals()["say"] = lambda line="": None
+            try:
+                refused("refused: " + what, lambda: registry_mirror(os.path.join(work, "j"), environ,
                                                                    tools_for=lambda config: fake), needle)
             finally:
                 globals()["say"] = held_say

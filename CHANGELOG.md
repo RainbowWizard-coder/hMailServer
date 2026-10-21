@@ -190,6 +190,32 @@ with `--check`).
   file as a release does, and `build/check-release-chain.py` holds its name, where it is made and checked, and that
   `release-verify`'s artifact carries it, and nothing else of the signed files, to `release-publish`.
 
+- **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
+  linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since
+  6.3.6 `registry.gitlab.com/hmailserver/hmailserver:<version>` is an image index: the pipeline signs the index by its
+  digest, and signs each platform's image and attests its CycloneDX SBOM to that image, attesting nothing to the index
+  (ContainerImage.md, "Checking an image"). The job, written for an image of one platform, required an attestation
+  beside the index, so on 21 October 2026, configured for Docker Hub for the first time, it refused 6.3.7 before it
+  copied anything: "the image has no attestation there". It now verifies the index's signature with cosign in a layout
+  of the index and its signature alone, as the tag's pipeline, with the project's id in its signing certificates; then
+  every entry of that same index manifest, read from the layout - each must be an image manifest with its platform, no
+  two of one platform, and a nested index, an entry without a platform, a build's attestation manifest or an empty index
+  is refused - each verified as a single image is, with its signature and SBOM attestation, in a layout of its own and
+  as the identity the index verified as. It copies the index by its digest, with every platform's image, then the
+  index's signature and each platform's signature and attestation out of the layouts they were verified in, verifies the
+  index and each platform again at the destination without signing in, and records each platform in `mirror.json`; a
+  single-platform image is verified and copied as before (Channels.md, "Container registries"). The self-test runs the
+  job against an index of two platforms, its copies and their order, and refuses each of those cases, an index or a
+  platform without its signature, a platform without its attestation, one that verifies only as another identity and one
+  whose signing or attesting certificate names another project; with the pinned cosign 2.6.5 (`--cosign`, which
+  `channels-check` runs) cosign verifies the index's layout, and the job verifies a keyless index end to end. Run
+  without signing in, the job's verification took 6.3.7's index and both platforms at GitLab's registry and at Docker
+  Hub, and 6.3.6's at GitLab's, as each tag's pipeline, with the project's id in every certificate. On 21 October 2026
+  6.3.7 was copied to Docker Hub by hand, as `docker.io/progressiverobot/hmailserver`, by its digest: the tags `6.3.7`,
+  `6.3` and `latest`, with the index's signature and each platform's signature and SBOM attestation, every digest equal
+  to GitLab's, and `cosign verify` of it passes without signing in (ContainerImage.md).
+  `registry.gitlab.com/hmailserver/hmailserver` stays the image's address.
+
 ### Control Panel
 
 - **Fixed: the Logging page named the log destination "0 (a value this Control Panel does not know)" on every

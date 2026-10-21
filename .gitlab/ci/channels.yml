@@ -10,10 +10,11 @@
 #                       and verified, as every job below verifies what it publishes,
 #                       and nothing published: the dry run a maintainer starts before
 #                       any account exists (build/ci/channels/release-files.py verify);
-#   registry-mirror     the container image, by its digest, with its signature and
-#                       SBOM attestation, from registry.gitlab.com/hmailserver/
-#                       hmailserver to Docker Hub, Quay.io and Amazon ECR Public
-#                       (build/ci/channels/registry-mirror.py);
+#   registry-mirror     the container image, by its digest, with its signatures and
+#                       SBOM attestations (the index's signature, each platform's
+#                       signature and attestation), from registry.gitlab.com/
+#                       hmailserver/hmailserver to Docker Hub, Quay.io and Amazon ECR
+#                       Public (build/ci/channels/registry-mirror.py);
 #   aur-publish         the Arch User Repository's hmailserver: the PKGBUILD for the
 #                       release and its .SRCINFO, pushed over SSH
 #                       (build/ci/channels/aur-publish.py);
@@ -131,7 +132,8 @@ channels-check:
       python3 build/ci/channels/release-files.py fetch-tool cosign --into /tmp/channel-tools
       python3 build/ci/channels/fake-sigstore.py --self-test --cosign /tmp/channel-tools/cosign
       python3 build/ci/channels/release-files.py --self-test --cosign /tmp/channel-tools/cosign
-      # And the OCI layout registry-mirror verifies the image in, against that cosign.
+      # And the OCI layouts registry-mirror verifies the image in (an index's, and
+      # each platform's image's), against that cosign.
       python3 build/ci/channels/registry-mirror.py --self-test --cosign /tmp/channel-tools/cosign
 
 channels-verify:
@@ -176,7 +178,8 @@ registry-mirror:
     expire_in: 90 days
     paths:
       - registry-mirror/mirror.json
-      # What was verified: cosign's layout of the image's manifest and its signature and
+      # What was verified: cosign's layouts of the index's manifest with its signature
+      # manifest and of each platform's image manifest with its signature and
       # attestation manifests, at the source and at each destination.
       - registry-mirror/verified/
 

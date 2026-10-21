@@ -120,34 +120,53 @@ The channels
 image from `registry.gitlab.com/hmailserver/hmailserver`, the only place the
 release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
 
-- **What it verifies.** `:<version>` is resolved to its digest. The image's
-  manifest by that digest, and cosign's signature and attestation manifests beside
-  it (`sha256-<digest>.sig` and `.att`, each tag resolved once and the manifest then
-  fetched by its digest and held to it, with its blobs), are written as cosign's own
-  OCI layout (the one `cosign save` writes). Then, of those bytes and with no second
-  read of the registry, `cosign verify --local-image` of the image's signature and
-  `cosign verify-attestation --local-image --type cyclonedx` of its SBOM, both as the
-  tag's pipeline (the identities above), and the project's id in every signing and
+- **What it verifies.** `:<version>` is resolved to its digest, which since 6.3.6
+  is an image index over linux/amd64 and linux/arm64: the release's pipeline signs
+  the index by its digest, and signs each platform's image and attests its
+  CycloneDX SBOM to that image, attesting nothing to the index
+  ([ContainerImage.md](ContainerImage.md), "Checking an image"). The index's
+  manifest by that digest and cosign's signature manifest beside it
+  (`sha256-<index digest>.sig`, the tag resolved once and the manifest then fetched
+  by its digest and held to it, with its blobs) are written as cosign's own OCI
+  layout (the one `cosign save` writes), and `cosign verify --local-image` verifies
+  the index's signature there, as the tag's pipeline (the identities above). Then
+  every entry of that same index manifest, read from the layout and not fetched
+  again, must be an image manifest with its platform's operating system and
+  architecture, no two of one platform: a nested index, an entry without a
+  platform, a build's attestation manifest (`unknown/unknown`) or an empty index is
+  refused. Each platform's image is verified in a layout of its own, its manifest
+  held to the digest, size and media type the index gives it, with its signature
+  and attestation manifests (`sha256-<platform digest>.sig` and `.att`):
+  `cosign verify --local-image` of its signature and `cosign verify-attestation
+  --local-image --type cyclonedx` of its SBOM, both as the identity the index
+  verified as. A single-platform image, a manifest rather than an index at
+  `:<version>`, is verified as each platform's image is. In every layout, with no
+  second read of the registry, the project's id is required in every signing and
   every attesting certificate that names the identity, read from its extensions
-  (`build/ci/sigstore-certificate.py`) in the same two manifests: this project's,
-  and one required at either path. A manifest whose keys
-  Go's JSON reader, cosign's, could read otherwise - a field's name in another case
-  or outside ASCII, a key twice, a key that is not one of the manifest's or a
-  descriptor's fields, an index - is refused.
+  (`build/ci/sigstore-certificate.py`) in the same manifests: this project's, and
+  one required at either path. A manifest or an index whose keys Go's JSON reader,
+  cosign's and regctl's, could read otherwise - a field's name in another case or
+  outside ASCII, a key twice, a key that is not one of the manifest's, the index's,
+  a descriptor's or a platform's fields, an index at a signature's tag - is refused.
 - **What it copies.** `regctl image copy` of the source by its digest, to
   `:<version>` always, and to `:<major>.<minor>` and `:latest` only where the
   source's own tag of that name is the same digest: an older release mirrored late
-  never moves them back. Then cosign's `.sig` and `.att` beside it, copied out of the
-  layout: the manifests that were verified, not whatever the source's tags answer by
-  then - so not `--digest-tags` or `--referrers`, which would copy the source's as
-  they stand, unverified (the image is one platform's, and nothing is attached to it
-  as a referrer). A `.sig` or `.att` the destination already holds at those tags -
-  from an earlier run, or put there by anyone else with push access - is replaced
-  by the verified one, not added to. Each tag at the destination is held to its
-  digest, and the image there is verified again the same way, anonymously, from the
-  destination: regctl reads it with a configuration directory of its own that no
-  login has been written to, so the check cannot run logged in, whatever the logout
-  before it did (a failed logout is said in the log).
+  never moves them back. The copy of an index carries every platform's image it
+  names (regctl copies each entry of an index unless it is told which platforms).
+  Then cosign's manifests, copied out of the layouts they were verified in: the
+  index's `.sig` at `sha256-<index digest>.sig`, and each platform's `.sig` and
+  `.att` at `sha256-<platform digest>.sig` and `.att` - the manifests that were
+  verified, not whatever the source's tags answer by then, so not `--digest-tags`
+  or `--referrers`, which would copy the source's as they stand, unverified (nothing
+  is attached to the image as a referrer). A `.sig` or `.att` the destination
+  already holds at those tags - from an earlier run, or put there by anyone else
+  with push access - is replaced by the verified one, not added to. Each tag at the
+  destination is held to its digest, and the index and every platform's image there
+  are verified again the same way, anonymously, from the destination: regctl reads
+  them with a configuration directory of its own that no login has been written to,
+  so the check cannot run logged in, whatever the logout before it did (a failed
+  logout is said in the log). `mirror.json`, the job's record, gives the index's
+  digest and signature beside each platform's digest, signature and attestation.
 - **The destinations**, each configured by its pair of variables:
   - Docker Hub: `docker.io/progressiverobot/hmailserver` (or `DOCKERHUB_REPOSITORY`,
     which must be on `docker.io`). A Personal account's public repository is free;
@@ -158,8 +177,9 @@ release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
     (`public.ecr.aws/<alias>/hmailserver`) is required with the AWS key pair; the job
     asks ECR Public for a registry password with AWS Signature Version 4 (checked
     against AWS's own published vectors in the self-test).
-- **The owner, once.** Docker Hub: sign in as `progressiverobot`, make the public
-  repository `hmailserver` and a Read & Write access token. Quay.io: a Red Hat
+- **The owner, once.** Docker Hub (done on 21 October 2026): sign in as
+  `progressiverobot`, make the public repository `hmailserver` and a Read & Write
+  access token. Quay.io: a Red Hat
   account, the organisation `hmailserver`, a **public** repository `hmailserver`, and
   a robot account with write access to it. ECR Public: an AWS account, the public
   repository, and an IAM user limited to `ecr-public:*` on it and
@@ -543,13 +563,41 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   this project's pipeline signed and attested, and refused one another project's
   pipeline signed, or attested, at the identity - each of which cosign itself verified
   (`registry-mirror.py --self-test --cosign`, which `channels-check` runs).
+- **On 21 October 2026, Docker Hub.** `registry-mirror`, configured for Docker Hub
+  that day and run on `master`, refused 6.3.7 before it copied anything:
+  `registry.gitlab.com/hmailserver/hmailserver:sha256-2a5de4eb....att could not be
+  read: the image has no attestation there`. 6.3.7's image is the index
+  `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`, and the
+  job, written for an image of one platform, looked for an SBOM attestation beside
+  the index, where the release's pipeline attests none; it now verifies an index as
+  "What it verifies" says. The same day 6.3.7 was copied to
+  `docker.io/progressiverobot/hmailserver` by hand with regctl, by digest: the index
+  with both platforms' images at the tags `6.3.7`, `6.3` and `latest`, and the
+  index's signature and each platform's signature and SBOM attestation at their
+  `sha256-<digest>.sig` and `.att` tags, every digest there equal to the source's -
+  the index's `.sig`
+  `sha256:9a917f2d8c885052dc030bba6d8f2c515bf7539d6e2e2e127c923a8bac405e36`;
+  linux/amd64's (`sha256:2f5de02f...`) `.sig`
+  `sha256:76af2d5d146d9a806ec0163991b183352e25310c3e0bc13feda8168b5557aa5f` and `.att`
+  `sha256:fd3764cb617b79dd598c0875a19ad5bf3f4550d5dc06dd695f5178e723653475`;
+  linux/arm64's (`sha256:a33f18b5...`) `.sig`
+  `sha256:87fe655200b13047ca74bf15d841be5a19f90d1aea18847892d431a95d87d777` and `.att`
+  `sha256:11eaf2c57f383452e197c024d2783e0231263ba9690b30978b007e1c6f837080`. cosign
+  2.6.5 (the one the channel jobs pin) verified there, without signing in, the
+  index's and both platforms' signatures and both SBOM attestations as
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.7`; and
+  the job's own verification, after the change, run without signing in against both
+  registries with the pinned cosign and regctl, took the index and both platforms
+  there as that identity, with the project's id, `86730559`, in every signing and
+  attesting certificate. The repository is public; its description and overview say
+  that it is Progressive Robot's fork of hMailServer. The job's own copy to Docker
+  Hub has not run since.
 
-Not tried, because the accounts do not exist: a push to Docker Hub, Quay.io, ECR
-Public, the AUR, Launchpad, Copr, OBS, Chocolatey or the Snap Store; Launchpad's and
+Not tried, because the accounts do not exist: a push to Quay.io, ECR Public, the
+AUR, Launchpad, Copr, OBS, Chocolatey or the Snap Store; Launchpad's and
 Copr's builds of what was made; Copr's `make_srpm` builder itself (its `dnf install`
 line, and gcr.io from inside it); OBS's services themselves (whether `download_url`
 follows GitLab's permanent-link redirect, whether `extract_file` takes two patterns,
-and whether `download_files` sees the spec `extract_file` took out); the image copy
-with our own image's `.att`, which no release has yet; `chocolatey-publish` on
+and whether `download_files` sees the spec `extract_file` took out); `chocolatey-publish` on
 bench150, which was busy; and `snap-upload` with snapcraft, which runs where
 `snap-build` does.

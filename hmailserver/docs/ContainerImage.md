@@ -31,7 +31,16 @@ with its cosign signatures and attestations: the tags `6.3.7`, `6.3`, `latest` a
 `6.3.7`, `6.3` and `latest`. The owner made that copy public on 20 October 2026:
 since then it can be pulled without signing in, at the same digests, and
 `cosign verify` of it with the identity and issuer below passes (both checked
-that day). Nothing here pulls from it. The container registry is GitLab's: each
+that day). On 21 October 2026 the image was copied by hand to Docker Hub, as
+`docker.io/progressiverobot/hmailserver` (`docker pull progressiverobot/hmailserver:<version>`),
+by its digest: the tags `6.3.7`, `6.3` and `latest`, each that index, with both
+platforms' images, and the index's cosign signature and each platform's signature
+and SBOM attestation, each at the digest GitLab's registry gives it. The repository
+is public, and `cosign verify` of it, and `cosign verify` and `cosign verify-attestation`
+of each platform's image, with the identity and issuer below pass, without signing
+in (checked that day). The
+`registry-mirror` job ([Channels.md](Channels.md), "Container registries") is what
+copies a release there. Nothing here pulls from either copy. The container registry is GitLab's: each
 release's pipeline pushes and signs its image there, and
 `registry.gitlab.com/hmailserver/hmailserver` is the address the Compose file, the
 chart and these documents give.
