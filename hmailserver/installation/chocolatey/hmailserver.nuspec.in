@@ -18,7 +18,7 @@
 
   The title, the summary and the description say that this is Progressive Robot's
   fork of hMailServer: the original hMailServer, Martin Knafve's, is developed
-  again and has packages of its own, Chocolatey's hmailserver among them, so a
+  again, and packages of it exist, Chocolatey's hmailserver among them, so a
   title of "hMailServer" alone would read as the original's
   (build/make-package-manifests.ps1 and build/check-package-manifests.py hold all
   three to it).
@@ -42,9 +42,9 @@
     <summary>Progressive Robot's fork of hMailServer, not the original: a free, open-source mail server for Windows - SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.</summary>
     <description><![CDATA[
 This is Progressive Robot's fork of hMailServer, not the original. The original hMailServer is
-Martin Knafve's; it is developed separately and has releases and packages of its own, among them
-Chocolatey's hmailserver. Progressive Robot Ltd forked it in 2026 and released 6.0.0, the fork's
-first release, on 12 June 2026.
+Martin Knafve's; it is developed separately and has releases of its own, and packages of it exist,
+Chocolatey's hmailserver among them. Progressive Robot Ltd forked it in 2026 and released 6.0.0,
+the fork's first release, on 12 June 2026.
 
 hMailServer is a free, open-source mail server implementing SMTP, IMAP and POP3, with a Windows
 administration program, a browser administration console, a webmail client and a REST API. The

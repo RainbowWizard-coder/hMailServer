@@ -42,8 +42,8 @@ What it checks, beyond the schemas:
     rendered 2026-10-21, the day on its machine's clock, for a release of 17
     October);
   * every text a user reads says that the package is Progressive Robot's fork of
-    hMailServer, not the original, which is Martin Knafve's and has packages of
-    its own: the nuspec's title (not "hMailServer" alone), summary and
+    hMailServer, not the original, which is Martin Knafve's and of which
+    packages exist: the nuspec's title (not "hMailServer" alone), summary and
     description, and winget's PackageName, ShortDescription and Description,
     with Progressive Robot as winget's Publisher and a Moniker that is not
     "hmailserver".
@@ -99,7 +99,7 @@ def problem(message):
 
 
 # What every listing says the package is. The original hMailServer, Martin Knafve's,
-# is developed separately and has packages of its own (Chocolatey's hmailserver;
+# is developed separately, and packages of it exist (Chocolatey's hmailserver;
 # winget's hMailServer.hMailServer once its submission is merged), so a listing
 # that does not say this reads as the original's.
 FORK = "Progressive Robot's fork of hMailServer"

@@ -12,7 +12,7 @@ Where this stands today
 This project is **Progressive Robot's fork of hMailServer**, not the original
 hMailServer, which is Martin Knafve's. The original is developed again - it
 released 5.7.0 on 28 September 2026, and 5.7.1 and a 5.7.2 pre-release on 29
-September - and has packages of its own, so every package of this project says
+September - and packages of it exist, so every package of this project says
 in its title or name and in its description that it is the fork, and never takes
 an identifier that is the original's.
 
@@ -37,7 +37,7 @@ pull requests on GitHub alone, and the project's submissions there are paused,
 so `winget install ProgressiveRobot.hMailServer` does not work yet. This
 document is the walk for that first submission and for everything after it.
 
-**The original's own winget package is on its way.** Pull request 440546 to
+**A winget package of the original is on its way.** Pull request 440546 to
 `microsoft/winget-pkgs`, which a community packager opened on 24 September 2026,
 adds the original as `hMailServer.hMailServer` 5.7.1; it had passed validation
 and was waiting for a moderator on 21 October 2026. Once it is merged, `winget

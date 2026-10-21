@@ -190,17 +190,17 @@ with `--check`).
   file as a release does, and `build/check-release-chain.py` holds its name, where it is made and checked, and that
   `release-verify`'s artifact carries it, and nothing else of the signed files, to `release-publish`.
 - **The Chocolatey package and the winget manifests say that they are Progressive Robot's fork of hMailServer, and
-  are dated by the release.** The original hMailServer, Martin Knafve's, is developed again and has packages of its
-  own, Chocolatey's `hmailserver` among them, and the package published on 20 October 2026 as
+  are dated by the release.** The original hMailServer, Martin Knafve's, is developed again, and packages of it
+  exist, Chocolatey's `hmailserver` among them; the package published on 20 October 2026 as
   `hmailserver-progressiverobot` 6.3.7, which waits for Chocolatey's moderation, was titled "hMailServer" alone, with
   a summary that did not say fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary
   and description, and winget's short description and description, open by saying that this is Progressive Robot's
-  fork of hMailServer, not the original, that the original is Martin Knafve's and has releases and packages of its
-  own, and that both installers register as `hMailServer_is1`, so that this one takes an installation of the original
-  for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases, whose database versions, 5709
-  and 5711, its upgrade has no step from, where the description called the package "a drop-in upgrade for an
-  existing hMailServer installation, with a continuous database upgrade chain from every earlier version"; winget's
-  package name is "hMailServer (Progressive Robot's fork)", and its moniker
+  fork of hMailServer, not the original; that the original is Martin Knafve's and has releases of its own, and that
+  packages of it exist; and that both installers register as `hMailServer_is1`, so that this one takes an
+  installation of the original for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases,
+  whose database versions, 5709 and 5711, its upgrade has no step from, where the description called the package "a
+  drop-in upgrade for an existing hMailServer installation, with a continuous database upgrade chain from every
+  earlier version"; winget's package name is "hMailServer (Progressive Robot's fork)", and its moniker
   `hmailserver-progressiverobot`, the Chocolatey id, where it was `hmailserver`. The description no longer says that
   the original "is no longer developed upstream", nor that it "went quiet for years". The same job gave the winget
   installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a release of 17 October,
@@ -585,11 +585,11 @@ with `--check`).
   hMailServer and that the original, Martin Knafve's, is developed again; that Chocolatey's `hmailserver` is the
   original's 5.6.8, unlisted, which `choco install hmailserver` does not find, since an unlisted package installs only
   with its version named (`--version 5.6.8.2574`), where the document gave that command as this project's, and why
-  the project's id is `hmailserver-progressiverobot`, under which 6.3.7 waits for moderation; that the original's own
-  winget package, `hMailServer.hMailServer` 5.7.1, waits for a moderator, after which `winget install hMailServer`
-  installs the original, where it gave that command as this project's too; and that both installers register as
-  `hMailServer_is1`, so that winget may take one for the other, with no upgrade from the original's 5.7 releases
-  (database versions 5709 and 5711), which a winget submission must raise with the moderators.
+  the project's id is `hmailserver-progressiverobot`, under which 6.3.7 waits for moderation; that a community
+  packager's winget package of the original, `hMailServer.hMailServer` 5.7.1, waits for a moderator, after which
+  `winget install hMailServer` installs the original, where it gave that command as this project's too; and that both
+  installers register as `hMailServer_is1`, so that winget may take one for the other, with no upgrade from the
+  original's 5.7 releases (database versions 5709 and 5711), which a winget submission must raise with the moderators.
   [Channels.md](hmailserver/docs/Channels.md) said that no channel was live and that no release's image carried an
   attestation; it says that Chocolatey has 6.3.7 in moderation, pushed on 20 October 2026, that bench150 has
   Chocolatey's CLI, and that 6.3.6's and 6.3.7's images carry an attestation beside each platform's image.

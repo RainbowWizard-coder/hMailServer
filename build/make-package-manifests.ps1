@@ -22,10 +22,10 @@
 
    Every listing says what the package is: Progressive Robot's fork of
    hMailServer, not the original hMailServer, which is Martin Knafve's and has
-   releases and packages of its own. The Chocolatey title, summary and
-   description, and winget's package name, short description and description,
-   say so, and the checks below and build/check-package-manifests.py hold them to
-   it.
+   releases of its own, and of which packages exist. The Chocolatey title,
+   summary and description, and winget's package name, short description and
+   description, say so, and the checks below and build/check-package-manifests.py
+   hold them to it.
 
    What it writes, under -OutputDirectory:
 
@@ -359,7 +359,7 @@ if ($installerManifest -notmatch "(?m)^ReleaseDate:\s*""$([regex]::Escape($Relea
 }
 
 # The fork, said where a user reads it: the original hMailServer is another
-# project's, with packages of its own.
+# project's, and packages of it exist.
 $fork = "Progressive Robot's fork of hMailServer"
 $localeManifest = Get-Content -LiteralPath (Join-Path $wingetOut 'ProgressiveRobot.hMailServer.locale.en-US.yaml') -Raw
 foreach ($field in @('ShortDescription', 'Description')) {
