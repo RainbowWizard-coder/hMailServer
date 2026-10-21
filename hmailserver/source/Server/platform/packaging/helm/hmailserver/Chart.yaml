@@ -3,10 +3,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 apiVersion: v2
 name: hmailserver
+# Says what the chart is, as every listing of the project does: Artifact Hub, and
+# packages.ecosyste.ms, which copies Artifact Hub, show this text. The original
+# hMailServer, Martin Knafve's, is developed separately, and a chart called
+# hmailserver that did not say so would read as the original's.
 description: >-
-  hMailServer - SMTP, IMAP and POP3 with a REST API, the Control Deck and the webmail
-  on one listener - as a StatefulSet beside the PostgreSQL or MariaDB it keeps its
-  data in. The database is not in the chart: point database.host at one.
+  Progressive Robot's fork of hMailServer, not the original hMailServer by Martin
+  Knafve: SMTP, IMAP and POP3 with a REST API, the Control Deck and the webmail on
+  one listener, as a StatefulSet beside the PostgreSQL or MariaDB it keeps its data
+  in. The database is not in the chart: point database.host at one.
 type: application
 # The chart's version and the application's are the release's, and neither is
 # written here: a version spelled out in the tree would be one more place to

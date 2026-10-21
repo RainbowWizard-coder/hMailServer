@@ -215,6 +215,13 @@ with `--check`).
   which sent no version the feed answered for, would have sent nothing. It sends a `Submitted` version again now, in
   the waiting package's place, and no other version the feed holds, so that a second press of `chocolatey-release`
   can send 6.3.7 with these texts ([Channels.md](hmailserver/docs/Channels.md), "How a channel job publishes").
+- **The Helm chart says that it is Progressive Robot's fork of hMailServer.** Its description, which Artifact Hub
+  shows and packages.ecosyste.ms copies from there, began "hMailServer - SMTP, IMAP and POP3" and named neither the
+  fork nor the company; it opens with "Progressive Robot's fork of hMailServer, not the original hMailServer by
+  Martin Knafve" now, and the chart's README, the page Artifact Hub shows, says the same under its first paragraph.
+  The chart's Artifact Hub annotations do not repeat the description. `build/ci/helm-repo.py --self-test` holds an
+  index entry's description, read from the chart in the tree, to that opening. A chart published before this, 6.3.6's
+  and 6.3.7's, keeps its own text.
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since

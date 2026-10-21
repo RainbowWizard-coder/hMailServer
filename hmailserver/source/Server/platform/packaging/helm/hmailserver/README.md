@@ -6,6 +6,10 @@ listener. This chart runs it on Kubernetes as a StatefulSet of one, with its
 message store, its logs and its configuration on three persistent volumes, from the
 project's own container image, `registry.gitlab.com/hmailserver/hmailserver`.
 
+This is Progressive Robot's fork of hMailServer, not the original. The original
+hMailServer is Martin Knafve's; it is developed separately and has releases of its
+own. The fork's home is <https://gitlab.com/hmailserver/hmailserver>.
+
 The database is not in the chart and never will be: the server keeps its accounts,
 its settings and its message index in a PostgreSQL or MariaDB server you run or
 rent, and `database.host` names it.

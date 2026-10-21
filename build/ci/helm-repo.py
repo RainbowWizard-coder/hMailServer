@@ -601,8 +601,9 @@ def self_test(example=None, chart_file=None):
                and first["created"] == "2026-10-02T10:00:00Z", "an entry has the release's version, the file's digest, URL and date")
         expect("registry.gitlab.com/hmailserver/hmailserver:9.9.9" in first["annotations"]["artifacthub.io/images"],
                "the entry's Artifact Hub annotations name the release's image")
-        expect(first["description"].startswith("hMailServer") and first["type"] == "application" and first["apiVersion"] == "v2",
-               "the entry carries the chart's own metadata")
+        expect(first["description"].startswith("Progressive Robot's fork of hMailServer, not the original")
+               and first["type"] == "application" and first["apiVersion"] == "v2",
+               "the entry carries the chart's own metadata, its description saying that it is Progressive Robot's fork")
         expect(document["generated"] == "2026-10-03T10:00:00Z", "generated is the newest chart's date, so the same releases write the same index")
         with open(os.path.join(site, FOLDER, "artifacthub-repo.yml"), encoding="utf-8") as f:
             text = f.read()
