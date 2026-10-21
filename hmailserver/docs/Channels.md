@@ -12,13 +12,25 @@ Two channels have no job here because nothing is published to them: the Nix flak
 in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
 merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
-**One channel has a package, and none is listed yet.** Chocolatey's job pushed
-`hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which waits for Chocolatey's
-moderation ([Chocolatey](#chocolatey)). Every other job is written and was run on a
-laptop against a fixture release (below, [What was tried](#what-was-tried)), and has
-published nothing; each says "not configured" and passes until the owner has made the
-channel's account and a maintainer has stored its credential. The Snap Store's
-credential is stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). No release before 6.3.6 can be published to
+**Where each channel stands, read on 21 October 2026.** Three build services carry
+6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
+OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0
+(x86_64 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
+`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on
+x86_64 and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver`
+publishes it for Ubuntu 24.04 and 26.04, amd64 and arm64. Docker Hub's
+`progressiverobot/hmailserver` has it too, copied by hand that day after
+`registry-mirror`, written for an image of one platform, refused the release's image
+index; the job now verifies and copies an index
+([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
+Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026,
+which waits for Chocolatey's moderation ([Chocolatey](#chocolatey)). Quay.io, ECR
+Public, the AUR and the Snap Store have nothing: `registry-mirror` copies only to a
+registry whose credential is stored, and `aur-publish` says "not configured" and
+passes, until the owner has made the channel's account and a maintainer has stored
+its credential; the Snap Store's credential is stored, and its first upload, of
+6.3.7, failed ([Snap Store](#snap-store)). Every job was first run on a laptop
+against a fixture release. No release before 6.3.6 can be published to
 the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 ([SourceTarball.md](SourceTarball.md)), and the Debian and RPM packaging inside it
 ([SourcePackages.md](SourcePackages.md)), which 6.3.6 is the first to carry.
@@ -30,8 +42,8 @@ the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 | Amazon ECR Public (optional) | `docker pull public.ecr.aws/<alias>/hmailserver:<version>` | `registry-mirror` | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `ECR_PUBLIC_REPOSITORY` |
 | Arch User Repository | `git clone https://aur.archlinux.org/hmailserver.git && cd hmailserver && makepkg -si` | `aur-publish` | `AUR_SSH_KEY` |
 | Ubuntu PPA | `sudo add-apt-repository ppa:hmailserver/hmailserver && sudo apt install hmailserver` | `ppa-upload` | `LAUNCHPAD_SIGNING_KEY` |
-| Fedora Copr | `sudo dnf copr enable <owner>/hmailserver && sudo dnf install hmailserver` (the owner's Fedora account, or a group of it) | `copr-build` | `COPR_WEBHOOK_URL` |
-| openSUSE Build Service | `zypper addrepo` of the project's OBS repository, then `zypper install hmailserver` | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
+| Fedora Copr | `sudo dnf copr enable progressiverobot/hmailserver && sudo dnf install hmailserver` | `copr-build` | `COPR_WEBHOOK_URL` |
+| openSUSE Build Service | `sudo zypper addrepo https://download.opensuse.org/repositories/home:/progressiverobot/16.0/home:progressiverobot.repo` (`openSUSE_Tumbleweed` in place of `16.0` for Tumbleweed), then `sudo zypper install hmailserver` | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
 | Chocolatey | `choco install hmailserver-progressiverobot` | `chocolatey-release`, then `chocolatey-publish` | `CHOCO_API_KEY`, `HM_CHOCOLATEY_ID` |
 | Snap Store | `sudo snap install hmailserver --candidate` | `snap-upload` | `SNAPCRAFT_STORE_CREDENTIALS` |
 
@@ -246,9 +258,11 @@ each Ubuntu release: `noble` (24.04) and `resolute` (26.04) unless
 - **The owner, once.** On Launchpad: the team `~hmailserver` and its PPA
   `hmailserver`, with arm64 builds enabled. The maintainers make a dedicated upload
   key (`gpg --quick-generate-key "hMailServer PPA upload <...>" ed25519 sign 2y`); the
-  owner registers its fingerprint on his Launchpad account (a member of the team),
-  and forwards Launchpad's encrypted confirmation mail for the maintainers to
-  decrypt. `gpg --export-secret-keys <fingerprint> | base64 -w0` is
+  owner registers its fingerprint on his Launchpad account (a member of the team).
+  The key signs and does not encrypt, so Launchpad mails the confirmation link in the
+  clear: the link, opened signed in as the owner, asks for the mail's paragraph
+  clear-signed with the key, which the maintainers sign (`gpg --clearsign`) for him to
+  paste. `gpg --export-secret-keys <fingerprint> | base64 -w0` is
   `LAUNCHPAD_SIGNING_KEY`; `LAUNCHPAD_SIGNING_PASSPHRASE` if the key has one.
   `LAUNCHPAD_PPA` (`<owner>/<name>`) if the PPA is not `hmailserver/hmailserver`.
 
@@ -614,17 +628,28 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   attesting certificate. The repository is public; its description and overview say
   that it is Progressive Robot's fork of hMailServer. The job's own copy to Docker
   Hub has not run since.
+- **On 21 October 2026, OBS, Copr and the PPA**, each from its job in `master`'s
+  pipeline 2966261322, for 6.3.7. `obs-publish` (job 17306495327) verified the
+  release's tarball and started the package's service: `download_url` followed
+  GitLab's permanent link to 6.3.7's tarball, `extract_file` took the spec and its
+  `Source1`, `hmailserver.sysusers`, out of it, and `download_files` fetched the
+  spec's `Source0`, `hmailserver-6.3.7.tar.gz`, the same bytes (the package's
+  expanded sources, as OBS's API gives them without signing in); OBS built it for
+  Leap 16.0, x86_64 and aarch64, and Tumbleweed, x86_64, and published both
+  repositories, signed with the key OBS made for the project,
+  `BA0868309CFBD36498CE41D22F0B9419E67EE770`. `copr-build` (job 17306495326)
+  verified the tarball and called the webhook; in Copr's builder `.copr/Makefile`
+  ran `dnf -y install python3 rpm-build`, and `copr-build.py srpm` took cosign out of
+  its pinned image on gcr.io, verified the tarball again as the `v6.3.7` tag's
+  pipeline (repository id `86730559`) and made `hmailserver-6.3.7-1.src.rpm`, which
+  Copr's build 11180395 built in all six chroots. `ppa-upload` (job 17306495325) sent
+  `6.3.7+ds-1~noble1` and `6.3.7+ds-1~resolute1`, signed with the upload key;
+  Launchpad accepted both at 01:42 UTC, built each for amd64 and arm64, and publishes
+  them, signed with the PPA's own key, `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C`.
 
-Not tried, because the accounts do not exist: a push to Quay.io, ECR Public, the
-AUR, Launchpad, Copr or OBS; Launchpad's and
-Copr's builds of what was made; Copr's `make_srpm` builder itself (its `dnf install`
-line, and gcr.io from inside it); OBS's services themselves (whether `download_url`
-follows GitLab's permanent-link redirect, whether `extract_file` takes two patterns,
-and whether `download_files` sees the spec `extract_file` took out); and
-`registry-mirror`'s copy of the project's own image to any of them, with the `.att`
-that 6.3.6's and 6.3.7's images carry - one beside each platform's image in GitLab's
-registry, `sha256-<digest>.att`, with its `.sig` (the registry's tag list, read on 21
-October 2026). `chocolatey-publish` has run on bench150, and pushed 6.3.7
+Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist;
+and `registry-mirror`'s own copy of a release to Docker Hub (6.3.7 there was copied
+by hand, above). `chocolatey-publish` has run on bench150, and pushed 6.3.7
 ([Chocolatey](#chocolatey)). `snap-upload` ran for 6.3.7 on 18 October 2026 (job
 17257943981) and stopped before it reached the store or the credential, the image
 having no `git` for its check of the tag; the store's answer to an upload is still

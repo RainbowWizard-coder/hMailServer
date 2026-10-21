@@ -423,6 +423,15 @@ a Linux shell with snapcraft and the owner's own login, in about half an hour:
    each of the two files.
 4. Install the candidate on a machine of your own (`sudo snap install hmailserver
    --candidate`) and try it.
-5. `snapcraft release hmailserver <revision> stable`, with each revision the uploads
+5. Before the release to `stable`, set the store listing at
+   <https://snapcraft.io/hmailserver/listing>, with the same login: the title
+   "hMailServer (Progressive Robot's fork)", a summary and a description that open
+   with "Progressive Robot's fork of hMailServer, not the original by Martin
+   Knafve", and the website <https://gitlab.com/hmailserver/hmailserver>. The two
+   snaps were built on 18 October 2026 from `snap/snapcraft.yaml` as it stood then -
+   the title "hMailServer", a summary that does not say fork, and the company's site
+   as the website - so a listing that took their text would read as the original's;
+   `snapcraft.yaml` says the fork from the next release.
+6. `snapcraft release hmailserver <revision> stable`, with each revision the uploads
    printed, when it is right.
-6. `snapcraft logout`.
+7. `snapcraft logout`.

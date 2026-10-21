@@ -1,5 +1,9 @@
 # The container image and the Helm chart
 
+This is Progressive Robot's fork of hMailServer, not the original. The original
+hMailServer is Martin Knafve's; it is developed separately and has releases of its
+own. The fork's home is <https://gitlab.com/hmailserver/hmailserver>.
+
 hMailServer runs on Linux in a container from the project's own image, and on
 Kubernetes from the project's own Helm chart. Both are made by the release's GitLab
 CI pipeline from the release's own files, and signed with Sigstore by that pipeline,
@@ -103,7 +107,10 @@ The image's labels, which a registry and Artifact Hub show: the OCI ones
 `source`, `documentation`, and from the build `version`, `revision` and `created`,
 the commit's time) and Artifact Hub's (`io.artifacthub.package.readme-url`, this
 document; `license`, `keywords`, and `prerelease` for a version with a suffix).
-`build/ci/linux-image.sh` fails a build without the three Artifact Hub requires.
+`build/ci/linux-image.sh` fails a build without the three Artifact Hub requires. From
+the release after 6.3.7 the title is "hMailServer (Progressive Robot's fork)" and the
+description opens with "Progressive Robot's fork of hMailServer, not the original";
+6.3.7's image, and those before it, say "hMailServer".
 
 ### Checking an image
 

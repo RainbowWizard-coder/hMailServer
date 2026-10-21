@@ -17,11 +17,15 @@
 # below 1024, as the .deb's unit does with its own user (Snap.md, "Why strict").
 
 name: hmailserver
-title: hMailServer
+title: hMailServer (Progressive Robot's fork)
 base: core24
 adopt-info: hmailserver
-summary: A mail server for SMTP, IMAP and POP3, with a REST API
+summary: Progressive Robot's fork of hMailServer, an SMTP, IMAP and POP3 mail server
 description: |
+  Progressive Robot's fork of hMailServer, not the original by Martin Knafve, which
+  is developed separately and has releases of its own. The fork's home is
+  https://gitlab.com/hmailserver/hmailserver.
+
   hMailServer is a mail server: SMTP in and out, IMAP and POP3, with spam and
   virus checks, DKIM, SPF, DMARC and ARC, and its administration over a REST API
   and the Control Deck page that API serves. It keeps its accounts and settings
@@ -42,7 +46,7 @@ confinement: strict
 contact: https://gitlab.com/hmailserver/hmailserver/-/issues
 issues: https://gitlab.com/hmailserver/hmailserver/-/issues
 source-code: https://gitlab.com/hmailserver/hmailserver
-website: https://www.progressiverobot.com
+website: https://gitlab.com/hmailserver/hmailserver
 
 # Each snap is built on its own architecture: build/ci/snap-build.sh runs in an
 # Ubuntu 24.04 container of that architecture (arm64 under linix's qemu-user).

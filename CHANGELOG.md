@@ -251,6 +251,12 @@ with `--check`).
   The chart's Artifact Hub annotations do not repeat the description. `build/ci/helm-repo.py --self-test` holds an
   index entry's description, read from the chart in the tree, to that opening. A chart published before this, 6.3.6's
   and 6.3.7's, keeps its own text.
+- **The snap and the container image say that they are Progressive Robot's fork of hMailServer.** `snap/snapcraft.yaml`
+  titled the snap "hMailServer", with a summary and a description that did not say fork and the company's site as
+  its website; its title is "hMailServer (Progressive Robot's fork)" now, its summary and description open with the
+  fork, not the original by Martin Knafve, and its website is the project's on GitLab. The image's
+  `org.opencontainers.image.title` and `description` labels, which registries and Artifact Hub show, say the same.
+  Both reach the store and the registries with the next release's snaps and image; 6.3.7's keep their own text.
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since
@@ -657,6 +663,28 @@ with `--check`).
   to upload it by hand. [Nix.md](hmailserver/docs/Nix.md) said that a build of `v6.3.6` needed the tag; the tag has
   existed since 5 October 2026, and the build from it has still not been run. Roadmap2's and Roadmap3's Chocolatey
   rows say the same.
+- **The channel documents say what the first runs of the PPA's, Copr's and OBS's jobs made on 21 October 2026, and
+  where every channel stood that day.** Channels.md's opening says that OBS publishes 6.3.7 for openSUSE Leap 16.0
+  and Tumbleweed, that Copr built it for Fedora 44 and 43 and EPEL 10, and that the PPA publishes it for Ubuntu
+  24.04 and 26.04, each from its job's run on `master` that day; that Docker Hub has it, copied by hand; that
+  Chocolatey's waits for moderation; and that Quay.io, ECR Public, the AUR and the Snap Store have nothing. Its *What
+  was tried* records those runs - OBS's service, Copr's `make_srpm` builder and its second verification, Launchpad's
+  builds - which it listed as untried, for want of the accounts, and what it lists as not tried is a push to
+  Quay.io, ECR Public and the AUR, and `registry-mirror`'s own copy to Docker Hub. Its table gives `dnf copr enable
+  progressiverobot/hmailserver` and the `zypper addrepo` of OBS's `.repo` file, where it had placeholders, and its
+  PPA section says that, for a key that only signs, Launchpad mails the confirmation in the clear and asks for the
+  mail's paragraph clear-signed with the key, where it said that the mail was encrypted. PackageManagers.md says that
+  winget's submissions are made by hand and Chocolatey's by `chocolatey-publish`, whose first package was 6.3.7,
+  where it said that every submission was made by hand and that the job replaced the GitHub workflow from 6.3.6; and
+  that the AppImages were attached to 6.3.0 to 6.3.3 and again from 6.3.6, not to 6.3.4 or 6.3.5, where it said
+  that no release after 6.3.3 carried them. Snap.md's upload of 6.3.7 by hand sets the store listing's title,
+  summary, description and website to say the fork before the release to `stable`. ContainerImage.md, which
+  Artifact Hub shows as the image's README, opens by saying that this is Progressive Robot's fork of hMailServer,
+  not the original. Roadmap2's winget and Chocolatey row is named by the two packages' ids, where it was named
+  `winget install hMailServer`, the command that will install the original, and says first that Chocolatey's 6.3.7
+  waits for moderation and that nothing is submitted to winget; Roadmap3's PPA, Copr and OBS rows say what was made
+  on 21 October 2026, where they listed it as still to do. README.md no longer says that the original went quiet for
+  years.
 - **New: `CITATION.cff`, how the project is cited.** In the Citation File Format 1.2.0, which GitLab and GitHub show
   as "Cite this repository" and from which an archive such as Zenodo makes a release's record: hMailServer 6.3.7, of
   17 October 2026, by Christopher Holloway and Progressive Robot Ltd, under AGPL-3.0-or-later, at

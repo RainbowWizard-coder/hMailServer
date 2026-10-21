@@ -239,8 +239,9 @@ Arming the automatic submission
 *History: this is how the GitHub workflow `package-managers.yml` (in the git
 history at `faca023d4`) was to submit each release by itself. No release ran
 it, since it arrived after the `v6.3.3` tag; GitHub suspended the project's
-account on 18 September 2026, and no GitLab job replaces it, so until one does,
-every submission is made by hand as above.*
+account on 18 September 2026, and no GitLab job replaces it for winget, whose
+submissions are made by hand as above; for Chocolatey, `chocolatey-publish` does
+(below).*
 
 Once the first version of each was accepted, every release could submit
 itself. The workflow read, from the repository's settings:
@@ -257,9 +258,12 @@ nothing. That was the deliberate default, and it holds for whatever replaces
 it: no release should open a pull request against somebody else's repository by
 surprise.
 
-For Chocolatey, `chocolatey-publish` replaces it from 6.3.6 ([Channels.md](Channels.md)),
-with the same default: it submits nothing until `CHOCO_API_KEY` is set, and then
-only a release the update feed lists, whose installer it has verified.
+For Chocolatey, `chocolatey-publish` replaces it ([Channels.md](Channels.md)), with
+the same default: it submits nothing until `CHOCO_API_KEY` is set, and then only a
+release the update feed lists, whose installer it has verified. Its first package
+was 6.3.7, pushed on 20 October 2026; no earlier release of this project is on
+Chocolatey, under either id (the community repository's feed, read on 21 October
+2026).
 
 apt and dnf
 -----------
@@ -606,7 +610,7 @@ What this does not do
 
 * **No Arch package here.** The `.deb` and `.rpm` have the apt and dnf
   repositories above; the AppImages were attached to the releases 6.3.0 to
-  6.3.3, and no release since carries them ([PackagesAppImage.md](PackagesAppImage.md));
+  6.3.3, and again from 6.3.6, but not to 6.3.4 or 6.3.5 ([PackagesAppImage.md](PackagesAppImage.md));
   the Arch package is the AUR's `hmailserver`, which `aur-publish` publishes from
   the release's source tarball ([Channels.md](Channels.md)).
 * **No `winget install` of a pre-release.** The workflow refused a tag that was
