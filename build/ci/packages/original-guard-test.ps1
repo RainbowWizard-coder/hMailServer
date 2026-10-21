@@ -13,11 +13,12 @@
    and reads the file. Setup must end with exit code 1, Inno Setup's for a setup
    that did not initialise, and every case must pass.
 
-   Then it proves that the cases catch a broken decision: three altered copies of
+   Then it proves that the cases catch a broken decision: four altered copies of
    OriginalHMailServer.iss - the refusal taking in 5708, the last version the two
-   projects share, the fall-back on the original's scripts left out, and the
-   version gate taking in this fork's own 6.x - are each compiled and run the same
-   way, and each must fail a case.
+   projects share, the fall-back on the original's scripts left out, the version
+   gate taking in this fork's own 6.x, and the test of this fork's own database
+   password left out - are each compiled and run the same way, and each must fail
+   a case.
 
    Nothing is installed, and nothing outside -WorkDir (a new folder under the
    temporary folder by default, removed afterwards) is written. The
@@ -102,8 +103,9 @@ function Test-Guard {
    }
    $controls = [ordered]@{
       'the refusal taking in 5708' = @('(Version > ORIGINAL_LAST_SHARED_SCHEMA)', '(Version >= ORIGINAL_LAST_SHARED_SCHEMA)')
-      'the fall-back on the original''s scripts left out' = @('else if OriginalScripts then', 'else if False then')
+      'the fall-back on the original''s scripts left out' = @('else if OriginalScripts and not ForkSecret then', 'else if False then')
       'the version gate taking in this fork''s 6.x' = @('(ServerMajor < 6)', '(ServerMajor < 7)')
+      'this fork''s own password not asked' = @('else if OriginalScripts and not ForkSecret then', 'else if OriginalScripts then')
    }
    $status = 0
    $index = 0

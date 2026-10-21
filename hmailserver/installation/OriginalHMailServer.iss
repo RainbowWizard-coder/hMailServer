@@ -41,14 +41,23 @@
 //     past ORIGINAL_LAST_SHARED_SCHEMA and before FORK_FIRST_SCHEMA is refused, and
 //     anything else is not - which is what upgrades such a development build;
 //   * only where that version cannot be read - the service is not running, or does
-//     not answer - the scripts the original's 5.7 installs in its DBScripts folder:
-//     an upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
+//     not answer - first the earlier installation's settings file: a [Database]
+//     PasswordEncryption of 6, the database's password kept as a DPAPI envelope, is
+//     this fork's alone. This fork writes it, from 6.2.0 on and while
+//     ProtectStoredSecretsWithDPAPI is on, its default, whenever its database setup
+//     makes a database or connects to one, the built-in one among them; the
+//     original writes 1 and reads 0 and 1 alone. Such a database is this
+//     fork's own, at 6001 or later, which the original's 5.7 installer, run over an
+//     installation of this fork, leaves as it was, with the original's scripts
+//     beside this fork's in DBScripts. The original's service cannot read its
+//     password, so it never answers the version however often it is started, and
+//     the database is not refused: this fork's server reads its own password and
+//     upgrades it, as before this test was made;
+//   * else the scripts the original's 5.7 installs in its DBScripts folder: an
+//     upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
 //     which no development build up to 5708 and no release of this fork carries.
 //     The refusal then says that the files decided, and that an installation whose
-//     database is at 5708 or older, or at 6001 or later - this fork's own, which the
-//     original's 5.7 installer, run over an installation of this fork, leaves as it
-//     was, with its own scripts beside this fork's in DBScripts - is upgraded once
-//     its service runs.
+//     database is at 5708 or older is upgraded once its service runs.
 // build\check-installer-scripts.py holds the two numbers to the upgrade chain in
 // hmailserver\source\DBScripts: a step from the one to the other, and no step to
 // any version between them.
@@ -64,6 +73,11 @@ const
    ORIGINAL_NOT_REFUSED = 0;
    ORIGINAL_REFUSED_BY_DATABASE = 1;
    ORIGINAL_REFUSED_BY_FILES = 2;
+
+   // The [Database] PasswordEncryption this fork writes for a password kept as a
+   // DPAPI envelope (Crypt::ETDPAPI), which the original never writes and cannot
+   // read.
+   FORK_PASSWORD_ENCRYPTION = 6;
 
 // Whether a database at this version is one the original's 5.7 made and this
 // fork cannot upgrade.
@@ -105,12 +119,20 @@ begin
    Result := (ServerMajor >= 0) and (ServerMajor < 6);
 end;
 
+// Whether a settings file's [Database] PasswordEncryption is this fork's alone.
+function IsForkOnlyPasswordEncryption(Value: Integer): Boolean;
+begin
+   Result := Value = FORK_PASSWORD_ENCRYPTION;
+end;
+
 // The decision. ServerMajor and ServerMinor: the installed hMailServer.exe's
 // version, -1 when there is none or it could not be read. DatabaseVersion: the
 // database's version as the running service answers it, -1 (or 0) when it could
 // not be read. OriginalScripts: whether the installation's DBScripts folder holds
-// a script IsOriginalOnlyScript takes.
-function OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts: Boolean): Integer;
+// a script IsOriginalOnlyScript takes. ForkSecret: whether the installation's
+// settings file keeps the database's password as only this fork does
+// (IsForkOnlyPasswordEncryption), which makes the database this fork's own.
+function OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts, ForkSecret: Boolean): Integer;
 begin
    Result := ORIGINAL_NOT_REFUSED;
    if not IsServerBeforeThisFork(ServerMajor, ServerMinor) then
@@ -120,7 +142,7 @@ begin
       if IsOriginalOnlySchema(DatabaseVersion) then
          Result := ORIGINAL_REFUSED_BY_DATABASE;
    end
-   else if OriginalScripts then
+   else if OriginalScripts and not ForkSecret then
       Result := ORIGINAL_REFUSED_BY_FILES;
 end;
 
@@ -152,8 +174,7 @@ begin
    if Kind = ORIGINAL_REFUSED_BY_FILES then
       Result := Result + #13#10#13#10 +
                 'If its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
-                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - or at ' + IntToStr(FORK_FIRST_SCHEMA) +
-                ' or later, this fork''s own, which the original''s installer leaves as it was when it is run over an installation of this fork, ' +
+                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - ' +
                 'start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
 end;
 

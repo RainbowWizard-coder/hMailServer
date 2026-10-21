@@ -69,32 +69,41 @@ script is registered for database version 5711". But setup ran it only after it 
 replaced the program files, and this server then refused the database as too old,
 so that the original's 5.7 could not be put back without restoring a backup.
 
-**So the installer refuses an installation of the original's 5.7, before it changes
-anything** - from the release after 6.3.7; the installers of 6.3.7 and earlier do
-not look, and must not be run over one. Setup's first step, before a page is shown,
-reads the version of the earlier installation's `hMailServer.exe`. Before 6 - that
-is, not this fork's - it asks the running hMailServer service for the database's
-version: a version past `5708` and before `6001`, this fork's first after it, is
-refused, and `5708` or older - a release of the original up to 5.6, or one of its
-5.7 development builds - is upgraded as any other. Where the service is not
-running, or does not answer, the original's own upgrade scripts past `5708` in the
-installation's `DBScripts` folder (`Upgrade5708to5709*.sql`) decide instead, and
-the refusal then says that an installation whose database is at `5708` or older,
-or this fork's own, at `6001` or later, as the original's installer leaves it when
-it is run over this fork, is upgraded once its service runs and setup is run again. The version is not held to
-5.7, because a build of the original's 5.7 made from its source without its build
-script reports itself as 1.0.0: every 5.7 tag of the original commits that
-placeholder. The refusal says what it found and that nothing has been changed; a
-silent setup ends with exit code 1, its log (`/LOG`) has the refusal on a line that
-begins "Refused:", and with or without a log setup writes it to
-`hMailServer-setup-refused.txt` in the temporary folder (`%TEMP%`) of the account it
-runs as, which a later setup that is not refused deletes. The Chocolatey package
-passes `/LOG` and shows that file's words when the install fails, and winget writes
-the log where `winget install --log <file>` says (PackageManagers.md).
-Installations of this fork, whose programs are 6 and later, are not looked at past
-their `hMailServer.exe`'s version. The decision is
-`hmailserver/installation/OriginalHMailServer.iss`, and the Windows package jobs run
-its self-test before they build the installer ([PackagesWindows.md](PackagesWindows.md)).
+**So the installer refuses an installation of the original's 5.7, before it
+changes anything** - from the release after 6.3.7; the installers of 6.3.7 and
+earlier do not look, and must not be run over one. Setup's first step, before a
+page is shown, reads the version of the earlier installation's `hMailServer.exe`.
+Before 6 - that is, not this fork's - it asks the running hMailServer service for
+the database's version: a version past `5708` and before `6001`, this fork's first
+after it, is refused, and `5708` or older - a release of the original up to 5.6,
+or one of its 5.7 development builds - is upgraded as any other. Where the service
+is not running, or does not answer, the installation's `hMailServer.ini` is read
+first: a `[Database]` `PasswordEncryption` of `6`, the database's password kept
+with DPAPI, is this fork's alone. This fork writes it, from 6.2.0 on and unless
+`ProtectStoredSecretsWithDPAPI` is off, whenever its database setup makes a
+database or connects to one, the built-in one among them; the original writes `1`.
+Such a database is this fork's own, at `6001` or later, as the original's 5.7
+installer leaves it when it is run over an installation of this fork. The
+original's service cannot read that password, so it never answers the version, and
+setup does not refuse it: it puts this fork's programs back, and this fork's
+server upgrades its own database. Otherwise the original's own upgrade scripts
+past `5708` in the installation's `DBScripts` folder (`Upgrade5708to5709*.sql`)
+decide, and the refusal then says that an installation whose database is at `5708`
+or older is upgraded once its service runs and setup is run again. The version is
+not held to 5.7, because a build of the original's 5.7 made from its source
+without its build script reports itself as 1.0.0: every 5.7 tag of the original
+commits that placeholder. The refusal says what it found and that nothing has been
+changed; a silent setup ends with exit code 1, its log (`/LOG`) has the refusal on
+a line that begins "Refused:", and with or without a log setup writes it to
+`hMailServer-setup-refused.txt` in the temporary folder (`%TEMP%`) of the account
+it runs as, which a later setup that is not refused deletes. The Chocolatey
+package passes `/LOG` and shows that file's words when the install fails, and
+winget writes the log where `winget install --log <file>` says
+(PackageManagers.md). Installations of this fork, whose programs are 6 and later,
+are not looked at past their `hMailServer.exe`'s version. The decision is
+`hmailserver/installation/OriginalHMailServer.iss`, and the Windows package jobs
+run its self-test before they build the installer
+([PackagesWindows.md](PackagesWindows.md)).
 
 A server of the original's 5.7 moves its mail to this one over IMAP instead
 ([Migration.md](Migration.md), "From the original hMailServer").

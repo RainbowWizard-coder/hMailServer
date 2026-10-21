@@ -16,7 +16,9 @@
 ; 5708, which are upgraded, and the original's 5.7 releases and pre-release builds
 ; at 5709 to 5711, and a build of its 5.7 from source, whose hMailServer.exe is
 ; 1.0.0.0, which are refused - by the database's version when the service answers
-; it, and by the original's own upgrade scripts when it does not.
+; it, and by the original's own upgrade scripts when it does not, unless the
+; settings file keeps the database's password as only this fork does, as it is left
+; when the original's 5.7 installer is run over an installation of this fork.
 
 [Setup]
 AppName=hMailServer installer self-test
@@ -51,11 +53,11 @@ begin
    g_szLines := g_szLines + szLine + #13#10;
 end;
 
-procedure ExpectKind(Description: String; ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts: Boolean; Expected: Integer);
+procedure ExpectKind(Description: String; ServerMajor, ServerMinor, DatabaseVersion: Integer; OriginalScripts, ForkSecret: Boolean; Expected: Integer);
 var
    iKind: Integer;
 begin
-   iKind := OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion, OriginalScripts);
+   iKind := OriginalHMailServerKind(ServerMajor, ServerMinor, DatabaseVersion, OriginalScripts, ForkSecret);
    Report(iKind = Expected, Description + ': ' + IntToStr(iKind) + ', expected ' + IntToStr(Expected));
 end;
 
@@ -87,54 +89,70 @@ begin
    g_iFailed := 0;
 
    // This fork's own installations: never refused, whatever else is found.
-   ExpectKind('this fork 6.3, database 6108', 6, 3, 6108, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 6.0, database unread', 6, 0, -1, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 6.3, database unread, the original''s scripts left in DBScripts', 6, 3, -1, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 6.3, a database at 5711', 6, 3, 5711, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 6.7, a database at 5711, the original''s scripts left in DBScripts', 6, 7, 5711, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 6.9, database unread, the original''s scripts left in DBScripts', 6, 9, -1, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('this fork 7.0, database unread, the original''s scripts left in DBScripts', 7, 0, -1, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.3, database 6108', 6, 3, 6108, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.0, database unread', 6, 0, -1, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.3, database unread, the original''s scripts left in DBScripts', 6, 3, -1, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.3, a database at 5711', 6, 3, 5711, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.7, a database at 5711, the original''s scripts left in DBScripts', 6, 7, 5711, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.9, database unread, the original''s scripts left in DBScripts', 6, 9, -1, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 7.0, database unread, the original''s scripts left in DBScripts', 7, 0, -1, True, False, ORIGINAL_NOT_REFUSED);
 
    // The original up to 5.6, upgraded in place. Its programs are asked as the 5.7's
    // are, and the two tests take neither its databases nor its DBScripts folders;
    // a folder holding the original's steps past 5708 with no database read is one
    // this fork cannot upgrade whatever hMailServer.exe is in it.
-   ExpectKind('the original 5.6, database 5601', 5, 6, 5601, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('the original 5.6, database 5601, the 5.7 scripts left in DBScripts', 5, 6, 5601, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('the original 5.6, database unread, the 5.7 scripts left in DBScripts', 5, 6, -1, True, ORIGINAL_REFUSED_BY_FILES);
-   ExpectKind('the original 5.4, database unread', 5, 4, -1, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('the original 4.4, database unread', 4, 4, -1, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.6, database 5601', 5, 6, 5601, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.6, database 5601, the 5.7 scripts left in DBScripts', 5, 6, 5601, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.6, database unread, the 5.7 scripts left in DBScripts', 5, 6, -1, True, False, ORIGINAL_REFUSED_BY_FILES);
+   ExpectKind('the original 5.4, database unread', 5, 4, -1, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 4.4, database unread', 4, 4, -1, False, False, ORIGINAL_NOT_REFUSED);
 
    // The original's 5.7 built from source without its build script: every 5.7 tag
    // commits the placeholder 1.0.0, so its hMailServer.exe is 1.0.0.0.
-   ExpectKind('the original 5.7 built from source (1.0.0.0), database 5711', 1, 0, 5711, True, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7 built from source (1.0.0.0), database unread, its scripts in DBScripts', 1, 0, -1, True, ORIGINAL_REFUSED_BY_FILES);
-   ExpectKind('a build from source (1.0.0.0), database unread, no script past 5708', 1, 0, -1, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a build from source (1.0.0.0), database 5708', 1, 0, 5708, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.7 built from source (1.0.0.0), database 5711', 1, 0, 5711, True, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7 built from source (1.0.0.0), database unread, its scripts in DBScripts', 1, 0, -1, True, False, ORIGINAL_REFUSED_BY_FILES);
+   ExpectKind('a build from source (1.0.0.0), database unread, no script past 5708', 1, 0, -1, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a build from source (1.0.0.0), database 5708', 1, 0, 5708, True, False, ORIGINAL_NOT_REFUSED);
 
    // The original's 5.7 development builds up to 5708, upgraded in place.
-   ExpectKind('a 5.7 development build, database 5708', 5, 7, 5708, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a 5.7 development build, database 5705', 5, 7, 5705, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a 5.7 development build, database 5700', 5, 7, 5700, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a 5.7 development build, database 5708, the 5.7 scripts left in DBScripts', 5, 7, 5708, True, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a 5.7 development build, database unread, no script past 5708', 5, 7, -1, False, ORIGINAL_NOT_REFUSED);
-   ExpectKind('a 5.7 development build, the service answering 0, no script past 5708', 5, 7, 0, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, database 5708', 5, 7, 5708, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, database 5705', 5, 7, 5705, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, database 5700', 5, 7, 5700, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, database 5708, the 5.7 scripts left in DBScripts', 5, 7, 5708, True, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, database unread, no script past 5708', 5, 7, -1, False, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('a 5.7 development build, the service answering 0, no script past 5708', 5, 7, 0, False, False, ORIGINAL_NOT_REFUSED);
 
    // The original's 5.7 at 5709 to 5711, refused by the database's version.
-   ExpectKind('the original 5.7.0 build 2788 or 2843, database 5709', 5, 7, 5709, True, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7.0 build 3013, database 5711', 5, 7, 5711, True, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7.2, database 5711, no scripts found', 5, 7, 5711, False, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7, database 5710', 5, 7, 5710, True, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('a later original 5.8, database 5800', 5, 8, 5800, True, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7, database 6000, the last before this fork''s first', 5, 7, 6000, False, ORIGINAL_REFUSED_BY_DATABASE);
-   ExpectKind('the original 5.7''s programs, database 6001, this fork''s first', 5, 7, 6001, False, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.7.0 build 2788 or 2843, database 5709', 5, 7, 5709, True, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7.0 build 3013, database 5711', 5, 7, 5711, True, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7.2, database 5711, no scripts found', 5, 7, 5711, False, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7, database 5710', 5, 7, 5710, True, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('a later original 5.8, database 5800', 5, 8, 5800, True, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7, database 6000, the last before this fork''s first', 5, 7, 6000, False, False, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('the original 5.7''s programs, database 6001, this fork''s first', 5, 7, 6001, False, False, ORIGINAL_NOT_REFUSED);
 
    // The original's 5.7 with its database's version unread: its scripts decide.
-   ExpectKind('the original 5.7, service not running, its scripts in DBScripts', 5, 7, -1, True, ORIGINAL_REFUSED_BY_FILES);
-   ExpectKind('the original 5.7, the service answering 0, its scripts in DBScripts', 5, 7, 0, True, ORIGINAL_REFUSED_BY_FILES);
+   ExpectKind('the original 5.7, service not running, its scripts in DBScripts', 5, 7, -1, True, False, ORIGINAL_REFUSED_BY_FILES);
+   ExpectKind('the original 5.7, the service answering 0, its scripts in DBScripts', 5, 7, 0, True, False, ORIGINAL_REFUSED_BY_FILES);
+
+   // The original's 5.7 installer run over an installation of this fork: the
+   // original's programs and scripts, and this fork's settings file, whose database
+   // password (PasswordEncryption 6) the original's service cannot read, so that it
+   // never answers the version. The database is this fork's own; a version read
+   // still decides.
+   ExpectKind('the original 5.7''s programs over this fork''s database, version unread, its scripts in DBScripts', 5, 7, -1, True, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original 5.7''s programs over this fork''s database, the service answering 0, its scripts in DBScripts', 5, 7, 0, True, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork''s password kept, a database at 5711 read', 5, 7, 5711, True, True, ORIGINAL_REFUSED_BY_DATABASE);
+   ExpectKind('this fork''s password kept, a database at 6108 read', 5, 7, 6108, True, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('the original''s password kept, version unread, its scripts in DBScripts', 5, 7, -1, True, False, ORIGINAL_REFUSED_BY_FILES);
+
+   // The settings file's PasswordEncryption: 6 is this fork's alone.
+   Report(IsForkOnlyPasswordEncryption(6), 'PasswordEncryption 6 is this fork''s alone');
+   Report(not IsForkOnlyPasswordEncryption(1), 'PasswordEncryption 1, the original''s Blowfish, is not');
+   Report(not IsForkOnlyPasswordEncryption(0), 'PasswordEncryption 0, or none, is not');
 
    // No hMailServer.exe, or one whose version could not be read.
-   ExpectKind('no hMailServer.exe, a database at 5711', -1, -1, 5711, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('no hMailServer.exe, a database at 5711', -1, -1, 5711, True, False, ORIGINAL_NOT_REFUSED);
 
    // The scripts: the original's own steps past 5708, and nothing else.
    ExpectScript('Upgrade5708to5709MSSQL.sql', True);
@@ -159,7 +177,7 @@ begin
    ExpectInMessage('the refusal by database says nothing of starting the service', ORIGINAL_REFUSED_BY_DATABASE, 'start the hMailServer service', False);
    ExpectInMessage('the refusal by files says the version was not read', ORIGINAL_REFUSED_BY_FILES, 'could not be read', True);
    ExpectInMessage('the refusal by files says how a development build gets past it', ORIGINAL_REFUSED_BY_FILES, 'start the hMailServer service and run this installer again', True);
-   ExpectInMessage('the refusal by files says a database of this fork''s gets past it', ORIGINAL_REFUSED_BY_FILES, '6001 or later', True);
+   ExpectInMessage('the refusal by files does not send a database of this fork''s to the service', ORIGINAL_REFUSED_BY_FILES, '6001', False);
    ExpectInMessage('the refusal by files names the IMAP route', ORIGINAL_REFUSED_BY_FILES, 'Migration.md', True);
 
    // The record a silent setup run without /LOG leaves: written to the file named,

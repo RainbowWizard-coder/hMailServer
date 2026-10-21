@@ -2116,6 +2116,18 @@ begin
       Result := Trim(szFolder);
 end;
 
+// The settings file of the installation found before this one: the one in its
+// folder, Folder (PreviousInstallationFolder), or, for a very old installation, the
+// one in the Windows folder. '' when there is none.
+function PreviousSettingsFile(Folder: String): String;
+begin
+   Result := '';
+   if (Folder <> '') and FileExists(AddBackslash(Folder) + 'Bin\hMailServer.ini') then
+      Result := AddBackslash(Folder) + 'Bin\hMailServer.ini'
+   else if FileExists(ExpandConstant('{win}\hMailServer.ini')) then
+      Result := ExpandConstant('{win}\hMailServer.ini');
+end;
+
 // Whether the installation found before this one has a settings file, and it names
 // no database: the file in that installation's folder (PreviousInstallationFolder),
 // or, for a very old installation, the one in the Windows folder. False when no
@@ -2130,12 +2142,8 @@ var
    szFolder: String;
    szFile: String;
 begin
-   szFile := '';
    szFolder := PreviousInstallationFolder();
-   if (szFolder <> '') and FileExists(AddBackslash(szFolder) + 'Bin\hMailServer.ini') then
-      szFile := AddBackslash(szFolder) + 'Bin\hMailServer.ini'
-   else if FileExists(ExpandConstant('{win}\hMailServer.ini')) then
-      szFile := ExpandConstant('{win}\hMailServer.ini');
+   szFile := PreviousSettingsFile(szFolder);
 
    Result := (szFile <> '') and (Trim(GetIniString('Database', 'Type', '', szFile)) = '');
    if szFile = '' then
@@ -2617,6 +2625,8 @@ var
    iMajor, iMinor: Integer;
    iDatabase: Integer;
    bScripts: Boolean;
+   bForkSecret: Boolean;
+   szSettings: String;
    iKind: Integer;
    FindRec: TFindRec;
 begin
@@ -2641,12 +2651,19 @@ begin
    if IsServiceRunning('hMailServer') then
       iDatabase := ReadDatabaseVersion('before this installation, to tell the original''s 5.7 from a database this build upgrades')
    else
-      Log('The hMailServer service is not running, so the database''s version is not read; the DBScripts folder decides.');
+      Log('The hMailServer service is not running, so the database''s version is not read; the settings file and the DBScripts folder decide.');
 
    bScripts := False;
+   bForkSecret := False;
    if iDatabase <= 0 then
    begin
-      if FindFirst(AddBackslash(szFolder) + 'DBScripts\Upgrade' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + 'to*.sql', FindRec) then
+      szSettings := PreviousSettingsFile(szFolder);
+      if szSettings <> '' then
+         bForkSecret := IsForkOnlyPasswordEncryption(GetIniInt('Database', 'PasswordEncryption', 0, 0, 0, szSettings));
+      if bForkSecret then
+         Log('The settings file ' + szSettings + ' keeps the database''s password as only this fork does ([Database] PasswordEncryption ' +
+             IntToStr(FORK_PASSWORD_ENCRYPTION) + '), which the original cannot read: the database is this fork''s own, and the DBScripts folder is not asked.')
+      else if FindFirst(AddBackslash(szFolder) + 'DBScripts\Upgrade' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + 'to*.sql', FindRec) then
       begin
          try
             repeat
@@ -2662,11 +2679,10 @@ begin
       end;
    end;
 
-   iKind := OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts);
+   iKind := OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts, bForkSecret);
    Result := OriginalHMailServerMessage(iKind, szServerVersion, iDatabase, szFolder);
    if Result = '' then
-      Log('Not refused as the original''s 5.7: neither the database''s version nor, with that unread, the DBScripts folder shows a version past ' +
-          IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) + '.');
+      Log('Not refused as the original''s 5.7: neither the database''s version nor, with that unread, the settings file or the DBScripts folder shows a database this build cannot upgrade.');
 end;
 
 // The file a refusal is written to as well as the log, so that a silent setup run
