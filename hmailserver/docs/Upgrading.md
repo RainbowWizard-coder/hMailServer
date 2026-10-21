@@ -53,9 +53,23 @@ tree instead: `REQUIRED_DB_VERSION` in
 build demands, and `build\check-schema-versions.ps1` prints both numbers and
 proves the chain reaches one in exactly the other.
 
-That includes databases created by the *original* upstream project. This fork did
-not branch the schema; it extended it. The current version is a superset,
-reached by the same mechanism upstream used.
+That includes databases created by the *original* hMailServer up to schema
+`5708`: every 5.6 release's, `5601` - the version each of the original's 5.6
+branches requires - and those of its development builds of 5.7 up to `5708`. This
+fork extended the schema from there, with the same mechanism, by its own steps
+from `5708` to `6001` and on.
+
+**The original's published 5.7 builds are not on the chain.** In August 2026 the
+original went on from `5708` by steps of its own: `5709` (special-use folders),
+`5710` (the password-hashing settings) and `5711` (DMARC). Its two pre-release
+builds of 5.7.0 of August 2026, 2788 and 2843, require `5709`, and 5.7.0 build
+3013, 5.7.1 and 5.7.2 require `5711`. DBUpdater has no step from any of the
+three, and stops before it changes anything: "Upgrade path not found. No upgrade
+script is registered for database version 5711". But setup runs it after it has
+replaced the program files, and this server then refuses the database as too old.
+So do not run this fork's installer over an installation of the original's 5.7.
+A server of the original's 5.7 moves its mail to this one over IMAP instead
+([Migration.md](Migration.md), "From the original hMailServer").
 
 **How far back the chain reaches depends on your backend, and this is the one
 qualification worth knowing before you start.** The steps are registered once, for

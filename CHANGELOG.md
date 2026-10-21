@@ -492,6 +492,21 @@ with `--check`).
 
 ### Documentation
 
+- **Upgrading.md, Migration.md, README.md, SECURITY.md and the documents' index say that the original hMailServer's
+  5.7 releases are not on the upgrade chain.** They said that a database of every earlier hMailServer version, the
+  original project's included, is upgraded in place. That holds for the original up to 5.6 (schema 5601, which each
+  of its 5.6 branches requires) and for its development builds of 5.7 up to 5708, from which this fork's chain goes
+  on to 6001. In August 2026 the original's schema went on from 5708 by steps of its own, 5709, 5710 and 5711, which
+  its published 5.7 builds require: 5709 its two pre-releases of August 2026, builds 2788 and 2843, and 5711 5.7.0
+  build 3013, 5.7.1 and 5.7.2 (`REQUIRED_DB_VERSION` at each of its tags, and its DBUpdater's steps). DBUpdater has
+  no step from any of them and stops with "Upgrade path not found" before it changes anything, but setup runs it
+  after replacing the program files, and the server then refuses the database as too old. Upgrading.md's *Where you
+  can upgrade from* says so, and not to run the installer over an installation of the original's 5.7; Migration.md's
+  table and its *From the original hMailServer*, which was *From the upstream hMailServer*, give a migration of kind
+  `imap` from such a server as the route; README.md's introduction and its Technology table's Schema row say which
+  installations upgrade in place, where they said every earlier hMailServer version's; and SECURITY.md's *Supported
+  versions* says that the chain runs from every earlier version of this fork.
+
 - **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
   certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
   32-bit uninstall entry taken away first.** Step 3 had the administrator "grant the service account access" without

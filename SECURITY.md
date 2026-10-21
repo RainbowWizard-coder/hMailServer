@@ -10,7 +10,7 @@
 The 6.3 line is the one that receives security fixes. Its latest release is 6.3.7, published on 17 October
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
-keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,
+keeps the configuration and the mail, and the database upgrade chain runs from every earlier version of this fork,
 so the answer to a vulnerability in an older version is to upgrade.
 
 From 6.3.6, releases pause: no release is planned by date until the maintainers say otherwise here. A release is

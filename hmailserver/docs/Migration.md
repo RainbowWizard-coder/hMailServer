@@ -3,11 +3,11 @@ Migrating mail into hMailServer
 
 How to bring existing mailboxes into this server: from another IMAP server, from
 mbox files, from a Maildir, from Outlook's own data files (PST), and from the
-original upstream hMailServer. What each route preserves, and what it does not.
+original hMailServer. What each route preserves, and what it does not.
 
 If you are moving an *installation* of hMailServer rather than mail from somewhere
 else, this is the wrong page: [Upgrading.md](Upgrading.md) covers a release-to-release
-upgrade and the move from the upstream project, and
+upgrade and the move from the original project, and
 [MigratingDatabaseBackend.md](MigratingDatabaseBackend.md) covers a change of database.
 
 The routes at a glance
@@ -20,7 +20,8 @@ The routes at a glance
 | mbox files (Thunderbird's profile, Apple Mail export, a Unix spool) | The Import Tool, one IMAP folder per file | Every message; the date from the `Received` or `Date` header | Flags: mbox has no standard for them, and the Import Tool sets none |
 | A Maildir (Dovecot, Courier, Postfix local delivery) | The Import Tool, the folders and flags read from the tree | The Maildir++ hierarchy, every message, the flags the file names carry, the date from the headers | Custom keywords; the arrival time in the file name (the header date is used instead) |
 | Outlook data files (PST) | A migration of kind `pst`: the server reads the file itself - see *Outlook data files* below | The folders under the IPM subtree, the special folders by what the store says they are, every message rebuilt as Internet mail with its attachments, read, draft, flagged, answered and forwarded, its categories as keywords, its internal date; contacts as vCards in the address books, calendar items and tasks in the calendars, notes and journal entries as messages; ANSI files, and OSTs whose store names its folders as a PST does | Contacts without an e-mail address and distribution lists (counted), attachments by reference and OLE objects; the 4K-page layout of an OST from Outlook 2013 on, an OST caching an Exchange mailbox and a file under Windows Information Protection (refused) - a migration from the mailbox's server, or Outlook over IMAP, is the route for those |
-| The upstream hMailServer, in place | The installer, over the existing installation | Everything | Nothing - see [Upgrading.md](Upgrading.md) |
+| The original hMailServer up to 5.6, in place | The installer, over the existing installation | Everything | Nothing - see [Upgrading.md](Upgrading.md) |
+| The original hMailServer 5.7 | A migration of kind `imap` from it, with the domains and accounts made here first - see *From the original hMailServer* below | What a migration from another IMAP server keeps | The settings, rules and the rest of its configuration: setup cannot upgrade a 5.7 database |
 | Accounts in bulk | The Import Tool's text-file import | Addresses, passwords, quotas | Mail - pair it with one of the routes above |
 
 From the webmail, by the person moving
@@ -1290,12 +1291,24 @@ refuses or leaves out:
 The same works from any client that speaks IMAP, and it is also the way out of a
 mail service that offers no IMAP access but has a desktop client that does.
 
-From the upstream hMailServer
+From the original hMailServer
 -----------------------------
 
-Run this fork's installer over the existing installation. The database is upgraded
-in place, the message store is untouched, and the settings carry over.
-[Upgrading.md](Upgrading.md) has the detail, including what to back up first.
+**Up to 5.6:** run this fork's installer over the existing installation. The
+database is upgraded in place, the message store is untouched, and the settings
+carry over. [Upgrading.md](Upgrading.md) has the detail, including what to back up
+first.
+
+**From the original's 5.7 releases** (5.7.0, 5.7.1 and 5.7.2) the installer is not
+the route. Their database is at a schema version this fork's upgrade chain does not
+reach, and setup would replace the original's programs and then leave a database
+this server refuses ([Upgrading.md](Upgrading.md), "Where you can upgrade from").
+Install this fork on another machine instead, make the domains and the accounts
+there - by hand, or with *Accounts in bulk* below - and bring each mailbox's mail
+across with a migration of kind `imap` whose source is the original server, as
+*Five hundred mailboxes* above describes. The original's settings, rules and the
+rest of its configuration are made again on the new server: nothing here reads
+them from the original's database.
 
 Accounts in bulk
 ----------------
