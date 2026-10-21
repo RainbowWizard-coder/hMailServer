@@ -728,8 +728,9 @@ with `--check`).
   names, read without credentials; that `cosign verify` by hand has passed against the copy on `ghcr.io`, and `cosign
   verify-attestation` too against the copy on Docker Hub, at the same digests, while `docker compose up` and `helm
   install` from the published image are not recorded yet; and that both Artifact Hub listings are at 6.3.7 with the
-  Verified publisher label, read through its API, and say that they are the fork from the next release. The document
-  is the image's README on Artifact Hub, which reads it from `master`.
+  Verified publisher label, read through its API, and say that they are the fork from the next release; and the
+  section *Artifact Hub* gives the image's last tracking as 21 October 2026, where it gave 20 October, as that list
+  does. The document is the image's README on Artifact Hub, which reads it from `master`.
 
 - **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
   hMailServer, not the original.** The comment it gave for registering `hmailserver` called the project the one "which

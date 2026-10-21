@@ -259,8 +259,8 @@ and which reaches Artifact Hub as each item below says. Both listings are at 6.3
 and both have the label: Artifact Hub's API gives each repository as a verified
 publisher's, the chart with the versions 6.3.7 and 6.3.6 and the image with 6.3.7,
 `latest` and 6.3.6, and neither with an error at its last tracking - the chart's
-on 18 October 2026, the image's on 20 October (read on 21 October 2026). Neither
-is marked Official.
+on 18 October 2026, the image's on 21 October 2026 (read that day). Neither is
+marked Official.
 
 - **The chart.** The repository `hmailserver`, shown as hMailServer, of kind Helm
   charts, with the URL `https://updates.progressiverobot.com/helm/`, which has
