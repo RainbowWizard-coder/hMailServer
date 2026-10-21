@@ -45,7 +45,10 @@
 //     an upgrade step from 5708 to a version before 6001 (Upgrade5708to5709*.sql),
 //     which no development build up to 5708 and no release of this fork carries.
 //     The refusal then says that the files decided, and that an installation whose
-//     database is at 5708 or older is upgraded once its service runs.
+//     database is at 5708 or older, or at 6001 or later - this fork's own, which the
+//     original's 5.7 installer, run over an installation of this fork, leaves as it
+//     was, with its own scripts beside this fork's in DBScripts - is upgraded once
+//     its service runs.
 // build\check-installer-scripts.py holds the two numbers to the upgrade chain in
 // hmailserver\source\DBScripts: a step from the one to the other, and no step to
 // any version between them.
@@ -149,7 +152,9 @@ begin
    if Kind = ORIGINAL_REFUSED_BY_FILES then
       Result := Result + #13#10#13#10 +
                 'If its database is at version ' + IntToStr(ORIGINAL_LAST_SHARED_SCHEMA) +
-                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
+                ' or older - a release of the original up to 5.6, or one of its 5.7 development builds - or at ' + IntToStr(FORK_FIRST_SCHEMA) +
+                ' or later, this fork''s own, which the original''s installer leaves as it was when it is run over an installation of this fork, ' +
+                'start the hMailServer service and run this installer again: setup then reads the database''s version, and upgrades such a database.';
 end;
 
 // Writes the refusal to FileName, in UTF-8, after a line that says when and which

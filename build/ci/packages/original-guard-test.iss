@@ -159,6 +159,7 @@ begin
    ExpectInMessage('the refusal by database says nothing of starting the service', ORIGINAL_REFUSED_BY_DATABASE, 'start the hMailServer service', False);
    ExpectInMessage('the refusal by files says the version was not read', ORIGINAL_REFUSED_BY_FILES, 'could not be read', True);
    ExpectInMessage('the refusal by files says how a development build gets past it', ORIGINAL_REFUSED_BY_FILES, 'start the hMailServer service and run this installer again', True);
+   ExpectInMessage('the refusal by files says a database of this fork''s gets past it', ORIGINAL_REFUSED_BY_FILES, '6001 or later', True);
    ExpectInMessage('the refusal by files names the IMAP route', ORIGINAL_REFUSED_BY_FILES, 'Migration.md', True);
 
    // The record a silent setup run without /LOG leaves: written to the file named,

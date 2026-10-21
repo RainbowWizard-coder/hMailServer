@@ -22,8 +22,8 @@
      3. Inno Setup's compiler is found (HM_ISCC, or Inno Setup 6 installed for the
         machine), or the job stops saying what to install; with it the installer's
         decision on an installation of the original hMailServer's 5.7 is compiled
-        into a setup that installs nothing and run over its cases, and two broken
-        copies of it must fail one (original-guard-test.ps1);
+        into a setup that installs nothing and run over its cases, and three broken
+        copies of it must each fail one (original-guard-test.ps1);
      4. ARM64 only: the toolchain, checked by check-arm64-toolchain.ps1 with
         vswhere before anything is built - MSVC's ARM64 tools, ATL for ARM64 and
         the Windows SDK's ARM64 libraries in the instance that has MSBuild, and

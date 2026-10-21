@@ -101,7 +101,7 @@ the script documents.
    decision is Inno Setup Pascal, which only Inno Setup runs, so the script
    compiles `original-guard-test.iss`, a setup that installs nothing and that
    includes the same file, and runs it with `/VERYSILENT`. Its `InitializeSetup`
-   runs the decision over 55 cases - this fork's installations, the original up
+   runs the decision over 56 cases - this fork's installations, the original up
    to 5.6, the original's 5.7 development builds up to schema 5708, which are
    upgraded, and its 5.7 at 5709 to 5711, a build of it from source among them,
    which are refused - writes a line for each and returns False, so that Setup

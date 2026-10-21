@@ -79,8 +79,9 @@ refused, and `5708` or older - a release of the original up to 5.6, or one of it
 5.7 development builds - is upgraded as any other. Where the service is not
 running, or does not answer, the original's own upgrade scripts past `5708` in the
 installation's `DBScripts` folder (`Upgrade5708to5709*.sql`) decide instead, and
-the refusal then says that an installation whose database is at `5708` or older is
-upgraded once its service runs and setup is run again. The version is not held to
+the refusal then says that an installation whose database is at `5708` or older,
+or this fork's own, at `6001` or later, as the original's installer leaves it when
+it is run over this fork, is upgraded once its service runs and setup is run again. The version is not held to
 5.7, because a build of the original's 5.7 made from its source without its build
 script reports itself as 1.0.0: every 5.7 tag of the original commits that
 placeholder. The refusal says what it found and that nothing has been changed; a

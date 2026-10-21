@@ -185,15 +185,16 @@ with `--check`).
   without a password, decides - past 5708 and before 6001, this fork's first, is refused, and 5708 or older, a release
   of the original up to 5.6 or a development build of its 5.7, is upgraded as before - and where the service is not
   running or does not answer, the original's own upgrade scripts past 5708 in its `DBScripts` folder
-  (`Upgrade5708to5709*.sql`) decide, the refusal then saying that an installation whose database is at 5708 or older
-  is upgraded once its service runs. The refusal says what was found, that nothing has been changed, and that the way
+  (`Upgrade5708to5709*.sql`) decide, the refusal then saying that an installation whose database is at 5708 or older,
+  or at 6001 or later, this fork's own, as the original's installer leaves it when it is run over this fork, is
+  upgraded once its service runs. The refusal says what was found, that nothing has been changed, and that the way
   from the original's 5.7 is a migration of each mailbox over IMAP (Migration.md, "From the original hMailServer"); a
   silent setup ends with exit code 1 and writes it to its log, with `/LOG` ("Refused: ..."), and with or without one
   to `hMailServer-setup-refused.txt` in its `%TEMP%`, which a later setup that is not refused deletes, so that a
   silent install whose message box is suppressed still says why. This fork's installations (6.x) are not looked at
   past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`. Its
   self-test, `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that
-  installs nothing, runs 55 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its development
+  installs nothing, runs 56 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its development
   builds at 5700 to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from source at
   1.0.0.0, the bounds 5708, 5709, 6000 and 6001, and the refusal's file written and read back - and proves that three
   broken copies of the decision - the refusal taking in 5708, the fall-back on the scripts left out, and the version
