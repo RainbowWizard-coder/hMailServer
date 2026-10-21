@@ -521,8 +521,10 @@ with `--check`).
   can upgrade from* says so, and not to run the installer over an installation of the original's 5.7; Migration.md's
   table and its *From the original hMailServer*, which was *From the upstream hMailServer*, give a migration of kind
   `imap` from such a server as the route; README.md's introduction and its Technology table's Schema row say which
-  installations upgrade in place, where they said every earlier hMailServer version's; and SECURITY.md's *Supported
-  versions* says that the chain runs from every earlier version of this fork.
+  installations upgrade in place, where they said every earlier hMailServer version's; SECURITY.md's *Supported
+  versions* says that the chain runs from every earlier version of this fork; and the documents' index gives the
+  original up to 5.6 in its row for Upgrading.md, and in its row for Migration.md the original up to 5.6 in place
+  and its 5.7 releases by a migration of kind `imap`, where that row had the upstream hMailServer in place.
 
 - **RelocatingAnInstallation.md's move by hand runs `hMailServer.exe /ProtectFolders` on the copy, changes a
   certificate's files with Edit… rather than deleting it, and runs setup again at the new root with `/DIR`, the
