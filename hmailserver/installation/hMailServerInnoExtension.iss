@@ -2660,9 +2660,15 @@ begin
       // The settings file the installed server reads. The original's 5.7.0 build
       // 3013 and later read hMailServer.ini in ProgramData before the one in Bin,
       // and keep a new installation's there; this fork never writes that file, so
-      // a stale Bin file of this fork's beside it is not the one the server reads.
-      szSettings := ExpandConstant('{commonappdata}\hMailServer\hMailServer.ini');
-      if not FileExists(szSettings) then
+      // a stale Bin file of this fork's beside it is not the one such a server
+      // reads. Its earlier builds - 2788 and 2843, its releases up to 5.6 and its
+      // 5.7 development builds up to 5708 - read the one in Bin alone
+      // (IsBeforeProgramDataSettings), and a ProgramData file the uninstall of a
+      // later 5.7 left behind is not theirs.
+      szSettings := '';
+      if not IsBeforeProgramDataSettings(iMajor, iMinor, wRevision, wBuild) then
+         szSettings := ExpandConstant('{commonappdata}\hMailServer\hMailServer.ini');
+      if (szSettings = '') or not FileExists(szSettings) then
          szSettings := PreviousSettingsFile(szFolder);
       if szSettings <> '' then
       begin

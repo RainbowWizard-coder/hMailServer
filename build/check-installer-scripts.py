@@ -103,8 +103,9 @@ of this fork's own to a version between the bounds, the decision not included,
 its refusal not acted on, the refusal not written to its file, the refusal
 asked after a window check, the database
 read from a stopped service, the settings file's password scheme not passed to the
-decision, the settings file read in Bin alone, and the self-test not run before the installer is
-built, must all be refused.
+decision, the settings file read in Bin alone, the one in ProgramData read whatever
+the installed server's build, the original's builds 2788 and 2843 taken to read it,
+and the self-test not run before the installer is built, must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -530,13 +531,23 @@ def check_original(texts, problems):
                             'the database\'s password as only this fork does ([Database] PasswordEncryption), so an '
                             'installation of this fork that the original\'s 5.7 installer was run over is refused every '
                             'time' % EXTENSION)
-        if not re.search(r"szSettings\s*:=\s*ExpandConstant\('\{commonappdata\}\\hMailServer\\hMailServer\.ini'\);\s*"
-                         r"if\s+not\s+FileExists\(szSettings\)\s+then\s+szSettings\s*:=\s*PreviousSettingsFile\(szFolder\);",
+        if not re.search(r"szSettings\s*:=\s*'';\s*"
+                         r"if\s+not\s+IsBeforeProgramDataSettings\(iMajor,\s*iMinor,\s*wRevision,\s*wBuild\)\s+then\s+"
+                         r"szSettings\s*:=\s*ExpandConstant\('\{commonappdata\}\\hMailServer\\hMailServer\.ini'\);\s*"
+                         r"if\s+\(szSettings\s*=\s*''\)\s+or\s+not\s+FileExists\(szSettings\)\s+then\s+"
+                         r"szSettings\s*:=\s*PreviousSettingsFile\(szFolder\);",
                          refusal):
-            problems.append('%s: OriginalHMailServerRefusal does not read the settings file in ProgramData '
+            problems.append('%s: OriginalHMailServerRefusal does not read the settings file the installed server reads: '
+                            'for the original\'s 5.7.0 build 3013 and later the one in ProgramData '
                             '({commonappdata}\\hMailServer\\hMailServer.ini) before the earlier installation\'s own '
-                            '(PreviousSettingsFile): the original\'s 5.7.0 build 3013 and later read that one first, so a '
-                            'stale settings file of this fork\'s in Bin would let a working original 5.7 through' % EXTENSION)
+                            '(PreviousSettingsFile), and for its earlier builds (IsBeforeProgramDataSettings) the one in '
+                            'Bin alone: a stale settings file of this fork\'s in Bin would let a working original 5.7 '
+                            'through, or a ProgramData file left by a later 5.7 would refuse this fork\'s own database '
+                            'under the original\'s builds 2788 and 2843' % EXTENSION)
+        before = pascal_routine(decision, 'IsBeforeProgramDataSettings') or ''
+        if not re.search(r'\(ServerMinor\s*=\s*7\)\s+and\s+\(ServerRevision\s*=\s*0\)\s+and\s+\(ServerBuild\s*<\s*3013\)', before):
+            problems.append('%s: IsBeforeProgramDataSettings does not take the original\'s 5.7.0 builds before 3013, '
+                            'which read their settings in Bin alone' % ORIGINAL)
     setup =pascal_routine(extension, 'InitializeSetup') or ''
     call = re.search(r"szRefusal\s*:=\s*OriginalHMailServerRefusal\(\);\s*if\s+szRefusal\s*<>\s*''\s*then\s*begin(.*?)\bend;",
                      setup, re.S)
@@ -678,9 +689,20 @@ def negative_controls(texts):
          altered(texts, EXTENSION, 'OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts, bForkSecret)',
                  'OriginalHMailServerKind(iMajor, iMinor, iDatabase, bScripts, False)')),
         ('the settings file read in Bin alone',
-         altered(texts, EXTENSION, "      szSettings := ExpandConstant('{commonappdata}\\hMailServer\\hMailServer.ini');\n"
-                 "      if not FileExists(szSettings) then\n         szSettings := PreviousSettingsFile(szFolder);\n",
+         altered(texts, EXTENSION, "      szSettings := '';\n"
+                 "      if not IsBeforeProgramDataSettings(iMajor, iMinor, wRevision, wBuild) then\n"
+                 "         szSettings := ExpandConstant('{commonappdata}\\hMailServer\\hMailServer.ini');\n"
+                 "      if (szSettings = '') or not FileExists(szSettings) then\n"
+                 "         szSettings := PreviousSettingsFile(szFolder);\n",
                  "      szSettings := PreviousSettingsFile(szFolder);\n")),
+        ('the settings file in ProgramData read whatever the installed server\'s build',
+         altered(texts, EXTENSION, "      szSettings := '';\n"
+                 "      if not IsBeforeProgramDataSettings(iMajor, iMinor, wRevision, wBuild) then\n"
+                 "         szSettings := ExpandConstant('{commonappdata}\\hMailServer\\hMailServer.ini');\n",
+                 "      szSettings := '';\n"
+                 "         szSettings := ExpandConstant('{commonappdata}\\hMailServer\\hMailServer.ini');\n")),
+        ('the original\'s builds 2788 and 2843 taken to read the settings file in ProgramData',
+         altered(texts, ORIGINAL, '(ServerBuild < 3013)', '(ServerBuild < 2788)')),
         ('the self-test not run before the installer is built',
          altered(texts, PACKAGES, 'original-guard-test.ps1 -Iscc', 'original-guard-test.ps1 -Skip')),
         ('the password on DBUpdater\'s command line',

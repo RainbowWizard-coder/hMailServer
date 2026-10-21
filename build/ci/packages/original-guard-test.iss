@@ -18,7 +18,8 @@
 ; 1.0.0.0, which are refused - by the database's version when the service answers
 ; it, and by the original's own upgrade scripts when it does not, unless the
 ; settings file keeps the database's password as only this fork does, as it is left
-; when the original's 5.7 installer is run over an installation of this fork.
+; when the original's 5.7 installer is run over an installation of this fork; and
+; which of the original's builds read that settings file in Bin alone.
 
 [Setup]
 AppName=hMailServer installer self-test
@@ -150,6 +151,20 @@ begin
    Report(IsForkOnlyPasswordEncryption(6), 'PasswordEncryption 6 is this fork''s alone');
    Report(not IsForkOnlyPasswordEncryption(1), 'PasswordEncryption 1, the original''s Blowfish, is not');
    Report(not IsForkOnlyPasswordEncryption(0), 'PasswordEncryption 0, or none, is not');
+
+   // Which settings file the installed server reads: the original's builds before
+   // 5.7.0 build 3013 read the one in Bin alone, so a ProgramData file the
+   // uninstall of a later 5.7 left behind is not theirs; from 3013 on, and for a
+   // build from source, the one in ProgramData comes first.
+   Report(IsBeforeProgramDataSettings(5, 7, 0, 2788), 'the original 5.7.0 build 2788 reads its settings in Bin alone');
+   Report(IsBeforeProgramDataSettings(5, 7, 0, 2843), 'the original 5.7.0 build 2843 reads its settings in Bin alone');
+   Report(IsBeforeProgramDataSettings(5, 6, 8, 2574), 'the original 5.6.8 reads its settings in Bin alone');
+   Report(IsBeforeProgramDataSettings(4, 4, 4, 0), 'the original 4.4 reads its settings in Bin alone');
+   Report(not IsBeforeProgramDataSettings(5, 7, 0, 3013), 'the original 5.7.0 build 3013 reads the one in ProgramData first');
+   Report(not IsBeforeProgramDataSettings(5, 7, 1, 3116), 'the original 5.7.1 build 3116 reads the one in ProgramData first');
+   Report(not IsBeforeProgramDataSettings(5, 7, 2, 3124), 'the original 5.7.2 build 3124 reads the one in ProgramData first');
+   Report(not IsBeforeProgramDataSettings(1, 0, 0, 0), 'a build from source (1.0.0.0) is not taken for an early build');
+   Report(not IsBeforeProgramDataSettings(5, 8, 0, 0), 'a later original 5.8 is not taken for an early build');
 
    // No hMailServer.exe, or one whose version could not be read.
    ExpectKind('no hMailServer.exe, a database at 5711', -1, -1, 5711, True, False, ORIGINAL_NOT_REFUSED);

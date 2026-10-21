@@ -46,15 +46,19 @@
 //     past ORIGINAL_LAST_SHARED_SCHEMA and before FORK_FIRST_SCHEMA is refused, and
 //     anything else is not - which is what upgrades such a development build;
 //   * only where that version cannot be read - the service is not running, or does
-//     not answer - first the settings file the installed server reads: the one in
-//     ProgramData, {commonappdata}\hMailServer\hMailServer.ini, which the
-//     original's 5.7.0 build 3013 and later read before the one in Bin and keep a
-//     new installation's in, and which this fork never writes; where there is
-//     none, the earlier installation's own, in Bin (for a very old one, in the
-//     Windows folder). So a settings file of this fork's left in Bin beside the
-//     original's - this fork's installer of 6.3.7 or earlier, run over such a new
-//     installation, writes one there, and the original's installer run again
-//     leaves it - does not decide for a server that reads the other. A [Database]
+//     not answer - first the settings file the installed server reads: for the
+//     original's 5.7.0 build 3013 and later the one in ProgramData,
+//     {commonappdata}\hMailServer\hMailServer.ini, when it exists - they read it
+//     before the one in Bin and keep a new installation's in it, and this fork
+//     never writes it - and otherwise, and for its earlier builds, which read the
+//     one in Bin alone (IsBeforeProgramDataSettings: 2788, 2843, its releases up
+//     to 5.6 and its 5.7 development builds), the earlier installation's own, in
+//     Bin (for a very old one, in the Windows folder). So a settings file of this
+//     fork's left in Bin beside the original's - this fork's installer of 6.3.7 or
+//     earlier, run over such a new installation, writes one there, and the
+//     original's installer run again leaves it - does not decide for a server
+//     that reads the other, and a ProgramData file that the original's uninstaller
+//     left behind does not decide for a build that never reads it. A [Database]
 //     PasswordEncryption of 6, the database's password kept as a DPAPI envelope, is
 //     this fork's alone. This fork writes it, from 6.2.0 on and while
 //     ProtectStoredSecretsWithDPAPI is on, its default, whenever its database setup
@@ -74,8 +78,9 @@
 //     The refusal then says that the files decided, and that an installation whose
 //     database is at 5708 or older, or is this fork's own at 6001 or later, is
 //     upgraded once its service runs and setup is run again. This fork's own
-//     reaches the refusal only where its settings file keeps the password as the
-//     original can read it (PasswordEncryption 0 or 1: an installation upgraded
+//     reaches the refusal only where the settings file the installed server reads
+//     keeps the password as the original can read it (PasswordEncryption 0 or 1,
+//     as this fork's own settings file keeps it for an installation upgraded
 //     from the original, one set up before 6.2.0, or one with
 //     ProtectStoredSecretsWithDPAPI off); the original's service then connects,
 //     refuses to start its servers on a database too new for it (HM5011), and
@@ -145,6 +150,16 @@ end;
 function IsForkOnlyPasswordEncryption(Value: Integer): Boolean;
 begin
    Result := Value = FORK_PASSWORD_ENCRYPTION;
+end;
+
+// Whether the installed hMailServer.exe is one of the original's builds before
+// 5.7.0 build 3013, which read hMailServer.ini in Bin (or, very old, in the Windows
+// folder) alone: its ProgramData layout came after build 2843. 1.0.0.0, a build
+// from source, is not, nor is a version that could not be read (-1).
+function IsBeforeProgramDataSettings(ServerMajor, ServerMinor, ServerRevision, ServerBuild: Integer): Boolean;
+begin
+   Result := ((ServerMajor >= 2) and (ServerMajor < 5)) or
+             ((ServerMajor = 5) and ((ServerMinor < 7) or ((ServerMinor = 7) and (ServerRevision = 0) and (ServerBuild < 3013))));
 end;
 
 // The decision. ServerMajor and ServerMinor: the installed hMailServer.exe's

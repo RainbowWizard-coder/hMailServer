@@ -84,10 +84,14 @@ the database's version: a version past `5708` and before `6001`, this fork's fir
 after it, is refused, and `5708` or older - a release of the original up to 5.6,
 or one of its 5.7 development builds - is upgraded as any other. Where the service
 is not running, or does not answer, the settings file the installed server reads
-is read first: `C:\ProgramData\hMailServer\hMailServer.ini`, where the original's
-5.7.0 build 3013 and later keep a new installation's and which they read before
-the one in `Bin`, and which this fork never writes; where there is none, the
-`hMailServer.ini` in the installation's `Bin` folder. A `[Database]`
+is read first: for the original's 5.7.0 build 3013 and later,
+`C:\ProgramData\hMailServer\hMailServer.ini` when it exists - they keep a new
+installation's there and read it before the one in `Bin`, and this fork never
+writes it - and otherwise, and for the original's earlier builds (2788, 2843, its
+releases up to 5.6 and its 5.7 development builds), which read the one in `Bin`
+alone, the `hMailServer.ini` in the installation's `Bin` folder. So a file in
+ProgramData that the original's uninstaller left behind does not decide for a
+build that never reads it. A `[Database]`
 `PasswordEncryption` of `6`, the database's password kept with DPAPI, is this
 fork's alone. This fork writes it, from 6.2.0 on and unless
 `ProtectStoredSecretsWithDPAPI` is off, whenever its database setup makes a
@@ -102,8 +106,9 @@ database. Otherwise the original's own upgrade scripts past `5708` in the
 installation's `DBScripts` folder (`Upgrade5708to5709*.sql`) decide, and the
 refusal then says that an installation whose database is at `5708` or older, or is
 this fork's own at `6001` or later, is upgraded once its service runs and setup is
-run again. This fork's own reaches that refusal only where its settings file keeps
-the password as the original can read it - `PasswordEncryption` `1` (or `0`): an
+run again. This fork's own reaches that refusal only where the settings file the
+installed server reads keeps the password as the original can read it -
+`PasswordEncryption` `1` (or `0`), as this fork's own keeps it for an
 installation upgraded from the original, one set up before 6.2.0, or one with
 `ProtectStoredSecretsWithDPAPI` off - and the original's service, started, then
 connects, does not start its servers on a database too new for it, and still

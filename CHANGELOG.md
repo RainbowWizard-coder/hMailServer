@@ -187,9 +187,12 @@ with `--check`).
   version, which the running service answers without a password, decides - past 5708 and before 6001, this fork's
   first, is refused, and 5708 or older, a release of the original up to 5.6 or a development build of its 5.7, is
   upgraded as before - and where the service is not running or does not answer, the settings file the installed server
-  reads is read first - `C:\ProgramData\hMailServer\hMailServer.ini`, which the original's 5.7.0 build 3013 and later
-  read before the one in `Bin` and keep a new installation's in, and which this fork never writes, or where there is
-  none the `hMailServer.ini` in the installation's `Bin` folder: a `[Database]` `PasswordEncryption` of 6, the
+  reads is read first - for the original's 5.7.0 build 3013 and later `C:\ProgramData\hMailServer\hMailServer.ini`
+  when it exists, which they read before the one in `Bin` and keep a new installation's in, and which this fork never
+  writes, and otherwise, and for the original's earlier builds (2788, 2843, its releases up to 5.6 and its 5.7
+  development builds), which read the one in `Bin` alone, the `hMailServer.ini` in the installation's `Bin` folder, so
+  that a file in ProgramData left behind by the original's uninstaller does not decide for a build that never reads
+  it: a `[Database]` `PasswordEncryption` of 6, the
   database's password kept with DPAPI, which this fork writes by default from 6.2.0 on and the original neither writes
   nor reads, makes the database this fork's own, as the original's 5.7 installer leaves it when it is run over an
   installation of this fork, and it is not refused, the original's service being unable to decrypt that password and
@@ -197,9 +200,9 @@ with `--check`).
   or later, which is not refused either); otherwise the original's own upgrade scripts past 5708 in its `DBScripts`
   folder (`Upgrade5708to5709*.sql`) decide, the refusal then saying that an installation whose database is at 5708 or
   older, or is this fork's own at 6001 or later, is upgraded once its service runs and setup is run again - this
-  fork's own reaches that refusal only where its settings file keeps `PasswordEncryption` 1 (or 0), the original's,
-  as an installation upgraded from the original, one set up before 6.2.0 or one with `ProtectStoredSecretsWithDPAPI`
-  off does, and the original's service, started, then connects and answers the version, which is not refused. The
+  fork's own reaches that refusal only where the settings file the installed server reads keeps `PasswordEncryption`
+  1 (or 0), the original's, as this fork's own does for an installation upgraded from the original, one set up before
+  6.2.0 or one with `ProtectStoredSecretsWithDPAPI` off, and the original's service, started, then connects and answers the version, which is not refused. The
   refusal says what was found, that nothing has been changed, and that the way from the original's 5.7 is a migration
   of each mailbox over IMAP (Migration.md, "From the original hMailServer"); a silent setup ends with exit code 1 and
   writes it to its log, with `/LOG` ("Refused: ..."), and with or without one to `hMailServer-setup-refused.txt` in
@@ -207,16 +210,18 @@ with `--check`).
   suppressed still says why. This fork's installations (6.x) are not looked at past their `hMailServer.exe`'s version.
   The decision is `hmailserver/installation/OriginalHMailServer.iss`. Its self-test,
   `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that installs
-  nothing, runs 64 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its development builds
+  nothing, runs 73 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its development builds
   at 5700 to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from source at 1.0.0.0,
-  the original's 5.7 programs over a database of this fork's, the bounds 5708, 5709, 6000 and 6001, and the refusal's
-  file written and read back - and proves that four broken copies of the decision - the refusal taking in 5708, the
-  fall-back on the scripts left out, the version gate taking in this fork's 6.x, and the test of this fork's own
-  password left out - each fail a case; the Windows package jobs run it before they build the installer, and stop with
-  exit code 8 when it fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py` holds the two
-  bounds to the upgrade chain in `hmailserver/source/DBScripts`, the refusal to its place and its file, and the
-  password scheme of the settings file the installed server reads, the one in ProgramData before the one in `Bin`,
-  passed to the decision, with ten negative controls more.
+  the original's 5.7 programs over a database of this fork's, the bounds 5708, 5709, 6000 and 6001, which of the
+  original's builds read their settings in `Bin` alone, and the refusal's file written and read back - and proves
+  that five broken copies of the decision - the refusal taking in 5708, the fall-back on the scripts left out, the
+  version gate taking in this fork's 6.x, the test of this fork's own password left out, and the builds 2788 and 2843
+  taken to read the settings file in ProgramData - each fail a case; the Windows package jobs run it before they
+  build the installer, and stop with exit code 8 when it fails, or 3 when it cannot be compiled or run.
+  `build/check-installer-scripts.py` holds the two bounds to the upgrade chain in `hmailserver/source/DBScripts`, the
+  refusal to its place and its file, and the password scheme of the settings file the installed server reads - for
+  the original's 5.7.0 build 3013 and later the one in ProgramData when it exists, for its earlier builds the one in
+  `Bin` - passed to the decision, with twelve negative controls more.
 
 ### Downloads and the release
 
@@ -1194,8 +1199,9 @@ with `--check`).
   hMailServer's 5.7 before it changes anything, from the release after 6.3.7, and that the installers of 6.3.7 and
   earlier do not look and must not be run over one,** where they said only not to run it: Upgrading.md's "Where you
   can upgrade from" says what setup reads - the earlier installation's `hMailServer.exe`'s version, then the
-  database's version through the running service, or with that unread the settings file the installed server reads,
-  the one in ProgramData before the one in `Bin`, whose `PasswordEncryption` of 6 is this fork's alone, and then the
+  database's version through the running service, or with that unread the settings file the installed server reads -
+  for the original's 5.7.0 build 3013 and later the one in ProgramData when it exists, for its earlier builds the one
+  in `Bin` - whose `PasswordEncryption` of 6 is this fork's alone, and then the
   original's own scripts past 5708 in its `DBScripts` folder - what it refuses and what it upgrades as before, and that a silent setup ends with exit code 1
   and a log line that begins "Refused:". PackagesWindows.md's step 3 of the Windows package jobs says that they run
   the decision's self-test before they build the installer, and ContinuousIntegration.md says how the installer smoke
