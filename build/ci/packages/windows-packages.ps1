@@ -187,7 +187,7 @@ $isccId = "{0}, {1:yyyy-MM-dd}, sha256 {2}" -f $iscc, $isccItem.LastWriteTimeUtc
 
 # The installer's decision on an installation of the original hMailServer's 5.7,
 # compiled with this ISCC into a setup that installs nothing and run, case by case,
-# with two broken copies of it that must be caught (original-guard-test.ps1).
+# with three broken copies of it that must be caught (original-guard-test.ps1).
 "--- the decision on the original hMailServer's 5.7 (original-guard-test.ps1)"
 & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\packages\original-guard-test.ps1 -Iscc $iscc
 if ($LASTEXITCODE -eq 1) { Stop-Packages 8 "the installer's decision on the original hMailServer's 5.7 failed its self-test (above: the cases)" }

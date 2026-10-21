@@ -89,6 +89,9 @@ begin
    ExpectKind('this fork 6.0, database unread', 6, 0, -1, False, ORIGINAL_NOT_REFUSED);
    ExpectKind('this fork 6.3, database unread, the original''s scripts left in DBScripts', 6, 3, -1, True, ORIGINAL_NOT_REFUSED);
    ExpectKind('this fork 6.3, a database at 5711', 6, 3, 5711, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.7, a database at 5711, the original''s scripts left in DBScripts', 6, 7, 5711, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 6.9, database unread, the original''s scripts left in DBScripts', 6, 9, -1, True, ORIGINAL_NOT_REFUSED);
+   ExpectKind('this fork 7.0, database unread, the original''s scripts left in DBScripts', 7, 0, -1, True, ORIGINAL_NOT_REFUSED);
 
    // The original up to 5.6, upgraded in place. Its programs are asked as the 5.7's
    // are, and the two tests take neither its databases nor its DBScripts folders;

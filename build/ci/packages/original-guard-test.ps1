@@ -13,17 +13,18 @@
    and reads the file. Setup must end with exit code 1, Inno Setup's for a setup
    that did not initialise, and every case must pass.
 
-   Then it proves that the cases catch a broken decision: two altered copies of
+   Then it proves that the cases catch a broken decision: three altered copies of
    OriginalHMailServer.iss - the refusal taking in 5708, the last version the two
-   projects share, and the fall-back on the original's scripts left out - are each
-   compiled and run the same way, and each must fail a case.
+   projects share, the fall-back on the original's scripts left out, and the
+   version gate taking in this fork's own 6.x - are each compiled and run the same
+   way, and each must fail a case.
 
    Nothing is installed, and nothing outside -WorkDir (a new folder under the
    temporary folder by default, removed afterwards) is written. The
    windows-packages jobs run it after they find Inno Setup and before they build
    the installer (windows-packages.ps1, step 3).
 
-   Exit codes: 0 every case passed and both altered copies were caught; 1 a case
+   Exit codes: 0 every case passed and every altered copy was caught; 1 a case
    failed, or an altered copy was not caught; 2 it could not be compiled or run.
 
    Usage:
@@ -102,6 +103,7 @@ function Test-Guard {
    $controls = [ordered]@{
       'the refusal taking in 5708' = @('(Version > ORIGINAL_LAST_SHARED_SCHEMA)', '(Version >= ORIGINAL_LAST_SHARED_SCHEMA)')
       'the fall-back on the original''s scripts left out' = @('else if OriginalScripts then', 'else if False then')
+      'the version gate taking in this fork''s 6.x' = @('(ServerMajor < 6)', '(ServerMajor < 7)')
    }
    $status = 0
    $index = 0
@@ -141,7 +143,7 @@ try {
    if ($ownWorkDir) { Remove-Item -LiteralPath $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-if ($status -eq 0) { "ORIGINAL GUARD PASSED: every case, and both altered copies caught" }
+if ($status -eq 0) { "ORIGINAL GUARD PASSED: every case, and every altered copy caught" }
 elseif ($status -eq 1) { "ORIGINAL GUARD FAILED" }
 else { "ORIGINAL GUARD NOT RUN: it could not be compiled or run" }
 exit $status

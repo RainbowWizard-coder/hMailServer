@@ -191,11 +191,12 @@ with `--check`).
   silent setup ends with exit code 1 and writes it to its log ("Refused: ..."). This fork's installations (6.x) are not
   looked at past their `hMailServer.exe`'s version. The decision is `hmailserver/installation/OriginalHMailServer.iss`.
   Its self-test, `build/ci/packages/original-guard-test.ps1`, compiles it with the installer's ISCC into a setup that
-  installs nothing, runs 50 cases - this fork's installations, the original up to 5.6, its development builds at 5700
-  to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from source at 1.0.0.0, and the
-  bounds 5708, 5709, 6000 and 6001 - and proves
-  that two broken copies of the decision fail a case; the Windows package jobs run it before they build the installer,
-  and stop with exit code 8 when it fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py`
+  installs nothing, runs 53 cases - this fork's installations from 6.0 to 7.0, the original up to 5.6, its
+  development builds at 5700 to 5708, its 5.7 at 5709 to 5711 by the database and by the scripts, a build of it from
+  source at 1.0.0.0, and the bounds 5708, 5709, 6000 and 6001 - and proves that three broken copies of the decision -
+  the refusal taking in 5708, the fall-back on the scripts left out, and the version gate taking in this fork's 6.x -
+  each fail a case; the Windows package jobs run it before they build the installer, and stop with exit code 8 when it
+  fails, or 3 when it cannot be compiled or run. `build/check-installer-scripts.py`
   holds the two bounds to the upgrade chain in `hmailserver/source/DBScripts` and the refusal to its place, with seven
   negative controls more.
 
