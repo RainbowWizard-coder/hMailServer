@@ -2566,6 +2566,7 @@ def check(texts, chain, feed):
             problems.append("build/ci/container-image-deb.sh line %d sends or names a credential, over a TLS its wget does not "
                             "check: %s" % (number, line.strip()))
     problems += image_platform_problems(texts, jobs, image_jobs)
+    problems += image_start_database_problems(texts, image_jobs)
     problems += artifacthub_problems(texts, merged, image_jobs)
     found, said = image_tag_problems(texts)
     problems += found
@@ -5322,6 +5323,78 @@ def artifacthub_problems(texts, jobs, image_jobs):
     return problems
 
 
+def service_entries(block):
+    """The services of a job's block, each as (name, the entry's text): the entries of
+    its services: list, as the start jobs write them, one "    - name: " line each."""
+    found = re.search(r"^  services:\s*\n((?:    [^\n]*\n|[ \t]*\n)*)", block + "\n", re.MULTILINE)
+    if not found:
+        return []
+    entries = re.split(r"^(?=    - name: )", found.group(1), flags=re.MULTILINE)
+    return [(re.match(r"    - name: (\S+)", entry).group(1), entry) for entry in entries if entry.startswith("    - name: ")]
+
+
+def image_start_database_problems(texts, image_jobs):
+    """The image reaches both databases it is said to: the Dockerfile installs the MariaDB
+    client the server opens with dlopen (libmariadb.so.3), which the .deb only suggests,
+    and loads it in the build; and each start job starts the image twice, as mail beside
+    PostgreSQL (db) and as mail-mariadb beside MariaDB (mariadb), each told its own
+    database's type and address in its own service's variables and each with the test
+    script's START_COMMAND - the arm64 job's both as services of the platform linux/arm64.
+    6.3.7's image carried libpq alone and its start test ran beside PostgreSQL alone, so a
+    container told HM_DB_TYPE=MySQL could not open its database and nothing said so."""
+    problems = []
+    dockerfile = texts["dockerfile"]
+    install = re.search(r"apt-get install -y --no-install-recommends \\\n((?:[^\n]*\\\n)*?)[^\n]*&& rm -rf", dockerfile)
+    if not install or not re.search(r"(^|\s)libmariadb3(\s|\\|$)", install.group(1)):
+        problems.append("the Dockerfile does not install libmariadb3, the MariaDB client the server opens with dlopen for "
+                        "HM_DB_TYPE=MySQL: the .deb only suggests it, and --no-install-recommends leaves it out")
+    if "\n && python3 -c 'import ctypes; ctypes.CDLL(\"libmariadb.so.3\")' \\\n" not in dockerfile:
+        problems.append("the Dockerfile's build does not load libmariadb.so.3 as the server does, so an image without "
+                        "the MariaDB client would be built")
+    command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
+    wanted_command = '      command: ["bash", "-c", "%s"]' % command.group(1) if command else None
+    start = image_jobs.get("container-image-start", "")
+    if start:
+        for key in ("HM_DB_TYPE", "HM_DB_HOST"):
+            if re.search(r"^    %s:" % key, start, re.MULTILINE):
+                problems.append("container-image-start sets %s in the job's own variables, which reach every service: "
+                                "each image's database is its own service's" % key)
+    for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
+                                  ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
+        block = image_jobs.get(name, "")
+        if not block:
+            continue
+        services = service_entries(block)
+        aliases = {}
+        for service, entry in services:
+            alias = re.search(r"^      alias: (\S+)\s*$", entry, re.MULTILINE)
+            aliases.setdefault(alias.group(1) if alias else "", []).append((service, entry))
+        for alias, prefix, what in (("db", "postgres:", "PostgreSQL"), ("mariadb", "mariadb:", "MariaDB")):
+            held = aliases.get(alias, [])
+            if len(held) != 1 or not held[0][0].startswith(prefix) or "@sha256:" not in held[0][0]:
+                problems.append("%s has no %s service, by digest, as %s: the image is said to keep its data in "
+                                "PostgreSQL or MariaDB, and is started beside each" % (name, what, alias))
+        mine = [(service, entry) for service, entry in services if service == image]
+        if sorted(a for a, held in aliases.items() for s, _ in held if s == image) != ["mail", "mail-mariadb"]:
+            problems.append("%s does not start %s exactly twice, as mail and as mail-mariadb: %s"
+                            % (name, image, ", ".join(sorted(a for a, held in aliases.items() for s, _ in held if s == image)) or "none"))
+        for service, entry in mine:
+            alias = re.search(r"^      alias: (\S+)\s*$", entry, re.MULTILINE)
+            alias = alias.group(1) if alias else ""
+            want = {"mail": ("PostgreSQL", "db"), "mail-mariadb": ("MySQL", "mariadb")}.get(alias)
+            if want and not (re.search(r"^      variables:\s*\n(?:        [^\n]*\n)*?        HM_DB_TYPE: %s\s*$" % want[0], entry, re.MULTILINE)
+                             and re.search(r"^      variables:\s*\n(?:        [^\n]*\n)*?        HM_DB_HOST: %s\s*$" % want[1], entry, re.MULTILINE)):
+                problems.append("%s's service %s is not told HM_DB_TYPE %s and HM_DB_HOST %s in its own variables"
+                                % (name, alias, want[0], want[1]))
+            if wanted_command and (wanted_command + "\n") not in entry + "\n":
+                problems.append("%s's service %s does not run build/ci/container-image-start-test.sh's START_COMMAND"
+                                % (name, alias))
+            if platform and not re.search(r"^      docker:\s*\n        platform: %s\s*$" % re.escape(platform), entry, re.MULTILINE):
+                problems.append("%s's service %s is not of the platform %s: the host's own image would be started"
+                                % (name, alias, platform))
+    return problems
+
+
 def image_platform_problems(texts, jobs, image_jobs):
     """Every place a platform of the container image (IMAGE_PLATFORMS) could be left
     out: the Dockerfile, the build script, the branch's jobs, the tag's build, push,
@@ -6729,6 +6802,27 @@ def self_test(chain, feed):
            "container-image-start-arm64 does not start the linux/arm64 image")
     broken("the arm64 start on the index", "image", "    - name: $HM_IMAGE_ARM64\n", "    - name: $HM_IMAGE\n",
            "container-image-start-arm64 does not start the linux/arm64 image")
+    # The image beside MariaDB as well as PostgreSQL, with the client the server opens.
+    broken("the image without the MariaDB client", "dockerfile", " python3 libmariadb3 \\\n", " python3 \\\n",
+           "the Dockerfile does not install libmariadb3")
+    broken("the MariaDB client not loaded in the build", "dockerfile", "ctypes.CDLL(\"libmariadb.so.3\")", "ctypes.CDLL(\"libc.so.6\")",
+           "does not load libmariadb.so.3")
+    broken("no MariaDB beside the image", "image", "      alias: mariadb\n", "      alias: maria\n",
+           "container-image-start has no MariaDB service")
+    broken("the image beside MariaDB told PostgreSQL", "image", "        HM_DB_TYPE: MySQL\n", "        HM_DB_TYPE: PostgreSQL\n",
+           "service mail-mariadb is not told HM_DB_TYPE MySQL")
+    broken("the image started once", "image", "      alias: mail-mariadb\n", "      alias: mail2\n",
+           "does not start $HM_IMAGE exactly twice")
+    broken("the MariaDB start's command changed", "image",
+           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"hmailserver --config",
+           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"true; hmailserver --config",
+           "service mail-mariadb does not run build/ci/container-image-start-test.sh's START_COMMAND")
+    broken("the database type set for every service", "image", "    HM_DB_NAME: hmailserver\n",
+           "    HM_DB_TYPE: PostgreSQL\n    HM_DB_NAME: hmailserver\n", "sets HM_DB_TYPE in the job's own variables")
+    broken("the arm64 start beside MariaDB as the host's platform", "image",
+           "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
+           "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n",
+           "container-image-start-arm64's service mail-mariadb is not of the platform linux/arm64")
     # :latest and :<major>.<minor> only forward.
     broken(":latest moved back to an older version", "image-push", '      older) keep "$t"', '      older) move "$t"',
            "never moved back to an older version")

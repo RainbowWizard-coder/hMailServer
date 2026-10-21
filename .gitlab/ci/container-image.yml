@@ -73,11 +73,12 @@
 #                         Ultimate;
 #   container-image-start, container-image-start-arm64
 #                         linix: each platform's pushed image, by its digest, started
-#                         as a service beside PostgreSQL through its own entrypoint -
-#                         the arm64 one under qemu-user, as the service's
-#                         docker:platform - and asked whether port 25 answers SMTP and
-#                         the REST API answers over TLS with the release's version
-#                         (build/ci/container-image-start-test.sh).
+#                         twice as a service through its own entrypoint, once beside
+#                         PostgreSQL and once beside MariaDB - the arm64 one under
+#                         qemu-user, as the services' docker:platform - and each asked
+#                         whether port 25 answers SMTP, the REST API answers over TLS
+#                         with the release's version, and its database holds the
+#                         server's schema (build/ci/container-image-start-test.sh).
 #
 # kaniko builds one platform a run and cannot join two images under one index, so
 # each platform has its own build job, and regctl - Docker Hub's regclient/regctl,
@@ -424,18 +425,27 @@ container_scanning_arm64:
   variables:
     HM_SCAN_ARCH: arm64
 
-# The pushed image started as a user starts it, beside PostgreSQL, and asked for SMTP
-# and the REST API: services on one network of the job's own (FF_NETWORK_PER_BUILD), so
-# that the image reaches the database by its alias; the image by the index's digest
-# container-image's dotenv report names (HM_IMAGE), which the runner resolves to the
-# linux/amd64 image, linix's own platform, through its own entrypoint, with the command
-# the test script names (START_COMMAND there; build/check-release-chain.py holds the
-# two to each other), which secures the new installation and starts the server. The
-# job's variables reach both services: PostgreSQL takes POSTGRES_*, the image HM_*,
-# and HM_DB_WAIT_SECONDS holds the image's entrypoint until the database answers, since
-# both start at once. CI_DEBUG_SERVICES puts both services' output in the job's log;
-# neither prints a password. A failure here comes after the push: the job says which
-# tags to delete (hmailserver/docs/ContainerImage.md, "When a job fails").
+# The pushed image started as a user starts it, twice - beside PostgreSQL as mail and
+# beside MariaDB as mail-mariadb - and each asked for SMTP and the REST API, and its
+# database read for the schema the server laid out in it: services on one network of
+# the job's own (FF_NETWORK_PER_BUILD), so that each image reaches its database by its
+# alias; the image by the index's digest container-image's dotenv report names
+# (HM_IMAGE), which the runner resolves to the linux/amd64 image, linix's own platform,
+# through its own entrypoint, with the command the test script names (START_COMMAND
+# there; build/check-release-chain.py holds the two to each other), which secures the
+# new installation and starts the server. The job's variables reach every service:
+# PostgreSQL takes POSTGRES_*, MariaDB MARIADB_*, the image HM_*, each image's
+# database type and address its own service's variables, and HM_DB_WAIT_SECONDS holds
+# the image's entrypoint until the database answers, since all four start at once.
+# The MariaDB is the one linux-db-upgrade-mysql runs (.gitlab-ci.yml), by digest, with
+# the same user, database and throwaway password as PostgreSQL's, and a root password
+# of its own making that nothing reads. Beside MariaDB the server reaches it through
+# MariaDB Connector/C, which the image carries from the release after 6.3.7
+# (packaging/docker/Dockerfile): 6.3.7's image has no MariaDB client, and its server
+# stops there. The test reads each database with the job image's own psql and
+# mariadb. CI_DEBUG_SERVICES puts the services' output in the job's log; none prints a
+# password. A failure here comes after the push: the job says which tags to delete
+# (hmailserver/docs/ContainerImage.md, "When a job fails").
 container-image-start:
   stage: release
   tags: [linix]
@@ -454,8 +464,10 @@ container-image-start:
     POSTGRES_USER: hmailserver
     POSTGRES_DB: hmailserver
     POSTGRES_PASSWORD: hmtest
-    HM_DB_TYPE: PostgreSQL
-    HM_DB_HOST: db
+    MARIADB_USER: hmailserver
+    MARIADB_DATABASE: hmailserver
+    MARIADB_PASSWORD: $POSTGRES_PASSWORD
+    MARIADB_RANDOM_ROOT_PASSWORD: "1"
     HM_DB_NAME: hmailserver
     HM_DB_USER: hmailserver
     HM_DB_PASSWORD: $POSTGRES_PASSWORD
@@ -471,8 +483,20 @@ container-image-start:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: db
       pull_policy: [if-not-present, always]
+    - name: mariadb:13@sha256:2fd6d83be13d6f95119fe7823c4a445a771d973ce15a4f4621e3c14898f9f1ab
+      alias: mariadb
+      pull_policy: [if-not-present, always]
     - name: $HM_IMAGE
       alias: mail
+      variables:
+        HM_DB_TYPE: PostgreSQL
+        HM_DB_HOST: db
+      command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
+    - name: $HM_IMAGE
+      alias: mail-mariadb
+      variables:
+        HM_DB_TYPE: MySQL
+        HM_DB_HOST: mariadb
       command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
   script:
     - bash build/ci/container-image-start-test.sh
@@ -483,7 +507,8 @@ container-image-start:
 # index's, so that the runner's image store, which already holds the index's linux/amd64
 # image from container-image-start, can never hand this job that one. On linix, 29
 # September 2026, the arm64 image of this Dockerfile, started so by hand, answered both
-# questions 19 seconds after it started; the wait allows for a busier machine.
+# questions 19 seconds after it started; the wait allows for a busier machine, and for
+# two such images at once. The databases run on linix's own platform.
 container-image-start-arm64:
   extends: container-image-start
   needs:
@@ -504,8 +529,22 @@ container-image-start-arm64:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: db
       pull_policy: [if-not-present, always]
+    - name: mariadb:13@sha256:2fd6d83be13d6f95119fe7823c4a445a771d973ce15a4f4621e3c14898f9f1ab
+      alias: mariadb
+      pull_policy: [if-not-present, always]
     - name: $HM_IMAGE_ARM64
       alias: mail
       docker:
         platform: linux/arm64
+      variables:
+        HM_DB_TYPE: PostgreSQL
+        HM_DB_HOST: db
+      command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
+    - name: $HM_IMAGE_ARM64
+      alias: mail-mariadb
+      docker:
+        platform: linux/arm64
+      variables:
+        HM_DB_TYPE: MySQL
+        HM_DB_HOST: mariadb
       command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]

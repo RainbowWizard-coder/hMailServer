@@ -15,6 +15,14 @@
 #   docker compose up -d
 #   # then https://<host>:8045/ is the Control Deck, Administrator and that password
 #
+# For MariaDB instead, run it as db - MariaDB's image, with MARIADB_USER,
+# MARIADB_DATABASE and MARIADB_PASSWORD_FILE, its data at /var/lib/mysql and a
+# health check of its own (the image's healthcheck.sh --connect) - and give
+# hmailserver HM_DB_TYPE: MySQL and HM_DB_PORT: "3306". The images carry the
+# client for both from the release that added MariaDB's, and their start test
+# runs them beside each; an older image carries PostgreSQL's alone
+# (hmailserver/docs/ContainerImage.md says which).
+#
 # The image is the release's own, from the project's GitLab registry (the image:
 # line below says from when); pin the version you deployed. Every
 # variable the entrypoint reads is listed in docker-entrypoint.sh beside this

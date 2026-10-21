@@ -23,19 +23,21 @@
 # release, check its Sigstore bundle, build this file from it and push
 # :<version>, and for a release without a suffix :<major>.<minor> and :latest,
 # signed by digest with Sigstore as the release's pipeline, then start what they
-# pushed beside PostgreSQL and ask it for SMTP and the REST API. They refuse to
-# run until the project's CI/CD variable HM_PUBLISH_IMAGE is 1, which is set once
-# the project is at that path; a release built by hand has no image
-# (hmailserver/docs/ContainerImage.md). Until a release has one, build it
-# yourself (docker build, with the .deb in packages/) and run your own tag. The
-# images published before GitHub suspended the project's account on 18 September
-# 2026 were on ghcr.io, which has answered 404 since.
+# pushed beside PostgreSQL and beside MariaDB and ask each for SMTP and the REST
+# API. They refuse to run until the project's CI/CD variable HM_PUBLISH_IMAGE is
+# 1, which is set once the project is at that path; a release built by hand has
+# no image (hmailserver/docs/ContainerImage.md). Until a release has one, build
+# it yourself (docker build, with the .deb in packages/) and run your own tag.
+# The images published before GitHub suspended the project's account on 18
+# September 2026 were on ghcr.io, which has answered 404 since.
 #
 # The database is not in the image and never will be: point HM_DB_* at a
-# PostgreSQL or MariaDB server. On first start the entrypoint writes the
-# [Database] section from those variables, the administrator password as a hash
-# through the server's own --set-admin-password, creates the database if it does
-# not exist, upgrades it if it is behind, stores every setting the environment
+# PostgreSQL or MariaDB server (HM_DB_TYPE PostgreSQL or MySQL: the image carries
+# both clients, libpq and MariaDB Connector/C). On first start the entrypoint
+# writes the [Database] section from those variables, the administrator
+# password as a hash through the server's own --set-admin-password, creates the
+# database if it does not exist, upgrades it if it is behind, stores every
+# setting the environment
 # names - the REST listener from HM_REST_*, and any other setting from
 # HM_SETTING_<key> or HM_PROPERTY_<name>, or their _FILE forms for a secret -
 # through the server's own --apply-environment, and then runs the server in the
@@ -76,11 +78,21 @@ ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb
 # here because the image needs both: the server writes and reads every backup
 # through 7-Zip (without it a backup fails with "Could not add the backup
 # settings to the archive"), and /usr/bin/hmctl is a Python 3 script.
+# libmariadb3 is MariaDB Connector/C, the client through which the server reaches
+# a MariaDB or MySQL database (HM_DB_TYPE=MySQL). The server opens it with dlopen
+# when it is configured to (libmariadb.so.3 first; Common/SQL/MySQLInterface.cpp)
+# rather than linking it, so the .deb only suggests it and nothing else pulls it
+# in: without it such a container cannot open its database. libpq5, PostgreSQL's
+# client, is linked, and comes in as one of the .deb's dependencies. Each package
+# is the one the archive of the pinned base serves.
 COPY ${HM_DEB} /tmp/hmailserver.deb
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      /tmp/hmailserver.deb ca-certificates libcap2-bin 7zip python3 \
+      /tmp/hmailserver.deb ca-certificates libcap2-bin 7zip python3 libmariadb3 \
  && rm -rf /var/lib/apt/lists/* /tmp/hmailserver.deb \
+ # The MariaDB client loads as the server loads it, by its soname along the
+ # dynamic linker's own search path, or the build stops here.
+ && python3 -c 'import ctypes; ctypes.CDLL("libmariadb.so.3")' \
  # Ports 25, 110, 143, 465, 587, 993 and 995 are below 1024 and the process does
  # not run as root: the one capability it needs, on the binary rather than on
  # the container.

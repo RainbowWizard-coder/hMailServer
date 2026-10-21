@@ -31,7 +31,9 @@ imagePullSecrets: []
 replicaCount: 1
 
 database:
-  # PostgreSQL or MySQL (the MariaDB Connector/C speaks to MariaDB).
+  # PostgreSQL or MySQL (the MariaDB Connector/C the image carries speaks to
+  # MariaDB; an older image named in image.tag may carry PostgreSQL's client
+  # alone - hmailserver/docs/ContainerImage.md says which).
   type: PostgreSQL
   host: ""
   port: 5432

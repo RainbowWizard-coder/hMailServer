@@ -54,7 +54,10 @@ the administrator password) and `/portal` the webmail.
 - **A database.** PostgreSQL (`database.type: PostgreSQL`, the default) or MariaDB
   (`MySQL`), reachable from the cluster. On its first start the server creates the
   database's schema if it is empty, and upgrades it when it is behind
-  (`database.create`, `database.upgrade`).
+  (`database.create`, `database.upgrade`). The image of the release the chart comes
+  with carries the client for each, libpq and MariaDB Connector/C; an older image,
+  named in `image.tag`, may carry PostgreSQL's alone and reach MariaDB not at all
+  (ContainerImage.md says which images carry both).
 - **A certificate for the REST listener.** The server requires TLS on any address
   but loopback, so the listener stays off until `rest.tlsSecretName` names a Secret
   of type `kubernetes.io/tls` (cert-manager's, or one you made). The mail ports'

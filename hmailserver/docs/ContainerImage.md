@@ -86,10 +86,21 @@ started it, under emulation; no arm64 machine has run it yet.
 | Kind of installation | `HM_INSTALL_KIND=container`, for the update check (Updates, below) |
 
 The database is not in the image: point `HM_DB_*` at a PostgreSQL or MariaDB
-server. `HM_DB_WAIT_SECONDS` holds the entrypoint until that server accepts a
-connection, for a database started beside the container with nothing else to wait
-for it. The REST API is the administration on Linux, and the server requires TLS
-on it anywhere but loopback, so a reachable API means a certificate mounted in
+server. The image carries the client the server needs for each: libpq, which the
+server is linked against and which comes with the `.deb`, and, from the release
+after 6.3.7, MariaDB Connector/C (Ubuntu's `libmariadb3`), which the server opens
+at run time when `HM_DB_TYPE` is `MySQL`, the type a MariaDB server is given, and
+which the `.deb` only suggests, so the Dockerfile installs it by name. The build
+loads `libmariadb.so.3` as the server does, and stops if it cannot. 6.3.7's image
+and the ones before it carry libpq alone: they reach PostgreSQL only, and told
+`HM_DB_TYPE=MySQL` they stop at the entrypoint's `--create-database` with "The
+MySQL client library could not be loaded". Each platform's SBOM lists `libpq5`,
+and from the release after 6.3.7 `libmariadb3` and the two packages it brings,
+`mariadb-common` and `mysql-common`. `HM_DB_WAIT_SECONDS` holds the entrypoint
+until that server accepts a connection, for a database started beside the
+container with nothing else to wait for it. The REST API is the administration
+on Linux, and the server requires TLS on it anywhere but loopback, so a reachable
+API means a certificate mounted in
 (`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`), or the self-signed pair
 `hmailserver --apply-new-install-defaults` makes for a new installation - which a
 container is not given by itself, since only the packaged systemd unit's first
@@ -422,7 +433,7 @@ that does not exist (empty, pg_dump's exit status 1) or in one cut short.
 | `container-image-sbom` | a runner with the tag `linix`, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | a runner with the tag `linix`, in cosign's image, after both start tests (since 6.3.6) | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`): only an image that has started and answered is signed |
 | `container_scanning`, `container_scanning_arm64` | a runner with the tag `linix`, in Trivy's image | Trivy over each platform's pushed image by its digest, with that day's vulnerability database (`build/ci/container-scan.sh`); a finding is a warning, and its report, in GitLab's container-scanning format, is the job's artifact. GitLab's own Container Scanning template ran until 10 October 2026, when its analyzer's pinned digest was gone from GitLab's registry (ContinuousIntegration.md, "container_scanning's scanner") |
-| `container-image-start`, `container-image-start-arm64` | a runner with the tag `linix`, in the Linux CI image | Starts each platform's pushed image by its digest as a service beside PostgreSQL - the arm64 one as a service of that platform, under qemu-user - and asks it for SMTP on 25 and for the REST API over TLS (The start test, below) |
+| `container-image-start`, `container-image-start-arm64` | a runner with the tag `linix`, in the Linux CI image | Starts each platform's pushed image by its digest twice as services, once beside PostgreSQL and once beside MariaDB - the arm64 one as services of that platform, under qemu-user - asks each for SMTP on 25 and for the REST API over TLS, and reads from each database the schema the server laid out in it (The start test, below) |
 
 In a branch's pipeline, `linux-image` builds the linux/amd64 image from
 `linux-build`'s `.deb` and `linux-image-arm64` the linux/arm64 image from
@@ -538,21 +549,29 @@ it). Then the fix is released as a new version; a tag is spent once.
 ### The start test
 
 `build/ci/container-image-start-test.sh` starts the image as a user starts it,
+twice - once beside PostgreSQL and once beside MariaDB, told `HM_DB_TYPE=MySQL` -
 through its own entrypoint, with the database, the administrator password, the
 REST listener and `HM_DB_WAIT_SECONDS` from the environment, and the command
 `hmailserver --apply-new-install-defaults && exec hmailserver --foreground`: the
 new installation is secured - a self-signed certificate, STARTTLS - before the
 server starts, and the REST listener is pointed at that certificate, so the test
-needs no certificate from outside. It then asks:
+needs no certificate from outside. It then asks each of the two:
 
 - port 25: the banner, `EHLO` answered with `STARTTLS` among the extensions;
 - the REST API on 8045 over TLS: `GET /api/v1/status` refused with 401 without
   credentials, answered with the release's version as Administrator, and not
-  answered over plain HTTP.
+  answered over plain HTTP;
+- its database: `hm_dbversion`, read with that database's own client, holds the
+  schema version the server laid out there, and the two databases hold the same.
 
-In the job, the runner starts PostgreSQL and the image as the job's services on a
-network of the job's own (`FF_NETWORK_PER_BUILD`), and `CI_DEBUG_SERVICES` puts
-both services' output in the job's log.
+In the job, the runner starts PostgreSQL (`db`), MariaDB (`mariadb`, the image
+`linux-db-upgrade-mysql` runs, by digest) and the image twice (`mail` and
+`mail-mariadb`, each given its database's type and address in its own service's
+variables) as the job's services on a network of the job's own
+(`FF_NETWORK_PER_BUILD`); the test reads the databases with the Linux CI image's
+`psql` and `mariadb`, and `CI_DEBUG_SERVICES` puts the services' output in the
+job's log. An image without the MariaDB client fails the second start: its
+server stops at `--create-database`, and port 25 never answers.
 
 `container-image-start-arm64` does the same with the linux/arm64 image, named by
 its own digest (the dotenv report's `HM_IMAGE_ARM64`), as a service of the platform
@@ -565,7 +584,9 @@ itself is checked in both images' layers by the build jobs, and is used as it is
 an arm64 machine.
 
 **By hand**, on any machine with a Docker daemon - linix, or a laptop's WSL - the
-script starts the same two containers itself and removes them afterwards:
+script starts the same four containers itself, reads each database with its own
+container's client, and removes them afterwards (`HM_START_NAMES` names them and
+their network; `hm-start-<process id>` by default):
 
 ```
 # an image from a registry, or one built from the Dockerfile with a .deb in packages/
@@ -581,7 +602,7 @@ HM_START_PLATFORM=linux/arm64 HM_START_VERSION=<version> \
   bash build/ci/container-image-start-test.sh --docker hmailserver:<version>-arm64
 ```
 
-`--keep` leaves both containers running and says how to remove them. On 28
+`--keep` leaves the containers running and says how to remove them. On 28
 September 2026 it was run this way in WSL (Ubuntu 26.04, Ubuntu's docker.io 29.1.3)
 against the Dockerfile of this tree built from 6.3.4's published `.deb`: the
 entrypoint waited 8 seconds for PostgreSQL, created the schema, applied the four
@@ -592,7 +613,26 @@ three containers on one Docker network standing in for the runner - PostgreSQL a
 `db`, the image as `mail` with the service's command, and the script in a third -
 each given all of the job's variables, as GitLab gives a job's variables to its
 services: it passed, and asked for another version it failed naming the pushed
-tags to delete.
+tags to delete. Both were run beside PostgreSQL alone, as the test was then.
+
+On 21 October 2026 the Dockerfile of this tree, with `libmariadb3`, was built from
+6.3.7's published amd64 and arm64 `.deb` files (each held to the release's
+`hmailserver-linux-6.3.7-SHA256SUMS.txt`) on an x86-64 Ubuntu machine with Docker
+29: the amd64 image with Docker's builder and both with `build/ci/linux-image.sh`
+in kaniko's image, the arm64 one under qemu-user, each ending "IMAGE BUILT". The
+start test then passed by hand against the amd64 image and, with
+`HM_START_PLATFORM=linux/arm64`, the arm64 one, and in its job mode with the four
+services and the Linux CI image standing in for the runner: beside PostgreSQL 18
+and beside MariaDB 13 each server created its schema, 6108, from
+`CreateTablesPGSQL.sql` and `CreateTablesMySQL.sql`, and answered SMTP with
+STARTTLS and the REST API over TLS as `6.3.7-B46`. The image built the same way
+from the Dockerfile before that change passed beside PostgreSQL and failed beside
+MariaDB, its server stopping at `--create-database` with "The MySQL client library
+could not be loaded ... Tried: libmariadb.so.3, libmysqlclient.so.21,
+libmysqlclient.so, libmariadb.so"; and the Dockerfile with the package left out
+of its `apt-get install` stopped at its build, where the library is loaded. No
+tag's pipeline has run the two starts yet - two services of one image, each
+with variables of its own - and the next release's is the first.
 
 ### What was run by hand
 

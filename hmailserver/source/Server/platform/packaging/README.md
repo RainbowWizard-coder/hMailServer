@@ -297,7 +297,9 @@ sudo dnf install ./hmailserver-<version>-1.x86_64.rpm
 If you are using MySQL or MariaDB, install its client library too. The server
 opens `libmariadb.so.3` with `dlopen` at run time rather than linking it, so no
 package manager will pull it in: `libmariadb3` on Debian and Ubuntu,
-`mariadb-connector-c` on Fedora and RHEL, `mariadb-libs` on Arch.
+`mariadb-connector-c` on Fedora and RHEL, `mariadb-libs` on Arch. The container
+image installs `libmariadb3` itself (`docker/Dockerfile`; ContainerImage.md says
+from which release).
 
 **2. Create the database user, and either let it create the database or create
 the database for it.** PostgreSQL:
@@ -1015,8 +1017,8 @@ bundle, `container-image` builds `docker/Dockerfile` from it and pushes
 `:latest` as well (a pre-release never moves those two),
 `container-image-sign` signs the image by digest as the same pipeline identity
 the release's files carry, and `container-image-start` starts it beside
-PostgreSQL and asks it for SMTP and the REST API. A release built by hand has
-no image. The image sets `HM_INSTALL_KIND=container`, so its update check
+PostgreSQL and beside MariaDB and asks each for SMTP and the REST API. A
+release built by hand has no image. The image sets `HM_INSTALL_KIND=container`, so its update check
 names the image to pull instead of installing a file. The chart is also a
 file of each release the pipeline makes, packaged at the release's version and
 served from `https://updates.progressiverobot.com/helm/`
