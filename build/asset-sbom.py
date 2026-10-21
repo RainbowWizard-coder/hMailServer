@@ -114,6 +114,11 @@ SPEC = "1.6"
 SUFFIX = ".cdx.json"
 PROJECT_URL = "https://gitlab.com/hmailserver/hmailserver"
 SUPPLIER = {"name": "Progressive Robot Ltd", "url": ["https://www.progressiverobot.com"]}
+# What each release file's SBOM says its subject is, after the file's name and kind, and what
+# each platform's container image's SBOM says, with the version, the platform and the .deb it
+# was built from: the fork, not the original hMailServer (build/check-package-texts.py holds both).
+ASSET_DESCRIPTION = "Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3"
+IMAGE_DESCRIPTION = "The %s container image of Progressive Robot's fork of hMailServer for linux/%s, built from %s"
 VERSION_H = os.path.join("hmailserver", "source", "Server", "Common", "Application", "Version.h")
 INSTALLATION = os.path.join("hmailserver", "installation")
 TOOLS = os.path.join("hmailserver", "source", "Tools")
@@ -771,7 +776,7 @@ def subject(asset_name, kind, version, sha256, sha512, size, commit, declared=No
         purl = "pkg:generic/hmailserver@%s?file_name=%s" % (version, asset_name)
     component = {
         "type": "application", "bom-ref": "asset", "supplier": SUPPLIER, "name": "hMailServer", "version": version,
-        "description": "%s, %s: %s" % (asset_name, names.get(kind, kind), "hMailServer, a mail server for SMTP, IMAP and POP3"),
+        "description": "%s, %s: %s" % (asset_name, names.get(kind, kind), ASSET_DESCRIPTION),
         "hashes": [{"alg": "SHA-256", "content": sha256}, {"alg": "SHA-512", "content": sha512}],
         "licenses": [{"license": {"id": "AGPL-3.0-or-later"}}],
         "purl": purl,
@@ -918,7 +923,7 @@ def image_document(syft, deb_sbom, image, version, arch):
     repository, digest = match.group(1), match.group(2)
     subject_component = {
         "type": "container", "bom-ref": "asset", "supplier": SUPPLIER, "name": repository, "version": version,
-        "description": "The hMailServer %s container image for linux/%s, built from %s" % (version, arch, kind_of.get("hmailserver:asset-file")),
+        "description": IMAGE_DESCRIPTION % (version, arch, kind_of.get("hmailserver:asset-file")),
         "hashes": [{"alg": "SHA-256", "content": digest}],
         "licenses": [{"license": {"id": "AGPL-3.0-or-later"}}],
         "purl": "pkg:oci/hmailserver@sha256%%3A%s?arch=%s&repository_url=%s" % (digest, arch, repository),

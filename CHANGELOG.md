@@ -227,15 +227,22 @@ with `--check`).
   Progressive Robot's fork and says that it does not work with the original hMailServer by Martin Knafve, which has no
   REST API. The `.deb` and `.rpm` CPack makes, the PKGBUILD's and the APKBUILD's `pkgdesc`, the nix package's
   `meta.description` and `longDescription`, the flake's description and the image's description label say the same.
+  The AppImages' desktop entry, which AppImageLauncher or appimaged puts in a desktop's menu, is now named
+  "hMailServer (Progressive Robot's fork)" with the comment "Progressive Robot's fork of hMailServer, a mail server
+  for SMTP, IMAP and POP3", where it was "hMailServer" and "A mail server for SMTP, IMAP and POP3", and the SBOM of
+  each release file (`build/asset-sbom.py`) describes the file's subject as "Progressive Robot's fork of hMailServer,
+  a mail server for SMTP, IMAP and POP3", where it said "hMailServer, a mail server for SMTP, IMAP and POP3", and
+  each platform's container image's SBOM its subject as "The <version> container image of Progressive Robot's fork of
+  hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>".
   OBS, Copr and the PPA take the packaging from the release's source tarball and the image its labels from the
   release's tree, so this reaches them with the next release; `aur-publish` renders `master`'s PKGBUILD, so the AUR's
   first push carries it, whichever release it is for. `build/check-package-texts.py`, which the checkers job runs with
   its self-test, holds every package text the tree ships to it: these, the snap's title, summary, description and
   website, the chart's description, the openings of the chart's README and of `ContainerImage.md`, which Artifact Hub
-  shows, and the Chocolatey and winget copyright and authors; and the summaries to the lengths rpmlint, Debian's
-  policy and snapcraft allow, and the packages' maintainer to the project's address. rpmlint's warning that the
-  summary repeats the package's name (`name-repeated-in-summary`), which the fork's name brings, is filtered in
-  `rpm/hmailserver.rpmlintrc`, with its reason.
+  shows, the Chocolatey and winget copyright and authors, the AppImages' desktop entry and the SBOMs' descriptions;
+  and the summaries to the lengths rpmlint, Debian's policy and snapcraft allow, and the packages' maintainer to the
+  project's address. rpmlint's warning that the summary repeats the package's name (`name-repeated-in-summary`), which
+  the fork's name brings, is filtered in `rpm/hmailserver.rpmlintrc`, with its reason.
 
 - **The Chocolatey and winget packages credit the original hMailServer's author.** The nuspec's copyright was
   "Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer" and its authors "Christopher Holloway, Progressive

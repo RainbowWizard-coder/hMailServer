@@ -370,8 +370,8 @@ ICON
 cat > "${BUILD_DIR}/hmailserver.desktop" <<'DESKTOP'
 [Desktop Entry]
 Type=Application
-Name=hMailServer
-Comment=A mail server for SMTP, IMAP and POP3
+Name=hMailServer (Progressive Robot's fork)
+Comment=Progressive Robot's fork of hMailServer, a mail server for SMTP, IMAP and POP3
 Exec=hmailserver
 Icon=hmailserver
 Terminal=true

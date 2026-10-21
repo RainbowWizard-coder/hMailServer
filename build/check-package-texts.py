@@ -15,11 +15,16 @@ which the PPA's upload takes from the tarball too, and the .deb CPack makes), on
 the AUR (the PKGBUILD), in Alpine (the APKBUILD), in nix search and nix flake
 metadata (nix/package.nix, flake.nix), in the Snap Store (snap/snapcraft.yaml), on
 a registry and Artifact Hub (the Dockerfile's labels, the chart's Chart.yaml, and
-the two READMEs Artifact Hub shows, the chart's and ContainerImage.md), and on
+the two READMEs Artifact Hub shows, the chart's and ContainerImage.md), on
 Chocolatey and winget (their templates; build/check-package-manifests.py holds the
-rendered files too). This holds, in each:
+rendered files too), in a desktop's menu (the AppImages' desktop entry, which
+build-appimage.sh writes and AppImageLauncher or appimaged installs), and in the
+SBOMs of the release files and of the container images (build/asset-sbom.py's
+descriptions of their subjects). This holds, in each:
 
-  - the summary or title says "Progressive Robot's fork of hMailServer";
+  - the summary or title says "Progressive Robot's fork of hMailServer" (the
+    desktop entry's Comment and its Name, "hMailServer (Progressive Robot's fork)",
+    and the SBOMs' descriptions too);
   - the long description says it too and names the original's author, Martin
     Knafve;
   - the summaries are within the length their tools hold them to: an RPM Summary
@@ -74,9 +79,11 @@ CHART_README = PACKAGING + '/helm/hmailserver/README.md'
 IMAGE_README = 'hmailserver/docs/ContainerImage.md'
 NUSPEC = 'hmailserver/installation/chocolatey/hmailserver.nuspec.in'
 WINGET_LOCALE = 'hmailserver/installation/winget/ProgressiveRobot.hMailServer.locale.en-US.yaml.in'
+APPIMAGE = PACKAGING + '/build-appimage.sh'
+ASSET_SBOM = 'build/asset-sbom.py'
 
 FILES = (SPEC, CONTROL, CMAKE, PKGBUILD, APKBUILD, NIX_PACKAGE, FLAKE, SNAP, DOCKERFILE, CHART,
-         CHART_README, IMAGE_README, NUSPEC, WINGET_LOCALE)
+         CHART_README, IMAGE_README, NUSPEC, WINGET_LOCALE, APPIMAGE, ASSET_SBOM)
 
 
 def read(root, relative):
@@ -220,6 +227,26 @@ def opening(text):
     return text[:match.start()] if match else text
 
 
+def desktop_entry(text):
+    """{key: value} of the desktop entry build-appimage.sh writes (its DESKTOP here-document),
+    or None where the script writes none."""
+    match = re.search(r"<<'DESKTOP'\n(.*?)\nDESKTOP\n", text + '\n', re.S)
+    if not match:
+        return None
+    entry = {}
+    for line in match.group(1).split('\n'):
+        key, sep, value = line.partition('=')
+        if sep and not line.startswith('#'):
+            entry[key.strip()] = value.strip()
+    return entry
+
+
+def python_string(text, name):
+    """A top-level NAME = "..." of a Python file, its \' and \" read as the quotes."""
+    match = re.search(r'^%s = "((?:[^"\\]|\\.)*)"$' % re.escape(name), text, re.M)
+    return re.sub(r'\\(.)', r'\1', match.group(1)) if match else None
+
+
 def xml_element(text, name):
     match = re.search(r'<%s>(.*?)</%s>' % (name, name), text, re.S)
     if not match:
@@ -317,6 +344,16 @@ def check(root):
         text = opening(read(root, relative))
         c.fork('%s: the opening, before its first section' % relative, text)
         c.original('%s: the opening, before its first section' % relative, text)
+
+    entry = desktop_entry(read(root, APPIMAGE))
+    if c.found('%s: the desktop entry' % APPIMAGE, entry):
+        c.titled('%s: the desktop entry\'s Name' % APPIMAGE, entry.get('Name'))
+        c.fork('%s: the desktop entry\'s Comment' % APPIMAGE, entry.get('Comment'))
+    sbom = read(root, ASSET_SBOM)
+    c.fork('%s: ASSET_DESCRIPTION, each release file\'s SBOM description' % ASSET_SBOM,
+           python_string(sbom, 'ASSET_DESCRIPTION'))
+    c.fork('%s: IMAGE_DESCRIPTION, each container image\'s SBOM description' % ASSET_SBOM,
+           python_string(sbom, 'IMAGE_DESCRIPTION'))
 
     nuspec = read(root, NUSPEC)
     for name in ('copyright', 'authors'):
@@ -472,6 +509,16 @@ def self_test():
          'Copyright does not name'),
         ('winget\'s Publisher the original\'s author', WINGET_LOCALE, sub(r'^Publisher: .*$', 'Publisher: Martin Knafve'),
          'Publisher is'),
+        ('the AppImages\' desktop entry\'s Comment as it was', APPIMAGE,
+         sub(r'^Comment=.*$', 'Comment=A mail server for SMTP, IMAP and POP3'), "desktop entry's Comment does not say"),
+        ('the AppImages\' desktop entry\'s Name alone', APPIMAGE, sub(r'^Name=.*$', 'Name=hMailServer'),
+         "desktop entry's Name is"),
+        ('the release files\' SBOM description as it was', ASSET_SBOM,
+         sub(r'^ASSET_DESCRIPTION = ".*"$', 'ASSET_DESCRIPTION = "hMailServer, a mail server for SMTP, IMAP and POP3"'),
+         "each release file's SBOM description does not say"),
+        ('the container images\' SBOM description as it was', ASSET_SBOM,
+         sub(r'^IMAGE_DESCRIPTION = ".*"$', 'IMAGE_DESCRIPTION = "The hMailServer %s container image for linux/%s, built from %s"'),
+         "each container image's SBOM description does not say"),
         ('no spec', SPEC, lambda text: None, 'hmailserver.spec is not there'),
     ]
     for what, relative, change, needle in cases:
@@ -501,8 +548,9 @@ def main(argv):
               % (len(problems), FORK, ORIGINAL))
         return 1
     print('OK    the RPM spec, debian/control, CPack, the PKGBUILD, the APKBUILD, the nix package and flake, the')
-    print('      snap, the image\'s labels, the chart and its READMEs, and the Chocolatey and winget templates say')
-    print('      %r and credit the original, %s; the maintainer is %s.' % (FORK, ORIGINAL, MAINTAINER))
+    print('      snap, the image\'s labels, the chart and its READMEs, the Chocolatey and winget templates, the')
+    print('      AppImages\' desktop entry and the release files\' and images\' SBOM descriptions say %r,' % FORK)
+    print('      crediting the original, %s, where they describe it; the maintainer is %s.' % (ORIGINAL, MAINTAINER))
     return 0
 
 
