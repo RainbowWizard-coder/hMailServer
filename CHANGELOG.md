@@ -176,29 +176,30 @@ with `--check`).
 
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
-  `.deb` only suggests `libmariadb3`, and the Dockerfile, which installs the `.deb` without its recommendations, did not
-  install it: 6.3.7's image and the ones before it carry libpq alone, each platform's SBOM lists `libpq5` and no MariaDB
-  or MySQL client, and a container told `HM_DB_TYPE=MySQL` stops at the entrypoint's `--create-database` with "The MySQL
-  client library could not be loaded", while `ContainerImage.md`, the Dockerfile's header and description label, the
-  chart and its README spoke of a PostgreSQL or MariaDB server. The Dockerfile now installs `libmariadb3` from the
-  archive of its pinned base, and its build loads `libmariadb.so.3` as the server does and stops if it cannot; each
-  platform's SBOM will list `libmariadb3`, `mariadb-common` and `mysql-common` beside `libpq5`. `container-image-start`
-  and `container-image-start-arm64` start the pushed image twice, once beside PostgreSQL and once beside MariaDB 13 (the
-  image `linux-db-upgrade-mysql` runs, by digest), and `build/ci/container-image-start-test.sh` asks each for SMTP with
-  STARTTLS and the REST API over TLS, and reads from each database the schema version the server laid out there, which
-  must be a number and the same in both; by hand, `--docker` starts the same four containers (`HM_START_NAMES` names
-  them). `build/check-release-chain.py` holds the Dockerfile to installing and loading the client, and both start jobs
-  to the two starts, each told its own database's type and address in its own service's variables and run with the
-  test's command, the arm64 job's both of the platform linux/arm64; its self-test breaks each and sees it caught. On 21
-  October 2026 the Dockerfile was built from 6.3.7's published amd64 and arm64 `.deb` files, held to the release's
-  SHA-256 sums, with Docker's builder and with `build/ci/linux-image.sh` in kaniko's image (the arm64 one under
-  qemu-user), and the test passed against both images by hand and in its job mode with the Linux CI image standing in
-  for the runner: each server created schema 6108 in PostgreSQL 18 and in MariaDB 13 and answered as `6.3.7-B46`. No
-  tag's pipeline has run the two starts yet. The image of the Dockerfile before this change failed it beside MariaDB, at
-  `--create-database`, and the Dockerfile with the package taken out stopped at its build. `ContainerImage.md`, the
-  Compose file's comments, the chart's README and values, the packaging README, `ContinuousIntegration.md` and
-  `RELEASE.md` say so, and that an older image carries PostgreSQL's client alone. Found by the project's own audit of
-  its listings.
+  release's `.deb` neither depends on nor recommends nor suggests `libmariadb3` (its Depends are `ca-certificates` and
+  what `dpkg-shlibdeps` reads from the libraries the server links), and the Dockerfile, which installs the `.deb`
+  without its recommendations, did not install it: 6.3.7's image and the ones before it carry libpq alone, each
+  platform's SBOM lists `libpq5` and no MariaDB or MySQL client, and a container told `HM_DB_TYPE=MySQL` stops at the
+  entrypoint's `--create-database` with "The MySQL client library could not be loaded", while `ContainerImage.md`, the
+  Dockerfile's header and description label, the chart and its README spoke of a PostgreSQL or MariaDB server. The
+  Dockerfile now installs `libmariadb3` from the archive of its pinned base, and its build loads `libmariadb.so.3` as
+  the server does and stops if it cannot; each platform's SBOM will list `libmariadb3`, `mariadb-common` and
+  `mysql-common` beside `libpq5`. `container-image-start` and `container-image-start-arm64` start the pushed image
+  twice, once beside PostgreSQL and once beside MariaDB 13 (the image `linux-db-upgrade-mysql` runs, by digest), and
+  `build/ci/container-image-start-test.sh` asks each for SMTP with STARTTLS and the REST API over TLS, and reads from
+  each database the schema version the server laid out there, which must be a number and the same in both; by hand,
+  `--docker` starts the same four containers (`HM_START_NAMES` names them). `build/check-release-chain.py` holds the
+  Dockerfile to installing and loading the client, and both start jobs to the two starts, each told its own database's
+  type and address in its own service's variables and run with the test's command, the arm64 job's both of the platform
+  linux/arm64; its self-test breaks each and sees it caught. On 21 October 2026 the Dockerfile was built from 6.3.7's
+  published amd64 and arm64 `.deb` files, held to the release's SHA-256 sums, with Docker's builder and with
+  `build/ci/linux-image.sh` in kaniko's image (the arm64 one under qemu-user), and the test passed against both images
+  by hand and in its job mode with the Linux CI image standing in for the runner: each server created schema 6108 in
+  PostgreSQL 18 and in MariaDB 13 and answered as `6.3.7-B46`. No tag's pipeline has run the two starts yet. The image
+  of the Dockerfile before this change failed it beside MariaDB, at `--create-database`, and the Dockerfile with the
+  package taken out stopped at its build. `ContainerImage.md`, the Compose file's comments, the chart's README and
+  values, the packaging README, `ContinuousIntegration.md` and `RELEASE.md` say so, and that an older image carries
+  PostgreSQL's client alone. Found by the project's own audit of its listings.
 
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28

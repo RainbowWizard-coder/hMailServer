@@ -5335,7 +5335,7 @@ def service_entries(block):
 
 def image_start_database_problems(texts, image_jobs):
     """The image reaches both databases it is said to: the Dockerfile installs the MariaDB
-    client the server opens with dlopen (libmariadb.so.3), which the .deb only suggests,
+    client the server opens with dlopen (libmariadb.so.3), which no .deb the release carries names,
     and loads it in the build; and each start job starts the image twice, as mail beside
     PostgreSQL (db) and as mail-mariadb beside MariaDB (mariadb), each told its own
     database's type and address in its own service's variables and each with the test
@@ -5347,7 +5347,7 @@ def image_start_database_problems(texts, image_jobs):
     install = re.search(r"apt-get install -y --no-install-recommends \\\n((?:[^\n]*\\\n)*?)[^\n]*&& rm -rf", dockerfile)
     if not install or not re.search(r"(^|\s)libmariadb3(\s|\\|$)", install.group(1)):
         problems.append("the Dockerfile does not install libmariadb3, the MariaDB client the server opens with dlopen for "
-                        "HM_DB_TYPE=MySQL: the .deb only suggests it, and --no-install-recommends leaves it out")
+                        "HM_DB_TYPE=MySQL: the release's .deb neither depends on nor suggests it, and nothing else pulls it in")
     if "\n && python3 -c 'import ctypes; ctypes.CDLL(\"libmariadb.so.3\")' \\\n" not in dockerfile:
         problems.append("the Dockerfile's build does not load libmariadb.so.3 as the server does, so an image without "
                         "the MariaDB client would be built")

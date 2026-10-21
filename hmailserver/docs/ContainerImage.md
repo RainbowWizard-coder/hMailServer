@@ -90,9 +90,11 @@ server. The image carries the client the server needs for each: libpq, which the
 server is linked against and which comes with the `.deb`, and, from the release
 after 6.3.7, MariaDB Connector/C (Ubuntu's `libmariadb3`), which the server opens
 at run time when `HM_DB_TYPE` is `MySQL`, the type a MariaDB server is given, and
-which the `.deb` only suggests, so the Dockerfile installs it by name. The build
-loads `libmariadb.so.3` as the server does, and stops if it cannot. 6.3.7's image
-and the ones before it carry libpq alone: they reach PostgreSQL only, and told
+which no `.deb` the release carries depends on, recommends or suggests (the
+Debian source package the PPA builds suggests it, in its `debian/control`), so
+the Dockerfile installs it by name. The build loads `libmariadb.so.3` as the
+server does, and stops if it cannot. 6.3.7's image and the ones before it carry
+libpq alone: they reach PostgreSQL only, and told
 `HM_DB_TYPE=MySQL` they stop at the entrypoint's `--create-database` with "The
 MySQL client library could not be loaded". Each platform's SBOM lists `libpq5`,
 and from the release after 6.3.7 `libmariadb3` and the two packages it brings,

@@ -81,10 +81,12 @@ ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb
 # libmariadb3 is MariaDB Connector/C, the client through which the server reaches
 # a MariaDB or MySQL database (HM_DB_TYPE=MySQL). The server opens it with dlopen
 # when it is configured to (libmariadb.so.3 first; Common/SQL/MySQLInterface.cpp)
-# rather than linking it, so the .deb only suggests it and nothing else pulls it
-# in: without it such a container cannot open its database. libpq5, PostgreSQL's
-# client, is linked, and comes in as one of the .deb's dependencies. Each package
-# is the one the archive of the pinned base serves.
+# rather than linking it, so no .deb the release carries names it - its Depends
+# are ca-certificates and what dpkg-shlibdeps reads from the libraries the server
+# links, and CPack writes no Suggests - and nothing pulls it in: without it such
+# a container cannot open its database. libpq5, PostgreSQL's client, is linked,
+# and comes in as one of the .deb's dependencies. Each package is the one the
+# archive of the pinned base serves.
 COPY ${HM_DEB} /tmp/hmailserver.deb
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
