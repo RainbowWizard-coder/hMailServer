@@ -351,10 +351,13 @@ with `--check`).
 - **The Chocolatey and winget descriptions say that the installer refuses the original hMailServer's 5.7.** They said
   that, both installers registering under the uninstall entry `hMailServer_is1`, this package's installer takes an
   installation of the original for its own, and not to install it over the original's 5.7; they now say that it
-  upgrades the original up to 5.6 and refuses its 5.7 before it changes anything, with exit code 1 and the reason in
-  `%TEMP%\hMailServer-setup-refused.txt`, and that a 5.7 server's mail moves over IMAP instead. Both listings render
-  from `hmailserver.nuspec.in` and `ProgressiveRobot.hMailServer.locale.en-US.yaml.in`, and `winget upgrade` may offer
-  the package over an installation of the original's 5.7, whose uninstall entry is the same.
+  upgrades the original up to 5.6 and, from the release after 6.3.7, refuses its 5.7 before it changes anything, with
+  exit code 1 and the reason in `%TEMP%\hMailServer-setup-refused.txt`, that the installers of 6.3.7 and earlier do
+  not look and must not be installed over one, and that a 5.7 server's mail moves over IMAP instead. Both listings
+  render from `hmailserver.nuspec.in` and `ProgressiveRobot.hMailServer.locale.en-US.yaml.in`, and `winget upgrade`
+  may offer the package over an installation of the original's 5.7, whose uninstall entry is the same.
+  `chocolatey-publish` renders the latest release's package from `master`'s templates, so 6.3.7's resubmission carries
+  these words too.
 
 - **The PyPI package and the PowerShell module say that they are the clients of Progressive Robot's fork of
   hMailServer, not of the original.** The original hMailServer, Martin Knafve's, is developed again (5.7.0 on 28
