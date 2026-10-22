@@ -192,8 +192,9 @@ with `--check`).
   reads is read first - for the original's 5.7.0 build 3013 and later `C:\ProgramData\hMailServer\hMailServer.ini`
   when it exists, which they read before the one in `Bin` and keep a new installation's in, and which this fork never
   writes, and otherwise, and for the original's earlier builds (2788, 2843, its releases up to 5.6 and its 5.7
-  development builds), which read the one in `Bin` alone, the `hMailServer.ini` in the installation's `Bin` folder, so
-  that a file in ProgramData left behind by the original's uninstaller does not decide for a build that never reads
+  development builds), which read the one in `Bin` alone, the `hMailServer.ini` in the installation's `Bin` folder - the
+  original's CI builds 5.7.0.2958 to 3012 read the ProgramData file first as well, but are taken as its earlier builds -
+  so that a file in ProgramData left behind by the original's uninstaller does not decide for a build that never reads
   it: a `[Database]` `PasswordEncryption` of 6, the
   database's password kept with DPAPI, which this fork writes by default from 6.2.0 on and the original neither writes
   nor reads, makes the database this fork's own, as the original's 5.7 installer leaves it when it is run over an

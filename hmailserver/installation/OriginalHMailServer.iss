@@ -53,7 +53,9 @@
 //     before the one in Bin and keep a new installation's in it, and this fork
 //     never writes it - and otherwise, and for its earlier builds, which read the
 //     one in Bin alone (IsBeforeProgramDataSettings: 2788, 2843, its releases up
-//     to 5.6 and its 5.7 development builds), the earlier installation's own, in
+//     to 5.6 and its 5.7 development builds up to 5708; its CI builds 5.7.0.2958
+//     to 3012 read the ProgramData file first but are taken here as reading Bin
+//     alone), the earlier installation's own, in
 //     Bin (for a very old one, in the Windows folder). So a settings file of this
 //     fork's left in Bin beside the original's - this fork's installer of 6.3.7 or
 //     earlier, run over such a new installation, writes one there, and the
@@ -153,10 +155,13 @@ begin
    Result := Value = FORK_PASSWORD_ENCRYPTION;
 end;
 
-// Whether the installed hMailServer.exe is one of the original's builds before
-// 5.7.0 build 3013, which read hMailServer.ini in Bin (or, very old, in the Windows
-// folder) alone: its ProgramData layout came after build 2843. 1.0.0.0, a build
-// from source, is not, nor is a version that could not be read (-1).
+// Whether the installed hMailServer.exe is one of the original's builds taken to read
+// hMailServer.ini in Bin (or, very old, in the Windows folder) alone: its releases up
+// to 5.6, its 5.7 development builds up to 5708 and its pre-release builds 2788 and
+// 2843. Its ProgramData layout came after 2843 (5 September 2026), and 5.7.0 build 3013
+// is the first release with it. Its CI builds from 5.7.0.2958 to 3012 read the
+// ProgramData file first as well, and are taken here as reading Bin alone. 1.0.0.0, a
+// build from source, is not, nor is a version that could not be read (-1).
 function IsBeforeProgramDataSettings(ServerMajor, ServerMinor, ServerRevision, ServerBuild: Integer): Boolean;
 begin
    Result := ((ServerMajor >= 2) and (ServerMajor < 5)) or

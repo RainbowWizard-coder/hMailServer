@@ -2664,7 +2664,8 @@ begin
       // reads. Its earlier builds - 2788 and 2843, its releases up to 5.6 and its
       // 5.7 development builds up to 5708 - read the one in Bin alone
       // (IsBeforeProgramDataSettings), and a ProgramData file the uninstall of a
-      // later 5.7 left behind is not theirs.
+      // later 5.7 left behind is not theirs. Its CI builds 5.7.0.2958 to 3012 read
+      // the ProgramData file first as well, but are taken here as its earlier ones.
       szSettings := '';
       if not IsBeforeProgramDataSettings(iMajor, iMinor, wRevision, wBuild) then
          szSettings := ExpandConstant('{commonappdata}\hMailServer\hMailServer.ini');
