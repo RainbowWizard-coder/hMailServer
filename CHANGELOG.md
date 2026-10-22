@@ -235,10 +235,11 @@ with `--check`).
   platform's container image's SBOM its subject as "The <version> container image of Progressive Robot's fork of
   hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>". The apt
   and dnf repositories that `build/generate-package-repos.py` makes, not published yet, are named the same way: each
-  apt suite's Release gives the Origin "Progressive Robot", the Label "hMailServer (Progressive Robot's fork)" and the
-  Description "Progressive Robot's fork of hMailServer for <suite>, from <site>", which apt policy prints, where they
-  gave "hMailServer", "hMailServer" and "hMailServer for <suite>, from <site>", and each dnf `.repo` file is named
-  "hMailServer (Progressive Robot's fork) (<dist>, $basearch)", which dnf repolist prints, where it was "hMailServer
+  apt suite's Release gives the Origin "Progressive Robot" and the Label "hMailServer (Progressive Robot's fork)",
+  which apt policy prints, and the Description "Progressive Robot's fork of hMailServer for <suite>, from <site>",
+  where they gave "hMailServer", "hMailServer" and "hMailServer for <suite>, from <site>", and each dnf `.repo` file
+  is named "hMailServer (Progressive Robot's fork) (<dist>, $basearch)", which dnf repolist prints, where it was
+  "hMailServer
   (<dist>, $basearch)"; they change before the first publication, since apt refuses an update whose Origin or Label
   has changed until each user accepts the change. OBS, Copr and the PPA take the packaging from the release's source
   tarball and the image its labels from the release's tree, so this reaches them with the next release; `aur-publish`

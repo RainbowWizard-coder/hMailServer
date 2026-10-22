@@ -20,9 +20,10 @@ Chocolatey and winget (their templates; build/check-package-manifests.py holds t
 rendered files too), in a desktop's menu (the AppImages' desktop entry, which
 build-appimage.sh writes and AppImageLauncher or appimaged installs), and in the
 SBOMs of the release files and of the container images (build/asset-sbom.py's
-descriptions of their subjects), and in apt policy and dnf repolist (the origin,
-label and description build/generate-package-repos.py gives each apt suite's
-Release, and the name it gives each dnf .repo file). This holds, in each:
+descriptions of their subjects), and in apt policy and dnf repolist (the origin
+and label build/generate-package-repos.py gives each apt suite's Release, which
+apt policy prints, the description it gives the suite's Release, and the name it
+gives each dnf .repo file). This holds, in each:
 
   - the summary or title says "Progressive Robot's fork of hMailServer" (the
     desktop entry's Comment and its Name, "hMailServer (Progressive Robot's fork)",

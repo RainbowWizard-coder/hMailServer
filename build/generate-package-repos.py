@@ -108,11 +108,11 @@ PUBLIC_KEY = os.path.join(ROOT, ".gitlab", "package-repository-key.asc")
 SITE_KEY = "hmailserver-repository-key.asc"
 # What apt policy, apt-cache policy and dnf repolist print of the repositories: they
 # are Progressive Robot's fork's, not the original hMailServer's, which is Martin
-# Knafve's and developed separately. Each apt suite's Release (and each
-# binary-<arch>/Release) carries the origin, the label and the description; each
-# dnf .repo file's name is REPO_FILE's. Set before the first publication: once a
-# repository is published, apt refuses an update whose Origin or Label has changed
-# until each user accepts it (build/check-package-texts.py holds these texts).
+# Knafve's and developed separately. apt policy prints the origin and the label, and
+# dnf repolist the name, REPO_FILE's. Each apt suite's Release carries the origin, the
+# label and the description, each binary-<arch>/Release the origin and the label. Set
+# before the first publication: once one is published, apt refuses an update whose
+# Origin or Label changed until each user accepts it (check-package-texts.py holds them).
 REPO_ORIGIN = "Progressive Robot"
 REPO_LABEL = "hMailServer (Progressive Robot's fork)"
 REPO_DESCRIPTION = "Progressive Robot's fork of hMailServer for %s, from %s"
@@ -1101,7 +1101,7 @@ def whole_build(work, failures, expect):
     expect("Origin: %s\n" % REPO_ORIGIN in release and "Label: %s\n" % REPO_LABEL in release
            and "Description: %s\n" % (REPO_DESCRIPTION % ("ubuntu26.04", SITE)) in release
            and "Origin: %s\n" % REPO_ORIGIN in arch_release and "Label: %s\n" % REPO_LABEL in arch_release,
-           "each Release names the fork's origin, label and description, as apt policy prints them")
+           "each Release names the fork's origin and label, which apt policy prints, and the suite's Release its description")
     with open(os.path.join(site, "apt", "dists", "ubuntu26.04", "main", "binary-amd64", "Packages"), encoding="utf-8") as f:
         packages = f.read()
     expect(packages.count("Package: hmailserver") == 2 and "debian13" not in packages,
