@@ -58,8 +58,9 @@ administration program, a browser administration console, a webmail client and a
 fork brings a current toolchain, current cryptography, and current transport-security and
 authentication standards, and upgrades an installation of the original up to 5.6 in place, with a
 continuous database upgrade chain from each of its versions. It does not upgrade the original's 5.7
-releases of September 2026: its database upgrade has no step from their database versions, 5709
-and 5711. Both installers register under the same uninstall entry, hMailServer_is1, so on a machine
+builds of August and September 2026: its database upgrade has no step from their database versions,
+5709 (the pre-release builds 2788 and 2843) and 5711 (5.7.0 build 3013, 5.7.1 and 5.7.2). Both
+installers register under the same uninstall entry, hMailServer_is1, so on a machine
 where the original is installed this package's installer finds that installation as its own: it
 upgrades the original up to 5.6; from the release after 6.3.7 it refuses the original's 5.7 before
 it changes anything (exit code 1, the reason in %TEMP%\hMailServer-setup-refused.txt), and

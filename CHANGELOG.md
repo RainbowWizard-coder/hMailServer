@@ -408,12 +408,13 @@ with `--check`).
   a summary that did not say fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary
   and description, and winget's short description and description, open by saying that this is Progressive Robot's
   fork of hMailServer, not the original; that the original is Martin Knafve's and has releases of its own, and that
-  packages of it exist; and that both installers register as `hMailServer_is1`, so that this one takes an
-  installation of the original for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases,
-  whose database versions, 5709 and 5711, its upgrade has no step from, where the description called the package "a
-  drop-in upgrade for an existing hMailServer installation, with a continuous database upgrade chain from every
-  earlier version"; winget's package name is "hMailServer (Progressive Robot's fork)", and its moniker
-  `hmailserver-progressiverobot`, the Chocolatey id, where it was `hmailserver`. The description no longer says that
+  packages of it exist; and that both installers register as `hMailServer_is1`, so that this one takes an installation
+  of the original for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases, whose database
+  versions, 5709 (its pre-release builds 2788 and 2843 of August 2026) and 5711 (5.7.0 build 3013, 5.7.1 and 5.7.2),
+  its upgrade has no step from, where the description called the package "a drop-in upgrade for an existing hMailServer
+  installation, with a continuous database upgrade chain from every earlier version"; winget's package name is
+  "hMailServer (Progressive Robot's fork)", and its moniker `hmailserver-progressiverobot`, the Chocolatey id, where it
+  was `hmailserver`. The description no longer says that
   the original "is no longer developed upstream", nor that it "went quiet for years". The same job gave the winget
   installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a release of 17 October,
   because `build/make-package-manifests.ps1` took today when no date was passed. It takes the GitLab release's
