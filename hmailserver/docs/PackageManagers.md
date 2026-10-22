@@ -28,13 +28,18 @@ resubmitted. At 01:06 UTC on 22 October 2026 `chocolatey-publish` (job
 17362512835, in `master`'s pipeline 2973751489) sent 6.3.7 again in its place,
 with the fork's title, summary and description but with authors and copyright
 that still name Progressive Robot alone, so it says that it is the fork but does
-not yet credit Martin Knafve; the community repository's feed lists it as
-`Submitted`, with the substatus `Updated`, not approved (read that day). The
-templates now credit Martin Knafve in the authors and the copyright: once that is
-on master, another press of `chocolatey-release` in master's pipeline sends 6.3.7
-a third time, with the credit, in the 22 October package's place, while the feed
-still lists it as `Submitted` ([Channels.md](Channels.md), "How a channel job
-publishes"). If a moderator approves the 22 October package first, the job sends
+not yet credit Martin Knafve. It passed Chocolatey's automated validation at 01:39
+UTC; its automated verification failed at 01:44 UTC because the verifier's
+download of it from Chocolatey's own feed timed out (a gateway timeout, not a
+fault in the package), and its page again shows "Waiting for Maintainer to take
+corrective action". The community repository's feed still lists it as
+`Submitted`, not approved (read at 02:29 UTC that day). The templates now credit
+Martin Knafve in the authors and the copyright: once that is on master, another
+press of `chocolatey-release` in master's pipeline sends 6.3.7 a third time, with
+the credit, in the 22 October package's place, while the feed still lists it as
+`Submitted` ([Channels.md](Channels.md), "How a channel job publishes"); the new
+package is validated and verified afresh, its results replacing the failed
+verification. If a moderator approves the 22 October package first, the job sends
 that version no more, and the credit reaches Chocolatey only with the next
 release. The package is listed, and installs with `choco install
 hmailserver-progressiverobot`, once a moderator has passed it. Every new version

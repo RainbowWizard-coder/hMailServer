@@ -258,10 +258,10 @@ with `--check`).
   the package's authors credit the original's author and that the same version be resubmitted. At 01:06 UTC on 22
   October 2026 `chocolatey-publish` (job 17362512835, in master's pipeline 2973751489) sent 6.3.7 again, with the
   fork's title, summary and description but with authors and copyright that still name Progressive Robot alone, and
-  the community repository's feed lists it as `Submitted`, with the substatus `Updated`; another press of
-  `chocolatey-release` in master's pipeline sends 6.3.7 a third time, with Martin Knafve credited, in that package's
-  place while the feed still lists it as `Submitted`. If a moderator approves the 22 October package first, the credit
-  reaches Chocolatey only with the next release.
+  the community repository's feed lists it as `Submitted`, not approved; another press of `chocolatey-release` in
+  master's pipeline sends 6.3.7 a third time, with Martin Knafve credited, in that package's place while the feed
+  still lists it as `Submitted`. If a moderator approves the 22 October package first, the credit reaches Chocolatey
+  only with the next release.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
