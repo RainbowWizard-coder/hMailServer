@@ -67,11 +67,12 @@ builds of 5.7.0 of August 2026, 2788 and 2843, require `5709`, and 5.7.0 build
 three, and stops before it changes anything: "Upgrade path not found. No upgrade
 script is registered for database version 5711". Over an installation whose
 settings are in its `Bin` folder - the builds 2788 and 2843, which have no other
-layout, or a later 5.7 installed over an earlier release - setup ran it only after it had
-replaced the program files, and this server then refused the database as too old
-(HM5011). Over one that the original's 5.7.0 build 3013 or later made new, which
-keeps its settings and data in `C:\ProgramData\hMailServer` - read first by the
-original's server, and not at all by this fork's setup up to 6.3.7 - setup found no
+layout, or a later 5.7 installed over one of them or over a release up to 5.6,
+whose layout its installer keeps - setup ran it only after it had replaced the
+program files, and this server then refused the database as too old (HM5011).
+Over one that the original's 5.7.0 build 3013 or later made new, which keeps its
+settings and data in `C:\ProgramData\hMailServer` - read first by the original's
+server, and not at all by this fork's setup up to 6.3.7 - setup found no
 settings file, took it for a new installation, and set up a new, empty database
 beside the original's.
 

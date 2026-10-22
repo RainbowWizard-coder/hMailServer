@@ -111,13 +111,13 @@ The two share the database's upgrade chain up to schema 5708 and part company th
   after 6.3.7 ([Upgrading.md](Upgrading.md#where-you-can-upgrade-from)); the installers of
   6.3.7 and earlier do not, and must not be run over one. Over an installation whose
   settings are in its `Bin` folder - the builds 2788 and 2843, which have no other
-  layout, or a later 5.7 installed over an earlier release - their database step stops without
-  changing the database, but only after the programs have been replaced, and this
-  fork's server will not run on that database; over one that the original's 5.7.0
-  build 3013 or later made new, whose settings and data are in
-  `C:\ProgramData\hMailServer`, which they do not read, they take it for a new
-  installation and set up a new, empty database beside the original's. Move the mail
-  instead: this fork
+  layout, or a later 5.7 installed over one of them or over a release up to 5.6, whose
+  layout its installer keeps - their database step stops without changing the
+  database, but only after the programs have been replaced, and this fork's server
+  will not run on that database; over one that the original's 5.7.0 build 3013 or
+  later made new, whose settings and data are in `C:\ProgramData\hMailServer`, which
+  they do not read, they take it for a new installation and set up a new, empty
+  database beside the original's. Move the mail instead: this fork
   installed on another machine, the domains and accounts made there, and each mailbox
   copied across over IMAP by a migration
   ([Migration.md](Migration.md#from-the-original-hmailserver)).

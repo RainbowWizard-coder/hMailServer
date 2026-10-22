@@ -78,10 +78,12 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                read only after hMailServer.exe is found to be before 6, not this
                fork's, and only from a running service; with it unread, the
                [Database] PasswordEncryption of the settings file the installed
-               server reads - the one in ProgramData, which the original's 5.7.0
-               build 3013 and later read first, before the earlier installation's
-               own - is read and passed to the decision, so that a database whose
-               password only this fork can read is not refused. The decision's self-test,
+               server reads - for the original's 5.7.0 build 3013 and later the one
+               in ProgramData when it exists, before the earlier installation's own,
+               and for its earlier builds (IsBeforeProgramDataSettings) the one in
+               Bin alone - is read and passed to the decision, so that a database
+               whose password only this fork can read is not refused. The decision's
+               self-test,
                build/ci/packages/original-guard-test.iss, includes the same file,
                and windows-packages.ps1 runs it before it compiles the installer,
                stopping with exit 8 when it fails. That self-test runs the cases;

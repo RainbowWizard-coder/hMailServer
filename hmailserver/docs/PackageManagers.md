@@ -173,11 +173,12 @@ message box, silent mode answers it with the default button, and a broken
 install reports success.
 
 **A failed install says why only in the installer's log**, the message boxes being
-suppressed - a failed database step, or the installer's refusal of an
-installation of the original hMailServer's 5.7, which it makes before it changes
-anything (Upgrading.md, "Where you can upgrade from"). Inno Setup writes a log only
-with `/LOG`. The winget installer manifest declares `Log: /LOG="<LOGPATH>"`, which
-`winget install --log <file>` fills. The Chocolatey install script passes
+suppressed - a failed database step, or, from the release after 6.3.7, the
+installer's refusal of an installation of the original hMailServer's 5.7, which it
+makes before it changes anything (Upgrading.md, "Where you can upgrade from"). Inno
+Setup writes a log only with `/LOG`. The winget installer manifest declares `Log:
+/LOG="<LOGPATH>"`, which `winget install --log <file>` fills. From the release after
+6.3.7 the Chocolatey install script passes
 `/LOG="%TEMP%\<package id>.<version>.install.log"`, names that log when the
 install fails, and shows the refusal's words, which setup writes, with or without
 a log, to `%TEMP%\hMailServer-setup-refused.txt`. Both end with the installer's

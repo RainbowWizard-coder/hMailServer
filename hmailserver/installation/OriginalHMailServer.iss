@@ -17,15 +17,15 @@
 // build 3013, 5.7.1 build 3116 and 5.7.2 build 3124 - and this fork by its own,
 // from 5708 to 6001. DBUpdater has no step from any version between the two.
 // Over an installation whose settings are in its Bin folder - the builds 2788 and
-// 2843, which have no other layout, or a later 5.7 installed over an earlier
-// release - setup would
-// run it only after it had replaced the original's programs; it stops before it
-// changes anything, and this fork's server refuses such a database as too old
-// (HM5011). Over one that the original's 5.7.0 build 3013 or later made new, whose
-// settings and data are in {commonappdata}\hMailServer - which the original's
-// server reads first and this fork's setup does not read - setup would find no
-// settings file, take it for a new installation and set up a new, empty database
-// beside the original's. So it is refused before a file is copied.
+// 2843, which have no other layout, or a later 5.7 installed over one of them or
+// over a release up to 5.6, whose layout its installer keeps - setup would run it
+// only after it had replaced the original's programs; it stops before it changes
+// anything, and this fork's server refuses such a database as too old (HM5011).
+// Over one that the original's 5.7.0 build 3013 or later made new, whose settings
+// and data are in {commonappdata}\hMailServer - which the original's server reads
+// first and which this fork's setup, but for this refusal, does not read - setup
+// would find no settings file, take it for a new installation and set up a new,
+// empty database beside the original's. So it is refused before a file is copied.
 //
 // What identifies such an installation:
 //   * its hMailServer.exe's version, in the folder the earlier installation names:
