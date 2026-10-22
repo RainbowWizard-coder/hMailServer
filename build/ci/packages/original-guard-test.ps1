@@ -22,7 +22,9 @@
    must fail a case.
 
    Nothing is installed, and nothing outside -WorkDir (a new folder under the
-   temporary folder by default, removed afterwards) is written. The
+   temporary folder by default, removed afterwards) is written but setup's own
+   temporary folder (is-*.tmp under %TEMP%), which every Inno Setup setup makes
+   while it runs and removes when it ends (ISCC, compiling, writes nothing there). The
    windows-packages jobs run it after they find Inno Setup and before they build
    the installer (windows-packages.ps1, step 3).
 

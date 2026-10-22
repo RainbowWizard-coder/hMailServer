@@ -920,6 +920,16 @@ with `--check`).
   the job's script, taken from `.gitlab-ci.yml` and run as the job runs it (`set -eo pipefail`, the job's pinned
   Alpine 3.24 image, helm 3.19.0), passed over the tree's chart and, over a copy with the `HM_DB_PORT` lines taken
   out, failed silently with the old line and with the message with the new one.
+- **Two checks say what they do.** `build/check-package-manifests.py` said that the winget installer manifest's Log
+  switch must be `/LOG="<LOGPATH>"`, and took any value holding `/LOG=` and `<LOGPATH>`, `/LOG=<LOGPATH>` and
+  `/LOG="<LOGPATH>" /NOCANCEL` among them; it now requires exactly `/LOG="<LOGPATH>"`, as the template writes it and
+  `build/make-package-manifests.ps1` renders it, and says what it found. The package-templates job's three steps
+  pass; over its render of 9.9.9 with the switch changed, master's checker passed the unquoted and the extended
+  switch and this one refuses both, and both refuse a switch without a path and none at all.
+  `build/ci/packages/original-guard-test.ps1` said that nothing outside its working folder is written; it now says
+  that setup's own temporary folder, `is-*.tmp` under `%TEMP%`, which every Inno Setup setup makes while it runs and
+  removes when it ends, is written too, and that ISCC, compiling, writes nothing there, as a compile of its harness
+  with Inno Setup 6, watched, wrote nothing in `%TEMP%`.
 
 ### Documentation
 

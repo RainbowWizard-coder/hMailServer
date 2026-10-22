@@ -36,7 +36,8 @@ What it checks, beyond the schemas:
   * the nuspec, if one is beside them, is well-formed, carries the same version,
     and its install script carries the same URL and hash as the manifest;
   * a silent install keeps a record of why it failed or was refused: the
-    installer manifest's Log switch is /LOG="<LOGPATH>", and the Chocolatey
+    installer manifest's Log switch is exactly /LOG="<LOGPATH>", as the
+    template writes it (LOG_SWITCH), and the Chocolatey
     install script's silentArgs carry /LOG=;
   * the installer manifest's ReleaseDate is a day, YYYY-MM-DD, and with
     --release-date the release's own: build/make-package-manifests.ps1 takes it
@@ -117,6 +118,12 @@ ICON_URL = ("https://gitlab.com/hmailserver/hmailserver/-/raw/master/"
 # The nuspec's projectSourceUrl: the tree of the version's tag, v<version>, which
 # build/make-package-manifests.ps1 names it by; the home is projectUrl's.
 SOURCE_URL_PREFIX = "https://gitlab.com/hmailserver/hmailserver/-/tree/"
+
+# The winget installer manifest's Log switch, exactly as its template
+# (hmailserver/installation/winget/ProgressiveRobot.hMailServer.installer.yaml.in)
+# writes it and build/make-package-manifests.ps1 renders it: winget puts the path of
+# the log in place of <LOGPATH>, quoted so that a path with a space stays one argument.
+LOG_SWITCH = '/LOG="<LOGPATH>"'
 
 
 def problem(message):
@@ -311,11 +318,11 @@ def check_winget(version_directory, cache_directory, offline, release_date=None)
                     "shows a message box, silent mode answers it with the default button, and a broken install "
                     "reports success" % (installer_entry, switch)
                 )
-        if "/LOG=" not in (switches.get("Log") or "") or "<LOGPATH>" not in (switches.get("Log") or ""):
+        if switches.get("Log") != LOG_SWITCH:
             problem(
-                "%s: the Log switch is not /LOG=\"<LOGPATH>\" - without it `winget install --log` records winget's "
-                "side alone, and a silent install that fails or is refused (an installation of the original "
-                "hMailServer's 5.7) leaves only its exit code" % installer_entry
+                "%s: the Log switch is %r, not %s, the template's - without it `winget install --log` records "
+                "winget's side alone, and a silent install that fails or is refused (an installation of the original "
+                "hMailServer's 5.7) leaves only its exit code" % (installer_entry, switches.get("Log"), LOG_SWITCH)
             )
         for entry in installer.get("Installers") or []:
             url = entry.get("InstallerUrl", "")
