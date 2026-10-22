@@ -253,24 +253,24 @@ with `--check`).
 
 - **The Chocolatey and winget packages credit the original hMailServer's author.** The nuspec's copyright was
   "Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer" and its authors "Christopher Holloway, Progressive
-  Robot Ltd", and winget's Copyright and Author the same, so Chocolatey's page for 6.3.7 says that neither the package
-  nor Chocolatey Software is affiliated with or endorsed by "Christopher Holloway, Progressive Robot Ltd", the
-  package's own maintainers, and names nobody else. The copyright is now "Copyright (c) 2026 Progressive Robot Ltd. A
-  fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.", as the
-  installer's licence ends, and the authors "Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve
-  (the original hMailServer)". winget's Publisher stays Progressive Robot Ltd, the publisher the installer writes in
-  the uninstall entry. `build/make-package-manifests.ps1` and `build/check-package-manifests.py` refuse a rendered
-  copyright or author field that does not name Martin Knafve, or that does not name Progressive Robot and the fork
-  beside him, so that neither field credits the fork's package to the original's author alone, and
-  `build/check-package-texts.py` holds the templates' fields to both. Chocolatey's moderator asked for this on 21
-  October 2026, returning 6.3.7 to the maintainer ("Waiting for Maintainer to take corrective action") with the
-  request that the package's authors credit the original's author and that the same version be resubmitted. At 01:06
-  UTC on 22 October 2026 `chocolatey-publish` (job 17362512835, in master's pipeline 2973751489) sent 6.3.7 again,
-  with the fork's title, summary and description but with authors and copyright that still name Progressive Robot
-  alone, and the community repository's feed lists it as `Submitted`, not approved; another press of
-  `chocolatey-release` in master's pipeline sends 6.3.7 a third time, with Martin Knafve credited, in that package's
-  place while the feed still lists it as `Submitted`. If a moderator approves the 22 October package first, the credit
-  reaches Chocolatey only with the next release.
+  Robot Ltd", and winget's Copyright the same and its Author "Christopher Holloway", so Chocolatey's page for 6.3.7
+  says that neither the package nor Chocolatey Software is affiliated with or endorsed by "Christopher Holloway,
+  Progressive Robot Ltd", the package's own maintainers, and names nobody else. The copyright is now "Copyright (c)
+  2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the
+  original work remains.", as the installer's licence ends, and the authors "Christopher Holloway, Progressive Robot
+  Ltd (the fork), Martin Knafve (the original hMailServer)". winget's Publisher stays Progressive Robot Ltd, the
+  publisher the installer writes in the uninstall entry. `build/make-package-manifests.ps1` and
+  `build/check-package-manifests.py` refuse a rendered copyright or author field that does not name Martin Knafve, or
+  that does not name Progressive Robot and the fork beside him, so that neither field credits the fork's package to
+  the original's author alone, and `build/check-package-texts.py` holds the templates' fields to both. Chocolatey's
+  moderator asked for this on 21 October 2026, returning 6.3.7 to the maintainer ("Waiting for Maintainer to take
+  corrective action") with the request that the package's authors credit the original's author and that the same
+  version be resubmitted. At 01:06 UTC on 22 October 2026 `chocolatey-publish` (job 17362512835, in master's pipeline
+  2973751489) sent 6.3.7 again, with the fork's title, summary and description but with authors and copyright that
+  still name Progressive Robot alone, and the community repository's feed lists it as `Submitted`, not approved;
+  another press of `chocolatey-release` in master's pipeline sends 6.3.7 a third time, with Martin Knafve credited, in
+  that package's place while the feed still lists it as `Submitted`. If a moderator approves the 22 October package
+  first, the credit reaches Chocolatey only with the next release.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
