@@ -215,13 +215,13 @@ with `--check`).
   a port given is passed on. Found by the project's own audit of its listings.
 
 - **Every Linux package, the nix package and the container image say that they are Progressive Robot's fork of
-  hMailServer, and name the original's author.** The original hMailServer, Martin Knafve's, is developed again (5.7.0
-  on 28 September 2026, 5.7.1 and a 5.7.2 pre-release on 29 September), and the packages' own texts read as the
-  original's: the RPMs on OBS and Copr carried the Summary "Mail server for SMTP, IMAP and POP3" and a description
-  that opened "hMailServer is a mail server" and called it only "a maintained fork of the Windows mail server of that
-  name", the Debian packages the same, and hmailserver-cli's texts named no fork at all. The RPM spec's and
-  `debian/control`'s summaries are now "Progressive Robot's fork of hMailServer: mail server for SMTP, IMAP and POP3"
-  and, for hmailserver-cli, "Progressive Robot's fork of hMailServer: command-line client for its REST API"; the
+  hMailServer, and their long descriptions name the original's author.** The original hMailServer, Martin Knafve's, is
+  developed again (5.7.0 on 28 September 2026, 5.7.1 and a 5.7.2 pre-release on 29 September), and the packages' own
+  texts read as the original's: the RPMs on OBS and Copr carried the Summary "Mail server for SMTP, IMAP and POP3" and
+  a description that opened "hMailServer is a mail server" and called it only "a maintained fork of the Windows mail
+  server of that name", the Debian packages the same, and hmailserver-cli's texts named no fork at all. The RPM spec's
+  and `debian/control`'s summaries are now "Progressive Robot's fork of hMailServer: mail server for SMTP, IMAP and
+  POP3" and, for hmailserver-cli, "Progressive Robot's fork of hMailServer: command-line client for its REST API"; the
   server's long description opens by saying that it is not the original hMailServer by Martin Knafve, which is
   developed separately and has releases of its own, and the client's calls `hmctl` the command-line client of
   Progressive Robot's fork and says that it does not work with the original hMailServer by Martin Knafve, which has no
@@ -231,18 +231,18 @@ with `--check`).
   "hMailServer (Progressive Robot's fork)" with the comment "Progressive Robot's fork of hMailServer, a mail server
   for SMTP, IMAP and POP3", where it was "hMailServer" and "A mail server for SMTP, IMAP and POP3", and the SBOM of
   each release file (`build/asset-sbom.py`) describes the file's subject as "Progressive Robot's fork of hMailServer,
-  a mail server for SMTP, IMAP and POP3", where it said "hMailServer, a mail server for SMTP, IMAP and POP3", and
-  each platform's container image's SBOM its subject as "The <version> container image of Progressive Robot's fork of
-  hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>".
-  OBS, Copr and the PPA take the packaging from the release's source tarball and the image its labels from the
-  release's tree, so this reaches them with the next release; `aur-publish` renders `master`'s PKGBUILD, so the AUR's
-  first push carries it, whichever release it is for. `build/check-package-texts.py`, which the checkers job runs with
-  its self-test, holds every package text the tree ships to it: these, the snap's title, summary, description and
-  website, the chart's description, the openings of the chart's README and of `ContainerImage.md`, which Artifact Hub
-  shows, the Chocolatey and winget copyright and authors, the AppImages' desktop entry and the SBOMs' descriptions;
-  and the summaries to the lengths rpmlint, Debian's policy and snapcraft allow, and the packages' maintainer to the
-  project's address. rpmlint's warning that the summary repeats the package's name (`name-repeated-in-summary`), which
-  the fork's name brings, is filtered in `rpm/hmailserver.rpmlintrc`, with its reason.
+  a mail server for SMTP, IMAP and POP3", where it said "hMailServer, a mail server for SMTP, IMAP and POP3", and each
+  platform's container image's SBOM its subject as "The <version> container image of Progressive Robot's fork of
+  hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>". OBS, Copr
+  and the PPA take the packaging from the release's source tarball and the image its labels from the release's tree,
+  so this reaches them with the next release; `aur-publish` renders `master`'s PKGBUILD, so the AUR's first push
+  carries it, whichever release it is for. `build/check-package-texts.py`, which the checkers job runs with its
+  self-test, holds every package text the tree ships to it: these, the snap's title, summary, description and website,
+  the chart's description, the openings of the chart's README and of `ContainerImage.md`, which Artifact Hub shows,
+  the Chocolatey and winget copyright and authors, the AppImages' desktop entry and the SBOMs' descriptions; and the
+  summaries to the lengths rpmlint, Debian's policy and snapcraft allow, and the packages' maintainer to the project's
+  address. rpmlint's warning that the summary repeats the package's name (`name-repeated-in-summary`), which the
+  fork's name brings, is filtered in `rpm/hmailserver.rpmlintrc`, with its reason.
 
 - **The Chocolatey and winget packages credit the original hMailServer's author.** The nuspec's copyright was
   "Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer" and its authors "Christopher Holloway, Progressive
