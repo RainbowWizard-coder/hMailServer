@@ -735,7 +735,9 @@ with `--check`).
   recorded yet; and that both Artifact Hub listings are at 6.3.7 with the Verified publisher label, read through its
   API, and say that they are the fork from the next release; and the section *Artifact Hub* gives the image's last
   tracking as 21 October 2026, where it gave 20 October, as that list does. The document is the image's README on
-  Artifact Hub, which reads it from `master`.
+  Artifact Hub, which reads master's copy when it processes a tag, not at each tracking, so the listing shows this
+  text from the next release; until then each version's README is an older copy, without the opening that says this
+  is Progressive Robot's fork, and the chart's README is the 6.3.7 chart's own, and the section says so.
 
 - **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
   hMailServer, not the original.** The comment it gave for registering `hmailserver` called the project the one "which
