@@ -790,13 +790,13 @@ and a package whose platforms had changed after the tree's were checked.
   each is the text the release carried, the chart's `Chart.yaml` and the image's
   description label. Nor does either README that Artifact Hub shows. The chart's is
   the 6.3.7 chart's own README.md. The image's is this document as Artifact Hub read
-  it when it last processed each tag, not master's current copy: for 6.3.7 and 6.3.6
-  the text of that release's tag, and for `latest` master's text of 19 to 21 October
-  2026. Artifact Hub's API, read at 02:28 UTC on 22 October 2026, gives every
-  version's README without this document's opening, though master has had it since
-  21 October and the image's repository was tracked again at 02:17 UTC that day. The
-  descriptions say so from the next release's chart and image. 6.3.7's and 6.3.6's
-  READMEs keep the text they were first read with. `latest`'s shows this document's
-  opening when Artifact Hub next lists `latest` anew: when the tag moves with the
-  next release, or sooner, as happened once between 19 and 21 October 2026 without
-  the tag moving.
+  it when it last listed each version, not master's current copy: for 6.3.7 and
+  6.3.6 the text of that release's tag, and for `latest` master's text of 19 to 21
+  October 2026. Artifact Hub's API, read at 02:28 UTC on 22 October 2026, gives
+  every version's README without this document's opening, though master has had it
+  since 21 October and the image's repository was tracked again at 02:17 UTC that
+  day. The descriptions say so from the next release's chart and image. 6.3.7's and
+  6.3.6's READMEs keep the text they were first read with. `latest`'s shows this
+  document's opening when Artifact Hub next lists `latest` anew: when the tag moves
+  with the next release, or sooner, as happened once between 19 and 21 October 2026
+  without the tag moving.
