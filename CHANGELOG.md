@@ -347,6 +347,9 @@ with `--check`).
   setup's command line, so PackageManagers.md says to give the administrator password in `HM_ADMIN_PASSWORD` rather
   than in Chocolatey's `--install-arguments`. `build/check-package-manifests.py` refuses a winget Log switch that is not
   `/LOG="<LOGPATH>"` and Chocolatey `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter.
+  The script is not tied to a release of the installer: `chocolatey-publish` renders the latest release's package from
+  `master`'s templates, so 6.3.7's resubmission passes `/LOG` too; only the refusal it shows is from the release after
+  6.3.7.
 
 - **The Chocolatey and winget descriptions say that the installer refuses the original hMailServer's 5.7.** They said
   that, both installers registering under the uninstall entry `hMailServer_is1`, this package's installer takes an
