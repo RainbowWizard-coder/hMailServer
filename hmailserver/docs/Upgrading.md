@@ -91,9 +91,10 @@ installation's there and read it before the one in `Bin`, and this fork never
 writes it - and otherwise, and for the original's earlier builds (2788, 2843, its
 releases up to 5.6 and its 5.7 development builds), which read the one in `Bin`
 alone, the `hMailServer.ini` in the installation's `Bin` folder. The original's
-CI builds 5.7.0.2958 to 3012 read the ProgramData file first as well, but setup
-takes them as its earlier builds. So a file in
-ProgramData that the original's uninstaller left behind does not decide for a
+CI builds 5.7.0.2948, 2951 and 2957, of the branch that brought that layout, and
+5.7.0.2958 to 3012 read the ProgramData file first as well, but setup takes them
+as its earlier builds. So a file in ProgramData that the original's uninstaller
+left behind does not decide for a
 build that never reads it. A `[Database]`
 `PasswordEncryption` of `6`, the database's password kept with DPAPI, is this
 fork's alone. This fork writes it, from 6.2.0 on and unless
