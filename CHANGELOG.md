@@ -877,6 +877,23 @@ with `--check`).
   `rpm-install-test.sh` installed and tested 6.3.7's packages with what they require from the origin, and
   `rpm-build.sh` built Tumbleweed's aarch64 package after it; with the mirror refused the refresh passed and changed
   nothing. `hmailserver/docs/PackagesRpm.md`'s openSUSE section says so, and `SourcePackages.md` names the refresh.
+- **The image's start test says whether the database client or the image failed.** `build/ci/container-image-start-test.sh`
+  read the schema version with the client's error output thrown away, so a failure of the job's own `psql` or
+  `mariadb` - a refused login, a host it could not reach, a certificate the MariaDB client would not take - was
+  reported as the server not having laid out its schema, and the job then said to delete the tags of an image that may
+  have been sound. It now keeps what the client says apart from what it prints as the version, and tells three cases
+  apart: the database answering that there is no `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, which `psql`
+  prints with `VERBOSITY` verbose, or MariaDB's error 1146) or a table holding no number, both the image's failure,
+  with the tags to delete as before; and a client that could not ask, which prints the client's own words, says that
+  the test did not finish and says nothing yet of the image, and names the tags to decide on once the job has been run
+  again. Each still fails the job. Run on a Linux machine with the start jobs' PostgreSQL 18 and MariaDB 13 by digest,
+  in the job's way (the Linux CI image's `psql` 18 and `mariadb` 11.8 clients) and in `--docker`'s (the databases' own
+  clients): a refused login (in `--docker`'s way MariaDB's alone, the PostgreSQL image trusting its own loopback) and,
+  in the job's way, an unknown host failed as the client's, with its message; a database without the table
+  failed as the image's, with the server's message; the table with 6108 passed, and an empty one failed. Neither
+  password appeared in anything printed. The whole `--docker` mode run over 6.3.7's published image still passed beside
+  PostgreSQL, schema 6108, and stopped beside MariaDB as that image must, lacking the MariaDB client.
+  [ContainerImage.md](hmailserver/docs/ContainerImage.md), "The start test", says so.
 
 ### Documentation
 

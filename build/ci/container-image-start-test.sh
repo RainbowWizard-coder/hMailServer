@@ -106,6 +106,20 @@ fail() {
   exit 1
 }
 
+# A question this test could not ask - the database client itself failed (a refused
+# login, a certificate it would not take, a database it could not reach) - which says
+# nothing of the image either way: still a failure, but not the image's, so the tags
+# are not yet said to be deleted.
+unasked() {
+  echo "CONTAINER-IMAGE-START FAILED: $*"
+  if [ "$mode" = ci ] && [ -n "${HM_IMAGE_TAGS:-}" ]; then
+    echo "The image ${HM_IMAGE:-} was pushed before this test, which did not finish: find why the client failed"
+    echo "(its own words are above) and run this job again before deciding whether these tags must be deleted:"
+    printf '%s\n' "$HM_IMAGE_TAGS" | tr ',' '\n' | sed '/^$/d; s/^/  /'
+  fi
+  exit 1
+}
+
 step() {
   echo ""
   echo "== $*"
@@ -260,7 +274,7 @@ schema_version() {
   if [ "$mode" = docker ]; then
     case "$1" in
       PostgreSQL) printf '%s' "$db_password" | docker exec -i "$pg_db_host" \
-                    bash -c 'PGPASSWORD=$(cat) exec psql -h 127.0.0.1 -U "$0" -d "$1" -tAc "select value from hm_dbversion"' \
+                    bash -c 'PGPASSWORD=$(cat) exec psql -h 127.0.0.1 -U "$0" -d "$1" -v VERBOSITY=verbose -tAc "select value from hm_dbversion"' \
                     "$db_user" "$db_name" ;;
       MariaDB) printf '%s' "$db_password" | docker exec -i "$maria_db_host" \
                  bash -c 'MYSQL_PWD=$(cat) exec mariadb -h 127.0.0.1 -u "$0" -N -B -e "select value from hm_dbversion" "$1"' \
@@ -268,7 +282,7 @@ schema_version() {
     esac
   else
     case "$1" in
-      PostgreSQL) PGPASSWORD="$db_password" psql -h "$pg_db_host" -U "$db_user" -d "$db_name" -tAc "select value from hm_dbversion" ;;
+      PostgreSQL) PGPASSWORD="$db_password" psql -h "$pg_db_host" -U "$db_user" -d "$db_name" -v VERBOSITY=verbose -tAc "select value from hm_dbversion" ;;
       MariaDB) MYSQL_PWD="$db_password" mariadb -h "$maria_db_host" -u "$db_user" -N -B -e "select value from hm_dbversion" "$db_name" ;;
     esac
   fi
@@ -324,9 +338,29 @@ ask_image() {
   echo "as Administrator: 200, version $expected; over plain HTTP: no answer ($plain)"
 
   step "beside $database: the database holds the server's schema"
-  version=$(schema_version "$database" 2> /dev/null | tr -d ' \r\n')
+  # What the client printed and what it said went wrong, apart: a warning on its
+  # standard error is not read as the version, and its words are shown when it fails.
+  local said_errors errors client status
+  said_errors=$(mktemp) || { echo "mktemp failed"; exit 2; }
+  version=$(schema_version "$database" 2> "$said_errors")
+  status=$?
+  errors=$(cat "$said_errors")
+  rm -f "$said_errors"
+  version=$(printf '%s' "$version" | tr -d ' \r\n')
+  [ "$database" = PostgreSQL ] && client=psql || client=mariadb
+  if [ "$status" -ne 0 ]; then
+    # The database answered that there is no hm_dbversion table (PostgreSQL's
+    # SQLSTATE 42P01, which VERBOSITY verbose prints; MariaDB's error 1146): the
+    # client asked, and the server laid out no schema there.
+    if grep -Eq '(^|[^0-9A-Z])42P01([^0-9A-Z]|$)|^ERROR 1146 \(42S02\)' <<< "$errors"; then
+      printf '%s\n' "$errors"
+      fail "$database holds no hm_dbversion table: the server did not lay out its schema there"
+    fi
+    printf '%s\n' "$errors"
+    unasked "$client could not ask $database for its hm_dbversion (it exited $status; what it said is above): the test could not finish, which says nothing yet of the image"
+  fi
   case "$version" in
-    ''|*[!0-9]*) fail "$database's hm_dbversion could not be read, or is not a number ('$version'): the server did not lay out its schema there" ;;
+    ''|*[!0-9]*) fail "$database's hm_dbversion holds no number ('$version'): the server did not lay out its schema there" ;;
   esac
   echo "hm_dbversion in $database: $version"
   schema="$version"

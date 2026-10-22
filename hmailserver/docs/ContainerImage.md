@@ -576,6 +576,12 @@ needs no certificate from outside. It then asks each of the two:
   answered over plain HTTP;
 - its database: `hm_dbversion`, read with that database's own client, holds the
   schema version the server laid out there, and the two databases hold the same.
+  The test tells the database's answer that there is no `hm_dbversion` table
+  (PostgreSQL's SQLSTATE 42P01, MariaDB's error 1146) - the image's failure -
+  from a client that could not ask at all - a refused login, a host it cannot
+  reach, a certificate it will not take - and prints the client's own words in
+  both cases. Only the first is said to need the tags deleted; the second says
+  the test did not finish and is to be run again once its cause is found.
 
 In the job, the runner starts PostgreSQL (`db`), MariaDB (`mariadb`, the image
 `linux-db-upgrade-mysql` runs, by digest, and as it runs it, with root and no
