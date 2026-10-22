@@ -735,8 +735,8 @@ with `--check`).
   release's tag.
 
 - **ContainerImage.md's "What is not shown yet" says what holds on 21 October 2026.** It said that the pipeline had
-  made one image, 6.3.6's, and that Artifact Hub listed the chart at 6.3.6 without the Verified publisher label. It
-  now says that the pipeline has made two releases' images, 6.3.6's in its tag pipeline 2914690858, where
+  made one image, 6.3.6's, and that Artifact Hub listed the chart at 6.3.6 without the Verified publisher label. It now
+  says that the pipeline has made two releases' images, 6.3.6's in its tag pipeline 2914690858, where
   `container-image-deb` passed at its second run, and 6.3.7's in its tag pipeline 2958958332, where every image job
   passed at its first run; which index each of the registry's tags names, read without credentials; that `cosign
   verify` by hand has passed against the copy on `ghcr.io`, and `cosign verify-attestation` too against the copy on
@@ -744,9 +744,10 @@ with `--check`).
   recorded yet; and that both Artifact Hub listings are at 6.3.7 with the Verified publisher label, read through its
   API, and say that they are the fork from the next release; and the section *Artifact Hub* gives the image's last
   tracking as 21 October 2026, where it gave 20 October, as that list does. The document is the image's README on
-  Artifact Hub, which reads master's copy when it processes a tag, not at each tracking, so the listing shows this
-  text from the next release; until then each version's README is an older copy, without the opening that says this
-  is Progressive Robot's fork, and the chart's README is the 6.3.7 chart's own, and the section says so.
+  Artifact Hub, which shows each version's README as it read master's copy when it last listed that version: 6.3.7's
+  and 6.3.6's their release's text, and `latest`'s master's text of 19 to 21 October, without the opening that says
+  this is Progressive Robot's fork, until Artifact Hub lists `latest` anew (when the tag moves with the next release,
+  or sooner, as between 19 and 21 October), and the chart's README is the 6.3.7 chart's own; the section says so.
 
 - **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
   hMailServer, not the original.** The comment it gave for registering `hmailserver` called the project the one "which

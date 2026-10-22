@@ -281,51 +281,51 @@ marked Official.
   holds the tree's chart and the package to), its links, and whether it is a
   pre-release. The Official label is requested through a GitHub issue, and is
   not.
-- **The image.** The repository `hmailserver-image`, shown as hMailServer
-  container image, of kind Container images, with the address
+- **The image.** The repository `hmailserver-image`, shown as hMailServer container
+  image, of kind Container images, with the address
   `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,
   which both platforms' images carry alike, at the tags the repository tracks:
   `6.3.7` and `6.3.6`, each marked immutable, which Artifact Hub reads once, and
-  `latest`, marked mutable, which it reads again when the tag moves. A maintainer sets those tags
-  on Artifact Hub, in its Control Panel or through its API, ten at most; a new
-  release's version tag is not tracked by itself, so a maintainer adds it with
-  each release. Its Verified publisher label needs a metadata file of its own,
-  with the repository ID Artifact Hub gave that repository,
-  `8cd87f71-a93b-4eb0-b3a0-a78ece5b5796`, pushed to the image's repository under
-  the tag `artifacthub.io`. That file is
-  `platform/packaging/docker/artifacthub-repo.yml` in the tree, which holds the
-  ID as a line `repositoryID: <the ID>`, and the job `container-image-artifacthub`
-  pushes it. That job runs in every release's pipeline after `container-image`,
-  and in the default branch's a maintainer starts it by hand, so that the label
-  need not wait for a release. 6.3.6's pipeline ran it while the file held no
-  ID, and it pushed nothing; without an ID it pushes nothing, and passes. Its
-  first push was that start, in the default branch's pipeline 2918038819 on 6
-  October 2026, once the ID had landed there (job 16970526037, "ARTIFACT HUB
-  METADATA PUSHED"): GitLab's registry took the artifact of Artifact Hub's
-  configuration type, both of whose media types are on the registry's list
-  (the container registry's `docs/supported-media-types.md`, read on 2 October
-  2026), and the listing shows the Verified publisher label (Roadmap3.md,
-  "Artifact Hub: the container image"). It
-  pushes with `regctl` (`artifact put`), from the image `container-image` runs in,
-  since ORAS comes from GitHub, in the shape Artifact Hub documents for
-  `oras push`: an empty configuration of the type
+  `latest`, marked mutable, which it reads at each tracking and lists anew when the
+  tag moves, or when Artifact Hub reprocesses its listings (`latest`'s README is
+  master's text of 19 to 21 October 2026, though the tag last moved on 17 October).
+  A maintainer sets those tags on Artifact Hub, in its Control Panel or through its
+  API, ten at most; a new release's version tag is not tracked by itself, so a
+  maintainer adds it with each release. Its Verified publisher label needs a
+  metadata file of its own, with the repository ID Artifact Hub gave that
+  repository, `8cd87f71-a93b-4eb0-b3a0-a78ece5b5796`, pushed to the image's
+  repository under the tag `artifacthub.io`. That file is
+  `platform/packaging/docker/artifacthub-repo.yml` in the tree, which holds the ID
+  as a line `repositoryID: <the ID>`, and the job `container-image-artifacthub`
+  pushes it. That job runs in every release's pipeline after `container-image`, and
+  in the default branch's a maintainer starts it by hand, so that the label need not
+  wait for a release. 6.3.6's pipeline ran it while the file held no ID, and it
+  pushed nothing; without an ID it pushes nothing, and passes. Its first push was
+  that start, in the default branch's pipeline 2918038819 on 6 October 2026, once
+  the ID had landed there (job 16970526037, "ARTIFACT HUB METADATA PUSHED"):
+  GitLab's registry took the artifact of Artifact Hub's configuration type, both of
+  whose media types are on the registry's list (the container registry's
+  `docs/supported-media-types.md`, read on 2 October 2026), and the listing shows
+  the Verified publisher label (Roadmap3.md, "Artifact Hub: the container image").
+  It pushes with `regctl` (`artifact put`), from the image `container-image` runs
+  in, since ORAS comes from GitHub, in the shape Artifact Hub documents for `oras
+  push`: an empty configuration of the type
   `application/vnd.cncf.artifacthub.config.v1+yaml`, and the file as the one layer,
   of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`,
   titled `artifacthub-repo.yml`. It reads the tag back and holds the layer to the
   file byte for byte (`build/ci/container-image-artifacthub.sh`). The registry's
-  cleanup policy, still switched off, keeps that tag by name since 6 October
-  2026, when the maintainers added `^artifacthub\.io$` to the tags it keeps
-  through the project's API (ContinuousIntegration.md, "What the owner sets on
-  the registry"). Nor does the
-  registry's protected-tag rule for the release's tags cover it, and the file
-  under that tag is also what Artifact Hub checks an ownership claim of the
-  listing against (its `owners`): a second rule protects `^artifacthub\.io$` as
-  the release's tags are protected, push Maintainer and delete Owner (the same
-  place), which the maintainers added through the project's API on 2 October
-  2026, before the repository was added. Should somebody else have added the
-  repository first, the listing is taken back by such a claim, which needs an
-  `owners` list naming the claimant in the file; the script refuses that key,
-  so allowing it would be a change to the script, reviewed as such.
+  cleanup policy, still switched off, keeps that tag by name since 6 October 2026,
+  when the maintainers added `^artifacthub\.io$` to the tags it keeps through the
+  project's API (ContinuousIntegration.md, "What the owner sets on the registry").
+  Nor does the registry's protected-tag rule for the release's tags cover it, and
+  the file under that tag is also what Artifact Hub checks an ownership claim of the
+  listing against (its `owners`): a second rule protects `^artifacthub\.io$` as the
+  release's tags are protected, push Maintainer and delete Owner (the same place),
+  which the maintainers added through the project's API on 2 October 2026, before
+  the repository was added. Should somebody else have added the repository first,
+  the listing is taken back by such a claim, which needs an `owners` list naming the
+  claimant in the file; the script refuses that key, so allowing it would be a
+  change to the script, reviewed as such.
 
 ## Updates
 
@@ -781,19 +781,22 @@ and a package whose platforms had changed after the tree's were checked.
   the published image - is not recorded yet (Roadmap3.md, section 1b).
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
-- Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher
-  label (read through its API on 21 October 2026): the chart with the versions
-  6.3.7 and 6.3.6, last tracked on 18 October 2026, and the image with 6.3.7,
-  `latest` and 6.3.6, last tracked on 21 October 2026, neither with a tracking
-  error (*Artifact Hub*, above). The image's listing shows `latest` as its
-  default version, beside 6.3.7. Neither listing's description says yet that it
-  is Progressive Robot's fork: each is the text the release carried, the chart's
-  `Chart.yaml` and the image's description label. Nor does either README that
-  Artifact Hub shows. The chart's is the 6.3.7 chart's own README.md. The image's
-  is this document as Artifact Hub read it when it last processed each tag, not
-  master's current copy: for 6.3.7 and 6.3.6 the text of that release's tag, and
-  for `latest` master's text of 19 to 21 October 2026. Artifact Hub's API, read at
-  02:28 UTC on 22 October 2026, gives every version's README without this
-  document's opening, though master has had it since 21 October and the image's
-  repository was tracked again at 02:17 UTC that day. The descriptions and the
-  READMEs say so when Artifact Hub next processes a tag, with the next release.
+- Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher label
+  (read through its API on 21 October 2026): the chart with the versions 6.3.7 and
+  6.3.6, last tracked on 18 October 2026, and the image with 6.3.7, `latest` and
+  6.3.6, last tracked on 21 October 2026, neither with a tracking error (*Artifact
+  Hub*, above). The image's listing shows `latest` as its default version, beside
+  6.3.7. Neither listing's description says yet that it is Progressive Robot's fork:
+  each is the text the release carried, the chart's `Chart.yaml` and the image's
+  description label. Nor does either README that Artifact Hub shows. The chart's is
+  the 6.3.7 chart's own README.md. The image's is this document as Artifact Hub read
+  it when it last processed each tag, not master's current copy: for 6.3.7 and 6.3.6
+  the text of that release's tag, and for `latest` master's text of 19 to 21 October
+  2026. Artifact Hub's API, read at 02:28 UTC on 22 October 2026, gives every
+  version's README without this document's opening, though master has had it since
+  21 October and the image's repository was tracked again at 02:17 UTC that day. The
+  descriptions say so from the next release's chart and image. 6.3.7's and 6.3.6's
+  READMEs keep the text they were first read with. `latest`'s shows this document's
+  opening when Artifact Hub next lists `latest` anew: when the tag moves with the
+  next release, or sooner, as happened once between 19 and 21 October 2026 without
+  the tag moving.
