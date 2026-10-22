@@ -20,11 +20,14 @@ Chocolatey and winget (their templates; build/check-package-manifests.py holds t
 rendered files too), in a desktop's menu (the AppImages' desktop entry, which
 build-appimage.sh writes and AppImageLauncher or appimaged installs), and in the
 SBOMs of the release files and of the container images (build/asset-sbom.py's
-descriptions of their subjects). This holds, in each:
+descriptions of their subjects), and in apt policy and dnf repolist (the origin,
+label and description build/generate-package-repos.py gives each apt suite's
+Release, and the name it gives each dnf .repo file). This holds, in each:
 
   - the summary or title says "Progressive Robot's fork of hMailServer" (the
     desktop entry's Comment and its Name, "hMailServer (Progressive Robot's fork)",
-    and the SBOMs' descriptions too);
+    the SBOMs' descriptions, the apt suites' Label and Description and the dnf
+    repositories' name too, the apt suites' Origin being Progressive Robot);
   - the long description says it too and names the original's author, Martin
     Knafve;
   - the summaries are within the length their tools hold them to: an RPM Summary
@@ -82,9 +85,10 @@ NUSPEC = 'hmailserver/installation/chocolatey/hmailserver.nuspec.in'
 WINGET_LOCALE = 'hmailserver/installation/winget/ProgressiveRobot.hMailServer.locale.en-US.yaml.in'
 APPIMAGE = PACKAGING + '/build-appimage.sh'
 ASSET_SBOM = 'build/asset-sbom.py'
+PACKAGE_REPOS = 'build/generate-package-repos.py'
 
 FILES = (SPEC, CONTROL, CMAKE, PKGBUILD, APKBUILD, NIX_PACKAGE, FLAKE, SNAP, DOCKERFILE, CHART,
-         CHART_README, IMAGE_README, NUSPEC, WINGET_LOCALE, APPIMAGE, ASSET_SBOM)
+         CHART_README, IMAGE_README, NUSPEC, WINGET_LOCALE, APPIMAGE, ASSET_SBOM, PACKAGE_REPOS)
 
 
 def read(root, relative):
@@ -356,6 +360,21 @@ def check(root):
     c.fork('%s: IMAGE_DESCRIPTION, each container image\'s SBOM description' % ASSET_SBOM,
            python_string(sbom, 'IMAGE_DESCRIPTION'))
 
+    repos = read(root, PACKAGE_REPOS)
+    origin = python_string(repos, 'REPO_ORIGIN')
+    if c.found('%s: REPO_ORIGIN, the apt suites\' Origin' % PACKAGE_REPOS, origin) \
+            and not origin.startswith('Progressive Robot'):
+        c.problem('%s: REPO_ORIGIN, the apt suites\' Origin, is %r: the repositories are Progressive Robot\'s'
+                  % (PACKAGE_REPOS, origin))
+    c.titled('%s: REPO_LABEL, the apt suites\' Label' % PACKAGE_REPOS, python_string(repos, 'REPO_LABEL'))
+    c.fork('%s: REPO_DESCRIPTION, the apt suites\' Description' % PACKAGE_REPOS,
+           python_string(repos, 'REPO_DESCRIPTION'))
+    name = re.search(r'^name=(.*)$', repos, re.M)
+    c.titled('%s: REPO_FILE\'s name, each dnf repository\'s' % PACKAGE_REPOS, name.group(1) if name else None)
+    for field in ('Origin', 'Label'):
+        if re.search(r'%s: (?!%%s)' % field, repos) or re.search(r'\("%s", (?!REPO_)' % field, repos):
+            c.problem('%s: a Release names its %s other than by REPO_%s' % (PACKAGE_REPOS, field, field.upper()))
+
     nuspec = read(root, NUSPEC)
     for name in ('copyright', 'authors'):
         c.titled('%s: <%s>' % (NUSPEC, name), xml_element(nuspec, name))
@@ -531,6 +550,19 @@ def self_test():
         ('the container images\' SBOM description as it was', ASSET_SBOM,
          sub(r'^IMAGE_DESCRIPTION = ".*"$', 'IMAGE_DESCRIPTION = "The hMailServer %s container image for linux/%s, built from %s"'),
          "each container image's SBOM description does not say"),
+        ('the apt suites\' Origin as it was', PACKAGE_REPOS,
+         sub(r'^REPO_ORIGIN = ".*"$', 'REPO_ORIGIN = "hMailServer"'), "the apt suites' Origin, is"),
+        ('the apt suites\' Label as it was', PACKAGE_REPOS,
+         sub(r'^REPO_LABEL = ".*"$', 'REPO_LABEL = "hMailServer"'), "the apt suites' Label is"),
+        ('the apt suites\' Description as it was', PACKAGE_REPOS,
+         sub(r'^REPO_DESCRIPTION = ".*"$', 'REPO_DESCRIPTION = "hMailServer for %s, from %s"'),
+         "the apt suites' Description does not say"),
+        ('the dnf repositories\' name as it was', PACKAGE_REPOS,
+         sub(r'^name=.*$', 'name=hMailServer ({dist}, $basearch)'), "each dnf repository's is"),
+        ('a binary-<arch>/Release with its own Label', PACKAGE_REPOS,
+         replaced('Label: %s\\n', 'Label: hMailServer\\n'), 'names its Label other than by REPO_LABEL'),
+        ('the suite Release with its own Origin', PACKAGE_REPOS,
+         replaced('("Origin", REPO_ORIGIN)', '("Origin", "hMailServer")'), 'names its Origin other than by REPO_ORIGIN'),
         ('no spec', SPEC, lambda text: None, 'hmailserver.spec is not there'),
     ]
     for what, relative, change, needle in cases:
@@ -561,7 +593,8 @@ def main(argv):
         return 1
     print('OK    the RPM spec, debian/control, CPack, the PKGBUILD, the APKBUILD, the nix package and flake, the')
     print('      snap, the image\'s labels, the chart and its READMEs, the Chocolatey and winget templates, the')
-    print('      AppImages\' desktop entry and the release files\' and images\' SBOM descriptions say %r,' % FORK)
+    print('      AppImages\' desktop entry, the release files\' and images\' SBOM descriptions and the apt and dnf')
+    print('      repositories\' names say %r,' % FORK)
     print('      crediting the original, %s, where they describe it; the maintainer is %s.' % (ORIGINAL, MAINTAINER))
     return 0
 

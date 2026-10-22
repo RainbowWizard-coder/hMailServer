@@ -233,16 +233,23 @@ with `--check`).
   each release file (`build/asset-sbom.py`) describes the file's subject as "Progressive Robot's fork of hMailServer,
   a mail server for SMTP, IMAP and POP3", where it said "hMailServer, a mail server for SMTP, IMAP and POP3", and each
   platform's container image's SBOM its subject as "The <version> container image of Progressive Robot's fork of
-  hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>". OBS, Copr
-  and the PPA take the packaging from the release's source tarball and the image its labels from the release's tree,
-  so this reaches them with the next release; `aur-publish` renders `master`'s PKGBUILD, so the AUR's first push
-  carries it, whichever release it is for. `build/check-package-texts.py`, which the checkers job runs with its
-  self-test, holds every package text the tree ships to it: these, the snap's title, summary, description and website,
-  the chart's description, the openings of the chart's README and of `ContainerImage.md`, which Artifact Hub shows,
-  the Chocolatey and winget copyright and authors, the AppImages' desktop entry and the SBOMs' descriptions; and the
-  summaries to the lengths rpmlint, Debian's policy and snapcraft allow, and the packages' maintainer to the project's
-  address. rpmlint's warning that the summary repeats the package's name (`name-repeated-in-summary`), which the
-  fork's name brings, is filtered in `rpm/hmailserver.rpmlintrc`, with its reason.
+  hMailServer for linux/<arch>", where it said "The hMailServer <version> container image for linux/<arch>". The apt
+  and dnf repositories that `build/generate-package-repos.py` makes, not published yet, are named the same way: each
+  apt suite's Release gives the Origin "Progressive Robot", the Label "hMailServer (Progressive Robot's fork)" and the
+  Description "Progressive Robot's fork of hMailServer for <suite>, from <site>", which apt policy prints, where they
+  gave "hMailServer", "hMailServer" and "hMailServer for <suite>, from <site>", and each dnf `.repo` file is named
+  "hMailServer (Progressive Robot's fork) (<dist>, $basearch)", which dnf repolist prints, where it was "hMailServer
+  (<dist>, $basearch)"; they change before the first publication, since apt refuses an update whose Origin or Label
+  has changed until each user accepts the change. OBS, Copr and the PPA take the packaging from the release's source
+  tarball and the image its labels from the release's tree, so this reaches them with the next release; `aur-publish`
+  renders `master`'s PKGBUILD, so the AUR's first push carries it, whichever release it is for.
+  `build/check-package-texts.py`, which the checkers job runs with its self-test, holds every package text the tree
+  ships to it: these, the snap's title, summary, description and website, the chart's description, the openings of the
+  chart's README and of `ContainerImage.md`, which Artifact Hub shows, the Chocolatey and winget copyright and
+  authors, the AppImages' desktop entry, the SBOMs' descriptions and the repositories' origin, label, description and
+  name; and the summaries to the lengths rpmlint, Debian's policy and snapcraft allow, and the packages' maintainer to
+  the project's address. rpmlint's warning that the summary repeats the package's name (`name-repeated-in-summary`),
+  which the fork's name brings, is filtered in `rpm/hmailserver.rpmlintrc`, with its reason.
 
 - **The Chocolatey and winget packages credit the original hMailServer's author.** The nuspec's copyright was
   "Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer" and its authors "Christopher Holloway, Progressive

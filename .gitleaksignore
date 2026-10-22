@@ -177,7 +177,9 @@ c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private k
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/alice.sec.asc:PGP private key:1
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/bob.sec.asc:PGP private key:1
 /builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1766
-/builds/hmailserver/hmailserver/build/generate-package-repos.py:PGP private key:375
+# 22 October 2026: the repositories' origin, label and description, ten lines above it in
+# generate-package-repos.py: to 385, read again.
+/builds/hmailserver/hmailserver/build/generate-package-repos.py:PGP private key:385
 # 14 October 2026, batch48's fold: deck-script-test.js's to 5288 (cp53's edits above it), read again;
 # 15 October 2026, the help wiki link's twelve lines above it: to 5300, read again.
 # 16 October 2026, batch48's fold-2b: the help list's reading of generate-help-pages.py and HelpPagesData.cpp

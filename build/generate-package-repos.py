@@ -106,6 +106,16 @@ REGISTRY = "https://gitlab.com/api/v4/projects/" + PROJECT_ID + "/packages/gener
 SITE = "https://updates.progressiverobot.com"
 PUBLIC_KEY = os.path.join(ROOT, ".gitlab", "package-repository-key.asc")
 SITE_KEY = "hmailserver-repository-key.asc"
+# What apt policy, apt-cache policy and dnf repolist print of the repositories: they
+# are Progressive Robot's fork's, not the original hMailServer's, which is Martin
+# Knafve's and developed separately. Each apt suite's Release (and each
+# binary-<arch>/Release) carries the origin, the label and the description; each
+# dnf .repo file's name is REPO_FILE's. Set before the first publication: once a
+# repository is published, apt refuses an update whose Origin or Label has changed
+# until each user accepts it (build/check-package-texts.py holds these texts).
+REPO_ORIGIN = "Progressive Robot"
+REPO_LABEL = "hMailServer (Progressive Robot's fork)"
+REPO_DESCRIPTION = "Progressive Robot's fork of hMailServer for %s, from %s"
 KEY_VARIABLE = "HM_REPO_SIGNING_KEY"
 PASSPHRASE_VARIABLE = "HM_REPO_SIGNING_PASSPHRASE"
 
@@ -536,11 +546,12 @@ def build_apt(entries, files, work, site, signer):
             with open(os.path.join(target, "Packages.gz"), "wb") as f:
                 f.write(gzip.compress(packages, 9, mtime=0))
             with open(os.path.join(target, "Release"), "w", encoding="utf-8") as f:
-                f.write("Archive: %s\nComponent: main\nOrigin: hMailServer\nLabel: hMailServer\nArchitecture: %s\n" % (suite, arch))
+                f.write("Archive: %s\nComponent: main\nOrigin: %s\nLabel: %s\nArchitecture: %s\n"
+                        % (suite, REPO_ORIGIN, REPO_LABEL, arch))
         options = []
-        for field, value in (("Origin", "hMailServer"), ("Label", "hMailServer"), ("Suite", suite), ("Codename", suite),
+        for field, value in (("Origin", REPO_ORIGIN), ("Label", REPO_LABEL), ("Suite", suite), ("Codename", suite),
                              ("Architectures", " ".join(arches)), ("Components", "main"),
-                             ("Description", "hMailServer for %s, from %s" % (suite, SITE))):
+                             ("Description", REPO_DESCRIPTION % (suite, SITE))):
             options += ["-o", "APT::FTPArchive::Release::%s=%s" % (field, value)]
         release = run(["apt-ftparchive", "-o", "APT::FTPArchive::MD5=false", "-o", "APT::FTPArchive::SHA1=false"]
                       + options + ["release", "."], cwd=dists)
@@ -553,7 +564,7 @@ def build_apt(entries, files, work, site, signer):
 
 
 REPO_FILE = """[hmailserver]
-name=hMailServer ({dist}, $basearch)
+name=hMailServer (Progressive Robot's fork) ({dist}, $basearch)
 baseurl={site}/rpm/{dist}/$basearch/
 enabled=1
 # The metadata is signed (repomd.xml.asc) and names each package's SHA-256. The
@@ -1083,6 +1094,14 @@ def whole_build(work, failures, expect):
     expect(code == 0, "the repository is built")
     problems = check(site, public)
     expect(problems == [], "the repository reads back: %s" % problems)
+    with open(os.path.join(site, "apt", "dists", "ubuntu26.04", "Release"), encoding="utf-8") as f:
+        release = f.read()
+    with open(os.path.join(site, "apt", "dists", "ubuntu26.04", "main", "binary-amd64", "Release"), encoding="utf-8") as f:
+        arch_release = f.read()
+    expect("Origin: %s\n" % REPO_ORIGIN in release and "Label: %s\n" % REPO_LABEL in release
+           and "Description: %s\n" % (REPO_DESCRIPTION % ("ubuntu26.04", SITE)) in release
+           and "Origin: %s\n" % REPO_ORIGIN in arch_release and "Label: %s\n" % REPO_LABEL in arch_release,
+           "each Release names the fork's origin, label and description, as apt policy prints them")
     with open(os.path.join(site, "apt", "dists", "ubuntu26.04", "main", "binary-amd64", "Packages"), encoding="utf-8") as f:
         packages = f.read()
     expect(packages.count("Package: hmailserver") == 2 and "debian13" not in packages,

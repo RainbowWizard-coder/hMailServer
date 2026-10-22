@@ -364,7 +364,7 @@ The `.repo` file:
 
 ```ini
 [hmailserver]
-name=hMailServer (fc44, $basearch)
+name=hMailServer (Progressive Robot's fork) (fc44, $basearch)
 baseurl=https://updates.progressiverobot.com/rpm/fc44/$basearch/
 enabled=1
 repo_gpgcheck=1
