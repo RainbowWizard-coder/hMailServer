@@ -913,6 +913,13 @@ with `--check`).
   `MARIADB_DATABASE`, a random root password, and the asks put behind `true ||`, commented out, inside a function
   nothing calls, behind `if false`, after an `exit 0` and inside a here-document - and sees each caught, with no case
   of its own changed or dropped.
+- **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
+  a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
+  ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in
+  `|| true`, so the next line, which still fails the job, says why; nothing else of the job changed. That part of
+  the job's script, taken from `.gitlab-ci.yml` and run as the job runs it (`set -eo pipefail`, the job's pinned
+  Alpine 3.24 image, helm 3.19.0), passed over the tree's chart and, over a copy with the `HM_DB_PORT` lines taken
+  out, failed silently with the old line and with the message with the new one.
 
 ### Documentation
 

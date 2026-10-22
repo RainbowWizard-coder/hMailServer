@@ -1116,7 +1116,9 @@ chart-and-compose:
       fi
       helm template mail "$chart" --set database.type=MySQL --set database.host=db \
         --set database.port=3307 --set database.password=x --set administrator.password=y > mysql-port.yaml
-      grep -A1 'name: HM_DB_PORT' mysql-port.yaml > mysql-port.txt
+      # || true: no HM_DB_PORT at all leaves mysql-port.txt empty, and the next line
+      # says so, where grep's exit 1 would have ended the job without a word.
+      grep -A1 'name: HM_DB_PORT' mysql-port.yaml > mysql-port.txt || true
       grep -q 'value: "3307"' mysql-port.txt || { echo "the chart did not pass database.port on"; exit 1; }
       # Without a database host the chart must refuse, not render a broken server.
       if helm template mail "$chart" --set database.password=x --set administrator.password=y > /dev/null 2>&1; then
