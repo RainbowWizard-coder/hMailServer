@@ -26,8 +26,8 @@
    summary and description, and winget's package name, short description and
    description, say so, and the checks below and build/check-package-manifests.py
    hold them to it. The Chocolatey copyright and authors, and winget's Copyright
-   and Author, credit the original's author, Martin Knafve, as the installer's
-   licence does.
+   and Author, name Progressive Robot and the fork and credit the original's
+   author, Martin Knafve, as the installer's licence does.
 
    What it writes, under -OutputDirectory:
 
@@ -373,11 +373,17 @@ if ($localeManifest -notmatch '(?m)^PackageName:.*Progressive Robot') {
     $problems += "the winget PackageName does not name Progressive Robot: alone, it reads as the original's"
 }
 # The original's author credited where the package names its copyright and its
-# authors, as the installer's licence credits him (hmailserver/installation/License.rtf).
+# authors, as the installer's licence credits him (hmailserver/installation/License.rtf),
+# beside Progressive Robot and the fork, so that neither field credits the fork's
+# package to him alone.
 $original = 'Martin Knafve'
 foreach ($field in @('Copyright', 'Author')) {
     if ($localeManifest -notmatch "(?m)^${field}:.*$([regex]::Escape($original))") {
         $problems += "the winget $field does not credit the original's author, $original"
+    }
+    $line = [regex]::Match($localeManifest, "(?m)^${field}:(.*)$").Groups[1].Value
+    if ($line -cnotmatch 'Progressive Robot' -or $line -cnotmatch 'fork') {
+        $problems += "the winget $field does not name Progressive Robot and the fork"
     }
 }
 
@@ -401,8 +407,12 @@ try {
         }
     }
     foreach ($field in @('copyright', 'authors')) {
-        if ($parsed.package.metadata[$field].InnerText -notmatch [regex]::Escape($original)) {
+        $value = $parsed.package.metadata[$field].InnerText
+        if ($value -notmatch [regex]::Escape($original)) {
             $problems += "the nuspec $field does not credit the original's author, $original"
+        }
+        if ($value -cnotmatch 'Progressive Robot' -or $value -cnotmatch 'fork') {
+            $problems += "the nuspec $field does not name Progressive Robot and the fork"
         }
     }
 }

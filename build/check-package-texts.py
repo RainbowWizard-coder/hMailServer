@@ -31,8 +31,9 @@ descriptions of their subjects). This holds, in each:
     and a Debian synopsis 79 characters at most (rpmlint's summary-too-long, Debian
     policy's "less than 80"), a line of an RPM or Debian long description 79 at
     most, the snap's title 40 and its summary 78 (snapcraft's limits);
-  - the Chocolatey copyright and authors and winget's Copyright and Author credit
-    Martin Knafve, as the installer's licence does
+  - the Chocolatey copyright and authors and winget's Copyright and Author name
+    Progressive Robot and the fork, and credit Martin Knafve, as the installer's
+    licence does
     (hmailserver/installation/License.rtf: "This software is a fork of hMailServer,
     originally created by Martin Knafve, whose copyright in the original work
     remains"), so that Chocolatey's disclaimer, which names a package's authors as
@@ -357,9 +358,11 @@ def check(root):
 
     nuspec = read(root, NUSPEC)
     for name in ('copyright', 'authors'):
+        c.titled('%s: <%s>' % (NUSPEC, name), xml_element(nuspec, name))
         c.original('%s: <%s>' % (NUSPEC, name), xml_element(nuspec, name))
     locale = read(root, WINGET_LOCALE)
     for name in ('Copyright', 'Author'):
+        c.titled('%s: %s' % (WINGET_LOCALE, name), yaml_scalar(locale, name))
         c.original('%s: %s' % (WINGET_LOCALE, name), yaml_scalar(locale, name))
     publisher = yaml_scalar(locale, 'Publisher')
     if c.found('%s: Publisher' % WINGET_LOCALE, publisher) and not publisher.startswith('Progressive Robot'):
@@ -507,6 +510,15 @@ def self_test():
         ('winget\'s Copyright as it was', WINGET_LOCALE,
          sub(r'^Copyright: .*$', 'Copyright: Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer'),
          'Copyright does not name'),
+        ('the nuspec\'s copyright the original\'s alone', NUSPEC,
+         sub(r'<copyright>.*</copyright>', '<copyright>Copyright (c) 2026 Martin Knafve</copyright>'),
+         '<copyright> is'),
+        ('the nuspec\'s authors the original\'s alone', NUSPEC,
+         sub(r'<authors>.*</authors>', '<authors>Martin Knafve</authors>'), '<authors> is'),
+        ('winget\'s Copyright the original\'s alone', WINGET_LOCALE,
+         sub(r'^Copyright: .*$', 'Copyright: Copyright (c) 2026 Martin Knafve'), 'Copyright is'),
+        ('winget\'s Author the original\'s alone', WINGET_LOCALE, sub(r'^Author: .*$', 'Author: Martin Knafve'),
+         'Author is'),
         ('winget\'s Publisher the original\'s author', WINGET_LOCALE, sub(r'^Publisher: .*$', 'Publisher: Martin Knafve'),
          'Publisher is'),
         ('the AppImages\' desktop entry\'s Comment as it was', APPIMAGE,

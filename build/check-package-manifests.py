@@ -47,10 +47,11 @@ What it checks, beyond the schemas:
     description, and winget's PackageName, ShortDescription and Description,
     with Progressive Robot as winget's Publisher and a Moniker that is not
     "hmailserver"; and the nuspec's copyright and authors and winget's Copyright
-    and Author credit the original's author, Martin Knafve, as the installer's
-    licence does (hmailserver/installation/License.rtf), so that Chocolatey's
-    disclaimer - not affiliated with or endorsed by the package's authors - does
-    not name Progressive Robot alone.
+    and Author name Progressive Robot and the fork and credit the original's
+    author, Martin Knafve, as the installer's licence does
+    (hmailserver/installation/License.rtf), so that Chocolatey's disclaimer - not
+    affiliated with or endorsed by the package's authors - names neither
+    Progressive Robot alone nor the original's author alone.
 
 Usage:
   python build/check-package-manifests.py <directory> [--offline] [--release-date YYYY-MM-DD]
@@ -123,6 +124,15 @@ ORIGINAL_AUTHOR = "Martin Knafve"
 def credits_original(where, value):
     if ORIGINAL_AUTHOR not in " ".join(str(value or "").split()):
         problem("%s does not credit the original's author, %s: %r" % (where, ORIGINAL_AUTHOR, value))
+
+
+# The same fields name the fork's own party too: a copyright or authors naming the
+# original's author alone would credit the fork's package to him.
+def names_fork(where, value):
+    value = " ".join(str(value or "").split())
+    if "Progressive Robot" not in value or "fork" not in value:
+        problem("%s is %r: it names Progressive Robot and the fork, or it credits the fork's package to the original's"
+                " author" % (where, value))
 
 
 def check_release_date(entry, value, wanted):
@@ -302,6 +312,7 @@ def check_winget(version_directory, cache_directory, offline, release_date=None)
             says_fork("%s: %s" % (locale_entry, field), locale.get(field))
         for field in ("Copyright", "Author"):
             credits_original("%s: %s" % (locale_entry, field), locale.get(field))
+            names_fork("%s: %s" % (locale_entry, field), locale.get(field))
         name = str(locale.get("PackageName") or "")
         if name.strip().lower() == "hmailserver" or "Progressive Robot" not in name:
             problem("%s: PackageName is %r: it names Progressive Robot's fork, or it reads as the original's"
@@ -353,6 +364,7 @@ def check_chocolatey(directory, manifests):
         says_fork("the nuspec <%s>" % field, text(field))
     for field in ("copyright", "authors"):
         credits_original("the nuspec <%s>" % field, text(field))
+        names_fork("the nuspec <%s>" % field, text(field))
 
     install_script = os.path.join(directory, "tools", "chocolateyinstall.ps1")
     uninstall_script = os.path.join(directory, "tools", "chocolateyuninstall.ps1")
