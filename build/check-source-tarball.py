@@ -60,9 +60,12 @@ tarball a third:
     - no path the list excludes, and the list it carries is the list it is held
       to;
     - every REQUIRED file;
-    - no program: nothing that begins as a Windows (PE), ELF or Mach-O
-      executable or a Java class does, and no archive but those allowed by name
-      (ARCHIVES_ALLOWED);
+    - no program and no archive: nothing that begins as a Windows (PE), ELF or
+      Mach-O executable, a Java class or a WebAssembly module does, nor as a
+      zip, 7-Zip, gzip, xz, bzip2 or RAR archive, a cabinet or an OLE compound
+      file (what_binary) - the list of third-party licences among them,
+      which until 23 October 2026 was an OpenDocument spreadsheet, a zip by
+      format, and the one archive this allowed by name;
     - with --commit, the commit git archive recorded in the tarball's pax header
       is the one given.
 
@@ -207,12 +210,6 @@ REQUIRED = (
      "the BSD 3-Clause terms of the HTML standard's list of named character references the server compiles in"),
     ("hmailserver/docs/Licenses/License - HTML named character references.txt", "the same, among the third-party notices"),
 )
-
-# Archives the tarball may carry, by path, each with the reason it is not a binary
-# someone would have to trust.
-ARCHIVES_ALLOWED = {
-    "hmailserver/docs/Licenses/License list.ods": "an OpenDocument spreadsheet (a zip by format): the list of third-party licences",
-}
 
 
 class Problem(Exception):
@@ -614,13 +611,10 @@ def what_binary(head):
     if head[:2] == b"MZ" and len(head) >= 0x40:
         offset = int.from_bytes(head[0x3c:0x40], "little")
         if offset + 4 <= len(head) and head[offset:offset + 4] == b"PE\x00\x00":
-            return "a Windows (PE) program or library", False
-    for magic, name in EXECUTABLES:
+            return "a Windows (PE) program or library"
+    for magic, name in EXECUTABLES + ARCHIVES:
         if head.startswith(magic):
-            return name, False
-    for magic, name in ARCHIVES:
-        if head.startswith(magic):
-            return name, True
+            return name
     return None
 
 
@@ -689,10 +683,8 @@ def check_tarball(data, name, list_text, commit=None):
             head = archive.extractfile(member).read(4096)
             kind = what_binary(head)
             if kind:
-                label, is_archive = kind
-                if not (is_archive and path in ARCHIVES_ALLOWED):
-                    problems.append("%s carries %s, which is %s: a source tarball carries no program, and no archive "
-                                    "that is not allowed by name in this file" % (name, path, label))
+                problems.append("%s carries %s, which is %s: a source tarball carries no program and no archive"
+                                % (name, path, kind))
     if len(times) > 1:
         problems.append("%s: its entries carry %d different times, not the commit's one" % (name, len(times)))
     facts["mtime"] = times.pop() if len(times) == 1 else None
@@ -892,7 +884,7 @@ def self_test():
             "hmailserver/docs/Licenses/License - Unicode data.txt": b"Unicode-3.0",
             SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE": b"BSD-3-Clause",
             "hmailserver/docs/Licenses/License - HTML named character references.txt": b"BSD-3-Clause",
-            "hmailserver/docs/Licenses/License list.ods": b"PK\x03\x04 spreadsheet",
+            "hmailserver/docs/Licenses/License list.md": b"License list\n============\n",
         })
         files.update(extra or {})
         raw = io.BytesIO()
@@ -954,7 +946,12 @@ def self_test():
     expect("gzip with a time", check(tarball(gzip_time=1790000000)), "holds a time")
     expect("an ELF program", check(tarball(extra={"fuzz/a.out": elf})), "an ELF program")
     expect("a Windows program", check(tarball(extra={"build/tool.exe": bytes(pe)})), "a Windows (PE) program")
-    expect("a zip archive not allowed by name", check(tarball(extra={"build/icons.zip": b"PK\x03\x04rest"})), "a zip archive")
+    expect("a zip archive", check(tarball(extra={"build/icons.zip": b"PK\x03\x04rest"})), "a zip archive")
+    expect("the licence list as the OpenDocument spreadsheet it was, a zip by format, at its old path",
+           check(tarball(extra={"hmailserver/docs/Licenses/License list.ods": b"PK\x03\x04 spreadsheet"})),
+           "carries hmailserver/docs/Licenses/License list.ods, which is a zip archive")
+    expect("an OLE compound file (an .msi)",
+           check(tarball(extra={"build/setup.msi": b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1rest"})), "an OLE compound file")
     expect("another list carried", check(tarball(extra={EXCLUSIONS: b"libraries\n"})), "carries another")
     expect("the commit recorded", check(tarball(), commit="0123456789abcdef0123456789abcdef01234567"), None)
     expect("another commit recorded", check(tarball(), commit="f" * 40), "was made from commit 0123456789")

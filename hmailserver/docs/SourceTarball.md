@@ -153,11 +153,12 @@ icons, zlib as `hMailServer.exe` compiles it, and OpenSSL, Boost and libpq as
 the Windows build ships them - which a distribution's copyright file can
 describe as licence texts only.
 
-The tarball carries no program: the checker refuses any file that begins as a
-Windows (PE), ELF or Mach-O executable, a Java class or a WebAssembly module,
-and any archive but the one it allows by name
-(`hmailserver/docs/Licenses/License list.ods`, a spreadsheet, which is a zip by
-format).
+The tarball carries no program and no archive: the checker refuses any file that
+begins as a Windows (PE), ELF or Mach-O executable, a Java class or a WebAssembly
+module, or as a zip, 7-Zip, gzip, xz, bzip2 or RAR archive, a cabinet or an OLE
+compound file. The one archive it allowed by name until 23 October 2026, the list
+of third-party licences as an OpenDocument spreadsheet (a zip by format), is a
+table in Markdown now, `hmailserver/docs/Licenses/License list.md`.
 
 Reproducible
 ------------
