@@ -29,7 +29,8 @@
    and Author, name Progressive Robot and the fork and credit the original's
    author, Martin Knafve, as the installer's licence does. The Chocolatey
    iconUrl is the fork's icon on master,
-   hmailserver/source/Server/platform/packaging/hmailserver.png.
+   hmailserver/source/Server/platform/packaging/hmailserver.png, and its
+   projectSourceUrl the tree of the release's tag.
 
    What it writes, under -OutputDirectory:
 
@@ -423,6 +424,12 @@ try {
     $icon = $parsed.package.metadata['iconUrl']
     if (-not $icon -or $icon.InnerText.Trim() -ne $iconUrl) {
         $problems += "the nuspec iconUrl is '$(if ($icon) { $icon.InnerText.Trim() })', not $iconUrl"
+    }
+    # The version's own source, the tree of its tag, and not the project's home.
+    $sourceUrl = "https://gitlab.com/hmailserver/hmailserver/-/tree/$Tag"
+    $source = $parsed.package.metadata['projectSourceUrl']
+    if (-not $source -or $source.InnerText.Trim() -ne $sourceUrl) {
+        $problems += "the nuspec projectSourceUrl is '$(if ($source) { $source.InnerText.Trim() })', not $sourceUrl, the tree of the version's tag"
     }
 }
 catch {

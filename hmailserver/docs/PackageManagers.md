@@ -186,6 +186,17 @@ listing to that one address, and `build/make-package-manifests.ps1` and
 `build/check-package-manifests.py` hold the rendered `iconUrl` to it; the latter,
 without `--offline`, also asks that the address answer as `image/png`.
 
+**The source.** The nuspec's `projectSourceUrl` is the tree of the version's tag,
+`https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>`, the release's own
+source, where it was the project's home, as `projectUrl` is, in the packages pushed
+until now, both of 6.3.7's among them. The same validation said of both of 6.3.7's packages, as a
+guideline, "ProjectUrl and ProjectSourceUrl are typically different, but not
+always. Please ensure that projectSourceUrl is pointing to software source code or
+remove the field from the nuspec." A package is made only for a published release,
+so its tag is there when the package is pushed. `build/make-package-manifests.ps1`
+and `build/check-package-manifests.py` hold the rendered address to the tag's tree,
+and the latter, without `--offline`, asks that it answer.
+
 The silent switches are `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`.
 `/SUPPRESSMSGBOXES` is not optional: without it a database-setup failure shows a
 message box, silent mode answers it with the default button, and a broken

@@ -40,6 +40,13 @@
   a raw .png as image/png, inline. build/check-package-texts.py holds the .png to
   the .ico's frame and every listing to the one address, and both scripts hold the
   rendered iconUrl to it.
+
+  projectSourceUrl is the version's own source, the tree of its tag (@TAG@, v and
+  the version, the tag every release is made from and the one releaseNotes names),
+  not the project's home, which projectUrl already gives: Chocolatey's validator
+  asks that it point at the software's source code, and notes that it is usually
+  not projectUrl. A package is made only for a published release, so the tag
+  exists when the package is pushed; both scripts hold the rendered address to it.
 -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -54,7 +61,7 @@
     <copyright>Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.</copyright>
     <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver</projectSourceUrl>
+    <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver/-/tree/@TAG@</projectSourceUrl>
     <docsUrl>https://gitlab.com/hmailserver/hmailserver/-/wikis/home</docsUrl>
     <bugTrackerUrl>https://gitlab.com/hmailserver/hmailserver/-/issues</bugTrackerUrl>
     <tags>hmailserver mail mailserver email smtp imap pop3 dkim dmarc spam webmail server admin</tags>

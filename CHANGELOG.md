@@ -471,6 +471,15 @@ with `--check`).
   pinned revision, packs the snap with the icon unchanged as `meta/gui/icon.png`. `PackageManagers.md`, `Snap.md`,
   `ContainerImage.md` and the packaging README say so. The address answers once this is on `master`; the next
   release's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
+- **The Chocolatey package's `projectSourceUrl` is the tree of the version's tag.** It was
+  `https://gitlab.com/hmailserver/hmailserver`, the project's home, as `projectUrl` is, and Chocolatey's automated
+  validation of both of 6.3.7's packages gave as a guideline "ProjectUrl and ProjectSourceUrl are typically different,
+  but not always. Please ensure that projectSourceUrl is pointing to software source code or remove the field from the
+  nuspec." It is now `https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>`, the release's own source, named
+  by the template's `@TAG@`, as `releaseNotes` is; a package is made only for a published release, whose tag is there
+  when it is pushed (a render of 6.3.7 names `-/tree/v6.3.7`, which answers). `build/make-package-manifests.ps1` and
+  `build/check-package-manifests.py` refuse any other address, the latter, without `--offline`, one that does not
+  answer. `PackageManagers.md` says so.
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since

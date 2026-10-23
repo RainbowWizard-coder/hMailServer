@@ -59,7 +59,10 @@ What it checks, beyond the schemas:
     hmailserver/source/Server/platform/packaging/hmailserver.png at GitLab's raw
     address (a release's package is rendered from master's templates, and the
     tags of 6.3.7 and earlier have no such file), and, unless --offline, it
-    answers as a PNG image.
+    answers as a PNG image;
+  * the nuspec's projectSourceUrl is the tree of the version's tag,
+    https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>, the release's
+    own source and not the project's home, and, unless --offline, it answers.
 
 Usage:
   python build/check-package-manifests.py <directory> [--offline] [--release-date YYYY-MM-DD]
@@ -110,6 +113,10 @@ RELEASE_HOST_PREFIX = "https://gitlab.com/api/v4/projects/86730559/packages/gene
 # holds the file to it), on master: the chart, the image and the snap show the same.
 ICON_URL = ("https://gitlab.com/hmailserver/hmailserver/-/raw/master/"
             "hmailserver/source/Server/platform/packaging/hmailserver.png")
+
+# The nuspec's projectSourceUrl: the tree of the version's tag, v<version>, which
+# build/make-package-manifests.ps1 names it by; the home is projectUrl's.
+SOURCE_URL_PREFIX = "https://gitlab.com/hmailserver/hmailserver/-/tree/"
 
 
 def problem(message):
@@ -384,6 +391,17 @@ def check_chocolatey(directory, manifests, offline=False):
     for field in ("copyright", "authors"):
         credits_original("the nuspec <%s>" % field, text(field))
         names_fork("the nuspec <%s>" % field, text(field))
+    source = text("projectSourceUrl")
+    wanted_source = SOURCE_URL_PREFIX + "v" + str(version)
+    if source != wanted_source:
+        problem("the nuspec <projectSourceUrl> is %r, not the tree of the version's tag, %s" % (source, wanted_source))
+    elif not offline:
+        request = urllib.request.Request(source, method="HEAD", headers={"User-Agent": "hmailserver-package-check"})
+        try:
+            with urllib.request.urlopen(request, timeout=60):
+                print("  projectSourceUrl reachable: the tag v%s is there" % version)
+        except urllib.error.URLError as error:
+            problem("the nuspec <projectSourceUrl> is not reachable: %s (%s) - is the tag pushed?" % (source, error))
     icon = text("iconUrl")
     if icon != ICON_URL:
         problem("the nuspec <iconUrl> is %r, not the fork's icon on master, %s" % (icon, ICON_URL))
@@ -433,7 +451,7 @@ def check_chocolatey(directory, manifests, offline=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("directory", help="what build/make-package-manifests.ps1 wrote")
-    parser.add_argument("--offline", action="store_true", help="skip the schema fetch and the installer's and the icon's URL checks")
+    parser.add_argument("--offline", action="store_true", help="skip the schema fetch and the installer's, the icon's and the source's URL checks")
     parser.add_argument("--release-date", metavar="YYYY-MM-DD",
                         help="the release's own date, which the installer manifest's ReleaseDate must be")
     arguments = parser.parse_args()
