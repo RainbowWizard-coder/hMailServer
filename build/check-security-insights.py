@@ -518,9 +518,12 @@ def anchors(text):
 # Every URL in the file's text, YAML comments included. The punctuation that ends a
 # sentence after one is not part of it (urls).
 URL_IN_TEXT = re.compile(r'https?://[^\s<>"\'`]+')
-# Every scheme written before "://" anywhere in the file's text, in any case: each must
-# be https, in lower case, the one form of a URL the rules below read.
-SCHEME_IN_TEXT = re.compile(r'(?<![A-Za-z0-9+.-])([A-Za-z][A-Za-z0-9+.-]*)://')
+# Every scheme written before "://" anywhere in the file's text, in any case, whatever
+# stands before it: each must be https, in lower case, the one form of a URL the rules
+# below read. A match is the leftmost, so git+https, xhttps and mirror.http are read
+# whole, and the http of 1http, -http and +http, which URL_IN_TEXT reads as a URL, is
+# read too.
+SCHEME_IN_TEXT = re.compile(r'([A-Za-z][A-Za-z0-9+.-]*)://')
 # (the host, the path there of the group or of the owner on GitHub, the project's path
 # there, the project's own address): a URL on the host whose path is under the first
 # path, in any case, must be the page of the group itself or under the project's path,
@@ -1256,6 +1259,8 @@ def self_test(quiet=False):
          'http://downloads.example.org/hmailserver/ is not an https address'),
         ('a URL in a YAML comment of another scheme', '# Mirrored at ftp://ftp.example.org/hmailserver/.\n' + GOOD, (),
          'ftp://ftp.example.org/hmailserver/ is not an https address'),
+        ('a URL over plain http after a hyphen', '# Mirror -http://mirror.example.org/\n' + GOOD, (),
+         'line 1: http://mirror.example.org/ is not an https address'),
         ('an https URL with its scheme in upper case, which the link rules would not read',
          swap('https://example.org/build/ci/gone.sh', 'HTTPS://example.org/build/ci/gone.sh'), (),
          'as this check reads one, in lower case'),
