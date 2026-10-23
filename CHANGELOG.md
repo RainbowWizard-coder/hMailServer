@@ -979,16 +979,20 @@ with `--check`).
   each key once), and holds `container-image-start`'s `script` to the one line
   `- bash build/ci/container-image-start-test.sh`, its `image` and `before_script` to `.linix`'s by `!reference` and
   its `rules` to `.release-rules`', and the arm64 job's `extends` to `container-image-start`, its `before_script` to
-  `.linix`'s and the qemu check and its `rules` to the same (`START_JOB_LINES`), each exactly as written. And it
-  holds both start jobs and `container-image-sign`, with every template they reach, to one definition in the CI
+  `.linix`'s and the qemu check and its `rules` to the same, and each job's `needs` to `container-image` alone, with
+  its artifacts (`START_JOB_LINES`), each exactly as written: GitLab unpacks a need's artifacts over the job's
+  checkout before its script, so that a job beside them whose artifact was a stand-in
+  `build/ci/container-image-start-test.sh`, with a need of it added to a start job's, passed master's checker and
+  this one's before, and the start job would have run that file and not the one the check holds. And it holds both
+  start jobs and `container-image-sign`, with every template they reach, to one definition in the CI
   files (`START_HELD_DEFINITIONS`): GitLab merges a second definition in any included file into the job, a later
   include's keys over an earlier one's, and of two in one file takes the last, so that `allow_failure: true` or a
   `script:` given to a start job, a `before_script:` ending in `exit 0` given to the arm64 one, or `needs` of
   `container-image-sign`'s without the start jobs, written in another CI file such as `.gitlab/ci/snap.yml` with the
   release's rules, passed every rule of the job's own block, and master's checker as well; each is now refused as a
-  second definition. The self-test breaks the start jobs in fifteen ways - those seven, `when: always`, a
+  second definition. The self-test breaks the start jobs in seventeen ways - those seven, `when: always`, a
   `parallel` matrix setting an address, the script written as a compact sequence ending in `exit 0` or given a
-  second entry, `allow_failure` for the start, a script for the arm64 start and the signing's needs without the
+  second entry, a second need with its artifacts in either job, `allow_failure` for the start, a script for the arm64 start and the signing's needs without the
   starts, each from `.gitlab/ci/snap.yml`, and the start defined again in its own file under a quoted name - and sees
   each caught.
 - **The release-chain check holds the addresses the image start test asks and the version it expects.** The test

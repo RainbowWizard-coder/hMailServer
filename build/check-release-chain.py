@@ -5824,10 +5824,15 @@ START_JOB_KEYS = {
 # jobs, and container-image-sign, which signs the image only once both have passed.
 START_HELD_DEFINITIONS = ("container-image-start", "container-image-start-arm64", "container-image-sign")
 START_JOB_RULES = ("  rules:", "    - !reference [.release-rules, rules]")
+# Each start job needs container-image alone, with its artifacts: GitLab unpacks a need's
+# artifacts over the job's checkout before its script, so that another job's artifact
+# could be a build/ci/container-image-start-test.sh other than the one this file holds.
+START_JOB_NEEDS = ("  needs:", "    - job: container-image", "      artifacts: true")
 START_JOB_LINES = {
     "container-image-start": {
         "image": ("  image: !reference [.linix, image]",),
         "before_script": ("  before_script: !reference [.linix, before_script]",),
+        "needs": START_JOB_NEEDS,
         "script": ("  script:", "    - bash build/ci/container-image-start-test.sh"),
         "rules": START_JOB_RULES,
     },
@@ -5836,8 +5841,15 @@ START_JOB_LINES = {
         "before_script": ("  before_script:", "    - !reference [.linix, before_script]",
                           '    - sh build/ci/arm64-emulation.sh "container-image-start-arm64, whose service is the '
                           'linux/arm64 image,"'),
+        "needs": START_JOB_NEEDS,
         "rules": START_JOB_RULES,
     },
+}
+# Why a key of START_JOB_LINES is held, where the start test's being run as it must is
+# not all of it.
+START_JOB_LINE_WHY = {
+    "needs": ", with container-image's artifacts alone: a need's artifacts are unpacked over the job's checkout before "
+             "its script, so that another job's could be the test it runs",
 }
 
 
@@ -5873,9 +5885,12 @@ def start_job_line_problems(image_jobs, every_ci=None):
     branch's exit 0 is reached by -h or --help alone), nothing before the command or
     after it, in the Linux CI image after its before_script; the arm64 job extending it,
     with no script or image of its own, and its before_script the same with the qemu
-    check after it, so that nothing there can end the shell the script runs in. One edit
-    of .gitlab/ci/container-image.yml, which is not one of land-via-mr.py's GATE_FILES,
-    would otherwise let either job pass without asking its image.
+    check after it, so that nothing there can end the shell the script runs in; and each
+    job's needs container-image alone, with its artifacts, since GitLab unpacks a need's
+    artifacts over the job's checkout before the script, where a job beside it could have
+    left a stand-in for the test. One edit of .gitlab/ci/container-image.yml, which is
+    not one of land-via-mr.py's GATE_FILES, would otherwise let either job pass without
+    asking its image.
     And each job of START_HELD_DEFINITIONS, and every template it reaches, is defined
     once in the CI files (every_ci, {path: text}; ci_files): GitLab merges a second
     definition in any included file into the job, a later include's keys over an earlier
@@ -5910,8 +5925,8 @@ def start_job_line_problems(image_jobs, every_ci=None):
         for key, wanted in sorted(START_JOB_LINES[name].items()):
             written = _job_key_texts(block, key)
             if written != [wanted]:
-                problems.append("%s's %s is not %s, as the start test must be run: %s"
-                                % (name, key, " / ".join(line.strip() for line in wanted),
+                problems.append("%s's %s is not %s, as the start test must be run%s: %s"
+                                % (name, key, " / ".join(line.strip() for line in wanted), START_JOB_LINE_WHY.get(key, ""),
                                    " / ".join(line.strip() for text in written for line in text) or "none"))
     return problems
 
@@ -7492,7 +7507,17 @@ def self_test(chain, feed):
              "container-image-start-arm64 writes parallel:, " + not_held),
             ("the start's script a compact sequence ending the shell", run,
              "  script:\n  - bash build/ci/container-image-start-test.sh\n  - exit 0\n", not_run),
-            ("the start's script given a second entry", run, run + "    - exit 0\n", not_run)):
+            ("the start's script given a second entry", run, run + "    - exit 0\n", not_run),
+            # A second need with its artifacts, which GitLab unpacks over the checkout.
+            ("the start given a second need with its artifacts", "      artifacts: true\n  timeout: 20 minutes\n",
+             "      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n  timeout: 20 minutes\n",
+             "container-image-start's needs is not"),
+            ("the arm64 start given a second need with its artifacts",
+             '      artifacts: true\n  timeout: 30 minutes\n  rules:\n    - !reference [.release-rules, rules]\n'
+             '  variables:\n    HM_START_WAIT: "600"\n',
+             '      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n  timeout: 30 minutes\n'
+             '  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_START_WAIT: "600"\n',
+             "container-image-start-arm64's needs is not")):
         broken_image(what, needle, (old, new))
     # The same jobs, and container-image-sign, defined again in another CI file, which
     # GitLab merges into the job, each with the release's rules so that it is caught as
