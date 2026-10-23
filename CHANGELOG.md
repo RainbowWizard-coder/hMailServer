@@ -567,9 +567,9 @@ with `--check`).
   on GitLab and Docker Hub, PyPI, the PowerShell Gallery, Chocolatey's community repository, the openSUSE Build
   Service, Fedora Copr and the Ubuntu PPA, each with how a release reaches it), how they are signed (from 6.3.5 a
   Sigstore bundle for each file from the release tag's own pipeline, from 6.2.19 to 6.3.3 bundles from the GitHub
-  workflow that made them, 6.3.4 a SHA256SUMS file signed with the release-tag key, and the Windows installer
-  Authenticode-signed from 6.3.1), the build provenance and the SBOMs each carries; the assurance case as the
-  self-assessment; and the ten security tools that run on the code, each with where it runs and whether it holds a
+  workflow that made them, but for 6.2.22-pre3's two SBOMs, 6.3.4 a SHA256SUMS file signed with the release-tag key
+  that lists its other files, the releases before 6.2.19 none, and the Windows installer Authenticode-signed from
+  6.3.1), the build provenance and the SBOMs each carries; the assurance case as the self-assessment; and the ten security tools that run on the code, each with where it runs and whether it holds a
   change or a release - secret detection, GitLab's SAST, Semgrep, cppcheck and clang-tidy, the dependency scan and the
   dependency check of every change, the container image's scan, libFuzzer, and, on GitHub, OpenSSF Scorecard and
   CodeQL. Every value was read from the tree or from the project's pages on 23 October 2026, and `cue vet` (CUE
