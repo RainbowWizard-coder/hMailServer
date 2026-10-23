@@ -96,6 +96,35 @@ the server stores it at every start and refuses a change to it in the Control De
 and over the REST API, which the next start would undo. Take it out of the values
 to manage it there again.
 
+## Installed into a cluster
+
+On 23 October 2026 the chart was installed as this page says into a one-node
+Kubernetes, k3s 1.36.1 from Alpine Linux 3.24's own package, with Alpine's Helm
+3.19.0, beside a PostgreSQL 18 in the cluster, with the image of 6.3.7
+(`registry.gitlab.com/hmailserver/hmailserver:6.3.7`, the index
+`sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`).
+
+The charts of 6.3.6 and 6.3.7 that the repository serves do not start a server. The
+6.3.7 chart, added with `helm repo add` and installed with `--version 6.3.7`, is the
+release's file (its SHA-256 is the index's, and `cosign verify-blob` of its bundle
+passes), and its pod never started: "container has runAsNonRoot and image has
+non-numeric user (hmailserver), cannot verify user is non-root". Given the user by
+number, it stopped at "/etc/hmailserver/hMailServer.ini is not writable by
+hmailserver": the new, empty configuration volume hid the image's file. Nor did its
+first start secure the new installation.
+
+This chart, which the release after 6.3.7 is the first to serve, starts one.
+Installed from the project's tree with `--set image.tag=6.3.7`, its pod was ready 16
+seconds after `helm install`. Through `kubectl port-forward` and through the
+Service's LoadBalancer address, port 25 answered with STARTTLS, under the
+certificate the first start made. The REST API answered over TLS: 401 without
+credentials, `6.3.7-B46` as Administrator, nothing over plain HTTP. It served the
+Control Deck and the webmail. A message sent over SMTP to an account made over the
+API was in its inbox. `helm uninstall` left the three PersistentVolumeClaims, as
+above. Until that release, the chart of a checkout of the project
+(`hmailserver/source/Server/platform/packaging/helm/hmailserver`, installed with
+`--set image.tag=6.3.7`) is the one that starts 6.3.7's image.
+
 ## Checking the chart
 
 The chart is a file of the release, signed with Sigstore by the release's own

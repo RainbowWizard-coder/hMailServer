@@ -751,6 +751,60 @@ scripts, in the jobs' own images, unprivileged, as the jobs run them:
   endings and no file. Its read-back failed a push whose layer was another type, a
   configuration regctl writes by itself (`{}`), and a layer without its title.
 
+On 23 October 2026, on an x86-64 Ubuntu machine with Docker 29.1.3, the Compose
+file and the chart were run as a user runs them, against the published image:
+
+- **`docker compose up`, with the file as it stood.** Ubuntu's Compose 2.40.3 started
+  the tree's file as its comment said, two secrets written with `printf` and the
+  REST pair made with the comment's own `openssl req`, and pulled `:latest`, 6.3.7's
+  index `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`.
+  The server was healthy in 5 seconds, beside PostgreSQL 18, and answered neither
+  question a user asks first. Port 25 offered no STARTTLS: nothing had applied the
+  new installation's defaults. The REST API did not listen: `openssl req -nodes`
+  writes the key 0600 and its owner's, and the server, as the image's user 999,
+  logged HM5113, "Failed to load private key file ... Permission denied".
+- **`docker compose up`, with the file as it is now.** It runs `hmailserver
+  --apply-new-install-defaults --if-marked` before the server and gives the REST
+  listener the pair that makes (The image, above). Started the same way, with no
+  certificate made by hand, it was healthy in 6 seconds. Port 25 offered STARTTLS,
+  and the handshake completed (TLS 1.3, the certificate "self-signed at
+  installation"). `GET /api/v1/status` answered 401 without credentials and
+  `6.3.7-B46` as Administrator over TLS, and nothing over plain HTTP; the Control
+  Deck and the webmail answered; a message sent over SMTP to an account made over
+  the API was in its inbox. Recreated with its volumes kept, it was healthy again in
+  6 seconds and answered the same, `--if-marked` doing nothing. `docker compose down
+  -v` removed it all.
+- **`helm install` of the published chart.** The cluster was a one-node Kubernetes,
+  k3s 1.36.1 from Alpine Linux 3.24's own package (containerd 2.3.7), with Alpine's
+  Helm 3.19.0 and a PostgreSQL 18 in it, the image the Compose file pins. `helm repo
+  add hmailserver https://updates.progressiverobot.com/helm/` listed 6.3.7 and
+  6.3.6. `helm pull --version 6.3.7` saved the release's file, whose SHA-256 is the
+  index's, `1c666427a2ad61fb8be8cc5d2c07da5a8702cd320f122bf2c454b7529b2447c8`, and
+  `cosign verify-blob` of its bundle (Alpine's cosign 3.0.6) with the identity and
+  issuer above passed. `helm install mail hmailserver/hmailserver --version 6.3.7`,
+  with `database.host` at that PostgreSQL and `rest.tlsSecretName` at a Secret made
+  with `kubectl create secret tls`, never started a server. The pod stopped at
+  `CreateContainerConfigError`: "container has runAsNonRoot and image has
+  non-numeric user (hmailserver), cannot verify user is non-root". Given the user
+  and group by number (`helm upgrade --set securityContext.runAsUser=999 ...`), it
+  stopped in `CrashLoopBackOff` at "/etc/hmailserver/hMailServer.ini is not writable
+  by hmailserver": the new, empty configuration volume hid the image's file. 6.3.6's
+  chart has the same security context and no init container either.
+- **`helm install` of the chart as it is now.** It runs the pod as 999:999, fills the
+  new volumes in an init container and secures the new installation before the
+  server's first start (the chart's README.md says what it makes). Installed from
+  the tree with `--set image.tag=6.3.7` the same way, its pod was ready in 16
+  seconds, running `sha256:2a5de4eb...`. Through `kubectl port-forward` and through
+  the Service's LoadBalancer address it answered as the Compose file's server did,
+  and a message reached an account's inbox. The auto-ban hook ran, which an empty
+  data volume had kept from starting while it lacked `temp`, the folder the server
+  starts its programs in (HM5401, error code 2). `helm uninstall` left the three
+  PersistentVolumeClaims, as the chart's README says.
+- **Both error logs** held two entries at the first start. One was HM5033, the
+  create step asking a new database for its schema version. The other was HM5720:
+  the image's OpenSSL is Ubuntu 24.04's 3.0.13, which has no hybrid post-quantum
+  group, so the server took the classical ones (What is not shown yet, below).
+
 ### Packaging and serving the chart
 
 `.gitlab/ci/helm-chart.yml`'s `helm-chart-package` job (linix, server2 or s1-linux,
@@ -807,8 +861,15 @@ and a package whose platforms had changed after the tree's were checked.
   in, `cosign verify` has passed against the copy of 6.3.7's index on `ghcr.io`, and
   `cosign verify` and `cosign verify-attestation` against the copy on Docker Hub
   and its platforms' images, at the same digests (above).
-  What *Done when* asks beyond that - `docker compose up` and `helm install` from
-  the published image - is not recorded yet (Roadmap3.md, section 1b).
+  `docker compose up` with the tree's file and `helm install` of the chart, each
+  from the published image, were run on 23 October 2026 (What was run by hand,
+  above): the published charts of 6.3.6 and 6.3.7 start no server, and the first
+  that does is the release after 6.3.7's.
+- The image's OpenSSL is Ubuntu 24.04's, 3.0.13, which has neither the hybrid
+  post-quantum key exchange groups (OpenSSL 3.5) nor Argon2id (3.2). Its server logs
+  HM5720 when it starts and takes the classical groups, while `GET /api/v1/status`
+  says `true` for both under `build`, which reads the OpenSSL the server was built
+  against, not the one it runs with.
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
 - Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher label
