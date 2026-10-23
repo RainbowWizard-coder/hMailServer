@@ -1166,6 +1166,11 @@ with `--check`).
   runtime; so a Python package's or a native library's advisory gets no merge request of its own from Renovate. The
   texts now say so, that `dependency-scan` and `mr-dependency-check` find those, and that an OpenSSL patch release
   and a .NET servicing release come on any day instead, as the rules for them already said.
+- **`hmailserver/docs/third-party-binaries.json` says that a gathered file, the MSVC runtime, is verified by version,
+  where its table of dispositions said that it is verified against its `sha256`.** `build/get-installer-binaries.ps1`
+  checks a gathered file's major and minor file version against the entry's `version` and only reports its hash,
+  since a Visual Studio update changes the runtime's bytes, as ThirdPartyBinaries.md says; the definition now says the
+  same.
 
 - **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the
   release as its latest version.** GitHub's page shows the manifest pushed last as the latest version, with its pull

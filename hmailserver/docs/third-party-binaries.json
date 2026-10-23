@@ -744,7 +744,7 @@
   "dispositions": {
     "retain": "committed on purpose, with the reason in 'why'",
     "retain-generated": "generated from this repository's own sources and committed for the build's convenience",
-    "gathered": "not in git; copied from the build machine by build/get-installer-binaries.ps1 and verified against 'sha256'",
+    "gathered": "not in git; copied from the build machine's Visual Studio by build/get-installer-binaries.ps1 and verified by version, the major.minor of its file version against 'version', since a Visual Studio update changes its bytes; 'sha256' is reported, not enforced",
     "system": "not in git; a file of the Windows installation, copied from the path in 'source' by build/get-installer-binaries.ps1 (-SystemOnly for a build that needs nothing else); it varies with the Windows build, so 'sha256' is reported, not enforced",
     "generated": "not in git; produced from this repository's own sources by build/generate-com-wrapper.ps1 on every build, with no 'sha256' because the output is not byte-reproducible",
     "fetched": "not in git; downloaded from the build-inputs release named in 'source' by build/get-installer-binaries.ps1 and verified against 'sha256'",
