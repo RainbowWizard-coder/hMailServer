@@ -463,7 +463,8 @@ with `--check`).
   templates and the tags of 6.3.7 and earlier have no such file. `build/check-package-texts.py` holds the PNG to the
   `.ico`'s 256 frame and the four listings to that one path and address, and its self-test sees a re-encoded copy, the
   64 by 64 frame, a changed `.ico`, a missing file and each field gone or pointing elsewhere refused;
-  `build/make-package-manifests.ps1` and `build/check-package-manifests.py` hold the rendered `iconUrl` to it (the
+  `build/make-package-manifests.ps1` and `build/check-package-manifests.py` hold the rendered `iconUrl` to it letter
+  for letter, an address that differs in letter case alone refused too, since GitLab's paths are case-sensitive (the
   latter, without `--offline`, asks that it answer as `image/png`), `build/ci/linux-image.sh` fails an image without
   the label, and `build/ci/snap-build.sh` a snap without `meta/gui/icon.png`. The chart lints and renders as before,
   without `helm lint`'s "icon is recommended"; the Dockerfile, built from 6.3.7's published amd64 `.deb`, gives the
@@ -478,8 +479,9 @@ with `--check`).
   nuspec." It is now `https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>`, the release's own source, named
   by the template's `@TAG@`, as `releaseNotes` is; a package is made only for a published release, whose tag is there
   when it is pushed (a render of 6.3.7 names `-/tree/v6.3.7`, which answers). `build/make-package-manifests.ps1` and
-  `build/check-package-manifests.py` refuse any other address, the latter, without `--offline`, one that does not
-  answer. `PackageManagers.md` says so.
+  `build/check-package-manifests.py` refuse any other address, one that differs in letter case alone among them, since
+  GitLab's tags are case-sensitive (`-/tree/V6.3.7` answers 404), and the latter, without `--offline`, one that does
+  not answer. `PackageManagers.md` says so.
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since

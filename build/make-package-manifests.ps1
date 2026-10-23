@@ -422,13 +422,13 @@ try {
     # templates, and the tags of 6.3.7 and earlier have no such file.
     $iconUrl = 'https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png'
     $icon = $parsed.package.metadata['iconUrl']
-    if (-not $icon -or $icon.InnerText.Trim() -ne $iconUrl) {
+    if (-not $icon -or $icon.InnerText.Trim() -cne $iconUrl) {
         $problems += "the nuspec iconUrl is '$(if ($icon) { $icon.InnerText.Trim() })', not $iconUrl"
     }
     # The version's own source, the tree of its tag, and not the project's home.
     $sourceUrl = "https://gitlab.com/hmailserver/hmailserver/-/tree/$Tag"
     $source = $parsed.package.metadata['projectSourceUrl']
-    if (-not $source -or $source.InnerText.Trim() -ne $sourceUrl) {
+    if (-not $source -or $source.InnerText.Trim() -cne $sourceUrl) {
         $problems += "the nuspec projectSourceUrl is '$(if ($source) { $source.InnerText.Trim() })', not $sourceUrl, the tree of the version's tag"
     }
 }
