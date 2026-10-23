@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Ported from hMailServer upstream, https://github.com/hmailserver/hmailserver,
-// commit 1beaeab9 ("Replace SPF evaluator", #645) of 13 September 2026, where
-// this file carries the notice "Copyright (c) 2010 Martin Knafve /
-// hMailServer.com". Both trees are AGPL-3.0-or-later, so the port is
-// licence-clean and the attribution stands here.
+// commit 1beaeab9 ("Replace SPF evaluator", #645) of 13 September 2026, where this
+// file carries the notice: Copyright (c) 2010 Martin Knafve / hMailServer.com.
+// Both trees are AGPL-3.0-or-later, so the port is licence-clean and the
+// attribution stands here.
 //
 // Changed in this tree: it asks DNSResolver::GetRecordsOfType, which was added
 // for it and answers in bytes, and the record types are named by number rather

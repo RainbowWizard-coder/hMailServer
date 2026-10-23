@@ -17,7 +17,7 @@ upstream's to begin with.
 | File | |
 |---|---|
 | `rfc7208-tests.yml` | The suite. Release 2014.04, 203 cases in 16 sections. |
-| `rfc7208-tests.LICENSE` | Its licence: three-clause BSD, © Stuart D Gathman, Julian Mehnle, Scott Kitterman. |
+| `rfc7208-tests.LICENSE` | Its licence: three-clause BSD; its holders are Stuart D Gathman, Julian Mehnle and Scott Kitterman. |
 | `rfc7208-tests.CHANGES` | Its changelog, which says what each release of the suite changed. |
 
 The suite was published at <http://www.openspf.org/Test_Suite>. That site no

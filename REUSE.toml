@@ -1940,7 +1940,10 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # ships - 7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq, SQL
 # Server Compact, zlib - and of the AppImage's runtime. Each text's holders are the
 # ones it names; the six below whose components the source tarball carries are given
-# their component's licence, as debian/copyright gives them.
+# their component's licence, as debian/copyright gives them. They are read for these
+# tables alone (precedence override): a licence's text is not its file's notice, and
+# reuse would take its words for holders - "Copyright Act" in the CC licence, the
+# GPL's "<year>  <name of author>".
 [[annotations]]
 path = [
     "libraries/License - *.rtf",
@@ -1948,11 +1951,13 @@ path = [
     "hmailserver/installation/Extras/7za.exe.license.txt",
     "hmailserver/source/Server/platform/packaging/appimage/GPL-3.0.txt",
 ]
+precedence = "override"
 SPDX-FileCopyrightText = "The holders each text names"
 SPDX-License-Identifier = "LicenseRef-Verbatim-Notice"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - QuickJS.txt"
+precedence = "override"
 SPDX-FileCopyrightText = [
     "2017-2021 Fabrice Bellard",
     "2017-2021 Charlie Gordon",
@@ -1961,16 +1966,19 @@ SPDX-License-Identifier = "MIT"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - MIME Message encoder analyzer.rtf"
+precedence = "override"
 SPDX-FileCopyrightText = "2003 Jeff Lee"
 SPDX-License-Identifier = "BSD-1-Clause"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - String library.rtf"
+precedence = "override"
 SPDX-FileCopyrightText = "2002 Joseph M. O'Leary"
 SPDX-License-Identifier = "LicenseRef-StdString"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - RFC 7208 test suite.txt"
+precedence = "override"
 SPDX-FileCopyrightText = [
     "2006-2008 Stuart D Gathman <stuart@bmsi.com>",
     "2007-2008 Julian Mehnle <julian@mehnle.net>",
@@ -1980,11 +1988,13 @@ SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - Unicode data.txt"
+precedence = "override"
 SPDX-FileCopyrightText = "1991-2026 Unicode, Inc."
 SPDX-License-Identifier = "Unicode-3.0"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - HTML named character references.txt"
+precedence = "override"
 SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
 SPDX-License-Identifier = "BSD-3-Clause"
 
@@ -2146,13 +2156,15 @@ SPDX-FileCopyrightText = [
 SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
 
 # The installer's licence page: the project's terms, and the third-party components'
-# notices copied into it verbatim.
+# notices copied into it verbatim, which name their own holders. Read for this table
+# alone, as the notices are: reuse would take words of those texts for holders.
 [[annotations]]
 path = "hmailserver/installation/License.rtf"
-precedence = "aggregate"
+precedence = "override"
 SPDX-FileCopyrightText = [
     "2005-2026 Martin Knafve / hMailServer.com",
     "2026 Christopher Holloway / Progressive Robot Ltd",
+    "The holders each notice it carries names",
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 
@@ -2181,6 +2193,15 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 [[annotations]]
 path = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# The webmail's script, which the server serves as it is (build/generate-portal-page.py
+# embeds it): its table of emoji names holds "© copyright", which reuse would take
+# for a holder, so it is read for this table alone, which says what its header says.
+[[annotations]]
+path = "hmailserver/source/Server/Common/Util/Portal.js"
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"

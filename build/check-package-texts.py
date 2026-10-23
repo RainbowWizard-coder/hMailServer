@@ -35,7 +35,7 @@ gives each dnf .repo file). This holds, in each:
     and a Debian synopsis 79 characters at most (rpmlint's summary-too-long, Debian
     policy's "less than 80"), a line of an RPM or Debian long description 79 at
     most, the snap's title 40 and its summary 78 (snapcraft's limits);
-  - the Chocolatey copyright and authors and winget's Copyright and Author name
+  - the Chocolatey copyright and authors and winget's 'Copyright' and 'Author' name
     Progressive Robot and the fork, and credit Martin Knafve, as the installer's
     licence does
     (hmailserver/installation/License.rtf: "This software is a fork of hMailServer,

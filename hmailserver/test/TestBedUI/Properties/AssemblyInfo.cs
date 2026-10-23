@@ -14,7 +14,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("TestBedUI")]
+// REUSE-IgnoreStart: the string Visual Studio's project template wrote, not a notice.
 [assembly: AssemblyCopyright("Copyright © Microsoft 2010")]
+// REUSE-IgnoreEnd
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

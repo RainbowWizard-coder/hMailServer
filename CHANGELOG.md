@@ -900,11 +900,24 @@ with `--check`).
   the AppImage's copy of the GPL-3.0's text and `LICENSES/` to its notices, but for the two texts there that are the
   project's own, and the original's list of licences, `License list.*`, a paragraph of its own; and the source
   tarball, and so `Files-Excluded`, leaves out SQL Server Compact's licence in `LICENSES/` as it leaves out the
-  headers it is for and the RTF it is made from (`build/source-exclusions.txt`). Eighteen of the project's files whose text quotes an SPDX tag or a copyright notice that is
-  not their own (fourteen scripts and tools that write the header into what they make, two tests and two checkers)
-  mark it with `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, `.gitlab/ci/package-repos.yml` and `fuzz/dict/mime.dict` carry the header, and the changelog,
+  headers it is for and the RTF it is made from (`build/source-exclusions.txt`). The text in the project's files that
+  quotes an SPDX tag or a copyright notice that is not its file's own, or that reuse would read as one, is marked
+  with `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, so that `reuse spdx` names no false holder: in eighteen files where
+  reuse found invalid or false tags (fourteen scripts and tools that write the header into what they make, two tests
+  and two checkers), around the pages and scripts that the webmail's three tables, `PortalPageData.cpp`,
+  `PortalSmimeData.cpp` and `PortalOpenPgpData.cpp`, embed, their own headers among them, which reuse read as notices
+  with RFC numbers for years ("2026, 4880, 5322, 3394, 6637, 6637"), as the three generators now write them, around the
+  `AssemblyCopyright` of the seventeen `AssemblyInfo.cs` of the original's Windows test projects and tools, the
+  strings Visual Studio's template wrote ("Microsoft 2010", a year with no holder, "Halvar Information"), around the
+  PowerShell module manifest's `Copyright` key and around 7-Zip's banner in a test of `Compression.cpp`; the winget
+  template's comment and a checker's docstring quote "Copyright" and "Author", the field names, and the RFC 7208
+  suite's README names its holders without a ©; and the ported SPF files, `Generate-SPFConformanceSuite.py` among them,
+  quote upstream's notice whole on one line, where it was broken over two and reuse read "Martin Knafve /" alone. `.gitlab/ci/package-repos.yml` and `fuzz/dict/mime.dict` carry the header, and the changelog,
   the roadmap, the contribution guide, `SourceTarball.md`, the help pages compiled from them and the copyright file,
-  which quote others' identifiers and notices, are read for their table alone. The new `reuse` job, in the check
+  which quote others' identifiers and notices, the licence texts and notices of `hmailserver/docs/Licenses`,
+  `libraries/` and the AppImage, whose words reuse took for holders ("Copyright Act", the GPL's `<year>  <name of
+  author>`), the installer's licence page, which carries such notices, and the webmail's `Portal.js`, whose table of
+  emoji names holds "© copyright", are read for their table alone. The new `reuse` job, in the check
   stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by its digest:
   reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with poetry-core
   2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and libmagic

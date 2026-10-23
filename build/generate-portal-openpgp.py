@@ -54,6 +54,13 @@ def cpp_literal(s):
     return '"' + "".join(out) + '"'
 
 
+# reuse (build/ci/reuse-lint.sh) reads the whole of every file: the modules'
+# text below, their own headers among it, is not this file's notice. The
+# markers are split so that this script is not read as marked.
+IGNORE_START = "REUSE-" + "IgnoreStart"
+IGNORE_END = "REUSE-" + "IgnoreEnd"
+
+
 def generate():
     text = io.open(MODULE, "r", encoding="utf-8").read().replace("\r\n", "\n")
     out = []
@@ -74,8 +81,10 @@ def generate():
     # otherwise, and RestApiOpenPgpKeys.cpp reaches it from another unit.
     out.append("   extern const char *const PortalOpenPgpScriptPieces[] =")
     out.append("   {")
+    out.append("      // " + IGNORE_START + ": the module as the server serves it, its header and all.")
     for i in range(0, len(text), PIECE):
         out.append("      " + cpp_literal(text[i:i + PIECE]) + ",")
+    out.append("      // " + IGNORE_END)
     out.append("      nullptr")
     out.append("   };")
     out.append("}")

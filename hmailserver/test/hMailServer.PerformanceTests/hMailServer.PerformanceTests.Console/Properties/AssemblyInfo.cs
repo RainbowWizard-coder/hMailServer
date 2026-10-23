@@ -14,7 +14,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("hMailServer.PerformanceTests.Console")]
+// REUSE-IgnoreStart: the string Visual Studio's project template wrote, not a notice.
 [assembly: AssemblyCopyright("Copyright ©  2014")]
+// REUSE-IgnoreEnd
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

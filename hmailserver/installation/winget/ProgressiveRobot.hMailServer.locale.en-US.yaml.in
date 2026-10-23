@@ -20,7 +20,7 @@
 #~ original's (build/make-package-manifests.ps1 and
 #~ build/check-package-manifests.py hold them to it).
 #~
-#~ Copyright and Author credit the original as the installer's licence does
+#~ "Copyright" and "Author" credit the original as the installer's licence does
 #~ (hmailserver/installation/License.rtf: "a fork of hMailServer, originally
 #~ created by Martin Knafve, whose copyright in the original work remains"). The
 #~ Publisher stays Progressive Robot Ltd, who publishes this package and whose name

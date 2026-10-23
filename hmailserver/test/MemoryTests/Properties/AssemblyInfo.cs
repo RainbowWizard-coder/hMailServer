@@ -14,7 +14,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Halvar Information")]
 [assembly: AssemblyProduct("MemoryTests")]
+// REUSE-IgnoreStart: the string Visual Studio's project template wrote, not a notice.
 [assembly: AssemblyCopyright("Copyright © Halvar Information 2007")]
+// REUSE-IgnoreEnd
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

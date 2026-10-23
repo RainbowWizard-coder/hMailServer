@@ -735,6 +735,7 @@ namespace HM
       // whose path is absolute and is not an entry, then the entries given.
       bool ListingRefused_(const std::string &entries, AnsiString &named)
       {
+         // REUSE-IgnoreStart: 7-Zip's banner, as 7za prints it, not this file's notice.
          const std::string listing =
             "\r\n7-Zip (a) 26.03 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-09-03\r\n\r\n"
             "Scanning the drive for archives:\r\n1 file, 240 bytes (1 KiB)\r\n\r\n"
@@ -742,6 +743,7 @@ namespace HM
             "Path = C:\\Backups\\HMBackup 2026-09-25 101500.7z\r\nType = 7z\r\nPhysical Size = 240\r\n"
             "Headers Size = 216\r\nMethod = LZMA2:12\r\nSolid = -\r\nBlocks = 2\r\n\r\n"
             "----------\r\n" + entries;
+         // REUSE-IgnoreEnd
 
          std::istringstream stream(listing);
          return Compression::FindUnsafeEntry(stream, named);

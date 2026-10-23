@@ -67,6 +67,13 @@ def cpp_literal(s):
     return '"' + "".join(out) + '"'
 
 
+# reuse (build/ci/reuse-lint.sh) reads the whole of every file: the pages' and scripts'
+# text below, their own headers among it, is not this file's notice. The
+# markers are split so that this script is not read as marked.
+IGNORE_START = "REUSE-" + "IgnoreStart"
+IGNORE_END = "REUSE-" + "IgnoreEnd"
+
+
 def generate():
     out = []
     out.append("// https://www.progressiverobot.com")
@@ -83,6 +90,7 @@ def generate():
     out.append("")
     out.append("namespace HM")
     out.append("{")
+    out.append("   // " + IGNORE_START + ": the pages and scripts as the server serves them, their headers and all.")
     for index, (name, file) in enumerate(PARTS):
         text = io.open(os.path.join(UTIL, file), "r", encoding="utf-8").read().replace("\r\n", "\n")
         if index:
@@ -95,6 +103,7 @@ def generate():
             out.append("      " + cpp_literal(text[i:i + PIECE]) + ",")
         out.append("      nullptr")
         out.append("   };")
+    out.append("   // " + IGNORE_END)
     out.append("}")
     out.append("")
     return "\n".join(out)

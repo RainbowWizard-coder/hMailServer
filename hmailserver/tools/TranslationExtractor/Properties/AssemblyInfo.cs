@@ -14,7 +14,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Halvar Information")]
 [assembly: AssemblyProduct("TranslationExtractor")]
+// REUSE-IgnoreStart: the string Visual Studio's project template wrote, not a notice.
 [assembly: AssemblyCopyright("Copyright © Halvar Information 2008")]
+// REUSE-IgnoreEnd
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

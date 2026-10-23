@@ -608,7 +608,10 @@ something which already exists.
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#reuse)); run it as the job does,
   `bash build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` (the script's header gives the command). A text
   that quotes an SPDX tag or a copyright notice that is not the file's own - a generator writing the header
-  into what it makes - goes between `REUSE-IgnoreStart` and `REUSE-IgnoreEnd` comments.
+  into what it makes, a page it embeds, a string a project template wrote - goes between `REUSE-IgnoreStart`
+  and `REUSE-IgnoreEnd` comments, and a licence text, or a file that cannot take the comments and whose words
+  reuse would read as a notice, is read for its table alone (`precedence = "override"`), so that `reuse spdx`
+  names no holder that is not one.
 
 ## Change checklists
 

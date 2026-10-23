@@ -18,7 +18,9 @@
     GUID                 = '89f008bd-5dc0-4d6d-9a05-4ac1c8dbf8e5'
     Author               = 'Christopher Holloway / Progressive Robot Ltd'
     CompanyName          = 'Progressive Robot Ltd'
+    # REUSE-IgnoreStart: the manifest's key, which the header above says.
     Copyright            = '(c) 2026 Christopher Holloway / Progressive Robot Ltd. AGPL-3.0-or-later.'
+    # REUSE-IgnoreEnd
     # The Description and the Tags say whose module this is: the original hMailServer,
     # Martin Knafve's, is developed separately and has no REST API, and a module of
     # that name that did not say so would read as the original's.
