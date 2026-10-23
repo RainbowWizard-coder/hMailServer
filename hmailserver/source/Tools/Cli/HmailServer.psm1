@@ -284,20 +284,45 @@ public static class HmailServerLoopbackCertificate
         # By name rather than as a typed catch: Windows PowerShell 5.1 has no
         # HttpResponseException, and a catch naming it answered every refusal
         # there with "Unable to find type" instead of the server's reason.
-        $failure = $_.Exception.GetType().FullName
+        $record = $_
+        $failure = $record.Exception.GetType().FullName
         if ($failure -ne 'System.Net.WebException' -and $failure -ne 'Microsoft.PowerShell.Commands.HttpResponseException') {
             throw
         }
 
         $status = $null
-        try { $status = [int] $_.Exception.Response.StatusCode } catch { $status = $null }
+        try { $status = [int] $record.Exception.Response.StatusCode } catch { $status = $null }
 
+        # The answer's own words: its JSON "error", or the text itself when it is not
+        # JSON (a proxy's page), as hmctl prints it. Read from $record: inside the
+        # catch below, $_ is the JSON parser's error, which has no details, so the
+        # text of an answer that was not JSON was lost.
         $detail = $null
-        try {
-            $detail = ($_.ErrorDetails.Message | ConvertFrom-Json -ErrorAction Stop).error
+        if ($record.ErrorDetails -and $record.ErrorDetails.Message) {
+            try {
+                $detail = ($record.ErrorDetails.Message | ConvertFrom-Json -ErrorAction Stop).error
+            }
+            catch {
+                $detail = $record.ErrorDetails.Message.Trim()
+            }
         }
-        catch {
-            if ($_.ErrorDetails) { $detail = $_.ErrorDetails.Message }
+
+        # No answer at all - nothing listening, a name that does not resolve, a
+        # certificate this machine does not trust, a timeout. Windows PowerShell 5.1
+        # raises a WebException with no response, and its message and its inner
+        # exceptions' are the only reason there is; without them, a certificate the
+        # machine does not trust and a server that is down both said "failed."
+        # alone. PowerShell 7 raises an HttpRequestException, which is thrown as it is
+        # above.
+        if ($null -eq $status) {
+            $reasons = @()
+            $cause = $record.Exception
+            while ($cause) {
+                $text = ([string] $cause.Message).Trim().TrimEnd('.')
+                if ($text -and $reasons -notcontains $text) { $reasons += $text }
+                $cause = $cause.InnerException
+            }
+            if ($reasons) { $detail = $reasons -join '; ' }
         }
 
         switch ($status) {

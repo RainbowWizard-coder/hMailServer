@@ -227,6 +227,24 @@ with `--check`).
   the original's 5.7.0 build 3013 and later the one in ProgramData when it exists, for its earlier builds the one in
   `Bin` - passed to the decision, with twelve negative controls more.
 
+- **Fixed: the PowerShell module says why a call failed when it got no answer under Windows PowerShell 5.1, and
+  prints the text of an answer that is not JSON.** Under 5.1 a request that gets no HTTP answer - a server certificate
+  the machine does not trust, nothing listening on the port - raises a `WebException` with no response, and
+  `Invoke-HmApi` caught it and said "GET /api/v1/domains failed." alone, so that an untrusted certificate and a server
+  that is down read the same; PowerShell 7 raises an `HttpRequestException`, which the module throws as it is, with the
+  system's reason. Under both, the text of an answer that was not JSON, a proxy's page, was read inside the catch of
+  the failed JSON parse, where `$_` is the parser's error, which has none, so "failed (502)." was all that was said.
+  The module now gives the exception's message and its inner exceptions' for no answer, "GET /api/v1/domains failed:
+  The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel; The
+  remote certificate is invalid according to the validation procedure.", and the answer's text after the status, as
+  `hmctl` prints it. Found on 23 October 2026 by `HmailServer` 6.3.7 installed from the PowerShell Gallery on Windows
+  PowerShell 5.1 against a 6.3.7 server whose certificate the machine did not yet trust; the module of the tree said
+  the sentence above on the same machine against the same server, and the reason for a port nothing listens on.
+  `build/check-cli.py` holds both, under every PowerShell the machine running it has - pwsh in the `cli-powershell`
+  job, Windows PowerShell 5.1 beside it on a Windows desk - and `hmctl` to the same text: against the module before the
+  change, its three new module checks failed on a Windows desk (the text under both, no answer under 5.1), and with it
+  all 1,624 checks passed.
+
 ### Downloads and the release
 
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB

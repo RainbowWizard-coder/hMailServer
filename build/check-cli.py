@@ -679,6 +679,11 @@ REFUSED_AFTER_THE_FIRST = {
 REPORT_CSV = ("day,domain,incoming,outgoing\r\n"
               "2026-09-14,example.com,12,3\r\n")
 
+# A refusal that is not JSON: what a proxy in front of a server that is down answers.
+# Both clients must print its text, which is the only reason there is.
+TEXT_REFUSAL_PATH = "/api/v1/domains/behind-a-proxy.example"
+TEXT_REFUSAL = (502, "Bad gateway: the upstream server did not answer")
+
 
 class Recorder(BaseHTTPRequestHandler):
     requests = []
@@ -718,6 +723,15 @@ class Recorder(BaseHTTPRequestHandler):
         query = self.path.split("?", 1)[1] if "?" in self.path else ""
         import urllib.parse as parse
         path = parse.unquote(path)
+
+        if method == "GET" and path == TEXT_REFUSAL_PATH:
+            payload = TEXT_REFUSAL[1].encode("utf-8")
+            self.send_response(TEXT_REFUSAL[0])
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
 
         if path.startswith("/api/v1/reports/") and "format=csv" in query:
             payload = REPORT_CSV.encode("utf-8")
@@ -1184,6 +1198,13 @@ def run_python_refusals(url):
           and "propagation period" in completed.stderr and "example.net: propagating" in completed.stdout,
           "hmctl dkim switch refused with 409 should print the status and the reason, said: %s%s"
           % (completed.stdout, completed.stderr))
+
+    # A refusal that is not JSON - a proxy's text - printed as it came: it is the
+    # only reason there is. The module is held to the same (run_powershell_reasons).
+    completed = run(["domain", "get", TEXT_REFUSAL_PATH.rsplit("/", 1)[1]])
+    check(completed.returncode == 1 and TEXT_REFUSAL[1] in completed.stderr,
+          "hmctl domain get answered %d with a text body should print the text, exited %d and said: %s%s"
+          % (TEXT_REFUSAL[0], completed.returncode, completed.stdout, completed.stderr))
 
     # A profile that closes a listener, applied without --confirm: refused, with
     # nothing sent but the one request, and the entries and the flag named.
@@ -1778,6 +1799,55 @@ def run_powershell_cases(url, verbose):
             check(text in completed.stdout, "%s: %r is not in the output:\n%s" % (name, text, completed.stdout))
 
     return True
+
+
+def run_powershell_reasons(url):
+    """Why a call failed, in the module's words, under every PowerShell this machine
+    has - Windows PowerShell 5.1 beside pwsh where both are here, since the two raise
+    different exceptions for the same failure. A refusal that is not JSON (a proxy's
+    text) is printed with its text, as hmctl prints it; a call that got no answer at
+    all (nothing listening, as for a server that is down, a name that does not
+    resolve or a certificate this machine does not trust) says why. Until the
+    release after 6.3.7 the module lost the text under both, and said "GET
+    /api/v1/domains failed." alone for no answer under Windows PowerShell 5.1."""
+    shells = []
+    for name in ("pwsh", "powershell"):
+        found = shutil.which(name)
+        if found and found not in shells:
+            shells.append(found)
+
+    # A port nothing listens on: bound here and let go, so that nothing else has it
+    # a moment later.
+    import socket
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    probe.bind(("127.0.0.1", 0))
+    closed = "http://127.0.0.1:%d" % probe.getsockname()[1]
+    probe.close()
+
+    def run(shell, server, script):
+        full = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
+                "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
+                "try { %s } catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }"
+                % (MODULE.replace("'", "''"), server, PASSWORD, script))
+        completed = subprocess.run([shell, "-NoProfile", "-NonInteractive", "-Command", full],
+                                   capture_output=True, text=True, timeout=120)
+        # Folded to single spaces, as run_powershell_config_cases folds it.
+        completed.stderr = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", completed.stderr or "").split())
+        return completed
+
+    for shell in shells:
+        label = os.path.basename(shell)
+        completed = run(shell, url, "Get-HmDomain -Name '%s' | Out-Null" % TEXT_REFUSAL_PATH.rsplit("/", 1)[1])
+        check(completed.returncode == 1 and "(%d)" % TEXT_REFUSAL[0] in completed.stderr
+              and TEXT_REFUSAL[1] in completed.stderr,
+              "%s: Get-HmDomain answered %d with a text body should say the status and the text, exited %d and said: %s"
+              % (label, TEXT_REFUSAL[0], completed.returncode, completed.stderr[:400]))
+
+        completed = run(shell, closed, "Get-HmDomain | Out-Null")
+        check(completed.returncode == 1 and completed.stderr.strip() != "GET /api/v1/domains failed."
+              and re.search(r"connect|refused", completed.stderr, re.IGNORECASE),
+              "%s: Get-HmDomain against %s, where nothing listens, should say why it got no answer, exited %d and said: %s"
+              % (label, closed, completed.returncode, completed.stderr[:400]))
 
 
 def run_config_cases(url, tmp):
@@ -2561,6 +2631,7 @@ def main():
             if powershell_ran:
                 run_powershell_config_cases(url, tmp, arguments.verbose)
                 run_powershell_import_cases(url, tmp)
+                run_powershell_reasons(url)
     finally:
         server.shutdown()
         shutil.rmtree(tmp, ignore_errors=True)
