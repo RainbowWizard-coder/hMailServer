@@ -93,8 +93,8 @@
    this throwaway machine only, which is reverted after the run.
 
    And what docs/ServiceAccount.md says setup does before the files (work item 78),
-   held to an installer after 6.3.7, or to an unstamped build with
-   -HardenedBeforeFiles, and said as INFO of an earlier one: a program folder the
+   held to an installer after 6.3.7, or to a build that still says 6.3.7 with
+   -HardenedBeforeFiles, and said as INFO of any other: a program folder the
    installer makes had permissions of its own from the first moment it was there -
    read by a watch in a runspace of its own as soon as the folder appears - and
    setup, not Inno Setup, made it (R1); Bin and ControlPanel, there before the
@@ -2495,14 +2495,16 @@ function Test-Uninstalled {
 
 # Whether an installer makes the program folder with permissions of its own, and
 # hardens one that is there with Bin and ControlPanel, before any file is copied
-# (docs/ServiceAccount.md, "Before the files"): the release after 6.3.7, or a build
-# not yet stamped with its version, when -HardenedBeforeFiles says so. For an earlier
-# installer what the watch saw is said as INFO.
+# (docs/ServiceAccount.md, "Before the files"): the release after 6.3.7, and, when
+# -HardenedBeforeFiles says so, a build that still says 6.3.7 - never an installer
+# that says an earlier version, such as the first of an upgrade run from 6.3.6. For
+# one that is not held to it, what the watch saw is said as INFO.
 $HardenedBeforeFilesVersion = [version] '6.3.7'
 function Test-HardensBeforeFiles([string] $Version) {
-   if ($HardenedBeforeFiles) { return $true }
    $release = Get-ReleaseVersion $Version
-   return ($null -ne $release) -and ($release -gt $HardenedBeforeFilesVersion)
+   if ($null -eq $release) { return [bool] $HardenedBeforeFiles }
+   if ($release -gt $HardenedBeforeFilesVersion) { return $true }
+   return $HardenedBeforeFiles -and ($release -eq $HardenedBeforeFilesVersion)
 }
 
 # What a folder's list is at one moment: whether it inherits nothing, how many of its

@@ -3432,8 +3432,9 @@ nothing, let no group of every user change them and had a trusted owner when the
 first file appeared, and Inno's log must harden each before the first file it copies
 there; the program folder with them when its data folders inherited nothing (R2). An
 installer of 6.3.7 or earlier is not held to it, and what the watch saw is an INFO
-line; `--hardened-before-files` holds a build that still says 6.3.7 to it, which is
-how the base and the fix of work item 78's R1 to R4 were told apart. `--case NAME`,
+line; `--hardened-before-files` holds a build that still says 6.3.7 to it - never an
+earlier installer, such as the first of an upgrade run from 6.3.6 - which is how the
+base and the fix of work item 78's R1 to R4 are told apart. `--case NAME`,
 with `--install-directory`, makes what the program folder is found as before the first
 installer - as the administrator, a standard account's folder, file or junction made by
 the administrator and given to the account `hmsmokeuser`, which the run makes, since a

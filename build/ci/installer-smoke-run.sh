@@ -67,7 +67,8 @@
 #                       permissions, and hardening one that is there, before their
 #                       files (installer-smoke.ps1 -HardenedBeforeFiles): for a build
 #                       of the release after 6.3.7 that still says 6.3.7; a later
-#                       version is held to it anyway
+#                       version is held to it anyway, an earlier one never (the
+#                       first installer of an upgrade from 6.3.6)
 #
 # The defaults are the smoke VM on the maintainer's laptop, found on 25 September
 # 2026: "Win server 2025 small", the one .vmx in VMware's inventory whose MAC is the
