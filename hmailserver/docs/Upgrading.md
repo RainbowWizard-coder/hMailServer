@@ -124,7 +124,9 @@ changed; a silent setup ends with exit code 1, its log (`/LOG`) has the refusal 
 a line that begins "Refused:", and with or without a log setup writes it to
 `hMailServer-setup-refused.txt` in the temporary folder (`%TEMP%`) of the account
 it runs as, which a later setup that is not refused deletes. The Chocolatey
-package passes `/LOG` and shows that file's words when the install fails, and
+package passes `/LOG` and shows that file's words when the install fails (the
+log and the file are in Chocolatey's cache folder, which its CLI makes
+setup's `TEMP`: [PackageManagers.md](PackageManagers.md)), and
 winget writes the log where `winget install --log <file>` says
 (PackageManagers.md). Installations of this fork, whose programs are 6 and later,
 are not looked at past their `hMailServer.exe`'s version. The decision is

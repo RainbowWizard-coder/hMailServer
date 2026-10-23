@@ -15,10 +15,11 @@ $ErrorActionPreference = 'Stop'
 # The installer's log, so that a failed install - a database step that failed, or,
 # from the release after 6.3.7, an installation of the original hMailServer's 5.7,
 # which setup then refuses before it changes anything - says why: Chocolatey
-# reports the exit code alone, and the message boxes are suppressed. In the
-# temporary folder of the account Chocolatey runs as. The log records setup's
-# command line, so give the administrator password in HM_ADMIN_PASSWORD rather
-# than in --install-arguments.
+# reports the exit code alone, and the message boxes are suppressed. In TEMP,
+# which Chocolatey's CLI sets to its cache folder (by default the chocolatey
+# folder in the temporary folder of the account that ran choco). The log
+# records setup's command line, so give the administrator password in
+# HM_ADMIN_PASSWORD rather than in --install-arguments.
 $installLog = Join-Path $env:TEMP "$($env:ChocolateyPackageName).@VERSION@.install.log"
 # The file setup also writes a refusal to (RefusalFileName in the installer).
 $refusalFile = Join-Path $env:TEMP 'hMailServer-setup-refused.txt'

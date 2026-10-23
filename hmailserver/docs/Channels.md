@@ -12,7 +12,7 @@ Two channels have no job here because nothing is published to them: the Nix flak
 in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
 merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
-**Where each channel stands, read on 21 October 2026.** Three build services carry
+**Where each channel stands, read on 21 October 2026, Chocolatey's on 23 October.** Three build services carry
 6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
 OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0 (x86_64
 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
@@ -384,8 +384,8 @@ Windows. Pressing `chocolatey-release` starts both.
   17399248551, in `master`'s pipeline 2978723670) sent 6.3.7 again at 00:59 UTC on 23
   October 2026 (HTTP 201), in the 22 October package's place, with Martin Knafve
   credited in its authors and copyright, while the feed still listed it as `Submitted`
-  (point 7 above). It passed Chocolatey's automated validation and verification at
-  01:32 UTC.
+  (point 7 above). It passed Chocolatey's automated validation at 01:32 UTC and its
+  verification at 01:42 UTC.
 - **Approved on 23 October 2026.** A moderator approved it at 11:56 UTC that day; the
   feed lists it as `Approved`, its virus scan `NotFlagged`, and `choco install
   hmailserver-progressiverobot` installs it. On a clean Windows Server 2025 (the

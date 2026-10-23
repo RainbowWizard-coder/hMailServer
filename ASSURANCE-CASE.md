@@ -33,9 +33,11 @@ day, and each later one after GitLab has published it - with the same files
 byte for byte, each checked against the SHA-256 that GitLab's package registry
 records for it, under the same names but for the per-distribution `.deb`
 files, whose `~` GitHub writes as `.`. GitHub's immutable-releases setting is on
-there, so a release published after the copies of 18 October 2026 cannot be
-changed; the copies themselves, published before the setting was switched on,
-can.
+there: a release published there with it on keeps its files and its tag as
+published, though its notes can still be edited, and so do the copies of 6.3.6
+and 6.3.7, published after it was switched on during the copying of 18 October
+2026; the copies of the releases before them, published before it, can still be
+changed.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
 GitHub until 18 September 2026 and do not run on GitLab. No pipeline of the
 project's runs on GitHub. Two workflows of the project's are in the tree, for

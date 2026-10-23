@@ -323,19 +323,22 @@ with `--check`).
   corrective action") with the request that the package's authors credit the original's author and that the same
   version be resubmitted. At 01:06 UTC on 22 October 2026 `chocolatey-publish` (job 17362512835, in master's pipeline
   2973751489) sent 6.3.7 again, with the fork's title, summary and description but with authors and copyright that
-  still name Progressive Robot alone, and the community repository's feed lists it as `Submitted`, not approved; at
+  still name Progressive Robot alone, and the community repository's feed listed it as `Submitted`, not approved; at
   00:59 UTC on 23 October 2026 `chocolatey-publish` (job 17399248551, in master's pipeline 2978723670) sent it a third
-  time, with Martin Knafve credited, in that package's place; it passed Chocolatey's automated validation and
-  verification at 01:32 UTC, and a moderator approved it at 11:56 UTC that day, so `choco install
+  time, with Martin Knafve credited, in that package's place; it passed Chocolatey's automated validation at 01:32 UTC
+  and its verification at 01:42 UTC, and a moderator approved it at 11:56 UTC that day, so `choco install
   hmailserver-progressiverobot` installs it; on a clean Windows Server 2025 that afternoon it installed 6.3.7 from the
   release's signed installer, the service running, and `choco uninstall` removed it.
 
-- **The GitHub copies of 6.3.6 and 6.3.7 are said to be immutable.** SECURITY.md, RELEASE.md, EvidencePack.md and the
-  head of this file said that the copies published on GitHub on 18 October 2026 were made before its
-  immutable-releases setting was switched on and can still be changed, and that a release published with it on cannot
-  be changed; GitHub's API gives `immutable: true` for the copies of 6.3.6 (published at 05:26 UTC) and 6.3.7 (05:31
-  UTC) and `false` for every earlier one (6.3.5's at 05:24 UTC), and an immutable release keeps its files and its tag
-  while its notes can still be edited, as the notes of both were on 23 October 2026. The four texts now say so.
+- **The GitHub copies of 6.3.6 and 6.3.7 are said to be immutable.** SECURITY.md, RELEASE.md, EvidencePack.md,
+  ASSURANCE-CASE.md, Roadmap3.md and the head of this file said that the copies published on GitHub on 18 October
+  2026 were made before its immutable-releases setting was switched on and can still be changed, and that a release
+  published with it on cannot be changed, and README.md, CONTRIBUTING.md and GOVERNANCE.md that only a release
+  published after those copies is immutable, and an entry below, on why the releases before 6.3.1 stay without an
+  Authenticode signature, that the copies of 18 October 2026 can be changed; GitHub's API gives `immutable: true`
+  for the copies of 6.3.6 (published at 05:26 UTC) and 6.3.7 (05:31 UTC) and `false` for every earlier one (6.3.5's
+  at 05:24 UTC), and an immutable release keeps its files and its tag while its notes can still be edited, as the
+  notes of both were on 23 October 2026. The texts now say so.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
@@ -354,14 +357,15 @@ with `--check`).
   message box is suppressed, and Inno Setup writes a log only with `/LOG`. `chocolateyinstall.ps1` now passes
   `/LOG="%TEMP%\<package id>.<version>.install.log"`, names that log when the install fails, and shows the refusal's
   words from `%TEMP%\hMailServer-setup-refused.txt` when setup wrote it during the install; Chocolatey's CLI sets `TEMP`
-  to its cache folder while the script runs, by default `%TEMP%\chocolatey` of the account that ran `choco`, which
-  PackageManagers.md now says. The winget installer manifest already declares `Log: /LOG="<LOGPATH>"`, which `winget
-  install --log <file>` fills. The log records setup's command line, so PackageManagers.md says to give the
-  administrator password in `HM_ADMIN_PASSWORD` rather than in Chocolatey's `--install-arguments`.
-  `build/check-package-manifests.py` refuses a winget Log switch that is not `/LOG="<LOGPATH>"` and Chocolatey
-  `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter. The script is not tied to a release
-  of the installer: `chocolatey-publish` renders the latest release's package from `master`'s templates, so 6.3.7's
-  resubmission passes `/LOG` too; only the refusal it shows is from the release after 6.3.7.
+  to its cache folder while the script runs, by default the `chocolatey` folder in the temporary folder of the account
+  that ran `choco`, which PackageManagers.md, Upgrading.md and the script's comment now say. The winget installer
+  manifest already declares `Log: /LOG="<LOGPATH>"`, which `winget install --log <file>` fills. The log records setup's
+  command line, so PackageManagers.md says to give the administrator password in `HM_ADMIN_PASSWORD` rather than in
+  Chocolatey's `--install-arguments`. `build/check-package-manifests.py` refuses a winget Log switch that is not
+  `/LOG="<LOGPATH>"` and Chocolatey `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter. The
+  script is not tied to a release of the installer: `chocolatey-publish` renders the latest release's package from
+  `master`'s templates, so 6.3.7's resubmission passes `/LOG` too; only the refusal it shows is from the release after
+  6.3.7.
 
 - **The Chocolatey and winget descriptions say that the installer refuses the original hMailServer's 5.7.** They said
   that, both installers registering under the uninstall entry `hMailServer_is1`, this package's installer takes an
@@ -411,36 +415,35 @@ with `--check`).
   alone, and the check counts it as a signature. The rehearsal on a protected `batch*` branch writes and checks the
   file as a release does, and `build/check-release-chain.py` holds its name, where it is made and checked, and that
   `release-verify`'s artifact carries it, and nothing else of the signed files, to `release-publish`.
-- **The Chocolatey package and the winget manifests say that they are Progressive Robot's fork of hMailServer, and
-  are dated by the release.** The original hMailServer, Martin Knafve's, is developed again, and packages of it
-  exist, Chocolatey's `hmailserver` among them; the package published on 20 October 2026 as
-  `hmailserver-progressiverobot` 6.3.7, which waits for Chocolatey's moderation, was titled "hMailServer" alone, with
-  a summary that did not say fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary
-  and description, and winget's short description and description, open by saying that this is Progressive Robot's
-  fork of hMailServer, not the original; that the original is Martin Knafve's and has releases of its own, and that
-  packages of it exist; and that both installers register as `hMailServer_is1`, so that this one takes an installation
-  of the original for its own - one it upgrades up to the original's 5.6, and not from its 5.7 releases, whose database
-  versions, 5709 (its pre-release builds 2788 and 2843 of August 2026) and 5711 (5.7.0 build 3013, 5.7.1 and 5.7.2),
-  its upgrade has no step from, where the description called the package "a drop-in upgrade for an existing hMailServer
-  installation, with a continuous database upgrade chain from every earlier version"; winget's package name is
-  "hMailServer (Progressive Robot's fork)", and its moniker `hmailserver-progressiverobot`, the Chocolatey id, where it
-  was `hmailserver`. The description no longer says that
-  the original "is no longer developed upstream", nor that it "went quiet for years". The same job gave the winget
-  installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a release of 17 October,
-  because `build/make-package-manifests.ps1` took today when no date was passed. It takes the GitLab release's
-  `released_at` now, as a day in UTC, when no `-ReleaseDate` is given, and stops when it cannot read it;
-  `build/ci/channels/release-files.py verify` writes the release's `released_at` and its day into
+- **The Chocolatey package and the winget manifests say that they are Progressive Robot's fork of hMailServer, and are
+  dated by the release.** The original hMailServer, Martin Knafve's, is developed again, and packages of it exist,
+  Chocolatey's `hmailserver` among them; the package published on 20 October 2026 as `hmailserver-progressiverobot`
+  6.3.7, which then waited for Chocolatey's moderation, was titled "hMailServer" alone, with a summary that did not say
+  fork. The nuspec's title is now "hMailServer (Progressive Robot's fork)", and its summary and description, and
+  winget's short description and description, open by saying that this is Progressive Robot's fork of hMailServer, not
+  the original; that the original is Martin Knafve's and has releases of its own, and that packages of it exist; and
+  that both installers register as `hMailServer_is1`, so that this one takes an installation of the original for its
+  own - one it upgrades up to the original's 5.6, and not from its 5.7 releases, whose database versions, 5709 (its
+  pre-release builds 2788 and 2843 of August 2026) and 5711 (5.7.0 build 3013, 5.7.1 and 5.7.2), its upgrade has no
+  step from, where the description called the package "a drop-in upgrade for an existing hMailServer installation, with
+  a continuous database upgrade chain from every earlier version"; winget's package name is "hMailServer (Progressive
+  Robot's fork)", and its moniker `hmailserver-progressiverobot`, the Chocolatey id, where it was `hmailserver`. The
+  description no longer says that the original "is no longer developed upstream", nor that it "went quiet for years".
+  The same job gave the winget installer manifest the `ReleaseDate` 2026-10-21, the day on its machine's clock, for a
+  release of 17 October, because `build/make-package-manifests.ps1` took today when no date was passed. It takes the
+  GitLab release's `released_at` now, as a day in UTC, when no `-ReleaseDate` is given, and stops when it cannot read
+  it; `build/ci/channels/release-files.py verify` writes the release's `released_at` and its day into
   `verification.json`, and `chocolatey-publish` passes that day and refuses a `verification.json` without one.
-  `build/check-package-manifests.py` refuses a title, summary, description, package name or short description that
-  does not name the fork, a moniker of `hmailserver`, a `ReleaseDate` that is not a day, and, with `--release-date`,
-  one that is not the release's; the `package-templates` job passes it. The self-tests of `release-files.py` and
+  `build/check-package-manifests.py` refuses a title, summary, description, package name or short description that does
+  not name the fork, a moniker of `hmailserver`, a `ReleaseDate` that is not a day, and, with `--release-date`, one
+  that is not the release's; the `package-templates` job passes it. The self-tests of `release-files.py` and
   `chocolatey-publish.ps1` cover the release's day (an offset either side of UTC, and a value that is no time), the
   refusal and the package the job renders, under Windows PowerShell 5.1 and PowerShell 7. Channels.md said that a
-  version waiting in moderation was not in the community repository's feed, so that a second press would send it
-  again; the feed answers for it, with the status `Submitted` (as it did for 6.3.7 on 21 October 2026), and the job,
-  which sent no version the feed answered for, would have sent nothing. It sends a `Submitted` version again now, in
-  the waiting package's place, and no other version the feed holds, so that a second press of `chocolatey-release`
-  can send 6.3.7 with these texts ([Channels.md](hmailserver/docs/Channels.md), "How a channel job publishes").
+  version waiting in moderation was not in the community repository's feed, so that a second press would send it again;
+  the feed answers for it, with the status `Submitted` (as it did for 6.3.7 on 21 October 2026), and the job, which
+  sent no version the feed answered for, would have sent nothing. It sends a `Submitted` version again now, in the
+  waiting package's place, and no other version the feed holds, so that a second press of `chocolatey-release` can send
+  6.3.7 with these texts ([Channels.md](hmailserver/docs/Channels.md), "How a channel job publishes").
 - **The Chocolatey package's id is `hmailserver-progressiverobot` when none is given.** `chocolatey-publish` took
   `hmailserver`, the original hMailServer's package, when `HM_CHOCOLATEY_ID` was unset, and so did
   `build/make-package-manifests.ps1` without `-ChocolateyId`; both take `hmailserver-progressiverobot` now, the id set
@@ -1140,23 +1143,23 @@ with `--check`).
   CycloneDX SBOM of it alone, made afterwards, and the bundles are those of 6.2.19 to 6.3.3, read from the 47 releases
   on GitLab on 19 October 2026. The same list gave "a published release is immutable" as the reason the releases
   before 6.3.1 stay without an Authenticode signature; a release on GitLab can be changed, and so can the copies on
-  GitHub published on 18 October 2026, before its immutable-releases setting was switched on (SECURITY.md). The reason
-  is that the releases up to 6.3.3 are published with their original files, byte for byte, 6.2.0 and 6.0.0-B4 apart,
-  which have none (only the suspended account, or someone's old download, has them; Roadmap3.md's row on the files
-  GitLab does not have), and the sentence now gives it; the document's opening list, which said every release up to
-  6.3.3 is re-published on GitLab byte for byte, its account of what the workflows GitHub Actions runs sign there,
-  which said the releases up to 6.3.3 are on GitLab with their original signatures, and EvidencePack.md's account of
-  the move, which said the same, now say so of those two. The signed range is said exactly as well: 6.2.22-pre3's two
-  SBOMs carry no bundle, and RegulatoryScope.md, SECURITY.md's *Verifying a release* and EvidencePack.md's *Sigstore*
-  say so beside the range, where EvidencePack.md also said that the `release-sign` and `release-verify` jobs had not
-  run yet and that the GitLab release jobs make no provenance: they have signed every release from 6.3.5, and from
-  6.3.6 `release-sbom` and `release-sign` make the release's own, `hmailserver-<version>.intoto.sigstore.json`.
-  GOVERNANCE.md's note on keyless signing, RELEASE.md's step on who installs a security release by the live update and
-  EvidencePack.md's account of the two signers that update trusts say that the GitHub workflow signed the releases
-  from 6.2.19 to 6.3.3, where they said the releases up to 6.3.3. README.md's *Quality gates* said every release ships
-  SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the five earlier releases that carry an installer having
-  a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply chain*, which lists the five, as RegulatoryScope.md's
-  sentence does.
+  GitHub of the releases before 6.3.6, published on 18 October 2026 before its immutable-releases setting was switched
+  on (SECURITY.md). The reason is that the releases up to 6.3.3 are published with their original files, byte for
+  byte, 6.2.0 and 6.0.0-B4 apart, which have none (only the suspended account, or someone's old download, has them;
+  Roadmap3.md's row on the files GitLab does not have), and the sentence now gives it; the document's opening list,
+  which said every release up to 6.3.3 is re-published on GitLab byte for byte, its account of what the workflows
+  GitHub Actions runs sign there, which said the releases up to 6.3.3 are on GitLab with their original signatures,
+  and EvidencePack.md's account of the move, which said the same, now say so of those two. The signed range is said
+  exactly as well: 6.2.22-pre3's two SBOMs carry no bundle, and RegulatoryScope.md, SECURITY.md's *Verifying a
+  release* and EvidencePack.md's *Sigstore* say so beside the range, where EvidencePack.md also said that the
+  `release-sign` and `release-verify` jobs had not run yet and that the GitLab release jobs make no provenance: they
+  have signed every release from 6.3.5, and from 6.3.6 `release-sbom` and `release-sign` make the release's own,
+  `hmailserver-<version>.intoto.sigstore.json`. GOVERNANCE.md's note on keyless signing, RELEASE.md's step on who
+  installs a security release by the live update and EvidencePack.md's account of the two signers that update trusts
+  say that the GitHub workflow signed the releases from 6.2.19 to 6.3.3, where they said the releases up to 6.3.3.
+  README.md's *Quality gates* said every release ships SPDX and CycloneDX SBOMs; it says every release from 6.2.3, the
+  five earlier releases that carry an installer having a CycloneDX SBOM of it alone, and links SECURITY.md's *Supply
+  chain*, which lists the five, as RegulatoryScope.md's sentence does.
 
 - **CommandLine.md's two queue examples filter on `tries`, the field a queue item has.** `hmctl queue list --json |
   jq '.[] | select(.retry_count > 3)'` and `Get-HmQueue | Where-Object retry_count -gt 3 | Start-HmQueueDelivery`

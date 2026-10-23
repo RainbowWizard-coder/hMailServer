@@ -39,16 +39,16 @@ copyright, and at 00:59 UTC on 23 October 2026 `chocolatey-publish` (job
 pressed there) sent 6.3.7 a third time, with the credit, in the 22 October
 package's place, while the feed still listed it as `Submitted`
 ([Channels.md](Channels.md), "How a channel job publishes"). It passed
-Chocolatey's automated validation and verification at 01:32 UTC that day, and a
-moderator approved it at 11:56 UTC: the community repository's feed lists it as
-`Approved`, its virus scan `NotFlagged`. On a clean Windows Server 2025 (the
-installer smoke VM at its first snapshot) that afternoon, Chocolatey 2.7.4's
-`choco install hmailserver-progressiverobot` downloaded the release's installer,
-whose SHA-256 matched and whose Authenticode signature was Valid (Progressive
-Robot Ltd), installed 6.3.7 with the service running and ports 25, 110 and 143
-answering, and `choco uninstall hmailserver-progressiverobot` removed it, leaving
-no uninstall entry and no service. Every new version waits for moderation the same
-way.
+Chocolatey's automated validation at 01:32 UTC and its verification at 01:42 UTC
+that day, and a moderator approved it at 11:56 UTC: the community repository's
+feed lists it as `Approved`, its virus scan `NotFlagged`. On a clean Windows
+Server 2025 (the installer smoke VM at its first snapshot) that afternoon,
+Chocolatey 2.7.4's `choco install hmailserver-progressiverobot` downloaded the
+release's installer, whose SHA-256 matched and whose Authenticode signature was
+Valid (Progressive Robot Ltd), installed 6.3.7 with the service running and ports
+25, 110 and 143 answering, and `choco uninstall hmailserver-progressiverobot`
+removed it, leaving no uninstall entry and no service. Every new version waits for
+moderation the same way.
 
 **winget: not submitted.** The manifests are rendered and validated by hand for
 a release, from the release's own signed installer. The GitHub workflow
@@ -219,13 +219,13 @@ release's from `master`, 6.3.7's resubmission among them - passes
 `/LOG="%TEMP%\<package id>.<version>.install.log"` and names that log when the
 install fails, and shows the refusal's words, which setup from the release after
 6.3.7 writes, with or without a log, to `%TEMP%\hMailServer-setup-refused.txt`.
-Chocolatey's CLI runs the script with `TEMP` set to its cache folder, by default
-`%TEMP%\chocolatey` of the account that ran `choco`, so that is where both files
-are: `hmailserver-progressiverobot.6.3.7.install.log` was there after the clean
-install of 23 October 2026. Both end with the installer's exit code 1 for a
-refusal. The log records setup's command line, so give the administrator password
-in `HM_ADMIN_PASSWORD`, set in the elevated prompt, rather than with
-`/adminpassword` in `--override` or `--install-arguments`.
+Both end with the installer's exit code 1 for a refusal. Chocolatey's CLI runs the
+script with `TEMP` set to its cache folder, by default the `chocolatey` folder in
+the temporary folder of the account that ran `choco`, so that is where the log and
+the refusal's file are: `hmailserver-progressiverobot.6.3.7.install.log` was there
+after the clean install of 23 October 2026. The log records setup's command line,
+so give the administrator password in `HM_ADMIN_PASSWORD`, set in the elevated
+prompt, rather than with `/adminpassword` in `--override` or `--install-arguments`.
 `build/check-package-manifests.py` refuses a manifest or a package that has lost
 either `/LOG`. `/TYPE=full` is deliberately **not** passed, unlike the smoke test:
 on a first install Inno's default type is the full one anyway, and on an upgrade

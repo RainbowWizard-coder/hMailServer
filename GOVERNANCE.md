@@ -63,9 +63,9 @@ GitHub Actions up to 6.3.3; 6.3.4, published on 27 September 2026, was built and
 signed by hand; and the chain's replacement, the release jobs of
 `.gitlab-ci.yml`, made 6.3.5 on 29 September 2026 and 6.3.6 on 6 October 2026.
 A release is built, signed and published on GitLab first and, since
-18 October 2026, then copied to GitHub, where a release published after that
-day's copies is immutable; the update feed <https://updates.progressiverobot.com>, the package
-repositories and the container registry are GitLab's.
+18 October 2026, then copied to GitHub, where the copies of 6.3.6 and 6.3.7, and every release
+published after them, are immutable; the update feed <https://updates.progressiverobot.com>,
+the package repositories and the container registry are GitLab's.
 The installer's fetched build inputs come from the project's package registry
 on GitLab, and no build step downloads from GitHub: the project builds from
 GitLab alone, so that no forge's suspension can stop a build again.
