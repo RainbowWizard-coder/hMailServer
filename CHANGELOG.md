@@ -525,42 +525,40 @@ with `--check`).
   to GitLab's, and `cosign verify` of it passes without signing in (ContainerImage.md).
   `registry.gitlab.com/hmailserver/hmailserver` stays the image's address.
 - **Fixed: the Helm chart starts a server, and the chart and the Compose file secure a new installation at its first
-  start.** Installed into a cluster for the first time, the chart's pod never started. The image names its user
-  (`USER hmailserver`), and Kubernetes cannot hold a named user to the chart's `runAsNonRoot`: "container has
-  runAsNonRoot and image has non-numeric user (hmailserver), cannot verify user is non-root". Given the user by number,
-  and its stuck pod deleted, the entrypoint stopped at "/etc/hmailserver/hMailServer.ini is not writable" (in
-  `CrashLoopBackOff`): Kubernetes, unlike Docker with a new
-  named volume, copies nothing of an image's into a new volume, so the empty config volume hid the image's file, and
-  the empty data volume lacked `temp`, the folder the server starts every external program in, so that the auto-ban
-  hook could not start (HM5401, error code 2). The chart now runs the pod as the image's `hmailserver` by number,
-  999:999 (`podSecurityContext`'s `runAsUser`, `runAsGroup`, and `fsGroup`, which was 1000, the base image's `ubuntu`
-  group), and an init container puts the image's `hMailServer.ini` on the config volume when it holds none and makes
-  the data volume's `temp`, `events` and `database`. The Dockerfile makes the account as 999:999 before it installs
-  the `.deb`, the numbers `adduser --system` gave it in 6.3.6's and 6.3.7's images, so that they cannot move, and its
-  build stops if they are not those. Nor did the chart or the Compose file secure the new installation, which only
-  the packaged systemd unit and OpenRC service did, so port 25 offered no STARTTLS. Both now run `hmailserver
-  --apply-new-install-defaults --if-marked` before the server, as the unit's `ExecStartPre=-` does. The Compose file
-  gives its REST listener the self-signed pair that makes, where it named a pair in `./certs` made with `openssl req
-  -nodes`, whose key is 0600 and its owner's: the image's user could not read it (HM5113, "Permission denied"), and the
-  REST API did not listen. `./certs` is now the way to a certificate of one's own, its key readable by 999.
-  The chart itself gives the pod 999 for whichever of the three its values leave out or null, and keeps a number they
-  give: `helm upgrade --reuse-values` renders a new chart with the values of the chart the release was installed
-  with, and those of 6.3.6 and 6.3.7 named no user, so a release of one upgraded so runs as 999:999 too. The charts
-  of 6.3.6 and 6.3.7 that the Helm repository serves start no server, and the chart's README and ContainerImage.md
-  say how such a release is moved: `helm upgrade --reset-then-reuse-values` (Helm 3.14 or later; `--reuse-values`
-  keeps those charts' `fsGroup` 1000 and `database.port` 5432), then `kubectl delete pod`, since under
+  start.** Installed into a cluster for the first time, the chart's pod never started. The image names its user (`USER
+  hmailserver`), and Kubernetes cannot hold a named user to the chart's `runAsNonRoot`: "container has runAsNonRoot and
+  image has non-numeric user (hmailserver), cannot verify user is non-root". Given the user by number, and its stuck
+  pod deleted, the entrypoint stopped at "/etc/hmailserver/hMailServer.ini is not writable" (in `CrashLoopBackOff`):
+  Kubernetes, unlike Docker with a new named volume, copies nothing of an image's into a new volume, so the empty
+  config volume hid the image's file, and the empty data volume lacked `temp`, the folder the server starts every
+  external program in, so that the auto-ban hook could not start (HM5401, error code 2). The chart now runs the pod as
+  the image's `hmailserver` by number, 999:999 (`podSecurityContext`'s `runAsUser`, `runAsGroup`, and `fsGroup`, which
+  was 1000, the base image's `ubuntu` group), and an init container puts the image's `hMailServer.ini` on the config
+  volume when it holds none and makes the data volume's `temp`, `events` and `database`. The Dockerfile makes the
+  account as 999:999 before it installs the `.deb`, the numbers `adduser --system` gave it in 6.3.6's and 6.3.7's
+  images, so that they cannot move, and its build stops if they are not those. Nor did the chart or the Compose file
+  secure the new installation, which only the packaged systemd unit and OpenRC service did, so port 25 offered no
+  STARTTLS. Both now run `hmailserver --apply-new-install-defaults --if-marked` before the server, as the unit's
+  `ExecStartPre=-` does. The Compose file gives its REST listener the self-signed pair that makes, where it named a
+  pair in `./certs` made with `openssl req -nodes`, whose key is 0600 and its owner's: the image's user could not read
+  it (HM5113, "Permission denied"), and the REST API did not listen. `./certs` is now the way to a certificate of one's
+  own, its key readable by 999. The chart itself gives the pod 999 for whichever of the three its values leave out or
+  null, and keeps a number they give: `helm upgrade --reuse-values` renders a new chart with the values of the chart
+  the release was installed with, and those of 6.3.6 and 6.3.7 named no user, so a release of one upgraded so runs as
+  999:999 too. The charts of 6.3.6 and 6.3.7 that the Helm repository serves start no server, and the chart's README
+  and ContainerImage.md say how such a release is moved: `helm upgrade --reset-then-reuse-values` (Helm 3.14 or later;
+  `--reuse-values` keeps those charts' `fsGroup` 1000 and `database.port` 5432), then `kubectl delete pod`, since under
   `podManagementPolicy: OrderedReady`, Kubernetes' default, the StatefulSet replaces no pod while one is not Running
-  and Ready, and so never replaces the stuck one by itself. Both now give `--reset-then-reuse-values` for every
-  update, where they gave `--reuse-values`, which keeps the defaults of the chart the release was installed with.
-  `chart-and-compose` reads
-  the rendered StatefulSet as YAML and holds it to the pod's 999s, with the chart's values and with values that name
-  no user or group (an `fsGroup` given kept); `runAsNonRoot` on both containers; the init container's command, `set
-  -e`, the copy and the folders and nothing else, and its two mounts by volume and path; and the server's container
-  to arguments for the image's entrypoint and no command of its own, with the new installation secured first, and
-  its mounts of the config and data volumes. It holds the resolved Compose file to its command, to no entrypoint of
-  its own and to the REST listener's pair. With any one of them broken, and with the chart or the Compose file as
-  they were, it fails, naming what is wrong. ContainerImage.md, SecureDefaults.md, the packaging README and the
-  chart's README say so.
+  and Ready, and so never replaces the stuck one by itself. Both now give `--reset-then-reuse-values` for every update,
+  where they gave `--reuse-values`, which keeps the defaults of the chart the release was installed with.
+  `chart-and-compose` reads the rendered StatefulSet as YAML and holds it to the pod's 999s, with the chart's values
+  and with values that name no user or group (an `fsGroup` given kept); `runAsNonRoot` on both containers; the init
+  container's command, `set -e`, the copy and the folders and nothing else, and its two mounts by volume and path; and
+  the server's container to arguments for the image's entrypoint and no command of its own, with the new installation
+  secured first, and its mounts of the config and data volumes. It holds the resolved Compose file to its command, to
+  no entrypoint of its own and to the REST listener's pair. With any one of them broken, and with the chart or the
+  Compose file as they were, it fails, naming what is wrong. ContainerImage.md, SecureDefaults.md, the packaging README
+  and the chart's README say so.
 
 - **New with the next release: the release's SLSA provenance is held to the pipeline that publishes it and to what
   GitLab certified of the run, and the documents say its SLSA Build level: Build L1, and no higher.**
@@ -1708,25 +1706,24 @@ with `--check`).
 - **ContainerImage.md and the chart's README record `docker compose up` and `helm install` from the published image,**
   where ContainerImage.md's "What is not shown yet" said that neither was recorded. Its "What was run by hand" says what
   was run on 23 October 2026 with Docker 29.1.3 and Compose 2.40.3, against 6.3.7's image at its digest. With the
-  Compose file as it stood the server answered with no STARTTLS and no REST listener, and with the file as it is now
-  it answered SMTP with STARTTLS, the REST API over TLS, the Control Deck and the webmail, delivered a message, and
-  started again with its volumes. In a one-node k3s 1.36.1 from Alpine Linux 3.24's package, with Alpine's Helm 3.19.0,
-  `helm repo add` of the project's repository listed 6.3.7 and 6.3.6. The 6.3.7 chart pulled from it is the release's
-  file, by its SHA-256 and its Sigstore bundle, and neither 6.3.7's nor 6.3.6's chart started a pod: the named user
-  and runAsNonRoot (`CreateContainerConfigError`), then, given the user by number with `helm upgrade`, the same
-  until the pod was deleted, and the empty config volume after that (`CrashLoopBackOff`). The chart as it is now,
-  with 6.3.7's image, answered the same questions through `kubectl port-forward` and through its LoadBalancer
-  address, and `helm uninstall` left its three claims. Releases of the 6.3.7 and 6.3.6 charts moved to it with `helm
-  upgrade --reset-then-reuse-values` kept their stuck pods, the StatefulSet's revision unchanged, for 60 to 120
-  seconds, until each pod was deleted; made again from the new chart, each was ready in 8 or 9 seconds, answered the
-  same and took a message, which stayed through a later upgrade and a deletion of the pod. Moved with
-  `--reuse-values`, a release kept `fsGroup` 1000 and `HM_DB_PORT` 5432, its pod ran as 999:999 once deleted, and
-  its message stayed through an upgrade that moved `fsGroup` to 999. The
-  chart's README, which Artifact Hub shows, says the same under "Installed into a cluster", and that until
-  the release after 6.3.7 the chart of a checkout is the one that starts 6.3.7's image. "What is not shown yet" now
-  also says that the image's OpenSSL is Ubuntu 24.04's 3.0.13, without the hybrid post-quantum groups or Argon2id, so
-  that its server logs HM5720 when it starts, while `GET /api/v1/status` says `true` for both from the OpenSSL it was
-  built against. `HelpPagesData.cpp` is regenerated by `build/generate-help-pages.py`.
+  Compose file as it stood the server answered with no STARTTLS and no REST listener, and with the file as it is now it
+  answered SMTP with STARTTLS, the REST API over TLS, the Control Deck and the webmail, delivered a message, and started
+  again with its volumes. In a one-node k3s 1.36.1 from Alpine Linux 3.24's package, with Alpine's Helm 3.19.0, `helm
+  repo add` of the project's repository listed 6.3.7 and 6.3.6. The 6.3.7 chart pulled from it is the release's file, by
+  its SHA-256 and its Sigstore bundle, and neither 6.3.7's nor 6.3.6's chart started a pod: the named user and
+  runAsNonRoot (`CreateContainerConfigError`), then, given the user by number with `helm upgrade`, the same until the
+  pod was deleted, and the empty config volume after that (`CrashLoopBackOff`). The chart as it is now, with 6.3.7's
+  image, answered the same questions through `kubectl port-forward` and through its LoadBalancer address, and `helm
+  uninstall` left its three claims. Releases of the 6.3.7 and 6.3.6 charts moved to it with `helm upgrade
+  --reset-then-reuse-values` kept their stuck pods, the StatefulSet's current revision unchanged, for 60 to 120 seconds,
+  until each pod was deleted; made again from the new chart, each was ready in 8 or 9 seconds, answered the same and
+  took a message, which stayed through a later upgrade and a deletion of the pod. Moved with `--reuse-values`, a release
+  kept `fsGroup` 1000 and `HM_DB_PORT` 5432, its pod ran as 999:999 once deleted, and its message stayed through an
+  upgrade that moved `fsGroup` to 999. The chart's README, which Artifact Hub shows, says the same under "Installed into
+  a cluster", and that until the release after 6.3.7 the chart of a checkout is the one that starts 6.3.7's image. "What
+  is not shown yet" now also says that the image's OpenSSL is Ubuntu 24.04's 3.0.13, without the hybrid post-quantum
+  groups or Argon2id, so that its server logs HM5720 when it starts, while `GET /api/v1/status` says `true` for both
+  from the OpenSSL it was built against. `HelpPagesData.cpp` is regenerated by `build/generate-help-pages.py`.
 
 - **Channels.md and PackageManagers.md record an installation of 6.3.7 from the PPA, Copr and OBS, as a user installs
   it.** On 23 October 2026, in clean containers: `add-apt-repository ppa:hmailserver/hmailserver` and `apt install

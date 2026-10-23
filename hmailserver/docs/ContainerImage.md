@@ -356,9 +356,9 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
   values the release was given. `--reuse-values` keeps the defaults of the chart the
   release was installed with instead. A release installed from the chart of 6.3.6 or
   6.3.7, whose pod never started (What was run by hand, below), also needs `kubectl
-  delete pod mail-hmailserver-0` after the upgrade (the pod of a release named
-  `mail`; `kubectl get pods` shows another's). The StatefulSet's `podManagementPolicy` is `OrderedReady`,
-  Kubernetes' default, under which it changes none of its pods while one of them is
+  delete pod mail-hmailserver-0` after the upgrade (the pod of a release named `mail`; `kubectl get pods`
+  shows another's). The StatefulSet's `podManagementPolicy` is `OrderedReady`, Kubernetes' default, under
+  which it changes none of its pods while one of them is
   not Running and Ready, so it never replaces the stuck pod itself; deleted, the pod
   is made again from the new chart. Upgraded with `--reuse-values`, such a release's
   pod runs as 999:999 all the same, but keeps those charts' `fsGroup` 1000 and
