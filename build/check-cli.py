@@ -21,8 +21,10 @@ Authorization header and the body. Every case also asserts something the client
 printed, because a client that sends the right request and prints nothing useful
 is no better.
 
-The PowerShell half is skipped, with a reason, where `pwsh` is not on the path.
-Both halves are skipped if the file they test is missing, which cannot happen in
+The PowerShell half runs under every PowerShell on the path, each in turn: pwsh,
+and Windows PowerShell 5.1 beside it on Windows, which behaves otherwise in more
+than one way the module has had to answer. It is skipped, with a reason, where
+neither is on the path. Both halves are skipped if the file they test is missing, which cannot happen in
 a checkout and can happen in a partial copy. Asked for alone (--powershell), the
 PowerShell half that cannot run is a failure, not a skip: that is how CI runs it.
 
@@ -837,6 +839,14 @@ CHECKS = [0]
 ROTATION_OWNED_KEYS = ("dkim_selector", "dkim_private_key_file", "dkim_secondary_selector", "dkim_secondary_private_key_file")
 
 
+# The PowerShell the module's cases run under. main() sets it to each in turn of
+# every_powershell() - pwsh, and Windows PowerShell 5.1 beside it on Windows, which
+# raise other exceptions, write files in another encoding and serialise a string
+# otherwise, so that a case passed under one says nothing of the other - and a
+# problem found under one names it.
+POWERSHELL = [None]
+
+
 def every_powershell():
     """pwsh and Windows PowerShell, each that is on the path, once each."""
     shells = []
@@ -847,7 +857,13 @@ def every_powershell():
     return shells
 
 
+def powershell():
+    return POWERSHELL[0] or shutil.which("pwsh") or shutil.which("powershell")
+
+
 def problem(message):
+    if POWERSHELL[0]:
+        message = "(under %s) %s" % (os.path.basename(POWERSHELL[0]), message)
     PROBLEMS.append(message)
 
 
@@ -1596,7 +1612,7 @@ def run_powershell_config_cases(url, tmp, verbose):
     """The module's configuration verbs, held to the same document and the same
     refusals as hmctl's. The point of the pair is that they ask for the same
     thing; a document one writes is a document the other reads."""
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    pwsh = powershell()
     if not pwsh or not os.path.exists(MODULE):
         return
 
@@ -1801,7 +1817,7 @@ def run_powershell_config_cases(url, tmp, verbose):
 
 
 def run_powershell_cases(url, verbose):
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    pwsh = powershell()
     if not pwsh:
         print("  (no pwsh on this machine: the PowerShell module is not checked here)")
         return False
@@ -1816,8 +1832,15 @@ def run_powershell_cases(url, verbose):
         full = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
                 "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; %s"
                 % (MODULE.replace("'", "''"), url, PASSWORD, script))
-        completed = subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", full],
-                                   capture_output=True, text=True, timeout=120)
+        try:
+            completed = subprocess.run([pwsh, "-NoProfile", "-NonInteractive", "-Command", full],
+                                       capture_output=True, text=True, timeout=120)
+        except subprocess.TimeoutExpired:
+            # A problem rather than the end of the run: Set-HmOpenPgpKey -Path under
+            # Windows PowerShell 5.1 once never finished, and the cases after it are
+            # still worth their answers.
+            check(False, "%s: did not finish in 120 s" % name)
+            continue
 
         with Recorder.lock:
             requests = list(Recorder.requests)
@@ -2163,6 +2186,17 @@ def run_config_cases(url, tmp):
           and "Skipped UpdateSourceRepository, updatesigningidentity" in completed.stdout,
           "a document whose only difference is the live update's trust must match and say the keys were skipped, "
           "exit %d:\n%s" % (completed.returncode, completed.stdout))
+
+    # The same document with a byte order mark, as Export-HmConfiguration writes it
+    # under Windows PowerShell 5.1 (Set-Content -Encoding utf8): one document, read by
+    # both clients, whichever PowerShell wrote it.
+    marked_path = os.path.join(tmp, "config-marked.json")
+    with open(marked_path, "w", encoding="utf-8-sig") as handle:
+        handle.write(first)
+    completed = run(["config", "diff", marked_path])
+    check(completed.returncode == 0 and "already matches" in completed.stdout,
+          "a matching document with a byte order mark must match, exit %d:\n%s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
 
     completed = run(["config", "diff", older_path, "--json"])
     check(completed.returncode == 0 and "Skipped UpdateSourceRepository" in completed.stderr,
@@ -2626,7 +2660,7 @@ def run_import_cases(url, tmp):
 def run_powershell_import_cases(url, tmp):
     """Import-HmAccount and Export-HmAccount on the same files, held to the same
     bodies as hmctl: one spreadsheet, one set of requests, whichever client."""
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    pwsh = powershell()
     if not pwsh or not os.path.exists(MODULE):
         return
 
@@ -2797,7 +2831,7 @@ def run_device_cases(url):
                            "device", "ann@example.com", "revoke", "0123456789abcdef0123456789abcdef"])
     check("?" not in path, "hmctl device revoke without options must send a bare path, sent %s" % path)
 
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
+    pwsh = powershell()
     if not pwsh or not os.path.exists(MODULE):
         return
     script = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
@@ -2878,11 +2912,18 @@ def main():
             run_report_cases(url, tmp)
             run_device_cases(url)
         if not arguments.python:
-            print("the PowerShell module against the same server")
-            powershell_ran = run_powershell_cases(url, arguments.verbose)
+            # Under every PowerShell here, each in turn (POWERSHELL).
+            shells = every_powershell() or [None]
+            for shell in shells:
+                POWERSHELL[0] = shell
+                print("the PowerShell module against the same server%s"
+                      % (", under %s" % os.path.basename(shell) if shell and len(shells) > 1 else ""))
+                if run_powershell_cases(url, arguments.verbose):
+                    powershell_ran = True
+                    run_powershell_config_cases(url, tmp, arguments.verbose)
+                    run_powershell_import_cases(url, tmp)
+            POWERSHELL[0] = None
             if powershell_ran:
-                run_powershell_config_cases(url, tmp, arguments.verbose)
-                run_powershell_import_cases(url, tmp)
                 run_powershell_reasons(url, tmp)
     finally:
         server.shutdown()

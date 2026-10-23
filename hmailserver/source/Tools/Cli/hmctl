@@ -552,7 +552,9 @@ def body_from(arguments):
         if arguments.from_json == "-":
             body.update(json.load(sys.stdin))
         else:
-            with io.open(arguments.from_json, encoding="utf-8") as handle:
+            # utf-8-sig, as for a configuration document: Windows PowerShell 5.1
+            # writes a byte order mark.
+            with io.open(arguments.from_json, encoding="utf-8-sig") as handle:
                 body.update(json.load(handle))
     body.update(parse_set(getattr(arguments, "set", None)))
     for pair in getattr(arguments, "set_string", None) or []:
@@ -2150,7 +2152,9 @@ def config_changed(client, arguments):
 
 
 def config_diff(client, arguments):
-    with io.open(arguments.file, encoding="utf-8") as handle:
+    # utf-8-sig: the document Export-HmConfiguration writes under Windows PowerShell
+    # 5.1 begins with a byte order mark, which json.load refuses.
+    with io.open(arguments.file, encoding="utf-8-sig") as handle:
         wanted = json.load(handle)
     live = read_configuration(client)
     plan = configuration_plan(live, wanted, lambda name: rotation_in_flight(client, name))
@@ -2163,7 +2167,7 @@ def config_diff(client, arguments):
 
 
 def config_apply(client, arguments):
-    with io.open(arguments.file, encoding="utf-8") as handle:
+    with io.open(arguments.file, encoding="utf-8-sig") as handle:
         wanted = json.load(handle)
     live = read_configuration(client)
     plan = configuration_plan(live, wanted, lambda name: rotation_in_flight(client, name))

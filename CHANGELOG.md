@@ -253,6 +253,20 @@ with `--check`).
   handshake with the same listener, so that what the module refuses is the trust. Against the module before the
   change six of those checks failed on a Windows desk, and with it they all pass.
 
+- **Fixed: under Windows PowerShell 5.1, `Set-HmOpenPgpKey -Path` sends the key, and `hmctl` reads the configuration
+  document `Export-HmConfiguration` writes there.** Windows PowerShell 5.1's `Get-Content` gives a string that
+  carries the file's `PSPath`, `PSDrive` and `PSProvider`, which its `ConvertTo-Json` writes out as well, so
+  `Set-HmOpenPgpKey -Path` made the key an object of them and, at the module's depth of 10, walked the whole provider
+  and sent nothing; it now sends the file's text, as under PowerShell 7. And 5.1's `Set-Content -Encoding utf8` begins
+  a file with a byte order mark, which `hmctl config diff` and `config apply`, and `--from-json` with a file, refused
+  ("Unexpected UTF-8 BOM"), so that a document the module exported there could not be read by the other client; they
+  now take one with or without it. Found in the night of 23 to 24 October 2026 by running `build/check-cli.py`'s
+  module half under Windows PowerShell 5.1, under which it had run its reasons alone: `Set-HmOpenPgpKey` had not
+  finished after two minutes, and `hmctl` did not agree that the module's document matched the server. The check now runs the module's
+  half under every PowerShell on the path in turn - pwsh, and Windows PowerShell 5.1 beside it on a Windows desk -
+  names the PowerShell in each problem, reports a case that does not finish instead of stopping, and holds `hmctl
+  config diff` to a matching document with a byte order mark in every pipeline's `checkers` job.
+
 ### Downloads and the release
 
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
