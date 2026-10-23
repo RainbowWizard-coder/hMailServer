@@ -39,8 +39,15 @@ chart is listed only to `helm search repo --devel` and installed only with
 
 What that makes:
 
-- a StatefulSet of one pod, running as the image's own user, with only the
-  capability to bind the mail ports below 1024;
+- a StatefulSet of one pod, running as the image's own user and group, 999, with
+  only the capability to bind the mail ports below 1024;
+- before the server, a first container that puts the image's `hMailServer.ini` on
+  the configuration volume while the volume holds none, and makes the data volume's
+  `temp`, `events` and `database` folders, since Kubernetes copies nothing of an
+  image's into a new volume;
+- a first start that secures the new installation as the packaged service's first
+  start does: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and no
+  password taken in the clear from another address until TLS is up;
 - a Service of type LoadBalancer with SMTP 25, submission 587 and 465, IMAP 143 and
   993, POP3 110 and 995, ManageSieve 4190, and the REST listener, 8045;
 - a Secret with the two passwords, unless `existingSecret` names one you made;
@@ -61,8 +68,9 @@ the administrator password) and `/portal` the webmail.
   (ContainerImage.md says which images carry both).
 - **A certificate for the REST listener.** The server requires TLS on any address
   but loopback, so the listener stays off until `rest.tlsSecretName` names a Secret
-  of type `kubernetes.io/tls` (cert-manager's, or one you made). The mail ports'
-  certificates are set in the Control Deck.
+  of type `kubernetes.io/tls` (cert-manager's, or one you made). The mail ports
+  have the self-signed certificate the first start makes until another is set in
+  the Control Deck.
 - **Two passwords.** `database.password` and `administrator.password`, or a Secret of
   your own with the keys `existingSecretKeys` names. The administrator password is
   stored as a PBKDF2 hash, never as it is.

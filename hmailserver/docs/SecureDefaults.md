@@ -235,7 +235,21 @@ within the same day. `--create-database` says so where `openrc-run` and that
 service are installed and the configuration is the packaged one; OpenRC has no
 `ReadWritePaths` to add a moved `DataFolder` to.
 
-**By hand**, for anything else - the AppImage, the container, a server started
+**The Compose file and the Helm chart**
+([ContainerImage.md](ContainerImage.md)) run the same verb, from the release
+after 6.3.7: their container's command is `hmailserver --config
+/etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec
+hmailserver --config /etc/hmailserver/hMailServer.ini --foreground`, after the
+image's entrypoint has created the database and stored the environment's
+settings, as the image's user. The `;` forgives a failure, as the unit's `-`
+does. So their first start secures the database the entrypoint's
+`--create-database` made a moment before, although that step says nothing will:
+the image alone does not, and the step cannot tell what runs it. The Compose file
+also gives the REST listener the pair this makes. The charts of 6.3.6 and 6.3.7 do
+not run it.
+
+**By hand**, for anything else - the AppImage, a container started otherwise than
+by the Compose file or the chart, a server started
 by hand rather than by the unit, or a database whose defaults were left for
 later - with the service stopped, and on Linux as the service's user: the verb
 refuses to run as root, whose key the service could not read. With a

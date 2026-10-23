@@ -984,13 +984,19 @@ Beside the image, the two files people expect, in the tree since 15 September
 
 * `docker/docker-compose.yml` - the server beside a PostgreSQL 18 (16 in the
   releases before; `docs/ContainerImage.md`, "PostgreSQL 16 to 18, in the Compose file",
-  moves a deployment's database), the two passwords as Compose secrets from `./secrets/`, the REST listener (the
-  Control Deck and the webmail) bound off loopback and so over TLS with a
-  certificate and key from `./certs/`, the three volumes the image declares,
+  moves a deployment's database), the two passwords as Compose secrets from `./secrets/`, a
+  first start that secures the new installation as the packaged unit's does
+  (`--apply-new-install-defaults --if-marked` before the server: a self-signed
+  certificate and STARTTLS), the REST listener (the
+  Control Deck and the webmail) bound off loopback and so over TLS with that
+  certificate, or one of your own from `./certs/`, the three volumes the image declares,
   and the image's own health check. `docker compose up -d`, then
   `https://<host>:8045/` as Administrator.
-* `helm/hmailserver/` - a chart: a StatefulSet of one with its three volumes
-  as claim templates, a LoadBalancer service with the mail ports (and the REST
+* `helm/hmailserver/` - a chart: a StatefulSet of one, run as the image's user
+  and group by number (999:999), with its three volumes
+  as claim templates, filled by an init container with what the image has in
+  them (`hMailServer.ini`; `temp`, `events` and `database`), the same first
+  start as the Compose file's, a LoadBalancer service with the mail ports (and the REST
   port when the listener is on), a Secret for the two passwords or an existing
   one named by `existingSecret`, a `kubernetes.io/tls` Secret for the REST
   listener named by `rest.tlsSecretName`, probes on port 25 or - when the

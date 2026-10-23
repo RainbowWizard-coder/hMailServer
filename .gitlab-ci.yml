@@ -1132,6 +1132,29 @@ chart-and-compose:
       if grep -q 'kind: Secret' existing-secret.yaml; then
         echo "the chart wrote a Secret beside existingSecret"; exit 1
       fi
+      # The pod runs as the image's own user and group by number, 999 (the Dockerfile
+      # pins them): the image names its user, and a named user cannot be held to
+      # runAsNonRoot, so the charts of 6.3.6 and 6.3.7 stopped at
+      # CreateContainerConfigError on every cluster. The pod's own securityContext is
+      # the one indented eight spaces.
+      for key in runAsUser runAsGroup fsGroup; do
+        grep -qx "        $key: 999" rendered.yaml || { echo "the pod's securityContext has no $key: 999, the image's own user and group"; exit 1; }
+      done
+      grep -qx '            runAsNonRoot: true' rendered.yaml || { echo "the container is not held to runAsNonRoot"; exit 1; }
+      # Kubernetes copies nothing of the image's into a new volume: a first container
+      # puts the image's hMailServer.ini on the empty config volume, which would hide
+      # it, and makes the three folders of the data volume, the server's temp among them.
+      grep -qx '      initContainers:' rendered.yaml || { echo "the chart has no init container to fill the new volumes"; exit 1; }
+      grep -qF '[ -e /config/hMailServer.ini ] || cp /etc/hmailserver/hMailServer.ini /config/hMailServer.ini;' rendered.yaml \
+        || { echo "the init container does not put the image's hMailServer.ini on an empty config volume"; exit 1; }
+      grep -qF 'mkdir -p -m 0750 /data/temp /data/events /data/database' rendered.yaml \
+        || { echo "the init container does not make the data volume's temp, events and database folders"; exit 1; }
+      grep -qx '              mountPath: /config' rendered.yaml && grep -qx '              mountPath: /data' rendered.yaml \
+        || { echo "the init container does not mount the config volume at /config and the data volume at /data"; exit 1; }
+      # The new installation is secured before the server's first start, as the
+      # packaged service's first start secures it: STARTTLS on 25 and a certificate.
+      grep -qF -- 'hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground' rendered.yaml \
+        || { echo "the chart does not secure the new installation before the server starts"; exit 1; }
       echo "The chart lints, renders what a real install needs, and refuses what it must."
     # In a subshell: a job's script lines share one shell, and the next line runs
     # from the checkout's root (batch42's pipeline 2894275689 looked for
@@ -1143,8 +1166,22 @@ chart-and-compose:
         printf '%s' x > secrets/db_password
         printf '%s' y > secrets/admin_password
         docker compose config --quiet
+        # As resolved: the new installation secured before the server's first start,
+        # and the REST listener given the certificate that start makes, so that
+        # docker compose up answers with STARTTLS on 25 and over TLS on 8045 with no
+        # certificate made by hand (a key made on the host was 0600 and its owner's,
+        # which the image's user, 999, could not read).
+        # Read as JSON: Compose writes a long command across two lines of YAML.
+        docker compose config --format json > resolved.json
+        python3 -c 'import json, sys; s = json.load(open("resolved.json"))["services"]["hmailserver"]; sys.exit(s.get("command") != ["bash", "-c", sys.argv[1]])' \
+          'hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground' \
+          || { echo "the Compose file does not secure the new installation before the server starts"; exit 1; }
+        python3 -c 'import json, sys; e = json.load(open("resolved.json"))["services"]["hmailserver"]["environment"]; sys.exit(e.get("HM_REST_CERTIFICATE_FILE") != sys.argv[1] + "certificate.pem" or e.get("HM_REST_PRIVATE_KEY_FILE") != sys.argv[1] + "key.pem")' \
+          /var/lib/hmailserver/Certificates/self-signed- \
+          || { echo "the Compose file's REST listener is not given the certificate the first start makes"; exit 1; }
+        rm -f resolved.json
       )
-      echo "The Compose file resolves."
+      echo "The Compose file resolves, secures the new installation and gives the REST listener its certificate."
     # The Helm repository's writer, which package-repos runs on master: a break is seen here first.
     - python3 build/ci/helm-repo.py --self-test
 

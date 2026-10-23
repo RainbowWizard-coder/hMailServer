@@ -31,12 +31,50 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # A new volume is empty, and Kubernetes, unlike Docker with a new named
+        # volume, copies nothing of the image's into it. Mounted at /etc/hmailserver,
+        # an empty config volume hides the image's hMailServer.ini, which the
+        # entrypoint fills in from these values: without it the pod stops at
+        # "/etc/hmailserver/hMailServer.ini is not writable by hmailserver". And an
+        # empty data volume has none of the three folders the package makes in it -
+        # temp, events and database, which the image's hMailServer.ini names - and the
+        # server starts every external program, the auto-ban hook among them, in
+        # temp: without it each fails to start (HM5401, error code 2). So the image's
+        # own file is copied onto the config volume when it holds none, and never
+        # over one it holds, and the three folders are made when they are missing.
+        - name: volumes
+          image: {{ include "hmailserver.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          command:
+            - sh
+            - -c
+            - "set -e; [ -e /config/hMailServer.ini ] || cp /etc/hmailserver/hMailServer.ini /config/hMailServer.ini; mkdir -p -m 0750 /data/temp /data/events /data/database"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: data
+              mountPath: /data
       containers:
         - name: hmailserver
           image: {{ include "hmailserver.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          # The first start secures the new installation, as the packaged service's
+          # first start does (docs/SecureDefaults.md): a self-signed certificate, STARTTLS
+          # on 25, 587, 110 and 143, and no password taken in the clear from another
+          # address until TLS is up. --if-marked does nothing at any other start, and a
+          # failure is forgiven, as the systemd unit's ExecStartPre=- forgives it: the
+          # server starts all the same, and says what is wrong.
+          args:
+            - bash
+            - -c
+            - hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground
           env:
             - name: HM_DB_TYPE
               value: {{ .Values.database.type | quote }}

@@ -153,8 +153,15 @@ resources:
     memory: 2Gi
 
 podSecurityContext:
-  # The image runs as its own user; the volumes are owned by it through fsGroup.
-  fsGroup: 1000
+  # The image's own user and group, hmailserver, by number: 999 and 999, in every
+  # image the project has published and pinned so by the Dockerfile. The image
+  # names its user (USER hmailserver), and Kubernetes cannot hold a named user to
+  # runAsNonRoot: without the number the pod never starts ("container has
+  # runAsNonRoot and image has non-numeric user (hmailserver), cannot verify user
+  # is non-root"). fsGroup gives the volumes to that group.
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
 securityContext:
   runAsNonRoot: true
   allowPrivilegeEscalation: false

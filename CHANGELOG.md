@@ -524,6 +524,30 @@ with `--check`).
   `6.3` and `latest`, with the index's signature and each platform's signature and SBOM attestation, every digest equal
   to GitLab's, and `cosign verify` of it passes without signing in (ContainerImage.md).
   `registry.gitlab.com/hmailserver/hmailserver` stays the image's address.
+- **Fixed: the Helm chart starts a server, and the chart and the Compose file secure a new installation at its first
+  start.** Installed into a cluster for the first time, the chart's pod never started. The image names its user
+  (`USER hmailserver`), and Kubernetes cannot hold a named user to the chart's `runAsNonRoot`: "container has
+  runAsNonRoot and image has non-numeric user (hmailserver), cannot verify user is non-root". Given the user by number,
+  the entrypoint stopped at "/etc/hmailserver/hMailServer.ini is not writable": Kubernetes, unlike Docker with a new
+  named volume, copies nothing of an image's into a new volume, so the empty config volume hid the image's file, and
+  the empty data volume lacked `temp`, the folder the server starts every external program in, so that the auto-ban
+  hook could not start (HM5401, error code 2). The chart now runs the pod as the image's `hmailserver` by number,
+  999:999 (`podSecurityContext`'s `runAsUser`, `runAsGroup`, and `fsGroup`, which was 1000, the base image's `ubuntu`
+  group), and an init container puts the image's `hMailServer.ini` on the config volume when it holds none and makes
+  the data volume's `temp`, `events` and `database`. The Dockerfile makes the account as 999:999 before it installs
+  the `.deb`, the numbers `adduser --system` gave it in 6.3.6's and 6.3.7's images, so that they cannot move, and its
+  build stops if they are not those. Nor did the chart or the Compose file secure the new installation, which only
+  the packaged systemd unit and OpenRC service did, so port 25 offered no STARTTLS. Both now run `hmailserver
+  --apply-new-install-defaults --if-marked` before the server, as the unit's `ExecStartPre=-` does. The Compose file
+  gives its REST listener the self-signed pair that makes, where it named a pair in `./certs` made with `openssl req
+  -nodes`, whose key is 0600 and its owner's: the image's user could not read it (HM5113, "Permission denied"), and the
+  REST API did not listen. `./certs` is now the way to a certificate of one's own, its key readable by 999.
+  `chart-and-compose` holds the rendered chart to the pod's 999s and `runAsNonRoot`, the init container's copy,
+  folders and mounts and the server's command, and the resolved Compose file to its command and the REST listener's
+  pair; with any one of them broken, and with the chart or the Compose file as they were, it fails, naming what is
+  wrong.
+  ContainerImage.md, SecureDefaults.md, the packaging README and the chart's README say so. The charts of 6.3.6 and
+  6.3.7 that the Helm repository serves start no server.
 
 - **New with the next release: the release's SLSA provenance is held to the pipeline that publishes it and to what
   GitLab certified of the run, and the documents say its SLSA Build level: Build L1, and no higher.**

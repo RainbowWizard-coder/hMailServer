@@ -4,16 +4,22 @@
 #
 # hMailServer beside the PostgreSQL it keeps its data in, the way the image's
 # own smoke test runs it: the two passwords come from files (Compose secrets),
-# never from the environment; the REST API - the administration, on Linux -
-# is bound off loopback and therefore over TLS, with a certificate and key
-# mounted in from ./certs (rest.pem, rest.key; a self-signed pair does for a
-# start: openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes
-# -keyout certs/rest.key -out certs/rest.pem -subj /CN=mail -days 365).
+# never from the environment; the first start secures the new installation as
+# the packaged service's first start does (docs/SecureDefaults.md) - a
+# self-signed certificate, STARTTLS on 25, 587, 110 and 143, and no password
+# taken in the clear from another address until TLS is up; and the REST API -
+# the administration, on Linux - is bound off loopback and therefore over TLS,
+# with that certificate until you give it one of your own (below).
 #
+#   mkdir -p secrets
 #   printf '%s' 'a database password' > secrets/db_password
 #   printf '%s' 'the administrator password' > secrets/admin_password
 #   docker compose up -d
 #   # then https://<host>:8045/ is the Control Deck, Administrator and that password
+#
+# The server runs as the image's own user, 999, which must be able to read
+# every file mounted in for it: the two secrets (printf under the usual umask,
+# 022, makes them so) and a certificate's key of your own.
 #
 # For MariaDB instead, run it as db - MariaDB's image, with MARIADB_USER,
 # MARIADB_DATABASE, MARIADB_PASSWORD_FILE and a root password of its own,
@@ -79,6 +85,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # After the entrypoint (the database created or upgraded, the settings below
+    # stored), the new installation is secured, and then the server runs. The
+    # first start's --create-database says that nothing will secure it, which is
+    # true of the image alone: this is what does. --if-marked acts only on a
+    # database --create-database made, within a day, and does nothing at any later
+    # start; a failure is forgiven, as the systemd unit's ExecStartPre=- forgives
+    # it, and the server starts all the same.
+    command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
     environment:
       HM_DB_TYPE: PostgreSQL
       HM_DB_HOST: db
@@ -89,8 +103,13 @@ services:
       HM_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
       HM_REST_PORT: "8045"
       HM_REST_BIND_ADDRESS: 0.0.0.0
-      HM_REST_CERTIFICATE_FILE: /certs/rest.pem
-      HM_REST_PRIVATE_KEY_FILE: /certs/rest.key
+      # The pair the first start makes, in the hm-data volume. For one of your
+      # own, put it in ./certs (rest.pem and rest.key, the key readable by the
+      # image's user, 999: sudo chown 999 certs/rest.key), mount ./certs below
+      # and name /certs/rest.pem and /certs/rest.key here. A deployment made from
+      # this file while it named those by default has no such pair: keep them.
+      HM_REST_CERTIFICATE_FILE: /var/lib/hmailserver/Certificates/self-signed-certificate.pem
+      HM_REST_PRIVATE_KEY_FILE: /var/lib/hmailserver/Certificates/self-signed-key.pem
       # Every other setting, from the environment (docs/EnvironmentConfiguration.md):
       # HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name> for an
       # hm_settings row, and _FILE after either to read the value from a secret.
@@ -126,7 +145,7 @@ services:
       - hm-data:/var/lib/hmailserver
       - hm-logs:/var/log/hmailserver
       - hm-etc:/etc/hmailserver
-      - ./certs:/certs:ro
+      # - ./certs:/certs:ro
     # The image carries its own HEALTHCHECK (port 25 accepts a connection);
     # nothing to add here.
 

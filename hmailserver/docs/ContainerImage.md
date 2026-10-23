@@ -102,11 +102,14 @@ loaded". Each platform's SBOM lists `libpq5`, and from the release after 6.3.7
 accepts a connection, for a database started beside the container with nothing
 else to wait for it. The REST API is the administration on Linux, and the server
 requires TLS on it anywhere but loopback, so a reachable API means a certificate
-mounted in (`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`), or the
-self-signed pair `hmailserver --apply-new-install-defaults` makes for a new
-installation - which a container is not given by itself, since only the packaged
-systemd unit's first start applies a new installation's defaults
-([SecureDefaults.md](SecureDefaults.md)).
+mounted in (`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`; its key
+readable by the image's user, 999), or the self-signed pair `hmailserver
+--apply-new-install-defaults` makes for a new installation. The image alone does not
+run that verb: the packaged systemd unit's and OpenRC service's first starts do, and
+from the release after 6.3.7 so do the Compose file's and the Helm chart's, which
+run it with `--if-marked` before the server (the charts of 6.3.6 and 6.3.7 do not);
+the Compose file points its REST listener at that pair. A container started
+otherwise is secured by hand ([SecureDefaults.md](SecureDefaults.md)).
 
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,

@@ -87,11 +87,24 @@ ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb
 # a container cannot open its database. libpq5, PostgreSQL's client, is linked,
 # and comes in as one of the .deb's dependencies. Each package is the one the
 # archive of the pinned base serves.
+#
+# The account is made first, as 999:999, the user and group the post-install
+# script's adduser --system gave it in every image published before (6.3.6 and
+# 6.3.7), and the script, finding it there, leaves it as it is: so its number
+# cannot move with what else the install brings. The Helm chart runs the pod as
+# 999:999 by number (Kubernetes cannot hold a named user to runAsNonRoot), and
+# every volume of a deployment is owned by it; the build stops if it is not
+# 999:999.
 COPY ${HM_DEB} /tmp/hmailserver.deb
-RUN apt-get update \
+RUN groupadd --system --gid 999 hmailserver \
+ && useradd --system --uid 999 --gid hmailserver --no-create-home \
+      --home-dir /var/lib/hmailserver --shell /usr/sbin/nologin \
+      --comment "hMailServer mail server" hmailserver \
+ && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       /tmp/hmailserver.deb ca-certificates libcap2-bin 7zip python3 libmariadb3 \
  && rm -rf /var/lib/apt/lists/* /tmp/hmailserver.deb \
+ && [ "$(id -u hmailserver):$(id -g hmailserver)" = 999:999 ] \
  # The MariaDB client loads as the server loads it, by its soname along the
  # dynamic linker's own search path, or the build stops here.
  && python3 -c 'import ctypes; ctypes.CDLL("libmariadb.so.3")' \
