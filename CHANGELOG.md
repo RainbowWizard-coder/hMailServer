@@ -703,7 +703,11 @@ with `--check`).
   with the entry 10. `dependency-scan` rates it Medium, which fails no verdict and holds no release: run in the job's
   Trivy image, it lists it as a live finding against `build/ci/requirements.txt`, in GitLab's report too, without the
   statement, and as dismissed in the VEX document with it; with the advisory rated High in Trivy's report, its verdict
-  fails without the statement and passes with it.
+  fails without the statement and passes with it. The statement says in its `status_notes`, and the file's entry in
+  its comment, that it was read with an AI's help under the owner's delegation, as SECURITY.md ("Who reviews") asks of
+  such a declaration; mcp 1.29.0's statement and entry, made the same way on 19 and 20 October 2026, now say so too,
+  and the document's `tooling`, which said "Written by hand", says that no tool generates it and that the document and
+  every statement in it were written by AI agents under the owner's delegation.
 
 - **The VEX document declares the vendored zlib 1.3.2 not affected by CVE-2026-85091, a heap buffer overflow in
   `gz_vacate`.** OSV's record of the advisory (GHSA-g5fp-32jq-cfw2) gives zlib 1.3.1.2 to 1.3.2, no fixed version and

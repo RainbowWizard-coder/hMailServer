@@ -5650,9 +5650,11 @@ October 2026: the time `TraceState.from_header` takes over an inbound
 `tracestate` header, quadratic in its length. Each release that names
 opentelemetry-api requires `~=1.25.0` or `~=1.37.0`, and 1.182.1, the newest on
 23 October 2026, `~=1.37.0`. That advisory is declared `not_affected` as well:
-the job takes no header from anyone, and Semgrep's one call of the propagator,
-made only under `--trace`, which the job does not pass, gives it a `traceparent`
-alone. The file ignores it until 23 January 2027, and the entry goes when a
+no header the job receives reaches the propagator - not those of semgrep.dev's
+answer to the version check that `semgrep --version` makes, nor of the rule
+packs or of GitLab's API, which the script fetches with Python's urllib outside
+Semgrep - and Semgrep's one call of the propagator, made only under `--trace`,
+which the job does not pass, gives it a `traceparent` alone. The file ignores it until 23 January 2027, and the entry goes when a
 Semgrep release allows opentelemetry-api 1.45.1 or later. Each VEX
 statement is the project's record of the decision, and the file only carries it
 to OSV-Scanner: `build/check-osv-ignores.py`, which `checkers` runs, fails the
