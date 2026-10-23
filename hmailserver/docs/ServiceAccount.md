@@ -469,37 +469,95 @@ rename (an installation in `C:\Apps\hMailServer`, where `C:\Apps` inherits
 `icacls` that removes it, the first the rule finds, and is never changed here: a folder
 above the program folder may hold other programs that rely on what it allows.
 
-**Setup.** Before it copies anything, setup reads the permissions of the folder chosen
-on its folder page - or, when that is not there yet, of the nearest folder above it
-that is - and when `Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` or
-another group of every user may change what an installation there would hold, it says
-so, in a box and in the setup log (the log alone for a silent installation, and for an
-upgrade, whose folder page is not shown). It never refuses the folder: one made for
-the purpose off a drive's root is an administrator's choice, and the hardening is what
-closes it. A program folder setup makes is given SYSTEM's and the Administrators' full
-control and - where every user could read it as it was made - the Users' Read &
-execute, inheriting nothing, by `icacls` on the SIDs,
-before any other folder is made in it or any file copied - so the programs are never
-there, even for the seconds before `/ProtectFolders`, with a weaker list.
+**Setup.** When the folder page is left, setup reads the permissions of the folder
+chosen - or, when that is not there yet, of the nearest folder above it that is - and
+when `Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` or another group of
+every user may change what an installation there would hold, it says so, in a box and
+in the setup log (the log alone for a silent installation, and for an upgrade, whose
+folder page is not shown). It never refuses the folder for that: one made for the
+purpose off a drive's root is an administrator's choice, and the hardening is what
+closes it.
 
-**The Control Panel alone.** An installation of the Control Panel without the server
-(the remote administration support with it or not) runs no `/ProtectFolders`: it has
-no server. Into a folder setup makes, that changes nothing - the folder is given its
-permissions before the files, as above. Into a folder that was there - one an
-administrator made at a drive's root, or an earlier installation's - setup hardens it
-in place before it copies anything: the program folder, then `ControlPanel` and `Bin`
-where they are there, each as `/ProtectFolders` hardens a server's - SYSTEM and the
-Administrators full control, the Users' Read & execute where every user could read it,
-nothing inherited, the entries of its own kept while SYSTEM, the Administrators or
-TrustedInstaller owns it, and otherwise the Administrators made its owner and no entry
-of its own left. It leaves alone, and says in the setup log, a drive's root; a folder
-that holds a server installation (`Data` or `Bin\hMailServer.INI` there), which that
-installation's own `/ProtectFolders` hardens once its data folders are private; and a
-folder that is a link - a junction, a symbolic link, a mount point - or is in one,
-whose permissions would be written wherever it leads. Every folder from below the
-drive's root down to the one it changes is held open, with nobody else allowed to
-delete or rename it, from before it is looked at until after it is changed, so that no
-user can put a link in its place in between.
+**Before the files.** From the release after 6.3.7 ([work item
+78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78)), the last thing setup
+does before Inno Setup makes a folder or copies a file - in `PrepareToInstall`, after
+the service has stopped, and before setup runs any program of the installation - is
+to make the program folder, or harden it, `Bin` and `ControlPanel` with it, so that
+none of the three lets anybody but SYSTEM and the Administrators change it at any
+point of the installation. The same happens for every installation: a new one, an
+upgrade, a repair, a silent one, and the Control Panel alone.
+
+- **Held from the drive's root.** The program folder, `Bin` and `ControlPanel`, and
+  every folder from the root of their volume down to each, are opened and held - as
+  themselves, a link not followed, with nobody else allowed to delete or rename them -
+  each before the one below it is looked at, and kept so until setup ends, so that
+  nothing is put in the place of one while setup works in it.
+- **A link on the way.** A junction, a symbolic link or a mount point among those
+  folders is gone through only when SYSTEM, the Administrators and TrustedInstaller
+  alone control it - its owner, the rights on it that change it or what it leads to,
+  and who may remove it from the folder it is in, read through the handle that holds
+  it: the rule `/ProtectFolders` and the live update hold a link to - and the path is
+  then walked again, the same way, from where the link says it leads. Any other link is
+  refused. So is a link an administrator made when the rights on it, those it inherits
+  among them, let another account change it - such a link is not the administrators'
+  alone. The
+  refusal names the link and what to do: an administrator who means it to be there
+  makes it theirs alone,
+
+  ```
+  icacls "C:\hMailServer" /L /setowner *S-1-5-32-544
+  icacls "C:\hMailServer" /L /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F *S-1-5-32-545:RX
+  ```
+
+  with the link's own path, and runs setup again.
+- **Not on a share, and not on FAT.** A program folder on a share of another computer
+  or on a network drive, whose permissions that computer sets, and one on a volume
+  that keeps no permissions at all (FAT, exFAT), where every account may change every
+  file, are refused.
+- **A new program folder.** Setup makes it itself, and every folder above it that is
+  not there either, each with permissions of its own from the moment it exists -
+  SYSTEM and the Administrators full control, the Users' Read & execute where every
+  user could read a folder made there, nothing inherited, the Administrators the owner
+  - and not Inno Setup, which made it with what the folder above hands down. A folder
+  somebody else made in the meantime is not taken: setup stops, and running it again
+  looks at that folder as one that is there. The uninstaller removes each folder setup
+  made when it is empty, as it removes the folders it makes; when setup is cancelled,
+  or fails, before its files, the ones still empty are removed at once.
+- **A program folder that is there.** First, what an administrator is to look at is
+  said, in the setup log and, for an attended installation, in one box: each file and
+  folder directly inside `Bin` and `ControlPanel` whose owner is not SYSTEM, the
+  Administrators or TrustedInstaller - an owner may change what it owns whatever its
+  permissions say - with the `icacls ... /setowner *S-1-5-32-544` that gives it to the
+  Administrators. Setup replaces the files it installs; one it does not install stays
+  as it is, so such a file is to be checked, and removed when it is not meant to be
+  there. Then `Bin` and `ControlPanel` are hardened, as `/ProtectFolders` hardens them,
+  before their files are copied; and the program folder with them, unless it holds a
+  server installation whose `Data`, `Logs`, `Temp`, `Database` or `Events` still
+  inherit from it - an installation from before 6.3.6, whose `/ProtectFolders` made
+  them private - since its change would then be handed down through the message
+  store: `/ProtectFolders` makes those private and hardens it after the files, as at
+  every installation (for the Control Panel alone, which runs no `/ProtectFolders`, the
+  setup log says to run it). A folder SYSTEM, the Administrators or TrustedInstaller
+  owns keeps the entries of its own; one of them that lets a group of every user
+  change it is said, with the `icacls ... /remove:g` that takes it away, as
+  `/ProtectFolders`' `CHECK` and the live update's check name it. A folder anybody else
+  owns is given to the Administrators with the entries of its own that give no right
+  to write kept - the service's Read & execute on `Bin`, from the grant, among them -
+  as `/ProtectFolders` keeps them, and those that gave a right to write named.
+- **A drive's root** as the program folder is not changed: its permissions are the
+  volume's.
+
+`/ProtectFolders` still runs after the files at every installation and upgrade of the
+server, and hardens the three again; for a folder setup made, or hardened before the
+files, it finds them `already hardened`.
+
+**In 6.3.7.** Setup made a new program folder through Inno Setup and gave it its
+permissions with `icacls` just after, hardened a folder that was there before its files
+only for an installation of the Control Panel alone - for the server, and at every
+upgrade, `/ProtectFolders` hardened the three at the end of setup - installed through a
+link on the way and said so in its log, and did not look before the files at who owned
+what was in `Bin` and `ControlPanel`, which `/ProtectFolders` held to the live update's
+rule after them, saying the first it found.
 
 **Before upgrading an installation at a drive's root.** From an elevated Command
 Prompt, with the installation's own folder in place of `C:\hMailServer`, first see
@@ -1467,10 +1525,24 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   folder not while one of the six failed, with a fresh Read & execute for Users
   where every user could read before, nothing inherited and the Administrators as
   owner, then holding the installation to
-  the rule of an administrator's install; setup's message naming them, the program
-  folder the first `[Dirs]` makes and given its permissions by SID before anything
-  else, and the folder page saying, in a suppressible box and the log, and never
-  refusing, when the chosen folder lets every user change what is in it.
+  the rule of an administrator's install; setup's message naming them, and the folder
+  page saying, in a suppressible box and the log, and never refusing, when the chosen
+  folder lets every user change what is in it; and what setup does before the files
+  (work item 78), a test each: a new program folder, and the folders above it, made by
+  `CreateDirectoryW` with a protected descriptor in `PrepareToInstall`'s last step,
+  recorded for the uninstaller and removed again when the files were not installed;
+  `Bin`, `ControlPanel` and the program folder that are there hardened before the
+  files at every installation, a folder another account owns rebuilt with the entries
+  that give no right to write kept, the service's among them; every folder held from
+  the drive's root through a handle with `READ_CONTROL`, a link gone through only
+  when the administrators alone control it - every right the server's
+  `OnlyAdministratorsControl` counts - and walked again from where it leads, and
+  refused otherwise; a share, a network drive and a volume without permissions
+  refused; and the owners directly inside `Bin` and `ControlPanel` and the entries
+  kept said. `build/check-installer-scripts.py` holds the same shapes, with a negative
+  control each, and the installer smoke test's watch and cases
+  ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer smoke test")
+  hold what the installer does on a machine.
 * `API/RestApiSetupChecklist.cs`: the tenth item, judged from the server's own
   token and, beside a running service, checked against the account `sc.exe qc`
   reports.
