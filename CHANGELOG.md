@@ -588,12 +588,15 @@ with `--check`).
   given, or to a heading a Markdown file does not have; refuses a link to a release's file - under `v{version}`,
   `permalink/latest` or a version's own tag - whose name `build/ci/release-chain.py` gives no file of that release,
   a file's own name being taken only under the tag of a release before 6.3.6, such as 6.3.4's installer SBOM; and
-  refuses every path it names outside a link, written from the top of the tree or from `./`, that the
-  tree does not hold in the case given - a tool's ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment
+  refuses every path it names outside a link, written from the top of the tree or from `./`, that has a path's look -
+  its first part an entry at the tree's root, a `/` at its end or a file's extension - or is a tool's ruleset, and
+  that the tree does not hold in the case given - a ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment
   such as `build/ci/semgrep.sh`, a folder, a file named with no folder such as `RELEASE.md` or `renovate.json`, which
   is a file at the root - but the names its `NOT_TREE` lists as not the tree's (Semgrep's registry rulesets such as
-  `p/csharp`, and the specification's `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale. It
-  proves its 65 negative controls on every run, and `--self-test` says each. SECURITY.md's "For a security
+  `p/csharp`, and the specification's `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale,
+  while a word such as S/MIME, and/or or amd64/arm64 is prose, and a folder whose name holds a space, such as
+  `hmailserver/test/SSL examples/`, is read whole. It proves its 68 negative controls on every run, and `--self-test`
+  says each. SECURITY.md's "For a security
   questionnaire" and CONTRIBUTING.md's table of checkers name both.
 - **The tree no longer carries `libraries/fat_cow_icons/fatcow-hosting-icons-1400.zip`.** The archive, 3.6 MB, held
   FatCow's 2,800 PNG icons as FatCow published them, of which the tree's `.ico` files under

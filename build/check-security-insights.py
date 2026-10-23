@@ -59,17 +59,22 @@ nothing else would notice when it goes wrong. This holds it:
     only a read of that release tells (6.3.4's SBOMs kept the version, its
     packages did not);
   * to the tree's paths: every path the file names outside a link - in a value
-    (a tool's rulesets, a comment) or in a YAML comment - is one the tree holds,
-    each part in the case given, and a folder where it ends in /, unless it is
-    one of NOT_TREE, the names that are not the tree's: Semgrep's registry
-    rulesets, such as p/csharp, and the specification's spec/schema.cue. A path
-    may be written from "./", which is taken off, and one written from "../" is
-    never the tree's. A file
-    named with no folder, whatever its case - SECURITY.md, renovate.json,
-    .gitlab-ci.yml - and with an extension of ROOT_EXTENSIONS is taken for a
-    file at the root of the tree. So a renamed script, ruleset, folder or
-    document fails the check, and so does one named under the wrong folder or
-    under none.
+    (a comment) or in a YAML comment - that has a path's look is one the tree
+    holds, each part in the case given, and a folder where it ends in /: a path
+    whose first part is an entry at the tree's root, in any case, one that ends
+    in / and one whose last part has a file's extension (tree_like); and so is
+    every path a tool's rulesets name, whatever its look. Either may be one of
+    NOT_TREE instead, the names that are not the tree's: Semgrep's registry
+    rulesets, such as p/csharp, and the specification's spec/schema.cue. Any
+    other word with a / in it - S/MIME, and/or, amd64/arm64, HTTP/1.1 - is prose,
+    and is not held. A name of the tree that holds a space, hmailserver/test/SSL
+    examples/ say, is read with the words after it that make one the tree holds.
+    A path may be written from "./", which is taken off, and one written from
+    "../" is never the tree's. A file named with no folder, whatever its case -
+    SECURITY.md, renovate.json, .gitlab-ci.yml - and with an extension of
+    ROOT_EXTENSIONS is taken for a file at the root of the tree. So a renamed
+    script, ruleset, folder or document fails the check, and so does one named
+    under the wrong folder or under none.
 
 Nothing is fetched: a URL of another site, and a page of the project's that is
 not a file of the tree or of a release (its releases page, its wiki), is held to
@@ -679,22 +684,68 @@ TREE_PATH = re.compile(r'(?<![\w./:-])((?:\.{1,2}/)*(?:\.?[A-Za-z0-9_-]+/)+[A-Za
 ROOT_EXTENSIONS = ('md', 'yml', 'yaml', 'txt', 'json', 'toml', 'cue', 'py', 'sh', 'ps1', 'cfg', 'ini')
 ROOT_FILE = re.compile(r'(?<![\w./:<>{}@~-])(\.?[A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*\.(?:' +
                        '|'.join(ROOT_EXTENSIONS) + r'))(?!\.?[\w/-])')
-# The names the file gives that have the shape of a path of the tree and are not one:
-# Semgrep's registry rulesets, which the semgrep job reads from Semgrep's registry, and
-# the Security Insights specification's own schema file. Each is named here, so that
-# every other path is held to the tree.
+# The names the file gives that are held to the tree (tree_like, or a tool's ruleset)
+# and are not the tree's: Semgrep's registry rulesets, which the semgrep job reads from
+# Semgrep's registry, and the Security Insights specification's own schema file. Each
+# is named here, so that every other such path is held to the tree.
 NOT_TREE = ('p/csharp', 'p/javascript', 'p/python', 'r/bash', 'spec/schema.cue')
+# The last part of a path that names a file: a name with an extension, which starts
+# with a letter (HTTP/1.1 and TLS/1.3 name none).
+FILE_EXTENSION = re.compile(r'\.[A-Za-z][A-Za-z0-9]*$')
+# A word that may go on after a path whose next part's name holds a space, such as
+# hmailserver/test/SSL examples/: what a path's parts are made of; and how many spaces
+# such a name may hold.
+PATH_WORD = re.compile(r' ([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]*)*)')
+MOST_SPACES = 3
 
 
-def named_paths(text):
-    """Each (line number, path) that text names outside a URL, but those of NOT_TREE.
-    Every URL is blanked out first, so that no part of one is taken for a path."""
+def tidy(token):
+    """A path as read from the text: the full stop of a sentence after it, and any "./"
+    before it, taken off."""
+    token = token.rstrip('.')
+    while token.startswith('./'):
+        token = token[2:]
+    return token
+
+
+def tree_like(token, roots):
+    """token, a path TREE_PATH reads, is to be held to the tree: its first part is an
+    entry at the tree's root (roots, in lower case, so that one in another case is held
+    and refused), it ends in / (it names a folder), or its last part has a file's
+    extension. Any other word with a / in it - S/MIME, and/or, amd64/arm64 - is prose."""
+    parts = token.split('/')
+    return parts[0].lower() in roots or token.endswith('/') or FILE_EXTENSION.search(parts[-1]) is not None
+
+
+def named_paths(text, roots, holds, every=False):
+    """Each (line number, path) that text names outside a URL and that is held to the
+    tree: each path TREE_PATH reads that tree_like takes - or, with every, each one it
+    reads, as a tool's rulesets are held - and each file named with no folder that
+    ROOT_FILE reads, but those of NOT_TREE. Every URL is blanked out first, so that no
+    part of one is taken for a path. A path the tree does not hold, whose next words
+    make one it does - a folder whose name holds a space - is taken with them."""
     for number, line in enumerate(text.splitlines(), 1):
         line = URL_IN_TEXT.sub(lambda url: ' ' * len(url.group(0)), line)
-        for token in TREE_PATH.findall(line) + ROOT_FILE.findall(line):
-            token = token.rstrip('.')
-            while token.startswith('./'):
-                token = token[2:]
+        taken_to = 0
+        for match in TREE_PATH.finditer(line):
+            if match.start() < taken_to:
+                continue
+            token = tidy(match.group(1))
+            if token in NOT_TREE or not (every or tree_like(token, roots)):
+                continue
+            if not holds(token):
+                end, longer = match.end(1), token
+                for _ in range(MOST_SPACES):
+                    word = PATH_WORD.match(line, end)
+                    if not word:
+                        break
+                    end, longer = word.end(1), longer + ' ' + word.group(1)
+                    if holds(tidy(longer)):
+                        token, taken_to = tidy(longer), end
+                        break
+            yield number, token
+        for token in ROOT_FILE.findall(line):
+            token = tidy(token)
             if token not in NOT_TREE:
                 yield number, token
 
@@ -836,16 +887,41 @@ def check(root, now=None):
             if anchor not in headings[relative]:
                 problems.append('line %d links to #%s, a heading %s does not have' % (number, anchor, relative))
 
+    roots = root_entries(root)
+
+    def holds(relative):
+        return held(root, relative, listings)
+
     seen = set()
-    for number, relative in named_paths(text):
+    for number, relative in named_paths(text, roots, holds):
         if relative in seen:
             continue
         seen.add(relative)
-        if not held(root, relative, listings):
+        if not holds(relative):
             problems.append('line %d names %s%s, which the tree does not hold, in that case (a name that is not the '
                             'tree\'s goes in NOT_TREE)' % (number, 'the folder ' if relative.endswith('/') else '',
                                                            relative))
+    # A tool's rulesets are held whatever their look: a ruleset is a file of the tree
+    # or one of NOT_TREE's, Semgrep's registry rulesets among them.
+    for index, tool in enumerate(repository['security'].get('tools') or []):
+        for number, ruleset in enumerate(tool['rulesets']):
+            for _, relative in named_paths(ruleset, roots, holds, every=True):
+                if relative in seen:
+                    continue
+                seen.add(relative)
+                if not holds(relative):
+                    problems.append('repository.security.tools[%d].rulesets[%d] names %s, which the tree does not '
+                                    'hold, in that case (a ruleset that is not the tree\'s goes in NOT_TREE)'
+                                    % (index, number, relative))
     return ['%s: %s' % (INSIGHTS, problem) for problem in problems]
+
+
+def root_entries(root):
+    """The names of the entries at the tree's root, in lower case."""
+    try:
+        return {name.lower() for name in os.listdir(root)}
+    except OSError:
+        return set()
 
 
 # ----------------------------------------------------------------- the negative controls
@@ -1121,6 +1197,14 @@ def self_test(quiet=False):
          'names ../build/ci/rules.yaml, which the tree'),
         ('a link with an encoded space to a folder the tree does not hold', swap('SSL%20examples/', 'SSL%20exemples/'),
          (), 'links to test/SSL exemples, which the tree'),
+        ('a folder with a space in its name that the tree does not hold',
+         swap('renovate.json updates it.', 'renovate.json updates it; test/SSL exemples/ holds its keys.'), (),
+         'names test/SSL, which the tree'),
+        ('a path under a folder at the root, with no / at its end and no extension, that the tree does not hold',
+         swap('(build/ci/scan.sh)', '(build/scripts)'), (), 'names build/scripts, which the tree'),
+        ('a word with a / that ends in one, a folder the tree does not hold',
+         swap('renovate.json updates it.', 'renovate.json updates it under fuzzers/.'), (),
+         'names the folder fuzzers/, which the tree'),
         ('a tab in the indentation', swap('  status: active', '\tstatus: active'), (), 'a tab'),
         ('a key twice', swap('  status: active\n', '  status: active\n  status: active\n'), (), 'twice'),
         ('a plain scalar holding ": "', swap('comment: Releases.', 'comment: Releases: all'), (), 'quote it'),
@@ -1140,6 +1224,14 @@ def self_test(quiet=False):
     said = world(swap('last-reviewed: "2026-01-03"', "last-reviewed: '2025-01-03'"))
     expect('reviewed a year to the day before today: passes%s' % ('' if not said else ' (%s)' % said[0][:120]),
            said == [])
+    for prose in ('for S/MIME', 'and/or by hand', 'on amd64/arm64', 'over HTTP/1.1'):
+        said = world(swap('renovate.json updates it.', 'renovate.json updates it %s.' % prose))
+        expect('prose with a / in a word, "%s", which is no path of the tree: passes%s'
+               % (prose, '' if not said else ' (%s)' % said[0][:120]), said == [])
+    for named in ('test/SSL examples/', 'test/SSL examples/example.pfx'):
+        said = world(swap('renovate.json updates it.', 'renovate.json updates it; %s holds its keys.' % named))
+        expect('a folder of the tree with a space in its name, %s: passes%s'
+               % (named, '' if not said else ' (%s)' % said[0][:120]), said == [])
     said = world(swap('/-/tree/master/test/SSL%20examples/', '/-/blob/master/test/SSL%20examples/example.pfx'))
     expect('a link with an encoded space to a file the tree holds: passes%s'
            % ('' if not said else ' (%s)' % said[0][:120]), said == [])
@@ -1190,7 +1282,9 @@ def main(argv):
     kinds = [link_kind(url) for url in {url for _, url in urls(text)}]
     links = sum(1 for kind in kinds if kind and kind[0] == 'tree')
     releases = sum(1 for kind in kinds if kind and kind[0] == 'release')
-    paths = len({path for _, path in named_paths(text)})
+    listings = {}
+    paths = len({path for _, path in named_paths(text, root_entries(ROOT),
+                                                 lambda relative: held(ROOT, relative, listings))})
     print('OK    %s: Security Insights %s, updated %s and reviewed %s, %d links into the tree, %d to release files, '
           '%d paths of the tree named, %d tools'
           % (INSIGHTS, document['header']['schema-version'], document['header']['last-updated'],
