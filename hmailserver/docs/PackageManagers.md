@@ -21,29 +21,29 @@ an identifier that is the original's.
 on 20 October 2026, and it passed Chocolatey's automatic checks. That package was
 titled "hMailServer" alone, with a summary that did not say fork, and its authors
 and copyright named Progressive Robot alone. At 11:31 UTC on 21 October 2026 a
-moderator returned it ("Waiting for Maintainer to take corrective action"),
-asking that the package's `<authors>` also credit the original hMailServer's
-author, Martin Knafve, as this is a fork, and that the same version be
-resubmitted. At 01:06 UTC on 22 October 2026 `chocolatey-publish` (job
-17362512835, in `master`'s pipeline 2973751489) sent 6.3.7 again in its place,
-with the fork's title, summary and description but with authors and copyright
-that still name Progressive Robot alone, so it says that it is the fork but does
-not yet credit Martin Knafve. It passed Chocolatey's automated validation at 01:39
-UTC; its automated verification failed at 01:44 UTC because the verifier's
-download of it from Chocolatey's own feed timed out (a gateway timeout, not a
-fault in the package), and its page again shows "Waiting for Maintainer to take
-corrective action". The community repository's feed still lists it as
-`Submitted`, not approved (read at 02:29 UTC that day). The templates now credit
-Martin Knafve in the authors and the copyright: once that is on master, another
-press of `chocolatey-release` in master's pipeline sends 6.3.7 a third time, with
-the credit, in the 22 October package's place, while the feed still lists it as
-`Submitted` ([Channels.md](Channels.md), "How a channel job publishes"); the new
-package is validated and verified afresh, its results replacing the failed
-verification. If a moderator approves the 22 October package first, the job sends
-that version no more, and the credit reaches Chocolatey only with the next
-release. The package is listed, and installs with `choco install
-hmailserver-progressiverobot`, once a moderator has passed it. Every new version
-waits for moderation the same way.
+moderator returned it ("Waiting for Maintainer to take corrective action"), asking
+that the package's `<authors>` also credit the original hMailServer's author,
+Martin Knafve, as this is a fork, and that the same version be resubmitted. At
+01:06 UTC on 22 October 2026 `chocolatey-publish` (job 17362512835, in `master`'s
+pipeline 2973751489) sent 6.3.7 again in its place, with the fork's title, summary
+and description but with authors and copyright that still name Progressive Robot
+alone, so it says that it is the fork but does not yet credit Martin Knafve. It
+passed Chocolatey's automated validation at 01:39 UTC; its automated verification
+failed at 01:44 UTC because the verifier's download of it from Chocolatey's own
+feed timed out (a gateway timeout, not a fault in the package), and its page again
+shows "Waiting for Maintainer to take corrective action". The community
+repository's feed still lists it as `Submitted`, not approved (read at 02:29 UTC
+that day). The templates now credit Martin Knafve in the authors and the
+copyright, and at 00:59 UTC on 23 October 2026 `chocolatey-publish` (job
+17399248551, in `master`'s pipeline 2978723670, `chocolatey-release` having been
+pressed there) sent 6.3.7 a third time, with the credit, in the 22 October
+package's place, while the feed still listed it as `Submitted`
+([Channels.md](Channels.md), "How a channel job publishes"). It passed
+Chocolatey's automated validation and verification at 01:32 UTC that day, and the
+feed lists it as `Submitted`, waiting for a moderator (read at 02:44 UTC). The
+package is listed, and installs with `choco install hmailserver-progressiverobot`,
+once a moderator has passed it. Every new version waits for moderation the same
+way.
 
 **winget: not submitted.** The manifests are rendered and validated by hand for
 a release, from the release's own signed installer. The GitHub workflow

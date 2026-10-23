@@ -380,15 +380,16 @@ Windows. Pressing `chocolatey-release` starts both.
   of it from Chocolatey's own feed timed out (a gateway timeout, not a fault in the
   package), and its page again shows "Waiting for Maintainer to take corrective
   action". The feed still lists it as `Submitted`, not approved (read at 02:29 UTC
-  that day). The package is now rendered with Martin Knafve credited in its authors
-  and copyright, and once that is on `master` another press of `chocolatey-release`
-  sends 6.3.7 a third time, with the credit, in the 22 October package's place, while
-  the feed still lists it as `Submitted` (point 7 above); the new package is
-  validated and verified afresh, its results replacing the failed verification. If a
-  moderator approves the 22 October package first, the job sends that version no more,
-  and the credit reaches Chocolatey only with the next release. It is listed, and
-  `choco install hmailserver-progressiverobot` installs it, once a moderator has
-  passed it, and every new version waits the same way.
+  that day).
+- **Sent a third time on 23 October 2026, with the credit.** `chocolatey-publish` (job
+  17399248551, in `master`'s pipeline 2978723670) sent 6.3.7 again at 00:59 UTC on 23
+  October 2026 (HTTP 201), in the 22 October package's place, with Martin Knafve
+  credited in its authors and copyright, while the feed still listed it as `Submitted`
+  (point 7 above). It passed Chocolatey's automated validation and verification at
+  01:32 UTC, and the feed lists it as `Submitted`, waiting for a moderator (read at
+  02:44 UTC that day). It is listed, and `choco install hmailserver-progressiverobot`
+  installs it, once a moderator has passed it, and every new version waits the same
+  way.
 
 ### Snap Store
 
