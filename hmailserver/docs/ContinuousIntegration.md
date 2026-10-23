@@ -982,7 +982,7 @@ hold a change on what it brings:
   updates, `build/ci/cli-packages-requirements.txt` included) - and looks each one
   up in OSV's own export of its ecosystem's advisories,
   `https://osv-vulnerabilities.storage.googleapis.com/<ecosystem>/all.zip` (NuGet's
-  2.5 MB and PyPI's 35 MB on 28 September 2026), the export
+  2.5 MB and PyPI's 35 MB on 28 September 2026), NuGet's being the export
   `build/ci/osv-offline-db.py` builds Renovate's database from. An advisory
   affects a version when its `versions` list names it or one of its ECOSYSTEM or
   SEMVER ranges holds it, compared as NuGet and PEP 440 order versions; a
@@ -3951,15 +3951,22 @@ the Linux CI image, `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, whic
   `get-dotnet-runtime.ps1` - so the pin is moved by hand on a branch of its own,
   as [ThirdPartyBinaries.md](ThirdPartyBinaries.md) ("Moving the .NET runtime
   pin") says, and the notice closed.
-- **Security fixes at once.** `osvVulnerabilityAlerts` is on. A dependency whose
-  version has a published advisory gets a merge request of its own, labelled
-  `security` and marked `[SECURITY]`, on the next daily run, whatever the day. It
-  goes to the newest fixed release, in the same major version where there is one.
+- **Security fixes of NuGet packages at once.** `osvVulnerabilityAlerts` is on. A
+  NuGet package whose version has a published advisory gets a merge request of its
+  own, labelled `security` and marked `[SECURITY]`, on the next daily run, whatever
+  the day; for a package of a `packages.config` project it is a notice, since
+  Renovate changes `packages.config` alone and Visual Studio's package manager
+  changes the project's references with it (`renovate.json` says so). It goes
+  to the newest fixed release, in the same major version where there is one.
   Renovate's default, the lowest fixed release, can stop short when a package has
-  two advisories. The dashboard lists every advisory found, fixed or not. The advisories come from OSV's own export on Google
-  Cloud Storage: `build/ci/osv-offline-db.py` builds Renovate's database from it
-  before each run, because Renovate's OSV package would otherwise download it from a
-  GitHub release.
+  two advisories. The dashboard lists every advisory found, fixed or not. The
+  advisories come from OSV's own export of NuGet's advisories on Google Cloud
+  Storage: `build/ci/osv-offline-db.py` builds Renovate's database from it before
+  each run, for NuGet alone (the job names no other ecosystem), because Renovate's
+  OSV package would otherwise download it from a GitHub release. So the alerts
+  reach no other dependency: a Python package's or a native library's advisory is
+  found by `dependency-scan` and `mr-dependency-check`, and an OpenSSL patch
+  release and a .NET servicing release come on any day, as above.
 - **Nothing merges itself.** There is no automerge. A Renovate merge request is
   reviewed and folded into a batch like any other branch.
 - **What stays put.** A rule in `renovate.json` holds each of these, and changing

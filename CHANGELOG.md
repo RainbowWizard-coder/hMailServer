@@ -1152,6 +1152,13 @@ with `--check`).
   98, each a file's `.cosign.bundle` or `.sigstore.json` or the provenance itself (read from both releases on 23 October
   2026). The paragraph now says so, names the module's two files among those it lists, and says that the
   `.intoto.jsonl` a release carries from the release after 6.3.7 is not named in it either.
+- **SECURITY.md, ContinuousIntegration.md and CONTRIBUTING.md say that Renovate opens a merge request for a published
+  advisory against a NuGet package, where they said against any dependency in use.** The `renovate` job builds
+  Renovate's advisory database from OSV's export of NuGet's advisories alone (`build/ci/osv-offline-db.py ... NuGet`),
+  and `renovate.json` says that its alerts do not reach the custom datasources of the native libraries and the .NET
+  runtime; so a Python package's or a native library's advisory gets no merge request of its own from Renovate. The
+  texts now say so, that `dependency-scan` and `mr-dependency-check` find those, and that an OpenSSL patch release
+  and a .NET servicing release come on any day instead, as the rules for them already said.
 
 - **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the
   release as its latest version.** GitHub's page shows the manifest pushed last as the latest version, with its pull

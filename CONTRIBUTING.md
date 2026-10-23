@@ -435,9 +435,9 @@ that changes nothing but Markdown files at the root or under `.gitlab/`;
 [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
 GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate
 lock work. The pipeline of the schedule described `renovate` runs *renovate* on a Linux runner and nothing else:
-Renovate opens a merge request a week per ecosystem, and one at once for a dependency with a published advisory,
-from a `renovate/*` branch. Such a merge request is reviewed and landed like yours, after the step its
-description names ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)).
+Renovate opens a merge request a week per ecosystem, and one at its next daily run for a NuGet package with a
+published advisory, from a `renovate/*` branch. Such a merge request is reviewed and landed like yours, after the
+step its description names ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)).
 
 **What stays by hand:** for any branch that is not protected, everything the project's own runners run - the
 builds, both regression suites, the .NET build and tests with `dotnet format`, and the Linux jobs that apply to
