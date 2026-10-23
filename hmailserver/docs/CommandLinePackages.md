@@ -44,6 +44,10 @@ Both packages are at the server's version: `hmailserver-cli` 6.3.7 and
 REST API, so either works against any server whose API has the routes it asks for;
 `hmctl api` and `Invoke-HmApi` reach a route newer than the client.
 
+On 23 October 2026 both were installed from there on clean Linux and Windows, as a
+user installs them, and administered a 6.3.7 server over TLS ([Installed from PyPI
+and the Gallery](#installed-from-pypi-and-the-gallery)); macOS was not tried.
+
 Whose clients these are
 -----------------------
 
@@ -186,6 +190,127 @@ and PowerShell 7.5: the certificate refused without `-Insecure` and taken with i
 the process's callback as it was after the call, a request of the session outside
 the module still refused, `-Insecure` for a remote host refused by `Invoke-HmApi`
 too, and a redirect to another port of the loopback refused.
+
+Installed from PyPI and the Gallery
+-----------------------------------
+
+On 23 October 2026, 6.3.7 of both packages, installed as a user installs them, each
+into a clean container or a clean Windows installation, against one test server:
+6.3.7's container image (`registry.gitlab.com/hmailserver/hmailserver`, the index
+`sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`) beside
+PostgreSQL 18, started as its start test starts it ([ContainerImage.md](ContainerImage.md),
+"The start test") with the host name `mail.example.test`, so that the certificate
+`--apply-new-install-defaults` made names that host (`CN=mail.example.test`,
+`DNS:mail.example.test`, `CA:FALSE`). Its REST API answered as `6.3.7-B46`, reached
+from Linux over a Docker network and from Windows over the network by that name in
+the hosts file. Every client was run with the certificate untrusted, which it had to
+refuse, then trusted as [CommandLine.md](CommandLine.md) says ("Credentials").
+
+- **PyPI's provenance**, read in a clean `python:3.14-slim-trixie` container. PyPI's
+  JSON API lists the wheel `hmailserver_cli-6.3.7-py3-none-any.whl` (55,833 bytes,
+  SHA-256 `c217980b094df00a7c1d20bb036e10c168a208a7269df6ba21675ac27a4965d5`) and the
+  sdist `hmailserver_cli-6.3.7.tar.gz` (55,196 bytes,
+  `bad7f4baecf3a2eeeab29eca507b50526282caa613915c1b07eb1746b727c356`), no
+  `Requires-Dist`, `requires_python` `>=3.8`; each file downloaded had that SHA-256.
+  PyPI's integrity API gives each one attestation bundle, from the publisher `GitLab`,
+  repository `hmailserver/hmailserver`, workflow file `.gitlab-ci.yml`, environment
+  `pypi`, holding one publish attestation whose subject is that file at that digest;
+  its Sigstore certificate names
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/heads/master`, the
+  project's id `86730559` and job 17306495320. `pypi-attestations` 0.0.30 (the
+  version `build/ci/cli-packages-requirements.txt` pins, installed from it) verified
+  both files, as `pypi:<file name>` and as the files downloaded, with `verify pypi
+  --repository https://gitlab.com/hmailserver/hmailserver`; it refused another
+  repository ("provenance was signed by repository "hmailserver/hmailserver",
+  expected ...") and the wheel with one byte added ("subject does not match
+  distribution digest").
+- **pipx on Linux**: `python:3.14-slim-trixie` (Debian 13.7, Python 3.14.8, pip
+  26.2.1 alone installed), `pip install pipx` (1.18.4), `pipx install
+  hmailserver-cli==6.3.7`: its environment held `hmailserver-cli` 6.3.7 and pip and
+  nothing else, its `hmctl.py` had the SHA-256 of the `v6.3.7` tag's `hmctl`, and
+  `hmctl --version` said `hmctl 6.3.7`. Untrusted, `hmctl domain list` said "TLS
+  refused the server's certificate: [SSL: CERTIFICATE_VERIFY_FAILED] certificate
+  verify failed: self-signed certificate" (exit 1), and `--insecure` was refused for
+  that host (exit 1). Trusted with `SSL_CERT_FILE`, and then in the system's store
+  (`update-ca-certificates`) without it: `domain list` (none), `domain create --set
+  name=example.com --set active=true`, `account create --domain example.com
+  --from-json -` (the password on standard input), and `domain list`, `domain get`,
+  `account list` and `account get` read both back; by the server's address, "IP
+  address mismatch" (exit 1); a wrong password, exit 3; an account that is not
+  there, exit 4.
+- **pip on Linux**: the same image, `python -m venv`, `pip install
+  hmailserver-cli==6.3.7`, which fetched the wheel and nothing else: `hmctl` and
+  `python -m hmailserver_cli` said 6.3.7 and listed the domain and the account, and
+  `hmctl --json account get` gave the account with no field of a password.
+- **Ubuntu's own pipx**: `ubuntu:26.04` (26.04.1), `apt-get install pipx` (1.8.0-1),
+  `pipx install hmailserver-cli==6.3.7` (Python 3.14.4), the certificate in the
+  system's store: `domain list` and `account list`.
+- **pipx on Windows**: Windows Server 2025 (build 26100), a clean installation with
+  nothing else installed. Python 3.14.9 from python.org (the SHA-256 python.org
+  publishes for `python-3.14.9-amd64.exe`, Authenticode Valid, signed by the Python
+  Software Foundation), installed for the user; `python -m pip install --user pipx`
+  (1.18.4), `python -m pipx install hmailserver-cli==6.3.7`: `hmctl.exe`, `hmctl
+  6.3.7`. Untrusted, the same refusal as on Linux; with the certificate in the
+  machine's Trusted Root store (`Import-Certificate ... Cert:\LocalMachine\Root`),
+  `domain list` and `account list`.
+- **The Gallery on Windows PowerShell 5.1**: the same machine (5.1.26100.7462,
+  PowerShellGet 1.0.0.1 and PackageManagement 1.0.0.1, execution policy
+  RemoteSigned). `Install-Module Microsoft.PowerShell.PSResourceGet -Scope CurrentUser
+  -Force` stopped at PowerShellGet 1.0.0.1's question whether to install the NuGet
+  provider, which a session with no console cannot answer ("Exception calling
+  "ShouldContinue" with "2" argument(s)"); at a console it is answered Y. With
+  `Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser
+  -Force` first (2.8.5.208), it installed PSResourceGet 1.2.0, and `Install-PSResource
+  HmailServer -Version 6.3.7 -TrustRepository` installed `HmailServer` 6.3.7 by
+  "Christopher Holloway / Progressive Robot Ltd" into the user's
+  `Documents\WindowsPowerShell\Modules`. `Get-AuthenticodeSignature` of
+  `HmailServer.psd1` and `HmailServer.psm1`: Valid, signed by `CN=Progressive Robot
+  Ltd, O=Progressive Robot Ltd, L=Chester, S=Cheshire West and Chester, C=GB`,
+  countersigned by the Microsoft Public RSA Time Stamping Authority;
+  `Test-ModuleManifest`: 95 functions. `Connect-HmServer -Url
+  https://mail.example.test:<port> -Password <a SecureString>` and `Get-HmDomain`:
+  untrusted, "GET /api/v1/domains failed." alone, the reason lost (the fix is below);
+  trusted, `example.com`, and `Get-HmAccount -Domain example.com` gave the account.
+  `Uninstall-PSResource`, then `Install-Module HmailServer -RequiredVersion 6.3.7
+  -Scope CurrentUser -Force` with PowerShellGet 1.0.0.1, installed and worked the
+  same.
+- **The Gallery on PowerShell 7 on Windows**: PowerShell 7.6.8 from its GitHub release
+  (`PowerShell-7.6.8-win-x64.msi`, the SHA-256 GitHub gives for the asset,
+  Authenticode Valid, signed by Microsoft Corporation), whose PSResourceGet is 1.2.0:
+  `Install-PSResource HmailServer -Version 6.3.7 -TrustRepository` into
+  `Documents\PowerShell\Modules`, both files Valid as above; untrusted, "The SSL
+  connection could not be established, see inner exception." ("The remote
+  certificate is invalid because of errors in the certificate chain:
+  UntrustedRoot"); trusted, `Get-HmDomain` and `Get-HmAccount` as above. Installed
+  again with `-Reinstall -AuthenticodeCheck`, which checks the files' signatures, it
+  installed.
+- **The Gallery on PowerShell 7 on Linux**: Microsoft's image
+  `mcr.microsoft.com/powershell:7.5-ubuntu-24.04` (its newest stable tag, built on 30
+  January 2025: PowerShell 7.5.0, PSResourceGet 1.1.0, PowerShellGet 2.2.5), one
+  clean container with `Install-PSResource HmailServer -Version 6.3.7
+  -TrustRepository` and another with `Install-Module HmailServer -RequiredVersion
+  6.3.7 -Scope CurrentUser -Force`: both 6.3.7, `Test-ModuleManifest` 95 functions.
+  `Get-AuthenticodeSignature` is Windows' alone; the two files had the SHA-256s they
+  had on Windows (`a87db2cd648af9ce7e9e0b0ccfe438897428273e7d2f91c61af8e2dfb3c42865`
+  and `8c5cd591cfbcc07a812fe48e506d89b672c22432d06e71aa3e0256bb5a2cdc47`), which are
+  those of the release's own signed `HmailServer.psd1` and `HmailServer.psm1` in its
+  package `hmailserver/6.3.7`. Untrusted, UntrustedRoot as on Windows; with the
+  certificate in the system's store, `Get-HmDomain` and `Get-HmAccount`.
+
+What the runs found, and the tree now has: the module under Windows PowerShell 5.1
+gave no reason when it got no answer at all - a certificate the machine does not
+trust, nothing listening on the port - and said "GET
+/api/v1/domains failed." alone, where PowerShell 7 gives the system's reason; and
+under both, an answer that was not JSON, a proxy's text, lost its text. From the
+release after 6.3.7 it says "GET /api/v1/domains failed: The underlying connection
+was closed: Could not establish trust relationship for the SSL/TLS secure channel;
+The remote certificate is invalid according to the validation procedure." there,
+which the module of the tree said on the same machine against the same server, and
+"failed (502): " and the text for the second, as `hmctl` prints it;
+`build/check-cli.py` holds both, under every PowerShell the machine running it has.
+Neither client documented how a server's self-signed certificate is trusted on
+another machine; [CommandLine.md](CommandLine.md) now does. Not tried: macOS, for
+want of a Mac.
 
 Building and checking by hand
 -----------------------------

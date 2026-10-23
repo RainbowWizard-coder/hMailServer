@@ -52,7 +52,11 @@ the better answer for anything unattended: it can be read-only, limited to one
 domain, and revoked without changing the administrator password.
 
 `--insecure` accepts a certificate nobody verified, and is refused for any host but
-the loopback address.
+the loopback address. A server on another machine that still has the self-signed
+certificate a new installation makes is reached once this machine trusts that
+certificate:
+[CommandLine.md](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/CommandLine.md)'s
+"Credentials" says how, on Linux and on Windows.
 
 Run `hmctl` with no arguments for the resources, `hmctl <resource> --help` for one
 resource's verbs, and `hmctl api` for any method on any path.

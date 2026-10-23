@@ -57,6 +57,39 @@ administrator password sent to a remote host over a connection nobody verified
 is not a convenience, and this will not make it one. Give the server a
 certificate the client trusts.
 
+**A server's self-signed certificate, trusted on the machine you administer
+from.** Until it is given another, a new installation's REST listener has the
+certificate the installation made for itself
+([SecureDefaults.md](SecureDefaults.md), "The certificate"), which names the
+server's host name setting, or else the machine's DNS name. Neither client takes
+it from another machine until that machine trusts it: `hmctl` says "TLS refused the
+server's certificate: ... self-signed certificate", and the module gives the
+system's reason. Copy the certificate - `self-signed-certificate.pem` in the data
+directory's `Certificates` folder, `/var/lib/hmailserver/Certificates` from the
+Linux packages and in the container image (`docker cp`) - and trust it:
+
+```bash
+# Debian and Ubuntu: every program on this machine, hmctl and pwsh among them
+sudo cp self-signed-certificate.pem /usr/local/share/ca-certificates/mail.example.com.crt
+sudo update-ca-certificates
+# or for hmctl alone, in this shell
+export SSL_CERT_FILE="$PWD/self-signed-certificate.pem"
+```
+
+```powershell
+# Windows, from an elevated prompt: hmctl, Windows PowerShell and PowerShell 7
+Import-Certificate -FilePath .\self-signed-certificate.pem -CertStoreLocation Cert:\LocalMachine\Root
+```
+
+Then reach the server by the name the certificate carries, with a line in the
+hosts file where the name is not in DNS: trusted or not, the certificate does not
+name the server's address, and `hmctl` refuses it there ("IP address mismatch").
+A certificate from a public authority, which the ACME
+client gets ([SecureDefaults.md](SecureDefaults.md)), needs none of this. Both
+clients were installed from PyPI and the PowerShell Gallery and run this way on
+23 October 2026 ([CommandLinePackages.md](CommandLinePackages.md), "Installed from
+PyPI and the Gallery").
+
 hmctl
 -----
 
