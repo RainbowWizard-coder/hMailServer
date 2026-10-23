@@ -552,8 +552,12 @@ with `--check`).
   command that verifies a download against the provenance, and says why the release makes one statement over all its
   files and uses neither GitLab Runner's artifact provenance (`RUNNER_GENERATE_ARTIFACTS_METADATA`) nor GitLab.com's
   own attestations. `build/check-release-chain.py` holds the Build L1 sentence in the three documents and fails a
-  sentence in the README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs` that names a
-  higher level without saying that it is not met.
+  sentence in the README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs` that shows the
+  slsa.dev badge of a higher level, whatever its text says, that affirms a higher level, or that names one without
+  saying, in the clause that names it, that it is not met ("is not met", "not claimed", "nor", "neither", "not
+  Build L2" and the like): a level in any case, in words and with a hyphen, from "Build L2" and "SLSA build level
+  2" to "SLSA level two" and "SLSA-3", and a "not" elsewhere in the sentence, as in "Build L3 holds for every file,
+  not only the installers", says nothing of it.
 
 ### Control Panel
 
