@@ -9,17 +9,17 @@ Comment:
  of build/source-exclusions.txt - what is not free and what only the Windows
  build uses - and Files-Excluded repeats that list, as
  build/check-source-tarball.py --files-excluded prints it, so that a tarball
- made from a git tag instead holds the same files. The last seven patterns are
+ made from a git tag instead holds the same files. The last six patterns are
  this package's own: test data of third parties with no licence stated (the
- replies of three DKIM verifiers, an Outlook message, a security advisory's
- text, and a certificate authority's certificate, alone and after an example
- certificate). The upstream test suites read some of them and the Debian build
- reads none, so they are removed and the tarball is repacked as <version>+ds
+ replies of three DKIM verifiers, a security advisory's text, and a certificate
+ authority's certificate, alone and after an example certificate). The
+ upstream test suites read some of them and the Debian build reads none, so
+ they are removed and the tarball is repacked as <version>+ds
  (hmailserver/docs/SourcePackages.md).
 Files-Excluded:
  libraries
  hmailserver/docs/Licenses/License?-?Microsoft?SQL?Server?Compact?Edition.rtf
- LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-3.5.txt
+ LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-4.0.txt
  hmailserver/source/Server/COM
  hmailserver/source/Server/hMailServer
  hmailserver/source/Server/hMailServer.Minidump
@@ -85,7 +85,6 @@ Files-Excluded:
  hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
  hmailserver/test/SSL?examples/example+google.txt
  hmailserver/test/SSL?examples/google.cer
- hmailserver/test/TestData/DKIM/Good/Test?1.eml
  hmailserver/test/TestData/DKIM/Good/altn.response.txt
  hmailserver/test/TestData/DKIM/Good/elandit.response.txt
  hmailserver/test/TestData/DKIM/PermFail/port25.response.txt
@@ -261,8 +260,19 @@ Comment:
  By their names and contents these messages are the test corpus of Mail::DKIM
  (Jason Long, Messiah College), which is distributed under the same terms as
  Perl. The upstream Windows test suite and the fuzzing seeds read them; the
- Debian build does not. Four files captured from third parties with no licence
- are removed by Files-Excluded.
+ Debian build does not. Three replies captured from third parties' DKIM
+ verifiers, for which no licence is stated, are removed by Files-Excluded, and
+ Test 1.eml, Martin Knafve's own message, has the paragraph below.
+
+Files: hmailserver/test/TestData/DKIM/Good/Test?1.eml
+Copyright: 2021 Martin Knafve / hMailServer.com
+License: AGPL-3+
+Comment:
+ Martin Knafve's own test message, which he sent from his Outlook address to
+ his own on 1 January 2021 and added to the original's test data the next day:
+ the original's, under its licence, and not part of Mail::DKIM's corpus. Its
+ headers are what the servers that carried it wrote, its DKIM and ARC
+ signatures among them.
 
 Files: debian/*
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd

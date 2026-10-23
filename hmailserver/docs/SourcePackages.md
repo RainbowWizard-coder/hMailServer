@@ -81,33 +81,36 @@ uses. `debian/copyright`'s `Files-Excluded` begins with that list, as
 `python3 build/check-source-tarball.py --files-excluded` prints it, so a tarball
 uscan made from a git tag would hold the same files.
 
-The Debian package leaves out seven files more. The tarball keeps the whole test
+The Debian package leaves out six files more. The tarball keeps the whole test
 tree because the suites and the fuzzing read it, and SourceTarball.md names the
-test data in it that states no licence: the replies of three DKIM verifiers and an
-Outlook message under `hmailserver/test/TestData/DKIM` (`altn.response.txt`,
-`elandit.response.txt` and `Test 1.eml` under `Good`, `port25.response.txt` under
+test data in it that states no licence: the replies of three DKIM verifiers
+under `hmailserver/test/TestData/DKIM` (`altn.response.txt` and
+`elandit.response.txt` under `Good`, `port25.response.txt` under
 `PermFail`), a security advisory's text,
 `hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt`, which the Windows
 suite embeds, and the Google Internet Authority's certificate of 2009, as Equifax
 issued it, under `hmailserver/test/SSL examples` (`google.cer`, and
 `example+google.txt`, where it follows the original's example certificate), which
 nothing reads. A Debian archive needs a licence for every file it distributes, and
-the Debian build reads none of the seven - it builds the server and runs the tester
+the Debian build reads none of the six - it builds the server and runs the tester
 programs, and reads nothing under `hmailserver/test` - so they are removed:
 `Files-Excluded` lists them after the project's list, `mk-origtargz` (uscan's
 repack) removes them, and the tarball takes the `+ds` suffix:
 `hmailserver_<v>+ds.orig.tar.gz`, version `<v>+ds-1`. The rest of the DKIM
 messages are, by their names and contents, Mail::DKIM's test corpus, under Perl's
-terms, and are declared as such.
+terms, and are declared as such, but for `Good/Test 1.eml`, Martin Knafve's own
+test message of 2021, which the package carries under the project's licence, as
+the original's (the packages of 6.3.7 and before left it out with the replies,
+taken for a third party's).
 
 `build/check-source-tarball.py`, in the `checkers` job, holds this: the field must
 begin with the list as it stands, and each pattern after it must match at least
 one file, only files under `hmailserver/test/`, and none that `CMakeLists.txt` or
 `debian/rules` reads. The CI build holds the repack to it as well: the repacked
-tarball must have lost exactly those seven files and gained none.
+tarball must have lost exactly those six files and gained none.
 
 The RPM spec builds from the project's tarball as it is: rpm's source package
-carries the tarball whole, and the seven files are neither read nor installed. A
+carries the tarball whole, and the six files are neither read nor installed. A
 distribution that wants them out of its source package too repacks the way
 Debian does; its `%prep` already removes every path of the list, for a source made
 another way, and removes nothing from the project's tarball.

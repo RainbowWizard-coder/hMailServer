@@ -53,7 +53,6 @@ DEBIAN_DIR=hmailserver/source/Server/platform/packaging/debian-src/debian
 DEBIAN_ONLY="hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
 hmailserver/test/SSL examples/example+google.txt
 hmailserver/test/SSL examples/google.cer
-hmailserver/test/TestData/DKIM/Good/Test 1.eml
 hmailserver/test/TestData/DKIM/Good/altn.response.txt
 hmailserver/test/TestData/DKIM/Good/elandit.response.txt
 hmailserver/test/TestData/DKIM/PermFail/port25.response.txt"
@@ -171,9 +170,9 @@ gone=$(comm -23 "$work/before.txt" "$work/after.txt")
 added=$(comm -13 "$work/before.txt" "$work/after.txt")
 expected=$(printf '%s\n' "$DEBIAN_ONLY" | sort)
 [ -z "$added" ] || fail "the repack added entries: $added"
-[ "$gone" = "$expected" ] || fail "the repack removed another set of files than the Debian-only seven:
+[ "$gone" = "$expected" ] || fail "the repack removed another set of files than the Debian-only six:
 $gone"
-echo "$(basename "$orig"): $(wc -l < "$work/after.txt") entries, the seven without a licence gone"
+echo "$(basename "$orig"): $(wc -l < "$work/after.txt") entries, the six without a licence gone"
 
 step "the source tree, with debian/ from the tarball's own packaging"
 rm -rf "$work/unpack"

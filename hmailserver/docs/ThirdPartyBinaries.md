@@ -448,8 +448,9 @@ Not pinned, and why:
   installer to record its hash in the winget and Chocolatey manifests, and
   `build/check-package-manifests.py` fetches the winget schema to validate them;
   neither goes into anything the build makes. Windows' own ADO type library
-  (`system` above) and the three SQL Server Compact 3.5 OLE DB headers committed
-  under `libraries/mssqlce3.5` are compiled against as the Windows SDK's headers
+  (`system` above) and the three SQL Server Compact 4.0 OLE DB headers committed
+  under `libraries/mssqlce3.5` (a folder named for 3.5; each header opens with
+  "Microsoft SQL Server Compact (Version 4.0)") are compiled against as the Windows SDK's headers
   are and are never redistributed, so they are not in the SBOM; the runtime the
   headers describe is, as SQL Server Compact.
 

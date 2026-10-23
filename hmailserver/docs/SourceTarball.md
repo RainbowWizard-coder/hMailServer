@@ -64,9 +64,9 @@ literal path per line, with the reason for each group; in short:
 
 | Left out | Why |
 |---|---|
-| `libraries/` | `libraries/mssqlce3.5`: SQL Server Compact 3.5's headers, under Microsoft's SQL Server Compact licence, which is not free. The rest is the Windows build's alone: the scripts that build Boost, OpenSSL and libpq for MSVC, the licences of those builds, and `libraries/fat_cow_icons` (2,800 icons, CC BY 3.0), which only the Control Panel shows. |
-| `hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf` | The second copy of that licence. |
-| `LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-3.5.txt` | Its plain text, which `REUSE.toml` gives those headers. |
+| `libraries/` | `libraries/mssqlce3.5`: SQL Server Compact's headers - version 4.0's, in a folder named for 3.5 - under Microsoft's SQL Server Compact licence, which is not free. The rest is the Windows build's alone: the scripts that build Boost, OpenSSL and libpq for MSVC, the licences of those builds and SQL Server Compact 3.5's, and `libraries/fat_cow_icons` (2,800 icons, CC BY 3.0 US: the Creative Commons Attribution 3.0 United States licence), which only the Control Panel shows. |
+| `hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf` | SQL Server Compact 4.0 SP1's licence terms, under which the Windows build ships it and has those headers. |
+| `LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-4.0.txt` | Their plain text, which `REUSE.toml` gives those headers. |
 | `hmailserver/source/Server/COM`, `hMailServer`, `hMailServer.Minidump`, `hMailServer.Updater` | The ATL administration API, the Windows service host, Windows Error Reporting and the live update's Windows helper. `CMakeLists.txt` builds none of them. |
 | `hmailserver/source/Server/zlib` | zlib as `hMailServer.exe` compiles it. The POSIX build links the distribution's zlib and, since 28 September 2026, includes the distribution's `zlib.h` too (before that it read the vendored header over the distribution's library). |
 | `hmailserver/source/Tools/*` but `Cli` | The Control Panel and the database tools, every one a `net10.0-windows` project. `Cli` stays: the packages install its `hmctl`. |
@@ -137,9 +137,9 @@ Everything else in the tarball is the project's, under the AGPL-3.0-or-later in
 | DKIM test messages, which the Windows suite and the fuzzing seeds read: most appear to be the test corpus of Mail::DKIM (Jason Long, Messiah College), distributed under Perl's terms | `hmailserver/test/TestData/DKIM` | Perl's (GPL-1.0-or-later or Artistic-1.0-Perl), for those | none in the tree |
 
 And test data with no licence stated at all: messages captured from third
-parties - the DKIM verifiers' replies and the Outlook message under
-`hmailserver/test/TestData/DKIM/Good` and `PermFail` (`*.response.txt`,
-`Test 1.eml`) and the Secunia page text in
+parties - the three DKIM verifiers' replies under
+`hmailserver/test/TestData/DKIM/Good` and `PermFail` (`*.response.txt`) and the
+Secunia page text in
 `hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt`, which the suite
 embeds; and a certificate authority's certificate, the Google Internet
 Authority's of 2009 as Equifax issued it, in `hmailserver/test/SSL examples`
@@ -149,7 +149,11 @@ the fuzzing read them, and the certificates as the original left them; a
 distribution whose archive requires a licence for every file (Debian's does)
 has to decide whether to take them as they are or leave them out of its own
 repack with `Files-Excluded`, which costs the fixtures that read them. The
-Debian source package leaves all seven out ([SourcePackages.md](SourcePackages.md)).
+Debian source package leaves all six out ([SourcePackages.md](SourcePackages.md)).
+`Test 1.eml` beside the replies is not one of them: it is Martin Knafve's own test
+message, which he sent from his Outlook address to his own on 1 January 2021 and
+added to the original's test data the next day, and it is the original's, under
+its licence.
 For REUSE (`REUSE.toml`, `LICENSES/`; CONTRIBUTING.md, "Code style and licence
 headers") they are `LicenseRef-No-Licence-Stated`, whose text says that no licence
 is given for them, and every file of the table above has its third party's

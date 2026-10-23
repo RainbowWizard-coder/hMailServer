@@ -210,9 +210,13 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # and debian/copyright declare the ones the source tarball carries, and
 # hmailserver/docs/ThirdPartyBinaries.md the rest.
 
-# The Fat Cow icons (CC BY 3.0), the 2,800 the Control Panel draws with, and the
-# three of them that three of the database tools take as their window's icon, byte
-# for byte the 32 by 32 ones of the set.
+# The Fat Cow icons, the 2,800 the Control Panel draws with, and the three of them
+# that three of the database tools take as their window's icon, byte for byte the
+# 32 by 32 ones of the set: under the Creative Commons Attribution 3.0 United States
+# licence, CC BY 3.0 US, whose text libraries/License - Fat Cow Icons.rtf carries
+# (its terms are the United States port's, "Collective Work" and "Derivative Work",
+# and FatCow's page links creativecommons.org/licenses/by/3.0/us/). Four of the
+# original's forms carry one of them inside their .resx; their table is below.
 [[annotations]]
 path = [
     "libraries/fat_cow_icons/**",
@@ -221,14 +225,21 @@ path = [
     "hmailserver/source/Tools/DataDirectorySynchronizer/georectify.ico",
 ]
 SPDX-FileCopyrightText = "FatCow Web Hosting <https://www.fatcow.com/free-icons>"
-SPDX-License-Identifier = "CC-BY-3.0"
+SPDX-License-Identifier = "CC-BY-3.0-US"
 
-# SQL Server Compact 3.5's headers, Microsoft's, under its licence terms, which no
-# free distribution takes (build/source-exclusions.txt leaves them out of the tarball).
+# SQL Server Compact's OLE DB headers, Microsoft's. They are version 4.0's - each
+# opens with "Microsoft SQL Server Compact (Version 4.0)", as it did in the original;
+# the folder's name is 3.5's - and each says that its use is subject to the licence
+# agreement under which it was licensed (Microsoft's boilerplate names its premium
+# shared source licence agreement). They come with SQL Server Compact 4.0 SP1, the
+# version the Windows build ships, under its licence terms: hmailserver/docs/Licenses/
+# License - Microsoft SQL Server Compact Edition.rtf, whose plain text the identifier
+# names (libraries/'s copy of that notice is 3.5's terms). No free distribution takes
+# them, and build/source-exclusions.txt leaves them out of the tarball.
 [[annotations]]
 path = "libraries/mssqlce3.5/*.h"
 SPDX-FileCopyrightText = "Microsoft Corporation"
-SPDX-License-Identifier = "LicenseRef-Microsoft-SQL-Server-Compact-3.5"
+SPDX-License-Identifier = "LicenseRef-Microsoft-SQL-Server-Compact-4.0"
 
 # QuickJS, vendored unmodified (quickjs/VERSION; quickjs/LICENSE beside it).
 [[annotations]]
@@ -283,6 +294,16 @@ SPDX-FileCopyrightText = [
     "Jason Long",
 ]
 SPDX-License-Identifier = "GPL-1.0-or-later OR Artistic-1.0-Perl"
+
+# Martin Knafve's own test message, which he sent from his Outlook address to his
+# own on 1 January 2021 ("Test 1") and added to the original's test data the next
+# day, as RegressionTests/Resources/MessageWithValidDkim.eml is his of 2025: the
+# original's, under its licence. Its headers are what the servers that carried it
+# wrote, its DKIM and ARC signatures among them, which the test verifies.
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/Good/Test 1.eml"
+SPDX-FileCopyrightText = "2021 Martin Knafve / hMailServer.com"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 # ---------------------------------------------------- third parties' licence texts
 # The licence texts and notices of third-party components, as their holders publish
@@ -365,17 +386,12 @@ SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
 
 [[annotations]]
 path = "hmailserver/test/TestData/DKIM/Good/elandit.response.txt"
-SPDX-FileCopyrightText = "2009 The sender of this reply, ns1.qubic.net, as its headers name it"
+SPDX-FileCopyrightText = "2009 Eland Systems, whose DKIM responder at dk.elandsys.com sent this reply"
 SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
 
 [[annotations]]
 path = "hmailserver/test/TestData/DKIM/PermFail/port25.response.txt"
 SPDX-FileCopyrightText = "2009 Port25 Solutions, whose verifier at port25.com sent this reply"
-SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
-
-[[annotations]]
-path = "hmailserver/test/TestData/DKIM/Good/Test 1.eml"
-SPDX-FileCopyrightText = "2021 The sender of this message and the servers that relayed it, as its headers name them"
 SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
 
 [[annotations]]
@@ -449,6 +465,26 @@ path = "hmailserver/source/Server/Common/AntiSpam/HtmlReferencesData.cpp"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
 SPDX-License-Identifier = "BSD-3-Clause"
+
+# Four of the original's forms whose .resx carries a Fat Cow icon, byte for byte, as
+# the form's icon ($this.Icon): DBSetup's and DBUpdater's main forms (32 by 32
+# database_add and database_refresh), DataDirectorySynchronizer's (32 by 32
+# georectify) and the tools' error dialog (16 by 16 information). The rest of each
+# is the original's, under its licence; the icon is FatCow's, under CC BY 3.0 US.
+[[annotations]]
+path = [
+    "hmailserver/source/Tools/DBSetup/formMain.resx",
+    "hmailserver/source/Tools/DBUpdater/formMain.resx",
+    "hmailserver/source/Tools/DataDirectorySynchronizer/formMain.resx",
+    "hmailserver/source/Tools/Shared/Dialogs/formErrorMessage.resx",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2005-2026 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "FatCow Web Hosting <https://www.fatcow.com/free-icons>",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
 
 # The installer's licence page: the project's terms, and the third-party components'
 # notices copied into it verbatim.

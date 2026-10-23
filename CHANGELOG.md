@@ -278,16 +278,21 @@ with `--check`).
 ### Downloads and the release
 
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
-  stated.** `hmailserver/test/SSL examples/google.cer`, the certificate Equifax issued to the Google Internet
-  Authority in 2009, and `example+google.txt` beside it, the original's example certificate followed by the same one,
-  are a third party's, for which no licence is stated, and `debian/copyright` gave them the project's licence and
-  holders through its `Files: *` paragraph; no test, script or build reads either of them. `Files-Excluded` lists both
-  after the five files of test data without a licence it already left out, `build/ci/packages/srcpkg-deb.sh` holds the
-  repack to losing those seven, and the copyright file's header, `hmailserver/docs/SourcePackages.md` and
-  `SourceTarball.md`'s paragraph on the test data with no licence stated name them, the last no longer calling the
-  exclusion an open question of the Debian package's, which has left those files out since it was made.
-  `build/check-source-tarball.py` passes: each pattern matches a file under `hmailserver/test/` that neither
-  `CMakeLists.txt` nor `debian/rules` reads.
+  stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
+  the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the
+  original's example certificate followed by the same one, are a third party's, for which no licence is stated, and
+  `debian/copyright` gave them the project's licence and holders through its `Files: *` paragraph; no test, script or
+  build reads either of them. `hmailserver/test/TestData/DKIM/Good/Test 1.eml`, which the package left out as a third
+  party's message with no licence, is Martin Knafve's own, sent from his Outlook address to his own on 1 January 2021
+  and added to the original's test data the next day: the package carries it now, and the copyright file gives it
+  his copyright of 2021 and the project's licence in a paragraph of its own. `Files-Excluded` lists the two
+  certificates beside the four files of test data without a licence it still leaves out, the replies of three DKIM
+  verifiers and a security advisory's text, `build/ci/packages/srcpkg-deb.sh` holds the repack to losing those six,
+  and the copyright file's header, `hmailserver/docs/SourcePackages.md` and `SourceTarball.md`'s paragraph on the
+  test data with no licence stated name them, the last no longer calling the exclusion an open question of the
+  Debian package's, which has left those files out since it was made. `build/check-source-tarball.py` passes: each
+  pattern matches a file under `hmailserver/test/` that neither `CMakeLists.txt` nor `debian/rules` reads, and each
+  paragraph a file the repacked source holds.
 
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
@@ -862,13 +867,18 @@ with `--check`).
   and kind of file, whose comments say which holders each one names and why; and `LICENSES/` holds the text of each of
   the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote them and
   each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and `LicenseRef-StdString` as
-  `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-3.5` as the licence beside its headers
-  states it, `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's
-  "notices") and `LicenseRef-No-Licence-Stated` for the seven files of test data no licence is stated for. A third
-  party's file keeps its own licence and holders, never the project's: the Fat Cow icons and the three of them the
-  database tools take as their icon (CC-BY-3.0), SQL Server Compact's headers, QuickJS (MIT), zlib, Unicode's data,
-  the WHATWG's list of character references and the RFC 7208 test suite (BSD-3-Clause), and the DKIM test corpus
-  (Perl's terms); and the project's sources that hold a third party's code or data under the project's header, which
+  `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the plain text of SQL Server
+  Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows build ships it and has its
+  OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - `LicenseRef-Verbatim-Notice` for third
+  parties' licence texts carried verbatim (the copyright file's "notices") and `LicenseRef-No-Licence-Stated` for the
+  six files of test data no licence is stated for. A third party's file keeps its own licence and holders, never the
+  project's: the Fat Cow icons and the three of them the database tools take as their icon (CC-BY-3.0-US, the
+  Creative Commons Attribution 3.0 United States licence, whose terms the icons' licence text carries, as does the
+  installer's licence page now), and the four forms of the original whose `.resx` carries one of them as the form's
+  icon have that licence and FatCow beside the original's; SQL Server Compact's headers, QuickJS (MIT), zlib,
+  Unicode's data, the WHATWG's list of character references and the RFC 7208 test suite (BSD-3-Clause), and the DKIM
+  test corpus (Perl's terms), but for `Test 1.eml` beside it, Martin Knafve's own message of 2021, which is the
+  original's; and the project's sources that hold a third party's code or data under the project's header, which
   until now claimed the AGPL alone - the seven MIME files (BSD-1-Clause), `StdString.h`, `PublicSuffixListData.h`
   (MPL-2.0), the two IDNA tables (Unicode-3.0) and `HtmlReferencesData.cpp` (BSD-3-Clause) - have the third party's
   licence and holders added beside the header's. `debian/copyright` says the same of the MIME files, `StdString.h`
@@ -876,7 +886,7 @@ with `--check`).
   the AppImage's copy of the GPL-3.0's text and `LICENSES/` to its notices, but for the two texts there that are the
   project's own, and the original's list of licences, `License list.*`, a paragraph of its own; and the source
   tarball, and so `Files-Excluded`, leaves out SQL Server Compact's licence in `LICENSES/` as it leaves out the
-  headers it is for and the other copy of it (`build/source-exclusions.txt`). Eighteen of the project's files whose text quotes an SPDX tag or a copyright notice that is
+  headers it is for and the RTF it is made from (`build/source-exclusions.txt`). Eighteen of the project's files whose text quotes an SPDX tag or a copyright notice that is
   not their own (fourteen scripts and tools that write the header into what they make, two tests and two checkers)
   mark it with `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, `.gitlab/ci/package-repos.yml` and `fuzz/dict/mime.dict` carry the header, and the changelog,
   the roadmap, the contribution guide, `SourceTarball.md`, the help pages compiled from them and the copyright file,

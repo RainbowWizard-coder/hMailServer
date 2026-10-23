@@ -28,19 +28,21 @@
 # and the suite read at run time - every time the checkers run.
 
 # ---------------------------------------------------------------- not free
-# libraries/mssqlce3.5: SQL Server Compact 3.5's headers, under Microsoft's
-# SQL Server Compact licence, which no free distribution takes; with them the
-# rest of libraries/, which is the Windows build's alone: the scripts that build
-# Boost, OpenSSL and libpq for MSVC, the licences of those Windows builds and of
-# SQL Server Compact, and libraries/fat_cow_icons (2,800 icons, CC BY 3.0), which
-# only the Control Panel shows.
+# libraries/mssqlce3.5: SQL Server Compact's headers - version 4.0's, in a folder
+# named for 3.5 - under Microsoft's SQL Server Compact licence, which no free
+# distribution takes; with them the rest of libraries/, which is the Windows
+# build's alone: the scripts that build Boost, OpenSSL and libpq for MSVC, the
+# licences of those Windows builds and SQL Server Compact 3.5's, and
+# libraries/fat_cow_icons (2,800 icons, under the Creative Commons Attribution
+# 3.0 United States licence), which only the Control Panel shows.
 libraries
-# The second copy of SQL Server Compact's licence. The other notices in that
-# directory stay, those of the code the Linux build compiles among them.
+# SQL Server Compact 4.0 SP1's licence terms, under which the Windows build ships
+# it and has those headers. The other notices in that directory stay, those of the
+# code the Linux build compiles among them.
 hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf
-# And its plain text in LICENSES/, the licence REUSE.toml gives those headers. The
-# other licence texts there stay.
-LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-3.5.txt
+# And their plain text in LICENSES/, the licence REUSE.toml gives those headers.
+# The other licence texts there stay.
+LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-4.0.txt
 
 # ---------------------------------------------------------------- the Windows server
 # The ATL administration API, the Windows service host and its solution, the
