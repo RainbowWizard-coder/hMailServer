@@ -726,11 +726,11 @@ scanning".
   fails *dependency-scan-verdict*, the job after it, on a high or critical advisory that has a fixed version. Both are
   `allow_failure`: a finding in the whole tree that no change brought must not stop an unrelated change, and it holds
   the release instead ([Before a release](#before-a-release)). Renovate (`renovate.json`, the `renovate` job, daily
-  under its schedule) opens a merge request at its next run for every OSV advisory against a NuGet package in use -
-  the job builds its advisory database for NuGet alone, and its alerts do not reach the custom datasources of the
-  native libraries and the .NET runtime, so it proposes an OpenSSL patch release and a .NET servicing release on any
-  day instead - and a weekly one per ecosystem; a Python package's or a native library's advisory is
-  *dependency-scan*'s and *mr-dependency-check*'s to find
+  under its schedule) opens a merge request at its next run for every OSV advisory with a fixed release against a
+  NuGet package in use - the job builds its advisory database for NuGet alone, and its alerts do not reach the custom
+  datasources of the native libraries and the .NET runtime, so it proposes an OpenSSL patch release and a .NET
+  servicing release on any day instead - and a weekly one per ecosystem; a Python package's or a native library's
+  advisory is *dependency-scan*'s and *mr-dependency-check*'s to find
   ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Dependency updates").
   What holds besides: the NuGet lock files are committed and the .NET projects are restored with `--locked-mode`, so
   a package cannot change under a build without a reviewed commit; the native libraries are pinned by version and by

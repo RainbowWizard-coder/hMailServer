@@ -1168,12 +1168,16 @@ with `--check`).
   2026). The paragraph now says so, names the module's two files among those it lists, and says that the
   `.intoto.jsonl` a release carries from the release after 6.3.7 is not named in it either.
 - **SECURITY.md, ContinuousIntegration.md and CONTRIBUTING.md say that Renovate opens a merge request for a published
-  advisory against a NuGet package, where they said against any dependency in use.** The `renovate` job builds
-  Renovate's advisory database from OSV's export of NuGet's advisories alone (`build/ci/osv-offline-db.py ... NuGet`),
-  and `renovate.json` says that its alerts do not reach the custom datasources of the native libraries and the .NET
-  runtime; so a Python package's or a native library's advisory gets no merge request of its own from Renovate. The
-  texts now say so, that `dependency-scan` and `mr-dependency-check` find those, and that an OpenSSL patch release
-  and a .NET servicing release come on any day instead, as the rules for them already said.
+  advisory with a fixed release against a NuGet package, where they said against any dependency in use.** The `renovate`
+  job builds Renovate's advisory database from OSV's export of NuGet's advisories alone
+  (`build/ci/osv-offline-db.py ... NuGet`), and `renovate.json` says that its alerts do not reach the custom datasources
+  of the native libraries and the .NET runtime; so a Python package's or a native library's advisory gets no merge
+  request of its own from Renovate. The texts now say so, that `dependency-scan` and `mr-dependency-check` find those,
+  and that an OpenSSL patch release and a .NET servicing release come on any day instead, as the rules for them already
+  said. The merge request goes to the newest fixed release (`vulnerabilityFixStrategy` `highest`), so an advisory that
+  no release fixes gets none, and is on the dependency dashboard alone, which lists every advisory, fixed or not;
+  SECURITY.md and CONTRIBUTING.md say "with a fixed release" and "that a release fixes", where SECURITY.md said every
+  OSV advisory and CONTRIBUTING.md any published one.
 - **`hmailserver/docs/third-party-binaries.json` says that a gathered file, the MSVC runtime, is verified by version,
   where its table of dispositions said that it is verified against its `sha256`.** `build/get-installer-binaries.ps1`
   checks a gathered file's major and minor file version against the entry's `version` and only reports its hash,
