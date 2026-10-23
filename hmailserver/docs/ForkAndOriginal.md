@@ -131,7 +131,8 @@ The two share the database's upgrade chain up to schema 5708 and part company th
 
 Where a package manager's plain name is already the original's, the fork's package
 has another: on Chocolatey the id `hmailserver` is a package of the original, and
-this fork's 6.3.7 was submitted as `hmailserver-progressiverobot`.
+this fork's is `hmailserver-progressiverobot`, listed with 6.3.7 since 23 October
+2026.
 
 Security fixes the fork has published
 -------------------------------------

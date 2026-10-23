@@ -14,24 +14,23 @@ merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.
 
 **Where each channel stands, read on 21 October 2026.** Three build services carry
 6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
-OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0
-(x86_64 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
-`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on
-x86_64 and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver`
-publishes it for Ubuntu 24.04 and 26.04, amd64 and arm64. Docker Hub's
-`progressiverobot/hmailserver` has it too, copied by hand that day after
-`registry-mirror`, written for an image of one platform, refused the release's image
-index; the job now verifies and copies an index
+OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0 (x86_64
+and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
+`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on x86_64
+and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver` publishes it for
+Ubuntu 24.04 and 26.04, amd64 and arm64. Docker Hub's `progressiverobot/hmailserver` has
+it too, copied by hand that day after `registry-mirror`, written for an image of one
+platform, refused the release's image index; the job now verifies and copies an index
 ([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
-Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026,
-which waits for Chocolatey's moderation ([Chocolatey](#chocolatey)). Quay.io, ECR
-Public, the AUR and the Snap Store have nothing: `registry-mirror` copies only to a
-registry whose credential is stored, and `aur-publish` says "not configured" and
-passes, until the owner has made the channel's account and a maintainer has stored
-its credential; the Snap Store's credential is stored, and its first upload, of
-6.3.7, failed ([Snap Store](#snap-store)). Every job was first run on a laptop
-against a fixture release. No release before 6.3.6 can be published to
-the AUR, the PPA, Copr or OBS: they build from the release's source tarball
+Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which
+then waited for Chocolatey's moderation; a moderator approved it on 23 October 2026
+([Chocolatey](#chocolatey)). Quay.io, ECR Public, the AUR and the Snap Store have
+nothing: `registry-mirror` copies only to a registry whose credential is stored, and
+`aur-publish` says "not configured" and passes, until the owner has made the channel's
+account and a maintainer has stored its credential; the Snap Store's credential is
+stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). Every job
+was first run on a laptop against a fixture release. No release before 6.3.6 can be
+published to the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 ([SourceTarball.md](SourceTarball.md)), and the Debian and RPM packaging inside it
 ([SourcePackages.md](SourcePackages.md)), which 6.3.6 is the first to carry.
 
@@ -386,10 +385,16 @@ Windows. Pressing `chocolatey-release` starts both.
   October 2026 (HTTP 201), in the 22 October package's place, with Martin Knafve
   credited in its authors and copyright, while the feed still listed it as `Submitted`
   (point 7 above). It passed Chocolatey's automated validation and verification at
-  01:32 UTC, and the feed lists it as `Submitted`, waiting for a moderator (read at
-  02:44 UTC that day). It is listed, and `choco install hmailserver-progressiverobot`
-  installs it, once a moderator has passed it, and every new version waits the same
-  way.
+  01:32 UTC.
+- **Approved on 23 October 2026.** A moderator approved it at 11:56 UTC that day; the
+  feed lists it as `Approved`, its virus scan `NotFlagged`, and `choco install
+  hmailserver-progressiverobot` installs it. On a clean Windows Server 2025 (the
+  installer smoke VM at its first snapshot) that afternoon, Chocolatey 2.7.4's `choco
+  install hmailserver-progressiverobot` downloaded the release's installer, whose
+  SHA-256 matched and whose Authenticode signature was Valid (Progressive Robot Ltd),
+  installed 6.3.7 with the service running and ports 25, 110 and 143 answering, and
+  `choco uninstall hmailserver-progressiverobot` removed it, leaving no uninstall
+  entry and no service. Every new version waits for a moderator the same way.
 
 ### Snap Store
 

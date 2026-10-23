@@ -16,7 +16,7 @@ September - and packages of it exist, so every package of this project says
 in its title or name and in its description that it is the fork, and never takes
 an identifier that is the original's.
 
-**Chocolatey: 6.3.7 is in moderation again, without the credit yet.** The
+**Chocolatey: 6.3.7 is approved and listed, with the credit.** The
 `chocolatey-publish` job pushed `hmailserver-progressiverobot` 6.3.7 at 23:47 UTC
 on 20 October 2026, and it passed Chocolatey's automatic checks. That package was
 titled "hMailServer" alone, with a summary that did not say fork, and its authors
@@ -39,10 +39,15 @@ copyright, and at 00:59 UTC on 23 October 2026 `chocolatey-publish` (job
 pressed there) sent 6.3.7 a third time, with the credit, in the 22 October
 package's place, while the feed still listed it as `Submitted`
 ([Channels.md](Channels.md), "How a channel job publishes"). It passed
-Chocolatey's automated validation and verification at 01:32 UTC that day, and the
-feed lists it as `Submitted`, waiting for a moderator (read at 02:44 UTC). The
-package is listed, and installs with `choco install hmailserver-progressiverobot`,
-once a moderator has passed it. Every new version waits for moderation the same
+Chocolatey's automated validation and verification at 01:32 UTC that day, and a
+moderator approved it at 11:56 UTC: the community repository's feed lists it as
+`Approved`, its virus scan `NotFlagged`. On a clean Windows Server 2025 (the
+installer smoke VM at its first snapshot) that afternoon, Chocolatey 2.7.4's
+`choco install hmailserver-progressiverobot` downloaded the release's installer,
+whose SHA-256 matched and whose Authenticode signature was Valid (Progressive
+Robot Ltd), installed 6.3.7 with the service running and ports 25, 110 and 143
+answering, and `choco uninstall hmailserver-progressiverobot` removed it, leaving
+no uninstall entry and no service. Every new version waits for moderation the same
 way.
 
 **winget: not submitted.** The manifests are rendered and validated by hand for
@@ -114,7 +119,7 @@ winget upgrade ProgressiveRobot.hMailServer
 ```
 
 ```powershell
-choco install hmailserver-progressiverobot       # once moderation has approved it
+choco install hmailserver-progressiverobot
 choco upgrade hmailserver-progressiverobot
 ```
 
@@ -214,16 +219,19 @@ release's from `master`, 6.3.7's resubmission among them - passes
 `/LOG="%TEMP%\<package id>.<version>.install.log"` and names that log when the
 install fails, and shows the refusal's words, which setup from the release after
 6.3.7 writes, with or without a log, to `%TEMP%\hMailServer-setup-refused.txt`.
-Both end with the installer's exit code 1 for a refusal. The log records setup's
-command line, so give the administrator password in `HM_ADMIN_PASSWORD`, set in
-the elevated prompt, rather than with `/adminpassword` in `--override` or
-`--install-arguments`.
+Chocolatey's CLI runs the script with `TEMP` set to its cache folder, by default
+`%TEMP%\chocolatey` of the account that ran `choco`, so that is where both files
+are: `hmailserver-progressiverobot.6.3.7.install.log` was there after the clean
+install of 23 October 2026. Both end with the installer's exit code 1 for a
+refusal. The log records setup's command line, so give the administrator password
+in `HM_ADMIN_PASSWORD`, set in the elevated prompt, rather than with
+`/adminpassword` in `--override` or `--install-arguments`.
 `build/check-package-manifests.py` refuses a manifest or a package that has lost
-either `/LOG`. `/TYPE=full` is deliberately **not** passed, unlike the
-smoke test: on a first install Inno's default type is the full one anyway, and
-on an upgrade Inno preselects the components already installed — forcing the
-full type would quietly put the Control Panel back on a server where the
-administrator had left it out.
+either `/LOG`. `/TYPE=full` is deliberately **not** passed, unlike the smoke test:
+on a first install Inno's default type is the full one anyway, and on an upgrade
+Inno preselects the components already installed — forcing the full type would
+quietly put the Control Panel back on a server where the administrator had left it
+out.
 
 Making the files for a release
 ------------------------------

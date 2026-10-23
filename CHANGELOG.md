@@ -326,7 +326,9 @@ with `--check`).
   still name Progressive Robot alone, and the community repository's feed lists it as `Submitted`, not approved; at
   00:59 UTC on 23 October 2026 `chocolatey-publish` (job 17399248551, in master's pipeline 2978723670) sent it a third
   time, with Martin Knafve credited, in that package's place; it passed Chocolatey's automated validation and
-  verification at 01:32 UTC, and the feed lists it as `Submitted`, waiting for a moderator.
+  verification at 01:32 UTC, and a moderator approved it at 11:56 UTC that day, so `choco install
+  hmailserver-progressiverobot` installs it; on a clean Windows Server 2025 that afternoon it installed 6.3.7 from the
+  release's signed installer, the service running, and `choco uninstall` removed it.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
@@ -344,14 +346,15 @@ with `--check`).
   an installation of the original hMailServer's 5.7, left Chocolatey's "Exit code was '1'" and no installer log: the
   message box is suppressed, and Inno Setup writes a log only with `/LOG`. `chocolateyinstall.ps1` now passes
   `/LOG="%TEMP%\<package id>.<version>.install.log"`, names that log when the install fails, and shows the refusal's
-  words from `%TEMP%\hMailServer-setup-refused.txt` when setup wrote it during the install. The winget installer
-  manifest already declares `Log: /LOG="<LOGPATH>"`, which `winget install --log <file>` fills. The log records
-  setup's command line, so PackageManagers.md says to give the administrator password in `HM_ADMIN_PASSWORD` rather
-  than in Chocolatey's `--install-arguments`. `build/check-package-manifests.py` refuses a winget Log switch that is not
-  `/LOG="<LOGPATH>"` and Chocolatey `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter.
-  The script is not tied to a release of the installer: `chocolatey-publish` renders the latest release's package from
-  `master`'s templates, so 6.3.7's resubmission passes `/LOG` too; only the refusal it shows is from the release after
-  6.3.7.
+  words from `%TEMP%\hMailServer-setup-refused.txt` when setup wrote it during the install; Chocolatey's CLI sets `TEMP`
+  to its cache folder while the script runs, by default `%TEMP%\chocolatey` of the account that ran `choco`, which
+  PackageManagers.md now says. The winget installer manifest already declares `Log: /LOG="<LOGPATH>"`, which `winget
+  install --log <file>` fills. The log records setup's command line, so PackageManagers.md says to give the
+  administrator password in `HM_ADMIN_PASSWORD` rather than in Chocolatey's `--install-arguments`.
+  `build/check-package-manifests.py` refuses a winget Log switch that is not `/LOG="<LOGPATH>"` and Chocolatey
+  `silentArgs` without `/LOG=`, and `build/make-package-manifests.ps1` the latter. The script is not tied to a release
+  of the installer: `chocolatey-publish` renders the latest release's package from `master`'s templates, so 6.3.7's
+  resubmission passes `/LOG` too; only the refusal it shows is from the release after 6.3.7.
 
 - **The Chocolatey and winget descriptions say that the installer refuses the original hMailServer's 5.7.** They said
   that, both installers registering under the uninstall entry `hMailServer_is1`, this package's installer takes an
