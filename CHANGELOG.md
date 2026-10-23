@@ -961,9 +961,12 @@ with `--check`).
   pass; over its render of 9.9.9 with the switch changed, master's checker passed the unquoted and the extended
   switch and this one refuses both, and both refuse a switch without a path and none at all.
   `build/ci/packages/original-guard-test.ps1` said that nothing outside its working folder is written; it now says
-  that setup's own temporary folder, `is-*.tmp` under `%TEMP%`, which every Inno Setup setup makes while it runs and
-  removes when it ends, is written too, and that ISCC, compiling, writes nothing there, as a compile of its harness
-  with Inno Setup 6, watched, wrote nothing in `%TEMP%`.
+  that the two temporary folders Inno Setup makes under `%TEMP%` while the setup runs (`is-*.tmp`: the loader's, which
+  holds the setup program it runs, and the setup's own), which it removes when it ends, are written too, and that
+  ISCC, compiling, writes nothing there, as a compile of its harness with Inno Setup 6, watched, wrote nothing in
+  `%TEMP%`. Run whole with `%TEMP%` a watched, empty folder, the test passed (every case, and each of its five altered
+  copies caught); each of its six setups made two `is-*.tmp` folders there, one holding `original-guard-test.tmp`, the
+  loader's copy of the setup, and the other `_isetup\_setup64.tmp`, and nothing was left behind.
 
 ### Documentation
 
