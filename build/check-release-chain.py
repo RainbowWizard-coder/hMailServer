@@ -5427,15 +5427,79 @@ START_TEST_CALLS = ("}",
                     'ask_image MariaDB "$maria_host" "$maria_smtp" "$maria_rest" "${names:+$names-mail-mariadb}"',
                     'maria_schema="$schema"',
                     '[ "$pg_schema" = "$maria_schema" ] \\')
+# The functions the test script defines, each once, as "name() {" on a line of its own
+# and ended by the first line that is "}" alone: no other, so that no command the asks
+# run (fail, curl, psql, [ ...) is made another thing, and no function holds the asks.
+START_TEST_FUNCTIONS = ("fail", "unasked", "step", "cleanup", "still_running", "smtp_conversation", "schema_version",
+                        "ask_image")
+# Where a command starts on a line of the script, as start_test_call_problems reads it.
+_COMMAND_START = r"(?:^|[;&|!{(`)]|\b(?:then|do|else|elif)(?=\s))\s*"
+# The builtins that make the rest of the script not run as written, or a command
+# another thing, refused before the asks wherever they start a command.
+_START_TEST_REFUSED = (
+    (r"exec\s+(?![0-9]*[<>])\S", "replaces the shell with another program"),
+    (r"set\b", "sets the shell's options or arguments other than set -uo pipefail (set -n, for one, runs nothing "
+               "after it)"),
+    (r"(?:eval|source|\.)(?=\s)", "runs text the check cannot see as commands"),
+    (r"(?:alias|unalias|unset|enable|shopt|hash|builtin)\b", "can make a command another thing"),
+    (r"command\b(?!\s+-v\s)", "runs a builtin past the script's own functions"),
+    (r"trap\b", "sets a trap other than trap cleanup EXIT"),
+    (r"exit\b(?!\s+[1-9][0-9]?\s*(?:[;&|)}]|$))", "leaves the script, perhaps with status 0"))
+
+
+def _start_test_scan(line):
+    """A line of the test script as the rules below read it: as written, but for a
+    single-quoted string given to bash -c or START_COMMAND, which this shell never runs,
+    emptied. Nothing else is taken off - no comment after the code, no other quoted
+    string - so that a command cannot hide from the rules behind a quote or a #."""
+    return re.sub(r"((?:^START_COMMAND=|\bbash -c )\s*)'[^'\n]*'", r"\1''", line.rstrip())
+
+
+def _start_test_code(line):
+    """A line's code for the depth of functions, groups and blocks: the line with a
+    comment (a # that begins a word) taken off."""
+    return re.sub(r"(?:^|\s)#.*$", "", line.strip()).rstrip()
+
+
+def _start_test_body(lines, name):
+    """The lines of function name's body, as the script writes its functions: from the
+    line "name() {" to the next line that is "}" alone. None when there is no such line."""
+    try:
+        start = lines.index("%s() {" % name)
+        end = lines.index("}", start)
+    except ValueError:
+        return None
+    return lines[start + 1:end]
 
 
 def start_test_call_problems(script):
     """build/ci/container-image-start-test.sh asks the image beside PostgreSQL and beside
-    MariaDB as commands that run: START_TEST_CALLS as lines of their own, the comparison
-    failing the test, outside every function's body, at no depth of an if, a loop or a
-    case, after no top-level exit or return and no here-document. A call commented out,
-    put behind true || or inside a function nothing calls would leave the start jobs
-    passing without asking that image."""
+    MariaDB as commands that run, as far as a scan of its lines - not a parser of bash -
+    can hold it:
+      - START_TEST_CALLS as lines of their own, once, then the comparison failing the
+        test ("  || fail" and one quoted message), and after it nothing but blank lines
+        and echo "..." lines, so that nothing opened before the asks - a function body, a
+        { } or ( ) group, an if, a loop, a case, a here-document - can be closed after
+        them: left open, bash refuses the whole script and the job fails;
+      - before the asks, no here-document of any delimiter (<<WORD, <<'WORD', <<"WORD",
+        <<\\WORD, <<-...), and none of _START_TEST_REFUSED where a command starts:
+        exec with a program, any set but "set -uo pipefail" (set -n, for one, runs
+        nothing after it), eval, source and ., alias, unalias, unset, enable, shopt,
+        hash, builtin, command other than command -v, any trap but "trap cleanup EXIT",
+        and an exit with anything but a status of 1 to 99 (but for the help branch of
+        the one argument loop and the last line of cleanup, exit "$code"); and no PATH
+        set;
+      - the functions START_TEST_FUNCTIONS, each defined once and no other; ask_image's
+        body without a return and ending in schema="$version"; fail's and unasked's
+        without a return and ending in exit 1; cleanup's taking code=$? first, writing
+        code nowhere else and ending in exit "$code";
+      - and, as before, the asks outside every function body and group written over
+        several lines and at no depth of a top-level if, loop or case, after no
+        top-level exit or return.
+    A call commented out, put behind true ||, inside a function nothing calls, or after
+    a command that ends the script with status 0 would leave the start jobs passing
+    without asking that image. The script is read as it is written; a form these rules
+    do not name (a command built at run time, for one) is for the review of the change."""
     problems = []
     name = FILES["image-start"].replace(os.sep, "/")
     lines = script.replace("\r\n", "\n").split("\n")
@@ -5446,20 +5510,57 @@ def start_test_call_problems(script):
         return ["%s does not ask the image beside PostgreSQL and then beside MariaDB, at its top level after its last "
                 "function, and fail when their schemas differ, as lines of their own: %s" % (name, " / ".join(START_TEST_CALLS[2:]))]
     first = at[0] + 2
+    compared = at[0] + width
+    if not re.match(r'^  \|\| fail "[^"]*"$', lines[compared]):
+        problems.append("%s line %d, the comparison's failure, is more than || fail and one quoted message: %s"
+                        % (name, compared + 1, lines[compared]))
+    for number, line in enumerate(lines[compared + 1:], compared + 2):
+        if line.strip() and not re.match(r'^echo "[^"]*"$', line):
+            problems.append("%s line %d, after the asks, is not a blank line or an echo of one quoted message, so it may "
+                            "close something opened before them: %s" % (name, number, line))
     # braces: the depth of function bodies and { } groups written over several lines
     # (a line ending in {, a line beginning with }); depth: that of the top level's if,
     # loops and case.
+    # The two exits that need not fail: the help branch of the one argument loop, which
+    # the jobs never reach (they pass no argument, and nothing before the asks but
+    # set -uo pipefail is let set one), and cleanup's last line, which ends with the
+    # status the test ended with.
+    exits_allowed = set()
+    loop = [i for i, line in enumerate(lines[:first]) if line == 'while [ "$#" -gt 0 ]; do']
+    if len(loop) == 1 and "done" in lines[loop[0]:first]:
+        end = lines.index("done", loop[0])
+        exits_allowed |= set(i for i in range(loop[0], end)
+                             if re.match(r"^    -h\|--help\) sed -n '5,[0-9]+p' \"\$0\"; exit 0 ;;$", lines[i]))
+    if "cleanup() {" in lines[:first] and "}" in lines[lines.index("cleanup() {"):first]:
+        end = lines.index("}", lines.index("cleanup() {"))
+        if lines[end - 1] == '  exit "$code"':
+            exits_allowed.add(end - 1)
     braces = depth = 0
     for number, line in enumerate(lines[:first], 1):
         text = line.strip()
         if not text or text.startswith("#"):
             continue
-        if re.search(r"<<-?\s*['\"]?[A-Za-z_]", text.replace("<<<", "")):
+        code = _start_test_code(line)
+        scan = _start_test_scan(line)
+        if any(re.search(r"<<-?\s*(?:\\|['\"])?[^\s<;&|()]", seen.replace("<<<", "")) for seen in (text, code)):
             problems.append("%s line %d opens a here-document before the images are asked: %s" % (name, number, text))
-        if text.endswith("{"):
+        for refused, why in _START_TEST_REFUSED:
+            for found in re.finditer(_COMMAND_START + refused, scan):
+                if refused.startswith("trap") and text == "trap cleanup EXIT" or \
+                        refused.startswith("set") and line == "set -uo pipefail" or \
+                        refused.startswith("exit") and number - 1 in exits_allowed:
+                    continue
+                problems.append("%s line %d, before the images are asked, %s: %s" % (name, number, why, text))
+                break
+        if re.search(r"(?:^|[^A-Za-z0-9_])PATH\+?=", scan):
+            problems.append("%s line %d sets PATH before the images are asked, which can make a command another "
+                            "program: %s" % (name, number, text))
+        if not code:
+            continue
+        if code.endswith("{"):
             braces += 1
             continue
-        if text.startswith("}"):
+        if code.startswith("}"):
             braces -= 1
             if braces < 0:
                 problems.append("%s line %d closes a function or a group that was not opened: %s" % (name, number, text))
@@ -5467,19 +5568,57 @@ def start_test_call_problems(script):
             continue
         if braces:
             continue
-        if re.match(r"^(if|while|until|for|case|select)\b", text) and \
-                not re.search(r"(^|[;\s])(fi|done|esac)\s*$", text):
+        if re.match(r"^(if|while|until|for|case|select)\b", code) and \
+                not re.search(r"(^|[;\s])(fi|done|esac)\s*$", code):
             depth += 1
-        elif re.match(r"^(fi|done|esac)\b", text):
+        elif re.match(r"^(fi|done|esac)\b", code):
             depth -= 1
             if depth < 0:
                 problems.append("%s line %d closes a block that was not opened: %s" % (name, number, text))
                 depth = 0
-        elif depth == 0 and re.match(r"^(exit|return)\b", text):
+        elif depth == 0 and re.match(r"^(exit|return)\b", code):
             problems.append("%s line %d leaves the script at its top level before it asks the images: %s" % (name, number, text))
+        elif re.search(_COMMAND_START + r"return\b", _start_test_scan(line)):
+            problems.append("%s line %d returns at the top level, outside every function, before the images are asked: %s"
+                            % (name, number, text))
     if braces or depth:
         problems.append("%s asks the images inside a function's body, a group or a block (if, a loop, case) that is not "
                         "closed before them" % name)
+    # The functions: START_TEST_FUNCTIONS, each once, and no other.
+    defined = {}
+    for number, line in enumerate(lines[:first], 1):
+        if line.strip().startswith("#"):
+            continue
+        scan = _start_test_scan(line)
+        for found in re.finditer(r"(?:^|[;&|!{(\s])(?:function\s+)?([^\s;&|(){}<>'\"$=`]+)\s*\(\s*\)", scan):
+            defined.setdefault(found.group(1), []).append(number)
+        for found in re.finditer(r"(?:^|[;&|!{(\s])function\s+([^\s;&|(){}<>'\"$=`]+)", scan):
+            if number not in defined.get(found.group(1), []):
+                defined.setdefault(found.group(1), []).append(number)
+    for function in START_TEST_FUNCTIONS:
+        if len(defined.get(function, [])) != 1 or _start_test_body(lines[:first], function) is None:
+            problems.append("%s does not define %s once, as \"%s() {\" on a line of its own (lines %s)"
+                            % (name, function, function, ", ".join(str(n) for n in defined.get(function, [])) or "none"))
+    for function in sorted(set(defined) - set(START_TEST_FUNCTIONS)):
+        problems.append("%s defines %s (line %s), which is not one of its functions (START_TEST_FUNCTIONS): a function "
+                        "may hold the asks or make a command they run another thing"
+                        % (name, function, ", ".join(str(n) for n in defined[function])))
+    returns = r"(?:^|[;&|!{(`)]|\b(?:then|do|else|elif)(?=\s))\s*return\b"
+    ask = _start_test_body(lines[:first], "ask_image")
+    if ask is not None and (not ask or ask[-1] != '  schema="$version"'
+                            or any(re.search(returns, _start_test_scan(line)) for line in ask)):
+        problems.append("%s's ask_image returns before its end, or does not end in schema=\"$version\"" % name)
+    for function in ("fail", "unasked"):
+        body = _start_test_body(lines[:first], function)
+        if body is not None and (not body or body[-1] != "  exit 1"
+                                 or any(re.search(returns, _start_test_scan(line)) for line in body)):
+            problems.append("%s's %s returns, or does not end the test with exit 1" % (name, function))
+    body = _start_test_body(lines[:first], "cleanup")
+    if body is not None and (len(body) < 2 or body[0] != "  code=$?" or body[-1] != '  exit "$code"'
+                             or any(re.search(r"(?<![$\w])code\b", _start_test_scan(line)) for line in body[1:])
+                             or any(re.search(returns, _start_test_scan(line)) for line in body)):
+        problems.append("%s's cleanup does not take code=$? first, write code nowhere else and end in exit \"$code\", "
+                        "so that the test's status is the one it ends with" % name)
     return problems
 
 
@@ -7010,16 +7149,82 @@ def self_test(chain, feed):
             ("the PostgreSQL start commented out", "\nask_image PostgreSQL ", "\n# ask_image PostgreSQL ", asked),
             ("the comparison of the schemas gone", '\n[ "$pg_schema" = "$maria_schema" ] \\\n  || fail "',
              '\n[ "$pg_schema" = "$maria_schema" ] \\\n  || true "', asked),
-            ("the asks in a function nothing calls", '\n}\n\nschema=""\nask_image PostgreSQL ',
-             '\n}\n\nnever_called() {\nhelper() {\n  :\n}\n\nschema=""\nask_image PostgreSQL ',
-             "asks the images inside a function's body"),
-            ("the asks behind if false", '\ntrap cleanup EXIT\n', '\ntrap cleanup EXIT\nif false; then\n',
-             "asks the images inside a function's body, a group or a block"),
             ("the script left before the asks", '\ntrap cleanup EXIT\n', '\ntrap cleanup EXIT\nexit 0\n',
              "leaves the script at its top level before it asks the images: exit 0"),
             ("the asks inside a here-document", '\ntrap cleanup EXIT\n', "\ntrap cleanup EXIT\n: << 'SKIPPED'\n",
              "opens a here-document before the images are asked")):
         broken(what, "image-start", old, new, needle)
+
+    def broken_start_test(what, edits, needle):
+        """As broken, over the start test, with several edits; an edit whose old text is
+        None adds its new text at the end of the script, which closes there what the
+        case opens before the asks, so that bash would run the script it makes and the
+        start job pass without asking."""
+        copy = dict(texts)
+        text = copy["image-start"]
+        for old, new in edits:
+            if old is None:
+                text += new
+            elif old not in text:
+                failures.append("%s: the text to break is not in image-start (%r)" % (what, old))
+                return
+            else:
+                text = text.replace(old, new, 1)
+        copy["image-start"] = text
+        found, _ = check(copy, chain, feed)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+
+    trap = "\ntrap cleanup EXIT\n"
+    last = '\n}\n\nschema=""\n'
+    ending = "  fi\n  exit 1\n}\n\n# A question this test could not ask"
+    after = "after the asks, is not a blank line or an echo of one quoted message"
+    for what, edits, needle in (
+            ("the asks in a function nothing calls", [(last, '\n}\nnever_called() {\nhelper() {\n  :\n}\n\nschema=""\n'),
+                                                      (None, "}\n")], "asks the images inside a function's body"),
+            ("the asks behind if false", [(trap, trap + "if false; then\n"), (None, "fi\n")],
+             "asks the images inside a function's body, a group or a block"),
+            ("the asks in a function nothing calls, a comment after its brace",
+             [(last, '\n}\nnever_called() { # kept\nhelper() {\n  :\n}\n\nschema=""\n'), (None, "}\n")], after),
+            ("the asks in a group behind true ||, a comment after its brace",
+             [("\nask_image() {\n", "\ntrue || { # not now\nask_image() {\n"), (None, "}\n")], after),
+            ("the shell replaced before the asks", [(trap, trap + "exec true\n")], "replaces the shell with another program"),
+            ("ask_image defined again as nothing", [(last, '\n}\nask_image() {\n  schema=""\n}\n\nschema=""\n')],
+             "does not define ask_image once"),
+            ("ask_image returning first", [('  local database="$1" host="$2"', '  return 0\n  local database="$1" host="$2"')],
+             "ask_image returns before its end"),
+            ("ask_image aliased to :", [(last, '\n}\nshopt -s expand_aliases\nalias ask_image=:\nhelper() {\n  :\n}\n\nschema=""\n')],
+             "can make a command another thing: alias ask_image=:"),
+            ("commands not run after set -n", [(trap, trap + "set -n\n")], "other than set -uo pipefail"),
+            ("the asks in a here-document with a backslash-quoted delimiter",
+             [(trap, trap + ": <<\\SKIPPED\n"), (None, "SKIPPED\n")], "opens a here-document before the images are asked"),
+            ("the asks in a loop behind : ||", [("\nask_image() {\n", "\n: || while :; do\nask_image() {\n"), (None, "done\n")],
+             after + ", so it may close something opened before them: done"),
+            ("the asks in a function with a subshell body", [(last, '\n}\nnever_called() (\nhelper() {\n  :\n}\n\nschema=""\n'), (None, ")\n")],
+             "defines never_called"),
+            ("the asks in a function written with the function keyword",
+             [(last, '\n}\nfunction never_called {\nhelper() {\n  :\n}\n\nschema=""\n'), (None, "}\n")], "defines never_called"),
+            ("every failure made a pass by the EXIT trap", [(trap, "\ntrap 'exit 0' EXIT\n")],
+             "sets a trap other than trap cleanup EXIT"),
+            ("fail ending with status 0", [(ending, ending.replace("exit 1", "exit 0"))],
+             "fail returns, or does not end the test with exit 1"),
+            ("fail returning before its exit", [(ending, ending.replace("  exit 1", "  return 0\n  exit 1"))],
+             "fail returns, or does not end the test with exit 1"),
+            ("cleanup's status made 0", [("  code=$?\n", "  code=$?\n  code=0\n")], "cleanup does not take code=$? first"),
+            ("curl made a function", [(last, '\n}\ncurl() {\n  echo 401\n}\n\nschema=""\n')], "defines curl"),
+            ("an exit 0 run by eval", [(trap, trap + 'eval "exit 0"\n')], "runs text the check cannot see as commands"),
+            ("an exit 0 run by command", [(trap, trap + "command exit 0\n")], "runs a builtin past the script's own functions"),
+            ("exit 256, which is status 0", [(trap, trap + "exit 256\n")], "leaves the script, perhaps with status 0: exit 256"),
+            ("an exit 0 after true &&", [(trap, trap + "true && exit 0\n")],
+             "leaves the script, perhaps with status 0: true && exit 0"),
+            ("an exit 0 behind quotes", [(trap, trap + 'x="$(echo "\'")"; exit 0; y="$(echo "\'")"\n')],
+             "leaves the script, perhaps with status 0"),
+            ("the help's exit 0 reached by set --",
+             [(trap, trap + "set -- -h\nwhile [ \"$#\" -gt 0 ]; do\n  case \"$1\" in\n"
+                            "    -h|--help) sed -n '5,71p' \"$0\"; exit 0 ;;\n  esac\ndone\n")],
+             "leaves the script, perhaps with status 0: -h|--help)"),
+            ("PATH given other programs", [(trap, trap + 'PATH="/tmp/stubs:$PATH"\n')], "sets PATH before the images are asked")):
+        broken_start_test(what, edits, needle)
     broken("the arm64 start beside MariaDB as the host's platform", "image",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n",

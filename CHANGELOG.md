@@ -909,16 +909,37 @@ with `--check`).
   database (`POSTGRES_DB`, `MARIADB_DATABASE`, `HM_DB_NAME`) and one password (`POSTGRES_PASSWORD`, `MARIADB_PASSWORD`,
   `HM_DB_PASSWORD`, a `$NAME` reference resolved), with `HM_ADMIN_PASSWORD` and `MARIADB_ALLOW_EMPTY_ROOT_PASSWORD`,
   and no random or set root password nor `POSTGRES_HOST_AUTH_METHOD`, and no service to set any of them in its own
-  variables; and requires `build/ci/container-image-start-test.sh` to ask the image beside PostgreSQL and then beside
-  MariaDB and compare their schemas as lines of their own after its last function, outside every function body, group,
-  `if`, loop and `case`, after no top-level `exit` or `return` and no here-document. Each of these would otherwise
-  have first failed in the next release's tag pipeline, after the push. Master's checker passed every one of the ten
-  mutations tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64 job, `MARIADB_DATABASE` removed and
-  `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks the tree in 21 new ways - the
-  arm64 job's own `HM_DB_TYPE` and `HM_DB_HOST`, each database variable removed or changed, a service's own
-  `MARIADB_DATABASE`, a random root password, and the asks put behind `true ||`, commented out, inside a function
-  nothing calls, behind `if false`, after an `exit 0` and inside a here-document - and sees each caught, with no case
-  of its own changed or dropped.
+  variables; and holds `build/ci/container-image-start-test.sh`'s two asks of the image, beside PostgreSQL and then
+  beside MariaDB, as commands that run, as far as a scan of the script's lines - not a parser of bash - can. The asks
+  and the comparison of their schemas must be lines of their own after the script's last function, the comparison
+  failing the test with one quoted message, and after it nothing but blank lines and `echo "..."` lines, so that
+  nothing opened before the asks (a function body, a group, an `if`, a loop, a `case`, a here-document) can be closed
+  after them: left open, bash refuses the whole script and the job fails. Before the asks there may be no
+  here-document of any delimiter; where a command starts, no `exec` of a program, no `set` but `set -uo pipefail`, no
+  `eval`, `source` or `.`, `alias`, `unalias`, `unset`, `enable`, `shopt`, `hash`, `builtin`, no `command` but
+  `command -v`, no trap but `trap cleanup EXIT` and no `exit` with any status but 1 to 99 (save the help branch of the
+  argument loop and the end of `cleanup`); and no `PATH` set. The script must define its eight functions, each once,
+  and no other; `ask_image` must not return before its end, which sets the schema; `fail` and `unasked` must not return
+  and must end in `exit 1`; and `cleanup` must take `code=$?` first, write `code` nowhere else and end in
+  `exit "$code"`. A form these rules do not name, such as a command built at run time, is left to the review of the
+  change. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
+  push; a disabled ask would not have failed at all - the start job would have passed without asking that image.
+  Master's checker passed every one of the ten mutations first tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64
+  job, `MARIADB_DATABASE` removed and `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks
+  the tree in 44 new ways and sees each caught, with no case of its own changed or dropped: the arm64 job's own
+  `HM_DB_TYPE` and `HM_DB_HOST`, each database variable removed or changed, a service's own `MARIADB_DATABASE`, a
+  random root password; the asks behind `true ||`, commented out, after an `exit 0` and inside an unclosed
+  here-document; and, each closed at the end of the script so that bash would run it, the asks inside a function
+  nothing calls (with a `{`, a `(` or a `function` body, and with a comment after its brace), in a group behind
+  `true ||`, in a loop behind `: ||`, behind `if false` and in a here-document whose delimiter is quoted with a
+  backslash; and before them `exec true`, `set -n`, `set -- -h` reaching a second help branch, `ask_image` defined
+  again or returning first or aliased to `:`, an EXIT trap of `exit 0`, `fail` ending in `exit 0` or returning,
+  `cleanup`'s status made 0, `curl` made a function, `eval "exit 0"`, `command exit 0`, `exit 256`, `true && exit 0`,
+  an `exit 0` between quoted strings and `PATH` given other programs. Each of these scripts was also run under bash
+  in the job's way, with stand-in clients and an image address that does not resolve, where the tree's script ends
+  with status 1 at its first ask: all but three ended with status 0, without asking or after the failure they should
+  have ended with; `curl` made a function and `PATH` changed, which such a run cannot show, ended with 1, and `fail`
+  returning was not run, as its wait for port 25 would never end.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in
