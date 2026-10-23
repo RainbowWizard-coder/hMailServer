@@ -579,14 +579,17 @@ needs no certificate from outside. It then asks each of the two:
   answered over plain HTTP;
 - its database: `hm_dbversion`, read with that database's own client, holds the
   schema version the server laid out there, and the two databases hold the same.
-  The test tells the database's own answer to the query, which is the image's
-  failure, from a client that could not ask at all. The database's answer is
-  that there is no `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, MariaDB's
-  error 1146) or any other error of the database's, such as a column that is
-  not there: psql's `ERROR:  <SQLSTATE>:` line or MariaDB's
-  `ERROR <n> (<SQLSTATE>) at line <n>:`. A client that could not ask is a
-  refused login, a host it cannot reach or a certificate it will not take,
-  whose messages have neither form. The test prints the client's own words in
+  The test tells the database's answer about the schema, which is the image's
+  failure, from a client that could not ask. The database's answer about the
+  schema is that there is no `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01,
+  MariaDB's error 1146) or another error of SQLSTATE class 42, which says that
+  an object the query names is missing or unusable, such as a column that is
+  not there: psql's `ERROR:  42<...>:` line or MariaDB's
+  `ERROR <n> (42<...>) at line <n>:`. Every other failure is a client that
+  could not ask: a refused login, a host it cannot reach, a certificate it will
+  not take, or the connection lost or the server shutting down during the query
+  (MariaDB's client prints its own errors there, such as 2013 or 2026, in the
+  same form, with SQLSTATE HY000). The test prints the client's own words in
   both cases. Only the first is said to need the tags deleted; the second says
   the test did not finish and is to be run again once its cause is found.
 

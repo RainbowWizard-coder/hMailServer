@@ -109,9 +109,9 @@ fail() {
 }
 
 # A question this test could not ask - the database client itself failed (a refused
-# login, a certificate it would not take, a database it could not reach) - which says
-# nothing of the image either way: still a failure, but not the image's, so the tags
-# are not yet said to be deleted.
+# login, a certificate it would not take, a database it could not reach or that went
+# away during the query) - which says nothing of the image either way: still a
+# failure, but not the image's, so the tags are not yet said to be deleted.
 unasked() {
   echo "CONTAINER-IMAGE-START FAILED: $*"
   if [ "$mode" = ci ] && [ -n "${HM_IMAGE_TAGS:-}" ]; then
@@ -358,11 +358,15 @@ ask_image() {
       printf '%s\n' "$errors"
       fail "$database holds no hm_dbversion table: the server did not lay out its schema there"
     fi
-    # Any other answer of the database to the query - psql's "ERROR:  <SQLSTATE>: ",
-    # MariaDB's "ERROR <n> (<SQLSTATE>) at line <n>: ", such as a column that is not
-    # there: the client asked, and the schema is not the one this test reads. A login
-    # refused or a server not reached carries neither form.
-    if grep -Eq '^ERROR:  [0-9A-Z]{5}: |^ERROR [0-9]+ \([0-9A-Z]{5}\) at line [0-9]+: ' <<< "$errors"; then
+    # The database answering that an object the query names is missing or unusable -
+    # an error of SQLSTATE class 42, as psql's "ERROR:  42<...>: " or MariaDB's
+    # "ERROR <n> (42<...>) at line <n>: ", such as a column that is not there: the
+    # client asked, and the schema is not the one this test reads. Any other error -
+    # a login refused, a server not reached, the connection lost during the query
+    # (MariaDB's client prints its own errors, such as 2013 or 2026, in the same
+    # form, with SQLSTATE HY000), the server shutting down (57P01, 08S01) - says
+    # nothing of the schema.
+    if grep -Eq '^ERROR:  42[0-9A-Z]{3}: |^ERROR [0-9]+ \(42[0-9A-Z]{3}\) at line [0-9]+: ' <<< "$errors"; then
       printf '%s\n' "$errors"
       fail "$database answered the schema query with an error (above): the schema the server laid out there is not the one this test reads"
     fi

@@ -884,18 +884,25 @@ with `--check`).
   have been sound. It now keeps what the client says apart from what it prints as the version, and tells the
   database's own answer to the query from a client that could not ask. The database answering that there is no
   `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, which `psql` prints with `VERBOSITY` verbose, or MariaDB's error
-  1146), answering the query with any other error of its own (`psql`'s `ERROR:  <SQLSTATE>:` line, MariaDB's
-  `ERROR <n> (<SQLSTATE>) at line <n>:`, such as a column that is not there), or a table holding no number, is the
-  image's failure, printed with the server's words and with the tags to delete as before; a client that could not
-  ask (a refused login or a server not reached, whose messages carry neither form) prints the client's own words, says
-  that the test did not finish and says nothing yet of the image, and names the tags to decide on once the job has
-  been run again. Each still fails the job with status 1, as the script's header now says. Run on a Linux machine with
+  1146), answering the query with another error of SQLSTATE class 42, which says that an object the query names is
+  missing or unusable (`psql`'s `ERROR:  42<...>:` line, MariaDB's `ERROR <n> (42<...>) at line <n>:`, such as a
+  column that is not there), or a table holding no number, is the image's failure, printed with the server's words
+  and with the tags to delete as before; every other failure is a client that could not ask (a refused login, a
+  server not reached, or the connection lost or the server shutting down during the query, where MariaDB's client
+  prints its own error, such as 2013 or 2026, in the same form with SQLSTATE HY000), which prints the client's own
+  words, says that the test did not finish and says nothing yet of the image, and names the tags to decide on once
+  the job has been run again. Each still fails the job with status 1, as the script's header now says. Run on a Linux machine with
   the start jobs' PostgreSQL 18 and MariaDB 13 by digest, in the job's way (the Linux CI image's `psql` 18 and
   `mariadb` 11.8 clients) and in `--docker`'s (the databases' own clients): a refused login (in `--docker`'s way
   MariaDB's alone, the PostgreSQL image trusting its own loopback) and, in the job's way, an unknown host failed as the
   client's, with its message; a database without the table, and one whose `hm_dbversion` has no `value` column
   (`ERROR:  42703`, `ERROR 1054 (42S22) at line 1`), failed as the image's, with the server's message; the table with
-  6108 passed, and an empty one failed. Neither password appeared in anything printed. The whole `--docker` mode run
+  6108 passed, and an empty one failed. With `hm_dbversion` a view that took 12 seconds, read in the job's way, the
+  query answered 6108 when left alone; with the database killed or stopped five seconds into it, MariaDB's client
+  printed `ERROR 2026 (HY000) at line 1: TLS/SSL error: unexpected eof while reading`, which a first version of this
+  change took as the image's failure and told the operator to delete the tags, and now ends in the client's failure,
+  as PostgreSQL's lost connection (`FATAL:  57P01` when stopped) did already. Neither password appeared in anything
+  printed. The whole `--docker` mode run
   over 6.3.7's published image still passed beside PostgreSQL, schema 6108, and stopped beside MariaDB as that image
   must, lacking the MariaDB client. [ContainerImage.md](hmailserver/docs/ContainerImage.md), "The start test" and
   "When a job fails", and the start jobs' comment in `.gitlab/ci/container-image.yml` say which failure asks for the
