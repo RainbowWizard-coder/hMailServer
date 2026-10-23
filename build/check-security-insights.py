@@ -17,8 +17,11 @@ nothing else would notice when it goes wrong. This holds it:
     (SCHEMA): every required key, no key the schema does not have (its
     definitions are closed), every type, the enumerations, and the patterns of a
     URL, an e-mail address, a date and a schema version;
-  * to time: last-updated and last-reviewed are real dates, neither in the future,
-    and the file is not reviewed before it was last updated;
+  * to time: last-updated and last-reviewed are real dates, neither after the
+    latest calendar date anywhere on Earth (the UTC clock plus fourteen hours, so
+    that a file dated in the owner's time zone, or any other, just after its
+    midnight passes on a runner that keeps UTC), and the file is not reviewed
+    before it was last updated;
   * to the project: schema-version is 2.2.0, header.url is the file's own raw
     address on GitLab's master, the name says Progressive Robot's fork of
     hMailServer, the repository is the GitLab project and the project's
@@ -30,7 +33,15 @@ nothing else would notice when it goes wrong. This holds it:
     link to a heading of a Markdown file names a heading that file has, by
     GitLab's (or GitHub's) anchor rule; a release file named by a link under
     /-/releases/v{version}/downloads/ is a name build/ci/release-chain.py gives
-    one, and {version} is the only placeholder.
+    one, and {version} is the only placeholder;
+  * to the tree's paths: every path of the tree the file names anywhere outside a
+    link - in a value (a tool's rulesets, a comment) or in a YAML comment - is
+    one the tree holds: a path whose first part is one of the tree's top-level
+    folders (build/, .gitlab/, .github/, fuzz/, hmailserver/, libraries/, or any
+    other the tree has), and a file at the root named in capitals, such as
+    SECURITY.md, RELEASE.md or CONTRIBUTING.md; a path that ends in / must be a
+    folder. So a renamed script or ruleset fails the check, where only its
+    links did before.
 
 It proves its own negative controls on every run, on made-up trees: a file that
 breaks each rule above must be refused and the good one must pass, so a check
@@ -472,10 +483,38 @@ def strings(value, where=''):
         yield where, value
 
 
-def today():
-    """The latest date it is anywhere a commit could be made: the UTC date, or the local
-    one where that is ahead."""
-    return max(datetime.datetime.now(datetime.timezone.utc).date(), datetime.date.today())
+def today(utc_now=None):
+    """The latest calendar date it is anywhere: the UTC clock plus fourteen hours, the
+    furthest ahead of UTC any time zone is (UTC+14). A file dated in any time zone's
+    today passes, whatever zone the machine running the check keeps."""
+    utc_now = utc_now or datetime.datetime.now(datetime.timezone.utc)
+    return (utc_now + datetime.timedelta(hours=14)).date()
+
+
+# A path of the tree named outside a link: segments of letters, digits, _ and -, the
+# first of which may start with a dot, joined by /, the last optionally a file name. It
+# must not follow a character that would make it part of a longer word, a host name or
+# a URL (a letter, a digit, ., /, : or -).
+TREE_PATH = re.compile(r'(?<![\w./:-])((?:\.?[A-Za-z0-9_-]+/)+[A-Za-z0-9_.-]*)')
+# A file at the root named in capitals, such as SECURITY.md, outside a link.
+ROOT_FILE = re.compile(r'(?<![\w./:-])([A-Z][A-Z0-9_-]*\.(?:md|yml|yaml|txt))(?![\w/-])')
+TOP_LEVEL = ('build', '.gitlab', '.github', 'fuzz', 'hmailserver', 'libraries')
+
+
+def named_paths(text, root):
+    """Each (line number, path) of the tree that text names outside a URL."""
+    try:
+        top = set(TOP_LEVEL) | {entry for entry in os.listdir(root) if os.path.isdir(os.path.join(root, entry))}
+    except OSError:
+        top = set(TOP_LEVEL)
+    top.discard('.git')
+    for number, line in enumerate(text.splitlines(), 1):
+        for token in TREE_PATH.findall(line):
+            token = token.rstrip('.')
+            if token.split('/', 1)[0] in top:
+                yield number, token
+        for token in ROOT_FILE.findall(line):
+            yield number, token
 
 
 def check(root, now=None):
@@ -585,6 +624,16 @@ def check(root, now=None):
                     headings[relative] = anchors(f.read())
             if anchor not in headings[relative]:
                 problems.append('%s links to #%s, a heading %s does not have' % (where, anchor, relative))
+    seen = set()
+    for number, relative in named_paths(text, root):
+        if relative in seen:
+            continue
+        seen.add(relative)
+        target = os.path.join(root, *relative.rstrip('/').split('/'))
+        if relative.endswith('/') and not os.path.isdir(target):
+            problems.append('line %d names the folder %s, which the tree does not hold' % (number, relative))
+        elif not relative.endswith('/') and not os.path.exists(target):
+            problems.append('line %d names %s, which the tree does not hold' % (number, relative))
     return ['%s: %s' % (INSIGHTS, problem) for problem in problems]
 
 
@@ -658,12 +707,16 @@ repository:
       - name: A scanner
         type: SAST
         rulesets:
-          - default
+          - build/ci/rules.yaml
+          - p/csharp
         integration:
           adhoc: false
           ci: true
           release: true
         results: {}
+        comment: >-
+          The job (build/ci/scan.sh) over fuzz/, as SECURITY.md says; registry.gitlab.com/hmailserver/x
+          and https://example.org/build/ci/gone.sh name no path of the tree.
 '''
 FILES = {
     'LICENSE': '                    GNU AFFERO GENERAL PUBLIC LICENSE\n',
@@ -672,6 +725,9 @@ FILES = {
     'GOVERNANCE.md': 'Governance\n==========\n\nHow decisions are made\n----------------------\n',
     'ASSURANCE-CASE.md': 'Assurance case\n==============\n',
     'docs/README.md': 'Docs\n',
+    'build/ci/rules.yaml': 'rules: []\n',
+    'build/ci/scan.sh': '#!/bin/sh\n',
+    'fuzz/README.md': 'Fuzzing\n',
     RELEASE_CHAIN: 'pairs = [("hmailserver-1.0.0.intoto.sigstore.json", "hmailserver.intoto.sigstore.json")]\n',
 }
 NOW = datetime.date(2026, 1, 3)
@@ -761,8 +817,17 @@ def self_test(quiet=False):
          'gives no file'),
         ('a placeholder other than {version}', swap('v{version}', 'v{tag}'), (), 'the placeholder {tag}'),
         ('an anchor', swap('  status: active', '  status: &s active'), (), 'does not take'),
-        ('a flow sequence', swap('        rulesets:\n          - default', '        rulesets: [default]'), (),
-         'does not take'),
+        ('a flow sequence', swap('        rulesets:\n          - build/ci/rules.yaml\n          - p/csharp',
+                                 '        rulesets: [default]'), (), 'does not take'),
+        ('a ruleset the tree does not hold', GOOD, ('build/ci/rules.yaml',),
+         'names build/ci/rules.yaml, which the tree'),
+        ('a script named in a comment that the tree does not hold', swap('(build/ci/scan.sh)', '(build/ci/no-scan.sh)'),
+         (), 'names build/ci/no-scan.sh, which the tree'),
+        ('a folder the tree does not hold', GOOD, ('fuzz/README.md',), 'the folder fuzz/'),
+        ('a root file the tree does not hold', swap('as SECURITY.md says', 'as RELEASE.md says'), (),
+         'names RELEASE.md, which the tree'),
+        ('a path in a YAML comment that the tree does not hold', '# See build/no-such-check.py.\n' + GOOD, (),
+         'names build/no-such-check.py, which the tree'),
         ('a tab in the indentation', swap('  status: active', '\tstatus: active'), (), 'a tab'),
         ('a key twice', swap('  status: active\n', '  status: active\n  status: active\n'), (), 'twice'),
         ('a plain scalar holding ": "', swap('comment: Releases.', 'comment: Releases: all'), (), 'quote it'),
@@ -776,6 +841,12 @@ def self_test(quiet=False):
                any(needle in problem for problem in problems))
     expect('no SECURITY-INSIGHTS.yml: refused', any('not at the root' in p for p in world(insights=None)))
     expect('a clock a day behind the file: refused', any('in the future' in p for p in world(now=datetime.date(2026, 1, 2))))
+    late = today(datetime.datetime(2026, 1, 2, 23, 0, tzinfo=datetime.timezone.utc))
+    expect('a UTC clock an hour before midnight, the file dated the next day: passes (today is %s)' % late,
+           late == datetime.date(2026, 1, 3) and world(now=late) == [])
+    early = today(datetime.datetime(2026, 1, 1, 9, 0, tzinfo=datetime.timezone.utc))
+    expect('a UTC clock at 09:00 two days before the review date: refused (today is %s)' % early,
+           early == datetime.date(2026, 1, 1) and any('in the future' in p for p in world(now=early)))
     if not quiet:
         print('')
         print('%d self-test case(s) failed' % len(failures) if failures else 'Every self-test case passed.')

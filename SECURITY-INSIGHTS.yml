@@ -106,8 +106,14 @@ repository:
     distribution-points:
       - uri: https://gitlab.com/hmailserver/hmailserver/-/releases
         comment: >-
-          GitLab's releases page: every release's files, each with its Sigstore bundle,
-          made, signed and published by the release tag's own pipeline (RELEASE.md).
+          GitLab's releases page. From 6.3.5 each release's files are made, signed (a
+          Sigstore bundle each, recorded in the public Rekor log) and published by the
+          release tag's own pipeline (RELEASE.md); 6.2.19 to 6.3.3 carry Sigstore bundles
+          from the GitHub workflow that made them, 6.3.4 a SHA256SUMS file signed with the
+          key that signs the release tags, and the releases before 6.2.19 none. The
+          Windows installer is Authenticode-signed from 6.3.1, and the PowerShell
+          module's files from 6.3.6; the Linux packages are not (SECURITY.md, "Verifying
+          a release").
       - uri: https://github.com/RainbowWizard-coder/hMailServer/releases
         comment: >-
           GitHub's releases page, a copy of GitLab's made after GitLab publishes a
@@ -131,8 +137,8 @@ repository:
         location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hmailserver.intoto.sigstore.json
         predicate-uri: https://slsa.dev/provenance/v1
         comment: >-
-          From 6.3.6. An in-toto statement naming every file of the release by its
-          SHA-256, with the commit it was built from and the tag's pipeline as the
+          From 6.3.6. An in-toto statement naming every file of the release but the
+          Sigstore bundles by its SHA-256, with the commit it was built from and the tag's pipeline as the
           builder, signed by that pipeline with Sigstore and recorded in the public Rekor
           log. Replace {version} with the release's version, such as 6.3.7. SECURITY.md,
           "Verifying a release", gives the cosign command that checks a file against it.
@@ -141,9 +147,13 @@ repository:
         predicate-uri: https://cyclonedx.org/bom
         comment: >-
           From 6.3.4 every compiled file of a release has a CycloneDX 1.6 SBOM of its
-          own beside it, named <file>.cdx.json, signed by a Sigstore bundle of its own;
-          it is a plain CycloneDX document, not an in-toto statement. SECURITY.md,
-          "Software bills of materials", lists them. Replace {version} as above.
+          own beside it, named <file>.cdx.json; from 6.3.5 each is signed by a Sigstore
+          bundle of its own (<file>.cdx.json.cosign.bundle), and 6.3.4's are listed in
+          its signed SHA256SUMS file. The location above resolves from 6.3.5, with
+          {version} replaced as above; 6.3.4's installer SBOM is at
+          https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.4/downloads/hMailServer-6.3.4-x64.exe.cdx.json.
+          It is a plain CycloneDX document, not an in-toto statement. SECURITY.md,
+          "Software bills of materials", lists them.
   security:
     assessments:
       self:
@@ -223,8 +233,10 @@ repository:
           release: true
         results: {}
         comment: >-
-          The static-analysis job (build/ci/static-analysis.sh) over the server's C++, in
-          the pipelines of master, the batch branches and the release tags but for a push
+          The static-analysis job (build/ci/static-analysis.sh) over the C++ the Linux
+          build compiles (the Windows-only C++ - the COM API, the service host, the ADO
+          and SQL Server Compact backends - is read by semgrep-sast alone), in the
+          pipelines of master, the batch branches and the release tags but for a push
           of documentation alone; a finding new to its baseline that the exceptions file
           does not accept fails the pipeline, and the release job reads its report.
       - name: Trivy and OSV (dependency scan)
