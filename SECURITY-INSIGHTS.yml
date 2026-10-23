@@ -1,0 +1,315 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The project's security facts in the OpenSSF Security Insights format, version 2.2.0
+# (https://github.com/ossf/security-insights, spec/schema.cue at v2.2.0), for tools that
+# read them: OpenSSF's OSPS Baseline scanner, LFX Insights and others. Every value here is
+# taken from the tree or from the project's pages on GitLab and GitHub; the document it
+# names is the one that says it at length. build/check-security-insights.py holds the
+# file to the schema, to dates that are not in the future, and to the files and headings
+# of this tree that it links to; the checkers job runs it with every other check.
+# Change last-updated with any change here, and last-reviewed when the whole file has
+# been read against the tree again.
+
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-10-23'
+  last-reviewed: '2026-10-23'
+  url: https://gitlab.com/hmailserver/hmailserver/-/raw/master/SECURITY-INSIGHTS.yml
+  comment: >-
+    Progressive Robot's fork of hMailServer. GitLab is the project's home and is
+    canonical; the repository on GitHub is GitLab's copy, pushed there by GitLab's push
+    mirror since 18 October 2026, and every link below is to GitLab unless it names
+    GitHub. GOVERNANCE.md names two maintainers; since 13 October 2026 only Christopher
+    Holloway holds a role in the GitLab project, and he alone administers the GitHub
+    repository.
+
+project:
+  name: hMailServer (Progressive Robot's fork of hMailServer)
+  homepage: https://gitlab.com/hmailserver/hmailserver
+  roadmap: https://gitlab.com/hmailserver/hmailserver/-/blob/master/Roadmap.md
+  administrators:
+    - name: Christopher Holloway
+      affiliation: Progressive Robot Ltd
+      social: https://gitlab.com/Progressiverobot
+      primary: true
+  repositories:
+    - name: hMailServer on GitLab
+      url: https://gitlab.com/hmailserver/hmailserver
+      comment: >-
+        The project's home and its one repository: the code, issues, merge requests,
+        pipelines, releases, package registry, container registry and wiki. Changes land
+        on master here, and nowhere else.
+    - name: hMailServer on GitHub
+      url: https://github.com/RainbowWizard-coder/hMailServer
+      comment: >-
+        GitLab's copy, kept by GitLab's push mirror since 18 October 2026 - master, the
+        batch branches and every tag - with every release's files copied there, byte for
+        byte, after GitLab publishes them, and Discussions. It has no Issues. A pull
+        request there is landed through GitLab, as a merge request (CONTRIBUTING.md,
+        "Merge requests"). GitHub Actions runs OpenSSF Scorecard and CodeQL over it, and
+        nothing that builds, signs or publishes a release.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    policy: https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md
+    contact:
+      name: The project's GitLab Service Desk, which files a report as a confidential issue
+      email: contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com
+      primary: true
+    comment: >-
+      Report privately, by a confidential issue on GitLab, by mail to the Service Desk
+      address above, or through GitHub's private vulnerability reporting on the
+      repository there; never in a public issue, merge request, pull request,
+      discussion or forum post. Acknowledgement within 5 working days, an assessment
+      within 10, a fix for a confirmed vulnerability within 90 days, and coordinated
+      disclosure on a 90-day timetable. No bounty is paid. What is in and out of scope
+      is SECURITY.md's "Scope".
+  documentation:
+    detailed-guide: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/README.md
+    quickstart-guide: https://gitlab.com/hmailserver/hmailserver/-/blob/master/README.md#installing
+    design: https://gitlab.com/hmailserver/hmailserver/-/blob/master/ARCHITECTURE.md
+    code-of-conduct: https://gitlab.com/hmailserver/hmailserver/-/blob/master/CODE_OF_CONDUCT.md
+    release-process: https://gitlab.com/hmailserver/hmailserver/-/blob/master/RELEASE.md
+    support-policy: https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md#supported-versions
+    signature-verification: https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md#verifying-a-release
+
+repository:
+  url: https://gitlab.com/hmailserver/hmailserver
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  bug-fixes-only: false
+  no-third-party-packages: false
+  core-team:
+    - name: Christopher Holloway
+      affiliation: Progressive Robot Ltd
+      social: https://gitlab.com/Progressiverobot
+      primary: true
+    - name: Zain Ul Abidin
+      affiliation: Independent of Progressive Robot Ltd
+      social: https://gitlab.com/zainulabidin1990
+      primary: false
+  license:
+    url: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
+    expression: AGPL-3.0-or-later
+  documentation:
+    contributing-guide: https://gitlab.com/hmailserver/hmailserver/-/blob/master/CONTRIBUTING.md
+    review-policy: https://gitlab.com/hmailserver/hmailserver/-/blob/master/GOVERNANCE.md#how-decisions-are-made
+    governance: https://gitlab.com/hmailserver/hmailserver/-/blob/master/GOVERNANCE.md
+    security-policy: https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md
+    dependency-management-policy: https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md#dependencies-software-composition-analysis
+  release:
+    automated-pipeline: true
+    changelog: https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md
+    distribution-points:
+      - uri: https://gitlab.com/hmailserver/hmailserver/-/releases
+        comment: >-
+          GitLab's releases page: every release's files, each with its Sigstore bundle,
+          made, signed and published by the release tag's own pipeline (RELEASE.md).
+      - uri: https://github.com/RainbowWizard-coder/hMailServer/releases
+        comment: >-
+          GitHub's releases page, a copy of GitLab's made after GitLab publishes a
+          release, the same files byte for byte.
+      - uri: https://updates.progressiverobot.com/download/
+        comment: >-
+          The update feed's stable download links, which lead to the newest stable
+          release's files on GitLab; the server's live update reads the same feed.
+      - uri: https://gitlab.com/hmailserver/hmailserver/container_registry
+        comment: >-
+          The container image, registry.gitlab.com/hmailserver/hmailserver, signed with
+          Sigstore, with an SBOM attestation for each platform's image.
+      - uri: https://hub.docker.com/r/progressiverobot/hmailserver
+        comment: A copy of the same container image on Docker Hub.
+      - uri: https://pypi.org/project/hmailserver-cli/
+        comment: hmctl, the command-line client for the server's REST API.
+      - uri: https://www.powershellgallery.com/packages/HmailServer
+        comment: The PowerShell module for the server's REST API.
+    attestations:
+      - name: SLSA build provenance
+        location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hmailserver.intoto.sigstore.json
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          From 6.3.6. An in-toto statement naming every file of the release by its
+          SHA-256, with the commit it was built from and the tag's pipeline as the
+          builder, signed by that pipeline with Sigstore and recorded in the public Rekor
+          log. Replace {version} with the release's version, such as 6.3.7. SECURITY.md,
+          "Verifying a release", gives the cosign command that checks a file against it.
+      - name: CycloneDX SBOM of the Windows installer
+        location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hMailServer-x64.exe.cdx.json
+        predicate-uri: https://cyclonedx.org/bom
+        comment: >-
+          From 6.3.4 every compiled file of a release has a CycloneDX 1.6 SBOM of its
+          own beside it, named <file>.cdx.json, signed by a Sigstore bundle of its own;
+          it is a plain CycloneDX document, not an in-toto statement. SECURITY.md,
+          "Software bills of materials", lists them. Replace {version} as above.
+  security:
+    assessments:
+      self:
+        name: Assurance case
+        evidence: https://gitlab.com/hmailserver/hmailserver/-/blob/master/ASSURANCE-CASE.md
+        date: '2026-10-20'
+        comment: >-
+          The project's own security assessment, written by its maintainers: the claims
+          it makes, the threat model (actors, assets and the principal attack surfaces),
+          the trust boundaries, the weaknesses it guards against and how, the evidence,
+          and the residual risk it accepts, coverage below the OpenSSF bar among it. No
+          third-party assessment has been made.
+    champions:
+      - name: Christopher Holloway
+        affiliation: Progressive Robot Ltd
+        social: https://gitlab.com/Progressiverobot
+        primary: true
+    tools:
+      - name: GitLab secret detection
+        type: secret
+        rulesets:
+          - GitLab's secret detection rules, less two entries of their global allowlist (build/ci/secret-detection-rules.sh)
+        integration:
+          adhoc: true
+          ci: true
+          release: false
+        results: {}
+        comment: >-
+          The secret_detection job (.gitlab/ci/gitlab-security.yml): GitLab's secrets
+          analyser, gitleaks, from the project's own copy of its image, over the commits
+          of every merge request's pipeline and every pipeline of master, and over the
+          whole history from the schedule described "security", run by hand. A finding
+          fails the pipeline. The landing script runs the same scanner over every
+          commit a batch adds (build/scan-secrets.py).
+      - name: GitLab SAST (Semgrep analyser)
+        type: SAST
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: true
+        results: {}
+        comment: >-
+          The semgrep-sast job with GitLab's own rules, in every merge request's
+          pipeline, every batch branch's and master's, and for every release tag;
+          semgrep-sast-gate holds a change on a Critical or High finding in what it
+          touches, and the release job refuses a release on one that
+          .gitlab/security-exceptions.yml does not accept (SECURITY.md, "Vulnerability
+          management policy").
+      - name: Semgrep
+        type: SAST
+        rulesets:
+          - p/csharp
+          - p/python
+          - p/javascript
+          - r/bash
+        integration:
+          adhoc: false
+          ci: true
+          release: true
+        results: {}
+        comment: >-
+          The semgrep job (build/ci/semgrep.sh), with Semgrep's registry rules over the
+          C#, Python, JavaScript and shell scripts, in the pipelines of master, the
+          batch branches and the release tags but for a push of documentation alone; a
+          finding new to its baseline that the exceptions file does not accept fails the
+          pipeline, and the release job reads its report.
+      - name: cppcheck and clang-tidy
+        type: SAST
+        rulesets:
+          - build/ci/clang-tidy.yaml
+          - build/ci/cppcheck-suppressions.txt
+        integration:
+          adhoc: false
+          ci: true
+          release: true
+        results: {}
+        comment: >-
+          The static-analysis job (build/ci/static-analysis.sh) over the server's C++, in
+          the pipelines of master, the batch branches and the release tags but for a push
+          of documentation alone; a finding new to its baseline that the exceptions file
+          does not accept fails the pipeline, and the release job reads its report.
+      - name: Trivy and OSV (dependency scan)
+        type: SCA
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: true
+        results: {}
+        comment: >-
+          The dependency-scan job (build/ci/dependency-scan.py): Trivy over the lock files
+          and the CI image, and OSV's API over the native libraries the Windows server is
+          built with, in the same pipelines as the semgrep job; the release job refuses a
+          release on a Critical or High finding with a fixed version that the VEX
+          document, .gitlab/hmailserver.openvex.json, does not dismiss and the exceptions
+          file does not accept.
+      - name: OSV dependency check of every change
+        type: SCA
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+        comment: >-
+          The mr-dependency-check job (build/ci/mr-dependency-check.py), in every merge
+          request's pipeline and every batch branch's: a change that adds a dependency
+          version or moves a library pin with a Critical or High advisory or an OpenSSF
+          malicious-packages record, or a requirement that pins no version, fails the
+          pipeline (SECURITY.md, "Every change").
+      - name: Trivy (container image)
+        type: container
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: false
+          release: true
+        results: {}
+        comment: >-
+          The container_scanning and container_scanning_arm64 jobs
+          (.gitlab/ci/container-image.yml, build/ci/container-scan.sh), over each
+          platform's image of a release tag's pipeline.
+      - name: libFuzzer
+        type: fuzzing
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results: {}
+        comment: >-
+          The linux-fuzz job (build/ci/linux-fuzz.sh), every night from the pipeline
+          schedule described "fuzz": the MIME harnesses under fuzz/, built with clang and
+          libFuzzer, every kept input and committed reproducer replayed, then each harness
+          run coverage-guided for a fixed time.
+      - name: OpenSSF Scorecard
+        type: other
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results: {}
+        comment: >-
+          .github/workflows/scorecard.yml scores the GitHub copy on each push to master
+          and weekly, and publishes the result to scorecard.dev. The weekly scorecard
+          job on GitLab (.gitlab/ci/scorecard.yml) scores nothing until the token it
+          needs is configured.
+      - name: CodeQL
+        type: SAST
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: true
+          release: false
+        results: {}
+        comment: >-
+          .github/workflows/codeql.yml, on the GitHub copy: C and C++, C#, JavaScript and
+          TypeScript, Python and the workflows, on each push to master, on each pull
+          request and weekly; its findings go to that repository's code scanning, which
+          the maintainers read.

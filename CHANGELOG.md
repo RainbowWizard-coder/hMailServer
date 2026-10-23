@@ -556,6 +556,25 @@ with `--check`).
 
 ### Build and tests
 
+- **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
+  `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in
+  version 2.2.0 of the format (the specification's current release, of 31 January 2026) what the OSPS Baseline
+  scanner and other tools look for: the project, Progressive Robot's fork of hMailServer, with its home on GitLab and
+  the GitHub copy as its second repository; how to report a vulnerability (SECURITY.md, the Service Desk address, no
+  bounty); the documentation, the release process, the support policy and how to verify a release; the repository's
+  status, its change and review policy (CONTRIBUTING.md and GOVERNANCE.md), its licence and its core team; where the
+  releases are published, the build provenance and the SBOMs each carries; the assurance case as the self-assessment;
+  and the ten security tools that run on the code, each with where it runs and whether it holds a change or a release -
+  secret detection, GitLab's SAST, Semgrep, cppcheck and clang-tidy, the dependency scan and the dependency check of
+  every change, the container image's scan, libFuzzer, and, on GitHub, OpenSSF Scorecard and CodeQL. Every value was
+  read from the tree or from the project's pages on 23 October 2026, and `cue vet` (CUE 0.17.1) passes it against the
+  specification's `schema.cue` at v2.2.0. The check, which the checkers job runs with every `build/check-*.py`, reads
+  the file with nothing but Python and refuses YAML it does not take; holds it to the schema written out from
+  `schema.cue`; refuses a `last-updated` or `last-reviewed` in the future, or a review before the update; holds the
+  file's own address, the fork's name, the two repositories, the licence and the vulnerability contact SECURITY.md
+  gives; and refuses a link to a file the tree does not hold, to a heading a Markdown file does not have, or to a release
+  file `build/ci/release-chain.py` gives no name. It proves its 34 negative controls on every run, and `--self-test`
+  says each. SECURITY.md's "For a security questionnaire" and CONTRIBUTING.md's table of checkers name both.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

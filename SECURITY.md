@@ -541,6 +541,11 @@ supply chain in one place, the cryptography with its defaults, and what is not i
 [hmailserver/docs/EvidencePack.md](hmailserver/docs/EvidencePack.md), each with the file it can be checked in. It
 is not an audit report: there is none.
 
+The same facts for a tool - how to report a vulnerability, the policies, the release's signatures, provenance and SBOMs,
+the security tools that run on the code and where, and the self-assessment - are in [SECURITY-INSIGHTS.yml](SECURITY-INSIGHTS.yml),
+in the OpenSSF Security Insights format, version 2.2.0, which OpenSSF's OSPS Baseline scanner reads; `build/check-security-insights.py`
+holds it to that format's schema and to this tree.
+
 ## Vulnerability management policy
 
 What is checked, on what, and what happens when it finds something. A vulnerability meets two evaluations before it
