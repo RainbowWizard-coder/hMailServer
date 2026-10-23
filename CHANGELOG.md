@@ -947,6 +947,25 @@ with `--check`).
   with status 1 at its first ask: all but three ended with status 0, without asking or after the failure they should
   have ended with; `curl` made a function and `PATH` changed, which such a run cannot show, ended with 1, and `fail`
   returning was not run, as its wait for port 25 would never end.
+- **The release-chain check reads the start jobs' variables in every form, and where else they come from.** It read
+  a start job's or a service's variables only as a block whose keys were two spaces in from `variables:`, and not at
+  all where GitLab gives variables to every job and every service, so that the arm64 job's `HM_DB_TYPE: PostgreSQL`
+  or `MARIADB_DATABASE: hmother` with its variables indented six, or written in flow style
+  (`variables: {HM_START_WAIT: "600", HM_DB_TYPE: PostgreSQL}`), a service's own `MARIADB_DATABASE` indented ten, and
+  `POSTGRES_HOST_AUTH_METHOD: trust` among `.gitlab-ci.yml`'s top-level variables, with which the start jobs'
+  PostgreSQL would take any password and the one password would prove nothing, each passed it. Each `variables:`
+  block is now read as YAML reads a block mapping, its keys at the indentation of its first, quoted or not; one
+  written in a form the check does not read - anything after `variables:` (flow style, an anchor, an alias, a
+  `!reference`), keys at two indentations, a merge key, a value over several lines or written as a mapping, a value
+  with a tag, an alias or a comment after it, a key or `variables:` written twice - is refused ("writes its variables
+  in a form this check does not read"), rather than read as setting nothing. The top-level variables of
+  `.gitlab-ci.yml` and of each CI file under `.gitlab/ci/`, and the variables the workflow's rules and
+  `.release-rules`' set, which are the start jobs' rules, are read the same way, and none of them may set a variable
+  the start jobs' databases are held by, `HM_DB_TYPE` or `HM_DB_HOST`; and `POSTGRES_INITDB_ARGS`, with which
+  `--auth=trust` would make PostgreSQL trust every login, is refused where `POSTGRES_HOST_AUTH_METHOD` is. The
+  self-test breaks the tree in those eleven ways - the six forms above, a merge key, the image's CI file's top level,
+  the workflow's rules, `.release-rules` and `POSTGRES_INITDB_ARGS` - and sees each caught; each of the six passed the
+  checker before.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in

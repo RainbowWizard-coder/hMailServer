@@ -5333,25 +5333,93 @@ def service_entries(block):
     return [(re.match(r"    - name: (\S+)", entry).group(1), entry) for entry in entries if entry.startswith("    - name: ")]
 
 
-def own_variables(block, indent="  "):
-    """A job's or a service's own variables, as {key: value}: the key: value lines of
-    its variables: block at indent (two spaces for a job's keys, six for a service
-    entry's), each key quoted or not and each value with its quotes taken off. A value written as a mapping
-    (value:, description:) is read as empty."""
-    found = re.search(r"^%svariables:[ \t]*\n((?:%s  [^\n]*\n|[ \t]*\n)*)" % (indent, indent), block + "\n", re.MULTILINE)
+def _variable_value(raw):
+    """A variable's value as written on its key's line: its quotes taken off. None for
+    what this does not read as a plain value: a comment after it, an alias, an anchor,
+    a tag, a flow collection, a block scalar, or a quote left open."""
+    raw = raw.strip()
+    if raw[:1] in ("'", '"'):
+        quoted = re.match(r"^(['\"])(.*)\1$", raw)
+        return quoted.group(2) if quoted and raw[0] not in quoted.group(2) else None
+    if re.search(r"[ \t]#", raw) or raw[:1] in ("*", "&", "!", "{", "[", "|", ">", "%", "@", "`", "#"):
+        return None
+    return raw
+
+
+def variable_block(text, indent="  "):
+    """A variables: block - a job's (indent two spaces), a service entry's (six), a CI
+    file's top level (none), or one in a rule (the text before the key) - as
+    ({key: value}, [what in it is not read]). It is read as YAML reads a block mapping:
+    its key lines are those at the indentation of its first line, whatever that is,
+    each key quoted or not ("KEY": value is KEY) and each value with its quotes taken
+    off. Anything else is named in the list - text after variables: (flow style, an
+    anchor, an alias), a line at another indentation (a value written as a mapping, a
+    value over several lines), a merge key, a value _variable_value does not read, a key
+    or variables: written twice - so that the caller can refuse a form whose keys it
+    would not see, rather than read it as setting none."""
     values = {}
-    if not found:
-        return values
-    indent += "  "
-    for line in found.group(1).split("\n"):
-        # A key quoted or not, as YAML and GitLab read "KEY": value as KEY.
-        pair = re.match(r"^%s([\"']?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*:[ \t]*(.*?)[ \t]*$" % indent, line)
-        if pair:
-            value = pair.group(3)
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                value = value[1:-1]
-            values[pair.group(2)] = value
-    return values
+    unread = []
+    lines = text.split("\n")
+    head = re.compile(r"^%s([\"']?)variables\1[ \t]*:(.*)$" % re.escape(indent))
+    heads = [i for i, line in enumerate(lines) if head.match(line)]
+    if len(heads) > 1:
+        unread.append("variables: written %d times" % len(heads))
+    for at in heads:
+        _read_variables(lines, at, indent, values, unread)
+    return values, unread
+
+
+def _read_variables(lines, at, indent, values, unread):
+    """The variables: block whose key is lines[at], after indent, into values and
+    unread, as variable_block reads it."""
+    rest = re.match(r"^%s([\"']?)variables\1[ \t]*:(.*)$" % re.escape(indent), lines[at]).group(2).strip()
+    if rest:
+        unread.append("variables: %s" % rest)
+        return
+    width_of_keys = None
+    for line in lines[at + 1:]:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        width = len(line) - len(line.lstrip(" "))
+        if width <= len(indent) and line[width:width + 1] != "\t":
+            break
+        if width_of_keys is None:
+            width_of_keys = width
+        pair = re.match(r"^ {%d}([\"']?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*:(?:[ \t]+(.*?))?[ \t]*$" % width_of_keys,
+                        line) if width == width_of_keys else None
+        value = _variable_value(pair.group(3) or "") if pair else None
+        if not pair or value is None or not (pair.group(3) or "").strip():
+            unread.append(line.strip())
+            continue
+        if pair.group(2) in values:
+            unread.append("%s written twice" % pair.group(2))
+        values[pair.group(2)] = value
+
+
+def rule_variables(text):
+    """The variables a job's or the workflow's rules set, as variable_block reads them:
+    every variables: key in text, at whatever indentation, as ({key: value}, [what is
+    not read]); a line naming variables that is not such a key is not read."""
+    values = {}
+    unread = []
+    lines = text.split("\n")
+    for at, line in enumerate(lines):
+        if line.lstrip().startswith("#") or not re.search(r"(?<![A-Za-z0-9_])variables(?![A-Za-z0-9_])", line):
+            continue
+        key = re.match(r"^((?: *- +| *))([\"']?)variables\2[ \t]*:", line)
+        if not key:
+            unread.append(line.strip())
+            continue
+        rule = {}
+        _read_variables(lines, at, key.group(1), rule, unread)
+        values.update(rule)
+    return values, unread
+
+
+def own_variables(block, indent="  "):
+    """A job's or a service's own variables, as {key: value} (variable_block): two
+    spaces of indent for a job's variables: key, six for a service entry's."""
+    return variable_block(block, indent)[0]
 
 
 # What the start jobs' three databases' users, databases and passwords are given in:
@@ -5363,26 +5431,58 @@ START_DATABASE_VARIABLES = (("the database user", ("POSTGRES_USER", "MARIADB_USE
                             ("the database password", ("POSTGRES_PASSWORD", "MARIADB_PASSWORD", "HM_DB_PASSWORD")))
 
 
-def start_database_variable_problems(image_jobs):
+def start_database_variable_problems(image_jobs, ci_texts=None):
     """Each start job's variables - its own, over container-image-start's where it
-    extends that job, as GitLab merges them - give PostgreSQL's service, MariaDB's and the
-    image the same user, database and password (START_DATABASE_VARIABLES), the
+    extends that job, as GitLab merges a job's - give PostgreSQL's service, MariaDB's and
+    the image the same user, database and password (START_DATABASE_VARIABLES), the
     administrator's password the test signs in with, and MariaDB's root no password
     (MARIADB_ALLOW_EMPTY_ROOT_PASSWORD), never a random one, which MariaDB's image prints
-    into the log the job carries; and no service sets any of them in its own variables.
+    into the log the job carries; no service sets any of them in its own variables; and
+    none of them, nor HM_DB_TYPE or HM_DB_HOST, is set where it reaches every job: the
+    top-level variables of .gitlab-ci.yml or of a CI file beside it (ci_texts, {path:
+    text}), the workflow's rules' or .release-rules', which are the start jobs' rules.
+    Each of these variables: blocks is read as variable_block reads it, and one written
+    in a form it does not read is refused, so that a key is not missed for its spelling.
     Without one, a database service does not start, or starts with a user or a database
-    the image is not told, and the next release's tag pipeline is the first to say so."""
+    the image is not told, and the next release's tag pipeline is the first to say so;
+    with POSTGRES_HOST_AUTH_METHOD trust anywhere they reach, PostgreSQL would take any
+    password, and the one password would prove nothing."""
     problems = []
-    parent = own_variables(image_jobs.get("container-image-start", ""))
+    ci_texts = ci_texts or {}
     held = set(key for _, keys in START_DATABASE_VARIABLES for key in keys) | \
         {"HM_ADMIN_PASSWORD", "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD", "MARIADB_RANDOM_ROOT_PASSWORD",
          "MYSQL_ROOT_PASSWORD", "MYSQL_ALLOW_EMPTY_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD", "MYSQL_DATABASE", "MYSQL_USER",
-         "MYSQL_PASSWORD", "MARIADB_ROOT_PASSWORD_HASH", "MARIADB_PASSWORD_HASH", "POSTGRES_HOST_AUTH_METHOD"}
+         "MYSQL_PASSWORD", "MARIADB_ROOT_PASSWORD_HASH", "MARIADB_PASSWORD_HASH", "POSTGRES_HOST_AUTH_METHOD",
+         "POSTGRES_INITDB_ARGS"}
+    everywhere = held | {"HM_DB_TYPE", "HM_DB_HOST"}
+
+    def read(owner, found):
+        values, unread = found
+        for what in unread:
+            problems.append("%s writes its variables in a form this check does not read (%s): write them as a block, one "
+                            "KEY: value a line" % (owner, what))
+        return values
+
+    # What reaches every job: each CI file's top-level variables, and the variables the
+    # workflow's rules and .release-rules' set.
+    for path, text in sorted(ci_texts.items()):
+        uncommented = "\n".join(line for line in text.split("\n") if not line.lstrip().startswith("#"))
+        given = read("%s's top level" % path, variable_block(uncommented, ""))
+        for key in sorted(everywhere & set(given)):
+            problems.append("%s sets %s in its top-level variables, which reach every job and every service: the start "
+                            "jobs' databases are given theirs in the jobs' own variables" % (path, key))
+    ci_jobs = blocks(ci_texts.get(".gitlab-ci.yml", ""))
+    for owner in ("workflow", ".release-rules"):
+        given = read("%s's rules" % owner, rule_variables(ci_jobs.get(owner, "")))
+        for key in sorted(everywhere & set(given)):
+            problems.append("%s's rules set %s, which reaches the start jobs and their services: the start jobs' databases "
+                            "are given theirs in the jobs' own variables" % (owner, key))
+    parent = read("container-image-start", variable_block(image_jobs.get("container-image-start", "")))
     for name in ("container-image-start", "container-image-start-arm64"):
         block = image_jobs.get(name, "")
         if not block:
             continue
-        values = own_variables(block)
+        values = parent if name == "container-image-start" else read(name, variable_block(block))
         if name != "container-image-start" and re.search(r"^  extends: container-image-start\s*$", block, re.MULTILINE):
             values = dict(parent, **values)
 
@@ -5406,13 +5506,15 @@ def start_database_variable_problems(image_jobs):
             problems.append("%s does not give MariaDB's root no password (MARIADB_ALLOW_EMPTY_ROOT_PASSWORD), without which "
                             "MariaDB's image does not start" % name)
         for key in ("MARIADB_RANDOM_ROOT_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD", "MYSQL_ROOT_PASSWORD",
-                    "POSTGRES_HOST_AUTH_METHOD"):
+                    "POSTGRES_HOST_AUTH_METHOD", "POSTGRES_INITDB_ARGS"):
             if key in values:
                 problems.append("%s sets %s: MariaDB's root has no password there (a random one is printed into the job's log) "
-                                "and PostgreSQL asks the password it is given" % (name, key))
+                                "and PostgreSQL asks the password it is given (initdb's arguments can make it trust every "
+                                "login)" % (name, key))
         for service, entry in service_entries(block):
             alias = re.search(r"^      alias: (\S+)\s*$", entry, re.MULTILINE)
-            for key in sorted(held & set(own_variables(entry, "      "))):
+            own = read("%s's service %s" % (name, alias.group(1) if alias else service), variable_block(entry, "      "))
+            for key in sorted(held & set(own)):
                 problems.append("%s's service %s sets %s in its own variables: the job's variables give it to every service, "
                                 "and the image and the test the same" % (name, alias.group(1) if alias else service, key))
     return problems
@@ -5645,11 +5747,15 @@ def image_start_database_problems(texts, image_jobs):
     wanted_command = '      command: ["bash", "-c", "%s"]' % command.group(1) if command else None
     for name in ("container-image-start", "container-image-start-arm64"):
         block = image_jobs.get(name, "")
+        # The job's own variables as variable_block reads them, at any indentation and
+        # with the key quoted or not (a form it does not read is refused below).
         for key in ("HM_DB_TYPE", "HM_DB_HOST"):
-            if re.search(r"^    [\"']?%s[\"']?[ \t]*:" % key, block, re.MULTILINE):
+            if re.search(r"^    [\"']?%s[\"']?[ \t]*:" % key, block, re.MULTILINE) or key in own_variables(block):
                 problems.append("%s sets %s in the job's own variables, which reach every service: "
                                 "each image's database is its own service's" % (name, key))
-    problems += start_database_variable_problems(image_jobs)
+    every_ci = dict(texts.get("ci-includes", {}), **{".gitlab-ci.yml": texts.get("ci", ""),
+                                                     FILES["image"].replace(os.sep, "/"): texts["image"]})
+    problems += start_database_variable_problems(image_jobs, every_ci)
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
                                   ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
@@ -7124,6 +7230,46 @@ def self_test(chain, feed):
     broken("the arm64 start's own MariaDB database, its key quoted", "image", '    HM_START_WAIT: "600"\n',
            '    HM_START_WAIT: "600"\n    "MARIADB_DATABASE": hmother\n',
            "container-image-start-arm64 does not give the database the same")
+    # The variables in the other forms YAML and GitLab read: indented further, in flow
+    # style, under a merge key, in a service's block indented further, and where they
+    # reach every job - a CI file's top level, the workflow's rules, .release-rules.
+    unread = "writes its variables in a form this check does not read"
+    arm64_variables = '  variables:\n    HM_START_WAIT: "600"\n'
+    for what, key, old, new, needle in (
+            ("the arm64 start's own HM_DB_TYPE, its variables indented six", "image", arm64_variables,
+             '  variables:\n      HM_START_WAIT: "600"\n      HM_DB_TYPE: PostgreSQL\n',
+             "container-image-start-arm64 sets HM_DB_TYPE in the job's own variables"),
+            ("the arm64 start's own MariaDB database, its variables indented six", "image", arm64_variables,
+             '  variables:\n      HM_START_WAIT: "600"\n      MARIADB_DATABASE: hmother\n',
+             "container-image-start-arm64 does not give the database the same"),
+            ("the arm64 start's own HM_DB_TYPE in flow style", "image", arm64_variables,
+             '  variables: {HM_START_WAIT: "600", HM_DB_TYPE: PostgreSQL}\n', "container-image-start-arm64 " + unread),
+            ("the arm64 start's own MariaDB database in flow style", "image", arm64_variables,
+             '  variables: {HM_START_WAIT: "600", MARIADB_DATABASE: hmother}\n', "container-image-start-arm64 " + unread),
+            ("the arm64 start's own HM_DB_TYPE under a merge key", "image", arm64_variables,
+             arm64_variables + "    <<: {HM_DB_TYPE: PostgreSQL}\n", "container-image-start-arm64 " + unread),
+            ("a database service's own database, its variables indented ten", "image",
+             "      alias: mariadb\n      pull_policy: [if-not-present, always]\n",
+             "      alias: mariadb\n      pull_policy: [if-not-present, always]\n      variables:\n"
+             "          MARIADB_DATABASE: hmother\n",
+             "container-image-start's service mariadb sets MARIADB_DATABASE in its own variables"),
+            ("PostgreSQL trusting every login from the CI file's top level", "ci", '\n  GIT_DEPTH: "1"\n',
+             '\n  GIT_DEPTH: "1"\n  POSTGRES_HOST_AUTH_METHOD: trust\n',
+             ".gitlab-ci.yml sets POSTGRES_HOST_AUTH_METHOD in its top-level variables"),
+            ("PostgreSQL trusting every login from the image's CI file's top level", "image", "\ncontainer-image-start:\n",
+             "\nvariables:\n  POSTGRES_HOST_AUTH_METHOD: trust\n\ncontainer-image-start:\n",
+             "%s sets POSTGRES_HOST_AUTH_METHOD in its top-level variables" % FILES["image"].replace(os.sep, "/")),
+            ("PostgreSQL trusting every login from the workflow's rules", "ci",
+             "        HM_RUNNER: saas-linux-small-amd64\n",
+             "        HM_RUNNER: saas-linux-small-amd64\n        POSTGRES_HOST_AUTH_METHOD: trust\n",
+             "workflow's rules set POSTGRES_HOST_AUTH_METHOD"),
+            ("the database type set by .release-rules", "ci", "\n.release-rules:\n  rules:\n",
+             "\n.release-rules:\n  rules:\n    - if: $HM_NEVER\n      variables:\n        HM_DB_TYPE: PostgreSQL\n",
+             ".release-rules's rules set HM_DB_TYPE"),
+            ("PostgreSQL trusting every login by initdb's arguments", "image", "    POSTGRES_DB: hmailserver\n",
+             "    POSTGRES_DB: hmailserver\n    POSTGRES_INITDB_ARGS: --auth=trust\n",
+             "container-image-start sets POSTGRES_INITDB_ARGS")):
+        broken(what, key, old, new, needle)
     for what, old, new, needle in (
             ("MariaDB's database not given", "    MARIADB_DATABASE: hmailserver\n", "",
              "container-image-start does not give the database the same in POSTGRES_DB, MARIADB_DATABASE, HM_DB_NAME"),
