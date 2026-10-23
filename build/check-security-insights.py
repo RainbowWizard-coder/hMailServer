@@ -68,10 +68,13 @@ nothing else would notice when it goes wrong. This holds it:
     NOT_TREE instead, the names that are not the tree's: Semgrep's registry
     rulesets, such as p/csharp, and the specification's spec/schema.cue. Any
     other word with a / in it - S/MIME, and/or, amd64/arm64, HTTP/1.1 - is prose,
-    and is not held. A name of the tree that holds a space, hmailserver/test/SSL
-    examples/ say, is read with the words after it that make one the tree holds.
-    A path may be written from "./", which is taken off, and one written from
-    "../" is never the tree's. A file named with no folder, whatever its case -
+    and is not held. A name of the tree that holds spaces, a folder's or a file's -
+    hmailserver/test/SSL examples/ or hmailserver/docs/Licenses/License list.md,
+    say - is read with as many of the words after it on its line as make one the
+    tree holds, and no word of it is read again as a name of its own (the list.md
+    of the second is not taken for a file at the root). A path may be written from
+    "./", which is taken off, and one written from "../" is never the tree's. A
+    file named with no folder, whatever its case -
     SECURITY.md, renovate.json, .gitlab-ci.yml - and with an extension of
     ROOT_EXTENSIONS is taken for a file at the root of the tree. So a renamed
     script, ruleset, folder or document fails the check, and so does one named
@@ -694,10 +697,10 @@ NOT_TREE = ('p/csharp', 'p/javascript', 'p/python', 'r/bash', 'spec/schema.cue')
 # with a letter (HTTP/1.1 and TLS/1.3 name none).
 FILE_EXTENSION = re.compile(r'\.[A-Za-z][A-Za-z0-9]*$')
 # A word that may go on after a path whose next part's name holds a space, such as
-# hmailserver/test/SSL examples/: what a path's parts are made of; and how many spaces
-# such a name may hold.
+# hmailserver/test/SSL examples/ or hmailserver/docs/Licenses/License list.md: what a
+# path's parts are made of. A name is read on with as many such words as its line has,
+# so that one of any number of spaces is read whole.
 PATH_WORD = re.compile(r' ([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]*)*)')
-MOST_SPACES = 3
 
 
 def tidy(token):
@@ -724,29 +727,38 @@ def named_paths(text, roots, holds, every=False):
     reads, as a tool's rulesets are held - and each file named with no folder that
     ROOT_FILE reads, but those of NOT_TREE. Every URL is blanked out first, so that no
     part of one is taken for a path. A path the tree does not hold, whose next words
-    make one it does - a folder whose name holds a space - is taken with them."""
+    on its line make one it does - a folder or a file whose name holds a space, as many
+    as it holds - is taken with them, and no word of the name so taken is read again:
+    a later part such as the list.md of hmailserver/docs/Licenses/License list.md is
+    not taken for a file at the root."""
     for number, line in enumerate(text.splitlines(), 1):
         line = URL_IN_TEXT.sub(lambda url: ' ' * len(url.group(0)), line)
         taken_to = 0
+        spans = []  # (start, end) of each path read, the words after it it was taken with included
         for match in TREE_PATH.finditer(line):
             if match.start() < taken_to:
                 continue
             token = tidy(match.group(1))
             if token in NOT_TREE or not (every or tree_like(token, roots)):
                 continue
+            end = match.end(1)
             if not holds(token):
-                end, longer = match.end(1), token
-                for _ in range(MOST_SPACES):
-                    word = PATH_WORD.match(line, end)
+                reach, longer = end, token
+                while True:
+                    word = PATH_WORD.match(line, reach)
                     if not word:
                         break
-                    end, longer = word.end(1), longer + ' ' + word.group(1)
+                    reach, longer = word.end(1), longer + ' ' + word.group(1)
                     if holds(tidy(longer)):
-                        token, taken_to = tidy(longer), end
+                        token, end = tidy(longer), reach
                         break
+            taken_to = end
+            spans.append((match.start(1), end))
             yield number, token
-        for token in ROOT_FILE.findall(line):
-            token = tidy(token)
+        for match in ROOT_FILE.finditer(line):
+            if any(start <= match.start(1) < end for start, end in spans):
+                continue
+            token = tidy(match.group(1))
             if token not in NOT_TREE:
                 yield number, token
 
@@ -1028,6 +1040,11 @@ FILES = {
     'fuzz/README.md': 'Fuzzing\n',
     'renovate.json': '{}\n',
     'test/SSL examples/example.pfx': 'not a key\n',
+    # Names that hold spaces as the tree's do: one whose second word has a root file's
+    # look (list.md), one of six spaces, and one of five whose last word has one.
+    'hmailserver/docs/Licenses/License list.md': 'License list\n',
+    'hmailserver/test/Scripted setups/25000 domains 10 accounts in each.vbs': "' A script.\n",
+    'hmailserver/docs/Licenses/License - HTML named character references.txt': 'A notice.\n',
     # A release chain of three files, whose permanent names lose the version.
     RELEASE_CHAIN: 'def release_files(version):\n'
                    '    return ["hmailserver-%s.intoto.sigstore.json" % version, "hMailServer-%s-x64.exe" % version,\n'
@@ -1201,6 +1218,16 @@ def self_test(quiet=False):
         ('a folder with a space in its name that the tree does not hold',
          swap('renovate.json updates it.', 'renovate.json updates it; test/SSL exemples/ holds its keys.'), (),
          'names test/SSL, which the tree'),
+        ('a file with a space in its name that the tree does not hold, its second word a root file\'s look',
+         swap('renovate.json updates it.', 'renovate.json updates it; hmailserver/docs/Licenses/License lists.md.'),
+         (), 'names hmailserver/docs/Licenses/License, which the tree'),
+        ('a name of six spaces that the tree does not hold',
+         swap('renovate.json updates it.', 'renovate.json updates it; hmailserver/test/Scripted setups/25000 '
+                                           'domains 10 accounts in eachh.vbs.'), (),
+         'names hmailserver/test/Scripted, which the tree'),
+        ('a root file the tree does not hold, after a name with a space that it does',
+         swap('renovate.json updates it.', 'renovate.json updates it; hmailserver/docs/Licenses/License list.md '
+                                           'and RELEASE.md.'), (), 'names RELEASE.md, which the tree'),
         ('a path under a folder at the root, with no / at its end and no extension, that the tree does not hold',
          swap('(build/ci/scan.sh)', '(build/scripts)'), (), 'names build/scripts, which the tree'),
         ('a word with a / that ends in one, a folder the tree does not hold',
@@ -1229,10 +1256,17 @@ def self_test(quiet=False):
         said = world(swap('renovate.json updates it.', 'renovate.json updates it %s.' % prose))
         expect('prose with a / in a word, "%s", which is no path of the tree: passes%s'
                % (prose, '' if not said else ' (%s)' % said[0][:120]), said == [])
-    for named in ('test/SSL examples/', 'test/SSL examples/example.pfx'):
+    for what, named in (
+            ('a folder of the tree with a space in its name', 'test/SSL examples/'),
+            ('a file of the tree in a folder with a space in its name', 'test/SSL examples/example.pfx'),
+            ('a file of the tree with a space in its name, its second word a root file\'s look',
+             'hmailserver/docs/Licenses/License list.md'),
+            ('a file of the tree with six spaces in its name',
+             'hmailserver/test/Scripted setups/25000 domains 10 accounts in each.vbs'),
+            ('a file of the tree with five spaces in its name, its last word a root file\'s look',
+             'hmailserver/docs/Licenses/License - HTML named character references.txt')):
         said = world(swap('renovate.json updates it.', 'renovate.json updates it; %s holds its keys.' % named))
-        expect('a folder of the tree with a space in its name, %s: passes%s'
-               % (named, '' if not said else ' (%s)' % said[0][:120]), said == [])
+        expect('%s, %s: passes%s' % (what, named, '' if not said else ' (%s)' % said[0][:120]), said == [])
     said = world(swap('/-/tree/master/test/SSL%20examples/', '/-/blob/master/test/SSL%20examples/example.pfx'))
     expect('a link with an encoded space to a file the tree holds: passes%s'
            % ('' if not said else ' (%s)' % said[0][:120]), said == [])

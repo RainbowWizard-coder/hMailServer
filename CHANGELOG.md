@@ -595,10 +595,11 @@ with `--check`).
   such as `build/ci/semgrep.sh`, a folder, a file named with no folder such as `RELEASE.md` or `renovate.json`, which
   is a file at the root - but the names its `NOT_TREE` lists as not the tree's (Semgrep's registry rulesets such as
   `p/csharp`, and the specification's `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale,
-  while a word such as S/MIME, and/or or amd64/arm64 is prose, and a folder whose name holds a space, such as
-  `hmailserver/test/SSL examples/`, is read whole. It proves its 68 negative controls on every run, and `--self-test`
-  says each. SECURITY.md's "For a security
-  questionnaire" and CONTRIBUTING.md's table of checkers name both.
+  while a word such as S/MIME, and/or or amd64/arm64 is prose, and a name that holds spaces, a folder's or a file's,
+  such as `hmailserver/test/SSL examples/` or `hmailserver/docs/Licenses/License list.md`, is read whole, whatever the
+  number of its spaces, and no word of it is read again as a name of its own, so that the `list.md` of the second is not
+  taken for a file at the root. It proves its 71 negative controls on every run, and `--self-test` says each.
+  SECURITY.md's "For a security questionnaire" and CONTRIBUTING.md's table of checkers name both.
 - **The tree no longer carries `libraries/fat_cow_icons/fatcow-hosting-icons-1400.zip`.** The archive, 3.6 MB, held
   FatCow's 2,800 PNG icons as FatCow published them, of which the tree's `.ico` files under
   `libraries/fat_cow_icons/ico` are the Windows icon form (2,798 of the 2,800 by the same name), and nothing in the
