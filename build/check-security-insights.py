@@ -36,7 +36,8 @@ nothing else would notice when it goes wrong. This holds it:
     comment or a YAML comment - that is under gitlab.com/hmailserver/ is the
     project's own, gitlab.com/hmailserver/hmailserver, and every one under
     github.com/RainbowWizard-coder/ is the GitHub copy, RainbowWizard-coder/hMailServer
-    there, so a misspelt project path is refused;
+    there - or is the page of the group, or of its owner on GitHub, itself - so a
+    misspelt project path is refused;
   * to the links' form: each URL of the project's own is read as GitLab and
     GitHub read it - its path percent-decoded, so that %20 is a space, its query
     left out, as GitLab's own ?ref_type=heads is, and its fragment the anchor

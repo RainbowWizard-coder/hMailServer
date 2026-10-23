@@ -565,13 +565,14 @@ with `--check`).
   status, its change and review policy (CONTRIBUTING.md and GOVERNANCE.md), its licence and its core team; where the
   releases are published (GitLab's and GitHub's release pages, the update feed's download links, the container image
   on GitLab and Docker Hub, PyPI, the PowerShell Gallery, Chocolatey's community repository, the openSUSE Build
-  Service, Fedora Copr and the Ubuntu PPA, each with how a release reaches it), how they are signed (from 6.3.5 a
-  Sigstore bundle for each file from the release tag's own pipeline, from 6.2.19 to 6.3.3 bundles from the GitHub
-  workflow that made them, but for 6.2.22-pre3's two SBOMs, 6.3.4 a SHA256SUMS file signed with the release-tag key
-  that lists its other files, the releases before 6.2.19 none, and the Windows installer Authenticode-signed from
-  6.3.1), the build provenance and the SBOMs each carries; the assurance case as the self-assessment; and the ten security tools that run on the code, each with where it runs and whether it holds a
-  change or a release - secret detection, GitLab's SAST, Semgrep, cppcheck and clang-tidy, the dependency scan and the
-  dependency check of every change, the container image's scan, libFuzzer, and, on GitHub, OpenSSF Scorecard and
+  Service, Fedora Copr and the Ubuntu PPA, the last four each with how a release reaches it), how they are signed
+  (from 6.3.5 a Sigstore bundle for each file from the release tag's own pipeline, from 6.2.19 to 6.3.3 bundles from
+  the GitHub workflow that made them, but for 6.2.22-pre3's two SBOMs, 6.3.4 a SHA256SUMS file signed with the
+  release-tag key that lists its other files, the releases before 6.2.19 none, and the Windows installer
+  Authenticode-signed from 6.3.1), the build provenance and the SBOMs each carries; the assurance case as the
+  self-assessment; and the ten security tools that run on the code, each with where it runs and whether it holds a
+  change or a release - secret detection, GitLab's SAST, Semgrep, cppcheck and clang-tidy, the dependency scan and
+  the dependency check of every change, the container image's scan, libFuzzer, and, on GitHub, OpenSSF Scorecard and
   CodeQL. Every value was read from the tree or from the project's pages on 23 October 2026, and `cue vet` (CUE
   0.17.1) passes it against the specification's `schema.cue` at v2.2.0. The check, which the checkers job runs with
   every `build/check-*.py`, reads the file with nothing but Python and refuses YAML it does not take; holds it to the

@@ -26,9 +26,9 @@ header:
     Progressive Robot's fork of hMailServer. GitLab is the project's home and is
     canonical; the repository on GitHub is GitLab's copy, pushed there by GitLab's push
     mirror since 18 October 2026, and every link below to the repository or its
-    releases is to GitLab unless it names GitHub. GOVERNANCE.md names two maintainers; since 13 October 2026 Christopher
-    Holloway is the only person with a role in the GitLab project, and he alone
-    administers the GitHub repository.
+    releases is to GitLab unless it names GitHub. GOVERNANCE.md names two
+    maintainers; since 13 October 2026 Christopher Holloway is the only person with
+    a role in the GitLab project, and he alone administers the GitHub repository.
 
 project:
   name: hMailServer (Progressive Robot's fork of hMailServer)
@@ -143,10 +143,11 @@ repository:
           Chocolatey's community repository, as hmailserver-progressiverobot. Its
           install script downloads the release's x64 installer from the project's
           package registry on GitLab and holds it to the SHA-256 the package carries,
-          which the chocolatey-publish job took from the installer once it had verified
-          it against its Sigstore bundle and its Authenticode signature
-          (hmailserver/docs/Channels.md, "Chocolatey"). A version is listed once a
-          Chocolatey moderator has approved it; 6.3.7 was approved on 23 October 2026.
+          that of the installer the chocolatey-release job verified against its
+          Sigstore bundle and the chocolatey-publish job against its Authenticode
+          signature (hmailserver/docs/Channels.md, "Chocolatey"). A version is
+          listed once a Chocolatey moderator has approved it; 6.3.7 was approved on
+          23 October 2026.
       - uri: https://build.opensuse.org/project/show/home:progressiverobot
         comment: >-
           The openSUSE Build Service's home project home:progressiverobot, which builds
@@ -177,8 +178,9 @@ repository:
           From 6.3.6. An in-toto statement naming every file of the release but the
           Sigstore bundles by its SHA-256, with the commit it was built from and the
           tag's pipeline as the builder, signed by that pipeline with Sigstore and
-          recorded in the public Rekor log. Replace {version} with the release's version, such as 6.3.7. SECURITY.md,
-          "Verifying a release", gives the cosign command that checks a file against it.
+          recorded in the public Rekor log. Replace {version} with the release's
+          version, such as 6.3.7. SECURITY.md, "Verifying a release", gives the
+          cosign command that checks a file against it.
       - name: CycloneDX SBOM of the Windows installer
         location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hMailServer-x64.exe.cdx.json
         predicate-uri: https://cyclonedx.org/bom
