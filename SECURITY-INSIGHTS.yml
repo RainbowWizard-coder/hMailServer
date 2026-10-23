@@ -21,9 +21,9 @@ header:
     Progressive Robot's fork of hMailServer. GitLab is the project's home and is
     canonical; the repository on GitHub is GitLab's copy, pushed there by GitLab's push
     mirror since 18 October 2026, and every link below is to GitLab unless it names
-    GitHub. GOVERNANCE.md names two maintainers; since 13 October 2026 only Christopher
-    Holloway holds a role in the GitLab project, and he alone administers the GitHub
-    repository.
+    GitHub. GOVERNANCE.md names two maintainers; since 13 October 2026 Christopher
+    Holloway is the only person with a role in the GitLab project, and he alone
+    administers the GitHub repository.
 
 project:
   name: hMailServer (Progressive Robot's fork of hMailServer)
@@ -132,6 +132,37 @@ repository:
         comment: hmctl, the command-line client for the server's REST API.
       - uri: https://www.powershellgallery.com/packages/HmailServer
         comment: The PowerShell module for the server's REST API.
+      - uri: https://community.chocolatey.org/packages/hmailserver-progressiverobot
+        comment: >-
+          Chocolatey's community repository, as hmailserver-progressiverobot. Its
+          install script downloads the release's x64 installer from the project's
+          package registry on GitLab and holds it to the SHA-256 the package carries,
+          which the chocolatey-publish job took from the installer once it had verified
+          it against its Sigstore bundle and its Authenticode signature
+          (hmailserver/docs/Channels.md, "Chocolatey"). A version is listed once a
+          Chocolatey moderator has approved it; 6.3.7 was approved on 23 October 2026.
+      - uri: https://build.opensuse.org/project/show/home:progressiverobot
+        comment: >-
+          The openSUSE Build Service's home project home:progressiverobot, which builds
+          each release for openSUSE Leap 16.0 and Tumbleweed from its source tarball,
+          downloaded by OBS itself through GitLab's permanent link once the obs-publish
+          job has verified the tarball and held that link to it, and publishes it in
+          zypper repositories that OBS signs with its own key
+          (hmailserver/docs/Channels.md, "openSUSE Build Service").
+      - uri: https://copr.fedorainfracloud.org/coprs/progressiverobot/hmailserver/
+        comment: >-
+          Fedora Copr, which builds each release for Fedora 44 and 43 and EPEL 10, on
+          x86_64 and aarch64, from a source RPM its builder makes from the release's
+          source tarball after verifying the tarball against its Sigstore bundle, as the
+          copr-build job does before it starts the build (hmailserver/docs/Channels.md,
+          "Fedora Copr").
+      - uri: https://launchpad.net/~hmailserver/+archive/ubuntu/hmailserver
+        comment: >-
+          The Ubuntu PPA ppa:hmailserver/hmailserver. The ppa-upload job verifies the
+          release's source tarball, makes the Debian source package from it and the
+          packaging inside it, and uploads it signed with the project's upload key;
+          Launchpad builds it for Ubuntu 24.04 and 26.04, amd64 and arm64, and signs the
+          archive with the PPA's own key (hmailserver/docs/Channels.md, "Ubuntu PPA").
     attestations:
       - name: SLSA build provenance
         location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hmailserver.intoto.sigstore.json
