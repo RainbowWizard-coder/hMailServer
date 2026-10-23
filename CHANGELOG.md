@@ -982,6 +982,23 @@ with `--check`).
   self-test breaks the start jobs in eleven ways - those seven, `when: always`, a `parallel` matrix setting an
   address, and the script written as a compact sequence ending in `exit 0` or given a second entry - and sees each
   caught.
+- **The release-chain check holds the addresses the image start test asks and the version it expects.** The test
+  reads the image it asks beside each database, each database's address and the version it expects from the
+  environment (`HM_START_HOST`, `HM_START_MARIADB_HOST`, `HM_START_DB_HOST`, `HM_START_MARIADB_DB_HOST`,
+  `HM_START_VERSION`, else `CI_COMMIT_TAG`), and nothing held them: `HM_START_MARIADB_HOST: mail` in
+  `container-image-start`'s variables sent the MariaDB ask's SMTP and REST questions to the image beside PostgreSQL,
+  `HM_START_HOST: mail-mariadb` the reverse, and `HM_START_VERSION: "6"` let any 6.x pass the version check; master's
+  checker passed each, and `BASH_ENV`, which bash runs before the script, too. `build/check-release-chain.py` now
+  holds each start job's own variables to those it sets today (`START_JOB_VARIABLES`), `HM_START_HOST` to `mail`
+  where it is set, and refuses every `HM_START_` variable, `CI_COMMIT_TAG`, and the variables with which bash, its
+  resolver, `curl`, `psql` or `mariadb` would run otherwise (`BASH_ENV`, `SHELLOPTS`, `PATH`, `HOSTALIASES`,
+  `CURL_HOME`, `PGSERVICEFILE`, `MYSQL_HOST` and others: `START_TEST_ENVIRONMENT`) in the CI files' top-level
+  variables, the workflow's and `.release-rules`' rules and the services' own variables; and it holds the script's
+  lines that take them, with their defaults (`maria_host="${HM_START_MARIADB_HOST:-mail-mariadb}"` and the others,
+  `START_TEST_DEFAULTS`), each once before the asks. The self-test breaks the tree in eight ways - the three above,
+  `BASH_ENV` in the arm64 job, `HM_START_VERSION` in a service's variables, `HM_START_MARIADB_HOST` among
+  `.gitlab-ci.yml`'s top-level variables, and the script's MariaDB address defaulting to `mail` or its version to 6 -
+  and sees each caught.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in

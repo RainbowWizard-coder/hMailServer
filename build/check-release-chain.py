@@ -5435,6 +5435,36 @@ START_DATABASE_VARIABLES = (("the database user", ("POSTGRES_USER", "MARIADB_USE
                             ("the database password", ("POSTGRES_PASSWORD", "MARIADB_PASSWORD", "HM_DB_PASSWORD")))
 
 
+# The variables a start job may set itself (START_JOB_VARIABLES), and those of them whose
+# value is held (START_JOB_VARIABLE_VALUES): the test reads the four addresses it asks
+# (HM_START_HOST, HM_START_MARIADB_HOST, HM_START_DB_HOST, HM_START_MARIADB_DB_HOST) and
+# the version it expects (HM_START_VERSION, else CI_COMMIT_TAG) from the environment, so
+# that one variable could point both asks at one image or let any 6.x pass; and bash and
+# the programs the test runs read more (BASH_ENV, which bash runs first, SHELLOPTS, PATH,
+# HOSTALIASES, CURL_HOME, PGSERVICEFILE among them). START_TEST_ENVIRONMENT names those
+# refused where they would reach every job too, with every HM_START_ variable.
+START_JOB_VARIABLES = ("FF_NETWORK_PER_BUILD", "CI_DEBUG_SERVICES", "POSTGRES_USER", "POSTGRES_DB", "POSTGRES_PASSWORD",
+                       "MARIADB_USER", "MARIADB_DATABASE", "MARIADB_PASSWORD", "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD",
+                       "HM_DB_NAME", "HM_DB_USER", "HM_DB_PASSWORD", "HM_DB_WAIT_SECONDS", "HM_ADMIN_PASSWORD",
+                       "HM_REST_PORT", "HM_REST_BIND_ADDRESS", "HM_REST_CERTIFICATE_FILE", "HM_REST_PRIVATE_KEY_FILE",
+                       "HM_START_HOST", "HM_START_WAIT")
+START_JOB_VARIABLE_VALUES = {"HM_START_HOST": "mail"}
+START_TEST_ENVIRONMENT = ("CI_COMMIT_TAG", "BASH_ENV", "ENV", "SHELLOPTS", "BASHOPTS", "POSIXLY_CORRECT", "PATH", "IFS",
+                          "CDPATH", "GLOBIGNORE", "PS4", "LD_PRELOAD", "LD_LIBRARY_PATH", "LD_AUDIT", "HOSTALIASES",
+                          "RES_OPTIONS", "LOCALDOMAIN", "CURL_HOME", "CURL_CA_BUNDLE", "PGSERVICEFILE", "PGSERVICE",
+                          "PGHOST", "PGHOSTADDR", "PGPORT", "PGOPTIONS", "MYSQL_HOST", "MYSQL_TCP_PORT", "MARIADB_HOST",
+                          "HOME")
+
+
+# The lines of the test that take those addresses and that version, with their defaults:
+# the image beside PostgreSQL as mail, the one beside MariaDB as mail-mariadb, their
+# databases as db and mariadb, the version from the tag without its v and suffix.
+START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_TAG:-}"', '  expected="${tag#v}"',
+                       'expected="${expected%%[!0-9.]*}"', 'pg_host="${HM_START_HOST:-mail}"',
+                       'maria_host="${HM_START_MARIADB_HOST:-mail-mariadb}"', 'pg_db_host="${HM_START_DB_HOST:-db}"',
+                       'maria_db_host="${HM_START_MARIADB_DB_HOST:-mariadb}"')
+
+
 def start_database_variable_problems(image_jobs, ci_texts=None):
     """Each start job's variables - its own, over container-image-start's where it
     extends that job, as GitLab merges a job's - give PostgreSQL's service, MariaDB's and
@@ -5447,6 +5477,11 @@ def start_database_variable_problems(image_jobs, ci_texts=None):
     text}), the workflow's rules' or .release-rules', which are the start jobs' rules.
     Each of these variables: blocks is read as variable_block reads it, and one written
     in a form it does not read is refused, so that a key is not missed for its spelling.
+    A start job's own variables are START_JOB_VARIABLES' alone, with the values of
+    START_JOB_VARIABLE_VALUES where they are set, and no HM_START_ variable or one of
+    START_TEST_ENVIRONMENT is set where it reaches every job or in a service's own
+    variables: the test would otherwise ask the one image twice, take any 6.x for the
+    version, or run what BASH_ENV, PATH and the like make of it.
     Without one, a database service does not start, or starts with a user or a database
     the image is not told, and the next release's tag pipeline is the first to say so;
     with POSTGRES_HOST_AUTH_METHOD trust anywhere they reach, PostgreSQL would take any
@@ -5458,7 +5493,10 @@ def start_database_variable_problems(image_jobs, ci_texts=None):
          "MYSQL_ROOT_PASSWORD", "MYSQL_ALLOW_EMPTY_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD", "MYSQL_DATABASE", "MYSQL_USER",
          "MYSQL_PASSWORD", "MARIADB_ROOT_PASSWORD_HASH", "MARIADB_PASSWORD_HASH", "POSTGRES_HOST_AUTH_METHOD",
          "POSTGRES_INITDB_ARGS"}
-    everywhere = held | {"HM_DB_TYPE", "HM_DB_HOST"}
+    everywhere = held | {"HM_DB_TYPE", "HM_DB_HOST"} | set(START_TEST_ENVIRONMENT)
+
+    def refused(given, keys):
+        return sorted(key for key in given if key in keys or key.startswith("HM_START_"))
 
     def read(owner, found):
         values, unread = found
@@ -5472,15 +5510,16 @@ def start_database_variable_problems(image_jobs, ci_texts=None):
     for path, text in sorted(ci_texts.items()):
         uncommented = "\n".join(line for line in text.split("\n") if not line.lstrip().startswith("#"))
         given = read("%s's top level" % path, variable_block(uncommented, ""))
-        for key in sorted(everywhere & set(given)):
+        for key in refused(given, everywhere):
             problems.append("%s sets %s in its top-level variables, which reach every job and every service: the start "
-                            "jobs' databases are given theirs in the jobs' own variables" % (path, key))
+                            "jobs' databases, the addresses their test asks and its shell are held in the jobs' own "
+                            "variables" % (path, key))
     ci_jobs = blocks(ci_texts.get(".gitlab-ci.yml", ""))
     for owner in ("workflow", ".release-rules"):
         given = read("%s's rules" % owner, rule_variables(ci_jobs.get(owner, "")))
-        for key in sorted(everywhere & set(given)):
-            problems.append("%s's rules set %s, which reaches the start jobs and their services: the start jobs' databases "
-                            "are given theirs in the jobs' own variables" % (owner, key))
+        for key in refused(given, everywhere):
+            problems.append("%s's rules set %s, which reaches the start jobs and their services: the start jobs' databases, "
+                            "the addresses their test asks and its shell are held in the jobs' own variables" % (owner, key))
     parent = read("container-image-start", variable_block(image_jobs.get("container-image-start", "")))
     for name in ("container-image-start", "container-image-start-arm64"):
         block = image_jobs.get(name, "")
@@ -5515,10 +5554,20 @@ def start_database_variable_problems(image_jobs, ci_texts=None):
                 problems.append("%s sets %s: MariaDB's root has no password there (a random one is printed into the job's log) "
                                 "and PostgreSQL asks the password it is given (initdb's arguments can make it trust every "
                                 "login)" % (name, key))
+        own_keys = set(values) if name == "container-image-start" else set(variable_block(block)[0])
+        for key in sorted(own_keys - set(START_JOB_VARIABLES)):
+            problems.append("%s sets %s, which is not one of the variables this check holds a start job to "
+                            "(START_JOB_VARIABLES): the test reads its addresses and the version it expects from the "
+                            "environment (HM_START_*, CI_COMMIT_TAG), and the shell and its programs read more "
+                            "(BASH_ENV, PATH)" % (name, key))
+        for key, wanted in sorted(START_JOB_VARIABLE_VALUES.items()):
+            if key in values and values[key] != wanted:
+                problems.append("%s sets %s to %r, not %r: the test would ask another image than the one it names"
+                                % (name, key, values[key], wanted))
         for service, entry in service_entries(block):
             alias = re.search(r"^      alias: (\S+)\s*$", entry, re.MULTILINE)
             own = read("%s's service %s" % (name, alias.group(1) if alias else service), variable_block(entry, "      "))
-            for key in sorted(held & set(own)):
+            for key in refused(own, held | set(START_TEST_ENVIRONMENT)):
                 problems.append("%s's service %s sets %s in its own variables: the job's variables give it to every service, "
                                 "and the image and the test the same" % (name, alias.group(1) if alias else service, key))
     return problems
@@ -5726,6 +5775,11 @@ def start_test_call_problems(script):
                              or any(re.search(returns, _start_test_scan(line)) for line in body)):
         problems.append("%s's cleanup does not take code=$? first, write code nowhere else and end in exit \"$code\", "
                         "so that the test's status is the one it ends with" % name)
+    for held in START_TEST_DEFAULTS:
+        if lines[:first].count(held) != 1:
+            problems.append("%s does not take, once before the images are asked, %s: the addresses the asks go to and the "
+                            "version they expect are these, unless the job's variables, which the check holds, say "
+                            "otherwise" % (name, held.strip()))
     return problems
 
 
@@ -7393,6 +7447,33 @@ def self_test(chain, feed):
              "  script:\n  - bash build/ci/container-image-start-test.sh\n  - exit 0\n", not_run),
             ("the start's script given a second entry", run, run + "    - exit 0\n", not_run)):
         broken_image(what, needle, (old, new))
+    # The addresses the test asks and the version it expects: both asks pointed at one
+    # image, any 6.x taken, the shell given a file to run first, each from the jobs' own
+    # variables, the CI file's top level or a service's; and the script's own defaults.
+    not_variable = "which is not one of the variables this check holds a start job to"
+    start_host = "    HM_START_HOST: mail\n"
+    for what, old, new, needle in (
+            ("the MariaDB ask sent to the image beside PostgreSQL", start_host,
+             start_host + "    HM_START_MARIADB_HOST: mail\n", "container-image-start sets HM_START_MARIADB_HOST, " + not_variable),
+            ("the PostgreSQL ask sent to the image beside MariaDB", start_host, "    HM_START_HOST: mail-mariadb\n",
+             "container-image-start sets HM_START_HOST to 'mail-mariadb', not 'mail'"),
+            ("any 6.x taken for the version", start_host, start_host + '    HM_START_VERSION: "6"\n',
+             "container-image-start sets HM_START_VERSION, " + not_variable),
+            ("the arm64 start's shell given a file to run first", '    HM_START_WAIT: "600"\n',
+             '    HM_START_WAIT: "600"\n    BASH_ENV: build/ci/start-first.sh\n',
+             "container-image-start-arm64 sets BASH_ENV, " + not_variable),
+            ("a service's own version to expect", "      alias: mariadb\n      pull_policy: [if-not-present, always]\n",
+             '      alias: mariadb\n      pull_policy: [if-not-present, always]\n      variables:\n        HM_START_VERSION: "6"\n',
+             "container-image-start's service mariadb sets HM_START_VERSION in its own variables")):
+        broken(what, "image", old, new, needle)
+    broken("the MariaDB ask's address from the CI file's top level", "ci", '\n  GIT_DEPTH: "1"\n',
+           '\n  GIT_DEPTH: "1"\n  HM_START_MARIADB_HOST: mail\n', ".gitlab-ci.yml sets HM_START_MARIADB_HOST in its top-level")
+    not_taken = "does not take, once before the images are asked, "
+    for what, old, new in (
+            ("the MariaDB ask's address defaulting to the image beside PostgreSQL",
+             'maria_host="${HM_START_MARIADB_HOST:-mail-mariadb}"', 'maria_host="${HM_START_MARIADB_HOST:-mail}"'),
+            ("the version to expect defaulting to 6", 'expected="${HM_START_VERSION:-}"', 'expected="${HM_START_VERSION:-6}"')):
+        broken(what, "image-start", old, new, not_taken + old)
     for what, old, new, needle in (
             ("MariaDB's database not given", "    MARIADB_DATABASE: hmailserver\n", "",
              "container-image-start does not give the database the same in POSTGRES_DB, MARIADB_DATABASE, HM_DB_NAME"),
