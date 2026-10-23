@@ -433,7 +433,8 @@ Fedora's Copr on Fedora 44 and AlmaLinux 10, amd64 and arm64 each, which serve t
 release signed with keys of their own while the repositories here wait on the
 owner's ([Channels.md](Channels.md), "What was tried").
 
-The `.repo` file:
+The `.repo` file of this project's own dnf repository, for `fc44` (the other
+directories' differ only where it says `fc44`):
 
 ```ini
 [hmailserver]

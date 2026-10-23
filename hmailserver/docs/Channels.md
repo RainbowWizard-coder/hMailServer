@@ -47,7 +47,7 @@ published to the AUR, the PPA, Copr or OBS: they build from the release's source
 | Arch User Repository | `git clone https://aur.archlinux.org/hmailserver.git && cd hmailserver && makepkg -si` | `aur-publish` | `AUR_SSH_KEY` |
 | Ubuntu PPA | `sudo add-apt-repository ppa:hmailserver/hmailserver && sudo apt install hmailserver` | `ppa-upload` | `LAUNCHPAD_SIGNING_KEY` |
 | Fedora Copr | `sudo dnf copr enable progressiverobot/hmailserver && sudo dnf install hmailserver` | `copr-build` | `COPR_WEBHOOK_URL` |
-| openSUSE Build Service | `sudo zypper addrepo https://download.opensuse.org/repositories/home:/progressiverobot/16.0/home:progressiverobot.repo` (`openSUSE_Tumbleweed` in place of `16.0` for Tumbleweed), then `sudo zypper install hmailserver` | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
+| openSUSE Build Service | `sudo zypper addrepo https://download.opensuse.org/repositories/home:/progressiverobot/16.0/home:progressiverobot.repo` (`openSUSE_Tumbleweed` in place of `16.0` for Tumbleweed), then `sudo zypper install hmailserver`, trusting the key only if zypper shows the fingerprint `BA08 6830 9CFB D364 98CE 41D2 2F0B 9419 E67E E770` ([PackageManagers.md](PackageManagers.md) has the route that checks it first) | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
 | Chocolatey | `choco install hmailserver-progressiverobot` | `chocolatey-release`, then `chocolatey-publish` | `CHOCO_API_KEY`, `HM_CHOCOLATEY_ID` |
 | Snap Store | `sudo snap install hmailserver --candidate` | `snap-upload` | `SNAPCRAFT_STORE_CREDENTIALS` |
 
@@ -762,14 +762,16 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
     arm64, built by Launchpad.
   - **Copr**, in `registry.fedoraproject.org/fedora:44` (`sha256:b96f024c...3454`)
     and `almalinux:10` (`sha256:838c2faf...1f1b`, AlmaLinux 10.2), x86_64 and
-    aarch64: `dnf install 'dnf-command(copr)'` (`dnf-plugins-core` 4.10.1 and
-    4.7.0), `dnf copr enable -y progressiverobot/hmailserver`, which chose
-    `fedora-$releasever-$basearch` and `epel-10-$basearch`, `dnf install -y
-    hmailserver`, `dnf remove -y hmailserver`. The repository's `gpgkey`, read
-    before it was trusted, is Copr's key for the project,
-    `A43209E902FC9666B7DC7C7007AD13D308C7F2E7` ("progressiverobot_hmailserver
-    (None) <progressiverobot#hmailserver@copr.fedorahosted.org>"), and `rpm -Kv`
-    of each package said its V4 RSA/SHA256 signature by that key is OK. dnf took
+    aarch64: `dnf copr enable -y progressiverobot/hmailserver` - a command both
+    images already have (Fedora 44's from `dnf5-plugins` 5.4.6.0, AlmaLinux 10's
+    from `dnf-plugins-core` 4.7.0; the run installed `dnf-command(copr)` first,
+    which neither needed) - which chose `fedora-$releasever-$basearch` and
+    `epel-10-$basearch`, `dnf install -y hmailserver`, `dnf remove -y hmailserver`.
+    The repository's `gpgkey`, read before it was trusted, is Copr's key for the
+    project, `A43209E902FC9666B7DC7C7007AD13D308C7F2E7`
+    ("progressiverobot_hmailserver (None)
+    <progressiverobot#hmailserver@copr.fedorahosted.org>"), and `rpm -Kv` of each
+    package said its V4 RSA/SHA256 signature by that key is OK. dnf took
     `6.3.7-1.fc44` and `6.3.7-1.el10`, from build 11180395, with `hmailserver-cli`;
     EL 10 needed nothing from EPEL. Each run took 37 to 127 seconds.
   - **OBS**, in `registry.opensuse.org/opensuse/leap:16.0` (`sha256:29589221...166a`),
