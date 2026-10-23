@@ -137,10 +137,17 @@ Security fixes the fork has published
 -------------------------------------
 
 The CVE identifiers assigned to vulnerabilities in this fork's releases, by GitLab,
-the CVE Numbering Authority for projects on GitLab.com, as the CHANGELOG and the
-records at [OSV](https://osv.dev) give them. Each record names this fork's affected
-versions, and the platform where only one is affected. None of them is a statement
-about the original's releases, for which the original's own release notes speak.
+the CVE Numbering Authority for projects on GitLab.com. Each row gives this fork's
+affected versions as the release notes in the [CHANGELOG](../../CHANGELOG.md) give
+them, or, where the notes name none, as the record at [OSV](https://osv.dev) does,
+and the platform where only one is affected, or each platform's versions where they
+differ. For four of them the published record, as of 23 October 2026, gives other
+versions, because a correction posted on the request before the record was
+published did not reach it, and GitLab has been asked to apply it: CVE-2026-107572
+(the record from 6.2.24), CVE-2026-107574 (from 6.2.28), CVE-2026-107578 (6.3.4 and
+6.3.5 on both systems) and CVE-2026-107582 (from 6.2.22-pre1). None of them is a
+statement about the original's releases, for which the original's own release notes
+speak.
 
 | Identifier | The flaw | Affected | Fixed in |
 |---|---|---|---|
@@ -158,6 +165,34 @@ about the original's releases, for which the original's own release notes speak.
 | CVE-2026-107568 | Sieve `notify`, and a rule's *Reply*, could send from an address the owner may not send as | 6.0.0 to 6.3.6 | 6.3.7 |
 | CVE-2026-107569 | The rule loop limit could be lifted, so that generated mail could loop without bound | 6.0.0 to 6.3.6 | 6.3.7 |
 | CVE-2026-107571 | Programs any user could replace, on a Windows server installed in a folder that inherits a writable parent's permissions, such as the root of a drive | 6.0.0 to 6.3.6, Windows | 6.3.7 |
+| CVE-2026-107572 | An account's own Sieve filter could hold the delivery threads: `:matches` backtracked over its wildcards, and `deleteheader` removed fields one at a time | 6.2.22 to 6.3.5 | 6.3.6 |
+| CVE-2026-107573 | The Windows installer left the data, log, temporary, database and event folders and `hMailServer.INI` readable by every user of the computer, and the Linux AppImage made its folders readable by other users | 6.0.0 to 6.3.5 on Windows, 6.3.0 to 6.3.5 for the AppImage on Linux | 6.3.6 |
+| CVE-2026-107574 | The JSON reader took time quadratic in an object's members, from a REST body or a TLS report mailed in by anyone | 6.3.2 to 6.3.5 | 6.3.6 |
+| CVE-2026-107575 | SPF macro expansion took time quadratic in a name too long to look up, from a record the sender publishes | 6.3.4 and 6.3.5 | 6.3.6 |
+| CVE-2026-107576 | Inbound DKIM and ARC verification took time quadratic in a message's header | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107577 | Removing an empty MIME header parameter followed by `;` never ended, and other header handling took quadratic time | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107578 | Commands an administrator runs, elevated or as root, followed links and paths the service account controls | 6.3.4 and 6.3.5 on Windows, 6.3.0 to 6.3.5 on Linux | 6.3.6 |
+| CVE-2026-107579 | Bounce and complaint processing took time quadratic in the blank lines a returned report begins with | 6.3.4 and 6.3.5 | 6.3.6 |
+| CVE-2026-107580 | Reading a header field as text took time quadratic in its line breaks, which a stranger's message chooses | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107581 | IMAP commands from a signed-in account took time quadratic in their length, or held memory out of proportion to them | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107582 | The string replacement took time quadratic in what it replaced, reached by a stranger's HTML-only message or DKIM signature | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107583 | The webmail's view of a message took time quadratic in its references to an embedded image | 6.3.2 to 6.3.5 | 6.3.6 |
+| CVE-2026-107584 | Outbound DANE failed open when a TLSA or MX lookup did not come back whole | 6.0.0 to 6.3.5 | 6.3.6 |
+| CVE-2026-107585 | Anybody could push other people's pending single sign-on and passkey sign-ins out of the REST listener's tables | 6.3.4 and 6.3.5 | 6.3.6 |
+| CVE-2026-107586 | One account signing in over and over could sign out every other idle browser session | 6.2.28 to 6.3.5 | 6.3.6 |
+| CVE-2026-107587 | The webmail kept a signed message's S/MIME certificate for replies whether or not its chain was trusted, under the certificate's address rather than the sender's | 6.3.2 to 6.3.5 | 6.3.6 |
+| CVE-2026-114470 | A REST request a browser made from another site with a cached HTTP Basic credential was accepted (cross-site request forgery) | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114471 | The SMTP log wrote some SASL credentials in the clear | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114472 | The ACME HTTP-01 challenge responder served one connection at a time, so that idle clients could make a renewal fail | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114473 | With SRS on, mail to an SRS address the server had handed out was not held to the relay rules | 6.2.1 to 6.3.6 | 6.3.7 |
+| CVE-2026-114474 | A message downloaded from an external account took the address in its `From` as its envelope sender, which a forward of it then carried | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114475 | A credential confined to named domains could create custom roles, and rewrite one that accounts in other domains hold | 6.3.4 to 6.3.6 | 6.3.7 |
+| CVE-2026-114476 | A role could be taken away by a credential that does not hold what the account's admin level then gives it | 6.3.4 to 6.3.6 | 6.3.7 |
+| CVE-2026-114477 | A credential confined to named domains could read the server-wide metric history | 6.2.25 to 6.3.6 | 6.3.7 |
+| CVE-2026-114478 | A forward or copy of mail from outside was sent on with an envelope sender, or a host name, in the organisation of the domain its `From` names, though it had not passed that domain's DMARC | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114479 | The anti-virus action that removes attachments delivered a message whose one part is an attachment as it arrived | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114489 | A credential confined to named domains could rename a domain, add a domain alias or set a rule action that reaches beyond its domains | 6.0.0 to 6.3.6 | 6.3.7 |
+| CVE-2026-114490 | Over COM, an account given the `serveradmin` role with a list of domains was the server's administrator | 6.3.4 to 6.3.6, Windows | 6.3.7 |
 
 [SECURITY.md](../../SECURITY.md) says how to report a vulnerability and which versions
 receive fixes.

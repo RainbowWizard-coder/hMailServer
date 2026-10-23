@@ -883,12 +883,14 @@ with `--check`).
   Linux, the container image and the Helm chart, the schema, the licence and where each takes issues; lists the
   fork's major features, saying that the original's 5.7 now has some of them; says which installations move in
   place (the original up to 5.6), which do not (its 5.7 releases), and that the fork's database does not go back;
-  lists the fourteen CVE identifiers assigned to the fork's vulnerabilities, from CVE-2026-100741 in 6.3.4 to
-  CVE-2026-107571 in 6.3.7, with what each covers, the versions each record names and, for the six limited to one,
-  the platform; and says that the fork is AGPL-3.0-or-later while the original's installer gives its source code as
-  AGPLv3, with no licence file at the root of its repository. README.md's introduction, *Where things are* and
-  runbook list, the documents' index and Upgrading.md link it; the help the Control Panel, the Control Deck and the
-  webmail carry has it, as a document no page maps to (`HelpMap.ReferenceOnly`).
+  lists the forty-two CVE identifiers assigned to the fork's vulnerabilities, from CVE-2026-100741 in 6.3.4 to
+  CVE-2026-114490 in 6.3.7, with what each covers, the versions the release notes give, or the record's where they name
+  none, and, for the seven limited to one, the platform, and names the four whose published records give other versions,
+  a correction posted on the request before publication not having reached them; and says that the fork is
+  AGPL-3.0-or-later while the original's installer gives its source code as AGPLv3, with no licence file at the root of
+  its repository. README.md's introduction, *Where things are* and runbook list, the documents' index and Upgrading.md
+  link it; the help the Control Panel, the Control Deck and the webmail carry has it, as a document no page maps to
+  (`HelpMap.ReferenceOnly`).
 
 - **Upgrading.md, Migration.md, README.md, SECURITY.md and the documents' index say that the original hMailServer's
   5.7 releases are not on the upgrade chain.** They said that a database of every earlier hMailServer version, the
