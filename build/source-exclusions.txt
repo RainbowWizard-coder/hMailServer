@@ -32,8 +32,8 @@
 # SQL Server Compact licence, which no free distribution takes; with them the
 # rest of libraries/, which is the Windows build's alone: the scripts that build
 # Boost, OpenSSL and libpq for MSVC, the licences of those Windows builds and of
-# SQL Server Compact, and libraries/fat_cow_icons (2,800 icons and the zip they
-# came in, CC BY 3.0), which only the Control Panel shows.
+# SQL Server Compact, and libraries/fat_cow_icons (2,800 icons, CC BY 3.0), which
+# only the Control Panel shows.
 libraries
 # The second copy of SQL Server Compact's licence. The other notices in that
 # directory stay, those of the code the Linux build compiles among them.

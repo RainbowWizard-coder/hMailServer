@@ -36,8 +36,10 @@ runtime the installer downloads (see "Moving the .NET runtime pin") and the ARM6
 installer's own (WindowsOnArm.md); every one is marked as not in git,
 and git ignores every path they are placed at. What the tree still carries is
 binary only in the plain sense and is not code: the Fat Cow icon library under
-`libraries/fat_cow_icons` (its images and the archive they came in), the images
-beside these documents, and the OpenPGP fixtures under `build/fixtures/openpgp`.
+`libraries/fat_cow_icons` (its 2,800 `.ico` images; the archive of PNGs they were
+made from, as FatCow published it, left the tree on 23 October 2026, since nothing
+read it, and is in the git history from `fe45f43c3`), the images beside these
+documents, and the OpenPGP fixtures under `build/fixtures/openpgp`.
 None has an executable's extension or a PE, ELF or OLE header, so none is a
 binary to the check described below, and none is in the manifest.
 

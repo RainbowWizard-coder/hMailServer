@@ -64,7 +64,7 @@ literal path per line, with the reason for each group; in short:
 
 | Left out | Why |
 |---|---|
-| `libraries/` | `libraries/mssqlce3.5`: SQL Server Compact 3.5's headers, under Microsoft's SQL Server Compact licence, which is not free. The rest is the Windows build's alone: the scripts that build Boost, OpenSSL and libpq for MSVC, the licences of those builds, and `libraries/fat_cow_icons` (2,800 icons and their zip, CC BY 3.0), which only the Control Panel shows. |
+| `libraries/` | `libraries/mssqlce3.5`: SQL Server Compact 3.5's headers, under Microsoft's SQL Server Compact licence, which is not free. The rest is the Windows build's alone: the scripts that build Boost, OpenSSL and libpq for MSVC, the licences of those builds, and `libraries/fat_cow_icons` (2,800 icons, CC BY 3.0), which only the Control Panel shows. |
 | `hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf` | The second copy of that licence. |
 | `hmailserver/source/Server/COM`, `hMailServer`, `hMailServer.Minidump`, `hMailServer.Updater` | The ATL administration API, the Windows service host, Windows Error Reporting and the live update's Windows helper. `CMakeLists.txt` builds none of them. |
 | `hmailserver/source/Server/zlib` | zlib as `hMailServer.exe` compiles it. The POSIX build links the distribution's zlib and, since 28 September 2026, includes the distribution's `zlib.h` too (before that it read the vendored header over the distribution's library). |

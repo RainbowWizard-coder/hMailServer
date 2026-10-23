@@ -575,6 +575,14 @@ with `--check`).
   gives; and refuses a link to a file the tree does not hold, to a heading a Markdown file does not have, or to a release
   file `build/ci/release-chain.py` gives no name. It proves its 34 negative controls on every run, and `--self-test`
   says each. SECURITY.md's "For a security questionnaire" and CONTRIBUTING.md's table of checkers name both.
+- **The tree no longer carries `libraries/fat_cow_icons/fatcow-hosting-icons-1400.zip`.** The archive, 3.6 MB, held
+  FatCow's 2,800 PNG icons as FatCow published them, of which the tree's `.ico` files under
+  `libraries/fat_cow_icons/ico` are the Windows icon form (2,798 of the 2,800 by the same name), and nothing in the
+  build, the installer or a check read it. OpenSSF's OSPS Baseline scanner reported it on the GitHub copy as an
+  unreviewable binary artifact (OSPS-QA-05.02), which an archive is: its contents cannot be read in a diff. The `.ico`
+  files stay, under the same CC BY 3.0 attribution in the installer's licence text, and the archive is in the git
+  history from `fe45f43c3` (SHA-256 `ccc7bd72...5f68`). ThirdPartyBinaries.md, SourceTarball.md and
+  `build/source-exclusions.txt` no longer name it.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is
