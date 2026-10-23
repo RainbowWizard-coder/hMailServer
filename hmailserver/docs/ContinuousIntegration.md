@@ -1785,9 +1785,10 @@ resolver to download its needs' artifacts.
 
 ### bench150
 
-The second Windows regression bench at 192.168.11.150: Windows Server 2025
-Standard Evaluation, installed on 16 September 2026, with 16 cores and 16 GB of
-memory. GitLab Runner runs there as the `gitlab-runner`
+The second Windows regression bench at 192.168.11.150, a virtual machine on the
+maintainer's laptop: Windows Server 2025 Standard Evaluation, installed on 16
+September 2026, with 16 cores and 16 GB of memory. GitLab Runner runs there
+as the `gitlab-runner`
 service, **as LocalSystem**, with the shell executor and `shell = "pwsh"`.
 Its builds are in `C:\GitLab-Runner\builds`. It has the tags `windows`, `bench`
 and `bench150`, and it is runner 56743216 on GitLab.

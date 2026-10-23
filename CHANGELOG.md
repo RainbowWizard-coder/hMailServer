@@ -548,7 +548,9 @@ with `--check`).
   jobs of the project's own pipeline. ContinuousIntegration.md and EvidencePack.md say the same, and
   ContinuousIntegration.md says which runner made which of the 62 files of each release, as the jobs of the two tag
   pipelines show: GitLab's hosted runners made 6.3.6's chart, its sums and its installers' SBOMs, and 6.3.7's
-  generic AArch64 `.deb` was built on server2 and its `.rpm` on s1-linux. ContinuousIntegration.md also gives the
+  generic AArch64 `.deb` was built on server2 and its `.rpm` on s1-linux; and its account of bench150, under "The
+  runners", now says that bench150 is a virtual machine on the maintainer's laptop, as its account of linix says of
+  linix. ContinuousIntegration.md also gives the
   command that verifies a download against the provenance, and says why the release makes one statement over all its
   files and uses neither GitLab Runner's artifact provenance (`RUNNER_GENERATE_ARTIFACTS_METADATA`) nor GitLab.com's
   own attestations. `build/check-release-chain.py` holds the Build L1 sentence in the three documents and fails a
