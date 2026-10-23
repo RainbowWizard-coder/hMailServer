@@ -446,7 +446,8 @@ container_scanning_arm64:
 # (packaging/docker/Dockerfile): 6.3.7's image has no MariaDB client, and its server
 # stops there. The test reads each database with the job image's own psql and
 # mariadb. CI_DEBUG_SERVICES puts the services' output in the job's log; none prints a
-# password. A failure here comes after the push: the job says which tags to delete
+# password. A failure here comes after the push: the job says which tags to delete,
+# or, when the test could not finish, to run it again before deciding
 # (hmailserver/docs/ContainerImage.md, "When a job fails").
 container-image-start:
   stage: release

@@ -553,8 +553,11 @@ the tags.
 
 `container-image` reads its tags back after it pushes them, and
 `container-image-start` and `container-image-start-arm64` run after the push. If
-one fails, the tags name an image that did not pass: the job's log names them, and
-they are deleted by hand (Deploy, Container registry). `container-image-sign`
+one fails because the image did not answer as it must, the tags name an image that
+did not pass: the job's log names them, and they are deleted by hand (Deploy,
+Container registry). If it says the test could not finish - a database client
+that could not ask - the log has the client's own words: mend the cause and run
+the job again before deciding on the tags. `container-image-sign`
 waits for both start tests, so such an image is never signed (until 6.3.6 it was
 signed beside them, and its `sha256-<digest>.sig` and `.att` tags were deleted with
 it). Then the fix is released as a new version; a tag is spent once.
@@ -576,10 +579,14 @@ needs no certificate from outside. It then asks each of the two:
   answered over plain HTTP;
 - its database: `hm_dbversion`, read with that database's own client, holds the
   schema version the server laid out there, and the two databases hold the same.
-  The test tells the database's answer that there is no `hm_dbversion` table
-  (PostgreSQL's SQLSTATE 42P01, MariaDB's error 1146) - the image's failure -
-  from a client that could not ask at all - a refused login, a host it cannot
-  reach, a certificate it will not take - and prints the client's own words in
+  The test tells the database's own answer to the query, which is the image's
+  failure, from a client that could not ask at all. The database's answer is
+  that there is no `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, MariaDB's
+  error 1146) or any other error of the database's, such as a column that is
+  not there: psql's `ERROR:  <SQLSTATE>:` line or MariaDB's
+  `ERROR <n> (<SQLSTATE>) at line <n>:`. A client that could not ask is a
+  refused login, a host it cannot reach or a certificate it will not take,
+  whose messages have neither form. The test prints the client's own words in
   both cases. Only the first is said to need the tags deleted; the second says
   the test did not finish and is to be run again once its cause is found.
 

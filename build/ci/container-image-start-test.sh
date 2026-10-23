@@ -65,8 +65,10 @@
 #   HM_START_NAMES      --docker only: the name of the network, and the start of the
 #                       four containers' names (hm-start-<the script's process id>)
 #
-# Exit status: 0 when both images answered as they must, 1 when not, 2 when it could not
-# be run. Nothing it prints holds a password, and no password is on a command line.
+# Exit status: 0 when both images answered as they must; 1 when not, or when a database
+# client could not ask (the test did not finish, and nothing is yet said of the image);
+# 2 when it could not be run. Nothing it prints holds a password, and no password is on
+# a command line.
 set -uo pipefail
 
 # The command the image runs, here and in the job's service definitions
@@ -89,7 +91,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --docker) [ "$#" -ge 2 ] || { echo "--docker takes an image"; exit 2; }; mode=docker; image="$2"; shift 2 ;;
     --keep) keep=1; shift ;;
-    -h|--help) sed -n '5,69p' "$0"; exit 0 ;;
+    -h|--help) sed -n '5,71p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1"; exit 2 ;;
   esac
 done
@@ -355,6 +357,14 @@ ask_image() {
     if grep -Eq '(^|[^0-9A-Z])42P01([^0-9A-Z]|$)|^ERROR 1146 \(42S02\)' <<< "$errors"; then
       printf '%s\n' "$errors"
       fail "$database holds no hm_dbversion table: the server did not lay out its schema there"
+    fi
+    # Any other answer of the database to the query - psql's "ERROR:  <SQLSTATE>: ",
+    # MariaDB's "ERROR <n> (<SQLSTATE>) at line <n>: ", such as a column that is not
+    # there: the client asked, and the schema is not the one this test reads. A login
+    # refused or a server not reached carries neither form.
+    if grep -Eq '^ERROR:  [0-9A-Z]{5}: |^ERROR [0-9]+ \([0-9A-Z]{5}\) at line [0-9]+: ' <<< "$errors"; then
+      printf '%s\n' "$errors"
+      fail "$database answered the schema query with an error (above): the schema the server laid out there is not the one this test reads"
     fi
     printf '%s\n' "$errors"
     unasked "$client could not ask $database for its hm_dbversion (it exited $status; what it said is above): the test could not finish, which says nothing yet of the image"

@@ -881,19 +881,25 @@ with `--check`).
   read the schema version with the client's error output thrown away, so a failure of the job's own `psql` or
   `mariadb` - a refused login, a host it could not reach, a certificate the MariaDB client would not take - was
   reported as the server not having laid out its schema, and the job then said to delete the tags of an image that may
-  have been sound. It now keeps what the client says apart from what it prints as the version, and tells three cases
-  apart: the database answering that there is no `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, which `psql`
-  prints with `VERBOSITY` verbose, or MariaDB's error 1146) or a table holding no number, both the image's failure,
-  with the tags to delete as before; and a client that could not ask, which prints the client's own words, says that
-  the test did not finish and says nothing yet of the image, and names the tags to decide on once the job has been run
-  again. Each still fails the job. Run on a Linux machine with the start jobs' PostgreSQL 18 and MariaDB 13 by digest,
-  in the job's way (the Linux CI image's `psql` 18 and `mariadb` 11.8 clients) and in `--docker`'s (the databases' own
-  clients): a refused login (in `--docker`'s way MariaDB's alone, the PostgreSQL image trusting its own loopback) and,
-  in the job's way, an unknown host failed as the client's, with its message; a database without the table
-  failed as the image's, with the server's message; the table with 6108 passed, and an empty one failed. Neither
-  password appeared in anything printed. The whole `--docker` mode run over 6.3.7's published image still passed beside
-  PostgreSQL, schema 6108, and stopped beside MariaDB as that image must, lacking the MariaDB client.
-  [ContainerImage.md](hmailserver/docs/ContainerImage.md), "The start test", says so.
+  have been sound. It now keeps what the client says apart from what it prints as the version, and tells the
+  database's own answer to the query from a client that could not ask. The database answering that there is no
+  `hm_dbversion` table (PostgreSQL's SQLSTATE 42P01, which `psql` prints with `VERBOSITY` verbose, or MariaDB's error
+  1146), answering the query with any other error of its own (`psql`'s `ERROR:  <SQLSTATE>:` line, MariaDB's
+  `ERROR <n> (<SQLSTATE>) at line <n>:`, such as a column that is not there), or a table holding no number, is the
+  image's failure, printed with the server's words and with the tags to delete as before; a client that could not
+  ask (a refused login or a server not reached, whose messages carry neither form) prints the client's own words, says
+  that the test did not finish and says nothing yet of the image, and names the tags to decide on once the job has
+  been run again. Each still fails the job with status 1, as the script's header now says. Run on a Linux machine with
+  the start jobs' PostgreSQL 18 and MariaDB 13 by digest, in the job's way (the Linux CI image's `psql` 18 and
+  `mariadb` 11.8 clients) and in `--docker`'s (the databases' own clients): a refused login (in `--docker`'s way
+  MariaDB's alone, the PostgreSQL image trusting its own loopback) and, in the job's way, an unknown host failed as the
+  client's, with its message; a database without the table, and one whose `hm_dbversion` has no `value` column
+  (`ERROR:  42703`, `ERROR 1054 (42S22) at line 1`), failed as the image's, with the server's message; the table with
+  6108 passed, and an empty one failed. Neither password appeared in anything printed. The whole `--docker` mode run
+  over 6.3.7's published image still passed beside PostgreSQL, schema 6108, and stopped beside MariaDB as that image
+  must, lacking the MariaDB client. [ContainerImage.md](hmailserver/docs/ContainerImage.md), "The start test" and
+  "When a job fails", and the start jobs' comment in `.gitlab/ci/container-image.yml` say which failure asks for the
+  tags to be deleted and which for the job to be run again.
 - **The release-chain check holds both image start jobs' databases and the test's two asks.**
   `build/check-release-chain.py` refused `HM_DB_TYPE` and `HM_DB_HOST` in `container-image-start`'s own variables, which
   reach every service, but not in `container-image-start-arm64`'s, and held none of the variables the two database
