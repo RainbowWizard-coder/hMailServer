@@ -285,7 +285,9 @@ refuses it. This checker holds them to each other. It fails when:
     either start job has a key but START_JOB_KEYS' (allow_failure, when and
     parallel among those it may not have) or runs the test otherwise than
     START_JOB_LINES write it - with no argument, nothing before or after it on its
-    line, after the before_script it is held to (start_job_line_problems); or
+    line, after the before_script it is held to - or either, or container-image-sign,
+    is defined more than once in the CI files, which GitLab merges into one job
+    (start_job_line_problems); or
     container_scanning does not run build/ci/container-scan.sh over the linux/amd64
     image in dependency-scan's Trivy image, by the same digest (CONTAINER_SCANNER),
     keeping its report, or container_scanning_arm64 does not extend it for the
@@ -5818,6 +5820,9 @@ START_JOB_KEYS = {
                               "variables", "services", "script"),
     "container-image-start-arm64": ("extends", "needs", "timeout", "rules", "variables", "before_script", "services"),
 }
+# The jobs held to one definition, each with every template it reaches: the two start
+# jobs, and container-image-sign, which signs the image only once both have passed.
+START_HELD_DEFINITIONS = ("container-image-start", "container-image-start-arm64", "container-image-sign")
 START_JOB_RULES = ("  rules:", "    - !reference [.release-rules, rules]")
 START_JOB_LINES = {
     "container-image-start": {
@@ -5857,7 +5862,7 @@ def _job_key_texts(block, key):
     return found
 
 
-def start_job_line_problems(image_jobs):
+def start_job_line_problems(image_jobs, every_ci=None):
     """Each start job runs the test as it must and its failure holds the image back: its
     keys are START_JOB_KEYS' alone - no allow_failure or when, with which
     container-image-sign, which needs both jobs, would sign an image that did not start;
@@ -5870,8 +5875,23 @@ def start_job_line_problems(image_jobs):
     with no script or image of its own, and its before_script the same with the qemu
     check after it, so that nothing there can end the shell the script runs in. One edit
     of .gitlab/ci/container-image.yml, which is not one of land-via-mr.py's GATE_FILES,
-    would otherwise let either job pass without asking its image."""
+    would otherwise let either job pass without asking its image.
+    And each job of START_HELD_DEFINITIONS, and every template it reaches, is defined
+    once in the CI files (every_ci, {path: text}; ci_files): GitLab merges a second
+    definition in any included file into the job, a later include's keys over an earlier
+    one's, and of two in one file takes the last, where these rules read the one block of
+    container-image.yml - so that another file's allow_failure, script or before_script
+    for a start job, or needs of container-image-sign's without the starts, would be the
+    job's, past every rule here."""
     problems = []
+    for reached, paths in sorted(reached_definitions(every_ci or {}, list(START_HELD_DEFINITIONS)).items()):
+        count = sum(top_level_keys(every_ci[path]).count(reached) for path in paths)
+        if count > 1:
+            problems.append("%s is defined %s: GitLab merges the definitions, a later include's keys over an earlier one's, "
+                            "and of two in one file takes the last, so that a definition this check does not read would "
+                            "say whether and how the start test runs, or whether container-image-sign waits for it - "
+                            "define it once" % (reached, "in " + " and ".join(paths) if len(paths) > 1 else
+                                                "%s in %s" % ({2: "twice"}.get(count, "%d times" % count), paths[0])))
     for name, keys in sorted(START_JOB_KEYS.items()):
         block = image_jobs.get(name, "")
         if not block:
@@ -5927,7 +5947,7 @@ def image_start_database_problems(texts, image_jobs):
     every_ci = dict(texts.get("ci-includes", {}), **{".gitlab-ci.yml": texts.get("ci", ""),
                                                      FILES["image"].replace(os.sep, "/"): texts["image"]})
     problems += start_database_variable_problems(image_jobs, every_ci)
-    problems += start_job_line_problems(image_jobs)
+    problems += start_job_line_problems(image_jobs, ci_files(texts))
     problems += start_test_digest_problems(texts["image-start"])
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
@@ -7474,6 +7494,24 @@ def self_test(chain, feed):
              "  script:\n  - bash build/ci/container-image-start-test.sh\n  - exit 0\n", not_run),
             ("the start's script given a second entry", run, run + "    - exit 0\n", not_run)):
         broken_image(what, needle, (old, new))
+    # The same jobs, and container-image-sign, defined again in another CI file, which
+    # GitLab merges into the job, each with the release's rules so that it is caught as
+    # a second definition and not as a job of another file's rules; and the start defined
+    # again in its own file under a quoted name, the definition GitLab takes.
+    release_rule = "  rules:\n    - !reference [.release-rules, rules]\n"
+    for what, addition, needle in (
+            ("the start allowed to fail from another CI file",
+             "\ncontainer-image-start:\n" + release_rule + "  allow_failure: true\n", "container-image-start is defined in"),
+            ("the arm64 start given a script from another CI file",
+             "\ncontainer-image-start-arm64:\n" + release_rule + "  script:\n    - echo not asked\n",
+             "container-image-start-arm64 is defined in"),
+            ("the signing no longer waiting for the starts, from another CI file",
+             "\ncontainer-image-sign:\n" + release_rule + "  needs:\n    - job: container-image\n      artifacts: true\n"
+             "    - job: container-image-sbom\n      artifacts: true\n", "container-image-sign is defined in")):
+        broken_include(what, later, addition, needle)
+    broken("the start defined again in its own file, under a quoted name", "image", texts["image"],
+           texts["image"] + '\n"container-image-start":\n  allow_failure: true\n',
+           "container-image-start is defined twice in %s" % FILES["image"].replace(os.sep, "/"))
     # The addresses the test asks and the version it expects: both asks pointed at one
     # image, any 6.x taken, the shell given a file to run first, each from the jobs' own
     # variables, the CI file's top level or a service's; and the script's own defaults.
