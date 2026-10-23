@@ -3375,19 +3375,50 @@ say that too.
 
 **The provenance's SLSA Build level.** Build L1 of SLSA v1.0, for every file the
 statement names, and nothing higher (SECURITY.md, "Build provenance", gives the
-reasons in the specification's words). Build L2 requires that every build step
-ran on a hosted build platform, not on an individual's workstation, and the
-files are built on the project's own runners ([The runners](#the-runners)), the
-Windows installers and the generic Linux packages on bench150 and linix,
-virtual machines on the maintainer's laptop. It also requires provenance that
-the build platform makes, not a tenant of it, and the statement is written by
-`release-sbom` and signed by `release-sign` with that job's identity token, two
-jobs of the same `.gitlab-ci.yml` as every build step: the provenance is the
-tenant's, not GitLab's. Fulcio's certificate records the kind of runner the
-signing job ran on (its runner environment extension): `gitlab-hosted` for
-6.3.6, whose `release-sbom` and `release-sign` ran on GitLab's runners, and
-`self-hosted` for 6.3.7 - where the provenance was signed, not where the files
-were built. What holds the statement to the run: `check-provenance` in
+reasons in the specification's words). Build L2 is not met: it requires that
+every build step ran on a hosted build platform, not on an individual's
+workstation, and the files are built on the project's own runners ([The
+runners](#the-runners)), the Windows installers on bench150 and the Linux
+packages on whichever of linix, server2 and s1-linux takes each job of the tag
+`linix` first, unless a switch sends the job's class to GitLab's hosted runners
+([GitLab's hosted runners beside the
+project's](#gitlabs-hosted-runners-beside-the-projects)); bench150 and linix are
+virtual machines on the maintainer's laptop, s1-linux one on server1.
+`linux-build` is not pinned to linix, but linix took it in both tag pipelines,
+so the generic x86-64 `.deb` and `.rpm` of 6.3.6 and 6.3.7 were built there. It
+also requires provenance that the build platform makes, not a tenant of it, and
+the statement is written by `release-sbom` and signed by `release-sign` with
+that job's identity token, two jobs of the same `.gitlab-ci.yml` as every build
+step: the provenance is the tenant's, not GitLab's. Fulcio's certificate
+records the kind of runner the signing job ran on (its runner environment
+extension): `gitlab-hosted` for 6.3.6, whose `release-sbom` and `release-sign`
+ran on GitLab's runners, and `self-hosted` for 6.3.7 - the runner that signed
+the provenance, which says nothing of where the files were built.
+
+Which runner made which of the 62 files, as the jobs of the two tag pipelines,
+2914690858 (6.3.6) and 2958958332 (6.3.7), show; where a job ran more than once,
+the run that passed, and where a row names several jobs, their runners in the
+same order:
+
+| Jobs | What they made of the release's files | 6.3.6 | 6.3.7 |
+|---|---|---|---|
+| `windows-installer`, `windows-packages-arm64` | The x64 and ARM64 installers | bench150, bench150 | bench150, bench150 |
+| `release-authenticode` | Both installers' bytes as they ship, and the PowerShell module's two files', Authenticode-signed | bench150 | bench150 |
+| `release-sbom` | The two installers' SBOMs (and the provenance's statement) | GitLab's hosted runner | linix |
+| `linux-build` | The generic x86-64 `.deb` and `.rpm`, and their SBOMs | linix | linix |
+| `deb-ubuntu26.04-arm64`, `deb-ubuntu26.04-arm64-sbom` | The generic AArch64 `.deb`, and its SBOM | linix, linix | server2, linix |
+| `rpm-fedora44-aarch64`, `rpm-fedora44-aarch64-sbom` | The generic AArch64 `.rpm` and Fedora 44's, one build, and the generic one's SBOM | linix, server2 | s1-linux, server2 |
+| The other 17 `deb-*` and `rpm-*` package jobs | The other distribution releases' packages | each on linix or server2 | each on linix, server2 or s1-linux |
+| `appimage-runtime-x86_64`, `appimage-x86_64` | The x86-64 AppImage | linix, server2 | linix, server2 |
+| `appimage-runtime-aarch64`, `appimage-aarch64-compile`, `appimage-aarch64` | The AArch64 AppImage | linix, server2, server2 | server2, s1-linux, s1-linux |
+| `appimage-runtime-sources`, `appimage-bundled-sources` | The source of the libraries linked into the AppImages' runtime and of those they carry | server2, server2 | server2, s1-linux |
+| `source-tarball` | The source tarball | server2 | linix |
+| `release-packages` | The SBOMs of the distribution releases' packages, the AppImages and the tarball | linix | server2 |
+| `linux-sbom` | The tree's two SBOMs | server2 | server2 |
+| `helm-chart-package` | The Helm chart | GitLab's hosted runner | server2 |
+| `release` | The sums | GitLab's hosted runner | linix |
+
+What holds the statement to the run: `check-provenance` in
 `release-verify` and the same check in `publish` refuse a statement whose
 builder, external parameters (the repository, the tag's ref and
 `.gitlab-ci.yml`), commit or invocation (`CI_PIPELINE_URL`) are not the
@@ -3414,8 +3445,8 @@ artifacts, which GitLab's documentation has its SLSA CI/CD component sign),
 but it describes one job's artifacts where a release's files take their final
 bytes over several jobs (an installer is built by one and Authenticode-signed
 by another), its builder is the runner, and on these runners it would raise no
-level. GitLab.com's own attestations, which it calls SLSA Build L3, are not
-open to the release either: an experiment behind a feature flag that is off by
+level. Nor can the release use the attestations GitLab.com makes itself and
+calls SLSA Build L3: an experiment behind a feature flag that is off by
 default, for artifacts of the `build` stage up to 100 MB, where the installers
 take their final bytes in the `release` stage. One statement over all the
 files, not one for each: `cosign verify-blob-attestation` finds a file among
