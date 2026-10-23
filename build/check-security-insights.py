@@ -37,25 +37,34 @@ nothing else would notice when it goes wrong. This holds it:
     project's own, gitlab.com/hmailserver/hmailserver, and every one under
     github.com/RainbowWizard-coder/ is the GitHub copy, RainbowWizard-coder/hMailServer
     there, so a misspelt project path is refused;
-  * to the tree: every link to a file of the repository - GitLab's blob, raw or
-    tree, or the GitHub copy's - is at master, the branch the file describes, and
-    names a path the tree holds, each part in the case given; and a link to a
-    heading of a Markdown file names a heading that file has, by GitLab's (or
-    GitHub's) anchor rule;
+  * to the links' form: each URL of the project's own is read as GitLab and
+    GitHub read it - its path percent-decoded, so that %20 is a space, its query
+    left out, as GitLab's own ?ref_type=heads is, and its fragment the anchor
+    (link_kind) - and a link on one of GitLab's routes the file reads (blob, raw,
+    tree, blame and releases) written without "/-/", which GitLab keeps as a
+    legacy form, is refused;
+  * to the tree: every link to a file or folder of the repository - GitLab's
+    blob, raw, tree or blame, or the GitHub copy's - is at master, the branch the
+    file describes, and names a path the tree holds, each part in the case given;
+    and a link to a heading of a Markdown file names a heading that file has, by
+    GitLab's (or GitHub's) anchor rule;
   * to the releases: a link under /-/releases/<tag>/downloads/ is to a file
     build/ci/release-chain.py gives a release - its release_files, under the
-    name permalink_name gives each for the version, or for a release that kept
-    the version in a link's path, the file's own name. The tag is v{version}
-    ({version} being the only placeholder a value may hold), permalink/latest,
-    or a version's tag, v6.3.4 say, whose names are those of that version. Which
-    of the two names a release made before the chain named links as it does now
-    served a file under is not in the tree, so either passes; only a read of that
-    release tells (6.3.4's SBOMs kept the version, its packages did not);
+    name permalink_name gives each for the version, or, under the tag of a
+    release before 6.3.6, the first whose every link has its file's permanent
+    name, the file's own name as well. The tag is v{version} ({version} being the
+    only placeholder a value may hold), permalink/latest, or a version's tag,
+    v6.3.4 say, whose names are those of that version. Which of the two names a
+    release before 6.3.6 served a file under is not in the tree, so either passes;
+    only a read of that release tells (6.3.4's SBOMs kept the version, its
+    packages did not);
   * to the tree's paths: every path the file names outside a link - in a value
     (a tool's rulesets, a comment) or in a YAML comment - is one the tree holds,
     each part in the case given, and a folder where it ends in /, unless it is
     one of NOT_TREE, the names that are not the tree's: Semgrep's registry
-    rulesets, such as p/csharp, and the specification's spec/schema.cue. A file
+    rulesets, such as p/csharp, and the specification's spec/schema.cue. A path
+    may be written from "./", which is taken off, and one written from "../" is
+    never the tree's. A file
     named with no folder, whatever its case - SECURITY.md, renovate.json,
     .gitlab-ci.yml - and with an extension of ROOT_EXTENSIONS is taken for a
     file at the root of the tree. So a renamed script, ruleset, folder or
@@ -80,6 +89,7 @@ import re
 import shutil
 import sys
 import tempfile
+import urllib.parse
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 INSIGHTS = 'SECURITY-INSIGHTS.yml'
@@ -498,16 +508,67 @@ URL_IN_TEXT = re.compile(r'https?://[^\s<>"\'`]+')
 OWN = ((re.compile(r'^https?://gitlab\.com/hmailserver/', re.I), 'https://gitlab.com/hmailserver', GITLAB),
        (re.compile(r'^https?://github\.com/RainbowWizard-coder/', re.I), 'https://github.com/RainbowWizard-coder',
         GITHUB))
-# A link to a file or folder of the repository, at a ref, on GitLab or on the GitHub copy.
-TREE_LINK = re.compile(r'^(?:' + re.escape(GITLAB) + r'/-/|' + re.escape(GITHUB) + r'/)(?:blob|raw|tree)/'
-                       r'([^/?#]+)/?([^?#]*)(?:#(.*))?$')
+# The routes to a file or folder of the repository at a ref: GitLab's, after its "/-/",
+# and the GitHub copy's, which GitHub writes without one.
+FILE_ROUTES = ('blob', 'raw', 'tree', 'blame')
+# GitLab's routes written without "/-/", which GitLab keeps as legacy forms of its
+# scoped ones and still answers: refused, so that every link is in the form GitLab
+# gives now and none slips past the rules below by its form.
+LEGACY_ROUTES = FILE_ROUTES + ('releases',)
+# (host, the project's path there, whether its routes are scoped by "/-/").
+PROJECT_PATHS = (('gitlab.com', '/hmailserver/hmailserver', True),
+                 ('github.com', '/RainbowWizard-coder/hMailServer', False))
 TRUSTED_REF = 'master'
-# A link to a file of a release, by its tag: v{version}, permalink/latest or a version's.
-RELEASE_LINK = re.compile(r'^' + re.escape(GITLAB) + r'/-/releases/(.+?)/downloads/([^?#]*)$')
+# The tag of a link to a release's file: v{version}, permalink/latest or a version's.
 VERSION_TAG = re.compile(r'^v([0-9]+(?:\.[0-9]+)*(?:-[0-9A-Za-z.]+)?)$')
 # The version whose names stand for every release's, for the links that name none: a
 # file's permanent name has no version in it (release-chain.py's permalink_name).
 SAMPLE_VERSION = '9.9.9'
+# The first release in which every file's link has its permanent name, and no other
+# (release-chain.py's permalink_name: 6.3.5's bundles kept the version in their links'
+# paths, and 6.3.4's SBOMs theirs). Under the tag of an earlier release a link may name
+# a file by its own name as well.
+PERMANENT_NAMES_FROM = (6, 3, 6)
+
+
+def link_kind(url):
+    """What a URL of the project's own names, read as GitLab and GitHub read it: its
+    path percent-decoded (so %20 is a space), its query left out (GitLab's own
+    ?ref_type=heads among them) and its fragment the anchor. One of
+      ('tree', ref, path, anchor)   a file or folder of the repository at a ref,
+                                    by any of FILE_ROUTES;
+      ('release', tag, name)        a file of a release on GitLab;
+      ('legacy', route)             a route of LEGACY_ROUTES on GitLab without "/-/";
+    or None for any other page, of the project's or of another site."""
+    parts = urllib.parse.urlsplit(url)
+    host = parts.netloc.lower()
+    path = urllib.parse.unquote(parts.path)
+    for project_host, project, scoped in PROJECT_PATHS:
+        if host != project_host or not path.startswith(project + '/'):
+            continue
+        segments = path[len(project) + 1:].split('/')
+        if scoped:
+            if segments[0] in LEGACY_ROUTES:
+                return ('legacy', segments[0])
+            if segments[0] != '-':
+                return None
+            segments = segments[1:]
+        route, rest = segments[0], segments[1:]
+        if route in FILE_ROUTES:
+            return ('tree', rest[0] if rest else '', '/'.join(rest[1:]), urllib.parse.unquote(parts.fragment))
+        if scoped and route == 'releases':
+            match = re.match(r'(.+?)/downloads/(.+)$', '/'.join(rest))
+            if match:
+                return ('release', match.group(1), match.group(2))
+        return None
+    return None
+
+
+def before_permanent_names(version):
+    """version, such as 6.3.4 or 6.2.22-pre3, is of a release made before
+    PERMANENT_NAMES_FROM."""
+    numbers = [int(part) for part in re.match(r'[0-9]+(?:\.[0-9]+)*', version).group(0).split('.')]
+    return tuple((numbers + [0, 0, 0])[:3]) < PERMANENT_NAMES_FROM
 
 
 def urls(text):
@@ -605,10 +666,12 @@ def a_year_before(day):
 
 
 # A path of the tree named outside a link: segments of letters, digits, _ and -, the
-# first of which may start with a dot, joined by /, the last optionally a file name. It
-# must not follow a character that would make it part of a longer word, a host name or
-# a URL (a letter, a digit, ., /, : or -).
-TREE_PATH = re.compile(r'(?<![\w./:-])((?:\.?[A-Za-z0-9_-]+/)+[A-Za-z0-9_.-]*)')
+# first of which may start with a dot, joined by /, the last optionally a file name,
+# and the whole written from the top of the tree or from "./" or "../" (which no path
+# of the tree has: "./" is taken off, and a ".." is never held). It must not follow a
+# character that would make it part of a longer word, a host name or a URL (a letter,
+# a digit, ., /, : or -).
+TREE_PATH = re.compile(r'(?<![\w./:-])((?:\.{1,2}/)*(?:\.?[A-Za-z0-9_-]+/)+[A-Za-z0-9_.-]*)')
 # A file named with no folder, in any case, whose extension is one of these: a file at
 # the root, such as SECURITY.md, renovate.json or .gitlab-ci.yml. It must not follow a
 # character that would make it part of a path, a URL, a placeholder or a longer name,
@@ -630,6 +693,8 @@ def named_paths(text):
         line = URL_IN_TEXT.sub(lambda url: ' ' * len(url.group(0)), line)
         for token in TREE_PATH.findall(line) + ROOT_FILE.findall(line):
             token = token.rstrip('.')
+            while token.startswith('./'):
+                token = token[2:]
             if token not in NOT_TREE:
                 yield number, token
 
@@ -723,9 +788,15 @@ def check(root, now=None):
         if mistaken:
             problems.append('line %d: %s is not the project\'s own address, %s' % (number, url, mistaken[0]))
             continue
-        release = RELEASE_LINK.match(url)
-        if release:
-            tag, name = release.groups()
+        kind = link_kind(url)
+        if kind is None:
+            continue
+        if kind[0] == 'legacy':
+            problems.append('line %d: %s is on GitLab\'s legacy route %s/, without "/-/": write %s/-/%s/...'
+                            % (number, url, kind[1], GITLAB, kind[1]))
+            continue
+        if kind[0] == 'release':
+            tag, name = kind[1:]
             version = VERSION_TAG.match(tag)
             if tag not in ('v{version}', 'permalink/latest') and not version:
                 problems.append('line %d: %s is a release link of a tag this check does not know, %s: it takes '
@@ -737,15 +808,15 @@ def check(root, now=None):
                                 'them (%s)' % (number, url, RELEASE_CHAIN.replace(os.sep, '/'), chain_names['error']))
                 continue
             permanent, own_names = names
-            if name not in permanent and not (version and name in own_names):
-                problems.append('line %d names the release file %s, which %s gives no file of %s'
+            own_taken = version is not None and before_permanent_names(version.group(1))
+            if name not in permanent and not (own_taken and name in own_names):
+                problems.append('line %d names the release file %s, which %s gives no file of %s%s'
                                 % (number, name, RELEASE_CHAIN.replace(os.sep, '/'),
-                                   'release %s' % version.group(1) if version else 'a release'))
+                                   'release %s' % version.group(1) if version else 'a release',
+                                   ' (from %s every link has the file\'s permanent name)'
+                                   % '.'.join(map(str, PERMANENT_NAMES_FROM)) if name in own_names else ''))
             continue
-        link = TREE_LINK.match(url)
-        if not link:
-            continue
-        ref, relative, anchor = link.groups()
+        ref, relative, anchor = kind[1:]
         if ref != TRUSTED_REF:
             problems.append('line %d: %s links to the tree at %s, not %s, the branch this file describes'
                             % (number, url, ref, TRUSTED_REF))
@@ -813,6 +884,7 @@ project:
   documentation:
     signature-verification: https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md#verifying-a-release
     detailed-guide: https://gitlab.com/hmailserver/hmailserver/-/blob/master/docs/README.md
+    design: https://gitlab.com/hmailserver/hmailserver/-/blob/master/GOVERNANCE.md?ref_type=heads
 repository:
   url: https://gitlab.com/hmailserver/hmailserver
   status: active
@@ -861,7 +933,11 @@ repository:
           https://gitlab.com/hmailserver/hmailserver/-/releases/v1.2.3/downloads/hMailServer-1.2.3-x64.exe.cdx.json,
           its installer https://gitlab.com/hmailserver/hmailserver/-/releases/v1.2.3/downloads/hMailServer-x64.exe
           (https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe
-          for the latest), on the group's page https://gitlab.com/hmailserver/.
+          for the latest), on the group's page https://gitlab.com/hmailserver/. 6.3.7's SBOM is
+          https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7/downloads/hMailServer-x64.exe.cdx.json,
+          the job's blame https://gitlab.com/hmailserver/hmailserver/-/blame/master/build/ci/scan.sh, its
+          rules (./build/ci/rules.yaml) and the keys
+          https://gitlab.com/hmailserver/hmailserver/-/tree/master/test/SSL%20examples/.
 '''
 FILES = {
     'LICENSE': '                    GNU AFFERO GENERAL PUBLIC LICENSE\n',
@@ -874,6 +950,7 @@ FILES = {
     'build/ci/scan.sh': '#!/bin/sh\n',
     'fuzz/README.md': 'Fuzzing\n',
     'renovate.json': '{}\n',
+    'test/SSL examples/example.pfx': 'not a key\n',
     # A release chain of three files, whose permanent names lose the version.
     RELEASE_CHAIN: 'def release_files(version):\n'
                    '    return ["hmailserver-%s.intoto.sigstore.json" % version, "hMailServer-%s-x64.exe" % version,\n'
@@ -1019,6 +1096,31 @@ def self_test(quiet=False):
          (), 'a tag this check does not know, latest'),
         ('release links and no release chain to read their names from', GOOD, (RELEASE_CHAIN,),
          'cannot be read for the names'),
+        ('a link with a query, to a file the tree does not hold',
+         swap('GOVERNANCE.md?ref_type=heads', 'GOVERNANCES.md?ref_type=heads'), (),
+         'links to GOVERNANCES.md, which the tree'),
+        ('a link to the tree on the legacy route without /-/',
+         swap('/hmailserver/-/blob/master/LICENSE', '/hmailserver/blob/master/LICENSE'), (), 'legacy route blob/'),
+        ('a link to a release on the legacy route without /-/',
+         swap('/hmailserver/-/releases/v1.2.3/downloads/hMailServer-x64.exe',
+              '/hmailserver/releases/v1.2.3/downloads/hMailServer-x64.exe'), (), 'legacy route releases/'),
+        ('a blame link at another branch', swap('/-/blame/master/build/ci/scan.sh', '/-/blame/main/build/ci/scan.sh'),
+         (), 'at main, not master'),
+        ('a blame link to a file the tree does not hold',
+         swap('/-/blame/master/build/ci/scan.sh', '/-/blame/master/build/ci/scan.ps1'), (),
+         'links to build/ci/scan.ps1, which the tree'),
+        ('a release link with a query, of a name the release chain does not give',
+         swap('hMailServer-1.2.3-x64.exe.cdx.json,', 'hMailServer-1.2.3-x65.exe.cdx.json?x=1,'), (),
+         'names the release file hMailServer-1.2.3-x65.exe.cdx.json'),
+        ("a file's own name under the tag of a release from 6.3.6, which named every file by its permanent name",
+         swap('v6.3.7/downloads/hMailServer-x64.exe.cdx.json', 'v6.3.7/downloads/hMailServer-6.3.7-x64.exe.cdx.json'),
+         (), 'names the release file hMailServer-6.3.7-x64.exe.cdx.json'),
+        ('a path written from ./ that the tree does not hold', swap('(./build/ci/rules.yaml)', '(./build/ci/rule.yaml)'),
+         (), 'names build/ci/rule.yaml, which the tree'),
+        ('a path written from ../', swap('(./build/ci/rules.yaml)', '(../build/ci/rules.yaml)'), (),
+         'names ../build/ci/rules.yaml, which the tree'),
+        ('a link with an encoded space to a folder the tree does not hold', swap('SSL%20examples/', 'SSL%20exemples/'),
+         (), 'links to test/SSL exemples, which the tree'),
         ('a tab in the indentation', swap('  status: active', '\tstatus: active'), (), 'a tab'),
         ('a key twice', swap('  status: active\n', '  status: active\n  status: active\n'), (), 'twice'),
         ('a plain scalar holding ": "', swap('comment: Releases.', 'comment: Releases: all'), (), 'quote it'),
@@ -1038,6 +1140,16 @@ def self_test(quiet=False):
     said = world(swap('last-reviewed: "2026-01-03"', "last-reviewed: '2025-01-03'"))
     expect('reviewed a year to the day before today: passes%s' % ('' if not said else ' (%s)' % said[0][:120]),
            said == [])
+    said = world(swap('/-/tree/master/test/SSL%20examples/', '/-/blob/master/test/SSL%20examples/example.pfx'))
+    expect('a link with an encoded space to a file the tree holds: passes%s'
+           % ('' if not said else ' (%s)' % said[0][:120]), said == [])
+    expect('a link read as GitLab reads it: %20 a space, the query left out, the fragment the anchor',
+           link_kind(GITLAB + '/-/blob/master/test/SSL%20examples/example.pfx?ref_type=heads#top')
+           == ('tree', 'master', 'test/SSL examples/example.pfx', 'top'))
+    expect("a file's own name taken under the tag of a release before 6.3.6 alone",
+           before_permanent_names('6.3.4') and before_permanent_names('6.2.22-pre3')
+           and not before_permanent_names('6.3.6') and not before_permanent_names('6.3.7')
+           and not before_permanent_names('10'))
     expect('a year before 29 February is 28 February',
            a_year_before(datetime.date(2028, 2, 29)) == datetime.date(2027, 2, 28)
            and a_year_before(datetime.date(2026, 1, 3)) == datetime.date(2025, 1, 3))
@@ -1075,9 +1187,9 @@ def main(argv):
     with open(os.path.join(ROOT, INSIGHTS), encoding='utf-8') as f:
         text = f.read()
     document = parse_yaml(text)
-    found = {url for _, url in urls(text)}
-    links = sum(1 for url in found if TREE_LINK.match(url))
-    releases = sum(1 for url in found if RELEASE_LINK.match(url))
+    kinds = [link_kind(url) for url in {url for _, url in urls(text)}]
+    links = sum(1 for kind in kinds if kind and kind[0] == 'tree')
+    releases = sum(1 for kind in kinds if kind and kind[0] == 'release')
     paths = len({path for _, path in named_paths(text)})
     print('OK    %s: Security Insights %s, updated %s and reviewed %s, %d links into the tree, %d to release files, '
           '%d paths of the tree named, %d tools'
