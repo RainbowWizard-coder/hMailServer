@@ -106,6 +106,7 @@ def read_references():
     return sorted(references.items(), key=lambda item: item[0].encode("ascii"))
 
 
+# REUSE-IgnoreStart
 HEADER = """// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -119,6 +120,7 @@ HEADER = """// https://www.progressiverobot.com
 // Copyright (c) WHATWG (Apple, Google, Mozilla, Microsoft).
 
 """
+# REUSE-IgnoreEnd
 
 
 def source(references):

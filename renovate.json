@@ -29,7 +29,9 @@
     "**/node_modules/**",
     "build/ci/requirements.txt",
     "build/requirements-dev.txt",
-    "build/ci/cli-packages-requirements.txt"
+    "build/ci/cli-packages-requirements.txt",
+    "build/ci/reuse-requirements.txt",
+    "build/ci/reuse-build-requirements.txt"
   ],
   "enabledManagers": [
     "nuget",

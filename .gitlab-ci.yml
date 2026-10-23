@@ -49,6 +49,8 @@
 #               merge request, every commit carries a Signed-off-by trailer naming
 #               its author (build/sign-off.py; CONTRIBUTING.md, "Sign-off");
 #   editorconfig          every text file against .editorconfig;
+#   reuse                 every file's copyright and licence known and every licence's
+#                         text in LICENSES/, by reuse lint (build/ci/reuse-lint.sh);
 #   chart-and-compose     the Helm chart and the Compose file, when they change;
 #   update-helper         the live update's Linux apply step against fakes, and the
 #                         units, when they change;
@@ -1089,6 +1091,29 @@ editorconfig:
       fi
       rm -f editorconfig-negative-control.cpp
       echo "Every file holds to .editorconfig, and a file that does not is refused."
+
+# REUSE (https://reuse.software): every file's copyright and licence known, by the
+# file's own header or by a table of REUSE.toml, every licence named with its text in
+# LICENSES/, and no other text there - the REUSE Specification 3.3, held by the REUSE
+# project's own tool, reuse lint, from PyPI at the version and the hashes
+# build/ci/reuse-requirements.txt pins. build/ci/reuse-lint.sh installs it, runs it
+# over the tree, and then puts three files in the checkout that it must refuse: a new
+# source file without the project's header, a header naming a licence LICENSES/ has no
+# text for, and a licence text no file names. In every pipeline, as checkers is: a
+# document or a picture needs its licence as much as a source does. git so that reuse
+# leaves out what git ignores, libmagic for the encoding of each file, both Debian's.
+reuse:
+  stage: check
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  timeout: 15 minutes
+  rules:
+    - !reference [.not-a-fuzz-pipeline, rules]
+  before_script:
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends git libmagic1t64 > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - bash build/ci/reuse-lint.sh
 
 # packaging.yml's chart-and-compose job: the Helm chart linted and rendered with the
 # values a real install needs, and the Compose file resolved by Compose itself. Both
@@ -2175,6 +2200,8 @@ release:
     - job: harnesses
       artifacts: false
     - job: editorconfig
+      artifacts: false
+    - job: reuse
       artifacts: false
     - job: chart-and-compose
       artifacts: false

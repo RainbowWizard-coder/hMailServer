@@ -856,6 +856,40 @@ with `--check`).
   them and the version's and the schema's lines, a function named `curl` or a second `ask_image` - is not seen by
   it, as its comment says, and is refused by `START_TEST_SHA256`, the digest that holds the whole script.
 
+- **New: the tree is REUSE-compliant, and a CI job holds it.** Every file's copyright and licence are known, as the
+  REUSE Specification 3.3 asks, by the file's own header or, for the 4,189 files that carry none (documents,
+  pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
+  and kind of file, whose comments say which holders each one names and why; and `LICENSES/` holds the text of each of
+  the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote them and
+  each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and `LicenseRef-StdString` as
+  `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-3.5` as the licence beside its headers
+  states it, `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's
+  "notices") and `LicenseRef-No-Licence-Stated` for the seven files of test data no licence is stated for. A third
+  party's file keeps its own licence and holders, never the project's: the Fat Cow icons and the three of them the
+  database tools take as their icon (CC-BY-3.0), SQL Server Compact's headers, QuickJS (MIT), zlib, Unicode's data,
+  the WHATWG's list of character references and the RFC 7208 test suite (BSD-3-Clause), and the DKIM test corpus
+  (Perl's terms); and the project's sources that hold a third party's code or data under the project's header, which
+  until now claimed the AGPL alone - the seven MIME files (BSD-1-Clause), `StdString.h`, `PublicSuffixListData.h`
+  (MPL-2.0), the two IDNA tables (Unicode-3.0) and `HtmlReferencesData.cpp` (BSD-3-Clause) - have the third party's
+  licence and holders added beside the header's. `debian/copyright` says the same of the MIME files, `StdString.h`
+  and the Public Suffix List's table (their licence and the maintainers' copyright beside the third party's), gives
+  the AppImage's copy of the GPL-3.0's text and `LICENSES/` to its notices, but for the two texts there that are the
+  project's own, and the original's list of licences, `License list.*`, a paragraph of its own; and the source
+  tarball, and so `Files-Excluded`, leaves out SQL Server Compact's licence in `LICENSES/` as it leaves out the
+  headers it is for and the other copy of it (`build/source-exclusions.txt`). Eighteen of the project's files whose text quotes an SPDX tag or a copyright notice that is
+  not their own (fourteen scripts and tools that write the header into what they make, two tests and two checkers)
+  mark it with `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, `.gitlab/ci/package-repos.yml` and `fuzz/dict/mime.dict` carry the header, and the changelog,
+  the roadmap, the contribution guide, `SourceTarball.md`, the help pages compiled from them and the copyright file,
+  which quote others' identifiers and notices, are read for their table alone. The new `reuse` job, in the check
+  stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by its digest:
+  reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with poetry-core
+  2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and libmagic
+  for each file's encoding; `reuse lint` must pass, and then refuse each of three negative controls put in the
+  checkout - a new C++ source without the header, a header naming a licence `LICENSES/` lacks, and a licence text no
+  file names. Renovate reads the two `.in` files and leaves the `.txt` files, as it does the others. CONTRIBUTING.md
+  says how to mark a new file and the job's section in `ContinuousIntegration.md` what it runs. No REUSE badge yet:
+  the REUSE API's needs the repository registered, which is the owner's step.
+
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

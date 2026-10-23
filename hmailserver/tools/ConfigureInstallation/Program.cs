@@ -51,8 +51,10 @@ namespace ConfigureInstallation
          // The same shape the file has in the repository: the licence header the
          // SPDX check requires, then the three defines at column one.
          var versionContent = string.Format(
+            // REUSE-IgnoreStart
             "// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd and the hMailServer contributors\n" +
             "// SPDX-License-Identifier: AGPL-3.0-or-later\n" +
+            // REUSE-IgnoreEnd
             "\n" +
             "#pragma once\n" +
             "#define HMAILSERVER_VERSION \"{0}\"\n" +

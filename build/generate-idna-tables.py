@@ -439,6 +439,7 @@ def wrap(items, indent="      ", width=110):
     return "\n".join(lines)
 
 
+# REUSE-IgnoreStart
 HEADER = """// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -453,6 +454,7 @@ HEADER = """// https://www.progressiverobot.com
 // Copyright (c) 1991-2026 Unicode, Inc.
 
 """
+# REUSE-IgnoreEnd
 
 
 def tables_source(data):

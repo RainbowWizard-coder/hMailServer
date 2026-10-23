@@ -96,7 +96,9 @@ namespace RegressionTests.API
          Assert.AreEqual(plain.BodyBytes.Length, int.Parse(plain.Header("Content-Length")),
             "Content-Length is the number of bytes that followed it.");
          Assert.IsTrue(plain.BodyBytes.Length > 100000, "Portal.js is the whole webmail; it is not a short file.");
+         // REUSE-IgnoreStart
          StringAssert.Contains("SPDX-License-Identifier: AGPL-3.0-or-later", plain.Body);
+         // REUSE-IgnoreEnd
       }
 
       [Test]

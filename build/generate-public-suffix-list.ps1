@@ -353,8 +353,10 @@ function Emit-RuleArray([System.Text.StringBuilder] $out, [string] $name, [strin
 
 $out = [System.Text.StringBuilder]::new()
 [void]$out.AppendLine('// https://www.progressiverobot.com')
+# REUSE-IgnoreStart
 [void]$out.AppendLine('// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd')
 [void]$out.AppendLine('// SPDX-License-Identifier: AGPL-3.0-or-later')
+# REUSE-IgnoreEnd
 [void]$out.AppendLine('')
 [void]$out.AppendLine('// GENERATED FILE - DO NOT EDIT BY HAND.')
 [void]$out.AppendLine('// Regenerate with build\generate-public-suffix-list.ps1, which also documents')

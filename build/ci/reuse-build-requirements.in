@@ -1,0 +1,10 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The build backend of reuse's sdist ([build-system] requires poetry-core>=1.1.0 in
+# reuse 6.2.0's pyproject.toml), which the reuse job of .gitlab-ci.yml installs
+# before reuse itself and builds it with (pip --no-build-isolation), by hand-chosen
+# version. build/ci/reuse-build-requirements.txt is made from this file with every
+# file's SHA-256; build/ci/reuse-requirements.in says how to regenerate both.
+poetry-core==2.5.0

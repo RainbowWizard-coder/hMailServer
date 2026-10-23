@@ -1,0 +1,22 @@
+VisionTech Limited makes no warranties, either express or implied,
+with respect to this source code and any accompanying materials.
+
+In no event shall VisionTech Limited or its suppliers be liable for
+any damages whatsoever (including, without limitation, damages for
+loss of business profits, business interruption, loss of business
+information, or other percuniary loss) arising out of the use or
+inability to use this software.
+
+This source code may be used for any purpose, including commercial
+applications, and may be modified or redistributed subject to the
+following conditions:
+
+a) This notice may not be removed or changed in any source distribution.
+
+b) Altered source versions must be include a note to that effect,
+   and must not be misrepresented as the original.
+
+c) The origin of this software may not be misrepresented - you may
+   not claim to have written the original version. If you use this
+   source in a product, an acknowledgement in the documentation
+   would be appreciated, but is not required.

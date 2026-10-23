@@ -73,19 +73,23 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 HEADER = [
     'https://www.progressiverobot.com',
+    # REUSE-IgnoreStart
     'Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd',
     'SPDX-License-Identifier: AGPL-3.0-or-later',
+    # REUSE-IgnoreEnd
 ]
 
 # What the header replaces, wherever the lines sit in a file's opening comment:
 # the notices this tree has carried, in every wording, and any SPDX line.
 REPLACED = [re.compile(p) for p in (
+    # REUSE-IgnoreStart
     r'^Copyright \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\s*Martin Knafve / hMailServer\.com\.?$',
     r'^https?://(?:www\.)?progressiverobot\.com/?$',
     r'^Copyright \(c\) \d{4} Christopher Holloway / Progressive Robot Ltd'
     r'(?: and the hMailServer contributors)?\.?$',
     r'^Copyright \(c\) \d{4} hMailServer$',
     r'^SPDX-License-Identifier: \S+$',
+    # REUSE-IgnoreEnd
 )]
 
 # Comment syntax per extension: line comments, or - for XML and Markdown - one
@@ -156,7 +160,9 @@ OWN_NOTICE_FIRST = {
     # 2026-06-12 baseline (fe45f43c3) opens the file with.
     'hmailserver/source/Server/Common/Scripting/ScriptSite.h': (
         31, '83fd885486bb69866746536d0fc3016097e0ce660b0f27c1d4e18d0b0c52e13b',
+        # REUSE-IgnoreStart
         'SPDX-License-Identifier: LicenseRef-ScriptSite AND AGPL-3.0-or-later'),
+        # REUSE-IgnoreEnd
 }
 
 BOM = b'\xef\xbb\xbf'

@@ -73,6 +73,7 @@ The other tables on this page name runners the same way.
 | `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |
+| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), and three negative controls ([REUSE](#reuse)) |
 | `chart-and-compose` | check | linix | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
 | `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
 | `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
@@ -177,8 +178,8 @@ Which pipeline runs what
 |---|---|---|
 | `master` | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `installer-smoke`, `sign-off`, `semgrep-sast-gate` and `mr-dependency-check` |
 | a `batch*` branch | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `pages`, `package-repos` and `secret_detection`, with `installer-smoke` manual; the change checks among them, against `master` ([Change checks](#change-checks)), and the four security scans on linix unless the batch changes documentation alone from `master`: this is the gate a batch passes before it lands, and the pipeline its merge request is held to |
-| any other branch, no open merge request | the branch's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, and the path-bound checks whose files changed |
-| any other branch, with an open merge request | the merge request's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
+| any other branch, no open merge request | the branch's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, `reuse`, and the path-bound checks whose files changed |
+| any other branch, with an open merge request | the merge request's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, `reuse`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
 | a merge request from a protected `batch*` branch of this project | none; the branch's own pipeline stands for it | as for the branch |
 | a merge request from `master`, or from another protected branch here that is not `batch*` | the merge request's, beside the branch's own, on GitLab's hosted runner | as for any other branch's merge request: the branch's pipeline runs no change gate |
 | a merge request from a fork | the merge request's, run in the fork, with the fork's CI files and on runners the fork's owner chooses | as for any other branch's merge request; its result is not the gate: the change lands through a batch, or on a pipeline a maintainer runs for it here ([Change checks](#change-checks)) |
@@ -2517,6 +2518,7 @@ pinned by digest where the CI file names it.
 | Job | Image | Tools, and where each comes from |
 |---|---|---|
 | `editorconfig` | `alpine:3.24` (Docker Hub) | editorconfig-checker 3.0.3, Alpine's community package. Its own releases are on GitHub, and its npm and PyPI packages download them from there when installed. The old job pinned 3.11.3; 3.0.3 reads the configuration only when named (`-config .editorconfig-checker.json`) |
+| `reuse` | `python:3.14-slim-trixie` (Docker Hub) | reuse 6.2.0 from PyPI, at the version and hashes `build/ci/reuse-requirements.txt` pins, built from its sdist (PyPI's only wheel of it is for CPython 3.10) with poetry-core 2.5.0 from `build/ci/reuse-build-requirements.txt`, hashed the same way; git and libmagic from Debian's archive |
 | `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
@@ -2578,6 +2580,48 @@ the AppImages' two sources jobs, `appimage-runtime-sources` and
 Ubuntu's archives and never from the address a recipe names (GitHub, for five
 of the Alpine ones): `build/check-release-chain.py` fails when either stops
 running `.no-github`'s `before_script`.
+
+REUSE
+-----
+
+The tree is compliant with the [REUSE Specification 3.3](https://reuse.software/spec-3.3/):
+every file's copyright and licence are known, from the file's own header - the
+project's three lines, which `build/add-license-headers.py` writes - or, for a file
+that cannot carry one, from a table of `REUSE.toml` at the root, and the text of
+every licence they name is in `LICENSES/`, which holds no other. A third party's
+file keeps its own licence and holders: the Fat Cow icons, SQL Server Compact's
+headers, QuickJS, zlib, Unicode's and the WHATWG's data, the RFC 7208 test suite and
+the DKIM test corpus by their tables; the project's sources that hold a third
+party's code under the project's header (the MIME classes, `StdString.h`, the
+tables made from the Public Suffix List, Unicode's data and HTML's character
+references) with the third party's licence added beside the header's; the
+licence texts and notices of what the Windows build ships as
+`LicenseRef-Verbatim-Notice`; and the test data no licence was stated for as
+`LicenseRef-No-Licence-Stated`. The comments of `REUSE.toml` say why each table says
+what it does, and `debian/copyright` says the same of what the source tarball
+carries ([SourceTarball.md](SourceTarball.md)).
+
+The `reuse` job holds it, in every pipeline but a schedule's, with
+`build/ci/reuse-lint.sh`: the REUSE project's own tool, `reuse` 6.2.0, from PyPI
+at the hashes `build/ci/reuse-requirements.txt` pins - built from its sdist with
+`--no-build-isolation`, since PyPI's one wheel of it is for CPython 3.10 alone,
+and its build backend, poetry-core, installed first from
+`build/ci/reuse-build-requirements.txt` - runs `reuse lint` over the checkout, git
+telling it what is ignored and libmagic, named by `REUSE_ENCODING_MODULE`, each
+file's encoding. Then three negative controls, each a file put in the checkout and
+taken out again, which `reuse lint` must refuse by name: a new C++ source in the
+server tree without the header, which no table covers; a file whose header names a
+licence `LICENSES/` has no text for; and a licence text in `LICENSES/` that no file
+names. So a table grown to cover the whole tree, or a tool that has stopped reading
+it, fails the job as well. Exit 1 is a file without its information or a control
+that passed, and 2 a tool that could not be installed. A new version of `reuse` is
+chosen in `build/ci/reuse-requirements.in`, whose header gives the commands that
+remake both locked files; Renovate reads the `.in` files and not the `.txt` files
+([Dependency updates](#dependency-updates)).
+
+The REUSE project's badge for the repository needs the repository registered with
+its API (api.reuse.software), which only the owner can do; until then the README
+carries none.
 
 The .NET job
 ------------
@@ -4479,6 +4523,7 @@ measured times after the first pipelines.
 | `checkers` | 12 to 19 min on server2 and s1-linux, 18 min or more on linix | 45 min | 729 to 935 s on server2 and 801 to 844 s on s1-linux from 19 October 2026, 1,060 to 1,063 s on linix, where the job was also killed at its 20 minutes of then on 21 and 23 October, as it was twice on GitLab's small hosted runner on 19 October, after 1,206 s and 1,202 s, while a third run there took 1,173 s and failed on `check-ci-image.py`; its script took 1,136 s on server2 with 8 CPUs and 1,135 s with 2 on 24 October 2026, the checks running one at a time, and the timeout is 1.6 times that and half as much again |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
+| `reuse` | 10 s by hand, and the package install | 15 min | reuse installed from PyPI, and four runs of `reuse lint` over 7,871 files - the tree, and the tree with each negative control - in the job's image on 23 October 2026 |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |
 | `coverage-cobertura` | under a second by hand | 5 min | The converter's self-test, Python's own library alone |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |

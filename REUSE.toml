@@ -1,0 +1,491 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The copyright and licence of every file of the tree that cannot carry them itself,
+# as the REUSE Specification 3.3 (https://reuse.software/spec-3.3/) reads this file;
+# CONTRIBUTING.md, "Code style and licence headers", says how the tree marks licences
+# and how to mark a new file, and the reuse job of .gitlab-ci.yml runs reuse lint over
+# the tree in every pipeline (build/ci/reuse-lint.sh). Every licence named here or in a
+# file's header has its text in LICENSES/, and LICENSES/ holds no other.
+#
+# A file's own header comes first: the source files carry the project's header
+# (build/add-license-headers.py writes it and --check holds it), and a table here
+# with the default precedence, "closest", gives a file only what it does not say
+# itself - its licence when it names its holders without one, its holders when it
+# names a licence without them. "aggregate" adds a table's licence and holders to
+# what a file says - the project's sources that hold third parties' code or data
+# under the third party's licence - and "override" stands in for a file whose text
+# names licences and holders that are not its own (a changelog, a copyright file),
+# which reuse then does not read.
+#
+# The tables go from the general to the particular, and when several match a file
+# the LAST one is the one used (the specification's rule): the project's files
+# first, then the third parties' trees and files under their own licences, then the
+# files that need more than one. A table names directories and kinds of file, never
+# the whole tree: a file that matches none and says nothing itself fails reuse lint,
+# so a new source file without the header is refused, as the job's negative control
+# shows. A path that matches no file is passed over.
+#
+# The holders, as debian/copyright's "Files: *" names them: Martin Knafve, whose
+# hMailServer this is a fork of, and the fork's maintainers beside him, for the files
+# that come from it - those the original's tree holds at the same path (its tags
+# hMailServer-5.7.0-b2788 and -b3013), or that the fork's first commit, fe45f43c3,
+# took over from it - and the maintainers alone for what they made in 2026.
+
+version = 1
+
+# ------------------------------------------------------------------ the project's
+# The original's files that carry no header: its documents, project, solution and
+# resource files, installer scripts and bitmaps, database scripts, registry scripts,
+# translations, VBScript add-ons and the Windows suites' test data.
+[[annotations]]
+path = [
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    "README.md",
+    "libraries/README.md",
+    "hmailserver/installation/*.iss",
+    "hmailserver/installation/*.bmp",
+    "hmailserver/installation/Extras/dh2048.pem",
+    "hmailserver/installation/InnoSocketCheck/*.def",
+    "hmailserver/installation/InnoSocketCheck/*.dsp",
+    "hmailserver/installation/InnoSocketCheck/*.dsw",
+    "hmailserver/installation/InnoSocketCheck/ReadMe.txt",
+    "hmailserver/installation/Utilities/*.bat",
+    "hmailserver/source/Addons/**/*.vbs",
+    "hmailserver/source/Addons/**/*.sql",
+    "hmailserver/source/DBScripts/**/*.sql",
+    "hmailserver/source/DBScripts/**/*.xml",
+    "build/db-upgrade-6029/*.sql",
+    "hmailserver/source/Server/COM/*.rgs",
+    "hmailserver/source/Server/COM/Scripts/*.vbs",
+    "hmailserver/source/Server/Common/Application/Errors.txt",
+    "hmailserver/source/Server/hMailServer/ReadMe.txt",
+    "hmailserver/source/Server/hMailServer/dlldata.c",
+    "hmailserver/source/Server/hMailServer/*.rc",
+    "hmailserver/source/Server/hMailServer/*.rgs",
+    "hmailserver/source/Server/hMailServer/*.sln",
+    "hmailserver/source/Server/hMailServer/*.vcxproj",
+    "hmailserver/source/Server/hMailServer/*.bat",
+    "hmailserver/source/Server/hMailServer.Minidump/ReadMe.txt",
+    "hmailserver/source/Server/hMailServer.Minidump/*.vcxproj",
+    "hmailserver/source/Translations/*.ini",
+    "hmailserver/source/Tools/hMailServer Tools.sln",
+    "hmailserver/source/Tools/DBSetup/*.csproj",
+    "hmailserver/source/Tools/DBSetup/**/*.resx",
+    "hmailserver/source/Tools/DBSetupQuick/*.csproj",
+    "hmailserver/source/Tools/DBUpdater/*.csproj",
+    "hmailserver/source/Tools/DBUpdater/**/*.resx",
+    "hmailserver/source/Tools/DataDirectorySynchronizer/*.csproj",
+    "hmailserver/source/Tools/DataDirectorySynchronizer/**/*.resx",
+    "hmailserver/source/Tools/Shared/*.csproj",
+    "hmailserver/source/Tools/Shared/**/*.resx",
+    "hmailserver/test/**/*.sln",
+    "hmailserver/test/**/*.csproj",
+    "hmailserver/test/**/*.config",
+    "hmailserver/test/**/*.resx",
+    "hmailserver/test/**/*.settings",
+    "hmailserver/test/**/*.nunit",
+    "hmailserver/test/**/*.XML",
+    "hmailserver/test/**/*.txt",
+    "hmailserver/test/**/*.eml",
+    "hmailserver/test/**/*.vbs",
+    "hmailserver/test/**/*.bat",
+    "hmailserver/test/**/*.json",
+    "hmailserver/test/**/*.cppcheck",
+    "hmailserver/test/SSL examples/**",
+    "hmailserver/tools/**/*.sln",
+    "hmailserver/tools/**/*.csproj",
+    "hmailserver/tools/**/*.config",
+    "hmailserver/tools/**/*.resx",
+    "hmailserver/tools/**/*.settings",
+    "hmailserver/tools/**/*.sql",
+    "hmailserver/tools/**/*.bat",
+    "hmailserver/tools/**/*.txt",
+    "hmailserver/tools/VS2005/autoexp.dat",
+]
+SPDX-FileCopyrightText = [
+    "2005-2014 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# What the fork made that carries no header: its documents and their pictures, the
+# repository's own files, the CI's baselines and data, the test fixtures it made
+# (the OpenPGP keys, the PST files, the fuzzers' regression inputs), the Control
+# Deck's and the webmail's catalogues and pages, the packaging's data files, and
+# the projects, lock files and installer scripts it added.
+[[annotations]]
+path = [
+    ".editorconfig-checker.json",
+    ".gitleaksignore",
+    ".mcp.json",
+    "ARCHITECTURE.md",
+    "ASSURANCE-CASE.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "RELEASE.md",
+    "Roadmap.md",
+    "Roadmap2.md",
+    "Roadmap3.md",
+    "SECURITY.md",
+    "SECURITY-INSIGHTS.yml",
+    "SUPPORT.md",
+    "flake.lock",
+    "global.json",
+    "renovate.json",
+    ".github/CODEOWNERS",
+    ".github/*.md",
+    ".gitlab/CODEOWNERS",
+    ".gitlab/allowed_signers",
+    ".gitlab/upstream-sync",
+    ".gitlab/*.json",
+    ".gitlab/*_templates/*.md",
+    ".well-known/security.txt",
+    "build/*.txt",
+    "build/ci/*-baseline.txt",
+    "build/fixtures/openpgp/**",
+    "build/fixtures/pst/**",
+    "build/lab/**/*.md",
+    "build/lab/**/*.json",
+    "build/perf/runs/**",
+    "build/testdata/*.json",
+    "fuzz/.gitattributes",
+    "fuzz/.gitignore",
+    "fuzz/**/*.md",
+    "fuzz/regression/*_fuzzer/*",
+    "hmailserver/docs/*.md",
+    "hmailserver/docs/*.json",
+    "hmailserver/docs/images/*",
+    "hmailserver/installation/OriginalHMailServer.iss",
+    "hmailserver/installation/hMailServerARM64.iss",
+    "hmailserver/installation/section_files_arm64.iss",
+    "hmailserver/installation/section_registry.iss",
+    "hmailserver/installation/section_setup_arm64.iss",
+    "hmailserver/installation/setup-small.bmp",
+    "hmailserver/installation/**/*.png",
+    "hmailserver/installation/WebAdmin/index.html",
+    "hmailserver/installation/WebAdmin/languages/*.json",
+    "hmailserver/source/DBScripts/Upgrade5708to6*.sql",
+    "hmailserver/source/DBScripts/Upgrade6*.sql",
+    "hmailserver/source/Server/Common/Application/Profiles/*.json",
+    "hmailserver/source/Server/Common/Util/PortalProtected.html",
+    "hmailserver/source/Server/Common/Util/Portal.webmanifest",
+    "hmailserver/source/Server/Common/Util/PortalLanguages/*.json",
+    "hmailserver/source/Server/hMailServer.Updater/*.vcxproj",
+    "hmailserver/source/Server/platform/packaging/*.png",
+    "hmailserver/source/Server/platform/packaging/**/*.png",
+    "hmailserver/source/Server/platform/packaging/debian-src/debian/**",
+    "hmailserver/source/Server/platform/packaging/helm/hmailserver/.helmignore",
+    "hmailserver/source/Server/platform/packaging/helm/hmailserver/*.md",
+    "hmailserver/source/Server/platform/packaging/helm/hmailserver/templates/*.txt",
+    "hmailserver/source/Server/platform/packaging/rpm/*.sysusers",
+    "hmailserver/source/Tools/ControlPanel.sln",
+    "hmailserver/source/Tools/Directory.Build.props",
+    "hmailserver/source/Tools/Directory.Build.targets",
+    "hmailserver/source/Tools/*/packages*.lock.json",
+    "hmailserver/source/Tools/Cli/python/README.md",
+    "hmailserver/source/Tools/ControlPanel/*.csproj",
+    "hmailserver/source/Tools/ControlPanel/app.ico",
+    "hmailserver/source/Tools/ControlPanel/app.manifest",
+    "hmailserver/source/Tools/ControlPanel.Core/*.csproj",
+    "hmailserver/source/Tools/ControlPanel.Tests/*.csproj",
+    "hmailserver/source/Tools/DBSetup.Tests/*.csproj",
+    "hmailserver/source/Tools/ImportTool/*.csproj",
+    "hmailserver/source/Tools/ImportTool.Tests/*.csproj",
+    "hmailserver/source/Tools/Interop/README.md",
+    "hmailserver/test/LinuxRegressionTests/*.csproj",
+    "hmailserver/test/LinuxRegressionTests/*.json",
+    "hmailserver/test/PostfixBench/*.md",
+]
+SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# ---------------------------------------------------------- third parties' trees
+# Each under its own licence, never the project's; hmailserver/docs/SourceTarball.md
+# and debian/copyright declare the ones the source tarball carries, and
+# hmailserver/docs/ThirdPartyBinaries.md the rest.
+
+# The Fat Cow icons (CC BY 3.0), the 2,800 the Control Panel draws with, and the
+# three of them that three of the database tools take as their window's icon, byte
+# for byte the 32 by 32 ones of the set.
+[[annotations]]
+path = [
+    "libraries/fat_cow_icons/**",
+    "hmailserver/source/Tools/DBSetup/database_add.ico",
+    "hmailserver/source/Tools/DBUpdater/database_refresh.ico",
+    "hmailserver/source/Tools/DataDirectorySynchronizer/georectify.ico",
+]
+SPDX-FileCopyrightText = "FatCow Web Hosting <https://www.fatcow.com/free-icons>"
+SPDX-License-Identifier = "CC-BY-3.0"
+
+# SQL Server Compact 3.5's headers, Microsoft's, under its licence terms, which no
+# free distribution takes (build/source-exclusions.txt leaves them out of the tarball).
+[[annotations]]
+path = "libraries/mssqlce3.5/*.h"
+SPDX-FileCopyrightText = "Microsoft Corporation"
+SPDX-License-Identifier = "LicenseRef-Microsoft-SQL-Server-Compact-3.5"
+
+# QuickJS, vendored unmodified (quickjs/VERSION; quickjs/LICENSE beside it).
+[[annotations]]
+path = "hmailserver/source/Server/quickjs/**"
+SPDX-FileCopyrightText = [
+    "2016-2025 Fabrice Bellard",
+    "2017-2025 Charlie Gordon",
+]
+SPDX-License-Identifier = "MIT"
+
+# zlib, vendored as shipped for hMailServer.exe (zlib/LICENSE beside it).
+[[annotations]]
+path = "hmailserver/source/Server/zlib/**"
+SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly and Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
+# The HTML standard's list of named character references, a portion of the standard
+# incorporated into source code, under the BSD 3-Clause License (entities.LICENSE).
+[[annotations]]
+path = [
+    "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.json",
+    "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE",
+]
+SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# Unicode's data files for UTS 46, as unicode.org serves them (ucd/unicode.LICENSE).
+[[annotations]]
+path = [
+    "hmailserver/source/Server/Common/Idna/ucd/*.txt",
+    "hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE",
+]
+SPDX-FileCopyrightText = "1991-2026 Unicode, Inc."
+SPDX-License-Identifier = "Unicode-3.0"
+
+# The RFC 7208 test suite, its change log and its licence (rfc7208-tests.LICENSE).
+[[annotations]]
+path = "hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.*"
+SPDX-FileCopyrightText = [
+    "2006-2008 Stuart D Gathman <stuart@bmsi.com>",
+    "2007-2008 Julian Mehnle <julian@mehnle.net>",
+    "2014 Scott Kitterman <scott@kitterman.com>",
+]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# The DKIM test messages: by their names and contents the test corpus of Mail::DKIM,
+# which is under Perl's terms; the four below that are not are given their own table.
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/**"
+SPDX-FileCopyrightText = [
+    "2005-2009 Messiah College",
+    "Jason Long",
+]
+SPDX-License-Identifier = "GPL-1.0-or-later OR Artistic-1.0-Perl"
+
+# ---------------------------------------------------- third parties' licence texts
+# The licence texts and notices of third-party components, as their holders publish
+# them, carried verbatim (debian/copyright's "notices"): of what the Windows build
+# ships - 7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq, SQL
+# Server Compact, zlib - and of the AppImage's runtime. Each text's holders are the
+# ones it names; the six below whose components the source tarball carries are given
+# their component's licence, as debian/copyright gives them.
+[[annotations]]
+path = [
+    "libraries/License - *.rtf",
+    "hmailserver/docs/Licenses/License - *",
+    "hmailserver/installation/Extras/7za.exe.license.txt",
+    "hmailserver/source/Server/platform/packaging/appimage/GPL-3.0.txt",
+]
+SPDX-FileCopyrightText = "The holders each text names"
+SPDX-License-Identifier = "LicenseRef-Verbatim-Notice"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - QuickJS.txt"
+SPDX-FileCopyrightText = [
+    "2017-2021 Fabrice Bellard",
+    "2017-2021 Charlie Gordon",
+]
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - MIME Message encoder analyzer.rtf"
+SPDX-FileCopyrightText = "2003 Jeff Lee"
+SPDX-License-Identifier = "BSD-1-Clause"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - String library.rtf"
+SPDX-FileCopyrightText = "2002 Joseph M. O'Leary"
+SPDX-License-Identifier = "LicenseRef-StdString"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - RFC 7208 test suite.txt"
+SPDX-FileCopyrightText = [
+    "2006-2008 Stuart D Gathman <stuart@bmsi.com>",
+    "2007-2008 Julian Mehnle <julian@mehnle.net>",
+    "2014 Scott Kitterman <scott@kitterman.com>",
+]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - Unicode data.txt"
+SPDX-FileCopyrightText = "1991-2026 Unicode, Inc."
+SPDX-License-Identifier = "Unicode-3.0"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - HTML named character references.txt"
+SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# The original's list of the third-party components and their licences, Martin
+# Knafve's table of 2010, and the same table in Markdown with the fork's note on it.
+[[annotations]]
+path = "hmailserver/docs/Licenses/License list.ods"
+SPDX-FileCopyrightText = "2010 Martin Knafve / hMailServer.com"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License list.md"
+SPDX-FileCopyrightText = [
+    "2010 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# ------------------------------------------------------- test data with no licence
+# Other parties' material kept as test input, for which its holders have stated no
+# licence (hmailserver/docs/SourceTarball.md): the project licenses none of it and
+# claims no right in it, and the Debian source package leaves it out
+# (debian/copyright's Files-Excluded).
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/Good/altn.response.txt"
+SPDX-FileCopyrightText = "2009 Alt-N Technologies, whose DKIM verifier at altn.com sent this reply"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/Good/elandit.response.txt"
+SPDX-FileCopyrightText = "2009 The sender of this reply, ns1.qubic.net, as its headers name it"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/PermFail/port25.response.txt"
+SPDX-FileCopyrightText = "2009 Port25 Solutions, whose verifier at port25.com sent this reply"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+[[annotations]]
+path = "hmailserver/test/TestData/DKIM/Good/Test 1.eml"
+SPDX-FileCopyrightText = "2021 The sender of this message and the servers that relayed it, as its headers name them"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+[[annotations]]
+path = "hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt"
+SPDX-FileCopyrightText = "2012 Secunia ApS, whose advisory SA50800 this is"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+# The Google Internet Authority's certificate of 2009, as Equifax issued it, alone
+# and after the original's example certificate.
+[[annotations]]
+path = "hmailserver/test/SSL examples/google.cer"
+SPDX-FileCopyrightText = "2009 Google Inc. (the certificate's subject) and Equifax (its issuer)"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+[[annotations]]
+path = "hmailserver/test/SSL examples/example+google.txt"
+SPDX-FileCopyrightText = [
+    "2005-2014 Martin Knafve / hMailServer.com",
+    "2009 Google Inc. (the second certificate's subject) and Equifax (its issuer)",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
+
+# --------------------------------------- the project's files with third parties' work
+# Sources that carry the project's header, for the project's changes, and hold a
+# third party's code or data under the third party's licence: the table adds that
+# licence and its holders to what the header says.
+
+# The MIME encoder and decoder, Jeff Lee's (CodeProject, 2000-2003), changed by the fork.
+[[annotations]]
+path = [
+    "hmailserver/source/Server/Common/Mime/Mime.cpp",
+    "hmailserver/source/Server/Common/Mime/Mime.h",
+    "hmailserver/source/Server/Common/Mime/MimeChar.cpp",
+    "hmailserver/source/Server/Common/Mime/MimeChar.h",
+    "hmailserver/source/Server/Common/Mime/MimeCode.cpp",
+    "hmailserver/source/Server/Common/Mime/MimeCode.h",
+    "hmailserver/source/Server/Common/Mime/MimeType.cpp",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2003 Jeff Lee"
+SPDX-License-Identifier = "BSD-1-Clause"
+
+# CStdString, Joseph M. O'Leary's, changed by the fork.
+[[annotations]]
+path = "hmailserver/source/Server/Common/Util/StdString.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2002 Joseph M. O'Leary"
+SPDX-License-Identifier = "LicenseRef-StdString"
+
+# Tables the project's generators make from third parties' data: the Public Suffix
+# List's rules (build/generate-public-suffix-list.ps1), Unicode's data for UTS 46
+# (build/generate-idna-tables.py) and HTML's named character references
+# (build/generate-html-references.py).
+[[annotations]]
+path = "hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Mozilla Foundation and the Public Suffix List's contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = [
+    "hmailserver/source/Server/Common/Idna/IdnaTables.cpp",
+    "hmailserver/source/Server/Common/Idna/IdnaTestData.cpp",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "1991-2026 Unicode, Inc."
+SPDX-License-Identifier = "Unicode-3.0"
+
+[[annotations]]
+path = "hmailserver/source/Server/Common/AntiSpam/HtmlReferencesData.cpp"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# The installer's licence page: the project's terms, and the third-party components'
+# notices copied into it verbatim.
+[[annotations]]
+path = "hmailserver/installation/License.rtf"
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2005-2014 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
+
+# ------------------------------------------- files whose text names others' licences
+# The project's own files whose text quotes licence identifiers and copyright notices
+# that are not theirs - the changelog's and roadmap's entries on the headers, the
+# contribution guide's, the source tarball's table of what is not the project's, the
+# help pages compiled from those documents, and the Debian copyright file, which
+# names every holder of the source package - and so are read for this table alone.
+[[annotations]]
+path = [
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "Roadmap.md",
+    "hmailserver/docs/SourceTarball.md",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = "hmailserver/source/Server/Common/Util/HelpPagesData.cpp"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

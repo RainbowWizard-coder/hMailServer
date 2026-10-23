@@ -261,7 +261,9 @@ namespace RegressionTests.API
 
          // And the same question asked about a name that is not ASCII. The
          // query string is UTF-8; decoded with the machine's code page instead,
+         // REUSE-IgnoreStart
          // "Ingénieure" arrives as "IngÃ©nieure" and matches nothing - so the
+         // REUSE-IgnoreEnd
          // completion would fail for exactly the colleagues whose names are
          // hardest to type, and say "count":0 while doing it. The body here is
          // UTF-8 and so is the query, and both are written as escapes so that

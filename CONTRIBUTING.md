@@ -388,7 +388,8 @@ staying as committed, `renumber-upgrade-items.py --check` (the newest *What chan
 `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
 stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
 `check-portal-script.py`, `check-portal-smime.js` and `check-portal-openpgp.js`. *editorconfig* runs
-editorconfig-checker. Five more run when their files change: *chart-and-compose* (the Helm chart and the
+editorconfig-checker, and *reuse* runs `reuse lint` with its negative controls (`build/ci/reuse-lint.sh`;
+[REUSE](#code-style-and-licence-headers)). Five more run when their files change: *chart-and-compose* (the Helm chart and the
 Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
 placeholder values), *roadmap* (`check-roadmap.ps1`) and *coverage-cobertura* (the coverage job's Cobertura
@@ -549,7 +550,7 @@ something which already exists.
 
 | You changed | Run at least |
 |---|---|
-| Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py` |
+| Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py`; `build/ci/reuse-lint.sh` when you add a file or a third party's code |
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `generate-auth-matrix.py` (and commit the matrix it writes; if it stops on a changed step, read `decide()` against the step and update `STEPS`), `check-cli.py` if a client verb changed |
@@ -586,6 +587,21 @@ something which already exists.
   declaration, which have to come first) and `--check` reports what it would change. Markdown, `.resx` and the
   packaged configuration files have their header made canonical when they carry one and are left alone when
   they do not. Generated MIDL output and vendored third-party sources are skipped.
+* **REUSE.** Every file of the tree has its copyright and its licence, as the
+  [REUSE Specification 3.3](https://reuse.software/spec-3.3/) asks: a source file by the header above, and
+  a file that cannot carry one - a document, a picture, a project or data file, a test fixture, a third
+  party's tree - by a table of [REUSE.toml](REUSE.toml), by directory and kind of file, whose comments say
+  which holders each one names. A third party's file keeps its own licence and holders, never the
+  project's: its table names them, and a source of the project's that holds a third party's code under the
+  header (the MIME classes, `StdString.h`, the generated tables) has the third party's licence added beside
+  the header's (`precedence = "aggregate"`). Every licence named, in a header or in REUSE.toml, has its text
+  in [LICENSES/](LICENSES) as `<SPDX identifier>.txt` - SPDX's own text for an identifier on SPDX's list,
+  and a `LicenseRef-` text of the project's for one that is not - and LICENSES/ holds no other. A new file
+  without the header that no table covers fails the *reuse* job, which runs `reuse lint`
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#reuse)); run it as the job does,
+  `bash build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` (the script's header gives the command). A text
+  that quotes an SPDX tag or a copyright notice that is not the file's own - a generator writing the header
+  into what it makes - goes between `REUSE-IgnoreStart` and `REUSE-IgnoreEnd` comments.
 
 ## Change checklists
 
@@ -972,7 +988,9 @@ the COM interface or the release path, open an issue to discuss it before writin
   later (`SPDX-License-Identifier: AGPL-3.0-or-later` in every header). By contributing you agree that your
   contribution is licensed the same way. There is no CLA. Third-party components' licences are in
   [hmailserver/docs/Licenses](hmailserver/docs/Licenses), and the provenance of every third-party binary the
-  build uses is in [hmailserver/docs/ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md).
+  build uses is in [hmailserver/docs/ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md). Which
+  licence each file of the tree is under, and whose it is, its header or [REUSE.toml](REUSE.toml) says, and
+  the text of every licence they name is in [LICENSES/](LICENSES) ([REUSE](#code-style-and-licence-headers)).
 
 ## Architecture
 

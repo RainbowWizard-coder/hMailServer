@@ -1,0 +1,8 @@
+A third party's licence text or notice, carried verbatim.
+
+Each file given this identifier is the licence text or the notice of a
+third-party component, as its holder publishes it, and is carried as that
+holder allows its text to be copied: verbatim. The text is its holder's, and
+the project licenses nothing in it. The component it belongs to is under the
+terms the text states; where the component is in the tree, its own files say
+so.

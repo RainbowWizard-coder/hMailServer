@@ -19,6 +19,7 @@ Comment:
 Files-Excluded:
  libraries
  hmailserver/docs/Licenses/License?-?Microsoft?SQL?Server?Compact?Edition.rtf
+ LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-3.5.txt
  hmailserver/source/Server/COM
  hmailserver/source/Server/hMailServer
  hmailserver/source/Server/hMailServer.Minidump
@@ -102,8 +103,29 @@ Comment:
  in one); those projects are the upstream project's own, like the rest.
 
 Files: hmailserver/docs/Licenses/*
+       hmailserver/source/Server/platform/packaging/appimage/GPL-3.0.txt
+       LICENSES/*
 Copyright: the holders each text names
 License: notices
+
+Files: LICENSES/LicenseRef-No-Licence-Stated.txt
+       LICENSES/LicenseRef-Verbatim-Notice.txt
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+License: AGPL-3+
+Comment:
+ The two texts of LICENSES/ that are the project's own: what REUSE.toml's
+ identifiers for the third parties' notices and for the test data with no
+ licence stated mean. The rest of LICENSES/ is the licences' texts.
+
+Files: hmailserver/docs/Licenses/License?list.*
+Copyright: 2010 Martin Knafve / hMailServer.com
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: AGPL-3+
+Comment:
+ The original hMailServer's list of the third-party components it carried and
+ what each one's licence asks, Martin Knafve's table of 2010, which is not a
+ notice of any of them: once a spreadsheet, License list.ods, and since 2026 the
+ same table in Markdown, License list.md, with the maintainers' note on it.
 
 Files: hmailserver/source/Server/quickjs/*
 Copyright: 2016-2025 Fabrice Bellard
@@ -129,12 +151,28 @@ Files: hmailserver/source/Server/Common/Mime/Mime.cpp
        hmailserver/source/Server/Common/Mime/MimeCode.cpp
        hmailserver/source/Server/Common/Mime/MimeCode.h
        hmailserver/source/Server/Common/Mime/MimeType.cpp
-       hmailserver/docs/Licenses/License?-?MIME?Message?encoder?analyzer.rtf
+Copyright: 2003 Jeff Lee
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: BSD-1-clause and AGPL-3+
+Comment:
+ Jeff Lee's MIME encoder and decoder, under his notice, which each file keeps
+ below the project's header; the maintainers have changed them since 2026, and
+ their changes are under the AGPL, as the header says.
+
+Files: hmailserver/docs/Licenses/License?-?MIME?Message?encoder?analyzer.rtf
 Copyright: 2003 Jeff Lee
 License: BSD-1-clause
 
 Files: hmailserver/source/Server/Common/Util/StdString.h
-       hmailserver/docs/Licenses/License?-?String?library.rtf
+Copyright: 2002 Joseph M. O'Leary
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: StdString and AGPL-3+
+Comment:
+ Joseph M. O'Leary's CStdString, under his notice, which the file keeps below
+ the project's header; the maintainers have changed it since 2026, and their
+ changes are under the AGPL, as the header says.
+
+Files: hmailserver/docs/Licenses/License?-?String?library.rtf
 Copyright: 2002 Joseph M. O'Leary
 License: StdString
 
@@ -148,10 +186,12 @@ License: BSD-3-clause
 
 Files: hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h
 Copyright: Mozilla Foundation and the Public Suffix List's contributors
-License: MPL-2.0
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: MPL-2.0 and AGPL-3+
 Comment:
  Made from the Public Suffix List (https://publicsuffix.org/) by
- build/generate-public-suffix-list.ps1, and compiled into /usr/bin/hmailserver,
+ build/generate-public-suffix-list.ps1, which writes the project's header above
+ the list's MPL notice, and compiled into /usr/bin/hmailserver,
  where DMARC finds a domain's organisational domain with it, and the SURBL
  lookups and the MX-record spam test the registrable domain of a host name.
 
@@ -1086,9 +1126,16 @@ License: Artistic
  "/usr/share/common-licenses/Artistic".
 
 License: notices
- Each file here is the licence text or the notice of a third-party
+ Each such file is the licence text or the notice of a third-party
  component, as its holder publishes it, and is carried as that holder allows
  its text to be copied: verbatim. The components themselves - 7-Zip, Boost,
  the Fat Cow icons, the MariaDB connector, OpenSSL, libpq, SQL Server
  Compact's licence aside (Files-Excluded), zlib - are not in this source
- package; the Windows build of the same project ships them.
+ package; the Windows build of the same project ships them. appimage/GPL-3.0.txt
+ is the GPL-3.0's text, as the FSF publishes it, under which the project's
+ AppImage's runtime takes lzo, and which the AppImage carries
+ (packaging/README.md). The REUSE identifier of the same texts is
+ LicenseRef-Verbatim-Notice (REUSE.toml, LICENSES/). LICENSES/ holds the text
+ of each licence a file of the project names, as REUSE asks: SPDX's texts of
+ the licences on SPDX's list, and those VisionTech's and Joseph M. O'Leary's
+ notices state (LicenseRef-ScriptSite, LicenseRef-StdString).

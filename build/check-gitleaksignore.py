@@ -69,7 +69,9 @@ SECURITY_YML = ".gitlab/ci/gitlab-security.yml"
 CHECKOUT = "/builds/hmailserver/hmailserver/"
 # The patterns of the rules the directory-form entries name, as GitLab's rules
 # (gitlab-org/security-products/secret-detection/secret-detection-rules 0.25.1, MIT
+# REUSE-IgnoreStart
 # Expat licence, Copyright (c) 2011-present GitLab B.V.) write them in the analyzer's
+# REUSE-IgnoreEnd
 # /gitleaks.toml. None of them has an entropy bound, a keyword the match does not hold,
 # or an allowlist of its own there, so each match is a finding.
 RULES = {

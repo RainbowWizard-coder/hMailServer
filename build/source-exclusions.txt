@@ -38,6 +38,9 @@ libraries
 # The second copy of SQL Server Compact's licence. The other notices in that
 # directory stay, those of the code the Linux build compiles among them.
 hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf
+# And its plain text in LICENSES/, the licence REUSE.toml gives those headers. The
+# other licence texts there stay.
+LICENSES/LicenseRef-Microsoft-SQL-Server-Compact-3.5.txt
 
 # ---------------------------------------------------------------- the Windows server
 # The ATL administration API, the Windows service host and its solution, the

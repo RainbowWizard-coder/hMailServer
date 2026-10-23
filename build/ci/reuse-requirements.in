@@ -1,0 +1,33 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The REUSE tool the reuse job of .gitlab-ci.yml runs (build/ci/reuse-lint.sh: reuse
+# lint, every file's copyright and licence known, REUSE Specification 3.3; CONTRIBUTING.md,
+# "Code style and licence headers"), by hand-chosen version. build/ci/reuse-requirements.txt is made from this file,
+# with every package it pulls in pinned and every file's SHA-256, and that is the
+# file the job installs from (pip --require-hashes).
+#
+# PyPI has no wheel of reuse for Python 3.14 (its 6.x wheels are tagged cp310
+# alone), so pip builds it from its sdist, whose build backend is poetry-core: that
+# comes from build/ci/reuse-build-requirements.txt, hashed the same way and
+# installed first, and the job builds reuse with --no-build-isolation, so that the
+# backend is not fetched by pip's isolation at whatever version PyPI serves that
+# minute. python-magic needs libmagic, which the job installs from Debian
+# (libmagic1t64), and the job names it as the encoding module
+# (REUSE_ENCODING_MODULE=python-magic), so that a missing libmagic fails the job
+# rather than leaving reuse on another module.
+#
+# To move to a newer reuse, change the version here and regenerate both locked
+# files with uv, in the python:3.14-slim-trixie image the job runs in:
+#
+#   python3 -m venv /tmp/uv && /tmp/uv/bin/pip install uv
+#   /tmp/uv/bin/uv pip compile --generate-hashes --python-version 3.14 \
+#       --output-file build/ci/reuse-requirements.txt build/ci/reuse-requirements.in
+#   /tmp/uv/bin/uv pip compile --generate-hashes --python-version 3.14 \
+#       --output-file build/ci/reuse-build-requirements.txt build/ci/reuse-build-requirements.in
+#
+# then put this file's three header lines back at the top of each output, keep
+# poetry-core's pin within the range the new sdist's [build-system] requires, and
+# run the job's script (.gitlab-ci.yml, reuse) on the tree.
+reuse==6.2.0

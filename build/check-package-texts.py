@@ -627,6 +627,7 @@ def self_test():
          replaced('This is %s, not the original.' % FORK, 'This is hMailServer.'), 'README.md: the opening'),
         ('ContainerImage.md\'s opening without the original', IMAGE_README,
          replaced('hMailServer is Martin Knafve\'s', 'hMailServer is someone\'s'), 'ContainerImage.md: the opening'),
+        # REUSE-IgnoreStart
         ('the nuspec\'s copyright as it was', NUSPEC,
          sub(r'<copyright>.*</copyright>', '<copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer</copyright>'),
          '<copyright> does not name'),
@@ -645,6 +646,7 @@ def self_test():
          sub(r'<authors>.*</authors>', '<authors>Martin Knafve</authors>'), '<authors> is'),
         ('winget\'s Copyright the original\'s alone', WINGET_LOCALE,
          sub(r'^Copyright: .*$', 'Copyright: Copyright (c) 2026 Martin Knafve'), 'Copyright is'),
+        # REUSE-IgnoreEnd
         ('winget\'s Author the original\'s alone', WINGET_LOCALE, sub(r'^Author: .*$', 'Author: Martin Knafve'),
          'Author is'),
         ('winget\'s Publisher the original\'s author', WINGET_LOCALE, sub(r'^Publisher: .*$', 'Publisher: Martin Knafve'),
