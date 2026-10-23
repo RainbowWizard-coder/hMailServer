@@ -5654,7 +5654,8 @@ no header the job receives reaches the propagator - not those of semgrep.dev's
 answer to the version check that `semgrep --version` makes, nor of the rule
 packs or of GitLab's API, which the script fetches with Python's urllib outside
 Semgrep - and Semgrep's one call of the propagator, made only under `--trace`,
-which the job does not pass, gives it a `traceparent` alone. The file ignores it until 23 January 2027, and the entry goes when a
+which the job does not pass, gives it a `traceparent` alone. The file ignores it
+until 23 January 2027, and the entry goes when a
 Semgrep release allows opentelemetry-api 1.45.1 or later. Each VEX
 statement is the project's record of the decision, and the file only carries it
 to OSV-Scanner: `build/check-osv-ignores.py`, which `checkers` runs, fails the

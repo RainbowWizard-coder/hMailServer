@@ -686,12 +686,12 @@ with `--check`).
   (CVE-2026-114603), and `build/ci/osv-scanner.toml` carries the statement to OpenSSF Scorecard's Vulnerabilities
   check.** The advisory, published by GitHub and OSV on 22 October 2026 and rated moderate, is the time
   `TraceState.from_header` takes over an inbound W3C `tracestate` header, quadratic in the length of a run of spaces or
-  tabs, in every opentelemetry-api to 1.45.0; 1.45.1 fixes it. `build/ci/requirements.txt` pins 1.37.0 because
-  Semgrep 1.181.0 requires `opentelemetry-api~=1.37.0`, and no Semgrep release allows 1.45.1: each that names the
-  package requires `~=1.25.0` or `~=1.37.0`, and 1.182.1, the newest on PyPI on 23 October 2026, `~=1.37.0`. So the
-  pin cannot move, and the advisory is declared instead (`not_affected`, `vulnerable_code_not_in_execute_path`):
-  `from_header` runs only when the trace-context propagator is given a carrier that holds a `tracestate`, and in the
-  job's environment Semgrep's one call of the propagator, made only under `--trace`, which the job does not pass and no
+  tabs, in every opentelemetry-api to 1.45.0; 1.45.1 fixes it. `build/ci/requirements.txt` pins 1.37.0 because Semgrep
+  1.181.0 requires `opentelemetry-api~=1.37.0`, and no Semgrep release allows 1.45.1: each that names the package
+  requires `~=1.25.0` or `~=1.37.0`, and 1.182.1, the newest on PyPI on 23 October 2026, `~=1.37.0`. So the pin cannot
+  move, and the advisory is declared instead (`not_affected`, `vulnerable_code_not_in_execute_path`): `from_header`
+  runs only when the trace-context propagator is given a carrier that holds a `tracestate`, and in the job's
+  environment Semgrep's one call of the propagator, made only under `--trace`, which the job does not pass and no
   environment variable turns on, gives it a `traceparent` alone, while the two callers that would take a request's
   headers, Starlette's `OpenTelemetryMiddleware` and opentelemetry-instrumentation's `_start_internal_or_server_span`,
   are used by nothing there. In the job's image, with a hook on `from_header` and its one caller, `build/ci/semgrep.sh`
@@ -703,11 +703,13 @@ with `--check`).
   with the entry 10. `dependency-scan` rates it Medium, which fails no verdict and holds no release: run in the job's
   Trivy image, it lists it as a live finding against `build/ci/requirements.txt`, in GitLab's report too, without the
   statement, and as dismissed in the VEX document with it; with the advisory rated High in Trivy's report, its verdict
-  fails without the statement and passes with it. The statement says in its `status_notes`, and the file's entry in
-  its comment, that it was read with an AI's help under the owner's delegation, as SECURITY.md ("Who reviews") asks of
-  such a declaration; mcp 1.29.0's statement and entry, made the same way on 19 and 20 October 2026, now say so too,
-  and the document's `tooling`, which said "Written by hand", says that no tool generates it and that the document and
-  every statement in it were written by AI agents under the owner's delegation.
+  fails without the statement and passes with it. The statement says in its `status_notes`, and the file's entry in its
+  comment, that it was read with an AI's help under the owner's delegation, as SECURITY.md ("Who reviews") asks of such
+  a declaration; mcp 1.29.0's statement and entry, made the same way on 19 and 20 October 2026, now say so too, and the
+  document's `tooling`, which said "Written by hand", says that no scanner, converter or script generates it, that each
+  statement is read from the advisory, the code and how the project builds, links or runs it, and that the document and
+  every statement in it were written by AI agents under the owner's delegation; the statement's list of what the job
+  receives names the packages pip installs from PyPI too, and two older timestamps no longer come after their commits.
 
 - **The VEX document declares the vendored zlib 1.3.2 not affected by CVE-2026-85091, a heap buffer overflow in
   `gz_vacate`.** OSV's record of the advisory (GHSA-g5fp-32jq-cfw2) gives zlib 1.3.1.2 to 1.3.2, no fixed version and
