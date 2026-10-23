@@ -925,11 +925,12 @@ with `--check`).
   here-document of any delimiter; where a command starts, no `exec` of a program, no `set` but `set -uo pipefail`, no
   `eval`, `source` or `.`, `alias`, `unalias`, `unset`, `enable`, `shopt`, `hash`, `builtin`, no `command` but
   `command -v`, no trap but `trap cleanup EXIT` and no `exit` with any status but 1 to 99 (save the help branch of the
-  argument loop and the end of `cleanup`); and no `PATH` set. The script must define its eight functions, each once,
+  argument loop and the end of `cleanup`); and `PATH` named nowhere but where it is read (`$PATH`), so that
+  neither `PATH=` nor `printf -v PATH` or `read PATH` sets it. The script must define its eight functions, each once,
   and no other; `ask_image` must not return before its end, which sets the schema; `fail` and `unasked` must not return
   and must end in `exit 1`; and `cleanup` must take `code=$?` first, write `code` nowhere else and end in
   `exit "$code"`. A form these rules do not name, such as a command built at run time, is left to the review of the
-  change. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
+  change, which the script's digest, held in the checker (below), makes a gates review. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
   push; a disabled ask would not have failed at all - the start job would have passed without asking that image.
   Master's checker passed every one of the ten mutations first tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64
   job, `MARIADB_DATABASE` removed and `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks
@@ -999,6 +1000,17 @@ with `--check`).
   `BASH_ENV` in the arm64 job, `HM_START_VERSION` in a service's variables, `HM_START_MARIADB_HOST` among
   `.gitlab-ci.yml`'s top-level variables, and the script's MariaDB address defaulting to `mail` or its version to 6 -
   and sees each caught.
+- **The release-chain check holds the image start test whole.** Its rules read the test's lines, not bash, and hold
+  where the asks are and what may come before them, not what the asks run: `ask_image`'s body put behind
+  `if false` or in a subshell, then `version=6108`, a `schema_version` that echoes 6108 and returns, and the STARTTLS
+  check's `|| fail` made `|| echo` each passed them (the review that found them ran the first two under bash in
+  the job's way, and each ended `STARTED` with status 0); and `build/ci/container-image-start-test.sh` is not one of `land-via-mr.py`'s gate files,
+  so no gates review read such a change. `build/check-release-chain.py`, which is one, now holds the script by the
+  SHA-256 of its text with its line ends LF (`START_TEST_SHA256`, `start_test_digest_problems`): a change to it fails
+  the check, saying the new digest, until the digest there changes with it, so that the landing takes a gates
+  review; the script's header says so. The rule against setting `PATH` before the asks, which took `PATH=` and
+  `PATH+=` alone, now refuses `PATH` named anywhere there but where it is read, as `printf -v PATH` and `read PATH`
+  passed it. The self-test breaks the script in those six ways and sees each caught.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in

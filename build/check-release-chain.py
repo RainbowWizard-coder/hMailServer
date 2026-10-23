@@ -483,6 +483,7 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
 
 import ast
 import base64
+import hashlib
 import importlib.util
 import io
 import json
@@ -5465,6 +5466,29 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
                        'maria_db_host="${HM_START_MARIADB_DB_HOST:-mariadb}"')
 
 
+# build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
+# its line ends LF (start_test_digest_problems).
+START_TEST_SHA256 = "07f594fa280fa8c31d0328c549bfaee35357d6e2b6d8601daade73ce1febb590"
+
+
+def start_test_digest_problems(script):
+    """build/ci/container-image-start-test.sh is the script this file holds, by the
+    SHA-256 of its text with its line ends LF (START_TEST_SHA256). The rules of
+    start_test_call_problems read its lines, not bash, and hold where the asks are and
+    what may come before them, not what the asks run: an ask_image body put behind if
+    false or in a subshell, a schema_version that echoes 6108 and returns, or a check
+    whose || fail is made || echo, each passed them and ended the test STARTED with
+    status 0. The script is not one of land-via-mr.py's GATE_FILES, and this file is: a
+    change to the script fails this check until START_TEST_SHA256 changes with it here,
+    so that the landing that changes what the start test does takes a gates review."""
+    digest = hashlib.sha256(script.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    if digest == START_TEST_SHA256:
+        return []
+    return ["%s is not the script build/check-release-chain.py holds (its SHA-256 is %s, START_TEST_SHA256 %s): a change "
+            "to what the start test runs takes a change to START_TEST_SHA256 with it, in a gate file, so that a gates "
+            "review reads it" % (FILES["image-start"].replace(os.sep, "/"), digest, START_TEST_SHA256)]
+
+
 def start_database_variable_problems(image_jobs, ci_texts=None):
     """Each start job's variables - its own, over container-image-start's where it
     extends that job, as GitLab merges a job's - give PostgreSQL's service, MariaDB's and
@@ -5643,8 +5667,9 @@ def start_test_call_problems(script):
         nothing after it), eval, source and ., alias, unalias, unset, enable, shopt,
         hash, builtin, command other than command -v, any trap but "trap cleanup EXIT",
         and an exit with anything but a status of 1 to 99 (but for the help branch of
-        the one argument loop and the last line of cleanup, exit "$code"); and no PATH
-        set;
+        the one argument loop and the last line of cleanup, exit "$code"); and PATH
+        named nowhere but where it is read ($PATH, ${PATH...}), so that neither
+        PATH= nor printf -v PATH, read PATH or the like sets it;
       - the functions START_TEST_FUNCTIONS, each defined once and no other; ask_image's
         body without a return and ending in schema="$version"; fail's and unasked's
         without a return and ending in exit 1; cleanup's taking code=$? first, writing
@@ -5655,7 +5680,8 @@ def start_test_call_problems(script):
     A call commented out, put behind true ||, inside a function nothing calls, or after
     a command that ends the script with status 0 would leave the start jobs passing
     without asking that image. The script is read as it is written; a form these rules
-    do not name (a command built at run time, for one) is for the review of the change."""
+    do not name (a command built at run time, for one) is for the review of the change,
+    which start_test_digest_problems makes a gates review."""
     problems = []
     name = FILES["image-start"].replace(os.sep, "/")
     lines = script.replace("\r\n", "\n").split("\n")
@@ -5708,9 +5734,9 @@ def start_test_call_problems(script):
                     continue
                 problems.append("%s line %d, before the images are asked, %s: %s" % (name, number, why, text))
                 break
-        if re.search(r"(?:^|[^A-Za-z0-9_])PATH\+?=", scan):
-            problems.append("%s line %d sets PATH before the images are asked, which can make a command another "
-                            "program: %s" % (name, number, text))
+        if re.search(r"(?<![$\w{])PATH\b", scan):
+            problems.append("%s line %d sets PATH before the images are asked, or names it other than to read it "
+                            "($PATH), which can make a command another program: %s" % (name, number, text))
         if not code:
             continue
         if code.endswith("{"):
@@ -5902,6 +5928,7 @@ def image_start_database_problems(texts, image_jobs):
                                                      FILES["image"].replace(os.sep, "/"): texts["image"]})
     problems += start_database_variable_problems(image_jobs, every_ci)
     problems += start_job_line_problems(image_jobs)
+    problems += start_test_digest_problems(texts["image-start"])
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
                                   ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
@@ -7581,8 +7608,25 @@ def self_test(chain, feed):
              [(trap, trap + "set -- -h\nwhile [ \"$#\" -gt 0 ]; do\n  case \"$1\" in\n"
                             "    -h|--help) sed -n '5,71p' \"$0\"; exit 0 ;;\n  esac\ndone\n")],
              "leaves the script, perhaps with status 0: -h|--help)"),
-            ("PATH given other programs", [(trap, trap + 'PATH="/tmp/stubs:$PATH"\n')], "sets PATH before the images are asked")):
+            ("PATH given other programs", [(trap, trap + 'PATH="/tmp/stubs:$PATH"\n')], "sets PATH before the images are asked"),
+            ("PATH given other programs by printf -v", [(trap, trap + "printf -v PATH '%s' \"/tmp/stubs:$PATH\"\n")],
+             "sets PATH before the images are asked"),
+            ("PATH given other programs by read", [(trap, trap + 'read -r PATH <<< "/tmp/stubs:$PATH"\n')],
+             "sets PATH before the images are asked")):
         broken_start_test(what, edits, needle)
+    # What the asks run, which the rules above do not read: held by the script's digest.
+    first_local = '  local database="$1" host="$2" smtp_port="$3" rest_port="$4" container="${5:-}"\n'
+    ask_end = '  echo "hm_dbversion in $database: $version"\n  schema="$version"\n'
+    not_held = "is not the script build/check-release-chain.py holds"
+    for what, edits in (
+            ("ask_image's body behind if false", [(first_local, first_local + "  if false; then\n"),
+                                                  (ask_end, ask_end.replace("  schema=", "  fi\n  version=6108\n  schema="))]),
+            ("ask_image's body in a subshell", [(first_local, "  (\n" + first_local),
+                                                (ask_end, ask_end.replace("  schema=", "  )\n  version=6108\n  schema="))]),
+            ("schema_version answering 6108 unasked", [("\nschema_version() {\n", "\nschema_version() {\n  echo 6108\n  return 0\n")]),
+            ("no STARTTLS let pass", [('    || fail "port 25 of the image beside $database offers no STARTTLS',
+                                       '    || echo "port 25 of the image beside $database offers no STARTTLS')])):
+        broken_start_test(what, edits, not_held)
     broken("the arm64 start beside MariaDB as the host's platform", "image",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n",
