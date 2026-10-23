@@ -377,8 +377,8 @@ Windows. Pressing `chocolatey-release` starts both.
   fix the moderator asked for. It passed Chocolatey's automated validation at 01:39
   UTC; its automated verification failed at 01:44 UTC because the verifier's download
   of it from Chocolatey's own feed timed out (a gateway timeout, not a fault in the
-  package), and its page again shows "Waiting for Maintainer to take corrective
-  action". The feed still lists it as `Submitted`, not approved (read at 02:29 UTC
+  package), and its page again showed "Waiting for Maintainer to take corrective
+  action". The feed still listed it as `Submitted`, not approved (read at 02:29 UTC
   that day).
 - **Sent a third time on 23 October 2026, with the credit.** `chocolatey-publish` (job
   17399248551, in `master`'s pipeline 2978723670) sent 6.3.7 again at 00:59 UTC on 23
