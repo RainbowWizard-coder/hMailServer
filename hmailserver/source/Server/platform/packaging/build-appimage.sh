@@ -355,9 +355,11 @@ esac
 # is a template and never read in place.
 install -m 0644 "${HERE}/hMailServer.ini" "${APPDIR}/usr/share/hmailserver/hMailServer.ini.default"
 
-# There is no Linux icon in this repository - the only icon is a Windows .ico for
-# the Control Panel - so one is drawn here rather than a placeholder being
-# committed. Replace it when the project has artwork.
+# The fork's icon is hmailserver.png beside this script, the 256 by 256 frame of
+# the Control Panel's app.ico, byte for byte, which the snap carries and the Helm
+# chart, the container image and the Chocolatey package name by its address on
+# master. The AppImage does not use it: this draws the AppImage's own icon, an
+# envelope, which its AppDir, its desktop file and .DirIcon name.
 cat > "${BUILD_DIR}/hmailserver.svg" <<'ICON'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <rect width="128" height="128" rx="16" fill="#1f4e79"/>

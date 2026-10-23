@@ -469,7 +469,9 @@ with `--check`).
   the label, and `build/ci/snap-build.sh` a snap without `meta/gui/icon.png`. The chart lints and renders as before,
   without `helm lint`'s "icon is recommended"; the Dockerfile, built from 6.3.7's published amd64 `.deb`, gives the
   image the label, which `linux-image.sh`'s check finds and refuses once it is taken out; and snapcraft 9.1.3, the
-  pinned revision, packs the snap with the icon unchanged as `meta/gui/icon.png`. `PackageManagers.md`, `Snap.md`,
+  pinned revision, packs the snap with the icon unchanged as `meta/gui/icon.png`. The AppImage keeps the icon its build
+  draws, an envelope, and the comment in `build-appimage.sh` that called the Control Panel's `.ico` the only icon in
+  the repository says that the fork's icon is this PNG. `PackageManagers.md`, `Snap.md`,
   `ContainerImage.md` and the packaging README say so. The address answers once this is on `master`; the next
   release's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
 - **The Chocolatey package's `projectSourceUrl` is the tree of the version's tag.** It was
