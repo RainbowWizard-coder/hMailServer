@@ -5511,26 +5511,79 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
 
 
 # build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
-# its line ends LF (start_test_digest_problems).
-START_TEST_SHA256 = "07f594fa280fa8c31d0328c549bfaee35357d6e2b6d8601daade73ce1febb590"
+# its line ends LF, with the two image pins of START_TEST_PINS each made
+# START_TEST_PIN_TAKEN_OUT (start_test_digest_problems).
+START_TEST_SHA256 = "1df6142f52ebdbb271c8a47673dace1be0f16d222a4afca30a3da1d29a6476e9"
+# The images the test starts by hand (--docker), each the default of a variable on a line
+# of its own: the variable, the one that overrides it, the image's name and the alias of
+# the start jobs' service it is. Renovate's regex manager for HM_*_IMAGE moves them, with
+# the services' pins, in the weekly merge request of container images; the digest is
+# taken with each pin, its <tag>@sha256:<digest>, taken out, and each pin is held to its
+# service's in both start jobs instead, so that the move needs no change here.
+START_TEST_PINS = (("POSTGRES_IMAGE", "HM_START_POSTGRES_IMAGE", "postgres", "db"),
+                   ("MARIADB_IMAGE", "HM_START_MARIADB_IMAGE", "mariadb", "mariadb"))
+START_TEST_PIN_TAKEN_OUT = "<the start jobs' pin>"
 
 
-def start_test_digest_problems(script):
+def _start_test_pin(variable, override, image):
+    """The line of the test that names a START_TEST_PINS image, as it must be written:
+    (the line before the pin, the pin, the line after it)."""
+    return re.compile(r'^(%s="\$\{%s:-)(%s:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64})(\}")$'
+                      % (re.escape(variable), re.escape(override), re.escape(image)), re.MULTILINE)
+
+
+def start_test_held_text(script):
+    """The text START_TEST_SHA256 is the digest of: the script's, its line ends LF, with
+    each pin of START_TEST_PINS, on its line as _start_test_pin writes it, made
+    START_TEST_PIN_TAKEN_OUT. A line written otherwise keeps its text, which changes the
+    digest."""
+    text = script.replace("\r\n", "\n")
+    for variable, override, image, _ in START_TEST_PINS:
+        text = _start_test_pin(variable, override, image).sub(
+            lambda found: found.group(1) + START_TEST_PIN_TAKEN_OUT + found.group(3), text)
+    return text
+
+
+def start_test_digest_problems(script, image_jobs=None):
     """build/ci/container-image-start-test.sh is the script this file holds, by the
-    SHA-256 of its text with its line ends LF (START_TEST_SHA256). The rules of
-    start_test_call_problems read its lines, not bash, and hold where the asks are and
-    what may come before them, not what the asks run: an ask_image body put behind if
-    false or in a subshell, a schema_version that echoes 6108 and returns, or a check
-    whose || fail is made || echo, each passed them and ended the test STARTED with
-    status 0. The script is not one of land-via-mr.py's GATE_FILES, and this file is: a
-    change to the script fails this check until START_TEST_SHA256 changes with it here,
-    so that the landing that changes what the start test does takes a gates review."""
-    digest = hashlib.sha256(script.replace("\r\n", "\n").encode("utf-8")).hexdigest()
-    if digest == START_TEST_SHA256:
-        return []
-    return ["%s is not the script build/check-release-chain.py holds (its SHA-256 is %s, START_TEST_SHA256 %s): a change "
-            "to what the start test runs takes a change to START_TEST_SHA256 with it, in a gate file, so that a gates "
-            "review reads it" % (FILES["image-start"].replace(os.sep, "/"), digest, START_TEST_SHA256)]
+    SHA-256 of its text with its line ends LF and its two image pins taken out
+    (START_TEST_SHA256, start_test_held_text). The rules of start_test_call_problems read
+    its lines, not bash, and hold where the asks are and what may come before them, not
+    what the asks run: an ask_image body put behind if false or in a subshell, a
+    schema_version that echoes 6108 and returns, or a check whose || fail is made
+    || echo, each passed them and ended the test STARTED with status 0. The script is not
+    one of land-via-mr.py's GATE_FILES, and this file is: a change to the script fails
+    this check until START_TEST_SHA256 changes with it here, so that the landing that
+    changes what the start test does takes a gates review. The pins, which Renovate
+    moves, are held instead each once on its line, as _start_test_pin writes it, and the
+    same as the pin of its service (START_TEST_PINS' alias) in each start job of
+    image_jobs, so that the test run by hand starts the databases the jobs do."""
+    problems = []
+    name = FILES["image-start"].replace(os.sep, "/")
+    text = script.replace("\r\n", "\n")
+    for variable, override, image, alias in START_TEST_PINS:
+        pins = _start_test_pin(variable, override, image).findall(text)
+        if len(pins) != 1:
+            problems.append("%s does not name the image it starts beside the image by hand once, on a line of its own, as "
+                            "%s=\"${%s:-%s:<tag>@sha256:<digest>}\" (it does so %d times): the digest this file holds it by "
+                            "takes that pin out, and holds it to the start jobs' %s service" % (
+                                name, variable, override, image, len(pins), alias))
+            continue
+        for job in ("container-image-start", "container-image-start-arm64"):
+            served = [service for service, entry in service_entries((image_jobs or {}).get(job, ""))
+                      if re.search(r"^      alias: %s\s*$" % re.escape(alias), entry, re.MULTILINE)]
+            if image_jobs is not None and served != [pins[0][1]]:
+                problems.append("%s's %s default, %s, is not %s's %s service (%s): the test run by hand starts the database "
+                                "the jobs start, and Renovate moves both in one merge request" % (
+                                    name, variable, pins[0][1], job, alias, ", ".join(served) or "none"))
+    digest = hashlib.sha256(start_test_held_text(script).encode("utf-8")).hexdigest()
+    if digest != START_TEST_SHA256:
+        problems.append("%s is not the script build/check-release-chain.py holds (the SHA-256 of its text with its two image "
+                        "pins taken out, start_test_held_text, is %s; START_TEST_SHA256 %s): a change to what the start "
+                        "test runs takes a change to START_TEST_SHA256 with it, in a gate file, so that a gates review "
+                        "reads it; a move of the pins alone, with the start jobs' services, does not"
+                        % (name, digest, START_TEST_SHA256))
+    return problems
 
 
 def start_database_variable_problems(image_jobs, ci_texts=None):
@@ -6188,7 +6241,7 @@ def image_start_database_problems(texts, image_jobs):
     problems += start_job_line_problems(image_jobs, ci_files(texts))
     problems += start_dotenv_problems(texts, image_jobs)
     problems += start_service_problems(image_jobs)
-    problems += start_test_digest_problems(texts["image-start"])
+    problems += start_test_digest_problems(texts["image-start"], image_jobs)
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
                                   ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
@@ -8000,6 +8053,33 @@ def self_test(chain, feed):
             ("no STARTTLS let pass", [('    || fail "port 25 of the image beside $database offers no STARTTLS',
                                        '    || echo "port 25 of the image beside $database offers no STARTTLS')])):
         broken_start_test(what, edits, not_held)
+    # The test's two image pins, which Renovate moves with the start jobs' services: a
+    # move of both is not caught, and a pin moved alone, written by its tag alone or given
+    # a command after it is. The pins are read from the tree, as Renovate leaves them.
+    pinned = _start_test_pin("POSTGRES_IMAGE", "HM_START_POSTGRES_IMAGE", "postgres").search(texts["image-start"])
+    if not pinned:
+        failures.append("the start test's PostgreSQL pin is not in it as _start_test_pin writes it")
+    else:
+        old_pin = pinned.group(2)
+        new_pin = old_pin.split("@sha256:")[0] + "@sha256:" + ("2" if old_pin.endswith("1") else "1") * 64
+        moved = dict(texts, **{"image-start": texts["image-start"].replace(old_pin, new_pin),
+                               "image": texts["image"].replace(old_pin, new_pin)})
+        found, _ = check(moved, chain, feed)
+        if found or texts["image"].count(old_pin) < 2:
+            failures.append("the start test's PostgreSQL pin moved with the start jobs' services is not caught: %s" % found)
+        default = "POSTGRES_IMAGE default, %s, is not container-image-start's db service" % new_pin
+        for what, key, new, needle in (
+                ("the start test's PostgreSQL pin moved alone", "image-start", new_pin, default),
+                ("the start jobs' PostgreSQL pin moved alone", "image", new_pin,
+                 "POSTGRES_IMAGE default, %s, is not container-image-start's db service (%s)" % (old_pin, new_pin)),
+                ("the start test's PostgreSQL by its tag alone", "image-start", old_pin.split("@")[0],
+                 "does not name the image it starts beside the image by hand once"),
+                ("the start test's PostgreSQL pin line given a command", "image-start", old_pin + '}"; exit 0 #',
+                 "does not name the image it starts beside the image by hand once")):
+            copy = dict(texts, **{key: texts[key].replace(old_pin, new)})
+            found, _ = check(copy, chain, feed)
+            if not any(needle in p for p in found):
+                failures.append("%s is caught: %s" % (what, found))
     broken("the arm64 start beside MariaDB as the host's platform", "image",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n",

@@ -71,9 +71,10 @@
 # a command line.
 set -uo pipefail
 
-# build/check-release-chain.py holds this file whole, by its SHA-256 (START_TEST_SHA256):
-# a change here fails that check until the digest there changes with it, so that a gates
-# review reads what the start jobs run.
+# build/check-release-chain.py holds this file whole, by its SHA-256 (START_TEST_SHA256)
+# with the two image pins below taken out, which it holds to the pins of the start jobs'
+# services instead: a change here fails that check until the digest there changes with
+# it, so that a gates review reads what the start jobs run.
 
 # The command the image runs, here and in the job's service definitions
 # (.gitlab/ci/container-image.yml, container-image-start, services: command);
