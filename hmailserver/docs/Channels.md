@@ -14,13 +14,18 @@ merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.
 
 **Where each channel stands, read on 21 October 2026, Chocolatey's on 23 October.** Three build services carry
 6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
-OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0 (x86_64
-and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
-`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on x86_64
-and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver` publishes it for
-Ubuntu 24.04 and 26.04, amd64 and arm64. Docker Hub's `progressiverobot/hmailserver` has
-it too, copied by hand that day after `registry-mirror`, written for an image of one
-platform, refused the release's image index; the job now verifies and copies an index
+OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0
+(x86_64 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
+`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on
+x86_64 and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver`
+publishes it for Ubuntu 24.04 and 26.04, amd64 and arm64. On 23 October 2026 6.3.7
+was installed from each of the three as a user installs it - on Ubuntu 24.04 and
+26.04, Fedora 44 and AlmaLinux 10, amd64 and arm64 each, and on Leap 16.0, both,
+and Tumbleweed, x86_64 - and the server it installed started and answered SMTP and
+the REST API over TLS ([What was tried](#what-was-tried)). Docker Hub's
+`progressiverobot/hmailserver` has it too, copied by hand that day after
+`registry-mirror`, written for an image of one platform, refused the release's image
+index; the job now verifies and copies an index
 ([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
 Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which
 then waited for Chocolatey's moderation; a moderator approved it on 23 October 2026
@@ -721,6 +726,66 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   errors and a badness of 0, the warnings as before (82 on Leap, 87 on Tumbleweed).
   OBS's public API gave the package's `_service` as `master`'s before the change.
   Nothing was sent to OBS.
+- **On 23 October 2026, an installation from each of the three, as a user installs
+  from it.** Eleven clean containers, each beside one PostgreSQL 18.6 container
+  (`postgres:18`, `sha256:74935e72...4336`) with a database of its own, the arm64
+  ones under qemu-user, all started at 03:46 UTC and done by 03:52. Each took the
+  channel's own command, then held what it installed to the release:
+  `hmailserver --version` said `hMailServer 6.3.7 build 46`; the packaged
+  configuration was pointed at the database, `--check-config` and
+  `--create-database` ran as `hmailserver` (schema 6108), and `--set-setting` stored
+  the REST listener's port and a certificate made for 127.0.0.1; the server was
+  started as its unit starts it, with no systemd in the container - its
+  `ExecStartPre`, `--apply-new-install-defaults --if-marked`, as `hmailserver`
+  (exit 0: the self-signed certificate made, STARTTLS offered), then
+  `hmailserver --foreground` as `hmailserver` in `/var/lib/hmailserver` with
+  `CAP_NET_BIND_SERVICE` alone and no new privileges; port 25 greeted `220 <host>
+  ESMTP` and listed `250-STARTTLS` after `EHLO`, and `GET /api/v1/status` over TLS
+  1.3, the certificate verified, answered `{"version":"6.3.7-B46","state":3,...}`
+  within one to four seconds of the start, and 401 to a wrong password; then the
+  package was removed and `/usr/bin/hmailserver` was gone. Every run passed.
+  - **The PPA**, in `ubuntu:24.04` (`sha256:68ee2200...33ac`) and `ubuntu:26.04`
+    (`sha256:c098726d...b944`), amd64 and arm64: `apt-get install
+    software-properties-common`, `add-apt-repository -y ppa:hmailserver/hmailserver`,
+    `apt-get install -y hmailserver`, `apt-get remove -y hmailserver`. The key
+    `add-apt-repository` wrote into the `.sources` file's `Signed-By` was
+    `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C`, the PPA's `signing_key_fingerprint`
+    in Launchpad's API and the key above, and with it `gpgv` said "Good signature
+    from "Launchpad PPA for hMailServer (Progressive Robot's fork)"" of the
+    `InRelease` of `noble` (signed 21 October 2026 03:18:38 UTC) and `resolute`
+    (03:17:58). apt took `6.3.7+ds-1~noble1` and `6.3.7+ds-1~resolute1` from
+    `https://ppa.launchpadcontent.net/hmailserver/hmailserver/ubuntu`, with
+    `hmailserver-cli` and five other packages, in 6 to 16 seconds; each run took
+    46 to 259 seconds. On 24.04 the status says `"argon2id":false` and TLS took
+    X25519, its OpenSSL 3.0 having neither Argon2 nor ML-KEM; 26.04's took
+    X25519MLKEM768. Launchpad's API lists both versions published for amd64 and
+    arm64, built by Launchpad.
+  - **Copr**, in `registry.fedoraproject.org/fedora:44` (`sha256:b96f024c...3454`)
+    and `almalinux:10` (`sha256:838c2faf...1f1b`, AlmaLinux 10.2), x86_64 and
+    aarch64: `dnf install 'dnf-command(copr)'` (`dnf-plugins-core` 4.10.1 and
+    4.7.0), `dnf copr enable -y progressiverobot/hmailserver`, which chose
+    `fedora-$releasever-$basearch` and `epel-10-$basearch`, `dnf install -y
+    hmailserver`, `dnf remove -y hmailserver`. The repository's `gpgkey`, read
+    before it was trusted, is Copr's key for the project,
+    `A43209E902FC9666B7DC7C7007AD13D308C7F2E7` ("progressiverobot_hmailserver
+    (None) <progressiverobot#hmailserver@copr.fedorahosted.org>"), and `rpm -Kv`
+    of each package said its V4 RSA/SHA256 signature by that key is OK. dnf took
+    `6.3.7-1.fc44` and `6.3.7-1.el10`, from build 11180395, with `hmailserver-cli`;
+    EL 10 needed nothing from EPEL. Each run took 37 to 127 seconds.
+  - **OBS**, in `registry.opensuse.org/opensuse/leap:16.0` (`sha256:29589221...166a`),
+    x86_64 and aarch64, and `registry.opensuse.org/opensuse/tumbleweed`
+    (`sha256:b580f1b8...4603`), x86_64, the only architecture its repository has:
+    `zypper addrepo` of the `.repo` above; the repository's `repodata/repomd.xml.key`
+    was read with `gpg --show-keys`, and imported with `rpm --import` only once its
+    fingerprint was `BA0868309CFBD36498CE41D22F0B9419E67EE770` (`gpg-pubkey-e67ee770`,
+    "home:progressiverobot OBS Project"), with no `--gpg-auto-import-keys`; then
+    `zypper refresh` asked nothing, `zypper install hmailserver` took
+    `6.3.7-lp160.2.1` and `6.3.7-2.1` (40 and 35 new packages, in 6 to 23
+    seconds), each signed "RSA/SHA256, Key ID 2f0b9419e67ee770", which `rpm -Kv`
+    said is OK, and `zypper remove hmailserver` took it off. The images set
+    `solver.onlyRequires`, so `hmailserver-cli`, which the package recommends, was
+    not installed. Each run took 182 to 260 seconds, three minutes of it the
+    first refresh of the distribution's own repositories.
 
 Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist;
 and `registry-mirror`'s own copy of a release to Docker Hub (6.3.7 there was copied

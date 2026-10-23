@@ -412,10 +412,26 @@ dnf repository exists once a stable release carries the per-distribution
 `el10` and `el9` for x86_64 and aarch64. A release that carries the generic `.rpm`
 alone, as 6.3.4 does today (the README's download line), adds nothing to them.
 openSUSE's packages (`.suse.lp160`, `.suse.tw`) are not served either: zypper
-is not dnf, and nothing here has been tried with it. zypper takes the release
-through the openSUSE Build Service instead, which builds it from the source
-tarball and signs its own repository ([Channels.md](Channels.md), "openSUSE Build
-Service").
+is not dnf. zypper takes the release through the openSUSE Build Service instead,
+which builds it from the source tarball and signs its own repository with a key of
+its own ([Channels.md](Channels.md), "openSUSE Build Service"):
+
+```sh
+sudo zypper addrepo https://download.opensuse.org/repositories/home:/progressiverobot/16.0/home:progressiverobot.repo
+curl -fsSLO https://download.opensuse.org/repositories/home:/progressiverobot/16.0/repodata/repomd.xml.key
+gpg --show-keys repomd.xml.key
+sudo rpm --import repomd.xml.key
+sudo zypper install hmailserver
+```
+
+`openSUSE_Tumbleweed` in place of `16.0` for Tumbleweed. Import the key only if
+`gpg` shows the fingerprint `BA0868309CFBD36498CE41D22F0B9419E67EE770`, OBS's key
+for the project; zypper then trusts the repository without asking. On 23 October
+2026 this installed 6.3.7 on clean Leap 16.0, x86_64 and aarch64, and Tumbleweed,
+x86_64, and the server started; so did Ubuntu's PPA on 24.04 and 26.04 and
+Fedora's Copr on Fedora 44 and AlmaLinux 10, amd64 and arm64 each, which serve the
+release signed with keys of their own while the repositories here wait on the
+owner's ([Channels.md](Channels.md), "What was tried").
 
 The `.repo` file:
 
