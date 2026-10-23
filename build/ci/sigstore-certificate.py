@@ -32,6 +32,13 @@ the extension through OpenSSL (SigstoreVerifier.cpp) and never searched.
                    (0x21 to 0x7E), which no provider's id is.
   uris             the URIs of the SubjectAltName extension (2.5.29.17), the identity
                    Fulcio names a certificate after; refused as above.
+  source           Fulcio's source repository digest and ref, 1.3.6.1.4.1.57264.1.13 and
+                   .14 (for GitLab the commit's SHA and refs/tags/<tag> or
+                   refs/heads/<branch>), each one DER UTF8String as the id is and refused
+                   as it is; None for one no extension carries. Fulcio writes them from
+                   the CI provider's identity token, not from anything the job says, so
+                   the release's provenance is held to them (build/ci/release-chain.py,
+                   provenance_problems).
   bundle_certificate   the signing certificate of a Sigstore bundle: v0.3's certificate,
                    or the first of a v0.1 or v0.2 chain - the one cosign verifies, which
                    never looks at the rest of a chain - in strict base64. A bundle
@@ -85,6 +92,10 @@ SHELL_READER = os.path.join(HERE, "sigstore-certificate.sh")
 # 1.3.6.1.4.1.57264.1.15 and 2.5.29.17, each as its DER OID element.
 REPOSITORY_ID_OID = bytes.fromhex("060a2b0601040183bf30010f")
 SUBJECT_ALT_NAME_OID = bytes.fromhex("0603551d11")
+# Fulcio's Source Repository Digest and Source Repository Ref, 1.3.6.1.4.1.57264.1.13
+# and .14 (Fulcio's docs/oid-info.md), each as its DER OID element.
+SOURCE_DIGEST_OID = bytes.fromhex("060a2b0601040183bf30010d")
+SOURCE_REF_OID = bytes.fromhex("060a2b0601040183bf30010e")
 PROJECT_ID = "86730559"
 
 
@@ -204,6 +215,31 @@ def uris(certificate):
     return found
 
 
+def utf8_extension(certificate, oid, what):
+    """The text of the extension `oid` when its OCTET STRING holds one DER UTF8String
+    of visible ASCII, or None when no extension is that one; refused (ValueError) as
+    repository_id refuses."""
+    value = extension_value(certificate, oid, what)
+    if value is None:
+        return None
+    inner = list(der_children(value, 0, len(value)))
+    if len(inner) != 1 or inner[0][0] != 0x0C:
+        raise ValueError("the %s is not a UTF8String" % what)
+    text = value[inner[0][2]:inner[0][3]]
+    if not text or any(byte < 0x21 or byte > 0x7E for byte in text):
+        raise ValueError("the %s is empty or not visible ASCII" % what)
+    return text.decode("ascii")
+
+
+def source(certificate):
+    """(digest, ref): the source repository digest and ref Fulcio wrote into a DER
+    certificate (1.3.6.1.4.1.57264.1.13 and .14) from the CI provider's identity token
+    - for GitLab the commit's SHA and refs/tags/<tag> - each None when no extension
+    carries it. Read from the extensions alone, as repository_id is."""
+    return (utf8_extension(certificate, SOURCE_DIGEST_OID, "source repository digest"),
+            utf8_extension(certificate, SOURCE_REF_OID, "source repository ref"))
+
+
 def bundle_certificate(bundle):
     """The signing certificate, DER, of a Sigstore bundle (v0.3's certificate, or the
     first of v0.1 and v0.2's chain), its base64 read strictly. The chain only where
@@ -269,16 +305,19 @@ def answer(path):
 # ---------------------------------------------------------------- certificates for the self-tests
 
 def test_certificate(repository_id=None, key=b"", critical=False, twice=False, uris=(), value=None, bare=False,
-                     tail=b""):
+                     tail=b"", texts=()):
     """A certificate's shape: a tbsCertificate whose public key's bytes are `key`, and
     whose extensions carry the subject alternative names `uris` when there are any,
     and the repository id when one is given - a UTF8String, or `value`, the OCTET
     STRING's content as it is; with `bare` the extension holds its OID alone, and
-    `tail` follows its OCTET STRING."""
+    `tail` follows its OCTET STRING. `texts`, (OID element, text) pairs, are more
+    extensions of one UTF8String each, as Fulcio writes the source digest and ref."""
     extensions = b""
     if uris:
         names = der(0x30, b"".join(der(0x86, u.encode("ascii")) for u in uris))
         extensions += der(0x30, SUBJECT_ALT_NAME_OID + b"\x01\x01\xff" + der(0x04, names))
+    for oid, text in texts:
+        extensions += der(0x30, oid + der(0x04, der(0x0C, text.encode("utf-8"))))
     if repository_id is not None or value is not None:
         if value is None:
             value = der(0x0C, repository_id if isinstance(repository_id, bytes) else repository_id.encode("utf-8"))
@@ -451,13 +490,16 @@ def shell_command(shell=None, environ=None):
     return [found] if found else None
 
 
-def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=None):
+def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=None, source_of=None):
     """(problems, notes): each case read by this reader (answer_of, repository_id's
     answer by default) and by the shell reader at `script` under `shell` (sh on the
     PATH when None; not at all when False), each held to what the case expects. Also
-    bundles only this reader reads (a v0.1 chain) or only the shell reader refuses."""
+    bundles only this reader reads (a v0.1 chain) or only the shell reader refuses;
+    and the source digest and ref, which this reader alone reads (source_of, source's
+    answer by default), held to source_cases."""
     environ = os.environ if environ is None else environ
     answer_of = answer_of or python_answer
+    source_of = source_of or source_answer
     problems, notes = [], []
     listed = cases()
     for what, certificate, expected in listed:
@@ -471,6 +513,11 @@ def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=Non
     if uris(test_certificate(PROJECT_ID, key=identity.encode(), uris=["https://gitlab.com/someone/else"])) != [
             "https://gitlab.com/someone/else"]:
         problems.append("sigstore-certificate.py reads a SAN out of a key that holds the identity's bytes")
+    for what, certificate, expected in source_cases():
+        said = source_of(certificate)
+        if said != expected:
+            problems.append("sigstore-certificate.py reads the source digest and ref of %s as %s, not %s" % (
+                what.strip(" ."), shown(repr(said)), expected))
     if shell is False:
         notes.append("the shell reader was not asked for")
         return problems, notes
@@ -574,8 +621,38 @@ def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=Non
     return problems, notes
 
 
+def source_answer(certificate):
+    try:
+        return source(certificate)
+    except ValueError:
+        return "refused"
+
+
+def source_cases():
+    """(what, certificate, what source() answers): the source digest and ref."""
+    commit = "31d656c0ce85650202b2c0f70bdd1cffa7243e34"
+    both = ((SOURCE_DIGEST_OID, commit), (SOURCE_REF_OID, "refs/tags/v6.3.7"))
+    planted_ = SOURCE_DIGEST_OID + der(0x04, der(0x0C, commit.encode("ascii")))
+    return [
+        ("the source digest and ref in the extensions", test_certificate(PROJECT_ID, texts=both), (commit, "refs/tags/v6.3.7")),
+        ("neither extension", test_certificate(PROJECT_ID), (None, None)),
+        ("the ref alone", test_certificate(texts=both[1:]), (None, "refs/tags/v6.3.7")),
+        ("the digest planted in the key, another in the extensions",
+         test_certificate(key=b"\x00" * 7 + planted_, texts=((SOURCE_DIGEST_OID, "d" * 40),)), ("d" * 40, None)),
+        ("the digest twice", test_certificate(texts=both[:1] * 2), "refused"),
+        ("an empty ref", test_certificate(texts=((SOURCE_REF_OID, ""),)), "refused"),
+        ("a ref with a space", test_certificate(texts=((SOURCE_REF_OID, "refs/tags/v6.3.7 x"),)), "refused"),
+        ("a certificate Fulcio issued (6.3.3's installer's)", REAL_CERTIFICATE,
+         ("ee5995f361a24ef0e67adf4f0cdc1929ceab140e", "refs/heads/master")),
+        ("  ... its digest's extension left out", rebuilt(REAL_CERTIFICATE, drop=SOURCE_DIGEST_OID), (None, "refs/heads/master")),
+    ]
+
+
 def self_test(shell=None):
     problems, notes = reader_problems(shell)
+    for what, certificate, expected in source_cases():
+        found = source_answer(certificate)
+        print("%s  source, %s: %s" % ("FAIL" if found != expected else "ok  ", what, found))
     for what, certificate, expected in cases():
         print("%s  %s: %s" % ("FAIL" if python_answer(certificate) != expected else "ok  ", what, expected))
     for note in notes:

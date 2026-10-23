@@ -1726,16 +1726,22 @@ def write_statement(version, identity, files, env, out):
     return path
 
 
-def provenance_problems(assets, version, identity, commit):
+def provenance_problems(assets, version, identity, commit, pipeline):
     """The provenance in assets is a Sigstore bundle holding a DSSE envelope of an
     in-toto statement with the SLSA v1 predicate; the statement names every file of
     expected_assets in assets by its SHA-256, and nothing else; it names this
-    identity as the builder and this commit as the source; its certificate names the
-    identity, and carries this project's repository id - or, at the path the project
-    began at, none - as a server holds the release's files to it; and its log entry is
-    a dsse entry of the public log. cosign verified the signature in release-sign.sh,
-    and held its certificate to the identity; this holds what was signed to the
-    release, and the certificate to the project."""
+    identity as the builder, this commit as the source, the identity's repository and
+    ref and .gitlab-ci.yml as its external parameters, and this pipeline (its URL,
+    CI_PIPELINE_URL) as its invocation; its certificate names the identity, carries
+    this project's repository id - or, at the path the project began at, none - as a
+    server holds the release's files to it, and records this commit and the identity's
+    ref as the source GitLab's identity token named (Fulcio's source repository digest
+    and ref, which the job does not write); and its log entry is a dsse entry of the
+    public log. cosign verified the signature in release-sign.sh, and held its
+    certificate to the identity; this holds what was signed to the release, the
+    pipeline and what GitLab certified, and the certificate to the project. The
+    statement is written by the pipeline's own job (release-sbom), so these are what
+    keep its commit, its tag and its pipeline from saying other than the run did."""
     path = os.path.join(assets, provenance_name(version))
     try:
         with open(path, encoding="utf-8") as f:
@@ -1767,6 +1773,31 @@ def provenance_problems(assets, version, identity, commit):
     sources = (predicate.get("buildDefinition") or {}).get("resolvedDependencies") or []
     if not any((d.get("digest") or {}).get("gitCommit") == commit for d in sources):
         problems.append("the provenance does not name %s as the source it was built from" % commit)
+    # The tag (or a rehearsal's branch) and the pipeline: the external parameters are
+    # the identity's repository and ref and the file that defined the run, and the
+    # invocation is this pipeline, which release-verify and release-publish run in.
+    repository, _, ref = identity.partition("//.gitlab-ci.yml@")
+    parameters = (predicate.get("buildDefinition") or {}).get("externalParameters")
+    wanted_parameters = {"repository": repository, "ref": ref, "config": ".gitlab-ci.yml"}
+    if parameters != wanted_parameters:
+        problems.append("the provenance's external parameters are %s, not %s" % (
+            json.dumps(parameters, sort_keys=True), json.dumps(wanted_parameters, sort_keys=True)))
+    invocation = ((predicate.get("runDetails") or {}).get("metadata") or {}).get("invocationId")
+    if not pipeline:
+        problems.append("there is no pipeline to hold the provenance's invocation to: CI_PIPELINE_URL is not set")
+    elif invocation != pipeline:
+        problems.append("the provenance names the invocation %s, not this pipeline, %s" % (invocation, pipeline))
+    # What GitLab itself said of the run, from the certificate's extensions: Fulcio
+    # writes the source repository digest and ref from the job's identity token, so a
+    # statement whose commit or tag the job got wrong does not match them.
+    try:
+        certified = sigstore_certificate.source(sigstore_certificate.bundle_certificate(bundle))
+    except ValueError as error:
+        problems.append("the provenance's certificate could not be read for the source GitLab certified: %s" % error)
+    else:
+        if certified != (commit, ref):
+            problems.append("the provenance's certificate records the source %s at %s, not %s at %s" % (
+                certified[0], certified[1], commit, ref))
     # The identity is the certificate's subject alternative name, read from its
     # extensions: a search of its bytes would find it in a public key that holds it.
     try:
@@ -1878,7 +1909,8 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
                                provenance_line_name(version)))
 
     unfit = sbom_problems(assets, version) + copy_problems(assets, version) + provenance_problems(
-        assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "") + \
+        assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "",
+        env.get("CI_PIPELINE_URL") or "") + \
         provenance_line_problems(assets, version)
     if unfit:
         raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
@@ -2905,18 +2937,25 @@ def self_test():
         tag_identity = SIGNER_IDENTITY_PREFIX + tag
 
         def fake_provenance(directory, identity=tag_identity, commit=built, statement_changes=None, bundle_changes=None,
-                            certificate_identity=None, key=b"", repository_id=PROJECT_ID, text_changes=None):
+                            certificate_identity=None, key=b"", repository_id=PROJECT_ID, text_changes=None,
+                            certified=None):
             """A bundle as cosign attest-blob --statement writes it: a DSSE envelope of the
-            statement, a certificate naming the identity and carrying repository_id, and
+            statement, a certificate naming the identity and carrying repository_id and
+            the source Fulcio records (certified, (digest, ref) - the commit and the
+            identity's ref unless given; None for either leaves its extension out), and
             a dsse log entry."""
             digests = dict((n, sha256_of(os.path.join(directory, n))) for n in expected_assets(version)
                            if os.path.isfile(os.path.join(directory, n)))
             statement = provenance_statement(version, identity, digests, dict(publish_env, CI_COMMIT_SHA=commit))
             if statement_changes:
                 statement_changes(statement)
+            digest_, ref_ = certified or (commit, identity.partition("//.gitlab-ci.yml@")[2])
+            texts = tuple((oid, text) for oid, text in ((sigstore_certificate.SOURCE_DIGEST_OID, digest_),
+                                                        (sigstore_certificate.SOURCE_REF_OID, ref_)) if text is not None)
             bundle = {"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
                       "verificationMaterial": {"certificate": {"rawBytes": base64.b64encode(
-                          sigstore_certificate.test_certificate(repository_id, key=key, uris=[certificate_identity or identity])
+                          sigstore_certificate.test_certificate(repository_id, key=key, uris=[certificate_identity or identity],
+                                                                texts=texts)
                       ).decode("ascii")},
                           "tlogEntries": [{"kindVersion": {"kind": "dsse", "version": "0.0.1"}, "integratedTime": "1790000000"}]},
                       "dsseEnvelope": {"payloadType": IN_TOTO_PAYLOAD, "payload": base64.b64encode(json.dumps(statement).encode("utf-8")).decode("ascii"),
@@ -2928,6 +2967,7 @@ def self_test():
 
         publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/", "CI_PROJECT_PATH": "hmailserver/hmailserver",
                        "CI_COMMIT_SHA": built, "CI_PIPELINE_URL": "https://gitlab.com/hmailserver/hmailserver/-/pipelines/1"}
+        pipeline = publish_env["CI_PIPELINE_URL"]
         fake_provenance(signed)
         # And its envelope as one line, as release-verify makes it.
         write_provenance_line(signed, version)
@@ -3171,9 +3211,9 @@ def self_test():
             failures.append("a statement that leaves a file out is refused")
         except ReleaseError:
             pass
-        expect(provenance_problems(signed, version, tag_identity, built) == [] and copy_problems(signed, version) == [],
+        expect(provenance_problems(signed, version, tag_identity, built, pipeline) == [] and copy_problems(signed, version) == [],
                "the signed release's provenance names every file and its copies are its bundles: %s" % (
-                   provenance_problems(signed, version, tag_identity, built) + copy_problems(signed, version)))
+                   provenance_problems(signed, version, tag_identity, built, pipeline) + copy_problems(signed, version)))
 
         def left_out(statement_):
             statement_["subject"] = statement_["subject"][1:]
@@ -3190,21 +3230,50 @@ def self_test():
         def other_log(bundle_):
             bundle_["verificationMaterial"]["tlogEntries"][0]["kindVersion"]["kind"] = "hashedrekord"
 
+        def other_ref(statement_):
+            statement_["predicate"]["buildDefinition"]["externalParameters"]["ref"] = "refs/tags/v6.3.4"
+
+        def other_config(statement_):
+            statement_["predicate"]["buildDefinition"]["externalParameters"]["config"] = ".gitlab/ci/release-rehearsal.yml"
+
+        def other_pipeline(statement_):
+            statement_["predicate"]["runDetails"]["metadata"]["invocationId"] = "https://gitlab.com/hmailserver/hmailserver/-/pipelines/2"
+
+        tag_ref = "refs/tags/" + tag
         for what, kwargs, needle in (("a file left out", {"statement_changes": left_out}, "does not name every file"),
                                      ("a file that is not the release's", {"statement_changes": extra}, "notes.txt"),
                                      ("a file under another digest", {"statement_changes": other_digest}, "does not name every file"),
                                      ("another predicate", {"statement_changes": other_type}, "SLSA v1 predicate"),
                                      ("another builder", {"identity": SIGNER_IDENTITY_PREFIX + "v6.3.4"}, "names the builder"),
                                      ("another commit", {"commit": "d" * 40}, "as the source it was built from"),
-                                     ("a blob signature's log entry", {"bundle_changes": other_log}, "not a dsse entry")):
+                                     ("a blob signature's log entry", {"bundle_changes": other_log}, "not a dsse entry"),
+                                     ("another tag in its external parameters", {"statement_changes": other_ref}, "external parameters"),
+                                     ("another file as its configuration", {"statement_changes": other_config}, "external parameters"),
+                                     ("another pipeline as its invocation", {"statement_changes": other_pipeline}, "not this pipeline"),
+                                     ("another commit in its certificate", {"certified": ("d" * 40, tag_ref)},
+                                      "certificate records the source %s at %s" % ("d" * 40, tag_ref)),
+                                     ("another tag in its certificate", {"certified": (built, "refs/tags/v6.3.4")},
+                                      "certificate records the source %s at refs/tags/v6.3.4" % built),
+                                     ("a branch in its certificate", {"certified": (built, "refs/heads/" + tag)},
+                                      "certificate records the source"),
+                                     ("no source in its certificate", {"certified": (None, None)},
+                                      "certificate records the source None at None")):
             twisted = os.path.join(work, "provenance-" + what.replace(" ", "-").replace("'", ""))
             shutil.copytree(signed, twisted)
             fake_provenance(twisted, **kwargs)
-            found = provenance_problems(twisted, version, tag_identity, built)
+            found = provenance_problems(twisted, version, tag_identity, built, pipeline)
             expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
             if what == "another builder":
                 refuses("a release whose provenance another pipeline signed", "names the builder", assets_dir=twisted)
-        found = provenance_problems(signed, version, tag_identity.replace("/hmailserver/hmailserver/", "/someone/hmailserver/"), built)
+            if what == "another pipeline as its invocation":
+                refuses("a release whose provenance names another pipeline", "not this pipeline", assets_dir=twisted)
+            if what == "another tag in its certificate":
+                refuses("a release whose provenance's certificate records another tag", "certificate records the source",
+                        assets_dir=twisted)
+        found = provenance_problems(signed, version, tag_identity, built, "")
+        expect(any("no pipeline to hold" in p for p in found), "a provenance held to no pipeline is refused: %s" % found)
+        refuses("a release published without its pipeline's URL", "no pipeline to hold", env_changes={"CI_PIPELINE_URL": ""})
+        found = provenance_problems(signed, version, tag_identity.replace("/hmailserver/hmailserver/", "/someone/hmailserver/"), built, pipeline)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate names another identity is refused: %s" % found)
         # The identity's bytes in the certificate's public key, its SAN another pipeline's:
         # the SAN is what names it.
@@ -3212,12 +3281,12 @@ def self_test():
         shutil.copytree(signed, planted)
         fake_provenance(planted, certificate_identity=tag_identity.replace("/hmailserver/hmailserver/", "/someone/hmailserver/"),
                         key=tag_identity.encode("utf-8"))
-        found = provenance_problems(planted, version, tag_identity, built)
+        found = provenance_problems(planted, version, tag_identity, built, pipeline)
         expect(any("certificate does not name" in p for p in found),
                "a provenance whose certificate names another identity, with this one in its key, is refused: %s" % found)
         fake_provenance(planted, bundle_changes=lambda bundle_: bundle_["verificationMaterial"]["certificate"].update(
             rawBytes=bundle_["verificationMaterial"]["certificate"]["rawBytes"][:-8]))
-        found = provenance_problems(planted, version, tag_identity, built)
+        found = provenance_problems(planted, version, tag_identity, built, pipeline)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate is cut short is refused: %s" % found)
         # The repository id, held as a server holds the release's files to it from
         # 6.3.6: this project's, and one there, at either path.
@@ -3241,13 +3310,13 @@ def self_test():
                         sigstore_certificate.test_certificate(PROJECT_ID, uris=[tag_identity])).decode(), 1),
                     "repository_id": "1267388815"}, tag_identity, "twice")):
             fake_provenance(planted, **kwargs)
-            found = provenance_problems(planted, version, at, built)
+            found = provenance_problems(planted, version, at, built, pipeline)
             expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
         fake_provenance(planted, identity=first_identity)
-        found = provenance_problems(planted, version, first_identity, built)
+        found = provenance_problems(planted, version, first_identity, built, pipeline)
         expect(found == [], "a provenance with this project's id, at the path the project began at, is taken: %s" % found)
         fake_provenance(planted, identity=group_identity)
-        found = provenance_problems(planted, version, group_identity, built)
+        found = provenance_problems(planted, version, group_identity, built, pipeline)
         expect(found == [], "a provenance with this project's id, at the group's path, is taken: %s" % found)
         uncopied = os.path.join(work, "uncopied")
         shutil.copytree(signed, uncopied)
@@ -3646,15 +3715,16 @@ def main():
             version = read_version_h(ROOT) if args.rehearse else version_of(tag)
             identity = signing_identity(os.environ, args.rehearse)
             assets = os.path.join(ROOT, args.assets)
-            problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \
+            problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", ""), os.environ.get("CI_PIPELINE_URL", "")) + \
                 provenance_line_problems(assets, version)
             for problem in problems:
                 print("PROBLEM: " + problem)
             if problems:
                 return 1
-            print("%s names every file of %s by its SHA-256, built by %s from %s; every primary file's .sigstore.json is "
-                  "its bundle, and %s is the provenance's envelope." % (
-                      provenance_name(version), version, identity, os.environ.get("CI_COMMIT_SHA", ""), provenance_line_name(version)))
+            print("%s names every file of %s by its SHA-256, built by %s from %s in %s, as its certificate records; every "
+                  "primary file's .sigstore.json is its bundle, and %s is the provenance's envelope." % (
+                      provenance_name(version), version, identity, os.environ.get("CI_COMMIT_SHA", ""),
+                      os.environ.get("CI_PIPELINE_URL", ""), provenance_line_name(version)))
             return 0
         if args.command == "publish":
             with open(os.path.join(ROOT, CHANGELOG), encoding="utf-8") as f:

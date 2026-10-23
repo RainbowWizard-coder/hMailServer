@@ -3373,6 +3373,55 @@ incremental build of the tag's commit, not a clean one, and its OpenSSL, libpq
 and C++ runtime come from the bench's library tree and Visual Studio; the notes
 say that too.
 
+**The provenance's SLSA Build level.** Build L1 of SLSA v1.0, for every file the
+statement names, and nothing higher (SECURITY.md, "Build provenance", gives the
+reasons in the specification's words). Build L2 requires that every build step
+ran on a hosted build platform, not on an individual's workstation, and the
+files are built on the project's own runners ([The runners](#the-runners)), the
+Windows installers and the generic Linux packages on bench150 and linix,
+virtual machines on the maintainer's laptop. It also requires provenance that
+the build platform makes, not a tenant of it, and the statement is written by
+`release-sbom` and signed by `release-sign` with that job's identity token, two
+jobs of the same `.gitlab-ci.yml` as every build step: the provenance is the
+tenant's, not GitLab's. Fulcio's certificate records the kind of runner the
+signing job ran on (its runner environment extension): `gitlab-hosted` for
+6.3.6, whose `release-sbom` and `release-sign` ran on GitLab's runners, and
+`self-hosted` for 6.3.7 - where the provenance was signed, not where the files
+were built. What holds the statement to the run: `check-provenance` in
+`release-verify` and the same check in `publish` refuse a statement whose
+builder, external parameters (the repository, the tag's ref and
+`.gitlab-ci.yml`), commit or invocation (`CI_PIPELINE_URL`) are not the
+pipeline's own, and a certificate whose source repository digest and ref,
+which Fulcio writes from GitLab's identity token, are not the commit and the
+tag (`build/ci/sigstore-certificate.py`'s `source`); before its artifact is
+kept, `release-sign` has found every one of the 62 files in the provenance with
+`cosign verify-blob-attestation`, as the tag's identity and GitLab's issuer;
+and `build/check-release-chain.py` fails a change that drops either call's
+pipeline, the certificate's read or that verification. A user checks a
+download the same way:
+
+```
+cosign verify-blob-attestation --new-bundle-format \
+  --bundle hmailserver-<v>.intoto.sigstore.json --type slsaprovenance1 \
+  --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<v> \
+  --certificate-oidc-issuer https://gitlab.com <file>
+```
+
+GitLab's own provenance is not used. GitLab Runner can write a statement for a
+job's artifacts (`RUNNER_GENERATE_ARTIFACTS_METADATA`: an in-toto v0.1
+statement with the SLSA v1 predicate, unsigned, in a JSON file stored with the
+artifacts, which GitLab's documentation has its SLSA CI/CD component sign),
+but it describes one job's artifacts where a release's files take their final
+bytes over several jobs (an installer is built by one and Authenticode-signed
+by another), its builder is the runner, and on these runners it would raise no
+level. GitLab.com's own attestations, which it calls SLSA Build L3, are not
+open to the release either: an experiment behind a feature flag that is off by
+default, for artifacts of the `build` stage up to 100 MB, where the installers
+take their final bytes in the `release` stage. One statement over all the
+files, not one for each: `cosign verify-blob-attestation` finds a file among
+its subjects by its SHA-256, and OpenSSF Scorecard counts a release as having
+provenance from any one file whose name ends in `.intoto.jsonl`.
+
 **The links' names and paths.** A release has one link per file. Its name is
 the file's own, with the version (`hMailServer-6.3.6-x64.exe`), and that is what
 a server and the update feed read. Its path (`direct_asset_path`) is the file's

@@ -367,7 +367,14 @@ of which checks the archive against a SHA-256 pinned in the script.
   `hmailserver-<version>.intoto.jsonl`, that bundle's DSSE envelope alone as one
   line of JSON, which `release-verify` writes from the bundle and holds to it
   byte for byte: the same signature, not a second one, without the certificate
-  and the log entry, which only the bundle carries.
+  and the log entry, which only the bundle carries. The provenance of 6.3.6 and
+  later meets SLSA v1.0 Build L1 for every file it names, and no higher level is
+  claimed: Build L2 needs every build step on a hosted build platform, not an
+  individual's workstation, and provenance made by the platform itself, where
+  the files are built on the project's own runners, virtual machines on the
+  maintainer's laptop among them, and this statement is written and signed by
+  jobs of the project's own pipeline ([SECURITY.md](../../SECURITY.md), *Build
+  provenance*, gives the reasons in the specification's words).
 * **Signed tags.** Release tags from `v6.2.23-alpha2` on are annotated and
   signed with a maintainer's SSH key listed in `.gitlab/allowed_signers`, which
   holds one key today.

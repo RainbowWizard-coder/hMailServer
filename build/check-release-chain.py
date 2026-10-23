@@ -1577,6 +1577,66 @@ def gate_texts():
     return texts
 
 
+# The SLSA Build level the release's provenance meets, and where it is said: Build L1
+# (SECURITY.md, "Build provenance", gives the reasons from the specification's words);
+# L2 needs every build step on a hosted build platform, not an individual's workstation,
+# and provenance the platform makes, and the files are built on the project's own
+# runners, virtual machines on the maintainer's laptop among them, and the statement
+# is written and signed by jobs of the project's own pipeline. Each claim is found with
+# its white space taken as one space, so a paragraph wrapped again keeps it.
+SLSA_CLAIMS = {
+    "SECURITY.md": "**SLSA Build level.** The releases from 6.3.6 meet Build L1 of SLSA v1.0",
+    "hmailserver/docs/ContinuousIntegration.md": "**The provenance's SLSA Build level.** Build L1 of SLSA v1.0",
+    "hmailserver/docs/EvidencePack.md": "meets SLSA v1.0 Build L1 for every file it names, and no higher level is claimed",
+}
+# A higher level named: Build L2 or L3, Build level 2 or 3, SLSA L2 or L3, SLSA level 2
+# or 3, SLSA 2 or 3.
+SLSA_HIGHER = re.compile(r"\bBuild\s+(?:L|[Ll]evel\s*)[23]\b|\bSLSA\s+(?:v1\.[0-9]\s+)?(?:Build\s+)?(?:L|[Ll]evel\s*)?[23]\b")
+SLSA_NEGATION = re.compile(r"\b(?:not|no|nor|neither|never|none)\b", re.IGNORECASE)
+SLSA_AFFIRMED = re.compile(r"\b(?:meets?|met|achieves?|achieved|reach(?:es|ed)?|at|is|are)\s+(?:SLSA\s+)?(?:v1\.[0-9]\s+)?"
+                           r"(?:Build\s+)?(?:L|[Ll]evel\s*)[23]\b")
+
+
+def slsa_texts():
+    """{path: text} of the project's own documents that could claim an SLSA level: the
+    README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and every page of
+    hmailserver/docs. The change log and the roadmaps say what was done, and are not
+    read."""
+    texts = {}
+    for name in tree_files():
+        if name not in ("README.md", "SECURITY.md", "RELEASE.md", "ASSURANCE-CASE.md") and \
+                not (name.startswith("hmailserver/docs/") and name.endswith(".md")):
+            continue
+        try:
+            with io.open(os.path.join(ROOT, name), encoding="utf-8") as f:
+                texts[name] = f.read().replace("\r\n", "\n")
+        except (OSError, UnicodeDecodeError):
+            continue
+    return texts
+
+
+def slsa_level_problems(docs):
+    """Each document of SLSA_CLAIMS says the provenance meets Build L1; and no sentence
+    of a document names a higher level unless it says, with a not, a no or the like,
+    that it is not met, nor affirms one ("meets Build L2", "at SLSA level 3"). A
+    tripwire, not a reader: a level claimed is held to the specification by hand
+    (SECURITY.md, "Build provenance")."""
+    problems = []
+    for name, claim in SLSA_CLAIMS.items():
+        if re.sub(r"\s+", " ", claim) not in re.sub(r"\s+", " ", docs.get(name, "")):
+            problems.append("%s no longer says that the release's provenance meets SLSA Build L1 (%r), the level "
+                            "SECURITY.md argues" % (name, claim))
+    for name in sorted(docs):
+        flat = re.sub(r"\s+", " ", docs[name])
+        for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z*`(\[])", flat):
+            if not SLSA_HIGHER.search(sentence):
+                continue
+            if SLSA_AFFIRMED.search(sentence) or not SLSA_NEGATION.search(sentence):
+                problems.append("%s claims an SLSA level above Build L1, which the release's provenance does not meet "
+                                "(SECURITY.md, \"Build provenance\"): %s" % (name, sentence[:240]))
+    return problems
+
+
 def yaml_command_ends(lines, first, last, ends, shell=None, before=None):
     """Add to ends the number of each line of lines[first:last], a YAML document's or a
     part of one, after which the shell ends a command, as a script's lines are read: each
@@ -2792,6 +2852,22 @@ def check(texts, chain, feed):
         at = publish_text.find(needle)
         if at < 0 or first_put < 0 or at > first_put:
             problems.append("build/ci/release-chain.py's publish uploads before it has held the release to %s" % needle)
+    # The provenance held to the pipeline it is checked in, in release-verify
+    # (check-provenance) and in release-publish (publish): its invocation must be
+    # CI_PIPELINE_URL, as its commit is CI_COMMIT_SHA, and provenance_problems holds both
+    # and the tag to what the certificate records (release-chain.py's self-test).
+    if 'provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", ""), os.environ.get("CI_PIPELINE_URL", ""))' \
+            not in main_text_[checked_at:] or \
+            'env.get("CI_COMMIT_SHA") or "",\n        env.get("CI_PIPELINE_URL") or "")' not in publish_text:
+        problems.append("build/ci/release-chain.py's check-provenance or publish no longer holds the provenance to this "
+                        "pipeline: each must give provenance_problems the commit and CI_PIPELINE_URL")
+    if "def provenance_problems(assets, version, identity, commit, pipeline):" not in texts["chain"] or \
+            "certified = sigstore_certificate.source(sigstore_certificate.bundle_certificate(bundle))" not in \
+            function_text(texts["chain"], "provenance_problems"):
+        problems.append("build/ci/release-chain.py's provenance_problems no longer holds the provenance to the pipeline and to "
+                        "the source its certificate records (sigstore_certificate.source)")
+    # The SLSA Build level said where it is said, and no higher one claimed anywhere.
+    problems.extend(slsa_level_problems(texts["slsa-docs"]))
     collect_text = function_text(texts["chain"], "collect")
     if collect_text.find("check_budget(") < 0 or collect_text.find("check_budget(") > collect_text.find("shutil.copyfile(") \
             or "tarball_problems(" not in collect_text:
@@ -5235,9 +5311,11 @@ def certificate_module():
     return _load(os.path.join("build", "ci", "sigstore-certificate.py"), "sigstore_certificate")
 
 
-def certificate_problems(module, shell=None, script=None, answer_of=None, environ=None):
-    """(problems, notes): both certificate readers held to sigstore-certificate.py's cases."""
-    return module.reader_problems(shell, script or module.SHELL_READER, environ, answer_of)
+def certificate_problems(module, shell=None, script=None, answer_of=None, environ=None, source_of=None):
+    """(problems, notes): both certificate readers held to sigstore-certificate.py's
+    cases, and its reader of the source digest and ref (source_of in its place) to
+    its source cases."""
+    return module.reader_problems(shell, script or module.SHELL_READER, environ, answer_of, source_of)
 
 
 def scanned_texts():
@@ -6627,6 +6705,7 @@ def load_texts():
     texts["tree"] = tree_files()
     texts["permalinks"] = permalink_texts()
     texts["gate-docs"] = gate_texts()
+    texts["slsa-docs"] = slsa_texts()
     texts["ci-includes"] = dict((name, read(name)) for name in texts["tree"]
                                 if name.startswith(".gitlab/ci/") and name.endswith(".yml"))
     return texts
@@ -9204,11 +9283,57 @@ def self_test(chain, feed):
            '  python3 build/ci/release-chain.py check-provenance --assets "$signed" \\\n    || fail x\nfi\n'
            '# The provenance\'s DSSE envelope, the one in release-sign\'s bundle, written again alone\n',
            "no longer writes the provenance's envelope as one line")
-    broken("the line not held by check-provenance", "chain",
-           'problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \\\n'
-           '                provenance_line_problems(assets, version)',
-           'problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", "")) + \\\n'
-           '                []', "no longer holds that line to the bundle")
+    held_call = ('problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, '
+                 'os.environ.get("CI_COMMIT_SHA", ""), os.environ.get("CI_PIPELINE_URL", "")) + \\\n')
+    broken("the line not held by check-provenance", "chain", held_call + '                provenance_line_problems(assets, version)',
+           held_call + '                []', "no longer holds that line to the bundle")
+    # The provenance held to this pipeline and to what its certificate records.
+    broken("check-provenance holding no pipeline", "chain", held_call,
+           held_call.replace('os.environ.get("CI_PIPELINE_URL", "")', 'os.environ.get("CI_PIPELINE_ID", "")'),
+           "no longer holds the provenance to this pipeline")
+    broken("publish holding another pipeline", "chain", 'env.get("CI_COMMIT_SHA") or "",\n        env.get("CI_PIPELINE_URL") or "")',
+           'env.get("CI_COMMIT_SHA") or "",\n        "https://gitlab.com/hmailserver/hmailserver/-/pipelines/1")',
+           "no longer holds the provenance to this pipeline")
+    broken("the certificate's source not read", "chain",
+           "certified = sigstore_certificate.source(sigstore_certificate.bundle_certificate(bundle))",
+           "certified = (commit, ref)", "the source its certificate records")
+    # The SLSA Build level: said where SLSA_CLAIMS says, and no higher one claimed.
+    for what, name, old, new, needle in (
+            ("the README claiming Build L2", "README.md", None, "\n\nThe release's provenance meets SLSA Build L2.\n",
+             "claims an SLSA level above Build L1"),
+            ("SECURITY.md claiming level 3 beside a not", "SECURITY.md", None,
+             "\n\nThe releases are at SLSA level 3, not just at L1.\n", "claims an SLSA level above Build L1"),
+            ("a page naming Build L2 as holding", "hmailserver/docs/ContinuousIntegration.md", None,
+             "\n\nBuild L2 holds for the installers.\n", "claims an SLSA level above Build L1"),
+            ("SECURITY.md's claim of Build L1 gone", "SECURITY.md", SLSA_CLAIMS["SECURITY.md"],
+             "**SLSA Build level.** The releases from 6.3.6 meet SLSA v1.0", "no longer says that the release's provenance")):
+        copy = dict(texts)
+        docs = dict(texts["slsa-docs"])
+        if old is not None and old not in docs.get(name, ""):
+            failures.append("%s: the text to break is not in %s" % (what, name))
+            continue
+        docs[name] = docs.get(name, "") + new if old is None else docs[name].replace(old, new, 1)
+        copy["slsa-docs"] = docs
+        found, _ = check(copy, chain, feed)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    # And, read alone: a level spelt out in words is caught, and a claim wrapped again is
+    # still found.
+    docs = dict(texts["slsa-docs"])
+    docs["hmailserver/docs/EvidencePack.md"] = docs.get("hmailserver/docs/EvidencePack.md", "") + \
+        "\n\nThe packages reach Build Level 3.\n"
+    found = slsa_level_problems(docs)
+    if not any("claims an SLSA level above Build L1" in p and "Build Level 3" in p for p in found):
+        failures.append("a page claiming Build Level 3 in words is caught: %s" % found)
+    docs = dict(texts["slsa-docs"])
+    wrapped = docs.get("hmailserver/docs/EvidencePack.md", "").replace("Build L1 for every file it names",
+                                                                       "Build L1\n  for every file it names", 1)
+    if wrapped == docs.get("hmailserver/docs/EvidencePack.md", ""):
+        failures.append("EvidencePack.md's claim of Build L1 is not on one line to wrap again")
+    docs["hmailserver/docs/EvidencePack.md"] = wrapped
+    found = slsa_level_problems(docs)
+    if found:
+        failures.append("a claim of Build L1 wrapped again is still found: %s" % found)
     broken("provenance-line writing nothing", "chain", "            write_provenance_line(os.path.join(ROOT, args.assets), version)\n",
            "            pass\n", "no longer writes the provenance's envelope as one line")
     broken("publish uploading before the line is held", "chain", "        provenance_line_problems(assets, version)\n    if unfit:",
@@ -9646,6 +9771,21 @@ def self_test(chain, feed):
     found, _ = certificate_problems(module, shell=False, answer_of=searching)
     if not any("planted" in p for p in found):
         failures.append("a Python reader that searches the certificate's bytes is caught: %s" % found)
+
+    def searching_source(certificate):
+        """The source digest and ref read as the first UTF8String after each OID's first
+        place in the bytes, as a search would read them."""
+        said = []
+        for oid in (module.SOURCE_DIGEST_OID, module.SOURCE_REF_OID):
+            at = certificate.find(oid)
+            rest = certificate[at + len(oid):] if at >= 0 else b""
+            rest = rest[3:] if rest[:1] == b"\x01" else rest
+            said.append(rest[4:4 + rest[3]].decode("ascii", "replace")
+                        if rest[:1] == b"\x04" and rest[2:3] == b"\x0c" else None)
+        return tuple(said)
+    found, _ = certificate_problems(module, shell=False, source_of=searching_source)
+    if not any("source digest and ref" in p and "planted" in p for p in found):
+        failures.append("a reader of the certificate's source digest and ref that searches its bytes is caught: %s" % found)
     if not any("no sh here" in n for n in notes):
         work = tempfile.mkdtemp(prefix="hm-check-certificate-")
         try:
