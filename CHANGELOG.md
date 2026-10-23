@@ -578,8 +578,9 @@ with `--check`).
   the file with nothing but Python and refuses YAML it does not take; holds it to the schema written out from
   `schema.cue`; refuses a `last-updated` or `last-reviewed` after the latest calendar date anywhere (the UTC clock plus
   fourteen hours, so that a file dated just after midnight in the owner's time zone passes on a runner that keeps
-  UTC), or a review before the update; holds the
-  file's own address, the fork's name, the two repositories, the licence and the vulnerability contact SECURITY.md
+  UTC), or a `last-reviewed` more than a year before that date, while a review older than the last update passes, as
+  the file's header has it: `last-updated` moves with any change, and `last-reviewed` when the whole file has been read
+  against the tree again, at least once a year; holds the file's own address, the fork's name, the two repositories, the licence and the vulnerability contact SECURITY.md
   gives; and refuses a link to a file the tree does not hold, to a heading a Markdown file does not have, or to a release
   file `build/ci/release-chain.py` gives no name; and refuses a path of the tree it names outside a link - a tool's
   ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment such as `build/ci/semgrep.sh`, a folder, a file at

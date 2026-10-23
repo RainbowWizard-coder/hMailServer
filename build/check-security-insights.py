@@ -20,8 +20,12 @@ nothing else would notice when it goes wrong. This holds it:
   * to time: last-updated and last-reviewed are real dates, neither after the
     latest calendar date anywhere on Earth (the UTC clock plus fourteen hours, so
     that a file dated in the owner's time zone, or any other, just after its
-    midnight passes on a runner that keeps UTC), and the file is not reviewed
-    before it was last updated;
+    midnight passes on a runner that keeps UTC), and last-reviewed is not more
+    than a year before that date. As the file's header says, last-updated moves
+    with any change and last-reviewed when the whole file has been read against
+    the tree again, so a review older than the last update is allowed: a change of
+    one line needs no review of the whole file, but the whole file is read again
+    at least once a year;
   * to the project: schema-version is 2.2.0, header.url is the file's own raw
     address on GitLab's master, the name says Progressive Robot's fork of
     hMailServer, the repository is the GitLab project and the project's
@@ -491,6 +495,14 @@ def today(utc_now=None):
     return (utc_now + datetime.timedelta(hours=14)).date()
 
 
+def a_year_before(day):
+    """The same date a year earlier; 28 February for a 29 February."""
+    try:
+        return day.replace(year=day.year - 1)
+    except ValueError:
+        return day.replace(year=day.year - 1, day=28)
+
+
 # A path of the tree named outside a link: segments of letters, digits, _ and -, the
 # first of which may start with a dot, joined by /, the last optionally a file name. It
 # must not follow a character that would make it part of a longer word, a host name or
@@ -547,9 +559,9 @@ def check(root, now=None):
     for key, value in (('last-updated', updated), ('last-reviewed', reviewed)):
         if value > now:
             problems.append('header.%s is %s, which is in the future (today is %s)' % (key, value, now))
-    if reviewed < updated:
-        problems.append('header.last-reviewed (%s) is before last-updated (%s): review the file with the change'
-                        % (reviewed, updated))
+    if reviewed < a_year_before(now):
+        problems.append('header.last-reviewed is %s, more than a year before today (%s): read the whole file '
+                        'against the tree again, then move last-reviewed' % (reviewed, now))
     if header['url'] != OWN_URL:
         problems.append('header.url is %r, not the file\'s own address, %s' % (header['url'], OWN_URL))
     if not project or not repository:
@@ -778,8 +790,8 @@ def self_test(quiet=False):
     cases = [
         ('a date in the future', swap("last-reviewed: \"2026-01-03\"", "last-reviewed: '2026-01-04'"), (),
          'in the future'),
-        ('reviewed before it was updated', swap("last-updated: '2026-01-02'", "last-updated: '2026-01-03'").replace(
-            'last-reviewed: "2026-01-03"', "last-reviewed: '2026-01-02'"), (), 'before last-updated'),
+        ('reviewed more than a year before today', swap('last-reviewed: "2026-01-03"', "last-reviewed: '2025-01-02'"),
+         (), 'more than a year before today'),
         ('a date that is no date', swap("'2026-01-02'", "'2026-02-30'"), (), 'not a date'),
         ('an unquoted date', swap("'2026-01-02'", '2026-01-02'), (), 'unquoted date'),
         ('another schema version', swap('schema-version: 2.2.0', 'schema-version: 2.1.0'), (), 'written for 2.2.0'),
@@ -839,6 +851,17 @@ def self_test(quiet=False):
         said = problems[0].replace(INSIGHTS + ': ', '', 1)[:100] if problems else 'nothing said'
         expect('%s: refused (%s)' % (what, said),
                any(needle in problem for problem in problems))
+    later = swap("last-updated: '2026-01-02'", "last-updated: '2026-01-03'").replace(
+        'last-reviewed: "2026-01-03"', "last-reviewed: '2026-01-02'")
+    said = world(later)
+    expect('reviewed before it was updated, as the header allows for a change: passes%s'
+           % ('' if not said else ' (%s)' % said[0][:120]), said == [])
+    said = world(swap('last-reviewed: "2026-01-03"', "last-reviewed: '2025-01-03'"))
+    expect('reviewed a year to the day before today: passes%s' % ('' if not said else ' (%s)' % said[0][:120]),
+           said == [])
+    expect('a year before 29 February is 28 February',
+           a_year_before(datetime.date(2028, 2, 29)) == datetime.date(2027, 2, 28)
+           and a_year_before(datetime.date(2026, 1, 3)) == datetime.date(2025, 1, 3))
     expect('no SECURITY-INSIGHTS.yml: refused', any('not at the root' in p for p in world(insights=None)))
     expect('a clock a day behind the file: refused', any('in the future' in p for p in world(now=datetime.date(2026, 1, 2))))
     late = today(datetime.datetime(2026, 1, 2, 23, 0, tzinfo=datetime.timezone.utc))
