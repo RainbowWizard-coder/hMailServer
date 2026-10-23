@@ -199,21 +199,25 @@ stop_server() {
 trap stop_server EXIT
 
 # The package of this container's architecture: exactly one in $packages.
+shopt -s nullglob
 if [ "$kind" = deb ]; then
   arch=$(dpkg --print-architecture)
   pattern="hmailserver_*_$arch.deb"
+  candidates=("$packages"/hmailserver_*_"$arch".deb)
 else
   arch=$(rpm --eval '%{_arch}')
   pattern="hmailserver-*.$arch.rpm"
+  candidates=("$packages"/hmailserver-*."$arch".rpm)
 fi
+shopt -u nullglob
 echo "== $PRETTY_NAME, $(uname -m) ($arch)"
-found=$(cd "$packages" && ls -1 $pattern 2> /dev/null)
-if [ "$(printf '%s' "$found" | grep -c .)" != 1 ]; then
-  echo "REFUSED: not exactly one $pattern in $packages (found: $(echo ${found:-none})). This container is $arch:"
+if [ "${#candidates[@]}" != 1 ]; then
+  echo "REFUSED: not exactly one $pattern in $packages (found: ${candidates[*]:-none}). This container is $arch:"
   echo "a package is held in a container of its own architecture, and its build job made it or did not (its artifacts say)."
   exit 2
 fi
-package="$packages/$found"
+package=${candidates[0]}
+found=$(basename "$package")
 case "$package" in /*) ;; *) package="./$package" ;; esac
 echo "== $found"
 version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9.]*\)".*/\1/p' \

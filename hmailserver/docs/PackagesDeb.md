@@ -242,19 +242,21 @@ its own, as `postgres`.
 | Run | What was planted | Verdict | The deciding lines | Time |
 |---|---|---|---|---|
 | 1 | nothing | passed | `installed: 6.3.7 arm64 install ok installed`, `hMailServer 6.3.7 build 46`, `schema 6108`, "the REST API answered 3 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 110 s |
-| 2 | nothing, the script as committed | passed | the same, the REST API answering 2 s after the start | 98 s |
+| 2 | nothing, the script as committed | passed | the same, the REST API answering 1 s after the start | 93 s |
 | 3 | dpkg kept from installing `CreateTablesPGSQL.sql` (`path-exclude`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 79 s |
 | 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 90 s |
 | 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 92 s |
 
-A run before these, in a checkout of the tree after 6.3.7, whose copyright file
-is newer than the package's, failed at the licence step, as it should, on that
-file alone (`WRONG /usr/share/doc/hmailserver/copyright`), which is why the runs
-above were made in 6.3.7's own tree. The same script over 6.3.7's
-`hmailserver_6.3.7_amd64.deb`, in `linux-package-deb`'s amd64 Ubuntu 26.04 image,
-passed in 27 s, the banner and EHLO among its steps; over the arm64 folder in that
-amd64 image it refused, exit 2: "not exactly one hmailserver_*_amd64.deb in
-packages-deb/ubuntu26.04-arm64 (found: none)".
+Runs 1, 3, 4 and 5 were made with earlier versions of the script, which differed
+from it only in how it takes the package from the folder and in what it prints;
+the faults they plant come after that step. A run before these, in a checkout of the tree after 6.3.7, whose
+copyright file is newer than the package's, failed at the licence step, as it
+should, on that file alone (`WRONG /usr/share/doc/hmailserver/copyright`), which is
+why the runs above were made in 6.3.7's own tree. The script as committed, over
+6.3.7's `hmailserver_6.3.7_amd64.deb` in `linux-package-deb`'s amd64 Ubuntu 26.04
+image, passed in 16 s, the banner and EHLO among its steps; over the arm64 folder
+in that amd64 image it refused, exit 2: "not exactly one hmailserver_*_amd64.deb
+in packages-deb/ubuntu26.04-arm64 (found: none)".
 
 **In a pipeline: not yet.** `deb-ubuntu26.04-arm64-start` first runs in the
 pipeline of the branch that brings it to `master`, the one its merge request is

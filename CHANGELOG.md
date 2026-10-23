@@ -753,7 +753,7 @@ with `--check`).
   linux-build's `.rpm`) and to the arm64 class (`RUNNER_CLASSES`, 17 jobs), with 22 negative controls;
   `build/ci/hosted-runners.py`'s `EXPECTED` for the class is 17 minutes a batch's or a tag's pipeline. Run by hand on
   server2 on 23 October 2026 over 6.3.7's own arm64 `.deb` and aarch64 `.rpm`, their SHA-256 the release's sums and the
-  sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 98 and 76 s, the REST API answering 1
+  sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 93 and 72 s, the REST API answering 1
   to 3 s after the start and port 25 with the server's banner; with `CreateTablesPGSQL.sql` kept from being installed
   each failed naming it, with the message store's lock held each failed with "the server exited, with status 1" and
   the server's own "hMailServer could not start", and with another program's banner on port 25 each failed on it;

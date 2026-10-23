@@ -172,14 +172,17 @@ a network of its own, as `postgres`.
 | Run | What was planted | Verdict | The deciding lines | Time |
 |---|---|---|---|---|
 | 1 | nothing | passed | `installed: 6.3.7-1 aarch64`, `hMailServer 6.3.7 build 46`, the licence files each `%license`, `schema 6108`, "the REST API answered 2 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 83 s |
-| 2 | nothing, the script as committed | passed | the same, with "glibc's converters, which it requires here: glibc-gconv-extra-2.43-9.fc44.aarch64" | 76 s |
+| 2 | nothing, the script as committed | passed | the same, with "glibc's converters, which it requires here: glibc-gconv-extra-2.43-9.fc44.aarch64", the REST API answering 1 s after the start | 72 s |
 | 3 | rpm kept from installing `CreateTablesPGSQL.sql` (`%_netsharedpath`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 60 s |
 | 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 71 s |
 | 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 72 s |
 
 dnf installed it with its dependencies; nothing was installed with `--nodeps`.
-`linux-build`'s `hmailserver-6.3.7-1.x86_64.rpm`, in `linux-package-rpm`'s Fedora 44
-image, passed the script's unchanged `rpm` half.
+Runs 1, 3, 4 and 5 were made with earlier versions of the script, which differed
+from it only in how it takes the package from the folder and in what it prints; the
+faults they plant come after that step, and run 4 made again with the script as
+committed failed the same way, the server exiting 2 s after its start. `linux-build`'s `hmailserver-6.3.7-1.x86_64.rpm`,
+in `linux-package-rpm`'s Fedora 44 image, passed the script's unchanged `rpm` half.
 
 **In a pipeline: not yet.** `rpm-fedora44-aarch64-start` first runs in the
 pipeline of the branch that brings it to `master`, the one its merge request is

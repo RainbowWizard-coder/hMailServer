@@ -128,7 +128,7 @@ HOSTED_LANE = "hosted-$CI_JOB_NAME"
 # factor and 0.5: GitLab's ee/lib/gitlab/ci/minutes/cost_factor.rb). On master the
 # package builds wait for a press, and their arm64 jobs with them; a tag runs one suite.
 # The arm64 class's two start jobs came after those pipelines: each at four tenths of the
-# 76 to 110 s its script took under qemu-user on 23 October 2026, with a minute more for
+# 72 to 110 s its script took under qemu-user on 23 October 2026, with a minute more for
 # its machine, images and PostgreSQL service, at 0.5 - a minute each, 2 more.
 EXPECTED = {
     "HM_RUNNER_BUILD": {"batch": 95, "master": 90, "tag": 75},

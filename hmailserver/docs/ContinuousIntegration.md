@@ -631,7 +631,7 @@ times of the pipelines of 5 to 13 October 2026 on linix (six CPUs, near a large
 machine's eight; the builds use six compilers), a minute more a job for its machine
 and image, the arm64 jobs at four tenths of their time under qemu-user, at 0.5 a
 minute (`build/ci/hosted-runners.py`'s `EXPECTED`); the arm64 class's two start jobs,
-which came later, each at four tenths of the 76 to 110 seconds its script took under
+which came later, each at four tenths of the 72 to 110 seconds its script took under
 qemu-user by hand, and a minute more for its machine, images and database - a
 minute each:
 
