@@ -281,7 +281,9 @@ refuses it. This checker holds them to each other. It fails when:
     release's files are signed with, or no longer attests each platform's SBOM
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
     and verifies the attestation; or container-image-start does not start the pushed
-    image with the command its test script names, on a network of its own, or
+    image with the command its test script names, on a network of its own, or a start
+    job's service has a key but START_SERVICE_KEYS' - an entrypoint for the image, an
+    entrypoint or a command for a database (start_service_problems) - or
     either start job has a key but START_JOB_KEYS' (allow_failure, when and
     parallel among those it may not have) or runs the test otherwise than
     START_JOB_LINES write it - with no argument, nothing before or after it on its
@@ -6047,6 +6049,74 @@ def start_dotenv_problems(texts, image_jobs):
     return problems
 
 
+# The keys a start job's service entry may have: the image's two (named by the dotenv
+# report's digest) are started through the image's own entrypoint, with the test's
+# START_COMMAND, and the databases' as their images start them, with no command.
+START_SERVICE_KEYS = {"image": ("name", "alias", "docker", "variables", "command", "pull_policy"),
+                      "database": ("name", "alias", "variables", "pull_policy")}
+START_IMAGE_SERVICES = ("$HM_IMAGE", "$HM_IMAGE_ARM64")
+
+
+def start_service_problems(image_jobs):
+    """Each start job's services: block is entries of - name: <image> and keys six spaces
+    in, bare, each once, among START_SERVICE_KEYS': the image's own with no entrypoint, so
+    that it starts through the entrypoint it is shipped with, as a user starts it - an
+    entrypoint: would start it with its own never run, and a broken one would pass - and
+    the databases' with neither an entrypoint nor a command, which their images' own
+    entrypoints run in place of the server (a command of bash -c ... there would answer
+    the test's questions with anything); a docker: key holds platform alone. A form this
+    does not read - an entry in flow style, a quoted key, a key at another indentation -
+    is refused, rather than read as having no such key."""
+    problems = []
+    for name in sorted(START_JOB_KEYS):
+        block = image_jobs.get(name, "")
+        written = _job_key_texts(block, "services")
+        if len(written) != 1:
+            continue
+        lines = written[0]
+        service = alias = key = None
+        keys = []
+        unread = [] if lines[0] == "  services:" else [lines[0].strip()]
+
+        def close():
+            if service is None:
+                return
+            kind = "image" if service in START_IMAGE_SERVICES else "database"
+            for duplicate in sorted(set(k for k in keys if keys.count(k) > 1)):
+                problems.append("%s's service %s writes %s more than once" % (name, alias or service, duplicate))
+            for extra in [k for k in keys if k not in START_SERVICE_KEYS[kind]]:
+                problems.append("%s's service %s has %s, which is not one of the keys this check holds the %s's services "
+                                "to (%s): an entrypoint or a command of its own would start it otherwise than as it is "
+                                "shipped - the image without its own entrypoint run, a database as another program"
+                                % (name, alias or service, extra, kind, ", ".join(START_SERVICE_KEYS[kind])))
+
+        for line in lines[1:]:
+            if not line.strip():
+                continue
+            entry = re.match(r"^    - name: (\S+)[ \t]*$", line)
+            pair = re.match(r"^      ([a-z_]+):(?:[ \t]+(\S.*?))?[ \t]*$", line)
+            if entry:
+                close()
+                service, alias, key, keys = entry.group(1), None, "name", ["name"]
+            elif pair and service is not None:
+                key = pair.group(1)
+                keys.append(key)
+                if key == "alias":
+                    alias = pair.group(2)
+            elif line.startswith("        ") and service is not None and key in ("variables", "docker"):
+                if key == "docker" and not re.match(r"^        platform: \S+[ \t]*$", line):
+                    problems.append("%s's service %s's docker: holds %s, where it may hold platform alone"
+                                    % (name, alias or service, line.strip()))
+            else:
+                unread.append(line.strip())
+        close()
+        if unread:
+            problems.append("%s's services: block is written in a form this check does not read (%s): write each entry as "
+                            "- name: <image>, then its keys six spaces in, bare, each with its value on its line "
+                            "(variables: and docker: as a block below)" % (name, unread[0][:80]))
+    return problems
+
+
 def image_start_database_problems(texts, image_jobs):
     """The image reaches both databases it is said to: the Dockerfile installs the MariaDB
     client the server opens with dlopen (libmariadb.so.3), which no .deb the release carries names,
@@ -6080,6 +6150,7 @@ def image_start_database_problems(texts, image_jobs):
     problems += start_database_variable_problems(image_jobs, every_ci)
     problems += start_job_line_problems(image_jobs, ci_files(texts))
     problems += start_dotenv_problems(texts, image_jobs)
+    problems += start_service_problems(image_jobs)
     problems += start_test_digest_problems(texts["image-start"])
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
@@ -7702,6 +7773,23 @@ def self_test(chain, feed):
              "      - container-image-amd64/\n      - build/ci/container-image-push.sh\n",
              "container-image-amd64's artifacts are not its own directory alone")):
         broken(what, key, old, new, needle)
+    # The start jobs' services started otherwise than as they are shipped: the image past
+    # its own entrypoint, a database as another program, a key this does not read, and the
+    # arm64 image as another user.
+    for what, old, new, needle in (
+            ("the image beside MariaDB started past its own entrypoint", "      alias: mail-mariadb\n      variables:\n",
+             "      alias: mail-mariadb\n      entrypoint: [\"sh\", \"-c\"]\n      variables:\n",
+             "container-image-start's service mail-mariadb has entrypoint"),
+            ("PostgreSQL started as another program", "      alias: db\n      pull_policy: [if-not-present, always]\n",
+             "      alias: db\n      pull_policy: [if-not-present, always]\n      command: [\"bash\", \"-c\", \"sleep 600\"]\n",
+             "container-image-start's service db has command"),
+            ("an image service's entrypoint under a quoted key", "      alias: mail\n      variables:\n",
+             "      alias: mail\n      \"entrypoint\": [\"sh\", \"-c\"]\n      variables:\n",
+             "container-image-start's services: block is written in a form this check does not read"),
+            ("the arm64 image run as another user", "      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
+             "      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n        user: root\n",
+             "container-image-start-arm64's service mail-mariadb's docker: holds user: root")):
+        broken(what, "image", old, new, needle)
     broken_include("the push defined again in another CI file", later,
                    "\ncontainer-image:\n" + release_rule + "  after_script:\n    - echo HM_START_VERSION=6 >> "
                    "container-image/image.env\n", "container-image is defined in")
