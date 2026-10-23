@@ -290,17 +290,19 @@ a pointer back here:
 ## Verifying a release
 
 Releases are at <https://gitlab.com/hmailserver/hmailserver/-/releases>, and since 18 October 2026 at
-<https://github.com/RainbowWizard-coder/hMailServer/releases> as well. Every release up to and including
-6.3.3 was first published on GitHub, under the old account `Progressiverobot`. Where GitLab's releases page carries
-a file from one of them, it is the same file, byte for byte, with the same signatures and Sigstore bundle, so
-everything below verifies it exactly as it verified the original. GitHub's releases page, since 18 October 2026, is
-a copy of GitLab's: a release is built, signed and published on GitLab first and then copied there, and every
-release from 6.0.0-B1 to 6.3.7 is there with the same files, byte for byte, each checked against the SHA-256 that
-GitLab's package registry records for it; so everything below verifies a file from either page the same way. GitHub
-writes "." where a file name has "~", so the per-distribution `.deb` files are renamed there, their bytes the same;
-the notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file; and
-GitHub's immutable-releases setting is on, so a release published there after the copies of 18 October 2026 cannot
-be changed, while the copies, published before the switch, can.
+<https://github.com/RainbowWizard-coder/hMailServer/releases> as well. Every release up to and including 6.3.3 was
+first published on GitHub, under the old account `Progressiverobot`. Where GitLab's releases page carries a file
+from one of them, it is the same file, byte for byte, with the same signatures and Sigstore bundle, so everything
+below verifies it exactly as it verified the original. GitHub's releases page, since 18 October 2026, is a copy of
+GitLab's: a release is built, signed and published on GitLab first and then copied there, and every release from
+6.0.0-B1 to 6.3.7 is there with the same files, byte for byte, each checked against the SHA-256 that GitLab's
+package registry records for it; so everything below verifies a file from either page the same way. GitHub writes
+"." where a file name has "~", so the per-distribution `.deb` files are renamed there, their bytes the same; the
+notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file; and GitHub's
+immutable-releases setting is on: a release published there with it on keeps its files and its tag as published,
+though its notes can still be edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on
+during the copying of 18 October 2026 (at 05:26 and 05:31 UTC), while the copies of the releases before them,
+6.0.0-B1 to 6.3.5 and the two build-inputs releases, published before it, can still be changed.
 
 - **The release tag** (from `v6.2.23-alpha2` on) is an annotated tag signed with a maintainer's SSH key listed in
   `.gitlab/allowed_signers`. That allow list is in the repository, so a clone can check it without trusting

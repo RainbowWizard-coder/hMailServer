@@ -316,29 +316,25 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
 7. **The package managers** (step 13) are still by hand: the manifests job was
    not ported.
 
-**The copy on GitHub.** Since 18 October 2026 a release, once `release-publish`
-has created it here, is copied by hand to the project's GitHub repository,
-<https://github.com/RainbowWizard-coder/hMailServer/releases>, with the same
-files byte for byte, each checked against the SHA-256 the package
-`hmailserver/X.Y.Z` records for it - from the release after 6.3.7
-`hmailserver-X.Y.Z.intoto.jsonl` among them, the one file OpenSSF Scorecard's
-Signed-Releases check counts there as the release's provenance - and the same notes (6.3.6's and 6.3.7's,
-longer than GitHub's limit of 125,000 characters, are cut at it there and
-attached whole as a file). GitHub writes `.` where a file name has `~`, so the
-per-distribution `.deb` files are renamed there; no server reads that copy,
-since the update feed is GitLab's. GitHub's immutable-releases setting is on, so
-a release published there after the copies of 18 October 2026 cannot be
-changed; the copies, published before the switch, can. Its tag reaches GitHub
-as `master` does, by GitLab's push mirror, which has pushed every tag and every
-protected branch there after each push since 18 October 2026
-([Mirroring.md](hmailserver/docs/Mirroring.md)). No pipeline of the project runs
-on GitHub; of its workflows GitHub Actions runs two,
-`.github/workflows/scorecard.yml` and `.github/workflows/codeql.yml`, which no
-release starts and which make nothing a release carries. The old release
-workflows `sbom.yml` and `sign-release.yml`, in the trees of the tags up to
-`v6.3.3`, ran once there on 18 October 2026, on the copies of the releases up to
-6.2.22-pre6, and have been disabled since ([ASSURANCE-CASE.md](ASSURANCE-CASE.md));
-a tag after 6.3.3 carries neither.
+**The copy on GitHub.** Since 18 October 2026 a release, once `release-publish` has created it here, is
+copied by hand to the project's GitHub repository,
+<https://github.com/RainbowWizard-coder/hMailServer/releases>, with the same files byte for byte, each
+checked against the SHA-256 the package `hmailserver/X.Y.Z` records for it - from the release after 6.3.7
+`hmailserver-X.Y.Z.intoto.jsonl` among them, the one file OpenSSF Scorecard's Signed-Releases check
+counts there as the release's provenance - and the same notes (6.3.6's and 6.3.7's, longer than GitHub's
+limit of 125,000 characters, are cut at it there and attached whole as a file). GitHub writes `.` where a
+file name has `~`, so the per-distribution `.deb` files are renamed there; no server reads that copy,
+since the update feed is GitLab's. GitHub's immutable-releases setting is on: a release published there
+with it on keeps its files and its tag as published, though its notes can still be edited, and so do the
+copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of 18 October 2026; the
+copies of the releases before them, published before it, can still be changed. Its tag reaches GitHub as
+`master` does, by GitLab's push mirror, which has pushed every tag and every protected branch there after
+each push since 18 October 2026 ([Mirroring.md](hmailserver/docs/Mirroring.md)). No pipeline of the
+project runs on GitHub; of its workflows GitHub Actions runs two, `.github/workflows/scorecard.yml` and
+`.github/workflows/codeql.yml`, which no release starts and which make nothing a release carries. The old
+release workflows `sbom.yml` and `sign-release.yml`, in the trees of the tags up to `v6.3.3`, ran once
+there on 18 October 2026, on the copies of the releases up to 6.2.22-pre6, and have been disabled since
+([ASSURANCE-CASE.md](ASSURANCE-CASE.md)); a tag after 6.3.3 carries neither.
 
 **The rehearsal.** Every protected `batch*` branch's pipeline rehearses steps 3
 to 4 (`.gitlab/ci/release-rehearsal.yml`): `release-rehearsal` collects every file

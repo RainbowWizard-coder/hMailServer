@@ -15,22 +15,22 @@ and will carry a version number when a release is cut.
 
 ## Where the releases are
 
-The project's home is <https://gitlab.com/hmailserver/hmailserver>, in the group `hmailserver` since 29 September
-2026 (its first path on GitLab, `Progressiverobot/hmailserver`, redirects there). Its releases were published on
-GitHub until GitHub suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in
-older text now answers 404. Since 18 October 2026 the project is published on GitHub again, as a second home, at
-<https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository -
-`master` and every tag - and, at <https://github.com/RainbowWizard-coder/hMailServer/releases>, every release from
-6.0.0-B1 to 6.3.7 with GitLab's files byte for byte, each checked against the SHA-256 that GitLab's package registry
-records for it (the notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as
-a file, and GitHub writes "." where a file name has "~", so the per-distribution `.deb` files are renamed there), and
-the project's labels and milestones and Discussions; it has no Issues. GitLab stays canonical: a release is built, signed and
-published there first and then copied to GitHub, and the update feed, the package repositories and the container
-registry are GitLab's. GitHub's immutable-releases setting is on, so a release published there after the copies of
-18 October 2026 cannot be changed; the copies, published before the switch, can. Every release up to 6.3.3 has been
-re-created on GitLab from the GitHub original, under its original date and with its files byte for byte, but for 6.2.0
-and 6.0.0-B4, whose files were not preserved:
-<https://gitlab.com/hmailserver/hmailserver/-/releases>, with the latest always at
+The project's home is <https://gitlab.com/hmailserver/hmailserver>, in the group `hmailserver` since 29 September 2026 (its
+first path on GitLab, `Progressiverobot/hmailserver`, redirects there). Its releases were published on GitHub until GitHub
+suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in older text now answers 404.
+Since 18 October 2026 the project is published on GitHub again, as a second home, at
+<https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository - `master` and
+every tag - and, at <https://github.com/RainbowWizard-coder/hMailServer/releases>, every release from 6.0.0-B1 to 6.3.7 with
+GitLab's files byte for byte, each checked against the SHA-256 that GitLab's package registry records for it (the notes of
+6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file, and GitHub writes "." where a
+file name has "~", so the per-distribution `.deb` files are renamed there), and the project's labels and milestones and
+Discussions; it has no Issues. GitLab stays canonical: a release is built, signed and published there first and then copied
+to GitHub, and the update feed, the package repositories and the container registry are GitLab's. GitHub's immutable-releases
+setting is on: a release published there with it on keeps its files and its tag as published, though its notes can still be
+edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of 18 October 2026;
+the copies of the releases before them, published before it, can still be changed. Every release up to 6.3.3 has been
+re-created on GitLab from the GitHub original, under its original date and with its files byte for byte, but for 6.2.0 and
+6.0.0-B4, whose files were not preserved: <https://gitlab.com/hmailserver/hmailserver/-/releases>, with the latest always at
 <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. A tag with no release is at
 `https://gitlab.com/hmailserver/hmailserver/-/tags/<tag>`.
 
@@ -329,6 +329,13 @@ with `--check`).
   verification at 01:32 UTC, and a moderator approved it at 11:56 UTC that day, so `choco install
   hmailserver-progressiverobot` installs it; on a clean Windows Server 2025 that afternoon it installed 6.3.7 from the
   release's signed installer, the service running, and `choco uninstall` removed it.
+
+- **The GitHub copies of 6.3.6 and 6.3.7 are said to be immutable.** SECURITY.md, RELEASE.md, EvidencePack.md and the
+  head of this file said that the copies published on GitHub on 18 October 2026 were made before its
+  immutable-releases setting was switched on and can still be changed, and that a release published with it on cannot
+  be changed; GitHub's API gives `immutable: true` for the copies of 6.3.6 (published at 05:26 UTC) and 6.3.7 (05:31
+  UTC) and `false` for every earlier one (6.3.5's at 05:24 UTC), and an immutable release keeps its files and its tag
+  while its notes can still be edited, as the notes of both were on 23 October 2026. The four texts now say so.
 
 - **The Linux packages name their maintainer by the project's address.** `debian/control`'s Maintainer, the trailer of
   `debian/changelog`'s one entry and of `README.Debian`, `debian/copyright`'s Upstream-Contact, the RPM spec's
