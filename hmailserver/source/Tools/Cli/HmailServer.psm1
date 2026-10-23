@@ -293,17 +293,33 @@ public static class HmailServerLoopbackCertificate
         $status = $null
         try { $status = [int] $record.Exception.Response.StatusCode } catch { $status = $null }
 
-        # The answer's own words: its JSON "error", or the text itself when it is not
-        # JSON (a proxy's page), as hmctl prints it. Read from $record: inside the
-        # catch below, $_ is the JSON parser's error, which has no details, so the
-        # text of an answer that was not JSON was lost.
+        # The answer's own words, read as hmctl reads them: a JSON object's "error",
+        # else its "message" (this server's refusals carry "error"; something in front
+        # of it may answer with "message" alone), and nothing more than the status for
+        # other JSON; the text itself only when the answer is not JSON (a proxy's
+        # page). The two names are looked up through PSObject.Properties because
+        # Set-StrictMode makes a missing one throw, which printed the whole JSON of an
+        # answer without "error". Read from $record: inside a catch, $_ is that catch's
+        # error, so the text of an answer that was not JSON was lost.
         $detail = $null
         if ($record.ErrorDetails -and $record.ErrorDetails.Message) {
-            try {
-                $detail = ($record.ErrorDetails.Message | ConvertFrom-Json -ErrorAction Stop).error
+            $answer = [string] $record.ErrorDetails.Message
+            $parsed = $null
+            $isJson = $true
+            try { $parsed = ConvertFrom-Json -InputObject $answer -ErrorAction Stop }
+            catch { $isJson = $false }
+
+            if (-not $isJson) {
+                $detail = $answer.Trim()
             }
-            catch {
-                $detail = $record.ErrorDetails.Message.Trim()
+            elseif ($answer.TrimStart().StartsWith('{') -and $parsed -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($name in 'error', 'message') {
+                    $field = $parsed.PSObject.Properties[$name]
+                    if ($field -and $field.Value) {
+                        $detail = [string] $field.Value
+                        break
+                    }
+                }
             }
         }
 

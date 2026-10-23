@@ -228,22 +228,30 @@ with `--check`).
   `Bin` - passed to the decision, with twelve negative controls more.
 
 - **Fixed: the PowerShell module says why a call failed when it got no answer under Windows PowerShell 5.1, and
-  prints the text of an answer that is not JSON.** Under 5.1 a request that gets no HTTP answer - a server certificate
-  the machine does not trust, nothing listening on the port - raises a `WebException` with no response, and
-  `Invoke-HmApi` caught it and said "GET /api/v1/domains failed." alone, so that an untrusted certificate and a server
-  that is down read the same; PowerShell 7 raises an `HttpRequestException`, which the module throws as it is, with the
-  system's reason. Under both, the text of an answer that was not JSON, a proxy's page, was read inside the catch of
-  the failed JSON parse, where `$_` is the parser's error, which has none, so "failed (502)." was all that was said.
-  The module now gives the exception's message and its inner exceptions' for no answer, "GET /api/v1/domains failed:
-  The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel; The
-  remote certificate is invalid according to the validation procedure.", and the answer's text after the status, as
-  `hmctl` prints it. Found on 23 October 2026 by `HmailServer` 6.3.7 installed from the PowerShell Gallery on Windows
-  PowerShell 5.1 against a 6.3.7 server whose certificate the machine did not yet trust; the module of the tree said
-  the sentence above on the same machine against the same server, and the reason for a port nothing listens on.
-  `build/check-cli.py` holds both, under every PowerShell the machine running it has - pwsh in the `cli-powershell`
-  job, Windows PowerShell 5.1 beside it on a Windows desk - and `hmctl` to the same text: against the module before the
-  change, its three new module checks failed on a Windows desk (the text under both, no answer under 5.1), and with it
-  all 1,624 checks passed.
+  prints the text of an answer that is not JSON and the `message` of JSON without `error`.** Under 5.1 a request
+  that gets no HTTP answer - a server certificate the machine does not trust, nothing listening on the port - raises
+  a `WebException` with no response, and `Invoke-HmApi` caught it and said "GET /api/v1/domains failed." alone, so
+  that an untrusted certificate and a server that is down read the same; PowerShell 7 raises an
+  `HttpRequestException`, which the module throws as it is, with the system's reason. Under both, the text of an
+  answer that was not JSON, a proxy's page, was read inside the catch of the failed JSON parse, where `$_` is the
+  parser's error, which has none, so "failed (502)." was all that was said; and JSON without `error` gave the status
+  alone, its `message` lost to the missing property `Set-StrictMode` throws for. The module now gives the exception's
+  message and its inner exceptions' for no answer, "GET /api/v1/domains failed: The underlying connection was closed:
+  Could not establish trust relationship for the SSL/TLS secure channel; The remote certificate is invalid according
+  to the validation procedure.", and reads an answer as `hmctl` reads it: a JSON object's `error`, else its
+  `message`, else the status alone, and the text itself only when the answer is not JSON (this server's own refusals
+  carry `error`; the others come from something in front of it). Found on 23 October 2026 by `HmailServer` 6.3.7
+  installed from the PowerShell Gallery on Windows PowerShell 5.1 against a 6.3.7 server whose certificate the
+  machine did not yet trust; the module of the tree said the sentence above on the same machine against the same
+  server, and the reason for a port nothing listens on. `build/check-cli.py` holds both, under every PowerShell the
+  machine running it has - pwsh in the `cli-powershell` job, Windows PowerShell 5.1 beside it on a Windows desk - and
+  `hmctl` to the same answers: the text; JSON with `message` alone and JSON with neither, never printed as JSON; a
+  port nothing listens on; and a loopback TLS listener with a throwaway self-signed certificate, which the check makes
+  with Python's standard library and which the module must refuse without `-Insecure`, before it sends a request
+  and the credential in it, with the system's reason - under 5.1 its inner exceptions' words as well, so that a module
+  that kept the outer message alone, which says little, fails. A client that trusts the certificate completes a
+  handshake with the same listener, so that what the module refuses is the trust. Against the module before the
+  change six of those checks failed on a Windows desk, and with it they all pass.
 
 ### Downloads and the release
 

@@ -41,10 +41,16 @@ import argparse
 import atexit
 import base64
 import csv
+import datetime
+import hashlib
 import json
+import math
 import os
 import re
+import secrets
 import shutil
+import socket
+import ssl
 import subprocess
 import tempfile
 import sys
@@ -684,6 +690,15 @@ REPORT_CSV = ("day,domain,incoming,outgoing\r\n"
 TEXT_REFUSAL_PATH = "/api/v1/domains/behind-a-proxy.example"
 TEXT_REFUSAL = (502, "Bad gateway: the upstream server did not answer")
 
+# Refusals in JSON without "error", which this server's own always carry: what
+# something in front of it may answer. Both clients read "message" when there is no
+# "error", and give the status alone for JSON with neither - never the JSON itself,
+# which these send indented, over several lines, as such an answer may come.
+JSON_REFUSALS = {
+    "/api/v1/domains/busy.example": (409, {"message": "the domain is busy"}),
+    "/api/v1/domains/bare.example": (409, {"state": "busy", "retry": True}),
+}
+
 
 class Recorder(BaseHTTPRequestHandler):
     requests = []
@@ -728,6 +743,16 @@ class Recorder(BaseHTTPRequestHandler):
             payload = TEXT_REFUSAL[1].encode("utf-8")
             self.send_response(TEXT_REFUSAL[0])
             self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if method == "GET" and path in JSON_REFUSALS:
+            code, refusal = JSON_REFUSALS[path]
+            payload = json.dumps(refusal, indent=2).encode("utf-8")
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)
@@ -810,6 +835,16 @@ PROBLEMS = []
 CHECKS = [0]
 
 ROTATION_OWNED_KEYS = ("dkim_selector", "dkim_private_key_file", "dkim_secondary_selector", "dkim_secondary_private_key_file")
+
+
+def every_powershell():
+    """pwsh and Windows PowerShell, each that is on the path, once each."""
+    shells = []
+    for name in ("pwsh", "powershell"):
+        found = shutil.which(name)
+        if found and os.path.realpath(found) not in shells:
+            shells.append(os.path.realpath(found))
+    return shells
 
 
 def problem(message):
@@ -1205,6 +1240,14 @@ def run_python_refusals(url):
     check(completed.returncode == 1 and TEXT_REFUSAL[1] in completed.stderr,
           "hmctl domain get answered %d with a text body should print the text, exited %d and said: %s%s"
           % (TEXT_REFUSAL[0], completed.returncode, completed.stdout, completed.stderr))
+
+    # JSON without "error": its "message", else the status alone, and never the JSON.
+    for path, (code, refusal) in sorted(JSON_REFUSALS.items()):
+        completed = run(["domain", "get", path.rsplit("/", 1)[1]])
+        expected = refusal.get("message") or "HTTP %d" % code
+        check(completed.returncode == 1 and expected in completed.stderr and "{" not in completed.stderr,
+              "hmctl domain get answered %d with %s should print %r and not the JSON, exited %d and said: %s%s"
+              % (code, json.dumps(refusal), expected, completed.returncode, completed.stdout, completed.stderr))
 
     # A profile that closes a listener, applied without --confirm: refused, with
     # nothing sent but the one request, and the entries and the flag named.
@@ -1801,53 +1844,262 @@ def run_powershell_cases(url, verbose):
     return True
 
 
-def run_powershell_reasons(url):
+def throwaway_certificate(directory):
+    """A self-signed certificate for 127.0.0.1 and localhost and its RSA key, valid for
+    a day, made with the standard library alone - so that the case needs no openssl,
+    and no package Python does not have - and written into the directory as PEM.
+    Returns the two paths. Nothing trusts it, and it goes with the directory."""
+    small_primes = [p for p in range(3, 2000, 2) if all(p % f for f in range(3, int(p ** 0.5) + 1, 2))]
+
+    def probably_prime(n):
+        for p in small_primes:
+            if n % p == 0:
+                return n == p
+        d, s = n - 1, 0
+        while d % 2 == 0:
+            d, s = d // 2, s + 1
+        for _ in range(32):
+            x = pow(secrets.randbelow(n - 3) + 2, d, n)
+            if x in (1, n - 1):
+                continue
+            for _ in range(s - 1):
+                x = pow(x, 2, n)
+                if x == n - 1:
+                    break
+            else:
+                return False
+        return True
+
+    def prime(bits):
+        while True:
+            # The top two bits set, so that two of them multiply to twice the bits.
+            candidate = secrets.randbits(bits) | (3 << (bits - 2)) | 1
+            if probably_prime(candidate):
+                return candidate
+
+    e = 65537
+    while True:
+        p, q = prime(1024), prime(1024)
+        if p != q and math.gcd(e, (p - 1) * (q - 1)) == 1:
+            break
+    n = p * q
+    d = pow(e, -1, (p - 1) * (q - 1))
+
+    # DER, as much of it as a certificate and an RSA key need.
+    def der(tag, body):
+        if len(body) < 0x80:
+            return bytes([tag, len(body)]) + body
+        size = len(body).to_bytes((len(body).bit_length() + 7) // 8, "big")
+        return bytes([tag, 0x80 | len(size)]) + size + body
+
+    def integer(value):
+        return der(0x02, value.to_bytes(value.bit_length() // 8 + 1, "big"))
+
+    def sequence(*parts):
+        return der(0x30, b"".join(parts))
+
+    def oid(dotted):
+        numbers = [int(part) for part in dotted.split(".")]
+        body = bytes([40 * numbers[0] + numbers[1]])
+        for number in numbers[2:]:
+            chunk = [number & 0x7F]
+            number >>= 7
+            while number:
+                chunk.insert(0, 0x80 | (number & 0x7F))
+                number >>= 7
+            body += bytes(chunk)
+        return der(0x06, body)
+
+    def utc_time(moment):
+        return der(0x17, moment.strftime("%y%m%d%H%M%SZ").encode("ascii"))
+
+    null = b"\x05\x00"
+    sha256_with_rsa = sequence(oid("1.2.840.113549.1.1.11"), null)
+    name = sequence(der(0x31, sequence(oid("2.5.4.3"), der(0x0C, b"check-cli untrusted listener"))))
+    now = datetime.datetime.now(datetime.timezone.utc)
+    validity = sequence(utc_time(now - datetime.timedelta(hours=1)), utc_time(now + datetime.timedelta(days=1)))
+    public_key = sequence(sequence(oid("1.2.840.113549.1.1.1"), null),
+                          der(0x03, b"\x00" + sequence(integer(n), integer(e))))
+    # As a new installation's own: not a CA, a TLS server's key usages, its names.
+    extensions = der(0xA3, sequence(
+        sequence(oid("2.5.29.19"), der(0x01, b"\xff"), der(0x04, sequence())),
+        sequence(oid("2.5.29.15"), der(0x01, b"\xff"), der(0x04, der(0x03, b"\x05\xa0"))),
+        sequence(oid("2.5.29.37"), der(0x04, sequence(oid("1.3.6.1.5.5.7.3.1")))),
+        sequence(oid("2.5.29.17"), der(0x04, sequence(der(0x82, b"localhost"), der(0x87, bytes([127, 0, 0, 1])))))))
+    to_be_signed = sequence(der(0xA0, integer(2)), integer(secrets.randbits(63) | 1), sha256_with_rsa, name,
+                            validity, name, public_key, extensions)
+
+    # RSASSA-PKCS1-v1_5 over SHA-256 (RFC 8017, 8.2 and 9.2).
+    digest_info = sequence(sequence(oid("2.16.840.1.101.3.4.2.1"), null),
+                           der(0x04, hashlib.sha256(to_be_signed).digest()))
+    width = (n.bit_length() + 7) // 8
+    encoded = b"\x00\x01" + b"\xff" * (width - len(digest_info) - 3) + b"\x00" + digest_info
+    signature = pow(int.from_bytes(encoded, "big"), d, n).to_bytes(width, "big")
+    certificate = sequence(to_be_signed, sha256_with_rsa, der(0x03, b"\x00" + signature))
+    key = sequence(integer(0), integer(n), integer(e), integer(d), integer(p), integer(q),
+                   integer(d % (p - 1)), integer(d % (q - 1)), integer(pow(q, -1, p)))
+
+    def pem(label, data):
+        text = base64.b64encode(data).decode("ascii")
+        lines = [text[i:i + 64] for i in range(0, len(text), 64)]
+        return "-----BEGIN %s-----\n%s\n-----END %s-----\n" % (label, "\n".join(lines), label)
+
+    certificate_path = os.path.join(directory, "untrusted-certificate.pem")
+    key_path = os.path.join(directory, "untrusted-key.pem")
+    with open(certificate_path, "w", encoding="ascii", newline="\n") as handle:
+        handle.write(pem("CERTIFICATE", certificate))
+    with open(key_path, "w", encoding="ascii", newline="\n") as handle:
+        handle.write(pem("RSA " + "PRIVATE KEY", key))
+    return certificate_path, key_path
+
+
+def untrusted_tls_listener(directory):
+    """A TLS listener on the loopback with throwaway_certificate's certificate, which
+    nothing on this machine trusts. Returns its URL, a function that stops it, what it
+    saw - the connections made to it, the TLS handshakes completed, and the requests
+    that arrived over one, each of which would carry a credential - and the
+    certificate's path. A handshake can complete with a certificate the client then
+    refuses: Windows' TLS finishes the handshake and .NET judges the certificate after
+    it. A request is what must not come."""
+    certificate, key = throwaway_certificate(directory)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certificate, key)
+    listening = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listening.bind(("127.0.0.1", 0))
+    listening.listen(8)
+    listening.settimeout(0.5)
+    seen = {"connections": 0, "handshakes": 0, "requests": 0}
+    stopping = threading.Event()
+
+    def serve():
+        while not stopping.is_set():
+            try:
+                connection, _ = listening.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                return
+            seen["connections"] += 1
+            connection.settimeout(30)
+            try:
+                with context.wrap_socket(connection, server_side=True) as tls:
+                    seen["handshakes"] += 1
+                    if tls.recv(1):
+                        seen["requests"] += 1
+            except OSError:
+                pass
+            finally:
+                connection.close()
+
+    thread = threading.Thread(target=serve, daemon=True)
+    thread.start()
+
+    def stop():
+        stopping.set()
+        thread.join(5)
+        listening.close()
+
+    return "https://127.0.0.1:%d" % listening.getsockname()[1], stop, seen, certificate
+
+
+def run_powershell_reasons(url, tmp):
     """Why a call failed, in the module's words, under every PowerShell this machine
     has - Windows PowerShell 5.1 beside pwsh where both are here, since the two raise
     different exceptions for the same failure. A refusal that is not JSON (a proxy's
-    text) is printed with its text, as hmctl prints it; a call that got no answer at
-    all (nothing listening, as for a server that is down, a name that does not
-    resolve or a certificate this machine does not trust) says why. Until the
+    text) is printed with its text, and JSON without "error" with its "message" or the
+    status alone, as hmctl prints them; a call that got no answer at all says why:
+    nothing listening (a server that is down), and a certificate this machine does not
+    trust, which the module must refuse without -Insecure and before it sends the
+    credential. Windows PowerShell 5.1 raises a WebException, whose own message says
+    little ("Unable to connect to the remote server", "The underlying connection was
+    closed: Could not establish trust relationship for the SSL/TLS secure channel"):
+    the reason is in its inner exceptions ("No connection could be made because the
+    target machine actively refused it", "The remote certificate is invalid according
+    to the validation procedure"), which the module must give too, joined by "; ".
+    PowerShell 7 raises an HttpRequestException ("The SSL connection could not be
+    established, see inner exception."), which the module throws as it is. Until the
     release after 6.3.7 the module lost the text under both, and said "GET
-    /api/v1/domains failed." alone for no answer under Windows PowerShell 5.1."""
-    shells = []
-    for name in ("pwsh", "powershell"):
-        found = shutil.which(name)
-        if found and found not in shells:
-            shells.append(found)
+    /api/v1/domains failed." alone for no answer under Windows PowerShell 5.1. The
+    5.1 words are an English Windows'."""
+    shells = every_powershell()
 
     # A port nothing listens on: bound here and let go, so that nothing else has it
     # a moment later.
-    import socket
     probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     probe.bind(("127.0.0.1", 0))
     closed = "http://127.0.0.1:%d" % probe.getsockname()[1]
     probe.close()
 
-    def run(shell, server, script):
-        full = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
-                "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
-                "try { %s } catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }"
-                % (MODULE.replace("'", "''"), server, PASSWORD, script))
-        completed = subprocess.run([shell, "-NoProfile", "-NonInteractive", "-Command", full],
-                                   capture_output=True, text=True, timeout=120)
-        # Folded to single spaces, as run_powershell_config_cases folds it.
-        completed.stderr = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", completed.stderr or "").split())
-        return completed
+    untrusted, stop_listener, seen, certificate = untrusted_tls_listener(tmp)
+    try:
+        # The listener itself, for a client that trusts its certificate: so that what
+        # the module is refused below is the certificate's trust and nothing else.
+        trusting = ssl.create_default_context(cafile=certificate)
+        with socket.create_connection(("127.0.0.1", int(untrusted.rsplit(":", 1)[1])), timeout=30) as plain:
+            with trusting.wrap_socket(plain, server_hostname="127.0.0.1"):
+                # Held open until the listener has finished its side, which in TLS
+                # 1.3 ends after the client's, with the session tickets it sends.
+                for _ in range(200):
+                    if seen["handshakes"]:
+                        break
+                    threading.Event().wait(0.05)
+        check(seen["handshakes"] == 1 and seen["requests"] == 0,
+              "the untrusted listener should have completed one handshake with a client that trusts its certificate, "
+              "and taken no request: %d handshake(s), %d request(s)" % (seen["handshakes"], seen["requests"]))
 
-    for shell in shells:
-        label = os.path.basename(shell)
-        completed = run(shell, url, "Get-HmDomain -Name '%s' | Out-Null" % TEXT_REFUSAL_PATH.rsplit("/", 1)[1])
-        check(completed.returncode == 1 and "(%d)" % TEXT_REFUSAL[0] in completed.stderr
-              and TEXT_REFUSAL[1] in completed.stderr,
-              "%s: Get-HmDomain answered %d with a text body should say the status and the text, exited %d and said: %s"
-              % (label, TEXT_REFUSAL[0], completed.returncode, completed.stderr[:400]))
+        def run(shell, server, script):
+            full = ("$ErrorActionPreference='Stop'; Import-Module '%s' -Force; "
+                    "Connect-HmServer -Url '%s' -Password (ConvertTo-SecureString '%s' -AsPlainText -Force) | Out-Null; "
+                    "try { %s } catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }"
+                    % (MODULE.replace("'", "''"), server, PASSWORD, script))
+            completed = subprocess.run([shell, "-NoProfile", "-NonInteractive", "-Command", full],
+                                       capture_output=True, text=True, timeout=120)
+            # Folded to single spaces, as run_powershell_config_cases folds it.
+            completed.stderr = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", completed.stderr or "").split())
+            return completed
 
-        completed = run(shell, closed, "Get-HmDomain | Out-Null")
-        check(completed.returncode == 1 and completed.stderr.strip() != "GET /api/v1/domains failed."
-              and re.search(r"connect|refused", completed.stderr, re.IGNORECASE),
-              "%s: Get-HmDomain against %s, where nothing listens, should say why it got no answer, exited %d and said: %s"
-              % (label, closed, completed.returncode, completed.stderr[:400]))
+        for shell in shells:
+            label = os.path.basename(shell)
+            desktop = os.name == "nt" and label.lower().startswith("powershell")
+
+            completed = run(shell, url, "Get-HmDomain -Name '%s' | Out-Null" % TEXT_REFUSAL_PATH.rsplit("/", 1)[1])
+            check(completed.returncode == 1 and "(%d)" % TEXT_REFUSAL[0] in completed.stderr
+                  and TEXT_REFUSAL[1] in completed.stderr,
+                  "%s: Get-HmDomain answered %d with a text body should say the status and the text, exited %d and said: %s"
+                  % (label, TEXT_REFUSAL[0], completed.returncode, completed.stderr[:400]))
+
+            for path, (code, refusal) in sorted(JSON_REFUSALS.items()):
+                completed = run(shell, url, "Get-HmDomain -Name '%s' | Out-Null" % path.rsplit("/", 1)[1])
+                expected = "failed (%d)%s." % (code, ": " + refusal["message"] if "message" in refusal else "")
+                check(completed.returncode == 1 and completed.stderr.endswith(expected) and "{" not in completed.stderr,
+                      "%s: Get-HmDomain answered %d with %s should end %r and not give the JSON, exited %d and said: %s"
+                      % (label, code, json.dumps(refusal), expected, completed.returncode, completed.stderr[:400]))
+
+            completed = run(shell, closed, "Get-HmDomain | Out-Null")
+            reason = (re.search(r"actively refused", completed.stderr, re.IGNORECASE) and "; " in completed.stderr
+                      if desktop else re.search(r"connect|refused", completed.stderr, re.IGNORECASE))
+            check(completed.returncode == 1 and completed.stderr.strip() != "GET /api/v1/domains failed." and reason,
+                  "%s: Get-HmDomain against %s, where nothing listens, should say why it got no answer%s, exited %d "
+                  "and said: %s" % (label, closed, " - the inner exception's words too" if desktop else "",
+                                    completed.returncode, completed.stderr[:400]))
+
+            before, requests = seen["connections"], seen["requests"]
+            completed = run(shell, untrusted, "Get-HmDomain | Out-Null")
+            if desktop:
+                reason = ("trust relationship" in completed.stderr
+                          and "remote certificate is invalid" in completed.stderr and "; " in completed.stderr)
+            else:
+                reason = "SSL connection could not be established" in completed.stderr
+            check(completed.returncode == 1 and reason,
+                  "%s: Get-HmDomain against %s, whose certificate this machine does not trust, should say so%s, "
+                  "exited %d and said: %s" % (label, untrusted, " - the inner exception's words too" if desktop else "",
+                                              completed.returncode, completed.stderr[:400]))
+            check(seen["connections"] > before and seen["requests"] == requests,
+                  "%s: Get-HmDomain against %s should have reached the listener and refused its certificate before "
+                  "sending a request, which carries the credential: %d connection(s), %d request(s)"
+                  % (label, untrusted, seen["connections"] - before, seen["requests"] - requests))
+    finally:
+        stop_listener()
 
 
 def run_config_cases(url, tmp):
@@ -2631,7 +2883,7 @@ def main():
             if powershell_ran:
                 run_powershell_config_cases(url, tmp, arguments.verbose)
                 run_powershell_import_cases(url, tmp)
-                run_powershell_reasons(url)
+                run_powershell_reasons(url, tmp)
     finally:
         server.shutdown()
         shutil.rmtree(tmp, ignore_errors=True)
