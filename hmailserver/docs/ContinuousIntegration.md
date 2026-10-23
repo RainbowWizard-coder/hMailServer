@@ -5629,12 +5629,12 @@ gives the copy 5.7:
 | Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing, License, Pinned-Dependencies, Security-Policy, Token-Permissions | 10 | No binary tracked; no workflow pattern Scorecard counts as dangerous; Renovate (`renovate.json`); the libFuzzer harnesses under `fuzz/`; `LICENSE`; every action pinned by commit and every image by digest; `SECURITY.md`; every workflow's token read-only but for its job's own writes. They stay 10 (*Measured on the tree*, below) |
 | Branch-Protection | 3 | `master`'s rules then forbade its deletion and a force push, and required no pull request, review or status check. Since 20 October 2026 a ruleset requires a pull request with two approvals, the code owner's among them, and CodeQL's check on an up-to-date branch ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)): Scorecard 5.6.0, run that day with the owner's token, gave 9. The one warning left, that the rules do not apply to administrators, stays: Scorecard reads a ruleset that any role may bypass as one that administrators are not held to, and the push mirror writes `master` as the repository's administrator, past those rules, as it must |
 | SAST | 0 | "No SAST tool detected": the default setup analysed every push, but has no workflow file, and the copy has no merged pull request through whose checks Scorecard could see it. 10 once `codeql.yml` is on `master` |
-| Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). With both on `master`, scorecard.dev's run of 21 October 2026 (01:01 UTC, at `5e49abf06`) gave 9 rather than 10, for an advisory OSV published the evening before: PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2) against certifi 2026.7.22, which `build/ci/requirements.txt` and `build/ci/cli-packages-requirements.txt` pinned. Both now pin certifi 2026.10.19, the version that fixes it |
+| Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). With both on `master`, scorecard.dev's run of 21 October 2026 (01:01 UTC, at `5e49abf06`) gave 9 rather than 10, for an advisory OSV published the evening before: PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2) against certifi 2026.7.22, which `build/ci/requirements.txt` and `build/ci/cli-packages-requirements.txt` pinned. Both now pin certifi 2026.10.19, the version that fixes it. Its run of 22 October 2026 (22:59 UTC, at `6fb8164c6`) gave 9 again, for GHSA-xcq7-p3pf-p88h (CVE-2026-114603), published that day, against opentelemetry-api 1.37.0, which no Semgrep release yet lets the job move past; it is declared `not_affected` too, and `build/ci/osv-scanner.toml` carries that statement as well (below) |
 | Signed-Releases | 4 | Below |
 | Code-Review, Maintained, CII-Best-Practices, Contributors | 0 | Below |
 | CI-Tests, Packaging | Inconclusive | Below |
 
-**The advisory the VEX document declares, and OSV-Scanner.** Scorecard's
+**The advisories the VEX document declares, and OSV-Scanner.** Scorecard's
 Vulnerabilities check runs OSV-Scanner over the tree, with no VEX document, and
 OSV-Scanner reads the `osv-scanner.toml` in the directory of each manifest it
 scans. Semgrep 1.181.0, the newest release on PyPI on 20 October 2026, pins mcp
@@ -5643,7 +5643,17 @@ GHSA-84m7-p3x7-pcfv (CVE-2026-59951), fixed in 1.30.0, is declared `not_affected
 in `.gitlab/hmailserver.openvex.json`: the job never starts Semgrep's MCP server
 ([SECURITY.md](../../SECURITY.md#declaring-a-finding-not-exploitable)).
 `build/ci/osv-scanner.toml` ignores it, with that reason, until 20 January 2027,
-and the entry goes when a Semgrep release allows mcp 1.30.0 or later. The VEX
+and the entry goes when a Semgrep release allows mcp 1.30.0 or later. Semgrep
+1.181.0 also requires `opentelemetry-api~=1.37.0`, and no Semgrep release allows
+1.45.1, which fixes GHSA-xcq7-p3pf-p88h (CVE-2026-114603), published on 22
+October 2026: the time `TraceState.from_header` takes over an inbound
+`tracestate` header, quadratic in its length. Each release that names
+opentelemetry-api requires `~=1.25.0` or `~=1.37.0`, and 1.182.1, the newest on
+23 October 2026, `~=1.37.0`. That advisory is declared `not_affected` as well:
+the job takes no header from anyone, and Semgrep's one call of the propagator,
+made only under `--trace`, which the job does not pass, gives it a `traceparent`
+alone. The file ignores it until 23 January 2027, and the entry goes when a
+Semgrep release allows opentelemetry-api 1.45.1 or later. Each VEX
 statement is the project's record of the decision, and the file only carries it
 to OSV-Scanner: `build/check-osv-ignores.py`, which `checkers` runs, fails the
 tree when an entry names an advisory that no `not_affected` statement names by
@@ -5663,6 +5673,11 @@ Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing,
 Pinned-Dependencies, Security-Policy and Token-Permissions. License reads 9 in a
 local run, which finds `LICENSE` but has no forge to name its licence ("project
 license file does not contain an FSF or OSI license"), and 10 on scorecard.dev.
+Run the same way on 23 October 2026, its Vulnerabilities check gave `master`'s
+tree at `6fb8164c6` 9 ("Project is vulnerable to:
+`https://osv.dev/GHSA-xcq7-p3pf-p88h`", as scorecard.dev's run had the night
+before) and the tree with opentelemetry-api 1.37.0's entry 10 ("0 existing
+vulnerabilities detected").
 
 **What does not move, and why.**
 

@@ -4,8 +4,8 @@
   "author": "The hMailServer maintainers, Progressive Robot Ltd",
   "role": "Project maintainers",
   "timestamp": "2026-09-12T03:00:00Z",
-  "last_updated": "2026-10-20T15:55:00Z",
-  "version": 11,
+  "last_updated": "2026-10-23T15:00:00Z",
+  "version": 12,
   "tooling": "Written by hand; one statement per advisory dismissed as not affecting the project, as SECURITY.md (Vulnerability management policy) requires. No statements means every advisory raised against a component of this project has been fixed rather than dismissed.",
   "statements": [
     {
@@ -196,6 +196,27 @@
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
       "impact_statement": "mcp 1.29.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.181.0, which pins it to mcp==1.29.0. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. Semgrep serves MCP only from its `semgrep mcp` command, whose streamable-http transport starts the server this advisory is about (semgrep/commands/mcp.py); the job runs Semgrep twice, as `semgrep --version` and as `semgrep scan --metrics off --disable-version-check --oss-only` with the rules it has fetched (build/ci/semgrep.sh), and neither starts an MCP server or listens on a port, so the session store the advisory is in is never created. mcp moves to 1.30.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114603",
+        "aliases": [
+          "GHSA-xcq7-p3pf-p88h"
+        ],
+        "description": "An advisory against opentelemetry-api up to 1.45.0 (moderate), fixed in 1.45.1: TraceState.from_header splits an inbound W3C tracestate header with a regular expression that begins with an unbounded run of optional whitespace, and checks no length first, so a run of spaces or tabs that no comma follows costs CPU time quadratic in its length, and a server that takes trace context from its requests' headers can be kept busy by one request. Published by GitHub and OSV on 22 October 2026, and counted against build/ci/requirements.txt by OpenSSF Scorecard's Vulnerabilities check on the copy on GitHub that day; the dependency-scan job rates it Medium, and does not hold a release on a medium advisory."
+      },
+      "timestamp": "2026-10-23T15:00:00Z",
+      "products": [
+        {
+          "@id": "pkg:pypi/opentelemetry-api@1.37.0",
+          "identifiers": {
+            "purl": "pkg:pypi/opentelemetry-api@1.37.0"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "opentelemetry-api 1.37.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.181.0, which requires opentelemetry-api~=1.37.0. No semgrep release allows 1.45.1: each one that names opentelemetry-api requires ~=1.25.0 or ~=1.37.0, and 1.182.1 of 22 October 2026, the newest, ~=1.37.0 (PyPI, read on 23 October 2026). No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. TraceState.from_header (opentelemetry/trace/span.py), the function the advisory is in, is called only by TraceContextTextMapPropagator.extract, and only when the carrier it is given holds a valid traceparent and a tracestate (opentelemetry/trace/propagation/tracecontext.py). In that environment three places give a carrier to the propagators: semgrep's Telemetry.extract (semgrep/telemetry.py), which Telemetry.configure calls only when tracing is on - the --trace of `semgrep scan` and `semgrep ci`, off by default and set by no environment variable, or `semgrep mcp` - and whose carrier is a traceparent alone, made from the SEMGREP_TRACE_PARENT_TRACE_ID and SEMGREP_TRACE_PARENT_SPAN_ID environment variables, with no tracestate; and Starlette's OpenTelemetryMiddleware (starlette/middleware/opentelemetry.py) and opentelemetry-instrumentation's _start_internal_or_server_span (opentelemetry/instrumentation/utils.py), the two that would take a request's headers, which nothing there uses. The job runs Semgrep twice, as `semgrep --version` and as `semgrep scan --metrics off --disable-version-check --oss-only` with the rules it has fetched (build/ci/semgrep.sh), with no --trace, and neither listens on a port or takes a header from anyone. Measured on 23 October 2026 in the job's image, with a hook on TraceState.from_header and TraceContextTextMapPropagator.extract: build/ci/semgrep.sh gave the job's 125 findings and called neither; `semgrep scan --trace` with those two variables set called extract once, with a traceparent alone, and not from_header; and a tracestate given to the propagator reached from_header, at a cost that grew with the square of its length (0.008 s for 4,000 spaces, 0.485 s for 32,000). opentelemetry-api moves to 1.45.1 or later with the first semgrep release that allows it (build/ci/requirements.in)."
     }
   ]
 }

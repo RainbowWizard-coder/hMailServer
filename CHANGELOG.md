@@ -682,6 +682,29 @@ with `--check`).
   entries, such as a package override that would hide a package's advisories with no id; CONTRIBUTING.md lists it with
   the other checkers.
 
+- **The VEX document declares the semgrep job's opentelemetry-api 1.37.0 not affected by GHSA-xcq7-p3pf-p88h
+  (CVE-2026-114603), and `build/ci/osv-scanner.toml` carries the statement to OpenSSF Scorecard's Vulnerabilities
+  check.** The advisory, published by GitHub and OSV on 22 October 2026 and rated moderate, is the time
+  `TraceState.from_header` takes over an inbound W3C `tracestate` header, quadratic in the length of a run of spaces or
+  tabs, in every opentelemetry-api to 1.45.0; 1.45.1 fixes it. `build/ci/requirements.txt` pins 1.37.0 because
+  Semgrep 1.181.0 requires `opentelemetry-api~=1.37.0`, and no Semgrep release allows 1.45.1: each that names the
+  package requires `~=1.25.0` or `~=1.37.0`, and 1.182.1, the newest on PyPI on 23 October 2026, `~=1.37.0`. So the
+  pin cannot move, and the advisory is declared instead (`not_affected`, `vulnerable_code_not_in_execute_path`):
+  `from_header` runs only when the trace-context propagator is given a carrier that holds a `tracestate`, and in the
+  job's environment Semgrep's one call of the propagator, made only under `--trace`, which the job does not pass and no
+  environment variable turns on, gives it a `traceparent` alone, while the two callers that would take a request's
+  headers, Starlette's `OpenTelemetryMiddleware` and opentelemetry-instrumentation's `_start_internal_or_server_span`,
+  are used by nothing there. In the job's image, with a hook on `from_header` and its one caller, `build/ci/semgrep.sh`
+  gave its 125 findings and called neither, `semgrep scan --trace` called the propagator once with a `traceparent`
+  alone, and a `tracestate` given to the propagator reached `from_header`, in 0.008 s for 4,000 spaces and 0.485 s for
+  32,000. The file's entry ignores the advisory until 23 January 2027 and goes when a Semgrep release allows
+  opentelemetry-api 1.45.1 or later. Scorecard 5.6.0's Vulnerabilities check, run with `--local` on 23 October 2026,
+  gives `master`'s tree 9, for this advisory, as scorecard.dev's run of 22 October at `6fb8164c6` did, and the tree
+  with the entry 10. `dependency-scan` rates it Medium, which fails no verdict and holds no release: run in the job's
+  Trivy image, it lists it as a live finding against `build/ci/requirements.txt`, in GitLab's report too, without the
+  statement, and as dismissed in the VEX document with it; with the advisory rated High in Trivy's report, its verdict
+  fails without the statement and passes with it.
+
 - **The VEX document declares the vendored zlib 1.3.2 not affected by CVE-2026-85091, a heap buffer overflow in
   `gz_vacate`.** OSV's record of the advisory (GHSA-g5fp-32jq-cfw2) gives zlib 1.3.1.2 to 1.3.2, no fixed version and
   a CVSS 4.0 vector alone, which rates it 8.3, High; `dependency-scan` listed it against

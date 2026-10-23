@@ -29,3 +29,9 @@
 id = "GHSA-84m7-p3x7-pcfv"
 ignoreUntil = 2027-01-20
 reason = "mcp 1.29.0 is installed only into the semgrep CI job's own virtual environment, as a dependency of semgrep 1.181.0, which pins it, and the job never starts Semgrep's MCP server (the not_affected statement in .gitlab/hmailserver.openvex.json); the entry goes when a semgrep release allows mcp 1.30.0 or later."
+
+[[IgnoredVulns]]
+# CVE-2026-114603: opentelemetry-api 1.37.0's TraceState.from_header takes time quadratic in a tracestate's length.
+id = "GHSA-xcq7-p3pf-p88h"
+ignoreUntil = 2027-01-23
+reason = "opentelemetry-api 1.37.0 is installed only into the semgrep CI job's own virtual environment, as a dependency of semgrep 1.181.0, which requires opentelemetry-api~=1.37.0, and the job never parses a tracestate header: TraceState.from_header runs only when the trace-context propagator is given a carrier that holds one, and Semgrep's one such call, made only under --trace, which the job does not pass, gives it a traceparent alone (the not_affected statement in .gitlab/hmailserver.openvex.json); the entry goes when a semgrep release allows opentelemetry-api 1.45.1 or later."
