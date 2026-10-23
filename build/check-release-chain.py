@@ -1590,26 +1590,80 @@ SLSA_CLAIMS = {
     "hmailserver/docs/ContinuousIntegration.md": "**The provenance's SLSA Build level.** Build L1 of SLSA v1.0",
     "hmailserver/docs/EvidencePack.md": "meets SLSA v1.0 Build L1 for every file it names, and no higher level is claimed",
 }
-# A higher level named, in any case: Build L2, L3 or L4, Build level 2 (or levels, or
-# track), SLSA L2, SLSA level 2, SLSA 2, SLSA-2 and SLSA2, each with the number or its
-# word (two, three, four: SLSA v0.1 had a fourth level); and the slsa.dev badge of
-# level 2, 3 or 4, whatever its text says.
-SLSA_LEVEL = r"(?:[234]|two|three|four)\b"
-SLSA_HIGHER = re.compile(r"\bSLSA[\s-]*(?:v1\.[0-9]\s+)?(?:build\s+)?(?:track\s+)?(?:L|levels?\s*)?" + SLSA_LEVEL +
-                         r"|\bbuild\s+(?:track\s+)?(?:L|levels?\s*)" + SLSA_LEVEL, re.IGNORECASE)
-SLSA_BADGE = re.compile(r"slsa\.dev/images/gh-badge-level[234]\b", re.IGNORECASE)
-# A level said not to be met: in the clause that names it - between the commas,
-# semicolons, colons, brackets or spaced dashes around it - "is not", "does not" and the
-# like, "not met", "not claimed", "nor", "neither" or "no higher"; or the level named
-# right after "not" or "nor" ("Build L1, not Build L2"). A "not" elsewhere in the
-# sentence, as in "Build L3 holds for every file, not only the installers", says
-# nothing of the level.
+# A level named, in any case, with a space, a hyphen or %20 (as in a badge's address)
+# wherever a space may stand (SLSA_MENTION): SLSA, then v1.x or 1.x, build and track,
+# each if there, then L or level(s) and the level, or its figure alone (SLSA 3, SLSA-3,
+# SLSA3); or Build, or build track, then L or level(s) and the level. And, where it is
+# in no such mention and its clause, or the clause before the bracket it stands in,
+# says SLSA, L or level(s) and the level alone (SLSA_BARE: "SLSA provenance at level
+# 3", "Level 3 SLSA provenance", "SLSA's level 3"). A level is a figure from 1 to 4, or
+# after L or level its word (SLSA v0.1 had a fourth); a list or range of levels that
+# runs on from one, by a comma, a slash, "and", "or", "nor", a hyphen or a dash, "to" or
+# "through", is one mention ("Build L1 and L2", "Build L2 nor Build L3", "Build L1-L3",
+# "SLSA levels 1 to 3"); and a mention names a higher level when one of its levels is
+# 2, 3 or 4 (slsa_names_higher). The slsa.dev badge of level 2, 3 or 4
+# (gh-badge-level3, SLSA-Badge-full-level3) is refused whatever its text says.
+SLSA_SEP = r"(?:%20|[\s-])"
+SLSA_LEVEL = r"(?:L" + SLSA_SEP + r"?|levels?" + SLSA_SEP + r"*)(?:[1-4]|one|two|three|four)\b"
+SLSA_RUN = (r"(?:" + SLSA_SEP + r"*(?:,|/|,?\s*\b(?:and|or|nor)\b)" + SLSA_SEP + r"*(?:SLSA" + SLSA_SEP + r"+)?(?:build" +
+            SLSA_SEP + r"+)?" + SLSA_LEVEL + r"|(?:[-\u2013\u2014/]|" + SLSA_SEP + r"+(?:to|through)" + SLSA_SEP + r"+)(?:" +
+            SLSA_LEVEL + r"|[1-4]\b))*")
+SLSA_MENTION = re.compile(r"\bSLSA" + SLSA_SEP + r"*(?:v?1\.[0-9]" + SLSA_SEP + r"+)?(?:build" + SLSA_SEP +
+                          r"+)?(?:track" + SLSA_SEP + r"+)?(?:" + SLSA_LEVEL + r"|[1-4]\b)" + SLSA_RUN +
+                          r"|\bbuild" + SLSA_SEP + r"+(?:track" + SLSA_SEP + r"+)?" + SLSA_LEVEL + SLSA_RUN, re.IGNORECASE)
+SLSA_BARE = re.compile(r"\b" + SLSA_LEVEL + SLSA_RUN, re.IGNORECASE)
+SLSA_BADGE = re.compile(r"slsa\.dev/images/[\w./%-]*?level[-_]?[234](?![0-9])", re.IGNORECASE)
+# A higher level is let through only when a negation is attached to it in the clause
+# that names it - between the commas, semicolons, colons, brackets or spaced dashes
+# around it. Right before it (slsa_negated_before): "not", "nor", "neither", "no",
+# "never" or n't, then nothing but words of SLSA_NEG_BEFORE's list ("meet", "reach",
+# "claim", "achieve", "satisfy" and "attain" in their forms, "at", "of", "even", "yet",
+# "to", "for", "the", "is", "are", "was", "were", "does", "do", "did", "has", "have"):
+# "does not meet Build L2", "not at Build L2", "nor is Build L3", "No Build L2 is
+# claimed"; or "short of" or "below" with no negation before them in the clause
+# (SLSA_ANY_NOT): "falls short of Build L2", where "nothing short of" and "not below"
+# are claims. Or right after it (SLSA_NEG_AFTER), after a colon, a bar, a bracket or a
+# dash if one stands there, and ", which" or "that" if there: "is not", "isn't", "are
+# not", "was not", "has not been", "cannot be", "will not be" and the like, then any of
+# "yet", "either", "even", "currently", "now", "here" and "today", then "met",
+# "claimed", "reached", "achieved", "attained", "satisfied" or "held" or the clause's
+# end ("Build L2 is not."); "does not", "doesn't" and the like with "hold" or "apply"
+# (not "hold back", "hold up" and the like) or the clause's end; "not met", "not
+# claimed", "not reached", "not achieved", "not held"; "unmet", "is unmet", "remains
+# unmet"; "no" at the clause's end ("| Build L2 | No |"); or "is", "are" or "remains"
+# out of or beyond reach ("Build L2: not met.", "Build L2, Build L3 and Build L4 are
+# not met."). A negation
+# about something else says nothing of the level, so "Build L3 holds for every file,
+# not only the installers", "We publish SLSA Build L3 provenance that is not
+# forgeable" and "Build L3 is not a goal but a fact" are each refused, and so is a
+# sentence that names a higher level and says nothing of it being met, such as "Build
+# L2 would need a hosted build platform".
 SLSA_CLAUSE_END = re.compile(r"[,;:()]|\s[-\u2013\u2014]\s")
-SLSA_NEGATED = re.compile(r"\b(?:(?:is|are|was|were|does|do|did)\s+not|not\s+(?:met|claimed)|nor|neither|no\s+higher)\b",
-                          re.IGNORECASE)
-SLSA_NOT_BEFORE = re.compile(r"\b(?:not|nor)\s+$", re.IGNORECASE)
-SLSA_AFFIRMED = re.compile(r"\b(?:meets?|met|achieves?|achieved|reach(?:es|ed)?|at|is|are)\s+(?:SLSA[\s-]*)?(?:v1\.[0-9]\s+)?"
-                           r"(?:build\s+)?(?:track\s+)?(?:L|levels?\s*)" + SLSA_LEVEL, re.IGNORECASE)
+SLSA_NOT = r"(?:\b(?:not|nor|neither|no|never)\b|n['\u2019]t\b)"
+SLSA_NEG_BEFORE = re.compile(SLSA_NOT + r"\s+(?:(?:meet|meets|meeting|reach|reaches|reaching|claim|claims|claiming|achieve|"
+                             r"achieves|achieving|satisfy|satisfies|satisfying|attain|attains|attaining|at|of|even|yet|to|"
+                             r"for|the|is|are|was|were|does|do|did|has|have)\s+)*$", re.IGNORECASE)
+SLSA_SHORT_OF = re.compile(r"\b(?:short\s+of|below)\s+(?:(?:meeting|reaching|achieving|satisfying|attaining|the)\s+)*$",
+                           re.IGNORECASE)
+SLSA_ANY_NOT = re.compile(r"\b(?:not|nor|neither|no|never|nothing|none|cannot)\b|n['\u2019]t\b", re.IGNORECASE)
+SLSA_NEG_AFTER = re.compile(
+    r"^\s*(?:[:|(\u2013\u2014-]\s*)?(?:,?\s*(?:which|that)\s+)?(?:"
+    r"(?:(?:is|are|was|were)(?:\s+not|n['\u2019]t)|(?:has|have)(?:\s+not|n['\u2019]t)\s+been|"
+    r"(?:cannot|can\s+not|can['\u2019]t|could\s+not|couldn['\u2019]t|will\s+not|won['\u2019]t)\s+be)"
+    r"(?:\s+(?:yet|either|even|currently|now|here|today))*"
+    r"(?:\s+(?:met|claimed|reached|achieved|attained|satisfied|held)\b|\s*(?=[.,;:)!?|]|$|\s[-\u2013\u2014]\s))"
+    r"|(?:does|do|did)(?:\s+not|n['\u2019]t)(?:\s+(?:yet|either|even|currently|now))*"
+    r"(?:\s+(?:hold|apply)\b(?!\s+(?:back|up|off|out|on)\b)|\s*(?=[.,;:)!?|]|$|\s[-\u2013\u2014]\s))"
+    r"|not\s+(?:yet\s+)?(?:met|claimed|reached|achieved|held)\b|(?:(?:is|are|was|were|remains?)\s+)?unmet\b"
+    r"|no\b(?=\s*(?:[.,;:)!?|]|$|\s[-–—]\s))"
+    r"|(?:is|are|remains?)\s+(?:out\s+of|beyond)\s+reach\b(?!\s+of\b))", re.IGNORECASE)
+# A higher level affirmed - "meets Build L2", "at SLSA level 3", "is Build L2" - is
+# refused unless the word that affirms it is itself negated right before it
+# (SLSA_NEG_BEFORE: "does not meet Build L2", "not at Build L2").
+SLSA_AFFIRMED = re.compile(r"\b(?:meets?|met|achieves?|achieved|reach(?:es|ed)?|at|is|are|satisf(?:y|ies|ied)|"
+                           r"attain(?:s|ed)?)\s+(?:SLSA" + SLSA_SEP + r"*)?(?:v?1\.[0-9]" + SLSA_SEP +
+                           r"+)?(?:build" + SLSA_SEP + r"+)?(?:track" + SLSA_SEP + r"+)?(?:L" + SLSA_SEP + r"?|levels?" +
+                           SLSA_SEP + r"*)(?:[234]|two|three|four)\b", re.IGNORECASE)
 
 
 def slsa_texts():
@@ -1630,25 +1684,67 @@ def slsa_texts():
     return texts
 
 
+def slsa_clause(sentence, start, end):
+    """The bounds of the clause of sentence that holds sentence[start:end]: from the
+    SLSA_CLAUSE_END before it to the one after it."""
+    first = 0
+    for bound in SLSA_CLAUSE_END.finditer(sentence, 0, start):
+        first = bound.end()
+    stop = SLSA_CLAUSE_END.search(sentence, end)
+    return first, stop.start() if stop else len(sentence)
+
+
+def slsa_names_higher(mention):
+    """Whether a mention (SLSA_MENTION or SLSA_BARE) has a level of 2, 3 or 4 among its
+    levels, its v1.x read as a version, not a level."""
+    text = re.sub(r"v?1\.[0-9]+", " ", mention.replace("%20", " "), flags=re.IGNORECASE)
+    return bool(re.search(r"(?<![0-9.])[234](?![0-9])|\b(?:two|three|four)\b", text, re.IGNORECASE))
+
+
+def slsa_higher_mentions(sentence):
+    """The matches in sentence that name a higher level: of SLSA_MENTION, and of
+    SLSA_BARE where it is in no SLSA_MENTION and its clause, or the clause before the
+    bracket it stands in ("SLSA provenance (L3)"), says SLSA."""
+    mentions = list(SLSA_MENTION.finditer(sentence))
+    for bare in SLSA_BARE.finditer(sentence):
+        if any(bare.start() < m.end() and m.start() < bare.end() for m in mentions):
+            continue
+        first, stop = slsa_clause(sentence, bare.start(), bare.end())
+        if first and sentence[first - 1] == "(":
+            first = slsa_clause(sentence, first - 1, first - 1)[0]
+        if re.search(r"\bSLSA", sentence[first:stop], re.IGNORECASE):
+            mentions.append(bare)
+    return [m for m in mentions if slsa_names_higher(m.group())]
+
+
+def slsa_negated_before(sentence, at):
+    """Whether the words right before sentence[at:], in its clause, negate it:
+    SLSA_NEG_BEFORE, or SLSA_SHORT_OF with no SLSA_ANY_NOT before it in the clause."""
+    before = sentence[slsa_clause(sentence, at, at)[0]:at]
+    short = SLSA_SHORT_OF.search(before)
+    return bool(SLSA_NEG_BEFORE.search(before) or (short and not SLSA_ANY_NOT.search(before[:short.start()])))
+
+
 def slsa_level_negated(sentence, mention):
-    """Whether the sentence says that the level it names at mention (a match of
-    SLSA_HIGHER) is not met: SLSA_NEGATED in the clause that names it, or SLSA_NOT_BEFORE
-    right before it in that clause."""
-    start = 0
-    for end in SLSA_CLAUSE_END.finditer(sentence, 0, mention.start()):
-        start = end.end()
-    stop = SLSA_CLAUSE_END.search(sentence, mention.end())
-    clause = sentence[start:stop.start() if stop else len(sentence)]
-    return bool(SLSA_NEGATED.search(clause) or SLSA_NOT_BEFORE.search(sentence[start:mention.start()]))
+    """Whether the sentence says that the higher level it names at mention is not met:
+    a negation attached to it, right before it in its clause (slsa_negated_before) or
+    right after it (SLSA_NEG_AFTER)."""
+    return slsa_negated_before(sentence, mention.start()) or bool(SLSA_NEG_AFTER.search(sentence[mention.end():]))
+
+
+def slsa_level_affirmed(sentence):
+    """Whether the sentence affirms a higher level (SLSA_AFFIRMED) with a word that is
+    not itself negated right before it."""
+    return any(not slsa_negated_before(sentence, m.start()) for m in SLSA_AFFIRMED.finditer(sentence))
 
 
 def slsa_level_problems(docs):
     """Each document of SLSA_CLAIMS says the provenance meets Build L1; and no sentence
     of a document shows the slsa.dev badge of a higher level, names a higher level
-    without saying, in the clause that names it, that it is not met (slsa_level_negated),
-    or affirms one ("meets Build L2", "at SLSA level 3"). A tripwire, not a reader: a
-    level claimed is held to the specification by hand (SECURITY.md, "Build
-    provenance")."""
+    (slsa_higher_mentions) without a negation attached to it (slsa_level_negated), or
+    affirms one ("meets Build L2", "at SLSA level 3": slsa_level_affirmed). A tripwire,
+    not a reader: a level claimed is held to the specification by hand (SECURITY.md,
+    "Build provenance")."""
     problems = []
     for name, claim in SLSA_CLAIMS.items():
         if re.sub(r"\s+", " ", claim) not in re.sub(r"\s+", " ", docs.get(name, "")):
@@ -1657,10 +1753,10 @@ def slsa_level_problems(docs):
     for name in sorted(docs):
         flat = re.sub(r"\s+", " ", docs[name])
         for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z*`(\[])", flat):
-            mentions = list(SLSA_HIGHER.finditer(sentence))
+            mentions = slsa_higher_mentions(sentence)
             if not mentions and not SLSA_BADGE.search(sentence):
                 continue
-            if SLSA_BADGE.search(sentence) or SLSA_AFFIRMED.search(sentence) or \
+            if SLSA_BADGE.search(sentence) or slsa_level_affirmed(sentence) or \
                     not all(slsa_level_negated(sentence, m) for m in mentions):
                 problems.append("%s claims an SLSA level above Build L1, which the release's provenance does not meet "
                                 "(SECURITY.md, \"Build provenance\"): %s" % (name, sentence[:240]))
@@ -9365,11 +9461,12 @@ def self_test(chain, feed):
     if found:
         failures.append("a claim of Build L1 wrapped again is still found: %s" % found)
     # And each of these, read alone as a sentence of the README: a level is refused
-    # where the clause that names it does not say that it is not met - a "not" elsewhere
-    # in the sentence says nothing of it - or where it is affirmed beside a not, in any
-    # case, in words, with a hyphen, and as the slsa.dev badge whatever its text says;
-    # and a level said not to be met in the clause that names it, or the Build L1 badge,
-    # is let through.
+    # where no negation is attached to it - a "not" elsewhere in the sentence, even in
+    # its clause, says nothing of it - or where it is affirmed beside a not, in any case,
+    # in words, with a hyphen or %20, as a list that runs on from Build L1, alone in a
+    # clause that says SLSA, and as the slsa.dev badge whatever its text says; and a
+    # level said not to be met by words attached to it, or a Build L1 badge, is let
+    # through.
     slsa_held = len(slsa_level_problems(texts["slsa-docs"]))
     for sentence, refused in (
             ("Build L3 holds for every file, not only the installers.", True),
@@ -9380,11 +9477,35 @@ def self_test(chain, feed):
             ("Our builds are SLSA level two.", True),
             ("The release is SLSA-3.", True),
             ("[![SLSA](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)", True),
+            ("We publish SLSA Build L3 provenance that is not forgeable.", True),
+            ("Build L3 holds because the signing key is not in the build's reach.", True),
+            ("Build L3 is not a goal but a fact.", True),
+            ("The provenance is nothing short of SLSA Build L3.", True),
+            ("[![SLSA](https://slsa.dev/images/SLSA-Badge-full-level3.svg)](https://slsa.dev)", True),
+            ("[![SLSA](https://img.shields.io/badge/SLSA-level%203-green)](https://slsa.dev)", True),
+            ("The builds are SLSA Level-3 compliant.", True),
+            ("Releases are built to SLSA's level 3.", True),
+            ("Level 3 SLSA provenance is published with every release.", True),
+            ("The SLSA provenance (L3) ships with every release.", True),
+            ("Build L1 and L2 hold for every file.", True),
+            ("6.3.7 meets Build L2 (not met by 6.3.6).", True),
             ("Build L2 is not met, for two reasons.", False),
             ("Neither Build L2 nor Build L3 holds.", False),
             ("The provenance meets Build L1, not Build L2.", False),
             ("[![SLSA Build L1](https://slsa.dev/images/gh-badge-level1.svg)](https://slsa.dev/spec/v1.0/levels#build-l1)",
-             False)):
+             False),
+            ("[![SLSA](https://slsa.dev/images/SLSA-Badge-full-level1.svg)](https://slsa.dev)", False),
+            ("The release does not meet Build L2.", False),
+            ("Build L2 isn't met.", False),
+            ("Build L2: not met.", False),
+            ("The release is at Build L1, not at Build L2.", False),
+            ("Build L2, Build L3 and Build L4 are not met.", False),
+            ("The provenance falls short of Build L2.", False),
+            ("Build L2 is not met here, nor is Build L3.", False),
+            ("Build L2, which is not met, would need a hosted build platform.", False),
+            ("Build L2 remains unmet.", False),
+            ("| Build L2 | No |", False),
+            ("The Baseline's level 2 controls are listed, and the provenance meets SLSA Build L1.", False)):
         docs = dict(texts["slsa-docs"])
         docs["README.md"] = docs.get("README.md", "") + "\n\n" + sentence + "\n"
         found = slsa_level_problems(docs)

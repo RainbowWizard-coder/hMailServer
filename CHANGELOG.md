@@ -550,16 +550,25 @@ with `--check`).
   pipelines show: GitLab's hosted runners made 6.3.6's chart, its sums and its installers' SBOMs, and 6.3.7's
   generic AArch64 `.deb` was built on server2 and its `.rpm` on s1-linux; and its account of bench150, under "The
   runners", now says that bench150 is a virtual machine on the maintainer's laptop, as its account of linix says of
-  linix. ContinuousIntegration.md also gives the
-  command that verifies a download against the provenance, and says why the release makes one statement over all its
-  files and uses neither GitLab Runner's artifact provenance (`RUNNER_GENERATE_ARTIFACTS_METADATA`) nor GitLab.com's
-  own attestations. `build/check-release-chain.py` holds the Build L1 sentence in the three documents and fails a
-  sentence in the README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs` that shows the
-  slsa.dev badge of a higher level, whatever its text says, that affirms a higher level, or that names one without
-  saying, in the clause that names it, that it is not met ("is not met", "not claimed", "nor", "neither", "not
-  Build L2" and the like): a level in any case, in words and with a hyphen, from "Build L2" and "SLSA build level
-  2" to "SLSA level two" and "SLSA-3", and a "not" elsewhere in the sentence, as in "Build L3 holds for every file,
-  not only the installers", says nothing of it.
+  linix. ContinuousIntegration.md also gives the command that verifies a download against the provenance, and says
+  why the release makes one statement over all its files and uses neither GitLab Runner's artifact provenance
+  (`RUNNER_GENERATE_ARTIFACTS_METADATA`) nor GitLab.com's own attestations. `build/check-release-chain.py` holds the
+  Build L1 sentence in the three documents and fails a sentence in the README, SECURITY.md, RELEASE.md,
+  ASSURANCE-CASE.md or a page of `hmailserver/docs` that shows the slsa.dev badge of level 2, 3 or 4
+  (`gh-badge-level3`, `SLSA-Badge-full-level3` and the like) whatever its text says, that affirms a higher level
+  ("meets Build L2", "at SLSA level 3") with a word that is not itself negated, or that names a higher level with no
+  negation attached to it. It reads a level in any case, in words after L or level, and with a hyphen or `%20` where
+  a space may stand, from "Build L2" and "SLSA build level 2" to "SLSA level two", "SLSA-3" and a shields.io badge's
+  "SLSA-level%203"; alone, as "level 3" or "L3", in a clause that says SLSA; and in a list or range that runs on from
+  Build L1 ("Build L1 and L2", "SLSA levels 1 to 3"). A negation is attached to a level when it stands right before
+  it in its clause - "not", "nor", "neither", "no", "never" or n't with nothing between but such words as "meet",
+  "at", "even" or "is" ("does not meet Build L2", "nor is Build L3"), or "short of" or "below" with no negation before
+  them ("falls short of Build L2", where "nothing short of" is a claim) - or right after it: "is not met", "isn't
+  met", "has not been met", "cannot be met" and the like, "is not" at the clause's end, "does not hold", "not met"
+  after a colon, a bar, a bracket or a dash, "no" at the clause's end ("| Build L2 | No |"), "unmet" and "out of
+  reach". A negation about something else says nothing of the level, so "Build L3 holds for every file, not only the
+  installers", "We publish SLSA Build L3 provenance that is not forgeable" and "Build L3 is not a goal but a fact" are
+  refused, as is a sentence that names a higher level and says nothing of its being met.
 
 ### Control Panel
 

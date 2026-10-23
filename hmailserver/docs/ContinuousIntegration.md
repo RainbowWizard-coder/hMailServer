@@ -3446,13 +3446,13 @@ artifacts, which GitLab's documentation has its SLSA CI/CD component sign),
 but it describes one job's artifacts where a release's files take their final
 bytes over several jobs (an installer is built by one and Authenticode-signed
 by another), its builder is the runner, and on these runners it would raise no
-level. Nor can the release use the attestations GitLab.com makes itself and
-calls SLSA Build L3: an experiment behind a feature flag that is off by
-default, for artifacts of the `build` stage up to 100 MB, where the installers
-take their final bytes in the `release` stage. One statement over all the
-files, not one for each: `cosign verify-blob-attestation` finds a file among
-its subjects by its SHA-256, and OpenSSF Scorecard counts a release as having
-provenance from any one file whose name ends in `.intoto.jsonl`.
+level. GitLab.com's own attestations, which GitLab calls SLSA Build L3 (not met
+here), are not open to the release either: an experiment behind a feature flag
+that is off by default, for artifacts of the `build` stage up to 100 MB, where
+the installers take their final bytes in the `release` stage. One statement
+over all the files, not one for each: `cosign verify-blob-attestation` finds a
+file among its subjects by its SHA-256, and OpenSSF Scorecard counts a release
+as having provenance from any one file whose name ends in `.intoto.jsonl`.
 
 **The links' names and paths.** A release has one link per file. Its name is
 the file's own, with the version (`hMailServer-6.3.6-x64.exe`), and that is what
