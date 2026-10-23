@@ -155,8 +155,11 @@ describe as licence texts only.
 
 The tarball carries no program and no archive: the checker refuses any file that
 begins as a Windows (PE), ELF or Mach-O executable, a Java class or a WebAssembly
-module, or as a zip, 7-Zip, gzip, xz, bzip2 or RAR archive, a cabinet or an OLE
-compound file. The one archive it allowed by name until 23 October 2026, the list
+module, or as a zip (an empty or a spanned one too), 7-Zip, RAR, ar (a static
+library or a `.deb`) or rpm archive, a cabinet, an OLE compound file, a squashfs
+image, or a gzip, compress (`.Z`), xz, bzip2, zstd, lz4 or lzip stream, and any
+POSIX or GNU tar archive, which says `ustar` at offset 257 (an old v7 tar has no
+such mark). The one archive it allowed by name until 23 October 2026, the list
 of third-party licences as an OpenDocument spreadsheet (a zip by format), is a
 table in Markdown now, `hmailserver/docs/Licenses/License list.md`.
 

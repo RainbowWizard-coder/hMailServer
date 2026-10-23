@@ -612,16 +612,20 @@ with `--check`).
   history from `fe45f43c3` (SHA-256 `ccc7bd72...5f68`). ThirdPartyBinaries.md, SourceTarball.md and
   `build/source-exclusions.txt` no longer name it.
 - **The list of third-party licences is a table in Markdown, `hmailserver/docs/Licenses/License list.md`, where it was
-  an OpenDocument spreadsheet, `License list.ods`, and the source tarball's check allows no archive.** The spreadsheet,
-  the original hMailServer's table of the components it carried and what each one's licence asks (Martin Knafve's,
-  last saved in September 2010), is a zip by format, and was the one archive `build/check-source-tarball.py` let into
-  a tarball by name and the one archive in the tree once the Fat Cow icons' went. Its table - eleven rows of seven
-  columns, its other two sheets empty - is now text beside the licences it names, cell for cell, with a note of where
-  it no longer matches the folder, and the spreadsheet is in the git history from `fe45f43c3`. The check refuses
-  every archive now, with the spreadsheet at its old path and an OLE compound file among its negative controls.
-  SourceTarball.md and the documentation's index say so, and ThirdPartyBinaries.md names everything else the tree
-  holds that git shows as binary - icons, the installer's bitmaps, licence texts in RTF, two translations in UTF-16
-  and test fixtures - none of it a program or an archive.
+  an OpenDocument spreadsheet, `License list.ods`, and the source tarball's check lets no archive through by name and
+  knows more kinds of archive.** The spreadsheet, the original hMailServer's table of the components it carried and what
+  each one's licence asks (Martin Knafve's, last saved in September 2010), is a zip by format, and was the one archive
+  `build/check-source-tarball.py` let into a tarball by name and the one archive in the tree once the Fat Cow icons'
+  went. Its table - eleven rows of seven columns, its other two sheets empty - is now text beside the licences it names,
+  cell for cell, with a note of where it no longer matches the folder, and the spreadsheet is in the git history from
+  `fe45f43c3`. The check refuses, by the bytes a file begins with, a zip (an empty or a spanned one too), 7-Zip, RAR, ar
+  (a static library or a `.deb`) or rpm archive, a cabinet, an OLE compound file, a squashfs image, and a gzip, compress
+  (`.Z`), xz, bzip2, zstd, lz4 or lzip stream, and a POSIX or GNU tar archive by the `ustar` at offset 257, where it
+  knew the zip, 7-Zip, gzip, xz, bzip2 and RAR forms, the cabinet and the OLE file alone, with the spreadsheet at its
+  old path and each of these kinds among its negative controls; none of the tree's 7,871 files begins as any of them.
+  SourceTarball.md and the documentation's index say so, and ThirdPartyBinaries.md names everything else the tree holds
+  that git shows as binary - icons, the installer's bitmaps, licence texts in RTF, two translations in UTF-16 and test
+  fixtures - none of it a program or an archive.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

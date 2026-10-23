@@ -62,10 +62,14 @@ tarball a third:
     - every REQUIRED file;
     - no program and no archive: nothing that begins as a Windows (PE), ELF or
       Mach-O executable, a Java class or a WebAssembly module does, nor as a
-      zip, 7-Zip, gzip, xz, bzip2 or RAR archive, a cabinet or an OLE compound
-      file (what_binary) - the list of third-party licences among them,
-      which until 23 October 2026 was an OpenDocument spreadsheet, a zip by
-      format, and the one archive this allowed by name;
+      zip (an empty or a spanned one too), 7-Zip, RAR, ar (a static library or
+      a .deb) or rpm archive, a cabinet, an OLE compound file, a squashfs image
+      or a gzip, compress (.Z), xz, bzip2, zstd, lz4 or lzip stream, nor a
+      POSIX or GNU tar archive, which says "ustar" at offset 257 (what_binary;
+      an old v7 tar says nothing a first block can be told by). The list of
+      third-party licences is among them: until 23 October 2026 it was an
+      OpenDocument spreadsheet, a zip by format, and the one archive this
+      allowed by name;
     - with --commit, the commit git archive recorded in the tarball's pax header
       is the one given.
 
@@ -599,11 +603,26 @@ EXECUTABLES = (
     (b"\xca\xfe\xba\xbe", "a Java class or a universal Mach-O program"),
     (b"\x00asm", "a WebAssembly module"),
 )
+# Each archive and compressed stream by the bytes it begins with: a zip (a local file
+# header, or an empty or a spanned archive's first signature), 7-Zip, RAR, an ar
+# archive (what a static library, .a or .lib, and a .deb are), an rpm package, a
+# cabinet, an OLE compound file, a squashfs image (little-endian, the one order
+# squashfs 4 writes), and gzip, compress (.Z, LZW and LZH), xz, bzip2, zstd, lz4 (its
+# frame format) and lzip streams. A tar archive is told by TAR_MAGIC instead.
 ARCHIVES = (
-    (b"PK\x03\x04", "a zip archive"), (b"7z\xbc\xaf\x27\x1c", "a 7-Zip archive"),
-    (b"\x1f\x8b", "a gzip stream"), (b"\xfd7zXZ\x00", "an xz stream"), (b"BZh", "a bzip2 stream"),
-    (b"Rar!\x1a\x07", "a RAR archive"), (b"MSCF", "a cabinet"), (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", "an OLE compound file (an .msi)"),
+    (b"PK\x03\x04", "a zip archive"), (b"PK\x05\x06", "an empty zip archive"),
+    (b"PK\x07\x08", "a spanned zip archive"), (b"7z\xbc\xaf\x27\x1c", "a 7-Zip archive"),
+    (b"Rar!\x1a\x07", "a RAR archive"), (b"!<arch>\n", "an ar archive (a static library or a .deb)"),
+    (b"\xed\xab\xee\xdb", "an rpm package"), (b"MSCF", "a cabinet"),
+    (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", "an OLE compound file (an .msi)"),
+    (b"hsqs", "a squashfs image"),
+    (b"\x1f\x8b", "a gzip stream"), (b"\x1f\x9d", "a compress (.Z) stream"), (b"\x1f\xa0", "a compress (.Z) stream"),
+    (b"\xfd7zXZ\x00", "an xz stream"), (b"BZh", "a bzip2 stream"), (b"\x28\xb5\x2f\xfd", "a zstd stream"),
+    (b"\x04\x22\x4d\x18", "an lz4 stream"), (b"LZIP", "an lzip stream"),
 )
+# A POSIX or GNU tar archive says so in its first header, "ustar" at offset 257 (the
+# old v7 format says nothing, and only a tar reader would know one).
+TAR_MAGIC = (257, b"ustar")
 
 
 def what_binary(head):
@@ -615,6 +634,8 @@ def what_binary(head):
     for magic, name in EXECUTABLES + ARCHIVES:
         if head.startswith(magic):
             return name
+    if head[TAR_MAGIC[0]:TAR_MAGIC[0] + len(TAR_MAGIC[1])] == TAR_MAGIC[1]:
+        return "a tar archive"
     return None
 
 
@@ -952,6 +973,39 @@ def self_test():
            "carries hmailserver/docs/Licenses/License list.ods, which is a zip archive")
     expect("an OLE compound file (an .msi)",
            check(tarball(extra={"build/setup.msi": b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1rest"})), "an OLE compound file")
+    # Every other archive and stream what_binary knows, each by the bytes it begins
+    # with, under a name that does not say what it is.
+    ustar = bytearray(b"sources/README" + b"\x00" * 600)
+    ustar[257:265] = b"ustar\x0000"
+    gnu_tar = bytearray(b"sources/README" + b"\x00" * 600)
+    gnu_tar[257:265] = b"ustar  \x00"
+    for label, head, kind in (
+            ("an empty zip archive", b"PK\x05\x06" + b"\x00" * 18, "an empty zip archive"),
+            ("a spanned zip archive", b"PK\x07\x08PK\x03\x04rest", "a spanned zip archive"),
+            ("a 7-Zip archive", b"7z\xbc\xaf\x27\x1crest", "a 7-Zip archive"),
+            ("a RAR archive", b"Rar!\x1a\x07\x01\x00rest", "a RAR archive"),
+            ("a POSIX tar archive (ustar at offset 257)", bytes(ustar), "a tar archive"),
+            ("a GNU tar archive", bytes(gnu_tar), "a tar archive"),
+            ("a static library, an ar archive", b"!<arch>\n/               0           0     0     0       4         `\n",
+             "an ar archive (a static library or a .deb)"),
+            ("a .deb, an ar archive", b"!<arch>\ndebian-binary   1790000000  0     0     100644  4         `\n2.0\n",
+             "an ar archive (a static library or a .deb)"),
+            ("an rpm package", b"\xed\xab\xee\xdb\x03\x00\x00\x00rest", "an rpm package"),
+            ("a cabinet", b"MSCF\x00\x00\x00\x00rest", "a cabinet"),
+            ("a squashfs image", b"hsqs" + b"\x00" * 92, "a squashfs image"),
+            ("a gzip stream", b"\x1f\x8b\x08\x00rest", "a gzip stream"),
+            ("a compress (.Z) stream, LZW", b"\x1f\x9d\x90rest", "a compress (.Z) stream"),
+            ("a compress (.Z) stream, LZH", b"\x1f\xa0rest", "a compress (.Z) stream"),
+            ("an xz stream", b"\xfd7zXZ\x00\x00\x04rest", "an xz stream"),
+            ("a bzip2 stream", b"BZh91AY&SYrest", "a bzip2 stream"),
+            ("a zstd stream", b"\x28\xb5\x2f\xfd\x24\x00rest", "a zstd stream"),
+            ("an lz4 stream", b"\x04\x22\x4d\x18\x64\x40rest", "an lz4 stream"),
+            ("an lzip stream", b"LZIP\x01\x0crest", "an lzip stream")):
+        expect(label, check(tarball(extra={"build/sources.dat": head})),
+               "carries build/sources.dat, which is %s: a source tarball carries no program and no archive" % kind)
+    told_apart = b"A text that says ustar and !<arch> and hsqs, none of them where an archive has it.\n" * 8
+    expect("a text naming those signatures, none at its start or at offset 257",
+           check(tarball(extra={"build/notes.txt": told_apart})), None)
     expect("another list carried", check(tarball(extra={EXCLUSIONS: b"libraries\n"})), "carries another")
     expect("the commit recorded", check(tarball(), commit="0123456789abcdef0123456789abcdef01234567"), None)
     expect("another commit recorded", check(tarball(), commit="f" * 40), "was made from commit 0123456789")
@@ -1034,7 +1088,7 @@ def main(argv):
                     print("  " + problem)
             else:
                 print("%s: %s/, %d files, commit %s, time %s; nothing the list leaves out, every licence it must carry, "
-                      "no program, owners root and modes fixed." %
+                      "no program and no archive, owners root and modes fixed." %
                       (path, facts.get("top"), facts.get("files"), facts.get("commit") or "(none recorded)", facts.get("mtime")))
         return 1 if failed else 0
 
