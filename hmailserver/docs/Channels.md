@@ -302,15 +302,31 @@ The OBS package `hmailserver` holds one file,
 downloads the latest release's source tarball through GitLab's permanent link
 (`https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/
 hmailserver.tar.gz`, no token: the project is public), takes the spec and its
-`Source1` out of it, and fetches the spec's `Source0`, the same tarball under its
-versioned name. OBS builds for Leap and Tumbleweed and publishes a repository it
-signs with its own key, which is the zypper repository.
+`Source1` out of it, and the build's rpmlint filters, `obs/hmailserver-rpmlintrc`,
+and fetches the spec's `Source0`, the same tarball under its versioned name. OBS
+builds for Leap and Tumbleweed and publishes a repository it signs with its own key,
+which is the zypper repository.
+
+The filters are the lines of the spec's own `rpm/hmailserver.rpmlintrc` that
+openSUSE's rpmlint reports, and no others: the rpmlint of an OBS build
+(`build-recipe-spec`'s `recipe_run_rpmlint`, `/opt/testing/bin/rpmlint --info`
+over the packages it built) loads every `*-rpmlintrc` and `*.rpmlintrc` in
+`/home/abuild/rpmbuild/SOURCES` by itself, and makes an error of a filter that
+matches nothing (`unused-rpmlintrc-filter`). openSUSE's rpmlint reports nothing the
+spec's other filters are for, so that whole file, given to it, would turn 6.3.7's
+two errors into eight ([What was tried](#what-was-tried)). `obs-publish.py
+--self-test` holds every line of `obs/hmailserver-rpmlintrc` to the spec's file.
+6.3.7's build had no filters: its tarball carries no `obs/hmailserver-rpmlintrc`,
+and the release after it is the first that does.
 
 `obs-publish` (`build/ci/channels/obs-publish.py`) starts that service, and only for
-a verified release: it verifies the release's tarball, checks the spec inside it,
-downloads the permanent link and holds it to the verified SHA-256 - so a release
-that is not the latest is refused - and then calls OBS's `runservice` trigger with
-its token in a header.
+a verified release: it verifies the release's tarball, checks the spec inside it and
+that the tarball carries every file the `_service` extracts (on a tarball without
+one, the service fails on OBS), downloads the permanent link and holds it to the
+verified SHA-256 - so a release that is not the latest is refused - reads the
+package's own `_service` from OBS's public API, without its token, and refuses one
+that is not this tree's (OBS runs the package's copy, and the checks were of the
+tree's), and then calls OBS's `runservice` trigger with its token in a header.
 
 What OBS builds is what it downloads itself when the service runs, a few moments
 later, and OBS checks nothing but HTTPS: the job has held the permanent link to the
@@ -325,6 +341,13 @@ Copr's builder verifies again, and the PPA uploads the verified file.
   the web page), the build targets openSUSE Leap 16.0 and Tumbleweed, and a token:
   `osc token --create --operation runservice <project> hmailserver`, stored as
   `OBS_RUNSERVICE_TOKEN`, with the project's name as `OBS_PROJECT`.
+- **When the tree's `_service` changes.** A maintainer puts the new file in the
+  package (`osc`, or the package's page) - and only once the latest release's
+  tarball carries every file it extracts, since committing it runs the service at
+  once. The `_service` that takes `obs/hmailserver-rpmlintrc` therefore goes in
+  once the release after 6.3.7 is published: on 6.3.7's tarball its step for the
+  filters fails ("Not found in archive"). Until the package holds the tree's file,
+  `obs-publish` refuses, and says so.
 
 ### Chocolatey
 
@@ -671,6 +694,33 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   `6.3.7+ds-1~noble1` and `6.3.7+ds-1~resolute1`, signed with the upload key;
   Launchpad accepted both at 01:42 UTC, built each for amd64 and arm64, and publishes
   them, signed with the PPA's own key, `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C`.
+- **On 23 October 2026, the `_service` that takes the build's rpmlint filters, run
+  as OBS runs it, without OBS.** In an openSUSE Tumbleweed container with
+  obs-service-download_url 0.2.1, obs-service-extract_file 0.4 and
+  obs-service-download_files 0.9.2, each service ran in turn with its parameters and
+  an output directory of its own, its files then named `_service:<service>:<file>`,
+  as OBS names them. On 6.3.7's tarball, fetched through the permanent link and the
+  bytes `release-files.py verify` verified as the `v6.3.7` tag's pipeline (SHA-256
+  `223dfd2e5c6531f6906d9f955da7bf777e4b54b00e94b209b3c891cefe0170a8`), the step for
+  the filters failed (`tar: */hmailserver/source/Server/platform/packaging/obs/
+  hmailserver-rpmlintrc: Not found in archive`), and `obs-publish`'s check refused
+  that tarball for it before any call to OBS. On a tarball `build/ci/source-tarball.sh`
+  made from the change, as the next release's will be, served over local HTTP with
+  the `_service`'s address the one line changed, every service ran, and
+  `extract_file` took `hmailserver-rpmlintrc`, byte for byte the tree's, beside the
+  spec and `hmailserver.sysusers`. Then rpmlint as an OBS build runs it
+  (`/opt/testing/bin/rpmlint --info`; Leap 16.0's rpmlint-mini 2.7.0 and
+  Tumbleweed's 2.10.0) over 6.3.7's published x86_64, `noarch` and source packages
+  from each repository, each "digests signatures OK" under the repository's key
+  `BA0868309CFBD36498CE41D22F0B9419E67EE770`: with nothing in
+  `/home/abuild/rpmbuild/SOURCES`, as 6.3.7 was built, 2 errors, both
+  `/usr/bin/dh2048.pem` (`script-without-shebang`,
+  `wrong-script-end-of-line-encoding`), as OBS's build logs of 6.3.7 say; with the
+  spec's whole `rpm/hmailserver.rpmlintrc` there as `hmailserver-rpmlintrc`, 8
+  errors, every one `unused-rpmlintrc-filter`; with `obs/hmailserver-rpmlintrc`, 0
+  errors and a badness of 0, the warnings as before (82 on Leap, 87 on Tumbleweed).
+  OBS's public API gave the package's `_service` as `master`'s before the change.
+  Nothing was sent to OBS.
 
 Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist;
 and `registry-mirror`'s own copy of a release to Docker Hub (6.3.7 there was copied

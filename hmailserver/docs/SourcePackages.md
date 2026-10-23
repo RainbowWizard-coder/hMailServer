@@ -635,7 +635,19 @@ Questions for a Debian or Fedora maintainer
   server with LTO is untested: the one try ran on the laptop's lossy file system.
 - **The rpmlint filters.** `rpm/hmailserver.rpmlintrc` keeps the mail store's and the
   configuration's modes and the data file in `/usr/bin` from being reported; a
-  reviewer may prefer other modes, or the data file moved (above).
+  reviewer may prefer other modes, or the data file moved (above). openSUSE's
+  build takes only its lines for the data file, from `obs/hmailserver-rpmlintrc`
+  (openSUSE's rpmlint makes an error of a filter that matches nothing, and reports
+  none of the others), and still warns of what no filter is for: the mail store's
+  and the configuration's user and group, which openSUSE's rpmlint knows only from
+  its own register (`non-standard-uid`, `non-standard-gid`), the data file's mode
+  in `/usr/bin` (`non-executable-in-bin`), the server's symbols
+  (`unstripped-binary-or-object`), its call to `gethostbyname`, the upgrade scripts
+  that are alike for two databases (`files-duplicate`), the
+  `LicenseRef-Fedora-UltraPermissive` licence, which its list does not have, and on
+  Tumbleweed the packaged directories under `/var`, which a system snapshot does
+  not hold (`dir-or-file-outside-snapshot`) ([Channels.md](Channels.md), "What was
+  tried").
 - **`uses-dpkg-database-directly`.** The server's update check reads dpkg's record
   to know that a package installed it; with the live update off it only names the
   update command, and could stop reading it in a distribution's build.

@@ -8,15 +8,21 @@
   in the OBS package once, and it is the package's only file. When the service runs,
   OBS fetches the latest release's source tarball through GitLab's permanent link to
   it (no token: the project is public), takes the RPM spec and its Source1 out of that
-  tarball - the release's own, never a copy kept on OBS - and then downloads the
-  spec's Source0, the same tarball under its versioned name. OBS builds it for Leap and
-  Tumbleweed and signs the repository it publishes, which zypper then takes.
+  tarball - the release's own, never a copy kept on OBS - and the build's rpmlint
+  filters, obs/hmailserver-rpmlintrc beside this file, which the rpmlint of an OBS
+  build loads from the build's sources by its name; and then downloads the spec's
+  Source0, the same tarball under its versioned name. OBS builds it for Leap and
+  Tumbleweed and signs the repository it publishes, which zypper then takes. The
+  releases made before those filters were added carry none, and on their tarballs the
+  second extract_file fails: this file replaces the OBS package's earlier one only
+  once the latest release carries them (hmailserver/docs/Channels.md).
 
   Nothing here names a version, so the file never changes between releases. The
   service runs when the obs-publish job starts it (build/ci/channels/obs-publish.py),
   after that job has verified the release's tarball against its Sigstore bundle and
-  checked that GitLab's permanent link leads to exactly those bytes; OBS itself
-  checks nothing but HTTPS.
+  checked that the tarball carries every file this file extracts, that GitLab's
+  permanent link leads to exactly those bytes, and that the OBS package holds this
+  file as it is here; OBS itself checks nothing but HTTPS.
 -->
 <services>
   <service name="download_url">
@@ -26,6 +32,10 @@
   <service name="extract_file">
     <param name="archive">*hmailserver-latest.tar.gz</param>
     <param name="files">*/hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec */hmailserver/source/Server/platform/packaging/rpm/hmailserver.sysusers</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*hmailserver-latest.tar.gz</param>
+    <param name="files">*/hmailserver/source/Server/platform/packaging/obs/hmailserver-rpmlintrc</param>
   </service>
   <service name="download_files"/>
 </services>

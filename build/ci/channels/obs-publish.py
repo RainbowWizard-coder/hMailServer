@@ -19,14 +19,21 @@ runs, and runs it only for a verified release:
      home:<owner>) it says "not configured" and exits 0.
   2. The release, as every channel takes it (build/ci/channels/release-files.py).
   3. Its source tarball verified against its Sigstore bundle as this project's
-     pipeline for the tag, and the spec inside it held to the release's version.
+     pipeline for the tag, the spec inside it held to the release's version, and
+     every file the _service's extract_file steps take out of it found there (the
+     spec, its Source1 and its rpmlint filters): a step that finds nothing fails
+     the service on OBS, after this job has started it.
   4. GitLab's permanent link to the latest release's tarball - the address the
      _service fetches - downloaded and held to the verified SHA-256, so a release
      other than the latest (HM_CHANNEL_VERSION naming an older one) is refused, since
      the service always takes the latest. OBS downloads it again itself when the
      service runs and checks nothing but HTTPS: this holds the link to the verified
      bytes when the job looks, not when OBS does (hmailserver/docs/Channels.md).
-  5. OBS's runservice trigger with the token, in a header, never on a command line.
+  5. The OBS package's own _service, read from OBS's public API without the token,
+     held to this tree's: OBS runs the copy the package holds, and the checks above
+     are of this one. A package that holds another (the tree's changed, and the
+     package not yet given the new one) is refused, with what to do.
+  6. OBS's runservice trigger with the token, in a header, never on a command line.
 
 Usage, from the root of a checkout:
   python3 build/ci/channels/obs-publish.py [--out DIR]
@@ -34,14 +41,17 @@ Usage, from the root of a checkout:
 """
 
 import argparse
+import fnmatch
 import hashlib
 import importlib.util
 import os
 import re
 import shutil
 import sys
+import tarfile
 import tempfile
 import urllib.parse
+import xml.dom.minidom
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
@@ -64,6 +74,7 @@ copr = load("copr_build", os.path.join(HERE, "copr-build.py"))
 Refused = rf.Refused
 
 SERVICE = os.path.join("hmailserver", "source", "Server", "platform", "packaging", "obs", "_service")
+FILTERS = "hmailserver/source/Server/platform/packaging/obs/hmailserver-rpmlintrc"
 OBS_API = "https://api.opensuse.org"
 PACKAGE = "hmailserver"
 PROJECT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.+-]*(:[A-Za-z0-9_.+-]+)*$")
@@ -82,6 +93,46 @@ def permalink(root=ROOT):
     if len(found) != 1 or not found[0].startswith("https://gitlab.com/"):
         raise Refused("%s does not fetch one GitLab address" % SERVICE)
     return found[0]
+
+
+def extracted(root=ROOT):
+    """What the _service's extract_file steps take out of the tarball, read from it:
+    a list of (pattern, the name it is given or None). obs-service-extract_file hands
+    each pattern to tar --wildcards, where * matches a slash too, as fnmatch's does."""
+    with open(os.path.join(root, SERVICE), encoding="utf-8") as f:
+        document = xml.dom.minidom.parseString(f.read())
+    steps = []
+    for service in document.getElementsByTagName("service"):
+        if service.getAttribute("name") != "extract_file":
+            continue
+        params = {}
+        for param in service.getElementsByTagName("param"):
+            text = "".join(node.data for node in param.childNodes if node.nodeType == node.TEXT_NODE).strip()
+            params.setdefault(param.getAttribute("name"), []).append(text)
+        patterns = " ".join(params.get("files", [])).split()
+        renamed = (params.get("outfilename") or [None])[0]
+        if not patterns or (renamed and len(patterns) != 1):
+            raise Refused("%s has an extract_file step that names %d files%s" % (
+                SERVICE, len(patterns), " and an outfilename" if renamed else ""))
+        steps.extend((pattern, renamed) for pattern in patterns)
+    return steps
+
+
+def tarball_carries(path, root=ROOT):
+    """The tarball's members the _service extracts, one for each pattern; Refused when
+    a pattern finds none, or a renamed one finds more than one."""
+    with tarfile.open(path) as archive:
+        names = [m.name for m in archive.getmembers() if m.isfile()]
+    found = []
+    for pattern, renamed in extracted(root):
+        matches = [n for n in names if fnmatch.fnmatchcase(n, pattern)]
+        if not matches:
+            raise Refused("the tarball has no %s, which the _service extracts: the service would fail on OBS" % pattern)
+        if renamed and len(matches) != 1:
+            raise Refused("the tarball has %d files matching %s, which the _service extracts as %s"
+                          % (len(matches), pattern, renamed))
+        found.extend("%s%s" % (m.split("/")[-1], " (as %s)" % renamed if renamed else "") for m in matches)
+    return found
 
 
 def obs_publish(out, environ=None, http=None, root=ROOT):
@@ -110,6 +161,7 @@ def obs_publish(out, environ=None, http=None, root=ROOT):
     rf.write_record(record, version, where, os.path.join(out, "verification.json"))
     copr.spec_from_tarball(record[tarball]["path"], version, os.path.join(out, "spec"))
     say("v%s's tarball carries its RPM spec at that version" % version)
+    say("  ... and every file the _service extracts: %s" % ", ".join(tarball_carries(record[tarball]["path"], root)))
 
     link = (fix.get("obs_permalink") if fix else None) or permalink(root)
     status, _, body = http(link, timeout=600)
@@ -122,6 +174,17 @@ def obs_publish(out, environ=None, http=None, root=ROOT):
     say("%s is v%s's verified tarball, byte for byte" % (link, version))
 
     api = (fix.get("obs_api") if fix else None) or OBS_API
+    holds = "%s/public/source/%s/%s/_service" % (api, urllib.parse.quote(project, safe=":"), PACKAGE)
+    status, _, body = http(holds)
+    with open(os.path.join(root, SERVICE), encoding="utf-8") as f:
+        ours = f.read().replace("\r\n", "\n")
+    if status != 200 or body.decode("utf-8", "replace").replace("\r\n", "\n") != ours:
+        raise Refused("the OBS package %s/%s does not hold this tree's %s (%s answered HTTP %s%s): OBS runs the copy"
+                      " the package holds, and this job checked the tree's. A maintainer puts the tree's file in the"
+                      " package (osc, or the package's page), which runs the service; nothing was started."
+                      % (project, PACKAGE, SERVICE.replace(os.sep, "/"), holds, status,
+                         ", with another file" if status == 200 else ""))
+    say("the OBS package %s/%s holds this tree's _service" % (project, PACKAGE))
     trigger = "%s/trigger/runservice?%s" % (api, urllib.parse.urlencode([("project", project), ("package", PACKAGE)]))
     status, _, body = http(trigger, data=b"", method="POST", headers={"Authorization": "Token " + token})
     token = None
@@ -157,10 +220,24 @@ def self_test():
         service = f.read()
     expect("  ... and names no version, and no token", not re.search(r"\d+\.\d+\.\d+", service) and "token" not in service.lower()
            .replace("no token", ""))
-    import xml.dom.minidom
-    expect("  ... and is well-formed XML with its three services in order", [
+    expect("  ... and is well-formed XML with its four services in order", [
         s.getAttribute("name") for s in xml.dom.minidom.parseString(service).getElementsByTagName("service")]
-        == ["download_url", "extract_file", "download_files"])
+        == ["download_url", "extract_file", "extract_file", "download_files"])
+    tree = "*/" + copr.RPM_DIR + "/"
+    expect("  ... which extract the spec, its Source1 and the build's rpmlint filters, obs/hmailserver-rpmlintrc,"
+           " under the name an OBS build's rpmlint loads from its sources", extracted() == [
+               (tree + "hmailserver.spec", None), (tree + "hmailserver.sysusers", None), ("*/" + FILTERS, None)])
+    expect("  ... each of them a file of this tree", all(
+        os.path.isfile(os.path.join(ROOT, pattern[2:].replace("/", os.sep))) for pattern, _ in extracted()))
+
+    def filters(relative):
+        if not os.path.isfile(os.path.join(ROOT, relative.replace("/", os.sep))):
+            return []
+        with open(os.path.join(ROOT, relative.replace("/", os.sep)), encoding="utf-8") as f:
+            return [line.strip() for line in f if line.startswith("addFilter(")]
+    obs_filters, spec_filters = filters(FILTERS), filters(copr.RPM_DIR + "/hmailserver.rpmlintrc")
+    expect("  ... whose filters are lines of rpm/hmailserver.rpmlintrc, the spec's own, and no others (%d of %d)"
+           % (len(obs_filters), len(spec_filters)), bool(obs_filters) and all(line in spec_filters for line in obs_filters))
 
     work = tempfile.mkdtemp(prefix="hm-obs-test-")
     said = []
@@ -174,16 +251,23 @@ def self_test():
                 "OBS_PROJECT is ''")
 
         import io
-        import tarfile
+
+        def tarball(path, leave_out=None):
+            with tarfile.open(path, "w:gz") as archive:
+                for name, data in (("hmailserver-9.9.9/" + copr.SPEC, b"Version: 9.9.9\nSource1: hmailserver.sysusers\n"),
+                                   ("hmailserver-9.9.9/" + copr.RPM_DIR + "/hmailserver.sysusers", b"u hmailserver -\n"),
+                                   ("hmailserver-9.9.9/" + FILTERS, b"addFilter(\"x\")\n")):
+                    if leave_out and name.endswith(leave_out):
+                        continue
+                    info = tarfile.TarInfo(name)
+                    info.size = len(data)
+                    archive.addfile(info, io.BytesIO(data))
+            with open(path, "rb") as f:
+                return f.read()
         good = os.path.join(work, "good.tar.gz")
-        with tarfile.open(good, "w:gz") as archive:
-            for name, data in (("hmailserver-9.9.9/" + copr.SPEC, b"Version: 9.9.9\nSource1: x\n"),
-                               ("hmailserver-9.9.9/" + copr.RPM_DIR + "/x", b"x")):
-                info = tarfile.TarInfo(name)
-                info.size = len(data)
-                archive.addfile(info, io.BytesIO(data))
-        with open(good, "rb") as f:
-            good_bytes = f.read()
+        good_bytes = tarball(good)
+        unfiltered = os.path.join(work, "unfiltered.tar.gz")
+        unfiltered_bytes = tarball(unfiltered, "/hmailserver-rpmlintrc")
         held = (rf.release_version, rf.tool_path, rf.verified_files)
         calls = []
         try:
@@ -197,26 +281,50 @@ def self_test():
             refused("with the token, a tarball that does not verify: refused before OBS is called", lambda: obs_publish(
                 os.path.join(work, "c"), environ, http=lambda *a, **k: calls.append(a)), "does not verify")
             expect("  ... OBS was never called", calls == [])
-            rf.verified_files = lambda version, names, into, cosign, fix=None, run=None: {names[0]: {
-                "path": good, "sha256": hashlib.sha256(good_bytes).hexdigest(), "size": 1,
-                "identity": rf.identities("9.9.9")[1], "repository_id": "86730559"}}
+            def verified_as(path, data):
+                return lambda version, names, into, cosign, fix=None, run=None: {names[0]: {
+                    "path": path, "sha256": hashlib.sha256(data).hexdigest(), "size": 1,
+                    "identity": rf.identities("9.9.9")[1], "repository_id": "86730559"}}
 
-            def world(latest):
+            def world(latest, holds=service.encode("utf-8")):
                 def http(url, data=None, headers=None, method=None, timeout=120, fix=None):
                     calls.append((url, method, headers))
                     if "permalink" in url:
                         return 200, {}, latest
+                    if "/public/source/" in url:
+                        return (200, {}, holds) if holds is not None else (404, {}, b'<status code="unknown_package"/>')
                     return 200, {}, b'<status code="ok">\n  <summary>Ok</summary>\n</status>\n'
                 return http
+            rf.verified_files = verified_as(unfiltered, unfiltered_bytes)
+            del calls[:]
+            refused("a verified tarball without the rpmlint filters the _service extracts: refused before OBS is called",
+                    lambda: obs_publish(os.path.join(work, "f"), environ, http=world(unfiltered_bytes)),
+                    "has no */" + FILTERS)
+            expect("  ... OBS was never called", calls == [])
+            rf.verified_files = verified_as(good, good_bytes)
             del calls[:]
             refused("the permanent link leading to another release's tarball: refused before OBS is called",
                     lambda: obs_publish(os.path.join(work, "d"), environ, http=world(b"another")), "is not v9.9.9's")
             expect("  ... OBS was never called", not [c for c in calls if "trigger" in c[0]])
+            earlier = re.sub(r'\s*<service name="extract_file">\s*<param name="archive">[^<]*</param>\s*'
+                             r'<param name="files">\*/' + re.escape(FILTERS) + r'</param>\s*</service>', "", service)
+            for what, holds in (("the earlier _service, without the filters' step", earlier.encode("utf-8")),
+                                ("no _service at all", None)):
+                del calls[:]
+                refused("the OBS package holding %s: refused before the trigger" % what,
+                        lambda: obs_publish(os.path.join(work, "g"), environ, http=world(good_bytes, holds)),
+                        "does not hold this tree's")
+                expect("  ... the trigger was never called", not [c for c in calls if "trigger" in c[0]]
+                       and earlier != service)
             del calls[:]
             code = obs_publish(os.path.join(work, "e"), environ, http=world(good_bytes))
             triggers = [c for c in calls if "/trigger/runservice" in c[0]]
-            expect("verified, the link held to it, then runservice with the token in a header",
+            reads = [c for c in calls if "/public/source/" in c[0]]
+            expect("verified, the link held to it, the package's _service read without the token and held to the"
+                   " tree's, then runservice with the token in a header",
                    code == 0 and len(triggers) == 1 and triggers[0][1] == "POST"
+                   and [c[0] for c in reads] == [OBS_API + "/public/source/home:hmailserver/hmailserver/_service"]
+                   and not reads[0][2]
                    and triggers[0][0] == OBS_API + "/trigger/runservice?project=home%3Ahmailserver&package=hmailserver"
                    and triggers[0][2] == {"Authorization": "Token obs-secret-token"})
         finally:

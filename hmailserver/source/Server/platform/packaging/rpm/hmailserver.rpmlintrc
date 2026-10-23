@@ -4,11 +4,12 @@
 #
 # What rpmlint reports about hmailserver.spec that the package does on purpose,
 # each with its reason. rpmlint and fedora-review read a file of this name beside
-# the spec, and openSUSE's build service the same lines from hmailserver-rpmlintrc.
-# build/ci/packages/srcpkg-rpm.sh gives rpmlint these filters as a configuration
-# instead, where a filter that one distribution's rpmlint has no line for is not an
-# error. Nothing else is filtered (hmailserver/docs/SourcePackages.md lists what
-# rpmlint reports).
+# the spec. build/ci/packages/srcpkg-rpm.sh gives rpmlint these filters as a
+# configuration instead, where a filter that one distribution's rpmlint has no line
+# for is not an error. The openSUSE Build Service's build takes the lines of this
+# file that openSUSE's rpmlint reports, and no others, from
+# ../obs/hmailserver-rpmlintrc, since there an unused filter is an error. Nothing
+# else is filtered (hmailserver/docs/SourcePackages.md lists what rpmlint reports).
 
 # The mail store, its scratch, event-script and database directories and the logs
 # hold other people's mail and a record of who sent it to whom: 0750 and the

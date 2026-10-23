@@ -575,6 +575,23 @@ with `--check`).
   provenance that is not forgeable" and "Build L3 is not a goal but a fact" are refused, as is a sentence that names a
   higher level and says nothing of its being met.
 
+- **The openSUSE Build Service's build takes the package's rpmlint filters, the ones openSUSE's rpmlint reports.** The
+  OBS package's `_service` took the spec and its `Source1` out of the release's tarball and no filters, so OBS's
+  rpmlint reported 6.3.7's packages with two errors on Leap 16.0 and Tumbleweed (`script-without-shebang` and
+  `wrong-script-end-of-line-encoding`, both `/usr/bin/dh2048.pem`, which `rpm/hmailserver.rpmlintrc` filters with its
+  reason). The spec's file could not simply be given to it: an OBS build's rpmlint loads any `*-rpmlintrc` in its
+  sources and makes an error of a filter that matches nothing (`unused-rpmlintrc-filter`), and openSUSE's rpmlint
+  reports nothing the spec's other filters are for, so over 6.3.7's published packages the whole file made eight
+  errors of the two. The tree has `packaging/obs/hmailserver-rpmlintrc`, the two lines for the data file with their
+  reason, and the `_service` takes it out of the tarball as well; with it the same rpmlint reports no error.
+  `obs-publish` now refuses a verified tarball that lacks a file the `_service` extracts, since the service would fail
+  on OBS after the job had started it, and refuses when the OBS package's `_service`, which it reads from OBS's public
+  API without its token, is not the tree's, since OBS runs the package's copy and the job checked the tree's;
+  `obs-publish.py --self-test` holds the new file's lines to the spec's file and both refusals to cases of their own.
+  6.3.7's tarball has no such file, so the new `_service` goes into the OBS package once the release after 6.3.7 is
+  published, and `obs-publish` refuses until it has (Channels.md, "openSUSE Build Service"). Proved on 23 October 2026
+  with OBS's own service tools and Leap 16.0's and Tumbleweed's rpmlint, without OBS (Channels.md, "What was tried").
+
 ### Control Panel
 
 - **Fixed: the Logging page named the log destination "0 (a value this Control Panel does not know)" on every
