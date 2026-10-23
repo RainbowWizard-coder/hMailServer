@@ -32,18 +32,25 @@ nothing else would notice when it goes wrong. This holds it:
     repositories name it and the GitHub copy, the licence is AGPL-3.0-or-later
     with LICENSE beside it, exactly one administrator and one core-team member is
     primary, and the vulnerability contact's address is one SECURITY.md gives;
-  * to the project's own addresses: every URL anywhere in the file - a value, a
-    comment or a YAML comment - that is under gitlab.com/hmailserver/ is the
-    project's own, gitlab.com/hmailserver/hmailserver, and every one under
-    github.com/RainbowWizard-coder/ is the GitHub copy, RainbowWizard-coder/hMailServer
-    there - or is the page of the group, or of its owner on GitHub, itself - so a
-    misspelt project path is refused;
+  * to https: every URL anywhere in the file - a value, a comment or a YAML
+    comment - is https, written in lower case as the rules below read it, so that
+    no address the file gives, a distribution point's among them, is plain HTTP
+    or of another scheme;
+  * to the project's own addresses: every URL anywhere in the file on gitlab.com
+    whose path is under /hmailserver/ is the project's own,
+    gitlab.com/hmailserver/hmailserver, and every one on github.com under
+    /RainbowWizard-coder/ is the GitHub copy, RainbowWizard-coder/hMailServer
+    there - or is the page of the group, or of its owner on GitHub, itself - the
+    host compared without its case or a port and the group's path in any case, so
+    a misspelt project path is refused;
   * to the links' form: each URL of the project's own is read as GitLab and
-    GitHub read it - its path percent-decoded, so that %20 is a space, its query
-    left out, as GitLab's own ?ref_type=heads is, and its fragment the anchor
-    (link_kind) - and a link on one of GitLab's routes the file reads (blob, raw,
-    tree, blame and releases) written without "/-/", which GitLab keeps as a
-    legacy form, is refused;
+    GitHub read it - its host without its case or a port, its path
+    percent-decoded, so that %20 is a space, its query left out, as GitLab's own
+    ?ref_type=heads is, and its fragment the anchor (link_kind) - and a link on
+    one of GitLab's routes the file reads (blob, raw, tree, blame and releases)
+    written without "/-/", which GitLab keeps as a legacy form, is refused, and so
+    is a link to the GitHub copy written with GitLab's "/-/", which GitHub's
+    routes do not have;
   * to the tree: every link to a file or folder of the repository - GitLab's
     blob, raw, tree or blame, or the GitHub copy's - is at master, the branch the
     file describes, and names a path the tree holds, each part in the case given;
@@ -511,12 +518,15 @@ def anchors(text):
 # Every URL in the file's text, YAML comments included. The punctuation that ends a
 # sentence after one is not part of it (urls).
 URL_IN_TEXT = re.compile(r'https?://[^\s<>"\'`]+')
-# (the URLs that are the project's to name, the group's or the owner's own page, the
-# one project there that is the project's): a URL under the first must be under the
-# last, in its case, so that a misspelt project path is refused.
-OWN = ((re.compile(r'^https?://gitlab\.com/hmailserver/', re.I), 'https://gitlab.com/hmailserver', GITLAB),
-       (re.compile(r'^https?://github\.com/RainbowWizard-coder/', re.I), 'https://github.com/RainbowWizard-coder',
-        GITHUB))
+# Every scheme written before "://" anywhere in the file's text, in any case: each must
+# be https, in lower case, the one form of a URL the rules below read.
+SCHEME_IN_TEXT = re.compile(r'(?<![A-Za-z0-9+.-])([A-Za-z][A-Za-z0-9+.-]*)://')
+# (the host, the path there of the group or of the owner on GitHub, the project's path
+# there, the project's own address): a URL on the host whose path is under the first
+# path, in any case, must be the page of the group itself or under the project's path,
+# in its case, so that a misspelt project path is refused.
+OWN = (('gitlab.com', '/hmailserver', '/hmailserver/hmailserver', GITLAB),
+       ('github.com', '/RainbowWizard-coder', '/RainbowWizard-coder/hMailServer', GITHUB))
 # The routes to a file or folder of the repository at a ref: GitLab's, after its "/-/",
 # and the GitHub copy's, which GitHub writes without one.
 FILE_ROUTES = ('blob', 'raw', 'tree', 'blame')
@@ -548,9 +558,15 @@ def link_kind(url):
                                     by any of FILE_ROUTES;
       ('release', tag, name)        a file of a release on GitLab;
       ('legacy', route)             a route of LEGACY_ROUTES on GitLab without "/-/";
-    or None for any other page, of the project's or of another site."""
-    parts = urllib.parse.urlsplit(url)
-    host = parts.netloc.lower()
+      ('scoped',)                   a page of the GitHub copy written with GitLab's
+                                    "/-/", which GitHub's routes do not have;
+    or None for any other page, of the project's or of another site. The host is
+    compared as a browser takes it, without its case or a port."""
+    try:
+        parts = urllib.parse.urlsplit(url)
+        host = parts.hostname
+    except ValueError:  # a host this reader cannot take, such as an unclosed "["
+        return None
     path = urllib.parse.unquote(parts.path)
     for project_host, project, scoped in PROJECT_PATHS:
         if host != project_host or not path.startswith(project + '/'):
@@ -562,6 +578,8 @@ def link_kind(url):
             if segments[0] != '-':
                 return None
             segments = segments[1:]
+        elif segments[0] == '-':
+            return ('scoped',)
         route, rest = segments[0], segments[1:]
         if route in FILE_ROUTES:
             return ('tree', rest[0] if rest else '', '/'.join(rest[1:]), urllib.parse.unquote(parts.fragment))
@@ -590,9 +608,23 @@ def urls(text):
             yield number, url
 
 
-def is_under(url, base):
-    """url is base itself or a path, query or fragment below it."""
-    return url == base or (url.startswith(base) and url[len(base)] in '/?#')
+def mistaken_own(url):
+    """The project's own address that url is not under, though its host is the
+    project's and its path is under the group's (or the owner's on GitHub), in any
+    case; or None. The host is compared without its case or a port, the path as
+    written, so that an encoded or recased project path is refused too."""
+    try:
+        parts = urllib.parse.urlsplit(url)
+        host = parts.hostname
+    except ValueError:  # a host this reader cannot take, such as an unclosed "["
+        return None
+    for own_host, group, project, own in OWN:
+        if host != own_host or not parts.path.lower().startswith(group.lower() + '/'):
+            continue
+        if parts.path.rstrip('/') == group or parts.path == project or parts.path.startswith(project + '/'):
+            return None
+        return own
+    return None
 
 
 def release_names(root, version, cache):
@@ -839,6 +871,15 @@ def check(root, now=None):
             if placeholder != '{version}':
                 problems.append('%s holds the placeholder %s; {version} is the only one' % (where, placeholder))
 
+    for number, line in enumerate(text.splitlines(), 1):
+        for match in SCHEME_IN_TEXT.finditer(line):
+            if match.group(1) == 'https':
+                continue
+            address = re.match(r'\S+', line[match.start():]).group(0).rstrip('.,;:)')
+            problems.append('line %d: %s is not an https address%s: every URL the file gives is https'
+                            % (number, address, ' as this check reads one, in lower case'
+                               if match.group(1).lower() == 'https' else ''))
+
     chain_names = {}
     listings = {}
     headings = {}
@@ -847,10 +888,14 @@ def check(root, now=None):
         if url in seen:
             continue
         seen.add(url)
-        mistaken = [own for prefix, page, own in OWN
-                    if prefix.match(url) and url.rstrip('/') != page and not is_under(url, own)]
+        try:
+            urllib.parse.urlsplit(url).hostname
+        except ValueError as error:
+            problems.append('line %d: %s is not a URL this check can read (%s)' % (number, url, error))
+            continue
+        mistaken = mistaken_own(url)
         if mistaken:
-            problems.append('line %d: %s is not the project\'s own address, %s' % (number, url, mistaken[0]))
+            problems.append('line %d: %s is not the project\'s own address, %s' % (number, url, mistaken))
             continue
         kind = link_kind(url)
         if kind is None:
@@ -858,6 +903,10 @@ def check(root, now=None):
         if kind[0] == 'legacy':
             problems.append('line %d: %s is on GitLab\'s legacy route %s/, without "/-/": write %s/-/%s/...'
                             % (number, url, kind[1], GITLAB, kind[1]))
+            continue
+        if kind[0] == 'scoped':
+            problems.append('line %d: %s is written with GitLab\'s "/-/", which GitHub\'s routes do not have: '
+                            'write %s/<route>/...' % (number, url, GITHUB))
             continue
         if kind[0] == 'release':
             tag, name = kind[1:]
@@ -1195,6 +1244,34 @@ def self_test(quiet=False):
          'links to GOVERNANCES.md, which the tree'),
         ('a link to the tree on the legacy route without /-/',
          swap('/hmailserver/-/blob/master/LICENSE', '/hmailserver/blob/master/LICENSE'), (), 'legacy route blob/'),
+        ('a URL in a comment over plain http',
+         swap('https://example.org/build/ci/gone.sh', 'http://example.org/build/ci/gone.sh'), (),
+         'http://example.org/build/ci/gone.sh is not an https address'),
+        ('a value over plain http', swap('predicate-uri: https://slsa.dev/provenance/v1',
+                                         'predicate-uri: http://slsa.dev/provenance/v1'), (),
+         'http://slsa.dev/provenance/v1 is not an https address'),
+        ('a distribution point of another site over plain http',
+         swap('      - uri: https://gitlab.com/hmailserver/hmailserver/-/releases\n',
+              '      - uri: http://downloads.example.org/hmailserver/\n'), (),
+         'http://downloads.example.org/hmailserver/ is not an https address'),
+        ('a URL in a YAML comment of another scheme', '# Mirrored at ftp://ftp.example.org/hmailserver/.\n' + GOOD, (),
+         'ftp://ftp.example.org/hmailserver/ is not an https address'),
+        ('an https URL with its scheme in upper case, which the link rules would not read',
+         swap('https://example.org/build/ci/gone.sh', 'HTTPS://example.org/build/ci/gone.sh'), (),
+         'as this check reads one, in lower case'),
+        ('a link with a port, to a file the tree does not hold',
+         swap('https://gitlab.com/hmailserver/hmailserver/-/blob/master/GOVERNANCE.md?ref_type=heads',
+              'https://gitlab.com:443/hmailserver/hmailserver/-/blob/master/GOVERNANCES.md?ref_type=heads'), (),
+         'links to GOVERNANCES.md, which the tree'),
+        ('a misspelt project path on GitLab, with a port',
+         swap('https://gitlab.com/hmailserver/hmailserver/-/blob/master/ASSURANCE-CASE.md',
+              'https://gitlab.com:443/hmailserver/hmailserve/-/blob/master/ASSURANCE-CASE.md'), (),
+         "hmailserve/-/blob/master/ASSURANCE-CASE.md is not the project's own address"),
+        ('a link to the GitHub copy written with GitLab\'s /-/',
+         swap('hMailServer/blob/master/SECURITY.md', 'hMailServer/-/blob/master/SECURITY.md'), (),
+         'which GitHub\'s routes do not have'),
+        ('a URL this check cannot read', '# See https://gitlab.com]/hmailserver/hmailserve/.\n' + GOOD, (),
+         'is not a URL this check can read'),
         ('a link to a release on the legacy route without /-/',
          swap('/hmailserver/-/releases/v1.2.3/downloads/hMailServer-x64.exe',
               '/hmailserver/releases/v1.2.3/downloads/hMailServer-x64.exe'), (), 'legacy route releases/'),
@@ -1269,6 +1346,10 @@ def self_test(quiet=False):
         expect('%s, %s: passes%s' % (what, named, '' if not said else ' (%s)' % said[0][:120]), said == [])
     said = world(swap('/-/tree/master/test/SSL%20examples/', '/-/blob/master/test/SSL%20examples/example.pfx'))
     expect('a link with an encoded space to a file the tree holds: passes%s'
+           % ('' if not said else ' (%s)' % said[0][:120]), said == [])
+    said = world(swap('https://gitlab.com/hmailserver/hmailserver/-/blob/master/ASSURANCE-CASE.md',
+                      'https://GitLab.com:443/hmailserver/hmailserver/-/blob/master/ASSURANCE-CASE.md'))
+    expect('a link with its host in another case and a port, to a file the tree holds: passes%s'
            % ('' if not said else ' (%s)' % said[0][:120]), said == [])
     expect('a link read as GitLab reads it: %20 a space, the query left out, the fragment the anchor',
            link_kind(GITLAB + '/-/blob/master/test/SSL%20examples/example.pfx?ref_type=heads#top')

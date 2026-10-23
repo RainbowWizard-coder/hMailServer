@@ -581,25 +581,28 @@ with `--check`).
   on a runner that keeps UTC), or a `last-reviewed` more than a year before that date, while a review older than the
   last update passes, as the file's header has it: `last-updated` moves with any change, and `last-reviewed` when the
   whole file has been read against the tree again, at least once a year; holds the file's own address, the fork's
-  name, the two repositories, the licence and the vulnerability contact SECURITY.md gives; refuses a URL anywhere in
-  the file under `gitlab.com/hmailserver/` or `github.com/RainbowWizard-coder/` that is not the project's own, so a
-  misspelt project path fails it; reads every link as GitLab reads it, its path percent-decoded and its query left
-  out, and refuses one on a GitLab route written without `/-/`, which GitLab keeps as a legacy form; refuses a link to
-  the tree - blob, raw, tree or blame - at any branch but `master`, to a path the tree does not hold in the case
-  given, or to a heading a Markdown file does not have; refuses a link to a release's file - under `v{version}`,
-  `permalink/latest` or a version's own tag - whose name `build/ci/release-chain.py` gives no file of that release,
-  a file's own name being taken only under the tag of a release before 6.3.6, such as 6.3.4's installer SBOM; and
-  refuses every path it names outside a link, written from the top of the tree or from `./`, that has a path's look -
-  its first part an entry at the tree's root, a `/` at its end or a file's extension - or is a tool's ruleset, and
-  that the tree does not hold in the case given - a ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment
-  such as `build/ci/semgrep.sh`, a folder, a file named with no folder such as `RELEASE.md` or `renovate.json`, which
-  is a file at the root - but the names its `NOT_TREE` lists as not the tree's (Semgrep's registry rulesets such as
-  `p/csharp`, and the specification's `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale,
-  while a word such as S/MIME, and/or or amd64/arm64 is prose, and a name that holds spaces, a folder's or a file's,
-  such as `hmailserver/test/SSL examples/` or `hmailserver/docs/Licenses/License list.md`, is read whole, whatever the
-  number of its spaces, and no word of it is read again as a name of its own, so that the `list.md` of the second is not
-  taken for a file at the root. It proves its 71 negative controls on every run, and `--self-test` says each.
-  SECURITY.md's "For a security questionnaire" and CONTRIBUTING.md's table of checkers name both.
+  name, the two repositories, the licence and the vulnerability contact SECURITY.md gives; refuses a URL anywhere in the
+  file that is not https, written in lower case, so that no address it gives, a distribution point's among them, is
+  plain HTTP or of another scheme; refuses a URL on `gitlab.com` under `/hmailserver/` or on `github.com` under
+  `/RainbowWizard-coder/`, its host taken without its case or a port, that is not the project's own, so a misspelt
+  project path fails it; reads every link as GitLab reads it, its host as a browser takes it, its path percent-decoded
+  and its query left out, and refuses one on a GitLab route written without `/-/`, which GitLab keeps as a legacy form,
+  and one to the GitHub copy written with it, which GitHub's routes do not have; refuses a link to the tree - blob, raw,
+  tree or blame - at any branch but `master`, to a path the tree does not hold in the case given, or to a heading a
+  Markdown file does not have; refuses a link to a release's file - under `v{version}`, `permalink/latest` or a
+  version's own tag - whose name `build/ci/release-chain.py` gives no file of that release, a file's own name being
+  taken only under the tag of a release before 6.3.6, such as 6.3.4's installer SBOM; and refuses every path it names
+  outside a link, written from the top of the tree or from `./`, that has a path's look - its first part an entry at the
+  tree's root, a `/` at its end or a file's extension - or is a tool's ruleset, and that the tree does not hold in the
+  case given - a ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment such as `build/ci/semgrep.sh`, a
+  folder, a file named with no folder such as `RELEASE.md` or `renovate.json`, which is a file at the root - but the
+  names its `NOT_TREE` lists as not the tree's (Semgrep's registry rulesets such as `p/csharp`, and the specification's
+  `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale, while a word such as S/MIME, and/or or
+  amd64/arm64 is prose, and a name that holds spaces, a folder's or a file's, such as `hmailserver/test/SSL examples/`
+  or `hmailserver/docs/Licenses/License list.md`, is read whole, whatever the number of its spaces, and no word of it is
+  read again as a name of its own, so that the `list.md` of the second is not taken for a file at the root. It proves
+  its 80 negative controls on every run, and `--self-test` says each. SECURITY.md's "For a security questionnaire" and
+  CONTRIBUTING.md's table of checkers name both.
 - **The tree no longer carries `libraries/fat_cow_icons/fatcow-hosting-icons-1400.zip`.** The archive, 3.6 MB, held
   FatCow's 2,800 PNG icons as FatCow published them, of which the tree's `.ico` files under
   `libraries/fat_cow_icons/ico` are the Windows icon form (2,798 of the 2,800 by the same name), and nothing in the

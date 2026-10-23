@@ -8,14 +8,14 @@
 # taken from the tree or from the project's pages on GitLab, on GitHub and on the services
 # it publishes to; the document it names is the one that says it at length.
 # build/check-security-insights.py holds the file to the schema, to dates that are not in
-# the future and a review not more than a year old, to the project's own addresses, to
-# the files, folders and headings of this tree that it names or links to, and to the
-# names build/ci/release-chain.py gives the release files it links to; the checkers job
-# runs it with every other check. A path it holds - one whose first part is at the
-# tree's root, that ends in / or that has a file's extension, and every ruleset - that
-# is not one of this tree's is listed in the check's NOT_TREE. Change last-updated with
-# any change here, and last-reviewed when the whole file has been read against the tree
-# again, which is needed at least once a year.
+# the future and a review not more than a year old, to https for every address it gives,
+# to the project's own addresses, to the files, folders and headings of this tree that it
+# names or links to, and to the names build/ci/release-chain.py gives the release files
+# it links to; the checkers job runs it with every other check. A path it holds - one
+# whose first part is at the tree's root, that ends in / or that has a file's extension,
+# and every ruleset - that is not one of this tree's is listed in the check's NOT_TREE.
+# Change last-updated with any change here, and last-reviewed when the whole file has
+# been read against the tree again, which is needed at least once a year.
 
 header:
   schema-version: 2.2.0
