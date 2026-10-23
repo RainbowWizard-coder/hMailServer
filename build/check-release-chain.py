@@ -83,14 +83,21 @@ refuses it. This checker holds them to each other. It fails when:
     artifacts of any but the jobs whose files it collects and the four scans whose
     reports it reads;
   * a package a release carries from a package job (CARRIED_PACKAGES: the generic
-    arm64 .deb and aarch64 .rpm) is not built, described and installed before release
-    starts: the job that builds it, the job that makes its SBOM
-    (build/ci/packages/package-sbom.sh, keeping <package>.cdx.json beside it) and the
-    job that installs it must be in their file, the two after the build must need it,
-    and release must need all three, not optionally, the first two with their
-    artifacts; none of the three may be allow_failure or manual in a v* tag's
-    pipeline, in the job, a template it extends or a rule a tag can take (a needed
-    job that may fail lets release start after it failed); and
+    arm64 .deb and aarch64 .rpm) is not built, described, installed and started
+    before release starts: the job that builds it, the job that makes its SBOM
+    (build/ci/packages/package-sbom.sh, keeping <package>.cdx.json beside it), the
+    job that installs it and the job that starts the server from it must be in their
+    file, the three after the build must need it, and release must need all four, not
+    optionally, the first two with their artifacts; none of the four may be
+    allow_failure or manual in a v* tag's pipeline, in the job, a template it extends
+    or a rule a tag can take (a needed job that may fail lets release start after it
+    failed); the start job runs build/ci/linux-package-install.sh of the package's
+    kind and nothing else, on the build's folder, in the install job's linux/arm64
+    image, beside linux-package-deb's PostgreSQL by digest as postgres with the
+    database, user and password the script logs in with, and the script still creates
+    the schema as the service's user, starts the server as its unit does, asks port
+    25 for its own banner, GET /api/v1/status and GET /, removes the package, and says
+    --nodeps nowhere but in linux-build's .rpm's half (package_start_problems); and
     build/ci/release-chain.py must collect the file and its SBOM from where that
     build leaves them, as a compiled file;
   * the release job's tag check (build/ci/release-chain.py collect), given a git
@@ -532,6 +539,9 @@ FILES = {
     # The package builds (.gitlab-ci.yml includes them): held to the old routes too.
     "packages-deb": os.path.join(".gitlab", "ci", "packages-deb.yml"),
     "packages-rpm": os.path.join(".gitlab", "ci", "packages-rpm.yml"),
+    # What starts the server from a package (linux-package-deb, and the start jobs of
+    # the AArch64 packages a release carries, CARRIED_PACKAGES).
+    "package-install": os.path.join("build", "ci", "linux-package-install.sh"),
     "packages-appimage": os.path.join(".gitlab", "ci", "packages-appimage.yml"),
     "packages-windows": os.path.join(".gitlab", "ci", "packages-windows.yml"),
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
@@ -666,13 +676,48 @@ GATE_ARGUMENTS = re.compile(r"(?:[ \t]+-[A-Za-z]+[ \t]+%s)*[ \t]*" % GATE_VALUE)
 # kind of server that installs each (generate-update-feed.py's installer_names): the
 # file the jobs are in, the job that builds the package, the one that makes its SBOM,
 # the one that installs it in a clean container of its distribution and architecture,
-# and where the build leaves the package, with its SBOM beside it.
+# the one that starts the server from it in such a container beside PostgreSQL
+# (build/ci/linux-package-install.sh, with the kind of package it takes), and where
+# the build leaves the package, with its SBOM beside it.
 CARRIED_PACKAGES = {
     "deb-arm64": {"file": "packages-deb", "build": "deb-ubuntu26.04-arm64", "sbom": "deb-ubuntu26.04-arm64-sbom",
-                  "install": "deb-ubuntu26.04-arm64-install", "dir": "packages-deb/ubuntu26.04-arm64/"},
+                  "install": "deb-ubuntu26.04-arm64-install", "start": "deb-ubuntu26.04-arm64-start", "kind": "deb",
+                  "dir": "packages-deb/ubuntu26.04-arm64/"},
     "rpm-aarch64": {"file": "packages-rpm", "build": "rpm-fedora44-aarch64", "sbom": "rpm-fedora44-aarch64-sbom",
-                    "install": "rpm-fedora44-aarch64-install", "dir": "packages-rpm/fedora44-aarch64/generic/"},
+                    "install": "rpm-fedora44-aarch64-install", "start": "rpm-fedora44-aarch64-start", "kind": "rpm-fedora",
+                    "dir": "packages-rpm/fedora44-aarch64/generic/"},
 }
+# What a start job gives the server's database: linux-package-install.sh's own defaults
+# (HM_PG_HOST postgres, the database hmpackage, the user hmailserver, PGPASSWORD hmtest),
+# as the PostgreSQL service's alias and variables; and the job of .gitlab-ci.yml whose
+# PostgreSQL service the start jobs' must be, by the same digest.
+START_SERVICE_ALIAS = "postgres"
+START_SERVICE_VARIABLES = (("POSTGRES_USER", "hmailserver"), ("POSTGRES_PASSWORD", "hmtest"), ("POSTGRES_DB", "hmpackage"))
+START_SERVICE_FROM = "linux-package-deb"
+# What linux-package-install.sh must do for a start job's kind, each with what it is:
+# the kinds it takes; the generic .rpm installed by dnf with its dependencies; the
+# schema created as the service's user; the start as the unit starts it; port 25 asked
+# for the server's own banner, GET /api/v1/status and GET /, the Deck; and the removal.
+# --nodeps belongs to linux-build's .rpm alone, whose half ends before
+# START_SCRIPT_FROM; none of what follows that line may say it.
+START_SCRIPT_FROM = "# ---------------------------------------------------------------- the .deb, and the .rpm built in Fedora\n"
+START_SCRIPT_LINES = (
+    ("  deb|rpm|rpm-fedora) ;;\n", "the kinds of package it takes, rpm-fedora among them"),
+    ('  fetch /tmp/install.log dnf -y -q --setopt=install_weak_deps=False install "$package" ',
+     "the generic .rpm installed by dnf with its dependencies"),
+    ("runuser -u hmailserver -- /usr/bin/hmailserver --create-database || fail", "the schema created as the service's user"),
+    ("( cd /var/lib/hmailserver && umask 0027 && exec setpriv --reuid=hmailserver --regid=hmailserver --init-groups \\\n"
+     "    --inh-caps=+net_bind_service --ambient-caps=+net_bind_service --bounding-set=-all,+net_bind_service \\\n"
+     "    --no-new-privs /usr/bin/hmailserver --foreground )", "the start as its unit starts it"),
+    ('banner="220 $(cat /proc/sys/kernel/hostname) ESMTP"\n', "the server's own SMTP banner"),
+    ("  exec 3<> /dev/tcp/127.0.0.1/25 || return 1\n", "the SMTP conversation on port 25"),
+    ('[ "$rc" = 0 ] || fail "port 25 did not hold an SMTP conversation with the server', "the SMTP conversation's verdict"),
+    ('curl -fsS -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail', "GET /api/v1/status"),
+    ("grep -q 'Control Deck' /tmp/deck.html || fail", "GET /, the Control Deck"),
+    ("  rpm -e hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail \"rpm -e\"; }\n", "the .rpm's removal"),
+    ("  apt-get remove -y -qq hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail \"apt-get remove\"; }\n",
+     "the .deb's removal"),
+)
 # The job that builds the ARM64 Windows installer a release carries from 6.3.6
 # (.gitlab/ci/packages-windows.yml), where it leaves it with the SHA256SUMS it writes,
 # and the folder release-authenticode signs it into.
@@ -2251,6 +2296,82 @@ def function_text(source, name):
     return match.group(0) if match else ""
 
 
+def package_start_problems(job, found, jobs, script):
+    """[problem] for each way the start job of a package a release carries
+    (CARRIED_PACKAGES' start) could pass without starting the server from that file: its
+    script not build/ci/linux-package-install.sh of the package's kind; HM_PACKAGES_DIR
+    not the folder its build leaves the file in; a container other than its install job's
+    image, of linux/arm64; no PostgreSQL service by digest - linux-package-deb's - as the
+    alias and with the database, user and password the script asks for; and the script
+    itself (script) without what it holds the server to (START_SCRIPT_LINES), or saying
+    --nodeps after linux-build's .rpm's half. found is the job's file's blocks, jobs
+    .gitlab-ci.yml's."""
+    problems = []
+    name = job["start"]
+    if name not in found:
+        return problems
+    named = dict(jobs, **found)
+    order = template_order(name, named)
+
+    def first(key):
+        holder = next((n for n in order if re.search(r"^  %s:" % key, named[n], re.MULTILINE)), None)
+        return named[holder] if holder else ""
+
+    runs = re.search(r"^  script:\s*\n((?:    [^\n]*\n)+)", first("script") + "\n", re.MULTILINE)
+    wanted = "    - bash build/ci/linux-package-install.sh %s\n" % job["kind"]
+    if not runs or runs.group(1) != wanted:
+        problems.append("%s does not run build/ci/linux-package-install.sh %s and nothing else (its script: %s): it would "
+                        "not start the server from the file the release carries" % (
+                            name, job["kind"], (runs.group(1).strip() if runs else "none")[:120]))
+    folder = job["dir"].rstrip("/")
+    if not re.search(r"^    HM_PACKAGES_DIR: %s\s*$" % re.escape(folder), found[name], re.MULTILINE):
+        problems.append("%s does not give build/ci/linux-package-install.sh HM_PACKAGES_DIR: %s, the folder %s leaves the "
+                        "package in, in its own variables" % (name, folder, job["build"]))
+
+    def image_of(job_name):
+        for n in template_order(job_name, named):
+            image = re.search(r"^  image:\s*\n    name: (\S+)\s*\n(?:    [^\n]*\n)*", named[n] + "\n", re.MULTILINE)
+            if image:
+                platform = re.search(r"^      platform: (\S+)\s*$", image.group(0), re.MULTILINE)
+                return image.group(1), platform.group(1) if platform else None
+        return None, None
+
+    image, platform = image_of(name)
+    install_image, _ = image_of(job["install"])
+    if image is None or image != install_image or platform != "linux/arm64":
+        problems.append("%s runs in %s (platform %s), not in %s's image, %s, as linux/arm64: the server is started where "
+                        "the package is installed, a clean container of its distribution and architecture" % (
+                            name, image, platform, job["install"], install_image))
+    pinned = [entry for service, entry in service_entries(found[name]) if re.match(r"^postgres:[^@\s]+@sha256:[0-9a-f]{64}$", service)]
+    pinned = [entry for entry in pinned if re.search(r"^      alias: %s\s*$" % START_SERVICE_ALIAS, entry, re.MULTILINE)]
+    reference = [service for service, _ in service_entries(jobs.get(START_SERVICE_FROM, "")) if service.startswith("postgres:")]
+    if len(pinned) != 1:
+        problems.append("%s has no PostgreSQL service by digest as %s, the database build/ci/linux-package-install.sh "
+                        "creates the schema in and starts the server against" % (name, START_SERVICE_ALIAS))
+    else:
+        service = re.match(r"    - name: (\S+)", pinned[0]).group(1)
+        if reference and service not in reference:
+            problems.append("%s's PostgreSQL service is %s, not %s's, %s" % (name, service, START_SERVICE_FROM, reference[0]))
+        for variable, value in START_SERVICE_VARIABLES:
+            if not re.search(r"^        %s: %s\s*$" % (variable, re.escape(value)), pinned[0], re.MULTILINE):
+                problems.append("%s's PostgreSQL service does not set %s: %s, which build/ci/linux-package-install.sh "
+                                "logs in with" % (name, variable, value))
+    if not re.search(r"^    - bash build/ci/linux-package-install\.sh %s\s*$" % re.escape(job["kind"]), "\n".join(
+            named[n] for n in order), re.MULTILINE):
+        return problems
+    for needle, what in START_SCRIPT_LINES:
+        if needle not in script:
+            problems.append("build/ci/linux-package-install.sh no longer has %s (%r), which %s's start of the server "
+                            "is held to" % (what, needle.strip()[:80], name))
+    if START_SCRIPT_FROM not in script:
+        problems.append("build/ci/linux-package-install.sh has no line %r, after which it installs and starts the "
+                        ".deb and the .rpm built in Fedora" % START_SCRIPT_FROM.strip())
+    elif "--nodeps" in script.split(START_SCRIPT_FROM, 1)[1]:
+        problems.append("build/ci/linux-package-install.sh says --nodeps where it installs the .deb and the .rpm built in "
+                        "Fedora, which %s starts: their dependencies are the distribution's to resolve" % name)
+    return problems
+
+
 def check(texts, chain, feed):
     problems = []
     notes = []
@@ -2282,7 +2403,7 @@ def check(texts, chain, feed):
     # server's verifier, then the upload, then the feed.
     # release waits for every gate: a manual job can be started as soon as its own
     # needs have finished, so a gate it does not need can be released past.
-    carried = [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install")]
+    carried = [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install", "start")]
     order = {
         "release": gates(jobs) + ["windows-installer", ARM64_INSTALLER_JOB] + carried + [GATHER_JOB, CHART_JOB],
         "release-authenticode": ["release"],
@@ -2311,20 +2432,21 @@ def check(texts, chain, feed):
     for platform, job in sorted(CARRIED_PACKAGES.items()):
         found = blocks(texts[job["file"]])
         name = feed.installer_names("9.9.9")[platform]
-        for role, does in (("build", "builds"), ("sbom", "makes the SBOM of"), ("install", "installs")):
+        for role, does in (("build", "builds"), ("sbom", "makes the SBOM of"), ("install", "installs"),
+                           ("start", "starts the server from")):
             if job[role] not in found:
                 problems.append("%s has no job %s, which %s %s, a file the release carries" % (FILES[job["file"]], job[role], does, name))
             entry = release_entries.get(job[role])
             if entry is not None and re.search(r"optional: true", entry):
                 problems.append("release needs %s optionally: a tag's pipeline without it would release %s past it" % (job[role], name))
-        for role in ("sbom", "install"):
+        for role, does in (("sbom", "describes"), ("install", "installs"), ("start", "starts the server from")):
             if job[role] in found and job["build"] not in needs(found[job[role]]):
-                problems.append("%s does not need %s, whose package it %s" % (
-                    job[role], job["build"], "describes" if role == "sbom" else "installs"))
+                problems.append("%s does not need %s, whose package it %s" % (job[role], job["build"], does))
+        problems.extend(package_start_problems(job, found, jobs, texts["package-install"]))
         # A job release needs that may fail, or waits for a press, is no gate: GitLab
         # starts release after it failed, or before it ran.
         named = dict(jobs, **found)
-        for role in ("build", "sbom", "install"):
+        for role in ("build", "sbom", "install", "start"):
             if job[role] in found:
                 for escape in tag_escapes(job[role], named):
                     problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s): "
@@ -4616,9 +4738,11 @@ RUNNER_CLASSES = {
         ["srcpkg-%s" % t for t in _SRCPKG_TARGETS] + ["srcpkg-%s-install" % t for t in _SRCPKG_TARGETS] +
         ["alpine-package", "alpine-install", "appimage-runtime-x86_64", "appimage-x86_64", "appimage-test-x86_64",
          "appimage-runtime-sources", "appimage-bundled-sources", "appimage-aarch64-compile", "snap-build-amd64"])},
-    # The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user.
+    # The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user:
+    # the start jobs of the AArch64 packages a release carries among them.
     "HM_RUNNER_ARM64": {"arch": "arm64", "lane": None, "jobs": tuple(
         ["deb-%s-arm64-install" % d for d in _DEB_ARM64] + ["rpm-%s-aarch64-install" % t for t in _RPM_TARGETS] +
+        [job["start"] for _, job in sorted(CARRIED_PACKAGES.items())] +
         ["appimage-runtime-aarch64", "appimage-aarch64", "appimage-test-aarch64", "snap-build-arm64", "linux-image-arm64"])},
     # The two whole suites.
     "HM_RUNNER_SUITE": {"arch": "amd64", "lane": ("HM_LANE_SUITE", "linix-suite"), "jobs": ("linux-suite", "alpine-suite")},
@@ -7200,6 +7324,70 @@ def self_test(chain, feed):
            "deb-ubuntu26.04-arm64-sbom can let release start")
     broken("the arm64 .deb's SBOM kept elsewhere", "packages-deb", "      - packages-deb/ubuntu26.04-arm64/*.cdx.json\n", "      - packages-deb/*.cdx.json\n",
            "deb-ubuntu26.04-arm64-sbom does not run build/ci/packages/package-sbom.sh")
+    # And the server started from each of them, beside PostgreSQL, before release.
+    deb_pin = "    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722\n      alias: postgres\n"
+    for what, key, old, new, needle in (
+            ("release not waiting for the arm64 .deb's start", "ci", "    - job: deb-ubuntu26.04-arm64-start\n      artifacts: false\n", "",
+             "release does not need deb-ubuntu26.04-arm64-start"),
+            ("release fetching a start job's artifacts", "ci", "    - job: rpm-fedora44-aarch64-start\n      artifacts: false\n",
+             "    - job: rpm-fedora44-aarch64-start\n      artifacts: true\n", "release brings rpm-fedora44-aarch64-start's artifacts"),
+            ("release needing the aarch64 .rpm's start optionally", "ci", "    - job: rpm-fedora44-aarch64-start\n      artifacts: false\n",
+             "    - job: rpm-fedora44-aarch64-start\n      artifacts: false\n      optional: true\n",
+             "release needs rpm-fedora44-aarch64-start optionally"),
+            ("the aarch64 .rpm's start job gone", "packages-rpm", "\nrpm-fedora44-aarch64-start:\n", "\nrpm-fedora44-aarch64-start-old:\n",
+             "has no job rpm-fedora44-aarch64-start"),
+            ("the arm64 .deb started without its build", "packages-deb", "  needs: [deb-ubuntu26.04-arm64]\n  timeout: 30 minutes\n",
+             "  needs: []\n  timeout: 30 minutes\n", "deb-ubuntu26.04-arm64-start does not need deb-ubuntu26.04-arm64"),
+            ("the aarch64 .rpm's start allowed to fail", "packages-rpm", "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n",
+             "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n  allow_failure: true\n",
+             "rpm-fedora44-aarch64-start can let release start in a v* tag's pipeline without its having passed"),
+            ("the arm64 .deb's start job running the install test", "packages-deb", "    - bash build/ci/linux-package-install.sh deb\n",
+             "    - bash build/ci/packages/deb-install.sh\n", "deb-ubuntu26.04-arm64-start does not run build/ci/linux-package-install.sh deb"),
+            ("the arm64 .deb's start job running something more", "packages-deb", "    - bash build/ci/linux-package-install.sh deb\n",
+             "    - bash build/ci/linux-package-install.sh deb\n    - true\n",
+             "deb-ubuntu26.04-arm64-start does not run build/ci/linux-package-install.sh deb and nothing else"),
+            ("the aarch64 .rpm started as linux-build's .rpm, --nodeps and not started", "packages-rpm",
+             "    - bash build/ci/linux-package-install.sh rpm-fedora\n", "    - bash build/ci/linux-package-install.sh rpm\n",
+             "rpm-fedora44-aarch64-start does not run build/ci/linux-package-install.sh rpm-fedora"),
+            ("the aarch64 .rpm's start given the per-distribution package's folder", "packages-rpm",
+             "    HM_PACKAGES_DIR: packages-rpm/fedora44-aarch64/generic\n", "    HM_PACKAGES_DIR: packages-rpm/fedora44-aarch64\n",
+             "rpm-fedora44-aarch64-start does not give build/ci/linux-package-install.sh HM_PACKAGES_DIR: packages-rpm/fedora44-aarch64/generic"),
+            ("the arm64 .deb started in an amd64 container", "packages-deb",
+             "deb-ubuntu26.04-arm64-start:\n  extends: .deb-image-ubuntu26.04-arm64\n",
+             "deb-ubuntu26.04-arm64-start:\n  extends: .deb-image-ubuntu26.04-amd64\n", "deb-ubuntu26.04-arm64-start runs in ubuntu:26.04@sha256:e5a4"),
+            ("the aarch64 .rpm's start on the packages' switch", "packages-rpm",
+             "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n  stage: test\n  tags: [$HM_RUNNER_ARM64]\n",
+             "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n  stage: test\n  tags: [$HM_RUNNER_PACKAGES]\n",
+             "rpm-fedora44-aarch64-start is one of HM_RUNNER_ARM64's jobs (RUNNER_CLASSES)"),
+            ("the aarch64 .rpm's start without its database's alias", "packages-rpm", "      alias: postgres\n", "      alias: db\n",
+             "rpm-fedora44-aarch64-start has no PostgreSQL service by digest as postgres"),
+            ("the arm64 .deb's start beside PostgreSQL by its tag", "packages-deb", deb_pin,
+             "    - name: postgres:18\n      alias: postgres\n", "deb-ubuntu26.04-arm64-start has no PostgreSQL service by digest as postgres"),
+            ("the arm64 .deb's start beside another PostgreSQL", "packages-deb", deb_pin, deb_pin.replace("5a5a84b1", "0000aaaa"),
+             "deb-ubuntu26.04-arm64-start's PostgreSQL service is postgres:18@sha256:0000aaaa"),
+            ("the arm64 .deb's start beside another database", "packages-deb", "        POSTGRES_DB: hmpackage\n",
+             "        POSTGRES_DB: postgres\n", "deb-ubuntu26.04-arm64-start's PostgreSQL service does not set POSTGRES_DB: hmpackage"),
+            ("the start script without rpm-fedora", "package-install", "  deb|rpm|rpm-fedora) ;;\n", "  deb|rpm) ;;\n",
+             "the kinds of package it takes"),
+            ("the start script installing the generic .rpm --nodeps", "package-install",
+             '  fetch /tmp/install.log dnf -y -q --setopt=install_weak_deps=False install "$package" ',
+             '  rpm -Uvh --nodeps "$package"\n  fetch /tmp/install.log dnf -y -q --setopt=install_weak_deps=False install "$package" ',
+             "says --nodeps where it installs the .deb and the .rpm built in Fedora"),
+            ("the start script with no SMTP conversation", "package-install", "  exec 3<> /dev/tcp/127.0.0.1/25 || return 1\n",
+             "  return 0\n", "no longer has the SMTP conversation on port 25"),
+            ("the start script not failing on the SMTP answer", "package-install",
+             '[ "$rc" = 0 ] || fail "port 25 did not hold an SMTP conversation with the server',
+             ': || fail "port 25 did not hold an SMTP conversation with the server', "no longer has the SMTP conversation's verdict"),
+            ("the start script starting the server with new privileges", "package-install",
+             "    --no-new-privs /usr/bin/hmailserver --foreground )", "    /usr/bin/hmailserver --foreground )",
+             "no longer has the start as its unit starts it"),
+            ("the start script creating the schema as root", "package-install",
+             "runuser -u hmailserver -- /usr/bin/hmailserver --create-database || fail", "/usr/bin/hmailserver --create-database || fail",
+             "no longer has the schema created as the service's user")):
+        if texts[key].count(old) != 1:
+            failures.append("%s: the text to break is not once in %s (%r)" % (what, key, old))
+            continue
+        broken(what, key, old, new, needle)
     broken("the installer signed before its SBOM is made", "ci", "    - job: release-sbom\n      artifacts: true\n", "",
            "release-sign does not need release-sbom")
     broken("the installer's SBOM made before Authenticode", "ci",

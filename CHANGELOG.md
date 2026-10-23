@@ -729,6 +729,37 @@ with `--check`).
   SourceTarball.md and the documentation's index say so, and ThirdPartyBinaries.md names everything else the tree holds
   that git shows as binary - icons, the installer's bitmaps, licence texts in RTF, two translations in UTF-16 and test
   fixtures - none of it a program or an archive.
+- **New: the CI starts the AArch64 packages a release carries, not only installs them.** `hmailserver_<v>_arm64.deb`
+  and `hmailserver-<v>-1.aarch64.rpm` were installed in arm64 Ubuntu 26.04 and Fedora 44 containers by their install
+  jobs, which asked `--version` and nothing more, and no job had started a server from either against a database:
+  `linux-package-deb` started linux-build's amd64 `.deb` alone, and `container-image-start-arm64` the arm64 `.deb`
+  inside the image's Ubuntu 24.04. Two jobs of the arm64 class now do, `deb-ubuntu26.04-arm64-start`
+  (`.gitlab/ci/packages-deb.yml`) and `rpm-fedora44-aarch64-start` (`packages-rpm.yml`), each in its install job's
+  image pinned by its arm64 manifest's digest, under qemu-user on the project's runners, beside the PostgreSQL 18
+  service `linux-package-deb` has, by its index's digest. Each runs `build/ci/linux-package-install.sh`, whose `.deb`
+  path now takes the package of the container's own architecture from the folder `HM_PACKAGES_DIR` names, exactly
+  one, and installs it over IPv4 with retries as `deb-install.sh` does, and which has a new kind, `rpm-fedora`: the
+  generic `.rpm` built in Fedora 44, installed by dnf with its dependencies, never `--nodeps`. Either way the package
+  is held to its files, Deck, catalogues and licences, `--check-config` and `--create-database` run as `hmailserver`,
+  the server is started as its unit starts it (`setpriv` with the unit's user, directory and capability) and given
+  `HM_START_WAIT` seconds, five minutes in the arm64 jobs - a server that exits before it answers fails at once with
+  its exit status and output - and then asked: port 25 for the server's own banner, `220 <host name> ESMTP`, EHLO and
+  QUIT, which `linux-package-deb` now asks too; `GET /api/v1/status`; and `GET /`, the Control Deck; and the package is
+  removed. `release` needs both jobs, and `build/check-release-chain.py` holds them to it (`CARRIED_PACKAGES`' new
+  start job: present, needing its build, not `allow_failure` or manual for a tag, run of the script's kind on the
+  build's folder in the install job's linux/arm64 image beside `linux-package-deb`'s PostgreSQL with the script's
+  database, user and password; the script still creating the schema as the service's user, starting the server as its
+  unit does, asking port 25, the REST API and the Deck, removing the package, and saying `--nodeps` only for
+  linux-build's `.rpm`) and to the arm64 class (`RUNNER_CLASSES`, 17 jobs), with 22 negative controls;
+  `build/ci/hosted-runners.py`'s `EXPECTED` for the class is 17 minutes a batch's or a tag's pipeline. Run by hand on
+  server2 on 23 October 2026 over 6.3.7's own arm64 `.deb` and aarch64 `.rpm`, their SHA-256 the release's sums and the
+  sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 98 and 76 s, the REST API answering 1
+  to 3 s after the start and port 25 with the server's banner; with `CreateTablesPGSQL.sql` kept from being installed
+  each failed naming it, with the message store's lock held each failed with "the server exited, with status 1" and
+  the server's own "hMailServer could not start", and with another program's banner on port 25 each failed on it;
+  6.3.7's amd64 `.deb` passed the changed script in `linux-package-deb`'s image, and linux-build's `.rpm` its unchanged
+  half (`docs/PackagesDeb.md` and `PackagesRpm.md`, "The start test"). No pipeline has run the jobs yet: they first run
+  in the pipeline of the branch that brings them to `master`.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

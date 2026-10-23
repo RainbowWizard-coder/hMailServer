@@ -226,6 +226,41 @@ writer's. The check then ran the following itself:
    run on GitLab then ([In GitLab's pipelines](#in-gitlabs-pipelines) has what
    has run since).
 
+### The start test, by hand on server2
+
+[The start test](#the-start-test)'s script, `build/ci/linux-package-install.sh`,
+ran by hand on server2, one of the project's runners, on 23 October 2026, over
+6.3.7's own `hmailserver_6.3.7_arm64.deb` as the release carries it - its
+SHA-256 `28fd6a4d…` the one `hmailserver-linux-6.3.7-SHA256SUMS.txt` gives, and
+that file's Sigstore bundle verified by cosign against the tag's pipeline - in a
+checkout of 6.3.7's tree, which the package's Deck, catalogues and licences are
+compared with, holding the changed script. Each run was the job's own: the arm64
+Ubuntu 26.04 image by its digest, as `linux/arm64` under server2's qemu-user, the
+tree read-only, and PostgreSQL 18 by the job's digest, beside it on a network of
+its own, as `postgres`.
+
+| Run | What was planted | Verdict | The deciding lines | Time |
+|---|---|---|---|---|
+| 1 | nothing | passed | `installed: 6.3.7 arm64 install ok installed`, `hMailServer 6.3.7 build 46`, `schema 6108`, "the REST API answered 3 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 110 s |
+| 2 | nothing, the script as committed | passed | the same, the REST API answering 2 s after the start | 98 s |
+| 3 | dpkg kept from installing `CreateTablesPGSQL.sql` (`path-exclude`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 79 s |
+| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 90 s |
+| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 92 s |
+
+A run before these, in a checkout of the tree after 6.3.7, whose copyright file
+is newer than the package's, failed at the licence step, as it should, on that
+file alone (`WRONG /usr/share/doc/hmailserver/copyright`), which is why the runs
+above were made in 6.3.7's own tree. The same script over 6.3.7's
+`hmailserver_6.3.7_amd64.deb`, in `linux-package-deb`'s amd64 Ubuntu 26.04 image,
+passed in 27 s, the banner and EHLO among its steps; over the arm64 folder in that
+amd64 image it refused, exit 2: "not exactly one hmailserver_*_amd64.deb in
+packages-deb/ubuntu26.04-arm64 (found: none)".
+
+**In a pipeline: not yet.** `deb-ubuntu26.04-arm64-start` first runs in the
+pipeline of the branch that brings it to `master`, the one its merge request is
+held to, under qemu-user on linix, server2 or s1-linux, and then in every `v*`
+tag's.
+
 Why each release has its own package
 ------------------------------------
 
@@ -257,9 +292,10 @@ The jobs
 
 Debian 12, Debian 13 and Ubuntu 24.04 have four jobs each: a build and an
 install test, for each architecture. Ubuntu 26.04 has the arm64 jobs only (its
-amd64 package is `linux-build`'s), and a third beside them,
-`deb-ubuntu26.04-arm64-sbom`, since the release carries that package. That
-makes 15 jobs.
+amd64 package is `linux-build`'s), and two more beside them, since the release
+carries that package: `deb-ubuntu26.04-arm64-sbom`, and
+`deb-ubuntu26.04-arm64-start`, which starts the server from it. That makes 16
+jobs.
 
 | Job | Runs on | Image | What it does |
 |---|---|---|---|
@@ -267,6 +303,7 @@ makes 15 jobs.
 | `deb-<distro>-arm64` | linix | the release's **amd64** image | the same script, cross-compiling. It uses the release's `crossbuild-essential-arm64`, its `:arm64` `-dev` packages (multiarch) and `build/ci/packages/aarch64-linux-gnu.cmake`. The tester programs are not run, because they are arm64 programs |
 | `deb-<distro>-<arch>-install` | linix | the release's image **of that architecture** | `build/ci/packages/deb-install.sh`, on a clean container (see [The install test](#the-install-test)). The arm64 container runs under qemu-user |
 | `deb-ubuntu26.04-arm64-sbom` | linix | the CI image | `build/ci/packages/package-sbom.sh`: the package's own SBOM, `hmailserver_<v>_arm64.deb.cdx.json`, as `linux-build` makes the amd64 one's, from what the build recorded it was built against (see [The SBOM](#the-sbom)) |
+| `deb-ubuntu26.04-arm64-start` | linix | Ubuntu 26.04's **arm64** image, the install job's, beside PostgreSQL 18 | `build/ci/linux-package-install.sh deb`: the package installed, its schema created, the server started as its unit starts it and asked for SMTP, the REST API and the Deck, then removed (see [The start test](#the-start-test)). Under qemu-user |
 
 `<distro>` is `debian12`, `debian13`, `ubuntu24.04` or, for arm64 only,
 `ubuntu26.04`.
@@ -533,9 +570,50 @@ architecture:
 
 **What the test does not do.** It does not start the server against a database,
 and it has no systemd to start the unit.
-`build/ci/linux-package-install.sh` does the first for linux-build's amd64
-package in the `linux-package-deb` job, and `package-systemd-ubuntu26.04` does
-the second ([Started under systemd](#started-under-systemd)).
+`build/ci/linux-package-install.sh` does the first for the two packages named
+for Ubuntu 26.04 alone: `linux-build`'s amd64 one in the `linux-package-deb` job,
+and this file's arm64 one, the file a release carries, in
+`deb-ubuntu26.04-arm64-start` ([The start test](#the-start-test)).
+`package-systemd-ubuntu26.04` does the second
+([Started under systemd](#started-under-systemd)).
+
+### The start test
+
+`deb-ubuntu26.04-arm64-start` runs `build/ci/linux-package-install.sh deb` in a
+clean container of the install job's image, Ubuntu 26.04 for arm64, under
+qemu-user on the project's runners, beside a PostgreSQL 18 service - the one
+`linux-package-deb` has, by its index's digest, so that it runs on the machine's
+own architecture. The script takes the one `hmailserver_*_<arch>.deb` of the
+container's own architecture from the folder it is given, the build's
+(`HM_PACKAGES_DIR`), and refuses when there is not exactly one:
+
+1. apt installs it with its `Depends` from Ubuntu 26.04's archive, over IPv4 and
+   tried again when the archive cannot be reached, as above; `dpkg` shows the
+   file's `Version` and `Architecture` installed, and `hmailserver --version`
+   answers the tree's version.
+2. Every file an installation needs is there; the Control Deck and its
+   catalogues are the repository's, byte for byte; the licences are installed as
+   the tree has them; `postinst` made the user, enabled the units and left the
+   configuration `640 root:hmailserver`.
+3. The packaged configuration is pointed at the database, as the packaging README
+   tells an administrator to; `--check-config` and `--create-database` run as
+   `hmailserver`; the administrator password and the REST port are stored with the
+   server's own verbs, and a secret given on the command line is refused.
+4. The server is started as its unit starts it: `setpriv` with the unit's user and
+   group, in `/var/lib/hmailserver`, with `CAP_NET_BIND_SERVICE` alone and no new
+   privileges, and given five minutes to answer (`HM_START_WAIT`); a server that
+   exits before then fails the job at once, with its exit status and its output.
+5. Port 25 answers with the server's own banner, `220 <its host name> ESMTP` -
+   another program's banner there fails the job - and EHLO and QUIT;
+   `GET /api/v1/status` answers; `GET /` is the installed Control Deck, byte for
+   byte, and `/deck-lang/de.json` its German catalogue, with 404 for what is not
+   a language.
+6. The server is stopped and `apt-get remove` takes the package off.
+
+`release` needs the job, beside the build, the install test and the SBOM job, and
+`build/check-release-chain.py` holds it to the script, the build's folder, the
+install job's image and the database (`CARRIED_PACKAGES`). The amd64 package's
+`linux-package-deb` runs the same script, so both go through the same steps.
 
 Started under systemd
 ---------------------
@@ -544,8 +622,9 @@ Started under systemd
 under its own unit, with systemd as PID 1, and `package-systemd-fedora44` does the
 same for `rpm-fedora44-x86_64`'s `hmailserver-<v>-1.fc44.x86_64.rpm`
 ([PackagesRpm.md](PackagesRpm.md), "Started under systemd"). No other job does: the
-install tests and `linux-package-deb` run in containers without systemd, and
-`linux-package-install.sh` starts the server the way the unit would, not under it.
+install tests, `linux-package-deb` and the start tests of the AArch64 packages run in
+containers without systemd, and `linux-package-install.sh` starts the server the way
+the unit would, not under it.
 So the unit's sandbox, its first-start step and the package scripts' systemd
 branches had run on no machine of the project's. The jobs are in
 `.gitlab/ci/package-systemd.yml`, and both run `build/ci/package-systemd-test.sh`

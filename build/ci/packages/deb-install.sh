@@ -24,9 +24,11 @@
 #   * apt removes it again.
 #
 # What it does NOT do: start the server against a database and ask the REST API.
-# build/ci/linux-package-install.sh does that for the generic amd64 package in
-# the linux-package-deb job; a container has no systemd, so neither job proves
-# the unit's own start (that script says what a container cannot prove).
+# build/ci/linux-package-install.sh does that for the two generic packages named
+# for Ubuntu 26.04 alone: the amd64 one in the linux-package-deb job, and the arm64
+# one this file's jobs make, the file a release carries, in
+# deb-ubuntu26.04-arm64-start; a container has no systemd, so none of these jobs
+# proves the unit's own start (that script says what a container cannot prove).
 #
 #   HM_DEB_DISTRO=debian13 HM_DEB_ARCH=arm64 bash build/ci/packages/deb-install.sh
 #

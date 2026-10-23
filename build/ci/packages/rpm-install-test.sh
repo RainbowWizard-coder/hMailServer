@@ -32,10 +32,13 @@
 #
 #   bash build/ci/packages/rpm-install-test.sh <target> <arch>
 #
-# Unlike build/ci/linux-package-install.sh's rpm half, nothing is installed with
-# --nodeps: the whole point of a per-distribution build is that it installs
-# with its dependencies on that distribution. What a container cannot prove is
-# the start under systemd (linux-package-install.sh says what that leaves out).
+# Unlike build/ci/linux-package-install.sh's half for linux-build's .rpm, nothing is
+# installed with --nodeps: the whole point of a per-distribution build is that it
+# installs with its dependencies on that distribution. It does not start the server
+# against a database: linux-package-install.sh rpm-fedora does that for the generic
+# aarch64 copy, the file a release carries, in rpm-fedora44-aarch64-start. What a
+# container cannot prove is the start under systemd (linux-package-install.sh says
+# what that leaves out).
 set -uo pipefail
 
 target="${1:-}"

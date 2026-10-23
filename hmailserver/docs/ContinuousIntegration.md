@@ -91,7 +91,8 @@ The other tables on this page name runners the same way.
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` and `workqueue-teardown-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
 | `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A database made by 6029's own create script, with orphaned rows, upgrades to this schema and to the schema of a new database, on PostgreSQL 18 and MariaDB 13 (`build/ci/linux-db-upgrade.sh`) |
-| `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
+| `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the SMTP banner on 25, the REST API and the Deck (`build/ci/linux-package-install.sh`) |
+| `deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start` | test | linix | a protected ref, once `deb-ubuntu26.04-arm64` or `rpm-fedora44-aarch64` has passed (on `master` those builds are started by hand) | The generic AArch64 `.deb` and `.rpm` a release carries, installed with apt and dnf and their dependencies in clean arm64 Ubuntu 26.04 and Fedora 44 containers, under qemu-user, beside PostgreSQL 18; each server's schema created as `hmailserver`, the server started as its unit starts it and asked for the SMTP banner on 25, the REST API and the Deck, and the package removed (`.gitlab/ci/packages-deb.yml`, `packages-rpm.yml`, `build/ci/linux-package-install.sh`; [PackagesDeb.md](PackagesDeb.md), [PackagesRpm.md](PackagesRpm.md)) |
 | `linux-image` | test | linix | a protected ref | The container image for linux/amd64 built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
 | `linux-image-arm64` | test | linix | a protected ref, once `deb-ubuntu26.04-arm64` has passed (on `master` that build is started by hand) | The container image for linux/arm64 built with kaniko from that job's `.deb`, its `RUN` under qemu-user, and inspected as `linux-image` inspects its own, not pushed (`.gitlab/ci/container-image.yml`, `build/ci/linux-image.sh` with `HM_IMAGE_ARCH=arm64`) |
 | `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
@@ -441,7 +442,7 @@ as it was.
 |---|---|---|---|
 | `HM_RUNNER_BUILD` | The builds and checks in the CI image or a distribution's own amd64 image, 21 jobs: `linux-build`, `linux-build-gcc`, `linux-cross`, `linux-sanitize`, `linux-repro`, `linux-sbom`, `linux-live-update`, both upgrade gates, `linux-package-deb` and `linux-package-rpm`, `linux-image`, `static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`, `repo-hygiene`, `source-tarball`, `release-packages`, and the two AArch64 SBOM jobs | `saas-linux-large-amd64` | none |
 | `HM_RUNNER_PACKAGES` | The package builds and their install jobs in amd64 containers, 45 jobs: every `.deb` build (the arm64 ones are cross-compiled in amd64 containers) and the amd64 install jobs, the x86_64 `.rpm` builds and their install jobs, the seven source packages and their install jobs, `alpine-package` and `alpine-install`, the AppImages' amd64 jobs (`appimage-aarch64-compile` among them), and `snap-build-amd64` | `saas-linux-large-amd64` | `HM_LANE_PACKAGES`, `linix-package-build` |
-| `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user, 15 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
+| `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user, 17 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, the start jobs of the generic arm64 `.deb` and aarch64 `.rpm` (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`), `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
 | `HM_RUNNER_SUITE` | `linux-suite` and `alpine-suite` | `saas-linux-large-amd64` | `HM_LANE_SUITE`, `linix-suite` |
 
 `build/check-release-chain.py` holds each class to the jobs it names: a job takes a
@@ -629,13 +630,16 @@ The minutes a pipeline is expected to use on GitLab's runners, by class - the jo
 times of the pipelines of 5 to 13 October 2026 on linix (six CPUs, near a large
 machine's eight; the builds use six compilers), a minute more a job for its machine
 and image, the arm64 jobs at four tenths of their time under qemu-user, at 0.5 a
-minute (`build/ci/hosted-runners.py`'s `EXPECTED`):
+minute (`build/ci/hosted-runners.py`'s `EXPECTED`); the arm64 class's two start jobs,
+which came later, each at four tenths of the 76 to 110 seconds its script took under
+qemu-user by hand, and a minute more for its machine, images and database - a
+minute each:
 
 | Class | A `batch*` branch's pipeline | `master`'s | A `v*` tag's | The project's runners' job-minutes it takes off a batch's |
 |---|---|---|---|---|
 | `HM_RUNNER_BUILD` | 95 | 90 | 75 | 166 |
 | `HM_RUNNER_PACKAGES` | 280 | 120 (the source packages and Alpine's; the other builds wait for a press there) | 140 | 512 |
-| `HM_RUNNER_ARM64` | 15 | 0 | 15 | 32 |
+| `HM_RUNNER_ARM64` | 17 | 0 | 17 | 37 |
 | `HM_RUNNER_SUITE` | 145 | 145 | 75 | 286 |
 
 A landing runs a `batch*` pipeline and then `master`'s. In a release week of five
@@ -3231,9 +3235,11 @@ their reports and refuses on what they found
 ([Before a release](#before-a-release-the-scans-hold-it)). Of the package
 jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too, it needs
 the two whose generic files the release carries, `deb-ubuntu26.04-arm64` and
-`rpm-fedora44-aarch64`, their SBOM jobs and their install jobs, which install
+`rpm-fedora44-aarch64`, their SBOM jobs, their install jobs, which install
 and run each package in an AArch64 container of its distribution under
-qemu-user and so are gates; `release-packages`, which needs every other package
+qemu-user, and their start jobs, which start the server from each there beside
+PostgreSQL and ask it for SMTP, the REST API and the Deck, and so are gates;
+`release-packages`, which needs every other package
 build and its install job, both AppImages and their test jobs,
 `appimage-runtime-sources`, `appimage-bundled-sources` and the source tarball; and `helm-chart-package`. It brings the artifacts of fourteen jobs: the
 ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
@@ -3241,7 +3247,7 @@ ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
 `release-packages` and `helm-chart-package`) and the four scans.
 `release-packages` is a job of its own
 because GitLab.com lets a job need fifty jobs at most (`ci_needs_size_limit`):
-`release` needs thirty-five, and `release-packages` forty-three, forty-one of
+`release` needs thirty-eight, and `release-packages` forty-three, forty-one of
 them jobs `release` does not need itself. Of the Windows package jobs it needs
 `windows-packages-arm64`, whose ARM64 installer the release carries from 6.3.6;
 a tag's pipeline has no `windows-packages-x64`.

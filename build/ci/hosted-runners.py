@@ -127,10 +127,13 @@ HOSTED_LANE = "hosted-$CI_JOB_NAME"
 # its open-source programme on any of its Linux machines (the lower of the runner's cost
 # factor and 0.5: GitLab's ee/lib/gitlab/ci/minutes/cost_factor.rb). On master the
 # package builds wait for a press, and their arm64 jobs with them; a tag runs one suite.
+# The arm64 class's two start jobs came after those pipelines: each at four tenths of the
+# 76 to 110 s its script took under qemu-user on 23 October 2026, with a minute more for
+# its machine, images and PostgreSQL service, at 0.5 - a minute each, 2 more.
 EXPECTED = {
     "HM_RUNNER_BUILD": {"batch": 95, "master": 90, "tag": 75},
     "HM_RUNNER_PACKAGES": {"batch": 280, "master": 120, "tag": 140},
-    "HM_RUNNER_ARM64": {"batch": 15, "master": 0, "tag": 15},
+    "HM_RUNNER_ARM64": {"batch": 17, "master": 0, "tag": 17},
     "HM_RUNNER_SUITE": {"batch": 145, "master": 145, "tag": 75},
 }
 # The project's credentials, each by the name its job reads it from, with the
@@ -782,7 +785,7 @@ def self_test():
 
     code, text, asked = run_quota(415)
     expect("415 of 50,000 used: passed", code, 0)
-    expect("the expected minutes of a batch's pipeline with packages and arm64 on GitLab's", "about 295 compute minutes" in text, True)
+    expect("the expected minutes of a batch's pipeline with packages and arm64 on GitLab's", "about 297 compute minutes" in text, True)
     expect("which are those of a pipeline made at the switches as the job reads them, not of this one",
            ("The switches now send HM_RUNNER_PACKAGES (saas-linux-large-amd64), HM_RUNNER_ARM64 (saas-linux-medium-arm64) to "
             "GitLab's runners: a batch pipeline made with them" in text, "this batch pipeline" in text), (True, False))

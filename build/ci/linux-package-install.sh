@@ -3,26 +3,46 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The linux-package-deb and linux-package-rpm jobs of .gitlab-ci.yml: the
-# packages the linux-build job made (linux-build/packages), installed in a clean
-# distribution container - the job's own image, which is a stock distribution
-# image and not the CI image - and held to what a working installation needs.
-# It is the old GitHub workflow linux-build.yml's package-install job, moved from
-# a hosted runner with systemd into a container without it.
+# The linux-package-deb and linux-package-rpm jobs of .gitlab-ci.yml, and the
+# deb-ubuntu26.04-arm64-start and rpm-fedora44-aarch64-start jobs of
+# .gitlab/ci/packages-deb.yml and packages-rpm.yml: a package installed in a clean
+# distribution container - the job's own image, which is a stock distribution image
+# and not the CI image - and held to what a working installation needs. It is the
+# old GitHub workflow linux-build.yml's package-install job, moved from a hosted
+# runner with systemd into a container without it.
 #
-#   bash build/ci/linux-package-install.sh deb   in ubuntu:26.04, beside a
-#                                                PostgreSQL service ("postgres")
-#   bash build/ci/linux-package-install.sh rpm   in Fedora
+#   bash build/ci/linux-package-install.sh deb          in ubuntu:26.04 of the
+#                                                       package's architecture, beside
+#                                                       a PostgreSQL service ("postgres")
+#   bash build/ci/linux-package-install.sh rpm          linux-build's x86_64 .rpm, in
+#                                                       Fedora 44
+#   bash build/ci/linux-package-install.sh rpm-fedora   the generic .rpm that
+#                                                       rpm-fedora44-<arch> builds in
+#                                                       Fedora 44, in Fedora 44 of its
+#                                                       architecture, beside "postgres"
 #
-# The .deb: apt installs it with its dependencies from Ubuntu's archive; every
-# file a working installation needs is where the package says, and its licences
-# with it (build/ci/packages/check-licenses.sh, which the .rpm half runs too);
-# the packaged configuration is edited the way packaging/README.md tells an
-# administrator to; the server checks it, creates the schema and stores its
-# settings as the service user; then it is started the way its unit starts it -
-# as hmailserver, in /var/lib/hmailserver, with the one capability the unit
-# grants and no new privileges - and asked whether the REST API answers and
-# whether GET / is the Control Deck. Last, it is removed.
+# HM_PACKAGES_DIR is where the package is: linux-build/packages by default, the .deb
+# and the .rpm linux-build made; packages-deb/ubuntu26.04-arm64 for the arm64 .deb
+# and packages-rpm/fedora44-aarch64/generic for the aarch64 .rpm, the generic files a
+# release carries beside linux-build's. The package taken is the one there of this
+# container's own architecture, as dpkg or rpm names it, and there must be exactly
+# one: an arm64 package is held in an arm64 container - under qemu-user on the
+# project's runners, natively on an arm64 machine. HM_START_WAIT is how many seconds
+# the started server is given to answer (60; the arm64 jobs give more, since under
+# qemu-user every instruction of it is emulated).
+#
+# The .deb, and the generic .rpm built in Fedora 44: the distribution's package
+# manager installs it with its dependencies from that release's own repositories -
+# apt from Ubuntu's archive, dnf from Fedora's, never --nodeps - and the installed
+# server answers its version; every file a working installation needs is where the
+# package says, and its licences with it (build/ci/packages/check-licenses.sh, which
+# the linux-build .rpm's half runs too); the packaged configuration is edited the
+# way packaging/README.md tells an administrator to; the server checks it, creates
+# the schema and stores its settings as the service user; then it is started the way
+# its unit starts it - as hmailserver, in /var/lib/hmailserver, with the one
+# capability the unit grants and no new privileges - and asked whether port 25
+# answers SMTP with its own banner, whether the REST API answers and whether GET / is
+# the Control Deck. Last, it is removed.
 #
 # What a container cannot prove, and the hosted runner did: the start under
 # systemd itself, with the unit's whole sandbox (ProtectSystem=strict, the
@@ -33,11 +53,13 @@
 # reproduced here with setpriv. The privileged listeners bind in any case in a
 # container, because docker sets net.ipv4.ip_unprivileged_port_start to 0.
 #
-# The .rpm: the payload and the scriptlets, as before - installed with --nodeps.
-# The package is built on Ubuntu, so its automatic requires are that build's
-# sonames and symbol versions; dnf resolved them on Fedora 43 and 44 on
+# linux-build's .rpm: the payload and the scriptlets, as before - installed with
+# --nodeps. That package is built on Ubuntu, so its automatic requires are that
+# build's sonames and symbol versions; dnf resolved them on Fedora 43 and 44 on
 # 26 September 2026 (docs/PackageManagers.md, "apt and dnf"), but this job holds the
-# package, not a distribution's libraries, which are a question for a build made on it.
+# package, not a distribution's libraries, which are a question for a build made on
+# it - the generic .rpm built in Fedora 44, which rpm-fedora installs with dnf and
+# starts.
 set -uo pipefail
 
 kind="${1:-}"
@@ -46,10 +68,19 @@ REST_PORT="${HM_REST_PORT:-8046}"
 ADMIN_PASSWORD="${HM_ADMIN_PASSWORD:-testar}"
 PGH="${HM_PG_HOST:-postgres}"
 export PGPASSWORD="${HM_PG_PASSWORD:-hmtest}"
+START_WAIT="${HM_START_WAIT:-60}"
+
+case "$kind" in
+  deb|rpm|rpm-fedora) ;;
+  *) echo "usage: $0 deb|rpm|rpm-fedora"; exit 64 ;;
+esac
+case "$START_WAIT" in
+  ''|*[!0-9]*) echo "REFUSED: HM_START_WAIT is '$START_WAIT', not a number of seconds"; exit 2 ;;
+esac
 
 if [ ! -d "$packages" ] || [ -z "$(ls "$packages" 2> /dev/null)" ]; then
-  echo "REFUSED: no packages in $packages. The packaging step of the linux-build job made none;"
-  echo "its artifact linux-build/package.log says why."
+  echo "REFUSED: no packages in $packages. The job that builds them made none;"
+  echo "its artifacts (linux-build/package.log for linux-build's) say why."
   exit 2
 fi
 
@@ -95,7 +126,7 @@ files_are_there() {
   fi
 }
 
-# ---------------------------------------------------------------- the .rpm
+# ---------------------------------------------------------------- linux-build's .rpm
 if [ "$kind" = rpm ]; then
   set -e
   . /etc/os-release
@@ -137,16 +168,8 @@ if [ "$kind" = rpm ]; then
   exit 0
 fi
 
-if [ "$kind" != deb ]; then
-  echo "usage: $0 deb|rpm"
-  exit 64
-fi
-
-# ---------------------------------------------------------------- the .deb
+# ---------------------------------------------------------------- the .deb, and the .rpm built in Fedora
 . /etc/os-release
-echo "== $PRETTY_NAME"
-deb=$(ls "$packages"/hmailserver_*_amd64.deb | head -n 1)
-echo "== $(basename "$deb")"
 
 step() {
   echo ""
@@ -175,13 +198,82 @@ stop_server() {
 }
 trap stop_server EXIT
 
-step "install it, with what apt resolves for it from $PRETTY_NAME"
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq > /dev/null || fail "apt-get update"
-echo "Depends: $(dpkg-deb -f "$deb" Depends)"
-apt-get install -y -qq --no-install-recommends "./$deb" postgresql-client curl iproute2 > /tmp/install.log 2>&1 \
-  || { tail -n 30 /tmp/install.log; fail "apt-get install of $(basename "$deb")"; }
-/usr/bin/hmailserver --version || fail "the installed binary does not start"
+# The package of this container's architecture: exactly one in $packages.
+if [ "$kind" = deb ]; then
+  arch=$(dpkg --print-architecture)
+  pattern="hmailserver_*_$arch.deb"
+else
+  arch=$(rpm --eval '%{_arch}')
+  pattern="hmailserver-*.$arch.rpm"
+fi
+echo "== $PRETTY_NAME, $(uname -m) ($arch)"
+found=$(cd "$packages" && ls -1 $pattern 2> /dev/null)
+if [ "$(printf '%s' "$found" | grep -c .)" != 1 ]; then
+  echo "REFUSED: not exactly one $pattern in $packages (found: $(echo ${found:-none})). This container is $arch:"
+  echo "a package is held in a container of its own architecture, and its build job made it or did not (its artifacts say)."
+  exit 2
+fi
+package="$packages/$found"
+case "$package" in /*) ;; *) package="./$package" ;; esac
+echo "== $found"
+version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9.]*\)".*/\1/p' \
+  hmailserver/source/Server/Common/Application/Version.h)
+
+# The repositories, tried again when they could not be reached, and failed at once
+# otherwise: a dependency the release cannot meet is what this is for. apt over IPv4
+# only, as deb-install.sh says why: under qemu-user apt's fall-back from a mirror's
+# IPv6 address to its IPv4 one gave up in 5 of 21 arm64 containers on linix. And
+# apt-get update exits 0 when it could not fetch an index, so such a warning fails it.
+apt_opts=(-o Acquire::ForceIPv4=true -o Acquire::Retries=3)
+network_failure='Failed to fetch|Unable to connect|Temporary failure resolving|Could not resolve|Curl error|Cannot download|Failed to download|Download \(curl\) error|Timeout exceeded|Couldn.t resolve|Couldn.t connect|Connection (refused|timed out|reset)'
+fetch() {
+  local log=$1 try
+  shift
+  for try in 1 2 3; do
+    if "$@" > "$log" 2>&1 && ! grep -q -E '^(W: Failed to fetch|W: Some index files failed|E: )' "$log"; then
+      return 0
+    fi
+    grep -q -E "$network_failure|^W: Some index files failed" "$log" || return 1
+    echo "the repositories could not be reached, try $try of 3: $(grep -m 1 -E "$network_failure|^W: Some index files failed" "$log")"
+    [ "$try" = 3 ] || sleep 15
+  done
+  return 1
+}
+
+if [ "$kind" = deb ]; then
+  step "install it, with what apt resolves for it from $PRETTY_NAME"
+  export DEBIAN_FRONTEND=noninteractive
+  fetch /tmp/apt.log apt-get update -qq "${apt_opts[@]}" || { tail -n 20 /tmp/apt.log; fail "apt-get update: $PRETTY_NAME's archive could not be read"; }
+  echo "Depends: $(dpkg-deb -f "$package" Depends)"
+  fetch /tmp/install.log apt-get install -y -qq "${apt_opts[@]}" --no-install-recommends "$package" postgresql-client curl iproute2 \
+    || { tail -n 30 /tmp/install.log; fail "apt-get install of $found"; }
+  installed=$(dpkg-query -W -f '${Version} ${Architecture} ${Status}' hmailserver)
+  echo "installed: $installed"
+  [ "$installed" = "$(dpkg-deb -f "$package" Version) $arch install ok installed" ] \
+    || fail "dpkg says '$installed', not the file's Version and Architecture, installed"
+else
+  step "install it, with what dnf resolves for it from $PRETTY_NAME's repositories"
+  requires=$(rpm -qp --requires "$package" | grep -v '^rpmlib(' | sort -u)
+  grep -v -E '^lib[^ ]*\.so' <<< "$requires" | sed 's/^/  requires /'
+  echo "  requires $(grep -c -E '^lib[^ ]*\.so' <<< "$requires") library sonames and symbol versions besides"
+  # Without weak dependencies, as rpm-install-test.sh installs: what the package
+  # requires comes, glibc's character-set converters among them where dnf is on
+  # Fedora. Beside it what this test runs and the image lacks: setpriv and runuser
+  # (util-linux; the image has util-linux-core), the PostgreSQL client, ss and cmp.
+  fetch /tmp/install.log dnf -y -q --setopt=install_weak_deps=False install "$package" postgresql util-linux iproute diffutils \
+    || { tail -n 40 /tmp/install.log; fail "dnf could not install $found with its dependencies"; }
+  installed=$(rpm -q --qf '%{VERSION}-%{RELEASE} %{ARCH}' hmailserver)
+  echo "installed: $installed"
+  [ "$installed" = "$(rpm -qp --qf '%{VERSION}-%{RELEASE} %{ARCH}' "$package")" ] \
+    || fail "rpm says '$installed' is installed, not the file's version and architecture"
+  echo "glibc's converters, which it requires here: $(rpm -q glibc-gconv-extra)"
+fi
+answer=$(/usr/bin/hmailserver --version 2>&1) || fail "the installed binary does not start: $answer"
+echo "$answer"
+case "$answer" in
+  "hMailServer $version build "*) ;;
+  *) fail "--version answered '$answer', not hMailServer $version, the version of this tree" ;;
+esac
 
 step "every file a working installation needs"
 files_are_there || fail "files missing"
@@ -194,25 +286,36 @@ done
 echo "the Deck and its $(ls hmailserver/installation/WebAdmin/languages/*.json | wc -l) catalogues are the repository's, byte for byte"
 
 step "the licences it goes out under, as installed"
-bash build/ci/packages/check-licenses.sh --installed deb || fail "the installed licence files (above)"
+bash build/ci/packages/check-licenses.sh --installed "${kind%%-*}" || fail "the installed licence files (above)"
 
-step "what postinst did with no systemd running"
-getent passwd hmailserver || fail "postinst made no hmailserver user"
-stat -c "%a %U:%G %n" /etc/hmailserver /etc/hmailserver/hMailServer.ini /var/lib/hmailserver /var/log/hmailserver
-# Enabled, not started: deb-systemd-helper links both units into
-# multi-user.target.wants, which their [Install] sections name, and it does so
-# with no systemd running. (The old job asked systemctl is-enabled; there is no
-# systemd to ask here.)
-if command -v deb-systemd-helper > /dev/null 2>&1; then
-  for unit in hmailserver.service hmailserver-update.path; do
-    link="/etc/systemd/system/multi-user.target.wants/$unit"
-    if [ -L "$link" ]; then
-      echo "$unit: enabled ($link -> $(readlink "$link"))"
-    else
-      fail "postinst did not enable $unit: no $link"
-    fi
-  done
+if [ "$kind" = deb ]; then
+  step "what postinst did with no systemd running"
+  getent passwd hmailserver || fail "postinst made no hmailserver user"
+  stat -c "%a %U:%G %n" /etc/hmailserver /etc/hmailserver/hMailServer.ini /var/lib/hmailserver /var/log/hmailserver
+  # Enabled, not started: deb-systemd-helper links both units into
+  # multi-user.target.wants, which their [Install] sections name, and it does so
+  # with no systemd running. (The old job asked systemctl is-enabled; there is no
+  # systemd to ask here.)
+  if command -v deb-systemd-helper > /dev/null 2>&1; then
+    for unit in hmailserver.service hmailserver-update.path; do
+      link="/etc/systemd/system/multi-user.target.wants/$unit"
+      if [ -L "$link" ]; then
+        echo "$unit: enabled ($link -> $(readlink "$link"))"
+      else
+        fail "postinst did not enable $unit: no $link"
+      fi
+    done
+  fi
+else
+  step "what %post did with no systemd running"
+  getent passwd hmailserver || fail "%post made no hmailserver user"
+  stat -c "%a %U:%G %n" /etc/hmailserver /etc/hmailserver/hMailServer.ini /var/lib/hmailserver /var/log/hmailserver
+  # grep reads the whole list: under pipefail an early exit could leave rpm writing
+  # into a closed pipe (rpm-install-test.sh).
+  rpm -qc hmailserver | grep -x /etc/hmailserver/hMailServer.ini > /dev/null || fail "hMailServer.ini is not a %config file"
 fi
+owner=$(stat -c '%U:%G %a' /etc/hmailserver/hMailServer.ini)
+[ "$owner" = "root:hmailserver 640" ] || fail "the packaged configuration is '$owner', not 'root:hmailserver 640'"
 /usr/lib/hmailserver/hmailserver-update check || true
 
 step "configure the packaged INI against the PostgreSQL service"
@@ -275,18 +378,70 @@ install -d -o hmailserver -g hmailserver -m 0750 /run/hmailserver
 ( cd /var/lib/hmailserver && umask 0027 && exec setpriv --reuid=hmailserver --regid=hmailserver --init-groups \
     --inh-caps=+net_bind_service --ambient-caps=+net_bind_service --bounding-set=-all,+net_bind_service \
     --no-new-privs /usr/bin/hmailserver --foreground ) > /tmp/hm-stdout.log 2>&1 &
-echo $! > /tmp/hm.pid
+pid=$!
+echo "$pid" > /tmp/hm.pid
+started=$SECONDS
 up=""
-for _ in $(seq 1 60); do
+while [ $((SECONDS - started)) -lt "$START_WAIT" ]; do
   if curl -fs -o /dev/null -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status"; then
     up=yes
     break
   fi
-  kill -0 "$(cat /tmp/hm.pid)" 2> /dev/null || break
+  if ! kill -0 "$pid" 2> /dev/null; then
+    wait "$pid"
+    fail "the server exited, with status $?, $((SECONDS - started)) s after it was started and before its REST API answered on $REST_PORT"
+  fi
   sleep 1
 done
-[ -n "$up" ] || fail "the server did not answer on $REST_PORT in a minute"
-ss -lntp | grep -E ":(25|110|143|587|$REST_PORT)\b" || true
+[ -n "$up" ] || fail "the server did not answer on $REST_PORT within $START_WAIT s (HM_START_WAIT)"
+echo "the REST API answered $((SECONDS - started)) s after the start"
+# Under qemu-user ss has no netlink, and lists the sockets without their process.
+ss -lntp 2> /dev/null | grep -E ":(25|110|143|587|$REST_PORT)\b" || true
+
+step "port 25 answers SMTP with the server's own banner"
+# The banner of a server whose welcome message is not set, as SMTPConnection's
+# GetBannerText_ writes it: 220, the machine's name as gethostname gives it, ESMTP.
+# A banner of another program listening on 25 is not it. Then EHLO and its whole
+# answer, and QUIT.
+banner="220 $(cat /proc/sys/kernel/hostname) ESMTP"
+smtp_conversation() {
+  local line
+  exec 3<> /dev/tcp/127.0.0.1/25 || return 1
+  IFS= read -r -t 30 line <&3 || { exec 3>&-; echo "no banner within 30 s"; return 2; }
+  line="${line%$'\r'}"
+  echo "S: $line"
+  [ "$line" = "$banner" ] || { exec 3>&-; echo "the banner is not '$banner'"; return 2; }
+  printf 'EHLO package-test.invalid\r\n' >&3
+  echo "C: EHLO package-test.invalid"
+  while :; do
+    IFS= read -r -t 30 line <&3 || { exec 3>&-; echo "EHLO had no whole answer within 30 s"; return 2; }
+    line="${line%$'\r'}"
+    echo "S: $line"
+    case "$line" in
+      250-*) ;;
+      250\ *) break ;;
+      *) exec 3>&-; echo "EHLO was answered with something else than 250"; return 2 ;;
+    esac
+  done
+  printf 'QUIT\r\n' >&3
+  echo "C: QUIT"
+  IFS= read -r -t 30 line <&3 || line="(nothing)"
+  line="${line%$'\r'}"
+  echo "S: $line"
+  exec 3>&-
+  case "$line" in 221*) return 0 ;; *) echo "QUIT was not answered 221"; return 2 ;; esac
+}
+said=""
+while :; do
+  said=$(smtp_conversation 2> /dev/null); rc=$?
+  [ "$rc" = 1 ] || break
+  kill -0 "$pid" 2> /dev/null || fail "the server stopped before port 25 answered"
+  [ $((SECONDS - started)) -lt "$START_WAIT" ] || fail "nothing answered on port 25 within $START_WAIT s of the start (HM_START_WAIT)"
+  sleep 1
+done
+echo "$said"
+[ "$rc" = 0 ] || fail "port 25 did not hold an SMTP conversation with the server: $(echo "$said" | tail -n 1)"
+echo "port 25 answered with the server's banner, EHLO and QUIT"
 
 step "the REST API answers"
 curl -fsS -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail "GET /api/v1/status"
@@ -315,7 +470,11 @@ echo "the German catalogue, byte for byte, and a 404 for what is not a language"
 step "stop it, and remove the package"
 stop_server
 tail -n 5 /tmp/hm-stdout.log
-apt-get remove -y -qq hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail "apt-get remove"; }
-[ ! -f /usr/bin/hmailserver ] || fail "/usr/bin/hmailserver is still there after apt-get remove"
+if [ "$kind" = deb ]; then
+  apt-get remove -y -qq hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail "apt-get remove"; }
+else
+  rpm -e hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail "rpm -e"; }
+fi
+[ ! -f /usr/bin/hmailserver ] || fail "/usr/bin/hmailserver is still there after the package was removed"
 echo ""
-echo "PACKAGE PASSED: the .deb installs on $PRETTY_NAME, the packaged server starts as its unit starts it, serves the Deck, and comes off again."
+echo "PACKAGE PASSED: $found installs on $PRETTY_NAME $arch with its dependencies, the packaged server starts as its unit starts it, answers SMTP on 25 and its REST API, serves the Deck, and comes off again."

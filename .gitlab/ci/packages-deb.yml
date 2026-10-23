@@ -18,20 +18,25 @@
 #   deb-ubuntu26.04-arm64-sbom   linix, in the CI image: the SBOM of the one
 #                                package here a release carries
 #                                (build/ci/packages/package-sbom.sh)
+#   deb-ubuntu26.04-arm64-start  linix: that package installed in a clean arm64
+#                                Ubuntu 26.04 container beside a PostgreSQL
+#                                service, and the server started from it and
+#                                asked, as linux-package-deb starts the amd64
+#                                one (build/ci/linux-package-install.sh deb)
 #
 # linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
 # builds and the amd64 install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
-# lane, HM_LANE_PACKAGES; the arm64 install jobs, whose containers are arm64, are
-# HM_RUNNER_ARM64's, and run natively on GitLab's arm64 machines when it sends them
-# there; the SBOM job is HM_RUNNER_BUILD's. An arm64 build asks whether its machine runs
-# aarch64 programs only where its install job will run on one of that kind
+# lane, HM_LANE_PACKAGES; the arm64 install jobs and the start job, whose containers
+# are arm64, are HM_RUNNER_ARM64's, and run natively on GitLab's arm64 machines when it
+# sends them there; the SBOM job is HM_RUNNER_BUILD's. An arm64 build asks whether its
+# machine runs aarch64 programs only where its install job will run on one of that kind
 # (deb-build.sh).
 #
 # for debian12, debian13 and ubuntu24.04, amd64 and arm64, and for ubuntu26.04
 # arm64 only. The names: ubuntu26.04 arm64 makes the generic
 # hmailserver_<v>_arm64.deb the update checker looks for, which the release
 # collects from 6.3.6 with its SBOM, and release waits for its build, its install
-# job and its SBOM job. Its amd64 twin, hmailserver_<v>_amd64.deb, is
+# job, its start job and its SBOM job. Its amd64 twin, hmailserver_<v>_amd64.deb, is
 # linux-build's (.gitlab-ci.yml), the one the release collects and
 # linux-package-deb installs, so no job here makes a second file of that name.
 # Every other release makes hmailserver_<v>-1~<distro>_<arch>.deb, Version
@@ -264,6 +269,41 @@ deb-ubuntu26.04-arm64-install:
   extends: [.deb-install-arm64, .deb-image-ubuntu26.04-arm64]
   needs: [deb-ubuntu26.04-arm64]
   variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}
+
+# The server started from hmailserver_<v>_arm64.deb, the file a release carries: the
+# package installed with apt in a clean arm64 Ubuntu 26.04 container - the install
+# job's image - beside PostgreSQL 18, configured, its schema created with
+# --create-database as hmailserver, started as its unit starts it (setpriv with the
+# unit's user, directory and capability), and asked: the SMTP banner on 25, GET
+# /api/v1/status and GET /, the Control Deck; then removed. The script is the one
+# linux-package-deb starts linux-build's amd64 .deb with
+# (build/ci/linux-package-install.sh), here given the build's folder, which holds the
+# arm64 file alone, and five minutes for the server to answer under qemu-user. Its
+# class is HM_RUNNER_ARM64's, as the install job's is; the PostgreSQL service is
+# linux-package-deb's, pinned by its index's digest, so that it runs on the machine's
+# own architecture wherever the job does. Its rules are the install jobs': it follows
+# its build. release needs it (build/check-release-chain.py, CARRIED_PACKAGES).
+deb-ubuntu26.04-arm64-start:
+  extends: .deb-image-ubuntu26.04-arm64
+  stage: test
+  tags: [$HM_RUNNER_ARM64]
+  needs: [deb-ubuntu26.04-arm64]
+  timeout: 30 minutes
+  rules:
+    - !reference [.deb-install-rules, rules]
+  variables:
+    HM_PACKAGES_DIR: packages-deb/ubuntu26.04-arm64
+    HM_START_WAIT: "300"
+  services:
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+      alias: postgres
+      pull_policy: [if-not-present, always]
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmpackage
+  script:
+    - bash build/ci/linux-package-install.sh deb
 
 # The release carries hmailserver_<v>_arm64.deb, from 6.3.6, and every compiled
 # file it carries goes out with its own SBOM beside it (SECURITY.md, "Software

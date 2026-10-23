@@ -156,6 +156,36 @@ below says why and what changed.
   handler in `/proc/sys/fs/binfmt_misc`, which a container does not mount. It
   now asks the kernel by running the server.
 
+### The start test, by hand on server2
+
+[The start test](#the-start-test)'s script, `build/ci/linux-package-install.sh
+rpm-fedora`, ran by hand on server2, one of the project's runners, on 23 October
+2026, over 6.3.7's own `hmailserver-6.3.7-1.aarch64.rpm` as the release carries
+it - its SHA-256 `72c3c404…` the one `hmailserver-linux-6.3.7-SHA256SUMS.txt`
+gives, and that file's Sigstore bundle verified by cosign against the tag's
+pipeline - in a checkout of 6.3.7's tree, which the package's Deck, catalogues and
+licences are compared with, holding the changed script. Each run was the job's
+own: the Fedora 44 aarch64 image by its digest, as `linux/arm64` under server2's
+qemu-user, the tree read-only, and PostgreSQL 18 by the job's digest, beside it on
+a network of its own, as `postgres`.
+
+| Run | What was planted | Verdict | The deciding lines | Time |
+|---|---|---|---|---|
+| 1 | nothing | passed | `installed: 6.3.7-1 aarch64`, `hMailServer 6.3.7 build 46`, the licence files each `%license`, `schema 6108`, "the REST API answered 2 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 83 s |
+| 2 | nothing, the script as committed | passed | the same, with "glibc's converters, which it requires here: glibc-gconv-extra-2.43-9.fc44.aarch64" | 76 s |
+| 3 | rpm kept from installing `CreateTablesPGSQL.sql` (`%_netsharedpath`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 60 s |
+| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 71 s |
+| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 72 s |
+
+dnf installed it with its dependencies; nothing was installed with `--nodeps`.
+`linux-build`'s `hmailserver-6.3.7-1.x86_64.rpm`, in `linux-package-rpm`'s Fedora 44
+image, passed the script's unchanged `rpm` half.
+
+**In a pipeline: not yet.** `rpm-fedora44-aarch64-start` first runs in the
+pipeline of the branch that brings it to `master`, the one its merge request is
+held to, under qemu-user on linix, server2 or s1-linux, and then in every `v*`
+tag's.
+
 Why each release has its own package
 ------------------------------------
 
@@ -197,8 +227,9 @@ The jobs
 --------
 
 Each release has four jobs: a build and an install test, for each
-architecture. That makes 24 jobs, and a 25th, `rpm-fedora44-aarch64-sbom`, for
-the one package a release carries.
+architecture. That makes 24 jobs, and two more for the one package a release
+carries: `rpm-fedora44-aarch64-sbom`, and `rpm-fedora44-aarch64-start`, which
+starts the server from it - 26.
 
 | Job | Runs on | Image | What it does |
 |---|---|---|---|
@@ -206,6 +237,7 @@ the one package a release carries.
 | `rpm-<target>-aarch64` | linix | the release's **x86_64** image | the same script, cross-compiling with the release's clang and lld against a sysroot of the same release's aarch64 packages (see [The AArch64 route](#the-aarch64-route-and-why)). The testers run under qemu-user |
 | `rpm-<target>-<arch>-install` | linix | the release's image **of that architecture** | `build/ci/packages/rpm-install-test.sh`, on a clean container (see [The install test](#the-install-test)). The aarch64 container runs under qemu-user |
 | `rpm-fedora44-aarch64-sbom` | linix | the CI image | `build/ci/packages/package-sbom.sh`: the generic aarch64 package's own SBOM, `hmailserver-<v>-1.aarch64.rpm.cdx.json`, as `linux-build` makes the x86_64 one's, from what the build recorded it was built against |
+| `rpm-fedora44-aarch64-start` | linix | Fedora 44's **aarch64** image, the install job's, beside PostgreSQL 18 | `build/ci/linux-package-install.sh rpm-fedora`: the generic aarch64 package installed by dnf with its dependencies, its schema created, the server started as its unit starts it and asked for SMTP, the REST API and the Deck, then removed (see [The start test](#the-start-test)). Under qemu-user |
 
 `<target>` is `fedora44`, `fedora43`, `el10`, `el9`, `leap16` or `tumbleweed`.
 
@@ -822,9 +854,52 @@ package's architecture:
 
 **What the test does not do.** It does not start the server against a database,
 and it has no systemd to start the unit. `build/ci/linux-package-install.sh`
-does the first for `linux-build`'s packages in the `linux-package-*` jobs, and
+does the first for the generic aarch64 package a release carries, in
+`rpm-fedora44-aarch64-start` ([The start test](#the-start-test)), and for
+`linux-build`'s `.deb` in `linux-package-deb`; `linux-package-rpm` installs
+`linux-build`'s `.rpm` with `--nodeps` and does not start it. And
 `package-systemd-fedora44` does both for Fedora 44's x86_64 package
 ([Started under systemd](#started-under-systemd)).
+
+### The start test
+
+`rpm-fedora44-aarch64-start` runs `build/ci/linux-package-install.sh rpm-fedora`
+in a clean container of the install job's image, Fedora 44 for aarch64, under
+qemu-user on the project's runners, beside a PostgreSQL 18 service - the one
+`linux-package-deb` has, by its index's digest, so that it runs on the machine's
+own architecture. The script takes the one `hmailserver-*.<arch>.rpm` of the
+container's own architecture from the folder it is given, the build's `generic/`
+(`HM_PACKAGES_DIR`), and refuses when there is not exactly one:
+
+1. dnf installs it with every `Requires` from Fedora 44's repositories, without
+   weak dependencies and never with `--nodeps` - glibc's converters among them,
+   which the package requires where dnf is on Fedora - and beside it what the
+   test runs and the image lacks: `util-linux` for `setpriv` and `runuser`, the
+   PostgreSQL client, `iproute` and `diffutils`. rpm shows the file's version and
+   architecture installed, and `hmailserver --version` answers the tree's
+   version.
+2. Every file an installation needs is there; the Control Deck and its
+   catalogues are the repository's, byte for byte; the licences are installed as
+   the tree has them; `%post` made the account and the directories, and left the
+   configuration a `%config` file, `640 root:hmailserver`.
+3. The packaged configuration is pointed at the database; `--check-config` and
+   `--create-database` run as `hmailserver`; the administrator password and the
+   REST port are stored with the server's own verbs, and a secret given on the
+   command line is refused.
+4. The server is started as its unit starts it: `setpriv` with the unit's user and
+   group, in `/var/lib/hmailserver`, with `CAP_NET_BIND_SERVICE` alone and no new
+   privileges, and given five minutes to answer (`HM_START_WAIT`); a server that
+   exits before then fails the job at once, with its exit status and its output.
+5. Port 25 answers with the server's own banner, `220 <its host name> ESMTP` -
+   another program's banner there fails the job - and EHLO and QUIT;
+   `GET /api/v1/status` answers; `GET /` is the installed Control Deck, byte for
+   byte, and `/deck-lang/de.json` its German catalogue.
+6. The server is stopped and `rpm -e` takes the package off.
+
+`release` needs the job, beside the build, the install test and the SBOM job, and
+`build/check-release-chain.py` holds it to the script and its kind, the build's
+`generic/` folder, the install job's image and the database, and the script to
+installing this package without `--nodeps` (`CARRIED_PACKAGES`).
 
 **When the repository cannot be reached.** Both scripts try a package
 manager's step up to three times when its output shows it could not reach the

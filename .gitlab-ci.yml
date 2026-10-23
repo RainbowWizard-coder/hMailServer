@@ -2088,8 +2088,10 @@ windows-installer:
 # needs have finished, so a gate left out here could be released past - every job whose
 # files the release carries, and the four security scans whose reports it reads; only
 # those thirteen bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml
-# it needs the two whose generic files the release carries, with their SBOM and install
-# jobs, and release-packages (.gitlab/ci/release-packages.yml), which needs every other
+# it needs the two whose generic files the release carries, with their SBOM, install
+# and start jobs - the last starting the server from each, in an AArch64 container
+# beside PostgreSQL (build/ci/linux-package-install.sh) - and release-packages
+# (.gitlab/ci/release-packages.yml), which needs every other
 # package build and its install job, both AppImages and their tests, the source of the
 # libraries linked into the AppImages' runtime (appimage-runtime-sources), the source of
 # the libraries they carry in usr/lib (appimage-bundled-sources) and the source
@@ -2109,8 +2111,8 @@ windows-installer:
 # checks run for every tag (a tag counts every file as changed) and are optional needs
 # only so that a pipeline without one is still created; the scans are not optional, so a
 # tag's pipeline without one of them is not created at all. build/check-release-chain.py
-# fails when a job of this file that can fail, a scan, a job that makes, describes or
-# installs an AArch64 package the release carries, release-packages,
+# fails when a job of this file that can fail, a scan, a job that makes, describes,
+# installs or starts an AArch64 package the release carries, release-packages,
 # helm-chart-package or linux-image-arm64 is missing here, and when one of them, or
 # any job release-packages waits for, may fail or waits for a press in a tag's
 # pipeline.
@@ -2177,11 +2179,15 @@ release:
       artifacts: true
     - job: deb-ubuntu26.04-arm64-install
       artifacts: false
+    - job: deb-ubuntu26.04-arm64-start
+      artifacts: false
     - job: rpm-fedora44-aarch64
       artifacts: true
     - job: rpm-fedora44-aarch64-sbom
       artifacts: true
     - job: rpm-fedora44-aarch64-install
+      artifacts: false
+    - job: rpm-fedora44-aarch64-start
       artifacts: false
     - job: release-packages
       artifacts: true
