@@ -929,8 +929,10 @@ with `--check`).
   neither `PATH=` nor `printf -v PATH` or `read PATH` sets it. The script must define its eight functions, each once,
   and no other; `ask_image` must not return before its end, which sets the schema; `fail` and `unasked` must not return
   and must end in `exit 1`; and `cleanup` must take `code=$?` first, write `code` nowhere else and end in
-  `exit "$code"`. A form these rules do not name, such as a command built at run time, is left to the review of the
-  change, which the script's digest, held in the checker (below), makes a gates review. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
+  `exit "$code"`. A form these rules do not name, such as a command built at run time, is left to the person who
+  reads the change: the script's digest, held in the checker (below), makes every change to the script a change of
+  a gate file, which `build/land-via-mr.py` lands only with `--gates-read`, a person's word that the change was read
+  whole. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
   push; a disabled ask would not have failed at all - the start job would have passed without asking that image.
   Master's checker passed every one of the ten mutations first tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64
   job, `MARIADB_DATABASE` removed and `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks
@@ -1042,12 +1044,14 @@ with `--check`).
 - **The release-chain check holds the image start test whole.** Its rules read the test's lines, not bash, and hold
   where the asks are and what may come before them, not what the asks run: `ask_image`'s body put behind
   `if false` or in a subshell, then `version=6108`, a `schema_version` that echoes 6108 and returns, and the STARTTLS
-  check's `|| fail` made `|| echo` each passed them (the review that found them ran the first two under bash in
-  the job's way, and each ended `STARTED` with status 0); and `build/ci/container-image-start-test.sh` is not one of `land-via-mr.py`'s gate files,
-  so no gates review read such a change. `build/check-release-chain.py`, which is one, now holds the script by the
-  SHA-256 of its text with its line ends LF (`START_TEST_SHA256`, `start_test_digest_problems`): a change to it fails
-  the check, saying the new digest, until the digest there changes with it, so that the landing takes a gates
-  review; the script's header says so. The digest is taken with the script's two image pins taken out
+  check's `|| fail` made `|| echo` each passed them, and the first two, run under bash in the job's way, ended
+  `STARTED` with status 0; and
+  `build/ci/container-image-start-test.sh` is not one of `land-via-mr.py`'s gate files, so that such a change landed
+  without `--gates-read`. `build/check-release-chain.py`, which is one, now holds the script by the SHA-256 of its
+  text with its line ends LF (`START_TEST_SHA256`, `start_test_digest_problems`): a change to it fails the check,
+  saying the new digest, until the digest there changes with it, so that the landing changes a gate file, which
+  `build/land-via-mr.py` lands only with `--gates-read`, a person's word that the change was read whole; the script's
+  header says so. The digest is taken with the script's two image pins taken out
   (`start_test_held_text`), the defaults of `HM_START_POSTGRES_IMAGE` and `HM_START_MARIADB_IMAGE`, which Renovate
   moves with the start jobs' services in its weekly merge request of container images and which would otherwise
   have failed the check on every such move until the digest was changed by hand: each is held instead to be

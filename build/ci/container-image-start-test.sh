@@ -74,7 +74,8 @@ set -uo pipefail
 # build/check-release-chain.py holds this file whole, by its SHA-256 (START_TEST_SHA256)
 # with the two image pins below taken out, which it holds to the pins of the start jobs'
 # services instead: a change here fails that check until the digest there changes with
-# it, so that a gates review reads what the start jobs run.
+# it, and a change to that file, a gate file, lands only with build/land-via-mr.py's
+# --gates-read, a person's word that the change was read whole.
 
 # The command the image runs, here and in the job's service definitions
 # (.gitlab/ci/container-image.yml, container-image-start, services: command);

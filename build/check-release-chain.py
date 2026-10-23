@@ -5513,7 +5513,7 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
 # build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
 # its line ends LF, with the two image pins of START_TEST_PINS each made
 # START_TEST_PIN_TAKEN_OUT (start_test_digest_problems).
-START_TEST_SHA256 = "1df6142f52ebdbb271c8a47673dace1be0f16d222a4afca30a3da1d29a6476e9"
+START_TEST_SHA256 = "0698212d9a91a71b4dd2bfee6a5218a9d29234b9c5e8789e87ced49661781c54"
 # The images the test starts by hand (--docker), each the default of a variable on a line
 # of its own: the variable, the one that overrides it, the image's name and the alias of
 # the start jobs' service it is. Renovate's regex manager for HM_*_IMAGE moves them, with
@@ -5554,7 +5554,9 @@ def start_test_digest_problems(script, image_jobs=None):
     || echo, each passed them and ended the test STARTED with status 0. The script is not
     one of land-via-mr.py's GATE_FILES, and this file is: a change to the script fails
     this check until START_TEST_SHA256 changes with it here, so that the landing that
-    changes what the start test does takes a gates review. The pins, which Renovate
+    changes what the start test does changes a gate file, which build/land-via-mr.py
+    lands only with --gates-read, a person's word that the change was read whole. The
+    pins, which Renovate
     moves, are held instead each once on its line, as _start_test_pin writes it, and the
     same as the pin of its service (START_TEST_PINS' alias) in each start job of
     image_jobs, so that the test run by hand starts the databases the jobs do."""
@@ -5580,8 +5582,9 @@ def start_test_digest_problems(script, image_jobs=None):
     if digest != START_TEST_SHA256:
         problems.append("%s is not the script build/check-release-chain.py holds (the SHA-256 of its text with its two image "
                         "pins taken out, start_test_held_text, is %s; START_TEST_SHA256 %s): a change to what the start "
-                        "test runs takes a change to START_TEST_SHA256 with it, in a gate file, so that a gates review "
-                        "reads it; a move of the pins alone, with the start jobs' services, does not"
+                        "test runs takes a change to START_TEST_SHA256 with it, in a gate file, which build/land-via-mr.py "
+                        "lands only with --gates-read, a person's word that the change was read whole; a move of the "
+                        "pins alone, with the start jobs' services, does not"
                         % (name, digest, START_TEST_SHA256))
     return problems
 
@@ -5777,8 +5780,10 @@ def start_test_call_problems(script):
     A call commented out, put behind true ||, inside a function nothing calls, or after
     a command that ends the script with status 0 would leave the start jobs passing
     without asking that image. The script is read as it is written; a form these rules
-    do not name (a command built at run time, for one) is for the review of the change,
-    which start_test_digest_problems makes a gates review."""
+    do not name (a command built at run time, for one) is for the person who reads the
+    change: start_test_digest_problems makes every change to the script a change of a
+    gate file, which build/land-via-mr.py lands only with --gates-read, a person's word
+    that the change was read whole."""
     problems = []
     name = FILES["image-start"].replace(os.sep, "/")
     lines = script.replace("\r\n", "\n").split("\n")
