@@ -3416,6 +3416,7 @@ def check(texts, chain, feed):
     problems.extend(job_key_problems(texts))
     problems.extend(variable_key_problems(texts))
     problems.extend(character_problems(texts))
+    problems.extend(script_line_end_problems(texts))
     return problems, notes
 
 
@@ -4293,6 +4294,42 @@ def character_problems(texts):
                             path, "U+%04X %s" % (ord(char), unicodedata.name(char, "(a control character)")),
                             (text or "").count("\n", 0, found[0].start()) + 1,
                             " and %d more beyond ASCII" % (len(found) - 1) if len(found) > 1 else ""))
+    return problems
+
+
+def script_bytes():
+    """{key: the file's bytes} for each shell script of FILES the tree has: what sh and
+    bash read, where read() gives this checker the text with every line end, a carriage
+    return alone among them, made a line feed."""
+    found = {}
+    for key, relative in FILES.items():
+        if not relative.endswith(".sh"):
+            continue
+        try:
+            with open(os.path.join(ROOT, relative), "rb") as f:
+                found[key] = f.read()
+        except OSError:
+            pass
+    return found
+
+
+def script_line_end_problems(texts):
+    """[problem] for each shell script of FILES whose bytes (texts["script-bytes"],
+    script_bytes) hold a carriage return not followed by a line feed. read() opens a file
+    with universal newlines, which make such a carriage return a line end, so that every
+    rule here and build/ci/container-image-start-test.sh's digest read a line break there;
+    sh and bash take it for an ordinary character, so that the line after it is a part of
+    the line before: with the line feed before the start test's [ "$plain" != 200 ] || fail
+    made a carriage return, that test was the command of a temporary assignment, the
+    plain-HTTP check could never fail, and the digest still matched."""
+    problems = []
+    for key, data in sorted(texts.get("script-bytes", {}).items()):
+        lone = re.search(b"\r(?!\n)", data)
+        if lone:
+            problems.append("%s has a carriage return not followed by a line feed on its line %d: sh and bash take it for an "
+                            "ordinary character, not a line end, so that what they run is not the lines this check reads, "
+                            "nor the text a digest here is taken over" % (
+                                FILES[key].replace(os.sep, "/"), data.count(b"\n", 0, lone.start()) + 1))
     return problems
 
 
@@ -6528,6 +6565,7 @@ def load_texts():
             texts[key] = ""
             missing.append(relative.replace(os.sep, "/"))
     texts["missing"] = missing
+    texts["script-bytes"] = script_bytes()
     texts["tree"] = tree_files()
     texts["permalinks"] = permalink_texts()
     texts["gate-docs"] = gate_texts()
@@ -7773,6 +7811,22 @@ def self_test(chain, feed):
              "      - container-image-amd64/\n      - build/ci/container-image-push.sh\n",
              "container-image-amd64's artifacts are not its own directory alone")):
         broken(what, key, old, new, needle)
+    # A carriage return alone in the start test's bytes, before its plain-HTTP check: read()
+    # makes it a line end, so that the text every rule and the digest read is the tree's,
+    # and bash does not, so that the check is never run.
+    raw = texts["script-bytes"].get("image-start", b"")
+    pair = b' || true)\n  [ "$plain" != 200 ] || fail'
+    if raw.count(pair) != 1:
+        failures.append("the start test's plain-HTTP check is not once in its bytes (%r)" % pair)
+    else:
+        lone = raw.replace(pair, pair.replace(b"\n", b"\r", 1))
+        copy = dict(texts, **{"script-bytes": dict(texts["script-bytes"], **{"image-start": lone})})
+        copy["image-start"] = io.TextIOWrapper(io.BytesIO(lone), encoding="utf-8").read().replace("\r\n", "\n")
+        found, _ = check(copy, chain, feed)
+        if copy["image-start"] != texts["image-start"] or not any(
+                "%s has a carriage return not followed by a line feed on its line" % FILES["image-start"].replace(os.sep, "/")
+                in p for p in found):
+            failures.append("a carriage return alone in the start test, read as a line end, is caught: %s" % found)
     # The start jobs' services started otherwise than as they are shipped: the image past
     # its own entrypoint, a database as another program, a key this does not read, and the
     # arm64 image as another user.

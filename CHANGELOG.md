@@ -1049,7 +1049,13 @@ with `--check`).
   the check, saying the new digest, until the digest there changes with it, so that the landing takes a gates
   review; the script's header says so. The rule against setting `PATH` before the asks, which took `PATH=` and
   `PATH+=` alone, now refuses `PATH` named anywhere there but where it is read, as `printf -v PATH` and `read PATH`
-  passed it. The self-test breaks the script in those six ways and sees each caught.
+  passed it. And it refuses a carriage return not followed by a line feed in any shell script it reads
+  (`script_line_end_problems`, over the files' bytes): it reads a file with universal newlines, which make such a
+  carriage return a line end, and sh and bash take it for an ordinary character, so that with the line feed before
+  the start test's `[ "$plain" != 200 ] || fail` made one, that test became the command of a temporary assignment,
+  the plain-HTTP check could never fail, and the digest still matched; `build/check-control-bytes.py`, which is not a
+  gate file, refused the byte, and this check now does too. The self-test breaks the script in those seven ways and
+  sees each caught.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in
