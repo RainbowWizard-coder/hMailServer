@@ -29,8 +29,21 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- /* The pod's user, group and fsGroup are the image's, 999, wherever the
+             values leave them out or null, and a number the values give is kept.
+             Here and not only in values.yaml: helm upgrade --reuse-values renders
+             the new chart with the values of the chart the release was installed
+             with, and the charts of 6.3.6 and 6.3.7 named no user
+             (podSecurityContext was fsGroup 1000 alone), with which the pod never
+             starts. */}}
+      {{- $podSecurityContext := deepCopy (.Values.podSecurityContext | default dict) }}
+      {{- range $key := list "runAsUser" "runAsGroup" "fsGroup" }}
+      {{- if kindIs "invalid" (index $podSecurityContext $key) }}
+      {{- $_ := set $podSecurityContext $key 999 }}
+      {{- end }}
+      {{- end }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml $podSecurityContext | nindent 8 }}
       initContainers:
         # A new volume is empty, and Kubernetes, unlike Docker with a new named
         # volume, copies nothing of the image's into it. Mounted at /etc/hmailserver,

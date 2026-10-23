@@ -352,7 +352,17 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
   `docker compose up -d`; the entrypoint upgrades the database at the start. The
   file's own PostgreSQL moved from 16 to 18 in 6.3.6: see below.
 - Helm: `helm repo update`, then `helm upgrade mail hmailserver/hmailserver
-  --reuse-values`.
+  --reset-then-reuse-values` (Helm 3.14 or later): the new chart's defaults, with the
+  values the release was given. `--reuse-values` keeps the defaults of the chart the
+  release was installed with instead. A release installed from the chart of 6.3.6 or
+  6.3.7, whose pod never started (What was run by hand, below), also needs `kubectl
+  delete pod mail-hmailserver-0` after the upgrade (the pod of a release named
+  `mail`; `kubectl get pods` shows another's). The StatefulSet's `podManagementPolicy` is `OrderedReady`,
+  Kubernetes' default, under which it changes none of its pods while one of them is
+  not Running and Ready, so it never replaces the stuck pod itself; deleted, the pod
+  is made again from the new chart. Upgraded with `--reuse-values`, such a release's
+  pod runs as 999:999 all the same, but keeps those charts' `fsGroup` 1000 and
+  `database.port` 5432. The chart's README.md says the same.
 
 ### PostgreSQL 16 to 18, in the Compose file
 
@@ -786,9 +796,12 @@ file and the chart were run as a user runs them, against the published image:
   with `kubectl create secret tls`, never started a server. The pod stopped at
   `CreateContainerConfigError`: "container has runAsNonRoot and image has
   non-numeric user (hmailserver), cannot verify user is non-root". Given the user
-  and group by number (`helm upgrade --set securityContext.runAsUser=999 ...`), it
-  stopped in `CrashLoopBackOff` at "/etc/hmailserver/hMailServer.ini is not writable
-  by hmailserver": the new, empty configuration volume hid the image's file. 6.3.6's
+  and group by number (`helm upgrade --reuse-values --set
+  securityContext.runAsUser=999 --set securityContext.runAsGroup=999`), the pod
+  stayed as it was, in `CreateContainerConfigError`, until it was deleted (`kubectl
+  delete pod`; Updates, above, says why). Made again, it stopped in
+  `CrashLoopBackOff` at "/etc/hmailserver/hMailServer.ini is not writable by
+  hmailserver": the new, empty configuration volume hid the image's file. 6.3.6's
   chart has the same security context and no init container either.
 - **`helm install` of the chart as it is now.** It runs the pod as 999:999, fills the
   new volumes in an init container and secures the new installation before the
@@ -800,6 +813,24 @@ file and the chart were run as a user runs them, against the published image:
   data volume had kept from starting while it lacked `temp`, the folder the server
   starts its programs in (HM5401, error code 2). `helm uninstall` left the three
   PersistentVolumeClaims, as the chart's README says.
+- **A release of each published chart, moved to the chart as it is now** as Updates,
+  above, says, with `--set image.tag=6.3.7` added. Installed with `--version 6.3.7`
+  or `--version 6.3.6`, each pod stopped at `CreateContainerConfigError`. After
+  `helm upgrade --reset-then-reuse-values` the StatefulSet's template ran the pod as
+  999:999 with fsGroup 999 and had the init container, but the pod was the same one,
+  in the same state, 60 and 120 seconds later, and the StatefulSet's current
+  revision was still the old chart's (`podManagementPolicy: OrderedReady`). Deleted
+  with `kubectl delete pod`, the pod was made again from the new chart and was ready
+  in 8 or 9 seconds; it answered SMTP with STARTTLS and the REST API over TLS alone,
+  as above, and a message reached an account's inbox. A pod that had stopped in
+  `CrashLoopBackOff`, given the user and group by number as above, waited in the same
+  way for 75 seconds and started in the same way once deleted. Upgraded with
+  `--reuse-values` instead, the release kept the old chart's `fsGroup` 1000 and
+  `HM_DB_PORT` 5432, and its pod, once deleted, ran as 999:999 (and the group 1000)
+  and answered the same. The message stayed in the inbox when a later `helm upgrade`
+  replaced the pod by itself (ready in 6 to 8 seconds), when the pod was deleted
+  again, and when an upgrade moved `fsGroup` from 1000 to 999, which Kubernetes then
+  gave the volumes' files.
 - **Both error logs** held two entries at the first start. One was HM5033, the
   create step asking a new database for its schema version. The other was HM5720:
   the image's OpenSSL is Ubuntu 24.04's 3.0.13, which has no hybrid post-quantum

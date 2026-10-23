@@ -158,7 +158,10 @@ podSecurityContext:
   # names its user (USER hmailserver), and Kubernetes cannot hold a named user to
   # runAsNonRoot: without the number the pod never starts ("container has
   # runAsNonRoot and image has non-numeric user (hmailserver), cannot verify user
-  # is non-root"). fsGroup gives the volumes to that group.
+  # is non-root"). fsGroup gives the volumes to that group. Any of the three left
+  # out or null is 999 all the same, which the chart writes itself, so that a release
+  # upgraded with --reuse-values from the chart of 6.3.6 or 6.3.7, whose values
+  # named no user, runs as 999:999 too; a number given here is the one used.
   runAsUser: 999
   runAsGroup: 999
   fsGroup: 999

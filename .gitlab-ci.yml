@@ -1132,29 +1132,95 @@ chart-and-compose:
       if grep -q 'kind: Secret' existing-secret.yaml; then
         echo "the chart wrote a Secret beside existingSecret"; exit 1
       fi
-      # The pod runs as the image's own user and group by number, 999 (the Dockerfile
-      # pins them): the image names its user, and a named user cannot be held to
-      # runAsNonRoot, so the charts of 6.3.6 and 6.3.7 stopped at
-      # CreateContainerConfigError on every cluster. The pod's own securityContext is
-      # the one indented eight spaces.
-      for key in runAsUser runAsGroup fsGroup; do
-        grep -qx "        $key: 999" rendered.yaml || { echo "the pod's securityContext has no $key: 999, the image's own user and group"; exit 1; }
-      done
-      grep -qx '            runAsNonRoot: true' rendered.yaml || { echo "the container is not held to runAsNonRoot"; exit 1; }
-      # Kubernetes copies nothing of the image's into a new volume: a first container
-      # puts the image's hMailServer.ini on the empty config volume, which would hide
-      # it, and makes the three folders of the data volume, the server's temp among them.
-      grep -qx '      initContainers:' rendered.yaml || { echo "the chart has no init container to fill the new volumes"; exit 1; }
-      grep -qF '[ -e /config/hMailServer.ini ] || cp /etc/hmailserver/hMailServer.ini /config/hMailServer.ini;' rendered.yaml \
-        || { echo "the init container does not put the image's hMailServer.ini on an empty config volume"; exit 1; }
-      grep -qF 'mkdir -p -m 0750 /data/temp /data/events /data/database' rendered.yaml \
-        || { echo "the init container does not make the data volume's temp, events and database folders"; exit 1; }
-      grep -qx '              mountPath: /config' rendered.yaml && grep -qx '              mountPath: /data' rendered.yaml \
-        || { echo "the init container does not mount the config volume at /config and the data volume at /data"; exit 1; }
-      # The new installation is secured before the server's first start, as the
-      # packaged service's first start secures it: STARTTLS on 25 and a certificate.
-      grep -qF -- 'hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground' rendered.yaml \
-        || { echo "the chart does not secure the new installation before the server starts"; exit 1; }
+      # The StatefulSet read as YAML, not grepped, so that a line in the wrong place
+      # cannot pass for the right one:
+      # - The pod runs as the image's own user and group by number, 999 (the
+      #   Dockerfile pins them): the image names its user, and a named user cannot be
+      #   held to runAsNonRoot, so the charts of 6.3.6 and 6.3.7 stopped at
+      #   CreateContainerConfigError on every cluster. It does so too with values
+      #   that name no user or group, which are what helm upgrade --reuse-values
+      #   takes from those charts (reused.yaml), and a number the values give is kept.
+      # - Kubernetes copies nothing of the image's into a new volume: a first
+      #   container puts the image's hMailServer.ini on the empty config volume,
+      #   which would hide it, and makes the three folders of the data volume, the
+      #   server's temp among them. It mounts those two volumes where its command
+      #   writes, and the server mounts them where it reads.
+      # - The server's container gives the image's entrypoint its arguments and no
+      #   command of its own, which would take the entrypoint's place: nothing would
+      #   write [Database], create the database or set the administrator password.
+      #   Its arguments secure the new installation before the server's first start,
+      #   as the packaged service's first start does: STARTTLS on 25 and a certificate.
+      helm template mail "$chart" --set database.host=db --set database.password=x \
+        --set administrator.password=y --set podSecurityContext.runAsUser=null \
+        --set podSecurityContext.runAsGroup=null --set podSecurityContext.fsGroup=1000 > reused.yaml
+      python3 - rendered.yaml reused.yaml <<'EOF' || exit 1
+      import sys
+
+      import yaml
+
+      COPY = "[ -e /config/hMailServer.ini ] || cp /etc/hmailserver/hMailServer.ini /config/hMailServer.ini"
+      FOLDERS = "mkdir -p -m 0750 /data/temp /data/events /data/database"
+      SERVER = ("hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; "
+                "exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground")
+
+
+      def fail(message):
+          print(message)
+          sys.exit(1)
+
+
+      def pod(path):
+          with open(path, encoding="utf-8") as handle:
+              sets = [d for d in yaml.safe_load_all(handle) if d and d.get("kind") == "StatefulSet"]
+          if len(sets) != 1:
+              fail("%s holds %d StatefulSets, not one" % (path, len(sets)))
+          return sets[0]["spec"]["template"]["spec"]
+
+
+      spec = pod(sys.argv[1])
+      context = spec.get("securityContext") or {}
+      for key in ("runAsUser", "runAsGroup", "fsGroup"):
+          if context.get(key) != 999:
+              fail("the pod's securityContext has no %s: 999, the image's own user and group" % key)
+      reused = pod(sys.argv[2]).get("securityContext") or {}
+      if reused.get("runAsUser") != 999 or reused.get("runAsGroup") != 999:
+          fail("with values that name no user or group, as helm upgrade --reuse-values takes from the charts"
+               " of 6.3.6 and 6.3.7, the pod does not run as 999:999")
+      if reused.get("fsGroup") != 1000:
+          fail("the pod does not keep the fsGroup the values give")
+      inits = spec.get("initContainers") or []
+      containers = spec.get("containers") or []
+      for container in inits + containers:
+          if (container.get("securityContext") or {}).get("runAsNonRoot") is not True:
+              fail("the container named %s is not held to runAsNonRoot" % container.get("name"))
+      if not inits:
+          fail("the chart has no init container to fill the new volumes")
+      if len(inits) != 1:
+          fail("the chart has %d init containers, where one fills the new volumes" % len(inits))
+      command = inits[0].get("command") or []
+      steps = command[2].split("; ") if len(command) == 3 and command[:2] == ["sh", "-c"] else []
+      if COPY not in steps:
+          fail("the init container does not put the image's hMailServer.ini on an empty config volume")
+      if FOLDERS not in steps:
+          fail("the init container does not make the data volume's temp, events and database folders")
+      if steps != ["set -e", COPY, FOLDERS] or "args" in inits[0]:
+          fail("the init container's command is not set -e, the copy and the folders, in that order, and nothing else")
+      mounts = sorted((m.get("name"), m.get("mountPath")) for m in inits[0].get("volumeMounts") or [])
+      if mounts != [("config", "/config"), ("data", "/data")]:
+          fail("the init container does not mount the config volume at /config and the data volume at /data alone")
+      servers = [c for c in containers if c.get("name") == "hmailserver"]
+      if len(servers) != 1:
+          fail("the pod has %d containers named hmailserver, not one" % len(servers))
+      server = servers[0]
+      if "command" in server:
+          fail("the server's container has a command, which takes the image's entrypoint's place")
+      if server.get("args") != ["bash", "-c", SERVER]:
+          fail("the chart does not secure the new installation before the server starts")
+      mounts = {(m.get("name"), m.get("mountPath")) for m in server.get("volumeMounts") or []}
+      if not {("config", "/etc/hmailserver"), ("data", "/var/lib/hmailserver")} <= mounts:
+          fail("the server does not mount the config volume at /etc/hmailserver and the data volume at"
+               " /var/lib/hmailserver, which the init container filled")
+      EOF
       echo "The chart lints, renders what a real install needs, and refuses what it must."
     # In a subshell: a job's script lines share one shell, and the next line runs
     # from the checkout's root (batch42's pipeline 2894275689 looked for
@@ -1176,6 +1242,8 @@ chart-and-compose:
         python3 -c 'import json, sys; s = json.load(open("resolved.json"))["services"]["hmailserver"]; sys.exit(s.get("command") != ["bash", "-c", sys.argv[1]])' \
           'hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground' \
           || { echo "the Compose file does not secure the new installation before the server starts"; exit 1; }
+        python3 -c 'import json, sys; sys.exit(json.load(open("resolved.json"))["services"]["hmailserver"].get("entrypoint") is not None)' \
+          || { echo "the Compose file gives the server an entrypoint, which takes the image's entrypoint's place"; exit 1; }
         python3 -c 'import json, sys; e = json.load(open("resolved.json"))["services"]["hmailserver"]["environment"]; sys.exit(e.get("HM_REST_CERTIFICATE_FILE") != sys.argv[1] + "certificate.pem" or e.get("HM_REST_PRIVATE_KEY_FILE") != sys.argv[1] + "key.pem")' \
           /var/lib/hmailserver/Certificates/self-signed- \
           || { echo "the Compose file's REST listener is not given the certificate the first start makes"; exit 1; }

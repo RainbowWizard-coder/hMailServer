@@ -108,10 +108,14 @@ The charts of 6.3.6 and 6.3.7 that the repository serves do not start a server. 
 6.3.7 chart, added with `helm repo add` and installed with `--version 6.3.7`, is the
 release's file (its SHA-256 is the index's, and `cosign verify-blob` of its bundle
 passes), and its pod never started: "container has runAsNonRoot and image has
-non-numeric user (hmailserver), cannot verify user is non-root". Given the user by
-number, it stopped at "/etc/hmailserver/hMailServer.ini is not writable by
-hmailserver": the new, empty configuration volume hid the image's file. Nor did its
-first start secure the new installation.
+non-numeric user (hmailserver), cannot verify user is non-root". Given the user and
+group by number (`helm upgrade --reuse-values --set securityContext.runAsUser=999
+--set securityContext.runAsGroup=999`), the pod stayed as it was, in
+`CreateContainerConfigError`, until it was deleted (Updates, below, says why). Made
+again, it stopped in `CrashLoopBackOff` at "/etc/hmailserver/hMailServer.ini is not
+writable by hmailserver": the new, empty configuration volume hid the image's file.
+Nor does that chart run `hmailserver --apply-new-install-defaults --if-marked` before
+the server, so a server it started would not secure a new installation.
 
 This chart, which the release after 6.3.7 is the first to serve, starts one.
 Installed from the project's tree with `--set image.tag=6.3.7`, its pod was ready 16
@@ -124,6 +128,23 @@ API was in its inbox. `helm uninstall` left the three PersistentVolumeClaims, as
 above. Until that release, the chart of a checkout of the project
 (`hmailserver/source/Server/platform/packaging/helm/hmailserver`, installed with
 `--set image.tag=6.3.7`) is the one that starts 6.3.7's image.
+
+Releases of both published charts were then moved to this one as Updates, below,
+says, with `--set image.tag=6.3.7` added. Installed with `--version 6.3.7` or
+`--version 6.3.6`, each pod stopped at `CreateContainerConfigError`. After `helm
+upgrade --reset-then-reuse-values` the StatefulSet's template ran the pod as
+999:999 with fsGroup 999 and had the init container, but the pod was the same one,
+in the same state, 60 and 120 seconds later, and the StatefulSet's current revision
+was still the old chart's. Deleted with `kubectl delete pod`, the pod was made again
+from this chart and was ready in 8 or 9 seconds; it answered as above, and a message
+reached an account's inbox. A pod that had stopped in `CrashLoopBackOff`, given the
+user and group by number as above, waited in the same way for 75 seconds and started
+in the same way once deleted. Upgraded with `--reuse-values` instead, the release
+kept the old chart's `fsGroup` 1000 and `HM_DB_PORT` 5432, and its pod, once deleted,
+ran as 999:999 (and the group 1000) and answered the same. The message stayed in the
+inbox when a later `helm upgrade` replaced the pod by itself (ready in 6 to 8
+seconds), when the pod was deleted again, and when an upgrade moved `fsGroup` from
+1000 to 999, which Kubernetes then gave the volumes' files.
 
 ## Checking the chart
 
@@ -159,7 +180,37 @@ says how, and how to read the software bill of materials attested to it.
 
 ## Updates
 
-A new release is a new chart and a new image: `helm repo update`, then
-`helm upgrade mail hmailserver/hmailserver --reuse-values`. The server does not
-update itself inside a container; its update check says that a newer release
-exists and that the image is the way to it.
+A new release is a new chart and a new image:
+
+```
+helm repo update
+helm upgrade mail hmailserver/hmailserver --reset-then-reuse-values
+```
+
+`--reset-then-reuse-values` (Helm 3.14 or later) renders the new chart with its own
+defaults and the values the release was given. `--reuse-values` renders it with the
+defaults of the chart the release was installed with instead, so a default that the
+new chart changes does not reach the release. The server does not update itself
+inside a container; its update check says that a newer release exists and that the
+image is the way to it.
+
+A release installed from the chart of 6.3.6 or 6.3.7 has a pod that never started
+(Installed into a cluster, above). The same `helm upgrade` moves it to a chart that
+starts one, and then its pod has to be deleted by hand:
+
+```
+kubectl delete pod mail-hmailserver-0
+```
+
+(the pod of a release named `mail`; `kubectl get pods` shows another's). The
+StatefulSet's `podManagementPolicy` is `OrderedReady`, Kubernetes' default, under
+which the StatefulSet changes none of its pods while one of them is not Running and
+Ready. So it never replaces the stuck pod, whether it is in
+`CreateContainerConfigError` or `CrashLoopBackOff`, and the pod stays as the old
+chart made it; deleted, it is made again from the new chart. Kubernetes'
+documentation of StatefulSets describes this under "Forced rollback".
+
+Upgraded with `--reuse-values`, such a release's pod runs as 999:999 as well, since
+the chart gives the pod the image's user and group wherever the values name none.
+But the release keeps those charts' other defaults: `fsGroup` 1000, the base image's
+`ubuntu` group, and `database.port` 5432, whatever `database.type` says.
