@@ -1124,6 +1124,14 @@ with `--check`).
 
 ### Documentation
 
+- **SECURITY.md's "Build provenance" says that a release's SLSA provenance names every file of the release but the
+  Sigstore bundles by its SHA-256, where it said every file of the release.** The in-toto statements of 6.3.6 and 6.3.7
+  each name 62 of their release's 160 files - the installers, the PowerShell module's two files, every package, the
+  AppImages, the two archives of library sources, the tarball, the chart, the sums and every SBOM - and none of the other
+  98, each a file's `.cosign.bundle` or `.sigstore.json` or the provenance itself (read from both releases on 23 October
+  2026). The paragraph now says so, names the module's two files among those it lists, and says that the
+  `.intoto.jsonl` a release carries from the release after 6.3.7 is not named in it either.
+
 - **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the
   release as its latest version.** GitHub's page shows the manifest pushed last as the latest version, with its pull
   command, and the copy of 18 October 2026 pushed cosign's signatures and attestations after the releases' indexes: on

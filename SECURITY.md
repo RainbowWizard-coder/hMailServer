@@ -380,12 +380,13 @@ during the copying of 18 October 2026 (at 05:26 and 05:31 UTC), while the copies
   `.../.gitlab-ci.yml@refs/heads/batch<...>`; those files are never published, and no server installs them.
 
 - **Build provenance** (from 6.3.6). `hmailserver-<version>.intoto.sigstore.json` on the release page is the
-  release's SLSA v1 build provenance: an in-toto statement that names every file of the release by its SHA-256 - the
-  installers, every package, the AppImages, the source of the libraries linked into their runtime and of the libraries
-  they carry, the source tarball, the chart, the sums and every SBOM - with the commit it
-  was built from and the tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE
-  envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's `slsa-verifier` is not
-  needed. To check that a download is one the tag's pipeline built:
+  release's SLSA v1 build provenance: an in-toto statement that names every file of the release but the Sigstore
+  bundles by its SHA-256 - the installers, the PowerShell module's two files, every package, the AppImages, the source
+  of the libraries linked into their runtime and of the libraries they carry, the source tarball, the chart, the sums
+  and every SBOM; not a file's `.cosign.bundle` or `.sigstore.json`, nor the provenance itself or its `.intoto.jsonl`
+  (below) - with the commit it was built from and the tag's pipeline as the builder, signed by that pipeline with
+  Sigstore (a bundle holding a DSSE envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA
+  project's `slsa-verifier` is not needed. To check that a download is one the tag's pipeline built:
 
   ```
   cosign verify-blob-attestation --new-bundle-format \
