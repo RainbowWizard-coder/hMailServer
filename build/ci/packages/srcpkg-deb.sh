@@ -51,6 +51,8 @@ DEBIAN_DIR=hmailserver/source/Server/platform/packaging/debian-src/debian
 # The files debian/copyright's Files-Excluded removes that the project's tarball
 # carries: the test data that states no licence.
 DEBIAN_ONLY="hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
+hmailserver/test/SSL examples/example+google.txt
+hmailserver/test/SSL examples/google.cer
 hmailserver/test/TestData/DKIM/Good/Test 1.eml
 hmailserver/test/TestData/DKIM/Good/altn.response.txt
 hmailserver/test/TestData/DKIM/Good/elandit.response.txt
@@ -169,9 +171,9 @@ gone=$(comm -23 "$work/before.txt" "$work/after.txt")
 added=$(comm -13 "$work/before.txt" "$work/after.txt")
 expected=$(printf '%s\n' "$DEBIAN_ONLY" | sort)
 [ -z "$added" ] || fail "the repack added entries: $added"
-[ "$gone" = "$expected" ] || fail "the repack removed another set of files than the Debian-only five:
+[ "$gone" = "$expected" ] || fail "the repack removed another set of files than the Debian-only seven:
 $gone"
-echo "$(basename "$orig"): $(wc -l < "$work/after.txt") entries, the five without a licence gone"
+echo "$(basename "$orig"): $(wc -l < "$work/after.txt") entries, the seven without a licence gone"
 
 step "the source tree, with debian/ from the tarball's own packaging"
 rm -rf "$work/unpack"

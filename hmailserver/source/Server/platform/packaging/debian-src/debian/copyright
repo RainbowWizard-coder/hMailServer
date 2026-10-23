@@ -9,12 +9,13 @@ Comment:
  of build/source-exclusions.txt - what is not free and what only the Windows
  build uses - and Files-Excluded repeats that list, as
  build/check-source-tarball.py --files-excluded prints it, so that a tarball
- made from a git tag instead holds the same files. The last five patterns are
- this package's own: test data captured from third parties with no licence
- stated (the replies of three DKIM verifiers, an Outlook message, and a
- security advisory's text). The upstream Windows test suite reads them and the
- Debian build does not, so they are removed and the tarball is repacked as
- <version>+ds (hmailserver/docs/SourcePackages.md).
+ made from a git tag instead holds the same files. The last seven patterns are
+ this package's own: test data of third parties with no licence stated (the
+ replies of three DKIM verifiers, an Outlook message, a security advisory's
+ text, and a certificate authority's certificate, alone and after an example
+ certificate). The upstream test suites read some of them and the Debian build
+ reads none, so they are removed and the tarball is repacked as <version>+ds
+ (hmailserver/docs/SourcePackages.md).
 Files-Excluded:
  libraries
  hmailserver/docs/Licenses/License?-?Microsoft?SQL?Server?Compact?Edition.rtf
@@ -81,6 +82,8 @@ Files-Excluded:
  hmailserver/installation/setup.bmp
  hmailserver/installation/winget
  hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
+ hmailserver/test/SSL?examples/example+google.txt
+ hmailserver/test/SSL?examples/google.cer
  hmailserver/test/TestData/DKIM/Good/Test?1.eml
  hmailserver/test/TestData/DKIM/Good/altn.response.txt
  hmailserver/test/TestData/DKIM/Good/elandit.response.txt

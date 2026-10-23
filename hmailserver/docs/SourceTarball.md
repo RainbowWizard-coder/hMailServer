@@ -140,11 +140,15 @@ parties - the DKIM verifiers' replies and the Outlook message under
 `hmailserver/test/TestData/DKIM/Good` and `PermFail` (`*.response.txt`,
 `Test 1.eml`) and the Secunia page text in
 `hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt`, which the suite
-embeds. They are kept because the suite and the fuzzing read them; a
+embeds; and a certificate authority's certificate, the Google Internet
+Authority's of 2009 as Equifax issued it, in `hmailserver/test/SSL examples`
+(`google.cer`, and `example+google.txt` after the original's example
+certificate), which nothing reads. The messages are kept because the suite and
+the fuzzing read them, and the certificates as the original left them; a
 distribution whose archive requires a licence for every file (Debian's does)
 has to decide whether to take them as they are or leave them out of its own
-repack with `Files-Excluded`, which costs the fixtures that read them. That is
-the Debian source package's question (Roadmap3, section 9a), not settled here.
+repack with `Files-Excluded`, which costs the fixtures that read them. The
+Debian source package leaves all seven out ([SourcePackages.md](SourcePackages.md)).
 
 `build/check-source-tarball.py` requires every notice file of that table's
 first four rows in every tarball. `hmailserver/docs/Licenses` also still holds the notices of

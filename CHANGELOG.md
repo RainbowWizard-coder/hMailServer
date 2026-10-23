@@ -277,6 +277,18 @@ with `--check`).
 
 ### Downloads and the release
 
+- **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
+  stated.** `hmailserver/test/SSL examples/google.cer`, the certificate Equifax issued to the Google Internet
+  Authority in 2009, and `example+google.txt` beside it, the original's example certificate followed by the same one,
+  are a third party's, for which no licence is stated, and `debian/copyright` gave them the project's licence and
+  holders through its `Files: *` paragraph; no test, script or build reads either of them. `Files-Excluded` lists both
+  after the five files of test data without a licence it already left out, `build/ci/packages/srcpkg-deb.sh` holds the
+  repack to losing those seven, and the copyright file's header, `hmailserver/docs/SourcePackages.md` and
+  `SourceTarball.md`'s paragraph on the test data with no licence stated name them, the last no longer calling the
+  exclusion an open question of the Debian package's, which has left those files out since it was made.
+  `build/check-source-tarball.py` passes: each pattern matches a file under `hmailserver/test/` that neither
+  `CMakeLists.txt` nor `debian/rules` reads.
+
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
   release's `.deb` neither depends on nor recommends nor suggests `libmariadb3` (its Depends are `ca-certificates` and
