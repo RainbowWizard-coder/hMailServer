@@ -40,7 +40,9 @@ PackageName: hMailServer (Progressive Robot's fork)
 PackageUrl: https://gitlab.com/hmailserver/hmailserver
 License: AGPL-3.0-or-later
 LicenseUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
+#~ REUSE-IgnoreStart: the package's copyright field, which reuse would read as this file's notice
 Copyright: Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.
+#~ REUSE-IgnoreEnd
 CopyrightUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
 ShortDescription: Progressive Robot's fork of hMailServer, not the original - a free, open-source mail server for Windows with SMTP, IMAP and POP3, anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.
 Description: |-

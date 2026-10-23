@@ -119,8 +119,12 @@ namespace hMailServer.ControlPanel.Views
          {
             Title = L("Developed & maintained by"),
             Content = dev,
+            // The About text is the maintainers' notice with a sentence after it, which reuse
+            // would read as this file's own (CONTRIBUTING.md, REUSE).
+            // REUSE-IgnoreStart
             Footer = Text(L("Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork."),
                "TextCaptionTertiary", new Thickness(0))
+            // REUSE-IgnoreEnd
          });
 
          var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };

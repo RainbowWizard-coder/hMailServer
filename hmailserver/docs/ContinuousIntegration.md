@@ -73,7 +73,7 @@ The other tables on this page name runners the same way.
 | `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |
-| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files (`build/generate-reuse-original.py`), and six negative controls ([REUSE](#reuse)) |
+| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files and their list held to the original's tags, which it fetches (`build/generate-reuse-original.py`), `debian/copyright`'s licences held to the same record (`build/ci/reuse-debian.py`), and eight negative controls ([REUSE](#reuse)) |
 | `chart-and-compose` | check | linix | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
 | `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
 | `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
@@ -2518,7 +2518,7 @@ pinned by digest where the CI file names it.
 | Job | Image | Tools, and where each comes from |
 |---|---|---|
 | `editorconfig` | `alpine:3.24` (Docker Hub) | editorconfig-checker 3.0.3, Alpine's community package. Its own releases are on GitHub, and its npm and PyPI packages download them from there when installed. The old job pinned 3.11.3; 3.0.3 reads the configuration only when named (`-config .editorconfig-checker.json`) |
-| `reuse` | `python:3.14-slim-trixie` (Docker Hub) | reuse 6.2.0 from PyPI, at the version and hashes `build/ci/reuse-requirements.txt` pins, built from its sdist (PyPI's only wheel of it is for CPython 3.10) with poetry-core 2.5.0 from `build/ci/reuse-build-requirements.txt`, hashed the same way; git and libmagic from Debian's archive |
+| `reuse` | `python:3.14-slim-trixie` (Docker Hub) | reuse 6.2.0 from PyPI, at the version and hashes `build/ci/reuse-requirements.txt` pins, built from its sdist (PyPI's only wheel of it is for CPython 3.10) with poetry-core 2.5.0 from `build/ci/reuse-build-requirements.txt`, hashed the same way; git and libmagic from Debian's archive; the original's three tags and the fork's first commit fetched from the project, their commits and trees alone |
 | `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
@@ -2595,19 +2595,32 @@ tables of `REUSE.toml`, which `build/generate-reuse-original.py` writes from the
 original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (and the files the
 fork's first commit took over from the original's history before them; the list is
 `build/reuse-original-paths.txt`), name him beside what each file says, file by file
-rather than by directory, so that nothing the fork adds beside them is credited to
-him. A third party's file keeps its own licence and holders: the Fat Cow icons (CC
-BY 3.0 US) and the four forms whose `.resx` carries one, SQL Server Compact's
-headers, QuickJS, zlib, Unicode's and the WHATWG's data, the RFC 7208 test suite and
-the table made from it, and the DKIM test corpus by their tables; the project's
-sources that hold a third party's code under the project's header (the MIME classes,
-`StdString.h`, the tables made from the Public Suffix List, Unicode's data and HTML's
-character references) with the third party's licence added beside the header's; the
-licence texts and notices of what the Windows build ships as
-`LicenseRef-Verbatim-Notice`; and the test data no licence was stated for as
-`LicenseRef-No-Licence-Stated`. The comments of `REUSE.toml` say why each table says
-what it does, and `debian/copyright` says the same of what the source tarball
-carries ([SourceTarball.md](SourceTarball.md)).
+rather than by directory, so that a file the fork adds beside them is not credited
+to him. A path does not settle it alone, and two lists the generator keeps by hand
+say where it does not: `DERIVED` adds the files the fork moved, split or copied out
+of one of the original's to a path of its own (13, each with the original's file it
+came from and the commit), and `FORK_MADE` leaves out the files the fork made anew at
+one of the original's paths, which keep nothing of the original's file there (9:
+the installer's wizard picture, five test keys and certificates, the fork's own
+DMARC test and its IMAP special-use tests, made before the original's at those
+paths), excepted by hand and given to the maintainers. A file moved or copied out of
+one of the original's is added to `DERIVED`, as CONTRIBUTING.md says, and the
+generator run again. A third party's file keeps its own licence and holders: the Fat
+Cow icons (CC BY 3.0 US) and the four forms whose `.resx` carries one, SQL Server
+Compact's headers, QuickJS, zlib, Unicode's and the WHATWG's data, the RFC 7208 test
+suite and the table made from it, and the DKIM test corpus by their tables; the
+project's sources that hold a third party's code under the project's header (the
+MIME classes, `StdString.h`, `InputCostTester.cpp` and `StringParser.cpp`, which keep
+earlier versions of those classes' functions for their tests, and the tables made
+from the Public Suffix List, Unicode's data and HTML's character references) with the third party's licence added beside the
+header's, and the installer's Pascal code with the author of the Windows service
+declarations it took from an article that states no licence; the licence texts and
+notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
+copyright text in the table points at the holders each text names; and the test data
+no licence was stated for as `LicenseRef-No-Licence-Stated`. The comments of
+`REUSE.toml` say why each table says what it does, and `debian/copyright` says the
+same of what the source tarball carries ([SourceTarball.md](SourceTarball.md)),
+which the job holds it to.
 
 The `reuse` job holds it, in every pipeline but a schedule's, with
 `build/ci/reuse-lint.sh`: the REUSE project's own tool, `reuse` 6.2.0, from PyPI
@@ -2616,26 +2629,46 @@ at the hashes `build/ci/reuse-requirements.txt` pins - built from its sdist with
 and its build backend, poetry-core, installed first from
 `build/ci/reuse-build-requirements.txt` - runs `reuse lint` over the checkout, git
 telling it what is ignored and libmagic, named by `REUSE_ENCODING_MODULE`, each
-file's encoding. Then the original's files: `generate-reuse-original.py --check`
-(the tables are what it writes from the list and the tree; a depth-1 clone has not
-the original's tags, so the list is taken as committed, which a clone with them
-checks too), and `--holders` over `reuse lint --json`, which refuses a record of one
-of the original's files, but for the third parties' among them, that does not name
-Martin Knafve - a table further down `REUSE.toml` that names one of them without
-him. Then six negative controls. Five are a file put in the checkout and taken out
-again, which `reuse lint` must refuse by name: a new C++ source in the server tree
-without the header, which no table covers; a new registration script beside the
-original's in `Server/COM` and a new fixture beside the original's in the Windows
-suite's `Resources`, neither with a header, which no table covers either, the
-original's files being named one by one; a file whose header names a licence
-`LICENSES/` has no text for; and a licence text in `LICENSES/` that no file names.
-The sixth is a table put at the end of `REUSE.toml` and taken out again that gives
-one of the original's files, `IMAP/IMAPFetch.cpp`, the maintainers alone, which
-`reuse lint` passes and `--holders` must refuse by name. So a table grown to cover
-the whole tree or a directory of the original's, a tool that has stopped reading
-it, or a check that has stopped seeing the original's files, fails the job as well.
-Exit 1 is a file without its information, a record of the original's without Martin
-Knafve or a control that passed, and 2 a tool that could not be installed. A new version of `reuse` is
+file's encoding. Then the original's files. The job's depth-1 clone has not got the
+original's tags or the fork's first commit, so the script fetches them from the
+project - their commits and trees alone, `--filter=blob:none`, about 4 MB in a few
+seconds - into a git directory of their own in its temporary folder, which leaves
+the checkout the runner keeps as it was, and names it to the generator with
+`HM_REUSE_ORIGINAL_GIT_DIR`. `generate-reuse-original.py --check --require-tags`
+holds the list to the tags (exit 2 when they are not at hand), the tables to the
+list, `DERIVED`, `FORK_MADE` and the tree, and the two lists to what they may name
+(no entry for a file that is gone, a `DERIVED` source that is not one of the
+original's files, a `FORK_MADE` path that is not one of their paths); `--holders`
+over `reuse lint --json` refuses a record of one of the original's files, but for
+the third parties' among them, that does not name Martin Knafve - a table further
+down `REUSE.toml` that names one of them without him - and one of a `FORK_MADE` file
+that does. Then `build/ci/reuse-debian.py` holds `debian/copyright` to the same
+record: every file the Debian source package carries, all of the record but what its
+`Files-Excluded` leaves out, must have the same licences in the last paragraph that
+matches it as reuse records, a Debian short name standing for its SPDX identifier.
+The two scripts' self-tests run first. Then eight negative controls. Five are a file
+put in the checkout and taken out again, which `reuse lint` must refuse by name: a
+new C++ source in the server tree without the header, which no table covers; a new
+registration script beside the original's in `Server/COM` and a new fixture beside
+the original's in the Windows suite's `Resources`, neither with a header, which no
+table covers either, the original's files being named one by one; a file whose
+header names a licence `LICENSES/` has no text for; and a licence text in
+`LICENSES/` that no file names. The sixth is a table put at the end of `REUSE.toml`
+and taken out again that gives one of the original's files, `IMAP/IMAPFetch.cpp`,
+the maintainers alone, which `reuse lint` passes and `--holders` must refuse by
+name. The seventh adds one of the fork's files, the generator itself, to the list of
+the original's and has the tables written from that list with no tags at hand, as an
+edit of both would leave them, which `--check --require-tags` must refuse, naming the
+file. The eighth is a copy of `debian/copyright` whose RFC 7208 suite paragraph has
+lost the suite's change log, which then falls to `Files: *` and the project's
+licence, as it did until the paragraph named it, and which `reuse-debian.py` must
+refuse by name. So a table grown to cover the whole tree or a directory of the
+original's, a tool that has stopped reading it, a check that has stopped seeing the
+original's files or their tags, or a Debian record no longer compared, fails the job
+as well. Exit 1 is a file without its information, a record of the original's
+without Martin Knafve or of the fork's with him, a list that is not the tags', a
+Debian paragraph that disagrees or a control that passed, and 2 a tool that could not
+be installed or tags that could not be fetched. A new version of `reuse` is
 chosen in `build/ci/reuse-requirements.in`, whose header gives the commands that
 remake both locked files; Renovate reads the `.in` files and not the `.txt` files
 ([Dependency updates](#dependency-updates)).
@@ -4544,7 +4577,7 @@ measured times after the first pipelines.
 | `checkers` | 12 to 19 min on server2 and s1-linux, 18 min or more on linix | 45 min | 729 to 935 s on server2 and 801 to 844 s on s1-linux from 19 October 2026, 1,060 to 1,063 s on linix, where the job was also killed at its 20 minutes of then on 21 and 23 October, as it was twice on GitLab's small hosted runner on 19 October, after 1,206 s and 1,202 s, while a third run there took 1,173 s and failed on `check-ci-image.py`; its script took 1,136 s on server2 with 8 CPUs and 1,135 s with 2 on 24 October 2026, the checks running one at a time, and the timeout is 1.6 times that and half as much again |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
-| `reuse` | 14 s by hand, the package install with it | 15 min | reuse installed from PyPI, and eight runs of `reuse lint` over 7,873 files - the tree, its record as JSON for the original's files, and the tree with each of the six negative controls - in the job's image on 23 October 2026 |
+| `reuse` | 26 s by hand, the package install with it | 15 min | reuse installed from PyPI, the original's tags and the fork's first commit fetched without their files' contents (about 4 MB, under a second from a local origin and three seconds from gitlab.com), and eight runs of `reuse lint` over 7,874 files - the tree, its record as JSON, and the tree with each of the five files and the holders' table of the negative controls - with the generator's and the Debian check's runs, in the job's image on 24 October 2026 |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |
 | `coverage-cobertura` | under a second by hand | 5 min | The converter's self-test, Python's own library alone |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |

@@ -3067,9 +3067,11 @@
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>复制值（{0} 记录）</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer 是其各自所有者的商标；本软件是一个独立的、由社区维护的分支版本。</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>无法添加全部成员：{0}</value>
   </data>

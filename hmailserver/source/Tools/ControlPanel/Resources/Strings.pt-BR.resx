@@ -3067,9 +3067,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Copiar valor do registro {0}</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer é uma marca comercial de seus respectivos proprietários; este é um fork independente, mantido pela comunidade.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Não foi possível adicionar todos os membros: {0}</value>
   </data>

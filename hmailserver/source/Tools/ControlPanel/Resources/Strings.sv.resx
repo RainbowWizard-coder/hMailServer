@@ -3067,9 +3067,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Kopiera värde för {0}-posten</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer är ett varumärke som tillhör sina respektive ägare; detta är en oberoende, gemenskapsunderhållen förgrening.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Kunde inte lägga till alla medlemmar: {0}</value>
   </data>

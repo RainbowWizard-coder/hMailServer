@@ -3067,9 +3067,11 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Copia il valore del record {0}</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer è un marchio dei rispettivi proprietari; questo è un fork indipendente mantenuto dalla comunità.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Impossibile aggiungere tutti i membri: {0}</value>
   </data>

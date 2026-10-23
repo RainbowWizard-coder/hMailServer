@@ -164,11 +164,26 @@ Comment:
  under its licence, the AGPL, and the maintainers' under the AGPL, as the
  header says.
 
+Files: hmailserver/source/Server/Common/Util/InputCostTester.cpp
+Copyright: 2003 Jeff Lee
+           2005-2026 Martin Knafve / hMailServer.com
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: BSD-1-clause and AGPL-3+
+Comment:
+ A tester compiled with the server's core, which input-cost-tests runs and
+ which is not installed. It keeps the earlier versions of the functions it
+ holds their new versions to: two of them, MimeEncodedWord::Decode and
+ MimeField::FindParameter, are Jeff Lee's MIME code as the original and the
+ maintainers had changed it, under his notice, which the file quotes above
+ them; the DKIM canonicalisation's header functions beside them are the
+ original's.
+
 Files: hmailserver/docs/Licenses/License?-?MIME?Message?encoder?analyzer.rtf
 Copyright: 2003 Jeff Lee
 License: BSD-1-clause
 
 Files: hmailserver/source/Server/Common/Util/StdString.h
+       hmailserver/source/Server/Common/Util/Parsing/StringParser.cpp
 Copyright: 2002 Joseph M. O'Leary
            2005-2026 Martin Knafve / hMailServer.com
            2026 Christopher Holloway / Progressive Robot Ltd
@@ -178,13 +193,16 @@ Comment:
  the project's header. Martin Knafve changed it in the original hMailServer
  (his commits to it run from 2014 to 2026), and the maintainers have since
  2026; the original's changes are under its licence, the AGPL, and the
- maintainers' under the AGPL, as the header says.
+ maintainers' under the AGPL, as the header says. StringParser.cpp, the
+ original's, keeps StdString.h's FindNoCase and ReplaceNoCase as they were
+ before the maintainers rewrote them, which its tests hold the new ones to.
 
 Files: hmailserver/docs/Licenses/License?-?String?library.rtf
 Copyright: 2002 Joseph M. O'Leary
 License: StdString
 
 Files: hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml
+       hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.CHANGES
        hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.LICENSE
        hmailserver/docs/Licenses/License?-?RFC?7208?test?suite.txt
 Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>

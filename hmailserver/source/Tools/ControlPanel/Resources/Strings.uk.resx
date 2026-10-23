@@ -3100,9 +3100,11 @@
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Копіювати значення запису {0}</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Авторське право © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer — торговельна марка відповідних власників; це незалежний форк, який підтримує спільнота.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Не вдалося додати всіх учасників: {0}</value>
   </data>

@@ -28,15 +28,17 @@
 # file without one in a directory of the original's, is refused, as the job's
 # negative controls show. A path that matches no file is passed over.
 #
-# The holders, as debian/copyright's "Files: *" names them: Martin Knafve, whose
-# hMailServer this is a fork of, for every file that comes from it, and the fork's
-# maintainers beside him, and the maintainers alone for what they made in 2026. The
-# original's files are listed one by one, in the two tables the generator below
-# writes from the original's own tags (build/generate-reuse-original.py; its
-# docstring says how): the fork's header replaced Martin Knafve's notice in them in
-# 2026, so their own text no longer names him, and these tables do. A table further
-# down that names one of the original's files takes their place for it and names
-# him too, and the reuse job refuses a record of one of them that does not.
+# The holders: Martin Knafve, whose hMailServer this is a fork of, for every file
+# that comes from it, with the fork's maintainers beside him, and the maintainers
+# alone for what they made in 2026 (debian/copyright's "Files: *", one paragraph for
+# the whole tree, names both for every file). The original's files are listed one by
+# one, in the two tables the generator below writes from the original's own tags
+# (build/generate-reuse-original.py; its docstring says how), with the files the fork
+# moved or copied out of them and without those it made anew at their paths: the
+# fork's header replaced Martin Knafve's notice in them in 2026, so their own text no
+# longer names him, and these tables do. A table further down that names one of the
+# original's files takes their place for it and names him too, and the reuse job
+# refuses a record of one of them that does not.
 
 version = 1
 
@@ -45,7 +47,9 @@ version = 1
 # The original hMailServer's files, from build/reuse-original-paths.txt: every file
 # of the tree at a path the original's tags hMailServer-5.7.0-b2788, -b2843 and
 # -b3013 hold, or that the fork's first commit, fe45f43c3, took over from the
-# original's history before them, letter case aside - but for the third parties'
+# original's history before them, letter case aside, and every file the fork moved,
+# split or copied out of one of them (the generator's DERIVED) - but for the files
+# the fork made itself at one of those paths (its FORK_MADE) and the third parties'
 # files among them, which their own tables below give their holders. Martin Knafve
 # is a holder of each (from 2005, the year of the original's earliest notices, to
 # 2026, that of 5.7.0), beside what the file says itself (precedence aggregate):
@@ -257,8 +261,6 @@ path = [
     "hmailserver/source/Server/Common/AntiSpam/DKIM/DKIMSigner.h",
     "hmailserver/source/Server/Common/AntiSpam/DKIM/SpamTestDKIM.cpp",
     "hmailserver/source/Server/Common/AntiSpam/DKIM/SpamTestDKIM.h",
-    "hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp",
-    "hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.h",
     "hmailserver/source/Server/Common/AntiSpam/SURBL.cpp",
     "hmailserver/source/Server/Common/AntiSpam/SURBL.h",
     "hmailserver/source/Server/Common/AntiSpam/SpamAssassin/SpamAssassinClient.cpp",
@@ -776,6 +778,7 @@ path = [
     "hmailserver/source/Server/Common/Util/Hashing/HashCreator.h",
     "hmailserver/source/Server/Common/Util/HeapChecker.cpp",
     "hmailserver/source/Server/Common/Util/HeapChecker.h",
+    "hmailserver/source/Server/Common/Util/InputCostTester.cpp",
     "hmailserver/source/Server/Common/Util/Language.cpp",
     "hmailserver/source/Server/Common/Util/Language.h",
     "hmailserver/source/Server/Common/Util/Languages.cpp",
@@ -839,6 +842,8 @@ path = [
     "hmailserver/source/Server/Common/Util/VariantDateTime.h",
     "hmailserver/source/Server/ExternalFetcher/ExternalFetch.cpp",
     "hmailserver/source/Server/ExternalFetcher/ExternalFetch.h",
+    "hmailserver/source/Server/ExternalFetcher/ExternalFetchClientBase.cpp",
+    "hmailserver/source/Server/ExternalFetcher/ExternalFetchClientBase.h",
     "hmailserver/source/Server/ExternalFetcher/ExternalFetchManager.cpp",
     "hmailserver/source/Server/ExternalFetcher/ExternalFetchManager.h",
     "hmailserver/source/Server/ExternalFetcher/ExternalFetchTask.cpp",
@@ -897,6 +902,7 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPCommandLogin.h",
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.h",
+    "hmailserver/source/Server/IMAP/IMAPCommandMove.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.h",
     "hmailserver/source/Server/IMAP/IMAPCommandNamespace.cpp",
@@ -941,6 +947,7 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPFolderView.h",
     "hmailserver/source/Server/IMAP/IMAPListLookup.cpp",
     "hmailserver/source/Server/IMAP/IMAPListLookup.h",
+    "hmailserver/source/Server/IMAP/IMAPMove.cpp",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.cpp",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.h",
     "hmailserver/source/Server/IMAP/IMAPResult.cpp",
@@ -1008,6 +1015,8 @@ path = [
     "hmailserver/source/Server/SMTP/SMTPVacationMessageCreator.h",
     "hmailserver/source/Server/SMTP/SMTPVirusNotifier.cpp",
     "hmailserver/source/Server/SMTP/SMTPVirusNotifier.h",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/README.md",
+    "hmailserver/source/Server/SMTP/SPF/README.md",
     "hmailserver/source/Server/SMTP/SPF/SPF.cpp",
     "hmailserver/source/Server/SMTP/SPF/SPF.h",
     "hmailserver/source/Server/SMTP/ServerTargetResolver.cpp",
@@ -1057,6 +1066,7 @@ path = [
     "hmailserver/source/Tools/DataDirectorySynchronizer/Program.cs",
     "hmailserver/source/Tools/DataDirectorySynchronizer/formMain.Designer.cs",
     "hmailserver/source/Tools/DataDirectorySynchronizer/formMain.cs",
+    "hmailserver/source/Tools/ImportTool/Program.cs",
     "hmailserver/source/Tools/Shared/Controls/ucText.cs",
     "hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.cs",
     "hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.designer.cs",
@@ -1073,6 +1083,10 @@ path = [
     "hmailserver/test/Docker/Dockerfile",
     "hmailserver/test/Docker/build.ps1",
     "hmailserver/test/Docker/run-tests.ps1",
+    "hmailserver/test/LinuxRegressionTests/Shims/Infrastructure.cs",
+    "hmailserver/test/LinuxRegressionTests/Shims/SingletonProvider.cs",
+    "hmailserver/test/LinuxRegressionTests/Shims/TestFixtureBase.cs",
+    "hmailserver/test/LinuxRegressionTests/Shims/TestSetup.cs",
     "hmailserver/test/MemoryTests/Program.cs",
     "hmailserver/test/MemoryTests/Properties/AssemblyInfo.cs",
     "hmailserver/test/MemoryTests/TestDNSQueries.cs",
@@ -1082,6 +1096,7 @@ path = [
     "hmailserver/test/PerformanceTest/Properties/AssemblyInfo.cs",
     "hmailserver/test/RegressionTests/API/Basics.cs",
     "hmailserver/test/RegressionTests/API/Events.cs",
+    "hmailserver/test/RegressionTests/API/EventsJavaScript.cs",
     "hmailserver/test/RegressionTests/API/Links.cs",
     "hmailserver/test/RegressionTests/API/Message.cs",
     "hmailserver/test/RegressionTests/API/Messages.cs",
@@ -1112,7 +1127,6 @@ path = [
     "hmailserver/test/RegressionTests/IMAP/Search.cs",
     "hmailserver/test/RegressionTests/IMAP/SessionMessageNumbering.cs",
     "hmailserver/test/RegressionTests/IMAP/Sort.cs",
-    "hmailserver/test/RegressionTests/IMAP/SpecialUse.cs",
     "hmailserver/test/RegressionTests/Infrastructure/AccountProperties.cs",
     "hmailserver/test/RegressionTests/Infrastructure/AccountServices.cs",
     "hmailserver/test/RegressionTests/Infrastructure/BackupRestore.cs",
@@ -1317,7 +1331,6 @@ path = [
     "hmailserver/installation/section_setup_64.iss",
     "hmailserver/installation/section_types.iss",
     "hmailserver/installation/section_uninstallrun.iss",
-    "hmailserver/installation/setup.bmp",
     "hmailserver/source/Addons/Events/EventHandlers.vbs",
     "hmailserver/source/Addons/Utilities/ChangeMySQLCollation.sql",
     "hmailserver/source/Addons/Utilities/DecryptBlowfish.vbs",
@@ -1631,17 +1644,12 @@ path = [
     "hmailserver/test/RegressionTests/hMailServer.nunit",
     "hmailserver/test/RegressionTests/packages.config",
     "hmailserver/test/Release tests/Steps to perform.txt",
-    "hmailserver/test/SSL examples/WithPassword/server.crt",
     "hmailserver/test/SSL examples/WithPassword/server.csr",
-    "hmailserver/test/SSL examples/WithPassword/server.key",
     "hmailserver/test/SSL examples/example+google.txt",
-    "hmailserver/test/SSL examples/example.crt",
     "hmailserver/test/SSL examples/example.csr",
-    "hmailserver/test/SSL examples/example.key",
     "hmailserver/test/SSL examples/example.key.org",
     "hmailserver/test/SSL examples/example.pfx",
     "hmailserver/test/SSL examples/localhost-readme.txt",
-    "hmailserver/test/SSL examples/localhost.pfx",
     "hmailserver/test/Scripted setups/100 domains.vbs",
     "hmailserver/test/Scripted setups/2500 domains 10 accounts in each.vbs",
     "hmailserver/test/Scripted setups/2500 domains.vbs",
@@ -1731,7 +1739,11 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # (the OpenPGP keys, the PST files, the fuzzers' regression inputs), the Control
 # Deck's and the webmail's catalogues and pages, the packaging's data files, the
 # registration scripts of the COM classes it added (each named, since the original's
-# own are beside them), and the projects, lock files and installer scripts it added.
+# own are beside them), and the projects, lock files and installer scripts it added;
+# and, each named, the files it made anew at a path of the original's, which the
+# generator's FORK_MADE leaves out of the tables above: the installer's wizard
+# picture, its brand's since June 2026, and the test keys and certificates its first
+# commit made in place of the original's.
 [[annotations]]
 path = [
     ".editorconfig-checker.json",
@@ -1781,6 +1793,7 @@ path = [
     "hmailserver/installation/section_files_arm64.iss",
     "hmailserver/installation/section_registry.iss",
     "hmailserver/installation/section_setup_arm64.iss",
+    "hmailserver/installation/setup.bmp",
     "hmailserver/installation/setup-small.bmp",
     "hmailserver/installation/**/*.png",
     "hmailserver/installation/WebAdmin/index.html",
@@ -1830,6 +1843,11 @@ path = [
     "hmailserver/test/LinuxRegressionTests/*.csproj",
     "hmailserver/test/LinuxRegressionTests/*.json",
     "hmailserver/test/PostfixBench/*.md",
+    "hmailserver/test/SSL examples/WithPassword/server.crt",
+    "hmailserver/test/SSL examples/WithPassword/server.key",
+    "hmailserver/test/SSL examples/example.crt",
+    "hmailserver/test/SSL examples/example.key",
+    "hmailserver/test/SSL examples/localhost.pfx",
 ]
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
@@ -1870,6 +1888,15 @@ path = "libraries/mssqlce3.5/*.h"
 SPDX-FileCopyrightText = "Microsoft Corporation"
 SPDX-License-Identifier = "LicenseRef-Microsoft-SQL-Server-Compact-4.0"
 
+# sqlce_oledb.h's two notices are Microsoft's ("Copyright (c) Microsoft Corporation"
+# at its head, and "Microsoft Corporation, 1994 - 1998" in a comment further down,
+# which reuse reads with the years out of place): read for this table alone.
+[[annotations]]
+path = "libraries/mssqlce3.5/sqlce_oledb.h"
+precedence = "override"
+SPDX-FileCopyrightText = "1994-1998 Microsoft Corporation"
+SPDX-License-Identifier = "LicenseRef-Microsoft-SQL-Server-Compact-4.0"
+
 # QuickJS, vendored unmodified (quickjs/VERSION; quickjs/LICENSE beside it).
 [[annotations]]
 path = "hmailserver/source/Server/quickjs/**"
@@ -1885,6 +1912,22 @@ path = "hmailserver/source/Server/zlib/**"
 SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly and Mark Adler"
 SPDX-License-Identifier = "Zlib"
 
+# The two of zlib's files that carry its version string, " deflate 1.3.2 Copyright
+# 1995-2026 Jean-loup Gailly and Mark Adler " and its inflate's of Mark Adler, which
+# reuse reads with the string's closing quote: read for these tables alone, which
+# name the holders each file's own notice names.
+[[annotations]]
+path = "hmailserver/source/Server/zlib/deflate.c"
+precedence = "override"
+SPDX-FileCopyrightText = "1995-2026 Jean-loup Gailly and Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "hmailserver/source/Server/zlib/inftrees.c"
+precedence = "override"
+SPDX-FileCopyrightText = "1995-2026 Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
 # The HTML standard's list of named character references, a portion of the standard
 # incorporated into source code, under the BSD 3-Clause License (entities.LICENSE).
 [[annotations]]
@@ -1892,6 +1935,15 @@ path = [
     "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.json",
     "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE",
 ]
+SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+# entities.LICENSE quotes the standard's notice in a sentence ("Copyright © WHATWG
+# (Apple, Google, Mozilla, Microsoft). This work is licensed under ..."), which reuse
+# reads to the line's end: read for this table alone.
+[[annotations]]
+path = "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE"
+precedence = "override"
 SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
 SPDX-License-Identifier = "BSD-3-Clause"
 
@@ -1999,7 +2051,9 @@ SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
 SPDX-License-Identifier = "BSD-3-Clause"
 
 # The original's list of the third-party components and their licences, Martin
-# Knafve's table of 2010, and the same table in Markdown with the fork's note on it.
+# Knafve's table of 2010, and the same table in Markdown with the fork's note on it,
+# License list.md, which comes into the tree in the same release as this file's
+# tables (a table that matches no file is passed over, so the second holds from then).
 [[annotations]]
 path = "hmailserver/docs/Licenses/License list.ods"
 SPDX-FileCopyrightText = "2010 Martin Knafve / hMailServer.com"
@@ -2082,12 +2136,34 @@ SPDX-FileCopyrightText = [
 ]
 SPDX-License-Identifier = "BSD-1-Clause AND AGPL-3.0-or-later"
 
+# A test of the server's (53e95b832) that keeps 6.3.5's versions of the functions it
+# holds their new versions to: two of the MIME classes' - MimeEncodedWord::Decode and
+# MimeField::FindParameter, Jeff Lee's code as the original and the fork had changed
+# it, under his notice, which the file quotes above them - the DKIM canonicalisation's
+# header functions, the original's (the generator's DERIVED names it), SPF's cut and
+# the Sieve matcher. So Jeff Lee's licence and holders are beside the original's and
+# the header's, as in the MIME files'.
+[[annotations]]
+path = "hmailserver/source/Server/Common/Util/InputCostTester.cpp"
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2003 Jeff Lee",
+    "2005-2026 Martin Knafve / hMailServer.com",
+]
+SPDX-License-Identifier = "BSD-1-Clause AND AGPL-3.0-or-later"
+
 # CStdString, Joseph M. O'Leary's, changed in the original by Martin Knafve (his
 # commits to it run from 2014 to 2026) and since 2026 by the fork: O'Leary's code
 # under his notice, which the file keeps, the original's changes under the
 # original's licence, the AGPL, and the fork's under the AGPL as the header says.
+# StringParser.cpp, one of the original's files, keeps StdString.h's FindNoCase and
+# ReplaceNoCase as they were before the fork rewrote them, which its tests hold the
+# new ones to (692c4b2a8): that code is the same as StdString.h's.
 [[annotations]]
-path = "hmailserver/source/Server/Common/Util/StdString.h"
+path = [
+    "hmailserver/source/Server/Common/Util/StdString.h",
+    "hmailserver/source/Server/Common/Util/Parsing/StringParser.cpp",
+]
 precedence = "aggregate"
 SPDX-FileCopyrightText = [
     "2002 Joseph M. O'Leary",
@@ -2154,6 +2230,23 @@ SPDX-FileCopyrightText = [
     "FatCow Web Hosting <https://www.fatcow.com/free-icons>",
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
+
+# The installer's Pascal code, the original's, opens its Windows service part with a
+# comment saying that it is taken from an article of the Inno Setup extensions
+# knowledge base by Silvio Iaccarino, of 6 November 2002: the Win32 service
+# declarations - the SERVICE_STATUS record, the SERVICE_* constants and the
+# advapi32.dll functions it calls - which restate those of Windows' service API. The
+# article states no licence for them. He is named beside Martin Knafve and the
+# maintainers, whose the rest of the file is, under the project's licence.
+[[annotations]]
+path = "hmailserver/installation/hMailServerInnoExtension.iss"
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2005-2026 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "2002 Silvio Iaccarino",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 # The installer's licence page: the project's terms, and the third-party components'
 # notices copied into it verbatim, which name their own holders. Read for this table

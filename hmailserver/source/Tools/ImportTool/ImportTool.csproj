@@ -18,7 +18,9 @@
     <Version>6.3.7</Version>
     <Product>hMailServer Import Tool</Product>
     <Company>Progressive Robot Ltd</Company>
+    <!-- REUSE-IgnoreStart -->
     <Copyright>Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd</Copyright>
+    <!-- REUSE-IgnoreEnd -->
   </PropertyGroup>
 
   <ItemGroup>

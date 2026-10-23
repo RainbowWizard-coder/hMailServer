@@ -38,7 +38,9 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <Product>hMailServer Control Panel</Product>
     <Company>Progressive Robot Ltd</Company>
+    <!-- REUSE-IgnoreStart -->
     <Copyright>Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd</Copyright>
+    <!-- REUSE-IgnoreEnd -->
     <!-- LiveCharts renders through SkiaSharp.Views.WPF, which ships only .NET
          Framework assets (and with them OpenTK / OpenTK.GLWpfControl). They are
          plain WPF, GPU rendering is off by default, and the dashboard charts are

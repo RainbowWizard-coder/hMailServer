@@ -1097,13 +1097,18 @@ editorconfig:
 # LICENSES/, and no other text there - the REUSE Specification 3.3, held by the REUSE
 # project's own tool, reuse lint, from PyPI at the version and the hashes
 # build/ci/reuse-requirements.txt pins. build/ci/reuse-lint.sh installs it, runs it
-# over the tree, holds REUSE.toml's tables of the original hMailServer's files to
-# build/generate-reuse-original.py and reuse's record of each to naming Martin Knafve,
-# and then puts five files in the checkout that it must refuse - a new source file
-# without the project's header, a new file without one beside the original's in
-# Server/COM and in the Windows suite's Resources, a header naming a licence LICENSES/
-# has no text for, and a licence text no file names - and a table in REUSE.toml that
-# drops Martin Knafve from one of the original's files. In every pipeline, as checkers is: a
+# over the tree, fetches the original hMailServer's three tags and the fork's first
+# commit from the project (commits and trees alone, into a git directory of their own:
+# this job's GIT_DEPTH stays the default's), holds the list of the original's files to
+# them and REUSE.toml's tables of those files to build/generate-reuse-original.py,
+# reuse's record of each to naming Martin Knafve and debian/copyright's licences to the
+# same record (build/ci/reuse-debian.py), and then puts five files in the checkout that
+# it must refuse - a new source file without the project's header, a new file without
+# one beside the original's in Server/COM and in the Windows suite's Resources, a header
+# naming a licence LICENSES/ has no text for, and a licence text no file names - and
+# must refuse a table in REUSE.toml that drops Martin Knafve from one of the original's
+# files, a fork file added to the list with the tables written from it, and a
+# debian/copyright that gives a third party's file the project's licence. In every pipeline, as checkers is: a
 # document or a picture needs its licence as much as a source does. git so that reuse
 # leaves out what git ignores, libmagic for the encoding of each file, both Debian's.
 reuse:

@@ -18,7 +18,9 @@
     <Version>6.3.7</Version>
     <Product>hMailServer Database Setup (quick)</Product>
     <Company>Progressive Robot Ltd</Company>
+    <!-- REUSE-IgnoreStart -->
     <Copyright>Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd</Copyright>
+    <!-- REUSE-IgnoreEnd -->
   </PropertyGroup>
 
   <!-- What the program does when the hMailServer service cannot be reached (Reach, Say)

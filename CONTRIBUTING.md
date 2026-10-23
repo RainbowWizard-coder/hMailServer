@@ -527,7 +527,7 @@ file differs from what it would write. After changing the input, run it without 
 | `python build/generate-auth-matrix.py [--check]` | `hmailserver/docs/WebAuthorisationMatrix.md` | The route parser (`ParseRoute_` and the three parsers it calls), `Authorize_` and the functions whose lists it reads, the built-in roles' permissions in `RoleManager.cpp` (the permission lines of their functions) and the permissions and route kinds of `RoleManager.h`'s and `RestApiServer.h`'s enumerations, each one's value its place, the report's sections counted from server-wide metrics in `RestApiReports.cpp`, and the two listeners' anonymous routes. The steps of `Authorize_`, of the functions whose lists it reads, of the built-in roles' functions, the `Bit` they set a permission with and `RoleManager::BuiltInPermissions_`, of `RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, of `IsDomainAllowed_`, of `IsServerWideReportSection_` and the `FindSection` it asks, and of `ProcessRequest_` between the credential and the handler are held to its `STEPS`: one changed stops it until `decide()` has been read against it and `STEPS` updated (`--steps` prints them), and a definition it reads that stands inside a conditional of the preprocessor, or holds one, or is not the only definition of its name in its file, stops it too, as do a directive of the preprocessor of any other kind inside what it reads - an `#include`, which brings in code it never sees - and an enumerator whose value is not its place. It reads the code as the compiler's first three translation phases do: what a comment or a literal holds is not read, a directive is one wherever it begins a line, and a form it does not read as the compilers do, such as a backslash with spaces after it at a line's end, stops it. `Authenticate_` and the grants `RoleManager` makes for it, the string helpers, a macro defined elsewhere over a name those functions use, an overload of one of them defined in another file and the functions `ProcessRequest_`'s other checks call are not held. `--self-test` breaks the source in memory and proves each flag still fires and each changed step stops it |
 | `build/generate-settings-index.ps1` (either PowerShell) | `ControlPanel/Services/SettingsSearchIndex.g.cs` | The Control Panel's settings pages; check with `git diff` afterwards |
 | `python build/add-license-headers.py [--check]` | The licence header on every source file | See [below](#code-style-and-licence-headers) |
-| `python build/generate-reuse-original.py [--check]` | `build/reuse-original-paths.txt`, and `REUSE.toml`'s two tables of the original's files | The original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` and the fork's first commit (the list, where the clone has them; a depth-1 clone checks the tables against the list as committed), and the tree; `--holders` holds `reuse lint --json` to it, which the *reuse* job runs ([REUSE](#code-style-and-licence-headers)) |
+| `python build/generate-reuse-original.py [--check]` | `build/reuse-original-paths.txt`, and `REUSE.toml`'s two tables of the original's files | The original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` and the fork's first commit (the list, where the clone or the git directory `HM_REUSE_ORIGINAL_GIT_DIR` names has them - the *reuse* job fetches them into one and adds `--require-tags`; without them the tables are checked against the list as committed), its hand-kept `DERIVED` and `FORK_MADE`, and the tree; `--holders` holds `reuse lint --json` to it, which the *reuse* job runs ([REUSE](#code-style-and-licence-headers)) |
 
 `build/generate-public-suffix-list.ps1` regenerates `PublicSuffixListData.h` and has no check mode.
 `python build/find-stale-roadmap-rows.py` is an audit, not a gate: it lists not-started roadmap rows that name
@@ -595,7 +595,15 @@ something which already exists.
   The original hMailServer's files name Martin Knafve as a holder beside the header, in two tables that
   `build/generate-reuse-original.py` writes from the original's own tags, file by file (run it after
   removing or renaming one of them, and `--check` says whether they are current); a table further down
-  that names one of them has to name him too, which the *reuse* job holds. A file the fork adds is
+  that names one of them has to name him too, which the *reuse* job holds. A file moved, split or copied
+  out of one of the original's - its code, or a passage of it, kept at a path of the fork's - is added to
+  the generator's `DERIVED`, with the original's file it came from, the commit and what it keeps
+  (`git log --follow` and `git diff -M -C` name a move; a copied passage is found by comparing the file
+  with the original's), and a file the fork makes anew at one of the original's paths, keeping nothing of
+  the original's file there, to its `FORK_MADE`, and named in the fork's table when it has no header;
+  then run the generator again. A file that only follows the original's patterns - the COM wrappers' or
+  the test fixtures' idioms, what a project template or a designer writes - is in neither. The
+  generator's docstring says the same. A file the fork adds is
   classified by hand: in a directory of the original's, by its own path in the fork's table, so that a
   new file there without a header fails the job until it is. A third party's file keeps its own licence
   and holders, never the project's: its table names them, and a source of the project's that holds a
@@ -611,7 +619,13 @@ something which already exists.
   into what it makes, a page it embeds, a string a project template wrote - goes between `REUSE-IgnoreStart`
   and `REUSE-IgnoreEnd` comments, and a licence text, or a file that cannot take the comments and whose words
   reuse would read as a notice, is read for its table alone (`precedence = "override"`), so that `reuse spdx`
-  names no holder that is not one.
+  takes none of those words for a holder. The table of the third parties' licence texts and notices gives
+  as their copyright text "The holders each text names", and the installer's licence page's "The holders
+  each notice it carries names" beside the original's and the maintainers': a pointer to the notices the
+  texts carry, which name their holders, and not a holder. `debian/copyright` gives every file the Debian
+  source package carries the licences REUSE.toml's record does, which the *reuse* job holds
+  (`build/ci/reuse-debian.py`): a table that changes a carried file's licence changes its paragraph there
+  too.
 
 ## Change checklists
 

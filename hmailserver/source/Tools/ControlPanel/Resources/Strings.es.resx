@@ -3067,9 +3067,11 @@ Los detalles completos se escribieron en:
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Copiar valor del registro {0}</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer es una marca de sus respectivos propietarios; esto es una bifurcación independiente mantenida por la comunidad.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>No se pudieron añadir todos los miembros: {0}</value>
   </data>

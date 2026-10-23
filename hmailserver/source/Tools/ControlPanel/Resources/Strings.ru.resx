@@ -3100,9 +3100,11 @@ Control Panel может читать файлы сообщений только
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Копировать значение записи {0}</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer является товарным знаком соответствующих владельцев; это независимое ответвление, поддерживаемое сообществом.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Не удалось добавить всех участников: {0}</value>
   </data>

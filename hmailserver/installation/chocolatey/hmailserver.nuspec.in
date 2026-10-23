@@ -58,7 +58,9 @@
     <authors>Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve (the original hMailServer)</authors>
     <projectUrl>https://gitlab.com/hmailserver/hmailserver</projectUrl>
     <iconUrl>https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png</iconUrl>
+<!--#~ REUSE-IgnoreStart: the package's copyright field, which reuse would read as this file's notice -->
     <copyright>Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.</copyright>
+<!--#~ REUSE-IgnoreEnd -->
     <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver/-/tree/@TAG@</projectSourceUrl>

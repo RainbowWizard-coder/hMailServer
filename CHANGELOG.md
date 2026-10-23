@@ -865,71 +865,118 @@ with `--check`).
   REUSE Specification 3.3 asks, by the file's own header or, for the 4,189 files that carry none (documents,
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
-  one names and why. The original hMailServer's files - the 1,642 files of the tree at a path that its tags
-  `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` hold, or that the fork's first commit took over from its history
-  before them, letter case aside, but for the 2,870 third parties' files among them - name Martin Knafve (2005-2026)
-  as a holder beside what each file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for
-  none of 1,233 of them and the fork alone for 1,205, most of them files whose notice of his the fork's header
-  replaced in 2026: `build/generate-reuse-original.py` writes the two tables that list
-  them from the tags (`build/reuse-original-paths.txt`), and its `--check` holds them, and the files the fork added
-  in the original's directories, the registration scripts of fourteen COM classes among them, are named in the
-  fork's table one by one. The MIME files, `StdString.h` and `ScriptSite.h` name him beside their third party, and
-  `debian/copyright`'s paragraphs for the first two do too, saying that the original's changes are under the AGPL,
-  as its `Files: *` and `ScriptSite.h` paragraphs now give his years as 2005-2026; the RFC 7208 suite's table,
-  `SPFConformanceSuite.cpp`, has the suite's licence (BSD-3-Clause) and holders beside the header's, in `REUSE.toml`
-  and in a paragraph of `debian/copyright`, and its generator writes the suite's notice into its header, the table
-  itself unchanged. And `LICENSES/` holds the text of each of
-  the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote them and
-  each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and `LicenseRef-StdString` as
-  `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the plain text of SQL Server
-  Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows build ships it and has its
-  OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - `LicenseRef-Verbatim-Notice` for third
-  parties' licence texts carried verbatim (the copyright file's "notices") and `LicenseRef-No-Licence-Stated` for the
-  six files of test data no licence is stated for. A third party's file keeps its own licence and holders, never the
-  project's: the Fat Cow icons and the three of them the database tools take as their icon (CC-BY-3.0-US, the
-  Creative Commons Attribution 3.0 United States licence, whose terms the icons' licence text carries, as does the
-  installer's licence page now), and the four forms of the original whose `.resx` carries one of them as the form's
-  icon have that licence and FatCow beside the original's; SQL Server Compact's headers, QuickJS (MIT), zlib,
-  Unicode's data, the WHATWG's list of character references and the RFC 7208 test suite (BSD-3-Clause), and the DKIM
-  test corpus (Perl's terms), but for `Test 1.eml` beside it, Martin Knafve's own message of 2021, which is the
-  original's; and the project's sources that hold a third party's code or data under the project's header, which
-  until now claimed the AGPL alone - the seven MIME files (BSD-1-Clause), `StdString.h`, `PublicSuffixListData.h`
-  (MPL-2.0), the two IDNA tables (Unicode-3.0) and `HtmlReferencesData.cpp` (BSD-3-Clause) - have the third party's
-  licence and holders added beside the header's. `debian/copyright` says the same of the MIME files, `StdString.h`
-  and the Public Suffix List's table (their licence and the maintainers' copyright beside the third party's), gives
-  the AppImage's copy of the GPL-3.0's text and `LICENSES/` to its notices, but for the two texts there that are the
-  project's own, and the original's list of licences, `License list.*`, a paragraph of its own; and the source
-  tarball, and so `Files-Excluded`, leaves out SQL Server Compact's licence in `LICENSES/` as it leaves out the
-  headers it is for and the RTF it is made from (`build/source-exclusions.txt`). The text in the project's files that
-  quotes an SPDX tag or a copyright notice that is not its file's own, or that reuse would read as one, is marked
-  with `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, so that `reuse spdx` names no false holder: in eighteen files where
-  reuse found invalid or false tags (fourteen scripts and tools that write the header into what they make, two tests
-  and two checkers), around the pages and scripts that the webmail's three tables, `PortalPageData.cpp`,
-  `PortalSmimeData.cpp` and `PortalOpenPgpData.cpp`, embed, their own headers among them, which reuse read as notices
-  with RFC numbers for years ("2026, 4880, 5322, 3394, 6637, 6637"), as the three generators now write them, around the
+  one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
+  file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,233 of them and the
+  fork alone for 1,205, most of them files whose notice of his the fork's header replaced in 2026:
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,646 files, from the original's tags
+  `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
+  commit took over from the original's history before them) - the 1,633 files of the tree at one of those paths,
+  letter case aside, but for the 2,870 third parties' files among them, and 13 files the fork moved, split or copied
+  out of one of the original's to a path of its own, which its hand-kept `DERIVED` names with the original's file
+  each came from and the fork's commit: the half of the POP3 fetcher that `ExternalFetchClientBase.cpp` and `.h` took
+  over, `IMAPMove.cpp` and `IMAPCommandMove.cpp` from the COPY command's files, the Import Tool's `Program.cs` from
+  the Mercury migration tool's, the Linux suite's four shims of the Windows suite's `SingletonProvider`,
+  `CustomAsserts`, `TestSetup` and `TestFixtureBase`, `EventsJavaScript.cs`, the event tests of `Events.cs` with their
+  scripts in JavaScript, `InputCostTester.cpp`, which keeps the DKIM canonicalisation's header functions as 6.3.5 had
+  them, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after its tags, where reuse
+  recorded the fork alone for each. Its `FORK_MADE` leaves out of them the nine files the fork made anew at one of the
+  original's paths, which reuse had credited to him: the installer's wizard picture, the fork's brand since June
+  2026, the five test keys and certificates its first commit made in place of the original's (`example.key` and
+  `.crt`, `WithPassword/server.key` and `.crt`, and `localhost.pfx`, in `hmailserver/test/SSL examples`), its DMARC
+  test, `SpamTestDMARC.cpp` and `.h`, made before the original's own at those paths, and its IMAP special-use tests,
+  made four days before his; the six without a header are named in the fork's table instead. `--check` holds the
+  tables to the list and the tree, and refuses an entry of either list whose file is gone, a `DERIVED` source that is
+  not one of the original's files and a `FORK_MADE` path that is not one of their paths; it holds the list to the
+  tags when they are at hand, and the reuse job now fetches them from the project, with the fork's first commit,
+  their commits and trees alone (about 4 MB, in a few seconds), into a git directory of their own, and runs it with
+  `--require-tags`, which exits 2 without them, so that CI holds the list to the original's tags where a depth-1
+  clone took it as committed. The files the fork added in the original's directories, the registration scripts of
+  fourteen COM classes among them, are named in the fork's table one by one. The MIME files, `StdString.h` and
+  `ScriptSite.h` name him beside their third party, and `debian/copyright`'s paragraphs for the first two do too,
+  saying that the original's changes are under the AGPL, as its `Files: *` and `ScriptSite.h` paragraphs now give his
+  years as 2005-2026; `InputCostTester.cpp`'s 6.3.5 copies of two of the MIME classes' functions are Jeff Lee's code,
+  whose notice the file now quotes above them, and it has his licence and holder beside the original's in both
+  records, as `StringParser.cpp`, which keeps `StdString.h`'s `FindNoCase` and `ReplaceNoCase` as they were for its
+  tests, has O'Leary's (`SourceTarball.md`'s table of what is not the project's names both); the installer's Pascal
+  code names Silvio Iaccarino (2002), whose article in the Inno Setup
+  extensions knowledge base its Windows service declarations are taken from, as its comment says, and which states
+  no licence for them; the RFC 7208 suite's table, `SPFConformanceSuite.cpp`, has the suite's licence
+  (BSD-3-Clause) and holders beside the header's, in `REUSE.toml` and in a paragraph of `debian/copyright`, and its
+  generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
+  for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
+  Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
+  each of the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote
+  them and each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and
+  `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
+  plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows
+  build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
+  installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
+  `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices")
+  and `LicenseRef-No-Licence-Stated` for the six files of test data no licence is stated for. A third party's file
+  keeps its own licence and holders, never the project's: the Fat Cow icons and the three of them the database tools
+  take as their icon (CC-BY-3.0-US, the Creative Commons Attribution 3.0 United States licence, whose terms the
+  icons' licence text carries, as does the installer's licence page now), and the four forms of the original whose
+  `.resx` carries one of them as the form's icon have that licence and FatCow beside the original's; SQL Server
+  Compact's headers, QuickJS (MIT), zlib, Unicode's data, the WHATWG's list of character references and the RFC 7208
+  test suite (BSD-3-Clause), and the DKIM test corpus (Perl's terms), but for `Test 1.eml` beside it, Martin
+  Knafve's own message of 2021, which is the original's; and the project's sources that hold a third party's code or
+  data under the project's header, which until now claimed the AGPL alone - the seven MIME files (BSD-1-Clause),
+  `StdString.h`, `PublicSuffixListData.h` (MPL-2.0), the two IDNA tables (Unicode-3.0) and `HtmlReferencesData.cpp`
+  (BSD-3-Clause) - have the third party's licence and holders added beside the header's. `debian/copyright` says the
+  same of the MIME files, `StdString.h` and the Public Suffix List's table (their licence and the maintainers'
+  copyright beside the third party's), gives the AppImage's copy of the GPL-3.0's text and `LICENSES/` to its
+  notices, but for the two texts there that are the project's own, and the original's list of licences, `License
+  list.*`, a paragraph of its own; and the source tarball, and so `Files-Excluded`, leaves out SQL Server Compact's
+  licence in `LICENSES/` as it leaves out the headers it is for and the RTF it is made from
+  (`build/source-exclusions.txt`). The text in the project's files that quotes an SPDX tag or a copyright notice
+  that is not its file's own, or that reuse would read as one, is marked with `REUSE-IgnoreStart` and
+  `REUSE-IgnoreEnd`, so that `reuse spdx` takes none of it for a holder: in eighteen files where reuse found invalid
+  or false tags (fourteen scripts and tools that write the header into what they make, two tests and two checkers),
+  around the pages and scripts that the webmail's three tables, `PortalPageData.cpp`, `PortalSmimeData.cpp` and
+  `PortalOpenPgpData.cpp`, embed, their own headers among them, which reuse read as notices with RFC numbers for
+  years ("2026, 4880, 5322, 3394, 6637, 6637"), as the three generators now write them, around the
   `AssemblyCopyright` of the seventeen `AssemblyInfo.cs` of the original's Windows test projects and tools, the
   strings Visual Studio's template wrote ("Microsoft 2010", a year with no holder, "Halvar Information"), around the
-  PowerShell module manifest's `Copyright` key and around 7-Zip's banner in a test of `Compression.cpp`; the winget
-  template's comment and a checker's docstring quote "Copyright" and "Author", the field names, and the RFC 7208
-  suite's README names its holders without a ©; and the ported SPF files, `Generate-SPFConformanceSuite.py` among them,
-  quote upstream's notice whole on one line, where it was broken over two and reuse read "Martin Knafve /" alone. `.gitlab/ci/package-repos.yml` and `fuzz/dict/mime.dict` carry the header, and the changelog,
-  the roadmap, the contribution guide, `SourceTarball.md`, the help pages compiled from them and the copyright file,
-  which quote others' identifiers and notices, the licence texts and notices of `hmailserver/docs/Licenses`,
-  `libraries/` and the AppImage, whose words reuse took for holders ("Copyright Act", the GPL's `<year>  <name of
-  author>`), the installer's licence page, which carries such notices, and the webmail's `Portal.js`, whose table of
-  emoji names holds "© copyright", are read for their table alone. The new `reuse` job, in the check
-  stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by its digest:
-  reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with poetry-core
-  2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and libmagic
-  for each file's encoding; `reuse lint` must pass, `generate-reuse-original.py --check` too, and its `--holders` over
-  `reuse lint --json`, which refuses a record of one of the original's files, but the third parties', that does not
-  name Martin Knafve; and then six negative controls must each be refused by name - five files put in the checkout,
-  a new C++ source without the header, a new registration script beside the original's in `Server/COM` and a new
-  fixture beside the original's in the Windows suite's `Resources`, neither with a header, a header naming a licence
-  `LICENSES/` lacks, and a licence text no file names, and a table put in `REUSE.toml` that gives one of the
-  original's files the maintainers alone, which `--holders` refuses. Renovate reads the two `.in` files and leaves the `.txt` files, as it does the others. CONTRIBUTING.md
-  says how to mark a new file and the job's section in `ContinuousIntegration.md` what it runs. No REUSE badge yet:
-  the REUSE API's needs the repository registered, which is the owner's step.
+  PowerShell module manifest's `Copyright` key and around 7-Zip's banner in a test of `Compression.cpp`, around the
+  About text in the Control Panel's eighteen catalogues and `AboutView.cs`, the maintainers' notice with the
+  trademark sentence after it, which reuse read to the line's end (`build/check-localisation.py --write` writes the
+  marks around that row), and around the `Copyright` property of the seven tools' project files and the copyright
+  field of the Chocolatey and winget templates, as comments their rendering removes; the winget template's comment and a checker's
+  docstring quote "Copyright" and "Author", the field names, and the RFC 7208 suite's README names its holders
+  without a ©; and the ported SPF files, `Generate-SPFConformanceSuite.py` among them, quote upstream's notice whole
+  on one line, where it was broken over two and reuse read "Martin Knafve /" alone. `.gitlab/ci/package-repos.yml`
+  and `fuzz/dict/mime.dict` carry the header, and the changelog, the roadmap, the contribution guide,
+  `SourceTarball.md`, the help pages compiled from them and the copyright file, which quote others' identifiers and
+  notices, the licence texts and notices of `hmailserver/docs/Licenses`, `libraries/` and the AppImage, whose words
+  reuse took for holders ("Copyright Act", the GPL's `<year>  <name of author>`), the installer's licence page, which
+  carries such notices, and the webmail's `Portal.js`, whose table of emoji names holds "© copyright", are read for
+  their table alone, as are zlib's `deflate.c` and `inftrees.c`, whose version strings reuse read with their closing
+  quote, `entities.LICENSE`, whose notice it read to the end of its sentence, and `sqlce_oledb.h`, whose years it put
+  after Microsoft's name: their tables name the holders each file's notices name. The copyright text of the licence
+  texts' and notices' table, and of the installer's licence page's beside the original's and the maintainers', is
+  "The holders each text names" (and "The holders each notice it carries names"): it points at the holders the texts
+  themselves name -
+  each one's own notice, OpenSSL's, Boost's, FatCow's and the rest - and names none of them. The new `reuse` job, in
+  the check stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by
+  its digest: reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with
+  poetry-core 2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and
+  libmagic for each file's encoding; `reuse lint` must pass, `generate-reuse-original.py --check --require-tags` too,
+  over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
+  the original's files, but the third parties', that does not name Martin Knafve, and one of the nine the fork made
+  at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
+  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,776 files - to having the same licences in
+  the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for
+  its SPDX identifier (it finds `rfc7208-tests.CHANGES` alone in the record as it was); and then eight negative
+  controls must each be refused by name - five files put in the checkout, a new C++ source without the header, a new
+  registration script beside the original's in `Server/COM` and a new fixture beside the original's in the Windows
+  suite's `Resources`, neither with a header, a header naming a licence `LICENSES/` lacks, and a licence text no file
+  names; a table put in `REUSE.toml` that gives one of the original's files the maintainers alone, which `--holders`
+  refuses; one of the fork's files, the generator itself, added to the list with `REUSE.toml`'s tables written from
+  that list, which `--check --require-tags` refuses; and a copy of `debian/copyright` whose suite paragraph has lost
+  the change log, which `reuse-debian.py` refuses. Renovate reads the two `.in` files and leaves the `.txt` files, as
+  it does the others. CONTRIBUTING.md says how to mark a new file, and how to add a file moved or copied out of one of
+  the original's, and the job's section in `ContinuousIntegration.md` what it runs. No REUSE badge yet: the REUSE
+  API's needs the repository registered, which is the owner's step.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

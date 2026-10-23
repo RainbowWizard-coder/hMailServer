@@ -3067,9 +3067,11 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Wert kopieren ({0}-Eintrag)</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer ist eine Marke der jeweiligen Inhaber; dies ist ein unabhängiger, von der Community gepflegter Fork.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Nicht alle Mitglieder konnten hinzugefügt werden: {0}</value>
   </data>

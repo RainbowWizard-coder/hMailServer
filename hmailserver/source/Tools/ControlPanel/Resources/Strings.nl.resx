@@ -3067,9 +3067,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Waarde kopiëren ({0}-record)</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is een handelsmerk van de respectievelijke eigenaren; dit is een onafhankelijke, door de gemeenschap onderhouden fork.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Kon niet alle leden toevoegen: {0}</value>
   </data>

@@ -3067,9 +3067,11 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Değeri kopyala ({0} kaydı)</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Telif Hakkı © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer ilgili sahiplerinin ticari markasıdır; bu, topluluk tarafından sürdürülen bağımsız bir çataldır.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Tüm üyeler eklenemedi: {0}</value>
   </data>

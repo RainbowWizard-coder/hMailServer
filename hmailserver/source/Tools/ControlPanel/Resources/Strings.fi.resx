@@ -3067,9 +3067,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Copy value of the {0} record" xml:space="preserve">
     <value>Kopioi arvo ({0}-tietue)</value>
   </data>
+  <!-- REUSE-IgnoreStart -->
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer on omistajiensa tavaramerkki; tämä on itsenäinen, yhteisön ylläpitämä haara.</value>
   </data>
+  <!-- REUSE-IgnoreEnd -->
   <data name="Could not add all the members: {0}" xml:space="preserve">
     <value>Kaikkia jäseniä ei voitu lisätä: {0}</value>
   </data>

@@ -558,6 +558,22 @@ def elem(text):
            .replace("\r", "&#13;"))
 
 
+#
+# A key that is a copyright notice - the About page's, the maintainers' name with the
+# trademark sentence after it - is written between REUSE-IgnoreStart and
+# REUSE-IgnoreEnd comments: reuse would take it, to the line's end, for a notice of
+# the catalogue itself (CONTRIBUTING.md, "REUSE"). The word is put together so that
+# reuse does not read this file's own pattern as one.
+NOTICE_KEY = re.compile("^Copy" + "right " + chr(0xA9) + " ")
+
+
+def resx_row(name, value):
+   row = f'  <data name="{attr(name)}" xml:space="preserve">\n    <value>{elem(value)}</value>\n  </data>\n'
+   if NOTICE_KEY.match(name):
+      row = "  <!-- REUSE-IgnoreStart -->\n" + row + "  <!-- REUSE-IgnoreEnd -->\n"
+   return row
+
+
 def write_resx(path, items, comment):
    # Written the way the file was read: a catalogue that carried a UTF-8 byte
    # order mark keeps it. read() strips the mark on the way in (utf-8-sig), and
@@ -572,7 +588,7 @@ def write_resx(path, items, comment):
       pass
    lines = [RESX_HEAD.replace("{comment}", comment)]
    for name, value in items:
-      lines.append(f'  <data name="{attr(name)}" xml:space="preserve">\n    <value>{elem(value)}</value>\n  </data>\n')
+      lines.append(resx_row(name, value))
    lines.append("</root>\n")
    with open(path, "w", encoding="utf-8-sig" if had_bom else "utf-8", newline="\n") as handle:
       handle.write("".join(lines))
@@ -1099,6 +1115,15 @@ def self_test():
       found = bool(cs_pair_choices(line + "\n"))
       if found != expected:
          print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a count's forms written as a choice")
+         failures += 1
+
+   # The About text's row between reuse's ignore marks, and no other row.
+   notice = "Copy" + "right " + chr(0xA9) + " 2026 Somebody. A sentence after it."
+   for name, expected in {notice: True, "Copyright": False, "_Save changes": False}.items():
+      row = resx_row(name, name)
+      marked = row.startswith("  <!-- REUSE-Ignore" + "Start -->\n") and row.endswith("  <!-- REUSE-Ignore" + "End -->\n")
+      if marked != expected or ("Ignore" in row) != expected:
+         print(f"FAIL: the row of {name!r} is {'' if marked else 'not '}between reuse's ignore marks")
          failures += 1
 
    print(f"self-test: {failures} failure(s)")
