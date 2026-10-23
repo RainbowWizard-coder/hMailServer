@@ -894,6 +894,25 @@ with `--check`).
   password appeared in anything printed. The whole `--docker` mode run over 6.3.7's published image still passed beside
   PostgreSQL, schema 6108, and stopped beside MariaDB as that image must, lacking the MariaDB client.
   [ContainerImage.md](hmailserver/docs/ContainerImage.md), "The start test", says so.
+- **The release-chain check holds both image start jobs' databases and the test's two asks.**
+  `build/check-release-chain.py` refused `HM_DB_TYPE` and `HM_DB_HOST` in `container-image-start`'s own variables, which
+  reach every service, but not in `container-image-start-arm64`'s, and held none of the variables the two database
+  services start with, nor that the test script asks both images. It now refuses the two in either job's variables;
+  requires each start job's variables, its own over `container-image-start`'s as GitLab merges them, to give
+  PostgreSQL's service, MariaDB's and the image one user (`POSTGRES_USER`, `MARIADB_USER`, `HM_DB_USER`), one
+  database (`POSTGRES_DB`, `MARIADB_DATABASE`, `HM_DB_NAME`) and one password (`POSTGRES_PASSWORD`, `MARIADB_PASSWORD`,
+  `HM_DB_PASSWORD`, a `$NAME` reference resolved), with `HM_ADMIN_PASSWORD` and `MARIADB_ALLOW_EMPTY_ROOT_PASSWORD`,
+  and no random or set root password nor `POSTGRES_HOST_AUTH_METHOD`, and no service to set any of them in its own
+  variables; and requires `build/ci/container-image-start-test.sh` to ask the image beside PostgreSQL and then beside
+  MariaDB and compare their schemas as lines of their own after its last function, outside every function body, group,
+  `if`, loop and `case`, after no top-level `exit` or `return` and no here-document. Each of these would otherwise
+  have first failed in the next release's tag pipeline, after the push. Master's checker passed every one of the ten
+  mutations tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64 job, `MARIADB_DATABASE` removed and
+  `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks the tree in 21 new ways - the
+  arm64 job's own `HM_DB_TYPE` and `HM_DB_HOST`, each database variable removed or changed, a service's own
+  `MARIADB_DATABASE`, a random root password, and the asks put behind `true ||`, commented out, inside a function
+  nothing calls, behind `if false`, after an `exit 0` and inside a here-document - and sees each caught, with no case
+  of its own changed or dropped.
 
 ### Documentation
 

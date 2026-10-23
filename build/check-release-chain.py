@@ -5333,6 +5333,156 @@ def service_entries(block):
     return [(re.match(r"    - name: (\S+)", entry).group(1), entry) for entry in entries if entry.startswith("    - name: ")]
 
 
+def own_variables(block, indent="  "):
+    """A job's or a service's own variables, as {key: value}: the key: value lines of
+    its variables: block at indent (two spaces for a job's keys, six for a service
+    entry's), each value with its quotes taken off. A value written as a mapping
+    (value:, description:) is read as empty."""
+    found = re.search(r"^%svariables:[ \t]*\n((?:%s  [^\n]*\n|[ \t]*\n)*)" % (indent, indent), block + "\n", re.MULTILINE)
+    values = {}
+    if not found:
+        return values
+    indent += "  "
+    for line in found.group(1).split("\n"):
+        pair = re.match(r"^%s([A-Za-z_][A-Za-z0-9_]*):[ \t]*(.*?)[ \t]*$" % indent, line)
+        if pair:
+            value = pair.group(2)
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            values[pair.group(1)] = value
+    return values
+
+
+# What the start jobs' three databases' users, databases and passwords are given in:
+# PostgreSQL's service (POSTGRES_*), MariaDB's (MARIADB_*), and the image's entrypoint
+# and the test script, which read the database with the same (HM_DB_*). Each the same in
+# all three, in each start job's variables as GitLab resolves them.
+START_DATABASE_VARIABLES = (("the database user", ("POSTGRES_USER", "MARIADB_USER", "HM_DB_USER")),
+                            ("the database", ("POSTGRES_DB", "MARIADB_DATABASE", "HM_DB_NAME")),
+                            ("the database password", ("POSTGRES_PASSWORD", "MARIADB_PASSWORD", "HM_DB_PASSWORD")))
+
+
+def start_database_variable_problems(image_jobs):
+    """Each start job's variables - its own, over container-image-start's where it
+    extends that job, as GitLab merges them - give PostgreSQL's service, MariaDB's and the
+    image the same user, database and password (START_DATABASE_VARIABLES), the
+    administrator's password the test signs in with, and MariaDB's root no password
+    (MARIADB_ALLOW_EMPTY_ROOT_PASSWORD), never a random one, which MariaDB's image prints
+    into the log the job carries; and no service sets any of them in its own variables.
+    Without one, a database service does not start, or starts with a user or a database
+    the image is not told, and the next release's tag pipeline is the first to say so."""
+    problems = []
+    parent = own_variables(image_jobs.get("container-image-start", ""))
+    held = set(key for _, keys in START_DATABASE_VARIABLES for key in keys) | \
+        {"HM_ADMIN_PASSWORD", "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD", "MARIADB_RANDOM_ROOT_PASSWORD",
+         "MYSQL_ROOT_PASSWORD", "MYSQL_ALLOW_EMPTY_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD", "MYSQL_DATABASE", "MYSQL_USER",
+         "MYSQL_PASSWORD", "MARIADB_ROOT_PASSWORD_HASH", "MARIADB_PASSWORD_HASH", "POSTGRES_HOST_AUTH_METHOD"}
+    for name in ("container-image-start", "container-image-start-arm64"):
+        block = image_jobs.get(name, "")
+        if not block:
+            continue
+        values = own_variables(block)
+        if name != "container-image-start" and re.search(r"^  extends: container-image-start\s*$", block, re.MULTILINE):
+            values = dict(parent, **values)
+
+        def resolved(key, depth=0):
+            value = values.get(key, "")
+            reference = re.match(r"^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$", value)
+            if reference and depth < 8:
+                return resolved(reference.group(1), depth + 1) if reference.group(1) in values else None
+            return value
+
+        for what, keys in START_DATABASE_VARIABLES:
+            given = [resolved(key) for key in keys]
+            if any(not value for value in given) or len(set(given)) != 1:
+                problems.append("%s does not give %s the same in %s: %s" % (
+                    name, what, ", ".join(keys),
+                    ", ".join("%s %s" % (key, "unset" if key not in values else "%r" % values[key]) for key in keys)))
+        if not resolved("HM_ADMIN_PASSWORD"):
+            problems.append("%s gives no HM_ADMIN_PASSWORD, the administrator's password the test signs in to the REST API "
+                            "with" % name)
+        if not resolved("MARIADB_ALLOW_EMPTY_ROOT_PASSWORD"):
+            problems.append("%s does not give MariaDB's root no password (MARIADB_ALLOW_EMPTY_ROOT_PASSWORD), without which "
+                            "MariaDB's image does not start" % name)
+        for key in ("MARIADB_RANDOM_ROOT_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD", "MYSQL_ROOT_PASSWORD",
+                    "POSTGRES_HOST_AUTH_METHOD"):
+            if key in values:
+                problems.append("%s sets %s: MariaDB's root has no password there (a random one is printed into the job's log) "
+                                "and PostgreSQL asks the password it is given" % (name, key))
+        for service, entry in service_entries(block):
+            alias = re.search(r"^      alias: (\S+)\s*$", entry, re.MULTILINE)
+            for key in sorted(held & set(own_variables(entry, "      "))):
+                problems.append("%s's service %s sets %s in its own variables: the job's variables give it to every service, "
+                                "and the image and the test the same" % (name, alias.group(1) if alias else service, key))
+    return problems
+
+
+# The test script's two starts asked, at its top level, in this order, and compared:
+# lines of their own, after the last function's closing brace.
+START_TEST_CALLS = ("}",
+                    "",
+                    'schema=""',
+                    'ask_image PostgreSQL "$pg_host" "$pg_smtp" "$pg_rest" "${names:+$names-mail}"',
+                    'pg_schema="$schema"',
+                    'ask_image MariaDB "$maria_host" "$maria_smtp" "$maria_rest" "${names:+$names-mail-mariadb}"',
+                    'maria_schema="$schema"',
+                    '[ "$pg_schema" = "$maria_schema" ] \\')
+
+
+def start_test_call_problems(script):
+    """build/ci/container-image-start-test.sh asks the image beside PostgreSQL and beside
+    MariaDB as commands that run: START_TEST_CALLS as lines of their own, the comparison
+    failing the test, outside every function's body, at no depth of an if, a loop or a
+    case, after no top-level exit or return and no here-document. A call commented out,
+    put behind true || or inside a function nothing calls would leave the start jobs
+    passing without asking that image."""
+    problems = []
+    name = FILES["image-start"].replace(os.sep, "/")
+    lines = script.replace("\r\n", "\n").split("\n")
+    width = len(START_TEST_CALLS)
+    at = [i for i in range(len(lines) - width) if tuple(lines[i:i + width]) == START_TEST_CALLS
+          and re.match(r'^  \|\| fail "', lines[i + width])]
+    if len(at) != 1:
+        return ["%s does not ask the image beside PostgreSQL and then beside MariaDB, at its top level after its last "
+                "function, and fail when their schemas differ, as lines of their own: %s" % (name, " / ".join(START_TEST_CALLS[2:]))]
+    first = at[0] + 2
+    # braces: the depth of function bodies and { } groups written over several lines
+    # (a line ending in {, a line beginning with }); depth: that of the top level's if,
+    # loops and case.
+    braces = depth = 0
+    for number, line in enumerate(lines[:first], 1):
+        text = line.strip()
+        if not text or text.startswith("#"):
+            continue
+        if re.search(r"<<-?\s*['\"]?[A-Za-z_]", text.replace("<<<", "")):
+            problems.append("%s line %d opens a here-document before the images are asked: %s" % (name, number, text))
+        if text.endswith("{"):
+            braces += 1
+            continue
+        if text.startswith("}"):
+            braces -= 1
+            if braces < 0:
+                problems.append("%s line %d closes a function or a group that was not opened: %s" % (name, number, text))
+                braces = 0
+            continue
+        if braces:
+            continue
+        if re.match(r"^(if|while|until|for|case|select)\b", text) and \
+                not re.search(r"(^|[;\s])(fi|done|esac)\s*$", text):
+            depth += 1
+        elif re.match(r"^(fi|done|esac)\b", text):
+            depth -= 1
+            if depth < 0:
+                problems.append("%s line %d closes a block that was not opened: %s" % (name, number, text))
+                depth = 0
+        elif depth == 0 and re.match(r"^(exit|return)\b", text):
+            problems.append("%s line %d leaves the script at its top level before it asks the images: %s" % (name, number, text))
+    if braces or depth:
+        problems.append("%s asks the images inside a function's body, a group or a block (if, a loop, case) that is not "
+                        "closed before them" % name)
+    return problems
+
+
 def image_start_database_problems(texts, image_jobs):
     """The image reaches both databases it is said to: the Dockerfile installs the MariaDB
     client the server opens with dlopen (libmariadb.so.3), which no .deb the release carries names,
@@ -5353,12 +5503,14 @@ def image_start_database_problems(texts, image_jobs):
                         "the MariaDB client would be built")
     command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
     wanted_command = '      command: ["bash", "-c", "%s"]' % command.group(1) if command else None
-    start = image_jobs.get("container-image-start", "")
-    if start:
+    for name in ("container-image-start", "container-image-start-arm64"):
+        block = image_jobs.get(name, "")
         for key in ("HM_DB_TYPE", "HM_DB_HOST"):
-            if re.search(r"^    %s:" % key, start, re.MULTILINE):
-                problems.append("container-image-start sets %s in the job's own variables, which reach every service: "
-                                "each image's database is its own service's" % key)
+            if re.search(r"^    %s:" % key, block, re.MULTILINE):
+                problems.append("%s sets %s in the job's own variables, which reach every service: "
+                                "each image's database is its own service's" % (name, key))
+    problems += start_database_variable_problems(image_jobs)
+    problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
                                   ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
         block = image_jobs.get(name, "")
@@ -6819,6 +6971,55 @@ def self_test(chain, feed):
            "service mail-mariadb does not run build/ci/container-image-start-test.sh's START_COMMAND")
     broken("the database type set for every service", "image", "    HM_DB_NAME: hmailserver\n",
            "    HM_DB_TYPE: PostgreSQL\n    HM_DB_NAME: hmailserver\n", "sets HM_DB_TYPE in the job's own variables")
+    # The arm64 start's own variables, each database's user, database and password, and
+    # the two asks of the test script.
+    for key in ("HM_DB_TYPE: PostgreSQL", "HM_DB_HOST: db"):
+        broken("%s for every service of the arm64 start" % key, "image", '    HM_START_WAIT: "600"\n',
+               '    HM_START_WAIT: "600"\n    %s\n' % key,
+               "container-image-start-arm64 sets %s in the job's own variables" % key.split(":")[0])
+    for what, old, new, needle in (
+            ("MariaDB's database not given", "    MARIADB_DATABASE: hmailserver\n", "",
+             "container-image-start does not give the database the same in POSTGRES_DB, MARIADB_DATABASE, HM_DB_NAME"),
+            ("MariaDB's user not given", "    MARIADB_USER: hmailserver\n", "",
+             "container-image-start does not give the database user the same"),
+            ("MariaDB's password not given", "    MARIADB_PASSWORD: $POSTGRES_PASSWORD\n", "",
+             "container-image-start does not give the database password the same"),
+            ("PostgreSQL's database not given", "    POSTGRES_DB: hmailserver\n", "",
+             "container-image-start does not give the database the same"),
+            ("PostgreSQL's user another", "    POSTGRES_USER: hmailserver\n", "    POSTGRES_USER: postgres\n",
+             "container-image-start does not give the database user the same"),
+            ("PostgreSQL's password not given", "    POSTGRES_PASSWORD: hmtest\n", "",
+             "container-image-start does not give the database password the same"),
+            ("the image given another database password", "    HM_DB_PASSWORD: $POSTGRES_PASSWORD\n",
+             "    HM_DB_PASSWORD: hmother\n", "container-image-start does not give the database password the same"),
+            ("no administrator password", "    HM_ADMIN_PASSWORD: $POSTGRES_PASSWORD\n", "", "gives no HM_ADMIN_PASSWORD"),
+            ("MariaDB's root given a random password", '    MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"\n',
+             '    MARIADB_RANDOM_ROOT_PASSWORD: "1"\n', "container-image-start sets MARIADB_RANDOM_ROOT_PASSWORD"),
+            ("MariaDB's root given no choice", '    MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"\n', "",
+             "container-image-start does not give MariaDB's root no password"),
+            ("the arm64 start's own MariaDB database", '    HM_START_WAIT: "600"\n',
+             '    HM_START_WAIT: "600"\n    MARIADB_DATABASE: hmother\n',
+             "container-image-start-arm64 does not give the database the same"),
+            ("a database service's own database", "      alias: mariadb\n      pull_policy: [if-not-present, always]\n",
+             "      alias: mariadb\n      pull_policy: [if-not-present, always]\n      variables:\n        MARIADB_DATABASE: hmother\n",
+             "container-image-start's service mariadb sets MARIADB_DATABASE in its own variables")):
+        broken(what, "image", old, new, needle)
+    asked = "does not ask the image beside PostgreSQL and then beside MariaDB"
+    for what, old, new, needle in (
+            ("the MariaDB start never asked (true ||)", "\nask_image MariaDB ", "\ntrue || ask_image MariaDB ", asked),
+            ("the PostgreSQL start commented out", "\nask_image PostgreSQL ", "\n# ask_image PostgreSQL ", asked),
+            ("the comparison of the schemas gone", '\n[ "$pg_schema" = "$maria_schema" ] \\\n  || fail "',
+             '\n[ "$pg_schema" = "$maria_schema" ] \\\n  || true "', asked),
+            ("the asks in a function nothing calls", '\n}\n\nschema=""\nask_image PostgreSQL ',
+             '\n}\n\nnever_called() {\nhelper() {\n  :\n}\n\nschema=""\nask_image PostgreSQL ',
+             "asks the images inside a function's body"),
+            ("the asks behind if false", '\ntrap cleanup EXIT\n', '\ntrap cleanup EXIT\nif false; then\n',
+             "asks the images inside a function's body, a group or a block"),
+            ("the script left before the asks", '\ntrap cleanup EXIT\n', '\ntrap cleanup EXIT\nexit 0\n',
+             "leaves the script at its top level before it asks the images: exit 0"),
+            ("the asks inside a here-document", '\ntrap cleanup EXIT\n', "\ntrap cleanup EXIT\n: << 'SKIPPED'\n",
+             "opens a here-document before the images are asked")):
+        broken(what, "image-start", old, new, needle)
     broken("the arm64 start beside MariaDB as the host's platform", "image",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n      docker:\n        platform: linux/arm64\n",
            "    - name: $HM_IMAGE_ARM64\n      alias: mail-mariadb\n",
