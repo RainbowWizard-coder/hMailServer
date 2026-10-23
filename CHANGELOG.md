@@ -572,20 +572,26 @@ with `--check`).
   self-assessment; and the ten security tools that run on the code, each with where it runs and whether it holds a
   change or a release - secret detection, GitLab's SAST, Semgrep, cppcheck and clang-tidy, the dependency scan and the
   dependency check of every change, the container image's scan, libFuzzer, and, on GitHub, OpenSSF Scorecard and
-  CodeQL. Every value was
-  read from the tree or from the project's pages on 23 October 2026, and `cue vet` (CUE 0.17.1) passes it against the
-  specification's `schema.cue` at v2.2.0. The check, which the checkers job runs with every `build/check-*.py`, reads
-  the file with nothing but Python and refuses YAML it does not take; holds it to the schema written out from
-  `schema.cue`; refuses a `last-updated` or `last-reviewed` after the latest calendar date anywhere (the UTC clock plus
-  fourteen hours, so that a file dated just after midnight in the owner's time zone passes on a runner that keeps
-  UTC), or a `last-reviewed` more than a year before that date, while a review older than the last update passes, as
-  the file's header has it: `last-updated` moves with any change, and `last-reviewed` when the whole file has been read
-  against the tree again, at least once a year; holds the file's own address, the fork's name, the two repositories, the licence and the vulnerability contact SECURITY.md
-  gives; and refuses a link to a file the tree does not hold, to a heading a Markdown file does not have, or to a release
-  file `build/ci/release-chain.py` gives no name; and refuses a path of the tree it names outside a link - a tool's
-  ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment such as `build/ci/semgrep.sh`, a folder, a file at
-  the root such as `RELEASE.md` - that the tree does not hold, so that a renamed file cannot leave it stale. It proves
-  its 40 negative controls on every run, and `--self-test` says each. SECURITY.md's "For a security questionnaire" and CONTRIBUTING.md's table of checkers name both.
+  CodeQL. Every value was read from the tree or from the project's pages on 23 October 2026, and `cue vet` (CUE
+  0.17.1) passes it against the specification's `schema.cue` at v2.2.0. The check, which the checkers job runs with
+  every `build/check-*.py`, reads the file with nothing but Python and refuses YAML it does not take; holds it to the
+  schema written out from `schema.cue`; refuses a `last-updated` or `last-reviewed` after the latest calendar date
+  anywhere (the UTC clock plus fourteen hours, so that a file dated just after midnight in the owner's time zone passes
+  on a runner that keeps UTC), or a `last-reviewed` more than a year before that date, while a review older than the
+  last update passes, as the file's header has it: `last-updated` moves with any change, and `last-reviewed` when the
+  whole file has been read against the tree again, at least once a year; holds the file's own address, the fork's
+  name, the two repositories, the licence and the vulnerability contact SECURITY.md gives; refuses a URL anywhere in
+  the file under `gitlab.com/hmailserver/` or `github.com/RainbowWizard-coder/` that is not the project's own, so a
+  misspelt project path fails it; refuses a link to the tree at any branch but `master`, to a file the tree does not
+  hold in the case given, or to a heading a Markdown file does not have; refuses a link to a release's file - under
+  `v{version}`, `permalink/latest` or a version's own tag, such as 6.3.4's installer SBOM - whose name
+  `build/ci/release-chain.py` gives no file of that release; and refuses every path it names outside a link that the
+  tree does not hold in the case given - a tool's ruleset such as `build/ci/clang-tidy.yaml`, a script in a comment
+  such as `build/ci/semgrep.sh`, a folder, a file named with no folder such as `RELEASE.md` or `renovate.json`, which
+  is a file at the root - but the names its `NOT_TREE` lists as not the tree's (Semgrep's registry rulesets such as
+  `p/csharp`, and the specification's `spec/schema.cue`), so that a renamed or misplaced file cannot leave it stale. It
+  proves its 55 negative controls on every run, and `--self-test` says each. SECURITY.md's "For a security
+  questionnaire" and CONTRIBUTING.md's table of checkers name both.
 - **The tree no longer carries `libraries/fat_cow_icons/fatcow-hosting-icons-1400.zip`.** The archive, 3.6 MB, held
   FatCow's 2,800 PNG icons as FatCow published them, of which the tree's `.ico` files under
   `libraries/fat_cow_icons/ico` are the Windows icon form (2,798 of the 2,800 by the same name), and nothing in the

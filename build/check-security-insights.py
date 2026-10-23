@@ -32,20 +32,39 @@ nothing else would notice when it goes wrong. This holds it:
     repositories name it and the GitHub copy, the licence is AGPL-3.0-or-later
     with LICENSE beside it, exactly one administrator and one core-team member is
     primary, and the vulnerability contact's address is one SECURITY.md gives;
-  * to the tree: every link to a file of the repository - on GitLab's master
-    (blob, raw or tree) or the GitHub copy's - names a path the tree holds, and a
-    link to a heading of a Markdown file names a heading that file has, by
-    GitLab's (or GitHub's) anchor rule; a release file named by a link under
-    /-/releases/v{version}/downloads/ is a name build/ci/release-chain.py gives
-    one, and {version} is the only placeholder;
-  * to the tree's paths: every path of the tree the file names anywhere outside a
-    link - in a value (a tool's rulesets, a comment) or in a YAML comment - is
-    one the tree holds: a path whose first part is one of the tree's top-level
-    folders (build/, .gitlab/, .github/, fuzz/, hmailserver/, libraries/, or any
-    other the tree has), and a file at the root named in capitals, such as
-    SECURITY.md, RELEASE.md or CONTRIBUTING.md; a path that ends in / must be a
-    folder. So a renamed script or ruleset fails the check, where only its
-    links did before.
+  * to the project's own addresses: every URL anywhere in the file - a value, a
+    comment or a YAML comment - that is under gitlab.com/hmailserver/ is the
+    project's own, gitlab.com/hmailserver/hmailserver, and every one under
+    github.com/RainbowWizard-coder/ is the GitHub copy, RainbowWizard-coder/hMailServer
+    there, so a misspelt project path is refused;
+  * to the tree: every link to a file of the repository - GitLab's blob, raw or
+    tree, or the GitHub copy's - is at master, the branch the file describes, and
+    names a path the tree holds, each part in the case given; and a link to a
+    heading of a Markdown file names a heading that file has, by GitLab's (or
+    GitHub's) anchor rule;
+  * to the releases: a link under /-/releases/<tag>/downloads/ is to a file
+    build/ci/release-chain.py gives a release - its release_files, under the
+    name permalink_name gives each for the version, or for a release that kept
+    the version in a link's path, the file's own name. The tag is v{version}
+    ({version} being the only placeholder a value may hold), permalink/latest,
+    or a version's tag, v6.3.4 say, whose names are those of that version. Which
+    of the two names a release made before the chain named links as it does now
+    served a file under is not in the tree, so either passes; only a read of that
+    release tells (6.3.4's SBOMs kept the version, its packages did not);
+  * to the tree's paths: every path the file names outside a link - in a value
+    (a tool's rulesets, a comment) or in a YAML comment - is one the tree holds,
+    each part in the case given, and a folder where it ends in /, unless it is
+    one of NOT_TREE, the names that are not the tree's: Semgrep's registry
+    rulesets, such as p/csharp, and the specification's spec/schema.cue. A file
+    named with no folder, whatever its case - SECURITY.md, renovate.json,
+    .gitlab-ci.yml - and with an extension of ROOT_EXTENSIONS is taken for a
+    file at the root of the tree. So a renamed script, ruleset, folder or
+    document fails the check, and so does one named under the wrong folder or
+    under none.
+
+Nothing is fetched: a URL of another site, and a page of the project's that is
+not a file of the tree or of a release (its releases page, its wiki), is held to
+none of this but the project's own address.
 
 It proves its own negative controls on every run, on made-up trees: a file that
 breaks each rule above must be refused and the good one must pass, so a check
@@ -55,6 +74,7 @@ and says each.
   python build/check-security-insights.py [--self-test]
 """
 import datetime
+import importlib.util
 import os
 import re
 import shutil
@@ -469,9 +489,90 @@ def anchors(text):
     return found
 
 
-TREE_LINK = re.compile(r'^(?:' + re.escape(GITLAB) + r'/-/(?:blob|raw|tree)/master/|' +
-                       re.escape(GITHUB) + r'/(?:blob|raw|tree)/master/)([^?#]+)(?:#(.*))?$')
-RELEASE_FILE = re.compile(r'^' + re.escape(GITLAB) + r'/-/releases/v\{version\}/downloads/([^/?#]+)$')
+# Every URL in the file's text, YAML comments included. The punctuation that ends a
+# sentence after one is not part of it (urls).
+URL_IN_TEXT = re.compile(r'https?://[^\s<>"\'`]+')
+# (the URLs that are the project's to name, the group's or the owner's own page, the
+# one project there that is the project's): a URL under the first must be under the
+# last, in its case, so that a misspelt project path is refused.
+OWN = ((re.compile(r'^https?://gitlab\.com/hmailserver/', re.I), 'https://gitlab.com/hmailserver', GITLAB),
+       (re.compile(r'^https?://github\.com/RainbowWizard-coder/', re.I), 'https://github.com/RainbowWizard-coder',
+        GITHUB))
+# A link to a file or folder of the repository, at a ref, on GitLab or on the GitHub copy.
+TREE_LINK = re.compile(r'^(?:' + re.escape(GITLAB) + r'/-/|' + re.escape(GITHUB) + r'/)(?:blob|raw|tree)/'
+                       r'([^/?#]+)/?([^?#]*)(?:#(.*))?$')
+TRUSTED_REF = 'master'
+# A link to a file of a release, by its tag: v{version}, permalink/latest or a version's.
+RELEASE_LINK = re.compile(r'^' + re.escape(GITLAB) + r'/-/releases/(.+?)/downloads/([^?#]*)$')
+VERSION_TAG = re.compile(r'^v([0-9]+(?:\.[0-9]+)*(?:-[0-9A-Za-z.]+)?)$')
+# The version whose names stand for every release's, for the links that name none: a
+# file's permanent name has no version in it (release-chain.py's permalink_name).
+SAMPLE_VERSION = '9.9.9'
+
+
+def urls(text):
+    """Each (line number, URL) of text, without the punctuation after it."""
+    for number, line in enumerate(text.splitlines(), 1):
+        for url in URL_IN_TEXT.findall(line):
+            url = url.rstrip('.,;:')
+            while url.endswith(')') and url.count('(') < url.count(')'):
+                url = url[:-1].rstrip('.,;:')
+            yield number, url
+
+
+def is_under(url, base):
+    """url is base itself or a path, query or fragment below it."""
+    return url == base or (url.startswith(base) and url[len(base)] in '/?#')
+
+
+def release_names(root, version, cache):
+    """(the permanent names, the files' own names) build/ci/release-chain.py, as the tree
+    at root has it, gives the files of the release of version - release_files and
+    permalink_name - or None, with cache['error'] saying why, when it cannot be read."""
+    if 'module' not in cache:
+        path = os.path.join(root, RELEASE_CHAIN)
+        try:
+            spec = importlib.util.spec_from_file_location('release_chain_for_insights', path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            if not callable(getattr(module, 'release_files', None)) or \
+                    not callable(getattr(module, 'permalink_name', None)):
+                raise AttributeError('it has no release_files and permalink_name')
+            cache['module'] = module
+        except Exception as error:  # a tree whose release chain is missing or does not load
+            cache['module'] = None
+            cache['error'] = '%s: %s' % (type(error).__name__, error)
+    module = cache['module']
+    if module is None:
+        return None
+    if version not in cache:
+        try:
+            files = list(module.release_files(version))
+            cache[version] = ({module.permalink_name(name, version) for name in files}, set(files))
+        except Exception as error:  # a release chain that cannot name this version's files
+            cache['error'] = '%s: %s' % (type(error).__name__, error)
+            return None
+    return cache[version]
+
+
+def held(root, relative, listings):
+    """The tree at root holds relative, a path whose parts are joined by /, with every
+    part in the case given, as Linux's file systems compare names - on Windows and
+    macOS too, whose file systems ignore case - and as a folder if it ends in /."""
+    folder = relative.endswith('/')
+    here = root
+    for part in relative.rstrip('/').split('/'):
+        if part in ('', '.', '..'):
+            return False
+        if here not in listings:
+            try:
+                listings[here] = set(os.listdir(here))
+            except OSError:
+                listings[here] = set()
+        if part not in listings[here]:
+            return False
+        here = os.path.join(here, part)
+    return os.path.isdir(here) if folder else True
 
 
 def strings(value, where=''):
@@ -508,25 +609,29 @@ def a_year_before(day):
 # must not follow a character that would make it part of a longer word, a host name or
 # a URL (a letter, a digit, ., /, : or -).
 TREE_PATH = re.compile(r'(?<![\w./:-])((?:\.?[A-Za-z0-9_-]+/)+[A-Za-z0-9_.-]*)')
-# A file at the root named in capitals, such as SECURITY.md, outside a link.
-ROOT_FILE = re.compile(r'(?<![\w./:-])([A-Z][A-Z0-9_-]*\.(?:md|yml|yaml|txt))(?![\w/-])')
-TOP_LEVEL = ('build', '.gitlab', '.github', 'fuzz', 'hmailserver', 'libraries')
+# A file named with no folder, in any case, whose extension is one of these: a file at
+# the root, such as SECURITY.md, renovate.json or .gitlab-ci.yml. It must not follow a
+# character that would make it part of a path, a URL, a placeholder or a longer name,
+# nor run on into one.
+ROOT_EXTENSIONS = ('md', 'yml', 'yaml', 'txt', 'json', 'toml', 'cue', 'py', 'sh', 'ps1', 'cfg', 'ini')
+ROOT_FILE = re.compile(r'(?<![\w./:<>{}@~-])(\.?[A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*\.(?:' +
+                       '|'.join(ROOT_EXTENSIONS) + r'))(?!\.?[\w/-])')
+# The names the file gives that have the shape of a path of the tree and are not one:
+# Semgrep's registry rulesets, which the semgrep job reads from Semgrep's registry, and
+# the Security Insights specification's own schema file. Each is named here, so that
+# every other path is held to the tree.
+NOT_TREE = ('p/csharp', 'p/javascript', 'p/python', 'r/bash', 'spec/schema.cue')
 
 
-def named_paths(text, root):
-    """Each (line number, path) of the tree that text names outside a URL."""
-    try:
-        top = set(TOP_LEVEL) | {entry for entry in os.listdir(root) if os.path.isdir(os.path.join(root, entry))}
-    except OSError:
-        top = set(TOP_LEVEL)
-    top.discard('.git')
+def named_paths(text):
+    """Each (line number, path) that text names outside a URL, but those of NOT_TREE.
+    Every URL is blanked out first, so that no part of one is taken for a path."""
     for number, line in enumerate(text.splitlines(), 1):
-        for token in TREE_PATH.findall(line):
+        line = URL_IN_TEXT.sub(lambda url: ' ' * len(url.group(0)), line)
+        for token in TREE_PATH.findall(line) + ROOT_FILE.findall(line):
             token = token.rstrip('.')
-            if token.split('/', 1)[0] in top:
+            if token not in NOT_TREE:
                 yield number, token
-        for token in ROOT_FILE.findall(line):
-            yield number, token
 
 
 def check(root, now=None):
@@ -573,9 +678,9 @@ def check(root, now=None):
         problems.append('project.name does not say %r' % FORK)
     if repository['url'] != GITLAB:
         problems.append('repository.url is %r, not the project on GitLab, %s' % (repository['url'], GITLAB))
-    urls = [entry['url'] for entry in project['repositories']]
+    named = [entry['url'] for entry in project['repositories']]
     for wanted, what in ((GITLAB, 'the project on GitLab'), (GITHUB, 'its copy on GitHub')):
-        if wanted not in urls:
+        if wanted not in named:
             problems.append('project.repositories does not name %s, %s' % (what, wanted))
     for where, contacts in (('project.administrators', project['administrators']),
                             ('repository.core-team', repository['core-team'])):
@@ -600,52 +705,75 @@ def check(root, now=None):
         except OSError:
             problems.append('the tree has no SECURITY.md')
 
-    try:
-        with open(os.path.join(root, RELEASE_CHAIN), encoding='utf-8') as f:
-            chain = f.read()
-    except OSError:
-        chain = ''
-    headings = {}
     for where, value in strings(document):
         for placeholder in re.findall(r'\{[^}]*\}', value):
             if placeholder != '{version}':
                 problems.append('%s holds the placeholder %s; {version} is the only one' % (where, placeholder))
-        if not URL_RE.match(value):
+
+    chain_names = {}
+    listings = {}
+    headings = {}
+    seen = set()
+    for number, url in urls(text):
+        if url in seen:
             continue
-        release = RELEASE_FILE.match(value)
+        seen.add(url)
+        mistaken = [own for prefix, page, own in OWN
+                    if prefix.match(url) and url.rstrip('/') != page and not is_under(url, own)]
+        if mistaken:
+            problems.append('line %d: %s is not the project\'s own address, %s' % (number, url, mistaken[0]))
+            continue
+        release = RELEASE_LINK.match(url)
         if release:
-            if '"%s"' % release.group(1) not in chain:
-                problems.append('%s names the release file %s, which %s gives no file'
-                                % (where, release.group(1), RELEASE_CHAIN.replace(os.sep, '/')))
+            tag, name = release.groups()
+            version = VERSION_TAG.match(tag)
+            if tag not in ('v{version}', 'permalink/latest') and not version:
+                problems.append('line %d: %s is a release link of a tag this check does not know, %s: it takes '
+                                'v{version}, permalink/latest and a version\'s tag' % (number, url, tag))
+                continue
+            names = release_names(root, version.group(1) if version else SAMPLE_VERSION, chain_names)
+            if names is None:
+                problems.append('line %d: %s names a release file, and %s cannot be read for the names it gives '
+                                'them (%s)' % (number, url, RELEASE_CHAIN.replace(os.sep, '/'), chain_names['error']))
+                continue
+            permanent, own_names = names
+            if name not in permanent and not (version and name in own_names):
+                problems.append('line %d names the release file %s, which %s gives no file of %s'
+                                % (number, name, RELEASE_CHAIN.replace(os.sep, '/'),
+                                   'release %s' % version.group(1) if version else 'a release'))
             continue
-        link = TREE_LINK.match(value)
+        link = TREE_LINK.match(url)
         if not link:
             continue
-        relative = link.group(1).rstrip('/')
-        target = os.path.join(root, *relative.split('/'))
-        if not os.path.exists(target):
-            problems.append('%s links to %s, which the tree does not hold' % (where, relative))
+        ref, relative, anchor = link.groups()
+        if ref != TRUSTED_REF:
+            problems.append('line %d: %s links to the tree at %s, not %s, the branch this file describes'
+                            % (number, url, ref, TRUSTED_REF))
             continue
-        anchor = link.group(2)
+        relative = relative.rstrip('/')
+        if relative and not held(root, relative, listings):
+            problems.append('line %d links to %s, which the tree does not hold' % (number, relative))
+            continue
         if anchor:
+            target = os.path.join(root, *relative.split('/'))
             if not relative.lower().endswith('.md') or not os.path.isfile(target):
-                problems.append('%s links to a heading of %s, which is not a Markdown file' % (where, relative))
+                problems.append('line %d links to a heading of %s, which is not a Markdown file' % (number, relative))
                 continue
             if relative not in headings:
                 with open(target, encoding='utf-8') as f:
                     headings[relative] = anchors(f.read())
             if anchor not in headings[relative]:
-                problems.append('%s links to #%s, a heading %s does not have' % (where, anchor, relative))
+                problems.append('line %d links to #%s, a heading %s does not have' % (number, anchor, relative))
+
     seen = set()
-    for number, relative in named_paths(text, root):
+    for number, relative in named_paths(text):
         if relative in seen:
             continue
         seen.add(relative)
-        target = os.path.join(root, *relative.rstrip('/').split('/'))
-        if relative.endswith('/') and not os.path.isdir(target):
-            problems.append('line %d names the folder %s, which the tree does not hold' % (number, relative))
-        elif not relative.endswith('/') and not os.path.exists(target):
-            problems.append('line %d names %s, which the tree does not hold' % (number, relative))
+        if not held(root, relative, listings):
+            problems.append('line %d names %s%s, which the tree does not hold, in that case (a name that is not the '
+                            'tree\'s goes in NOT_TREE)' % (number, 'the folder ' if relative.endswith('/') else '',
+                                                           relative))
     return ['%s: %s' % (INSIGHTS, problem) for problem in problems]
 
 
@@ -728,7 +856,12 @@ repository:
         results: {}
         comment: >-
           The job (build/ci/scan.sh) over fuzz/, as SECURITY.md says; registry.gitlab.com/hmailserver/x
-          and https://example.org/build/ci/gone.sh name no path of the tree.
+          and https://example.org/build/ci/gone.sh name no path of the tree, nor does spec/schema.cue.
+          renovate.json updates it. 1.2.3's SBOM is
+          https://gitlab.com/hmailserver/hmailserver/-/releases/v1.2.3/downloads/hMailServer-1.2.3-x64.exe.cdx.json,
+          its installer https://gitlab.com/hmailserver/hmailserver/-/releases/v1.2.3/downloads/hMailServer-x64.exe
+          (https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe
+          for the latest), on the group's page https://gitlab.com/hmailserver/.
 '''
 FILES = {
     'LICENSE': '                    GNU AFFERO GENERAL PUBLIC LICENSE\n',
@@ -740,7 +873,14 @@ FILES = {
     'build/ci/rules.yaml': 'rules: []\n',
     'build/ci/scan.sh': '#!/bin/sh\n',
     'fuzz/README.md': 'Fuzzing\n',
-    RELEASE_CHAIN: 'pairs = [("hmailserver-1.0.0.intoto.sigstore.json", "hmailserver.intoto.sigstore.json")]\n',
+    'renovate.json': '{}\n',
+    # A release chain of three files, whose permanent names lose the version.
+    RELEASE_CHAIN: 'def release_files(version):\n'
+                   '    return ["hmailserver-%s.intoto.sigstore.json" % version, "hMailServer-%s-x64.exe" % version,\n'
+                   '            "hMailServer-%s-x64.exe.cdx.json" % version]\n'
+                   '\n\n'
+                   'def permalink_name(name, version):\n'
+                   '    return name.replace("-%s" % version, "", 1)\n',
 }
 NOW = datetime.date(2026, 1, 3)
 
@@ -840,6 +980,45 @@ def self_test(quiet=False):
          'names RELEASE.md, which the tree'),
         ('a path in a YAML comment that the tree does not hold', '# See build/no-such-check.py.\n' + GOOD, (),
          'names build/no-such-check.py, which the tree'),
+        ('a path under a folder the tree does not have', swap('(build/ci/scan.sh)', '(tools/scan.sh)'), (),
+         'names tools/scan.sh, which the tree'),
+        ('a folder named in another case', swap('(build/ci/scan.sh)', '(Build/ci/scan.sh)'), (),
+         'names Build/ci/scan.sh, which the tree'),
+        ('a file at the root, in lower case, that the tree does not hold', swap('(build/ci/scan.sh)', '(scan.sh)'), (),
+         'names scan.sh, which the tree'),
+        ('a root file named in another case', swap('as SECURITY.md says', 'as security.md says'), (),
+         'names security.md, which the tree'),
+        ('a registry ruleset that NOT_TREE does not name', swap('- p/csharp', '- p/csharpx'), (),
+         'names p/csharpx, which the tree'),
+        ('a linked file named in another case', swap('/-/blob/master/LICENSE', '/-/blob/master/License'), (),
+         'links to License, which the tree'),
+        ('a link to the tree at another branch', swap('/-/blob/master/LICENSE', '/-/blob/main/LICENSE'), (),
+         'at main, not master'),
+        ('a link to the GitHub copy at another ref',
+         swap('hMailServer/blob/master/SECURITY.md', 'hMailServer/blob/v1/SECURITY.md'), (), 'at v1, not master'),
+        ('a misspelt project path on GitLab',
+         swap('https://gitlab.com/hmailserver/hmailserver/-/blob/master/ASSURANCE-CASE.md',
+              'https://gitlab.com/hmailserver/hmailserve/-/blob/master/ASSURANCE-CASE.md'), (),
+         "hmailserve/-/blob/master/ASSURANCE-CASE.md is not the project's own address"),
+        ('the project path on GitLab in another case', swap('homepage: https://gitlab.com/hmailserver/hmailserver',
+                                                            'homepage: https://gitlab.com/hmailserver/HMailServer'), (),
+         "HMailServer is not the project's own address"),
+        ('another repository on GitHub',
+         swap('https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md',
+              'https://github.com/RainbowWizard-coder/hMailServer-old/blob/master/SECURITY.md'), (),
+         "hMailServer-old/blob/master/SECURITY.md#verifying-a-release is not the project's own address"),
+        ('a release file of a version the release chain gives no file',
+         swap('hMailServer-1.2.3-x64.exe.cdx.json', 'hMailServer-1.2.3-x65.exe.cdx.json'), (),
+         'names the release file hMailServer-1.2.3-x65.exe.cdx.json, which build/ci/release-chain.py gives no file '
+         'of release 1.2.3'),
+        ('a permanent name under permalink/latest the release chain does not give',
+         swap('permalink/latest/downloads/hMailServer-x64.exe', 'permalink/latest/downloads/hMailServer-x65.exe'), (),
+         'names the release file hMailServer-x65.exe'),
+        ('a release link of a tag that is not a version',
+         swap('/-/releases/v1.2.3/downloads/hMailServer-x64.exe', '/-/releases/latest/downloads/hMailServer-x64.exe'),
+         (), 'a tag this check does not know, latest'),
+        ('release links and no release chain to read their names from', GOOD, (RELEASE_CHAIN,),
+         'cannot be read for the names'),
         ('a tab in the indentation', swap('  status: active', '\tstatus: active'), (), 'a tab'),
         ('a key twice', swap('  status: active\n', '  status: active\n  status: active\n'), (), 'twice'),
         ('a plain scalar holding ": "', swap('comment: Releases.', 'comment: Releases: all'), (), 'quote it'),
@@ -894,11 +1073,17 @@ def main(argv):
             print('FAIL  %s' % problem)
         return 1
     with open(os.path.join(ROOT, INSIGHTS), encoding='utf-8') as f:
-        document = parse_yaml(f.read())
-    links = sum(1 for _, value in strings(document) if TREE_LINK.match(value))
-    print('OK    %s: Security Insights %s, updated %s and reviewed %s, %d links into the tree, %d tools'
+        text = f.read()
+    document = parse_yaml(text)
+    found = {url for _, url in urls(text)}
+    links = sum(1 for url in found if TREE_LINK.match(url))
+    releases = sum(1 for url in found if RELEASE_LINK.match(url))
+    paths = len({path for _, path in named_paths(text)})
+    print('OK    %s: Security Insights %s, updated %s and reviewed %s, %d links into the tree, %d to release files, '
+          '%d paths of the tree named, %d tools'
           % (INSIGHTS, document['header']['schema-version'], document['header']['last-updated'],
-             document['header']['last-reviewed'], links, len(document['repository']['security'].get('tools', []))))
+             document['header']['last-reviewed'], links, releases, paths,
+             len(document['repository']['security'].get('tools', []))))
     return 0
 
 
