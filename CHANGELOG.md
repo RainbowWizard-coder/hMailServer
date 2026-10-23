@@ -909,7 +909,7 @@ with `--check`).
   database (`POSTGRES_DB`, `MARIADB_DATABASE`, `HM_DB_NAME`) and one password (`POSTGRES_PASSWORD`, `MARIADB_PASSWORD`,
   `HM_DB_PASSWORD`, a `$NAME` reference resolved), with `HM_ADMIN_PASSWORD` and `MARIADB_ALLOW_EMPTY_ROOT_PASSWORD`,
   and no random or set root password nor `POSTGRES_HOST_AUTH_METHOD`, and no service to set any of them in its own
-  variables; and holds `build/ci/container-image-start-test.sh`'s two asks of the image, beside PostgreSQL and then
+  variables, each key read whether it is quoted or not, as YAML and GitLab read `"KEY": value` as `KEY`; and holds `build/ci/container-image-start-test.sh`'s two asks of the image, beside PostgreSQL and then
   beside MariaDB, as commands that run, as far as a scan of the script's lines - not a parser of bash - can. The asks
   and the comparison of their schemas must be lines of their own after the script's last function, the comparison
   failing the test with one quoted message, and after it nothing but blank lines and `echo "..."` lines, so that
@@ -926,9 +926,9 @@ with `--check`).
   push; a disabled ask would not have failed at all - the start job would have passed without asking that image.
   Master's checker passed every one of the ten mutations first tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64
   job, `MARIADB_DATABASE` removed and `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks
-  the tree in 44 new ways and sees each caught, with no case of its own changed or dropped: the arm64 job's own
-  `HM_DB_TYPE` and `HM_DB_HOST`, each database variable removed or changed, a service's own `MARIADB_DATABASE`, a
-  random root password; the asks behind `true ||`, commented out, after an `exit 0` and inside an unclosed
+  the tree in 46 new ways and sees each caught, with no case of its own changed or dropped: the arm64 job's own
+  `HM_DB_TYPE` and `HM_DB_HOST`, and its own `"HM_DB_TYPE"` and `"MARIADB_DATABASE"` with the key quoted, each
+  database variable removed or changed, a service's own `MARIADB_DATABASE`, a random root password; the asks behind `true ||`, commented out, after an `exit 0` and inside an unclosed
   here-document; and, each closed at the end of the script so that bash would run it, the asks inside a function
   nothing calls (with a `{`, a `(` or a `function` body, and with a comment after its brace), in a group behind
   `true ||`, in a loop behind `: ||`, behind `if false` and in a here-document whose delimiter is quoted with a

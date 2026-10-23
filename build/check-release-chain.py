@@ -5336,7 +5336,7 @@ def service_entries(block):
 def own_variables(block, indent="  "):
     """A job's or a service's own variables, as {key: value}: the key: value lines of
     its variables: block at indent (two spaces for a job's keys, six for a service
-    entry's), each value with its quotes taken off. A value written as a mapping
+    entry's), each key quoted or not and each value with its quotes taken off. A value written as a mapping
     (value:, description:) is read as empty."""
     found = re.search(r"^%svariables:[ \t]*\n((?:%s  [^\n]*\n|[ \t]*\n)*)" % (indent, indent), block + "\n", re.MULTILINE)
     values = {}
@@ -5344,12 +5344,13 @@ def own_variables(block, indent="  "):
         return values
     indent += "  "
     for line in found.group(1).split("\n"):
-        pair = re.match(r"^%s([A-Za-z_][A-Za-z0-9_]*):[ \t]*(.*?)[ \t]*$" % indent, line)
+        # A key quoted or not, as YAML and GitLab read "KEY": value as KEY.
+        pair = re.match(r"^%s([\"']?)([A-Za-z_][A-Za-z0-9_]*)\1[ \t]*:[ \t]*(.*?)[ \t]*$" % indent, line)
         if pair:
-            value = pair.group(2)
+            value = pair.group(3)
             if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                 value = value[1:-1]
-            values[pair.group(1)] = value
+            values[pair.group(2)] = value
     return values
 
 
@@ -5645,7 +5646,7 @@ def image_start_database_problems(texts, image_jobs):
     for name in ("container-image-start", "container-image-start-arm64"):
         block = image_jobs.get(name, "")
         for key in ("HM_DB_TYPE", "HM_DB_HOST"):
-            if re.search(r"^    %s:" % key, block, re.MULTILINE):
+            if re.search(r"^    [\"']?%s[\"']?[ \t]*:" % key, block, re.MULTILINE):
                 problems.append("%s sets %s in the job's own variables, which reach every service: "
                                 "each image's database is its own service's" % (name, key))
     problems += start_database_variable_problems(image_jobs)
@@ -7116,6 +7117,13 @@ def self_test(chain, feed):
         broken("%s for every service of the arm64 start" % key, "image", '    HM_START_WAIT: "600"\n',
                '    HM_START_WAIT: "600"\n    %s\n' % key,
                "container-image-start-arm64 sets %s in the job's own variables" % key.split(":")[0])
+    # The same with the key quoted, which YAML and GitLab read as the key.
+    broken("a quoted HM_DB_TYPE for every service of the arm64 start", "image", '    HM_START_WAIT: "600"\n',
+           '    HM_START_WAIT: "600"\n    "HM_DB_TYPE": PostgreSQL\n',
+           "container-image-start-arm64 sets HM_DB_TYPE in the job's own variables")
+    broken("the arm64 start's own MariaDB database, its key quoted", "image", '    HM_START_WAIT: "600"\n',
+           '    HM_START_WAIT: "600"\n    "MARIADB_DATABASE": hmother\n',
+           "container-image-start-arm64 does not give the database the same")
     for what, old, new, needle in (
             ("MariaDB's database not given", "    MARIADB_DATABASE: hmailserver\n", "",
              "container-image-start does not give the database the same in POSTGRES_DB, MARIADB_DATABASE, HM_DB_NAME"),
