@@ -199,9 +199,11 @@ into a clean container or a clean Windows installation, against one test server:
 6.3.7's container image (`registry.gitlab.com/hmailserver/hmailserver`, the index
 `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`) beside
 PostgreSQL 18, started as its start test starts it ([ContainerImage.md](ContainerImage.md),
-"The start test") with the host name `mail.example.test`, so that the certificate
-`--apply-new-install-defaults` made names that host (`CN=mail.example.test`,
-`DNS:mail.example.test`, `CA:FALSE`). Its REST API answered as `6.3.7-B46`, reached
+"The start test"), which points the REST listener at the self-signed pair
+`--apply-new-install-defaults` makes for the mail listeners (`HM_REST_CERTIFICATE_FILE`
+and `HM_REST_PRIVATE_KEY_FILE`), with the host name `mail.example.test`, so that the
+certificate names that host (`CN=mail.example.test`, `DNS:mail.example.test`,
+`CA:FALSE`). Its REST API answered as `6.3.7-B46`, reached
 from Linux over a Docker network and from Windows over the network by that name in
 the hosts file. Every client was run with the certificate untrusted, which it had to
 refuse, then trusted as [CommandLine.md](CommandLine.md) says ("Credentials").
@@ -306,11 +308,17 @@ release after 6.3.7 it says "GET /api/v1/domains failed: The underlying connecti
 was closed: Could not establish trust relationship for the SSL/TLS secure channel;
 The remote certificate is invalid according to the validation procedure." there,
 which the module of the tree said on the same machine against the same server, and
-"failed (502): " and the text for the second, as `hmctl` prints it;
-`build/check-cli.py` holds both, under every PowerShell the machine running it has.
-Neither client documented how a server's self-signed certificate is trusted on
-another machine; [CommandLine.md](CommandLine.md) now does. Not tried: macOS, for
-want of a Mac.
+"failed (502): " and the text for the second, as `hmctl` prints it (and for JSON
+without `error`, its `message` or the status alone, as `hmctl` does);
+`build/check-cli.py` holds both, under every PowerShell the machine running it has,
+with an untrusted certificate of its own on a loopback listener. Run with Windows
+PowerShell 5.1 taking the module's whole half, the check found two more, which the
+tree has fixed too: `Set-HmOpenPgpKey -Path` sent nothing there, and `hmctl` refused
+the document `Export-HmConfiguration` writes there, which begins with a byte order
+mark. Neither client's documents said how a REST listener that another machine
+connects to is given a certificate, or how a server's self-signed certificate is
+trusted on that machine; [CommandLine.md](CommandLine.md) now does. Not tried:
+macOS, for want of a Mac.
 
 Building and checking by hand
 -----------------------------

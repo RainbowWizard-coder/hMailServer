@@ -58,21 +58,36 @@ is not a convenience, and this will not make it one. Give the server a
 certificate the client trusts.
 
 **A server's self-signed certificate, trusted on the machine you administer
-from.** Until it is given another, a new installation's REST listener has the
-certificate the installation made for itself
-([SecureDefaults.md](SecureDefaults.md), "The certificate"), which names the
-server's host name setting, or else the machine's DNS name. Neither client takes
-it from another machine until that machine trusts it: `hmctl` says "TLS refused the
-server's certificate: ... self-signed certificate", and the module gives the
-system's reason. Copy the certificate - `self-signed-certificate.pem` in the data
-directory's `Certificates` folder, `/var/lib/hmailserver/Certificates` from the
-Linux packages and in the container image (`docker cp`) - and trust it:
+from.** A REST listener another machine connects to needs a certificate and its
+key in `RestApiCertificateFile` and `RestApiPrivateKeyFile`
+(`HM_REST_CERTIFICATE_FILE` and `HM_REST_PRIVATE_KEY_FILE` in the container
+image, `rest.tlsSecretName` in the Helm chart): bound to any address but the
+loopback, the server does not start it without one, and with the two empty it
+takes the ACME client's certificate when there is one. A new installation sets
+neither - the certificate it makes ([SecureDefaults.md](SecureDefaults.md), "The
+certificate") is its mail listeners' - but until an ACME certificate or one of
+your own is there, that pair can be named in the two settings, as the container
+image's start test names it ([ContainerImage.md](ContainerImage.md), "The start
+test"): `self-signed-certificate.pem` and `self-signed-key.pem` in the data
+directory's `Certificates` folder, which is `/var/lib/hmailserver/Certificates`
+from the Linux packages and in a container whose command runs `hmailserver
+--apply-new-install-defaults` first, as the start test's does. They are set as
+`RestApiPort` is set ("What neither client does", below) and taken when the
+listener next starts; empty them again once the ACME client has a certificate,
+which the listener takes only while they are empty. The certificate names the
+server's host name setting, or else the machine's DNS name, and neither client
+takes it from another machine until that machine trusts it: `hmctl` says "TLS
+refused the server's certificate: ... self-signed certificate", and the module
+gives the system's reason - under Windows PowerShell 5.1 from the release after
+6.3.7, since 6.3.7's module says "GET /api/v1/domains failed." there and nothing
+more. Copy the certificate, never its key, to the machine you administer from
+(`docker cp` out of a container) and trust it there:
 
 ```bash
 # Debian and Ubuntu: every program on this machine, hmctl and pwsh among them
 sudo cp self-signed-certificate.pem /usr/local/share/ca-certificates/mail.example.com.crt
 sudo update-ca-certificates
-# or for hmctl alone, in this shell
+# or for the programs started from this shell only (hmctl and pwsh)
 export SSL_CERT_FILE="$PWD/self-signed-certificate.pem"
 ```
 
