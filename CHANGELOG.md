@@ -1008,10 +1008,30 @@ with `--check`).
   `CURL_HOME`, `PGSERVICEFILE`, `MYSQL_HOST` and others: `START_TEST_ENVIRONMENT`) in the CI files' top-level
   variables, the workflow's and `.release-rules`' rules and the services' own variables; and it holds the script's
   lines that take them, with their defaults (`maria_host="${HM_START_MARIADB_HOST:-mail-mariadb}"` and the others,
-  `START_TEST_DEFAULTS`), each once before the asks. The self-test breaks the tree in eight ways - the three above,
+  `START_TEST_DEFAULTS`), each once before the asks. The same variables reached the start jobs by one route more:
+  `container-image`'s dotenv report, which they take with its artifacts and whose variables outrank a job's own, is
+  written by `build/ci/container-image-push.sh`, which is not a gate file, and `echo "HM_START_MARIADB_HOST=mail"` or
+  `echo "HM_START_VERSION=6"` added to the lines that write it passed master's checker and this one's before. The
+  check now holds the push script to write the report as its four lines alone (`HM_IMAGE`, `HM_IMAGE_AMD64`,
+  `HM_IMAGE_ARM64`, `HM_IMAGE_TAGS`: `PUSH_ENV_BLOCK`), once, with no other line naming a `.env` file but the one
+  that prints it, appending (`>>`) to anything but `$out/tags.txt` or running `tee`, `out` set once as
+  `out=container-image` and no change of directory outside a subshell; holds `container-image` to its keys alone
+  (`PUSH_JOB_KEYS`: no `after_script`, `before_script`, `hooks`, `cache` or `services`), each once, to the push script
+  as its one line of script, to the two image jobs' artifacts as its needs and the release's rules, and to its
+  artifacts as the directory `container-image/` with the one dotenv report in it (`PUSH_JOB_LINES`), its image to
+  regctl's by digest with its entrypoint emptied and no other key, and `container-image-amd64`'s and
+  `container-image-arm64`'s artifacts, which it unpacks over its checkout before the push script runs, to their own
+  directories alone; and holds those three jobs to one definition in the CI files, as the start jobs are. These are
+  a scan of the push script's lines, not of `sh`: a line break given to a value the block writes, a command made
+  another thing, or a copy into the report's directory under a name built as the script runs is not read, and the
+  script is not held whole as the start test is. The self-test breaks the tree in 23 ways - the three above,
   `BASH_ENV` in the arm64 job, `HM_START_VERSION` in a service's variables, `HM_START_MARIADB_HOST` among
-  `.gitlab-ci.yml`'s top-level variables, and the script's MariaDB address defaulting to `mail` or its version to 6 -
-  and sees each caught.
+  `.gitlab-ci.yml`'s top-level variables, the script's MariaDB address defaulting to `mail` or its version to 6, the
+  two variables echoed in the report's block, the report appended to after it is written, by name, under a name
+  built as it runs and by `tee`, `out` set again, a `cd` before the block, `container-image`'s script given a second
+  line, an `after_script`, a second `dotenv` key, its artifacts carrying a start test, another need, an entrypoint
+  for its image, `container-image-amd64`'s artifacts carrying a push script, and `container-image` defined again in
+  `.gitlab/ci/snap.yml` - and sees each caught.
 - **The release-chain check holds the image start test whole.** Its rules read the test's lines, not bash, and hold
   where the asks are and what may come before them, not what the asks run: `ask_image`'s body put behind
   `if false` or in a subshell, then `version=6108`, a `schema_version` that echoes 6108 and returns, and the STARTTLS

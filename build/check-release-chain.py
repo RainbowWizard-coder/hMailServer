@@ -287,7 +287,10 @@ refuses it. This checker holds them to each other. It fails when:
     START_JOB_LINES write it - with no argument, nothing before or after it on its
     line, after the before_script it is held to - or either, or container-image-sign,
     is defined more than once in the CI files, which GitLab merges into one job
-    (start_job_line_problems); or
+    (start_job_line_problems); or container-image's dotenv report, which the start
+    jobs take over their own variables, can say more than the images and the tags
+    pushed, or its artifacts, or those it unpacks, more than its own directories
+    (start_dotenv_problems); or
     container_scanning does not run build/ci/container-scan.sh over the linux/amd64
     image in dependency-scan's Trivy image, by the same digest (CONTAINER_SCANNER),
     keeping its report, or container_scanning_arm64 does not extend it for the
@@ -5821,8 +5824,11 @@ START_JOB_KEYS = {
     "container-image-start-arm64": ("extends", "needs", "timeout", "rules", "variables", "before_script", "services"),
 }
 # The jobs held to one definition, each with every template it reaches: the two start
-# jobs, and container-image-sign, which signs the image only once both have passed.
-START_HELD_DEFINITIONS = ("container-image-start", "container-image-start-arm64", "container-image-sign")
+# jobs; container-image-sign, which signs the image only once both have passed; and
+# container-image, whose dotenv report the start jobs take, with the two jobs whose
+# artifacts it unpacks over its checkout (start_dotenv_problems).
+START_HELD_DEFINITIONS = ("container-image-start", "container-image-start-arm64", "container-image-sign", "container-image",
+                          "container-image-amd64", "container-image-arm64")
 START_JOB_RULES = ("  rules:", "    - !reference [.release-rules, rules]")
 # Each start job needs container-image alone, with its artifacts: GitLab unpacks a need's
 # artifacts over the job's checkout before its script, so that another job's artifact
@@ -5904,8 +5910,8 @@ def start_job_line_problems(image_jobs, every_ci=None):
         if count > 1:
             problems.append("%s is defined %s: GitLab merges the definitions, a later include's keys over an earlier one's, "
                             "and of two in one file takes the last, so that a definition this check does not read would "
-                            "say whether and how the start test runs, or whether container-image-sign waits for it - "
-                            "define it once" % (reached, "in " + " and ".join(paths) if len(paths) > 1 else
+                            "say whether and how the start test runs, whether container-image-sign waits for it, or what "
+                            "the start jobs take from container-image - define it once" % (reached, "in " + " and ".join(paths) if len(paths) > 1 else
                                                 "%s in %s" % ({2: "twice"}.get(count, "%d times" % count), paths[0])))
     for name, keys in sorted(START_JOB_KEYS.items()):
         block = image_jobs.get(name, "")
@@ -5928,6 +5934,116 @@ def start_job_line_problems(image_jobs, every_ci=None):
                 problems.append("%s's %s is not %s, as the start test must be run%s: %s"
                                 % (name, key, " / ".join(line.strip() for line in wanted), START_JOB_LINE_WHY.get(key, ""),
                                    " / ".join(line.strip() for text in written for line in text) or "none"))
+    return problems
+
+
+# What container-image's dotenv report says, written by build/ci/container-image-push.sh
+# as these lines and no other: the images by digest and the tags pushed. The start jobs
+# take the report, and its variables outrank a job's own.
+PUSH_ENV_BLOCK = ("{",
+                  '  echo "HM_IMAGE=$repository@$index"',
+                  '  echo "HM_IMAGE_AMD64=$repository@$digest_amd64"',
+                  '  echo "HM_IMAGE_ARM64=$repository@$digest_arm64"',
+                  '  echo "HM_IMAGE_TAGS=$(printf \'%s\' "$written" | tr \' \' \',\')"',
+                  '} > "$out/image.env"')
+# The lines of the script that may name the report: its block's last, and the one that
+# prints it into the job's log.
+PUSH_ENV_NAMED = (PUSH_ENV_BLOCK[-1], 'cat "$out/image.env"')
+# container-image's keys, and the lines of those that say what it runs and what it hands
+# on: the push script alone, after container-image-amd64's and -arm64's artifacts, for the
+# release's rules, its artifacts the directory container-image/ and the report in it.
+PUSH_JOB_KEYS = ("stage", "image", "needs", "timeout", "interruptible", "rules", "script", "artifacts")
+PUSH_JOB_LINES = {
+    "needs": ("  needs:", "    - job: container-image-amd64", "      artifacts: true", "    - job: container-image-arm64",
+              "      artifacts: true"),
+    "rules": START_JOB_RULES,
+    "script": ("  script:", "    - sh build/ci/container-image-push.sh"),
+    "artifacts": ("  artifacts:", "    when: always", "    expire_in: 90 days", "    paths:", "      - container-image/",
+                  "    reports:", "      dotenv: container-image/image.env"),
+}
+
+
+def start_dotenv_problems(texts, image_jobs):
+    """What container-image's dotenv report can say, which the start jobs take with its
+    artifacts, and whose variables outrank a job's own: an
+    HM_START_MARIADB_HOST=mail there would send the MariaDB ask's SMTP and REST
+    questions to the image beside PostgreSQL, HM_START_VERSION=6 let any 6.x pass, and
+    BASH_ENV, PATH and the rest of START_TEST_ENVIRONMENT change the shell the test runs
+    in, past every rule on the jobs' variables. build/ci/container-image-push.sh writes the
+    report as PUSH_ENV_BLOCK's lines, once; no other line of it but PUSH_ENV_NAMED names
+    a .env file, appends (>>) to anything but $out/tags.txt or runs tee; it sets out once,
+    as out=container-image, and changes its directory in a subshell alone, so that the
+    block's > writes the report the job keeps. container-image has PUSH_JOB_KEYS' keys
+    alone, each once - no after_script, before_script, hooks, cache or services, which
+    run beside the script or lay files over its checkout - and PUSH_JOB_LINES as written:
+    the push script alone, the two image jobs' artifacts, the release's rules, and its
+    artifacts the directory container-image/ with the one dotenv report in it, so that
+    nothing else is unpacked over the start jobs' checkout; its image is regctl's -alpine
+    pinned by digest with its entrypoint emptied and no other key; and those two jobs'
+    artifacts are their own directories alone, which container-image unpacks over its
+    checkout before the push script runs. (container-image and both are held to one
+    definition by start_job_line_problems.) The script's rules are a scan of its lines,
+    not of sh: a value of the block's own variables given a line break, a command made
+    another thing, or a copy into $out under a name built as it runs, is not read here,
+    and the script is not held whole as the start test is."""
+    problems = []
+    name = FILES["image-push"].replace(os.sep, "/")
+    lines = texts["image-push"].split("\n")
+    block = list(PUSH_ENV_BLOCK)
+    if sum(1 for at in range(len(lines)) if lines[at:at + len(block)] == block) != 1:
+        problems.append("%s does not write container-image's dotenv report once, as the four lines HM_IMAGE, HM_IMAGE_AMD64, "
+                        "HM_IMAGE_ARM64 and HM_IMAGE_TAGS alone (PUSH_ENV_BLOCK): a variable written there reaches the "
+                        "start jobs over their own, so that HM_START_MARIADB_HOST=mail would send the MariaDB ask to the "
+                        "image beside PostgreSQL and HM_START_VERSION=6 let any 6.x pass" % name)
+    code = [line for line in lines if not line.lstrip().startswith("#")]
+    for line in code:
+        if ".env" in line and line not in PUSH_ENV_NAMED:
+            problems.append("%s names a .env file on a line but its report's own and the one that prints it: %s"
+                            % (name, line.strip()[:120]))
+        if [target for target in re.findall(r">>[ \t]*(\S+)", line) if target != '"$out/tags.txt"']:
+            problems.append("%s appends to a file other than $out/tags.txt, as it could to the dotenv report: %s"
+                            % (name, line.strip()[:120]))
+        if re.search(r"(?:^|[;&|(`\s])tee(?:\s|$)", line):
+            problems.append("%s runs tee, which can write the dotenv report under any name: %s" % (name, line.strip()[:120]))
+        if re.search(r"(?:^|[;&|(`\s])cd(?:\s|$)", line) and not re.search(r"^\s*\(\s*cd\s", line):
+            problems.append("%s changes its directory outside a subshell, so that the report's \"$out/image.env\" could be "
+                            "another file than the one the job keeps: %s" % (name, line.strip()[:120]))
+    if [line for line in code if re.search(r"(?:^|[;&|(`\s])out=", line)] != ["out=container-image"]:
+        problems.append("%s does not set out once, as out=container-image, the directory container-image keeps" % name)
+    push = image_jobs.get("container-image", "")
+    if push:
+        for line in push.replace("\r\n", "\n").split("\n"):
+            if not line.startswith("  ") or line.startswith("   ") or not line.strip():
+                continue
+            key = re.match(r"^  ([\"']?)([A-Za-z_][A-Za-z0-9_\-]*)\1[ \t]*:", line)
+            if not key or key.group(2) not in PUSH_JOB_KEYS:
+                problems.append("container-image writes %s, which is not one of the keys this check holds it to (%s): its "
+                                "dotenv report, whose variables reach the start jobs over their own, is the push script's "
+                                "alone" % (line.strip(), ", ".join(PUSH_JOB_KEYS)))
+        for key in PUSH_JOB_KEYS:
+            if len(_job_key_texts(push, key)) > 1:
+                problems.append("container-image writes %s more than once" % key)
+        for key, wanted in sorted(PUSH_JOB_LINES.items()):
+            written = _job_key_texts(push, key)
+            if written != [wanted]:
+                problems.append("container-image's %s is not %s, so that its dotenv report and its artifacts, which the "
+                                "start jobs take, are the push script's alone: %s"
+                                % (key, " / ".join(line.strip() for line in wanted),
+                                   " / ".join(line.strip() for text in written for line in text) or "none"))
+        image = _job_key_texts(push, "image")
+        if not (len(image) == 1 and len(image[0]) == 3 and image[0][0] == "  image:"
+                and image[0][1].startswith("    name: ") and REGCTL_ALPINE.match(image[0][1][len("    name: "):])
+                and image[0][2] == '    entrypoint: [""]'):
+            problems.append("container-image's image is not regctl's -alpine pinned by digest, with its entrypoint emptied "
+                            "(entrypoint: [\"\"]) and no other key: an entrypoint of its own runs before the push script, "
+                            "in the job's checkout: %s" % " / ".join(line.strip() for text in image for line in text))
+    for arch in IMAGE_PLATFORMS:
+        job = "container-image-" + arch
+        wanted = ("  artifacts:", "    when: always", "    expire_in: 7 days", "    paths:", "      - %s/" % job)
+        if image_jobs.get(job) is not None and _job_key_texts(image_jobs[job], "artifacts") != [wanted]:
+            problems.append("%s's artifacts are not its own directory alone (%s): container-image unpacks them over its "
+                            "checkout before the push script runs, so that they could hold another push script"
+                            % (job, " / ".join(line.strip() for line in wanted)))
     return problems
 
 
@@ -5963,6 +6079,7 @@ def image_start_database_problems(texts, image_jobs):
                                                      FILES["image"].replace(os.sep, "/"): texts["image"]})
     problems += start_database_variable_problems(image_jobs, every_ci)
     problems += start_job_line_problems(image_jobs, ci_files(texts))
+    problems += start_dotenv_problems(texts, image_jobs)
     problems += start_test_digest_problems(texts["image-start"])
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
@@ -7537,6 +7654,57 @@ def self_test(chain, feed):
     broken("the start defined again in its own file, under a quoted name", "image", texts["image"],
            texts["image"] + '\n"container-image-start":\n  allow_failure: true\n',
            "container-image-start is defined twice in %s" % FILES["image"].replace(os.sep, "/"))
+    # What container-image's dotenv report says, which the start jobs take over their own
+    # variables: written in the push script's block or after it, by the job's own lines,
+    # or from what is unpacked over its checkout or the start jobs'.
+    env_end = '} > "$out/image.env"\n'
+    pushed = "    - sh build/ci/container-image-push.sh\n  artifacts:\n"
+    push_name = FILES["image-push"].replace(os.sep, "/")
+    for what, key, old, new, needle in (
+            ("the MariaDB ask's address in the dotenv report", "image-push", '  echo "HM_IMAGE_TAGS=',
+             '  echo "HM_START_MARIADB_HOST=mail"\n  echo "HM_IMAGE_TAGS=', "%s does not write container-image's dotenv "
+             "report once" % push_name),
+            ("any 6.x taken, from the dotenv report", "image-push", '  echo "HM_IMAGE_TAGS=',
+             '  echo "HM_START_VERSION=6"\n  echo "HM_IMAGE_TAGS=', "%s does not write container-image's dotenv report "
+             "once" % push_name),
+            ("the dotenv report appended to after it is written", "image-push", env_end,
+             env_end + 'echo "HM_START_VERSION=6" >> "$out/image.env"\n', "%s names a .env file" % push_name),
+            ("the dotenv report appended to under a built name", "image-push", env_end,
+             env_end + 'e=env; echo "HM_START_VERSION=6" >> "$out/image.$e"\n', "%s appends to a file other than" % push_name),
+            ("the dotenv report written by tee", "image-push", env_end,
+             env_end + 'e=env; echo "HM_START_VERSION=6" | tee -a "$out/image.$e" > /dev/null\n', "%s runs tee" % push_name),
+            ("the dotenv report's directory moved", "image-push", "\nout=container-image\n", "\nout=container-image\nout=x\n",
+             "%s does not set out once" % push_name),
+            ("the push script run from another directory", "image-push", '\n{\n  echo "HM_IMAGE=',
+             '\ncd /tmp\n{\n  echo "HM_IMAGE=', "%s changes its directory outside a subshell" % push_name),
+            ("the push's script appending to the report", "image", pushed,
+             "    - sh build/ci/container-image-push.sh\n    - echo HM_START_VERSION=6 >> container-image/image.env\n"
+             "  artifacts:\n", "container-image's script is not"),
+            ("the push given an after_script", "image", pushed,
+             "    - sh build/ci/container-image-push.sh\n  after_script:\n    - echo HM_START_VERSION=6 >> "
+             "container-image/image.env\n  artifacts:\n", "container-image writes after_script:"),
+            ("a second dotenv report", "image", "      dotenv: container-image/image.env\n",
+             "      dotenv: container-image/image.env\n      dotenv: container-image/extra.env\n",
+             "container-image's artifacts is not"),
+            ("the push's artifacts carrying a start test", "image", "      - container-image/\n    reports:\n",
+             "      - container-image/\n      - build/ci/container-image-start-test.sh\n    reports:\n",
+             "container-image's artifacts is not"),
+            ("the push given another need with its artifacts", "image",
+             "    - job: container-image-arm64\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n"
+             "  rules:\n    - !reference [.release-rules, rules]\n  script:\n    - sh build/ci/container-image-push.sh\n",
+             "    - job: container-image-arm64\n      artifacts: true\n    - job: container-image-deb\n      artifacts: true\n"
+             "  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n"
+             "  script:\n    - sh build/ci/container-image-push.sh\n", "container-image's needs is not"),
+            ("the push's image given an entrypoint", "image",
+             '    entrypoint: [""]\n  needs:\n    - job: container-image-amd64\n',
+             '    entrypoint: ["/bin/sh"]\n  needs:\n    - job: container-image-amd64\n', "container-image's image is not"),
+            ("the amd64 image's artifacts carrying a push script", "image", "      - container-image-amd64/\n",
+             "      - container-image-amd64/\n      - build/ci/container-image-push.sh\n",
+             "container-image-amd64's artifacts are not its own directory alone")):
+        broken(what, key, old, new, needle)
+    broken_include("the push defined again in another CI file", later,
+                   "\ncontainer-image:\n" + release_rule + "  after_script:\n    - echo HM_START_VERSION=6 >> "
+                   "container-image/image.env\n", "container-image is defined in")
     # The addresses the test asks and the version it expects: both asks pointed at one
     # image, any 6.x taken, the shell given a file to run first, each from the jobs' own
     # variables, the CI file's top level or a service's; and the script's own defaults.
