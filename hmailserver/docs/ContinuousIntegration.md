@@ -3419,6 +3419,46 @@ The database file, the message (unchanged) and every event and addon script
 must still be there, and after a new installation the certificate and its key.
 Any other file left under the installation directory fails the check.
 
+**The program folder before the files.** What setup does before its files from the
+release after 6.3.7 ([ServiceAccount.md](ServiceAccount.md), "Before the files"; work
+item 78) is watched while each installer runs: a runspace of the test's own reads the
+program folder's permissions the moment it appears, when it was not there, and `Bin`'s
+and `ControlPanel`'s - and the program folder's again - the moment the first file
+that was not there appears in each, about a millisecond after it happens. A new
+program folder must have had permissions of its own from that first moment, with
+Inno's log saying setup made it and not Inno Setup (R1); a `Bin` and a `ControlPanel`
+that were there - an upgrade, a folder made before the installer - must have inherited
+nothing, let no group of every user change them and had a trusted owner when their
+first file appeared, and Inno's log must harden each before the first file it copies
+there; the program folder with them when its data folders inherited nothing (R2). An
+installer of 6.3.7 or earlier is not held to it, and what the watch saw is an INFO
+line; `--hardened-before-files` holds a build that still says 6.3.7 to it, which is
+how the base and the fix of work item 78's R1 to R4 were told apart. `--case NAME`,
+with `--install-directory`, makes what the program folder is found as before the first
+installer - as the administrator, a standard account's folder, file or junction made by
+the administrator and given to the account `hmsmokeuser`, which the run makes, since a
+junction made as that account over SSH fails - and `--components controlpanel` installs
+the Control Panel alone:
+
+| Case | Made before the installer | Expected |
+|---|---|---|
+| `precreated-admin` | the program folder and `Bin`, inheriting the folder above | hardened before the files (R2), then the whole run |
+| `precreated-user` | the same owned by `hmsmokeuser`, and `Bin\notes.txt` it owns | the same, the folders the Administrators' with no entry for it, the file named in Inno's log (R4) |
+| `broad-entry` | the program folder with an entry of its own for `Authenticated Users` Modify, `Bin\notes.txt` owned by `hmsmokeuser` | exit 0, both said in Inno's log (R4) |
+| `link-user` | the program folder a junction to `C:\hm-linktarget` owned by `hmsmokeuser` | exit 7, the refusal and its remedy in the log, nothing written through it (R3) |
+| `link-admin` | the same made by the administrator, with a list that lets another account change it | exit 7, likewise (R3) |
+| `link-admin-only` | the same given the remedy's list (`icacls /L`) | exit 0, installed through it, its target hardened (R3) |
+| `bin-link-user` | the program folder made by the administrator, `Bin` a junction owned by `hmsmokeuser` | exit 7, nothing written through it (R3) |
+| `nested-new` | nothing: `--install-directory` two or more folders below one that is there | every folder setup made with permissions of its own (R1); with `--components controlpanel`, none left by the uninstall |
+
+A run with `--components`, or of a case a whole server installation does not run (all
+but the two `precreated` ones), is one installer, the case's checks and an uninstall.
+For example, with the installer built from a branch:
+
+    bash build/ci/installer-smoke-run.sh --allow-unsigned --hardened-before-files \
+       --install-directory C:/hMailServer --weak-parent --case link-user \
+       --components controlpanel hmailserver/installation/Output/hMailServer-6.3.7-x64.exe
+
 **What it found on 25 September 2026.** Two runs of 6.3.2 then 6.3.3 with the
 finished script gave the same result both times: 60 checks passed and 5
 failed. Install took 24 to 26 seconds, the upgrade 8 to 10 seconds and the

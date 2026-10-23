@@ -53,6 +53,21 @@
 #   --database-in-environment
 #                       every HM_DB_* setting in the installer's environment rather
 #                       than as its /db switches (the installer's other route)
+#   --case NAME         what the program folder is made as before FIRST, with
+#                       --install-directory (installer-smoke.ps1 -FolderCase):
+#                       precreated-admin, precreated-user, broad-entry, link-user,
+#                       link-admin, link-admin-only, bin-link-user, nested-new -
+#                       work item 78's cases (docs/ContinuousIntegration.md, "The
+#                       installer smoke test")
+#   --components LIST   FIRST installed with /COMPONENTS=LIST rather than /TYPE=full
+#                       (installer-smoke.ps1 -Components): controlpanel installs the
+#                       Control Panel alone, one installer with no SECOND
+#   --hardened-before-files
+#                       the installers are held to making the program folder with its
+#                       permissions, and hardening one that is there, before their
+#                       files (installer-smoke.ps1 -HardenedBeforeFiles): for a build
+#                       of the release after 6.3.7 that still says 6.3.7; a later
+#                       version is held to it anyway
 #
 # The defaults are the smoke VM on the maintainer's laptop, found on 25 September
 # 2026: "Win server 2025 small", the one .vmx in VMware's inventory whose MAC is the
@@ -83,6 +98,9 @@ database_password=""
 database_in_environment=0
 install_directory=""
 weak_parent=0
+folder_case=""
+components=""
+hardened_before_files=0
 
 usage() {
    sed -n '/^#   bash build/,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'
@@ -104,6 +122,9 @@ while [ $# -gt 0 ]; do
       --keep-vm) keep_vm=1; shift ;;
       --install-directory) install_directory="$2"; shift 2 ;;
       --weak-parent) weak_parent=1; shift ;;
+      --case) folder_case="$2"; shift 2 ;;
+      --components) components="$2"; shift 2 ;;
+      --hardened-before-files) hardened_before_files=1; shift ;;
       -h|--help) usage; exit 0 ;;
       --) shift; break ;;
       -*) echo "unknown option $1" >&2; usage >&2; exit 2 ;;
@@ -151,6 +172,31 @@ if [[ "$weak_parent" = 1 && -z "$install_directory" ]]; then
    echo "--weak-parent goes with --install-directory" >&2
    exit 2
 fi
+if [[ -n "$folder_case" && -z "$install_directory" ]]; then
+   echo "--case goes with --install-directory" >&2
+   exit 2
+fi
+case "$folder_case" in
+   ''|precreated-admin|precreated-user|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new) ;;
+   *) echo "--case $folder_case is not one of the cases" >&2; exit 2 ;;
+esac
+if [[ -n "$components" ]]; then
+   if [[ ! "$components" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
+      echo "--components takes component names separated by commas, such as controlpanel" >&2
+      exit 2
+   fi
+   if [ -n "$second" ]; then
+      echo "--components is one installer: FIRST alone, no SECOND" >&2
+      exit 2
+   fi
+fi
+case "$folder_case" in
+   broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new)
+      if [ -n "$second" ]; then
+         echo "--case $folder_case is one installer: FIRST alone, no SECOND" >&2
+         exit 2
+      fi ;;
+esac
 # The folder travels inside double quotes on the VM's command line: one with a quote
 # in it is refused rather than split.
 case "$install_directory" in
@@ -380,6 +426,9 @@ retry_copy copy_to_vm "$smoke_ps1" C:/smoke/installer-smoke.ps1 || { say "instal
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
 [[ -n "$install_directory" ]] && arguments="$arguments -InstallDirectory \"$install_directory\""
 [[ "$weak_parent" = 1 ]] && arguments="$arguments -WeakParent"
+[[ -n "$folder_case" ]] && arguments="$arguments -FolderCase $folder_case"
+[[ -n "$components" ]] && arguments="$arguments -Components $components"
+[[ "$hardened_before_files" = 1 ]] && arguments="$arguments -HardenedBeforeFiles"
 # The database settings and the password travel by scp, as files; only their paths
 # on the VM are on the command line.
 if [ -n "$database_local" ]; then

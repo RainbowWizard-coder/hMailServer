@@ -92,6 +92,48 @@
    carries, inherit-only, and every folder below it that inherits gets it. Both are for
    this throwaway machine only, which is reverted after the run.
 
+   And what docs/ServiceAccount.md says setup does before the files (work item 78),
+   held to an installer after 6.3.7, or to an unstamped build with
+   -HardenedBeforeFiles, and said as INFO of an earlier one: a program folder the
+   installer makes had permissions of its own from the first moment it was there -
+   read by a watch in a runspace of its own as soon as the folder appears - and
+   setup, not Inno Setup, made it (R1); Bin and ControlPanel, there before the
+   installer, inherited nothing and let no group of every user change them at the
+   moment the first new file appeared in each, and the setup log hardens each before
+   the first file it copies there (R2) - an upgrade, and a folder made before the
+   first installer (-FolderCase precreated-admin, precreated-user).
+
+   -FolderCase NAME makes, before the first installer, what the program folder
+   (-InstallDirectory) is to be found as - as the administrator; what a standard
+   account owns is made and given to the account hmsmokeuser, which the run makes:
+     precreated-admin  the program folder and Bin, inheriting from the folder above;
+     precreated-user   the same owned by hmsmokeuser, with Full control of its own,
+                       and Bin\notes.txt it owns: the folders are the
+                       Administrators' afterwards, with no entry for it, and the
+                       setup log names the file (R4);
+     broad-entry       the program folder with an entry of its own giving
+                       Authenticated Users Modify, and Bin\notes.txt hmsmokeuser
+                       owns: the setup log says both (R4);
+     link-user         the program folder a junction to C:\hm-linktarget that
+                       hmsmokeuser owns: refused, exit code 7, nothing written
+                       through it (R3);
+     link-admin        the same made by the administrator, its list as the folder
+                       above handed it - which is not the administrators' alone:
+                       refused, exit code 7, with the remedy (R3);
+     link-admin-only   the same given the list the remedy gives it: installed
+                       through, its target hardened (R3);
+     bin-link-user     the program folder made by the administrator and Bin a
+                       junction hmsmokeuser owns: refused, exit code 7 (R3);
+     nested-new        nothing: -InstallDirectory is two or more folders below one
+                       that is there, and every folder setup makes has permissions of
+                       its own; with -Components controlpanel the uninstall leaves
+                       none of them (R1).
+   -Components LIST installs the first installer with /COMPONENTS=LIST rather than
+   /TYPE=full - controlpanel for the Control Panel alone. A run with -Components, or
+   one of the cases a whole server installation does not run (broad-entry, the links,
+   nested-new), is one installer with the case's checks and an uninstall, without
+   the server's.
+
    A new installation and an upgrade from a release without the defaults are two
    runs, each on the clean machine: the new installer alone, and the previous
    release's installer followed by the new one.
@@ -153,7 +195,11 @@ param(
    [string] $DatabaseSettings = '',
    [switch] $DatabaseInEnvironment,
    [string] $InstallDirectory = '',
-   [switch] $WeakParent
+   [switch] $WeakParent,
+   [ValidateSet('', 'precreated-admin', 'precreated-user', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new')]
+   [string] $FolderCase = '',
+   [string] $Components = '',
+   [switch] $HardenedBeforeFiles
 )
 
 $ErrorActionPreference = 'Stop'
@@ -262,6 +308,10 @@ $State = @{
    Database = $null
    DatabaseIniType = ''
    DatabaseScript = ''
+   # -FolderCase: the standard account the run makes, and the topmost folder setup is
+   # to make (nested-new).
+   SmokeAccountSid = ''
+   TopMade = ''
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -838,7 +888,7 @@ function Get-EveryUserReaders([string] $Path) {
 # Read & execute on after it, and what it gives no Users entry on. A Bin or
 # ControlPanel that is not there yet is made in a program folder the installer gives
 # Users Read & execute when, and only when, every user could read the program folder
-# (HardenNewProgramFolder), and so goes with it.
+# (PrepareProgramFolders), and so goes with it.
 function Get-ProgramFoldersReadable([string] $App) {
    $readable = @{}
    $appReadable = (@(Get-EveryUserReaders $App).Count -gt 0)
@@ -2441,6 +2491,440 @@ function Test-Uninstalled {
    }
 }
 
+# ------------------------------------------------------------------ work item 78: the program folder before the files
+
+# Whether an installer makes the program folder with permissions of its own, and
+# hardens one that is there with Bin and ControlPanel, before any file is copied
+# (docs/ServiceAccount.md, "Before the files"): the release after 6.3.7, or a build
+# not yet stamped with its version, when -HardenedBeforeFiles says so. For an earlier
+# installer what the watch saw is said as INFO.
+$HardenedBeforeFilesVersion = [version] '6.3.7'
+function Test-HardensBeforeFiles([string] $Version) {
+   if ($HardenedBeforeFiles) { return $true }
+   $release = Get-ReleaseVersion $Version
+   return ($null -ne $release) -and ($release -gt $HardenedBeforeFilesVersion)
+}
+
+# What a folder's list is at one moment: whether it inherits nothing, how many of its
+# entries are inherited, its owner, the allow entries that let a group of every user
+# change it, and the list in SDDL - for the record.
+function Get-FolderMoment([string] $Path) {
+   try {
+      $acl = Get-Acl -LiteralPath $Path
+      $inherited = 0
+      $broad = @()
+      foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+         if ($rule.IsInherited) { $inherited++ }
+         if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow) { continue }
+         if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+         if ($BroadGroupSids -notcontains $rule.IdentityReference.Value) { continue }
+         if (([long] $rule.FileSystemRights -band $WriteRightsMask) -ne 0) { $broad += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
+      }
+      return [pscustomobject] @{ Protected = $acl.AreAccessRulesProtected; Inherited = $inherited; Broad = $broad
+                                 Owner = $acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; Sddl = $acl.Sddl; Error = '' }
+   }
+   catch { return [pscustomobject] @{ Protected = $false; Inherited = 0; Broad = @(); Owner = ''; Sddl = ''; Error = $_.Exception.Message } }
+}
+
+# A watch on the program folder while an installer runs, in a runspace of its own:
+# the program folder's list at the first moment it is there, when it was not before,
+# and Bin's and ControlPanel's - and the program folder's again - at the moment the
+# first file that was not there before appears in each (Inno Setup writes each file
+# under a temporary name in its folder first). The moments are read with Get-Acl as
+# soon as the loop sees them, a millisecond or two after they happen; setup's own
+# window, before it made the folder with its permissions, was about 45 ms
+# (6 October 2026).
+$FolderWatchScript = {
+   param($App, $Sync, $Broad, $Mask)
+   function Moment([string] $Path) {
+      try {
+         $acl = [System.IO.Directory]::GetAccessControl($Path)
+         $inherited = 0
+         $writers = @()
+         foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+            if ($rule.IsInherited) { $inherited++ }
+            if ($rule.AccessControlType -ne 'Allow') { continue }
+            if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+            if ($Broad -notcontains $rule.IdentityReference.Value) { continue }
+            if (([long] $rule.FileSystemRights -band $Mask) -ne 0) { $writers += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
+         }
+         return @{ Protected = $acl.AreAccessRulesProtected; Inherited = $inherited; Broad = $writers
+                   Owner = $acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; Sddl = $acl.GetSecurityDescriptorSddlForm('Owner, Access'); Error = '' }
+      }
+      catch { return @{ Protected = $false; Inherited = 0; Broad = @(); Owner = ''; Sddl = ''; Error = $_.Exception.Message } }
+   }
+   $folders = @((Join-Path $App 'Bin'), (Join-Path $App 'ControlPanel'))
+   $before = @{}
+   foreach ($folder in $folders) {
+      $names = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+      if ([System.IO.Directory]::Exists($folder)) { foreach ($entry in [System.IO.Directory]::GetFileSystemEntries($folder)) { [void] $names.Add($entry) } }
+      $before[$folder] = $names
+   }
+   $Sync['AppBefore'] = [System.IO.Directory]::Exists($App)
+   $Sync['Ready'] = $true
+   $deadline = [DateTime]::UtcNow.AddMinutes(30)
+   while (-not $Sync['Stop'] -and [DateTime]::UtcNow -lt $deadline) {
+      if (-not $Sync.ContainsKey('AppFirst') -and [System.IO.Directory]::Exists($App)) {
+         $Sync['AppFirst'] = Moment $App
+      }
+      foreach ($folder in $folders) {
+         if ($Sync.ContainsKey("First:$folder") -or -not [System.IO.Directory]::Exists($folder)) { continue }
+         foreach ($entry in [System.IO.Directory]::GetFileSystemEntries($folder)) {
+            if (-not $before[$folder].Contains($entry)) {
+               $Sync["First:$folder"] = Moment $folder
+               $Sync["AppAt:$folder"] = Moment $App
+               $Sync["FirstName:$folder"] = $entry
+               break
+            }
+         }
+      }
+      [System.Threading.Thread]::Sleep(0)
+   }
+}
+
+function Start-FolderWatch([string] $App) {
+   $sync = [hashtable]::Synchronized(@{ Stop = $false })
+   $runspace = [runspacefactory]::CreateRunspace()
+   $runspace.Open()
+   $shell = [powershell]::Create()
+   $shell.Runspace = $runspace
+   [void] $shell.AddScript($FolderWatchScript).AddArgument($App).AddArgument($sync).AddArgument($BroadGroupSids).AddArgument([long] $WriteRightsMask)
+   $handle = $shell.BeginInvoke()
+   [void] (Wait-Until 30 { $sync.ContainsKey('Ready') })
+   return [pscustomobject] @{ Shell = $shell; Runspace = $runspace; Handle = $handle; Sync = $sync; App = $App }
+}
+
+function Stop-FolderWatch($Watch) {
+   $Watch.Sync['Stop'] = $true
+   try { [void] $Watch.Shell.EndInvoke($Watch.Handle) } catch { }
+   $Watch.Shell.Dispose()
+   $Watch.Runspace.Close()
+   return $Watch.Sync
+}
+
+# Work item 78's R1: a program folder the installer made had permissions of its own
+# from the first moment it was there - no inherited entry, nothing that lets a group
+# of every user change it - and Inno Setup did not make it: setup did, in
+# PrepareToInstall, and said so in its log.
+function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Claimed, $Watched, [string] $LogPath) {
+   if ($Watched['AppBefore']) { return }
+   $name = "${Phase}: the program folder had permissions of its own from the first moment it was there, and setup made it, not Inno Setup (work item 78, R1)"
+   $first = $null
+   if ($Watched.ContainsKey('AppFirst')) { $first = $Watched['AppFirst'] }
+   $found = if ($null -eq $first) { 'the watch never saw it made' } elseif ($first.Error) { "it could not be read when it appeared: $($first.Error)" } else { "first seen: inherits nothing $($first.Protected), $($first.Inherited) inherited entries, owner $($first.Owner), $($first.Sddl)" }
+   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; $found"; return }
+   [void] (Test-Step $name {
+         if ($null -eq $first) { throw 'the watch never saw the program folder made' }
+         if ($first.Error) { throw "it could not be read when it appeared: $($first.Error)" }
+         if (-not $first.Protected -or $first.Inherited -gt 0) { throw "when it appeared it inherited from the folder above: $($first.Sddl)" }
+         if ($first.Broad.Count -gt 0) { throw "when it appeared a group of every user could change it: $($first.Broad -join '; ')" }
+         if ($TrustedOwnerSids -notcontains $first.Owner) { throw "when it appeared it was owned by $($first.Owner)" }
+         $app = [regex]::Escape($State.App)
+         if (Select-String -LiteralPath $LogPath -Pattern "Creating directory: $app\s*$" -Quiet) { throw "Inno's log says Inno Setup made it ('Creating directory: $($State.App)'), with what the folder above hands down" }
+         if (-not (Select-String -LiteralPath $LogPath -Pattern "Setup made $app with permissions of its own" -Quiet)) { throw "Inno's log does not say that setup made it with permissions of its own" }
+         $found
+      })
+}
+
+# Work item 78's R2: Bin and ControlPanel, there before the installer, were hardened
+# before their files were copied - inheriting nothing, no group of every user able to
+# change them, a trusted owner, at the moment the first new file appeared in each - and
+# the setup log says each was hardened before the first file it copied there; and the
+# program folder too, when ProgramFolderToo says so (its data folders inherited
+# nothing from it before the installer, or it held no server installation).
+function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, $Watched, [string] $LogPath, [string[]] $There, [bool] $ProgramFolderToo) {
+   if ($There.Count -eq 0) { return }
+   $name = "${Phase}: $(($There | ForEach-Object { Split-Path -Leaf $_ }) -join ' and '), there before the installer, were hardened before their files were copied$(if ($ProgramFolderToo) { ', and the program folder with them' }) (work item 78, R2)"
+   $said = @()
+   foreach ($folder in $There) {
+      $moment = $null
+      if ($Watched.ContainsKey("First:$folder")) { $moment = $Watched["First:$folder"] }
+      $said += $(if ($null -eq $moment) { "$folder no new file seen" } else { "$folder at $(Split-Path -Leaf $Watched["FirstName:$folder"]): inherits nothing $($moment.Protected), broad writers $($moment.Broad.Count), owner $($moment.Owner)" })
+   }
+   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; $($said -join '; ')"; return }
+   [void] (Test-Step $name {
+         $lines = @(Get-Content -LiteralPath $LogPath)
+         foreach ($folder in $There) {
+            if (-not $Watched.ContainsKey("First:$folder")) { throw "the watch saw no file copied into $folder" }
+            $moment = $Watched["First:$folder"]
+            if ($moment.Error) { throw "$folder could not be read when its first file appeared: $($moment.Error)" }
+            if (-not $moment.Protected) { throw "$folder still inherited from the folder above when $($Watched["FirstName:$folder"]) appeared in it: $($moment.Sddl)" }
+            if ($moment.Broad.Count -gt 0) { throw "a group of every user could change $folder when its first file appeared: $($moment.Broad -join '; ')" }
+            if ($TrustedOwnerSids -notcontains $moment.Owner) { throw "$folder was owned by $($moment.Owner) when its first file appeared" }
+            $escaped = [regex]::Escape($folder)
+            $hardened = -1
+            $copied = -1
+            for ($index = 0; $index -lt $lines.Count; $index++) {
+               if ($hardened -lt 0 -and $lines[$index] -match "(icacls hardened $escaped before the files|$escaped was owned by an account other than SYSTEM)") { $hardened = $index }
+               if ($copied -lt 0 -and $lines[$index] -match "Dest filename: $escaped\\") { $copied = $index }
+            }
+            if ($hardened -lt 0) { throw "Inno's log does not say $folder was hardened before the files" }
+            if ($copied -ge 0 -and $copied -lt $hardened) { throw "Inno's log copies a file into $folder (line $($copied + 1)) before it hardens it (line $($hardened + 1))" }
+            if ($ProgramFolderToo) {
+               $app = $Watched["AppAt:$folder"]
+               if (-not $app.Protected -or $app.Broad.Count -gt 0) { throw "the program folder still inherited, or let a group of every user change it, when the first file appeared in ${folder}: $($app.Sddl)" }
+            }
+         }
+         $said -join '; '
+      })
+}
+
+# Whether Data, Logs, Temp, Database and Events, where they are there, inherit nothing
+# from the program folder: what an installer after 6.3.7 asks before it hardens the
+# program folder of a server installation before the files.
+function Test-DataFoldersInheritNothing([string] $App) {
+   foreach ($name in 'Data', 'Logs', 'Temp', 'Database', 'Events') {
+      $folder = Join-Path $App $name
+      if ((Test-Path -LiteralPath $folder) -and -not (Get-Acl -LiteralPath $folder).AreAccessRulesProtected) { return $false }
+   }
+   return $true
+}
+
+# ---- the folder cases (-FolderCase): what the program folder is before the first
+# installer, made here as an administrator. A standard account's folder, file or
+# junction is made by the administrator and given to the account - its owner, with
+# Full control of its own - since a junction made as that account over SSH fails
+# (0xC0000142, 6 October 2026). The account, hmsmokeuser, is made for the run with a
+# password made here and never printed; the VM is reverted after the run.
+$SmokeAccountName = 'hmsmokeuser'
+$LinkTarget = 'C:\hm-linktarget'
+
+function New-SmokeAccount {
+   if ($State.ContainsKey('SmokeAccountSid') -and $State.SmokeAccountSid) { return $State.SmokeAccountSid }
+   $password = 'Hm' + [Guid]::NewGuid().ToString('N').Substring(0, 18) + '!a1'
+   $answer = Invoke-Native "net.exe user $SmokeAccountName $password /add /y"
+   if ($answer.ExitCode -ne 0) { throw "net user $SmokeAccountName /add returned $($answer.ExitCode)" }
+   $State.SmokeAccountSid = (New-Object System.Security.Principal.NTAccount($SmokeAccountName)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+   return $State.SmokeAccountSid
+}
+
+# Path given to the standard account: its owner, with Full control of its own - of
+# the link itself with -Link (icacls /L).
+function Set-OwnedByAccount([string] $Path, [switch] $Link) {
+   $sid = New-SmokeAccount
+   $l = @()
+   if ($Link) { $l = @('/L') }
+   $grant = if ($Link) { "*${sid}:F" } elseif ((Get-Item -LiteralPath $Path -Force).PSIsContainer) { "*${sid}:(OI)(CI)F" } else { "*${sid}:F" }
+   $answer = @(& icacls.exe $Path /setowner "*$sid" @l 2>&1)
+   if ($LASTEXITCODE -ne 0) { throw "icacls /setowner on $Path returned ${LASTEXITCODE}: $($answer -join ' ')" }
+   $answer = @(& icacls.exe $Path /grant $grant @l 2>&1)
+   if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $Path returned ${LASTEXITCODE}: $($answer -join ' ')" }
+}
+
+function New-LinkTarget([string] $Target) {
+   New-Item -ItemType Directory -Force -Path $Target | Out-Null
+   $answer = @(& icacls.exe $Target /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' 2>&1)
+   if ($LASTEXITCODE -ne 0) { throw "icacls on $Target returned ${LASTEXITCODE}: $($answer -join ' ')" }
+}
+
+function New-Junction([string] $Link, [string] $Target) {
+   $answer = Invoke-Native "mklink /J `"$Link`" `"$Target`""
+   if ($answer.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $Link)) { throw "mklink /J $Link returned $($answer.ExitCode): $($answer.Output)" }
+}
+
+function Get-LinkList([string] $Link) {
+   return ((@(& icacls.exe $Link /L 2>&1) | ForEach-Object { "$_".Trim() } | Where-Object { $_ -and $_ -notmatch '^Successfully processed' }) -join ' | ')
+}
+
+# The fixture of each case, before the first installer.
+function New-FolderCase {
+   $app = $State.App
+   switch ($FolderCase) {
+      'precreated-admin' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         "$app and $app\Bin made by the administrator, inheriting from the folder above"
+      }
+      'precreated-user' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         Set-OwnedByAccount $app
+         Set-OwnedByAccount (Join-Path $app 'Bin')
+         Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
+         Set-OwnedByAccount (Join-Path $app 'Bin\notes.txt')
+         "$app, $app\Bin and $app\Bin\notes.txt owned by $SmokeAccountName ($($State.SmokeAccountSid)) with Full control of its own"
+      }
+      'broad-entry' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         $answer = @(& icacls.exe $app /grant '*S-1-5-11:(OI)(CI)M' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
+         Set-OwnedByAccount (Join-Path $app 'Bin\notes.txt')
+         "$app made by the administrator with an entry of its own giving Authenticated Users Modify; $app\Bin\notes.txt owned by $SmokeAccountName"
+      }
+      'link-user' {
+         New-LinkTarget $LinkTarget
+         New-Junction $app $LinkTarget
+         Set-OwnedByAccount $app -Link
+         "$app a junction to $LinkTarget, owned by $SmokeAccountName with Full control of the link itself: $(Get-LinkList $app)"
+      }
+      'link-admin' {
+         New-LinkTarget $LinkTarget
+         New-Junction $app $LinkTarget
+         "$app a junction to $LinkTarget made by the administrator, its list as the folder above handed it: $(Get-LinkList $app)"
+      }
+      'link-admin-only' {
+         New-LinkTarget $LinkTarget
+         New-Junction $app $LinkTarget
+         foreach ($arguments in @(@($app, '/L', '/setowner', '*S-1-5-32-544'), @($app, '/L', '/inheritance:r', '/grant:r', '*S-1-5-18:F', '*S-1-5-32-544:F', '*S-1-5-32-545:RX'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         "$app a junction to $LinkTarget made by the administrator and given the list the refusal's remedy gives it: $(Get-LinkList $app)"
+      }
+      'bin-link-user' {
+         New-Item -ItemType Directory -Force -Path $app | Out-Null
+         New-LinkTarget $LinkTarget
+         New-Junction (Join-Path $app 'Bin') $LinkTarget
+         Set-OwnedByAccount (Join-Path $app 'Bin') -Link
+         "$app made by the administrator, $app\Bin a junction to $LinkTarget owned by ${SmokeAccountName}: $(Get-LinkList (Join-Path $app 'Bin'))"
+      }
+      'nested-new' {
+         $top = $app
+         while ((Split-Path -Parent $top) -and -not (Test-Path -LiteralPath (Split-Path -Parent $top))) { $top = Split-Path -Parent $top }
+         if ($top -eq $app) { throw "-InstallDirectory $app has a folder above it that is there: nested-new wants two or more folders made" }
+         $State.TopMade = $top
+         "nothing made: setup makes $app and the folders above it from $top"
+      }
+   }
+}
+
+# Runs an installer and answers its exit code, bounded in time as Invoke-Setup is.
+function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string] $LogPath) {
+   Write-Line "   $(Split-Path -Leaf $Path) $(($Arguments | ForEach-Object { if ($_ -like '/adminpassword=*') { '/adminpassword=(hidden)' } else { $_ } }) -join ' ')"
+   $process = Start-Process -FilePath $Path -ArgumentList $Arguments -PassThru
+   $null = $process.Handle
+   if (-not $process.WaitForExit($TimeoutMinutes * 60 * 1000)) {
+      try { $process.Kill() } catch { }
+      Write-LogTail $LogPath
+      throw "did not finish within $TimeoutMinutes minutes and was stopped"
+   }
+   return $process.ExitCode
+}
+
+# The cases a whole server installation does not run: the Control Panel alone
+# (-Components), and the folder cases whose installer is refused, or whose program
+# folder is kept as it was, or which check what the uninstall leaves. One installer,
+# its exit code held to the case, what it wrote checked, and an uninstall when
+# anything was installed.
+$FocusedCases = @('broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new')
+$RefusedCases = @('link-user', 'link-admin', 'bin-link-user')
+function Test-IsFocusedRun { return [bool] $Components -or ($FocusedCases -contains $FolderCase) }
+
+function Invoke-FocusedRun([string] $Version) {
+   $app = $State.App
+   $log = Join-Path $LogDirectory 'install.log'
+   $refused = $RefusedCases -contains $FolderCase
+   $there = @(@((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+   $appBefore = Test-Path -LiteralPath $app
+   $State.ProgramFoldersReadable = Get-ProgramFoldersReadable $app
+   $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$log", "/DIR=$app")
+   if ($Components) { $arguments += "/COMPONENTS=$Components" } else { $arguments += '/TYPE=full' }
+   if (-not $State.PasswordInEnvironment) { $arguments += "/adminpassword=$AdminPassword" }
+   $watch = Start-FolderWatch $app
+   $code = -1
+   try { $code = Invoke-WithAdminPassword { Invoke-SetupForExitCode $Installer $arguments $log } }
+   finally { $watched = Stop-FolderWatch $watch }
+
+   if ($refused) {
+      [void] (Test-Step "case ${FolderCase}: the installer was refused before it changed anything - exit code 7, PrepareToInstall's (work item 78, R3)" {
+            if ($code -ne 7) { throw "it returned $code" }
+            $line = Select-String -LiteralPath $log -Pattern 'Refused: Setup does not install into .* is a junction, a symbolic link or a mount point, and ' | Select-Object -First 1
+            if ($null -eq $line) { throw "Inno's log does not say which link was refused, and why" }
+            if ($line.Line -notmatch '/L /setowner \*S-1-5-32-544') { throw "the refusal does not give the remedy (icacls /L /setowner)" }
+            "exit code 7: $($line.Line.Substring($line.Line.IndexOf('Refused:')))"
+         })
+      [void] (Test-Step "case ${FolderCase}: nothing was written through the link" {
+            $written = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+            if ($written.Count -gt 0) { Write-Detail $written 10; throw "$($written.Count) files and folders are in $LinkTarget" }
+            if ($null -ne (Get-UninstallEntry)) { throw 'there is an uninstall entry' }
+            if ($null -ne (Get-HmService)) { throw 'the hMailServer service is registered' }
+            "$LinkTarget is empty; no uninstall entry, no service"
+         })
+      Write-Info "case ${FolderCase}: the link afterwards" (Get-LinkList $(if ($FolderCase -eq 'bin-link-user') { Join-Path $app 'Bin' } else { $app }))
+      return
+   }
+
+   [void] (Test-Step "case ${FolderCase}: $(Split-Path -Leaf $Installer) ($(if ($Components) { "/COMPONENTS=$Components" } else { '/TYPE=full' })) returned 0" {
+         if ($code -ne 0) { Write-LogTail $log; throw "it returned $code" }
+         'exit code 0'
+      })
+   if (-not $appBefore) { Test-ProgramFolderMadeWithItsPermissions "case $FolderCase" $Version $watched $log }
+   Test-FoldersHardenedBeforeTheFiles "case $FolderCase" $Version $watched $log $there ($FolderCase -ne 'broad-entry')
+
+   switch ($FolderCase) {
+      'broad-entry' {
+         [void] (Test-Step "case ${FolderCase}: the setup log says the program folder keeps an entry of its own that lets Authenticated Users change it, and who owns Bin\notes.txt (work item 78, R4)" {
+               $kept = Select-String -LiteralPath $log -Pattern 'The program folder: .* keeps an entry of its own that lets Authenticated Users \(S-1-5-11\) change what is in it' | Select-Object -First 1
+               $owned = Select-String -LiteralPath $log -Pattern ('The program folder: ' + [regex]::Escape((Join-Path $app 'Bin\notes.txt')) + ' is owned by ') | Select-Object -First 1
+               if ($null -eq $kept) { throw 'the setup log does not say the entry is kept' }
+               if ($null -eq $owned) { throw 'the setup log does not say who owns Bin\notes.txt' }
+               if ($owned.Line -notmatch [regex]::Escape($State.SmokeAccountSid)) { throw "it does not name $($State.SmokeAccountSid)" }
+               'both said'
+            })
+         Write-Info "case ${FolderCase}: the program folder afterwards" ((@(& icacls.exe $app) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')
+      }
+      'link-admin-only' {
+         [void] (Test-Step "case ${FolderCase}: the installation went through the junction only the administrators control, and its target is hardened (work item 78, R3)" {
+               if (-not (Select-String -LiteralPath $log -Pattern ([regex]::Escape($app) + ' is a link that only SYSTEM, the Administrators and TrustedInstaller control') -Quiet)) { throw 'the setup log does not say the link was gone through' }
+               $files = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -File -ErrorAction SilentlyContinue)
+               if ($files.Count -eq 0) { throw "nothing was installed in $LinkTarget" }
+               $writers = @()
+               foreach ($folder in @($LinkTarget, (Join-Path $LinkTarget 'Bin'), (Join-Path $LinkTarget 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ }) {
+                  $moment = Get-FolderMoment $folder
+                  if (-not $moment.Protected) { throw "$folder inherits from the folder above" }
+                  foreach ($writer in $moment.Broad) { $writers += "$folder ($writer)" }
+               }
+               if ($writers.Count -gt 0) { throw "a group of every user may change: $($writers -join '; ')" }
+               "$($files.Count) files in $LinkTarget; the link: $(Get-LinkList $app)"
+            })
+      }
+      'nested-new' {
+         [void] (Test-Step "case ${FolderCase}: every folder setup made above the program folder had permissions of its own, and the owner the Administrators (work item 78, R1)" {
+               $made = @()
+               $folder = Split-Path -Parent $app
+               while ($folder.Length -ge $State.TopMade.Length) {
+                  $moment = Get-FolderMoment $folder
+                  if (-not $moment.Protected -or $moment.Inherited -gt 0) { throw "$folder inherits from the folder above: $($moment.Sddl)" }
+                  if ($moment.Owner -ne 'S-1-5-32-544') { throw "$folder is owned by $($moment.Owner)" }
+                  if (-not (Select-String -LiteralPath $log -Pattern ('Setup made ' + [regex]::Escape($folder) + ' with permissions of its own') -Quiet)) { throw "the setup log does not say setup made $folder" }
+                  $made += $folder
+                  $folder = Split-Path -Parent $folder
+               }
+               $made -join ', '
+            })
+      }
+   }
+
+   if ($Components -and $FolderCase -in @('precreated-admin', 'precreated-user')) {
+      [void] (Test-Step "case ${FolderCase}: the program folder and Bin are the Administrators', and $SmokeAccountName has no entry on them" {
+            $said = @()
+            foreach ($folder in @($app, (Join-Path $app 'Bin'))) {
+               $moment = Get-FolderMoment $folder
+               if ($moment.Owner -ne 'S-1-5-32-544' -and $TrustedOwnerSids -notcontains $moment.Owner) { throw "$folder is owned by $($moment.Owner)" }
+               if ($State.ContainsKey('SmokeAccountSid') -and $State.SmokeAccountSid -and $moment.Sddl -match [regex]::Escape($State.SmokeAccountSid)) { throw "$folder still names $SmokeAccountName" }
+               $said += "$folder owner $($moment.Owner)"
+            }
+            $said -join '; '
+         })
+   }
+   if ($FolderCase -eq 'precreated-user') {
+      [void] (Test-Step "case ${FolderCase}: the setup log says who owns Bin\notes.txt (work item 78, R4)" {
+            $owned = Select-String -LiteralPath $log -Pattern ('The program folder: ' + [regex]::Escape((Join-Path $app 'Bin\notes.txt')) + ' is owned by ') | Select-Object -First 1
+            if ($null -eq $owned) { throw 'the setup log does not say who owns it' }
+            'said'
+         })
+   }
+
+   if ($null -ne (Get-UninstallEntry)) {
+      [void] (Test-Step "case ${FolderCase}: the uninstaller ran silently and returned 0" { Invoke-Uninstall })
+      if ($FolderCase -eq 'nested-new') {
+         [void] (Test-Step "case ${FolderCase}: the uninstall left none of the folders setup made" {
+               if (Test-Path -LiteralPath $State.TopMade) { throw "$($State.TopMade) is still there: $((Get-ChildItem -LiteralPath $State.TopMade -Recurse -Force | Select-Object -First 5 | ForEach-Object { $_.FullName }) -join ', ')" }
+               "$($State.TopMade) is gone"
+            })
+      }
+   }
+}
+
 # ------------------------------------------------------------------ the run
 
 $runStarted = Get-Date
@@ -2491,6 +2975,14 @@ if ($WeakParent) {
    if (-not $weakened) { exit 2 }
 }
 
+if ($FolderCase) {
+   $made = Test-Step "preflight: case $FolderCase, made before the first installer" {
+      if (-not $InstallDirectory) { throw '-FolderCase goes with -InstallDirectory' }
+      New-FolderCase
+   }
+   if (-not $made) { exit 2 }
+}
+
 foreach ($path in @($Installer, $UpgradeInstaller)) {
    if ($path -and -not (Test-Path -LiteralPath $path)) {
       Write-Result 'FAIL' 'the installers are there' "$path is not"
@@ -2517,18 +3009,41 @@ Write-Info 'the administrator password' (Set-AdminPasswordFor $firstVersion)
 $firstSecures = Test-HasSecureDefaults $firstVersion
 $secondSecures = [bool] $UpgradeInstaller -and (Test-HasSecureDefaults $secondVersion)
 
+# The Control Panel alone, and the folder cases a whole server installation does not
+# run: one installer, the case's checks, an uninstall.
+if (Test-IsFocusedRun) {
+   if ($UpgradeInstaller -or $DatabaseSettings) { Write-Result 'FAIL' 'the run' '-Components and the cases broad-entry, link-*, bin-link-user and nested-new are one installer: no -UpgradeInstaller or -DatabaseSettings'; exit 2 }
+   Write-Section "Case $(if ($FolderCase) { $FolderCase } else { 'none' }), $(if ($Components) { "/COMPONENTS=$Components" } else { '/TYPE=full' }), $firstVersion"
+   Invoke-FocusedRun $firstVersion
+   Write-Section 'Summary'
+   Write-Line "$script:Passed passed, $script:Failed failed, in $([math]::Round(((Get-Date) - $runStarted).TotalMinutes, 1)) min"
+   if ($script:Failed -gt 0) { exit 1 }
+   exit 0
+}
+
 # ---- install
 Write-Section "Install $firstVersion"
 $installLog = Join-Path $LogDirectory 'install.log'
 $State.ProgramFoldersReadable = Get-ProgramFoldersReadable $State.App
 Write-Info 'install: every user could read, before the installer' (($State.ProgramFoldersReadable.Keys | Sort-Object | ForEach-Object { "$_ $(if ($State.ProgramFoldersReadable[$_]) { 'yes' } else { 'no' })" }) -join ', ')
-$installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
-   $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") + @(Get-DatabaseSwitches)
-   if ($InstallDirectory) { $arguments += "/DIR=$InstallDirectory" }
-   Invoke-WithDatabaseVariables { Invoke-SetupWithAdminPassword $Installer $arguments $installLog }
+# Work item 78: the program folder watched while the installer runs - its first
+# moment when it is not there yet, and Bin's and ControlPanel's when they are.
+$installThere = @(@((Join-Path $State.App 'Bin'), (Join-Path $State.App 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+$installWatch = Start-FolderWatch $State.App
+try {
+   $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
+      $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") + @(Get-DatabaseSwitches)
+      if ($InstallDirectory) { $arguments += "/DIR=$InstallDirectory" }
+      Invoke-WithDatabaseVariables { Invoke-SetupWithAdminPassword $Installer $arguments $installLog }
+   }
 }
+finally { $installWatched = Stop-FolderWatch $installWatch }
 if (-not $installed) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 $State.Installed = ($null -ne (Get-UninstallEntry)) -or (Test-Path -LiteralPath (Join-Path (Get-InstallDirectory) 'Bin\hMailServer.exe'))
+if ($State.Installed) {
+   Test-ProgramFolderMadeWithItsPermissions 'install' $firstVersion $installWatched $installLog
+   Test-FoldersHardenedBeforeTheFiles 'install' $firstVersion $installWatched $installLog $installThere $true
+}
 
 if ($State.Installed -and ($null -ne $State.Database)) {
    [void] (Test-Step 'install: the database step was DBSetup /unattended, which returned 0 (Inno''s log)' {
@@ -2595,12 +3110,22 @@ if ($State.Installed) {
       $upgradeLog = Join-Path $LogDirectory 'upgrade.log'
       $State.ProgramFoldersReadable = Get-ProgramFoldersReadable (Get-InstallDirectory)
       Write-Info 'upgrade: every user could read, before the installer' (($State.ProgramFoldersReadable.Keys | Sort-Object | ForEach-Object { "$_ $(if ($State.ProgramFoldersReadable[$_]) { 'yes' } else { 'no' })" }) -join ', ')
-      $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
-         Invoke-SetupWithAdminPassword $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog") $upgradeLog
+      # Work item 78's R2: Bin and ControlPanel watched while the upgrade runs, and
+      # the program folder with them when its data folders inherit nothing.
+      $upgradeThere = @(@((Join-Path (Get-InstallDirectory) 'Bin'), (Join-Path (Get-InstallDirectory) 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+      $upgradeProgramFolderToo = Test-DataFoldersInheritNothing (Get-InstallDirectory)
+      Write-Info 'upgrade: the data folders inherit nothing from the program folder, before the installer' $(if ($upgradeProgramFolderToo) { 'yes: the program folder is to be hardened before the files too' } else { 'no: the program folder is left to /ProtectFolders, after the files' })
+      $upgradeWatch = Start-FolderWatch (Get-InstallDirectory)
+      try {
+         $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
+            Invoke-SetupWithAdminPassword $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog") $upgradeLog
+         }
       }
+      finally { $upgradeWatched = Stop-FolderWatch $upgradeWatch }
       if (-not $upgraded) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 
       Test-Installed 'upgrade' $secondVersion
+      Test-FoldersHardenedBeforeTheFiles 'upgrade' $secondVersion $upgradeWatched $upgradeLog $upgradeThere $upgradeProgramFolderToo
       Test-ProgramFoldersHardened 'upgrade' $secondVersion $upgradeLog
 
       [void] (Test-Step "upgrade: the schema moved to the newer build's" {
