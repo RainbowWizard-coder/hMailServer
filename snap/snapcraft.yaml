@@ -47,6 +47,11 @@ contact: https://gitlab.com/hmailserver/hmailserver/-/issues
 issues: https://gitlab.com/hmailserver/hmailserver/-/issues
 source-code: https://gitlab.com/hmailserver/hmailserver
 website: https://gitlab.com/hmailserver/hmailserver
+# The fork's icon: the Control Panel's 256 by 256 frame, which the Chocolatey
+# package, the chart and the container image show too (build/check-package-texts.py
+# holds the file to the .ico's frame). A path in the checkout, which snapcraft packs
+# into the snap as meta/gui/icon.png (build/ci/snap-build.sh holds the snap to it).
+icon: hmailserver/source/Server/platform/packaging/hmailserver.png
 
 # Each snap is built on its own architecture: build/ci/snap-build.sh runs in an
 # Ubuntu 24.04 container of that architecture (arm64 under linix's qemu-user).

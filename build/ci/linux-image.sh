@@ -235,6 +235,9 @@ for label in io.artifacthub.package.readme-url org.opencontainers.image.created 
              org.opencontainers.image.source org.opencontainers.image.licenses; do
   grep -q "\"$label\":\"[^\"]" "$out/image.json" || fail "the image carries no $label label"
 done
+# And the logo Artifact Hub shows, the fork's icon on master, as the chart's icon.
+logo=https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png
+grep -qF "\"io.artifacthub.package.logo-url\":\"$logo\"" "$out/image.json" || fail "the image's logo-url label is not $logo"
 grep -q "\"org.opencontainers.image.version\":\"$version\"" "$out/image.json" || fail "the image's version label is not $version"
 echo "HM_INSTALL_KIND=container, and the labels a registry and Artifact Hub read, version $version"
 

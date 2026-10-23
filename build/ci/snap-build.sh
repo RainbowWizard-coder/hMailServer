@@ -14,7 +14,8 @@
 #      remote build: core24 is Ubuntu 24.04, which this container is;
 #   4. the snap held to what it must be: its meta/snap.yaml's name, version (the
 #      .deb's, without the Debian revision), architecture, base and strict
-#      confinement; the files it must carry and the ones it must not (the systemd
+#      confinement; the files it must carry (snapcraft.yaml's icon among them, as
+#      meta/gui/icon.png) and the ones it must not (the systemd
 #      units, the live update's helper); the server it carries started with the
 #      snap's libraries and answering --version with that version;
 #   5. snap/hmailserver_<version>_<arch>.snap, which snap-upload takes
@@ -88,7 +89,8 @@ for must in /usr/bin/hmailserver /usr/bin/dh2048.pem /usr/bin/hmctl /bin/hmailse
             /bin/hmailserver-run /bin/hmailserver-cli /bin/hmailserver-snap-env /bin/hmailserver-snap-config \
             /bin/hmailserver-set-database-password /bin/hmailserver-entrypoint /meta/hooks/configure \
             /etc/hmailserver/hMailServer.ini /usr/share/hmailserver/WebAdmin/index.html /usr/bin/timeout \
-            /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql /usr/share/hmailserver/licenses/AGPL-3.0.txt; do
+            /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql /usr/share/hmailserver/licenses/AGPL-3.0.txt \
+            /meta/gui/icon.png; do
    grep -qx -- "$must" "snap-build/$arch/files.txt" || fail "the snap has no $must"
 done
 for never in /usr/lib/systemd /usr/lib/hmailserver /etc/fail2ban /etc/logrotate.d; do

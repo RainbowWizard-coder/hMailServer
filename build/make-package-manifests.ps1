@@ -27,7 +27,9 @@
    description, say so, and the checks below and build/check-package-manifests.py
    hold them to it. The Chocolatey copyright and authors, and winget's Copyright
    and Author, name Progressive Robot and the fork and credit the original's
-   author, Martin Knafve, as the installer's licence does.
+   author, Martin Knafve, as the installer's licence does. The Chocolatey
+   iconUrl is the fork's icon on master,
+   hmailserver/source/Server/platform/packaging/hmailserver.png.
 
    What it writes, under -OutputDirectory:
 
@@ -414,6 +416,13 @@ try {
         if ($value -cnotmatch 'Progressive Robot' -or $value -cnotmatch 'fork') {
             $problems += "the nuspec $field does not name Progressive Robot and the fork"
         }
+    }
+    # The fork's icon, on master: a release's package is rendered from master's
+    # templates, and the tags of 6.3.7 and earlier have no such file.
+    $iconUrl = 'https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png'
+    $icon = $parsed.package.metadata['iconUrl']
+    if (-not $icon -or $icon.InnerText.Trim() -ne $iconUrl) {
+        $problems += "the nuspec iconUrl is '$(if ($icon) { $icon.InnerText.Trim() })', not $iconUrl"
     }
 }
 catch {

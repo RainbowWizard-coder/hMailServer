@@ -147,6 +147,7 @@ What is in the repository
 | `hmailserver/installation/chocolatey/hmailserver.nuspec.in` | The Chocolatey package metadata, as a template. |
 | `hmailserver/installation/chocolatey/tools/chocolateyinstall.ps1.in` | Downloads the release installer, checks it against the SHA-256, runs it unattended. |
 | `hmailserver/installation/chocolatey/tools/chocolateyuninstall.ps1` | Runs the Inno uninstaller found through the `hMailServer_is1` registry key. Not a template: nothing in it changes between versions. |
+| `hmailserver/source/Server/platform/packaging/hmailserver.png` | The fork's icon, which the Chocolatey package's `iconUrl` names by its raw address on `master` (below). |
 | `build/make-package-manifests.ps1` | Renders all of the above for a version, computing the hash from the actual installer; `-ChocolateyId` is `hmailserver` or `hmailserver-progressiverobot`. |
 | `build/ci/channels/chocolatey-publish.ps1` | The `chocolatey-publish` job ([Channels.md](Channels.md)): the verified installer rendered, packed with `choco pack` and pushed. |
 | `build/check-package-manifests.py` | Validates the rendered manifests against Microsoft's published JSON schemas and cross-checks them against the Chocolatey package. |
@@ -166,6 +167,24 @@ own, from `hmailserver/installation/section_setup.iss` and `section_setup_64.iss
 | `DisplayName: hMailServer <version>-x64` | `AppVerName` | The name in Apps and Features. |
 | `ElevationRequirement: elevatesSelf` | `PrivilegesRequired=admin` | The installer asks for elevation itself. |
 | `InstallerType: inno` | Inno Setup | Gives winget the right default switches; ours are declared anyway. |
+
+**The icon.** The nuspec's `iconUrl` is
+<https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png>,
+the fork's own icon: the Control Panel's (`hmailserver/source/Tools/ControlPanel/app.ico`),
+whose 256 by 256 frame is kept as that PNG byte for byte, and which the Helm chart,
+the container image and the snap show too ([ContainerImage.md](ContainerImage.md),
+[Snap.md](Snap.md)). It is the file on `master`, not at the version's tag: a
+release's package is rendered from `master`'s templates, and the tags of 6.3.7 and
+earlier have no such file. GitLab serves it as `image/png`, inline. Chocolatey's
+automated validation of both of 6.3.7's packages, at 00:19 UTC on 21 October 2026
+and at 01:39 UTC on 22 October, gave as a guideline (which does not hold a package
+back) "The iconUrl should be added if there is one"; any package `chocolatey-publish`
+renders from `master` once the icon is there carries it, a version sent again among
+them.
+`build/check-package-texts.py` holds the PNG to the `.ico`'s frame and every
+listing to that one address, and `build/make-package-manifests.ps1` and
+`build/check-package-manifests.py` hold the rendered `iconUrl` to it; the latter,
+without `--offline`, also asks that the address answer as `image/png`.
 
 The silent switches are `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`.
 `/SUPPRESSMSGBOXES` is not optional: without it a database-setup failure shows a

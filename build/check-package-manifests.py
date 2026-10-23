@@ -54,7 +54,12 @@ What it checks, beyond the schemas:
     author, Martin Knafve, as the installer's licence does
     (hmailserver/installation/License.rtf), so that Chocolatey's disclaimer - not
     affiliated with or endorsed by the package's authors - names neither
-    Progressive Robot alone nor the original's author alone.
+    Progressive Robot alone nor the original's author alone;
+  * the nuspec's iconUrl is the fork's icon on master,
+    hmailserver/source/Server/platform/packaging/hmailserver.png at GitLab's raw
+    address (a release's package is rendered from master's templates, and the
+    tags of 6.3.7 and earlier have no such file), and, unless --offline, it
+    answers as a PNG image.
 
 Usage:
   python build/check-package-manifests.py <directory> [--offline] [--release-date YYYY-MM-DD]
@@ -100,6 +105,11 @@ SCHEMA_URL = "https://aka.ms/winget-manifest.{type}.{version}.schema.json"
 # A release's files are in the project's GitLab package registry, and the release
 # links them from there (build/ci/release-chain.py publish).
 RELEASE_HOST_PREFIX = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/"
+
+# The fork's icon, the Control Panel's 256 by 256 frame (build/check-package-texts.py
+# holds the file to it), on master: the chart, the image and the snap show the same.
+ICON_URL = ("https://gitlab.com/hmailserver/hmailserver/-/raw/master/"
+            "hmailserver/source/Server/platform/packaging/hmailserver.png")
 
 
 def problem(message):
@@ -334,7 +344,7 @@ def check_winget(version_directory, cache_directory, offline, release_date=None)
     return manifests
 
 
-def check_chocolatey(directory, manifests):
+def check_chocolatey(directory, manifests, offline=False):
     nuspec = os.path.join(directory, "hmailserver.nuspec")
     if not os.path.exists(nuspec):
         problem("no hmailserver.nuspec in %s" % directory)
@@ -374,6 +384,20 @@ def check_chocolatey(directory, manifests):
     for field in ("copyright", "authors"):
         credits_original("the nuspec <%s>" % field, text(field))
         names_fork("the nuspec <%s>" % field, text(field))
+    icon = text("iconUrl")
+    if icon != ICON_URL:
+        problem("the nuspec <iconUrl> is %r, not the fork's icon on master, %s" % (icon, ICON_URL))
+    elif not offline:
+        request = urllib.request.Request(icon, method="HEAD", headers={"User-Agent": "hmailserver-package-check"})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                kind = (response.headers.get("Content-Type") or "").split(";")[0].strip()
+                if kind != "image/png":
+                    problem("the nuspec <iconUrl> answers as %r, not image/png: %s" % (kind, icon))
+                else:
+                    print("  icon URL reachable, image/png")
+        except urllib.error.URLError as error:
+            problem("the nuspec <iconUrl> is not reachable: %s (%s)" % (icon, error))
 
     install_script = os.path.join(directory, "tools", "chocolateyinstall.ps1")
     uninstall_script = os.path.join(directory, "tools", "chocolateyuninstall.ps1")
@@ -409,7 +433,7 @@ def check_chocolatey(directory, manifests):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("directory", help="what build/make-package-manifests.ps1 wrote")
-    parser.add_argument("--offline", action="store_true", help="skip the schema fetch and the URL check")
+    parser.add_argument("--offline", action="store_true", help="skip the schema fetch and the installer's and the icon's URL checks")
     parser.add_argument("--release-date", metavar="YYYY-MM-DD",
                         help="the release's own date, which the installer manifest's ReleaseDate must be")
     arguments = parser.parse_args()
@@ -445,7 +469,7 @@ def main():
         chocolatey = os.path.join(directory, "chocolatey")
         if os.path.isdir(chocolatey):
             print("chocolatey")
-            check_chocolatey(chocolatey, manifests)
+            check_chocolatey(chocolatey, manifests, arguments.offline)
     else:
         # A version directory given directly.
         print("winget %s" % os.path.basename(os.path.normpath(directory)))

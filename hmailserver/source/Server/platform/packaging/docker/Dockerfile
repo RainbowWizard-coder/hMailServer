@@ -122,6 +122,8 @@ ENV HM_INSTALL_KIND=container
 # the base image's, Ubuntu's ("ubuntu", "24.04"), until they are said again here:
 # a build without HM_IMAGE_VERSION (docker build --build-arg HM_IMAGE_VERSION=<the
 # .deb's version>) says "local" rather than claim Ubuntu's release as its own.
+# logo-url is the fork's icon, platform/packaging/hmailserver.png, on master, as the
+# chart's icon and the Chocolatey package's name it (build/check-package-texts.py).
 ARG HM_IMAGE_VERSION
 LABEL org.opencontainers.image.title="hMailServer (Progressive Robot's fork)" \
       org.opencontainers.image.version="${HM_IMAGE_VERSION:-local}" \
@@ -133,6 +135,7 @@ LABEL org.opencontainers.image.title="hMailServer (Progressive Robot's fork)" \
       org.opencontainers.image.documentation="https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ContainerImage.md" \
       org.opencontainers.image.ref.name="hmailserver" \
       io.artifacthub.package.readme-url="https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/docs/ContainerImage.md" \
+      io.artifacthub.package.logo-url="https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png" \
       io.artifacthub.package.license="AGPL-3.0-or-later" \
       io.artifacthub.package.keywords="mail,mail-server,smtp,imap,pop3"
 

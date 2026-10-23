@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Generates the hMailServer Control Panel application icon (.ico with
-# PNG-compressed 256/64/32/16 px images of the gradient brand tile).
+# PNG-compressed 256/64/32/16 px images of the gradient brand tile), and its 256 px
+# image as hmailserver/source/Server/platform/packaging/hmailserver.png, the packages'
+# icon. What System.Drawing draws depends on the machine's fonts and GDI+, so a run
+# can change both files: run it to change the icon, and commit the two together.
 Add-Type -AssemblyName System.Drawing
 
 function New-TilePng {
@@ -77,3 +80,11 @@ foreach ($s in $sizes) { $writer.Write([byte[]]$images[$s]) }
 $writer.Close()
 $info = Get-Item $out
 Write-Host "wrote $out ($($info.Length) bytes)"
+
+# The same 256 px image, byte for byte, as the icon every package listing shows (the
+# snap's icon, the Chocolatey package's iconUrl, the Helm chart's icon and the
+# container image's logo-url label). build/check-package-texts.py holds it to the
+# .ico's 256 frame, so the two are written together or not at all.
+$png = Join-Path $PSScriptRoot '..\hmailserver\source\Server\platform\packaging\hmailserver.png'
+[System.IO.File]::WriteAllBytes($png, [byte[]]$images[256])
+Write-Host "wrote $png ($($images[256].Length) bytes)"

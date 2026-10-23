@@ -25,6 +25,12 @@ type: application
 version: 0.1.0
 appVersion: "latest"
 home: https://gitlab.com/hmailserver/hmailserver
+# The fork's icon, which Artifact Hub shows: the Control Panel's 256 by 256 frame,
+# platform/packaging/hmailserver.png, on master, as the image's logo-url label and
+# the Chocolatey package name it (build/check-package-texts.py holds all of them to
+# that one address). master, not a release's tag: the tags of the releases made
+# before the icon was added have no such file.
+icon: https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png
 sources:
   - https://gitlab.com/hmailserver/hmailserver
 keywords:

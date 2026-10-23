@@ -47,7 +47,17 @@ gives each dnf .repo file). This holds, in each:
     Christopher Holloway <chris.holloway@progressiverobot.com>, and no packaging file
     names the address debian/control named until October 2026, from which
     Launchpad made a placeholder person that is not the PPA's owner;
-  - the snap's website is the project's home.
+  - the snap's website is the project's home;
+  - every listing shows the fork's own icon, and the same one: the Control
+    Panel's (hmailserver/source/Tools/ControlPanel/app.ico, the fork's, which the
+    original hMailServer never had), whose 256 by 256 frame, a PNG, is kept byte
+    for byte as platform/packaging/hmailserver.png, which this holds to the .ico's
+    frame so that the two cannot drift apart (build/make-app-icon.ps1, which
+    draws the icon, writes both); the snap names that file as its icon,
+    and the Chocolatey package's iconUrl, the chart's icon and the image's
+    io.artifacthub.package.logo-url label name its raw address on master, the one
+    address a release's package, chart and image can all name (the tags of 6.3.7
+    and earlier have no such file).
 
 It reads the files with nothing but Python, as the checkers job runs every
 build/check-*.py; that job runs --self-test too, which breaks each rule in a copy of
@@ -60,6 +70,7 @@ import re
 import shutil
 import sys
 import tempfile
+import zlib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 FORK = "Progressive Robot's fork of hMailServer"
@@ -91,6 +102,15 @@ PACKAGE_REPOS = 'build/generate-package-repos.py'
 FILES = (SPEC, CONTROL, CMAKE, PKGBUILD, APKBUILD, NIX_PACKAGE, FLAKE, SNAP, DOCKERFILE, CHART,
          CHART_README, IMAGE_README, NUSPEC, WINGET_LOCALE, APPIMAGE, ASSET_SBOM, PACKAGE_REPOS)
 
+# The fork's icon: the Control Panel's .ico, and its 256 by 256 frame as the PNG
+# every listing shows, by its path in the tree (the snap) or its raw address on
+# master (the Chocolatey package, the chart, the image).
+APP_ICO = 'hmailserver/source/Tools/ControlPanel/app.ico'
+ICON = PACKAGING + '/hmailserver.png'
+ICON_URL = 'https://gitlab.com/hmailserver/hmailserver/-/raw/master/' + ICON
+BINARIES = (APP_ICO, ICON)
+PNG_SIGNATURE = b'\x89PNG\r\n\x1a\n'
+
 
 def read(root, relative):
     with open(os.path.join(root, relative), encoding='utf-8') as f:
@@ -99,6 +119,31 @@ def read(root, relative):
 
 def flat(text):
     return ' '.join(str(text or '').split())
+
+
+def read_bytes(root, relative):
+    with open(os.path.join(root, relative), 'rb') as f:
+        return f.read()
+
+
+def ico_frame(data, size):
+    """The bytes of an .ico's frame of size by size pixels, or None: its ICONDIR
+    (reserved 0, type 1, a count) and the count's 16-byte entries, each giving the
+    width and height (0 for 256), the frame's length and its offset."""
+    if len(data) < 6 or data[0:4] != b'\x00\x00\x01\x00':
+        return None
+    count = int.from_bytes(data[4:6], 'little')
+    for i in range(count):
+        entry = data[6 + 16 * i:22 + 16 * i]
+        if len(entry) < 16:
+            return None
+        width, height = entry[0] or 256, entry[1] or 256
+        length = int.from_bytes(entry[8:12], 'little')
+        offset = int.from_bytes(entry[12:16], 'little')
+        if (width, height) == (size, size):
+            frame = data[offset:offset + length]
+            return frame if len(frame) == length else None
+    return None
 
 
 class Checker:
@@ -266,11 +311,23 @@ def xml_element(text, name):
 
 def check(root):
     c = Checker()
-    for relative in FILES:
+    for relative in FILES + BINARIES:
         if not os.path.exists(os.path.join(root, relative)):
             c.problem('%s is not there' % relative)
     if c.problems:
         return c.problems
+
+    icon = read_bytes(root, ICON)
+    frame = ico_frame(read_bytes(root, APP_ICO), 256)
+    if frame is None or not frame.startswith(PNG_SIGNATURE):
+        c.problem('%s has no 256 by 256 frame stored as a PNG, which %s is a copy of' % (APP_ICO, ICON))
+    elif icon != frame:
+        c.problem('%s is not the 256 by 256 frame of %s byte for byte (%d bytes, the frame %d): the listings\' icon '
+                  'and the Control Panel\'s have drifted apart (build/make-app-icon.ps1 writes the two together)'
+                  % (ICON, APP_ICO, len(icon), len(frame)))
+    if not icon.startswith(PNG_SIGNATURE) or icon[12:16] != b'IHDR' \
+            or (int.from_bytes(icon[16:20], 'big'), int.from_bytes(icon[20:24], 'big')) != (256, 256):
+        c.problem('%s is not a 256 by 256 PNG' % ICON)
 
     spec = spec_texts(read(root, SPEC))
     for package in ('', 'cli '):
@@ -336,14 +393,18 @@ def check(root):
     c.fork('%s: description' % SNAP, yaml_block(snap, 'description'))
     c.original('%s: description' % SNAP, yaml_block(snap, 'description'))
     c.equals('%s: website' % SNAP, yaml_scalar(snap, 'website'), HOME)
+    c.equals('%s: icon' % SNAP, yaml_scalar(snap, 'icon'), ICON)
 
     dockerfile = read(root, DOCKERFILE)
     c.titled('%s: org.opencontainers.image.title' % DOCKERFILE, label(dockerfile, 'org.opencontainers.image.title'))
     image_description = label(dockerfile, 'org.opencontainers.image.description')
     c.fork('%s: org.opencontainers.image.description' % DOCKERFILE, image_description)
     c.original('%s: org.opencontainers.image.description' % DOCKERFILE, image_description)
+    c.equals('%s: io.artifacthub.package.logo-url' % DOCKERFILE, label(dockerfile, 'io.artifacthub.package.logo-url'),
+             ICON_URL)
 
     chart = read(root, CHART)
+    c.equals('%s: icon' % CHART, yaml_scalar(chart, 'icon'), ICON_URL)
     c.fork('%s: description' % CHART, yaml_block(chart, 'description'))
     c.original('%s: description' % CHART, yaml_block(chart, 'description'))
     for relative in (CHART_README, IMAGE_README):
@@ -377,6 +438,7 @@ def check(root):
             c.problem('%s: a Release names its %s other than by REPO_%s' % (PACKAGE_REPOS, field, field.upper()))
 
     nuspec = read(root, NUSPEC)
+    c.equals('%s: <iconUrl>' % NUSPEC, xml_element(nuspec, 'iconUrl'), ICON_URL)
     for name in ('copyright', 'authors'):
         c.titled('%s: <%s>' % (NUSPEC, name), xml_element(nuspec, name))
         c.original('%s: <%s>' % (NUSPEC, name), xml_element(nuspec, name))
@@ -416,6 +478,7 @@ def self_test():
             failures.append(what)
 
     originals = {relative: read(ROOT, relative) for relative in FILES}
+    originals.update({relative: read_bytes(ROOT, relative) for relative in BINARIES})
 
     def world(relative=None, change=None):
         work = tempfile.mkdtemp(prefix='hm-package-texts-')
@@ -427,6 +490,10 @@ def self_test():
                         continue
                 path = os.path.join(work, name)
                 os.makedirs(os.path.dirname(path), exist_ok=True)
+                if isinstance(text, bytes):
+                    with open(path, 'wb') as f:
+                        f.write(text)
+                    continue
                 with open(path, 'w', encoding='utf-8', newline='\n') as f:
                     f.write(text)
             return check(work)
@@ -448,8 +515,49 @@ def self_test():
             return changed
         return change
 
+    def reencoded(png):
+        """The same pixels, compressed again: a PNG that is not the .ico's bytes."""
+        chunks, i = [], 8
+        while i < len(png):
+            length = int.from_bytes(png[i:i + 4], 'big')
+            chunks.append((png[i + 4:i + 8], png[i + 8:i + 8 + length]))
+            i += 12 + length
+        pixels = zlib.decompress(b''.join(body for kind, body in chunks if kind == b'IDAT'))
+        out, idat_done = [png[:8]], False
+        for kind, body in chunks:
+            if kind == b'IDAT':
+                if idat_done:
+                    continue
+                kind, body, idat_done = b'IDAT', zlib.compress(pixels, 1), True
+            out.append(len(body).to_bytes(4, 'big') + kind + body
+                       + (zlib.crc32(kind + body) & 0xffffffff).to_bytes(4, 'big'))
+        changed = b''.join(out)
+        if changed == png:
+            raise AssertionError('the self-test\'s re-encoded icon is the same bytes')
+        return changed
+
+    def frame_changed(ico):
+        offset = int.from_bytes(ico[18:22], 'little')
+        return ico[:offset + 40] + bytes([ico[offset + 40] ^ 0xff]) + ico[offset + 41:]
+
     expect('the tree\'s own files: pass', world() == [])
     cases = [
+        ('the icon re-encoded, the same pixels in other bytes', ICON, reencoded, 'is not the 256 by 256 frame'),
+        ('the icon the .ico\'s 64 by 64 frame', ICON, lambda png: ico_frame(originals[APP_ICO], 64),
+         'is not a 256 by 256 PNG'),
+        ('the .ico\'s 256 frame changed and the icon not', APP_ICO, frame_changed, 'is not the 256 by 256 frame'),
+        ('no icon', ICON, lambda png: None, 'hmailserver.png is not there'),
+        ('the nuspec without an iconUrl', NUSPEC, sub(r'^[ \t]*<iconUrl>.*</iconUrl>\n', ''), '<iconUrl>: not found'),
+        ('the nuspec\'s iconUrl at a tag, which has no icon', NUSPEC,
+         replaced('<iconUrl>https://gitlab.com/hmailserver/hmailserver/-/raw/master/',
+                  '<iconUrl>https://gitlab.com/hmailserver/hmailserver/-/raw/v6.3.7/'), '<iconUrl> is'),
+        ('the chart without an icon', CHART, sub(r'^icon: .*\n', ''), 'Chart.yaml: icon: not found'),
+        ('the image\'s logo-url another picture', DOCKERFILE,
+         replaced('logo-url="' + ICON_URL, 'logo-url="https://gitlab.com/hmailserver/hmailserver/-/raw/master/'
+                  'hmailserver/docs/images/webmail-inbox.png'), 'logo-url is'),
+        ('the snap without an icon', SNAP, sub(r'^icon: .*\n', ''), 'snapcraft.yaml: icon: not found'),
+        ('the snap\'s icon the Control Panel\'s .ico', SNAP, sub(r'^icon: .*$', 'icon: ' + APP_ICO),
+         'snapcraft.yaml: icon is'),
         ('the RPM Summary without the fork', SPEC, sub(r'^(Summary:\s*).*$', r'\1Mail server for SMTP, IMAP and POP3'),
          'the Summary does not say'),
         ('an RPM Summary of 80 characters', SPEC, sub(r'^(Summary:\s*).*$', r'\1' + FORK + ': ' + 'x' * 39),

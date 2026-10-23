@@ -119,8 +119,9 @@ The image's labels, which a registry and Artifact Hub show: the OCI ones
 (`org.opencontainers.image.title`, `description`, `licenses`, `vendor`, `url`,
 `source`, `documentation`, and from the build `version`, `revision` and `created`,
 the commit's time) and Artifact Hub's (`io.artifacthub.package.readme-url`, this
-document; `license`, `keywords`, and `prerelease` for a version with a suffix).
-`build/ci/linux-image.sh` fails a build without the three Artifact Hub requires. From
+document; `logo-url`, the fork's icon; `license`, `keywords`, and `prerelease` for a
+version with a suffix). `build/ci/linux-image.sh` fails a build without the three
+Artifact Hub requires, or without the logo. From
 the release after 6.3.7 the title is "hMailServer (Progressive Robot's fork)" and the
 description opens with "Progressive Robot's fork of hMailServer, not the original";
 6.3.7's image, and those before it, say "hMailServer".
@@ -281,6 +282,16 @@ marked Official.
   holds the tree's chart and the package to), its links, and whether it is a
   pre-release. The Official label is requested through a GitHub issue, and is
   not.
+- **The icon.** The chart's `icon` and the image's `io.artifacthub.package.logo-url`
+  label, which Artifact Hub shows on each listing, are
+  <https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png>:
+  the fork's own icon, the Control Panel's 256 by 256 frame byte for byte, which the
+  Chocolatey package and the snap show too. It is the file on `master`, which GitLab
+  serves as `image/png`, inline, and not at a release's tag, since the tags of 6.3.7
+  and earlier have no such file. `helm lint`, which said of the chart "icon is
+  recommended", no longer does. `build/check-package-texts.py` holds the PNG
+  to the Control Panel's `.ico` and both fields to that address. The chart and the
+  image of 6.3.7 and earlier have no icon; the next release's carry it.
 - **The image.** The repository `hmailserver-image`, shown as hMailServer container
   image, of kind Container images, with the address
   `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,

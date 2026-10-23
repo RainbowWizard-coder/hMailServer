@@ -266,13 +266,26 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
 3. The snap is held to what it must be: its `meta/snap.yaml` names `hmailserver`, the
    `.deb`'s version without its Debian revision, the architecture, core24, strict
    confinement, the stable grade and `snap_daemon`; it carries the server, the
-   commands, the hook, the Control Deck and the licences, and no systemd unit and no
-   live-update helper; the server it carries finds every library in the snap or core24
+   commands, the hook, the Control Deck, the licences and its icon,
+   `meta/gui/icon.png`, and no systemd unit and no live-update helper; the server it carries finds every library in the snap or core24
    and answers `--version` with that version; and the configuration helper passes its
    own self-test.
 4. `snap/hmailserver_<version>_<arch>.snap` for `snap-upload`, and in
    `snap-build/<arch>/` its `meta/snap.yaml`, file list, SHA-256, SHA3-384 and
    snapcraft's log.
+
+**The icon.** `snapcraft.yaml`'s `icon` is
+`hmailserver/source/Server/platform/packaging/hmailserver.png`, the fork's own icon:
+the Control Panel's 256 by 256 frame, byte for byte, which the Chocolatey package,
+the Helm chart and the container image show too (`build/check-package-texts.py`
+holds the file to the Control Panel's `.ico` and the snap to that path). snapcraft
+packs it into the snap as `meta/gui/icon.png`; its own description of the key says
+that the icon is used in the Snap Store and other graphical store fronts, and that a
+desktop menu takes an application's icon from its `.desktop` file, which this snap,
+a service and its commands, has none of. With snapcraft 9.1.3, the pinned revision,
+the snap packed from this `snapcraft.yaml` carries the file unchanged (23 October
+2026, in Ubuntu 24.04 on amd64, from a stand-in `.deb`). The snaps of 6.3.7 and
+earlier carry no icon.
 
 **Moving snapcraft or core24 to a newer revision.** For each architecture, ask the
 store which revision a channel holds and its SHA3-384:
@@ -429,7 +442,9 @@ a Linux shell with snapcraft and the owner's own login, in about half an hour:
    <https://snapcraft.io/hmailserver/listing>, with the same login: the title
    "hMailServer (Progressive Robot's fork)", a summary and a description that open
    with "Progressive Robot's fork of hMailServer, not the original by Martin
-   Knafve", and the website <https://gitlab.com/hmailserver/hmailserver>. The two
+   Knafve", the website <https://gitlab.com/hmailserver/hmailserver>, and as its icon
+   `hmailserver/source/Server/platform/packaging/hmailserver.png`, which the 6.3.7
+   snaps do not carry ("The icon", above). The two
    snaps were built on 18 October 2026 from `snap/snapcraft.yaml` as it stood then -
    the title "hMailServer", a summary that does not say fork, and the company's site
    as the website - so a listing that took their text would read as the original's;

@@ -451,6 +451,26 @@ with `--check`).
   fork, not the original by Martin Knafve, and its website is the project's on GitLab. The image's
   `org.opencontainers.image.title` and `description` labels, which registries and Artifact Hub show, say the same.
   Both reach the store and the registries with the next release's snaps and image; 6.3.7's keep their own text.
+- **The Chocolatey package, the Helm chart, the container image and the snap show the fork's icon.** None of them had
+  one, and Chocolatey's automated validation of 6.3.7's package, on 21 and 22 October 2026, gave as a guideline "The
+  iconUrl should be added if there is one". The icon is the fork's own, the Control Panel's
+  (`hmailserver/source/Tools/ControlPanel/app.ico`, "hM" in white on a blue-to-violet square, which the original
+  hMailServer's tags in this repository do not have): its 256 by 256 frame, a PNG of 7,851 bytes, is now
+  `hmailserver/source/Server/platform/packaging/hmailserver.png`, byte for byte as the `.ico` holds it. The snap names
+  that path as its `icon`, which snapcraft packs as `meta/gui/icon.png`; the nuspec's `iconUrl`, the chart's `icon`
+  and the image's `io.artifacthub.package.logo-url` label name its raw address on `master`, which GitLab serves as
+  `image/png`, inline - `master` and not a version's tag, since a release's package is rendered from `master`'s
+  templates and the tags of 6.3.7 and earlier have no such file. `build/check-package-texts.py` holds the PNG to the
+  `.ico`'s 256 frame and the four listings to that one path and address, and its self-test sees a re-encoded copy, the
+  64 by 64 frame, a changed `.ico`, a missing file and each field gone or pointing elsewhere refused;
+  `build/make-package-manifests.ps1` and `build/check-package-manifests.py` hold the rendered `iconUrl` to it (the
+  latter, without `--offline`, asks that it answer as `image/png`), `build/ci/linux-image.sh` fails an image without
+  the label, and `build/ci/snap-build.sh` a snap without `meta/gui/icon.png`. The chart lints and renders as before,
+  without `helm lint`'s "icon is recommended"; the Dockerfile, built from 6.3.7's published amd64 `.deb`, gives the
+  image the label, which `linux-image.sh`'s check finds and refuses once it is taken out; and snapcraft 9.1.3, the
+  pinned revision, packs the snap with the icon unchanged as `meta/gui/icon.png`. `PackageManagers.md`, `Snap.md`,
+  `ContainerImage.md` and the packaging README say so. The address answers once this is on `master`; the next
+  release's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
 
 - **Fixed: `registry-mirror` verifies and copies the release's image as the release's pipeline pushes it, an index over
   linux/amd64 and linux/arm64, where it refused every release since 6.3.6; and 6.3.7's image is on Docker Hub.** Since

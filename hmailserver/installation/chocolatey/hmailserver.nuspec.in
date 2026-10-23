@@ -29,6 +29,17 @@
   that the package page's disclaimer - that the package is not affiliated with or
   endorsed by its authors - names the original's author too, and not Progressive
   Robot alone (both scripts hold the two to it).
+
+  The icon is the fork's own, the Control Panel's (hmailserver/source/Tools/
+  ControlPanel/app.ico): its 256 by 256 frame, byte for byte as the .ico holds it,
+  kept as hmailserver/source/Server/platform/packaging/hmailserver.png, which the
+  Helm chart, the container image and the snap show too. iconUrl is that file on
+  master, not at the version's tag: a release's package is rendered from master's
+  templates (chocolatey-publish renders the latest release's, as it did 6.3.7's
+  resubmission), and the tags of 6.3.7 and earlier have no such file. GitLab serves
+  a raw .png as image/png, inline. build/check-package-texts.py holds the .png to
+  the .ico's frame and every listing to the one address, and both scripts hold the
+  rendered iconUrl to it.
 -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
@@ -39,6 +50,7 @@
     <title>hMailServer (Progressive Robot's fork)</title>
     <authors>Christopher Holloway, Progressive Robot Ltd (the fork), Martin Knafve (the original hMailServer)</authors>
     <projectUrl>https://gitlab.com/hmailserver/hmailserver</projectUrl>
+    <iconUrl>https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/hmailserver.png</iconUrl>
     <copyright>Copyright (c) 2026 Progressive Robot Ltd. A fork of hMailServer, originally created by Martin Knafve, whose copyright in the original work remains.</copyright>
     <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
