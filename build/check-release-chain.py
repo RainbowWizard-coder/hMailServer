@@ -281,7 +281,11 @@ refuses it. This checker holds them to each other. It fails when:
     release's files are signed with, or no longer attests each platform's SBOM
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
     and verifies the attestation; or container-image-start does not start the pushed
-    image with the command its test script names, on a network of its own; or
+    image with the command its test script names, on a network of its own, or
+    either start job has a key but START_JOB_KEYS' (allow_failure, when and
+    parallel among those it may not have) or runs the test otherwise than
+    START_JOB_LINES write it - with no argument, nothing before or after it on its
+    line, after the before_script it is held to (start_job_line_problems); or
     container_scanning does not run build/ci/container-scan.sh over the linux/amd64
     image in dependency-scan's Trivy image, by the same digest (CONTAINER_SCANNER),
     keeping its report, or container_scanning_arm64 does not extend it for the
@@ -5625,9 +5629,9 @@ def start_test_call_problems(script):
     # (a line ending in {, a line beginning with }); depth: that of the top level's if,
     # loops and case.
     # The two exits that need not fail: the help branch of the one argument loop, which
-    # the jobs never reach (they pass no argument, and nothing before the asks but
-    # set -uo pipefail is let set one), and cleanup's last line, which ends with the
-    # status the test ended with.
+    # the jobs never reach (they pass no argument, as start_job_line_problems holds, and
+    # nothing before the asks but set -uo pipefail is let set one), and cleanup's last
+    # line, which ends with the status the test ended with.
     exits_allowed = set()
     loop = [i for i, line in enumerate(lines[:first]) if line == 'while [ "$#" -gt 0 ]; do']
     if len(loop) == 1 and "done" in lines[loop[0]:first]:
@@ -5725,6 +5729,93 @@ def start_test_call_problems(script):
     return problems
 
 
+# The start jobs' keys, each job's alone (START_JOB_KEYS), and the lines of those that say
+# what the job runs and when, as they must be (START_JOB_LINES): container-image-start
+# runs the test with no argument, in the Linux CI image after its before_script, for the
+# release's rules; container-image-start-arm64 is its twin, with the qemu check first.
+START_JOB_KEYS = {
+    "container-image-start": ("stage", "tags", "image", "before_script", "needs", "timeout", "interruptible", "rules",
+                              "variables", "services", "script"),
+    "container-image-start-arm64": ("extends", "needs", "timeout", "rules", "variables", "before_script", "services"),
+}
+START_JOB_RULES = ("  rules:", "    - !reference [.release-rules, rules]")
+START_JOB_LINES = {
+    "container-image-start": {
+        "image": ("  image: !reference [.linix, image]",),
+        "before_script": ("  before_script: !reference [.linix, before_script]",),
+        "script": ("  script:", "    - bash build/ci/container-image-start-test.sh"),
+        "rules": START_JOB_RULES,
+    },
+    "container-image-start-arm64": {
+        "extends": ("  extends: container-image-start",),
+        "before_script": ("  before_script:", "    - !reference [.linix, before_script]",
+                          '    - sh build/ci/arm64-emulation.sh "container-image-start-arm64, whose service is the '
+                          'linux/arm64 image,"'),
+        "rules": START_JOB_RULES,
+    },
+}
+
+
+def _job_key_texts(block, key):
+    """Each place a job's block writes key (two spaces in, quoted or not), as the tuple
+    of its lines: the key's line and those after it until the job's next key, blank
+    lines at the end left off."""
+    lines = block.replace("\r\n", "\n").split("\n")
+    found = []
+    head = re.compile(r"^  ([\"']?)%s\1[ \t]*:" % re.escape(key))
+    for at, line in enumerate(lines):
+        if not head.match(line):
+            continue
+        taken = [line]
+        for following in lines[at + 1:]:
+            if following.strip() and not following.startswith("   "):
+                break
+            taken.append(following)
+        while taken and not taken[-1].strip():
+            taken.pop()
+        found.append(tuple(taken))
+    return found
+
+
+def start_job_line_problems(image_jobs):
+    """Each start job runs the test as it must and its failure holds the image back: its
+    keys are START_JOB_KEYS' alone - no allow_failure or when, with which
+    container-image-sign, which needs both jobs, would sign an image that did not start;
+    no parallel, whose matrix gives the job variables; no after_script, hooks, run,
+    trigger, inherit or extends of container-image-start's own - each key once, and the
+    lines of START_JOB_LINES as they are written there: container-image-start's script
+    the one line bash build/ci/container-image-start-test.sh, with no argument (its help
+    branch's exit 0 is reached by -h or --help alone), nothing before the command or
+    after it, in the Linux CI image after its before_script; the arm64 job extending it,
+    with no script or image of its own, and its before_script the same with the qemu
+    check after it, so that nothing there can end the shell the script runs in. One edit
+    of .gitlab/ci/container-image.yml, which is not one of land-via-mr.py's GATE_FILES,
+    would otherwise let either job pass without asking its image."""
+    problems = []
+    for name, keys in sorted(START_JOB_KEYS.items()):
+        block = image_jobs.get(name, "")
+        if not block:
+            continue
+        for line in block.replace("\r\n", "\n").split("\n"):
+            if not line.startswith("  ") or line.startswith("   ") or not line.strip():
+                continue
+            key = re.match(r"^  ([\"']?)([A-Za-z_][A-Za-z0-9_\-]*)\1[ \t]*:", line)
+            if not key or key.group(2) not in keys:
+                problems.append("%s writes %s, which is not one of the keys this check holds a start job to (%s): "
+                                "allow_failure or when would let container-image-sign sign an image that did not start, "
+                                "and another key change what the job runs" % (name, line.strip(), ", ".join(keys)))
+        for key in keys:
+            if len(_job_key_texts(block, key)) > 1:
+                problems.append("%s writes %s more than once" % (name, key))
+        for key, wanted in sorted(START_JOB_LINES[name].items()):
+            written = _job_key_texts(block, key)
+            if written != [wanted]:
+                problems.append("%s's %s is not %s, as the start test must be run: %s"
+                                % (name, key, " / ".join(line.strip() for line in wanted),
+                                   " / ".join(line.strip() for text in written for line in text) or "none"))
+    return problems
+
+
 def image_start_database_problems(texts, image_jobs):
     """The image reaches both databases it is said to: the Dockerfile installs the MariaDB
     client the server opens with dlopen (libmariadb.so.3), which no .deb the release carries names,
@@ -5756,6 +5847,7 @@ def image_start_database_problems(texts, image_jobs):
     every_ci = dict(texts.get("ci-includes", {}), **{".gitlab-ci.yml": texts.get("ci", ""),
                                                      FILES["image"].replace(os.sep, "/"): texts["image"]})
     problems += start_database_variable_problems(image_jobs, every_ci)
+    problems += start_job_line_problems(image_jobs)
     problems += start_test_call_problems(texts["image-start"])
     for name, image, platform in (("container-image-start", "$HM_IMAGE", None),
                                   ("container-image-start-arm64", "$HM_IMAGE_ARM64", "linux/arm64")):
@@ -7270,6 +7362,37 @@ def self_test(chain, feed):
              "    POSTGRES_DB: hmailserver\n    POSTGRES_INITDB_ARGS: --auth=trust\n",
              "container-image-start sets POSTGRES_INITDB_ARGS")):
         broken(what, key, old, new, needle)
+    # The start jobs' own lines: the test run with an argument, past its failure or with
+    # an address of its own; the arm64 job with a script of its own or ended in its
+    # before_script; either allowed to fail, run whatever came before, or given
+    # variables by a matrix; the script's entries as a compact sequence or two.
+    run = "  script:\n    - bash build/ci/container-image-start-test.sh\n"
+    emulation = ('    - sh build/ci/arm64-emulation.sh "container-image-start-arm64, whose service is the linux/arm64 '
+                 'image,"\n')
+    not_run = "container-image-start's script is not"
+    not_held = "which is not one of the keys this check holds a start job to"
+    for what, old, new, needle in (
+            ("the start test run for its help", run, run.replace(".sh\n", ".sh --help\n"), not_run),
+            ("the start test's failure made a pass", run, run.replace(".sh\n", ".sh || true\n"), not_run),
+            ("the start test given the MariaDB ask's address", run,
+             run.replace("    - bash", "    - HM_START_MARIADB_HOST=mail bash"), not_run),
+            ("the arm64 start given a script of its own", emulation, emulation + '  script:\n    - echo "not asked"\n',
+             "container-image-start-arm64 writes script:, " + not_held),
+            ("the arm64 start's shell ended in its before_script", emulation, emulation + "    - exit 0\n",
+             "container-image-start-arm64's before_script is not"),
+            ("the start allowed to fail", run, "  allow_failure: true\n" + run,
+             "container-image-start writes allow_failure: true, " + not_held),
+            ("the arm64 start allowed to fail", emulation, emulation + "  allow_failure: true\n",
+             "container-image-start-arm64 writes allow_failure: true, " + not_held),
+            ("the start run whatever came before", run, "  when: always\n" + run,
+             "container-image-start writes when: always, " + not_held),
+            ("the arm64 start given an address by a matrix", emulation,
+             emulation + "  parallel:\n    matrix:\n      - HM_START_MARIADB_HOST: [mail]\n",
+             "container-image-start-arm64 writes parallel:, " + not_held),
+            ("the start's script a compact sequence ending the shell", run,
+             "  script:\n  - bash build/ci/container-image-start-test.sh\n  - exit 0\n", not_run),
+            ("the start's script given a second entry", run, run + "    - exit 0\n", not_run)):
+        broken_image(what, needle, (old, new))
     for what, old, new, needle in (
             ("MariaDB's database not given", "    MARIADB_DATABASE: hmailserver\n", "",
              "container-image-start does not give the database the same in POSTGRES_DB, MARIADB_DATABASE, HM_DB_NAME"),

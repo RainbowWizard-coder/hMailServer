@@ -966,6 +966,22 @@ with `--check`).
   self-test breaks the tree in those eleven ways - the six forms above, a merge key, the image's CI file's top level,
   the workflow's rules, `.release-rules` and `POSTGRES_INITDB_ARGS` - and sees each caught; each of the six passed the
   checker before.
+- **The release-chain check holds the image start jobs' own lines.** Nothing held what either start job runs but
+  that `container-image-start`'s text held `bash build/ci/container-image-start-test.sh` somewhere, so that one edit of
+  `.gitlab/ci/container-image.yml`, which is not one of `land-via-mr.py`'s gate files, let either job pass without
+  asking its image: the test run as `... --help`, whose help branch exits 0, or with `|| true` after it, or with
+  `HM_START_MARIADB_HOST=mail` before it, a `script:` of the arm64 job's own, an `exit 0` after its before_script's
+  qemu check, which runs in the shell the script runs in, and `allow_failure: true` on either job, with which
+  `container-image-sign`, which needs both, would sign an image that did not start. Master's checker passed each of
+  these. `build/check-release-chain.py` now holds each start job to its keys alone (`START_JOB_KEYS`: no
+  `allow_failure`, `when`, `parallel` - whose matrix gives a job variables - `after_script`, `hooks` or other key,
+  each key once), and holds `container-image-start`'s `script` to the one line
+  `- bash build/ci/container-image-start-test.sh`, its `image` and `before_script` to `.linix`'s by `!reference` and
+  its `rules` to `.release-rules`', and the arm64 job's `extends` to `container-image-start`, its `before_script` to
+  `.linix`'s and the qemu check and its `rules` to the same (`START_JOB_LINES`), each exactly as written. The
+  self-test breaks the start jobs in eleven ways - those seven, `when: always`, a `parallel` matrix setting an
+  address, and the script written as a compact sequence ending in `exit 0` or given a second entry - and sees each
+  caught.
 - **`chart-and-compose` says so when the chart passes no database port at all.** Rendered with `database.port=3307`,
   a chart that wrote no `HM_DB_PORT` made the job's `grep -A1 'name: HM_DB_PORT'` exit 1, and the shell's errexit
   ended the job there, before its own message, "the chart did not pass database.port on". The `grep` now ends in
