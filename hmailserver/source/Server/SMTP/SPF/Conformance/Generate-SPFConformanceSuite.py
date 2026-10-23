@@ -8,7 +8,10 @@
 # hMailServer.com". Both trees are AGPL-3.0-or-later, so the port is
 # licence-clean and the attribution stands here.
 #
-# Taken unchanged.
+# Changed in this tree in what it writes above the table alone: the project's
+# header and this directory's provenance block where upstream's writes its own
+# notice, and after them the suite's notice, rfc7208-tests.LICENSE, since the
+# table is the suite's. The table it writes is upstream's, byte for byte.
 
 """Turns rfc7208-tests.yml into the C++ table in SPFConformanceSuite.cpp.
 
@@ -68,6 +71,7 @@ except ImportError:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SUITE = os.path.join(HERE, "rfc7208-tests.yml")
+SUITE_LICENCE = os.path.join(HERE, "rfc7208-tests.LICENSE")
 OUTPUT = os.path.join(HERE, "SPFConformanceSuite.cpp")
 
 # The suite spells the results of RFC 7208 section 2.6 in lower case.
@@ -214,6 +218,15 @@ def c_text(value, what):
    return c_string(value)
 
 
+def suite_notice():
+   """rfc7208-tests.LICENSE, the suite's notice, as comment lines: the table is
+   the suite's zones and cases, so a copy of it in source form carries the
+   notice, as the licence's first condition asks."""
+   with io.open(SUITE_LICENCE, "r", encoding="utf-8") as stream:
+      lines = stream.read().replace("\r\n", "\n").rstrip("\n").split("\n")
+   return "".join(("// " + line).rstrip() + "\n" for line in lines)
+
+
 def main():
    with open(SUITE, "rb") as stream:
       sections = list(yaml.safe_load_all(stream))
@@ -224,8 +237,9 @@ def main():
 
    # The project header first, in the one form build/add-license-headers.py
    # accepts, then the provenance block every ported file in this directory
-   # carries. Written here rather than stamped afterwards so that regenerating
-   # the table produces a file that passes --check on its own.
+   # carries, then the suite's own notice, since what follows is the suite's.
+   # Written here rather than stamped afterwards so that regenerating the table
+   # produces a file that passes --check on its own.
    out.write("""// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -236,12 +250,17 @@ def main():
 // hMailServer.com". Both trees are AGPL-3.0-or-later, so the port is
 // licence-clean and the attribution stands here.
 //
-// Taken unchanged. Generated - see Generate-SPFConformanceSuite.py.
+// The table is upstream's unchanged, and this header and the suite's notice
+// below are this tree's. Generated - see Generate-SPFConformanceSuite.py.
 
 // GENERATED FILE - do not edit. Produced by Generate-SPFConformanceSuite.py from
 // rfc7208-tests.yml, the openspf.org test suite for RFC 7208. README.md says where
 // the suite comes from and how to regenerate this file.
-
+//
+// The zones and the cases below are the suite's, transcribed, and are under its
+// licence, as rfc7208-tests.LICENSE gives it:
+//
+""" + suite_notice() + """
 #include "stdafx.h"
 
 #include "SPFConformanceSuite.h"

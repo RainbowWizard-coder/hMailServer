@@ -864,7 +864,21 @@ with `--check`).
 - **New: the tree is REUSE-compliant, and a CI job holds it.** Every file's copyright and licence are known, as the
   REUSE Specification 3.3 asks, by the file's own header or, for the 4,189 files that carry none (documents,
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
-  and kind of file, whose comments say which holders each one names and why; and `LICENSES/` holds the text of each of
+  and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
+  one names and why. The original hMailServer's files - the 1,642 files of the tree at a path that its tags
+  `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` hold, or that the fork's first commit took over from its history
+  before them, letter case aside, but for the 2,870 third parties' files among them - name Martin Knafve (2005-2026)
+  as a holder beside what each file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for
+  none of 1,233 of them and the fork alone for 1,205, most of them files whose notice of his the fork's header
+  replaced in 2026: `build/generate-reuse-original.py` writes the two tables that list
+  them from the tags (`build/reuse-original-paths.txt`), and its `--check` holds them, and the files the fork added
+  in the original's directories, the registration scripts of fourteen COM classes among them, are named in the
+  fork's table one by one. The MIME files, `StdString.h` and `ScriptSite.h` name him beside their third party, and
+  `debian/copyright`'s paragraphs for the first two do too, saying that the original's changes are under the AGPL,
+  as its `Files: *` and `ScriptSite.h` paragraphs now give his years as 2005-2026; the RFC 7208 suite's table,
+  `SPFConformanceSuite.cpp`, has the suite's licence (BSD-3-Clause) and holders beside the header's, in `REUSE.toml`
+  and in a paragraph of `debian/copyright`, and its generator writes the suite's notice into its header, the table
+  itself unchanged. And `LICENSES/` holds the text of each of
   the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote them and
   each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and `LicenseRef-StdString` as
   `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the plain text of SQL Server
@@ -894,9 +908,13 @@ with `--check`).
   stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by its digest:
   reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with poetry-core
   2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and libmagic
-  for each file's encoding; `reuse lint` must pass, and then refuse each of three negative controls put in the
-  checkout - a new C++ source without the header, a header naming a licence `LICENSES/` lacks, and a licence text no
-  file names. Renovate reads the two `.in` files and leaves the `.txt` files, as it does the others. CONTRIBUTING.md
+  for each file's encoding; `reuse lint` must pass, `generate-reuse-original.py --check` too, and its `--holders` over
+  `reuse lint --json`, which refuses a record of one of the original's files, but the third parties', that does not
+  name Martin Knafve; and then six negative controls must each be refused by name - five files put in the checkout,
+  a new C++ source without the header, a new registration script beside the original's in `Server/COM` and a new
+  fixture beside the original's in the Windows suite's `Resources`, neither with a header, a header naming a licence
+  `LICENSES/` lacks, and a licence text no file names, and a table put in `REUSE.toml` that gives one of the
+  original's files the maintainers alone, which `--holders` refuses. Renovate reads the two `.in` files and leaves the `.txt` files, as it does the others. CONTRIBUTING.md
   says how to mark a new file and the job's section in `ContinuousIntegration.md` what it runs. No REUSE badge yet:
   the REUSE API's needs the repository registered, which is the owner's step.
 

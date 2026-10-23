@@ -90,13 +90,15 @@ Files-Excluded:
  hmailserver/test/TestData/DKIM/PermFail/port25.response.txt
 
 Files: *
-Copyright: 2005-2014 Martin Knafve / hMailServer.com
+Copyright: 2005-2026 Martin Knafve / hMailServer.com
            2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+
 Comment:
  The project is a maintained fork of hMailServer, whose files carried Martin
  Knafve's notice; the maintainers' header replaced it in each file in 2026, and
- the ported files say where they came from. The AssemblyInfo.cs of the Windows
+ the ported files say where they came from. REUSE.toml names him beside the
+ header for each of the original's files, listed from the original's tags by
+ build/generate-reuse-original.py. The AssemblyInfo.cs of the Windows
  test projects carry the copyright strings Visual Studio's project template
  fills in from the machine it ran on ("Halvar Information", "Microsoft 2010"
  in one); those projects are the upstream project's own, like the rest.
@@ -151,12 +153,16 @@ Files: hmailserver/source/Server/Common/Mime/Mime.cpp
        hmailserver/source/Server/Common/Mime/MimeCode.h
        hmailserver/source/Server/Common/Mime/MimeType.cpp
 Copyright: 2003 Jeff Lee
+           2005-2026 Martin Knafve / hMailServer.com
            2026 Christopher Holloway / Progressive Robot Ltd
 License: BSD-1-clause and AGPL-3+
 Comment:
  Jeff Lee's MIME encoder and decoder, under his notice, which each file keeps
- below the project's header; the maintainers have changed them since 2026, and
- their changes are under the AGPL, as the header says.
+ below the project's header. Martin Knafve changed them in the original
+ hMailServer (his commits to them run from the first of its history, in 2014,
+ to 2026), and the maintainers have since 2026; the original's changes are
+ under its licence, the AGPL, and the maintainers' under the AGPL, as the
+ header says.
 
 Files: hmailserver/docs/Licenses/License?-?MIME?Message?encoder?analyzer.rtf
 Copyright: 2003 Jeff Lee
@@ -164,12 +170,15 @@ License: BSD-1-clause
 
 Files: hmailserver/source/Server/Common/Util/StdString.h
 Copyright: 2002 Joseph M. O'Leary
+           2005-2026 Martin Knafve / hMailServer.com
            2026 Christopher Holloway / Progressive Robot Ltd
 License: StdString and AGPL-3+
 Comment:
  Joseph M. O'Leary's CStdString, under his notice, which the file keeps below
- the project's header; the maintainers have changed it since 2026, and their
- changes are under the AGPL, as the header says.
+ the project's header. Martin Knafve changed it in the original hMailServer
+ (his commits to it run from 2014 to 2026), and the maintainers have since
+ 2026; the original's changes are under its licence, the AGPL, and the
+ maintainers' under the AGPL, as the header says.
 
 Files: hmailserver/docs/Licenses/License?-?String?library.rtf
 Copyright: 2002 Joseph M. O'Leary
@@ -182,6 +191,21 @@ Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
            2007-2008 Julian Mehnle <julian@mehnle.net>
            2014 Scott Kitterman <scott@kitterman.com>
 License: BSD-3-clause
+
+Files: hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceSuite.cpp
+Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
+           2007-2008 Julian Mehnle <julian@mehnle.net>
+           2014 Scott Kitterman <scott@kitterman.com>
+           2005-2026 Martin Knafve / hMailServer.com
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: BSD-3-clause and AGPL-3+
+Comment:
+ The suite's zones and cases, transcribed into a C++ table from
+ rfc7208-tests.yml above by Generate-SPFConformanceSuite.py, which writes the
+ suite's notice into the file's header; ported, generator and all, from the
+ original hMailServer's commit 1beaeab9, whose file carries Martin Knafve's
+ notice. It is compiled with the server's core, and spf-tests, one of the
+ tester programs the build runs, runs the suite from it.
 
 Files: hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h
 Copyright: Mozilla Foundation and the Public Suffix List's contributors
@@ -242,7 +266,7 @@ Comment:
 
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
-           2005-2014 Martin Knafve / hMailServer.com
+           2005-2026 Martin Knafve / hMailServer.com
            2026 Christopher Holloway / Progressive Robot Ltd
 License: ScriptSite and AGPL-3+
 Comment:

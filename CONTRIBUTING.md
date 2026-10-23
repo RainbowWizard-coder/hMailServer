@@ -527,6 +527,7 @@ file differs from what it would write. After changing the input, run it without 
 | `python build/generate-auth-matrix.py [--check]` | `hmailserver/docs/WebAuthorisationMatrix.md` | The route parser (`ParseRoute_` and the three parsers it calls), `Authorize_` and the functions whose lists it reads, the built-in roles' permissions in `RoleManager.cpp` (the permission lines of their functions) and the permissions and route kinds of `RoleManager.h`'s and `RestApiServer.h`'s enumerations, each one's value its place, the report's sections counted from server-wide metrics in `RestApiReports.cpp`, and the two listeners' anonymous routes. The steps of `Authorize_`, of the functions whose lists it reads, of the built-in roles' functions, the `Bit` they set a permission with and `RoleManager::BuiltInPermissions_`, of `RoleManager::Allows` and the `RoleGrant::Holds` and `RoleManager::IsDomainReached_` it asks, of `IsDomainAllowed_`, of `IsServerWideReportSection_` and the `FindSection` it asks, and of `ProcessRequest_` between the credential and the handler are held to its `STEPS`: one changed stops it until `decide()` has been read against it and `STEPS` updated (`--steps` prints them), and a definition it reads that stands inside a conditional of the preprocessor, or holds one, or is not the only definition of its name in its file, stops it too, as do a directive of the preprocessor of any other kind inside what it reads - an `#include`, which brings in code it never sees - and an enumerator whose value is not its place. It reads the code as the compiler's first three translation phases do: what a comment or a literal holds is not read, a directive is one wherever it begins a line, and a form it does not read as the compilers do, such as a backslash with spaces after it at a line's end, stops it. `Authenticate_` and the grants `RoleManager` makes for it, the string helpers, a macro defined elsewhere over a name those functions use, an overload of one of them defined in another file and the functions `ProcessRequest_`'s other checks call are not held. `--self-test` breaks the source in memory and proves each flag still fires and each changed step stops it |
 | `build/generate-settings-index.ps1` (either PowerShell) | `ControlPanel/Services/SettingsSearchIndex.g.cs` | The Control Panel's settings pages; check with `git diff` afterwards |
 | `python build/add-license-headers.py [--check]` | The licence header on every source file | See [below](#code-style-and-licence-headers) |
+| `python build/generate-reuse-original.py [--check]` | `build/reuse-original-paths.txt`, and `REUSE.toml`'s two tables of the original's files | The original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` and the fork's first commit (the list, where the clone has them; a depth-1 clone checks the tables against the list as committed), and the tree; `--holders` holds `reuse lint --json` to it, which the *reuse* job runs ([REUSE](#code-style-and-licence-headers)) |
 
 `build/generate-public-suffix-list.ps1` regenerates `PublicSuffixListData.h` and has no check mode.
 `python build/find-stale-roadmap-rows.py` is an audit, not a gate: it lists not-started roadmap rows that name
@@ -550,7 +551,7 @@ something which already exists.
 
 | You changed | Run at least |
 |---|---|
-| Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py`; `build/ci/reuse-lint.sh` when you add a file or a third party's code |
+| Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py`; `build/ci/reuse-lint.sh` when you add, remove or rename a file, or add a third party's code |
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `generate-auth-matrix.py` (and commit the matrix it writes; if it stops on a changed step, read `decide()` against the step and update `STEPS`), `check-cli.py` if a client verb changed |
@@ -590,11 +591,17 @@ something which already exists.
 * **REUSE.** Every file of the tree has its copyright and its licence, as the
   [REUSE Specification 3.3](https://reuse.software/spec-3.3/) asks: a source file by the header above, and
   a file that cannot carry one - a document, a picture, a project or data file, a test fixture, a third
-  party's tree - by a table of [REUSE.toml](REUSE.toml), by directory and kind of file, whose comments say
-  which holders each one names. A third party's file keeps its own licence and holders, never the
-  project's: its table names them, and a source of the project's that holds a third party's code under the
-  header (the MIME classes, `StdString.h`, the generated tables) has the third party's licence added beside
-  the header's (`precedence = "aggregate"`). Every licence named, in a header or in REUSE.toml, has its text
+  party's tree - by a table of [REUSE.toml](REUSE.toml), whose comments say which holders each one names.
+  The original hMailServer's files name Martin Knafve as a holder beside the header, in two tables that
+  `build/generate-reuse-original.py` writes from the original's own tags, file by file (run it after
+  removing or renaming one of them, and `--check` says whether they are current); a table further down
+  that names one of them has to name him too, which the *reuse* job holds. A file the fork adds is
+  classified by hand: in a directory of the original's, by its own path in the fork's table, so that a
+  new file there without a header fails the job until it is. A third party's file keeps its own licence
+  and holders, never the project's: its table names them, and a source of the project's that holds a
+  third party's code under the header (the MIME classes, `StdString.h`, the generated tables) has the
+  third party's licence added beside the header's (`precedence = "aggregate"`). Every licence named, in a
+  header or in REUSE.toml, has its text
   in [LICENSES/](LICENSES) as `<SPDX identifier>.txt` - SPDX's own text for an identifier on SPDX's list,
   and a `LicenseRef-` text of the project's for one that is not - and LICENSES/ holds no other. A new file
   without the header that no table covers fails the *reuse* job, which runs `reuse lint`
