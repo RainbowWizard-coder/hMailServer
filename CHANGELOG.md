@@ -557,18 +557,23 @@ with `--check`).
   ASSURANCE-CASE.md or a page of `hmailserver/docs` that shows the slsa.dev badge of level 2, 3 or 4
   (`gh-badge-level3`, `SLSA-Badge-full-level3` and the like) whatever its text says, that affirms a higher level
   ("meets Build L2", "at SLSA level 3") with a word that is not itself negated, or that names a higher level with no
-  negation attached to it. It reads a level in any case, in words after L or level, and with a hyphen or `%20` where
-  a space may stand, from "Build L2" and "SLSA build level 2" to "SLSA level two", "SLSA-3" and a shields.io badge's
-  "SLSA-level%203"; alone, as "level 3" or "L3", in a clause that says SLSA; and in a list or range that runs on from
-  Build L1 ("Build L1 and L2", "SLSA levels 1 to 3"). A negation is attached to a level when it stands right before
-  it in its clause - "not", "nor", "neither", "no", "never" or n't with nothing between but such words as "meet",
-  "at", "even" or "is" ("does not meet Build L2", "nor is Build L3"), or "short of" or "below" with no negation before
-  them ("falls short of Build L2", where "nothing short of" is a claim) - or right after it: "is not met", "isn't
-  met", "has not been met", "cannot be met" and the like, "is not" at the clause's end, "does not hold", "not met"
-  after a colon, a bar, a bracket or a dash, "no" at the clause's end ("| Build L2 | No |"), "unmet" and "out of
-  reach". A negation about something else says nothing of the level, so "Build L3 holds for every file, not only the
-  installers", "We publish SLSA Build L3 provenance that is not forgeable" and "Build L3 is not a goal but a fact" are
-  refused, as is a sentence that names a higher level and says nothing of its being met.
+  negation attached to it. It reads a level in any case, in words after L or level, and with a hyphen, an underscore or
+  `%20` where a space may stand, from "Build L2" and "SLSA build level 2" to "SLSA level two", "SLSA-3" and a
+  shields.io badge's "SLSA-level%203", "SLSA-level_3" or "SLSA_level-3"; alone, as "level 3" or "L3", where its clause
+  says SLSA, or the clause before the bracket it stands in does ("SLSA provenance (L3)"), or, with nothing but spaces
+  or an opening bracket between it and a colon or a closing bracket before it, the clause before that colon or bracket,
+  or the clause before the bracket that one stands in, does ("SLSA: level 3", "SLSA (v1.0) level 3", "Supply-chain
+  Levels for Software Artifacts (SLSA) level 3"); and in a list or range that runs on from a level, its later levels
+  with or without L or level before them ("Build L1 and L2", "SLSA levels 1, 2 and 3", "Build levels 1 or 2", "SLSA
+  levels 1 to 3"). A negation is attached to a level when it stands right before it in its clause - "not", "nor",
+  "neither", "no", "never" or n't with nothing between but such words as "meet", "at", "even" or "is" ("does not meet
+  Build L2", "nor is Build L3"), or "short of" or "below" with no negation before them ("falls short of Build L2",
+  where "nothing short of" is a claim) - or right after it: "is not met", "isn't met", "has not been met", "cannot be
+  met" and the like, "is not" at the clause's end, "does not hold", "not met" after a colon, a bar, a bracket or a
+  dash, "no" at the clause's end ("| Build L2 | No |"), "unmet" and "out of reach". A negation about something else
+  says nothing of the level, so "Build L3 holds for every file, not only the installers", "We publish SLSA Build L3
+  provenance that is not forgeable" and "Build L3 is not a goal but a fact" are refused, as is a sentence that names a
+  higher level and says nothing of its being met.
 
 ### Control Panel
 

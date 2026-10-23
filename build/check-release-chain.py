@@ -1590,24 +1590,33 @@ SLSA_CLAIMS = {
     "hmailserver/docs/ContinuousIntegration.md": "**The provenance's SLSA Build level.** Build L1 of SLSA v1.0",
     "hmailserver/docs/EvidencePack.md": "meets SLSA v1.0 Build L1 for every file it names, and no higher level is claimed",
 }
-# A level named, in any case, with a space, a hyphen or %20 (as in a badge's address)
-# wherever a space may stand (SLSA_MENTION): SLSA, then v1.x or 1.x, build and track,
-# each if there, then L or level(s) and the level, or its figure alone (SLSA 3, SLSA-3,
-# SLSA3); or Build, or build track, then L or level(s) and the level. And, where it is
-# in no such mention and its clause, or the clause before the bracket it stands in,
-# says SLSA, L or level(s) and the level alone (SLSA_BARE: "SLSA provenance at level
-# 3", "Level 3 SLSA provenance", "SLSA's level 3"). A level is a figure from 1 to 4, or
-# after L or level its word (SLSA v0.1 had a fourth); a list or range of levels that
-# runs on from one, by a comma, a slash, "and", "or", "nor", a hyphen or a dash, "to" or
-# "through", is one mention ("Build L1 and L2", "Build L2 nor Build L3", "Build L1-L3",
-# "SLSA levels 1 to 3"); and a mention names a higher level when one of its levels is
-# 2, 3 or 4 (slsa_names_higher). The slsa.dev badge of level 2, 3 or 4
-# (gh-badge-level3, SLSA-Badge-full-level3) is refused whatever its text says.
-SLSA_SEP = r"(?:%20|[\s-])"
+# A level is named, in any case and with a space, a hyphen, an underscore (which a
+# shields.io badge writes for a space) or %20 (as in a badge's address) wherever a
+# space may stand (SLSA_SEP), as SLSA, then v1.x or 1.x, build and track, each if
+# there, then L or level(s) and the level, or its figure alone (SLSA_MENTION: SLSA 3,
+# SLSA-3, SLSA3, SLSA_level-3); or as Build, or build track, then L or level(s) and
+# the level. And, where it is in no such mention, as L or level(s) and the level
+# alone (SLSA_BARE) where its clause says SLSA ("SLSA provenance at level 3", "Level
+# 3 SLSA provenance", "SLSA's level 3"), or the clause before the bracket it stands
+# in does ("The SLSA provenance (L3)"), or, with nothing but spaces or an opening
+# bracket between it and a colon or a closing bracket before it, the clause before
+# that colon or bracket, or the clause before the bracket that one stands in, does
+# ("SLSA: level 3", "Supply-chain Levels for Software Artifacts (SLSA) level 3",
+# "SLSA (v1.0) level 3"). A level is a figure from 1 to 4, or after L or level its
+# word (SLSA v0.1 had a fourth). A list or range of levels that runs on from one is
+# one mention (SLSA_RUN): a comma, a slash, "and", "or" or "nor", then SLSA and build
+# if there, then L or level(s) and the next level or its figure alone ("Build L1 and
+# L2", "SLSA levels 1, 2 and 3", "Build levels 1 or 2", "Build L2 nor Build L3"); or
+# a hyphen, a dash or a slash right after a level, or "to" or "through", then L or
+# level(s) and the next level or its figure alone ("Build L1-L3", "SLSA levels 1 to
+# 3"). A mention names a higher level when one of its levels is 2, 3 or 4
+# (slsa_names_higher). The slsa.dev badge of level 2, 3 or 4 (gh-badge-level3,
+# SLSA-Badge-full-level3) is refused whatever its text says.
+SLSA_SEP = r"(?:%20|[\s_-])"
 SLSA_LEVEL = r"(?:L" + SLSA_SEP + r"?|levels?" + SLSA_SEP + r"*)(?:[1-4]|one|two|three|four)\b"
 SLSA_RUN = (r"(?:" + SLSA_SEP + r"*(?:,|/|,?\s*\b(?:and|or|nor)\b)" + SLSA_SEP + r"*(?:SLSA" + SLSA_SEP + r"+)?(?:build" +
-            SLSA_SEP + r"+)?" + SLSA_LEVEL + r"|(?:[-\u2013\u2014/]|" + SLSA_SEP + r"+(?:to|through)" + SLSA_SEP + r"+)(?:" +
-            SLSA_LEVEL + r"|[1-4]\b))*")
+            SLSA_SEP + r"+)?(?:" + SLSA_LEVEL + r"|[1-4]\b)|(?:[-\u2013\u2014/]|" + SLSA_SEP + r"+(?:to|through)" +
+            SLSA_SEP + r"+)(?:" + SLSA_LEVEL + r"|[1-4]\b))*")
 SLSA_MENTION = re.compile(r"\bSLSA" + SLSA_SEP + r"*(?:v?1\.[0-9]" + SLSA_SEP + r"+)?(?:build" + SLSA_SEP +
                           r"+)?(?:track" + SLSA_SEP + r"+)?(?:" + SLSA_LEVEL + r"|[1-4]\b)" + SLSA_RUN +
                           r"|\bbuild" + SLSA_SEP + r"+(?:track" + SLSA_SEP + r"+)?" + SLSA_LEVEL + SLSA_RUN, re.IGNORECASE)
@@ -1627,17 +1636,16 @@ SLSA_BADGE = re.compile(r"slsa\.dev/images/[\w./%-]*?level[-_]?[234](?![0-9])", 
 # not", "was not", "has not been", "cannot be", "will not be" and the like, then any of
 # "yet", "either", "even", "currently", "now", "here" and "today", then "met",
 # "claimed", "reached", "achieved", "attained", "satisfied" or "held" or the clause's
-# end ("Build L2 is not."); "does not", "doesn't" and the like with "hold" or "apply"
-# (not "hold back", "hold up" and the like) or the clause's end; "not met", "not
-# claimed", "not reached", "not achieved", "not held"; "unmet", "is unmet", "remains
-# unmet"; "no" at the clause's end ("| Build L2 | No |"); or "is", "are" or "remains"
-# out of or beyond reach ("Build L2: not met.", "Build L2, Build L3 and Build L4 are
-# not met."). A negation
-# about something else says nothing of the level, so "Build L3 holds for every file,
-# not only the installers", "We publish SLSA Build L3 provenance that is not
-# forgeable" and "Build L3 is not a goal but a fact" are each refused, and so is a
-# sentence that names a higher level and says nothing of it being met, such as "Build
-# L2 would need a hosted build platform".
+# end ("Build L2, Build L3 and Build L4 are not met.", "Build L2 is not."); "does
+# not", "doesn't" and the like with "hold" or "apply" (not "hold back", "hold up" and
+# the like) or the clause's end; "not met", "not claimed", "not reached", "not
+# achieved", "not held" ("Build L2: not met."); "unmet", "is unmet", "remains unmet";
+# "no" at the clause's end ("| Build L2 | No |"); or "is", "are" or "remains" out of
+# or beyond reach. A negation about something else says nothing of the level, so
+# "Build L3 holds for every file, not only the installers", "We publish SLSA Build L3
+# provenance that is not forgeable" and "Build L3 is not a goal but a fact" are each
+# refused, and so is a sentence that names a higher level and says nothing of it
+# being met, such as "Build L2 would need a hosted build platform".
 SLSA_CLAUSE_END = re.compile(r"[,;:()]|\s[-\u2013\u2014]\s")
 SLSA_NOT = r"(?:\b(?:not|nor|neither|no|never)\b|n['\u2019]t\b)"
 SLSA_NEG_BEFORE = re.compile(SLSA_NOT + r"\s+(?:(?:meet|meets|meeting|reach|reaches|reaching|claim|claims|claiming|achieve|"
@@ -1704,7 +1712,11 @@ def slsa_names_higher(mention):
 def slsa_higher_mentions(sentence):
     """The matches in sentence that name a higher level: of SLSA_MENTION, and of
     SLSA_BARE where it is in no SLSA_MENTION and its clause, or the clause before the
-    bracket it stands in ("SLSA provenance (L3)"), says SLSA."""
+    bracket it stands in ("SLSA provenance (L3)"), says SLSA; or, where nothing but
+    spaces or an opening bracket stands between it and a colon or a closing bracket
+    before it, the clause before that colon or bracket, or the clause before the
+    bracket that one stands in, says SLSA ("SLSA: level 3", "Supply-chain Levels for
+    Software Artifacts (SLSA) level 3", "SLSA (v1.0) level 3")."""
     mentions = list(SLSA_MENTION.finditer(sentence))
     for bare in SLSA_BARE.finditer(sentence):
         if any(bare.start() < m.end() and m.start() < bare.end() for m in mentions):
@@ -1712,6 +1724,10 @@ def slsa_higher_mentions(sentence):
         first, stop = slsa_clause(sentence, bare.start(), bare.end())
         if first and sentence[first - 1] == "(":
             first = slsa_clause(sentence, first - 1, first - 1)[0]
+        while first and sentence[first - 1] in ":)" and not sentence[first:bare.start()].strip(" ("):
+            first = slsa_clause(sentence, first - 1, first - 1)[0]
+            if first and sentence[first - 1] == "(":
+                first = slsa_clause(sentence, first - 1, first - 1)[0]
         if re.search(r"\bSLSA", sentence[first:stop], re.IGNORECASE):
             mentions.append(bare)
     return [m for m in mentions if slsa_names_higher(m.group())]
@@ -9463,10 +9479,11 @@ def self_test(chain, feed):
     # And each of these, read alone as a sentence of the README: a level is refused
     # where no negation is attached to it - a "not" elsewhere in the sentence, even in
     # its clause, says nothing of it - or where it is affirmed beside a not, in any case,
-    # in words, with a hyphen or %20, as a list that runs on from Build L1, alone in a
-    # clause that says SLSA, and as the slsa.dev badge whatever its text says; and a
-    # level said not to be met by words attached to it, or a Build L1 badge, is let
-    # through.
+    # in words, with a hyphen, an underscore or %20, as a list that runs on from level
+    # 1 with or without L or level before its later levels, alone in a clause that says
+    # SLSA or right after a colon or a closing bracket that follows SLSA, and as the
+    # slsa.dev badge whatever its text says; and a level said not to be met by words
+    # attached to it, or a Build L1 badge, is let through.
     slsa_held = len(slsa_level_problems(texts["slsa-docs"]))
     for sentence, refused in (
             ("Build L3 holds for every file, not only the installers.", True),
@@ -9489,6 +9506,11 @@ def self_test(chain, feed):
             ("The SLSA provenance (L3) ships with every release.", True),
             ("Build L1 and L2 hold for every file.", True),
             ("6.3.7 meets Build L2 (not met by 6.3.6).", True),
+            ("The release meets SLSA Build levels 1 and 2.", True),
+            ("The provenance meets SLSA levels 1, 2 and 3.", True),
+            ("SLSA: level 3.", True),
+            ("The release meets Supply-chain Levels for Software Artifacts (SLSA) level 3.", True),
+            ("[![SLSA](https://img.shields.io/badge/SLSA-level_3-green)](https://slsa.dev)", True),
             ("Build L2 is not met, for two reasons.", False),
             ("Neither Build L2 nor Build L3 holds.", False),
             ("The provenance meets Build L1, not Build L2.", False),
