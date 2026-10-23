@@ -452,8 +452,8 @@ with `--check`).
   `org.opencontainers.image.title` and `description` labels, which registries and Artifact Hub show, say the same.
   Both reach the store and the registries with the next release's snaps and image; 6.3.7's keep their own text.
 - **The Chocolatey package, the Helm chart, the container image and the snap show the fork's icon.** None of them had
-  one, and Chocolatey's automated validation of 6.3.7's package, on 21 and 22 October 2026, gave as a guideline "The
-  iconUrl should be added if there is one". The icon is the fork's own, the Control Panel's
+  one, and Chocolatey's automated validation of each of 6.3.7's three packages, on 21, 22 and 23 October 2026, gave
+  as a guideline "The iconUrl should be added if there is one". The icon is the fork's own, the Control Panel's
   (`hmailserver/source/Tools/ControlPanel/app.ico`, "hM" in white on a blue-to-violet square, which the original
   hMailServer's tags in this repository do not have): its 256 by 256 frame, a PNG of 7,851 bytes, is now
   `hmailserver/source/Server/platform/packaging/hmailserver.png`, byte for byte as the `.ico` holds it. The snap names
@@ -476,7 +476,8 @@ with `--check`).
   release's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
 - **The Chocolatey package's `projectSourceUrl` is the tree of the version's tag.** It was
   `https://gitlab.com/hmailserver/hmailserver`, the project's home, as `projectUrl` is, and Chocolatey's automated
-  validation of both of 6.3.7's packages gave as a guideline "ProjectUrl and ProjectSourceUrl are typically different,
+  validation of each of 6.3.7's three packages, on 21, 22 and 23 October 2026, gave as a guideline "ProjectUrl and
+  ProjectSourceUrl are typically different,
   but not always. Please ensure that projectSourceUrl is pointing to software source code or remove the field from the
   nuspec." It is now `https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>`, the release's own source, named
   by the template's `@TAG@`, as `releaseNotes` is; a package is made only for a published release, whose tag is there

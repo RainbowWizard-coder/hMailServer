@@ -176,8 +176,8 @@ the container image and the snap show too ([ContainerImage.md](ContainerImage.md
 [Snap.md](Snap.md)). It is the file on `master`, not at the version's tag: a
 release's package is rendered from `master`'s templates, and the tags of 6.3.7 and
 earlier have no such file. GitLab serves it as `image/png`, inline. Chocolatey's
-automated validation of both of 6.3.7's packages, at 00:19 UTC on 21 October 2026
-and at 01:39 UTC on 22 October, gave as a guideline (which does not hold a package
+automated validation of each of 6.3.7's three packages, at 00:19 UTC on 21 October
+2026, at 01:39 UTC on 22 October and at 01:32 UTC on 23 October, gave as a guideline (which does not hold a package
 back) "The iconUrl should be added if there is one"; any package `chocolatey-publish`
 renders from `master` once the icon is there carries it, a version sent again among
 them.
@@ -189,8 +189,8 @@ without `--offline`, also asks that the address answer as `image/png`.
 **The source.** The nuspec's `projectSourceUrl` is the tree of the version's tag,
 `https://gitlab.com/hmailserver/hmailserver/-/tree/v<version>`, the release's own
 source, where it was the project's home, as `projectUrl` is, in the packages pushed
-until now, both of 6.3.7's among them. The same validation said of both of 6.3.7's packages, as a
-guideline, "ProjectUrl and ProjectSourceUrl are typically different, but not
+so far, all three of 6.3.7's among them. The same validation said of each of 6.3.7's
+three packages, as a guideline, "ProjectUrl and ProjectSourceUrl are typically different, but not
 always. Please ensure that projectSourceUrl is pointing to software source code or
 remove the field from the nuspec." A package is made only for a published release,
 so its tag is there when the package is pushed. `build/make-package-manifests.ps1`
