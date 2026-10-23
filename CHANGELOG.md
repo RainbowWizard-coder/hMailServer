@@ -1285,9 +1285,9 @@ earlier version: **upgrade every server running 6.3.6 or earlier.** The schema s
   same two work items. A forward, a redirect, a list's copy or an alias's copy of mail from outside - a forward of a
   message downloaded from an external account among them - is given an envelope sender, or for a null one is sent under
   a host name, in the organisation of a domain its `From` names only when the message passed DMARC for it on arrival
-  (work items 90 and 91; CVE requested). Without a CVE request, as hardening: an ARC seal this server makes attests its
-  own SPF result, is made by the domain that relayed the message, and names the domains its results are for. All found
-  by the project's own review.
+  (work items 90 and 91; CVE-2026-114478 and CVE-2026-114474). Without a CVE request, as hardening: an ARC seal this
+  server makes attests its own SPF result, is made by the domain that relayed the message, and names the domains its
+  results are for. All found by the project's own review.
 - **The rule loop limit** ([work item 81](https://gitlab.com/hmailserver/hmailserver/-/work_items/81),
   CVE-2026-107569). Any sender could lift the limit off a message, an account's own Sieve script or rule could reset
   it, and a Sieve `notify` did not consult it, so that a loop of generated mail could run without bound, in every
@@ -1298,21 +1298,22 @@ earlier version: **upgrade every server running 6.3.6 or earlier.** The schema s
   administrator, its list aside, and over both a role could be taken away from an account by a credential that does not
   hold what the account's admin level then gives it; a browser that held a REST credential could be made to send a
   state-changing request from another site; and the ACME challenge responder served one connection at a time, so that
-  idle clients could make a certificate's renewal fail (work items 86, 87, 88, 89, 93, 96 and 97; CVE requested). Found
-  by the project's own reviews.
+  idle clients could make a certificate's renewal fail (work items 86, 87, 88, 89, 93, 96 and 97; CVE-2026-114489,
+  CVE-2026-114490, CVE-2026-114476, CVE-2026-114475, CVE-2026-114470, CVE-2026-114477 and CVE-2026-114472). Found by the
+  project's own reviews.
 - **The anti-virus action that removes attachments** delivered a message whose one part is an attachment, and an S/MIME
   message signed as one part, as they arrived, with what the scanner had found in them, in every version; 6.3.7 replaces
-  each with the action's note, and deletes a message the server cannot read (work item 92; CVE requested). The default
+  each with the action's note, and deletes a message the server cannot read (work item 92; CVE-2026-114479). The default
   action, which deletes the message, was never affected. Found by the project's review of this release.
 - **Keys left in memory.** `--import-stored-secrets-key`, and the reading of the stored-secrets key from its line,
   left copies of the key in memory freed without being written over, from 6.3.4 (found by the project's own review);
   and a mailbox key encrypted at rest stayed open past `MailboxKeyIdleMinutes` for as long as the scheduled tasks held
   up their minute, from 6.3.4 (found by the batch's regression gate).
 - **Found by upstream hMailServer, in code this project shares with it:** with SRS on, mail to an SRS address this
-  server had handed out was not held to the relay rules, from 6.2.1 (work item 94; CVE requested), and an SRS address or
-  a BATV tag almost a whole cycle old was taken for fresh (upstream PR 649); a SASL PLAIN client that asked to act as
+  server had handed out was not held to the relay rules, from 6.2.1 (work item 94; CVE-2026-114473), and an SRS address
+  or a BATV tag almost a whole cycle old was taken for fresh (upstream PR 649); a SASL PLAIN client that asked to act as
   another account was signed in as itself and told it had succeeded (upstream issue 652); and the SMTP log wrote some
-  credentials in the clear (upstream issue 654; work item 95; CVE requested).
+  credentials in the clear (upstream issue 654; work item 95; CVE-2026-114471).
 - **What the Windows installers carry.** The .NET Desktop Runtime 10.0.13, Microsoft's security release of 13 October
   2026, where the installers of 6.3.4 to 6.3.6 carried 10.0.12 (*The .NET 10 Desktop Runtime*, below); and, as the
   MySQL and MariaDB client, MariaDB Connector/C 3.4.11, where 6.2.3 to 6.3.6 carried 3.4.9, which has CVE-2026-107819.
@@ -1559,7 +1560,7 @@ the old folder is deleted by hand. Found by the project's own review
   save, from the Control Panel as from a script. The server-wide **metric history** (`GET /api/v1/metrics/history`),
   counted from counters that carry no domain, is refused a confined credential as the report's server-wide sections
   already were. Found by the project's own web-surface review and handled under [SECURITY.md](SECURITY.md)
-  (work items 86, 89 and 96; CVE requested).
+  (work items 86, 89 and 96; CVE-2026-114489, CVE-2026-114475 and CVE-2026-114477).
   [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own".
 
 - **Fixed: the COM API holds a server-administrator role assigned with a domain list to those domains, as the
@@ -1579,7 +1580,7 @@ the old folder is deleted by hand. Found by the project's own review
   administrator. `RoleManager::Allows` answers `administer_server` only for a role that reaches every domain — the
   one rule `COMAuthentication::GetIsServerAdmin` and `RestApiServer::HoldsServerAuthority_` both read — and a role
   given no list of domains is unchanged. Found by the project's own review and handled under
-  [SECURITY.md](SECURITY.md) (work items 87 and 88; CVE requested).
+  [SECURITY.md](SECURITY.md) (work items 87 and 88; CVE-2026-114490 and CVE-2026-114476).
   [Roles.md](hmailserver/docs/Roles.md), "What names a domain beyond the credential's own" and "Giving somebody a
   role".
 
@@ -1593,7 +1594,7 @@ the old folder is deleted by hand. Found by the project's own review
   The subscribe form alone still takes `Origin: null`, as this server's own form can be posted with it by a browser
   too old to send `Sec-Fetch-Site`. Scripts, `hmctl` and the PowerShell module send no such header and are
   unaffected, as are the Deck and the webmail, which act on their own origin. Found by the project's own web-surface
-  review and handled under [SECURITY.md](SECURITY.md) (work item 93; CVE requested).
+  review and handled under [SECURITY.md](SECURITY.md) (work item 93; CVE-2026-114470).
   [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md).
 
 - **Fixed: the ACME HTTP-01 challenge responder served one connection at a time.** During a certificate
@@ -1601,7 +1602,7 @@ the old folder is deleted by hand. Found by the project's own review
   turn could keep the certificate authority's own request from being answered and make the renewal fail. The
   responder now serves connections concurrently, up to 64 at once, and closes a connection past that, so that an idle
   client holds only its own short-lived handler. Found by the project's own web-surface review
-  (work item 97; CVE requested).
+  (work item 97; CVE-2026-114472).
 
 - **Fixed: any sender could lift the rule loop limit off a message, an account's own Sieve script or rule could
   reset it, and a Sieve `notify` did not consult it.** The server counts the generated messages a message has been
@@ -1825,7 +1826,7 @@ the old folder is deleted by hand. Found by the project's own review
   alias that expands to an address outside and an ordinary third-party forward, all still sent; `SMTP.MailingLists`,
   `AntiSpam.Quarantine` and `SMTP.Journaling` find a list member's forward of a posting that passed, the forward of a
   message that passed released from the quarantine, and a journal mailbox's forward of its copy of one, sent on.
-  Found by the project's own review (work items 90 and 91; CVE requested).
+  Found by the project's own review (work items 90 and 91; CVE-2026-114478 and CVE-2026-114474).
 
 - **Changed: an authenticated SMTP submission is signed as another domain hosted here only when its account may send
   as the address its `From` names.** Authenticated SMTP does not hold the `From` header to the account
@@ -1934,7 +1935,7 @@ the old folder is deleted by hand. Found by the project's own review
   the address a download's header named for it, and not an address that reached no recipient of its own;
   `SealedMessageTester` holds `IsEncrypted` to the S/MIME and PGP/MIME shapes
   ([SealedMail.md](hmailserver/docs/SealedMail.md), "The "delete attachments" anti-virus action"). Found by the
-  project's review of this release (work item 92; CVE requested).
+  project's review of this release (work item 92; CVE-2026-114479).
 
 - **Fixed: a mailbox key encrypted at rest stayed open, its private half in memory, past `MailboxKeyIdleMinutes` for
   as long as the server's other scheduled tasks held up their minute.** The sweep that closes an idle key was the first
@@ -2025,8 +2026,7 @@ the old folder is deleted by hand. Found by the project's own review
   recipient named after it is answered `452 4.5.3`, which asks the client to send to it in a transaction of its own,
   rather than lost with it at `DATA`, and named after a recipient already taken it is refused at once, as any outside
   address is. `SMTP/Srs.cs` holds each, the refusal at `BDAT` as well as at `DATA`. Found by upstream's review of its
-  own SRS (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself (work item 94; CVE
-  requested).
+  own SRS (upstream PR 649), which shared the shape and refuses the `RCPT TO` itself (work item 94; CVE-2026-114473).
 
 - **Fixed: an SRS address or a BATV tag almost a whole cycle old was accepted as fresh, and a signature was compared
   in a time that said how much of it was right.** Both carry their day as a number that wraps - every 1024 days for
@@ -2059,7 +2059,7 @@ the old folder is deleted by hand. Found by the project's own review
   nothing called. Every line of a SASL exchange is hidden now but the user name of `AUTH LOGIN`, and `AUTH PLAIN` keeps
   its authentication identity, as before. `Security/SaslCredentialMasking.cs` sends each and reads the log; the
   evidence pack says what the logs hold. Found by upstream issue 654 (upstream PRs 656 and 661;
-  work item 95; CVE requested).
+  work item 95; CVE-2026-114471).
 
 ### What changes on upgrade without a switch
 
@@ -8531,7 +8531,7 @@ the old folder is deleted by hand. Found by the project's own review
   Unicode spelling of a listed name is covered by no row written in its `xn--` form, and the impersonation check's
   NFKC is still Windows' alone, the Unicode tables the Linux build compiles in being UTS 46's, which hold no
   compatibility decompositions.
-- **The 6.3.6 section names the CVE identifiers GitLab's CNA has assigned since the tag**, six so far, and says what
+- **The 6.3.6 section names six of the CVE identifiers it gave as requested at the tag**, and says what
   the correction notes posted on the CVE requests on release day establish: the string replacement and the header
   unfolding were reached in the default configuration by the DMARC test while a message was received, the replacement
   from 6.0.0; the SPF expansion by the DMARC test as well; the Sieve match since 6.2.22; the JSON reader's large
@@ -9067,7 +9067,7 @@ unsigned; under a signed zone such a lookup is indeterminate and the host is not
 asks, a delivery with no host left is deferred, a validated MX RRset decides which hosts are used, and an empty
 answer counts as no records only with the zone's NSEC or NSEC3 proof of it (What changes on upgrade, item 36). In
 every version up to 6.3.5; left so, it would have undone the DANE-TA and unusable-record changes above as well.
-Found by the project's second review of the release (CVE requested).
+Found by the project's second review of the release (CVE-2026-107584).
 
 The ManageSieve service (off by default, and on the loopback when it is turned on) served one connection at a time,
 and each read on a connection had a limit of its own with nothing bounding a command line, the TLS handshake after
@@ -9103,7 +9103,7 @@ no longer held on the server at all: the browser carries each one in its cookie,
 of the server process's, and only a finished sign-in is recorded, to make it good once, so no number of starts can
 push anybody's out; a passkey registration's challenge, which only a signed-in credential asks for, is held by that
 credential, fifty at most (item 33). Found by the project's own review and its second review of the
-release (CVE requested).
+release (CVE-2026-107586 and CVE-2026-107585).
 
 An account holding a role with `manage_settings` could put a key of the `[Settings]` section back to an earlier value
 through the audit trail's put-back, in 6.3.4 and 6.3.5, where that section answers to the administrator password
@@ -9133,7 +9133,7 @@ held its key could read it. This is in 6.3.2 to 6.3.5. In 6.3.6 a certificate is
 only under the From address the signature was checked against, and a different one for an address that has one only
 when the reader chooses **Keep this certificate** (What changes on upgrade, item 38). Certificates kept before the
 upgrade stay where they are: the Security page lists each with its address and fingerprint, and **Remove** takes one
-out ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)). Found by the project's own review (CVE requested).
+out ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)). Found by the project's own review (CVE-2026-107587).
 
 The webmail's view of a message's HTML (`GET /api/v1/me/messages/{id}/html`) put the images the message embeds back in
 place with work that grew with the square of the number of references to them, and wrote an image out again for every
@@ -9142,7 +9142,7 @@ workers for minutes and have it build a document of gigabytes; with a few of the
 the REST API stopped answering anybody. This is in 6.3.2 to 6.3.5. In 6.3.6 the route reads the HTML twice, once for
 the images it names and once as it writes them, in a time that grows with the HTML's size alone, and writes 24 MB of
 images at most in all, every reference counted (What changes on upgrade, item 39). Found by the project's own review
-(CVE requested).
+(CVE-2026-107583).
 
 The webmail inflated a compressed OpenPGP message in the reader's browser tab with no limit on its size, so a small
 message could take the tab's memory each time it was opened, in 6.3.4 and 6.3.5; the server was not affected. In 6.3.6
@@ -9165,7 +9165,7 @@ tens of seconds with nobody opening anything, and a stream of such messages held
 tasks, so that the server answered no received message while it lasted; and IMAP `FETCH ENVELOPE` and `SORT` by date
 read a message's Date field with it. So in every version from 6.0.0 up to 6.3.5. In 6.3.6 the server's string
 replacement, which these and the rest of the server use, writes a result of another length in one pass, and its removal
-of a character takes one pass too; what they make is as it was. Found by the project's own review (CVE requested).
+of a character takes one pass too; what they make is as it was. Found by the project's own review (CVE-2026-107582).
 
 An IP range's, an incoming relay's or a white-list entry's address set over COM - the Control Panel's IP ranges,
 incoming relays and white list pages, or a script - that the server could not read as an address was stored as
@@ -9204,8 +9204,8 @@ sections of one message add up to more than sixteen times the message is answere
 were read and held before any was sent - each section counted by what it reads or makes, not only by what it keeps:
 `BODY.PEEK[HEADER]<0.1>` read the message whole for its one byte, and `HEADER.FIELDS`, `HEADER.FIELDS.NOT`, `MIME`,
 `TEXT` and a part's content cut short read or made theirs whole, as often as a command named them. A `$` written into
-an element with anything else - `1:$` - is answered `BAD`, as no set. Found by the project's own review (CVE
-requested).
+an element with anything else - `1:$` - is answered `BAD`, as no set. Found by the project's own review
+(CVE-2026-107581).
 
 The commands an administrator runs no longer go where the service's account can lead them. Since 6.3.4 a new Windows
 installation runs the service as `NT SERVICE\hMailServer`, which has Modify on the program
@@ -9268,7 +9268,7 @@ Linux root store commands' symlink following; and in every release with Linux pa
 run as root - `--set-admin-password`, which the packages have said to run with `sudo` since 6.3.0, and from 6.3.4
 `--set-setting` and the stored-secrets commands among them - wrote its error reports into the service account's log
 directory, `/var/log/hmailserver`, opening the day's error log by name and so through a link planted there; it needs a
-program already running as the service's account and an administrator who then runs one of them (CVE requested).
+program already running as the service's account and an administrator who then runs one of them (CVE-2026-107578).
 `/GrantServiceAccess` also no longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the
 Application log when the administrator running it cannot open a SQL Server database reached with Windows authentication:
 the installer smoke VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and
@@ -9290,7 +9290,7 @@ original hMailServer's installer did. 6.3.6's installer makes the six private to
 service at every installation and upgrade, whatever account the service runs as (What changes on upgrade, item 45).
 On Linux the AppImage made its folders under the user's umask, 0755 under the usual 022, in a home other users may
 enter on many distributions; it now makes them 0700. The packages' folders were 0750 and their configuration 0640
-already. Found by the project's own review (CVE requested). [ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
+already. Found by the project's own review (CVE-2026-107573). [ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
 "What the other users of the computer may read".
 
 With bounce processing or complaint processing on, or a mailing list the list manager runs (none is by default),
@@ -9300,7 +9300,8 @@ leave at its front two bytes at a time, copying the rest of the part on each, so
 their number: 400,000 of them took eleven seconds, and the reader's 2 MB cap holds a million. A message shaped like a
 bounce to a local address or to a list's `-bounces` address, or like a feedback report to the complaint mailbox, is
 read this way without anyone opening it. The blank lines are now counted and cut off once. This is in every version
-that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review (CVE requested).
+that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review
+(CVE-2026-107579).
 
 A header field read as text - the Subject and From of the webmail's message list, the header keys of IMAP `SEARCH`,
 `SORT` and `THREAD`, a rule that tests a header, the spam tag put in front of a Subject, the abuse report reader, the
@@ -9316,7 +9317,8 @@ server answers it, so a sender holds that thread for seconds with each such mess
 This is in every version from 6.0.0 up to 6.3.5. In 6.3.6 the value is unfolded in one pass, to the same result. The
 reading of a message's header from its file had the same shape at a larger scale: after each 4,000 bytes it searched all
 it had read for the header's end, some five seconds for a header of 20 MB, the default largest message, at each of the
-several reads of a message; it now searches only what each read adds. Found by the project's own review (CVE requested).
+several reads of a message; it now searches only what each read adds. Found by the project's own review
+(CVE-2026-107580).
 
 A review of the whole server for the same shape - input a remote party controls, read in time quadratic in its size -
 found more of it, all fixed in one pass with the result unchanged, each proven against the previous code over generated
@@ -9334,7 +9336,7 @@ searched each to the end of the value, though such a word is copied as text and 
 name - the spam classification removed on delivery, the list manager stripping a posting's fields, the external-sender
 and impersonation taggers - took the fields one at a time, each a scan of the header and a move of its tail, so a header
 of many fields of one name cost their square (80,000 took 18.6 seconds); they are removed in one pass. All in every
-version from 6.0.0 up to 6.3.5 (CVE requested).
+version from 6.0.0 up to 6.3.5 (CVE-2026-107577).
 
 Verifying a received message's DKIM or ARC signatures built the canonical header and chose the fields the signature's
 `h=` names in time growing with the square of the message's header: the "simple" canonicalisation put each continuation
@@ -9343,30 +9345,30 @@ from the bottom for each `h=` name. A message whose header holds very many field
 lines, with a signature the sender signs for a domain they own so it reaches verification, held a worker thread for
 tens of seconds, and up to ten signatures are verified per message by each of the DKIM and DMARC tests, on the threads
 that serve delivery and SMTP. Each field is now built once and each `h=` name found in an index by name; what is hashed
-is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5 (CVE requested). Expanding an SPF mechanism's domain-spec cut a name
-too long to look up (RFC 7208 7.1) one label at a time, copying the rest each time, so a record the sender publishes
-with a macro that expands to a very long name made the SPF check - the SPF test's, or the DMARC test's, which is on by
-default and evaluates the sender's SPF itself - take several seconds (a domain-spec of 2,000 `%{s}` took 4.9 seconds);
-the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived (CVE requested). The JSON reader
-kept the first of each member name by searching the members already kept, so an object of many members cost their square
-(64,000 took 2.4 seconds); it reads the REST API's bodies and, where domain reports are on, a TLS report (RFC 8460)
-mailed in by anyone, of up to 16 MB, on the delivery queue, where a 4 MB report took about 300 seconds - a few such
-reports stopped all delivery for over an hour each. It now keeps a hash set. The reader is in the server from 6.2.28;
-the REST API's largest bodies, the webmail's send and draft of 16 MB, go through it whole from 6.3.2 (in 6.3.0 and 6.3.1
-what reached it was held to 64 KB), and the reports from 6.3.4 (CVE requested). Two more of the shape are fixed that
-need the attacker's own account or script rather than a stranger's message: a Sieve `:matches` test backtracked over
-every length of every `*` (`*a*a*a*b` over 800 characters took 44 seconds) and `deleteheader` erased its chosen fields
-one at a time, both over a sender's header but driven by the account holder's own filter script, on the delivery threads
-every account shares (since 6.2.22; CVE requested); and
-an IMAP `LIST` de-duplicated its result lines by searching a list
-for each (40,000 folders took 1.4 seconds a command), over the signed-in account's own folders (since 6.2.0). The Sieve match is now linear in the value times the
-pattern, and `LIST` keeps a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on
-took the stored event's `RDATE` values, rule parts, overrides and the server's own marks out one at a time, each a copy
-or a move of the rest; a stranger's invitation is filed on delivery, so its `RDATE` can be as long as the 1 MB a message
-is read for a calendar within allows, some 60,000 dates, in time growing with the square of their number (200,000 dates,
-more than that limit allows, took 21.6 seconds). Each is now one pass. The `RDATE`, rule-part, override and mark loops
-of the calendar are batch42's own and were never released; the `METHOD` and attendee `SENT-BY` loops beside them are in
-6.3.4 and 6.3.5. All found by the project's own review.
+is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5 (CVE-2026-107576). Expanding an SPF mechanism's
+domain-spec cut a name too long to look up (RFC 7208 7.1) one label at a time, copying the rest each time, so a record
+the sender publishes with a macro that expands to a very long name made the SPF check - the SPF test's, or the DMARC
+test's, which is on by default and evaluates the sender's SPF itself - take several seconds (a domain-spec of 2,000
+`%{s}` took 4.9 seconds); the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived
+(CVE-2026-107575). The JSON reader kept the first of each member name by searching the members already kept, so an
+object of many members cost their square (64,000 took 2.4 seconds); it reads the REST API's bodies and, where domain
+reports are on, a TLS report (RFC 8460) mailed in by anyone, of up to 16 MB, on the delivery queue, where a 4 MB report
+took about 300 seconds - a few such reports stopped all delivery for over an hour each. It now keeps a hash set. The
+reader is in the server from 6.2.28; the REST API's largest bodies, the webmail's send and draft of 16 MB, go through it
+whole from 6.3.2 (in 6.3.0 and 6.3.1 what reached it was held to 64 KB), and the reports from 6.3.4 (CVE-2026-107574).
+Two more of the shape are fixed that need the attacker's own account or script rather than a stranger's message: a Sieve
+`:matches` test backtracked over every length of every `*` (`*a*a*a*b` over 800 characters took 44 seconds) and
+`deleteheader` erased its chosen fields one at a time, both over a sender's header but driven by the account holder's
+own filter script, on the delivery threads every account shares (since 6.2.22; CVE-2026-107572); and an IMAP `LIST`
+de-duplicated its result lines by searching a list for each (40,000 folders took 1.4 seconds a command), over the
+signed-in account's own folders (since 6.2.0). The Sieve match is now linear in the value times the pattern, and `LIST`
+keeps a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on took the stored
+event's `RDATE` values, rule parts, overrides and the server's own marks out one at a time, each a copy or a move of the
+rest; a stranger's invitation is filed on delivery, so its `RDATE` can be as long as the 1 MB a message is read for a
+calendar within allows, some 60,000 dates, in time growing with the square of their number (200,000 dates, more than
+that limit allows, took 21.6 seconds). Each is now one pass. The `RDATE`, rule-part, override and mark loops of the
+calendar are batch42's own and were never released; the `METHOD` and attendee `SENT-BY` loops beside them are in 6.3.4
+and 6.3.5. All found by the project's own review.
 
 The same review, checked again, found the rest of that shape. A date of a calendar object in a time zone the object
 carries was placed by looking for the zone among the object's components and building it from its observances - and an
