@@ -433,6 +433,13 @@ SPLIT_ORDER = ["hmailserver/source/Server/SMTP/SMTPConnection.cpp", "hmailserver
                "hmailserver/source/Server/platform/über.cpp"]
 
 
+def written_back(path):
+    """The root of a report this self-test has just written, read back: its own output,
+    which the standard library's parser, the one the job's image has, may read."""
+    with open(path, "rb") as f:
+        return ET.fromstring(f.read())
+
+
 def self_test():
     failures = []
 
@@ -476,7 +483,7 @@ def self_test():
         said = []
         written = convert(lcov, root, out, summary, stamp=1, say=said.append)
         expect(written == [out], "a small report is one file: %s" % written)
-        tree = ET.parse(out).getroot()  # nosemgrep: the report this test just wrote
+        tree = written_back(out)
         expect(tree.tag == "coverage" and tree.get("lines-covered") == "4" and tree.get("lines-valid") == "7"
                and tree.get("branches-covered") == "2" and tree.get("branches-valid") == "4",
                "the totals are the source's lines, each once (DA), not llvm-cov's own (LF): %s" % tree.attrib)
@@ -555,7 +562,7 @@ def self_test():
         seen = []
         for p in parts:
             expect(os.path.getsize(p) <= 1100, "%s is within the limit (%d bytes)" % (p, os.path.getsize(p)))
-            part = ET.parse(p).getroot()  # nosemgrep: the report this test just wrote
+            part = written_back(p)
             expect(part.get("lines-valid") == "7", "each part carries the run's totals")
             seen += [c.get("filename") for c in part.iter("class")]
         expect(sorted(seen) == sorted(NAMES), "and together every class once: %s" % seen)
@@ -580,7 +587,7 @@ def self_test():
         lowest = max(nbytes(document([head + xml + tail], t, 1)) for head, classes, tail in packages for _, xml in classes)
         alone = {}
         for head, classes, tail in packages:
-            name = ET.fromstring(head + tail).get("name")  # nosemgrep: the converter's own tags
+            name = ET.fromstring(head + tail).get("name")
             alone[name] = nbytes(document([head + "".join(xml for _, xml in classes) + tail], t, 1))
         expect(max(alone.values()) > lowest, "one folder is larger than the smallest file can be: %s, %d" % (alone, lowest))
         # Each folder's own rates (lines run of its lines; branches), in every file it is in.
@@ -602,7 +609,7 @@ def self_test():
                    % (limit, whole, len(texts)))
             seen, homes = [], {}
             for index, x in enumerate(texts):
-                part = ET.fromstring(x.encode("utf-8"))  # nosemgrep: the report this test just made
+                part = ET.fromstring(x.encode("utf-8"))
                 expect(part.get("lines-valid") == "19" and part.get("lines-covered") == "12"
                        and part.get("branches-valid") == "2", "limit %d: file %d carries the run's totals" % (limit, index + 1))
                 for package in part.iter("package"):
@@ -632,7 +639,7 @@ def self_test():
         mime = 0
         for p in parts:
             expect(os.path.getsize(p) <= middle, "%s is within %d bytes on disk (%d)" % (p, middle, os.path.getsize(p)))
-            part = ET.parse(p).getroot()  # nosemgrep: the report this test just wrote
+            part = written_back(p)
             mime += any(k.get("name") == "hmailserver.source.Server.common.Mime" for k in part.iter("package"))
         expect(mime >= 2, "the folder larger than a file is in %d files" % mime)
         for p in parts:
