@@ -42,6 +42,7 @@ DEBIAN_TO_SPDX = {
     "AGPL-3+": "AGPL-3.0-or-later",
     "Artistic": "Artistic-1.0-Perl",
     "BSD-1-clause": "BSD-1-Clause",
+    "BSD-2-clause": "BSD-2-Clause",
     "BSD-3-clause": "BSD-3-Clause",
     "CC-BY-4.0": "CC-BY-4.0",
     "Expat": "MIT",

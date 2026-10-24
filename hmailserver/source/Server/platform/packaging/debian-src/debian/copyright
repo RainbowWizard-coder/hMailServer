@@ -340,6 +340,29 @@ Comment:
  Feather's LICENSE, verbatim, after the maintainers' note on which icons are
  drawn after Feather's and how they were compared with its release 4.29.2.
 
+Files: build/check-release-chain.py
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           2014 John MacFarlane
+License: AGPL-3+ and BSD-2-clause
+Comment:
+ The check of the release jobs, the maintainers' own, which holds a Python
+ port of parts of commonmark.js 0.31.2, John MacFarlane's reference
+ implementation of CommonMark, under its BSD-2-Clause licence: the regular
+ expressions of its lib/blocks.js and lib/inlines.js that the check's
+ MARKDOWN_* constants are, its link reference definition reader
+ (parseReference, as markdown_reference) and the order and continuation of
+ its blocks (incorporateLine and blockStarts, as markdown_command_ends).
+ hmailserver/docs/Licenses/License - commonmark.js.txt says what the port
+ takes and carries commonmark.js's notice. No package installs the check.
+
+Files: hmailserver/docs/Licenses/License?-?commonmark.js.txt
+Copyright: 2014 John MacFarlane
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: BSD-2-clause and AGPL-3+
+Comment:
+ commonmark.js's notice, verbatim, after the maintainers' note on what
+ build/check-release-chain.py ports from its release 0.31.2.
+
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
            2005-2026 Martin Knafve / hMailServer.com
@@ -1115,6 +1138,30 @@ License: BSD-1-clause
  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+ .
+     * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 License: BSD-3-clause
  Redistribution and use in source and binary forms, with or without

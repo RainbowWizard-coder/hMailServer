@@ -354,6 +354,25 @@ with `--check`).
   `build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which is to be that table and had left it out, and which
   `build/check-package-licenses.py` decides as not compiled in. The `reuse` job, with its negative controls, and
   the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass.
+- **Fixed: the port of commonmark.js in the check of the release jobs is credited to John MacFarlane, under
+  commonmark.js's licence, BSD-2-Clause, where every record gave it the project's holders and licence alone.**
+  `build/check-release-chain.py`, which reads the project's Markdown documents for the commands they give, holds a
+  Python port of parts of commonmark.js 0.31.2, a reference implementation of CommonMark: its `MARKDOWN_*` regular
+  expressions are those of commonmark.js's `lib/blocks.js` and `lib/inlines.js` character for character, but for
+  `\d` written `[0-9]` and `$` written `\Z`; `markdown_reference` reads a link reference definition step by step as
+  `parseReference` and `parseLinkDestination` do; and `markdown_command_ends` follows `incorporateLine` and
+  `blockStarts`. commonmark.js's BSD-2-Clause licence asks a copy of its source to keep its notice, and no text of
+  the tree named it, while the source tarball and the Debian source package carry `build/`. `REUSE.toml` gives the
+  file John MacFarlane (2014) and BSD-2-Clause beside its header's holders and licence, with a comment saying which
+  parts are the port; `hmailserver/docs/Licenses/License - commonmark.js.txt` carries the part of commonmark.js's
+  LICENSE that covers those two files, verbatim, after a note saying what the port takes and from which release (its
+  npm tarball, held to the registry's sha512); `LICENSES/BSD-2-Clause.txt` is SPDX's text; `debian/copyright` has a
+  paragraph for the check and one for the notice, `License: AGPL-3+ and BSD-2-clause`, and the licence's text, and
+  `build/ci/reuse-debian.py` knows the short name; `hmailserver/docs/SourceTarball.md`'s table has a row for it; and
+  the source tarball's SBOM names it (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
+  `build/check-package-licenses.py` decides as not compiled in, no package carrying the check). The check itself is
+  unchanged. The `reuse` job, with its negative controls, and the self-tests of `check-package-licenses.py`,
+  `asset-sbom.py` and `reuse-debian.py` pass.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the
@@ -1010,7 +1029,7 @@ with `--check`).
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
-  each of the sixteen licences named and no other: SPDX's own for the eleven on SPDX's list, as `reuse download` wrote
+  each of the seventeen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download` wrote
   them and each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and
   `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
   plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows

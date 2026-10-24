@@ -2046,15 +2046,16 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # them, carried verbatim (debian/copyright's "notices"): of what the Windows build
 # ships - 7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq, SQL
 # Server Compact, zlib - and of the AppImage's runtime. Each text's holders are the
-# ones it names; the seven below whose components the source tarball carries are
+# ones it names; the eight below whose components the source tarball carries are
 # given their component's licence, as debian/copyright gives them. They are read for
 # these tables alone (precedence override): a licence's text is not its file's notice,
 # and reuse would take its words for holders - "Copyright Act" in the CC licence, the
-# GPL's "<year>  <name of author>". Five of the seven, the texts of QuickJS's, the
-# RFC 7208 suite's, Unicode's, the HTML standard's and the Feather icons' terms that
-# the maintainers put in hmailserver/docs/Licenses, open with the maintainers' note
-# on where the component is vendored or drawn from and what is made or compiled from
-# it, and the rule and the verbatim text follow: those name the maintainers beside
+# GPL's "<year>  <name of author>". Six of the eight, the texts of QuickJS's, the
+# RFC 7208 suite's, Unicode's, the HTML standard's, the Feather icons' and
+# commonmark.js's terms that the maintainers put in hmailserver/docs/Licenses, open
+# with the maintainers' note on where the component is vendored, drawn or ported
+# from and what is made or compiled from it, and the rule and the verbatim text
+# follow: those name the maintainers beside
 # the component's holders, and the project's licence beside the component's, for
 # that note.
 [[annotations]]
@@ -2127,6 +2128,15 @@ SPDX-FileCopyrightText = [
     "2026 Christopher Holloway / Progressive Robot Ltd",
 ]
 SPDX-License-Identifier = "MIT AND AGPL-3.0-or-later"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - commonmark.js.txt"
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2014 John MacFarlane",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "BSD-2-Clause AND AGPL-3.0-or-later"
 
 # The original's list of the third-party components and their licences, Martin
 # Knafve's table of 2010, and the same table in Markdown with the fork's note on it,
@@ -2272,6 +2282,25 @@ SPDX-FileCopyrightText = [
     "2005-2026 Martin Knafve / hMailServer.com",
 ]
 SPDX-License-Identifier = "LicenseRef-StdString AND AGPL-3.0-or-later"
+
+# The check of the release jobs (one of the gates' own files), which reads the
+# project's Markdown documents for the commands they give as CommonMark reads their
+# blocks, holds a Python port of parts of commonmark.js 0.31.2, John MacFarlane's
+# reference implementation of CommonMark, under its licence, BSD-2-Clause: its
+# MARKDOWN_* regular expressions, which are those of commonmark.js's lib/blocks.js
+# and lib/inlines.js (reThematicBreak, reMaybeSpecial, reCodeFence and the rest,
+# reHtmlBlockOpen and reHtmlBlockClose, reLinkLabel, reLinkTitle, reSpnl, ESCAPABLE)
+# character for character but for \d written [0-9] and $ written \Z; its
+# markdown_reference, inlines.js's parseReference and parseLinkDestination step by
+# step; and its markdown_command_ends, which follows blocks.js's incorporateLine and
+# blockStarts. The rest of the file is the maintainers', under the header's licence.
+# hmailserver/docs/Licenses/License - commonmark.js.txt carries commonmark.js's
+# notice and says what the port takes.
+[[annotations]]
+path = "build/check-release-chain.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2014 John MacFarlane"
+SPDX-License-Identifier = "BSD-2-Clause"
 
 # The RFC 7208 test suite's zones and cases, transcribed into a C++ table by
 # Generate-SPFConformanceSuite.py from rfc7208-tests.yml (the suite, BSD-3-Clause,

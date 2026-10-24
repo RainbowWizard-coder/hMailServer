@@ -1,0 +1,53 @@
+commonmark.js, John MacFarlane's JavaScript implementation of CommonMark
+(https://github.com/commonmark/commonmark.js), one of CommonMark's two
+reference implementations. build/check-release-chain.py, a check of the
+project's CI that reads the project's Markdown documents for the commands they
+give, holds a Python port of parts of its release 0.31.2: the regular
+expressions of lib/blocks.js and lib/inlines.js that its MARKDOWN_* constants
+are, character for character but for \d written [0-9] and $ written \Z
+(reThematicBreak, reMaybeSpecial, reCodeFence, reClosingCodeFence,
+reATXHeadingMarker, reSetextHeadingLine, reBulletListMarker,
+reOrderedListMarker, reHtmlBlockOpen and reHtmlBlockClose, reLinkLabel,
+reLinkDestinationBraces, reLinkTitle, reSpnl, reSpaceAtEndOfLine and
+ESCAPABLE); its markdown_reference, which reads a link reference definition
+step by step as inlines.js's parseReference and parseLinkDestination do; and
+its markdown_command_ends, which follows blocks.js's incorporateLine and
+blockStarts: the open blocks' continuation in order, then the block starts in
+their order. The rest of the file is the maintainers'. The check is compiled
+into no program and no package carries it; the source tarball and the Debian
+source package carry it with the rest of build/. The release was read from its
+npm tarball, commonmark-0.31.2.tgz, whose sha512 equals the registry's
+integrity value
+(sha512-2fRLTyb9r/2835k5cwcAwOj0DEc44FARnMp5veGsJ+mEAZdi52sNopLu07ZyElQUz058H43whzlERDIaaSw4rg==).
+The text below is a verbatim copy of the part of the release's LICENSE that
+covers lib/blocks.js and lib/inlines.js; the rest of that LICENSE gives the
+notices of other parts of commonmark.js, none of which the port takes from.
+
+----------------------------------------------------------------------------
+
+Copyright (c) 2014, John MacFarlane
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
