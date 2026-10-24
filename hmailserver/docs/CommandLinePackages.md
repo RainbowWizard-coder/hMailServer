@@ -493,6 +493,21 @@ Both come with the PyPI package and need nothing else from the project:
   release after 6.3.7 the package's project URLs are the project's address alone,
   as Homepage and Source, and the README PyPI shows links the documents, the
   changelog and the issues; `build/check-cli-packages.py` holds the two URLs.
+* **The source deps.dev names.** Beside the attested link, deps.dev takes one
+  source repository from the metadata: the first `Home-page` or `Project-URL` on
+  GitHub, GitLab or Bitbucket, in the metadata's order, whatever its label (read
+  from its API on 24 October 2026 against over a hundred packages' metadata;
+  virtualenv's `Funding`, `github.com/sponsors/...`, is its source there, before
+  its `Source`). flit_core writes the project URLs sorted by label, so 6.3.7's
+  `Changelog` came first and deps.dev gives
+  `gitlab.com/hmailserver/hmailserver/-/blob/master/changelog.md` as its source
+  (`UNVERIFIED_METADATA`). From the next release the project itself is first, as
+  `Homepage`, and `build/check-cli-packages.py` holds that order in
+  `pyproject.toml` and in the built wheel's and sdist's metadata. The copy on
+  GitHub, which has a Scorecard, is not listed: deps.dev would read it as the
+  source only if it came first, in the project's place, and it is a mirror.
+  The PowerShell Gallery is not among the systems deps.dev indexes; the module's
+  manifest names the project (`ProjectUri`), its licence and its changelog.
 * **OpenSSF Package Analysis** installs every new PyPI upload in a sandbox, imports
   and runs it, and records the files, addresses and commands it touches. There is nothing
   to opt into; what the project does is keep the package free of install-time and

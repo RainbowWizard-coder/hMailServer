@@ -54,6 +54,10 @@ recorded server; this checks what they are packaged AS, and fails when:
       any of its URLs on gitlab.com and reads a path under /-/ as a repository's,
       so 6.3.7's Changelog, .../-/blob/master/CHANGELOG.md, became its source
       repository there; the README PyPI shows links the rest;
+    * a project URL is not this project's, or the first of them as flit_core
+      writes them, sorted by label, is not the project itself: deps.dev takes the
+      first project URL on GitHub, GitLab or Bitbucket for the package's source
+      repository, whatever its label, and took 6.3.7's Changelog;
     * python/ holds anything but pyproject.toml and README.md - a setup.py or
       setup.cfg (code that runs at install), a .pth file, or a committed copy of
       hmctl, which would be a second hmctl;
@@ -72,7 +76,10 @@ recorded server; this checks what they are packaged AS, and fails when:
     * hold a file beyond the package's three modules, its metadata and its
       licence (a .pth, a data directory, a setup.py), or an hmctl.py that is not
       the tree's hmctl byte for byte, or metadata with a Requires-Dist, another
-      version, another licence, or an entry point beyond the hmctl script.
+      version, another licence, or an entry point beyond the hmctl script;
+    * have metadata (the wheel's METADATA, the sdist's PKG-INFO) whose first URL
+      on GitHub, GitLab or Bitbucket, in the file's order, is not the project
+      itself: the one deps.dev would take for the source repository.
 
 It reads files and needs nothing but Python 3.11 (tomllib); the checkers job of
 .gitlab-ci.yml runs it with no arguments. The cli-packages job of
@@ -95,6 +102,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import urllib.parse
 import zipfile
 
 try:
@@ -130,6 +138,40 @@ MODULE_GUID = "89f008bd-5dc0-4d6d-9a05-4ac1c8dbf8e5"
 # that did not say whose it is would read as the original's.
 FORK_WORDS = ("Progressive Robot's fork of hMailServer", "not the original hMailServer")
 PYPI_SUMMARY_LIMIT = 512  # PyPI refuses a longer Summary, and one with a line break
+
+# The hosts deps.dev reads a project from. Of a PyPI version's Home-page and
+# Project-URL fields, in the metadata's order, the first on one of them is the version's
+# SOURCE_REPO there, whatever its label: read from api.deps.dev on 24 October 2026
+# against the METADATA of the latest wheels of over a hundred packages (virtualenv's
+# Funding and hatch's Sponsor, github.com/sponsors/..., taken before their Source;
+# poetry-core's Bug Tracker and realtime's Documentation, of another repository,
+# before their Repository), and hmailserver-cli 6.3.7's Changelog, first in its
+# metadata, taken before its Source.
+CODE_HOSTS = ("github.com", "gitlab.com", "bitbucket.org")
+
+
+def is_project_url(url):
+    return str(url) == PROJECT_URL or str(url).startswith(PROJECT_URL + "/")
+
+
+def is_code_host_url(url):
+    host = (urllib.parse.urlsplit(str(url).strip()).hostname or "").lower()
+    return (host[4:] if host.startswith("www.") else host) in CODE_HOSTS
+
+
+def deps_dev_source(metadata_text):
+    """The URL deps.dev would take for the source repository from core metadata:
+    the first Home-page or Project-URL value on a code host, in the file's order."""
+    for name, value in email.parser.Parser().parsestr(metadata_text, headersonly=True).items():
+        if name.lower() == "home-page":
+            url = value.strip()
+        elif name.lower() == "project-url" and "," in value:
+            url = value.split(",", 1)[1].strip()
+        else:
+            continue
+        if is_code_host_url(url):
+            return url
+    return None
 
 
 def says_the_fork(text):
@@ -562,10 +604,20 @@ def check_pyproject(root):
                 problems.append("%s/README.md, the description PyPI shows, does not say before its Install section"
                                 " that hmctl is the client of %s, %s" % (PYTHON_DIR, FORK_WORDS[0], FORK_WORDS[1]))
     urls = project.get("urls", {})
-    if urls != PROJECT_URLS:
-        problems.append("%s's project URLs are %r, not the project's address alone, %r: deps.dev can take the source"
-                        " repository from any URL of the package on gitlab.com, and reads a path under /-/ as a"
-                        " repository's" % (path, urls, PROJECT_URLS))
+    if not isinstance(urls, dict) or not urls or any(not is_project_url(u) for u in urls.values()):
+        problems.append("%s's project URLs are not all the project's (%s): %r" % (path, PROJECT_URL, urls))
+    else:
+        # flit_core writes them sorted by label (flit_core/config.py, sorted(proj['urls'].items())).
+        label, first = sorted((str(k), str(v)) for k, v in urls.items())[0]
+        if first != PROJECT_URL:
+            problems.append("%s's first project URL as flit_core writes them, sorted by label, is %s = %s, not %s:"
+                            " deps.dev takes the first project URL on GitHub, GitLab or Bitbucket for the package's"
+                            " source repository, whatever its label (6.3.7's Changelog), so the project's own label"
+                            " must sort first" % (path, label, first, PROJECT_URL))
+        if urls != PROJECT_URLS:
+            problems.append("%s's project URLs are %r, not the project's address alone, %r: deps.dev can take the source"
+                            " repository from any URL of the package on gitlab.com, and reads a path under /-/ as a"
+                            " repository's" % (path, urls, PROJECT_URLS))
     flit = data.get("tool", {}).get("flit", {})
     if flit.get("module", {}).get("name") != MODULE or set(flit) - {"module"}:
         problems.append("%s's [tool.flit] is %r: the module's name, %s, and nothing that adds a file" % (path, flit, MODULE))
@@ -717,6 +769,7 @@ def check_dist(dist, version, hmctl):
                                 % ", ".join(metadata.get_all("Requires-Dist")))
             if metadata.get("License-Expression") != LICENSE_EXPRESSION:
                 problems.append("the wheel's License-Expression is %r" % metadata.get("License-Expression"))
+            problems += source_problems("the wheel's METADATA", wheel.read(info + "METADATA").decode("utf-8"))
         if info + "entry_points.txt" in names:
             parser = configparser.ConfigParser(delimiters=("=",))
             parser.optionxform = str
@@ -740,7 +793,19 @@ def check_dist(dist, version, hmctl):
         member = members.get(prefix + "/" + MODULE + "/hmctl.py")
         if member is not None and sdist.extractfile(member).read() != hmctl:
             problems.append("the sdist's hmctl.py is not %s byte for byte" % HMCTL)
+        member = members.get(prefix + "/PKG-INFO")
+        if member is not None:
+            problems += source_problems("the sdist's PKG-INFO", sdist.extractfile(member).read().decode("utf-8"))
     return problems
+
+
+def source_problems(what, metadata_text):
+    """The URL deps.dev would take for the source repository from this metadata, if it is not the project."""
+    taken = deps_dev_source(metadata_text)
+    if taken == PROJECT_URL:
+        return []
+    return ["%s's first URL on GitHub, GitLab or Bitbucket is %s, not %s: deps.dev would take it for the package's"
+            " source repository" % (what, taken or "none", PROJECT_URL)]
 
 
 # ---------------------------------------------------------------- the run
@@ -771,7 +836,7 @@ def copy_tree(work):
     return tree
 
 
-def fake_dist(where, version, hmctl, extra_wheel=None, requires=None):
+def fake_dist(where, version, hmctl, extra_wheel=None, requires=None, project_urls=None):
     """A wheel and an sdist shaped as flit_core makes them, in memory."""
     os.makedirs(where, exist_ok=True)
     prefix = "%s-%s" % (MODULE, version)
@@ -780,6 +845,9 @@ def fake_dist(where, version, hmctl, extra_wheel=None, requires=None):
         DIST_NAME, version, LICENSE_EXPRESSION)
     if requires:
         metadata += "Requires-Dist: %s\n" % requires
+    for label, url in project_urls or [("Canonical source", PROJECT_URL),
+                                       ("Changelog", PROJECT_URL + "/-/blob/master/CHANGELOG.md")]:
+        metadata += "Project-URL: %s, %s\n" % (label, url)
     init = '"""x"""\n__version__ = "%s"\n' % version
     with zipfile.ZipFile(os.path.join(where, prefix + "-py3-none-any.whl"), "w") as wheel:
         wheel.writestr(MODULE + "/__init__.py", init)
@@ -881,6 +949,16 @@ def self_test():
                'Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"', "project URLs")
         broken("no source URL", PYTHON_DIR + "/pyproject.toml", 'Source = "https://gitlab.com/hmailserver/hmailserver"',
                '', "project URLs")
+        broken("a URL of another project whose path begins with this one's", PYTHON_DIR + "/pyproject.toml",
+               "\n[project.urls]\n", '\n[project.urls]\nZ = "https://gitlab.com/hmailserver/hmailserver-x"\n',
+               "project URLs are not all")
+        broken("the copy on GitHub among the project URLs", PYTHON_DIR + "/pyproject.toml",
+               "\n[project.urls]\n", '\n[project.urls]\n"GitHub mirror" = "https://github.com/RainbowWizard-coder/hMailServer"\n',
+               "project URLs are not all")
+        broken("a project URL whose label sorts before the project's, as 6.3.7's Changelog did",
+               PYTHON_DIR + "/pyproject.toml", "\n[project.urls]\n",
+               '\n[project.urls]\n"API reference" = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/README.md"\n',
+               "first project URL as flit_core writes them, sorted by label, is API reference")
         summary = 'description = "hmctl, the command-line client of Progressive Robot\'s fork of hMailServer'
         broken("a PyPI summary that does not say whose hmctl is", PYTHON_DIR + "/pyproject.toml", summary,
                'description = "hmctl: administer an hMailServer over its REST API from a command line"\nx = "',
@@ -948,7 +1026,18 @@ def self_test():
         for what, kwargs, needle in [
                 ("a .pth in the wheel", {"extra_wheel": {"hmailserver_cli.pth": "import os"}}, "hmailserver_cli.pth"),
                 ("a dependency in the wheel", {"requires": "requests"}, "the wheel requires requests"),
-                ("another hmctl in the wheel", {"hmctl_other": True}, "not hmailserver/source/Tools/Cli/hmctl byte")]:
+                ("another hmctl in the wheel", {"hmctl_other": True}, "not hmailserver/source/Tools/Cli/hmctl byte"),
+                ("the changelog first in the built metadata, as in 6.3.7's",
+                 {"project_urls": [("Changelog", PROJECT_URL + "/-/blob/master/CHANGELOG.md"),
+                                   ("Source", PROJECT_URL)]},
+                 "the wheel's METADATA's first URL on GitHub, GitLab or Bitbucket is"
+                 " https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md"),
+                ("the copy on GitHub first in the built metadata",
+                 {"project_urls": [("GitHub mirror", "https://github.com/RainbowWizard-coder/hMailServer"),
+                                   ("Source", PROJECT_URL)]},
+                 "the sdist's PKG-INFO's first URL on GitHub, GitLab or Bitbucket is https://github.com/"),
+                ("no project URL in the built metadata", {"project_urls": [("Homepage", "https://example.com/")]},
+                 "first URL on GitHub, GitLab or Bitbucket is none")]:
             where = os.path.join(work, "dist-" + what.replace(" ", "-"))
             built = hmctl + b"#" if kwargs.pop("hmctl_other", False) else hmctl
             fake_dist(where, version, built, **kwargs)

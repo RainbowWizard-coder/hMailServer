@@ -614,6 +614,27 @@ with `--check`).
   PSScriptAnalyzer 1.25.0, which finds nothing) passes under Windows PowerShell 5.1 and PowerShell 7.5, and
   `build/check-cli.py` passes with both clients.
 
+- **Fixed with the next release: deps.dev names the project as `hmailserver-cli`'s source repository, not its
+  changelog.** deps.dev (Google's Open Source Insights) takes one source repository from a PyPI version's metadata:
+  the first `Home-page` or `Project-URL` on GitHub, GitLab or Bitbucket, in the metadata's order, whatever its label -
+  read from its API on 24 October 2026 against the metadata of over a hundred packages, among them virtualenv, whose
+  `Funding` (`github.com/sponsors/...`) it takes before its `Source`, and poetry-core, whose `Bug Tracker`, of another
+  repository, it takes before its `Repository`. flit_core writes the project URLs sorted by label, so 6.3.7's metadata
+  lists `Changelog` first, and deps.dev gives `gitlab.com/hmailserver/hmailserver/-/blob/master/changelog.md` as its
+  source, beside the project itself, which the upload's PyPI publish attestation links. `pyproject.toml` now lists
+  the project as `Canonical source`, which sorts first; the other five URLs are unchanged. The copy on GitHub, which
+  has an OpenSSF Scorecard where deps.dev shows none for a GitLab project, is not listed: deps.dev would read it as
+  the source only if it came first, in the project's place. `build/check-cli-packages.py` refuses a `pyproject.toml`
+  whose first project URL in flit_core's order is not the project, or that has a URL of another project whose
+  address begins with this one's, and built metadata - the wheel's `METADATA`, the sdist's `PKG-INFO` - whose first
+  URL on those hosts is not the project; its self-test breaks each (46 cases, all passing), and run on the tree as it
+  was and on PyPI's 6.3.7 files it refuses all three. The package built with `build/ci/cli-packages.py build` lists
+  `Canonical source, https://gitlab.com/hmailserver/hmailserver` first in both files, builds twice to the same bytes,
+  and passes `check-cli-packages.py --dist` and `twine check --strict`. The PowerShell module's manifest
+  (`ProjectUri`, `LicenseUri`, `ReleaseNotes`, each the project's) is unchanged: deps.dev does not index the
+  PowerShell Gallery. `ContinuousIntegration.md` no longer says that deps.dev carries the Scorecard of the copy on
+  GitHub, of which it has no record. 6.3.7 on PyPI keeps its metadata; the next release carries this.
+
 - **New with the next release: `hmailserver-<version>.intoto.jsonl`, the release's SLSA build provenance as one line
   of JSON.** It is the DSSE envelope of `hmailserver-<version>.intoto.sigstore.json`, the provenance every release has
   carried since 6.3.6 - the statement and its one signature, each as that Sigstore bundle has it - written again
