@@ -6162,7 +6162,8 @@ file has been on `master` since, so its values replace any the settings hold.
 **What it holds, and what it cannot.** On GitLab's free tier a merge request
 cannot be made to wait for SonarQube Cloud's quality gate (external status
 checks are GitLab Ultimate), so its verdict is the summary on the merge request
-and the badge in the README; `semgrep-sast-gate` is the SAST that holds a
+and the project's page on SonarQube Cloud, with no badge in the README while its
+quality gate has not passed; `semgrep-sast-gate` is the SAST that holds a
 merge request. Its findings are triaged in SonarQube Cloud itself: a Blocker or
 Critical bug or vulnerability is fixed, or marked there as a false positive or
 accepted, with the reason.
@@ -6180,7 +6181,7 @@ docs.gitlab.com on 28 September 2026:
 | JUnit reports, the pipeline's *Tests* tab | Free | Yes, every scan and suite writes one |
 | Code Quality: a job's `codequality` report in the merge request widget | Free (the pipeline's Code Quality tab is Premium; the diff view and the project summary Ultimate) | No: see below |
 | Coverage in a merge request's diff (Cobertura) | Free | No: the coverage job writes the report, but runs in its weekly schedule's pipeline alone, which is no merge request's head pipeline |
-| Project badges | Free | Yes |
+| Project badges | Free | Yes: the README's badges, in its order (Settings, General, Badges) |
 | Merge request approvals, optional | Free: they "don't prevent merging" | Yes; the landing script requires them |
 | Required approval rules, code owners' approval | Premium, Ultimate | No |
 | External status checks (a merge request waiting on SonarQube Cloud) | Ultimate | No |
