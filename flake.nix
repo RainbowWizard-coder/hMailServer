@@ -58,6 +58,9 @@
           ./hmailserver/source/Tools/Cli/hmctl
           ./hmailserver/installation/WebAdmin
           ./hmailserver/installation/Extras/dh2048.pem
+          # Feather's notice, which the install rules put among the licences; a
+          # path literal cannot hold its name's spaces.
+          (./hmailserver/docs/Licenses + "/License - Feather icons.txt")
         ];
       };
 

@@ -212,8 +212,11 @@ way, [SourcePackages.md](SourcePackages.md)):
 - **The live update off**, naming the command above (`HM_UPDATE_COMMAND`).
 - **The source** is what the CMake build reads and nothing else (`lib.fileset` in
   `flake.nix`): `hmailserver/source/Server`, `DBScripts`, `hmctl`, the Deck,
-  `dh2048.pem` and `LICENSE`. A change to the documents or the CI does not make a new
-  package. A path named there that the tree no longer has stops the evaluation
+  `dh2048.pem`, `LICENSE` and, of the documents, Feather's notice alone
+  (`hmailserver/docs/Licenses/License - Feather icons.txt`), which the install rules
+  put in `$out/share/hmailserver/licenses` as `Feather-icons.txt`; its name's spaces
+  are why `flake.nix` writes it as a directory's path and a string joined. A change to
+  the other documents or the CI does not make a new package. A path named there that the tree no longer has stops the evaluation
   (`lib.fileset.unions`), so a file the CMake build stops reading leaves this list
   with it: `tlds.txt`, which 6.3.6 retired, did.
 - **`checkPhase`** runs the server's `--version` - every static constructor runs

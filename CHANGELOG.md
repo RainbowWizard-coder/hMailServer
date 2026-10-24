@@ -313,14 +313,22 @@ with `--check`).
   PKGBUILD, which links it in `/usr/share/licenses/hmailserver`, and the Alpine and Nix packages, and through the
   `.deb` for the container image and the snap - and `build-appimage.sh` copies it into the AppImages, where the
   AppImages, the spec's RPMs and the Alpine and Nix packages, which carry no `debian/copyright`, had no Feather
-  notice at all; `build/ci/packages/check-licenses.sh`, `appimage-test.sh`,
-  `build/ci/alpine.sh` and `srcpkg-rpm.sh` hold it to the tree's file, its carriage returns taken off both sides as
-  QuickJS's are. The source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
+  notice at all. The Nix package builds from the files the flake names (`lib.fileset` in `flake.nix`), which held
+  none of the documents, so that its install stopped at the notice after every tester had passed: the flake's
+  source now holds the notice beside `dh2048.pem`, and `hmailserver/docs/Nix.md` says so.
+  `build/ci/packages/check-licenses.sh`, `appimage-test.sh` and `build/ci/alpine.sh` hold the installed notice
+  to the tree's file, its carriage returns taken off both sides as QuickJS's are, and `srcpkg-rpm.sh` checks that
+  the spec's RPM marks it `%license`, as it does the other licence files, without comparing their contents. The source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
   `build/check-package-licenses.py` now decides as compiled in, under MIT, which the five licence fields already
   name), and the package documents (`PackagesAppImage.md`, `PackagesDeb.md`, `PackagesRpm.md`, `SourcePackages.md`,
   `Alpine.md` and the packaging README) say four notices where they said three. The pages themselves are
   unchanged. The `reuse` job, with its negative controls, `build/ci/reuse-debian.py`, `check-source-tarball.py
-  --self-test` and the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass.
+  --self-test` and the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass. Built from the source
+  tarball as their jobs build them, the `.deb` and the `.rpm` passed `check-licenses.sh`, which refused a `.deb`
+  without the notice and one with a line added to it; the Nix package, built as the nix job's third step builds it,
+  installs the tree's notice as `share/hmailserver/licenses/Feather-icons.txt`; the Alpine package passed
+  `alpine.sh`'s comparison; and the Fedora 44 RPMs of the spec passed `srcpkg-rpm.sh`. The AppImages and the
+  PKGBUILD were not built for this change.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

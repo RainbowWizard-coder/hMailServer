@@ -291,6 +291,8 @@ grep -q '^/usr/bin/hmctl$' <<< "$cli_listing" || fail "hmailserver-cli carries n
 # QuickJS, of Unicode's data for UTS 46, of HTML's list of named character
 # references and of the Feather icons the webmail's page is drawn after, which are
 # compiled into the server and whose licences ask for them with every copy.
+# Their marking is checked here, not their contents, which check-licenses.sh
+# compares for the .deb and the .rpm the project builds itself.
 licence_listing=$(rpm -qpL "$server_rpm")
 for licence in /usr/share/licenses/hmailserver/LICENSE /usr/share/hmailserver/licenses/AGPL-3.0.txt \
     /usr/share/hmailserver/licenses/QuickJS.txt /usr/share/hmailserver/licenses/Unicode-data.txt \

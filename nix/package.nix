@@ -130,7 +130,8 @@ stdenv.mkDerivation {
     # (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0, nixpkgs' unicode-30),
     # HTML's list of named character references (BSD-3-Clause, bsd3) and the
     # Feather icons the webmail's page is drawn after (MIT), whose notices the
-    # install puts in $out/share/hmailserver/licenses; CStdString's notice is
+    # install puts in $out/share/hmailserver/licenses (Feather's from the one
+    # document the flake's source holds); CStdString's notice is
     # permissive and has no identifier
     # (hmailserver/source/Server/platform/packaging/debian-src/debian/copyright).
     # build/check-package-licenses.py holds this to what is compiled in.
