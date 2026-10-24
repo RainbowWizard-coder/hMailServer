@@ -69,9 +69,18 @@ certificate") is its mail listeners' - but until an ACME certificate or one of
 your own is there, that pair can be named in the two settings, as the container
 image's start test names it ([ContainerImage.md](ContainerImage.md), "The start
 test"): `self-signed-certificate.pem` and `self-signed-key.pem` in the data
-directory's `Certificates` folder, which is `/var/lib/hmailserver/Certificates`
-from the Linux packages and in a container whose command runs `hmailserver
---apply-new-install-defaults` first, as the start test's does. They are set as
+directory's `Certificates` folder, `/var/lib/hmailserver/Certificates` from the
+Linux packages and in the container image. A container is not given the pair by
+itself: run `hmailserver --apply-new-install-defaults` once by hand
+([SecureDefaults.md](SecureDefaults.md), "By hand") before the server's first
+start, in a one-off container with the server's environment, its data volume and
+its host name - `docker run --rm` with the server's `--env-file`, `-v <its data
+volume>:/var/lib/hmailserver` and `--hostname mail.example.com`, the image, and
+the command `hmailserver --apply-new-install-defaults`, which exits 0 - and then
+start the server on the image's own command. The start test runs the verb before the server, joined by
+`&&`, only because it starts each container once: the verb decides a database
+once and exits 5 at every later start, so a container started that way would not
+start again after a restart. The two settings are set as
 `RestApiPort` is set ("What neither client does", below) and taken when the
 listener next starts; empty them again once the ACME client has a certificate,
 which the listener takes only while they are empty. The certificate names the

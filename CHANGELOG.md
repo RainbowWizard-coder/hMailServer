@@ -1782,7 +1782,12 @@ with `--check`).
   `RestApiPrivateKeyFile` (`HM_REST_CERTIFICATE_FILE` and `HM_REST_PRIVATE_KEY_FILE` in the image,
   `rest.tlsSecretName` in the chart), which a new installation does not set, since the certificate it makes is its
   mail listeners'; that until an ACME certificate or the administrator's own is there, that pair can be named in
-  them, as the image's start test names it, and emptied again for the ACME certificate; how Debian and Ubuntu
+  them, as the image's start test names it, and emptied again for the ACME certificate; that a container is given
+  the pair by `hmailserver --apply-new-install-defaults` run once by hand before the server's first start, in a
+  one-off container with the server's environment, data volume and host name, and then the image's own command, and
+  not by the start test's command, which runs the verb before the server joined by `&&` because it starts each
+  container once: the verb decides a database once and exits 5 at every later start, so that a container started
+  that way would not start again after a restart; how Debian and Ubuntu
   (`update-ca-certificates`, or `SSL_CERT_FILE` for the programs started from one shell) and Windows
   (`Import-Certificate` into the machine's Trusted Root store) trust it; that under Windows PowerShell 5.1 the module
   gives the system's reason for refusing it from the release after 6.3.7, 6.3.7's module saying "GET
