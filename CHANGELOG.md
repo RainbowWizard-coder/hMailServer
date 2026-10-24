@@ -307,8 +307,20 @@ with `--check`).
   and has its own table and paragraph; the installer's licence page, `hmailserver/installation/License.rtf`, carries
   the notice, since `hMailServer.exe` embeds the page; `hmailserver/docs/SourceTarball.md`'s table of what is not the
   project's own has a row for them; and `build/check-source-tarball.py` requires the notice in every tarball, as it
-  does the other third parties'. The pages themselves are unchanged. The `reuse` job, with its negative controls,
-  `build/ci/reuse-debian.py` and `check-source-tarball.py --self-test` pass.
+  does the other third parties'. Every Linux install carries the notice too, as
+  `/usr/share/hmailserver/licenses/Feather-icons.txt` beside the other three of what is compiled into the server:
+  CMake's install rules put it there - for the `.deb` and the `.rpm`, the spec's RPMs, which mark it `%license`, the
+  PKGBUILD, which links it in `/usr/share/licenses/hmailserver`, and the Alpine and Nix packages, and through the
+  `.deb` for the container image and the snap - and `build-appimage.sh` copies it into the AppImages, where the
+  AppImages, the spec's RPMs and the Alpine and Nix packages, which carry no `debian/copyright`, had no Feather
+  notice at all; `build/ci/packages/check-licenses.sh`, `appimage-test.sh`,
+  `build/ci/alpine.sh` and `srcpkg-rpm.sh` hold it to the tree's file, its carriage returns taken off both sides as
+  QuickJS's are. The source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
+  `build/check-package-licenses.py` now decides as compiled in, under MIT, which the five licence fields already
+  name), and the package documents (`PackagesAppImage.md`, `PackagesDeb.md`, `PackagesRpm.md`, `SourcePackages.md`,
+  `Alpine.md` and the packaging README) say four notices where they said three. The pages themselves are
+  unchanged. The `reuse` job, with its negative controls, `build/ci/reuse-debian.py`, `check-source-tarball.py
+  --self-test` and the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

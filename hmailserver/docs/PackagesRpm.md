@@ -737,17 +737,22 @@ licence.
   is compiled into the binary - QuickJS (MIT), the MIME coder (BSD-1-Clause),
   CStdString (a permissive notice of its own), the Public Suffix List's rules
   (MPL-2.0), Unicode's data for UTS 46 (Unicode-3.0), HTML's list of named
-  character references (BSD-3-Clause) and the rest it names.
+  character references (BSD-3-Clause), the Feather icons the webmail's page is
+  drawn after (MIT) and the rest it names.
 - `/usr/share/hmailserver/licenses/AGPL-3.0.txt`, hMailServer's own licence, the
   FSF's file byte for byte (the repository's `LICENSE` without its carriage
   returns), and beside it the notices of what is compiled into the server whose
   licences ask for them with every copy: `QuickJS.txt`, QuickJS's MIT licence;
   `Unicode-data.txt`, the Unicode License v3 of the data UTS 46 is done from
-  (`Common/Idna/ucd/unicode.LICENSE`); and
+  (`Common/Idna/ucd/unicode.LICENSE`);
   `HTML-named-character-references.txt`, the BSD 3-Clause terms of HTML's list
-  of named character references (`Common/AntiSpam/whatwg/entities.LICENSE`). The
-  `.deb` and the AppImage carry the same four. The last two came in 6.3.7, with
-  the two tables they are the notices of.
+  of named character references (`Common/AntiSpam/whatwg/entities.LICENSE`); and
+  `Feather-icons.txt`, the MIT licence of Feather, Cole Bemis's icon set, which
+  the webmail's page, compiled into the server, and the Control Deck's eye are
+  drawn after (`hmailserver/docs/Licenses/License - Feather icons.txt`). The
+  `.deb` and the AppImage carry the same five. The two data sets' came in 6.3.7,
+  with the two tables they are the notices of, and Feather's in the release
+  after 6.3.7.
 
 The package's `License` names every licence of what it holds that an identifier
 can name: `AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND
@@ -768,11 +773,11 @@ the job, and so does any other line of the files it reads that sets or changes a
 licence field in one of the forms the script lists, a `string(APPEND ...)` of
 this tag after its `set()` among them.
 
-The install rules put the four texts in, for every install; CPack alone puts the
+The install rules put the five texts in, for every install; CPack alone puts the
 copyright file in (`platform/packaging/cpack-licenses.cmake`), so the source
 package's spec, which installs with CMake, marks its own. The package owns
 `/usr/share/licenses/hmailserver` and not `/usr/share/licenses`, which is the
-`filesystem` package's. `build/ci/packages/check-licenses.sh` holds the five
+`filesystem` package's. `build/ci/packages/check-licenses.sh` holds the six
 files to the tree, by SHA-256, mode, owner and flag: `rpm-build.sh` and
 `linux-build` fail a package without them, and the install test checks them as
 installed.
@@ -796,11 +801,11 @@ per-release build (`rpm-build.sh`) was run there.
 **Run for the two notices, on server2 on 14 October 2026,** each from a source
 tarball `source-tarball.sh` made of the commit, against `batch48`'s `6e1a336c5`
 as the base. `linux-build.sh` in the CI image made the `.rpm` with the four texts
-marked `%license` and the new `License`, and `check-licenses.sh` passed it; the
-same script refused the base's `.rpm` for want of the two notices, and so it did
+there were then marked `%license` and the new `License`, and `check-licenses.sh`
+passed it; the same script refused the base's `.rpm` for want of the two notices, and so it did
 as installed: in `fedora:44` under its `tsflags=nodocs`, the package installed
 with dnf passed `check-licenses.sh --installed rpm`, and the base's failed it. The
-spec built on Fedora 44 (`srcpkg-rpm.sh`) carries the four texts and `LICENSE`
+spec built on Fedora 44 (`srcpkg-rpm.sh`) carried the four texts and `LICENSE`
 marked `%license`, its new check of them passing where it refused the base's
 package; Fedora 44's rpmlint reports the same 20 warnings before and after, none
 about a licence, and the rpmlint of Tumbleweed (2.10) and of Leap 16.0 (2.7)
@@ -849,8 +854,9 @@ package's architecture:
    hook, the configuration and the logrotate rule.
 5. The licences are installed as the tree has them, under the image's
    `tsflags=nodocs` where it sets one, and `rpm -qL` names each: the copyright
-   file, `AGPL-3.0.txt`, `QuickJS.txt`, `Unicode-data.txt` and
-   `HTML-named-character-references.txt` (`check-licenses.sh --installed rpm`;
+   file, `AGPL-3.0.txt`, `QuickJS.txt`, `Unicode-data.txt`,
+   `HTML-named-character-references.txt` and `Feather-icons.txt`
+   (`check-licenses.sh --installed rpm`;
    [The licences](#the-licences)).
 6. `%post` made the `hmailserver` account and its directories, and left
    `/etc/hmailserver/hMailServer.ini` as `root:hmailserver 640` and a `%config`

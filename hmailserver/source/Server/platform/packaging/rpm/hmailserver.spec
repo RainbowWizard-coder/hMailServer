@@ -288,6 +288,7 @@ fi
 %license %{_datadir}/hmailserver/licenses/AGPL-3.0.txt
 %license %{_datadir}/hmailserver/licenses/Unicode-data.txt
 %license %{_datadir}/hmailserver/licenses/HTML-named-character-references.txt
+%license %{_datadir}/hmailserver/licenses/Feather-icons.txt
 %dir %attr(0750,root,hmailserver) %{_sysconfdir}/hmailserver
 %config(noreplace) %attr(0640,root,hmailserver) %{_sysconfdir}/hmailserver/hMailServer.ini
 %config(noreplace) %{_sysconfdir}/logrotate.d/hmailserver

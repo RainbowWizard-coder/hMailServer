@@ -223,8 +223,9 @@ and needs the target's loader.
      release file with the runtime's libraries' source, the licence files of
      every library it lists (libfuse3's and lzo's at least), and the GPL-3.0's
      text; hMailServer's own AGPL-3.0 text; the notices of what is compiled into
-     the server, `QuickJS.txt`, `Unicode-data.txt` and
-     `HTML-named-character-references.txt`, each held to the tree's file by
+     the server, `QuickJS.txt`, `Unicode-data.txt`,
+     `HTML-named-character-references.txt` and `Feather-icons.txt`, each held
+     to the tree's file by
      SHA-256 ([Licences](#licences)); and `bundled.txt`, which must list
      every library in `usr/lib` and nothing else, and name the release file with
      their source, with the copyright file of each library's package and every
@@ -638,14 +639,16 @@ release's source tarball, `hmailserver-<version>.tar.gz`.
 
 ### The notices of what is compiled into the server
 
-Three third-party components compiled into the server are under licences that
+Four third-party components compiled into the server are under licences that
 ask for their notice with every copy: QuickJS (MIT); Unicode's data for UTS 46,
 which the server's IDNA tables are made from (the Unicode License v3, whose
 notice must go with every copy of the data or be in its documentation); and
 HTML's list of named character references, which its link reader's table is made
 from (the BSD 3-Clause License, whose second condition asks a binary to carry the
-notice, the conditions and the disclaimer in its documentation or other materials).
-Each image carries the three in `usr/share/hmailserver/licenses/`, beside
+notice, the conditions and the disclaimer in its documentation or other materials);
+and the icons of Feather, Cole Bemis's icon set, which the webmail's page, compiled
+into the server, and the Control Deck's eye are drawn after (MIT).
+Each image carries the four in `usr/share/hmailserver/licenses/`, beside
 `AGPL-3.0.txt`, at the paths the `.deb` and the `.rpm` install them to:
 
 | File | Its source in the tree | Licence |
@@ -653,16 +656,19 @@ Each image carries the three in `usr/share/hmailserver/licenses/`, beside
 | `QuickJS.txt` | `hmailserver/source/Server/quickjs/LICENSE` | MIT |
 | `Unicode-data.txt` | `hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE` | Unicode-3.0 |
 | `HTML-named-character-references.txt` | `hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE` | BSD-3-Clause |
+| `Feather-icons.txt` | `hmailserver/docs/Licenses/License - Feather icons.txt` | MIT |
 
 `build-appimage.sh` copies them, since it runs no install rule, and
-`appimage-test.sh` holds each to the tree's file by SHA-256, QuickJS's with the
-carriage returns a checkout gives it taken off both sides. The last two came in
-6.3.7, with the two tables they are the notices of.
+`appimage-test.sh` holds each to the tree's file by SHA-256, QuickJS's and
+Feather's with the carriage returns a checkout gives them taken off both sides.
+The two data sets' came in 6.3.7, with the two tables they are the notices of,
+and Feather's in the release after 6.3.7, when the icons were credited to it.
 
 **Run on server2 on 14 October 2026.** The x86_64 image built as its jobs build
 it - the runtime in `alpine:3.24`, its libraries' licence files packed by
 `appimage-runtime-sources.sh`, the server compiled with GCC 13 in `ubuntu:24.04`
-by `appimage-build.sh` - carries the three notices, each the tree's file, and
+by `appimage-build.sh` - carries the three notices there were then, each the
+tree's file, and
 passed `appimage-test.sh` there and in `fedora:44`. An image packed with the base's
 `build-appimage.sh` (`batch48`'s `6e1a336c5`) was refused: "The image has no
 usr/share/hmailserver/licenses/Unicode-data.txt." So were copies of the new image

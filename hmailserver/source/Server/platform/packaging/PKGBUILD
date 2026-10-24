@@ -187,15 +187,16 @@ TMPFILES
 
    # Where Arch looks for a package's licences: beside the AGPL, the copyright file
    # the project's .deb and .rpm carry, which declares the terms of everything
-   # compiled into the server, and the three notices the install rules put in
+   # compiled into the server, and the four notices the install rules put in
    # /usr/share/hmailserver/licenses whose licences ask for them in every copy -
-   # QuickJS's (MIT), Unicode's (Unicode-3.0) and the WHATWG's (BSD-3-Clause) -
-   # linked to them there.
+   # QuickJS's (MIT), Unicode's (Unicode-3.0), the WHATWG's (BSD-3-Clause) and
+   # Feather's (MIT), whose icons the webmail's page is drawn after - linked to
+   # them there.
    install -Dm644 \
       "${srcdir}/${pkgname}-${pkgver}/hmailserver/source/Server/platform/packaging/debian-src/debian/copyright" \
       "${pkgdir}/usr/share/licenses/${pkgname}/copyright"
    local notice
-   for notice in QuickJS.txt Unicode-data.txt HTML-named-character-references.txt; do
+   for notice in QuickJS.txt Unicode-data.txt HTML-named-character-references.txt Feather-icons.txt; do
       ln -s "/usr/share/hmailserver/licenses/${notice}" "${pkgdir}/usr/share/licenses/${pkgname}/${notice}"
    done
 

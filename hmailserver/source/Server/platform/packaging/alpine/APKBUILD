@@ -31,11 +31,11 @@ url="https://gitlab.com/hmailserver/hmailserver"
 arch="x86_64 aarch64"
 # The server's own licence and those of what is compiled into it: QuickJS (MIT),
 # the MIME coder (BSD-1-Clause), the Public Suffix List's rules (MPL-2.0),
-# Unicode's data for UTS 46 (Unicode-3.0) and HTML's list of named character
-# references (BSD-3-Clause), whose notices the install puts in
-# /usr/share/hmailserver/licenses. CStdString's permissive notice has no SPDX
-# identifier; the copyright file in the tarball
-# (platform/packaging/debian-src/debian/copyright) has it in full.
+# Unicode's data for UTS 46 (Unicode-3.0), HTML's list of named character
+# references (BSD-3-Clause) and the Feather icons the webmail's page is drawn
+# after (MIT), whose notices the install puts in /usr/share/hmailserver/licenses.
+# CStdString's permissive notice has no SPDX identifier; the copyright file in the
+# tarball (platform/packaging/debian-src/debian/copyright) has it in full.
 # build/check-package-licenses.py holds this to what is compiled in.
 license="AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND Unicode-3.0 AND BSD-3-Clause"
 # The certificate authorities every HTTPS request the server makes is checked

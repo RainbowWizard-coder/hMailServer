@@ -1242,6 +1242,17 @@ install(FILES ${SERVER_DIR}/Common/AntiSpam/whatwg/entities.LICENSE
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
    RENAME HTML-named-character-references.txt)
 
+# And the notice of Feather, Cole Bemis's icon set, after whose icons the
+# webmail's page is drawn - compiled into the server as Common/Util/PortalPageData.cpp,
+# and served - and the Control Deck's eye, installed below: its MIT licence asks
+# for its notice in every copy. The file is the maintainers' note on which icons
+# those are, then Feather's LICENSE verbatim, which the source tarball must carry
+# (build/check-source-tarball.py) and debian/copyright declares. Every install gets
+# it; the AppImage copies it to the same place (platform/packaging/build-appimage.sh).
+install(FILES "${SERVER_DIR}/../../docs/Licenses/License - Feather icons.txt"
+   DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
+   RENAME Feather-icons.txt)
+
 # The Control Deck - the administration page the REST listener serves at GET /.
 #
 # RestApiServer::HandleWebAdminPage_ builds the path as
@@ -1557,14 +1568,15 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION ON)
 
 # The licence files, marked %license as Fedora's guidelines ask, so that rpm -qL
-# lists them: the copyright file cpack-licenses.cmake puts in, and the four texts
+# lists them: the copyright file cpack-licenses.cmake puts in, and the five texts
 # beside the data.
 list(APPEND CPACK_RPM_USER_FILELIST
    "%license /usr/share/licenses/hmailserver/copyright"
    "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/AGPL-3.0.txt"
    "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/QuickJS.txt"
    "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/Unicode-data.txt"
-   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/HTML-named-character-references.txt")
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/HTML-named-character-references.txt"
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/Feather-icons.txt")
 
 set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")

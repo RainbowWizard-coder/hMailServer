@@ -228,8 +228,9 @@ The CI jobs
   alone, runs `abuild checksum` and `abuild -r` - the build, `check()` and the
   packages - holds the licences the server's package carries in
   `/usr/share/hmailserver/licenses` (the AGPL-3.0 text and the notices of QuickJS,
-  Unicode's data for UTS 46 and HTML's list of named character references, which
-  the install rules put there) to the tarball's files by SHA-256
+  Unicode's data for UTS 46, HTML's list of named character references and the
+  Feather icons the webmail's page is drawn after, which the install rules put
+  there) to the tarball's files by SHA-256
   (`build/ci/alpine.sh licences` runs that step alone), and keeps the packages,
   the key's public half, `abuild.log` and `lint.txt`.
 - **`alpine-install`** (test): `build/ci/alpine.sh install` in a clean container:

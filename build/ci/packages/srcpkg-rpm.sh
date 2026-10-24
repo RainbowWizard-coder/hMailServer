@@ -286,15 +286,16 @@ grep -q '^/usr/lib/sysusers.d/hmailserver.conf$' <<< "$listing" || fail "no sysu
 cli_listing=$(rpm -qlp "$out"/hmailserver-cli-*.noarch.rpm)
 grep -q '^/usr/bin/hmctl$' <<< "$cli_listing" || fail "hmailserver-cli carries no hmctl"
 # The licences it goes out under, each marked %license, which is what rpm -qL lists:
-# the project's LICENSE, and the four texts the install rules put in
+# the project's LICENSE, and the five texts the install rules put in
 # /usr/share/hmailserver/licenses - hMailServer's AGPL-3.0 text and the notices of
-# QuickJS, of Unicode's data for UTS 46 and of HTML's list of named character
-# references, which are compiled into the server and whose licences ask for them with
-# every copy.
+# QuickJS, of Unicode's data for UTS 46, of HTML's list of named character
+# references and of the Feather icons the webmail's page is drawn after, which are
+# compiled into the server and whose licences ask for them with every copy.
 licence_listing=$(rpm -qpL "$server_rpm")
 for licence in /usr/share/licenses/hmailserver/LICENSE /usr/share/hmailserver/licenses/AGPL-3.0.txt \
     /usr/share/hmailserver/licenses/QuickJS.txt /usr/share/hmailserver/licenses/Unicode-data.txt \
-    /usr/share/hmailserver/licenses/HTML-named-character-references.txt; do
+    /usr/share/hmailserver/licenses/HTML-named-character-references.txt \
+    /usr/share/hmailserver/licenses/Feather-icons.txt; do
   grep -qxF "$licence" <<< "$licence_listing" || fail "the package does not carry $licence marked %license"
 done
 echo "licences: $(tr '\n' ' ' <<< "$licence_listing")"

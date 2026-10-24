@@ -90,8 +90,9 @@
 # And the licences, in usr/share/hmailserver/licenses/: hMailServer's own, the
 # AGPL-3.0 (AGPL-3.0.txt, the repository's LICENSE); the notices of what is
 # compiled into the server, QuickJS's (QuickJS.txt), Unicode's for its data for
-# UTS 46 (Unicode-data.txt) and the WHATWG's for HTML's list of named character
-# references (HTML-named-character-references.txt); the runtime's
+# UTS 46 (Unicode-data.txt), the WHATWG's for HTML's list of named character
+# references (HTML-named-character-references.txt) and Feather's, whose icons the
+# webmail's page is drawn after (Feather-icons.txt); the runtime's
 # notice and its libraries' licence files (appimage-runtime.txt and
 # appimage-runtime/); and for the libraries copied into usr/lib, the copyright
 # file of the package each came from, as the distribution ships it
@@ -300,6 +301,12 @@ install -m 0644 "${REPO_ROOT}/hmailserver/source/Server/Common/Idna/ucd/unicode.
    "${APPDIR}/usr/share/hmailserver/licenses/Unicode-data.txt"
 install -m 0644 "${REPO_ROOT}/hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE" \
    "${APPDIR}/usr/share/hmailserver/licenses/HTML-named-character-references.txt"
+
+# And Feather's notice, from the same file as the install rule takes it: the
+# webmail's page, compiled into the server, and the Control Deck's eye are drawn
+# after Feather's icons, and its MIT licence asks for the notice in every copy.
+install -m 0644 "${REPO_ROOT}/hmailserver/docs/Licenses/License - Feather icons.txt" \
+   "${APPDIR}/usr/share/hmailserver/licenses/Feather-icons.txt"
 
 # hMailServer's own licence, the AGPL-3.0-or-later. Its section 4 asks for a copy
 # of the licence to go with every copy of the program, and section 6 conveys the

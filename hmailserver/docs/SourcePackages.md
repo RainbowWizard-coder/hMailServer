@@ -132,17 +132,19 @@ declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 server (MPL-2.0), Unicode's data for UTS 46 and the tables made of it compiled
 into the server (Unicode-3.0), HTML's list of named character references and the
 table made of it compiled into the server (the WHATWG's BSD 3-Clause terms), the
-ATL script host, which only the Windows server compiles (its own notice), the DKIM
+Feather icons the webmail's page, compiled into the server, and the Control
+Deck's eye are drawn after (MIT, as `Expat`), the ATL script host, which only the Windows server compiles (its own notice), the DKIM
 corpus (Perl's terms), and the licence texts under `hmailserver/docs/Licenses`:
 the notices of the components the Windows build ships and the source does not
 carry (7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq,
 zlib), and a copy of the notice of each component in the source that has one
 (QuickJS, the MIME coder, `CStdString`, the RFC 7208 test suite, Unicode's data,
-the WHATWG's list), declared with that component. The packages built from the
-source install the notices of what is compiled into the server whose licences ask
-for them with every copy - QuickJS's, Unicode's and the WHATWG's - in
-`/usr/share/hmailserver/licenses`, beside the AGPL-3.0 text, through the CMake
-install rules, so the spec's `%files` marks the four `%license` and the Debian
+the WHATWG's list, the Feather icons), declared with that component. The packages
+built from the source install the notices of what is compiled into the server
+whose licences ask for them with every copy - QuickJS's, Unicode's, the WHATWG's
+and Feather's - in `/usr/share/hmailserver/licenses`, beside the AGPL-3.0 text,
+through the CMake install rules, so the spec's `%files` marks the five `%license`
+and the Debian
 package installs them under `/usr/share/hmailserver`.
 Since 6.3.6 no file is declared `none-stated`, a declaration a Debian archive does not accept
 ([the questions below](#questions-for-a-debian-or-fedora-maintainer)). The AGPL's

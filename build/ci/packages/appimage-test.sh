@@ -157,6 +157,7 @@ for f in AppRun hmailserver.desktop hmailserver.svg .DirIcon \
          usr/share/hmailserver/licenses/QuickJS.txt \
          usr/share/hmailserver/licenses/Unicode-data.txt \
          usr/share/hmailserver/licenses/HTML-named-character-references.txt \
+         usr/share/hmailserver/licenses/Feather-icons.txt \
          usr/share/hmailserver/licenses/AGPL-3.0.txt \
          usr/share/hmailserver/licenses/bundled.txt \
          usr/share/hmailserver/licenses/appimage-runtime.txt \
@@ -189,8 +190,9 @@ grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl" && grep -qx " *Version 3,
   || { echo "usr/share/hmailserver/licenses/AGPL-3.0.txt is not the AGPL-3.0's text."; exit 1; }
 # The notices of what is compiled into the server, each held by SHA-256 to the file
 # of the tree build-appimage.sh copied it from, as the install rules install it for
-# the packages: QuickJS's licence, with the carriage returns a checkout gives it taken
-# off both sides, and the notices of the two data sets compiled in as tables -
+# the packages: QuickJS's licence and Feather's notice (the MIT licence of the icons
+# the webmail's page is drawn after), with the carriage returns a checkout gives them
+# taken off both sides, and the notices of the two data sets compiled in as tables -
 # Unicode's data for UTS 46 (the Unicode License v3) and HTML's list of named
 # character references (the BSD 3-Clause License) - byte for byte, as the tree keeps
 # them (.gitattributes marks their directories -text).
@@ -208,8 +210,9 @@ done << 'NOTICES'
 QuickJS.txt text hmailserver/source/Server/quickjs/LICENSE
 Unicode-data.txt exact hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
 HTML-named-character-references.txt exact hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+Feather-icons.txt text hmailserver/docs/Licenses/License - Feather icons.txt
 NOTICES
-echo "the notices of QuickJS, Unicode's data and HTML's named character references, each the tree's file"
+echo "the notices of QuickJS, Unicode's data, HTML's named character references and the Feather icons, each the tree's file"
 # The libraries in usr/lib: each listed in bundled.txt with its package and source
 # package, each package's copyright file beside it, every licence text those files
 # name by its place in /usr/share/common-licenses, and the release file with their

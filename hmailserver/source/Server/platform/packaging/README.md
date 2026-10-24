@@ -160,8 +160,9 @@ their source, which a release carries as
 the GPL-3.0's text, `appimage/GPL-3.0.txt`, under which the runtime takes lzo,
 hMailServer's own AGPL-3.0 text, the repository's `LICENSE`, as
 `usr/share/hmailserver/licenses/AGPL-3.0.txt`, and beside it the notices of what
-is compiled into the server, `QuickJS.txt`, `Unicode-data.txt` and
-`HTML-named-character-references.txt`, as the install rules install them for the
+is compiled into the server, `QuickJS.txt`, `Unicode-data.txt`,
+`HTML-named-character-references.txt` and `Feather-icons.txt`, as the install
+rules install them for the
 packages (the script runs none of them). Where `dpkg` is (Debian, Ubuntu,
 the CI's Ubuntu 24.04), it also puts the copyright file of the package each
 library in `usr/lib` came from, the licence texts those name, and `bundled.txt`,
@@ -200,6 +201,12 @@ From the CMakeLists install rules, with the prefix above:
                                             named character references, compiled in
                                             as a table (a binary must carry the
                                             notice): Common/AntiSpam/whatwg/entities.LICENSE
+/usr/share/hmailserver/licenses/Feather-icons.txt
+                                            the MIT licence of Feather, whose icons
+                                            the webmail's page, compiled into the
+                                            binary, and the Control Deck are drawn
+                                            after (MIT asks for its notice):
+                                            docs/Licenses/License - Feather icons.txt
 /usr/share/hmailserver/licenses/AGPL-3.0.txt hMailServer's own licence, the FSF's
                                             file: the repository's LICENSE without
                                             its carriage returns
@@ -222,9 +229,9 @@ look elsewhere; moving the other two needs `ProgramFolder` to follow.
 CPack adds one file the install rules do not: the copyright file, where each
 format keeps it - `/usr/share/doc/hmailserver/copyright` in the `.deb` (Debian
 Policy 12.5), `/usr/share/licenses/hmailserver/copyright` in the `.rpm`, where it
-and the four texts under `/usr/share/hmailserver/licenses` are marked `%license`
+and the five texts under `/usr/share/hmailserver/licenses` are marked `%license`
 (`cpack-licenses.cmake`, `CPACK_RPM_USER_FILELIST`).
-`build/ci/packages/check-licenses.sh` holds all five to the tree, in the package
+`build/ci/packages/check-licenses.sh` holds all six to the tree, in the package
 file and as installed.
 
 Created by the maintainer scripts, not by the package payload, and therefore not
@@ -971,10 +978,10 @@ an account over REST, a message over SMTP, read back over IMAP). And the PKGBUIL
 names every licence of what is compiled into the server that an SPDX identifier
 names, `BSL-1.0` among them for the Boost its build links statically, and installs
 the copyright file, which has CStdString's notice too, and links to `QuickJS.txt`,
-`Unicode-data.txt` and `HTML-named-character-references.txt` in
-`/usr/share/licenses/hmailserver`, where Arch looks for a package's licences:
-`makepkg` built it in Arch Linux's pinned image on 14 October 2026, and `namcap`
-said nothing of its licences.
+`Unicode-data.txt`, `HTML-named-character-references.txt` and `Feather-icons.txt`
+in `/usr/share/licenses/hmailserver`, where Arch looks for a package's licences:
+`makepkg` built it in Arch Linux's pinned image on 14 October 2026, with the
+three links it had then, and `namcap` said nothing of its licences.
 
 Compose and Helm
 ----------------

@@ -21,13 +21,18 @@
 #                                                  of named character references,
 #                                                  compiled in as a table: Common/
 #                                                  AntiSpam/whatwg/entities.LICENSE
+#   /usr/share/hmailserver/licenses/Feather-icons.txt
+#                                                  the MIT licence of Feather, whose
+#                                                  icons the webmail's page, compiled
+#                                                  in, is drawn after: docs/Licenses/
+#                                                  License - Feather icons.txt
 #   the copyright file                             platform/packaging/debian-src/debian/copyright:
 #     .deb  /usr/share/doc/hmailserver/copyright   (Debian Policy 12.5)
 #     .rpm  /usr/share/licenses/hmailserver/copyright
 #
-# each 0644 and root's, each the package's own, and in the .rpm all five marked
+# each 0644 and root's, each the package's own, and in the .rpm all six marked
 # %license.
-# CMakeLists.txt installs the first four; CPack puts the copyright file in
+# CMakeLists.txt installs the first five; CPack puts the copyright file in
 # (platform/packaging/cpack-licenses.cmake).
 #
 #   bash build/ci/packages/check-licenses.sh PACKAGE.deb | PACKAGE.rpm
@@ -42,8 +47,9 @@
 #       names each as the package's
 #
 # Run from the root of a checkout or of the source tarball: every file is
-# compared with the tree's by SHA-256 - QuickJS.txt with its carriage returns
-# taken off both sides, since it is installed as the checkout holds it, and the
+# compared with the tree's by SHA-256 - QuickJS.txt and Feather-icons.txt with
+# their carriage returns taken off both sides, since each is installed as the
+# checkout holds it, and the
 # two data sets' notices exactly, being kept byte for byte (.gitattributes marks
 # their directories -text). It needs
 # bash, coreutils, grep and dpkg or rpm, which every image the package jobs run
@@ -77,8 +83,9 @@ agpl_source=LICENSE
 quickjs_source=$server/quickjs/LICENSE
 unicode_source=$server/Common/Idna/ucd/unicode.LICENSE
 whatwg_source=$server/Common/AntiSpam/whatwg/entities.LICENSE
+feather_source="hmailserver/docs/Licenses/License - Feather icons.txt"
 copyright_source=$server/platform/packaging/debian-src/debian/copyright
-for f in "$agpl_source" "$quickjs_source" "$unicode_source" "$whatwg_source" "$copyright_source"; do
+for f in "$agpl_source" "$quickjs_source" "$unicode_source" "$whatwg_source" "$feather_source" "$copyright_source"; do
   [ -f "$f" ] || { echo "REFUSED: no $f here. Run this from the root of a checkout or of the source tarball."; exit 2; }
 done
 
@@ -89,15 +96,15 @@ if [ "$kind" = deb ]; then
 else
   copyright=/usr/share/licenses/hmailserver/copyright
 fi
-# path, how it is compared (exact, or text: carriage returns off both sides), and
-# the SHA-256 it must have; a text file's bytes as the tree holds them are right
-# as well, which is what an .rpm's header can be held to
-expected="$licenses/AGPL-3.0.txt exact $(tr -d '\r' < "$agpl_source" | sha)
-$licenses/QuickJS.txt text $(tr -d '\r' < "$quickjs_source" | sha)
-$licenses/Unicode-data.txt exact $(sha < "$unicode_source")
-$licenses/HTML-named-character-references.txt exact $(sha < "$whatwg_source")
-$copyright exact $(sha < "$copyright_source")"
-quickjs_as_held=$(sha < "$quickjs_source")
+# path, how it is compared (exact, or text: carriage returns off both sides), the
+# SHA-256 it must have, and for a text file the SHA-256 of its bytes as the tree
+# holds them, which are right as well and are what an .rpm's header can be held to
+expected="$licenses/AGPL-3.0.txt exact $(tr -d '\r' < "$agpl_source" | sha) -
+$licenses/QuickJS.txt text $(tr -d '\r' < "$quickjs_source" | sha) $(sha < "$quickjs_source")
+$licenses/Unicode-data.txt exact $(sha < "$unicode_source") -
+$licenses/HTML-named-character-references.txt exact $(sha < "$whatwg_source") -
+$licenses/Feather-icons.txt text $(tr -d '\r' < "$feather_source" | sha) $(sha < "$feather_source")
+$copyright exact $(sha < "$copyright_source") -"
 
 where="installed"
 [ "$mode" = package ] && where="in $(basename "$package")"
@@ -133,7 +140,7 @@ else
   listing=$(rpm -qL hmailserver 2>&1) || { echo "FAILED: rpm -qL hmailserver: $listing"; exit 1; }
 fi
 
-while read -r path how want; do
+while read -r path how want as_held; do
   mark=""
   if [ "$mode" = package ] && [ "$kind" = rpm ]; then
     got=""
@@ -145,7 +152,7 @@ while read -r path how want; do
     done <<< "$listing"
     [ -n "$got" ] || { bad "MISSING  $path"; continue; }
     shown=$got
-    if [ "$how" = text ] && [ "$got" = "$quickjs_as_held" ]; then
+    if [ "$how" = text ] && [ "$got" = "$as_held" ]; then
       got=$want
     fi
     case "$flags" in

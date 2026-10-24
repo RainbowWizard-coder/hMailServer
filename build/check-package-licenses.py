@@ -207,6 +207,9 @@ COMPILED_IN = {
     "public-suffix-list": ("MPL-2.0", None),
     "unicode-idna-data": ("Unicode-3.0", None),
     "whatwg-html-named-references": ("BSD-3-Clause", None),
+    # The webmail's page, whose icons are drawn after Feather's, is compiled in as
+    # PortalPageData.cpp.
+    "feather-icons": ("MIT", None),
 }
 # And those it is not, with why.
 NOT_COMPILED_IN = {
@@ -846,6 +849,7 @@ GOOD_SBOM = '''SOURCE_COMPONENTS = [
     ("public-suffix-list", "PSL", "p", "MPL-2.0", None, "x"),
     ("unicode-idna-data", "Unicode data", "u", "Unicode-3.0", None, "x"),
     ("whatwg-html-named-references", "HTML references", "w", "BSD-3-Clause", None, "x"),
+    ("feather-icons", "Feather icons", "f", "MIT", None, "x"),
     ("atl-script-host", "ATL", "a", None, "its own", "x"),
     ("mail-dkim-corpus", "DKIM", "d", "GPL-1.0-or-later OR Artistic-1.0-Perl", None, "x"),
 ]

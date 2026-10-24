@@ -157,11 +157,12 @@ package() {
 # package abuild made, held to the tarball's files by SHA-256 as
 # build/ci/packages/check-licenses.sh holds the .deb's and the .rpm's to the tree:
 # hMailServer's AGPL-3.0 text, and the notices of QuickJS, of Unicode's data for
-# UTS 46 and of HTML's list of named character references, which are compiled into
-# the server and whose licences ask for them with every copy. The AGPL's and
-# QuickJS's are compared with their carriage returns taken off both sides, as the
-# tarball holds them with a checkout's; the two data sets' notices exactly, being
-# kept byte for byte (.gitattributes marks their directories -text).
+# UTS 46, of HTML's list of named character references and of the Feather icons the
+# webmail's page is drawn after, which are compiled into the server and whose
+# licences ask for them with every copy. The AGPL's, QuickJS's and Feather's are
+# compared with their carriage returns taken off both sides, as the tarball holds
+# them with a checkout's; the two data sets' notices exactly, being kept byte for
+# byte (.gitattributes marks their directories -text).
 package_licences() {
   local root=$1 version=$2 main scratch notice how source got want
   main=$(find "$OUT/packages" -name "hmailserver-$version-r[0-9]*.apk" | head -n 1)
@@ -187,6 +188,7 @@ AGPL-3.0.txt text LICENSE
 QuickJS.txt text hmailserver/source/Server/quickjs/LICENSE
 Unicode-data.txt exact hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
 HTML-named-character-references.txt exact hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+Feather-icons.txt text hmailserver/docs/Licenses/License - Feather icons.txt
 NOTICES
   rm -rf "$scratch"
 }

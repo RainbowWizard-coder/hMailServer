@@ -159,6 +159,8 @@ SOURCE_COMPONENTS = [
     ("whatwg-html-named-references", "HTML named character references (the WHATWG HTML standard's entities.json)",
      "hmailserver/source/Server/Common/AntiSpam/whatwg", "BSD-3-Clause", None,
      "every named reference HTML defines, compiled into the server as the table its link reader reads an HTML part's references with"),
+    ("feather-icons", "Feather icons (Cole Bemis)", "hmailserver/source/Server/Common/Util/Portal.html", "MIT", None,
+     "the icons the webmail's page and the Control Deck's page are drawn after, the webmail's compiled into the server"),
     ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
     ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",
