@@ -159,8 +159,8 @@ below says why and what changed.
 ### The start test, by hand on server2
 
 [The start test](#the-start-test)'s script, `build/ci/linux-package-install.sh
-rpm-fedora`, ran by hand on server2, one of the project's runners, on 23 October
-2026, over 6.3.7's own `hmailserver-6.3.7-1.aarch64.rpm` as the release carries
+rpm-fedora`, ran by hand on server2, one of the project's runners, on 23 and 24
+October 2026, over 6.3.7's own `hmailserver-6.3.7-1.aarch64.rpm` as the release carries
 it - its SHA-256 `72c3c404…` the one `hmailserver-linux-6.3.7-SHA256SUMS.txt`
 gives, and that file's Sigstore bundle verified by cosign against the tag's
 pipeline - in a checkout of 6.3.7's tree, which the package's Deck, catalogues and
@@ -171,17 +171,22 @@ a network of its own, as `postgres`.
 
 | Run | What was planted | Verdict | The deciding lines | Time |
 |---|---|---|---|---|
-| 1 | nothing | passed | `installed: 6.3.7-1 aarch64`, `hMailServer 6.3.7 build 46`, the licence files each `%license`, `schema 6108`, "the REST API answered 2 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 83 s |
-| 2 | nothing, the script as committed | passed | the same, with "glibc's converters, which it requires here: glibc-gconv-extra-2.43-9.fc44.aarch64", the REST API answering 1 s after the start | 72 s |
+| 1 | nothing | passed | `installed: 6.3.7-1 aarch64`, `hMailServer 6.3.7 build 46`, the licence files each `%license`, `schema 6108`, "the REST API answered 2 s after the start", `S: 220 <the container's host name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 83 s |
+| 2 | nothing, the script as committed | passed | the same, with "glibc's converters, which it requires here: glibc-gconv-extra-2.43-9.fc44.aarch64", the REST API answering 2 s after the start | 76 s |
 | 3 | rpm kept from installing `CreateTablesPGSQL.sql` (`%_netsharedpath`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 60 s |
-| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 71 s |
-| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 72 s |
+| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start; the script as committed | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 63 s |
+| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's host name> ESMTP'" | 72 s |
+| 6 | a listener on the REST port, 8046, there before the server starts, that takes every connection and never answers; the script as committed | failed, exit 1 | "FAILED: the server did not answer on 8046 within 300 s (HM_START_WAIT)", the listener holding the wait's ten requests, 30 s each | 373 s |
 
 dnf installed it with its dependencies; nothing was installed with `--nodeps`.
-Runs 1, 3, 4 and 5 were made with earlier versions of the script, which differed
-from it only in how it takes the package from the folder and in what it prints; the
-faults they plant come after that step, and run 4 made again with the script as
-committed failed the same way, the server exiting 2 s after its start. `linux-build`'s `hmailserver-6.3.7-1.x86_64.rpm`,
+Runs 1, 3 and 5 were made with earlier versions of the script, which differed from
+it only in how it takes the package from the folder, in what it prints and in
+giving each request of the start's wait no time limit of its own; the faults they
+plant come after the first, and none of them leaves a request of the wait
+unanswered. Without that limit a REST port that takes the connection and never
+answers held the script in the wait's first request until the job was removed
+([PackagesDeb.md](PackagesDeb.md), "The start test, by hand on server2").
+`linux-build`'s `hmailserver-6.3.7-1.x86_64.rpm`,
 in `linux-package-rpm`'s Fedora 44 image, passed the script's unchanged `rpm` half.
 
 **In a pipeline: not yet.** `rpm-fedora44-aarch64-start` first runs in the
@@ -891,8 +896,11 @@ container's own architecture from the folder it is given, the build's `generic/`
    command line is refused.
 4. The server is started as its unit starts it: `setpriv` with the unit's user and
    group, in `/var/lib/hmailserver`, with `CAP_NET_BIND_SERVICE` alone and no new
-   privileges, and given five minutes to answer (`HM_START_WAIT`); a server that
-   exits before then fails the job at once, with its exit status and its output.
+   privileges, and given five minutes to answer (`HM_START_WAIT`), each request
+   30 seconds of them at most, so that a REST port that takes the connection and
+   never answers fails the job within the five minutes, not at its timeout; a
+   server that exits before then fails the job at once, with its exit status and
+   its output.
 5. Port 25 answers with the server's own banner, `220 <its host name> ESMTP` -
    another program's banner there fails the job - and EHLO and QUIT;
    `GET /api/v1/status` answers; `GET /` is the installed Control Deck, byte for

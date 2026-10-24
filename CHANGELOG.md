@@ -742,8 +742,9 @@ with `--check`).
   generic `.rpm` built in Fedora 44, installed by dnf with its dependencies, never `--nodeps`. Either way the package
   is held to its files, Deck, catalogues and licences, `--check-config` and `--create-database` run as `hmailserver`,
   the server is started as its unit starts it (`setpriv` with the unit's user, directory and capability) and given
-  `HM_START_WAIT` seconds, five minutes in the arm64 jobs - a server that exits before it answers fails at once with
-  its exit status and output - and then asked: port 25 for the server's own banner, `220 <host name> ESMTP`, EHLO and
+  `HM_START_WAIT` seconds, five minutes in the arm64 jobs, each request of the wait 30 of them at most - a server that
+  exits before it answers fails at once with its exit status and output, and one whose REST port takes the connection
+  and never answers fails within those seconds, not at the job's timeout - and then asked: port 25 for the server's own banner, `220 <host name> ESMTP`, EHLO and
   QUIT, which `linux-package-deb` now asks too; `GET /api/v1/status`; and `GET /`, the Control Deck; and the package is
   removed. `release` needs both jobs, and `build/check-release-chain.py` holds them to it (`CARRIED_PACKAGES`' new
   start job: present, needing its build, not `allow_failure` or manual for a tag, run of the script's kind on the
@@ -752,13 +753,16 @@ with `--check`).
   unit does, asking port 25, the REST API and the Deck, removing the package, and saying `--nodeps` only for
   linux-build's `.rpm`) and to the arm64 class (`RUNNER_CLASSES`, 17 jobs), with 22 negative controls;
   `build/ci/hosted-runners.py`'s `EXPECTED` for the class is 17 minutes a batch's or a tag's pipeline. Run by hand on
-  server2 on 23 October 2026 over 6.3.7's own arm64 `.deb` and aarch64 `.rpm`, their SHA-256 the release's sums and the
-  sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 93 and 72 s, the REST API answering 1
-  to 3 s after the start and port 25 with the server's banner; with `CreateTablesPGSQL.sql` kept from being installed
-  each failed naming it, with the message store's lock held each failed with "the server exited, with status 1" and
-  the server's own "hMailServer could not start", and with another program's banner on port 25 each failed on it;
-  6.3.7's amd64 `.deb` passed the changed script in `linux-package-deb`'s image, and linux-build's `.rpm` its unchanged
-  half (`docs/PackagesDeb.md` and `PackagesRpm.md`, "The start test"). No pipeline has run the jobs yet: they first run
+  server2 on 23 and 24 October 2026 over 6.3.7's own arm64 `.deb` and aarch64 `.rpm`, their SHA-256 the release's sums
+  and the sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 100 and 76 s, the REST API
+  answering 1 to 3 s after the start and port 25 with the server's banner; with `CreateTablesPGSQL.sql` kept from
+  being installed each failed naming it, with the message store's lock held each failed with "the server exited, with
+  status 1" and the server's own "hMailServer could not start", with another program's banner on port 25 each failed
+  on it, and with a listener on the REST port that takes every connection and never answers each failed "the server
+  did not answer on 8046 within 300 s", where the script without the requests' limit was still in the wait's first
+  request 420 s after its job started, with `HM_START_WAIT` 60; 6.3.7's amd64 `.deb` passed the changed script in
+  `linux-package-deb`'s image, and linux-build's `.rpm` its unchanged half (`docs/PackagesDeb.md` and `PackagesRpm.md`,
+  "The start test"). No pipeline has run the jobs yet: they first run
   in the pipeline of the branch that brings them to `master`.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

@@ -229,8 +229,8 @@ writer's. The check then ran the following itself:
 ### The start test, by hand on server2
 
 [The start test](#the-start-test)'s script, `build/ci/linux-package-install.sh`,
-ran by hand on server2, one of the project's runners, on 23 October 2026, over
-6.3.7's own `hmailserver_6.3.7_arm64.deb` as the release carries it - its
+ran by hand on server2, one of the project's runners, on 23 and 24 October 2026,
+over 6.3.7's own `hmailserver_6.3.7_arm64.deb` as the release carries it - its
 SHA-256 `28fd6a4d…` the one `hmailserver-linux-6.3.7-SHA256SUMS.txt` gives, and
 that file's Sigstore bundle verified by cosign against the tag's pipeline - in a
 checkout of 6.3.7's tree, which the package's Deck, catalogues and licences are
@@ -241,22 +241,31 @@ its own, as `postgres`.
 
 | Run | What was planted | Verdict | The deciding lines | Time |
 |---|---|---|---|---|
-| 1 | nothing | passed | `installed: 6.3.7 arm64 install ok installed`, `hMailServer 6.3.7 build 46`, `schema 6108`, "the REST API answered 3 s after the start", `S: 220 <the container's name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 110 s |
-| 2 | nothing, the script as committed | passed | the same, the REST API answering 1 s after the start | 93 s |
+| 1 | nothing | passed | `installed: 6.3.7 arm64 install ok installed`, `hMailServer 6.3.7 build 46`, `schema 6108`, "the REST API answered 3 s after the start", `S: 220 <the container's host name> ESMTP`, EHLO's 250 lines and `221 goodbye`, `{"version":"6.3.7-B46","state":3,…}`, "GET / served the installed Control Deck, byte for byte", `PACKAGE PASSED` | 110 s |
+| 2 | nothing, the script as committed | passed | the same, the REST API answering 1 s after the start | 100 s |
 | 3 | dpkg kept from installing `CreateTablesPGSQL.sql` (`path-exclude`) | failed, exit 1 | `MISSING  /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql`, "FAILED: 1 file(s) a working installation needs are not in the package." | 79 s |
-| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 90 s |
-| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's name> ESMTP'" | 92 s |
+| 4 | the message store's lock held, as a running `--compress-store` holds it, so that the server cannot start; the script as committed | failed, exit 1 | "FAILED: the server exited, with status 1, 1 s after it was started and before its REST API answered on 8046", and the server's own "hMailServer could not start: a message store walk is running (…)" | 79 s |
+| 5 | another program on port 25, answering `220 squatter.invalid ESMTP not hMailServer` | failed, exit 1 | "FAILED: port 25 did not hold an SMTP conversation with the server: the banner is not '220 <the container's host name> ESMTP'" | 92 s |
+| 6 | a listener on the REST port, 8046, there before the server starts, that takes every connection and never answers; the script as committed | failed, exit 1 | "FAILED: the server did not answer on 8046 within 300 s (HM_START_WAIT)", the listener holding the wait's ten requests, 30 s each | 388 s |
 
-Runs 1, 3, 4 and 5 were made with earlier versions of the script, which differed
-from it only in how it takes the package from the folder and in what it prints;
-the faults they plant come after that step. A run before these, in a checkout of the tree after 6.3.7, whose
+Runs 1, 3 and 5 were made with earlier versions of the script, which differed from
+it only in how it takes the package from the folder, in what it prints and in
+giving each request of the start's wait no time limit of its own; the faults they
+plant come after the first, and none of them leaves a request of the wait
+unanswered. The script before that limit, over run 6's listener in
+`linux-package-deb`'s amd64 image with `HM_START_WAIT` 60, was still in the wait's
+first request 420 s after the job started, the listener holding that one
+connection, and was removed then: it would have held the job to its timeout. A run
+before these, in a checkout of the tree after 6.3.7, whose
 copyright file is newer than the package's, failed at the licence step, as it
 should, on that file alone (`WRONG /usr/share/doc/hmailserver/copyright`), which is
 why the runs above were made in 6.3.7's own tree. The script as committed, over
 6.3.7's `hmailserver_6.3.7_amd64.deb` in `linux-package-deb`'s amd64 Ubuntu 26.04
-image, passed in 16 s, the banner and EHLO among its steps; over the arm64 folder
-in that amd64 image it refused, exit 2: "not exactly one hmailserver_*_amd64.deb
-in packages-deb/ubuntu26.04-arm64 (found: none)".
+image, passed in 30 s, the banner and EHLO among its steps, and with run 6's
+listener there it failed "the server did not answer on 8046 within 60 s
+(HM_START_WAIT)", 89 s after the job started; over the arm64 folder in that amd64
+image it refused, exit 2: "not exactly one hmailserver_*_amd64.deb in
+packages-deb/ubuntu26.04-arm64 (found: none)".
 
 **In a pipeline: not yet.** `deb-ubuntu26.04-arm64-start` first runs in the
 pipeline of the branch that brings it to `master`, the one its merge request is
@@ -603,8 +612,11 @@ container's own architecture from the folder it is given, the build's
    server's own verbs, and a secret given on the command line is refused.
 4. The server is started as its unit starts it: `setpriv` with the unit's user and
    group, in `/var/lib/hmailserver`, with `CAP_NET_BIND_SERVICE` alone and no new
-   privileges, and given five minutes to answer (`HM_START_WAIT`); a server that
-   exits before then fails the job at once, with its exit status and its output.
+   privileges, and given five minutes to answer (`HM_START_WAIT`), each request
+   30 seconds of them at most, so that a REST port that takes the connection and
+   never answers fails the job within the five minutes, not at its timeout; a
+   server that exits before then fails the job at once, with its exit status and
+   its output.
 5. Port 25 answers with the server's own banner, `220 <its host name> ESMTP` -
    another program's banner there fails the job - and EHLO and QUIT;
    `GET /api/v1/status` answers; `GET /` is the installed Control Deck, byte for

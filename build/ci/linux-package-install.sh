@@ -29,7 +29,9 @@
 # one: an arm64 package is held in an arm64 container - under qemu-user on the
 # project's runners, natively on an arm64 machine. HM_START_WAIT is how many seconds
 # the started server is given to answer (60; the arm64 jobs give more, since under
-# qemu-user every instruction of it is emulated).
+# qemu-user every instruction of it is emulated), each request of the wait 30 of them
+# at most, so that a REST port that takes the connection and never answers fails
+# within it.
 #
 # The .deb, and the generic .rpm built in Fedora 44: the distribution's package
 # manager installs it with its dependencies from that release's own repositories -
@@ -386,8 +388,13 @@ pid=$!
 echo "$pid" > /tmp/hm.pid
 started=$SECONDS
 up=""
+# Each request is given what is left of the wait, 30 s at most, so that a server that
+# takes the connection on its REST port and never answers fails within HM_START_WAIT,
+# not at the job's timeout.
 while [ $((SECONDS - started)) -lt "$START_WAIT" ]; do
-  if curl -fs -o /dev/null -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status"; then
+  left=$((START_WAIT - (SECONDS - started)))
+  if curl -fs -o /dev/null --max-time "$((left < 30 ? left : 30))" -u "Administrator:$ADMIN_PASSWORD" \
+      "http://127.0.0.1:$REST_PORT/api/v1/status"; then
     up=yes
     break
   fi
