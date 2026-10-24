@@ -411,12 +411,13 @@ credible.
   47.23% of its regions and 38.87% of its branches
   (`build/ci/linux-coverage.sh`; the suite in two runs whose counters were
   merged - the whole of it before 29 fixtures were linked into it that day,
-  and those fixtures on their own). The `linux-coverage` job has run the
-  same measure on GitLab weekly since 24 October 2026 (the schedule
-  described `coverage`, Sundays at 03:40 UTC); its first run, pipeline
-  2983513656 over the whole suite of that day, reached 57.58% of the lines,
-  55.47% of the regions and 46.10% of the branches, which GitLab keeps as
-  the project's coverage ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+  and those fixtures on their own). The `linux-coverage` job runs the same
+  measure on GitLab weekly, under the schedule described `coverage` made on
+  24 October 2026 (Sundays at 03:40 UTC); its first run, the schedule played
+  by hand that day, pipeline 2983513656 over the whole suite of that day,
+  reached 57.58% of the lines, 55.47% of the regions and 46.10% of the
+  branches, which GitLab keeps as the project's coverage
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
   *The coverage schedule*). That is a floor rather than the Windows
   figure's equal: the Linux suite runs only the fixtures its REST shims can
   drive, the Linux build has no COM layer, and llvm-cov counts every line of a

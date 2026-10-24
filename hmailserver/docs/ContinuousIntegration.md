@@ -2811,7 +2811,7 @@ values. It takes a place of linix, server2 or s1-linux for about three hours
 **The first run**, the schedule played through the API at 00:37 UTC on 24
 October 2026: pipeline 2983513656, `linux-coverage` alone (job 17432363944, on
 linix, at `6fb8164c6`), 2 h 48 min - the instrumented build 800 s with six jobs,
-the testers under a minute, the whole suite 150 minutes, the report seconds. The
+the testers 2.5 minutes, the whole suite 151 minutes, the report seconds. The
 suite ran 2,652 tests: 2,282 passed, 2 failed, 368 skipped. Lines 177,196 of
 307,733 (57.58%), regions 133,418 of 240,510 (55.47%), branches 70,507 of
 152,948 (46.10%), functions 12,508 of 17,853 (70.06%), over 1,107 files; GitLab
@@ -2837,8 +2837,9 @@ in the checkout, and 172,066 of 300,380 source lines run.
 What it covers: everything under `hmailserver/source/Server` the Linux build
 compiles, 1,107 files, but the vendored code and the tester programs' own main
 files. In that run the folders with the most lines not run were `Common/Util`
-(57.56% of 149,851 lines), `Common/Application` (46.52% of 27,257),
-`Common/Persistence` (37.30% of 17,382) and `SMTP` (56.02% of 17,841); PST
+with the folders under it (57.56% of 149,851 lines), `Common/Application`
+(46.52% of 27,257), `Common/Persistence` (37.30% of 17,382) and the files of
+`SMTP` itself, `SMTP/SPF` left out (56.02% of 17,841); PST
 import (`Common/Pst`, 0.14%) and the anti-virus scanners (`Common/AntiVirus`,
 12.19%) have no fixture of their own in the Linux suite, and `IMAP` (84.50%) and
 `Common/Sieve` (81.92%) are above the silver level's 80%.
@@ -4485,7 +4486,7 @@ measured times after the first pipelines.
 | `windows-gate`, `windows-gate-s1vm` | about 2 h on bench150, at the same time as the other half on S1-WINBENCH, estimated | 4 h | The whole suite in one job took 3 h 25 min on bench150 at `1df1dc3e7` (pipeline 2944202315, 13 October 2026), 198 minutes of it the tests: those of `windows-gate`'s half took 105 minutes there, and those of `windows-gate-s1vm`'s 94. Each job runs one half with its own build, on its own bench; S1-WINBENCH has run no half yet (it built the server in 1 min 58 s on 13 October 2026). Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
-| `linux-coverage` | about 3 h | 4 h | 2 h 48 min in its first pipeline, 2983513656 on 24 October 2026, on linix: the instrumented build 800 s with six jobs, the testers under a minute, the whole suite (2,652 tests) 150 minutes, the report under a minute. By hand on linix on 26 September 2026, in the job's image, the suite of that day took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own |
+| `linux-coverage` | about 3 h | 4 h | 2 h 48 min in its first pipeline, 2983513656 on 24 October 2026, on linix: the instrumented build 800 s with six jobs, the testers 2.5 minutes, the whole suite (2,652 tests) 151 minutes, the report under a minute. By hand on linix on 26 September 2026, in the job's image, the suite of that day took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own |
 | `static-analysis` | 35 to 75 min | 120 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files. 44 min in `batch42`'s pipeline 2897966924; 72 min by hand on linix on 2 October 2026 with six, beside other agents' work (load 17 to 21 on 16 CPUs), clang-tidy 67 min of it for 814 files. Two hours since 6.3.6, when the job lost `allow_failure` and a run cut off fails the pipeline |
 | `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
