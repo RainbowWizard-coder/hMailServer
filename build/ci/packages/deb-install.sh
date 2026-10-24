@@ -18,7 +18,8 @@
 #     systemd units among them, and postinst made the service's user and
 #     enabled its units the way deb-systemd-helper does without systemd running;
 #   * the licences are there as the tree has them: the AGPL-3.0 text, the notices
-#     of QuickJS, Unicode's data and HTML's named character references, and
+#     of QuickJS, Unicode's data, HTML's named character references and the
+#     Feather icons, and
 #     /usr/share/doc/hmailserver/copyright, which the image's dpkg keeps
 #     where it drops the rest of /usr/share/doc (check-licenses.sh);
 #   * apt removes it again.

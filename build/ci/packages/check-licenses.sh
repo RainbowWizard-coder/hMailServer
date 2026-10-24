@@ -195,4 +195,4 @@ if [ "$failed" -ne 0 ]; then
   echo "FAILED: $failed licence file(s) $where missing or not the tree's"
   exit 1
 fi
-echo "LICENCES PASSED: the AGPL-3.0 text, the notices of QuickJS, Unicode's data and HTML's named character references, and the copyright file $where are the tree's"
+echo "LICENCES PASSED: the AGPL-3.0 text, the notices of QuickJS, Unicode's data, HTML's named character references and the Feather icons, and the copyright file $where are the tree's"

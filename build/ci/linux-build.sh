@@ -288,8 +288,9 @@ package() {
     rpm -qp --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' "$rpm"
   done
   # And each carries the licences it goes out under, the tree's own: the AGPL-3.0
-  # text, the notices of QuickJS, Unicode's data and HTML's named character
-  # references, and the copyright file where its format keeps it. A package
+  # text, the notices of QuickJS, Unicode's data, HTML's named character
+  # references and the Feather icons, and the copyright file where its format
+  # keeps it. A package
   # without them is not one the release may carry.
   for file in "$out"/packages/*.deb "$out"/packages/*.rpm; do
     bash build/ci/packages/check-licenses.sh "$file"

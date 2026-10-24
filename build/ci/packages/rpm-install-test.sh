@@ -22,7 +22,8 @@
 #   with there, brings them;
 #   every file a working installation needs is where the package put it;
 #   the licences are there as the tree has them - the AGPL-3.0 text, the notices
-#   of QuickJS, Unicode's data and HTML's named character references, and
+#   of QuickJS, Unicode's data, HTML's named character references and the
+#   Feather icons, and
 #   /usr/share/licenses/hmailserver/copyright - installed under the image's
 #   tsflags=nodocs, and each one rpm -qL names (check-licenses.sh);
 #   %post made the service account and the directories, and left the
