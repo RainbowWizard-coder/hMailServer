@@ -993,7 +993,7 @@ with `--check`).
   and `LicenseRef-No-Licence-Stated` for the eight files of test data and the installer's routines and declarations
   that no licence is stated for, and for the debugger rule of the original's developer tools,
   `hmailserver/tools/VS2005/autoexp.dat`, which is Visual Studio's own rule for `std::basic_string<wchar_t>` from
-  the `autoexp.dat` of the versions before Visual Studio 2010, its type renamed `CStdStr<wchar_t>` and its preview
+  the `autoexp.dat` of Visual Studio 2005 and 2008, its type renamed `CStdStr<wchar_t>` and its preview
   and stringview laid out a token group to a line, and which names Microsoft beside Martin Knafve and the
   maintainers under `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`, where the generated table gave it the
   project's licence alone - two of the eight the fuzzers' regression inputs, which the fuzzers' table gave
