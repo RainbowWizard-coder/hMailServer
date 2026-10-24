@@ -2029,16 +2029,17 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # them, carried verbatim (debian/copyright's "notices"): of what the Windows build
 # ships - 7-Zip, Boost, the Fat Cow icons, the MariaDB connector, OpenSSL, libpq, SQL
 # Server Compact, zlib - and of the AppImage's runtime. Each text's holders are the
-# ones it names; the six below whose components the source tarball carries are given
-# their component's licence, as debian/copyright gives them. They are read for these
-# tables alone (precedence override): a licence's text is not its file's notice, and
-# reuse would take its words for holders - "Copyright Act" in the CC licence, the
-# GPL's "<year>  <name of author>". Four of the six, the texts of QuickJS's, the RFC
-# 7208 suite's, Unicode's and the HTML standard's terms that the maintainers put in
-# hmailserver/docs/Licenses, open with the maintainers' note on where the component
-# is vendored and what is made or compiled from it, and the rule and the verbatim
-# text follow: those name the maintainers beside the component's holders, and the
-# project's licence beside the component's, for that note.
+# ones it names; the seven below whose components the source tarball carries are
+# given their component's licence, as debian/copyright gives them. They are read for
+# these tables alone (precedence override): a licence's text is not its file's notice,
+# and reuse would take its words for holders - "Copyright Act" in the CC licence, the
+# GPL's "<year>  <name of author>". Five of the seven, the texts of QuickJS's, the
+# RFC 7208 suite's, Unicode's, the HTML standard's and the Feather icons' terms that
+# the maintainers put in hmailserver/docs/Licenses, open with the maintainers' note
+# on where the component is vendored or drawn from and what is made or compiled from
+# it, and the rule and the verbatim text follow: those name the maintainers beside
+# the component's holders, and the project's licence beside the component's, for
+# that note.
 [[annotations]]
 path = [
     "libraries/License - *.rtf",
@@ -2100,6 +2101,15 @@ SPDX-FileCopyrightText = [
     "2026 Christopher Holloway / Progressive Robot Ltd",
 ]
 SPDX-License-Identifier = "BSD-3-Clause AND AGPL-3.0-or-later"
+
+[[annotations]]
+path = "hmailserver/docs/Licenses/License - Feather icons.txt"
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2013-2023 Cole Bemis",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "MIT AND AGPL-3.0-or-later"
 
 # The original's list of the third-party components and their licences, Martin
 # Knafve's table of 2010, and the same table in Markdown with the fork's note on it,
@@ -2374,6 +2384,34 @@ path = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Icons of the fork's own pages drawn after Feather's, Cole Bemis's icon set, under
+# the MIT licence (hmailserver/docs/Licenses/License - Feather icons.txt carries its
+# notice and says how they were compared with Feather 4.29.2): seven symbols of the
+# webmail's sprite in Portal.html - i-gear after "settings", i-pen after "edit-3",
+# i-print after "printer", i-inbox after "inbox", i-file after "file", i-draft after
+# "file-text" and i-clip after "paperclip", some with their numbers rounded, some
+# moved or resized - and the same page as PortalPageData.cpp embeds it, which the
+# server compiles in; and the eye of the Control Deck's page, after Feather's "eye"
+# laid into a box of 16 units. The rest of each is the fork's: the two with the
+# project's header name Feather's holder and licence beside it, and the Control
+# Deck's page, which has none, the maintainers' as the fork's table gives them.
+[[annotations]]
+path = [
+    "hmailserver/source/Server/Common/Util/Portal.html",
+    "hmailserver/source/Server/Common/Util/PortalPageData.cpp",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2013-2023 Cole Bemis"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "hmailserver/installation/WebAdmin/index.html"
+SPDX-FileCopyrightText = [
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "2013-2023 Cole Bemis",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND MIT"
 
 # The webmail's script, which the server serves as it is (build/generate-portal-page.py
 # embeds it): its table of emoji names holds "© copyright", which reuse would take

@@ -315,6 +315,30 @@ Comment:
  references with it, as a browser does, before it reads the part's links for
  the SURBL test and the sender lists' URL entries.
 
+Files: hmailserver/source/Server/Common/Util/Portal.html
+       hmailserver/source/Server/Common/Util/PortalPageData.cpp
+       hmailserver/installation/WebAdmin/index.html
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           2013-2023 Cole Bemis
+License: AGPL-3+ and Expat
+Comment:
+ The webmail's page and the Control Deck's, the maintainers' own, with icons
+ drawn after Feather's, Cole Bemis's icon set, under the MIT licence: seven
+ symbols of the webmail's sprite (after Feather's settings, edit-3, printer,
+ inbox, file, file-text and paperclip) and the Control Deck's eye.
+ PortalPageData.cpp is the webmail's page as build/generate-portal-page.py
+ embeds it, compiled into /usr/bin/hmailserver, which serves both pages.
+ hmailserver/docs/Licenses/License - Feather icons.txt names each icon and
+ carries Feather's notice.
+
+Files: hmailserver/docs/Licenses/License?-?Feather?icons.txt
+Copyright: 2013-2023 Cole Bemis
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: Expat and AGPL-3+
+Comment:
+ Feather's LICENSE, verbatim, after the maintainers' note on which icons are
+ drawn after Feather's and how they were compared with its release 4.29.2.
+
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
            2005-2026 Martin Knafve / hMailServer.com

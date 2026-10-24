@@ -277,6 +277,26 @@ with `--check`).
 
 ### Downloads and the release
 
+- **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
+  gave them the project's holders and licence alone.** Seven symbols of the webmail's sprite in
+  `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, are drawn after
+  Feather's, Cole Bemis's icon set: `i-gear` after its `settings`, `i-pen` after `edit-3` and `i-print` after
+  `printer`, as an SVG optimiser leaves them (numbers rounded to one decimal, arcs joined; the printer's body
+  character for character), and `i-inbox`, `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and
+  `paperclip`, moved or resized a unit; `build/generate-portal-page.py` embeds the page in `PortalPageData.cpp`, which
+  `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
+  `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.
+  The MIT licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the
+  two pages and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL,
+  with a comment naming each icon; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
+  carry, does the same in a paragraph of its own (`License: AGPL-3+ and Expat`), where its `Files: *` gave them the
+  AGPL alone; `hmailserver/docs/Licenses/License - Feather icons.txt` carries Feather's LICENSE verbatim after a note
+  naming the icons and how they were compared with Feather 4.29.2 (its npm tarball, held to the registry's sha512),
+  and has its own table and paragraph; the installer's licence page, `hmailserver/installation/License.rtf`, carries
+  the notice, since `hMailServer.exe` embeds the page; `hmailserver/docs/SourceTarball.md`'s table of what is not the
+  project's own has a row for them; and `build/check-source-tarball.py` requires the notice in every tarball, as it
+  does the other third parties'. The pages themselves are unchanged. The `reuse` job, with its negative controls,
+  `build/ci/reuse-debian.py` and `check-source-tarball.py --self-test` pass.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the
@@ -862,7 +882,7 @@ with `--check`).
   it, as its comment says, and is refused by `START_TEST_SHA256`, the digest that holds the whole script.
 
 - **New: the tree is REUSE-compliant, and a CI job holds it.** Every file's copyright and licence are known, as the
-  REUSE Specification 3.3 asks, by the file's own header or, for the 4,189 files that carry none (documents,
+  REUSE Specification 3.3 asks, by the file's own header or, for the 4,191 files that carry none (documents,
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
@@ -886,9 +906,9 @@ with `--check`).
   `RestApiSettings.cpp` (`InterfaceSettings`' refusal of a hierarchy delimiter a folder's name holds),
   `RestApiRoutes.cpp` (`InterfaceAccount`'s refusal of an auto-reply expiry date that is not a date) and
   `RestApiMailbox.cpp` (the IMAP commands' refusals to create, rename or delete a folder), the sends' `ApiSends.cpp`
-  (the external delivery's "Tried %d time(s)", at the head of the reason given for a deferred recipient), the message store's
-  `MessageStore.cpp` (`File`'s errors), `DateTime.cpp` (the old date class's error 5160), `ScriptTransaction.cpp` and
-  `ScriptBinding.cpp` (the COM Database and Message objects' errors), and the Control Panel's
+  (the external delivery's "Tried %d time(s)", at the head of the reason given for a deferred recipient), the
+  message store's `MessageStore.cpp` (`File`'s errors), `DateTime.cpp` (the old date class's error 5160),
+  `ScriptTransaction.cpp` and `ScriptBinding.cpp` (the COM Database and Message objects' errors), and the Control Panel's
   `ConfigurationChecks.cs` and `Strings.resx` (the Administrator's warning for a banned localhost) - the IMAP
   fetcher's `IMAPClientConnection.cpp`, which follows the POP3 fetcher's connection and download handling, the Linux
   suite's `SslSetup.cs` shim, two DKIM tests that keep the signing tests' `GetPrivateKeyFile`, the MIME fuzzer's
@@ -1004,7 +1024,7 @@ with `--check`).
   over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
   the original's files, but the third parties', that does not name Martin Knafve, and one of the ten the fork made
   at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
-  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,774 files - to having the same licences in
+  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,775 files - to having the same licences in
   the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for
   its SPDX identifier (it finds `rfc7208-tests.CHANGES` alone in the record as it was); and then eight negative
   controls must each be refused by name - five files put in the checkout, a new C++ source without the header, a new

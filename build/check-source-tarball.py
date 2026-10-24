@@ -215,6 +215,8 @@ REQUIRED = (
     (SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE",
      "the BSD 3-Clause terms of the HTML standard's list of named character references the server compiles in"),
     ("hmailserver/docs/Licenses/License - HTML named character references.txt", "the same, among the third-party notices"),
+    ("hmailserver/docs/Licenses/License - Feather icons.txt",
+     "the MIT licence of Feather, whose icons the webmail's page, compiled into the server, draws after"),
 )
 
 
@@ -768,6 +770,7 @@ def self_test():
         "hmailserver/docs/Licenses/License - Unicode data.txt": "Unicode-3.0",
         SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE": "BSD-3-Clause",
         "hmailserver/docs/Licenses/License - HTML named character references.txt": "BSD-3-Clause",
+        "hmailserver/docs/Licenses/License - Feather icons.txt": "MIT",
         SERVER + "/Common/Util/Deflate.cpp": '#include "../../zlib/zlib.h"\n',
         SERVER + "/Common/Util/Win.cpp": '#ifndef HM_PLATFORM_POSIX\n#include "../../COM/Api.h"\n#endif\n',
         SERVER + "/Common/Util/Both.cpp": ('#ifdef HM_PLATFORM_POSIX\n#include <zlib.h>\n#else\n#include "../../zlib/zlib.h"\n#endif\n'
@@ -915,6 +918,7 @@ def self_test():
             "hmailserver/docs/Licenses/License - Unicode data.txt": b"Unicode-3.0",
             SERVER + "/Common/AntiSpam/whatwg/entities.LICENSE": b"BSD-3-Clause",
             "hmailserver/docs/Licenses/License - HTML named character references.txt": b"BSD-3-Clause",
+            "hmailserver/docs/Licenses/License - Feather icons.txt": b"MIT",
             "hmailserver/docs/Licenses/License list.md": b"License list\n============\n",
         })
         files.update(extra or {})
