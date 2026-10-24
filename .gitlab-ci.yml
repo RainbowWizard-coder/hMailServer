@@ -1625,7 +1625,12 @@ linux-fuzz:
 # failed test does not fail this job - linux-suite is the pass or fail truth, on the
 # uninstrumented build - but a suite that did not run to its end (no TRX), no
 # counters, or no report, does. GitLab reads the line figure from the log (coverage:,
-# below) for the pipeline's coverage.
+# below, summary.txt's "lines:" line) for the job's and the pipeline's coverage and
+# the project's coverage history (Analyze, Repository analytics); the Cobertura report
+# (build/ci/coverage-cobertura.py, from the export that figure is read from) marks a
+# merge request's diff only when the job is in that merge request's head pipeline,
+# which these rules never make it. The converter's self-test runs first, so that a
+# broken one fails the job in seconds and not after the suite's hours.
 linux-coverage:
   extends: .linix
   tags: [linix]
@@ -1648,6 +1653,7 @@ linux-coverage:
     HM_COV_DIR: $CI_PROJECT_DIR/linux-coverage
     RUNNER_SCRIPT_TIMEOUT: 3h50m
   script:
+    - python3 build/ci/coverage-cobertura.py --self-test
     - bash build/ci/linux-coverage.sh
   coverage: '/lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)/'
   artifacts:
@@ -1659,8 +1665,13 @@ linux-coverage:
       - linux-coverage/report-with-vendored.txt
       - linux-coverage/coverage.json
       - linux-coverage/lcov.info
+      - linux-coverage/cobertura*.xml
       - linux-coverage/*.log
       - linux-coverage/suite/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: linux-coverage/cobertura*.xml
 
 # ---------------------------------------------------------------- security scanning
 #

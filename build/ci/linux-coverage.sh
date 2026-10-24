@@ -58,6 +58,13 @@
 #   coverage.json      llvm-cov export -summary-only, for tools
 #   lcov.info          llvm-cov export -format=lcov (line and branch records);
 #                      both name the source files by their paths in the checkout
+#   cobertura.xml      lcov.info as Cobertura XML, each file named from the
+#                      checkout's root, for GitLab's coverage_report
+#                      (build/ci/coverage-cobertura.py; cobertura-1.xml and on
+#                      when it is larger than one file GitLab reads): each source
+#                      line once, where summary.txt counts a lambda's lines in it
+#                      and in the function around it, and held to coverage.json
+#                      by llvm-cov's own figures in lcov.info
 #   suite/             linux-suite.sh's results (console.log, the TRX, junit.xml);
 #                      suite-<HM_COV_RUN>/ for a named run
 #   profiles-*/        the raw counters, one directory per run, and its scope.txt
@@ -253,6 +260,12 @@ report() {
   llvm-cov report -instr-profile="$cov/hmailserver.profdata" "${objects[@]}" -path-equivalence="$build_dir,$src" \
       -ignore-filename-regex='^/usr/' > "$cov/report-with-vendored.txt" || true
   cd "$root" || exit 2
+  # lcov.info as Cobertura, for GitLab's coverage_report. The figures llvm-cov
+  # writes into lcov.info must be coverage.json's, and the two must name the same
+  # files, so that the diff's marks and the figure are one export of one run.
+  rm -f "$cov"/cobertura*.xml
+  python3 build/ci/coverage-cobertura.py --lcov "$cov/lcov.info" --root "$root" \
+      --summary "$cov/coverage.json" --output "$cov/cobertura.xml" || exit 4
   local scopes
   scopes=$(for name in "${dirs[@]}"; do
     if [ -f "$name/scope.txt" ]; then cat "$name/scope.txt"; else echo "$(basename "$name"): no scope recorded"; fi

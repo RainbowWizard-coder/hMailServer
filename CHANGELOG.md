@@ -1375,6 +1375,23 @@ with `--check`).
   `%TEMP%`. Run whole with `%TEMP%` a watched, empty folder, the test passed (every case, and each of its five altered
   copies caught); each of its six setups made two `is-*.tmp` folders there, one holding `original-guard-test.tmp`, the
   loader's copy of the setup, and the other `_isetup\_setup64.tmp`, and nothing was left behind.
+- **The coverage job writes a Cobertura report.** `build/ci/linux-coverage.sh` turns llvm-cov's `lcov.info` into
+  Cobertura XML with the new `build/ci/coverage-cobertura.py`, and `linux-coverage` hands it to GitLab as its
+  `coverage_report`: each source file is named by its path from the checkout's root, as GitLab matches a merge
+  request's files, and each line llvm-cov maps is there once, with its count and its branches. llvm-cov's summary -
+  `coverage.json`, `summary.txt` and the figure GitLab reads from the log (`coverage:`) - counts a line inside a lambda
+  in the lambda and again in the function around it, so the report counts fewer lines than the figure does: over the
+  instrumented build at 6fb8164c6 under the whole Linux suite, run on 24 October 2026 in the job's image as the job
+  runs it, 171,894 of 300,380 source lines and 69,604 of 150,346 branches, where the summary had 177,237 of 307,733
+  lines (57.59%) and 70,545 of 152,948 branches - 2,043 of the difference in `DatabaseTransactionTester.cpp`, whose
+  checks are lambdas. The two are one export of one run or there is no report: the figures llvm-cov writes into
+  `lcov.info` for each file must add up to `coverage.json`'s totals and the two must name the same files, or the
+  job fails. A report larger than the 10 MiB GitLab reads of one file is written as several, whole folders to a file -
+  that run's came to two, of 4.3 and 7.6 MB - and the job's wildcard collects them. GitLab marks a merge request's
+  diff with it only when that merge request's head pipeline ran the job, which the job's rules - the coverage
+  schedule's pipeline alone - never make it; it is in the artifact for anyone to read, and for the day the job runs
+  where a merge request can show it. The converter's self-test runs first in the job, so that a broken one fails it
+  in seconds and not after the suite.
 
 ### Documentation
 
