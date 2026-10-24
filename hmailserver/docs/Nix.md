@@ -216,9 +216,10 @@ way, [SourcePackages.md](SourcePackages.md)):
   (`hmailserver/docs/Licenses/License - Feather icons.txt`), which the install rules
   put in `$out/share/hmailserver/licenses` as `Feather-icons.txt`; its name's spaces
   are why `flake.nix` writes it as a directory's path and a string joined. A change to
-  the other documents or the CI does not make a new package. A path named there that the tree no longer has stops the evaluation
-  (`lib.fileset.unions`), so a file the CMake build stops reading leaves this list
-  with it: `tlds.txt`, which 6.3.6 retired, did.
+  the other documents or the CI does not make a new package. A path named there that
+  the tree no longer has stops the evaluation (`lib.fileset.unions`), so a file the
+  CMake build stops reading leaves this list with it: `tlds.txt`, which 6.3.6
+  retired, did.
 - **`checkPhase`** runs the server's `--version` - every static constructor runs
   before `main`, so a server that cannot start fails the build - and then every
   `*-tests` program the build makes, found rather than listed, as

@@ -618,10 +618,14 @@ something which already exists.
   third party's licence added beside the header's (`precedence = "aggregate"`). So does an icon drawn after an
   icon set's - the webmail's sprite and the Control Deck's eye name Feather's holder
   (`hmailserver/docs/Licenses/License - Feather icons.txt` says which) - where it keeps more of the set's drawing
-  than a simple shape. A simple shape - straight strokes on the grid's whole units, with at most one plain circle
-  or rectangle: three bars for a menu, a circle with two hands for a clock, a box with a V for a letter, a cross, a
-  plus, a chevron - which line icons of one subject on the 24-unit grid draw alike, is not counted as drawn after
-  any set, even where one set draws it point for point the same. Every licence named, in a
+  than simple shapes. Simple shapes are plain figures - straight strokes, a circle or a half circle, a box with
+  square or rounded corners - laid out as line icons of one subject on the 24-unit grid lay them: three bars for a
+  menu, a circle with two hands for a clock, a box with a V for a letter, a circle with a slash, a head over a half
+  circle, a lid over a box, a cross, a plus, a chevron; an outline drawn of curves, as a gear's, a pen's, a
+  paperclip's or a bell's is, is not one. A symbol of simple shapes alone does not name a set it shares them with,
+  even where that set draws them point for point the same (the notice says which of the webmail's do); the line
+  decides which sets are named, not which symbols count as drawn after a set already named for others, as
+  Feather is. Every licence named, in a
   header or in REUSE.toml, has its text
   in [LICENSES/](LICENSES) as `<SPDX identifier>.txt` - SPDX's own text for an identifier on SPDX's list,
   and a `LicenseRef-` text of the project's for one that is not - and LICENSES/ holds no other. A new file

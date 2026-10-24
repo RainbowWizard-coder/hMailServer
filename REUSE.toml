@@ -2479,18 +2479,25 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 # and rectangles with a few straight strokes. The two with the project's header
 # name Feather's holder and licence beside it, and the Control Deck's page, which
 # has none, his beside the maintainers'.
-# No other icon set's holder is named. A set is named where a symbol keeps more of
-# its drawing than a simple shape - straight strokes on the grid's whole units, with
-# at most one plain circle or rectangle: three bars for a menu, a circle with two
-# hands for a clock, a box with a V for a letter, a cross, a plus, a chevron, a
-# chevron with a bar - which line icons of one subject on the 24-unit grid draw
-# alike; Feather is, by the curves of i-gear, i-pen, i-clip and i-bell-off and the
-# eye's. The symbols that are point for point another set's icon are such shapes
-# alone: i-menu, i-clock, i-mail and i-empty are Tabler Icons' "menu-2",
-# "clock-hour-4" and "mail", i-last is Lucide's "chevron-last", and i-close, i-plus
-# and the chevrons are Lucide's and Tabler's as well as Feather's; and i-popout's box
-# and diagonal fall where Tabler's "external-link" has them, its strokes in
-# Feather's order.
+# No other icon set's holder is named. A set other than Feather would be named where
+# a symbol took from it more than simple shapes: plain figures - straight strokes, a
+# circle or a half circle, a box with square or rounded corners - laid out as line
+# icons of one subject on the 24-unit grid lay them (three bars for a menu, a circle
+# with two hands for a clock, a box with a V for a letter, a circle with a slash, a
+# head over a half circle, a lid over a box, a cross, a plus, a chevron); an outline
+# drawn of curves, as a gear's, a pen's, a paperclip's or a bell's is, is not one.
+# That line decides only which set beyond Feather is named, not which symbols are
+# counted after Feather's, of which i-signout, i-popout and i-expand are simple
+# shapes. What the sprite has of other sets is simple shapes: i-menu, i-clock,
+# i-mail and i-empty are point for point Tabler Icons' "menu-2", "clock-hour-4" and
+# "mail"; i-archive has the lid, the box and the bar of Tabler's "archive" where it
+# has them, its lid square and its box's corners of radius 1 for Tabler's 2; i-junk
+# is Humbleicons' "ban", its circle and its stroke from 5.5 to 18.5; i-person has the
+# half circle of Lucide's "user-round" for its body and the head of Iconoir's
+# "user"; i-mail-open is near Lucide's "mail-open", which Feather does not have;
+# i-last is Lucide's "chevron-last"; i-close, i-plus and the chevrons are Lucide's
+# and Tabler's as well as Feather's; and i-popout's box and diagonal fall where
+# Tabler's "external-link" has them, its strokes in Feather's order.
 [[annotations]]
 path = [
     "hmailserver/source/Server/Common/Util/Portal.html",

@@ -1,5 +1,5 @@
 Feather, Cole Bemis's icon set (https://feathericons.com), after whose drawings
-the icons of hMailServer's webmail and the eye of its Control Deck are drawn.
+icons of hMailServer's webmail and the eye of its Control Deck are drawn.
 Of the 56 symbols of the sprite of the webmail's page,
 hmailserver/source/Server/Common/Util/Portal.html, eleven follow a Feather
 icon's own drawing, some with their numbers rounded, some moved, resized or
@@ -17,15 +17,29 @@ compiled into the server on Windows (hMailServer.exe) and Linux, and the server
 serves it. The Control Deck's page, hmailserver/installation/WebAdmin/
 index.html, which the server serves too, draws its eye after Feather's "eye",
 laid into a box of 16 units; its other icons are plain circles and rectangles
-with a few straight strokes. A simple shape - straight strokes on the grid's
-whole units, with at most one plain circle or rectangle, such as three bars for
-a menu or a box with a V for a letter - is drawn alike by line icons of one
-subject on the 24-unit grid and is not counted as drawn after any icon set: so
-i-menu, i-clock, i-mail and i-empty, which are point for point Tabler Icons'
-"menu-2", "clock-hour-4" and "mail", and i-last, which is Lucide's
-"chevron-last", are not credited to Tabler or to Lucide (Tabler Icons 3.49.0
-and lucide-static 1.61.0, from the npm registry, were compared too). The
-drawings were compared with those of
+with a few straight strokes.
+No other icon set is named. A set other than Feather would be named where a
+symbol took from it more than simple shapes: plain figures - straight strokes,
+a circle or a half circle, a box with square or rounded corners - laid out as
+line icons of one subject on the 24-unit grid lay them, such as three bars for
+a menu, a box with a V for a letter or a circle with a slash across it; an
+outline drawn of curves, as a gear's, a pen's, a paperclip's or a bell's is, is
+not one. That line decides only which set beyond Feather is named, not which
+symbols are counted after Feather's, of which i-signout, i-popout and i-expand
+are simple shapes. What the sprite has of other sets is simple shapes: i-menu,
+i-clock, i-mail and i-empty are point for point Tabler Icons' "menu-2",
+"clock-hour-4" and "mail"; i-archive has the lid, the box and the bar of
+Tabler's "archive" where Tabler's has them, its lid square and its box's
+corners of radius 1 where Tabler's are 2; i-junk is Humbleicons' "ban", its
+circle and its stroke from 5.5 to 18.5; i-person has the half circle of
+Lucide's "user-round" for its body and the head of Iconoir's "user";
+i-mail-open is near Lucide's "mail-open", an icon Feather does not have;
+i-last is Lucide's "chevron-last"; i-close, i-plus and the chevrons are
+Lucide's and Tabler's as well as Feather's; and i-popout's box and diagonal
+fall where Tabler's "external-link" has them, its strokes in Feather's order.
+Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's icon sets,
+Humbleicons 1.29.0 and Iconoir 7.12.1 among them, each from the npm registry,
+were compared too. The drawings were compared with those of
 Feather's release 4.29.2, its dist/icons.json, from the npm registry
 (feather-icons-4.29.2.tgz, whose sha512 equals the registry's integrity value,
 sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==).

@@ -330,8 +330,8 @@ Comment:
  Feather's icons of the same subjects) and the Control Deck's eye.
  PortalPageData.cpp is the webmail's page as build/generate-portal-page.py
  embeds it, compiled into /usr/bin/hmailserver, which serves both pages.
- hmailserver/docs/Licenses/License - Feather icons.txt names each icon and
- carries Feather's notice.
+ hmailserver/docs/Licenses/License - Feather icons.txt says which icons are
+ drawn after Feather's and carries Feather's notice.
 
 Files: hmailserver/docs/Licenses/License?-?Feather?icons.txt
 Copyright: 2013-2023 Cole Bemis

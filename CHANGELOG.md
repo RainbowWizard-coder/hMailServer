@@ -281,8 +281,9 @@ with `--check`).
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after
   the icons of Feather, Cole Bemis's icon set. Of its 56 symbols, eleven follow a Feather icon's own drawing:
-  `i-gear` after its `settings`, `i-pen` after `edit-3` and `i-print` after `printer`, as an SVG optimiser leaves
-  them (numbers rounded to one decimal, arcs joined; the printer's body character for character); `i-inbox`,
+  `i-gear` after its `settings` and `i-pen` after `edit-3`, as an SVG optimiser leaves them (numbers rounded to one
+  decimal, arcs joined), and `i-print` after `printer`, its body character for character and its top and paper a
+  unit shorter; `i-inbox`,
   `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and `paperclip`, moved or resized a unit;
   `i-signout` after `log-in` (its arrow's numbers Feather's, its door two units wider), `i-popout` after
   `external-link` and `i-expand` after `maximize-2`, each drawn in a unit towards the centre, and `i-bell-off` after
@@ -292,12 +293,17 @@ with `--check`).
   `i-trash`, `i-warn`, `i-calendar`, `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the
   page in `PortalPageData.cpp`, which `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
   `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.
-  No other icon set is credited, by a line `REUSE.toml` and `CONTRIBUTING.md` now draw: a set is named where a
-  symbol keeps more of its drawing than a simple shape - straight strokes on the grid's whole units, with at most one
-  plain circle or rectangle, which line icons of one subject on the 24-unit grid draw alike - and what the sprite
-  shares with other sets is such shapes alone (`i-menu`, `i-clock`, `i-mail` and `i-empty` are point for point
-  Tabler Icons' `menu-2`, `clock-hour-4` and `mail`, and `i-last` Lucide's `chevron-last`), where Feather's credit
-  stands on the curves of `i-gear`, `i-pen`, `i-clip`, `i-bell-off` and the eye.
+  No other icon set is credited, by a line `REUSE.toml`, the notice and `CONTRIBUTING.md` now draw: a set other
+  than Feather is named where a symbol takes from it more than simple shapes - plain figures, straight strokes, a
+  circle or a half circle, a box with square or rounded corners, laid out as line icons of one subject on the
+  24-unit grid lay them, where an outline drawn of curves, as a gear's or a paperclip's is, is not one - and the
+  line decides only which set beyond Feather is named, not which symbols count after Feather's, three of which
+  (`i-signout`, `i-popout` and `i-expand`) are simple shapes. What the sprite has of other sets is simple shapes,
+  and the record says which: `i-menu`, `i-clock`, `i-mail` and `i-empty` are point for point Tabler Icons'
+  `menu-2`, `clock-hour-4` and `mail`, `i-archive` has the lid, the box and the bar of Tabler's `archive` with
+  other corners, `i-junk` is Humbleicons' `ban`, `i-person` has the half circle of Lucide's `user-round` and the
+  head of Iconoir's `user`, `i-mail-open` is near Lucide's `mail-open`, and `i-last` is Lucide's `chevron-last`
+  (Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's sets were compared too).
   The MIT licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the
   two pages and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL,
   with a comment naming the icons; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
@@ -318,7 +324,8 @@ with `--check`).
   source now holds the notice beside `dh2048.pem`, and `hmailserver/docs/Nix.md` says so.
   `build/ci/packages/check-licenses.sh`, `appimage-test.sh` and `build/ci/alpine.sh` hold the installed notice
   to the tree's file, its carriage returns taken off both sides as QuickJS's are, and `srcpkg-rpm.sh` checks that
-  the spec's RPM marks it `%license`, as it does the other licence files, without comparing their contents. The source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
+  the spec's RPM marks it `%license`, as it does the other licence files, without comparing their contents. The
+  source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
   `build/check-package-licenses.py` now decides as compiled in, under MIT, which the five licence fields already
   name), and the package documents (`PackagesAppImage.md`, `PackagesDeb.md`, `PackagesRpm.md`, `SourcePackages.md`,
   `Alpine.md` and the packaging README) say four notices where they said three. The pages themselves are
