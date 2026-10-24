@@ -1,0 +1,94 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Domains and accounts over the REST API, as the Control Deck and hmctl make them:
+# each one made when the server does not have it, and never changed or removed.
+---
+- name: Wait for the REST API
+  ansible.builtin.uri:
+    url: "{{ hmailserver_api }}/api/v1/status"
+    url_username: Administrator
+    url_password: "{{ hmailserver_admin_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ hmailserver_api_validate_certs }}"
+    status_code: 200
+  register: hmailserver_api_status
+  until: hmailserver_api_status.status == 200
+  retries: 30
+  delay: 2
+  no_log: true
+
+- name: Ask for each domain
+  ansible.builtin.uri:
+    url: "{{ hmailserver_api }}/api/v1/domains/{{ item.name | urlencode }}"
+    url_username: Administrator
+    url_password: "{{ hmailserver_admin_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ hmailserver_api_validate_certs }}"
+    status_code: [200, 404]
+  loop: "{{ hmailserver_domains }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: hmailserver_domain_found
+  until: hmailserver_domain_found.status != 429
+  retries: 10
+  delay: 3
+
+- name: Make each domain the server does not have
+  ansible.builtin.uri:
+    url: "{{ hmailserver_api }}/api/v1/domains"
+    method: POST
+    url_username: Administrator
+    url_password: "{{ hmailserver_admin_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ hmailserver_api_validate_certs }}"
+    body_format: json
+    body:
+      name: "{{ item.item.name }}"
+      active: "{{ item.item.active | default(true) | bool }}"
+      postmaster: "{{ item.item.postmaster | default('') }}"
+    status_code: 201
+  loop: "{{ hmailserver_domain_found.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.status == 404
+  changed_when: true
+
+- name: Ask for each account
+  ansible.builtin.uri:
+    url: "{{ hmailserver_api }}/api/v1/accounts/{{ item.address | urlencode }}"
+    url_username: Administrator
+    url_password: "{{ hmailserver_admin_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ hmailserver_api_validate_certs }}"
+    status_code: [200, 404]
+  loop: "{{ hmailserver_accounts }}"
+  loop_control:
+    label: "{{ item.address }}"
+  register: hmailserver_account_found
+  until: hmailserver_account_found.status != 429
+  retries: 10
+  delay: 3
+  no_log: true
+
+- name: Make each account the server does not have
+  ansible.builtin.uri:
+    url: "{{ hmailserver_api }}/api/v1/domains/{{ item.item.address.split('@')[1] | urlencode }}/accounts"
+    method: POST
+    url_username: Administrator
+    url_password: "{{ hmailserver_admin_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ hmailserver_api_validate_certs }}"
+    body_format: json
+    body:
+      address: "{{ item.item.address }}"
+      password: "{{ item.item.password }}"
+      active: "{{ item.item.active | default(true) | bool }}"
+    status_code: 201
+  loop: "{{ hmailserver_account_found.results }}"
+  loop_control:
+    label: "{{ item.item.address }}"
+  when: item.status == 404
+  changed_when: true
+  no_log: true

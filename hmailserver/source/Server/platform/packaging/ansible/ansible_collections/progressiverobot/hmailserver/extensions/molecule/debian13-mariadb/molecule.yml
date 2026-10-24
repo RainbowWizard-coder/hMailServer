@@ -1,0 +1,24 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Debian 13, from the release's .deb, against MariaDB 11.8 and an empty database
+# made for it, which --create-database fills; the role installs the client library
+# the server opens.
+---
+platforms:
+  - name: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}
+    image: docker.io/library/debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
+    family: apt
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        hm_database_type: MySQL
+        hm_database_image: docker.io/library/mariadb:11.8@sha256:88acb8b5f037e8462531db9359ee5725ddd374a271c1ae5f299402f44323ae78
+        hm_database_env:
+          MARIADB_RANDOM_ROOT_PASSWORD: "1"
+          MARIADB_DATABASE: hmailserver
+          MARIADB_USER: hmailserver
+          MARIADB_PASSWORD: "{{ hm_database_password }}"
+        hm_database_ready: [healthcheck.sh, --connect, --innodb_initialized]

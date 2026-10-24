@@ -1,0 +1,40 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The collection's metadata, as ansible-galaxy collection build reads it
+# (hmailserver/docs/Ansible.md). version is the release whose packages the role's
+# release pins name (roles/hmailserver/vars/release.yml): the galaxy-build job writes
+# the two together for the release it builds, and build/ci/channels/galaxy-publish.py
+# --check holds them to each other in the tree.
+---
+namespace: progressiverobot
+name: hmailserver
+version: 6.3.7
+readme: README.md
+authors:
+  - Christopher Holloway / Progressive Robot Ltd
+description: >-
+  Installs and configures Progressive Robot's fork of hMailServer - not the
+  original hMailServer - on Linux, from the fork's own packages: its Ubuntu PPA,
+  its release .deb for Debian, its Fedora Copr for Fedora and Enterprise Linux 10
+  and its openSUSE Build Service project.
+license:
+  - AGPL-3.0-or-later
+tags:
+  - linux
+  - infrastructure
+  - mail
+  - smtp
+  - imap
+  - hmailserver
+dependencies:
+  community.general: ">=9.0.0"
+repository: https://gitlab.com/hmailserver/hmailserver
+documentation: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/Ansible.md
+homepage: https://gitlab.com/hmailserver/hmailserver
+issues: https://gitlab.com/hmailserver/hmailserver/-/issues
+build_ignore:
+  - "*.tar.gz"
+  - .ansible
+  - tests/output

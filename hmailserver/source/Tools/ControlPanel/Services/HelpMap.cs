@@ -248,6 +248,7 @@ namespace hMailServer.ControlPanel.Services
          "AccountRecovery.md",
          "ActiveActive.md",
          "Alpine.md",
+         "Ansible.md",
          "BrandLogos.md",
          "Channels.md",
          "CommandLinePackages.md",

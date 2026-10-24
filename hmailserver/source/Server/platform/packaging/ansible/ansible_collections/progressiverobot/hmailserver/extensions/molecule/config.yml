@@ -1,0 +1,58 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What every scenario shares: molecule's default driver with the playbooks in utils/
+# making and removing Docker containers, the collection found where it is in the
+# tree, and the throwaway passwords, made by the password lookup in the scenario's
+# own ephemeral directory on its first use and read from there after
+# (hmailserver/docs/Ansible.md, "How it is tested").
+---
+driver:
+  name: default
+  options:
+    managed: true
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../utils/create.yml
+    converge: ../utils/converge.yml
+    verify: ../utils/verify.yml
+    destroy: ../utils/destroy.yml
+  env:
+    # packaging/ansible, which holds ansible_collections/progressiverobot/hmailserver.
+    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/../../..
+  inventory:
+    group_vars:
+      all:
+        hm_prefix: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}
+        hm_scenario: ${MOLECULE_SCENARIO_NAME}
+        hm_expected_version: "6.3.7"
+        hm_database_container: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}-db
+        hm_database_type: PostgreSQL
+        hm_database_name: hmailserver
+        hm_database_user: hmailserver
+        hm_passwords: ${MOLECULE_EPHEMERAL_DIRECTORY}
+        hm_database_password: "{{ lookup('ansible.builtin.password', hm_passwords ~ '/database', chars=['ascii_letters', 'digits'], length=24) }}"
+        hm_admin_password: "{{ lookup('ansible.builtin.password', hm_passwords ~ '/admin', chars=['ascii_letters', 'digits'], length=24) }}"
+        hm_account_password: "{{ lookup('ansible.builtin.password', hm_passwords ~ '/account', chars=['ascii_letters', 'digits'], length=24) }}"
+        # PostgreSQL 18, the image the project's own suites run against, by digest. Its
+        # superuser is the role's user, and the database is left for
+        # --create-database to make.
+        hm_database_image: docker.io/library/postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+        hm_database_env:
+          POSTGRES_USER: hmailserver
+          POSTGRES_PASSWORD: "{{ hm_database_password }}"
+          POSTGRES_DB: postgres
+        hm_database_ready: [pg_isready, -h, 127.0.0.1, -U, hmailserver, -d, postgres]
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy

@@ -1,0 +1,27 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The unit the package installs, enabled and started: its first start after
+# --create-database secures the new database before the server listens
+# (hmailserver/docs/SecureDefaults.md). A service that ran before is restarted when
+# its configuration changed.
+---
+- name: Restart the service if its configuration changed
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the service
+  ansible.builtin.systemd_service:
+    name: hmailserver.service
+    enabled: "{{ hmailserver_service_enabled }}"
+    state: "{{ hmailserver_service_state }}"
+
+- name: Wait for the SMTP banner on port 25
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 25
+    search_regex: "^220 "
+    timeout: "{{ hmailserver_wait_for_smtp }}"
+  when:
+    - hmailserver_service_state in ['started', 'restarted']
+    - hmailserver_wait_for_smtp | int > 0

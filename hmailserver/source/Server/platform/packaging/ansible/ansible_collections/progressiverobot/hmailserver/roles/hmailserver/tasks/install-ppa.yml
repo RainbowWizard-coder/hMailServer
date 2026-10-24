@@ -1,0 +1,114 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Ubuntu: ppa:hmailserver/hmailserver, whose packages apt verifies against the PPA's
+# own key, imported only when its fingerprint is the one vars/main.yml names.
+---
+- name: Refuse an Ubuntu release the PPA does not build for
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution_release'] in hmailserver_ppa_suites
+    fail_msg: >-
+      The PPA builds for {{ hmailserver_ppa_suites | join(' and ') }}, not
+      {{ ansible_facts['distribution_release'] }}.
+    quiet: true
+
+- name: Install what the key's check needs
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - gpg
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Read the fingerprint of the PPA's key already in place
+  ansible.builtin.command:
+    argv: [gpg, --batch, --show-keys, --with-colons, "{{ hmailserver_ppa_keyring }}"]
+  register: hmailserver_ppa_key_present
+  changed_when: false
+  failed_when: false
+
+- name: Fetch and check the PPA's key
+  when: >-
+    hmailserver_ppa_key_present.rc != 0 or
+    (hmailserver_ppa_key_present.stdout | regex_findall('(?m)^pub:') | length) != 1 or
+    (hmailserver_ppa_key_present.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))
+      != hmailserver_ppa_fingerprint
+  block:
+    - name: Make a file to fetch the key into
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .asc
+      register: hmailserver_ppa_key_download
+
+    - name: Fetch the PPA's key from Ubuntu's key server
+      ansible.builtin.get_url:
+        url: "{{ hmailserver_ppa_key_url }}"
+        dest: "{{ hmailserver_ppa_key_download.path }}"
+        mode: "0644"
+        force: true
+
+    - name: Read the fetched key's fingerprint
+      ansible.builtin.command:
+        argv: [gpg, --batch, --show-keys, --with-colons, "{{ hmailserver_ppa_key_download.path }}"]
+      register: hmailserver_ppa_key_fetched
+      changed_when: false
+
+    - name: Refuse a key that is not the PPA's
+      ansible.builtin.assert:
+        that:
+          - (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^pub:') | length) == 1
+          - >-
+            (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))
+            == hmailserver_ppa_fingerprint
+        fail_msg: >-
+          The key fetched from {{ hmailserver_ppa_key_url }} is not the PPA's key alone,
+          {{ hmailserver_ppa_fingerprint }} (gpg read
+          {{ hmailserver_ppa_key_fetched.stdout_lines | select('match', '^(pub|fpr):')
+             | join(' ') }}):
+          nothing was imported.
+        quiet: true
+
+    - name: Make the directory for the key
+      ansible.builtin.file:
+        path: "{{ hmailserver_ppa_keyring | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Put the key where the source names it
+      ansible.builtin.copy:
+        src: "{{ hmailserver_ppa_key_download.path }}"
+        dest: "{{ hmailserver_ppa_keyring }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0644"
+
+  always:
+    - name: Remove the fetched copy
+      ansible.builtin.file:
+        path: "{{ hmailserver_ppa_key_download.path }}"
+        state: absent
+      when: hmailserver_ppa_key_download.path is defined
+
+- name: Name the PPA as an apt source signed by that key alone
+  ansible.builtin.template:
+    src: hmailserver-ppa.sources.j2
+    dest: /etc/apt/sources.list.d/hmailserver-ppa.sources
+    owner: root
+    group: root
+    mode: "0644"
+  register: hmailserver_ppa_source
+
+# The index is read again whenever the source was just written: the cache the first
+# task read is younger than cache_valid_time and has no PPA in it.
+- name: Install hmailserver from the PPA
+  ansible.builtin.apt:
+    name: "{{ 'hmailserver' if hmailserver_version == '' else 'hmailserver=' ~ hmailserver_version ~ '*' }}"
+    state: "{{ hmailserver_package_state if hmailserver_version == '' else 'present' }}"
+    update_cache: true
+    cache_valid_time: "{{ 0 if hmailserver_ppa_source is changed else 3600 }}"

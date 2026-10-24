@@ -1,0 +1,33 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The Python packages the Ansible collection's jobs and its tests install
+# (.gitlab/ci/channels.yml's galaxy-check, galaxy-build and galaxy-publish;
+# hmailserver/docs/Ansible.md), by hand-chosen version.
+# build/ci/ansible-collection-requirements.txt is made from this file, with every
+# package they pull in pinned and every file's SHA-256, and that is the file they
+# install from (pip --require-hashes):
+#
+#   ansible        the community package: ansible-core (ansible-galaxy,
+#                  ansible-playbook, ansible-test) with the collections the role
+#                  uses beside ansible.builtin - community.general's ini_file and
+#                  zypper - and community.docker, whose docker_container and
+#                  connection the molecule scenarios start and reach their
+#                  containers with
+#   ansible-lint   the linter, in its production profile
+#   molecule       the scenarios under the collection's extensions/molecule
+#   docker         the Docker SDK community.docker's modules call
+#
+# To move a version, change it here and regenerate the pinned file with uv, from
+# PyPI, --universal so that one file holds for the Linux jobs and a desk:
+#
+#   python -m venv /tmp/uv && /tmp/uv/bin/pip install uv
+#   /tmp/uv/bin/uv pip compile --universal --generate-hashes --python-version 3.14 \
+#       --output-file build/ci/ansible-collection-requirements.txt build/ci/ansible-collection-requirements.in
+#
+# then put this file's three header lines back at the top of the output.
+ansible==14.5.0
+ansible-lint==26.10.1
+molecule==26.10.0
+docker==7.2.0

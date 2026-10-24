@@ -1,0 +1,98 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Debian: the release's .deb for the Debian release, from the project's package
+# registry, installed only when its SHA-256 is the one pinned for it: this
+# collection's own release (vars/release.yml) or hmailserver_deb_sha256.
+---
+- name: Name the release's .deb for this machine
+  ansible.builtin.set_fact:
+    hmailserver_deb_version: "{{ hmailserver_version if hmailserver_version != '' else hmailserver_release_version }}"
+    hmailserver_deb_target: >-
+      debian{{ ansible_facts['distribution_major_version'] }}_{{
+      hmailserver_deb_architectures[ansible_facts['architecture']] | default('none') }}
+
+- name: Refuse a Debian release or architecture the release carries no .deb for
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Debian'
+      - ansible_facts['distribution_major_version'] in hmailserver_deb_releases
+      - ansible_facts['architecture'] in hmailserver_deb_architectures
+    fail_msg: >-
+      The release carries .deb files for Debian {{ hmailserver_deb_releases | join(' and ') }}
+      on {{ hmailserver_deb_architectures | list | join(' and ') }}, not
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }} on
+      {{ ansible_facts['architecture'] }}.
+    quiet: true
+
+- name: Find the .deb's SHA-256
+  ansible.builtin.set_fact:
+    hmailserver_deb_checksum: >-
+      {{ hmailserver_deb_sha256[hmailserver_deb_version ~ '/' ~ hmailserver_deb_target]
+         | default(hmailserver_release_deb_sha256[hmailserver_deb_target]
+                   if hmailserver_deb_version == hmailserver_release_version else '') }}
+    hmailserver_deb_file: "hmailserver_{{ hmailserver_deb_version }}-1~{{ hmailserver_deb_target }}.deb"
+
+- name: Refuse a .deb whose SHA-256 is not pinned
+  ansible.builtin.assert:
+    that:
+      - hmailserver_deb_checksum is match('^[0-9a-f]{64}$')
+    fail_msg: >-
+      No SHA-256 is pinned for {{ hmailserver_deb_file }}: this collection pins
+      {{ hmailserver_release_version }}'s. Give it in hmailserver_deb_sha256 as
+      "{{ hmailserver_deb_version }}/{{ hmailserver_deb_target }}", from that release's
+      hmailserver-linux-{{ hmailserver_deb_version }}-SHA256SUMS.txt verified against its
+      Sigstore bundle.
+    quiet: true
+
+- name: Read the version installed
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - --showformat=${db:Status-Status} ${Version}
+      - --show
+      - hmailserver
+  register: hmailserver_deb_installed
+  changed_when: false
+  failed_when: false
+
+- name: Download and install the .deb
+  when: >-
+    hmailserver_deb_installed.rc != 0 or
+    hmailserver_deb_installed.stdout != 'installed ' ~ hmailserver_deb_version ~ '-1~' ~ hmailserver_deb_target.split('_')[0]
+  block:
+    - name: Install what the download needs
+      ansible.builtin.apt:
+        name: ca-certificates
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Make the directory the .deb is downloaded to
+      ansible.builtin.file:
+        path: /var/cache/hmailserver-ansible
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Download the .deb and hold it to its SHA-256
+      ansible.builtin.get_url:
+        url: "{{ hmailserver_deb_url }}/{{ hmailserver_deb_version }}/{{ hmailserver_deb_file | urlencode }}"
+        dest: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"
+        checksum: "sha256:{{ hmailserver_deb_checksum }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Install the .deb with its dependencies from Debian's archive
+      ansible.builtin.apt:
+        deb: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"
+        state: present
+
+  always:
+    - name: Remove the downloaded .deb
+      ansible.builtin.file:
+        path: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"
+        state: absent

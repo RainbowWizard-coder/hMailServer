@@ -1,0 +1,10 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Ubuntu 26.04, from the PPA.
+---
+platforms:
+  - name: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}
+    image: docker.io/library/ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
+    family: apt

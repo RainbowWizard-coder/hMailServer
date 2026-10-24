@@ -1,0 +1,50 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# openSUSE: the Build Service's home:progressiverobot, whose repository and packages
+# zypper verifies against the project's key there, imported only when its
+# fingerprint is the one vars/main.yml names.
+---
+- name: Name the Build Service repository for this machine
+  ansible.builtin.set_fact:
+    hmailserver_obs_repository: >-
+      {{ 'openSUSE_Tumbleweed' if 'Tumbleweed' in ansible_facts['distribution']
+         else ansible_facts['distribution_version'] }}
+
+- name: Refuse an openSUSE release the Build Service does not build for
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] in ['openSUSE Leap', 'openSUSE Tumbleweed']
+      - hmailserver_obs_repository in ['openSUSE_Tumbleweed', '16.0']
+    fail_msg: >-
+      The Build Service builds for openSUSE Leap 16.0 (x86_64 and aarch64) and
+      Tumbleweed (x86_64), not
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
+    quiet: true
+
+- name: Import the Build Service's key for the project, held to its fingerprint
+  ansible.builtin.rpm_key:
+    key: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key"
+    fingerprint: "{{ hmailserver_obs_fingerprint }}"
+    state: present
+
+- name: Name the Build Service repository, its metadata and packages checked against that key
+  ansible.builtin.yum_repository:
+    name: home_progressiverobot
+    description: Progressive Robot's fork of hMailServer (openSUSE Build Service home:progressiverobot)
+    baseurl: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/"
+    gpgcheck: true
+    repo_gpgcheck: true
+    gpgkey: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key"
+    enabled: true
+    reposdir: /etc/zypp/repos.d
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install hmailserver from the Build Service
+  community.general.zypper:
+    name: "{{ 'hmailserver' if hmailserver_version == '' else 'hmailserver=' ~ hmailserver_version }}"
+    state: "{{ hmailserver_package_state if hmailserver_version == '' else 'present' }}"
+    update_cache: true

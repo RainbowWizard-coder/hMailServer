@@ -1,0 +1,10 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# openSUSE Leap 16.0, from the Build Service.
+---
+platforms:
+  - name: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}
+    image: registry.opensuse.org/opensuse/leap:16.0@sha256:64de8a3cd5caabcfc24d64dd6717e0e9634468d2335d303deeedc7db19ea7620
+    family: zypper

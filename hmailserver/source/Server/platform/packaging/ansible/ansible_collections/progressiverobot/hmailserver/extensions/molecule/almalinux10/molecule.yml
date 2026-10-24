@@ -1,0 +1,10 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Enterprise Linux 10 (AlmaLinux), from Copr's epel-10 chroot.
+---
+platforms:
+  - name: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}
+    image: docker.io/library/almalinux:10@sha256:7b3a2db3971727029b6aed0e6c30ad0f3812229ac5447520acea308cb535800d
+    family: dnf

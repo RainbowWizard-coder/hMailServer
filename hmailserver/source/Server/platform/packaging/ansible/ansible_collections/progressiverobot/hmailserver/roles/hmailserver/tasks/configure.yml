@@ -1,0 +1,128 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The configuration, the database and the secrets, with the server's own commands:
+# steps 3 to 5 and 7 of the packaging guide (platform/packaging/README.md).
+---
+- name: Ask whether the service runs already
+  ansible.builtin.command:
+    argv: [systemctl, is-active, --quiet, hmailserver.service]
+  register: hmailserver_was_active
+  changed_when: false
+  failed_when: false
+
+- name: Point the configuration at the database
+  community.general.ini_file:
+    path: "{{ hmailserver_config }}"
+    section: Database
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    create: false
+    owner: root
+    group: "{{ hmailserver_user }}"
+    mode: "0640"
+  loop:
+    - option: Type
+      value: "{{ hmailserver_database_type }}"
+    - option: Server
+      value: "{{ hmailserver_database_host }}"
+    - option: Port
+      value: >-
+        {{ (hmailserver_database_port | int) if (hmailserver_database_port | int) > 0
+           else (5432 if hmailserver_database_type == 'PostgreSQL' else 3306) }}
+    - option: Database
+      value: "{{ hmailserver_database_name }}"
+    - option: Username
+      value: "{{ hmailserver_database_user }}"
+    - option: Passwordencryption
+      value: "0"
+  loop_control:
+    label: "{{ item.option }}={{ item.value }}"
+  notify: Restart hmailserver
+
+- name: Give the configuration the database's password
+  community.general.ini_file:
+    path: "{{ hmailserver_config }}"
+    section: Database
+    option: Password
+    value: "{{ hmailserver_database_password }}"
+    no_extra_spaces: true
+    create: false
+    owner: root
+    group: "{{ hmailserver_user }}"
+    mode: "0640"
+  no_log: true
+  notify: Restart hmailserver
+
+- name: Read the configuration, to see whether it has an administrator password
+  ansible.builtin.slurp:
+    src: "{{ hmailserver_config }}"
+  register: hmailserver_config_read
+  no_log: true
+
+- name: Note whether it has one
+  ansible.builtin.set_fact:
+    hmailserver_admin_password_present: "{{ hmailserver_config_read.content | b64decode is search('(?m)^AdministratorPassword=\\S') }}"
+  no_log: true
+
+- name: Set the administrator password, as a PBKDF2 hash
+  ansible.builtin.command:
+    argv: [hmailserver, --set-admin-password]
+    stdin: "{{ hmailserver_admin_password }}"
+  when: hmailserver_admin_password_update == 'always' or not hmailserver_admin_password_present
+  changed_when: true
+  no_log: true
+  notify: Restart hmailserver
+
+- name: Check the configuration as the service reads it
+  ansible.builtin.command:
+    argv: [runuser, -u, "{{ hmailserver_user }}", --, hmailserver, --check-config]
+  changed_when: false
+
+- name: Create the database, or fill an empty one, as the service's user
+  ansible.builtin.command:
+    argv: [runuser, -u, "{{ hmailserver_user }}", --, hmailserver, --create-database]
+  register: hmailserver_create_database
+  changed_when: >-
+    'created on' in hmailserver_create_database.stdout or
+    'creating the schema' in hmailserver_create_database.stdout
+  when: hmailserver_database_create
+
+- name: Upgrade the database's schema to the package's
+  ansible.builtin.command:
+    argv: [runuser, -u, "{{ hmailserver_user }}", --, hmailserver, --upgrade-database]
+  register: hmailserver_upgrade_database
+  changed_when: "'Nothing to do.' not in hmailserver_upgrade_database.stdout"
+  when:
+    - hmailserver_database_upgrade
+    - not hmailserver_database_create or '--upgrade-database brings it forward' in hmailserver_create_database.stdout
+  notify: Restart hmailserver
+
+- name: Make the stored-secrets key
+  ansible.builtin.command:
+    argv: [hmailserver, --create-stored-secrets-key]
+  register: hmailserver_secrets_key
+  changed_when: "'Made the stored-secrets key' in hmailserver_secrets_key.stdout"
+  when: hmailserver_stored_secrets_key
+  notify: Restart hmailserver
+
+- name: Export the stored-secrets key, once
+  ansible.builtin.command:
+    argv: [hmailserver, --export-stored-secrets-key, "{{ hmailserver_stored_secrets_key_export }}"]
+    creates: "{{ hmailserver_stored_secrets_key_export }}"
+  when:
+    - hmailserver_stored_secrets_key
+    - hmailserver_stored_secrets_key_export | length > 0
+
+- name: Store the settings
+  ansible.builtin.command:
+    argv: [hmailserver, --set-setting, "{{ item.key }}={{ item.value }}"]
+  loop: "{{ hmailserver_settings | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}={{ item.value }}"
+  register: hmailserver_setting
+  changed_when: >-
+    ('where it was ' ~ (item.value | string) ~ ', and written to') not in hmailserver_setting.stdout
+  notify: Restart hmailserver

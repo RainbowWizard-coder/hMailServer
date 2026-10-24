@@ -1,0 +1,15 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The release this collection installs on Debian, and the SHA-256 of its .deb files,
+# from the release's hmailserver-linux-<version>-SHA256SUMS.txt as verified against
+# its Sigstore bundle. The galaxy-build job writes this file for the release it
+# builds, with galaxy.yml's version (build/ci/channels/galaxy-publish.py).
+---
+hmailserver_release_version: "6.3.7"
+hmailserver_release_deb_sha256:
+  debian12_amd64: d4931c4aec7110906d7def1dabe56af5b1de12711dc13c142bc1bf9470bb874e
+  debian12_arm64: 6517b9d4de739b459e2755856c488325213c26a5c526d051c1c880a13a34011f
+  debian13_amd64: 7aef8d86b4b1f6eb1a709703dfaf10d58cd3531ab0c4280fd18b8546240ab23f
+  debian13_arm64: 19ac5ebd271d568f8d1c1772dee9e4eab0f24f947a3349c4a00d2023682b8413

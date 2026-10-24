@@ -31,7 +31,8 @@
     "build/requirements-dev.txt",
     "build/ci/cli-packages-requirements.txt",
     "build/ci/reuse-requirements.txt",
-    "build/ci/reuse-build-requirements.txt"
+    "build/ci/reuse-build-requirements.txt",
+    "build/ci/ansible-collection-requirements.txt"
   ],
   "enabledManagers": [
     "nuget",

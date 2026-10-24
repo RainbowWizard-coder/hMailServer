@@ -13,7 +13,12 @@
                            id_tokens or secrets; each runs a script of
                            build/ci/channels/ that is there; every job in a docker
                            image takes .no-github first; HM_REGCTL_IMAGE is
-                           Docker Hub's regclient/regctl pinned by digest.
+                           Docker Hub's regclient/regctl pinned by digest;
+                           galaxy-publish needs galaxy-build with its artifacts, the
+                           tarball it sends; galaxy-check, the one check job beside
+                           channels-check, never runs for a tag or a schedule; and the
+                           three Galaxy jobs install their tools with their hashes
+                           alone.
   the PKGBUILD             renders for a release (build/ci/channels/aur-publish.py):
                            the release's tarball from the package registry, one
                            pkgver, pkgrel and sha256sums line each, and
@@ -41,13 +46,23 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CI = os.path.join(".gitlab", "ci", "channels.yml")
 CHANNELS = os.path.join("build", "ci", "channels")
 PUBLISH = ["channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build", "obs-publish",
-           "chocolatey-release", "snap-upload"]
+           "chocolatey-release", "snap-upload", "galaxy-build", "galaxy-publish"]
 FOLLOWS = {"chocolatey-publish": "chocolatey-release"}
 # The jobs in a docker image, on linix, server2 or s1-linux (default:'s tags, or snap-upload's own
 # linix) - GitLab's shared runners until 9 October 2026 - none of whose runners maps
 # GitHub's hosts itself: each keeps GitHub out of itself (.gitlab/ci/no-github.yml).
 NO_GITHUB_JOBS = ["channels-check", "channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build",
-                  "obs-publish", "chocolatey-release", "snap-upload"]
+                  "obs-publish", "chocolatey-release", "snap-upload", "galaxy-check", "galaxy-build", "galaxy-publish"]
+GALAXY_CHANGES = '''.galaxy-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - changes:
+'''
+GALAXY_PIP = ("/tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes"
+              " -r build/ci/ansible-collection-requirements.txt")
 PUBLISH_RULES = '''.channels-publish:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -125,6 +140,24 @@ def problems_of(root):
         for script in scripts:
             if not os.path.isfile(os.path.join(root, CHANNELS, script)):
                 problems.append("%s runs build/ci/channels/%s, which is not there" % (name, script))
+    publish = blocks.get("galaxy-publish") or ""
+    if not re.search(r"needs:\n    - job: galaxy-build\n      artifacts: true\n", publish):
+        problems.append("galaxy-publish does not need galaxy-build with its artifacts: it would send no tarball galaxy-build"
+                        " made and recorded")
+    check = blocks.get("galaxy-check")
+    if check is None:
+        problems.append("%s has no job galaxy-check" % CI)
+    else:
+        if GALAXY_CHANGES not in text or "    - !reference [.galaxy-changes, rules]\n" not in check or re.search(
+                r"^    - if:", check, re.MULTILINE):
+            problems.append("galaxy-check's rules are not .galaxy-changes' alone, which never run for a tag or a schedule")
+        if re.search(r"^\s+(id_tokens|secrets):", check, re.MULTILINE):
+            problems.append("galaxy-check asks for id_tokens or secrets")
+    for name in ("galaxy-check", "galaxy-build", "galaxy-publish"):
+        installs = re.findall(r"^\s+- (.*pip install.*)$", blocks.get(name) or "", re.MULTILINE)
+        if installs != [GALAXY_PIP]:
+            problems.append("%s does not install its tools from build/ci/ansible-collection-requirements.txt with their"
+                            " hashes alone: %s" % (name, installs or "no pip install"))
     arch_hosts = '    - "sed -i \'s/^hosts:.*/hosts: files dns/\' /etc/nsswitch.conf"'
     for name in NO_GITHUB_JOBS:
         # The before_script's first command; or its second, after the one line that
@@ -207,6 +240,26 @@ def self_test():
         ("the Makefile elsewhere", names[1], "\tpython3 $(top)/build/ci/channels/copr-build.py srpm",
          "\tpython3 $(top)/build/ci/channels/copr-build.py trigger", "does not run copr-build.py srpm"),
         (".copr checked out CRLF", names[2], ".copr/** text eol=lf", ".copr/** text", "does not check .copr/ out LF"),
+        ("galaxy-publish without galaxy-build's tarball", CI, "  needs:\n    - job: galaxy-build\n      artifacts: true\n",
+         "  needs: []\n", "does not need galaxy-build"),
+        ("galaxy-publish for every protected branch", CI, "  resource_group: galaxy-publish\n  rules:\n"
+         "    - !reference [.channels-publish, rules]\n", "  resource_group: galaxy-publish\n  rules:\n"
+         "    - if: $CI_COMMIT_REF_PROTECTED == \"true\"\n      when: manual\n", "galaxy-publish's rules"),
+        ("galaxy-check for a tag too", CI, "    - if: $CI_COMMIT_TAG\n      when: never\n    - changes:\n"
+         "        - hmailserver/source/Server/platform/packaging/ansible/**/*\n",
+         "    - changes:\n        - hmailserver/source/Server/platform/packaging/ansible/**/*\n", "galaxy-check's rules"),
+        ("galaxy-check with an ID token", CI, "  rules:\n    - !reference [.galaxy-changes, rules]\n",
+         "  rules:\n    - !reference [.galaxy-changes, rules]\n  id_tokens:\n    X:\n      aud: x\n",
+         "galaxy-check asks for id_tokens"),
+        ("galaxy-build's tools without their hashes", CI, "--no-cache-dir --require-hashes -r build/ci/ansible-collection-"
+         "requirements.txt\n  script:\n    - export PATH=\"/tmp/galaxy/bin:$PATH\"\n    - python3 build/ci/channels/"
+         "galaxy-publish.py release-build", "--no-cache-dir -r build/ci/ansible-collection-requirements.txt\n  script:\n"
+         "    - export PATH=\"/tmp/galaxy/bin:$PATH\"\n    - python3 build/ci/channels/galaxy-publish.py release-build",
+         "galaxy-build does not install its tools"),
+        ("galaxy-check without .no-github", CI, "    HM_COLLECTION: hmailserver/source/Server/platform/packaging/ansible/"
+         "ansible_collections/progressiverobot/hmailserver\n  before_script:\n    - !reference [.no-github, before_script]\n",
+         "    HM_COLLECTION: hmailserver/source/Server/platform/packaging/ansible/ansible_collections/progressiverobot/"
+         "hmailserver\n  before_script:\n", "galaxy-check, in a docker image"),
     ]
     work = tempfile.mkdtemp(prefix="hm-check-channels-")
     try:

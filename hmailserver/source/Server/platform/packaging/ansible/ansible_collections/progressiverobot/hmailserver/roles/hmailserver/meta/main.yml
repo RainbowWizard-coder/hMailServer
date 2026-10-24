@@ -1,0 +1,39 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+galaxy_info:
+  role_name: hmailserver
+  namespace: progressiverobot
+  author: Christopher Holloway / Progressive Robot Ltd
+  description: >-
+    Installs Progressive Robot's fork of hMailServer - not the original
+    hMailServer - from the fork's own packages, points it at a PostgreSQL or
+    MariaDB database, sets the administrator password and starts it.
+  company: Progressive Robot Ltd
+  license: AGPL-3.0-or-later
+  min_ansible_version: "2.19"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+        - resolute
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Fedora
+      versions:
+        - all
+    - name: EL
+      versions:
+        - "10"
+    - name: opensuse
+      versions:
+        - all
+  galaxy_tags:
+    - mail
+    - smtp
+    - imap
+    - hmailserver
+dependencies: []

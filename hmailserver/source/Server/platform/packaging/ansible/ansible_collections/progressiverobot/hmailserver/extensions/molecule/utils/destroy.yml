@@ -1,0 +1,51 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What create.yml made, removed: each platform's container and image, the database
+# server and the network. HM_MOLECULE_KEEP_IMAGES=1 keeps the platforms' images for
+# the next run.
+---
+- name: Destroy
+  hosts: localhost
+  gather_facts: false
+  vars:
+    hm_network: "{{ hm_prefix }}-{{ hm_scenario }}"
+  tasks:
+    - name: Remove each platform's container
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        state: absent
+        force_kill: true
+        keep_volumes: false
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Remove each platform's image
+      community.docker.docker_image:
+        name: "{{ item.name }}"
+        tag: systemd
+        state: absent
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: lookup('ansible.builtin.env', 'HM_MOLECULE_KEEP_IMAGES') != '1'
+
+    - name: Remove the database server
+      community.docker.docker_container:
+        name: "{{ hm_database_container }}"
+        state: absent
+        force_kill: true
+        keep_volumes: false
+
+    - name: Remove the scenario's network
+      community.docker.docker_network:
+        name: "{{ hm_network }}"
+        state: absent
+
+    - name: Forget the instances
+      ansible.builtin.copy:
+        content: "[]\n"
+        dest: "{{ molecule_instance_config }}"
+        mode: "0600"

@@ -1,0 +1,8 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The oldest ansible-core the role is tested with (hmailserver/docs/Ansible.md,
+# "How it is tested").
+---
+requires_ansible: ">=2.19.0"

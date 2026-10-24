@@ -1,0 +1,132 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What the role promises, asked of the running server: the fork's package at the
+# version expected, the service enabled and running under systemd, SMTP on 25 with
+# STARTTLS, GET /api/v1/status with the administrator password and a 401 without
+# it, the domain and the account made, the configuration private to root and the
+# service, and no password of the scenario's in the configuration as written.
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ask the server its version
+      ansible.builtin.command:
+        argv: [hmailserver, --version]
+      register: hm_version
+      changed_when: false
+
+    - name: Refuse another version than the one expected
+      ansible.builtin.assert:
+        that:
+          - hm_version.stdout is match('^hMailServer ' ~ (hm_expected_version | regex_escape) ~ ' build [0-9]+$')
+        fail_msg: "hmailserver --version said {{ hm_version.stdout }}, not {{ hm_expected_version }}"
+
+    - name: Ask systemd for the service
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - show
+          - hmailserver.service
+          - --property=ActiveState,SubState,UnitFileState,User
+      register: hm_unit
+      changed_when: false
+
+    - name: Refuse a service that is not enabled and running as hmailserver
+      ansible.builtin.assert:
+        that:
+          - "'ActiveState=active' in hm_unit.stdout_lines"
+          - "'SubState=running' in hm_unit.stdout_lines"
+          - "'UnitFileState=enabled' in hm_unit.stdout_lines"
+          - "'User=hmailserver' in hm_unit.stdout_lines"
+        fail_msg: "{{ hm_unit.stdout_lines }}"
+
+    - name: Speak SMTP to port 25, with STARTTLS
+      ansible.builtin.script:
+        cmd: smtp_check.py
+        executable: python3
+      register: hm_smtp
+      changed_when: false
+
+    - name: Show what SMTP answered
+      ansible.builtin.debug:
+        var: hm_smtp.stdout_lines
+
+    - name: Ask GET /api/v1/status with the administrator password
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/api/v1/status
+        url_username: Administrator
+        url_password: "{{ hm_admin_password }}"
+        force_basic_auth: true
+        return_content: true
+        status_code: 200
+      register: hm_status
+
+    - name: Show the status
+      ansible.builtin.debug:
+        var: hm_status.json
+
+    - name: Ask for the domain the role made
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/api/v1/domains/example.test
+        url_username: Administrator
+        url_password: "{{ hm_admin_password }}"
+        force_basic_auth: true
+        status_code: 200
+
+    - name: Ask for the account the role made
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/api/v1/accounts/ann%40example.test
+        url_username: Administrator
+        url_password: "{{ hm_admin_password }}"
+        force_basic_auth: true
+        status_code: 200
+
+    - name: Read the configuration's owner and mode
+      ansible.builtin.stat:
+        path: /etc/hmailserver/hMailServer.ini
+      register: hm_ini
+
+    - name: Refuse a configuration others may read
+      ansible.builtin.assert:
+        that:
+          - hm_ini.stat.pw_name == 'root'
+          - hm_ini.stat.gr_name == 'hmailserver'
+          - hm_ini.stat.mode == '0640'
+        fail_msg: "{{ hm_ini.stat.pw_name }}:{{ hm_ini.stat.gr_name }} {{ hm_ini.stat.mode }}"
+
+    - name: Read the configuration
+      ansible.builtin.slurp:
+        src: /etc/hmailserver/hMailServer.ini
+      register: hm_ini_text
+      no_log: true
+
+    - name: Refuse an administrator password written as it was given
+      ansible.builtin.assert:
+        that:
+          - hm_ini_text.content | b64decode is search('(?m)^AdministratorPassword=\S')
+          - not (hm_ini_text.content | b64decode is search('(?m)^AdministratorPassword=' ~ (hm_admin_password | regex_escape) ~ '$'))
+        fail_msg: the administrator password is missing from the configuration, or written there as it was given
+        quiet: true
+
+    - name: Read the exported stored-secrets key's mode
+      ansible.builtin.stat:
+        path: /root/hmailserver-stored-secrets.key
+      register: hm_key
+
+    - name: Refuse a missing or readable export
+      ansible.builtin.assert:
+        that:
+          - hm_key.stat.exists
+          - hm_key.stat.mode == '0600'
+
+    # Last: a refused sign-in makes the API answer 429 for a moment after it.
+    - name: Ask GET /api/v1/status with a wrong password
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/api/v1/status
+        url_username: Administrator
+        url_password: not-the-password
+        force_basic_auth: true
+        status_code: 401

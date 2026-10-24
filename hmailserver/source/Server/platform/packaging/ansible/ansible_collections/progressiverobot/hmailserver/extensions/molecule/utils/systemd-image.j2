@@ -1,0 +1,44 @@
+{# https://www.progressiverobot.com #}
+{# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd #}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{#
+  The distribution's own image, pinned by digest in the scenario, with systemd to
+  run as its PID 1 and python3 for Ansible, and nothing of hMailServer's.
+  systemd-binfmt and the binfmt_misc mount are masked: a systemd in a container
+  that removed the host's binfmt_misc handlers when it stopped is what the project's
+  own systemd tests guard against (hmailserver/docs/PackagesDeb.md, "Started
+  under systemd"), and this one never mounts or writes binfmt_misc. The container's
+  cgroup, its own subtree in a cgroup namespace of its own, is mounted read-only by
+  Docker; the command remounts that mount alone writable (a bind remount, which
+  changes no other mount) before systemd starts, as systemd needs.
+#}
+FROM {{ item.image }}
+{% if item.family == 'apt' %}
+RUN apt-get update -qq \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends systemd systemd-sysv python3 > /dev/null \
+ && rm -rf /var/lib/apt/lists/*
+{% elif item.family == 'dnf' %}
+{#
+  Without weak dependencies: Fedora's systemd would bring systemd-resolved, whose
+  resolver knows nothing of Docker's, and the database's container name would not
+  resolve inside the container.
+#}
+RUN dnf -y -q --setopt=install_weak_deps=False install systemd python3 util-linux \
+ && dnf clean all
+{% elif item.family == 'zypper' %}
+{#
+  A refresh that fails - a mirror download.opensuse.org's mirror list names serving
+  metadata of another snapshot, as one did for Tumbleweed on 24 October 2026 - is
+  tried once more against the origin, downloadcontent.opensuse.org: the same
+  repositories, signed by the same key, without a mirror list (the project's
+  build/ci/packages/zypper-refresh.sh does the same for its own jobs).
+#}
+RUN (zypper -n -q refresh \
+     || { sed -i -E 's#://(download|cdn)\.opensuse\.org/#://downloadcontent.opensuse.org/#' /etc/zypp/repos.d/*.repo \
+          && zypper -n -q refresh; }) \
+ && zypper -n -q install --no-recommends systemd python3 util-linux \
+ && zypper clean -a
+{% endif %}
+RUN systemctl mask systemd-binfmt.service proc-sys-fs-binfmt_misc.automount proc-sys-fs-binfmt_misc.mount
+STOPSIGNAL SIGRTMIN+3
+CMD ["/bin/sh", "-c", "mount -o remount,bind,rw /sys/fs/cgroup && exec /usr/lib/systemd/systemd"]

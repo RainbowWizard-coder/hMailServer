@@ -1,0 +1,45 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The project's channels, and the key each one signs with, by fingerprint: a key
+# fetched from the channel is imported only when it is the key named here
+# (hmailserver/docs/Ansible.md, "What it verifies").
+---
+# Launchpad's key for ppa:hmailserver/hmailserver, from Ubuntu's key server.
+hmailserver_ppa_uri: https://ppa.launchpadcontent.net/hmailserver/hmailserver/ubuntu
+hmailserver_ppa_key_url: https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0xF1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C
+hmailserver_ppa_fingerprint: F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C
+hmailserver_ppa_keyring: /etc/apt/keyrings/hmailserver-ppa.asc
+hmailserver_ppa_suites:
+  - noble
+  - resolute
+
+# The release's .deb, from the project's generic package registry, as the release
+# links it.
+hmailserver_deb_url: https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver
+hmailserver_deb_releases:
+  - "12"
+  - "13"
+
+# Copr's key for progressiverobot/hmailserver.
+hmailserver_copr_base: https://download.copr.fedorainfracloud.org/results/progressiverobot/hmailserver
+hmailserver_copr_fingerprint: A43209E902FC9666B7DC7C7007AD13D308C7F2E7
+
+# The Build Service's key for home:progressiverobot.
+hmailserver_obs_base: https://download.opensuse.org/repositories/home:/progressiverobot
+hmailserver_obs_fingerprint: BA0868309CFBD36498CE41D22F0B9419E67EE770
+
+hmailserver_config: /etc/hmailserver/hMailServer.ini
+hmailserver_user: hmailserver
+
+# The library the server opens with dlopen for MySQL and MariaDB, which no package
+# depends on.
+hmailserver_mariadb_client:
+  Debian: libmariadb3
+  RedHat: mariadb-connector-c
+  Suse: libmariadb3
+
+hmailserver_deb_architectures:
+  x86_64: amd64
+  aarch64: arm64

@@ -1,0 +1,140 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Each scenario's containers, on the Docker the controller reaches: a network of the
+# scenario's own, its database server, and each platform's image with systemd as PID
+# 1. Every name begins with HM_MOLECULE_PREFIX (hmailserver-molecule when it is not
+# set), so that a run takes no name of anything else's.
+#
+# The platform's container is not privileged. It has CAP_SYS_ADMIN, which systemd
+# needs to build the hMailServer unit's mount namespace, AppArmor unconfined, so that
+# the command may remount its own cgroup writable, and a cgroup namespace of its
+# own; /proc/sys and /sys stay read-only, as in any unprivileged container.
+---
+- name: Create
+  hosts: localhost
+  gather_facts: false
+  vars:
+    hm_network: "{{ hm_prefix }}-{{ hm_scenario }}"
+  tasks:
+    - name: Make the scenario's network
+      community.docker.docker_network:
+        name: "{{ hm_network }}"
+        state: present
+
+    # Its result carries the container's environment, its password among it.
+    - name: Start the database server
+      no_log: true
+      community.docker.docker_container:
+        name: "{{ hm_database_container }}"
+        image: "{{ hm_database_image }}"
+        env: "{{ hm_database_env }}"
+        networks:
+          - name: "{{ hm_network }}"
+        network_mode: "{{ hm_network }}"
+        state: started
+        restart_policy: "no"
+
+    - name: Make a build directory for each platform
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: molecule-hmailserver-
+      register: hm_build
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Write each platform's Dockerfile
+      ansible.builtin.template:
+        src: systemd-image.j2
+        dest: "{{ hm_build.results[index].path }}/Dockerfile"
+        mode: "0644"
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+        label: "{{ item.name }}"
+
+    - name: Build each platform's image
+      community.docker.docker_image:
+        name: "{{ item.name }}"
+        tag: systemd
+        source: build
+        build:
+          path: "{{ hm_build.results[index].path }}"
+          pull: false
+        state: present
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        index_var: index
+        label: "{{ item.name }}"
+
+    - name: Start each platform with systemd
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        image: "{{ item.name }}:systemd"
+        hostname: "{{ item.name }}"
+        capabilities:
+          - SYS_ADMIN
+        security_opts:
+          - apparmor=unconfined
+        cgroupns_mode: private
+        tmpfs:
+          - /run
+          - /run/lock
+          - /tmp
+        networks:
+          - name: "{{ hm_network }}"
+        network_mode: "{{ hm_network }}"
+        state: started
+        restart_policy: "no"
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Wait for each platform's systemd to finish starting
+      community.docker.docker_container_exec:
+        container: "{{ item.name }}"
+        argv: [systemctl, is-system-running, --wait]
+      register: hm_running
+      changed_when: false
+      failed_when: hm_running.stdout | trim not in ['running', 'degraded']
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Wait for the database server
+      community.docker.docker_container_exec:
+        container: "{{ hm_database_container }}"
+        argv: "{{ hm_database_ready }}"
+      register: hm_database_up
+      until: hm_database_up.rc == 0
+      retries: 30
+      delay: 2
+      changed_when: false
+      failed_when: false
+
+    - name: Refuse a database server that did not start
+      ansible.builtin.assert:
+        that:
+          - hm_database_up.rc == 0
+        fail_msg: "{{ hm_database_container }} did not accept a connection in a minute"
+
+    - name: Write the instances for molecule
+      ansible.builtin.copy:
+        content: |
+          {% for platform in molecule_yml.platforms %}
+          - instance: {{ platform.name }}
+            address: {{ platform.name }}
+            connection: community.docker.docker_api
+          {% endfor %}
+        dest: "{{ molecule_instance_config }}"
+        mode: "0600"
+
+    - name: Remove the build directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ hm_build.results }}"
+      loop_control:
+        label: "{{ item.path }}"

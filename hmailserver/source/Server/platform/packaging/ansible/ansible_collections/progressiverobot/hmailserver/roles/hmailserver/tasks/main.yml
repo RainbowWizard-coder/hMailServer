@@ -1,0 +1,65 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Progressive Robot's fork of hMailServer from the fork's own channel, pointed at
+# the database it is given, secured and started, in the order the packaging guide
+# gives (platform/packaging/README.md, "Install and get running").
+---
+- name: Read the release this collection was built for
+  ansible.builtin.include_vars:
+    file: release.yml
+
+- name: Refuse what the role cannot do
+  ansible.builtin.assert:
+    that:
+      - hmailserver_database_password | length > 0
+      - hmailserver_admin_password | length > 0
+      - hmailserver_domains | length == 0 or (hmailserver_settings.RestApiPort | default(0) | int) > 0
+      - hmailserver_accounts | length == 0 or (hmailserver_settings.RestApiPort | default(0) | int) > 0
+    fail_msg: >-
+      hmailserver_database_password and hmailserver_admin_password are required, and
+      hmailserver_domains and hmailserver_accounts are made over the REST API, which
+      needs hmailserver_settings.RestApiPort.
+    quiet: true
+
+- name: Choose the channel
+  ansible.builtin.set_fact:
+    hmailserver_channel_chosen: "{{ hmailserver_channel if hmailserver_channel != 'auto' else hmailserver_channel_auto }}"
+  vars:
+    hmailserver_channel_auto: >-
+      {{ 'ppa' if ansible_facts['distribution'] == 'Ubuntu'
+         else 'deb' if ansible_facts['distribution'] == 'Debian'
+         else 'copr' if ansible_facts['distribution'] == 'Fedora'
+         else 'copr' if ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == '10'
+         else 'obs' if ansible_facts['os_family'] == 'Suse'
+         else 'none' }}
+
+- name: Refuse a distribution the project publishes no package for
+  ansible.builtin.fail:
+    msg: >-
+      The project publishes no package for {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_version'] }}: the Ubuntu PPA serves
+      {{ hmailserver_ppa_suites | join(' and ') }}, the release carries .deb files for
+      Debian {{ hmailserver_deb_releases | join(' and ') }}, Copr builds for Fedora and
+      Enterprise Linux 10, and the Build Service for openSUSE Leap 16.0 and Tumbleweed.
+  when: hmailserver_channel_chosen == 'none'
+
+- name: Install the package
+  ansible.builtin.include_tasks: "install-{{ hmailserver_channel_chosen }}.yml"
+
+- name: Install the MariaDB client library the server opens for MySQL
+  ansible.builtin.package:
+    name: "{{ hmailserver_mariadb_client[ansible_facts['os_family']] }}"
+    state: present
+  when: hmailserver_database_type == 'MySQL'
+
+- name: Configure the server
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Start the service
+  ansible.builtin.include_tasks: service.yml
+
+- name: Make the domains and accounts
+  ansible.builtin.include_tasks: objects.yml
+  when: hmailserver_domains | length > 0 or hmailserver_accounts | length > 0

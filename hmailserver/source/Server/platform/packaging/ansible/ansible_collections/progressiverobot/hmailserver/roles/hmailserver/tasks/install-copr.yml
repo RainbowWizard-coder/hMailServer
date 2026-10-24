@@ -1,0 +1,39 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Fedora and Enterprise Linux 10: Copr's progressiverobot/hmailserver, whose
+# packages dnf verifies against the project's Copr key, imported only when its
+# fingerprint is the one vars/main.yml names.
+---
+- name: Name the Copr chroot for this machine
+  ansible.builtin.set_fact:
+    hmailserver_copr_chroot: >-
+      {{ ('fedora-' ~ ansible_facts['distribution_major_version'])
+         if ansible_facts['distribution'] == 'Fedora'
+         else ('epel-' ~ ansible_facts['distribution_major_version']) }}
+
+- name: Import Copr's key for the project, held to its fingerprint
+  ansible.builtin.rpm_key:
+    key: "{{ hmailserver_copr_base }}/pubkey.gpg"
+    fingerprint: "{{ hmailserver_copr_fingerprint }}"
+    state: present
+
+- name: Name the Copr repository, its packages checked against that key
+  ansible.builtin.yum_repository:
+    name: copr_progressiverobot_hmailserver
+    description: Progressive Robot's fork of hMailServer (Copr progressiverobot/hmailserver)
+    baseurl: "{{ hmailserver_copr_base }}/{{ hmailserver_copr_chroot }}-$basearch/"
+    gpgcheck: true
+    gpgkey: "{{ hmailserver_copr_base }}/pubkey.gpg"
+    repo_gpgcheck: false
+    skip_if_unavailable: false
+    enabled: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install hmailserver from Copr
+  ansible.builtin.package:
+    name: "{{ 'hmailserver' if hmailserver_version == '' else 'hmailserver-' ~ hmailserver_version }}"
+    state: "{{ hmailserver_package_state if hmailserver_version == '' else 'present' }}"

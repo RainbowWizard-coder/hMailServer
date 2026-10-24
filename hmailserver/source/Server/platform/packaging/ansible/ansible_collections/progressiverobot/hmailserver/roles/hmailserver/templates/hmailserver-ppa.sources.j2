@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# ppa:hmailserver/hmailserver: Progressive Robot's fork of hMailServer, signed by
+# the PPA's key {{ hmailserver_ppa_fingerprint }} alone.
+Types: deb
+URIs: {{ hmailserver_ppa_uri }}
+Suites: {{ ansible_facts['distribution_release'] }}
+Components: main
+Signed-By: {{ hmailserver_ppa_keyring }}

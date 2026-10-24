@@ -1,0 +1,13 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# Only a service that was running before the role changed its configuration: one
+# that was not is started once, by tasks/service.yml, with the configuration whole.
+- name: Restart hmailserver
+  ansible.builtin.systemd_service:
+    name: hmailserver.service
+    state: restarted
+  when:
+    - hmailserver_was_active.rc | default(1) == 0
+    - hmailserver_service_state in ['started', 'restarted']

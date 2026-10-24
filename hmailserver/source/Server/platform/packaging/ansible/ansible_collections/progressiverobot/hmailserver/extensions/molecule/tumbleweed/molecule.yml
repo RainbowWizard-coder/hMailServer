@@ -1,0 +1,11 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# openSUSE Tumbleweed, from the Build Service; the project's own copy of the
+# image the RPM builds use, by digest (its tag 20261006-amd64).
+---
+platforms:
+  - name: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}
+    image: registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed@sha256:cca499cd74a25e6597d1a73651fac116354843198e83ae7abf9e9481bea097db
+    family: zypper

@@ -1,0 +1,125 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+argument_specs:
+  main:
+    short_description: Progressive Robot's fork of hMailServer, installed, configured and started
+    description:
+      - Installs Progressive Robot's fork of hMailServer - not the original hMailServer -
+        from the fork's own channel for the distribution, points it at the PostgreSQL or
+        MariaDB database it is given, sets the administrator password, creates or
+        upgrades the database's schema, makes the stored-secrets key, stores the
+        settings it is given and starts the service.
+      - Opens no firewall port and installs no database server.
+    author:
+      - Christopher Holloway / Progressive Robot Ltd
+    options:
+      hmailserver_channel:
+        type: str
+        default: auto
+        choices: [auto, ppa, deb, copr, obs]
+        description: Where the package comes from; auto takes the distribution's.
+      hmailserver_version:
+        type: str
+        default: ""
+        description:
+          - The version to install. Empty, the channel's newest; on Debian, the release
+            this collection was built for.
+      hmailserver_package_state:
+        type: str
+        default: present
+        choices: [present, latest]
+        description: present leaves an installed package alone; latest upgrades it.
+      hmailserver_deb_sha256:
+        type: dict
+        default: {}
+        description:
+          - The SHA-256 of a release .deb this collection does not pin, keyed
+            C(<version>/debian<major>_<architecture>).
+      hmailserver_database_type:
+        type: str
+        default: PostgreSQL
+        choices: [PostgreSQL, MySQL]
+        description: The database's backend; MySQL also means MariaDB.
+      hmailserver_database_host:
+        type: str
+        default: localhost
+        description: The database server's host.
+      hmailserver_database_port:
+        type: int
+        default: 0
+        description: Its port; 0 is the backend's own, 5432 or 3306.
+      hmailserver_database_name:
+        type: str
+        default: hmailserver
+        description: The database.
+      hmailserver_database_user:
+        type: str
+        default: hmailserver
+        description: The database user.
+      hmailserver_database_password:
+        type: str
+        required: true
+        no_log: true
+        description: The database user's password.
+      hmailserver_database_create:
+        type: bool
+        default: true
+        description: Run hmailserver --create-database.
+      hmailserver_database_upgrade:
+        type: bool
+        default: true
+        description: Run hmailserver --upgrade-database when the schema is older.
+      hmailserver_admin_password:
+        type: str
+        required: true
+        no_log: true
+        description: The administrator password of the REST API and the Control Deck.
+      hmailserver_admin_password_update:
+        type: str
+        default: on_create
+        choices: [on_create, always]
+        description: Set it when the configuration has none, or on every run.
+      hmailserver_stored_secrets_key:
+        type: bool
+        default: true
+        description: Make the installation's stored-secrets key.
+      hmailserver_stored_secrets_key_export:
+        type: str
+        default: ""
+        description: A path on the server to export the key to once; empty, none.
+      hmailserver_settings:
+        type: dict
+        default: {}
+        description: "[Settings] values, stored with hmailserver --set-setting."
+      hmailserver_service_enabled:
+        type: bool
+        default: true
+        description: Enable the service.
+      hmailserver_service_state:
+        type: str
+        default: started
+        choices: [started, stopped, restarted]
+        description: The service's state.
+      hmailserver_wait_for_smtp:
+        type: int
+        default: 120
+        description: Seconds to wait for the SMTP banner on 127.0.0.1:25; 0, none.
+      hmailserver_domains:
+        type: list
+        elements: dict
+        default: []
+        description: Domains made over the REST API when the server does not have them.
+      hmailserver_accounts:
+        type: list
+        elements: dict
+        default: []
+        description: Accounts made over the REST API when the server does not have them.
+      hmailserver_api:
+        type: str
+        description: Where the role reaches the REST API.
+      hmailserver_api_validate_certs:
+        type: bool
+        default: true
+        description: Check the REST API's certificate over https.

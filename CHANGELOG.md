@@ -502,6 +502,38 @@ with `--check`).
   pattern matches a file under `hmailserver/test/` or, for the two fuzzers' inputs, `fuzz/regression/` that neither
   `CMakeLists.txt` nor `debian/rules` reads, and each paragraph a file the repacked source holds.
 
+- **New: an Ansible collection, `progressiverobot.hmailserver`, that installs Progressive Robot's fork of hMailServer
+  from the project's own channels.** It is in the tree at
+  `hmailserver/source/Server/platform/packaging/ansible/ansible_collections/progressiverobot/hmailserver`, the layout
+  `ansible-test` and `ANSIBLE_COLLECTIONS_PATH` take, and its `galaxy.yml`, the role's description and its README say
+  that it is the fork, not the original hMailServer. Its role, `progressiverobot.hmailserver.hmailserver`, installs the
+  server from the Ubuntu PPA on 24.04 and 26.04, from the release's `.deb` on Debian 12 and 13, from Copr on Fedora and
+  Enterprise Linux 10, and from the Build Service on openSUSE Leap 16.0 and Tumbleweed, each verified as that channel
+  allows: the PPA's, Copr's and the Build Service's keys are imported only when their fingerprints are the ones the
+  role names, and a `.deb` is installed only when its SHA-256 is the one pinned for it, from the release's
+  `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified (6.3.7's four in the tree); a
+  distribution the project publishes no package for is refused before anything changes. It then writes `[Database]`
+  for the PostgreSQL or MariaDB database it is given (installing the MariaDB client library the server opens for
+  MySQL), sets the administrator password with `--set-admin-password`, runs `--check-config`, `--create-database` and,
+  for an older schema, `--upgrade-database` as the service's user, makes the stored-secrets key and exports it once
+  where asked, stores the `[Settings]` values it is given with `--set-setting`, enables and starts the service, waits
+  for the SMTP banner, and makes the domains and accounts it is given over the REST API, each only when the server
+  does not have it; the passwords are never logged, and it opens no firewall port. Molecule scenarios under the
+  collection's `extensions/molecule` run it in containers with systemd as PID 1, beside a PostgreSQL 18 or MariaDB
+  11.8 container, on Ubuntu 26.04 and 24.04, Debian 13 and 12, Fedora 44, AlmaLinux 10 and openSUSE Leap 16.0 and
+  Tumbleweed, converge it twice with nothing changed the second time, and ask the server for its version, the unit
+  running as `hmailserver`, SMTP on 25 with STARTTLS taken, `GET /api/v1/status` with the administrator password
+  and a 401 without it, the domain and account it made, the configuration's mode and the exported key. It is not on
+  Ansible Galaxy yet: `galaxy-build`, pressed in a `master` pipeline, builds it for the release from the release's
+  verified sums, and `galaxy-publish`, pressed after it, sends that tarball with `GALAXY_API_KEY`, which does not exist
+  until the owner's Galaxy account holds the namespace `progressiverobot`, and says "not configured" until then
+  (`build/ci/channels/galaxy-publish.py`, `.gitlab/ci/channels.yml`). `galaxy-check`, in a branch's or a merge
+  request's pipeline when the collection changes, runs `galaxy-publish.py check` and its self-test, builds the
+  collection, and runs `ansible-lint`'s production profile and `ansible-test sanity` but for the four tests that would
+  install tools without hashes; the tools come from `build/ci/ansible-collection-requirements.txt`, pinned with their
+  hashes. `build/check-channels.py` holds the three jobs to their rules, `galaxy-publish` to `galaxy-build`'s tarball
+  and each to installing its tools with their hashes alone. `hmailserver/docs/Ansible.md` says how to use it, what it
+  verifies, how it is tested and how it is published; `Channels.md` lists Galaxy among the channels.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
   release's `.deb` neither depends on nor recommends nor suggests `libmariadb3` (its Depends are `ca-certificates` and

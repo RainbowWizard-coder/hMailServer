@@ -1,0 +1,31 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The role as a user runs it, against the scenario's database server, with the REST
+# API on and a domain and an account made through it. The passwords are the
+# scenario's throwaway ones (config.yml).
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Install, configure and start hMailServer
+      ansible.builtin.include_role:
+        name: progressiverobot.hmailserver.hmailserver
+      vars:
+        hmailserver_database_type: "{{ hm_database_type }}"
+        hmailserver_database_host: "{{ hm_database_container }}"
+        hmailserver_database_name: "{{ hm_database_name }}"
+        hmailserver_database_user: "{{ hm_database_user }}"
+        hmailserver_database_password: "{{ hm_database_password }}"
+        hmailserver_admin_password: "{{ hm_admin_password }}"
+        hmailserver_stored_secrets_key_export: /root/hmailserver-stored-secrets.key
+        hmailserver_settings:
+          RestApiPort: 8080
+        hmailserver_domains:
+          - name: example.test
+            postmaster: postmaster@example.test
+        hmailserver_accounts:
+          - address: ann@example.test
+            password: "{{ hm_account_password }}"

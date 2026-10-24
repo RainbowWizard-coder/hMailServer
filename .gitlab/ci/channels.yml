@@ -34,6 +34,13 @@
 #                       same pipeline (.gitlab/ci/snap.yml), uploaded to the Snap
 #                       Store's edge and candidate channels
 #                       (build/ci/channels/snap-upload.py).
+#   galaxy-build        then galaxy-publish: the Ansible collection
+#                       progressiverobot.hmailserver built for the release, its
+#                       Debian .deb pins read from the release's verified
+#                       hmailserver-linux-<version>-SHA256SUMS.txt, and published to
+#                       Ansible Galaxy, each by its own press: galaxy-publish takes
+#                       the tarball galaxy-build made (build/ci/channels/
+#                       galaxy-publish.py; hmailserver/docs/Ansible.md).
 #
 # Each publishes a RELEASE, never the commit its pipeline is for: the one the
 # project's CI/CD variable HM_CHANNEL_VERSION names, or else the update feed's
@@ -68,6 +75,9 @@
 # project variable, which a job reads from its environment and hands to its tool on
 # standard input, in a file of the job's own or in a request header - never on a
 # command line and never in the log.
+#
+# galaxy-check, in a merge request's or a branch's pipeline when the collection or its
+# script changes, lints and sanity-tests the collection and builds it (below).
 #
 # channels-check, in a merge request's or a branch's pipeline when a channel's files
 # change, runs every script's self-test, and proves the verification with the pinned
@@ -119,7 +129,7 @@ channels-check:
   script:
     - |
       set -e
-      for script in release-files registry-mirror aur-publish ppa-upload copr-build obs-publish snap-upload fake-sigstore; do
+      for script in release-files registry-mirror aur-publish ppa-upload copr-build obs-publish snap-upload galaxy-publish fake-sigstore; do
         echo ""
         echo "\$ python3 build/ci/channels/$script.py --self-test"
         python3 "build/ci/channels/$script.py" --self-test
@@ -377,3 +387,121 @@ snap-upload:
     expire_in: 90 days
     paths:
       - snap-upload/verification.json
+
+# The Ansible collection (hmailserver/docs/Ansible.md), in a merge request's or a
+# branch's pipeline when it or what checks it changes: the tools from PyPI, pinned and
+# hashed (build/ci/ansible-collection-requirements.txt); the collection held together
+# and built for its release by build/ci/channels/galaxy-publish.py, whose self-test
+# builds it with the real ansible-galaxy too; ansible-lint's production profile over
+# it, offline; and ansible-test's sanity tests that need no tool of their own, with
+# this job's Python. Its molecule scenarios need a Docker of their own and are
+# run by hand (Ansible.md, "How it is tested").
+.galaxy-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - changes:
+        - hmailserver/source/Server/platform/packaging/ansible/**/*
+        - build/ci/channels/galaxy-publish.py
+        - build/ci/channels/release-files.py
+        - build/ci/ansible-collection-requirements.txt
+        - .gitlab/ci/channels.yml
+        - .gitlab/ci/no-github.yml
+        - LICENSE
+
+galaxy-check:
+  stage: check
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  needs: []
+  timeout: 20 minutes
+  rules:
+    - !reference [.galaxy-changes, rules]
+  variables:
+    HM_COLLECTION: hmailserver/source/Server/platform/packaging/ansible/ansible_collections/progressiverobot/hmailserver
+  before_script:
+    - !reference [.no-github, before_script]
+    # git, which ansible-test reads the collection's files with.
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - python3 -m venv /tmp/galaxy
+    - /tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes -r build/ci/ansible-collection-requirements.txt
+  script:
+    - export PATH="/tmp/galaxy/bin:$PATH"
+    - python3 build/ci/channels/galaxy-publish.py check
+    - python3 build/ci/channels/galaxy-publish.py --self-test
+    - python3 build/ci/channels/galaxy-publish.py build --out galaxy-check
+    - |
+      cd "$HM_COLLECTION"
+      ANSIBLE_COLLECTIONS_PATH="$CI_PROJECT_DIR/hmailserver/source/Server/platform/packaging/ansible" ansible-lint --offline --profile production
+      # Not pep8, pylint, runtime-metadata or yamllint: ansible-test installs their
+      # tools into virtual environments of its own, from PyPI without hashes. The
+      # collection's YAML and meta/runtime.yml are ansible-lint's, which has yamllint
+      # and the schemas from the hashed file; the four are run by hand (Ansible.md).
+      # A test that fetches anything fails the job.
+      set -o pipefail
+      ansible-test sanity --python 3.14 --color no --skip-test pep8 --skip-test pylint \
+        --skip-test runtime-metadata --skip-test yamllint 2>&1 | tee /tmp/sanity.log
+      if grep -E "^(Collecting|Downloading|Successfully installed) " /tmp/sanity.log; then
+        echo "ansible-test fetched a package from an index without its hash: skip that test here, and run it by hand"
+        exit 1
+      fi
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - galaxy-check/
+
+# The collection built for the release by hand on master: the release's
+# hmailserver-linux-<version>-SHA256SUMS.txt verified as every channel verifies what it
+# publishes, the .deb pins read from it and the collection built with them from this
+# checkout. Nothing is published: it is the dry run before Galaxy's namespace exists,
+# and what galaxy-publish sends.
+galaxy-build:
+  stage: release
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  rules:
+    - !reference [.channels-publish, rules]
+  before_script:
+    - !reference [.no-github, before_script]
+    - python3 -m venv /tmp/galaxy
+    - /tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes -r build/ci/ansible-collection-requirements.txt
+  script:
+    - export PATH="/tmp/galaxy/bin:$PATH"
+    - python3 build/ci/channels/galaxy-publish.py release-build --out galaxy-build
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - galaxy-build/verification.json
+      - galaxy-build/galaxy-build.json
+      - galaxy-build/dist/
+
+# The tarball galaxy-build made, held to what it recorded, to Ansible Galaxy with
+# GALAXY_API_KEY, by a press of its own once galaxy-build has passed; dormant without
+# the key, and a version Galaxy has is not sent again.
+galaxy-publish:
+  stage: release
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  needs:
+    - job: galaxy-build
+      artifacts: true
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: galaxy-publish
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: galaxy
+    url: https://galaxy.ansible.com/ui/repo/published/progressiverobot/hmailserver/
+  before_script:
+    - !reference [.no-github, before_script]
+    - python3 -m venv /tmp/galaxy
+    - /tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes -r build/ci/ansible-collection-requirements.txt
+  script:
+    - export PATH="/tmp/galaxy/bin:$PATH"
+    - python3 build/ci/channels/galaxy-publish.py publish --from galaxy-build

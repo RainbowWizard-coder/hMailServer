@@ -1,0 +1,78 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Every variable the role reads, with its default; meta/argument_specs.yml says what
+# each one takes, and Ansible holds them to it when the role starts.
+---
+# Where the package comes from. auto takes the project's channel for the
+# distribution: the PPA on Ubuntu, the release's .deb on Debian, Copr on Fedora and
+# Enterprise Linux 10, the Build Service on openSUSE.
+hmailserver_channel: auto
+
+# The version to install. Empty: the newest the channel has (ppa, copr, obs), and on
+# Debian the release this collection was built for (vars/release.yml).
+hmailserver_version: ""
+
+# present leaves an installed package as it is; latest upgrades it to the channel's
+# newest on every run (ppa, copr, obs).
+hmailserver_package_state: present
+
+# The SHA-256 of a release .deb this collection does not carry the pin of, keyed
+# "<version>/debian<major>_<architecture>" ("6.3.8/debian13_amd64"): take it from
+# that release's hmailserver-linux-<version>-SHA256SUMS.txt, verified against its
+# Sigstore bundle (hmailserver/docs/Ansible.md).
+hmailserver_deb_sha256: {}
+
+# The database. PostgreSQL or MySQL (MySQL also means MariaDB); the role installs
+# the MariaDB client library the server loads for MySQL.
+hmailserver_database_type: PostgreSQL
+hmailserver_database_host: localhost
+# 0: the backend's own port, 5432 or 3306.
+hmailserver_database_port: 0
+hmailserver_database_name: hmailserver
+hmailserver_database_user: hmailserver
+# hmailserver_database_password, which has no default and is required: written to
+# [Database] Password of hMailServer.ini (0640, root:hmailserver), never logged.
+
+# hmailserver --create-database: creates the database where the user may, fills an
+# empty one, and leaves one that already holds the schema as it is.
+hmailserver_database_create: true
+# hmailserver --upgrade-database when the schema is older than the package.
+hmailserver_database_upgrade: true
+
+# hmailserver_admin_password, which has no default and is required: the
+# administrator password the REST API and the Control Deck sign in with, written as
+# a PBKDF2 hash by hmailserver --set-admin-password and never logged. on_create
+# sets it when the configuration has none; always sets it on every run (and so
+# reports a change on every run).
+hmailserver_admin_password_update: on_create
+
+# The installation's stored-secrets key (hmailserver --create-stored-secrets-key),
+# and a path on the server to export it to once, for the backups
+# (hmailserver/docs/SecretsAtRest.md). Empty: not exported.
+hmailserver_stored_secrets_key: true
+hmailserver_stored_secrets_key_export: ""
+
+# [Settings] values, stored with hmailserver --set-setting NAME=VALUE, for example
+# {RestApiPort: 8080}. A setting that holds a secret is refused by the server on a
+# command line, and so here.
+hmailserver_settings: {}
+
+# The service. The role opens no firewall port and changes no firewall.
+hmailserver_service_enabled: true
+hmailserver_service_state: started
+# Wait for the SMTP banner on 127.0.0.1:25 after the start, this many seconds; 0
+# does not wait.
+hmailserver_wait_for_smtp: 120
+
+# Domains and accounts made over the REST API, which needs
+# hmailserver_settings.RestApiPort. Each is made when it is not there and is never
+# changed or removed. A domain: {name, active (true), postmaster ("")}. An account:
+# {address, password, active (true)}; the passwords are never logged.
+hmailserver_domains: []
+hmailserver_accounts: []
+# Where the role reaches the REST API, and whether it checks the API's certificate
+# when the address is https (a RestApiCertificateFile set).
+hmailserver_api: "http://127.0.0.1:{{ hmailserver_settings.RestApiPort | default(0) }}"
+hmailserver_api_validate_certs: true

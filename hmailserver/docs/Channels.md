@@ -33,8 +33,11 @@ then waited for Chocolatey's moderation; a moderator approved it on 23 October 2
 nothing: `registry-mirror` copies only to a registry whose credential is stored, and
 `aur-publish` says "not configured" and passes, until the owner has made the channel's
 account and a maintainer has stored its credential; the Snap Store's credential is
-stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). Every job
-was first run on a laptop against a fixture release. No release before 6.3.6 can be
+stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). Ansible
+Galaxy has nothing either: the collection and its two jobs are written, and
+`galaxy-publish` says "not configured" until the owner's Galaxy account holds the
+namespace and its token is stored ([Ansible Galaxy](#ansible-galaxy)). Every job was
+first run on a laptop against a fixture release. No release before 6.3.6 can be
 published to the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 ([SourceTarball.md](SourceTarball.md)), and the Debian and RPM packaging inside it
 ([SourcePackages.md](SourcePackages.md)), which 6.3.6 is the first to carry.
@@ -50,6 +53,7 @@ published to the AUR, the PPA, Copr or OBS: they build from the release's source
 | openSUSE Build Service | `sudo zypper addrepo https://download.opensuse.org/repositories/home:/progressiverobot/16.0/home:progressiverobot.repo` (`openSUSE_Tumbleweed` in place of `16.0` for Tumbleweed), then `sudo zypper install hmailserver`, trusting the key only if zypper shows the fingerprint `BA08 6830 9CFB D364 98CE 41D2 2F0B 9419 E67E E770` ([PackageManagers.md](PackageManagers.md) has the route that checks it first) | `obs-publish` | `OBS_RUNSERVICE_TOKEN`, `OBS_PROJECT` |
 | Chocolatey | `choco install hmailserver-progressiverobot` | `chocolatey-release`, then `chocolatey-publish` | `CHOCO_API_KEY`, `HM_CHOCOLATEY_ID` |
 | Snap Store | `sudo snap install hmailserver --candidate` | `snap-upload` | `SNAPCRAFT_STORE_CREDENTIALS` |
+| Ansible Galaxy | `ansible-galaxy collection install progressiverobot.hmailserver` | `galaxy-build`, then `galaxy-publish` | `GALAXY_API_KEY` |
 
 How a channel job publishes
 ---------------------------
@@ -482,6 +486,28 @@ environment itself.
   uploads anything. The credentials carry the expiry date `--expires` gives; once past
   it the job fails with the store's refusal, and the same command makes new ones.
 
+### Ansible Galaxy
+
+`galaxy-build` and then `galaxy-publish` (`build/ci/channels/galaxy-publish.py`) put
+the Ansible collection `progressiverobot.hmailserver`, whose role installs the server
+from the channels above, on Ansible Galaxy ([Ansible.md](Ansible.md)).
+
+- **What it verifies.** The release's `hmailserver-linux-<version>-SHA256SUMS.txt`,
+  from which `galaxy-build` reads the SHA-256 of the four Debian `.deb` files the role
+  installs on Debian 12 and 13, each pinned in the collection it builds.
+- **What it publishes.** The collection as `master` has it, built for the release:
+  `galaxy.yml`'s version is the release's, and `roles/hmailserver/vars/release.yml`
+  its version and pins. `galaxy-build` publishes nothing; `galaxy-publish`, pressed
+  after it, sends its tarball, held to the SHA-256 `galaxy-build` recorded, with
+  `ansible-galaxy collection publish`. A version Galaxy has is not sent again: Galaxy
+  keeps a version for good.
+- **The token.** In `ansible-galaxy`'s environment, as its server list's token, never
+  on a command line.
+- **The owner, once.** Two-factor authentication on `RainbowWizard-coder`, a sign-in to
+  galaxy.ansible.com with it, the namespace `progressiverobot` asked for and made the
+  account's, and an API token, which a maintainer stores as `GALAXY_API_KEY`
+  ([Ansible.md](Ansible.md), "Publishing to Galaxy").
+
 What the owner and the maintainers set
 --------------------------------------
 
@@ -513,6 +539,7 @@ the table says so. A masked value must be one line of letters, digits and `+ / =
 | `CHOCO_API_KEY` | yes | `chocolatey` | the community.chocolatey.org API key |
 | `HM_CHOCOLATEY_ID` | no | `chocolatey` | `hmailserver-progressiverobot` (set on 20 October 2026, and the default); `hmailserver`, the original's id, is refused |
 | `SNAPCRAFT_STORE_CREDENTIALS` | yes | `snap-store` | the output of `snapcraft export-login` |
+| `GALAXY_API_KEY` | yes | `galaxy` | the API token of the Galaxy account that holds the namespace `progressiverobot` |
 
 With `glab`, signed in as a maintainer, a secret goes in from standard input and is
 never typed on a command line:
