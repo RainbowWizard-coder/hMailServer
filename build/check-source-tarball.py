@@ -41,9 +41,9 @@ tarball a third:
       place matches that path and no other;
     - the Debian source package's Files-Excluded (DEBIAN_COPYRIGHT below) begins
       with the list as --files-excluded prints it, and each pattern after it -
-      the Debian package's own - matches files under hmailserver/test/ alone,
-      at least one, none of them read by the Debian build (CMakeLists.txt and
-      debian/rules);
+      the Debian package's own - matches test data alone (files under
+      hmailserver/test/ or fuzz/regression/), at least one, none of them read
+      by the Debian build (CMakeLists.txt and debian/rules);
     - every pattern of that file's Files paragraphs (but "*" and the package's
       own debian/) matches a file the repacked source holds - one the tree
       tracks and neither the list nor Files-Excluded leaves out - so a file
@@ -146,11 +146,13 @@ OTHER_LINUX_SCRIPTS = (
 # The Debian source package's copyright file, whose Files-Excluded is this list as
 # --files-excluded prints it, then the Debian package's own patterns: test data the
 # project's tarball keeps for its suites and a Debian archive cannot take, because
-# no licence is stated for it. Those may only be files under DEBIAN_ONLY_UNDER that
+# no licence is stated for it. Those may only be files under DEBIAN_ONLY_UNDER - the
+# test tree, and the fuzzers' regression inputs, one of which is a third party's reply
+# as a fuzzer changed it - that
 # the Debian build - the CMake build and debian/rules - does not read.
 DEBIAN_COPYRIGHT = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
 DEBIAN_RULES = "hmailserver/source/Server/platform/packaging/debian-src/debian/rules"
-DEBIAN_ONLY_UNDER = "hmailserver/test/"
+DEBIAN_ONLY_UNDER = ("hmailserver/test/", "fuzz/regression/")
 SUITE_PROJECT = "hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj"
 # The SDK compiles every .cs under the project's own directory and restores what its
 # lock file pins, and dotnet reads the SDK's version from global.json at the top.
@@ -367,9 +369,10 @@ def check_debian_copyright(tracked, read, entries, cmake_text):
                             (DEBIAN_COPYRIGHT, pattern))
         for path in matched:
             if not path.startswith(DEBIAN_ONLY_UNDER):
-                problems.append("%s's Files-Excluded has %r, which leaves out %s: beyond %s it holds test data alone, "
-                                "and a path the tarball should not carry goes in %s" %
-                                (DEBIAN_COPYRIGHT, pattern, path, EXCLUSIONS, EXCLUSIONS))
+                problems.append("%s's Files-Excluded has %r, which leaves out %s: beyond %s it holds test data alone "
+                                "(under %s), and a path the tarball should not carry goes in %s" %
+                                (DEBIAN_COPYRIGHT, pattern, path, EXCLUSIONS, " or ".join(DEBIAN_ONLY_UNDER),
+                                 EXCLUSIONS))
             elif any(path == r or path.startswith(r + "/") for r in debian_reads):
                 problems.append("%s's Files-Excluded has %r, which leaves out %s, and the Debian build reads it" %
                                 (DEBIAN_COPYRIGHT, pattern, path))
@@ -850,14 +853,21 @@ def self_test():
     def with_copyright(field_lines, rules="", paragraphs=""):
         text = "Format: x\n" + "\n".join(field_lines) + "\nComment: y\n\nFiles: *\nLicense: z\n" + paragraphs
         return dict(fixed, **{DEBIAN_COPYRIGHT: text, DEBIAN_RULES: rules,
-                              "hmailserver/test/TestData/DKIM/Good/Test 1.eml": ""})
+                              "hmailserver/test/TestData/DKIM/Good/Test 1.eml": "",
+                              "fuzz/regression/mime_message_fuzzer/a-reply": "",
+                              "fuzz/harness/fuzzer.cpp": ""})
     field = files_excluded(parse_list(good)[0]).split("\n")
     expect("a copyright file whose Files-Excluded is the list and test data",
            run(with_copyright(field + [" hmailserver/test/TestData/DKIM/Good/Test?1.eml"]), good), None)
     expect("a copyright file missing a line of the list",
            run(with_copyright([f for f in field if "COM" not in f]), good), "does not begin with build/source-exclusions.txt")
+    expect("a copyright file that leaves out a fuzzer's regression input too",
+           run(with_copyright(field + [" hmailserver/test/TestData/DKIM/Good/Test?1.eml",
+                                       " fuzz/regression/mime_message_fuzzer/a-reply"]), good), None)
     expect("a copyright file leaving out what is not test data",
            run(with_copyright(field + [" global.json"]), good), "test data alone")
+    expect("a copyright file leaving out a fuzzer's source",
+           run(with_copyright(field + [" fuzz/harness/fuzzer.cpp"]), good), "test data alone")
     expect("a copyright file leaving out a file that is not there",
            run(with_copyright(field + [" hmailserver/test/none.txt"]), good), "matches nothing in the tree")
     expect("a copyright file leaving out test data debian/rules reads",

@@ -9,13 +9,14 @@ Comment:
  of build/source-exclusions.txt - what is not free and what only the Windows
  build uses - and Files-Excluded repeats that list, as
  build/check-source-tarball.py --files-excluded prints it, so that a tarball
- made from a git tag instead holds the same files. The last six patterns are
+ made from a git tag instead holds the same files. The last seven patterns are
  this package's own: test data of third parties with no licence stated (the
- replies of three DKIM verifiers, a security advisory's text, and a certificate
- authority's certificate, alone and after an example certificate). The
- upstream test suites read some of them and the Debian build reads none, so
- they are removed and the tarball is repacked as <version>+ds
- (hmailserver/docs/SourcePackages.md).
+ replies of three DKIM verifiers, one of them again as the MIME fuzzer changed
+ it into one of its regression inputs, a security advisory's text, and a
+ certificate authority's certificate, alone and after an example certificate).
+ The upstream test suites and the fuzzing read some of them and the Debian
+ build reads none, so they are removed and the tarball is repacked as
+ <version>+ds (hmailserver/docs/SourcePackages.md).
 Files-Excluded:
  libraries
  hmailserver/docs/Licenses/License?-?Microsoft?SQL?Server?Compact?Edition.rtf
@@ -82,6 +83,7 @@ Files-Excluded:
  hmailserver/installation/setup-small.bmp
  hmailserver/installation/setup.bmp
  hmailserver/installation/winget
+ fuzz/regression/mime_message_fuzzer/heap-buffer-overflow-findstring-boundary-scan
  hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
  hmailserver/test/SSL?examples/example+google.txt
  hmailserver/test/SSL?examples/google.cer
@@ -143,7 +145,11 @@ Comment:
 Files: hmailserver/docs/Licenses/License?-?QuickJS.txt
 Copyright: 2017-2021 Fabrice Bellard
            2017-2021 Charlie Gordon
-License: Expat
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: Expat and AGPL-3+
+Comment:
+ The release's LICENSE, verbatim, after the maintainers' note on where the
+ engine is vendored, what it is compiled into and how its archive was checked.
 
 Files: hmailserver/source/Server/Common/Mime/Mime.cpp
        hmailserver/source/Server/Common/Mime/Mime.h
@@ -204,11 +210,20 @@ License: StdString
 Files: hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml
        hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.CHANGES
        hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.LICENSE
-       hmailserver/docs/Licenses/License?-?RFC?7208?test?suite.txt
 Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
            2007-2008 Julian Mehnle <julian@mehnle.net>
            2014 Scott Kitterman <scott@kitterman.com>
 License: BSD-3-clause
+
+Files: hmailserver/docs/Licenses/License?-?RFC?7208?test?suite.txt
+Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
+           2007-2008 Julian Mehnle <julian@mehnle.net>
+           2014 Scott Kitterman <scott@kitterman.com>
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: BSD-3-clause and AGPL-3+
+Comment:
+ rfc7208-tests.LICENSE, verbatim, after the maintainers' note on where the
+ suite is vendored and what reads it.
 
 Files: hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceSuite.cpp
 Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
@@ -238,7 +253,6 @@ Comment:
 
 Files: hmailserver/source/Server/Common/Idna/ucd/*.txt
        hmailserver/source/Server/Common/Idna/ucd/unicode.LICENSE
-       hmailserver/docs/Licenses/License?-?Unicode?data.txt
 Copyright: 1991-2026 Unicode, Inc.
 License: Unicode-3.0
 Comment:
@@ -247,6 +261,14 @@ Comment:
  CompositionExclusions.txt, DerivedJoiningType.txt and DerivedBidiClass.txt -
  vendored unmodified as unicode.org serves them, each held to its SHA-256 by
  build/generate-idna-tables.py.
+
+Files: hmailserver/docs/Licenses/License?-?Unicode?data.txt
+Copyright: 1991-2026 Unicode, Inc.
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: Unicode-3.0 and AGPL-3+
+Comment:
+ ucd/unicode.LICENSE, verbatim, after the maintainers' note on which data
+ files are vendored and what is made and compiled from them.
 
 Files: hmailserver/source/Server/Common/Idna/IdnaTables.cpp
        hmailserver/source/Server/Common/Idna/IdnaTestData.cpp
@@ -261,8 +283,6 @@ Comment:
  IdnaTestData.cpp is Unicode's conformance tests, which idna-tests runs.
 
 Files: hmailserver/source/Server/Common/AntiSpam/whatwg/entities.json
-       hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
-       hmailserver/docs/Licenses/License?-?HTML?named?character?references.txt
 Copyright: WHATWG (Apple, Google, Mozilla, Microsoft)
 License: WHATWG-BSD-3-clause
 Comment:
@@ -271,6 +291,18 @@ Comment:
  SHA-256 by build/generate-html-references.py. The standard is under CC-BY-4.0,
  and a portion of it incorporated into source code, as this list is, under the
  BSD 3-Clause License instead (whatwg/entities.LICENSE quotes the terms).
+
+Files: hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE
+       hmailserver/docs/Licenses/License?-?HTML?named?character?references.txt
+Copyright: WHATWG (Apple, Google, Mozilla, Microsoft)
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: WHATWG-BSD-3-clause and AGPL-3+
+Comment:
+ The standard's terms, which entities.LICENSE quotes, and the BSD 3-Clause
+ License, with the maintainers' sentences on the list and on why the BSD
+ 3-Clause License is the one for it; the copy in hmailserver/docs/Licenses
+ opens with the maintainers' note on where the list is vendored and what is
+ made and compiled from it.
 
 Files: hmailserver/source/Server/Common/AntiSpam/HtmlReferencesData.cpp
 Copyright: WHATWG (Apple, Google, Mozilla, Microsoft)

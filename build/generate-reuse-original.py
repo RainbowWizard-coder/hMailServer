@@ -33,10 +33,21 @@ by hand, say where it is not:
              of it, kept at the new path: the tree's path, the original's file it
              came from, the fork's commit and what it keeps. The source is a path
              of the list, or <commit>:<path> for one of the original's commits
-             after its tags that the fork ported (LATER). A file of the fork's
-             that only follows the original's patterns - the COM wrappers' and
-             the test fixtures' idioms, what a project template or a designer
-             writes - is not one.
+             after its tags that the fork ported (LATER). Any of his text that a
+             file keeps verbatim as its own makes it one: code of his, a comment,
+             a file of his test data, or a message he wrote for a case of his
+             code's - one sentence of an error message or a warning included, as
+             in RestApiSettings.cpp and DateTime.cpp. A file of the fork's that
+             only names or quotes what the original does is not one: a reply or
+             a message of the server's that a test expects or a document quotes,
+             a setting's or a control's caption, a string table's key, an SQL
+             statement of the schema, an include path; nor is one that only
+             follows the original's patterns - the COM wrappers' idioms, the test
+             fixtures' (the message his tests send to trip the SURBL test among
+             them), the stock replies and errors his code gives wherever it
+             meets the same case (an IMAP command's "Authenticate first" or
+             "Folder could not be found.", a COM object's "Failed to save
+             object."), what a project template or a designer writes.
   FORK_MADE  a file the fork made itself at a path the original's tags also hold,
              which keeps nothing of the original's file there: its path, the
              fork's commit and why. It is left out of the tables, and a file of
@@ -45,7 +56,8 @@ by hand, say where it is not:
 
 A file moved, split or copied out of one of the original's is added to DERIVED
 (git log --follow and git diff -M -C name the moves; a passage copied is found by
-comparing the file with the original's), and a file at one of the original's
+comparing the file with the original's, and a message by looking its words up in
+the original's tags), and a file at one of the original's
 paths that the fork made anew, to FORK_MADE; then this is run again.
 
 From the list, those two and the tree this writes the tables between the two
@@ -190,6 +202,49 @@ DERIVED = (
     ("hmailserver/source/Server/Common/Persistence/MailboxMove.cpp",
      "hmailserver/source/Server/Common/Persistence/PersistentAccount.cpp", "ee1365651",
      "the original's refusal to rename a mailbox while message paths are full ones, in its words"),
+    ("hmailserver/source/Server/Common/Util/RestApiSettings.cpp",
+     "hmailserver/source/Server/COM/InterfaceSettings.cpp", "2baeafbd8",
+     "the original's refusal of a hierarchy delimiter that a folder's name holds, in its words"),
+    ("hmailserver/source/Server/Common/Util/RestApiMailbox.cpp",
+     "hmailserver/source/Server/IMAP/IMAPCommandRename.cpp", "d5a14a7b9",
+     "the IMAP commands' refusals to create, rename or delete a folder, in their words: RENAME's six, "
+     "CREATE's three and DELETE's two, and the first sentence of the COM IMAPFolder's refusal to delete one"),
+    ("hmailserver/source/Server/Common/Persistence/MessageStore.cpp",
+     "hmailserver/source/Server/Common/Util/File.cpp", "236f25a94",
+     "File's errors for a file not opened or not read, and FileUtilities' for one it cannot open, in their words"),
+    ("hmailserver/source/Server/Common/Util/DateTime.cpp",
+     "hmailserver/source/Server/Common/Util/VariantDateTime.cpp", "9623846e5",
+     "VariantDateTime's error 5160 for a value that is not a date, in its words (the original's own, which its "
+     "Errors.txt lists), in the class written anew in its place"),
+    ("hmailserver/source/Server/Common/SQL/ScriptTransaction.cpp",
+     "hmailserver/source/Server/COM/InterfaceDatabase.cpp", "1cbe558e0",
+     "the COM Database object's errors for a statement that failed and for no transaction, in their words, "
+     "with the transaction it held"),
+    ("hmailserver/source/Server/Common/Scripting/ScriptBinding.cpp",
+     "hmailserver/source/Server/COM/InterfaceMessage.cpp", "d8308e04b",
+     "three of the COM Message object's errors, in their words, for the event scripts' Message in JavaScript"),
+    ("hmailserver/source/Tools/ControlPanel/Services/ConfigurationChecks.cs",
+     "hmailserver/source/Tools/Administrator/Main panes/ucStatus.cs", "6e1860333",
+     "the Administrator's configuration warnings, the one for a banned localhost in its words"),
+    ("hmailserver/source/Tools/ControlPanel/Resources/Strings.resx",
+     "hmailserver/source/Tools/Administrator/Main panes/ucStatus.cs", "4ef456f16",
+     "the Administrator's warning for a banned localhost, in its words, as an English text the Control Panel shows"),
+    ("hmailserver/source/Server/ExternalFetcher/IMAPClientConnection.cpp",
+     "hmailserver/source/Server/ExternalFetcher/POP3ClientConnection.cpp", "31fe9e6db",
+     "the POP3 fetcher's connection handling - its time-out, OnConnected and OnHandshakeCompleted - and its "
+     "handling of a download's buffer, of its delivery and of the days a message is kept, for IMAP"),
+    ("hmailserver/test/LinuxRegressionTests/Shims/SslSetup.cs",
+     "hmailserver/test/RegressionTests/SSL/SslSetup.cs", "f18c38a04",
+     "the Windows suite's SslSetup, its methods' names and three of its messages"),
+    ("hmailserver/test/RegressionTests/AntiSpam/DKIM/ArcSealing.cs",
+     "hmailserver/test/RegressionTests/AntiSpam/DKIM/Signing.cs", "619ca858e",
+     "the DKIM signing tests' GetPrivateKeyFile, with its message"),
+    ("hmailserver/test/RegressionTests/AntiSpam/DKIM/DualSelectorRotation.cs",
+     "hmailserver/test/RegressionTests/AntiSpam/DKIM/Signing.cs", "404863f81",
+     "the DKIM signing tests' GetPrivateKeyFile, with its message"),
+    ("fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor",
+     "hmailserver/test/RegressionTests/Resources/EmailWith-TextPlainBody+TextHtmlBody.txt", "205388ab3",
+     "the original's test message, the same text with CRLF line endings, as the MIME fuzzer's input that found a fault"),
     ("hmailserver/source/Server/SMTP/SPF/README.md",
      "1beaeab9c212cfc484c180c90cab37cb46cdb6be:hmailserver/source/Server/SMTP/SPF/README.md", "f0ee7803a",
      "the port's README, its introduction and its table of files"),

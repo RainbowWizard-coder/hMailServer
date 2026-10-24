@@ -542,6 +542,7 @@ path = [
     "hmailserver/source/Server/Common/Persistence/MailboxMove.cpp",
     "hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.cpp",
     "hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.h",
+    "hmailserver/source/Server/Common/Persistence/MessageStore.cpp",
     "hmailserver/source/Server/Common/Persistence/NameChanger.cpp",
     "hmailserver/source/Server/Common/Persistence/NameChanger.h",
     "hmailserver/source/Server/Common/Persistence/PersistenceMode.h",
@@ -675,12 +676,14 @@ path = [
     "hmailserver/source/Server/Common/SQL/SQLScriptRunner.h",
     "hmailserver/source/Server/Common/SQL/SQLStatement.cpp",
     "hmailserver/source/Server/Common/SQL/SQLStatement.h",
+    "hmailserver/source/Server/Common/SQL/ScriptTransaction.cpp",
     "hmailserver/source/Server/Common/Scripting/ClientInfo.cpp",
     "hmailserver/source/Server/Common/Scripting/ClientInfo.h",
     "hmailserver/source/Server/Common/Scripting/Events.cpp",
     "hmailserver/source/Server/Common/Scripting/Events.h",
     "hmailserver/source/Server/Common/Scripting/Result.cpp",
     "hmailserver/source/Server/Common/Scripting/Result.h",
+    "hmailserver/source/Server/Common/Scripting/ScriptBinding.cpp",
     "hmailserver/source/Server/Common/Scripting/ScriptObjectContainer.cpp",
     "hmailserver/source/Server/Common/Scripting/ScriptObjectContainer.h",
     "hmailserver/source/Server/Common/Scripting/ScriptServer.cpp",
@@ -753,6 +756,7 @@ path = [
     "hmailserver/source/Server/Common/Util/CrashSimulation.h",
     "hmailserver/source/Server/Common/Util/Crypt.cpp",
     "hmailserver/source/Server/Common/Util/Crypt.h",
+    "hmailserver/source/Server/Common/Util/DateTime.cpp",
     "hmailserver/source/Server/Common/Util/EmailAllUsers.cpp",
     "hmailserver/source/Server/Common/Util/EmailAllUsers.h",
     "hmailserver/source/Server/Common/Util/Encoding/Base64.cpp",
@@ -812,6 +816,8 @@ path = [
     "hmailserver/source/Server/Common/Util/Registry.h",
     "hmailserver/source/Server/Common/Util/RegularExpression.cpp",
     "hmailserver/source/Server/Common/Util/RegularExpression.h",
+    "hmailserver/source/Server/Common/Util/RestApiMailbox.cpp",
+    "hmailserver/source/Server/Common/Util/RestApiSettings.cpp",
     "hmailserver/source/Server/Common/Util/SSPIValidation.cpp",
     "hmailserver/source/Server/Common/Util/SSPIValidation.h",
     "hmailserver/source/Server/Common/Util/ServerInfo.cpp",
@@ -853,6 +859,7 @@ path = [
     "hmailserver/source/Server/ExternalFetcher/FetchAccountLock.h",
     "hmailserver/source/Server/ExternalFetcher/FetchAccountUIDList.cpp",
     "hmailserver/source/Server/ExternalFetcher/FetchAccountUIDList.h",
+    "hmailserver/source/Server/ExternalFetcher/IMAPClientConnection.cpp",
     "hmailserver/source/Server/ExternalFetcher/POP3ClientConnection.cpp",
     "hmailserver/source/Server/ExternalFetcher/POP3ClientConnection.h",
     "hmailserver/source/Server/IMAP/FolderListCreator.cpp",
@@ -1031,6 +1038,8 @@ path = [
     "hmailserver/source/Server/hMailServer/resource.h",
     "hmailserver/source/Server/hMailServer/stdafx.cpp",
     "hmailserver/source/Server/hMailServer/stdafx.h",
+    "hmailserver/source/Tools/ControlPanel/Resources/Strings.resx",
+    "hmailserver/source/Tools/ControlPanel/Services/ConfigurationChecks.cs",
     "hmailserver/source/Tools/DBSetup/Globals.cs",
     "hmailserver/source/Tools/DBSetup/Pages/ucAction.Designer.cs",
     "hmailserver/source/Tools/DBSetup/Pages/ucAction.cs",
@@ -1086,6 +1095,7 @@ path = [
     "hmailserver/test/Docker/run-tests.ps1",
     "hmailserver/test/LinuxRegressionTests/Shims/Infrastructure.cs",
     "hmailserver/test/LinuxRegressionTests/Shims/SingletonProvider.cs",
+    "hmailserver/test/LinuxRegressionTests/Shims/SslSetup.cs",
     "hmailserver/test/LinuxRegressionTests/Shims/TestFixtureBase.cs",
     "hmailserver/test/LinuxRegressionTests/Shims/TestSetup.cs",
     "hmailserver/test/MemoryTests/Program.cs",
@@ -1108,6 +1118,8 @@ path = [
     "hmailserver/test/RegressionTests/API/Utilities.cs",
     "hmailserver/test/RegressionTests/AntiSpam/Basics.cs",
     "hmailserver/test/RegressionTests/AntiSpam/Combinations.cs",
+    "hmailserver/test/RegressionTests/AntiSpam/DKIM/ArcSealing.cs",
+    "hmailserver/test/RegressionTests/AntiSpam/DKIM/DualSelectorRotation.cs",
     "hmailserver/test/RegressionTests/AntiSpam/DKIM/Signing.cs",
     "hmailserver/test/RegressionTests/AntiSpam/DKIM/Verification.cs",
     "hmailserver/test/RegressionTests/AntiSpam/GreyListing.cs",
@@ -1307,6 +1319,7 @@ path = [
     ".gitattributes",
     ".gitignore",
     "README.md",
+    "fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor",
     "hmailserver/docs/Licenses/License list.ods",
     "hmailserver/installation/Extras/dh2048.pem",
     "hmailserver/installation/InnoSocketCheck/ISC.def",
@@ -1855,6 +1868,19 @@ path = [
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
+# Of the fuzzers' regression inputs, which the table above gives the maintainers, one
+# is the original's test message EmailWith-TextPlainBody+TextHtmlBody.txt, the same
+# text (the generator's DERIVED names it), so it names Martin Knafve beside them; and
+# one is a third party's reply, which a table of the test data with no licence below
+# gives its holder.
+[[annotations]]
+path = "fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor"
+SPDX-FileCopyrightText = [
+    "2005-2026 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
 # ---------------------------------------------------------- third parties' trees
 # Each under its own licence, never the project's; hmailserver/docs/SourceTarball.md
 # and debian/copyright declare the ones the source tarball carries, and
@@ -1943,12 +1969,18 @@ SPDX-License-Identifier = "BSD-3-Clause"
 
 # entities.LICENSE quotes the standard's notice in a sentence ("Copyright © WHATWG
 # (Apple, Google, Mozilla, Microsoft). This work is licensed under ..."), which reuse
-# reads to the line's end: read for this table alone.
+# reads to the line's end: read for this table alone. Around the notice and the BSD
+# 3-Clause License that follows are the maintainers' sentences on the list and on why
+# that licence is the one for it, so the maintainers are named beside the WHATWG and
+# the project's licence beside the list's.
 [[annotations]]
 path = "hmailserver/source/Server/Common/AntiSpam/whatwg/entities.LICENSE"
 precedence = "override"
-SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
-SPDX-License-Identifier = "BSD-3-Clause"
+SPDX-FileCopyrightText = [
+    "WHATWG (Apple, Google, Mozilla, Microsoft)",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "BSD-3-Clause AND AGPL-3.0-or-later"
 
 # Unicode's data files for UTS 46, as unicode.org serves them (ucd/unicode.LICENSE).
 [[annotations]]
@@ -1998,7 +2030,12 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # their component's licence, as debian/copyright gives them. They are read for these
 # tables alone (precedence override): a licence's text is not its file's notice, and
 # reuse would take its words for holders - "Copyright Act" in the CC licence, the
-# GPL's "<year>  <name of author>".
+# GPL's "<year>  <name of author>". Four of the six, the texts of QuickJS's, the RFC
+# 7208 suite's, Unicode's and the HTML standard's terms that the maintainers put in
+# hmailserver/docs/Licenses, open with the maintainers' note on where the component
+# is vendored and what is made or compiled from it, and the rule and the verbatim
+# text follow: those name the maintainers beside the component's holders, and the
+# project's licence beside the component's, for that note.
 [[annotations]]
 path = [
     "libraries/License - *.rtf",
@@ -2016,8 +2053,9 @@ precedence = "override"
 SPDX-FileCopyrightText = [
     "2017-2021 Fabrice Bellard",
     "2017-2021 Charlie Gordon",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
 ]
-SPDX-License-Identifier = "MIT"
+SPDX-License-Identifier = "MIT AND AGPL-3.0-or-later"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - MIME Message encoder analyzer.rtf"
@@ -2038,20 +2076,27 @@ SPDX-FileCopyrightText = [
     "2006-2008 Stuart D Gathman <stuart@bmsi.com>",
     "2007-2008 Julian Mehnle <julian@mehnle.net>",
     "2014 Scott Kitterman <scott@kitterman.com>",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
 ]
-SPDX-License-Identifier = "BSD-3-Clause"
+SPDX-License-Identifier = "BSD-3-Clause AND AGPL-3.0-or-later"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - Unicode data.txt"
 precedence = "override"
-SPDX-FileCopyrightText = "1991-2026 Unicode, Inc."
-SPDX-License-Identifier = "Unicode-3.0"
+SPDX-FileCopyrightText = [
+    "1991-2026 Unicode, Inc.",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "Unicode-3.0 AND AGPL-3.0-or-later"
 
 [[annotations]]
 path = "hmailserver/docs/Licenses/License - HTML named character references.txt"
 precedence = "override"
-SPDX-FileCopyrightText = "WHATWG (Apple, Google, Mozilla, Microsoft)"
-SPDX-License-Identifier = "BSD-3-Clause"
+SPDX-FileCopyrightText = [
+    "WHATWG (Apple, Google, Mozilla, Microsoft)",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "BSD-3-Clause AND AGPL-3.0-or-later"
 
 # The original's list of the third-party components and their licences, Martin
 # Knafve's table of 2010, and the same table in Markdown with the fork's note on it,
@@ -2078,6 +2123,14 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 [[annotations]]
 path = "hmailserver/test/TestData/DKIM/Good/altn.response.txt"
 SPDX-FileCopyrightText = "2009 Alt-N Technologies, whose DKIM verifier at altn.com sent this reply"
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+# The MIME fuzzer's input that found a heap-buffer overflow (be48a62b9) is that reply
+# as the fuzzer changed it, with a run of its lines repeated and fragments of the
+# corpus's other messages spliced in - changes the fuzzer made, which no one wrote.
+[[annotations]]
+path = "fuzz/regression/mime_message_fuzzer/heap-buffer-overflow-findstring-boundary-scan"
+SPDX-FileCopyrightText = "2009 Alt-N Technologies, whose DKIM verifier at altn.com sent the reply this is made from"
 SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
 
 [[annotations]]
@@ -2242,11 +2295,12 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
 # rights, service types, start types, controls and states (the SERVICE_* ones and
 # SC_MANAGER_ALL_ACCESS); the declarations of the five advapi32.dll functions
 # OpenSCManager, OpenService, ControlService, QueryServiceStatus and
-# CloseServiceHandle; and the article's functions OpenServiceManager,
+# CloseServiceHandle; the article's functions OpenServiceManager,
 # IsServiceInstalled, StopService and IsServiceRunning, with the article's two
-# messages. The article states no licence for them, so that
-# part of the file is LicenseRef-No-Licence-Stated: the project grants no licence for
-# it and claims no right in it. Silvio Iaccarino is named beside Martin Knafve and the
+# messages; and IsServiceStopped, which the original made from IsServiceRunning by
+# testing for SERVICE_STOPPED. The article states no licence for them, so that part
+# of the file is LicenseRef-No-Licence-Stated: the project grants no licence for it
+# and claims no right in it. Silvio Iaccarino is named beside Martin Knafve and the
 # maintainers, whose the rest of the file is, under the project's licence. The source
 # tarball, and so the Debian source package, leaves the file out, as it does every
 # other script of the Windows installer (build/source-exclusions.txt).

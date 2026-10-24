@@ -138,8 +138,10 @@ Everything else in the tarball is the project's, under the AGPL-3.0-or-later in
 
 And test data with no licence stated at all: messages captured from third
 parties - the three DKIM verifiers' replies under
-`hmailserver/test/TestData/DKIM/Good` and `PermFail` (`*.response.txt`) and the
-Secunia page text in
+`hmailserver/test/TestData/DKIM/Good` and `PermFail` (`*.response.txt`), the
+first of them again as the MIME fuzzer changed it into one of its regression
+inputs (`fuzz/regression/mime_message_fuzzer/heap-buffer-overflow-findstring-boundary-scan`),
+and the Secunia page text in
 `hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt`, which the suite
 embeds; and a certificate authority's certificate, the Google Internet
 Authority's of 2009 as Equifax issued it, in `hmailserver/test/SSL examples`
@@ -149,7 +151,7 @@ the fuzzing read them, and the certificates as the original left them; a
 distribution whose archive requires a licence for every file (Debian's does)
 has to decide whether to take them as they are or leave them out of its own
 repack with `Files-Excluded`, which costs the fixtures that read them. The
-Debian source package leaves all six out ([SourcePackages.md](SourcePackages.md)).
+Debian source package leaves all seven out ([SourcePackages.md](SourcePackages.md)).
 `Test 1.eml` beside the replies is not one of them: it is Martin Knafve's own test
 message, which he sent from his Outlook address to his own on 1 January 2021 and
 added to the original's test data the next day, and it is the original's, under

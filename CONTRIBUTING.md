@@ -599,11 +599,17 @@ something which already exists.
   out of one of the original's - its code, or a passage of it, kept at a path of the fork's - is added to
   the generator's `DERIVED`, with the original's file it came from, the commit and what it keeps
   (`git log --follow` and `git diff -M -C` name a move; a copied passage is found by comparing the file
-  with the original's), and a file the fork makes anew at one of the original's paths, keeping nothing of
-  the original's file there, to its `FORK_MADE`, and named in the fork's table when it has no header;
-  then run the generator again. A file that only follows the original's patterns - the COM wrappers' or
-  the test fixtures' idioms, what a project template or a designer writes - is in neither. The
-  generator's docstring says the same. A file the fork adds is
+  with the original's, and a message by looking its words up in the original's tags), and a file the
+  fork makes anew at one of the original's paths, keeping nothing of the original's file there, to its
+  `FORK_MADE`, and named in the fork's table when it has no header; then run the generator again. Any of
+  his text a file keeps verbatim as its own makes it one of `DERIVED`: code, a comment, a file of his test
+  data, or a message he wrote for a case of his code's, one sentence of an error message or a warning
+  included. A file that only names or quotes what the original does - a server's reply a test expects
+  or a document quotes, a setting's or a control's caption, a string table's key, the schema's SQL - or
+  that only follows the original's patterns - the COM wrappers' or the test fixtures' idioms, the stock
+  replies and errors his code gives wherever it meets the same case ("Authenticate first", "Failed to
+  save object."), what a project template or a designer writes - is in neither. The generator's
+  docstring says the same. A file the fork adds is
   classified by hand: in a directory of the original's, by its own path in the fork's table, so that a
   new file there without a header fails the job until it is. A third party's file keeps its own licence
   and holders, never the project's: its table names them, and a source of the project's that holds a

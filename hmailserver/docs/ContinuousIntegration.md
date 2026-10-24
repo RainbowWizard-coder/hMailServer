@@ -2598,8 +2598,9 @@ fork's first commit took over from the original's history before them; the list 
 rather than by directory, so that a file the fork adds beside them is not credited
 to him. A path does not settle it alone, and two lists the generator keeps by hand
 say where it does not: `DERIVED` adds the files the fork moved, split or copied out
-of one of the original's to a path of its own (14, each with the original's file it
-came from and the commit), and `FORK_MADE` leaves out the files the fork made anew at
+of one of the original's to a path of its own, or that keep any of his text
+verbatim, one sentence of an error message included (27, each with the original's
+file it came from and the commit), and `FORK_MADE` leaves out the files the fork made anew at
 one of the original's paths, which keep nothing of the original's file there (10:
 the installer's wizard picture, the developer script that uninstalls a test
 machine's installation, written anew in place of the original's two commands, five
@@ -2618,11 +2619,13 @@ from the Public Suffix List, Unicode's data and HTML's character references) wit
 header's, and the installer's Pascal code with the author of the article it took its
 Windows service declarations and four of its service functions from
 (`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
-and that part of it as `LicenseRef-No-Licence-Stated` beside the project's licence,
-since the article states no licence for them; the licence texts and
+with `IsServiceStopped`, the original's copy of `IsServiceRunning` that tests for
+`SERVICE_STOPPED`, and that part of it as `LicenseRef-No-Licence-Stated` beside the
+project's licence, since the article states no licence for them; the licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data
-no licence was stated for as `LicenseRef-No-Licence-Stated`. The comments of
+no licence was stated for as `LicenseRef-No-Licence-Stated`, a fuzzer's regression
+input made from one of the DKIM verifiers' replies among it. The comments of
 `REUSE.toml` say why each table says what it does, and `debian/copyright` says the
 same of what the source tarball carries ([SourceTarball.md](SourceTarball.md)),
 which the job holds it to.

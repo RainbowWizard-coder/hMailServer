@@ -81,19 +81,22 @@ uses. `debian/copyright`'s `Files-Excluded` begins with that list, as
 `python3 build/check-source-tarball.py --files-excluded` prints it, so a tarball
 uscan made from a git tag would hold the same files.
 
-The Debian package leaves out six files more. The tarball keeps the whole test
-tree because the suites and the fuzzing read it, and SourceTarball.md names the
-test data in it that states no licence: the replies of three DKIM verifiers
-under `hmailserver/test/TestData/DKIM` (`altn.response.txt` and
-`elandit.response.txt` under `Good`, `port25.response.txt` under
-`PermFail`), a security advisory's text,
+The Debian package leaves out seven files more. The tarball keeps the whole test
+tree and the fuzzers' regression inputs because the suites and the fuzzing read
+them, and SourceTarball.md names the test data in them that states no licence:
+the replies of three DKIM verifiers under `hmailserver/test/TestData/DKIM`
+(`altn.response.txt` and `elandit.response.txt` under `Good`,
+`port25.response.txt` under `PermFail`), the first of them again as the MIME
+fuzzer changed it into one of its regression inputs,
+`fuzz/regression/mime_message_fuzzer/heap-buffer-overflow-findstring-boundary-scan`,
+a security advisory's text,
 `hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt`, which the Windows
 suite embeds, and the Google Internet Authority's certificate of 2009, as Equifax
 issued it, under `hmailserver/test/SSL examples` (`google.cer`, and
 `example+google.txt`, where it follows the original's example certificate), which
 nothing reads. A Debian archive needs a licence for every file it distributes, and
-the Debian build reads none of the six - it builds the server and runs the tester
-programs, and reads nothing under `hmailserver/test` - so they are removed:
+the Debian build reads none of the seven - it builds the server and runs the tester
+programs, and reads nothing under `hmailserver/test` or `fuzz` - so they are removed:
 `Files-Excluded` lists them after the project's list, `mk-origtargz` (uscan's
 repack) removes them, and the tarball takes the `+ds` suffix:
 `hmailserver_<v>+ds.orig.tar.gz`, version `<v>+ds-1`. The rest of the DKIM
