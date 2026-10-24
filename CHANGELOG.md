@@ -243,10 +243,10 @@ with `--check`).
   carry `error`; the others come from something in front of it). Found on 23 October 2026 by `HmailServer` 6.3.7
   installed from the PowerShell Gallery on Windows PowerShell 5.1 against a 6.3.7 server whose certificate the
   machine did not yet trust; the module of the tree said the sentence above on the same machine against the same
-  server, and the reason for a port nothing listens on. `build/check-cli.py` holds both, under every PowerShell the
-  machine running it has - pwsh in the `cli-powershell` job, Windows PowerShell 5.1 beside it on a Windows desk - and
-  `hmctl` to the same answers: the text; JSON with `message` alone and JSON with neither, never printed as JSON; a
-  port nothing listens on; and a loopback TLS listener with a throwaway self-signed certificate, which the check makes
+  server, and the reason for a port nothing listens on. `build/check-cli.py` holds the module, under every PowerShell
+  the machine running it has - pwsh in the `cli-powershell` job, Windows PowerShell 5.1 beside it on a Windows desk -
+  to these answers, and `hmctl` to the first two of them: the text; JSON with `message` alone and JSON with neither,
+  never printed as JSON; a port nothing listens on; and a loopback TLS listener with a throwaway self-signed certificate, which the check makes
   with Python's standard library and which the module must refuse without `-Insecure`, before it sends a request
   and the credential in it, with the system's reason - under 5.1 its inner exceptions' words as well, so that a module
   that kept the outer message alone, which says little, fails; the system's words are matched where its display
@@ -1791,11 +1791,18 @@ with `--check`).
   `rest.tlsSecretName` in the chart), which a new installation does not set, since the certificate it makes is its
   mail listeners'; that until an ACME certificate or the administrator's own is there, that pair can be named in
   them, as the image's start test names it, and emptied again for the ACME certificate; that a container is given
-  the pair by `hmailserver --apply-new-install-defaults` run once by hand before the server's first start, in a
-  one-off container with the server's environment, data volume and host name, and then the image's own command, and
-  not by the start test's command, which runs the verb before the server joined by `&&` because it starts each
-  container once: the verb decides a database once and exits 5 at every later start, so that a container started
-  that way would not start again after a restart; how Debian and Ubuntu
+  the pair by the verb run with the server's own `/etc/hmailserver`, which `docker-compose.yml` keeps in `hm-etc`,
+  since the entrypoint's `--create-database` writes the installation's stored-secrets key there and a container that
+  keeps it in an anonymous volume of its own - a one-off `docker run --rm` given the data volume alone - takes the
+  key away with it, after which the server seals nothing and says so at every start (`HM7495`): either by the
+  server's own container on the command `hmailserver --apply-new-install-defaults --if-marked; exec hmailserver
+  --foreground` (each with `--config`), which applies the defaults at its first start, does nothing at later ones
+  and, with `;`, starts the server whatever the verb answered, as the packaged unit's `ExecStartPre=-` does, or by
+  `hmailserver --apply-new-install-defaults` run once by hand before the server's first start in a one-off container
+  with the server's network, environment, data and configuration volumes and host name, and then the image's own
+  command with the same volumes; and not by the start test's command, which runs the verb before the server joined
+  by `&&` because it starts each container once: the verb decides a database once and exits 5 at every later
+  start, so that a container started that way would not start again after a restart; how Debian and Ubuntu
   (`update-ca-certificates`, or `SSL_CERT_FILE` for the programs started from one shell) and Windows
   (`Import-Certificate` into the machine's Trusted Root store) trust it; that under Windows PowerShell 5.1 the module
   gives the system's reason for refusing it from the release after 6.3.7, 6.3.7's module saying "GET
