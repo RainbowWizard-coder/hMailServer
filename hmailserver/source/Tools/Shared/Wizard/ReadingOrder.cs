@@ -18,8 +18,9 @@ namespace hMailServer.Shared
    /// </summary>
    /// <remarks>
    ///    Controls of one line: they are taken by Top, then by Left, and a control is on the
-   ///    line of the first control not yet numbered when their Tops differ by less than
-   ///    half the height of the shorter of the two. So a label set a few pixels lower than
+   ///    line of the first control not yet numbered when their Tops are equal, whatever
+   ///    their heights, or differ by less than half the height of the shorter of the two.
+   ///    So a label set a few pixels lower than
    ///    the text box it names, to line up with the box's text, is on the box's line and
    ///    before it, rather than after it because its Top is larger; and a tall control, a
    ///    list or a panel, shares a line only with the row that starts at its own Top, so
@@ -65,10 +66,11 @@ namespace hMailServer.Shared
          }
       }
 
-      // Tops less than half the shorter height apart; doubled, so that nothing is rounded.
+      // One Top, so that a control 0 high is on the line too, or Tops less than half the
+      // shorter height apart; doubled, so that nothing is rounded.
       private static bool OnOneLine(Control one, Control other)
       {
-         return Math.Abs(one.Top - other.Top) * 2 < Math.Min(one.Height, other.Height);
+         return one.Top == other.Top || Math.Abs(one.Top - other.Top) * 2 < Math.Min(one.Height, other.Height);
       }
    }
 }

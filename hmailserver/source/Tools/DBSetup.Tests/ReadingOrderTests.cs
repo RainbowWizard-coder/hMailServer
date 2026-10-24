@@ -150,10 +150,28 @@ namespace DBSetup.Tests
       }
 
       [Fact]
+      public void AControlZeroHighIsOnTheLineOfItsTop()
+      {
+         using var page = new UserControl { Size = new Size(300, 100) };
+         Add<Label>(page, "first", 8, 8, 100, 13);
+         Add<Label>(page, "second", 8, 8, 100, 0);
+         Add<Label>(page, "third", 8, 8, 100, 13);
+         Add<Panel>(page, "panelRight", 200, 40, 50, 20);
+         Add<Panel>(page, "panelMiddle", 120, 40, 50, 0);
+         Add<Panel>(page, "panelLeft", 8, 40, 50, 20);
+
+         ReadingOrder.ApplyTo(page);
+
+         Assert.Equal(new[] { 0, 1, 2 }, new[] { page.Controls["first"].TabIndex, page.Controls["second"].TabIndex, page.Controls["third"].TabIndex });
+         Assert.Equal(new[] { 3, 4, 5 }, new[] { page.Controls["panelLeft"].TabIndex, page.Controls["panelMiddle"].TabIndex, page.Controls["panelRight"].TabIndex });
+      }
+
+      [Fact]
       public void TheConnectionPageIsTabbedThroughInTheOrderItReads()
       {
          // The page's designer leaves textUsername at TabIndex 2, so that without the
-         // wizard's numbering Tab went from the server address to the user name.
+         // wizard's numbering Tab began at the user name, before the port and the server
+         // address.
          using var page = new ucDBConnectionInfo();
 
          ReadingOrder.ApplyTo(page);

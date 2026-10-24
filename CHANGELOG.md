@@ -1286,22 +1286,24 @@ with `--check`).
   `Shared/Wizard/ReadingOrder.cs` does the numbering. The helper went by each control's Top and then its Left, so
   that a label set a few pixels lower than the field it names, to line up with the field's text, came after the
   field; and Windows Forms names a field for a screen reader after the Label just before it in the tab order. On
-  the Import Tool's text import page Tab reached the browse button before the file name, the file name had no
-  name and the domain list was named "Text file:"; on the mbox import's account page the domain list had none and
-  the account list was named "Domain:"; on its progress page the file progress bar had none, the current file's
-  was named "File progress:" and the log "Current file:". `ReadingOrder` takes a page's controls by Top and then
-  Left, puts a control on the line of the first control not yet numbered when their Tops differ by less than half
-  the height of the shorter of the two, orders a line by Left, keeps the parent's order for controls at one
-  position, and numbers the children of a GroupBox or Panel inside it the same way, each parent's from 0. So a tall
-  control, a list or a panel, hidden or not, shares a line only with the row that starts at its own Top, and the
-  label/field rows below that one beside it keep each label before its field, as under the old helper. Every
-  control of every page of the three tools was recorded under the old helper and the new code: DBSetup's seven
-  pages, the Synchronizer's four, the mbox import's file page and the text import's progress page are numbered
-  exactly as before, and the three Import Tool pages above differ only as said, each field now named by its own
-  label. `DBSetup.Tests.ReadingOrderTests` (eight tests) holds the order: the text import page's geometry and the
-  names it gives, labels above their fields, a tall list beside label/field rows, a hidden tall control, a tall
-  control and a label at one Top, a GroupBox's children, controls at one position, and DBSetup's database
-  connection page itself; with lines made by equal Tops alone, as before, the first fails.
+  the Import Tool's text import page Tab reached the browse button before the file name, the file name had no name
+  and the domain list was named "Text file:"; on the mbox import's account page the domain list had none and the
+  account list was named "Domain:"; on its progress page the file progress bar had none, the current file's was
+  named "File progress:" and the log "Current file:". `ReadingOrder` takes a page's controls by Top and then Left,
+  puts a control on the line of the first control not yet numbered when their Tops are equal, whatever their
+  heights, or differ by less than half the height of the shorter of the two, orders a line by Left, keeps the
+  parent's order for controls at one position, and numbers the children of a GroupBox or Panel inside it the same
+  way, each parent's from 0. So a tall control, a list or a panel, hidden or not, shares a line only with the row
+  that starts at its own Top, and the label/field rows below that one beside it keep each label before its field,
+  where the old helper did so only for a label level with its field. Every control of every page of the three
+  tools was recorded under the old helper and the new code: DBSetup's seven pages, the Synchronizer's four, the
+  mbox import's file page and the text import's progress page are numbered exactly as before, and the three Import
+  Tool pages above differ only as said: each labelled field is named by its own label, and the account list and
+  the log, which have none, are no longer named after another control's label. `DBSetup.Tests.ReadingOrderTests`
+  (nine tests) holds the order: the text import page's geometry and the names it gives, labels above their fields,
+  a tall list beside label/field rows, a hidden tall control, a tall control and a label at one Top, a GroupBox's
+  children, controls at one position, controls 0 high at one Top, and DBSetup's database connection page itself;
+  with lines made by equal Tops alone, as before, the first fails.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
