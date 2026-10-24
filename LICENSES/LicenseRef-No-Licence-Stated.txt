@@ -2,7 +2,7 @@ No licence stated.
 
 The holders of the material given this identifier have stated no licence for
 it. It is other parties' material: replies captured from other parties' mail
-servers (one of them also as a fuzzer changed it), a security advisory's
+servers (two of them also as a fuzzer changed them), a security advisory's
 text and a certificate authority's certificate, kept in the tree as input to
 the project's tests, and a few routines and declarations of an article that
 states no licence, which the Windows installer's script has kept since the

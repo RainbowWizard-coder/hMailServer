@@ -866,13 +866,13 @@ with `--check`).
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
-  file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,257 of them and the
-  fork alone for 1,228, most of them files whose notice of his the fork's header replaced in 2026:
-  `build/generate-reuse-original.py` writes the two tables that list them, 1,659 files, from the original's tags
+  file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,259 of them and the
+  fork alone for 1,230, most of them files whose notice of his the fork's header replaced in 2026:
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,661 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
   commit took over from the original's history before them) - the 1,632 files of the tree at one of those paths,
   letter case aside, but for the 2,870 third parties' files among them, the ten that its hand-kept `FORK_MADE`
-  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 27 files
+  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 29 files
   the fork moved, split or copied out of one of the original's to a path of its own, or that keep any of his text
   verbatim as their own, one sentence of an error message included, which its `DERIVED`, kept by hand too, names
   with the original's file each came from and the fork's commit: the half of
@@ -883,7 +883,8 @@ with `--check`).
   scripts in JavaScript, `InputCostTester.cpp`, which keeps the DKIM canonicalisation's header functions as 6.3.5 had
   them, `MailboxMove.cpp`, which keeps `PersistentAccount`'s refusal to rename a mailbox while the database holds
   full message paths, in its words, the files that keep his messages in their words - the REST API's
-  `RestApiSettings.cpp` (`InterfaceSettings`' refusal of a hierarchy delimiter a folder's name holds) and
+  `RestApiSettings.cpp` (`InterfaceSettings`' refusal of a hierarchy delimiter a folder's name holds),
+  `RestApiRoutes.cpp` (`InterfaceAccount`'s refusal of an auto-reply expiry date that is not a date) and
   `RestApiMailbox.cpp` (the IMAP commands' refusals to create, rename or delete a folder), the message store's
   `MessageStore.cpp` (`File`'s errors), `DateTime.cpp` (the old date class's error 5160), `ScriptTransaction.cpp` and
   `ScriptBinding.cpp` (the COM Database and Message objects' errors), and the Control Panel's
@@ -891,7 +892,9 @@ with `--check`).
   fetcher's `IMAPClientConnection.cpp`, which follows the POP3 fetcher's connection and download handling, the Linux
   suite's `SslSetup.cs` shim, two DKIM tests that keep the signing tests' `GetPrivateKeyFile`, the MIME fuzzer's
   regression input that is the original's test message `EmailWith-TextPlainBody+TextHtmlBody.txt`, which a table
-  after the fork's one for those inputs names him for, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after
+  after the fork's one for those inputs names him for, the MIME decode fuzzer's input into which the fuzzer spliced
+  header lines of his test message `MessageContainingGreekSubject.txt`, whose table names him beside the others'
+  holders, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after
   its tags, where reuse recorded the fork alone for each. The ten of `FORK_MADE` are the files the fork made anew at
   one of the original's paths, which reuse had credited to him: the installer's wizard picture, the fork's brand
   since June 2026, the developer script `Uninstall current version.bat`, written anew in August 2026 in place of the
@@ -934,11 +937,15 @@ with `--check`).
   build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices")
-  and `LicenseRef-No-Licence-Stated` for the seven files of test data and the installer's routines and declarations
-  that no licence is stated for - the seventh the MIME fuzzer's regression input
-  `heap-buffer-overflow-findstring-boundary-scan`, which is Alt-N's DKIM reply, `altn.response.txt`, as the fuzzer
-  changed it, and which the fuzzers' table gave the maintainers and the AGPL: it has that reply's record now, and
-  the Debian package leaves it out with the other six (`debian/copyright`'s `Files-Excluded`, `srcpkg-deb.sh`'s list,
+  and `LicenseRef-No-Licence-Stated` for the eight files of test data and the installer's routines and declarations
+  that no licence is stated for - two of the eight the fuzzers' regression inputs, which the fuzzers' table gave
+  the maintainers and the AGPL: the MIME fuzzer's `heap-buffer-overflow-findstring-boundary-scan`,
+  which is Alt-N's DKIM reply, `altn.response.txt`, as the fuzzer changed it, and has that reply's record now, and
+  the MIME decode fuzzer's `out-of-memory-mimeunicodeencoder-encodevalue`, which is a selector byte and Eland
+  Systems' DKIM reply's header block, `elandit.response.txt`'s, as the fuzzer changed it, with fragments of the
+  DKIM test corpus's messages and of one of the original's spliced in, and names Eland Systems with no licence, the
+  corpus's holders under Perl's terms and Martin Knafve under the AGPL; the Debian package leaves both out with the
+  other six (`debian/copyright`'s `Files-Excluded`, `srcpkg-deb.sh`'s list,
   and `build/check-source-tarball.py`, which takes the fuzzers' regression inputs as test data beside
   `hmailserver/test`). A third party's file
   keeps its own licence and holders, never the project's: the Fat Cow icons and the three of them the database tools
@@ -996,7 +1003,7 @@ with `--check`).
   over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
   the original's files, but the third parties', that does not name Martin Knafve, and one of the ten the fork made
   at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
-  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,775 files - to having the same licences in
+  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,774 files - to having the same licences in
   the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for
   its SPDX identifier (it finds `rfc7208-tests.CHANGES` alone in the record as it was); and then eight negative
   controls must each be refused by name - five files put in the checkout, a new C++ source without the header, a new

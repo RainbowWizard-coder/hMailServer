@@ -603,7 +603,7 @@ something which already exists.
   fork makes anew at one of the original's paths, keeping nothing of the original's file there, to its
   `FORK_MADE`, and named in the fork's table when it has no header; then run the generator again. Any of
   his text a file keeps verbatim as its own makes it one of `DERIVED`: code, a comment, a file of his test
-  data, or a message he wrote for a case of his code's, one sentence of an error message or a warning
+  data or lines of one (a fuzzer's input that splices them in among others'), or a message he wrote for a case of his code's, one sentence of an error message or a warning
   included. A file that only names or quotes what the original does - a server's reply a test expects
   or a document quotes, a setting's or a control's caption, a string table's key, the schema's SQL - or
   that only follows the original's patterns - the COM wrappers' or the test fixtures' idioms, the stock

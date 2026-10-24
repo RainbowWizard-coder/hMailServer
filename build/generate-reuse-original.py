@@ -35,9 +35,11 @@ by hand, say where it is not:
              of the list, or <commit>:<path> for one of the original's commits
              after its tags that the fork ported (LATER). Any of his text that a
              file keeps verbatim as its own makes it one: code of his, a comment,
-             a file of his test data, or a message he wrote for a case of his
-             code's - one sentence of an error message or a warning included, as
-             in RestApiSettings.cpp and DateTime.cpp. A file of the fork's that
+             a file of his test data or lines of one (a fuzzer's input that
+             splices them in among others'), or a message he wrote for a case of
+             his code's - one sentence of an error message or a warning included,
+             as in RestApiSettings.cpp, RestApiRoutes.cpp and DateTime.cpp, even
+             where the fork's sentence goes on after his. A file of the fork's that
              only names or quotes what the original does is not one: a reply or
              a message of the server's that a test expects or a document quotes,
              a setting's or a control's caption, a string table's key, an SQL
@@ -209,6 +211,9 @@ DERIVED = (
      "hmailserver/source/Server/IMAP/IMAPCommandRename.cpp", "d5a14a7b9",
      "the IMAP commands' refusals to create, rename or delete a folder, in their words: RENAME's six, "
      "CREATE's three and DELETE's two, and the first sentence of the COM IMAPFolder's refusal to delete one"),
+    ("hmailserver/source/Server/Common/Util/RestApiRoutes.cpp",
+     "hmailserver/source/Server/COM/InterfaceAccount.cpp", "c88f41983",
+     "the original's refusal of an auto-reply expiry date that is not a date, in its words"),
     ("hmailserver/source/Server/Common/Persistence/MessageStore.cpp",
      "hmailserver/source/Server/Common/Util/File.cpp", "236f25a94",
      "File's errors for a file not opened or not read, and FileUtilities' for one it cannot open, in their words"),
@@ -245,6 +250,10 @@ DERIVED = (
     ("fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor",
      "hmailserver/test/RegressionTests/Resources/EmailWith-TextPlainBody+TextHtmlBody.txt", "205388ab3",
      "the original's test message, the same text with CRLF line endings, as the MIME fuzzer's input that found a fault"),
+    ("fuzz/regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue",
+     "hmailserver/test/RegressionTests/Messages/MessageContainingGreekSubject.txt", "8087b6dcd",
+     "header lines of the original's test message, as the MIME decode fuzzer spliced them into a third party's "
+     "reply that is most of the input"),
     ("hmailserver/source/Server/SMTP/SPF/README.md",
      "1beaeab9c212cfc484c180c90cab37cb46cdb6be:hmailserver/source/Server/SMTP/SPF/README.md", "f0ee7803a",
      "the port's README, its introduction and its table of files"),

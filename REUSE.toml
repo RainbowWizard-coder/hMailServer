@@ -817,6 +817,7 @@ path = [
     "hmailserver/source/Server/Common/Util/RegularExpression.cpp",
     "hmailserver/source/Server/Common/Util/RegularExpression.h",
     "hmailserver/source/Server/Common/Util/RestApiMailbox.cpp",
+    "hmailserver/source/Server/Common/Util/RestApiRoutes.cpp",
     "hmailserver/source/Server/Common/Util/RestApiSettings.cpp",
     "hmailserver/source/Server/Common/Util/SSPIValidation.cpp",
     "hmailserver/source/Server/Common/Util/SSPIValidation.h",
@@ -1319,6 +1320,7 @@ path = [
     ".gitattributes",
     ".gitignore",
     "README.md",
+    "fuzz/regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue",
     "fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor",
     "hmailserver/docs/Licenses/License list.ods",
     "hmailserver/installation/Extras/dh2048.pem",
@@ -1871,8 +1873,8 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # Of the fuzzers' regression inputs, which the table above gives the maintainers, one
 # is the original's test message EmailWith-TextPlainBody+TextHtmlBody.txt, the same
 # text (the generator's DERIVED names it), so it names Martin Knafve beside them; and
-# one is a third party's reply, which a table of the test data with no licence below
-# gives its holder.
+# two are third parties' replies as a fuzzer changed them, which tables of the test
+# data with no licence below give their holders.
 [[annotations]]
 path = "fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor"
 SPDX-FileCopyrightText = [
@@ -2137,6 +2139,22 @@ SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
 path = "hmailserver/test/TestData/DKIM/Good/elandit.response.txt"
 SPDX-FileCopyrightText = "2009 Eland Systems, whose DKIM responder at dk.elandsys.com sent this reply"
 SPDX-License-Identifier = "LicenseRef-No-Licence-Stated"
+
+# The MIME decode fuzzer's input that found an unbounded allocation (8087b6dcd) is a
+# selector byte and that reply's header block as the fuzzer changed it, with
+# fragments of the DKIM test corpus's messages (Mail::DKIM's, under Perl's terms)
+# and header lines of the original's test message MessageContainingGreekSubject.txt
+# (the generator's DERIVED names it) spliced in - changes the fuzzer made, which no
+# one wrote - so it names the holders of all three, each under the terms of its own.
+[[annotations]]
+path = "fuzz/regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue"
+SPDX-FileCopyrightText = [
+    "2009 Eland Systems, whose DKIM responder at dk.elandsys.com sent the reply this is made from",
+    "2005-2009 Messiah College",
+    "Jason Long",
+    "2005-2026 Martin Knafve / hMailServer.com",
+]
+SPDX-License-Identifier = "LicenseRef-No-Licence-Stated AND (GPL-1.0-or-later OR Artistic-1.0-Perl) AND AGPL-3.0-or-later"
 
 [[annotations]]
 path = "hmailserver/test/TestData/DKIM/PermFail/port25.response.txt"

@@ -147,8 +147,8 @@ OTHER_LINUX_SCRIPTS = (
 # --files-excluded prints it, then the Debian package's own patterns: test data the
 # project's tarball keeps for its suites and a Debian archive cannot take, because
 # no licence is stated for it. Those may only be files under DEBIAN_ONLY_UNDER - the
-# test tree, and the fuzzers' regression inputs, one of which is a third party's reply
-# as a fuzzer changed it - that
+# test tree, and the fuzzers' regression inputs, two of which are third parties' replies
+# as a fuzzer changed them - that
 # the Debian build - the CMake build and debian/rules - does not read.
 DEBIAN_COPYRIGHT = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
 DEBIAN_RULES = "hmailserver/source/Server/platform/packaging/debian-src/debian/rules"

@@ -9,10 +9,10 @@ Comment:
  of build/source-exclusions.txt - what is not free and what only the Windows
  build uses - and Files-Excluded repeats that list, as
  build/check-source-tarball.py --files-excluded prints it, so that a tarball
- made from a git tag instead holds the same files. The last seven patterns are
+ made from a git tag instead holds the same files. The last eight patterns are
  this package's own: test data of third parties with no licence stated (the
- replies of three DKIM verifiers, one of them again as the MIME fuzzer changed
- it into one of its regression inputs, a security advisory's text, and a
+ replies of three DKIM verifiers, two of them again as the MIME fuzzers changed
+ them into regression inputs of theirs, a security advisory's text, and a
  certificate authority's certificate, alone and after an example certificate).
  The upstream test suites and the fuzzing read some of them and the Debian
  build reads none, so they are removed and the tarball is repacked as
@@ -83,6 +83,7 @@ Files-Excluded:
  hmailserver/installation/setup-small.bmp
  hmailserver/installation/setup.bmp
  hmailserver/installation/winget
+ fuzz/regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue
  fuzz/regression/mime_message_fuzzer/heap-buffer-overflow-findstring-boundary-scan
  hmailserver/test/RegressionTests/Resources/SecuniaBody1.txt
  hmailserver/test/SSL?examples/example+google.txt
