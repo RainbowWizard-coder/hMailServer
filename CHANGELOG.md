@@ -97,27 +97,6 @@ with `--check`).
 
 ### Correctness
 
-- **The tools' wizard sets its tab order with the project's own code, replacing a helper from a third party that
-  stated no licence; and it now numbers a page line by line, so that a label comes just before the field beside
-  it.** DBSetup, the Data Directory Synchronizer and the Import Tool share one wizard (`ucWizard`, in `Shared`),
-  which numbers the controls of each page before it shows it. It did so with `TabOrderManager.cs`, written by a
-  third party and compiled into `Shared` with no licence stated; that file is removed, and
-  `Shared/Wizard/ReadingOrder.cs` does the numbering. The helper went by each control's Top and then its Left, so
-  that a label set a few pixels lower than the field it names, to line up with the field's text, came after the
-  field; and Windows Forms names a field for a screen reader after the Label just before it in the tab order. On
-  the Import Tool's text import page Tab reached the browse button before the file name, the file name had no
-  name and the domain list was named "Text file:"; on the mbox import's account page the domain list had none and
-  the account list was named "Domain:"; on its progress page the file progress bar had none, the current file's
-  was named "File progress:" and the log "Current file:". `ReadingOrder` puts a control on the line of the topmost
-  control not yet numbered when the control's vertical middle is above that control's bottom, orders a line by
-  Left, keeps the parent's order for controls at one position, and numbers the children of a GroupBox or Panel
-  inside it the same way. Every control of every page of the three tools was recorded under the old helper and the
-  new code: DBSetup's seven pages, the Synchronizer's four and the mbox import's file page are numbered exactly as
-  before, and the three Import Tool pages above differ only as said, each field now named by its own label.
-  `DBSetup.Tests.ReadingOrderTests` (five tests) holds the order: the text import page's geometry and the names it
-  gives, labels above their fields, a GroupBox's children, controls at one position, and DBSetup's database
-  connection page itself; with lines made by Top alone, as before, the first fails.
-
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
   connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
   connection, then waits for the closes and the aborted accepts to run before it stops the listener's threads; it
@@ -1298,6 +1277,31 @@ with `--check`).
   keep only a message of his, leaving each of the twelve as it was before its line went in. The two directory-form entries of `.gitleaksignore` that name a line of a file of the list, the
   test URLs of `SURBL.cpp` and `Basics.cs` that gitleaks' rule Password in URL reads as carrying a password, follow
   those lines down one, to 3350 and 508.
+
+- **The tools' wizard sets its tab order with the project's own code, replacing a helper from a third party that
+  stated no licence; and it now numbers a page line by line, so that a label comes just before the field beside
+  it.** DBSetup, the Data Directory Synchronizer and the Import Tool share one wizard (`ucWizard`, in `Shared`),
+  which numbers the controls of each page before it shows it. It did so with `TabOrderManager.cs`, written by a
+  third party and compiled into `Shared` with no licence stated; that file is removed, and
+  `Shared/Wizard/ReadingOrder.cs` does the numbering. The helper went by each control's Top and then its Left, so
+  that a label set a few pixels lower than the field it names, to line up with the field's text, came after the
+  field; and Windows Forms names a field for a screen reader after the Label just before it in the tab order. On
+  the Import Tool's text import page Tab reached the browse button before the file name, the file name had no
+  name and the domain list was named "Text file:"; on the mbox import's account page the domain list had none and
+  the account list was named "Domain:"; on its progress page the file progress bar had none, the current file's
+  was named "File progress:" and the log "Current file:". `ReadingOrder` takes a page's controls by Top and then
+  Left, puts a control on the line of the first control not yet numbered when their Tops differ by less than half
+  the height of the shorter of the two, orders a line by Left, keeps the parent's order for controls at one
+  position, and numbers the children of a GroupBox or Panel inside it the same way, each parent's from 0. So a tall
+  control, a list or a panel, hidden or not, shares a line only with the row that starts at its own Top, and the
+  label/field rows below that one beside it keep each label before its field, as under the old helper. Every
+  control of every page of the three tools was recorded under the old helper and the new code: DBSetup's seven
+  pages, the Synchronizer's four, the mbox import's file page and the text import's progress page are numbered
+  exactly as before, and the three Import Tool pages above differ only as said, each field now named by its own
+  label. `DBSetup.Tests.ReadingOrderTests` (eight tests) holds the order: the text import page's geometry and the
+  names it gives, labels above their fields, a tall list beside label/field rows, a hidden tall control, a tall
+  control and a label at one Top, a GroupBox's children, controls at one position, and DBSetup's database
+  connection page itself; with lines made by equal Tops alone, as before, the first fails.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

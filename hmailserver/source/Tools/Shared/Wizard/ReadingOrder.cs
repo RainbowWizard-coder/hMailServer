@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -16,11 +17,14 @@ namespace hMailServer.Shared
    ///    whose TabIndex follows a Label's takes the label's text as its accessible name).
    /// </summary>
    /// <remarks>
-   ///    Controls of one line: they are ordered by Top, and a control is on the same line
-   ///    as the first (topmost) control of the line when its vertical middle is above that
-   ///    first control's Bottom. So a label set a few pixels lower than the text box it
-   ///    names, to line up with the box's text, is on the box's line and before it, rather
-   ///    than after it because its Top is larger. Within a line, controls go by Left;
+   ///    Controls of one line: they are taken by Top, then by Left, and a control is on the
+   ///    line of the first control not yet numbered when their Tops differ by less than
+   ///    half the height of the shorter of the two. So a label set a few pixels lower than
+   ///    the text box it names, to line up with the box's text, is on the box's line and
+   ///    before it, rather than after it because its Top is larger; and a tall control, a
+   ///    list or a panel, shares a line only with the row that starts at its own Top, so
+   ///    that the rows below that one beside it are lines of their own and each label of
+   ///    them still comes just before its field. Within a line, controls go by Left;
    ///    controls with the same position keep the order of their parent's Controls
    ///    collection. TabIndex numbers each parent's children from 0 (TabIndex is relative to
    ///    the parent), and every child that has children of its own, a GroupBox or a Panel,
@@ -34,14 +38,16 @@ namespace hMailServer.Shared
       {
          List<Control> children = parent.Controls.Cast<Control>().ToList();
 
-         // OrderBy is stable, so the Controls collection's order breaks ties.
-         List<Control> unnumbered = children.OrderBy(control => control.Top).ToList();
+         // OrderBy and ThenBy are stable, so the Controls collection's order breaks ties.
+         List<Control> unnumbered = children.OrderBy(control => control.Top)
+                                            .ThenBy(control => control.Left)
+                                            .ToList();
 
          int next = 0;
          while (unnumbered.Count > 0)
          {
             Control first = unnumbered[0];
-            List<Control> line = unnumbered.Where(control => control == first || VerticalMiddle(control) < first.Bottom)
+            List<Control> line = unnumbered.Where(control => control == first || OnOneLine(first, control))
                                            .OrderBy(control => control.Left)
                                            .ToList();
 
@@ -59,9 +65,10 @@ namespace hMailServer.Shared
          }
       }
 
-      private static int VerticalMiddle(Control control)
+      // Tops less than half the shorter height apart; doubled, so that nothing is rounded.
+      private static bool OnOneLine(Control one, Control other)
       {
-         return control.Top + control.Height / 2;
+         return Math.Abs(one.Top - other.Top) * 2 < Math.Min(one.Height, other.Height);
       }
    }
 }

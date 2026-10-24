@@ -16,10 +16,11 @@ namespace DBSetup.Tests
    ///    <see cref="ReadingOrder.ApplyTo" />, line by line from the top and left to right
    ///    along a line. The geometry of the first cases is that of the Import Tool's pages,
    ///    whose labels sit a few pixels lower than the field they name: up to 6.3.7 the order
-   ///    went by Top alone, so that on the text import page Tab reached the Browse button
-   ///    before the file name, and a screen reader named the domain list "Text file:", the
-   ///    label before it in the order. These tests run in DBSetup.Tests because it is the
-   ///    test project that reaches Shared, through DBSetup.
+   ///    went by Top, then Left, so that on the text import page Tab reached the Browse
+   ///    button before the file name, and a screen reader named the domain list "Text file:",
+   ///    the label before it in the order. These tests run in DBSetup.Tests, which reaches
+   ///    Shared through DBSetup (ImportTool.Tests reaches it too, but its pages read the
+   ///    server through COM).
    /// </summary>
    public sealed class ReadingOrderTests
    {
@@ -70,6 +71,50 @@ namespace DBSetup.Tests
          ReadingOrder.ApplyTo(page);
 
          Assert.Equal(new[] { "labelDatabaseServerAddress", "labelPort", "textServerAddress", "textServerPort" }, Order(page));
+      }
+
+      [Fact]
+      public void ATallListBesideRowsOfLabelsAndFieldsIsALineOfItsOwn()
+      {
+         using var page = new UserControl { Size = new Size(400, 160) };
+         // First in the Controls order, so that it is the first control of the topmost line.
+         Add<ListBox>(page, "listAccounts", 10, 40, 150, 100);
+         Add<Label>(page, "labelUser", 200, 40, 60, 13, "User:");
+         TextBox user = Add<TextBox>(page, "textUser", 280, 40, 100, 20);
+         Add<Label>(page, "labelPassword", 200, 70, 60, 13, "Password:");
+         TextBox password = Add<TextBox>(page, "textPassword", 280, 70, 100, 20);
+
+         ReadingOrder.ApplyTo(page);
+
+         Assert.Equal(new[] { "listAccounts", "labelUser", "textUser", "labelPassword", "textPassword" }, Order(page));
+         Assert.Equal("User:", user.AccessibilityObject.Name);
+         Assert.Equal("Password:", password.AccessibilityObject.Name);
+      }
+
+      [Fact]
+      public void AHiddenTallControlDoesNotReorderTheVisibleOnes()
+      {
+         using var page = new UserControl { Size = new Size(400, 160) };
+         Add<Panel>(page, "panelHidden", 0, 45, 5, 100).Visible = false;
+         Add<TextBox>(page, "textRight", 200, 50, 100, 20);
+         Add<TextBox>(page, "textBelow", 10, 75, 100, 20);
+
+         ReadingOrder.ApplyTo(page);
+
+         Assert.Equal(new[] { 0, 1, 2 }, new[] { page.Controls["panelHidden"].TabIndex, page.Controls["textRight"].TabIndex, page.Controls["textBelow"].TabIndex });
+      }
+
+      [Fact]
+      public void ControlsAtOneTopGoByLeftWhateverTheirParentsOrder()
+      {
+         using var page = new UserControl { Size = new Size(400, 100) };
+         Add<Label>(page, "labelRight", 200, 10, 60, 13, "Note");
+         Add<Panel>(page, "panelLeft", 8, 10, 150, 60);
+
+         ReadingOrder.ApplyTo(page);
+
+         Assert.Equal(0, page.Controls["panelLeft"].TabIndex);
+         Assert.Equal(1, page.Controls["labelRight"].TabIndex);
       }
 
       [Fact]
