@@ -6162,10 +6162,9 @@ file has been on `master` since, so its values replace any the settings hold.
 **What it holds, and what it cannot.** On GitLab's free tier a merge request
 cannot be made to wait for SonarQube Cloud's quality gate (external status
 checks are GitLab Ultimate), so its verdict is the summary on the merge request
-and the project's page on SonarQube Cloud, with no badge in the README while its
-quality gate has not passed; `semgrep-sast-gate` is the SAST that holds a
-merge request. Its findings are triaged in SonarQube Cloud itself: a Blocker or
-Critical bug or vulnerability is fixed, or marked there as a false positive or
+and the project's page on SonarQube Cloud (the README carries no badge of it);
+`semgrep-sast-gate` is the SAST that holds a merge request. Its findings are
+triaged in SonarQube Cloud itself: a Blocker or Critical bug or vulnerability is fixed, or marked there as a false positive or
 accepted, with the reason.
 
 ### What GitLab gives on the free tier, and what Ultimate would

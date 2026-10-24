@@ -475,13 +475,12 @@ deps.dev and OpenSSF Package Analysis
 Both come with the PyPI package and need nothing else from the project:
 
 * **deps.dev** indexes PyPI. A project appears there only when a package links to
-  it: the package's project URLs name this project (an unverified link), and the
-  attested upload links the two as `PYPI_PUBLISH_ATTESTATION`. On 21 October 2026,
-  after the first upload,
+  it, by the package's project URLs (an unverified link) or by an attested upload
+  (`PYPI_PUBLISH_ATTESTATION`). On 21 October 2026, after the first upload,
   `api.deps.dev/v3/projects/gitlab.com%2Fhmailserver%2Fhmailserver:packageversions`
-  answered with `hmailserver-cli` 6.3.7 linked that way, its attestation verified,
+  answered with `hmailserver-cli` 6.3.7 linked by its attestation, verified,
   naming the commit of the `master` pipeline that published it. deps.dev shows no
-  Scorecard for a GitLab project. Its unverified links for 6.3.7 were wrong:
+  Scorecard for a GitLab project. deps.dev's unverified links for 6.3.7 were wrong:
   `api.deps.dev/v3/systems/pypi/packages/hmailserver-cli/versions/6.3.7` gave, on
   24 October 2026, the Changelog URL, `.../-/blob/master/CHANGELOG.md`, as the
   source repository (`gitlab.com/hmailserver/hmailserver/-/blob/master/changelog.md`)
