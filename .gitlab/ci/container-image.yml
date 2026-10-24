@@ -77,8 +77,9 @@
 #                         PostgreSQL and once beside MariaDB - the arm64 one under
 #                         qemu-user, as the services' docker:platform - and each asked
 #                         whether port 25 answers SMTP, the REST API answers over TLS
-#                         with the release's version, and its database holds the
-#                         server's schema (build/ci/container-image-start-test.sh).
+#                         with the release's version, its update check says it runs
+#                         in a container (GET /api/v1/update), and its database holds
+#                         the server's schema (build/ci/container-image-start-test.sh).
 #
 # kaniko builds one platform a run and cannot join two images under one index, so
 # each platform has its own build job, and regctl - Docker Hub's regclient/regctl,

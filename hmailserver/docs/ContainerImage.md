@@ -590,6 +590,15 @@ needs no certificate from outside. It then asks each of the two:
 - the REST API on 8045 over TLS: `GET /api/v1/status` refused with 401 without
   credentials, answered with the release's version as Administrator, and not
   answered over plain HTTP;
+- its update check, which the jobs ask from the release after 6.3.7:
+  `GET /api/v1/update` as Administrator says `installKind` `container`, `liveUpdate` false and, as
+  `updateCommand`, `docker pull registry.gitlab.com/hmailserver/hmailserver:<tag>` -
+  `:latest` here, since the check is off in a new installation and knows of no newer
+  release. The image's `HM_INSTALL_KIND=container` is what tells the server, and the
+  build checks only that the image's configuration sets it: a server that did not
+  take it would take itself for the `.deb` the image installs and, once a check found
+  a newer release, offer to download it and install it into the container
+  ([LiveUpdateKinds.md](LiveUpdateKinds.md));
 - its database: `hm_dbversion`, read with that database's own client, holds the
   schema version the server laid out there, and the two databases hold the same.
   The test tells the database's answer about the schema, which is the image's
@@ -677,6 +686,27 @@ libmysqlclient.so, libmariadb.so"; and the Dockerfile with the package left out
 of its `apt-get install` stopped at its build, where the library is loaded. No
 tag's pipeline has run the two starts yet - two services of one image, each
 with variables of its own - and the next release's is the first.
+
+On 24 October 2026 the test, with its question to the update check, was run by
+hand the same way, on an x86-64 Ubuntu machine with Docker 29, against three
+images: 6.3.7's published one, by its index's digest (`sha256:2a5de4eb...`, below);
+the Dockerfile of this tree built with `build/ci/linux-image.sh` in kaniko's image
+from 6.3.7's published amd64 `.deb`, held to the release's
+`hmailserver-linux-6.3.7-SHA256SUMS.txt`; and the same built from its arm64 `.deb`,
+under qemu-user, started with `HM_START_PLATFORM=linux/arm64`. Each server asked
+answered `GET /api/v1/update` with state 0 (`not-checked`, the check being off) and
+`"installKind":"container","liveUpdate":false,"updateCommand":"docker pull
+registry.gitlab.com/hmailserver/hmailserver:latest"`. Both images built from this
+tree passed the whole test beside PostgreSQL 18 and MariaDB 13 (schema 6108, the
+REST API as `6.3.7-B46`); 6.3.7's own image, which carries no MariaDB client,
+passed beside PostgreSQL and stopped beside MariaDB at `--create-database`, as
+above. The amd64 image built again with `HM_INSTALL_KIND` emptied
+(`ENV HM_INSTALL_KIND=` over it) answered
+`"installKind":"deb","liveUpdate":true,"updateCommand":""`, as the `.deb` the image
+installs would, and the test failed there ("GET /api/v1/update does not say
+installKind container"), where the test as it was before that question passed the
+same image. No tag's pipeline has asked a started image yet; the next release's is
+the first.
 
 ### What was run by hand
 

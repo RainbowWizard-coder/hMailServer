@@ -816,6 +816,30 @@ with `--check`).
   `linux-package-deb`'s image, and linux-build's `.rpm` its unchanged half (`docs/PackagesDeb.md` and `PackagesRpm.md`,
   "The start test"). No pipeline has run the jobs yet: they first run
   in the pipeline of the branch that brings them to `master`.
+- **New: the container image's start test asks each server it starts whether it knows it runs in a container.**
+  The image sets `HM_INSTALL_KIND=container`, from which the server's update check names the image to pull and
+  downloads and installs nothing; without it the server takes itself for the `.deb` the image installs, whose dpkg
+  record is in the image, and once a check finds a newer release offers to download it and install it into the
+  container. Until now the build checked only that the image's configuration sets the variable, and
+  `build/ci/container-image-start-test.sh`, which `container-image-start` and `container-image-start-arm64` run
+  against each platform's pushed image, asked SMTP, the REST API's version and the schema. It now asks each server,
+  after the version and as Administrator, for `GET /api/v1/update`, and fails unless it says `installKind`
+  `container`, `liveUpdate` false and an `updateCommand` of `docker pull
+  registry.gitlab.com/hmailserver/hmailserver:<tag>`, the tag running to the value's end. `build/check-release-chain.py`
+  holds those lines of the test, between the version and the schema with nothing among them but comments and blank
+  lines (`start_test_update_problems`), and its self-test breaks them eight ways - another route asked, any install kind
+  or a server that installs releases itself taken, a pull of any image taken, the last check's failure made an echo,
+  the question put behind `if false`, taken out, or moved after the schema - and sees each caught. On 24 October 2026
+  the test was run by hand with `--docker`: against 6.3.7's published image (beside PostgreSQL; it carries no MariaDB
+  client) and against this tree's Dockerfile built with `build/ci/linux-image.sh` in kaniko's image from 6.3.7's
+  amd64 and arm64 `.deb` files, held to the release's SHA-256 sums, the arm64 one under qemu-user, each server
+  answered `"installKind":"container","liveUpdate":false` and `docker pull
+  registry.gitlab.com/hmailserver/hmailserver:latest` (state 0, the check being off), and both built images passed
+  the whole test; the amd64 one built again with `HM_INSTALL_KIND` emptied answered `"installKind":"deb"` and
+  `"liveUpdate":true`, and the test failed there, where the test as it was passed that image. The next release's tag
+  pipeline is the first to ask. `ContainerImage.md` ("The start test"), `LiveUpdateKinds.md`,
+  `ContinuousIntegration.md` and the jobs' description in `.gitlab/ci/container-image.yml` say so.
+
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

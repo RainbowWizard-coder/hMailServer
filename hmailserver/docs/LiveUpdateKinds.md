@@ -19,7 +19,8 @@ says when a newer release exists, and names what updates the server instead.
 by starting a built server with their environment (below); the image was not built
 for this document. The snap itself came later (Snap.md): on 2 October 2026 the
 installed snap's update check reported `installKind` `snap` and `snap refresh
-hmailserver`.*
+hmailserver`. The image came later too: on 24 October 2026 the started image of
+6.3.7 reported `installKind` `container` (How it is tested).*
 
 How the server tells where it runs
 ----------------------------------
@@ -258,6 +259,28 @@ The `linux-live-update` job (`.gitlab/ci/live-update.yml`) runs
 `build/ci/linux-live-update.sh` on linix. The script builds the OFF variant and
 runs the test against it, against `linux-build`'s server and against the job's
 PostgreSQL.
+
+The image itself is asked as well, from the release after 6.3.7.
+`build/ci/container-image-start-test.sh`, which a tag's pipeline runs against
+each platform's pushed image (`container-image-start` and
+`container-image-start-arm64`), asks each server it starts for `GET
+/api/v1/update` and fails unless it says `installKind` `container`, `liveUpdate`
+false and an `updateCommand` of `docker pull
+registry.gitlab.com/hmailserver/hmailserver:<tag>`
+([ContainerImage.md](ContainerImage.md), "The start test"). Run by hand on 24
+October 2026 against 6.3.7's published image, beside PostgreSQL (it carries no
+MariaDB client), and against the image of this tree built from 6.3.7's `.deb`
+files, for amd64 and arm64, beside PostgreSQL and MariaDB, each server answered:
+
+```json
+"installKind":"container","liveUpdate":false,
+"updateCommand":"docker pull registry.gitlab.com/hmailserver/hmailserver:latest",
+```
+
+with state 0, `not-checked`: the check is off in a new installation, so no newer
+release is known and the command names `:latest`. Built with `HM_INSTALL_KIND`
+emptied, the image's server said `deb`, `liveUpdate` true and no command - the
+`.deb` the image installs - and the test failed.
 
 Not covered here
 ----------------

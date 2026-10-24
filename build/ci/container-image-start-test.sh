@@ -9,7 +9,10 @@
 # version the release is, and does its database hold the schema the server laid out
 # in it. What the old GitHub job's smoke test did, and what nothing on GitLab did
 # until this; the MariaDB start from the release after 6.3.7, whose image carries
-# the MariaDB client the server opens (packaging/docker/Dockerfile).
+# the MariaDB client the server opens (packaging/docker/Dockerfile). And, from the
+# release after 6.3.7 too, does the server know it runs in a container: GET
+# /api/v1/update must say installKind container, liveUpdate false and, as the command
+# that updates it, docker pull of the image (hmailserver/docs/LiveUpdateKinds.md).
 #
 #   bash build/ci/container-image-start-test.sh
 #       the container-image-start job of .gitlab/ci/container-image.yml: the runner
@@ -97,7 +100,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --docker) [ "$#" -ge 2 ] || { echo "--docker takes an image"; exit 2; }; mode=docker; image="$2"; shift 2 ;;
     --keep) keep=1; shift ;;
-    -h|--help) sed -n '5,71p' "$0"; exit 0 ;;
+    -h|--help) sed -n '5,74p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1"; exit 2 ;;
   esac
 done
@@ -301,7 +304,7 @@ schema_version() {
 # container (with --docker). Prints the schema version last, as "schema=<n>".
 ask_image() {
   local database="$1" host="$2" smtp_port="$3" rest_port="$4" container="${5:-}"
-  local deadline=$((SECONDS + wait_seconds)) said="" url code body plain version
+  local deadline=$((SECONDS + wait_seconds)) said="" url code body plain version update
 
   step "beside $database: port 25 answers SMTP (waiting up to $wait_seconds s)"
   until said="$(smtp_conversation "$host" "$smtp_port" 2> /dev/null)"; do
@@ -344,6 +347,30 @@ ask_image() {
   plain=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://$host:$rest_port/api/v1/status" || true)
   [ "$plain" != 200 ] || fail "beside $database, the REST API answered 200 over plain HTTP off loopback"
   echo "as Administrator: 200, version $expected; over plain HTTP: no answer ($plain)"
+
+  step "beside $database: the update check knows it runs in a container"
+  # GET /api/v1/update (UpdateChecker::ToJson), which fetches nothing: the image sets
+  # HM_INSTALL_KIND=container, and without it the server takes itself for the .deb the
+  # image installs, whose dpkg record is in the image, and once a check finds a newer
+  # release offers to download it and install it into the container. The command names
+  # the image with that release's version as its tag, or :latest while it knows of
+  # none - as here, where the check is off, as in every new installation
+  # (UpdateCheckEnabled 0).
+  update=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/update") \
+    || fail "beside $database, GET /api/v1/update as Administrator failed"
+  printf '%s\n' "${update:0:400}"
+  echo ""
+  case "$update" in
+    *'"installKind":"container"'*) ;;
+    *) fail "beside $database, GET /api/v1/update does not say installKind container: the server does not know it runs in a container" ;;
+  esac
+  case "$update" in
+    *'"liveUpdate":false'*) ;;
+    *) fail "beside $database, GET /api/v1/update does not say liveUpdate false: the server would install a release into the container" ;;
+  esac
+  [[ "$update" =~ \"updateCommand\":\"(docker\ pull\ registry\.gitlab\.com/hmailserver/hmailserver:[A-Za-z0-9_][A-Za-z0-9._-]*)\" ]] \
+    || fail "beside $database, GET /api/v1/update's updateCommand is not docker pull of registry.gitlab.com/hmailserver/hmailserver"
+  echo "installKind container, liveUpdate false, updateCommand ${BASH_REMATCH[1]}"
 
   step "beside $database: the database holds the server's schema"
   # What the client printed and what it said went wrong, apart: a warning on its
@@ -395,4 +422,4 @@ maria_schema="$schema"
   || fail "the server laid out schema $pg_schema in PostgreSQL and $maria_schema in MariaDB: one image, one schema"
 
 echo ""
-echo "STARTED: beside PostgreSQL and beside MariaDB, the image answers SMTP on 25 with STARTTLS, and the REST API over TLS, as $expected, with schema $pg_schema in each database."
+echo "STARTED: beside PostgreSQL and beside MariaDB, the image answers SMTP on 25 with STARTTLS, and the REST API over TLS, as $expected, an installation of kind container that docker pull updates, with schema $pg_schema in each database."

@@ -367,6 +367,13 @@ refuses it. This checker holds them to each other. It fails when:
     leave it for a newer one or one it cannot read, put no tag on the index but through
     move(), and its version_order, run here under sh, must compare number by number
     (6.3.10 is newer than 6.3.9);
+  * build/ci/container-image-start-test.sh no longer asks each image it starts, after
+    the REST API's version and before the schema, GET /api/v1/update as Administrator,
+    failing unless its server says installKind container, liveUpdate false and an
+    updateCommand of docker pull registry.gitlab.com/hmailserver/hmailserver:<tag>, in
+    the lines START_TEST_UPDATE_LINES and none among them (start_test_update_problems):
+    an image whose server takes itself for the .deb it installs would offer to install
+    a release into the container;
   * a file this checker reads is not in the tree (reported, and never a traceback);
   * a file the release carries from 6.3.6 is not gathered, described and tested
     before release starts: each distribution release's .deb and .rpm, the two
@@ -2934,6 +2941,7 @@ def check(texts, chain, feed):
                             "check: %s" % (number, line.strip()))
     problems += image_platform_problems(texts, jobs, image_jobs)
     problems += image_start_database_problems(texts, image_jobs)
+    problems += start_test_update_problems(texts["image-start"])
     problems += artifacthub_problems(texts, merged, image_jobs)
     found, said = image_tag_problems(texts)
     problems += found
@@ -6659,6 +6667,69 @@ def image_start_database_problems(texts, image_jobs):
     return problems
 
 
+# The lines with which build/ci/container-image-start-test.sh's ask_image asks the image's
+# update check how it is updated: right after the REST API's version
+# (START_TEST_UPDATE_AFTER) and right before the schema (START_TEST_UPDATE_BEFORE), with
+# nothing among them but comments and blank lines (start_test_update_problems).
+START_TEST_UPDATE_AFTER = '  echo "as Administrator: 200, version $expected; over plain HTTP: no answer ($plain)"'
+START_TEST_UPDATE_LINES = tuple(r'''
+  step "beside $database: the update check knows it runs in a container"
+  update=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/update") \
+    || fail "beside $database, GET /api/v1/update as Administrator failed"
+  printf '%s\n' "${update:0:400}"
+  echo ""
+  case "$update" in
+    *'"installKind":"container"'*) ;;
+    *) fail "beside $database, GET /api/v1/update does not say installKind container: the server does not know it runs in a container" ;;
+  esac
+  case "$update" in
+    *'"liveUpdate":false'*) ;;
+    *) fail "beside $database, GET /api/v1/update does not say liveUpdate false: the server would install a release into the container" ;;
+  esac
+  [[ "$update" =~ \"updateCommand\":\"(docker\ pull\ registry\.gitlab\.com/hmailserver/hmailserver:[A-Za-z0-9_][A-Za-z0-9._-]*)\" ]] \
+    || fail "beside $database, GET /api/v1/update's updateCommand is not docker pull of registry.gitlab.com/hmailserver/hmailserver"
+  echo "installKind container, liveUpdate false, updateCommand ${BASH_REMATCH[1]}"
+'''.strip("\n").split("\n"))
+START_TEST_UPDATE_BEFORE = '  step "beside $database: the database holds the server\'s schema"'
+
+
+def start_test_update_problems(script):
+    """build/ci/container-image-start-test.sh asks each image it starts, beside each
+    database and on each platform, whether its server knows it runs in a container: in
+    ask_image, right after the REST API's version and right before the schema, the lines
+    of START_TEST_UPDATE_LINES and nothing else but comments and blank lines - GET
+    /api/v1/update as Administrator, failing unless the answer says installKind container,
+    liveUpdate false and an updateCommand of docker pull
+    registry.gitlab.com/hmailserver/hmailserver:<tag>, the tag letters, digits, dots,
+    dashes and underscores to the value's end. The image's HM_INSTALL_KIND is what tells
+    its server so, and linux-image.sh finds it only in the image's configuration: a
+    server that did not take it - the variable emptied or misspelt, or no longer read -
+    takes itself for the .deb the image installs, and once a check finds a newer release
+    offers to download it and install it into the container
+    (hmailserver/docs/LiveUpdateKinds.md), and until this nothing started the image and
+    asked. The script's lines are read, not bash: a line of the ask changed, the ask
+    taken out or moved, or a line put among its lines - which a block that is not run, or
+    a check made to pass, would need - fails here."""
+    name = FILES["image-start"].replace(os.sep, "/")
+    lines = script.replace("\r\n", "\n").split("\n")
+    try:
+        start = lines.index("ask_image() {")
+        end = lines.index("}", start)
+    except ValueError:
+        return ["%s defines no ask_image() { ... }, the function that asks each image it starts" % name]
+    body = [line for line in lines[start + 1:end] if line.strip() and not line.strip().startswith("#")]
+    held = (START_TEST_UPDATE_AFTER,) + START_TEST_UPDATE_LINES + (START_TEST_UPDATE_BEFORE,)
+    width = len(held)
+    if sum(1 for i in range(len(body) - width + 1) if tuple(body[i:i + width]) == held) == 1:
+        return []
+    missing = [line.strip() for line in held if line not in body]
+    return ["%s's ask_image does not ask the image's update check, right after the REST API's version and right before "
+            "the schema, with the lines of START_TEST_UPDATE_LINES and nothing among them but comments and blank lines: "
+            "GET /api/v1/update as Administrator, failing unless it says installKind container, liveUpdate false and an "
+            "updateCommand of docker pull registry.gitlab.com/hmailserver/hmailserver:<tag> (%s)"
+            % (name, "not there: " + missing[0] if missing else "its lines are there, but not so")]
+
+
 def image_platform_problems(texts, jobs, image_jobs):
     """Every place a platform of the container image (IMAGE_PLATFORMS) could be left
     out: the Dockerfile, the build script, the branch's jobs, the tag's build, push,
@@ -7823,6 +7894,35 @@ def self_test(chain, feed):
            "container-image-start has no network of its own")
     broken("the start test on another image", "image", "    - name: $HM_IMAGE\n", "    - name: registry.gitlab.com/hmailserver/hmailserver:latest\n",
            "container-image-start does not start the pushed image by its digest")
+    # The start test's ask of the update check (start_test_update_problems): each of its
+    # checks made to pass whatever the server says, the ask turned to another route, put
+    # behind if false, taken out, or moved after the schema.
+    asks = "does not ask the image's update check"
+    broken("the start test asking another route than the update check", "image-start",
+           '"https://$host:$rest_port/api/v1/update")', '"https://$host:$rest_port/api/v1/status")', asks)
+    broken("the start test taking any install kind", "image-start", """    *'"installKind":"container"'*) ;;""",
+           """    *'"installKind":"'*) ;;""", asks)
+    broken("the start test taking a server that installs releases itself", "image-start", """    *'"liveUpdate":false'*) ;;""",
+           """    *'"liveUpdate":'*) ;;""", asks)
+    broken("the start test taking a pull of any image", "image-start", r"docker\ pull\ registry\.gitlab\.com/hmailserver/hmailserver:",
+           r"docker\ pull\ [^\"]*:", asks)
+    broken("the start test taking no updateCommand", "image-start",
+           "    || fail \"beside $database, GET /api/v1/update's updateCommand", "    || echo \"beside $database, GET /api/v1/update's updateCommand",
+           asks)
+    broken("the start test's ask of the update check behind if false", "image-start", START_TEST_UPDATE_LINES[0] + "\n",
+           "  if false; then\n" + START_TEST_UPDATE_LINES[0] + "\n", asks)
+    script = texts["image-start"]
+    if START_TEST_UPDATE_LINES[0] in script and START_TEST_UPDATE_LINES[-1] in script:
+        first = script.index(START_TEST_UPDATE_LINES[0])
+        ask = script[first:script.index(START_TEST_UPDATE_LINES[-1], first) + len(START_TEST_UPDATE_LINES[-1]) + 1]
+        without = script.replace(ask, "", 1)
+        for what, changed in (("taken out", without),
+                              ("moved after the schema", without.replace('  schema="$version"\n', ask + '  schema="$version"\n', 1))):
+            found, _ = check(dict(texts, **{"image-start": changed}), chain, feed)
+            if changed == script or not any(asks in p for p in found):
+                failures.append("the start test's ask of the update check %s is caught: %s" % (what, found))
+    else:
+        failures.append("the start test's ask of the update check is not in %s to break" % FILES["image-start"])
     broken("the switch turned on in the job", "image", "  variables:\n    HM_IMAGE_RELEASE: \"1\"\n",
            "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_RELEASE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
