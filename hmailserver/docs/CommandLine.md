@@ -74,10 +74,10 @@ Linux packages and in the container image. A container is not given the pair by
 itself, and the verb that gives it must run with the server's own
 `/etc/hmailserver`: the entrypoint's `--create-database` writes the
 installation's stored-secrets key there ([SecretsAtRest.md](SecretsAtRest.md),
-"Who makes it"), and a container that keeps it in a volume of its own - a one-off
-`docker run --rm` given the data volume alone - takes the key away with it, after
-which the server seals nothing and says so at every start (`HM7495`). Keep
-`/etc/hmailserver` in a volume of its own, as `hm-etc` is in the image's
+"Who makes it"), and a container that keeps it in an anonymous volume of its own -
+a one-off `docker run --rm` given the data volume alone - takes the key away with
+it, after which the server seals nothing and says so at every start (`HM7495`).
+Keep `/etc/hmailserver` in a named volume, as `hm-etc` is in the image's
 `docker-compose.yml`, and give the server's container the command
 
 ```bash
@@ -125,8 +125,9 @@ Import-Certificate -FilePath .\self-signed-certificate.pem -CertStoreLocation Ce
 ```
 
 Then reach the server by the name the certificate carries, with a line in the
-hosts file where the name is not in DNS: trusted or not, the certificate does not
-name the server's address, and `hmctl` refuses it there ("IP address mismatch").
+hosts file where the name is not in DNS: the certificate does not name the
+server's address, and `hmctl` refuses it there - "IP address mismatch" once it is
+trusted, "self-signed certificate" until then.
 A certificate from a public authority, which the ACME
 client gets ([SecureDefaults.md](SecureDefaults.md)), needs none of this. Both
 clients were installed from PyPI and the PowerShell Gallery and run this way on
