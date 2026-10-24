@@ -52,7 +52,9 @@
 #   chart-and-compose     the Helm chart and the Compose file, when they change;
 #   update-helper         the live update's Linux apply step against fakes, and the
 #                         units, when they change;
-#   package-templates     the winget and Chocolatey templates render, when they change.
+#   package-templates     the winget and Chocolatey templates render, when they change;
+#   coverage-cobertura    linux-coverage's Cobertura converter against samples of its
+#                         own, when it changes.
 #
 # And these, each on the runner it names, for a protected ref only - master, a batch*
 # branch, a v* tag - and never for a merge request (linix, for a job of a class, is
@@ -1624,15 +1626,17 @@ linux-fuzz:
 # than the Windows one runs, and the Linux build has no COM layer (the Windows line
 # figure is build/coverage-windows.ps1's). A failed test does not fail this job -
 # linux-suite is the pass or fail truth, on the uninstrumented build - but a suite
-# that did not run to its end (no TRX), no counters, no report, or a Cobertura
-# report the converter refuses, once the figure is in the log, does. GitLab reads
-# the line figure from the log (coverage:, below, summary.txt's "lines:" line) for
-# the job's and the pipeline's coverage and the project's coverage history (Analyze,
-# Repository analytics); the Cobertura report (build/ci/coverage-cobertura.py, from
-# the export that figure is read from) marks a merge request's diff only when the job
-# is in that merge request's head pipeline, which these rules never make it. The
-# converter's self-test runs first, so that a broken one fails the job in seconds and
-# not after the suite's hours.
+# that did not run to its end (no TRX), no counters, no report, or a converter that
+# fails its self-test or refuses the Cobertura report, once the figure is in the log,
+# does. GitLab reads the line figure from the log (coverage:, below, summary.txt's
+# "lines:" line) for the job's and the pipeline's coverage and the project's coverage
+# history (Analyze, Repository analytics); the Cobertura report
+# (build/ci/coverage-cobertura.py, from the export that figure is read from) marks a
+# merge request's diff only when the job is in that merge request's head pipeline,
+# which these rules never make it. The converter's self-test runs in the script's
+# report step, after the figure, so that a converter that fails it in this image
+# costs the report and not the figure, and in coverage-cobertura (below) whenever the
+# converter changes, so that a change that breaks it is refused before it lands.
 linux-coverage:
   extends: .linix
   tags: [linix]
@@ -1655,7 +1659,6 @@ linux-coverage:
     HM_COV_DIR: $CI_PROJECT_DIR/linux-coverage
     RUNNER_SCRIPT_TIMEOUT: 3h50m
   script:
-    - python3 build/ci/coverage-cobertura.py --self-test
     - bash build/ci/linux-coverage.sh
   coverage: '/lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)/'
   artifacts:
@@ -1674,6 +1677,26 @@ linux-coverage:
       coverage_report:
         coverage_format: cobertura
         path: linux-coverage/cobertura*.xml
+
+# The Cobertura converter linux-coverage runs (build/ci/coverage-cobertura.py): its
+# self-test, against samples it writes for itself with Python's own library alone,
+# when it or this file changes, as the path-bound checks above run. linux-coverage
+# runs only in the coverage schedule's pipeline, so that without this a change that
+# broke the converter would be seen first on the Sunday its report is lost. A job of
+# its own rather than a line of checkers, which took 13 and 16 of its 20 minutes in
+# pipelines 2983075001 and 2984129087 on 23 and 24 October 2026.
+coverage-cobertura:
+  stage: check
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  timeout: 5 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - changes:
+        - build/ci/coverage-cobertura.py
+        - .gitlab-ci.yml
+  script:
+    - python3 build/ci/coverage-cobertura.py --self-test
 
 # ---------------------------------------------------------------- security scanning
 #
@@ -2120,7 +2143,7 @@ windows-installer:
 # .gitlab/ci/gitlab-security.yml, which runs it for a v* tag for this. Not waited for:
 # ci-image-packages (dependency-scan waits for it), dependency-scan-verdict (it waits
 # for dependency-scan, and fails on its finding) and repo-hygiene, which are
-# allow_failure, and the manual db-matrix and installer-smoke. The four path-bound
+# allow_failure, and the manual db-matrix and installer-smoke. The five path-bound
 # checks run for every tag (a tag counts every file as changed) and are optional needs
 # only so that a pipeline without one is still created; the scans are not optional, so a
 # tag's pipeline without one of them is not created at all. build/check-release-chain.py
@@ -2149,6 +2172,9 @@ release:
       artifacts: false
       optional: true
     - job: roadmap
+      artifacts: false
+      optional: true
+    - job: coverage-cobertura
       artifacts: false
       optional: true
     - job: linux-suite

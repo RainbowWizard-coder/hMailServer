@@ -77,8 +77,8 @@
 #                      summary.txt counts a lambda's lines in it and in the
 #                      function around it, and held to coverage.json by
 #                      llvm-cov's own figures in lcov.info. None when the
-#                      converter refuses, which fails the job after summary.txt
-#                      is in the log
+#                      converter fails its self-test or refuses, either of which
+#                      fails the job after summary.txt is in the log
 #   suite/             linux-suite.sh's results (console.log, the TRX, junit.xml);
 #                      suite-<HM_COV_RUN>/ for a named run
 #   profiles-*/        the raw counters, one directory per run, and its scope.txt
@@ -310,6 +310,13 @@ print("functions:", pct("functions"))
 print("files:    ", len(data["data"][0]["files"]))
 PY
   cat "$cov/summary.txt"
+  # The converter's self-test, in this image, before it reads this run's export: a
+  # converter that fails it costs the report, as a refusal does, and not the figure
+  # above. (.gitlab-ci.yml's coverage-cobertura runs it whenever the converter changes.)
+  if ! python3 build/ci/coverage-cobertura.py --self-test; then
+    echo "NO COBERTURA REPORT: the converter failed its self-test (above), and the job fails; the figure before that is this run's."
+    exit 4
+  fi
   # lcov.info as Cobertura, for GitLab's coverage_report. The figures llvm-cov
   # writes into lcov.info must be coverage.json's, and the two must name the same
   # files, so that the diff's marks and the figure are one export of one run. A

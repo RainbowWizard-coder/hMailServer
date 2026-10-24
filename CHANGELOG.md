@@ -1395,11 +1395,14 @@ with `--check`).
   source file whose own class cannot fit in a file is refused for its size. GitLab marks a merge request's diff with
   it only when that merge request's head pipeline ran the job, which the job's rules - the coverage schedule's
   pipeline alone - never make it; it is in the artifact for anyone to read, and for the day the job runs where a merge
-  request can show it. The converter's self-test runs first in the job, so that a broken one fails it in seconds and
-  not after the suite; it holds every file of a split report, a later one too, to the limit in bytes, over every
-  limit from below the smallest a file can be to the whole report of a sample whose file names are not ASCII, and it
-  reads back the files it has written from their bytes, so that no comment in it silences the `semgrep` job's rule
-  on `ElementTree.parse` (SECURITY.md, "Inline suppression comments are not declarations either").
+  request can show it. The converter's self-test runs in the job's report step, once the figure is in the log, so
+  that a converter that fails it in the job's image costs the report and not the figure, and in a check of its own,
+  `coverage-cobertura`, in every pipeline that changes the converter or `.gitlab-ci.yml`, so that a change that
+  breaks it is refused before it lands and not found on a Sunday; it holds every file of a split report, a later one
+  too, to the limit in bytes, over every limit from below the smallest a file can be to the whole report of a sample
+  whose file names are not ASCII, and it reads back the files it has written from their bytes, so that no comment in
+  it silences the `semgrep` job's rule on `ElementTree.parse` (SECURITY.md, "Inline suppression comments are not
+  declarations either").
 - **The coverage job measures the server `linux-suite` tests, where `linux-suite` runs it.** Its first run on GitLab,
   the coverage schedule's pipeline 2983513656 on 24 October 2026, failed two tests of `Security/AutoBanHookRetry`
   that `linux-suite` passes: `build/ci/linux-coverage.sh` configured the instrumented server without the prefix

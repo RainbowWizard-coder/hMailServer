@@ -388,10 +388,11 @@ staying as committed, `renumber-upgrade-items.py --check` (the newest *What chan
 `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
 stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
 `check-portal-script.py`, `check-portal-smime.js` and `check-portal-openpgp.js`. *editorconfig* runs
-editorconfig-checker. Four more run when their files change: *chart-and-compose* (the Helm chart and the
+editorconfig-checker. Five more run when their files change: *chart-and-compose* (the Helm chart and the
 Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
-placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on every merge request and every
+placeholder values), *roadmap* (`check-roadmap.ps1`) and *coverage-cobertura* (the coverage job's Cobertura
+converter, `build/ci/coverage-cobertura.py --self-test`). *sign-off* runs on every merge request and every
 `batch*` branch (see [Sign-off](#sign-off)), and so do the change checks: GitLab's *semgrep-sast*, *semgrep-sast-gate*,
 which holds a change on a Critical or High finding in what it touches, a baseline it grows, a suppression comment it
 adds, a narrowing of what a scan reads that does not land alone, or a source file it puts out of the scan's reach, and

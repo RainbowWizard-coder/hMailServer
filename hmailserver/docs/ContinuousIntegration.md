@@ -77,6 +77,7 @@ The other tables on this page name runners the same way.
 | `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
 | `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
 | `roadmap` | check | linix | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
+| `coverage-cobertura` | check | linix | a change to the coverage job's Cobertura converter | The converter's self-test, against samples of its own (`build/ci/coverage-cobertura.py --self-test`; [The coverage schedule](#the-coverage-schedule)) |
 | `cli-packages` | check | linix | a change to the command-line clients or their packaging, and never a tag | `hmailserver-cli`'s sdist and wheel built twice and compared, held to the tree, `twine check`ed and installed alone (`.gitlab/ci/cli-packages.yml`; [CommandLinePackages.md](CommandLinePackages.md)) |
 | `cli-powershell` | check | linix | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`), and the module's half of `build/check-cli.py` against its recorded server |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
@@ -176,7 +177,7 @@ Which pipeline runs what
 |---|---|---|
 | `master` | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `installer-smoke`, `sign-off`, `semgrep-sast-gate` and `mr-dependency-check` |
 | a `batch*` branch | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `pages`, `package-repos` and `secret_detection`, with `installer-smoke` manual; the change checks among them, against `master` ([Change checks](#change-checks)), and the four security scans on linix unless the batch changes documentation alone from `master`: this is the gate a batch passes before it lands, and the pipeline its merge request is held to |
-| any other branch, no open merge request | the branch's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
+| any other branch, no open merge request | the branch's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, and the path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
 | a merge request from a protected `batch*` branch of this project | none; the branch's own pipeline stands for it | as for the branch |
 | a merge request from `master`, or from another protected branch here that is not `batch*` | the merge request's, beside the branch's own, on GitLab's hosted runner | as for any other branch's merge request: the branch's pipeline runs no change gate |
@@ -205,11 +206,11 @@ setting stays as it is; allowing variables to Owners instead would let every
 Owner start any pipeline, a `v*` tag's included, with variables of their
 choosing that override the file's and leave no commit behind.
 
-The four path-bound checks - `chart-and-compose`, `update-helper`,
-`package-templates` and `roadmap` - run when a file they check, or
-`.gitlab-ci.yml`, changed, as their GitHub workflows did (`rules:changes`). For
-a branch's first push and for a tag GitLab counts every file as changed, so they
-all run then.
+The five path-bound checks - `chart-and-compose`, `update-helper`,
+`package-templates`, `roadmap` and `coverage-cobertura` - run when a file they
+check, or `.gitlab-ci.yml`, changed (`rules:changes`), the first four as their
+GitHub workflows did. For a branch's first push and for a tag GitLab counts
+every file as changed, so they all run then.
 
 **A push that changes only documentation starts nothing on the project's
 machines**, but for the security scans of a batch that carries more (below).
@@ -2762,9 +2763,9 @@ values. It takes a place of linix, server2 or s1-linux for about three hours
 
 **Where to read it.**
 
-- The job's log ends with `summary.txt`, then what the Cobertura converter
-  says. GitLab reads the line figure from `summary.txt`'s `lines:` line - the
-  job's `coverage:` expression,
+- The job's log ends with `summary.txt`, then the Cobertura converter's
+  self-test and what the converter says. GitLab reads the line figure from
+  `summary.txt`'s `lines:` line - the job's `coverage:` expression,
   `lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)`, which GitLab looks for from the
   end of the log - and shows it as the job's coverage in the job and pipeline
   lists, as that pipeline's coverage, and in the project's coverage history:
@@ -2782,12 +2783,16 @@ values. It takes a place of linix, server2 or s1-linux for about three hours
   in `DatabaseTransactionTester.cpp`, whose checks are lambdas. The figures
   llvm-cov writes into `lcov.info` from its summary must be `coverage.json`'s,
   file for file, or the job fails, so the report and the figure are one export
-  of one run. `summary.txt` is in the log before the converter runs, so that a
-  refusal costs the report and not the figure: no `cobertura*.xml` is left for
-  GitLab, the job fails, so that the refusal is seen, and GitLab still reads the
+  of one run. `summary.txt` is in the log before the converter's self-test and
+  the converter run, so that a self-test that fails in the job's image, or a
+  refusal, costs the report and not the figure: no `cobertura*.xml` is left for
+  GitLab, the job fails, so that the failure is seen, and GitLab still reads the
   figure from the log for the job and its pipeline, as it does for a failed
   job; the project's coverage history, to which GitLab adds a pipeline's
-  coverage only when the pipeline succeeds, has no point for that week. For its
+  coverage only when the pipeline succeeds, has no point for that week. The
+  self-test runs too in `coverage-cobertura`, a check of its own, in every
+  pipeline that changes the converter or `.gitlab-ci.yml`, so that a change that
+  breaks it is refused before it lands rather than seen on a Sunday. For its
   size the converter refuses only a source file whose own class cannot fit in a
   file: on 24 October 2026 the largest, `Common/Util/RestApiServer.cpp`'s, came
   to 0.63 MiB, and the largest folder, `Common/Util`, to 5.55 MiB. GitLab marks
@@ -4473,6 +4478,7 @@ measured times after the first pipelines.
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |
+| `coverage-cobertura` | under a second by hand | 5 min | The converter's self-test, Python's own library alone |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |
 | `linux-suite` | 2 to 2.5 h | 4 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since: the job took 2 h 7 min in the first GitLab pipeline, on 26 September 2026, before the 29 fixtures linked that day for the coverage programme, which took 20 minutes more in a run of their own on linix, against the instrumented server. The timeout was three hours until then; it is the runners' maximum now, so that a suite that grows every batch is not cut off |
 | `linux-cross` | 8 min by hand | 1 h | 750 translation units compiled for AArch64 with six jobs |
@@ -4585,7 +4591,7 @@ would - so each of the others says it is not for one: `.own-runners` (and so
 every job on the project's runners) and `.not-a-fuzz-pipeline` (and so `checkers`,
 `harnesses` and `editorconfig`) begin with `- if: $CI_PIPELINE_SOURCE ==
 "schedule" || $CI_PIPELINE_SOURCE == "pipeline"` with `when: never`, and the
-four path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
+five path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
 carry the same rule. `build/check-release-chain.py` fails on
 a job that does not, apart from the few whose own rules match nothing on such a
 pipeline. `pages` itself skips the three schedules described `fuzz`, `renovate`
