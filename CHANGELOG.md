@@ -249,7 +249,9 @@ with `--check`).
   port nothing listens on; and a loopback TLS listener with a throwaway self-signed certificate, which the check makes
   with Python's standard library and which the module must refuse without `-Insecure`, before it sends a request
   and the credential in it, with the system's reason - under 5.1 its inner exceptions' words as well, so that a module
-  that kept the outer message alone, which says little, fails. A client that trusts the certificate completes a
+  that kept the outer message alone, which says little, fails; the system's words are matched where its display
+  language is English, and elsewhere the reason is held to being there, under 5.1 after the outer message, so that the
+  check does not fail a right module on a Windows in another language. A client that trusts the certificate completes a
   handshake with the same listener, so that what the module refuses is the trust. Against the module before the
   change six of those checks failed on a Windows desk, and with it they all pass.
 
@@ -257,15 +259,21 @@ with `--check`).
   document `Export-HmConfiguration` writes there.** Windows PowerShell 5.1's `Get-Content` gives a string that
   carries the file's `PSPath`, `PSDrive` and `PSProvider`, which its `ConvertTo-Json` writes out as well, so
   `Set-HmOpenPgpKey -Path` made the key an object of them and, at the module's depth of 10, walked the whole provider
-  and sent nothing; it now sends the file's text, as under PowerShell 7. And 5.1's `Set-Content -Encoding utf8` begins
+  and sent nothing; it now sends the file's text, as under PowerShell 7, and reads the one file `-Path` names, never a
+  pattern (`Get-Content -LiteralPath`), so that a name with brackets is read and a pattern that matches several files
+  is not joined into one key, of which the server would keep the first. And 5.1's `Set-Content -Encoding utf8` begins
   a file with a byte order mark, which `hmctl config diff` and `config apply`, and `--from-json` with a file, refused
   ("Unexpected UTF-8 BOM"), so that a document the module exported there could not be read by the other client; they
-  now take one with or without it. Found in the night of 23 to 24 October 2026 by running `build/check-cli.py`'s
+  now take one with or without it, and so do `--password-file` (`HMAIL_PASSWORD_FILE`) and `--passphrase-file`, which
+  took the mark for the first character of the password, so that the server refused it, or of the backup passphrase.
+  Found in the night of 23 to 24 October 2026 by running `build/check-cli.py`'s
   module half under Windows PowerShell 5.1, under which it had run its reasons alone: `Set-HmOpenPgpKey` had not
   finished after two minutes, and `hmctl` did not agree that the module's document matched the server. The check now runs the module's
   half under every PowerShell on the path in turn - pwsh, and Windows PowerShell 5.1 beside it on a Windows desk -
   names the PowerShell in each problem, reports a case that does not finish instead of stopping, and holds `hmctl
-  config diff` to a matching document with a byte order mark in every pipeline's `checkers` job.
+  config diff`, `config apply` with and without `--force`, `--from-json`, `--password-file` and `--passphrase-file`
+  to files with a byte order mark in every pipeline's `checkers` job, and `Set-HmOpenPgpKey -Path` to a file whose
+  name has brackets.
 
 ### Downloads and the release
 

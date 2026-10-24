@@ -68,8 +68,11 @@ PASSWORD = "bench-password"
 
 # An armoured block for the two store cases. Its contents are never parsed
 # here - the recorded server answers whatever it is handed - so what this
-# proves is that the clients read a FILE and send its text as the key.
-KEY_FILE = os.path.join(tempfile.gettempdir(), "hmctl-openpgp-case.asc")
+# proves is that the clients read a FILE and send its text as the key. Its
+# name has brackets, which Get-Content -Path would take as a pattern - one that
+# matches no file here, and in a folder of keys could match several, which
+# Set-HmOpenPgpKey would join into one: the module must read the one file named.
+KEY_FILE = os.path.join(tempfile.gettempdir(), "hmctl-openpgp-case[1].asc")
 KEY_TEXT = ("-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n"
             "mDMEaqoCExYJKwYBBAHaRw8BAQdA1BnI224Vt/ATv5Bz3LFdMeQvJKTMb+poSTbQ\n"
             "-----END PGP PUBLIC KEY BLOCK-----\n")
@@ -77,6 +80,21 @@ with open(KEY_FILE, "w", encoding="utf-8", newline="") as _key_handle:
     _key_handle.write(KEY_TEXT)
 
 EXPECTED_BASIC = "Basic " + base64.b64encode(("Administrator:" + PASSWORD).encode("utf-8")).decode("ascii")
+
+# The password in a file as Windows PowerShell 5.1's Set-Content -Encoding utf8
+# writes one - a byte order mark first and CRLF after - for the one case that
+# signs in with --password-file: the mark is no part of the password.
+_password_handle, PASSWORD_FILE = tempfile.mkstemp(prefix="hmctl-check-password-", suffix=".txt")
+with os.fdopen(_password_handle, "w", encoding="utf-8-sig", newline="") as _password_file:
+    _password_file.write(PASSWORD + "\r\n")
+atexit.register(lambda: os.path.exists(PASSWORD_FILE) and os.remove(PASSWORD_FILE))
+
+# A request body in a file for --from-json, with a byte order mark too, as the
+# module's own JSON files are written under Windows PowerShell 5.1.
+_body_handle, BODY_FILE = tempfile.mkstemp(prefix="hmctl-check-body-", suffix=".json")
+with os.fdopen(_body_handle, "w", encoding="utf-8-sig", newline="") as _body_file:
+    _body_file.write('{"name": "new.example"}\r\n')
+atexit.register(lambda: os.path.exists(BODY_FILE) and os.remove(BODY_FILE))
 
 # A backup passphrase in a file, because neither client will take one as an
 # argument: the process list is public, and this is the secret that opens every
@@ -86,10 +104,12 @@ EXPECTED_BASIC = "Basic " + base64.b64encode(("Administrator:" + PASSWORD).encod
 # temp directory would have been two runs on one machine writing each other's
 # file half way through, and one file left lying about afterwards with a
 # passphrase in it - which is a poor advertisement from the checker whose whole
-# subject is that a passphrase is never left where somebody can read it.
+# subject is that a passphrase is never left where somebody can read it. It
+# begins with a byte order mark, which hmctl must not take for the passphrase's
+# first character.
 BACKUP_PASSPHRASE = "correct horse battery staple"
 _passphrase_handle, BACKUP_PASSPHRASE_FILE = tempfile.mkstemp(prefix="hmctl-check-backup-passphrase-", suffix=".txt")
-with os.fdopen(_passphrase_handle, "w", encoding="utf-8") as _passphrase_file:
+with os.fdopen(_passphrase_handle, "w", encoding="utf-8-sig") as _passphrase_file:
     _passphrase_file.write(BACKUP_PASSPHRASE + "\n")
 atexit.register(lambda: os.path.exists(BACKUP_PASSPHRASE_FILE) and os.remove(BACKUP_PASSPHRASE_FILE))
 
@@ -880,7 +900,7 @@ CASES = [
     ("domain list", ["domain", "list"], "GET", "/api/v1/domains", None, ["example.com", "example.net", "NAME"]),
     ("domain list --json", ["domain", "list", "--json"], "GET", "/api/v1/domains", None, ['"name"']),
     ("domain get", ["domain", "get", "example.com"], "GET", "/api/v1/domains/example.com", None, ["plus_addressing_enabled"]),
-    ("domain create", ["domain", "create", "--set", "name=new.example", "--set", "active=true"],
+    ("domain create", ["domain", "create", "--from-json", BODY_FILE, "--set", "active=true"],
      "POST", "/api/v1/domains", {"name": "new.example", "active": True}, ["new.example"]),
     ("domain update", ["domain", "update", "example.com", "--set", "active=false"],
      "PUT", "/api/v1/domains/example.com", {"active": False}, []),
@@ -1193,7 +1213,8 @@ def run_python_cases(url, verbose):
         with Recorder.lock:
             Recorder.requests = []
 
-        command = [sys.executable, HMCTL, "--url", url, "--password", PASSWORD] + arguments
+        credential = ["--password-file", PASSWORD_FILE] if name == "status" else ["--password", PASSWORD]
+        command = [sys.executable, HMCTL, "--url", url] + credential + arguments
         completed = subprocess.run(command, capture_output=True, text=True, timeout=60)
 
         with Recorder.lock:
@@ -2043,7 +2064,9 @@ def run_powershell_reasons(url, tmp):
     established, see inner exception."), which the module throws as it is. Until the
     release after 6.3.7 the module lost the text under both, and said "GET
     /api/v1/domains failed." alone for no answer under Windows PowerShell 5.1. The
-    5.1 words are an English Windows'."""
+    words are the system's, in its display language, and matched where that is
+    English; under another, the reason is held to being there - under 5.1 an inner
+    exception's after the outer message - and not to its words."""
     shells = every_powershell()
 
     # A port nothing listens on: bound here and let go, so that nothing else has it
@@ -2098,17 +2121,34 @@ def run_powershell_reasons(url, tmp):
                       "%s: Get-HmDomain answered %d with %s should end %r and not give the JSON, exited %d and said: %s"
                       % (label, code, json.dumps(refusal), expected, completed.returncode, completed.stderr[:400]))
 
-            completed = run(shell, closed, "Get-HmDomain | Out-Null")
-            reason = (re.search(r"actively refused", completed.stderr, re.IGNORECASE) and "; " in completed.stderr
-                      if desktop else re.search(r"connect|refused", completed.stderr, re.IGNORECASE))
-            check(completed.returncode == 1 and completed.stderr.strip() != "GET /api/v1/domains failed." and reason,
+            # The words are the system's, in its display language: matched where it
+            # is English (or the invariant culture's, which is English), and
+            # elsewhere the reason held to being there - under 5.1 an inner
+            # exception's after the outer message, joined by "; ".
+            completed = run(shell, closed, "[Console]::Out.Write([Globalization.CultureInfo]::CurrentUICulture.Name); "
+                                           "Get-HmDomain | Out-Null")
+            culture = (completed.stdout or "").strip()
+            english = culture == "" or culture.lower().startswith("en")
+            given = completed.stderr.strip() not in ("", "GET /api/v1/domains failed.")
+            if not english:
+                reason = (completed.stderr.startswith("GET /api/v1/domains failed: ") and "; " in completed.stderr
+                          if desktop else given)
+            elif desktop:
+                reason = re.search(r"actively refused", completed.stderr, re.IGNORECASE) and "; " in completed.stderr
+            else:
+                reason = re.search(r"connect|refused", completed.stderr, re.IGNORECASE)
+            check(completed.returncode == 1 and given and reason,
                   "%s: Get-HmDomain against %s, where nothing listens, should say why it got no answer%s, exited %d "
                   "and said: %s" % (label, closed, " - the inner exception's words too" if desktop else "",
                                     completed.returncode, completed.stderr[:400]))
 
             before, requests = seen["connections"], seen["requests"]
             completed = run(shell, untrusted, "Get-HmDomain | Out-Null")
-            if desktop:
+            given = completed.stderr.strip() not in ("", "GET /api/v1/domains failed.")
+            if not english:
+                reason = given and (completed.stderr.startswith("GET /api/v1/domains failed: ")
+                                    and "; " in completed.stderr if desktop else True)
+            elif desktop:
                 reason = ("trust relationship" in completed.stderr
                           and "remote certificate is invalid" in completed.stderr and "; " in completed.stderr)
             else:
@@ -2286,8 +2326,10 @@ def run_config_cases(url, tmp):
     for row in changed["sections"]["domains"]:
         if row.get("name") == "example.net":
             row["active"] = True
+    # With a byte order mark, as the module writes it under Windows PowerShell 5.1:
+    # diff, apply without --force and apply --force below each read it.
     changed_path = os.path.join(tmp, "changed.json")
-    with open(changed_path, "w", encoding="utf-8") as handle:
+    with open(changed_path, "w", encoding="utf-8-sig") as handle:
         json.dump(changed, handle, indent=2, sort_keys=True)
 
     completed = run(["config", "diff", changed_path])

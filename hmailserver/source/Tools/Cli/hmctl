@@ -1055,7 +1055,8 @@ def read_backup_passphrase(arguments, confirm=False):
         if arguments.passphrase_file == "-":
             line = sys.stdin.readline()
         else:
-            with open(arguments.passphrase_file, encoding="utf-8") as handle:
+            # utf-8-sig, as for the password file: a byte order mark is no part of it.
+            with open(arguments.passphrase_file, encoding="utf-8-sig") as handle:
                 line = handle.readline()
         return line.rstrip("\r\n")
 
@@ -3231,7 +3232,10 @@ def resolve_password(arguments):
     if arguments.password:
         return arguments.password
     if arguments.password_file:
-        with io.open(arguments.password_file, encoding="utf-8") as handle:
+        # utf-8-sig: Windows PowerShell 5.1's Set-Content -Encoding utf8 begins the
+        # file with a byte order mark, which strip() keeps and the server would be
+        # sent as the password's first character.
+        with io.open(arguments.password_file, encoding="utf-8-sig") as handle:
             return handle.read().strip()
     if not can_prompt():
         raise ApiError(0, "no credential: give --api-key, --password, --password-file, or one of "

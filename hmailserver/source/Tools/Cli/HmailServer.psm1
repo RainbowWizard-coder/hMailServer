@@ -2128,8 +2128,9 @@ function Set-HmOpenPgpKey {
     # A plain string: under Windows PowerShell 5.1, Get-Content's string carries the
     # file's PSPath, PSDrive and PSProvider, which ConvertTo-Json writes out as well, so
     # the key went as an object of them - at -Depth 10 a walk of the whole provider
-    # that never finished.
-    $text = if ($PSCmdlet.ParameterSetName -eq 'Path') { [string] (Get-Content -Path $Path -Raw) } else { $Key }
+    # that never finished. -LiteralPath: the one file named, never a pattern, which
+    # could match several files and the cast would join into one key.
+    $text = if ($PSCmdlet.ParameterSetName -eq 'Path') { [string] (Get-Content -LiteralPath $Path -Raw) } else { $Key }
     if (-not $text -or -not $text.Trim()) { throw 'There is no key here: the upload is empty.' }
     $body = @{ key = $text }
     if ($Publish) { $body['publish'] = $true }
