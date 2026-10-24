@@ -2482,28 +2482,83 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 # among them i-search, i-star, i-folder, i-trash, i-warn, i-calendar, i-chat and
 # i-storage. The Control Deck's page draws its eye after
 # Feather's "eye", laid into a box of 16 units; its other icons are plain circles
-# and rectangles with a few straight strokes. The two with the project's header
+# and rectangles with a few straight strokes, figures as simple as those of the
+# sprite below. The two with the project's header
 # name Feather's holder and licence beside it, and the Control Deck's page, which
 # has none, his beside the maintainers'.
-# No other icon set's holder is named. A set other than Feather would be named where
-# a symbol took from it more than simple shapes: plain figures - straight strokes, a
-# circle or a half circle, a box with square or rounded corners - laid out as line
-# icons of one subject on the 24-unit grid lay them (three bars for a menu, a circle
-# with two hands for a clock, a box with a V for a letter, a circle with a slash, a
-# head over a half circle, a lid over a box, a cross, a plus, a chevron); an outline
-# drawn of curves, as a gear's, a pen's, a paperclip's or a bell's is, is not one.
-# That line decides only which set beyond Feather is named, not which symbols are
-# counted after Feather's, of which i-signout, i-popout and i-expand are simple
-# shapes. What the sprite has of other sets is simple shapes: i-menu, i-clock,
-# i-mail and i-empty are point for point Tabler Icons' "menu-2", "clock-hour-4" and
-# "mail"; i-archive has the lid, the box and the bar of Tabler's "archive" where it
-# has them, its lid square and its box's corners of radius 1 for Tabler's 2; i-junk
-# is Humbleicons' "ban", its circle and its stroke from 5.5 to 18.5; i-person has the
-# half circle of Lucide's "user-round" for its body and the head of Iconoir's
-# "user"; i-mail-open is near Lucide's "mail-open", which Feather does not have;
-# i-last is Lucide's "chevron-last"; i-close, i-plus and the chevrons are Lucide's
-# and Tabler's as well as Feather's; and i-popout's box and diagonal fall where
-# Tabler's "external-link" has them, its strokes in Feather's order.
+# No other icon set is credited: what the sprite shares with other sets is figures too
+# simple to carry anyone's copyright, which protects an author's own expression and
+# not familiar symbols or designs (in the United States, 37 CFR 202.1(a) names them
+# among the material not subject to copyright). Each symbol below is such a figure: a
+# familiar symbol - a star, a question mark, a crescent, a shield - or a figure drawn
+# as sets of line icons on the 24-unit grid draw it - straight strokes between whole
+# or half units, a circle or a half circle, a dot, a box with square or rounded
+# corners, a triangle or a polygon of a few vertices - laid out as its subject asks,
+# so that sets drawn apart from one another draw it alike, often point for point; an
+# outline drawn of curves, as a gear's, a pen's, a paperclip's or a bell's is, is not
+# such a figure. Symbol by symbol, with the icons of the sets compared that it matches
+# point for point or is near (no farther from it than i-file is from Feather's
+# "file"): i-menu, three bars, point for point Tabler's "menu-2", Humbleicons' "bars"
+# and MingCute's "menu-fill"; i-clock, a circle with two hands, point for point
+# Tabler's "clock-hour-4", and near Feather's "clock"; i-mail and i-empty, a box with
+# a V, point for point Tabler's "mail", and near Feather's "mail"; i-junk, a circle
+# with a slash, point for point Humbleicons' "ban", and near Feather's "slash" and
+# Lucide's and Tabler's "ban"; i-archive, a lid, a box and a bar, Tabler's "archive"
+# with a square lid and its box's corners of radius 1 where Tabler's are 2, and near
+# Lucide's "archive"; i-person, a head over a half circle, the half circle of Lucide's
+# "user-round" and the head of Iconoir's "user"; i-mail-open, a box under a roof of
+# two strokes, with a V, near Lucide's "mail-open", whose roof and V are rounded where
+# its are straight; i-last, a chevron and a bar, point for point Lucide's
+# "chevron-last" and IconPark's "go-end"; i-back, an arrow of a stroke and a chevron,
+# point for point Solar's "arrow-left-line-duotone" and Humbleicons' "arrow-left";
+# i-search, a circle and a stroke for a handle, near Majesticons' "search-line" and
+# Lets Icons' "search", which have its circle and its handle's end, and Feather's
+# "search"; i-send, a paper plane of four vertices and a stroke, its polygon
+# Majesticons' "send-line"'s vertex for vertex, and near Tabler's "send-2" and
+# Lucide's "send-horizontal"; i-plane, a paper plane of four vertices, near Tabler's
+# "location" and Feather's "navigation"; i-refresh, an arc with an arrowhead of two
+# strokes, its arrowhead Tabler's "reload"'s character for character and its arc its
+# own, and near Charm's "rotate-clockwise", Meteor Icons' "rotate" and Lucide's
+# "rotate-cw"; i-help, a question mark in a circle, near Tabler's "help", Iconoir's
+# "help-circle" and Feather's "help-circle", the mark's curve its own; i-star, a
+# five-pointed star, a polygon of ten vertices, near IconPark's "star" and Feather's
+# "star", with numbers of its own; i-shield, a shield with an exclamation mark, near
+# MingCute's "safe-alert-line", Solar's "shield-warning-line-duotone", Charm's
+# "shield-warning" and Lucide's "shield-alert", each drawn otherwise; i-info, a circle
+# with a stroke and a dot, near TDesign's "info-circle", Iconoir's "info-circle" and
+# Feather's "info"; i-warn, a triangle with a stroke and a dot, near IonIcons'
+# "warning-outline", Meteor Icons' "triangle-exclamation", Lucide's "triangle-alert"
+# and Feather's "alert-triangle"; i-folder, a box with a tab, near Myna UI's "folder",
+# Majesticons' "folder" and Feather's "folder"; i-move, the same box with an arrow of
+# three strokes, near Myna UI's "folder-plus", MingCute's "folder-download-line" and
+# Feather's "folder-plus"; i-calendar, a box, a bar and two pegs, near TDesign's
+# "calendar", Akar Icons' "calendar" and Feather's "calendar"; i-chat, a speech box of
+# five straight strokes, near Charm's "message" and Feather's "message-square";
+# i-trash, a bar, a tapering box of straight strokes, a handle and two strokes, near
+# Mage's "trash", MingCute's "delete-2-line", Tabler's "trash" and Feather's
+# "trash-2"; i-storage, two rounded boxes with a dot each, near Lucide's
+# "stretch-horizontal" and Feather's "server"; i-keyboard, a rounded box with four
+# dots and a stroke, near Majesticons' "view-rows-line" and TDesign's "button";
+# i-more, three dots, near Bytesize's "ellipsis-vertical" and IonIcons'
+# "ellipsis-vertical-outline"; i-check, a tick of two strokes, near coolicons'
+# "check-big", Lets Icons' "done-round" and Feather's "check"; i-important, a box of
+# six straight strokes with a pointed end and a notched one, near Flowbite's
+# "arrow-right-alt-outline"; i-reply-all, two chevrons and an arc, near Lucide's
+# "reply-all"; and i-tune, two strokes each with a circle on it, i-theme, a crescent,
+# i-tasks, two ticks and two strokes, i-label, a pentagon with a dot, i-people, two
+# heads over two arcs, i-tag, a turned pentagon with a dot, i-reply and i-forward, a
+# chevron and an arc, and i-flag, a pole with a notched flag, near no icon of the sets
+# compared. Of the seventeen counted after Feather's, i-close, i-plus and the four
+# chevrons are drawn alike in ten to twenty-one of the sets compared, and i-expand,
+# i-popout, i-file, i-draft and i-clip are as near another set's icon or nearer - Myna
+# UI's "maximize-one", whose diagonals are a unit shorter, Flowbite's
+# "arrow-up-right-from-square-outline" and Tabler's "external-link", Majesticons'
+# "file-line", IconPark's "prescription", and Meteor Icons' and Lucide's "paperclip"
+# and Iconoir's "attachment" - while each keeps the outlines of Feather's icon, i-clip
+# its curves; i-inbox, i-print, i-signout and i-bell-off are as near Lucide's icons of
+# the same names, or a little nearer, Lucide having begun as a fork of Feather. The
+# sets compared are Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's icon
+# sets, each from the npm registry, as the notice says.
 [[annotations]]
 path = [
     "hmailserver/source/Server/Common/Util/Portal.html",

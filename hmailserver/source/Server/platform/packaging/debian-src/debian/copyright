@@ -330,7 +330,9 @@ Comment:
  PortalPageData.cpp is the webmail's page as build/generate-portal-page.py
  embeds it, compiled into /usr/bin/hmailserver, which serves both pages.
  hmailserver/docs/Licenses/License - Feather icons.txt says which icons are
- drawn after Feather's and carries Feather's notice.
+ drawn after Feather's, says of the sprite's others and of what it shares
+ with other icon sets that they are figures too simple to carry anyone's
+ copyright, and carries Feather's notice.
 
 Files: hmailserver/docs/Licenses/License?-?Feather?icons.txt
 Copyright: 2013-2023 Cole Bemis
@@ -338,7 +340,8 @@ Copyright: 2013-2023 Cole Bemis
 License: Expat and AGPL-3+
 Comment:
  Feather's LICENSE, verbatim, after the maintainers' note on which icons are
- drawn after Feather's and how they were compared with its release 4.29.2.
+ drawn after Feather's, how they were compared with its release 4.29.2 and
+ with other icon sets, and why no other set is named.
 
 Files: build/check-release-chain.py
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd

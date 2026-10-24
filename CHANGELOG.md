@@ -293,17 +293,16 @@ with `--check`).
   `i-trash`, `i-warn`, `i-calendar`, `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the
   page in `PortalPageData.cpp`, which `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
   `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.
-  No other icon set is credited, by a line `REUSE.toml`, the notice and `CONTRIBUTING.md` now draw: a set other
-  than Feather is named where a symbol takes from it more than simple shapes - plain figures, straight strokes, a
-  circle or a half circle, a box with square or rounded corners, laid out as line icons of one subject on the
-  24-unit grid lay them, where an outline drawn of curves, as a gear's or a paperclip's is, is not one - and the
-  line decides only which set beyond Feather is named, not which symbols count after Feather's, three of which
-  (`i-signout`, `i-popout` and `i-expand`) are simple shapes. What the sprite has of other sets is simple shapes,
-  and the record says which: `i-menu`, `i-clock`, `i-mail` and `i-empty` are point for point Tabler Icons'
-  `menu-2`, `clock-hour-4` and `mail`, `i-archive` has the lid, the box and the bar of Tabler's `archive` with
-  other corners, `i-junk` is Humbleicons' `ban`, `i-person` has the half circle of Lucide's `user-round` and the
-  head of Iconoir's `user`, `i-mail-open` is near Lucide's `mail-open`, and `i-last` is Lucide's `chevron-last`
-  (Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's sets were compared too).
+  No other icon set is credited: what the sprite shares with other sets is figures too simple to carry anyone's
+  copyright - familiar symbols, such as a star or a question mark, and straight strokes, circles, dots, boxes,
+  triangles and polygons of a few vertices laid out as line icons of one subject lay them - and `REUSE.toml`'s
+  comment and the notice say so of each of the 39 symbols not counted after Feather's, with what its figure is and
+  the icons of other sets it matches point for point or is near, and of those of the seventeen that are as near
+  another set's icon: among them `i-menu`, `i-clock`, `i-mail` and `i-empty`, point for point Tabler Icons'
+  `menu-2`, `clock-hour-4` and `mail`, `i-junk` Humbleicons' `ban`, `i-last` Lucide's `chevron-last`, `i-back`
+  Solar's `arrow-left-line-duotone`, `i-send`, whose polygon is Majesticons' `send-line`'s, and `i-refresh`, whose
+  arrowhead is Tabler's `reload`'s (Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's sets were
+  compared).
   The MIT licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the
   two pages and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL,
   with a comment naming the icons; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
