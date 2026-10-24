@@ -1551,6 +1551,28 @@ with `--check`).
   that `.gitlab/CODEOWNERS` is GitLab's. Scorecard's Branch-Protection check counts a file named `CODEOWNERS` wherever
   it is, so its score is the same with the file or without it.
 
+- **`.gitlab/CODEOWNERS` says where the project is, that GitLab ignores the second maintainer's name while he has no
+  access to the project, and what "Require approval from code owners" would do.** Its header said that the project's
+  namespace is the owner's personal one, which GitLab's API gives as of kind "user", and that the second maintainer,
+  Zain Ul Abidin, is a member of the project. Since 29 September 2026 the project is in the group hmailserver, of kind
+  "group", and since 13 October 2026 he holds no role in it (GOVERNANCE.md, "Maintainers"); GitLab ignores a name in
+  the file that has no access to the project, and only a member with at least the Developer role can approve as a code
+  owner, where the header said that GitLab ignores any name but that of a project member with at least the Developer
+  role. It said too that, since GitLab does not let an author approve their own merge request, "Require approval from
+  code owners" would hold back every change the one owner makes: GitLab takes the author out of a code-owner rule's
+  approvers when the project does not let an author approve, and every author and committer of the merge request's
+  commits when it does not let those who add commits approve, the user who rebases it among them, and requires no
+  approval of a code-owner rule left with none, which it shows as optional, so the setting would hold back none of his
+  changes, only a merge request someone else opens that he has neither rebased nor added a commit to (a fast-forward
+  merge, the project's merge method, needs a rebase once `master` has moved), and would add no second person's
+  approval to his own. The header says so, that the setting stays off while a second person's approval is left unmet
+  (GOVERNANCE.md, "Review"), and that the group has Ultimate's features through GitLab for Open Source, so GitLab uses
+  the file. Comments only: the owners and paths are unchanged. GitLab's API, read on 24 and 25 October 2026, gives the
+  project's namespace as `hmailserver`, of kind `group`, the group's plan as `opensource`, the project's members as
+  the owner's account and a project bot, its `merge_requests_author_approval` as false, its
+  `merge_requests_disable_committers_approval` as true, its `merge_method` as `ff` and `master`'s
+  `code_owner_approval_required` as false.
+
 - **The NuGet updates of Renovate's merge request of 19 October 2026: the .NET 10.0.13 libraries, QRCoder 1.8.1 and
   the test packages, with lock files restored on Windows.** The merge request's project-file edits are taken, without
   the lock files it wrote. The Control Panel's `System.Management` and `System.ServiceProcess.ServiceController`, and

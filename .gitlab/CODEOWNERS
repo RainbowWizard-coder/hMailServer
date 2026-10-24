@@ -5,21 +5,35 @@
 # Owners is a GitLab Premium and Ultimate feature: on the Free tier GitLab does
 # not use the file at all, and on a paid tier it names who is asked to review a
 # merge request and gates the merge only when master's protected-branch rule
-# turns on "Require approval from code owners".
+# turns on "Require approval from code owners". The group hmailserver has
+# Ultimate's features through GitLab for Open Source, so GitLab uses this file.
 #
-# The owner below is @Progressiverobot, the maintainer's GitLab account, which
-# is also the project's namespace - a personal one, not a group (the project's
-# API answer gives the namespace's kind as "user"). A person named here must be
-# a project member with at least the Developer role, or GitLab ignores the name;
-# the second maintainer the GitHub file named is named here by their GitLab
-# username. GitLab does not let an author approve their
-# own merge request by default, so while one account is the only owner,
-# "Require approval from code owners" would hold back every change that owner
-# makes, and it stays off. The second maintainer, Zain Ul Abidin, is a member
-# as @zainulabidin1990 (since 24 September 2026; a Developer since 26 September
-# 2026, the owner's decision, which is enough to be named) and shares the default owners;
-# the supply-chain paths below stay with @Progressiverobot, who alone creates
-# release tags (GOVERNANCE.md).
+# The owner below is @Progressiverobot, the maintainer's GitLab account. The
+# project is in the group hmailserver (gitlab.com/hmailserver/hmailserver since
+# 29 September 2026; the project's API answer gives its namespace's kind as
+# "group"), not in that account's personal namespace. GitLab ignores a name here
+# that has no access to the project, and only a member with at least the
+# Developer role can approve as a code owner. GitLab does not let an author
+# approve their own merge request here, nor anyone who added a commit to it,
+# the user who rebases it among them (the project's approval settings give
+# merge_requests_author_approval as false and
+# merge_requests_disable_committers_approval as true), so while one account is
+# the only owner, no code owner may approve that account's merge requests, nor
+# one it has rebased or added a commit to, and GitLab counts the code-owner rule
+# on them as optional: "Require approval from code owners" would hold back none
+# of that owner's changes, only a merge request someone else opens that he has
+# neither rebased nor added a commit to (a fast-forward merge, the project's
+# merge method, needs a rebase once master has moved), which would wait for his
+# approval, and it would add no second person's approval to his own. It stays
+# off while a second person's approval is left unmet (GOVERNANCE.md, "Review").
+# The second maintainer, Zain
+# Ul Abidin, is named among the default owners by his GitLab username,
+# @zainulabidin1990: he was a member from 24 September 2026 (a Developer from 26
+# September 2026, the owner's decision) and since 13 October 2026 holds no role
+# in the project (GOVERNANCE.md, "Maintainers"), so GitLab ignores the name;
+# only as a member with at least the Developer role could he approve as a code
+# owner. The supply-chain paths below stay with @Progressiverobot, who alone
+# creates release tags (GOVERNANCE.md).
 #
 # Until 18 September 2026 this was .github/CODEOWNERS on GitHub, naming the two
 # maintainers' GitHub accounts; the paths are the same.
