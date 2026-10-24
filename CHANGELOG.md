@@ -1392,6 +1392,20 @@ with `--check`).
   schedule's pipeline alone - never make it; it is in the artifact for anyone to read, and for the day the job runs
   where a merge request can show it. The converter's self-test runs first in the job, so that a broken one fails it
   in seconds and not after the suite.
+- **The coverage job measures the server `linux-suite` tests, where `linux-suite` runs it.** Its first run on GitLab,
+  the coverage schedule's pipeline 2983513656 on 24 October 2026, failed two tests of `Security/AutoBanHookRetry`
+  that `linux-suite` passes: `build/ci/linux-coverage.sh` configured the instrumented server without the prefix
+  `build/ci/linux-build.sh` gives it, `/usr`, so the server ran the packaged auto-ban hook from
+  `/usr/local/lib/hmailserver`, where the suite's stand-in for it is not (HM5401, the process could not be started),
+  since the hook's path follows the prefix (1 October 2026). The script configures with `-DCMAKE_INSTALL_PREFIX=/usr`
+  now. Behind the first failure was another: the script put the server's tree under `HM_COV_DIR`, inside the
+  checkout, which GitLab's docker executor makes under umask 0000, and the server refuses a command run as root -
+  `--apply-environment`, which the same fixture runs beside the server - in a tree whose way another account could
+  change (`platform/root_command.h`): with the prefix right and the tree there, the test failed on that refusal. The
+  tree is `linux-suite.sh`'s to choose now, as in the `linux-suite` job - `/var/lib/hmtest-tree`, in the job's own
+  container, when the way to the checkout is not root's alone - unless `HM_TREE` names one. Run in the job's image
+  with a checkout made under umask 0000, the fixture's eight tests: one failed with the tree in the checkout, eight
+  passed with it chosen by `linux-suite.sh`.
 
 ### Documentation
 

@@ -51,6 +51,17 @@
 #   HM_COV_RUNS     the report step only: which runs to count, by name
 #                   ("testers suite" - the directories profiles-testers and
 #                   profiles-suite); every run under HM_COV_DIR when unset
+#   HM_TREE         where the server's tree goes while the suite runs, as
+#                   linux-suite.sh reads it; unset, linux-suite.sh chooses, as in
+#                   the linux-suite job: in the checkout when the way to it is
+#                   root's alone, and /var/lib/hmtest-tree when it is not - a
+#                   checkout GitLab's docker executor made under umask 0000, or
+#                   one mounted from a user's clone. The server refuses a root
+#                   command (--apply-environment, --apply-profile and the
+#                   others, platform/root_command.h) in a tree whose way another
+#                   account could change, and the suite runs one beside the
+#                   server (Security/AutoBanHookRetry, --apply-environment),
+#                   which then fails and measures nothing of the command.
 #
 # What it leaves in HM_COV_DIR:
 #   summary.txt        the totals, and the runs they count, each with its scope
@@ -91,7 +102,6 @@ build_dir="$cov/build"
 run="${HM_COV_RUN:+-$HM_COV_RUN}"
 profiles="$cov/profiles-suite$run"
 suite_results="$cov/suite$run"
-tree="$cov/tree$run"
 jobs="${HM_BUILD_JOBS:-6}"
 src="$root/hmailserver/source/Server"
 binary="$build_dir/hmailserver"
@@ -101,8 +111,14 @@ build() {
   clang --version | head -n 1
   rm -rf "$build_dir" "$cov"/profiles-*
   mkdir -p "$cov"
+  # Configured as build/ci/linux-build.sh configures the server linux-suite runs,
+  # with coverage beside: the prefix too, which the server's compiled-in paths
+  # follow. Without it the prefix was /usr/local, the server ran the packaged
+  # auto-ban hook from /usr/local/lib/hmailserver, where the suite's stand-in for it
+  # is not (Security/AutoBanHookRetry puts it at /usr/lib/hmailserver, the
+  # packages' path), and two of that fixture's tests failed.
   if ! cmake -S "$src" -B "$build_dir" -G Ninja -DHM_COVERAGE=ON \
-        -DCMAKE_BUILD_TYPE=Release > "$cov/configure.log" 2>&1; then
+        -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr > "$cov/configure.log" 2>&1; then
     cat "$cov/configure.log"
     echo "CONFIGURE FAILED"
     exit 3
@@ -145,7 +161,10 @@ suite() {
   export LLVM_PROFILE_FILE="$profiles/hm-%p%c.profraw"
   export HM_SERVER_BINARY="$binary"
   export HM_RESULTS_DIR="$suite_results"
-  export HM_TREE="$tree"
+  # The tree is linux-suite.sh's to choose unless HM_TREE says where (above): until
+  # October 2026 this script put it under HM_COV_DIR, inside the checkout, whose way
+  # in GitLab's job is every account's, and the server refused the root command a
+  # fixture runs beside it there.
   started=$(date +%s)
   # HM_LINUX_SUITE_FILTER is always set here, so that one left in the environment
   # cannot make "the whole" a part.
@@ -156,7 +175,7 @@ suite() {
     HM_LINUX_SUITE_FILTER="" bash build/ci/linux-suite.sh
   fi
   code=$?
-  HM_RESULTS_DIR="$suite_results" HM_TREE="$tree" bash build/ci/linux-suite.sh collect > /dev/null
+  HM_RESULTS_DIR="$suite_results" bash build/ci/linux-suite.sh collect > /dev/null
   echo "the suite exited $code after $(( ($(date +%s) - started) / 60 )) min; $(find "$profiles" -name '*.profraw' | wc -l) counter file(s)"
   # A failed test does not void the measure: it is which lines ran. The pass or
   # fail truth is linux-suite's, on the uninstrumented build. A suite that did not
