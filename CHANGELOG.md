@@ -971,7 +971,12 @@ with `--check`).
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices")
   and `LicenseRef-No-Licence-Stated` for the eight files of test data and the installer's routines and declarations
-  that no licence is stated for - two of the eight the fuzzers' regression inputs, which the fuzzers' table gave
+  that no licence is stated for, and for the debugger rule of the original's developer tools,
+  `hmailserver/tools/VS2005/autoexp.dat`, which is Visual Studio's own rule for `std::basic_string<wchar_t>` from
+  the `autoexp.dat` of the versions before Visual Studio 2010, its type renamed `CStdStr<wchar_t>` and its preview
+  and stringview laid out a token group to a line, and which names Microsoft beside Martin Knafve and the
+  maintainers under `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`, where the generated table gave it the
+  project's licence alone - two of the eight the fuzzers' regression inputs, which the fuzzers' table gave
   the maintainers and the AGPL: the MIME fuzzer's `heap-buffer-overflow-findstring-boundary-scan`,
   which is Alt-N's DKIM reply, `altn.response.txt`, as the fuzzer changed it, and has that reply's record now, and
   the MIME decode fuzzer's `out-of-memory-mimeunicodeencoder-encodevalue`, which is a selector byte and Eland

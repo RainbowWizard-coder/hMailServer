@@ -2621,7 +2621,11 @@ Windows service declarations and four of its service functions from
 (`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
 with `IsServiceStopped`, the original's copy of `IsServiceRunning` that tests for
 `SERVICE_STOPPED`, and that part of it as `LicenseRef-No-Licence-Stated` beside the
-project's licence, since the article states no licence for them; the licence texts and
+project's licence, since the article states no licence for them; the original's
+debugger rule for its wide strings, `hmailserver/tools/VS2005/autoexp.dat`, which is
+Visual Studio's own rule for `std::basic_string<wchar_t>` renamed, with Microsoft and
+`LicenseRef-No-Licence-Stated` beside the original's holders and the project's
+licence; the licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data
 no licence was stated for as `LicenseRef-No-Licence-Stated`, two fuzzers' regression

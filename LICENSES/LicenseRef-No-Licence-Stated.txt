@@ -1,13 +1,16 @@
 No licence stated.
 
 The holders of the material given this identifier have stated no licence for
-it. It is other parties' material: replies captured from other parties' mail
-servers (two of them also as a fuzzer changed them), a security advisory's
-text and a certificate authority's certificate, kept in the tree as input to
-the project's tests, and a few routines and declarations of an article that
-states no licence, which the Windows installer's script has kept since the
-original hMailServer took them from it. Where a file's identifier joins this
-one to a licence, that licence is for the rest of the file.
+it, or none but a product's own terms for its users. It is other parties'
+material: replies captured from other parties' mail servers (two of them also
+as a fuzzer changed them), a security advisory's text and a certificate
+authority's certificate, kept in the tree as input to the project's tests; a
+few routines and declarations of an article that states no licence, which the
+Windows installer's script has kept since the original hMailServer took them
+from it; and a debugger rule of the autoexp.dat that Visual Studio installs
+under its own terms, which the original's developer tools kept. Where a file's
+identifier joins this one to a licence, that licence is for the rest of the
+file.
 The project grants no licence for this material and claims no right in it. A
 distribution that carries only files under a licence leaves these files out,
 as the Debian source package does (its copyright file's Files-Excluded).
