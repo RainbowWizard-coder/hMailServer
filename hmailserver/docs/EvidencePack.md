@@ -518,9 +518,11 @@ internal assertion (RELEASE.md, steps 8b and 9), and every defect fix needs a
 test that fails without it (step 3). The native server's line coverage over
 the Windows suite was measured at 73.48% *(unreleased)*
 ([CHANGELOG.md](../../CHANGELOG.md), *Build and tests*).
-On Linux, with branches, the suite and the tester programs reach 49.01% of the
-Linux build's lines and 38.87% of its branches *(unreleased)*
-(`build/ci/linux-coverage.sh`, the suite in two runs merged) - a floor, for the reasons
+On Linux, with branches, the suite and the tester programs reached 57.58% of the
+Linux build's lines and 46.10% of its branches in the first run of the weekly
+`linux-coverage` job on GitLab, on 24 October 2026 *(unreleased)*
+(`build/ci/linux-coverage.sh`; 49.01% and 38.87% by hand on 26 September 2026,
+the suite in two runs merged) - a floor, for the reasons
 [ContinuousIntegration.md](ContinuousIntegration.md) gives (*The coverage
 schedule*).
 

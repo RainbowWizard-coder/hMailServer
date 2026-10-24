@@ -411,17 +411,22 @@ credible.
   47.23% of its regions and 38.87% of its branches
   (`build/ci/linux-coverage.sh`; the suite in two runs whose counters were
   merged - the whole of it before 29 fixtures were linked into it that day,
-  and those fixtures on their own). That is a floor rather than the Windows
+  and those fixtures on their own). The `linux-coverage` job has run the
+  same measure on GitLab weekly since 24 October 2026 (the schedule
+  described `coverage`, Sundays at 03:40 UTC); its first run, pipeline
+  2983513656 over the whole suite of that day, reached 57.58% of the lines,
+  55.47% of the regions and 46.10% of the branches, which GitLab keeps as
+  the project's coverage ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+  *The coverage schedule*). That is a floor rather than the Windows
   figure's equal: the Linux suite runs only the fixtures its REST shims can
   drive, the Linux build has no COM layer, and llvm-cov counts every line of a
   function where OpenCppCoverage counts the lines an optimised build keeps.
   Every figure is below the 80% the OpenSSF silver level asks of statements,
   and the branch figure far below the 80% gold asks of branches. Both scripts
   are in the repository - `build/coverage-windows.ps1`, and
-  `build/ci/linux-coverage.sh`, which the `linux-coverage` job runs on a
-  weekly schedule the owner has yet to create - but neither is a release step,
-  the job has not run on GitLab and the Windows script has not run from the
-  tree, so the figures are not yet repeated for each release. The .NET Control
+  `build/ci/linux-coverage.sh`, which the `linux-coverage` job runs weekly -
+  but neither is a release step, and the Windows script has not run from the
+  tree, so the figures are not repeated for each release. The .NET Control
   Panel's coverage was collected by CI on GitHub (`ci.yml`) until 18 September
   2026 and is not collected on GitLab yet, nor on GitHub since then.
 - **Reproducibility has been shown on the project's own machines only.**

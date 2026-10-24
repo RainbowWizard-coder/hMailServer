@@ -103,7 +103,7 @@ The other tables on this page name runners the same way.
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `build-inputs-authenticode` | build | bench150 | a protected ref | Every build input downloaded afresh and held to its pinned SHA-256, and every third-party file the installers take from one held to the Authenticode record `third-party-binaries.json` keeps for it: signed by the signer recorded, with a timestamp, or unsigned (`build/ci/build-inputs-authenticode.ps1`); then that check and `release-authenticode`'s pin tested, each refusing what it must (`build/ci/authenticode-selftest.ps1`). `windows-packages-x64`, `windows-packages-arm64` and `windows-installer` need it ([ThirdPartyBinaries.md](ThirdPartyBinaries.md), "What checks it") |
 | `linux-fuzz` | test | linix | the schedule described `fuzz`, and nothing else | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`); its findings are its artifact, for Developers and above |
-| `linux-coverage` | test | linix | the schedule described `coverage`, and nothing else | The server and its tester programs built with clang's source-based coverage, the testers and the whole Linux suite run against it, and llvm-cov's line, region and branch figures (`build/ci/linux-coverage.sh`, [The coverage schedule](#the-coverage-schedule)) |
+| `linux-coverage` | test | linix | the schedule described `coverage`, and nothing else | The server and its tester programs built with clang's source-based coverage, the testers and the whole Linux suite run against it, and llvm-cov's line, region and branch figures, with a Cobertura report (`build/ci/linux-coverage.sh`, [The coverage schedule](#the-coverage-schedule)) |
 | `static-analysis` | test | linix | a protected ref; a `batch*` branch by what it changes from `master` ([Change checks](#change-checks)) | cppcheck and clang-tidy over the server's C++, held to a baseline and to `master`'s exceptions file ([Security scanning](#security-scanning)) |
 | `semgrep` | test | linix | the same | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline and to `master`'s exceptions file |
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
@@ -481,7 +481,8 @@ on bench150 and S1-WINBENCH; `package-systemd-ubuntu26.04` and
 machines have not; `nix`, which boots a QEMU machine and asks for the tags `linix`
 and `kvm`, which server2 alone carries ([server2](#server2)); `db-matrix`, which
 reaches the lab on linix; `linux-fuzz` and `linux-coverage`, the one keeping its
-corpus in linix's own cache and the other longer than GitLab's three hours;
+corpus in linix's own cache and the other given longer than GitLab's three hours
+(its first run took 2 h 48 min on linix, the suite growing every batch);
 `forge-export`, whose archives are kept in linix's cache, off GitLab;
 `dependency-scan-verdict`, which reads the verdict `dependency-scan` wrote, on
 linix wherever the scan ran, and so spends no minute; `renovate`,
@@ -2722,16 +2723,17 @@ The coverage schedule
 `linux-coverage` measures how much of the native server the tests reach, the
 figure the OpenSSF criteria `test_statement_coverage80`, `test_statement_coverage90`
 and `test_branch_coverage80` ask for. `build/ci/linux-coverage.sh` configures the
-server with `-DHM_COVERAGE=ON` (clang's `-fprofile-instr-generate
+server as `linux-build` configures the one `linux-suite` tests, prefix `/usr` and
+all, with `-DHM_COVERAGE=ON` beside (clang's `-fprofile-instr-generate
 -fcoverage-mapping`, counters written continuously so that a server stopped by
 SIGKILL still leaves them), runs the `*-tests` programs, then
 `build/ci/linux-suite.sh` - the whole of LinuxRegressionTests on the same
-PostgreSQL 18 service - against the instrumented server, and merges the
-counters with `llvm-profdata`. Its artifact, kept 30 days, is `summary.txt`
-(lines, regions, branches and functions), `report.txt` (one line per file),
-`coverage.json`, `lcov.info` and the suite's results; GitLab reads the line
-figure from the log (`coverage:`). The vendored QuickJS and zlib are left out of
-the figure and counted in `report-with-vendored.txt`.
+PostgreSQL 18 service, the server's tree where `linux-suite` puts it - against
+the instrumented server, and merges the counters with `llvm-profdata`. Its
+artifact, kept 30 days, is `summary.txt` (lines, regions, branches and
+functions), `report.txt` (one line per file), `coverage.json`, `lcov.info`, the
+Cobertura report and the suite's results. The vendored QuickJS and zlib are left
+out of the figure and counted in `report-with-vendored.txt`.
 
 The figure is a floor for the server as a whole: the Linux suite links the
 fixtures the REST shims can drive, fewer than the Windows suite runs, and the
@@ -2746,12 +2748,89 @@ the whole suite's name. `summary.txt` gives each run's tests - run, passed,
 failed, skipped - beside its scope. By hand on linix, the script's header gives the two
 `docker run` lines, with a PostgreSQL container on a network of its own.
 
-**Creating the schedule is a one-time step for the owner**, as for the fuzz
-schedule: description exactly `coverage`, interval pattern `40 3 * * 0`
-(custom, UTC - Sunday 03:40, after the night's fuzzing), target branch `master`,
-no variables, activated. The job takes linix for about three hours: the
-instrumented build, then the whole suite, which with the fixtures linked on 26
-September 2026 comes to some two and a half hours (*What they cost*).
+**When it runs.** In the pipeline of the schedule described `coverage`, weekly,
+and in no other: its rule asks for a scheduled pipeline on a protected ref whose
+schedule's description is `coverage`, and every other job refuses that pipeline
+(`pages` by its description, the rest because it is a schedule's). The schedule
+is 4509741, made on 24 October 2026 through GitLab's API with `glab`:
+description `coverage`, interval pattern `40 3 * * 0` in UTC - Sunday 03:40,
+after the night's fuzzing - target branch `master`, no variables, active, and
+owned, as the other schedules are, by the maintainer account that may push to
+`master`. To make it again, follow the fuzz schedule's steps (above) with those
+values. It takes a place of linix, server2 or s1-linux for about three hours
+(*What they cost*), and a newer push does not cancel it.
+
+**Where to read it.**
+
+- The job's log ends with `summary.txt`. GitLab reads the line figure from its
+  `lines:` line - the job's `coverage:` expression,
+  `lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)`, which GitLab looks for from the
+  end of the log - and shows it as the job's coverage in the job and pipeline
+  lists, as that pipeline's coverage, and in the project's coverage history:
+  *Analyze*, *Repository analytics*, the job `linux-coverage` in its list, one
+  point a day for `master`, with *Download raw data (.csv)*.
+- The Cobertura report (`build/ci/coverage-cobertura.py`), `cobertura-1.xml`
+  and on in the artifact - over the 10 MiB GitLab reads of one file, it is
+  split, whole folders to a file - is the job's `coverage_report`: each source
+  file by its path from the checkout's root, each line llvm-cov maps once, with
+  its count and its branches. It counts fewer lines than the figure: llvm-cov's
+  summary adds up each function's lines, so that a line inside a lambda counts in
+  the lambda and again in the function around it - on 24 October 2026, 307,733
+  lines where the source has 300,380 that llvm-cov maps, 2,043 of the difference
+  in `DatabaseTransactionTester.cpp`, whose checks are lambdas. The figures
+  llvm-cov writes into `lcov.info` from its summary must be `coverage.json`'s,
+  file for file, or the job fails, so the report and the figure are one export
+  of one run. GitLab marks a merge request's diff from it only when that merge
+  request's head pipeline ran the job, and no merge request's does: a batch's
+  merge request is held to its branch's pipeline, which runs no
+  `linux-coverage`, and so its widget shows no coverage either.
+- GitLab's coverage badge does not show it:
+  `https://gitlab.com/hmailserver/hmailserver/badges/master/coverage.svg`
+  takes the figure of the newest successful pipeline of `master`, and with
+  `?job=linux-coverage` that job's in the newest pipeline of each status
+  (`Gitlab::Ci::Badge::Coverage::Report`), and the daily schedules' pipelines on
+  `master` - Renovate's, the fuzz schedule's, the update feed's - are newer than
+  the coverage schedule's within hours and run no coverage job. At 03:30 UTC on
+  24 October 2026, four minutes after the first run had given its pipeline
+  57.58%, both read `unknown`: Renovate's pipeline of 01:35 and the fuzz
+  schedule's of 02:22 were newer. A badge with the figure needs it published
+  where it stays, as the Scorecard result is on the feed's site
+  ([OpenSSF Scorecard](#openssf-scorecard)); that is not done.
+
+**The first run**, the schedule played through the API at 00:37 UTC on 24
+October 2026: pipeline 2983513656, `linux-coverage` alone (job 17432363944, on
+linix, at `6fb8164c6`), 2 h 48 min - the instrumented build 800 s with six jobs,
+the testers under a minute, the whole suite 150 minutes, the report seconds. The
+suite ran 2,652 tests: 2,282 passed, 2 failed, 368 skipped. Lines 177,196 of
+307,733 (57.58%), regions 133,418 of 240,510 (55.47%), branches 70,507 of
+152,948 (46.10%), functions 12,508 of 17,853 (70.06%), over 1,107 files; GitLab
+took 57.58% as the job's and the pipeline's coverage, and its project coverage
+summary holds 57.58% for that day. The two failures were the coverage build's
+own, two tests of `Security/AutoBanHookRetry` that `linux-suite` passes: the
+script configured the instrumented server without `linux-build`'s prefix, so it
+ran the packaged auto-ban hook from `/usr/local/lib/hmailserver`, where the
+fixture's stand-in is not; and behind that, the script put the server's tree
+inside the checkout, which GitLab makes under umask 0000, where the server
+refuses the `--apply-environment` the same fixture runs as root beside it
+(`platform/root_command.h`). Both are fixed. The job's script with
+both fixed, run by hand the same day in the job's image as the job runs it -
+beside the same PostgreSQL 18 service, in a checkout made under umask 0000 as
+GitLab makes it, `before_script` and `script` as the job lists them - took 2 h
+39 min: 2,652 tests, 2,284 passed, 0 failed and 368 skipped, as `linux-suite`
+on `master` has them; lines 177,409 of 307,733 (57.65%), regions 133,569 of
+240,510 (55.54%), branches 70,616 of 152,948 (46.17%), functions 12,523 of
+17,853 (70.15%), and the job's expression reads 57.65 from that log; the
+Cobertura report, two files of 4.3 and 7.6 MB, names 1,107 files, each of them
+in the checkout, and 172,066 of 300,380 source lines run.
+
+What it covers: everything under `hmailserver/source/Server` the Linux build
+compiles, 1,107 files, but the vendored code and the tester programs' own main
+files. In that run the folders with the most lines not run were `Common/Util`
+(57.56% of 149,851 lines), `Common/Application` (46.52% of 27,257),
+`Common/Persistence` (37.30% of 17,382) and `SMTP` (56.02% of 17,841); PST
+import (`Common/Pst`, 0.14%) and the anti-virus scanners (`Common/AntiVirus`,
+12.19%) have no fixture of their own in the Linux suite, and `IMAP` (84.50%) and
+`Common/Sieve` (81.92%) are above the silver level's 80%.
 
 What the first runs by hand found
 ---------------------------------
@@ -4395,7 +4474,7 @@ measured times after the first pipelines.
 | `windows-gate`, `windows-gate-s1vm` | about 2 h on bench150, at the same time as the other half on S1-WINBENCH, estimated | 4 h | The whole suite in one job took 3 h 25 min on bench150 at `1df1dc3e7` (pipeline 2944202315, 13 October 2026), 198 minutes of it the tests: those of `windows-gate`'s half took 105 minutes there, and those of `windows-gate-s1vm`'s 94. Each job runs one half with its own build, on its own bench; S1-WINBENCH has run no half yet (it built the server in 1 min 58 s on 13 October 2026). Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
-| `linux-coverage` | about 3 h, estimated | 4 h | By hand on linix on 26 September 2026, in the job's image: the whole suite against the instrumented server took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own; the testers took under a minute and the report seconds. The instrumented build was not timed on its own; `linux-build`'s took 20 minutes in the first pipeline |
+| `linux-coverage` | about 3 h | 4 h | 2 h 48 min in its first pipeline, 2983513656 on 24 October 2026, on linix: the instrumented build 800 s with six jobs, the testers under a minute, the whole suite (2,652 tests) 150 minutes, the report under a minute. By hand on linix on 26 September 2026, in the job's image, the suite of that day took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own |
 | `static-analysis` | 35 to 75 min | 120 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files. 44 min in `batch42`'s pipeline 2897966924; 72 min by hand on linix on 2 October 2026 with six, beside other agents' work (load 17 to 21 on 16 CPUs), clang-tidy 67 min of it for 814 files. Two hours since 6.3.6, when the job lost `allow_failure` and a run cut off fails the pipeline |
 | `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
@@ -5905,7 +5984,7 @@ docs.gitlab.com on 28 September 2026:
 | Pipeline secret detection | Free | Yes, and it fails a pipeline |
 | JUnit reports, the pipeline's *Tests* tab | Free | Yes, every scan and suite writes one |
 | Code Quality: a job's `codequality` report in the merge request widget | Free (the pipeline's Code Quality tab is Premium; the diff view and the project summary Ultimate) | No: see below |
-| Coverage in a merge request's diff (Cobertura) | Free | No: the coverage job is weekly, not per merge request |
+| Coverage in a merge request's diff (Cobertura) | Free | No: the coverage job writes the report, but runs in its weekly schedule's pipeline alone, which is no merge request's head pipeline |
 | Project badges | Free | Yes |
 | Merge request approvals, optional | Free: they "don't prevent merging" | Yes; the landing script requires them |
 | Required approval rules, code owners' approval | Premium, Ultimate | No |
