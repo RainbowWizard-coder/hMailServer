@@ -1632,6 +1632,14 @@ with `--check`).
   CAs are ports of their own, 10281 and 10282, outside RestApiAcme's (10270 to 10280, 10283 and 10284), whose cooldown
   at a shared port held its checks.
 
+- **`build/check-package-licenses.py` holds the Ansible collection's two licence fields.** Its scan reads every YAML
+  file under `platform/packaging/`, and the collection's `galaxy.yml` `license` and its role's `galaxy_info`
+  `license` were licence fields it did not hold, so it failed on them. Both are now among the fields that name the
+  project's licence alone (`OWN_LICENCE_ONLY`, six with them), since the collection is the project's own role and
+  tests and carries no binary: each must be there once and say `AGPL-3.0-or-later`, `galaxy.yml`'s as a list of that
+  one item. The self-test's fixture has both files, and five negative controls more - another licence, a second item,
+  the licence written as a string on the key's line, another licence in the role and a second licence key there -
+  each refused.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

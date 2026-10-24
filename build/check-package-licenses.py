@@ -5,9 +5,10 @@
 
 """The licence fields of the Linux packages name what is compiled into the server, or the project's licence alone.
 
-Nine fields, in the files the Linux packages, the snap, the container image and the Helm
-chart are made from, say under which licences each goes out, where a package manager, a
-store, a registry, a distribution and an auditor read it. This holds all nine.
+Eleven fields, in the files the Linux packages, the snap, the container image, the Helm
+chart and the Ansible collection are made from, say under which licences each goes out,
+where a package manager, a store, a registry, a distribution and an auditor read it. This
+holds all eleven.
 
 Five of them (FIELDS) name the licences of what is compiled into the server: the
 project's own .rpm (CPACK_RPM_PACKAGE_LICENSE in CMakeLists.txt), the RPM spec's License,
@@ -19,17 +20,18 @@ them named neither licence of the two data sets idn-uts46 compiled in - Unicode'
 UTS 46 (Unicode-3.0) and HTML's list of named character references (BSD-3-Clause) - and
 the PKGBUILD named the AGPL alone (release review 6.3.7, B-DOC-1).
 
-The other four (OWN_LICENCE_ONLY) name the project's own licence alone, each for the
+The other six (OWN_LICENCE_ONLY) name the project's own licence alone, each for the
 reason given there: the snap's license, the container image's
-org.opencontainers.image.licenses and io.artifacthub.package.license labels, and the Helm
-chart's artifacthub.io/license. The snap and the image carry the .deb's files, and with
+org.opencontainers.image.licenses and io.artifacthub.package.license labels, the Helm
+chart's artifacthub.io/license, and the Ansible collection's galaxy.yml license and its
+role's galaxy_info license. The snap and the image carry the .deb's files, and with
 them its copyright file and the notices of what is compiled into the server; the chart
-carries no binary. Each must be there once and say AGPL-3.0-or-later, so that one made to
-name more is decided here - moved to FIELDS and held to what is compiled in - rather than
-left short of it.
+and the collection carry no binary. Each must be there once and say AGPL-3.0-or-later,
+so that one made to name more is decided here - moved to FIELDS and held to what is
+compiled in - rather than left short of it.
 
 And no other line of the files the scan reads is a licence field, nor is there one on the
-line of one of the nine after the field read there: a field this holds shares its line with
+line of one of the eleven after the field read there: a field this holds shares its line with
 no other licence field, for a Dockerfile's LABEL takes several key=value pairs on a line,
 and the image gets the last of a key. It reads the files of snap/, nix/ and
 platform/packaging/ (SCANNED_DIRECTORIES), flake.nix, the CMakeLists and
@@ -191,6 +193,9 @@ CMAKELISTS = SERVER + "/CMakeLists.txt"
 SNAPCRAFT = "snap/snapcraft.yaml"
 DOCKERFILE = PACKAGING + "/docker/Dockerfile"
 CHART = PACKAGING + "/helm/hmailserver/Chart.yaml"
+COLLECTION = PACKAGING + "/ansible/ansible_collections/progressiverobot/hmailserver"
+GALAXY = COLLECTION + "/galaxy.yml"
+ROLE_META = COLLECTION + "/roles/hmailserver/meta/main.yml"
 LINUX_IMAGE = "build/ci/linux-image.sh"
 
 OWN = "AGPL-3.0-or-later"
@@ -261,6 +266,11 @@ OWN_LICENCE_ONLY = (
      "Artifact Hub takes one SPDX identifier there"),
     ("the Helm chart's artifacthub.io/license", CHART, "chart-annotation",
      "Artifact Hub takes one SPDX identifier there, and the chart's files are the project's own"),
+    ("the Ansible collection's license", GALAXY, "galaxy-license",
+     "the collection is the project's own role and tests and carries no binary: the server it installs comes in the "
+     "channels' packages, each with its own licence field and notices"),
+    ("the Ansible role's galaxy_info license", ROLE_META, "role-license",
+     "the role is the project's own and carries no binary, as the collection it is in does not"),
 )
 
 # A value on its key's line as the snap's and the chart's YAML writes it - in double or
@@ -288,6 +298,11 @@ READERS = {
     "artifacthub-label": re.compile(r"^[ \t]*(?:LABEL[ \t]+)?io\.artifacthub\.package\.license=" + LABEL_VALUE,
                                     re.MULTILINE),
     "chart-annotation": re.compile(r"^[ \t]+artifacthub\.io/license:[ \t]*" + YAML_VALUE, re.MULTILINE),
+    # galaxy.yml's license, a list, as the collection writes it: one item on the line after
+    # the key, and no second item after it, which ansible-galaxy would take as well.
+    "galaxy-license": re.compile(r"^license:[ \t]*\n  - " + YAML_VALUE + r"(?!\n[ \t]*- )", re.MULTILINE),
+    # The role's galaxy_info license, a key of galaxy_info, indented two.
+    "role-license": re.compile(r"^  license:[ \t]*" + YAML_VALUE, re.MULTILINE),
 }
 BOOST_OPTION = re.compile(r'^option\(HM_BOOST_STATIC "[^"\n]*" (ON|OFF)\)', re.MULTILINE)
 BOOST_OFF = "-DHM_BOOST_STATIC=OFF"
@@ -318,7 +333,9 @@ CHART_ANNOTATIONS = re.compile(r"^annotations:(?:[ \t]+(?:#[^\n]*)?)?$")
 CHART_ANNOTATIONS_KEY = re.compile(r"""^(?:\?[ \t]+)?["']?annotations["']?[ \t]*(?::|$)""", re.MULTILINE)
 YAML_DOCUMENT_START = re.compile(r"^---(?=[ \t]|$)")
 YAML_DOCUMENT_END = re.compile(r"^\.\.\.(?=[ \t]|$)")
-YAML_KINDS = ("snap", "chart-annotation")
+YAML_KINDS = ("snap", "chart-annotation", "role-license")
+# Read on the lines it spans by its reader alone, which holds them as YAML would read them.
+OWN_READ_KINDS = ("galaxy-license",)
 # The files whose own readers take a byte order mark off their start - a Dockerfile, whose
 # first line buildkit takes it off, and a YAML file, which PyYAML and Helm read without it -
 # and which are read here without it, so that a parser directive or a key on the first line
@@ -683,7 +700,10 @@ def own_value(kind, text):
     found = list(READERS[kind].finditer(text))
     if len(found) != 1:
         return None, "is there %d time(s), not once" % len(found)
-    wrong = yaml_misread(kind, text, found[0]) if kind in YAML_KINDS else docker_misread(text, found[0])
+    if kind in OWN_READ_KINDS:
+        wrong = None
+    else:
+        wrong = yaml_misread(kind, text, found[0]) if kind in YAML_KINDS else docker_misread(text, found[0])
     if wrong:
         return None, wrong
     return "".join(group or "" for group in found[0].groups()), None
@@ -887,6 +907,8 @@ GOOD = {
                  '      io.artifacthub.package.keywords="mail"\n'),
     CHART: ('apiVersion: v2\nname: hmailserver\nannotations:\n  artifacthub.io/license: AGPL-3.0-or-later\n'
             '  artifacthub.io/prerelease: "false"\n'),
+    GALAXY: "---\nnamespace: progressiverobot\nlicense:\n  - AGPL-3.0-or-later\ntags:\n  - linux\n",
+    ROLE_META: "---\ngalaxy_info:\n  role_name: hmailserver\n  license: AGPL-3.0-or-later\n  min_ansible_version: \"2.19\"\n",
     # The labels kaniko is given, and the image's licence label read back by name.
     LINUX_IMAGE: ('"$executor" \\\n'
                   '    --label "org.opencontainers.image.version=$version" \\\n'
@@ -898,7 +920,7 @@ GOOD = {
 }
 # The files of GOOD the scan reads, named here rather than found by the code it tries.
 GOOD_SCANNED = (CMAKELISTS, PACKAGING + "/rpm/hmailserver.spec", PACKAGING + "/alpine/APKBUILD", PACKAGING + "/PKGBUILD",
-                "nix/package.nix", SNAPCRAFT, DOCKERFILE, CHART, LINUX_IMAGE)
+                "nix/package.nix", SNAPCRAFT, DOCKERFILE, CHART, LINUX_IMAGE, GALAXY, ROLE_META)
 # A tree for the scan's own listing: beside GOOD's files, files of each kind in the places
 # the scan reads - one in each place at least, and each optional part of a kind's names
 # spelt out by one of them (.spec and .spec.in, .yml and .yaml.in, Dockerfile.<suffix> and
@@ -1122,7 +1144,18 @@ def self_test():
     expect("a component whose licence changed", changed(ASSET_SBOM, '"q", "MIT"', '"q", "Apache-2.0"'),
            "gives quickjs (QuickJS) the licence Apache-2.0, and COMPILED_IN here MIT")
     expect("no SOURCE_COMPONENTS", changed(ASSET_SBOM, "SOURCE_COMPONENTS = [", "COMPONENTS = ["), "has no SOURCE_COMPONENTS list")
-    # The four that name the project's licence alone, each held to it.
+    # The six that name the project's licence alone, each held to it.
+    expect("the collection naming another", changed(GALAXY, "  - AGPL-3.0-or-later", "  - MIT"),
+           "the Ansible collection's license (%s) names MIT" % GALAXY)
+    expect("the collection naming a second", changed(GALAXY, "  - AGPL-3.0-or-later\n", "  - AGPL-3.0-or-later\n  - MIT\n"),
+           "the Ansible collection's license (%s) is there 0 time(s), not once" % GALAXY)
+    expect("the collection's licence as a string on the key's line", changed(GALAXY, "license:\n  - AGPL-3.0-or-later",
+                                                                          "license: AGPL-3.0-or-later"),
+           ["the Ansible collection's license (%s) is there 0 time(s), not once" % GALAXY, "%s:3 (license: " % GALAXY])
+    expect("the role naming another", changed(ROLE_META, "  license: AGPL-3.0-or-later", "  license: GPL-2.0-only"),
+           "the Ansible role's galaxy_info license (%s) names GPL-2.0-only" % ROLE_META)
+    expect("the role with a second licence key", changed(ROLE_META, "  min_ansible_version", "  licence: MIT\n  min_ansible_version"),
+           "%s:5 (licence: MIT) is a licence field this does not hold" % ROLE_META)
     expect("the snap naming what is compiled in as well", changed(SNAPCRAFT, "license: AGPL-3.0-or-later",
                                                                   "license: AGPL-3.0-or-later AND MIT"),
            "the snap's license (%s) names AGPL-3.0-or-later AND MIT, and it names the project's licence alone" % SNAPCRAFT)
@@ -1618,7 +1651,7 @@ def main(argv):
     print("OK: the five licence fields each name the server's licence and those of what is compiled into it:")
     for what, path, kind, _ in FIELDS:
         print("  %s: %s" % (what, " AND ".join(field_value(kind, texts[path])[0])))
-    print("the four that name the project's licence alone do:")
+    print("the six that name the project's licence alone do:")
     for what, path, kind, _ in OWN_LICENCE_ONLY:
         print("  %s: %s" % (what, own_value(kind, texts[path])[0]))
     scanned = [p for p in texts if in_scope(p) and field_lines_of(p)]
