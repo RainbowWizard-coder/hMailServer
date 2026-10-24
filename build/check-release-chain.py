@@ -6708,8 +6708,11 @@ def start_test_update_problems(script):
     offers to download it and install it into the container
     (hmailserver/docs/LiveUpdateKinds.md), and until this nothing started the image and
     asked. The script's lines are read, not bash: a line of the ask changed, the ask
-    taken out or moved, or a line put among its lines - which a block that is not run, or
-    a check made to pass, would need - fails here."""
+    taken out or moved, or a line put among its lines (an if false, or an || echo on one
+    of them) fails here. Only these lines are read: what keeps them from running, or
+    answers in curl's place, from outside them is not seen - an if, a group or a
+    here-document opened before the version's line and closed after the schema's, a
+    function named curl, or a second ask_image defined after this one."""
     name = FILES["image-start"].replace(os.sep, "/")
     lines = script.replace("\r\n", "\n").split("\n")
     try:

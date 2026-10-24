@@ -427,8 +427,9 @@ container_scanning_arm64:
     HM_SCAN_ARCH: arm64
 
 # The pushed image started as a user starts it, twice - beside PostgreSQL as mail and
-# beside MariaDB as mail-mariadb - and each asked for SMTP and the REST API, and its
-# database read for the schema the server laid out in it: services on one network of
+# beside MariaDB as mail-mariadb - and each asked for SMTP, the REST API and whether its
+# update check knows it runs in a container (GET /api/v1/update), and its database
+# read for the schema the server laid out in it: services on one network of
 # the job's own (FF_NETWORK_PER_BUILD), so that each image reaches its database by its
 # alias; the image by the index's digest container-image's dotenv report names
 # (HM_IMAGE), which the runner resolves to the linux/amd64 image, linix's own platform,

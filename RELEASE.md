@@ -307,7 +307,8 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    SBOM; `container-image-sign` signs it by digest as the same pipeline and
    attests the SBOM to it; `container_scanning` scans it; and
    `container-image-start` starts it beside PostgreSQL and beside MariaDB and
-   asks each for SMTP and the REST API. Read
+   asks each for SMTP, the REST API and whether its update check knows it
+   runs in a container (`GET /api/v1/update`). Read
    `container-image-signed/verification.txt`, the scan's report and the start
    test's log. A check that fails after the push
    leaves tags naming an image that did not pass, which the job lists: delete
