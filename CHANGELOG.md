@@ -288,7 +288,7 @@ with `--check`).
   `external-link` and `i-expand` after `maximize-2`, each drawn in a unit towards the centre, and `i-bell-off` after
   `bell-off`, whose arc it keeps. `i-close`, `i-plus` and the four chevrons are Feather's `x`, `plus` and chevrons as
   they are, and others are near Feather's icon of the same subject, as it is or drawn in about the centre by up to
-  15 per cent, as `i-file` is near Feather's `file` (`i-search`, `i-star`, `i-folder`, `i-move`, `i-plane`,
+  15 per cent, as `i-file` is near Feather's `file` (`i-search`, `i-star`, `i-folder`,
   `i-trash`, `i-warn`, `i-calendar`, `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the
   page in `PortalPageData.cpp`, which `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
   `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.

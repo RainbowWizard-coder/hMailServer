@@ -2422,8 +2422,8 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # "maximize-2". i-close, i-plus and the four chevrons are Feather's "x", "plus" and
 # chevrons as they are. Others are near Feather's icon of the same subject, as it is
 # or drawn in about the centre by up to 15 per cent, as i-file is near its "file":
-# among them i-search, i-star, i-folder, i-move, i-plane, i-trash, i-warn,
-# i-calendar, i-chat and i-storage. The Control Deck's page draws its eye after
+# among them i-search, i-star, i-folder, i-trash, i-warn, i-calendar, i-chat and
+# i-storage. The Control Deck's page draws its eye after
 # Feather's "eye", laid into a box of 16 units; its other icons are plain circles
 # and rectangles with a few straight strokes. The two with the project's header
 # name Feather's holder and licence beside it, and the Control Deck's page, which

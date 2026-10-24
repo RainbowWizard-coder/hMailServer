@@ -10,8 +10,8 @@ after "external-link", i-bell-off after "bell-off" and i-expand after
 "maximize-2". i-close, i-plus and the four chevrons are Feather's "x", "plus"
 and chevrons as they are. Others are near Feather's icon of the same subject,
 as it is or drawn in about the centre by up to 15 per cent, as i-file is near
-Feather's "file": among them i-search, i-star, i-folder, i-move, i-plane,
-i-trash, i-warn, i-calendar, i-chat and i-storage.
+Feather's "file": among them i-search, i-star, i-folder, i-trash,
+i-warn, i-calendar, i-chat and i-storage.
 build/generate-portal-page.py embeds the page in PortalPageData.cpp, which is
 compiled into the server on Windows (hMailServer.exe) and Linux, and the server
 serves it. The Control Deck's page, hmailserver/installation/WebAdmin/
