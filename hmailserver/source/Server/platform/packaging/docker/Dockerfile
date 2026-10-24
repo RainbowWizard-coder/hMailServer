@@ -89,8 +89,8 @@ ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb
 # archive of the pinned base serves.
 #
 # The account is made first, as 999:999, the user and group the post-install
-# script's adduser --system gave it in every image published before (6.3.6 and
-# 6.3.7), and the script, finding it there, leaves it as it is: so its number
+# script's adduser --system gave it in every image published before this line, and
+# the script, finding it there, leaves it as it is: so its number
 # cannot move with what else the install brings. The Helm chart runs the pod as
 # 999:999 by number (Kubernetes cannot hold a named user to runAsNonRoot), and
 # every volume of a deployment is owned by it; the build stops if it is not
