@@ -7,8 +7,11 @@ as a fuzzer changed them), a security advisory's text and a certificate
 authority's certificate, kept in the tree as input to the project's tests; a
 few routines and declarations of an article that states no licence, which the
 Windows installer's script has kept since the original hMailServer took them
-from it; and a debugger rule of the autoexp.dat that Visual Studio installs
-under its own terms, which the original's developer tools kept. Where a file's
+from it; a debugger rule of the autoexp.dat that Visual Studio installs
+under its own terms, which the original's developer tools kept; and a class
+of the Windows tools that the original took from a programming article whose
+publication states no licence, the grant its author's ReadMe is said to give
+being known to the tree only from the original's note on it. Where a file's
 identifier joins this one to a licence, that licence is for the rest of the
 file.
 The project grants no licence for this material and claims no right in it. A

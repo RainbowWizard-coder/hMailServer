@@ -2368,6 +2368,31 @@ SPDX-FileCopyrightText = [
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
 
+# The Windows tools' TabOrderManager, which sets a form's tab order from where its
+# controls lie (the setup wizard's pages use it, Tools/Shared/Wizard/ucWizard.cs): a
+# class by Scott McMaster, whose header the file keeps under the project's - "By
+# Scott McMaster (smcmaste@hotmail.com) 10/10/2004" and his warranty disclaimer -
+# from his CodeProject article "Automatic Runtime Tab Order Management for Windows
+# Forms" (article 8406, 2004). The original kept it (it is in 5.7.0 builds 2788,
+# 2843 and 3013) in the tools' namespace, hMailServer.Shared, with Martin Knafve's
+# note that according to its ReadMe it may be used for any purposes; the article
+# states no licence ("This article has no explicit license attached to it"), and the
+# ReadMe is not in the tree, so his class is LicenseRef-No-Licence-Stated: the
+# project grants no licence for it and claims no right in it. Scott McMaster is named
+# beside Martin Knafve and the maintainers, whose the rest of the file is - the note
+# and the namespace, and the fork's header and layout - under the project's licence.
+# The source tarball, and so the Debian source package, leaves
+# hmailserver/source/Tools/Shared out (build/source-exclusions.txt).
+[[annotations]]
+path = "hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs"
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2004 Scott McMaster",
+    "2005-2026 Martin Knafve / hMailServer.com",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
+
 # The installer's licence page: the project's terms, and the third-party components'
 # notices copied into it verbatim, which name their own holders. Read for this table
 # alone, as the notices are: reuse would take words of those texts for holders.
