@@ -6,7 +6,7 @@
 # (hmailserver/docs/Ansible.md). version is the release whose packages the role's
 # release pins name (roles/hmailserver/vars/release.yml): the galaxy-build job writes
 # the two together for the release it builds, and build/ci/channels/galaxy-publish.py
-# --check holds them to each other in the tree.
+# check holds them to each other in the tree.
 ---
 namespace: progressiverobot
 name: hmailserver

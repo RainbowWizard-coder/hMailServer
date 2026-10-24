@@ -299,8 +299,10 @@ READERS = {
                                     re.MULTILINE),
     "chart-annotation": re.compile(r"^[ \t]+artifacthub\.io/license:[ \t]*" + YAML_VALUE, re.MULTILINE),
     # galaxy.yml's license, a list, as the collection writes it: one item on the line after
-    # the key, and no second item after it, which ansible-galaxy would take as well.
-    "galaxy-license": re.compile(r"^license:[ \t]*\n  - " + YAML_VALUE + r"(?!\n[ \t]*- )", re.MULTILINE),
+    # the key, and no second item after it, which ansible-galaxy would take as well - nor
+    # one after the blank lines, comments and deeper lines the list may go on through.
+    "galaxy-license": re.compile(r"^license:[ \t]*\n  - " + YAML_VALUE
+                                 + r"(?!(?:\n(?:[ \t]*(?:#[^\n]*)?|[ \t]+[^\n]*))*\n[ \t]*-(?:[ \t]|$))", re.MULTILINE),
     # The role's galaxy_info license, a key of galaxy_info, indented two.
     "role-license": re.compile(r"^  license:[ \t]*" + YAML_VALUE, re.MULTILINE),
 }
@@ -1148,6 +1150,12 @@ def self_test():
     expect("the collection naming another", changed(GALAXY, "  - AGPL-3.0-or-later", "  - MIT"),
            "the Ansible collection's license (%s) names MIT" % GALAXY)
     expect("the collection naming a second", changed(GALAXY, "  - AGPL-3.0-or-later\n", "  - AGPL-3.0-or-later\n  - MIT\n"),
+           "the Ansible collection's license (%s) is there 0 time(s), not once" % GALAXY)
+    expect("the collection naming a second after a comment", changed(GALAXY, "  - AGPL-3.0-or-later\n",
+                                                                     "  - AGPL-3.0-or-later\n  # and also\n  - MIT\n"),
+           "the Ansible collection's license (%s) is there 0 time(s), not once" % GALAXY)
+    expect("the collection naming a second after a blank line", changed(GALAXY, "  - AGPL-3.0-or-later\n",
+                                                                        "  - AGPL-3.0-or-later\n\n  - MIT\n"),
            "the Ansible collection's license (%s) is there 0 time(s), not once" % GALAXY)
     expect("the collection's licence as a string on the key's line", changed(GALAXY, "license:\n  - AGPL-3.0-or-later",
                                                                           "license: AGPL-3.0-or-later"),

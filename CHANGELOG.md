@@ -507,16 +507,21 @@ with `--check`).
   `hmailserver/source/Server/platform/packaging/ansible/ansible_collections/progressiverobot/hmailserver`, the layout
   `ansible-test` and `ANSIBLE_COLLECTIONS_PATH` take, and its `galaxy.yml`, the role's description and its README say
   that it is the fork, not the original hMailServer. Its role, `progressiverobot.hmailserver.hmailserver`, installs the
-  server from the Ubuntu PPA on 24.04 and 26.04, from the release's `.deb` on Debian 12 and 13, from Copr on Fedora and
-  Enterprise Linux 10, and from the Build Service on openSUSE Leap 16.0 and Tumbleweed, each verified as that channel
-  allows: the PPA's, Copr's and the Build Service's keys are imported only when their fingerprints are the ones the
-  role names, and a `.deb` is installed only when its SHA-256 is the one pinned for it, from the release's
-  `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified (6.3.7's four in the tree); a
-  distribution the project publishes no package for is refused before anything changes. It then writes `[Database]`
-  for the PostgreSQL or MariaDB database it is given (installing the MariaDB client library the server opens for
-  MySQL), sets the administrator password with `--set-admin-password`, runs `--check-config`, `--create-database` and,
-  for an older schema, `--upgrade-database` as the service's user, makes the stored-secrets key and exports it once
-  where asked, stores the `[Settings]` values it is given with `--set-setting`, enables and starts the service, waits
+  server from the Ubuntu PPA on 24.04 and 26.04, from the release's `.deb` on Debian 12 and 13, from Copr on Fedora 43
+  and 44 and Enterprise Linux 10, and from the Build Service on openSUSE Leap 16.0 and Tumbleweed, each verified as
+  that channel allows: the PPA's, Copr's and the Build Service's keys are imported only when `gpg` reads the file the
+  channel serves as the one key whose fingerprint the role names - `ansible.builtin.rpm_key` alone imports every key
+  of a file in which that fingerprint is one of several, so Copr's and the Build Service's are read first and their
+  repositories name no `gpgkey` - and a `.deb` is installed only when its SHA-256 is the one pinned for it, from the
+  release's `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified (6.3.7's four in the
+  tree); a distribution, release or architecture the project publishes no package for is refused before anything
+  changes. It then writes `[Database]` for the PostgreSQL or MariaDB database it is given (installing the MariaDB
+  client library the server opens for MySQL), sets the administrator password with `--set-admin-password`, runs
+  `--check-config` as the service's user and stops when it does not read the database type written or a data
+  directory (the command exits 0 whatever it read), runs `--create-database` and, for an older schema,
+  `--upgrade-database` as that user, makes the stored-secrets key and exports it once where asked, stores the
+  `[Settings]` values it is given with `--set-setting NAME`, each value on standard input and never on a command line
+  or in the play's output, a secret's too, enables and starts the service, waits
   for the SMTP banner, and makes the domains and accounts it is given over the REST API, each only when the server
   does not have it; the passwords are never logged, and it opens no firewall port. Molecule scenarios under the
   collection's `extensions/molecule` run it in containers with systemd as PID 1, beside a PostgreSQL 18 or MariaDB
@@ -528,11 +533,13 @@ with `--check`).
   verified sums, and `galaxy-publish`, pressed after it, sends that tarball with `GALAXY_API_KEY`, which does not exist
   until the owner's Galaxy account holds the namespace `progressiverobot`, and says "not configured" until then
   (`build/ci/channels/galaxy-publish.py`, `.gitlab/ci/channels.yml`). `galaxy-check`, in a branch's or a merge
-  request's pipeline when the collection changes, runs `galaxy-publish.py check` and its self-test, builds the
-  collection, and runs `ansible-lint`'s production profile and `ansible-test sanity` but for the four tests that would
-  install tools without hashes; the tools come from `build/ci/ansible-collection-requirements.txt`, pinned with their
-  hashes. `build/check-channels.py` holds the three jobs to their rules, `galaxy-publish` to `galaxy-build`'s tarball
-  and each to installing its tools with their hashes alone. `hmailserver/docs/Ansible.md` says how to use it, what it
+  request's pipeline when the collection changes, runs `galaxy-publish.py check` - which holds the role's checks of
+  what it installs and of what it logs to being there, each with a negative control in its self-test - and its
+  self-test, builds the collection, and runs `ansible-lint`'s production profile and `ansible-test sanity` but for the
+  four tests that would install tools without hashes; the tools come from
+  `build/ci/ansible-collection-requirements.txt`, pinned with their hashes. `build/check-channels.py` holds each of
+  the three jobs' rules to its one reference alone, `galaxy-publish` to `galaxy-build`'s tarball and each to
+  installing its tools with their hashes alone, no line of its script installing anything else. `hmailserver/docs/Ansible.md` says how to use it, what it
   verifies, how it is tested and how it is published; `Channels.md` lists Galaxy among the channels.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
@@ -1637,9 +1644,10 @@ with `--check`).
   `license` were licence fields it did not hold, so it failed on them. Both are now among the fields that name the
   project's licence alone (`OWN_LICENCE_ONLY`, six with them), since the collection is the project's own role and
   tests and carries no binary: each must be there once and say `AGPL-3.0-or-later`, `galaxy.yml`'s as a list of that
-  one item. The self-test's fixture has both files, and five negative controls more - another licence, a second item,
-  the licence written as a string on the key's line, another licence in the role and a second licence key there -
-  each refused.
+  one item, with no further item after the blank lines, comments or deeper lines the list may go on through. The
+  self-test's fixture has both files, and seven negative controls more - another licence, a second item, a second
+  item after a comment and after a blank line, the licence written as a string on the key's line, another licence in
+  the role and a second licence key there - each refused.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

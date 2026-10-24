@@ -57,10 +57,20 @@
   changed_when: false
   failed_when: false
 
+# Nothing to do when the .deb asked for is installed; and, with no version asked for,
+# when any version is (present) or one as new as the collection's release (latest). A
+# version asked for is installed over another, and apt refuses to go back to an
+# older one.
 - name: Download and install the .deb
   when: >-
-    hmailserver_deb_installed.rc != 0 or
-    hmailserver_deb_installed.stdout != 'installed ' ~ hmailserver_deb_version ~ '-1~' ~ hmailserver_deb_target.split('_')[0]
+    not hmailserver_deb_installed_now or
+    (hmailserver_deb_installed_version != hmailserver_deb_version ~ '-1~' ~ hmailserver_deb_target.split('_')[0]
+     and (hmailserver_version != ''
+          or (hmailserver_package_state == 'latest'
+              and hmailserver_deb_installed_version.split('-')[0] is version(hmailserver_deb_version, '<'))))
+  vars:
+    hmailserver_deb_installed_now: "{{ hmailserver_deb_installed.rc == 0 and hmailserver_deb_installed.stdout is match('installed ') }}"
+    hmailserver_deb_installed_version: "{{ hmailserver_deb_installed.stdout.split(' ')[-1] }}"
   block:
     - name: Install what the download needs
       ansible.builtin.apt:

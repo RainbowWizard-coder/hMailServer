@@ -12,17 +12,43 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Read the distribution
+      ansible.builtin.setup:
+        gather_subset: [min]
+
+    - name: Read the release the collection is built for
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../../../roles/hmailserver/vars/release.yml"
+
+    - name: Ask the package manager the version installed
+      ansible.builtin.command:
+        argv: "{{ ['dpkg-query', '--showformat=${Version}', '--show', 'hmailserver']
+                  if ansible_facts['os_family'] == 'Debian'
+                  else ['rpm', '--query', '--queryformat=%{VERSION}', 'hmailserver'] }}"
+      register: hm_package
+      changed_when: false
+
     - name: Ask the server its version
       ansible.builtin.command:
         argv: [hmailserver, --version]
       register: hm_version
       changed_when: false
 
+    # On Debian the role installs the collection's own release; a channel, its newest,
+    # which is that release or a later one.
     - name: Refuse another version than the one expected
       ansible.builtin.assert:
         that:
-          - hm_version.stdout is match('^hMailServer ' ~ (hm_expected_version | regex_escape) ~ ' build [0-9]+$')
-        fail_msg: "hmailserver --version said {{ hm_version.stdout }}, not {{ hm_expected_version }}"
+          - hm_version.stdout is match('^hMailServer ' ~ (hm_installed | regex_escape) ~ ' build [0-9]+$')
+          - hm_installed == hmailserver_release_version if ansible_facts['distribution'] == 'Debian'
+            else hm_installed is version(hmailserver_release_version, '>=')
+        fail_msg: >-
+          hmailserver --version said {{ hm_version.stdout }}, the package is {{ hm_package.stdout }}, and the
+          collection is built for {{ hmailserver_release_version }}
+      vars:
+        # The upstream version of the package's (6.3.7 of 6.3.7-1~debian13, of
+        # 6.3.7+ds-1~resolute1 and of 6.3.7).
+        hm_installed: "{{ hm_package.stdout | regex_findall('^(?:[0-9]+:)?([0-9]+(?:[.][0-9]+)*)') | first | default('') }}"
 
     - name: Ask systemd for the service
       ansible.builtin.command:

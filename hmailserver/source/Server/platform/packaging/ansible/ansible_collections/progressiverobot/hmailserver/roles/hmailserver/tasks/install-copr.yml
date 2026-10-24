@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Fedora and Enterprise Linux 10: Copr's progressiverobot/hmailserver, whose
-# packages dnf verifies against the project's Copr key, imported only when its
-# fingerprint is the one vars/main.yml names.
+# packages dnf verifies against the project's Copr key, imported only when the file
+# Copr serves is that one key, at the fingerprint vars/main.yml names.
 ---
 - name: Name the Copr chroot for this machine
   ansible.builtin.set_fact:
@@ -13,19 +13,31 @@
          if ansible_facts['distribution'] == 'Fedora'
          else ('epel-' ~ ansible_facts['distribution_major_version']) }}
 
-- name: Import Copr's key for the project, held to its fingerprint
-  ansible.builtin.rpm_key:
-    key: "{{ hmailserver_copr_base }}/pubkey.gpg"
-    fingerprint: "{{ hmailserver_copr_fingerprint }}"
-    state: present
+- name: Refuse a release or architecture Copr does not build for
+  ansible.builtin.assert:
+    that:
+      - hmailserver_copr_chroot in hmailserver_copr_chroots
+      - ansible_facts['architecture'] in hmailserver_copr_architectures
+    fail_msg: >-
+      Copr builds the project for {{ hmailserver_copr_chroots | join(', ') }} on
+      {{ hmailserver_copr_architectures | join(' and ') }}, not
+      {{ hmailserver_copr_chroot }} on {{ ansible_facts['architecture'] }}.
+    quiet: true
 
+- name: Import Copr's key for the project, held to its fingerprint
+  ansible.builtin.include_tasks: rpm-key.yml
+  vars:
+    hmailserver_rpm_key_url: "{{ hmailserver_copr_base }}/pubkey.gpg"
+    hmailserver_rpm_key_fingerprint: "{{ hmailserver_copr_fingerprint }}"
+
+# No gpgkey: the key is imported already, and a gpgkey would let dnf import whatever
+# else the address serves.
 - name: Name the Copr repository, its packages checked against that key
   ansible.builtin.yum_repository:
     name: copr_progressiverobot_hmailserver
     description: Progressive Robot's fork of hMailServer (Copr progressiverobot/hmailserver)
     baseurl: "{{ hmailserver_copr_base }}/{{ hmailserver_copr_chroot }}-$basearch/"
     gpgcheck: true
-    gpgkey: "{{ hmailserver_copr_base }}/pubkey.gpg"
     repo_gpgcheck: false
     skip_if_unavailable: false
     enabled: true

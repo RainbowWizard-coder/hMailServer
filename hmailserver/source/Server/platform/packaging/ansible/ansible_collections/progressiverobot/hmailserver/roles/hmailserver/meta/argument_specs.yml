@@ -30,7 +30,9 @@ argument_specs:
         type: str
         default: present
         choices: [present, latest]
-        description: present leaves an installed package alone; latest upgrades it.
+        description:
+          - With no hmailserver_version, present leaves an installed package alone;
+            latest upgrades an older one.
       hmailserver_deb_sha256:
         type: dict
         default: {}
@@ -92,7 +94,7 @@ argument_specs:
       hmailserver_settings:
         type: dict
         default: {}
-        description: "[Settings] values, stored with hmailserver --set-setting."
+        description: "[Settings] values, stored with hmailserver --set-setting, each value on standard input."
       hmailserver_service_enabled:
         type: bool
         default: true

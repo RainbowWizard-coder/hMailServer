@@ -14,8 +14,11 @@ hmailserver_channel: auto
 # Debian the release this collection was built for (vars/release.yml).
 hmailserver_version: ""
 
-# present leaves an installed package as it is; latest upgrades it to the channel's
-# newest on every run (ppa, copr, obs).
+# With no hmailserver_version: present leaves an installed package as it is; latest
+# upgrades it on every run, to the channel's newest (ppa, copr, obs) or on Debian to
+# the release this collection was built for, when the one installed is older. A
+# version asked for is installed over another, and never by going back to an older
+# one.
 hmailserver_package_state: present
 
 # The SHA-256 of a release .deb this collection does not carry the pin of, keyed
@@ -54,9 +57,11 @@ hmailserver_admin_password_update: on_create
 hmailserver_stored_secrets_key: true
 hmailserver_stored_secrets_key_export: ""
 
-# [Settings] values, stored with hmailserver --set-setting NAME=VALUE, for example
-# {RestApiPort: 8080}. A setting that holds a secret is refused by the server on a
-# command line, and so here.
+# [Settings] values, stored with hmailserver --set-setting NAME, each value on its
+# standard input and never on a command line, for example {RestApiPort: 8080}. A
+# setting that holds a secret is taken so as well, and never logged; since the server
+# never shows a secret it holds, such a setting is reported changed, and the service
+# restarted, on every run.
 hmailserver_settings: {}
 
 # The service. The role opens no firewall port and changes no firewall.

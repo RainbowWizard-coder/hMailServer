@@ -79,7 +79,25 @@
 - name: Check the configuration as the service reads it
   ansible.builtin.command:
     argv: [runuser, -u, "{{ hmailserver_user }}", --, hmailserver, --check-config]
+  register: hmailserver_check_config
   changed_when: false
+
+# --check-config says what it read and exits 0 whatever that was: a file the service's
+# user cannot read, or a [Database] Type the server does not take, reads as type 0 and
+# no data directory.
+- name: Refuse a configuration the service does not read as written
+  ansible.builtin.assert:
+    that:
+      - hmailserver_check_config.stdout is search('(?m)^Database type:[ ]+' ~ hmailserver_database_type_number ~ '$')
+      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+[^ ]')
+    fail_msg: >-
+      Run as {{ hmailserver_user }}, hmailserver --check-config does not read
+      {{ hmailserver_config }} as the role wrote it (database type
+      {{ hmailserver_database_type_number }}, a data directory):
+      {{ hmailserver_check_config.stdout_lines | join(' | ') }}
+    quiet: true
+  vars:
+    hmailserver_database_type_number: "{{ 3 if hmailserver_database_type == 'PostgreSQL' else 1 }}"
 
 - name: Create the database, or fill an empty one, as the service's user
   ansible.builtin.command:
@@ -116,13 +134,34 @@
     - hmailserver_stored_secrets_key
     - hmailserver_stored_secrets_key_export | length > 0
 
+# Each value on standard input, never on the command line, where the process list
+# would show it: the server takes every setting so, a secret's too, and prints no
+# secret back. The task is not logged, since its loop item carries the value; a
+# refusal is said by the next task, in the server's words, which never repeat a value.
+# An empty value, which clears a setting and discloses nothing, is NAME= on the command
+# line, the one way the server takes it.
 - name: Store the settings
   ansible.builtin.command:
-    argv: [hmailserver, --set-setting, "{{ item.key }}={{ item.value }}"]
+    argv:
+      - hmailserver
+      - --set-setting
+      - "{{ item.key if (item.value | string | length) > 0 else item.key ~ '=' }}"
+    stdin: "{{ item.value | string }}"
   loop: "{{ hmailserver_settings | dict2items }}"
   loop_control:
-    label: "{{ item.key }}={{ item.value }}"
+    label: "{{ item.key }}"
   register: hmailserver_setting
+  failed_when: false
   changed_when: >-
+    hmailserver_setting.rc == 0 and
     ('where it was ' ~ (item.value | string) ~ ', and written to') not in hmailserver_setting.stdout
+  no_log: true
   notify: Restart hmailserver
+
+- name: Refuse a setting the server did not store
+  ansible.builtin.fail:
+    msg: >-
+      hmailserver --set-setting stored nothing for
+      {{ hmailserver_setting.results | rejectattr('rc', 'eq', 0) | map(attribute='item.key') | join(', ') }}:
+      {{ hmailserver_setting.results | rejectattr('rc', 'eq', 0) | map(attribute='stderr') | join(' ') }}
+  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0

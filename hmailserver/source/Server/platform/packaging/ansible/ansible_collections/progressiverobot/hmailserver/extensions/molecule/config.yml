@@ -27,7 +27,6 @@ provisioner:
       all:
         hm_prefix: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}
         hm_scenario: ${MOLECULE_SCENARIO_NAME}
-        hm_expected_version: "6.3.7"
         hm_database_container: ${HM_MOLECULE_PREFIX:-hmailserver-molecule}-${MOLECULE_SCENARIO_NAME}-db
         hm_database_type: PostgreSQL
         hm_database_name: hmailserver

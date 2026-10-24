@@ -19,4 +19,5 @@ The first version of the collection.
   stored-secrets key; stores `[Settings]` values; starts and enables the service; and
   makes domains and accounts over the REST API.
 - Molecule scenarios for Ubuntu 26.04 and 24.04, Debian 13 (against PostgreSQL and
-  against MariaDB), Fedora 44, AlmaLinux 10 and openSUSE Leap 16.0.
+  against MariaDB) and 12, Fedora 44, AlmaLinux 10, and openSUSE Leap 16.0 and
+  Tumbleweed.

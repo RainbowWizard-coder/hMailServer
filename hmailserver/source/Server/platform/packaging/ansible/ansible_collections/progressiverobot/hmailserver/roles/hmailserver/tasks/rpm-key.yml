@@ -1,0 +1,66 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The key of an RPM channel, Copr's or the Build Service's, fetched from the channel
+# and imported only when gpg reads the file as that one key: rpm_key alone takes a
+# file in which the fingerprint it is given is one key among several, and imports
+# every key in it. hmailserver_rpm_key_url and hmailserver_rpm_key_fingerprint name
+# the key; the file fetched is a temporary one, removed again.
+---
+- name: Install what the key's check needs
+  ansible.builtin.package:
+    name: "{{ 'gpg2' if ansible_facts['os_family'] == 'Suse' else 'gnupg2' }}"
+    state: present
+
+- name: Fetch, check and import the key
+  block:
+    - name: Make a file to fetch the key into
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .asc
+      register: hmailserver_rpm_key_download
+      changed_when: false
+
+    - name: Fetch the key from the channel
+      ansible.builtin.get_url:
+        url: "{{ hmailserver_rpm_key_url }}"
+        dest: "{{ hmailserver_rpm_key_download.path }}"
+        mode: "0600"
+        force: true
+      changed_when: false
+
+    - name: Read the fetched key's fingerprint
+      ansible.builtin.command:
+        argv: [gpg, --batch, --show-keys, --with-colons, "{{ hmailserver_rpm_key_download.path }}"]
+      register: hmailserver_rpm_key_read
+      changed_when: false
+
+    - name: Refuse a file that is not the channel's key alone
+      ansible.builtin.assert:
+        that:
+          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1
+          - >-
+            (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))
+            == hmailserver_rpm_key_fingerprint
+        fail_msg: >-
+          The key file fetched from {{ hmailserver_rpm_key_url }} is not the channel's key
+          alone, {{ hmailserver_rpm_key_fingerprint }} (gpg read
+          {{ hmailserver_rpm_key_read.stdout_lines | select('match', '^(pub|fpr):')
+             | join(' ') }}):
+          nothing was imported.
+        quiet: true
+
+    - name: Import the key, held to its fingerprint
+      ansible.builtin.rpm_key:
+        key: "{{ hmailserver_rpm_key_download.path }}"
+        fingerprint: "{{ hmailserver_rpm_key_fingerprint }}"
+        state: present
+
+  always:
+    - name: Remove the fetched copy
+      ansible.builtin.file:
+        path: "{{ hmailserver_rpm_key_download.path }}"
+        state: absent
+      when: hmailserver_rpm_key_download.path is defined
+      changed_when: false

@@ -19,8 +19,10 @@ for one release, and both are written together:
                  saying it is Progressive Robot's fork and not the original, its
                  version the one vars/release.yml pins the .deb files of, each pin
                  64 hex digits for each Debian release and architecture the role
-                 takes, the channels' key fingerprints 40 hex digits, no default for
-                 either password, and no address on GitHub anywhere in it;
+                 takes, the channels' key fingerprints 40 hex digits, the role's
+                 checks of what it installs and of what it logs there (VERIFIED,
+                 FORBIDDEN), no default for either password, and no address on
+                 GitHub anywhere in it;
   build          the collection staged from the tree with the repository's LICENSE,
                  version and pins rendered when they are given, built by
                  ansible-galaxy collection build, and the tarball read back: its
@@ -93,6 +95,7 @@ RELEASE_YML = os.path.join("roles", "hmailserver", "vars", "release.yml")
 MAIN_VARS = os.path.join("roles", "hmailserver", "vars", "main.yml")
 DEFAULTS = os.path.join("roles", "hmailserver", "defaults", "main.yml")
 ROLE_META = os.path.join("roles", "hmailserver", "meta", "main.yml")
+TASKS = os.path.join("roles", "hmailserver", "tasks")
 NAMESPACE = "progressiverobot"
 NAME = "hmailserver"
 LICENCE = "AGPL-3.0-or-later"
@@ -109,6 +112,70 @@ SERVER_ID = "release_galaxy"
 SUMS = "hmailserver-linux-%s-SHA256SUMS.txt"
 RECORD = "galaxy-build.json"
 SKIP = (".ansible", "__pycache__", "output")
+# What follows a YAML sequence's item while the sequence goes on - blank lines, comments
+# and lines indented deeper - and then a further item: the second licence of a license
+# list given one more.
+FURTHER_ITEM = r"(?=(?:\n(?:[ \t]*(?:#.*)?|[ \t]+.*))*\n[ \t]*-(?:[ \t]|$))"
+# The role's checks of what it installs and of what it logs, each a task of a file of
+# its tasks/ by name with what the task must say (Ansible.md, "What it verifies"): with
+# one of them gone the role would install what it was not given to, or log a secret,
+# and nothing it runs would show it. A file of FORBIDDEN must not say its pattern.
+VERIFIED = (
+    ("rpm-key.yml", "Refuse a file that is not the channel's key alone",
+     (r"regex_findall\('\(\?m\)\^pub:'\) \| length\) == 1\n",
+      r"\| first \| default\(''\)\)\n\s+== hmailserver_rpm_key_fingerprint\n"),
+     "an RPM channel's key file read as its one key alone"),
+    ("rpm-key.yml", "Import the key, held to its fingerprint",
+     (r"\n\s+key: \"\{\{ hmailserver_rpm_key_download\.path \}\}\"\n",
+      r"\n\s+fingerprint: \"\{\{ hmailserver_rpm_key_fingerprint \}\}\"\n"),
+     "an RPM channel's key imported from the file read, at its fingerprint"),
+    ("install-copr.yml", "Import Copr's key for the project, held to its fingerprint",
+     (r"\n\s+ansible\.builtin\.include_tasks: rpm-key\.yml\n",
+      r"\n\s+hmailserver_rpm_key_fingerprint: \"\{\{ hmailserver_copr_fingerprint \}\}\"\n"),
+     "Copr's key held to its fingerprint"),
+    ("install-copr.yml", "Name the Copr repository, its packages checked against that key",
+     (r"\n\s+gpgcheck: true\n",), "Copr's packages checked against its key"),
+    ("install-obs.yml", "Import the Build Service's key for the project, held to its fingerprint",
+     (r"\n\s+ansible\.builtin\.include_tasks: rpm-key\.yml\n",
+      r"\n\s+hmailserver_rpm_key_fingerprint: \"\{\{ hmailserver_obs_fingerprint \}\}\"\n"),
+     "the Build Service's key held to its fingerprint"),
+    ("install-obs.yml", "Name the Build Service repository, its metadata and packages checked against that key",
+     (r"\n\s+gpgcheck: true\n", r"\n\s+repo_gpgcheck: true\n"),
+     "the Build Service's metadata and packages checked against its key"),
+    ("install-ppa.yml", "Refuse a key that is not the PPA's",
+     (r"regex_findall\('\(\?m\)\^pub:'\) \| length\) == 1\n",
+      r"\| first \| default\(''\)\)\n\s+== hmailserver_ppa_fingerprint\n"),
+     "the PPA's key read as its one key alone"),
+    ("install-deb.yml", "Refuse a .deb whose SHA-256 is not pinned",
+     (r"\n\s+- hmailserver_deb_checksum is match\('\^\[0-9a-f\]\{64\}\$'\)\n",), "the .deb's SHA-256 pinned"),
+    ("install-deb.yml", "Download the .deb and hold it to its SHA-256",
+     (r"\n\s+checksum: \"sha256:\{\{ hmailserver_deb_checksum \}\}\"\n",), "the .deb held to its SHA-256"),
+    ("configure.yml", "Give the configuration the database's password", (r"\n  no_log: true\n",),
+     "the database's password not logged"),
+    ("configure.yml", "Read the configuration, to see whether it has an administrator password", (r"\n  no_log: true\n",),
+     "the configuration's text not logged"),
+    ("configure.yml", "Set the administrator password, as a PBKDF2 hash",
+     (r"\n  no_log: true\n", r"\n    stdin: \"\{\{ hmailserver_admin_password \}\}\"\n"),
+     "the administrator password on standard input, not logged"),
+    ("configure.yml", "Store the settings",
+     (r"\n  no_log: true\n", r"\n    stdin: \"\{\{ item\.value \| string \}\}\"\n",
+      r"\n  loop_control:\n    label: \"\{\{ item\.key \}\}\"\n"),
+     "the settings' values on standard input, not logged"),
+    ("objects.yml", "Wait for the REST API", (r"\n  no_log: true\n",), "the administrator's sign-in not logged"),
+    ("objects.yml", "Ask for each account", (r"\n  no_log: true\n",), "the accounts' passwords not logged"),
+    ("objects.yml", "Make each account the server does not have", (r"\n  no_log: true\n",),
+     "the accounts' passwords not logged"),
+)
+FORBIDDEN = (
+    ("install-copr.yml", r"(?m)^\s+gpgkey:", "Copr's repository names a gpgkey, through which dnf would import any key there"),
+    ("install-obs.yml", r"(?m)^\s+gpgkey:",
+     "the Build Service's repository names a gpgkey, through which zypper would import any key there"),
+    ("install-copr.yml", r"(?m)^\s+ansible\.builtin\.rpm_key:",
+     "Copr's key is given to rpm_key itself, not read first as one key alone (rpm-key.yml)"),
+    ("install-obs.yml", r"(?m)^\s+ansible\.builtin\.rpm_key:",
+     "the Build Service's key is given to rpm_key itself, not read first as one key alone (rpm-key.yml)"),
+    ("configure.yml", r"item\.key \}\}=\{\{ item\.value", "a setting's value is given on the command line or in a label"),
+)
 
 
 def say(line=""):
@@ -191,6 +258,22 @@ def pins_from_sums(text, version):
 
 # ---------------------------------------------------------------- check
 
+def task_block(text, name):
+    """The lines of the task called name in a file of tasks, from its - name: line to the
+    next line indented no deeper than that one, each ending in a line feed and the first
+    after one; None when no task has that name, or more than one."""
+    found = list(re.finditer(r"(?m)^([ ]*)- name: %s[ \t]*$" % re.escape(name), text))
+    if len(found) != 1:
+        return None
+    indent = len(found[0].group(1))
+    lines = [found[0].group(0)]
+    for line in text[found[0].end():].split("\n")[1:]:
+        if line.strip() and len(line) - len(line.lstrip(" ")) <= indent:
+            break
+        lines.append(line)
+    return "\n" + "\n".join(lines) + "\n"
+
+
 def check(root=ROOT):
     """The problems of the tree's collection; an empty list when it holds together."""
     base = os.path.join(root, COLLECTION)
@@ -199,9 +282,12 @@ def check(root=ROOT):
     for key, value in (("namespace", NAMESPACE), ("name", NAME), ("repository", REPOSITORY), ("issues", ISSUES)):
         if not re.search(r"(?m)^%s: %s\s*$" % (key, re.escape(value)), galaxy):
             problems.append("%s: %s is not %s" % (GALAXY_YML, key, value))
-    if not re.search(r"(?m)^license:\n  - %s\n(?![ ]+- )" % re.escape(LICENCE), galaxy):
+    if not re.search(r"(?m)^license:\n  - %s[ \t]*(?:#.*)?$" % re.escape(LICENCE), galaxy) or re.search(
+            r"(?m)^license:\n  - .*$" + FURTHER_ITEM, galaxy):
         problems.append("%s: the licence is not %s alone" % (GALAXY_YML, LICENCE))
-    description = re.search(r"(?ms)^description: >-\n((?:  .*\n)+)", galaxy)
+    # The lines indented two after the key alone: the folded block ends at the first
+    # line that is not, and a comment after it is not the description.
+    description = re.search(r"(?m)^description: >-\n((?:  .*\n)+)", galaxy)
     words = " ".join(description.group(1).split()) if description else ""
     if FORK not in words or " ".join(NOT_ORIGINAL.split()) not in words:
         problems.append("%s: the description does not say %s, not the original hMailServer" % (GALAXY_YML, FORK))
@@ -235,6 +321,21 @@ def check(root=ROOT):
     for key in ("hmailserver_database_password", "hmailserver_admin_password"):
         if re.search(r"(?m)^%s:" % key, defaults):
             problems.append("%s gives %s a default: it is required, and the role's argument spec says so" % (DEFAULTS, key))
+    tasks = {}
+    for name in sorted(set(entry[0] for entry in VERIFIED + FORBIDDEN)):
+        try:
+            tasks[name] = read(os.path.join(base, TASKS, name))
+        except OSError:
+            tasks[name] = ""
+    for name, task, patterns, what in VERIFIED:
+        block = task_block(tasks[name], task)
+        if block is None:
+            problems.append("%s has no task %r: %s is not checked" % (os.path.join(TASKS, name), task, what))
+        elif not all(re.search(pattern, block) for pattern in patterns):
+            problems.append("%s's task %r does not hold %s" % (os.path.join(TASKS, name), task, what))
+    for name, pattern, what in FORBIDDEN:
+        if re.search(pattern, tasks[name]):
+            problems.append("%s: %s" % (os.path.join(TASKS, name), what))
     for directory, names, files in os.walk(base):
         names[:] = [n for n in names if n not in SKIP]
         for name in files:
@@ -467,17 +568,19 @@ def self_test():
     try:
         globals()["say"] = lambda line="": None
 
-        def broken(what, relative, old, new, needle):
+        def broken(what, relative, old, new, needle, also=()):
             copy = os.path.join(work, "tree-%d" % len(os.listdir(work)))
             os.makedirs(os.path.join(copy, os.path.dirname(COLLECTION)))
             shutil.copytree(os.path.join(ROOT, COLLECTION), os.path.join(copy, COLLECTION),
                             ignore=shutil.ignore_patterns(*SKIP))
             path = os.path.join(copy, COLLECTION, relative)
             text = read(path)
-            if old not in text:
-                expect("%s: the text to break is not in %s" % (what, relative), False)
-                return
-            write(path, text.replace(old, new, 1))
+            for before, after in ((old, new),) + tuple(also):
+                if before not in text:
+                    expect("%s: the text to break is not in %s" % (what, relative), False)
+                    return
+                text = text.replace(before, after, 1)
+            write(path, text)
             found = check(copy)
             expect("%s is caught" % what, any(needle in p for p in found))
 
@@ -491,6 +594,50 @@ def self_test():
         broken("the role's description without the fork", ROLE_META, "Progressive Robot's fork", "a build", "role's description")
         broken("another namespace", GALAXY_YML, "namespace: progressiverobot", "namespace: hmailserver", "namespace")
         broken("a second licence", GALAXY_YML, "  - AGPL-3.0-or-later\n", "  - AGPL-3.0-or-later\n  - MIT\n", "licence")
+        broken("a second licence after a comment", GALAXY_YML, "  - AGPL-3.0-or-later\n",
+               "  - AGPL-3.0-or-later\n  # and also\n  - MIT\n", "licence")
+        broken("a second licence after a blank line", GALAXY_YML, "  - AGPL-3.0-or-later\n",
+               "  - AGPL-3.0-or-later\n\n  - MIT\n", "licence")
+        broken("a description that says neither, the words in a comment at the end of galaxy.yml", GALAXY_YML,
+               "  Installs and configures Progressive Robot's fork of hMailServer - not the\n  original hMailServer - on Linux,",
+               "  Installs and configures hMailServer on Linux,", "does not say",
+               also=(("  - tests/output\n", "  - tests/output\n# Progressive Robot's fork of hMailServer - not the original"
+                      " hMailServer\n"),))
+        rpm_key = os.path.join(TASKS, "rpm-key.yml")
+        broken("an RPM channel's key imported without its fingerprint", rpm_key,
+               "        fingerprint: \"{{ hmailserver_rpm_key_fingerprint }}\"\n", "", "does not hold")
+        broken("an RPM channel's key file not read as one key alone", rpm_key,
+               "          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n", "",
+               "does not hold")
+        broken("Copr's key given to rpm_key itself", os.path.join(TASKS, "install-copr.yml"),
+               "  ansible.builtin.include_tasks: rpm-key.yml\n  vars:\n"
+               "    hmailserver_rpm_key_url: \"{{ hmailserver_copr_base }}/pubkey.gpg\"\n"
+               "    hmailserver_rpm_key_fingerprint: \"{{ hmailserver_copr_fingerprint }}\"\n",
+               "  ansible.builtin.rpm_key:\n    key: \"{{ hmailserver_copr_base }}/pubkey.gpg\"\n"
+               "    fingerprint: \"{{ hmailserver_copr_fingerprint }}\"\n", "rpm_key itself")
+        broken("Copr's repository without gpgcheck", os.path.join(TASKS, "install-copr.yml"), "    gpgcheck: true\n",
+               "    gpgcheck: false\n", "does not hold")
+        broken("the Build Service's repository with a gpgkey", os.path.join(TASKS, "install-obs.yml"),
+               "    repo_gpgcheck: true\n", "    repo_gpgcheck: true\n    gpgkey: \"{{ hmailserver_obs_base }}/x.key\"\n",
+               "names a gpgkey")
+        broken("the Build Service's metadata unchecked", os.path.join(TASKS, "install-obs.yml"), "    repo_gpgcheck: true\n",
+               "    repo_gpgcheck: false\n", "does not hold")
+        broken("the PPA's key check made true", os.path.join(TASKS, "install-ppa.yml"),
+               "          - (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^pub:') | length) == 1\n",
+               "          - true\n", "does not hold")
+        broken("the .deb downloaded without its checksum", os.path.join(TASKS, "install-deb.yml"),
+               "        checksum: \"sha256:{{ hmailserver_deb_checksum }}\"\n", "", "does not hold")
+        broken("the administrator password logged", os.path.join(TASKS, "configure.yml"),
+               "    stdin: \"{{ hmailserver_admin_password }}\"\n  when: hmailserver_admin_password_update == 'always' or"
+               " not hmailserver_admin_password_present\n  changed_when: true\n  no_log: true\n",
+               "    stdin: \"{{ hmailserver_admin_password }}\"\n  when: hmailserver_admin_password_update == 'always' or"
+               " not hmailserver_admin_password_present\n  changed_when: true\n", "does not hold")
+        broken("a setting's value on the command line", os.path.join(TASKS, "configure.yml"),
+               "      - \"{{ item.key if (item.value | string | length) > 0 else item.key ~ '=' }}\"\n",
+               "      - \"{{ item.key }}={{ item.value }}\"\n", "on the command line")
+        broken("an account's password logged", os.path.join(TASKS, "objects.yml"),
+               "  when: item.status == 404\n  changed_when: true\n  no_log: true\n",
+               "  when: item.status == 404\n  changed_when: true\n", "does not hold")
         broken("a pin that is no SHA-256", RELEASE_YML, pins["debian13_amd64"], "sha256-of-nothing", "is not a SHA-256")
         broken("a pin missing", RELEASE_YML, "  debian12_arm64: ", "  debian11_arm64: ", "pins")
         broken("a fingerprint cut short", MAIN_VARS, "hmailserver_copr_fingerprint: A4", "hmailserver_copr_fingerprint: ",

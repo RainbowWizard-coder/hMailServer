@@ -503,9 +503,9 @@ from the channels above, on Ansible Galaxy ([Ansible.md](Ansible.md)).
   keeps a version for good.
 - **The token.** In `ansible-galaxy`'s environment, as its server list's token, never
   on a command line.
-- **The owner, once.** Two-factor authentication on `RainbowWizard-coder`, a sign-in to
-  galaxy.ansible.com with it, the namespace `progressiverobot` asked for and made the
-  account's, and an API token, which a maintainer stores as `GALAXY_API_KEY`
+- **The owner, once.** A sign-in to galaxy.ansible.com with the GitHub account
+  `RainbowWizard-coder`, the namespace `progressiverobot` requested on the Ansible
+  forum and made the account's, and an API token, which a maintainer stores as `GALAXY_API_KEY`
   ([Ansible.md](Ansible.md), "Publishing to Galaxy").
 
 What the owner and the maintainers set

@@ -18,13 +18,13 @@ installs no database server.
 
 | Distribution | Channel | What is verified |
 |---|---|---|
-| Ubuntu 24.04 and 26.04 | the PPA `ppa:hmailserver/hmailserver` | apt checks the packages against the PPA's key, which the role fetches from Ubuntu's key server and imports only when it is the key `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C` |
+| Ubuntu 24.04 and 26.04 (amd64 and arm64) | the PPA `ppa:hmailserver/hmailserver` | apt checks the packages against the PPA's key, which the role fetches from Ubuntu's key server and imports only when gpg reads the file as the one key `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C` |
 | Debian 12 and 13 | the release's `.deb`, from the project's package registry on GitLab | the file is installed only when its SHA-256 is the one pinned for it: this collection pins the `.deb` files of the release it is built for, taken from the release's `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified |
-| Fedora, and Enterprise Linux 10 | Copr `progressiverobot/hmailserver` | dnf checks the packages against the project's Copr key, imported only when it is `A43209E902FC9666B7DC7C7007AD13D308C7F2E7` |
-| openSUSE Leap 16.0 (x86_64 and aarch64) and Tumbleweed (x86_64) | the Build Service project `home:progressiverobot` | zypper checks the repository's metadata and the packages against the project's key there, imported only when it is `BA0868309CFBD36498CE41D22F0B9419E67EE770` |
+| Fedora 43 and 44, and Enterprise Linux 10 (x86_64 and aarch64) | Copr `progressiverobot/hmailserver` | dnf checks the packages against the project's Copr key, imported only when gpg reads the file Copr serves as the one key `A43209E902FC9666B7DC7C7007AD13D308C7F2E7` |
+| openSUSE Leap 16.0 (x86_64 and aarch64) and Tumbleweed (x86_64) | the Build Service project `home:progressiverobot` | zypper checks the repository's metadata and the packages against the project's key there, imported only when gpg reads the file the Build Service serves as the one key `BA0868309CFBD36498CE41D22F0B9419E67EE770` |
 
-A distribution the project publishes no package for is refused before anything is
-changed.
+A distribution, release or architecture the project publishes no package for is
+refused before anything is changed.
 
 ## Using it
 
@@ -90,8 +90,8 @@ administrator password and a 401 with a wrong one, the domain and account it mad
 the configuration's owner and mode, and the exported key. The project's documentation
 says how to run them and what they showed
 ([Ansible.md](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/Ansible.md)).
-`ansible-lint` (production profile) and `ansible-test sanity` run over the collection
-in the project's CI.
+`ansible-lint` (production profile) and `ansible-test sanity`, but for four of its
+tests, which are run by hand, run over the collection in the project's CI.
 
 ## Licence
 

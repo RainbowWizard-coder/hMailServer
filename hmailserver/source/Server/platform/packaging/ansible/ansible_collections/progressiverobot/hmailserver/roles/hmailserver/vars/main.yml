@@ -2,9 +2,11 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The project's channels, and the key each one signs with, by fingerprint: a key
-# fetched from the channel is imported only when it is the key named here
-# (hmailserver/docs/Ansible.md, "What it verifies").
+# The project's channels, what each builds for, and the key each one signs with, by
+# fingerprint: a key file fetched from the channel is imported only when gpg reads it
+# as the one key named here, and a release or architecture a channel does not build
+# for is refused before anything is changed (hmailserver/docs/Ansible.md, "What it
+# verifies").
 ---
 # Launchpad's key for ppa:hmailserver/hmailserver, from Ubuntu's key server.
 hmailserver_ppa_uri: https://ppa.launchpadcontent.net/hmailserver/hmailserver/ubuntu
@@ -14,6 +16,11 @@ hmailserver_ppa_keyring: /etc/apt/keyrings/hmailserver-ppa.asc
 hmailserver_ppa_suites:
   - noble
   - resolute
+# The PPA builds the server for amd64 and arm64 (its other architectures carry
+# hmailserver-cli alone), by Ansible's names for them.
+hmailserver_ppa_architectures:
+  - x86_64
+  - aarch64
 
 # The release's .deb, from the project's generic package registry, as the release
 # links it.
@@ -25,10 +32,26 @@ hmailserver_deb_releases:
 # Copr's key for progressiverobot/hmailserver.
 hmailserver_copr_base: https://download.copr.fedorainfracloud.org/results/progressiverobot/hmailserver
 hmailserver_copr_fingerprint: A43209E902FC9666B7DC7C7007AD13D308C7F2E7
+# The chroots Copr builds the project in, each for these architectures.
+hmailserver_copr_chroots:
+  - fedora-43
+  - fedora-44
+  - epel-10
+hmailserver_copr_architectures:
+  - x86_64
+  - aarch64
 
 # The Build Service's key for home:progressiverobot.
 hmailserver_obs_base: https://download.opensuse.org/repositories/home:/progressiverobot
 hmailserver_obs_fingerprint: BA0868309CFBD36498CE41D22F0B9419E67EE770
+# The repositories the Build Service builds the project in, each with its
+# architectures.
+hmailserver_obs_builds:
+  "16.0":
+    - x86_64
+    - aarch64
+  openSUSE_Tumbleweed:
+    - x86_64
 
 hmailserver_config: /etc/hmailserver/hMailServer.ini
 hmailserver_user: hmailserver

@@ -5,13 +5,15 @@
 # Ubuntu: ppa:hmailserver/hmailserver, whose packages apt verifies against the PPA's
 # own key, imported only when its fingerprint is the one vars/main.yml names.
 ---
-- name: Refuse an Ubuntu release the PPA does not build for
+- name: Refuse an Ubuntu release or architecture the PPA does not build for
   ansible.builtin.assert:
     that:
       - ansible_facts['distribution_release'] in hmailserver_ppa_suites
+      - ansible_facts['architecture'] in hmailserver_ppa_architectures
     fail_msg: >-
-      The PPA builds for {{ hmailserver_ppa_suites | join(' and ') }}, not
-      {{ ansible_facts['distribution_release'] }}.
+      The PPA builds the server for {{ hmailserver_ppa_suites | join(' and ') }} on
+      {{ hmailserver_ppa_architectures | join(' and ') }}, not
+      {{ ansible_facts['distribution_release'] }} on {{ ansible_facts['architecture'] }}.
     quiet: true
 
 - name: Install what the key's check needs

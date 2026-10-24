@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # openSUSE: the Build Service's home:progressiverobot, whose repository and packages
-# zypper verifies against the project's key there, imported only when its
-# fingerprint is the one vars/main.yml names.
+# zypper verifies against the project's key there, imported only when the file the
+# Build Service serves is that one key, at the fingerprint vars/main.yml names.
 ---
 - name: Name the Build Service repository for this machine
   ansible.builtin.set_fact:
@@ -12,23 +12,28 @@
       {{ 'openSUSE_Tumbleweed' if 'Tumbleweed' in ansible_facts['distribution']
          else ansible_facts['distribution_version'] }}
 
-- name: Refuse an openSUSE release the Build Service does not build for
+- name: Refuse an openSUSE release or architecture the Build Service does not build for
   ansible.builtin.assert:
     that:
       - ansible_facts['distribution'] in ['openSUSE Leap', 'openSUSE Tumbleweed']
-      - hmailserver_obs_repository in ['openSUSE_Tumbleweed', '16.0']
+      - hmailserver_obs_repository in hmailserver_obs_builds
+      - ansible_facts['architecture'] in hmailserver_obs_builds[hmailserver_obs_repository] | default([])
     fail_msg: >-
-      The Build Service builds for openSUSE Leap 16.0 (x86_64 and aarch64) and
-      Tumbleweed (x86_64), not
-      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
+      The Build Service builds for openSUSE Leap 16.0 on
+      {{ hmailserver_obs_builds['16.0'] | join(' and ') }} and Tumbleweed on
+      {{ hmailserver_obs_builds['openSUSE_Tumbleweed'] | join(' and ') }}, not
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }} on
+      {{ ansible_facts['architecture'] }}.
     quiet: true
 
 - name: Import the Build Service's key for the project, held to its fingerprint
-  ansible.builtin.rpm_key:
-    key: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key"
-    fingerprint: "{{ hmailserver_obs_fingerprint }}"
-    state: present
+  ansible.builtin.include_tasks: rpm-key.yml
+  vars:
+    hmailserver_rpm_key_url: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key"
+    hmailserver_rpm_key_fingerprint: "{{ hmailserver_obs_fingerprint }}"
 
+# No gpgkey: the key is imported already, and a gpgkey would let zypper import
+# whatever else the address serves.
 - name: Name the Build Service repository, its metadata and packages checked against that key
   ansible.builtin.yum_repository:
     name: home_progressiverobot
@@ -36,7 +41,6 @@
     baseurl: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/"
     gpgcheck: true
     repo_gpgcheck: true
-    gpgkey: "{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key"
     enabled: true
     reposdir: /etc/zypp/repos.d
     owner: root

@@ -41,8 +41,9 @@
       The project publishes no package for {{ ansible_facts['distribution'] }}
       {{ ansible_facts['distribution_version'] }}: the Ubuntu PPA serves
       {{ hmailserver_ppa_suites | join(' and ') }}, the release carries .deb files for
-      Debian {{ hmailserver_deb_releases | join(' and ') }}, Copr builds for Fedora and
-      Enterprise Linux 10, and the Build Service for openSUSE Leap 16.0 and Tumbleweed.
+      Debian {{ hmailserver_deb_releases | join(' and ') }}, Copr builds for
+      {{ hmailserver_copr_chroots | join(', ') }}, and the Build Service for openSUSE
+      Leap 16.0 and Tumbleweed.
   when: hmailserver_channel_chosen == 'none'
 
 - name: Install the package

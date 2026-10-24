@@ -16,9 +16,10 @@
                            Docker Hub's regclient/regctl pinned by digest;
                            galaxy-publish needs galaxy-build with its artifacts, the
                            tarball it sends; galaxy-check, the one check job beside
-                           channels-check, never runs for a tag or a schedule; and the
-                           three Galaxy jobs install their tools with their hashes
-                           alone.
+                           channels-check, never runs for a tag or a schedule; each
+                           Galaxy job's rules are its one reference and nothing
+                           more; and the three install their tools with their hashes
+                           alone, no line of theirs installing anything else.
   the PKGBUILD             renders for a release (build/ci/channels/aur-publish.py):
                            the release's tarball from the package registry, one
                            pkgver, pkgrel and sha256sums line each, and
@@ -63,6 +64,13 @@ GALAXY_CHANGES = '''.galaxy-changes:
 '''
 GALAXY_PIP = ("/tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes"
               " -r build/ci/ansible-collection-requirements.txt")
+# A line of a Galaxy job that installs something from an index, in any of the ways a
+# job's script, before_script or a block scalar in them could: only GALAXY_PIP may.
+GALAXY_INSTALLER = re.compile(r"\bpip[0-9.]*\s+install\b|-m\s+pip\b|\buv\s+(?:pip|tool|add|sync)\b|\buvx\b|\bpipx\b"
+                              r"|\beasy_install\b|\bansible-galaxy\s+(?:(?:collection|role)\s+)?install\b")
+# Each Galaxy job's rules, exactly: its one reference, with no rule before or after it.
+GALAXY_RULES = {"galaxy-check": ".galaxy-changes", "galaxy-build": ".channels-publish",
+                "galaxy-publish": ".channels-publish"}
 PUBLISH_RULES = '''.channels-publish:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -110,6 +118,22 @@ def jobs(text):
     return blocks
 
 
+def key_block(block, key):
+    """The lines of a job's key, indented two, to the next line indented no deeper, each
+    ending in a line feed; empty when the job has no such key."""
+    lines, inside = [], False
+    for line in block.split("\n"):
+        if inside and line.strip() and len(line) - len(line.lstrip(" ")) <= 2:
+            break
+        if line == "  %s:" % key:
+            inside = True
+        if inside:
+            lines.append(line)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return "".join(line + "\n" for line in lines)
+
+
 def problems_of(root):
     problems = []
     try:
@@ -153,8 +177,14 @@ def problems_of(root):
             problems.append("galaxy-check's rules are not .galaxy-changes' alone, which never run for a tag or a schedule")
         if re.search(r"^\s+(id_tokens|secrets):", check, re.MULTILINE):
             problems.append("galaxy-check asks for id_tokens or secrets")
+    for name, reference in sorted(GALAXY_RULES.items()):
+        rules = key_block(blocks.get(name) or "", "rules")
+        if rules != "  rules:\n    - !reference [%s, rules]\n" % reference:
+            problems.append("%s's rules are not !reference [%s, rules] alone, with no rule before or after it: %s"
+                            % (name, reference, (rules or "none").strip().replace("\n", " ")))
     for name in ("galaxy-check", "galaxy-build", "galaxy-publish"):
-        installs = re.findall(r"^\s+- (.*pip install.*)$", blocks.get(name) or "", re.MULTILINE)
+        installs = [re.sub(r"^\s*(?:-\s+)?", "", line) for line in (blocks.get(name) or "").split("\n")
+                    if GALAXY_INSTALLER.search(line)]
         if installs != [GALAXY_PIP]:
             problems.append("%s does not install its tools from build/ci/ansible-collection-requirements.txt with their"
                             " hashes alone: %s" % (name, installs or "no pip install"))
@@ -260,6 +290,28 @@ def self_test():
          "ansible_collections/progressiverobot/hmailserver\n  before_script:\n    - !reference [.no-github, before_script]\n",
          "    HM_COLLECTION: hmailserver/source/Server/platform/packaging/ansible/ansible_collections/progressiverobot/"
          "hmailserver\n  before_script:\n", "galaxy-check, in a docker image"),
+        ("galaxy-check with a rule of its own before .galaxy-changes'", CI,
+         "  rules:\n    - !reference [.galaxy-changes, rules]\n",
+         "  rules:\n    - when: always\n    - !reference [.galaxy-changes, rules]\n", "galaxy-check's rules"),
+        ("galaxy-check with a changes rule before .galaxy-changes', true for a tag", CI,
+         "  rules:\n    - !reference [.galaxy-changes, rules]\n",
+         "  rules:\n    - changes: [LICENSE]\n    - !reference [.galaxy-changes, rules]\n", "galaxy-check's rules"),
+        ("galaxy-build pressed for any pipeline", CI, "  rules:\n    - !reference [.channels-publish, rules]\n  before_script:\n"
+         "    - !reference [.no-github, before_script]\n    - python3 -m venv /tmp/galaxy\n",
+         "  rules:\n    - when: manual\n    - !reference [.channels-publish, rules]\n  before_script:\n"
+         "    - !reference [.no-github, before_script]\n    - python3 -m venv /tmp/galaxy\n", "galaxy-build's rules"),
+        ("galaxy-publish pressed for any pipeline", CI, "  resource_group: galaxy-publish\n  rules:\n"
+         "    - !reference [.channels-publish, rules]\n", "  resource_group: galaxy-publish\n  rules:\n"
+         "    - when: manual\n    - !reference [.channels-publish, rules]\n", "galaxy-publish's rules"),
+        ("galaxy-check installing a tool with pip3", CI, "    - python3 -m venv /tmp/galaxy\n",
+         "    - python3 -m venv /tmp/galaxy\n    - pip3 install yamllint\n", "galaxy-check does not install"),
+        ("galaxy-check installing a tool inside its script's block", CI, "      cd \"$HM_COLLECTION\"\n",
+         "      cd \"$HM_COLLECTION\"\n      /tmp/galaxy/bin/pip install yamllint\n", "galaxy-check does not install"),
+        ("galaxy-build installing a collection from Galaxy", CI,
+         "    - python3 build/ci/channels/galaxy-publish.py release-build --out galaxy-build\n",
+         "    - ansible-galaxy collection install community.general\n"
+         "    - python3 build/ci/channels/galaxy-publish.py release-build --out galaxy-build\n",
+         "galaxy-build does not install"),
     ]
     work = tempfile.mkdtemp(prefix="hm-check-channels-")
     try:
