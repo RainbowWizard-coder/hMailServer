@@ -97,14 +97,17 @@ status before 6.3.7), `POST
 /api/v1/update/check` where the REST API is on, or `Status.CheckForUpdate()`
 over COM. The check reads the feed then, whether or not the daily check is on.
 
-- On 6.3.3 the check finds the server up to date, and the application log has
-  the line "Update check: this server runs 6.3.3, which is the latest release
-  on the stable channel (6.3.3)."
-- On an older version the answer is that a newer release is available, with
-  its version and date and a link to its page on
-  `gitlab.com/hmailserver/hmailserver/-/releases/`. `GET /api/v1/update`
-  shows the installer's address in the project's package registry
-  (`https://gitlab.com/api/v4/projects/86730559/packages/generic/...`).
+- On any version from 6.2.28 to 6.3.3 the answer is that a newer release is
+  available, since the feed lists releases after 6.3.3 (the first, 6.3.4, was
+  published on 27 September 2026). The server takes the newest release in the
+  list that is not a draft or a pre-release (on the pre-release channel, the
+  newest that is not a draft), and the application log has the line "Update
+  check: hMailServer <that version> is available (published <its date>); this
+  server runs <this version>. <the release's page>", the page being on
+  `gitlab.com/hmailserver/hmailserver/-/releases/`. `GET /api/v1/update` shows
+  the installer's address in the project's package registry
+  (`https://gitlab.com/api/v4/projects/86730559/packages/generic/...`). What
+  such a server can then install is below.
 - Before the change, the same check said "The update feed answered HTTP 404."
   If it still does, the server has not read the new value: check the section
   and the spelling, and that the service was restarted.
