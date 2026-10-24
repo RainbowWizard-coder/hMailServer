@@ -1,0 +1,13 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's CODEOWNERS policy: GitHub's own reading of .github/CODEOWNERS has no
+# error. The file is required here; Allstar v4.6 takes that requirement from the
+# organisation-level configuration alone, so a missing file would pass, but
+# GitHub's reading of a file with an error fails at either level. See allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log
+requireCODEOWNERS: true

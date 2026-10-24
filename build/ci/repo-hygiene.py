@@ -46,6 +46,19 @@ counted as a pass):
                        pipeline-variable settings are not public, and the check
                        says so rather than guessing.
 
+And a seventh, of the tree alone, for the copy on GitHub:
+
+  Allstar-Config       the .allstar/ folder holds allstar.yaml and a file for each
+                       policy OpenSSF Allstar v4.6 reads in a repository, and no
+                       other; each parses, has only Allstar's own keys, spelt as
+                       Allstar spells them, with values of their types, and opts
+                       in with the action log; scorecard.yaml names Scorecard's
+                       checks alone. A file is read as Allstar's YAML library
+                       reads it, and what that library could read otherwise than
+                       it looks (a character beyond printable ASCII, YAML 1.1's
+                       on, off, yes and no, an octal, hexadecimal or binary
+                       number, a special float) is refused.
+
 What is left out, and why, is in docs/ContinuousIntegration.md ("Security
 scanning"): Code-Review, Maintained, Contributors, Dangerous-Workflow, Packaging,
 SAST, CI-Tests, Fuzzing, CII-Best-Practices, Webhooks, License and
@@ -69,7 +82,24 @@ an include it cannot open, default:'s [$HM_RUNNER] with a workflow that leaves a
 merge request's or an unprotected ref's pipeline on the project's runners - and
 Pinned-Dependencies' CI half over a CI file and
 the file it includes, with an image by tag, a service by tag and an unhashed pip
-install put in the included file; it fails if any is judged wrongly.
+install put in the included file; and Allstar-Config's YAML reading over 31
+texts, each of which must give the value or the refusal its case names (a
+comment after a value, a # inside quotes, a byte-order mark and CRLF, two
+byte-order marks, a character beyond ASCII, null, an integer beyond 64 bits at
+either end, one of 4,301 digits, a tag, an anchor), over 60 plain values, each of
+YAML 1.1's words and the special floats in several cases, a number in each digit,
+dot and sign it can begin with, and each first character it refuses, written out
+rather than drawn from the check's tables, each of which must be refused with the
+words its rule gives, and the check over the tree's own .allstar/ and over 55
+changes to a folder that passes it, 50 of which it must fail with the words its
+case names (a misspelt key, a key in another case, a value of each other type,
+a threshold above 10 and below 0, a tab, a control character and a no-break
+space, a flow sequence, a list in a list, a line indented past its block, a list
+item's next key short of its first, the actions issue and fix, a policy not
+opted in, an organisation-level key, a Scorecard check that does not exist,
+actions.yaml, a subfolder, a file taken away); so that taking away any one rule,
+or any one word, character or bound of a rule, fails it; it fails if any is
+judged wrongly.
 
 The project and the API come from GitLab CI's own variables (CI_API_V4_URL,
 CI_PROJECT_ID, CI_PROJECT_URL) and default to gitlab.com's copy of this project.
@@ -1199,6 +1229,274 @@ def check_token_permissions(files):
     return r
 
 
+# ---------------------------------------------------------------- Allstar-Config
+
+# OpenSSF Allstar's repository-level files, the .allstar/ folder that the copy on GitHub
+# carries, and the keys each takes: the json tags of config.RepoConfig (allstar.yaml) and
+# of each policy package's RepoConfig (pkg/policies/<package>/<package>.go, whose
+# configFile names the file) at Allstar's tag v4.6, commit 61e387702. A policy file takes
+# optConfig and action beside its own keys. A mapping is a dict, a list of one type is
+# [type]. Allstar decodes a file through sigs.k8s.io/yaml and encoding/json, which matches
+# a key without regard to case and passes over a key it does not know: a misspelt key is
+# a setting silently left at its default, so this holds every key to Allstar's own
+# spelling and type.
+ALLSTAR_RELEASE = "v4.6"
+ALLSTAR_OPT = {"optIn": bool, "optOut": bool}
+ALLSTAR_APP_FILE = "allstar.yaml"
+ALLSTAR_FILES = {
+    ALLSTAR_APP_FILE: {"optConfig": ALLSTAR_OPT, "issueLabel": str, "schedule": {"timezone": str, "days": [str]}},
+    "admin.yaml": {"ownerlessAllowed": bool, "userAdminsAllowed": bool, "maxNumberUserAdmins": int,
+                   "teamAdminsAllowed": bool, "maxNumberAdminTeams": int},
+    "binary_artifacts.yaml": {"ignorePaths": [str]},
+    "branch_protection.yaml": {"enforceDefault": bool, "enforceBranches": [str], "requireApproval": bool,
+                               "requireCodeOwnerReviews": bool, "approvalCount": int, "dismissStale": bool,
+                               "blockForce": bool, "enforceOnAdmins": bool, "requireUpToDateBranch": bool,
+                               "requireStatusChecks": [{"context": str, "appID": int}], "requireSignedCommits": bool},
+    "codeowners.yaml": {"requireCODEOWNERS": bool},
+    "dangerous_workflow.yaml": {"branchList": str},
+    "outside.yaml": {"pushAllowed": bool, "adminAllowed": bool},
+    "scorecard.yaml": {"checks": [str], "threshold": int, "upload": {"sarif": bool}},
+    "security.yaml": {},
+}
+for _name in ALLSTAR_FILES:
+    if _name != ALLSTAR_APP_FILE:
+        ALLSTAR_FILES[_name] = dict({"optConfig": ALLSTAR_OPT, "action": str}, **ALLSTAR_FILES[_name])
+# The GitHub Actions policy's file: its package has no RepoConfig, and Allstar reads it
+# from the organisation-level configuration alone, so in a repository it does nothing.
+ALLSTAR_ORG_ONLY = {"actions.yaml"}
+# The checks of OpenSSF Scorecard v5.5.0, the release Allstar v4.6 builds with
+# (checks.GetAll()); scorecard.yaml's checks name these.
+ALLSTAR_SCORECARD_CHECKS = {
+    "Binary-Artifacts", "Branch-Protection", "CI-Tests", "CII-Best-Practices", "Code-Review", "Contributors",
+    "Dangerous-Workflow", "Dependency-Update-Tool", "Fuzzing", "License", "Maintained", "Packaging",
+    "Pinned-Dependencies", "SAST", "Security-Policy", "Signed-Releases", "Token-Permissions", "Vulnerabilities"}
+# The plain scalars that the YAML library Allstar uses (go.yaml.in/yaml/v2, under
+# sigs.k8s.io/yaml 1.6.0) reads as something other than a string, by its resolve table:
+# YAML 1.1's words for true, false and null, the merge key and the special floats. They
+# are refused in any case, so that True, YES and .NaN are too; only true and false, in
+# lower case, are read, as booleans.
+ALLSTAR_SPECIAL = {"y", "yes", "n", "no", "true", "false", "on", "off", "null", "~", "<<",
+                   ".nan", ".inf", "+.inf", "-.inf"}
+# The one way of writing an integer that this check reads: decimal, no leading zero, no
+# plus sign, no underscore. That library reads a plain scalar that begins with a digit,
+# a sign or a dot as an integer in any base Go's strconv.ParseInt takes with base 0 (so
+# 010 is 8 and 0x1F is 31), with 0b for binary, or as a float, and any other
+# such scalar is refused rather than resolved here.
+ALLSTAR_INTEGER = re.compile(r"-?(?:0|[1-9][0-9]*)")
+# Allstar's integers are Go's int, 64 bits on the platforms it is built for.
+ALLSTAR_INT_RANGE = (-2 ** 63, 2 ** 63 - 1)
+ALLSTAR_KEY = re.compile(r"^([A-Za-z][A-Za-z0-9_]*):(?: (.*))?$")
+# What comes before a line's value: its indentation, a list item's dash, and a key.
+ALLSTAR_HEAD = re.compile(r" *(?:- +)?(?:[A-Za-z][A-Za-z0-9_]*:(?= |$) *)?")
+
+
+class AllstarYamlError(ValueError):
+    pass
+
+
+def allstar_scalar(text, where):
+    """One scalar of the YAML the .allstar files are written in: true or false, a
+    decimal integer, a string in quotes without escapes, or a plain string that YAML
+    reads as that string."""
+    if text in ("true", "false"):
+        return text == "true"
+    if ALLSTAR_INTEGER.fullmatch(text):
+        # No 64-bit integer is longer than 20 characters, and Python will not convert
+        # a string of more than a few thousand digits at all.
+        if len(text) > 20 or not ALLSTAR_INT_RANGE[0] <= int(text) <= ALLSTAR_INT_RANGE[1]:
+            raise AllstarYamlError("%s: %s does not fit in a 64-bit integer, which Allstar's integers are" % (where, text))
+        return int(text)
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "'\"":
+        inner = text[1:-1]
+        if text[0] in inner or "\\" in inner:
+            raise AllstarYamlError("%s: a quoted string with a quote or an escape in it" % where)
+        return inner
+    if text == "[]":
+        return []
+    if text == "{}":
+        return {}
+    if text.lower() in ALLSTAR_SPECIAL:
+        raise AllstarYamlError("%s: %r is read by YAML as true, false, null or a special value, not as the plain"
+                               " string it looks like; write true, false or a quoted string" % (where, text))
+    if text[0] in "0123456789+-.":
+        raise AllstarYamlError("%s: %r begins as a YAML number does, and YAML may read it as one (octal, hexadecimal,"
+                               " binary or a float); write a decimal integer without a leading zero, or a"
+                               " quoted string" % (where, text))
+    if text[0] in "[]{}&*!|>%@`'\",#?:" or ": " in text or text.endswith(":"):
+        raise AllstarYamlError("%s: %r is YAML this check does not read" % (where, text))
+    return text
+
+
+def allstar_uncomment(raw):
+    """raw without its comment, as YAML reads one: a # after a space ends a plain
+    value, and a value in quotes ends at its closing quote, whatever follows it."""
+    head = ALLSTAR_HEAD.match(raw).group(0)
+    value = raw[len(head):]
+    if value[:1] in ("'", '"'):
+        close = value.find(value[0], 1)
+        if close > 0 and re.fullmatch(r"(?: +#.*)?| *", value[close + 1:]):
+            value = value[:close + 1]
+    elif value.startswith("#") and head.endswith(" "):
+        value = ""
+    elif " #" in value:
+        value = value[:value.index(" #")]
+    return (head + value).rstrip(" ")
+
+
+def allstar_parse(text):
+    """The .allstar files' YAML: block mappings and block lists, two or more spaces a
+    level, of the scalars allstar_scalar reads, with comments on lines of their own or
+    after a value, in printable ASCII (and a byte-order mark before it). Anything else -
+    a tab or another control character, a character beyond ASCII, a flow collection other
+    than an empty [] or {}, an anchor, a tag, a block scalar, a list in a list, a second
+    document, a repeated key - is refused, not guessed."""
+    if text.startswith("\ufeff"):
+        text = text[1:]
+    lines = []
+    for number, raw in enumerate(text.replace("\r\n", "\n").split("\n"), 1):
+        other = re.search(r"[^\x20-\x7e]", raw)
+        if other:
+            raise AllstarYamlError("line %d: %s" % (number, "a tab" if other.group(0) == "\t" else
+                                                    "the character U+%04X, which is not printable ASCII" % ord(other.group(0))))
+        stripped = raw.strip(" ")
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped in ("---", "...") or stripped.startswith("%"):
+            raise AllstarYamlError("line %d: a document marker or directive" % number)
+        body = allstar_uncomment(raw)
+        lines.append((number, len(body) - len(body.lstrip(" ")), body.strip(" ")))
+    if not lines:
+        raise AllstarYamlError("the file holds no setting")
+
+    def block(i, indent):
+        number, level, content = lines[i]
+        if level != indent:
+            raise AllstarYamlError("line %d: indented %d where %d is expected" % (number, level, indent))
+        if content.startswith("- ") or content == "-":
+            items = []
+            while i < len(lines) and lines[i][1] == indent and (lines[i][2].startswith("- ") or lines[i][2] == "-"):
+                number, _, content = lines[i]
+                rest = content[1:].lstrip(" ")
+                if not rest:
+                    raise AllstarYamlError("line %d: an empty list item" % number)
+                if rest == "-" or rest.startswith("- "):
+                    raise AllstarYamlError("line %d: a list in a list" % number)
+                if ALLSTAR_KEY.match(rest):
+                    # A mapping in a list: its first key on the dash's line, the rest under it.
+                    inner = indent + (len(content) - len(rest))
+                    lines[i] = (number, inner, rest)
+                    value, i = block(i, inner)
+                else:
+                    value, i = allstar_scalar(rest, "line %d" % number), i + 1
+                items.append(value)
+            return items, i
+        mapping = {}
+        while i < len(lines) and lines[i][1] == indent:
+            number, _, content = lines[i]
+            match = ALLSTAR_KEY.match(content)
+            if not match:
+                raise AllstarYamlError("line %d: %r is not a key and a value" % (number, content))
+            key, value = match.group(1), (match.group(2) or "").strip(" ")
+            if key in mapping:
+                raise AllstarYamlError("line %d: %s is given twice" % (number, key))
+            if value:
+                mapping[key], i = allstar_scalar(value, "line %d" % number), i + 1
+            elif i + 1 < len(lines) and lines[i + 1][1] > indent:
+                mapping[key], i = block(i + 1, lines[i + 1][1])
+            elif i + 1 < len(lines) and lines[i + 1][1] == indent and lines[i + 1][2].startswith("-"):
+                mapping[key], i = block(i + 1, indent)
+            else:
+                raise AllstarYamlError("line %d: %s has no value" % (number, key))
+        return mapping, i
+
+    value, end = block(0, lines[0][1])
+    if end != len(lines):
+        number, level, _ = lines[end]
+        raise AllstarYamlError("line %d: indented %d, outside the block above it" % (number, level))
+    if not isinstance(value, dict):
+        raise AllstarYamlError("the file is not a mapping")
+    return value
+
+
+def allstar_typed(value, schema, at):
+    """The places where value is not of schema's shape and Allstar's spelling."""
+    if isinstance(schema, dict):
+        if not isinstance(value, dict):
+            return ["%s: a mapping is expected" % (at.rstrip(".") or "the file")]
+        wrong = []
+        for key in value:
+            if key not in schema:
+                near = [k for k in schema if k.lower() == key.lower()]
+                wrong.append("%s%s: not one of Allstar %s's keys here%s" % (
+                    at, key, ALLSTAR_RELEASE, " (it spells it %s)" % near[0] if near else ""))
+            else:
+                wrong += allstar_typed(value[key], schema[key], at + key + ".")
+        return wrong
+    if isinstance(schema, list):
+        if not isinstance(value, list):
+            return ["%s: a list is expected" % at.rstrip(".")]
+        wrong = []
+        for n, item in enumerate(value):
+            wrong += allstar_typed(item, schema[0], "%s[%d]." % (at.rstrip("."), n))
+        return wrong
+    if schema is int and (isinstance(value, bool) or not isinstance(value, int)):
+        return ["%s: an integer is expected" % at.rstrip(".")]
+    if schema is not int and not isinstance(value, schema):
+        return ["%s: %s is expected" % (at.rstrip("."), "true or false" if schema is bool else "a string")]
+    return []
+
+
+def check_allstar_config(files, reader=None):
+    """files: the tracked paths; reader(path) gives a file's text (read, by default)."""
+    reader = reader or read
+    r = Result("Allstar-Config", "the .allstar/ files of the copy on GitHub are Allstar %s's, every policy"
+               " opted in with the action log" % ALLSTAR_RELEASE)
+    present = sorted(p[len(".allstar/"):] for p in files if p.startswith(".allstar/"))
+    if not present:
+        r.fail("no .allstar/ folder: the copy on GitHub is not opted in to Allstar")
+        return r
+    for name in present:
+        if "/" in name:
+            r.fail(".allstar/%s: Allstar reads no subfolder of .allstar/" % name)
+        elif name in ALLSTAR_ORG_ONLY:
+            r.fail(".allstar/%s: Allstar reads the GitHub Actions policy's file from the organisation-level"
+                   " configuration alone, so here it would do nothing" % name)
+        elif name not in ALLSTAR_FILES:
+            r.fail(".allstar/%s: not a file Allstar %s reads in a repository (%s)" % (
+                name, ALLSTAR_RELEASE, ", ".join(sorted(ALLSTAR_FILES))))
+    for name in sorted(set(ALLSTAR_FILES) - set(present)):
+        r.fail(".allstar/%s is missing: %s" % (name, "the repository is not opted in" if name == ALLSTAR_APP_FILE
+                                                 else "that policy is not opted in, and an opt-in strategy leaves it off"))
+    for name in present:
+        if name not in ALLSTAR_FILES:
+            continue
+        try:
+            value = allstar_parse(reader(".allstar/" + name))
+        except AllstarYamlError as e:
+            r.fail(".allstar/%s: %s" % (name, e))
+            continue
+        wrong = allstar_typed(value, ALLSTAR_FILES[name], "")
+        for w in wrong:
+            r.fail(".allstar/%s: %s" % (name, w))
+        if wrong:
+            continue
+        opt = value.get("optConfig", {})
+        if opt.get("optIn") is not True or opt.get("optOut") is True:
+            r.fail(".allstar/%s: optConfig must have optIn: true and no optOut: true" % name)
+        if name != ALLSTAR_APP_FILE and value.get("action") != "log":
+            r.fail(".allstar/%s: action must be log - the copy's Issues are off, so Allstar can open no issue,"
+                   " and fix would change GitHub's settings, which are the owner's" % name)
+        for check in value.get("checks", []) if name == "scorecard.yaml" else []:
+            if check not in ALLSTAR_SCORECARD_CHECKS:
+                r.fail(".allstar/scorecard.yaml: %s is not one of Scorecard's checks" % check)
+        if name == "scorecard.yaml" and not 0 <= value.get("threshold", 10) <= 10:
+            r.fail(".allstar/scorecard.yaml: threshold must be from 0 to 10")
+        if name == "branch_protection.yaml" and value.get("approvalCount", 1) < 0:
+            r.fail(".allstar/branch_protection.yaml: approvalCount cannot be below 0")
+        r.ok(".allstar/%s: %s" % (name, json.dumps(value, sort_keys=True, separators=(",", ":"))))
+    return r
+
+
 # ---------------------------------------------------------------- the report
 
 def junit(results):
@@ -1653,10 +1951,238 @@ PINNED_WORKFLOW_CASES = [
 ]
 
 
+# Allstar-Config's self-test: a folder that passes, and each case's change to it - in a
+# file, (file, old, new) with old replaced by new once; a file added, (file, None, text);
+# a file taken away, (file, None, None) - and, for a case the check must fail, words its
+# failure must hold, so that each case is failed by the rule it is named for (None for a
+# case it must pass).
+ALLSTAR_TEST_BASE = dict({name: "optConfig:\n  optIn: true\naction: log\n" for name in ALLSTAR_FILES}, **{
+    "allstar.yaml": "# The repository opts in.\noptConfig:\n  optIn: true\n",
+    "branch_protection.yaml": ("optConfig:\n  optIn: true\naction: log  # never an issue\napprovalCount: 2\n"
+                               "requireCodeOwnerReviews: true\nrequireStatusChecks:\n  - context: CodeQL\n"
+                               "    appID: 15368\nenforceOnAdmins: false\n"),
+    "scorecard.yaml": "optConfig:\n  optIn: true\naction: log\nchecks:\n- SAST\n- 'License'\nthreshold: 10\nupload:\n  sarif: false\n",
+})
+ALLSTAR_TEST_CASES = [
+    ("a key Allstar does not have", ("branch_protection.yaml", "approvalCount", "approvalsCount"),
+     "approvalsCount: not one of Allstar"),
+    ("a key in another case than Allstar's", ("branch_protection.yaml", "approvalCount", "approvalcount"),
+     "(it spells it approvalCount)"),
+    ("an integer written as a word", ("branch_protection.yaml", "approvalCount: 2", "approvalCount: two"),
+     "approvalCount: an integer is expected"),
+    ("true or false where an integer is expected", ("branch_protection.yaml", "approvalCount: 2", "approvalCount: true"),
+     "approvalCount: an integer is expected"),
+    ("a string where true or false is expected", ("branch_protection.yaml", "requireCodeOwnerReviews: true",
+                                                  "requireCodeOwnerReviews: CodeQL"),
+     "requireCodeOwnerReviews: true or false is expected"),
+    ("an integer where true or false is expected", ("branch_protection.yaml", "requireCodeOwnerReviews: true",
+                                                    "requireCodeOwnerReviews: 1"),
+     "requireCodeOwnerReviews: true or false is expected"),
+    ("an integer where a string is expected", ("branch_protection.yaml", "- context: CodeQL", "- context: 5"),
+     "requireStatusChecks[0].context: a string is expected"),
+    ("true where a string is expected", ("branch_protection.yaml", "- context: CodeQL", "- context: true"),
+     "requireStatusChecks[0].context: a string is expected"),
+    ("a value where a list is expected", ("branch_protection.yaml", "enforceOnAdmins: false",
+                                          "enforceOnAdmins: false\nenforceBranches: master"),
+     "enforceBranches: a list is expected"),
+    ("a value where a mapping is expected", ("allstar.yaml", "optConfig:\n  optIn: true", "optConfig: true"),
+     "optConfig: a mapping is expected"),
+    ("YAML 1.1's yes for true", ("branch_protection.yaml", "requireCodeOwnerReviews: true",
+                                 "requireCodeOwnerReviews: yes"), "is read by YAML as true, false, null"),
+    ("True, in another case than true", ("branch_protection.yaml", "requireCodeOwnerReviews: true",
+                                         "requireCodeOwnerReviews: True"), "is read by YAML as true, false, null"),
+    ("YAML 1.1's on where a string is expected", ("branch_protection.yaml", "- context: CodeQL", "- context: on"),
+     "is read by YAML as true, false, null"),
+    ("a special float", ("dangerous_workflow.yaml", "action: log", "action: log\nbranchList: .NaN"),
+     "is read by YAML as true, false, null"),
+    ("an integer with a leading zero, which YAML reads as octal", ("scorecard.yaml", "threshold: 10", "threshold: 010"),
+     "begins as a YAML number does"),
+    ("a hexadecimal number where a string is expected", ("branch_protection.yaml", "- context: CodeQL",
+                                                         "- context: 0x1F"), "begins as a YAML number does"),
+    ("a binary number where a string is expected", ("branch_protection.yaml", "- context: CodeQL",
+                                                    "- context: 0b101"), "begins as a YAML number does"),
+    ("an integer beyond 64 bits", ("branch_protection.yaml", "approvalCount: 2", "approvalCount: 99999999999999999999"),
+     "does not fit in a 64-bit integer"),
+    ("a status check named by name: rather than context:", ("branch_protection.yaml", "- context:", "- name:"),
+     "name: not one of Allstar"),
+    ("a status check's appID as a string", ("branch_protection.yaml", "appID: 15368", "appID: '15368'"),
+     "appID: an integer is expected"),
+    ("the action issue", ("security.yaml", "action: log", "action: issue"), "action must be log"),
+    ("the action fix", ("outside.yaml", "action: log", "action: fix"), "action must be log"),
+    ("a policy not opted in", ("admin.yaml", "optIn: true", "optIn: false"), "optConfig must have optIn: true"),
+    ("the repository opted out", ("allstar.yaml", "optIn: true", "optIn: true\n  optOut: true"),
+     "optConfig must have optIn: true"),
+    ("an organisation-level key in the repository's allstar.yaml", ("allstar.yaml", "optIn: true", "optOutStrategy: true"),
+     "optOutStrategy: not one of Allstar"),
+    ("an organisation-level key in a policy file", ("outside.yaml", "action: log", "action: log\nexemptions: []"),
+     "exemptions: not one of Allstar"),
+    ("a Scorecard check that does not exist", ("scorecard.yaml", "- SAST", "- Signed-Release"),
+     "Signed-Release is not one of Scorecard's checks"),
+    ("a threshold above 10", ("scorecard.yaml", "threshold: 10", "threshold: 11"), "threshold must be from 0 to 10"),
+    ("a threshold below 0", ("scorecard.yaml", "threshold: 10", "threshold: -1"), "threshold must be from 0 to 10"),
+    ("an approval count below 0", ("branch_protection.yaml", "approvalCount: 2", "approvalCount: -1"),
+     "approvalCount cannot be below 0"),
+    ("a file Allstar does not read", ("notapolicy.yaml", None, "action: log\n"), "not a file Allstar"),
+    ("a file in a subfolder", ("sub/security.yaml", None, "optConfig:\n  optIn: true\naction: log\n"),
+     "Allstar reads no subfolder"),
+    ("actions.yaml, which Allstar reads at the organisation level alone", ("actions.yaml", None, "action: log\ngroups: []\n"),
+     "from the organisation-level configuration alone"),
+    ("a policy's file taken away", ("security.yaml", None, None), "security.yaml is missing"),
+    ("allstar.yaml taken away", ("allstar.yaml", None, None), "the repository is not opted in"),
+    ("every file taken away", ("*", None, None), "no .allstar/ folder"),
+    ("a tab in the indentation", ("codeowners.yaml", "  optIn", "  \toptIn"), "a tab"),
+    ("a control character after a string", ("branch_protection.yaml", "- context: CodeQL", "- context: CodeQL\x0c"),
+     "U+000C"),
+    ("a no-break space after true", ("security.yaml", "optIn: true", "optIn: true\xa0"), "U+00A0"),
+    ("a document marker", ("codeowners.yaml", "optConfig:", "---\noptConfig:"), "a document marker"),
+    ("a flow sequence where a string is expected", ("branch_protection.yaml", "- context: CodeQL",
+                                                    "- context: [CodeQL]"), "'[CodeQL]' is YAML this check does not read"),
+    ("a key and a value where a string is expected", ("branch_protection.yaml", "- context: CodeQL",
+                                                      "- context: CodeQL: x"), "'CodeQL: x' is YAML this check does not read"),
+    ("a quote inside a quoted string", ("scorecard.yaml", "- 'License'", "- 'Lic'ense'"),
+     "a quoted string with a quote or an escape"),
+    ("an escape inside a quoted string", ("scorecard.yaml", "- 'License'", '- "Lic\\x65nse"'),
+     "a quoted string with a quote or an escape"),
+    ("a list in a list", ("allstar.yaml", "optIn: true", "optIn: true\nschedule:\n  days:\n  - - saturday"),
+     "a list in a list"),
+    ("a line indented past its block", ("dangerous_workflow.yaml", "action: log", "action: log\n  branchList: master"),
+     "outside the block above it"),
+    ("a list item's dash and three spaces, its next key under its first", (
+        "branch_protection.yaml", "  - context: CodeQL\n    appID: 15368", "  -   context: CodeQL\n      appID: 15368"), None),
+    ("a list item's dash and three spaces, its next key two columns past the dash", (
+        "branch_protection.yaml", "  - context: CodeQL\n    appID: 15368", "  -   context: CodeQL\n    appID: 15368"),
+     "outside the block above it"),
+    ("a list where the file's mapping should be", ("security.yaml", "optConfig:\n  optIn: true\naction: log\n",
+                                                   "- optIn\n"), "the file is not a mapping"),
+    ("a key given twice", ("dangerous_workflow.yaml", "action: log", "action: log\naction: log"), "action is given twice"),
+    ("an empty file", ("security.yaml", "optConfig:\n  optIn: true\naction: log\n", "# nothing\n"),
+     "the file holds no setting"),
+    ("a comment after a value and a string in quotes", ("dangerous_workflow.yaml", "action: log",
+                                                         "action: \"log\"\nbranchList: default  # the default branch"), None),
+    ("a comment with a quote in it", ("branch_protection.yaml", "# never an issue", "# Allstar's default is issue"), None),
+    ("strings made of a number's letters", ("branch_protection.yaml", "- context: CodeQL",
+                                            "- context: e2e\n  - context: exe"), None),
+    ("a byte-order mark", ("security.yaml", "optConfig:", chr(0xFEFF) + "optConfig:"), None),
+]
+# allstar_parse's own self-test: a file's text and the value it must read, or words of
+# the refusal it must give.
+ALLSTAR_PARSE_CASES = [
+    ("a comment after a plain value", "a: log  # it's log\n", {"a": "log"}),
+    ("a # with no space before it, which begins no comment", "a: C#\n", {"a": "C#"}),
+    ("a # inside a quoted string", "a: 'x # y'  # z\n", {"a": "x # y"}),
+    ("a comment where a value would be", "a: # the block below\n  b: 1\n", {"a": {"b": 1}}),
+    ("a negative integer and 0", "a: -1\nb: 0\n", {"a": -1, "b": 0}),
+    ("the largest 64-bit integer", "a: 9223372036854775807\n", {"a": 9223372036854775807}),
+    ("a byte-order mark and CRLF", chr(0xFEFF) + "a: 1\r\nb:\r\n  - e2e\r\n", {"a": 1, "b": ["e2e"]}),
+    ("a mapping in a list", "a:\n- b: 1\n  c: exe\n", {"a": [{"b": 1, "c": "exe"}]}),
+    ("an empty list and an empty mapping", "a: []\nb: {}\n", {"a": [], "b": {}}),
+    ("a lone carriage return, which YAML reads as a line break", "a: 1\rb: 2\n", "U+000D"),
+    ("a character beyond ASCII", "a: caf" + chr(0xE9) + "\n", "U+00E9"),
+    ("an em space before a #", "a: log" + chr(0x2003) + "# the action\n", "U+2003"),
+    ("YAML's null", "a: ~\n", "is read by YAML as true, false, null"),
+    ("an integer one past 64 bits", "a: 9223372036854775808\n", "does not fit in a 64-bit integer"),
+    ("a date, which this check does not read", "a: 2026-10-24\n", "begins as a YAML number does"),
+    ("an integer with a plus sign", "a: +1\n", "begins as a YAML number does"),
+    ("an integer with an underscore", "a: 1_000\n", "begins as a YAML number does"),
+    ("an empty list item", "a:\n-\n", "an empty list item"),
+    ("a key with no value", "a:\n", "a has no value"),
+    ("a tag", "a: !!str x\n", "is YAML this check does not read"),
+    ("a block scalar", "a: |\n  x\n", "is YAML this check does not read"),
+    ("an anchor", "a: &x b\n", "is YAML this check does not read"),
+    ("a value after a closing quote", "a: 'x' y\n", "is YAML this check does not read"),
+    ("a value that ends in a colon", "a: b:\n", "is YAML this check does not read"),
+    ("a line with no key", "a: 1\nb\n", "is not a key and a value"),
+    ("a # inside a quoted list item", "a:\n- 'x # y'  # z\n", {"a": ["x # y"]}),
+    ("a list item with a colon in it, not a key", "a:\n- C:x\n", {"a": ["C:x"]}),
+    ("the smallest 64-bit integer", "a: -9223372036854775808\n", {"a": -9223372036854775808}),
+    ("an integer one below 64 bits", "a: -9223372036854775809\n", "does not fit in a 64-bit integer"),
+    ("an integer of 4,301 digits, more than Python converts", "a: " + "9" * 4301 + "\n",
+     "does not fit in a 64-bit integer"),
+    ("two byte-order marks", chr(0xFEFF) + chr(0xFEFF) + "a: 1\n", "U+FEFF"),
+]
+# allstar_scalar's own self-test: each word, first character and form its rules refuse,
+# with words of the refusal it must give. They are written out here, not drawn from the
+# rules' own tables, so that a word or a character taken away from a rule fails a case.
+ALLSTAR_REFUSED_SCALARS = (
+    [(word, "is read by YAML as true, false, null") for word in (
+        "y", "Y", "yes", "Yes", "n", "N", "no", "NO", "on", "On", "off", "Off", "null", "Null", "NULL", "~",
+        "True", "TRUE", "False", "FALSE", "<<", ".nan", ".NaN", ".inf", "+.inf", "-.Inf")]
+    + [(text, "begins as a YAML number does") for text in (
+        "0.5", "1e3", "2.5", "3.5", "4e4", "5.0", "6e1", "7.25", "8e8", "9.9", ".5", "-0x1F", "-.5", "+1")]
+    + [(text, "is YAML this check does not read") for text in (
+        "[x", "]x", "{x}", "}x", "&x", "*x", "!x", "|", ">", "%x", "@x", "`x", "'x'y", '"x"y', ",x", "#x", "?x", ":x",
+        "x: y", "x:")]
+)
+
+
+def self_test_allstar():
+    """allstar_parse over ALLSTAR_PARSE_CASES, then Allstar-Config over the tree's own
+    .allstar/ and over ALLSTAR_TEST_BASE and each of ALLSTAR_TEST_CASES; the number
+    judged wrongly."""
+    wrong = 0
+    for name, text, expected in ALLSTAR_PARSE_CASES:
+        try:
+            got = json.dumps(allstar_parse(text), sort_keys=True)
+        except AllstarYamlError as e:
+            got = "refused: %s" % e
+        right = (expected in got and got.startswith("refused: ") if isinstance(expected, str)
+                 else got == json.dumps(expected, sort_keys=True))
+        wrong += 0 if right else 1
+        print("%-6s Allstar-Config's YAML, %s: %s" % ("ok" if right else "WRONG", name, got[:200]))
+    for text, expected in ALLSTAR_REFUSED_SCALARS:
+        try:
+            got = json.dumps(allstar_scalar(text, "the value"))
+        except AllstarYamlError as e:
+            got = "refused: %s" % e
+        right = got.startswith("refused: ") and expected in got
+        wrong += 0 if right else 1
+        print("%-6s Allstar-Config's YAML, the plain value %r: %s" % ("ok" if right else "WRONG", text, got[:200]))
+    in_tree = os.path.join(ROOT, ".allstar")
+    tree = sorted(".allstar/" + n for n in os.listdir(in_tree)) if os.path.isdir(in_tree) else []
+    result = check_allstar_config(tree)
+    right = result.status == "PASS"
+    wrong += 0 if right else 1
+    print("%-6s Allstar-Config, the tree's own .allstar/ (%d files): %s, as it must not fail" % (
+        "ok" if right else "WRONG", len(tree), result.status))
+    for line in result.lines if not right else []:
+        print("         " + line[:300])
+    for name, change, expect in [("the passing folder", None, None)] + ALLSTAR_TEST_CASES:
+        must_fail = expect is not None
+        folder = dict(ALLSTAR_TEST_BASE)
+        if change:
+            target, old, new = change
+            if target == "*":
+                folder = {}
+            elif old is None and new is None:
+                del folder[target]
+            elif old is None:
+                folder[target] = new
+            else:
+                if old not in folder[target]:
+                    raise AssertionError("the self-test's case %r changes nothing" % name)
+                folder[target] = folder[target].replace(old, new, 1)
+        result = check_allstar_config([".allstar/" + file for file in folder],
+                                      lambda path, folder=folder: folder[path[len(".allstar/"):]])
+        failed = result.status == "FAIL"
+        said = not must_fail or any(line.startswith("FAIL") and expect in line for line in result.lines)
+        right = failed == must_fail and said
+        wrong += 0 if right else 1
+        print("%-6s Allstar-Config, %s: %s, as %s" % (
+            "ok" if right else "WRONG", name, result.status,
+            "it must" if right else ("it must fail" if must_fail and not failed else "it must not fail" if not must_fail
+                                     else "it must fail saying %r" % expect)))
+        if not right or failed:
+            for line in result.lines:
+                if line.startswith("FAIL"):
+                    print("         " + line[9:][:300])
+    return wrong
+
+
 def self_test():
     """Token-Permissions against SELF_TEST_BASE and each case: the base and the
     cases that must pass are not FAILed, and every other case is. Then
-    Pinned-Dependencies' CI half (self_test_pinned)."""
+    Pinned-Dependencies' CI half (self_test_pinned), and Allstar-Config
+    (self_test_allstar)."""
     global ROOT
     saved, wrong = ROOT, 0
     try:
@@ -1697,8 +2223,10 @@ def self_test():
         right = len(got[0]) == signatures and got[1] == provenance
         wrong += 0 if right else 1
         print("%-6s Signed-Releases, %s: %d signature(s), provenance %s" % ("ok" if right else "WRONG", name, len(got[0]), got[1]))
-    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1 + len(PINNED_TEST_CASES) + 1 + len(PINNED_WORKFLOW_CASES) + 3,
-                                             wrong))
+    wrong += self_test_allstar()
+    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1 + len(PINNED_TEST_CASES) + 1 + len(PINNED_WORKFLOW_CASES) + 3
+                                             + len(ALLSTAR_PARSE_CASES) + len(ALLSTAR_REFUSED_SCALARS) + 2
+                                             + len(ALLSTAR_TEST_CASES), wrong))
     return 1 if wrong else 0
 
 
@@ -1707,7 +2235,8 @@ def main():
     parser.add_argument("--out", default=os.path.join("security", "repo-hygiene"))
     parser.add_argument("--self-test", action="store_true",
                         help="prove Token-Permissions and Pinned-Dependencies' CI half against CI files made to "
-                             "break them, offline, and exit")
+                             "break them, and Allstar-Config against the tree's .allstar/ and folders made to "
+                             "break it, offline, and exit")
     args = parser.parse_args()
     if args.self_test:
         return self_test()
@@ -1720,6 +2249,7 @@ def main():
         check_pinned_dependencies(files),
         check_binary_artifacts(files),
         check_token_permissions(files),
+        check_allstar_config(files),
     ]
     os.makedirs(args.out, exist_ok=True)
     with open(os.path.join(args.out, "repo-hygiene.json"), "w", encoding="utf-8") as f:

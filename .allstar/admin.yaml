@@ -1,0 +1,16 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's Repository Administrators policy: the repository has an administrator,
+# and exactly one: the account it belongs to (GOVERNANCE.md, "Maintainers"). An
+# account's repository has no teams, so no team may be an administrator. See
+# allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log
+ownerlessAllowed: false
+userAdminsAllowed: true
+maxNumberUserAdmins: 1
+teamAdminsAllowed: false

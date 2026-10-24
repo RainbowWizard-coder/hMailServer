@@ -1,0 +1,29 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's Branch Protection policy, set to what master's rulesets on the copy hold
+# (hmailserver/docs/Mirroring.md, "GitHub's rules for the copy"): a change only
+# through a pull request with two approvals, the code owner's among them, approvals
+# dismissed by a new push, no force push, and CodeQL's check passed on a branch up to
+# date with master. The pull request and CodeQL's check are not enforced on the
+# administrator, as whom the push mirror writes master, though the ban on force pushes
+# is; and no signed commit is required: GitHub verifies a signature only against a
+# key on a GitHub account, and the commits' committer address (the author's too) is
+# linked to none. Allstar v4.6 reads branch protection rules alone and not rulesets,
+# so until it reads rulesets it logs that master has no protection. See allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log
+enforceDefault: true
+requireApproval: true
+approvalCount: 2
+requireCodeOwnerReviews: true
+dismissStale: true
+blockForce: true
+enforceOnAdmins: false
+requireUpToDateBranch: true
+requireStatusChecks:
+  - context: CodeQL
+requireSignedCommits: false

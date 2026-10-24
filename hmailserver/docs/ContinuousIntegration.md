@@ -111,7 +111,7 @@ The other tables on this page name runners the same way.
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries and the .NET runtime the installers carry; passes whatever they find, so that GitLab takes its report into the vulnerability report, and fails only when a scan could not run ([Dependency findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)) |
 | `dependency-scan-verdict` | test | linix | wherever `dependency-scan` runs, after it | The scan's verdict, `verdict.json`: fails on a Critical or High vulnerability with a fixed version, as `dependency-scan` used to, and when a scan could not run; allowed to fail (`build/ci/dependency-scan.py --verdict`). After a retry of `dependency-scan` by hand, retry it too: GitLab runs it again only when it was skipped |
-| `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
+| `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree, and Allstar-Config, which holds the copy on GitHub's `.allstar/` to OpenSSF Allstar's configuration ([The repository checks](#the-repository-checks-and-the-scorecard-checks-left-out)) |
 | `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | linix | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
@@ -2430,7 +2430,9 @@ Every job of the old `.github/workflows`, and where it went. The workflows were
 removed from the tree when the project moved to GitLab; since 18 October 2026 the
 tree has workflows again, for the copy on GitHub alone:
 `.github/workflows/scorecard.yml` and, since 20 October 2026,
-`.github/workflows/codeql.yml` ([OpenSSF Scorecard](#openssf-scorecard)). The old ones are in the git
+`.github/workflows/codeql.yml` ([OpenSSF Scorecard](#openssf-scorecard)); and it carries
+OpenSSF Allstar's configuration for that copy, `.allstar/` ([Allstar on the copy](#allstar-on-the-copy)), which is not a
+workflow. The old ones are in the git
 history, unchanged from `faca023d4` until `6593259e0` removed them on
 26 September 2026 (its parent, `d8ba4b646`, is the last commit that has them),
 and the ones that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
@@ -2470,7 +2472,7 @@ not hold it.
 | (none) | `linux-repro`: the binary, the `.deb` and the `.rpm` built a second time and required to be `linux-build`'s, byte for byte | linix | a protected ref |
 | `codeql.yml` | not ported: see below | | |
 | `dependency-review.yml` | `mr-dependency-check`, against OSV's own export rather than GitHub's advisory service, since 6.3.6 ([Change checks](#change-checks)) | shared | every change: a merge request, and a `batch*` branch |
-| `scorecard.yml` | `repo-hygiene`'s six checks on every protected pipeline, and Scorecard itself from cache.nixos.org in `scorecard`, weekly, published on the project's own site since 6.3.6 ([OpenSSF Scorecard](#openssf-scorecard)) | linix | a protected ref; the `scorecard` schedule |
+| `scorecard.yml` | `repo-hygiene`'s six Scorecard checks on every protected pipeline, and Scorecard itself from cache.nixos.org in `scorecard`, weekly, published on the project's own site since 6.3.6 ([OpenSSF Scorecard](#openssf-scorecard)) | linix | a protected ref; the `scorecard` schedule |
 | `upstream-watch.yml` | not ported: see below | | |
 | `sign-release.yml` | `release-authenticode`, `release-sign` and `release-verify`: Authenticode with a federated credential in place of a client secret, and Sigstore; not the SLSA provenance (see below) | bench150, shared, linix | a `v*` tag |
 | `verify-binary-provenance.yml` | `checkers` runs `build/check-binary-manifest.py`, its tree half, since 6.3.6 ([Change checks](#change-checks)); its Windows job, the fetched files' Authenticode signatures, is `build-inputs-authenticode` on bench150 since 6.3.6 | shared | every pipeline |
@@ -5745,6 +5747,12 @@ the answer is not public, and it never counts as a pass. On 25 September 2026:
   "Limit access to this project", is off) and
   `ci_pipeline_variables_minimum_override_role: no_one_allowed`.
 
+Since 24 October 2026 `repo-hygiene` makes a seventh check, which is not one of
+Scorecard's and reads the tree alone: **Allstar-Config**, which holds the
+`.allstar/` folder that the copy on GitHub carries to OpenSSF Allstar v4.6's
+configuration ([Allstar on the copy](#allstar-on-the-copy), "How the files are
+checked").
+
 On the first pipeline, 26 September 2026, two checks failed. Pinned-Dependencies
 failed on six images named by a tag, the shared runners' Python and Node
 images; each is pinned now to the digest Docker Hub served for its tag that
@@ -6107,6 +6115,143 @@ round, Dangerous-Workflow, Dependency-Update-Tool, SAST and Token-Permissions,
 which Scorecard does not answer on GitLab (above), are answered for the copy on
 GitHub. Neither score is the other's, and each names the repository it was taken
 from.
+
+### Allstar on the copy
+
+OpenSSF Allstar (<https://github.com/ossf/allstar>) runs as a GitHub App over the
+repositories it is installed on, checks each against policies, and for a policy
+that fails takes the action its configuration names. The copy on GitHub carries
+Allstar's repository-level configuration in `.allstar/`, written to Allstar v4.6
+(31 August 2026, commit `61e387702`), its latest release on 24 October 2026. The
+copy's account has no `.allstar` or `.github` repository, so there is no
+organisation-level configuration: Allstar's default is then the opt-in strategy,
+with a repository's own opt-in allowed, and `allstar.yaml` opts the copy in. Each
+policy is opted in by its own file, set to what the copy has
+([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)):
+
+| File | Allstar's policy | What it checks on the copy |
+|---|---|---|
+| `allstar.yaml` | (the app) | Opts the repository in |
+| `branch_protection.yaml` | Branch Protection | `master`'s protection: a pull request with two approvals, the code owner's among them, approvals dismissed by a new push, no force push, and the check `CodeQL` on a branch up to date with `master`; the pull request and `CodeQL` not enforced on the administrator, as whom the mirror pushes, though the ban on force pushes is; no signed commit required, since GitHub verifies a signature only against a key on a GitHub account and the commits' committer address (the author's too) is linked to none |
+| `binary_artifacts.yaml` | Binary Artifacts | Scorecard's Binary-Artifacts: no binary tracked, and no path exempted |
+| `codeowners.yaml` | CODEOWNERS | GitHub's own reading of `.github/CODEOWNERS` finds no error. The file asks for a CODEOWNERS file, but v4.6 takes that requirement from the organisation level alone |
+| `outside.yaml` | Outside Collaborators | No collaborator from outside holds push or administrator access |
+| `security.yaml` | SECURITY.md | A security policy, `SECURITY.md`, that is not empty |
+| `dangerous_workflow.yaml` | Dangerous Workflow | Scorecard's Dangerous-Workflow over the workflows of every branch |
+| `scorecard.yaml` | OpenSSF Scorecard | Scorecard's Dependency-Update-Tool, Fuzzing, License, Pinned-Dependencies, SAST, Token-Permissions and Vulnerabilities, each at 10: the checks the copy scores 10 on, or should, that no other policy here runs. No SARIF upload, which `scorecard.yml` makes already |
+| `admin.yaml` | Repository Administrators | One administrator, an account; no team |
+
+Every policy's action is `log`. An issue cannot be opened while the copy's Issues
+are off, and `fix` would change the copy's settings, which are the owner's. With
+`log`, Allstar writes each policy's result - passed or failed, and what failed -
+to the log of the Allstar instance that ran it, and nowhere else: its findings go
+to the app's log, not to the repository (Allstar's README, "Actions": "Logs are
+currently only visible to the app operator"). The GitHub Actions policy
+(`actions.yaml`) has no file: its package has no repository-level configuration,
+and Allstar reads it from an organisation-level configuration alone, so a file
+here would do nothing; with none, the policy is off.
+
+**The app is the owner's to run.** The OpenSSF-hosted Allstar app was retired with
+v4.6 (Allstar's README; ossf/allstar issue 881, 31 August 2026), and
+`https://github.com/apps/allstar-app` answered 404 on 24 October 2026, so there is
+no app to install: Allstar runs only as an instance of the owner's, a GitHub App he
+creates for the copy's account, with its App ID and private key. Allstar's guide
+gives two ways to run it: a scheduled GitHub Actions workflow in a repository named
+`.allstar` under the account (`github-action-installation.md`), whose log is the
+workflow run's log and its `allstar-scan` artifact; or a process run as a daemon,
+or once with `-once`, on a machine of the project's (`operator.md`). The first is a
+workflow on GitHub beside `codeql.yml` and `scorecard.yml`; the second keeps it off
+GitHub's runners. These files are read the same by either. A `.allstar` repository
+made from Allstar's quickstart, whose files use the opt-out strategy and the action
+`issue`, leaves the action here `log`, since a repository's own setting wins
+unless that policy's own file in the `.allstar` repository sets
+`optConfig: disableRepoOverride: true`, which would put that file's action, `issue`
+or `fix` (which changes the copy's settings), in place of `log` (each policy's
+`mergeConfig`; `allstar.yaml`'s `disableRepoOverride` there decides only whether
+the repository's own opt-in or opt-out of the app counts). Until an instance runs,
+nothing reads these files.
+
+**What it would log today.** On 24 October 2026 Allstar v4.6's own policy code -
+`IsEnabled`, `Check` and `GetAction` of each policy `policies.GetPolicies()` lists,
+built from its module at the tag - ran against the copy through GitHub's API with a
+maintainer's token in place of an App's. Only those three were called, never a
+policy's `Fix` or an upload of Scorecard's results, and they read alone. The
+requests of the go-github client went to a local proxy, which served these files
+as the copy's `.allstar/`, which its `master` does not have yet, and passed the
+others on; it saw GETs alone. Not every request went through it: the SECURITY.md
+policy's GraphQL query, a POST to `https://api.github.com/graphql`, and the
+requests of Scorecard's own GitHub client, which Binary Artifacts and OpenSSF
+Scorecard use, went to GitHub's API directly with the token, and Scorecard's
+Vulnerabilities asked OSV's API. Nothing on the copy changed. The repository was
+enabled, and every policy but GitHub Actions, each with the action `log`:
+
+- Binary Artifacts, CODEOWNERS, Outside Collaborators, SECURITY.md and Repository
+  Administrators passed.
+- Branch Protection failed, "No protection found for branch master". v4.6 reads
+  GitHub's classic branch protection (`GET /repos/{owner}/{repo}/branches/{branch}/protection`),
+  which answers 404, "Branch not protected", for a branch that rulesets hold, as
+  they hold `master`; Allstar's issue 475 and pull request 899, both open on 24
+  October 2026, ask for rulesets to be read. Until a release reads them the policy
+  logs that failure whatever the rules are, and the file says what the rulesets
+  hold, so that it passes once one does.
+- OpenSSF Scorecard failed on Vulnerabilities, 9: GHSA-xcq7-p3pf-p88h, published on
+  22 October 2026, against opentelemetry-api 1.37.0, which `build/ci/requirements.txt`
+  pins for the semgrep job, fixed in 1.45.1; scorecard.dev's run of 22 October 2026
+  (22:59 UTC, at `6fb8164c6`) gave the copy 9 for it too. The other six checks scored 10.
+- Dangerous Workflow did not run: its check clones the repository with an
+  installation token, which only an App's key can ask for. scorecard.dev's run of
+  22 October 2026 gave Dangerous-Workflow 10.
+
+**How the files are checked.** Allstar decodes a file through `sigs.k8s.io/yaml`
+and `encoding/json`, which matches a key in any case and passes over a key it does
+not know without a word. A file whose YAML does not parse is dropped whole, with
+"Unexpected config error, using defaults." (each policy's `getConfig`), and a value
+of the wrong type is dropped alone, the file's other values kept, with "Malformed
+config file, using defaults." (`pkg/config/config.go`); both go to the operator's
+log, nowhere a maintainer sees them, and either can leave a policy off, since
+`optIn` then stays false. `repo-hygiene`'s seventh check, Allstar-Config
+(`build/ci/repo-hygiene.py`), holds `.allstar/` to v4.6: `allstar.yaml` and one
+file for each policy it reads in a repository, and no other; each parsed, with
+only Allstar's own keys, spelt as Allstar spells them, and values of their types;
+every policy opted in with the action `log`; `scorecard.yaml` naming Scorecard's
+checks alone. It reads the files without a YAML library, and refuses what it cannot
+be sure that library reads as it looks, rather than guess: any character but
+printable ASCII (a tab, a control character, a no-break space - all but a
+byte-order mark at the start), a flow collection other than an empty `[]` or `{}`,
+an anchor, a tag, a list in a list, a repeated key, YAML 1.1's `y`, `yes`, `n`,
+`no`, `on`, `off` and `null` in any case, `True` and the special floats such as
+`.inf`, which the library reads as booleans, null and floats, and a plain value
+that begins as a number does but is not a decimal integer without a leading zero
+or a plus sign - `010` is 8 to it, `0x1F` 31 and `0b101` 5 - or that does not fit
+in 64 bits (one longer than a 64-bit integer can be is refused before it is
+converted, so that thousands of digits cannot stop the check with an error). A
+`#` after a space ends a plain value, as in YAML, and one inside quotes does not.
+`python3 build/ci/repo-hygiene.py --self-test`, which `checkers` runs, reads 31
+texts with it, each of which must give the value or the refusal its case names,
+and 60 plain values that it must refuse - each of YAML 1.1's words and the special
+floats, in several cases, a number beginning with each digit, a dot and each sign,
+and each first character it refuses, written out in the self-test rather than
+drawn from the check's own tables - and runs the check over the tree's `.allstar/`
+and over 55 changes to a folder that passes it, 50 of which it must fail, each with
+the words its case names, so that taking away any one of its rules, or any one
+word, character or bound of a rule, fails the self-test, and a broken file fails a
+merge request's pipeline; the self-test takes about 10 ms longer for them. On 24 October
+2026 the check's reading of 5,782 texts - the tree's files, the self-test's, and the
+tree's files with each value replaced by each of 97 others and each line given
+each of 15 characters before and after it - was compared with Allstar's own
+decoding at v4.6 (`yaml.YAMLToJSON`, then `json.Unmarshal` into each policy's
+`RepoConfig`, as `fetchConfig` does): every text the check reads, Allstar reads the
+same, and every folder the check passes, Allstar decodes without a type error, each
+policy opted in with `log`. Its table of files, keys and types
+(`ALLSTAR_FILES`) and of Scorecard's checks (`ALLSTAR_SCORECARD_CHECKS`) was
+compared on 24 October 2026 with the json tags of v4.6's `config.RepoConfig` and of
+each policy's `RepoConfig`, and with Scorecard v5.5.0's `checks.GetAll()`, read by a
+program built in Allstar's module at the tag, and was the same. That program
+decoded each file as Allstar does but with unknown keys refused and every key held
+to Allstar's spelling, and gave the values the check gives; and it refused twelve
+broken files, each of which the check fails too. A new Allstar release is a new
+comparison: `ALLSTAR_RELEASE`, `ALLSTAR_FILES` and `ALLSTAR_SCORECARD_CHECKS` in the
+script.
 
 ### SonarQube Cloud
 

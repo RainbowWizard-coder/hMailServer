@@ -1,0 +1,10 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's SECURITY.md policy: the repository has a security policy, SECURITY.md,
+# and it is not empty. See allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log

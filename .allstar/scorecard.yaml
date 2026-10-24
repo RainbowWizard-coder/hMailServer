@@ -1,0 +1,25 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's generic OpenSSF Scorecard policy: these Scorecard checks must each score
+# the threshold, 10. They are the checks the copy scores 10 on, or should, and that
+# no other Allstar policy here runs (Binary-Artifacts and Dangerous-Workflow have
+# their own, and SECURITY.md is security.yaml's); the checks that read what only
+# GitLab has, or that cannot reach 10 on the copy, are left out
+# (hmailserver/docs/ContinuousIntegration.md, "OpenSSF Scorecard"). No SARIF upload:
+# .github/workflows/scorecard.yml uploads Scorecard's result to code scanning
+# already. See allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log
+checks:
+  - Dependency-Update-Tool
+  - Fuzzing
+  - License
+  - Pinned-Dependencies
+  - SAST
+  - Token-Permissions
+  - Vulnerabilities
+threshold: 10

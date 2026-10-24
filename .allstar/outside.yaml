@@ -1,0 +1,13 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Allstar's Outside Collaborators policy: no collaborator from outside holds push or
+# administrator access. The copy has one collaborator, the account it belongs to,
+# its only administrator (GOVERNANCE.md, "Maintainers"). See allstar.yaml.
+
+optConfig:
+  optIn: true
+action: log
+pushAllowed: false
+adminAllowed: false

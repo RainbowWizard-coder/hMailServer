@@ -1446,6 +1446,47 @@ with `--check`).
   workflow reaches `master`. `scorecard.yml`'s header, which said it was the one workflow of the project's that
   GitHub Actions runs, now names the two.
 
+- **The copy on GitHub carries OpenSSF Allstar's repository-level configuration, `.allstar/`, and `repo-hygiene`
+  holds it to Allstar's own types.** `allstar.yaml` opts the repository in, and one file for each policy Allstar
+  v4.6 reads in a repository opts that policy in with the action `log` - an issue cannot be opened while the copy's
+  Issues are off, and `fix` would change settings that are the owner's - set to what the copy has: Branch Protection
+  to `master`'s rulesets (two approvals, the code owner's among them, stale approvals dismissed, no force push, the
+  check `CodeQL` on an up-to-date branch, the pull request and `CodeQL` not enforced on the administrator, as whom the
+  mirror pushes, though the ban on force pushes is, and no signed commit required, since the commits' committer address
+  (the author's too) is linked to no GitHub account), Binary Artifacts with no path exempted, CODEOWNERS, Outside Collaborators with no outside push or administrator access, SECURITY.md,
+  Dangerous Workflow over every branch, OpenSSF Scorecard's Dependency-Update-Tool, Fuzzing, License,
+  Pinned-Dependencies, SAST, Token-Permissions and Vulnerabilities each at 10, and Repository Administrators with
+  one administrator and no team. The GitHub Actions policy has no file: Allstar reads it from an organisation-level
+  configuration alone. Allstar's findings go to the log of the Allstar instance that runs it, and the
+  OpenSSF-hosted app was retired with v4.6 (ossf/allstar issue 881), so the files take effect once the owner runs
+  an instance of his own, from a GitHub App he creates (`hmailserver/docs/ContinuousIntegration.md`, "Allstar on
+  the copy"). Allstar's own policy code at v4.6 - each policy's `IsEnabled`, `Check` and `GetAction`, which read
+  alone - run against the copy on 24 October 2026 with these files served as its `.allstar/`, enabled every policy
+  but GitHub Actions, logged two failures - Branch Protection, since v4.6 reads GitHub's classic branch protection
+  and not rulesets (Allstar issue 475), and Scorecard's Vulnerabilities at 9, for GHSA-xcq7-p3pf-p88h against
+  opentelemetry-api 1.37.0 in `build/ci/requirements.txt` - and could not run Dangerous Workflow, whose clone needs
+  an App's key. Allstar decodes the files without complaint at an unknown or misspelt key, which it leaves at its
+  default, and drops a value YAML reads otherwise than it looks, so `repo-hygiene`'s new seventh check,
+  Allstar-Config (`build/ci/repo-hygiene.py`), holds the folder to v4.6: the files Allstar reads and no other, each
+  parsed as Allstar's YAML library reads it, with only Allstar's keys, spelt as Allstar spells them, and values of
+  their types, every policy opted in with `log`, and Scorecard's check names alone. It refuses what that library
+  reads otherwise than it looks: a character beyond printable ASCII, YAML 1.1's `y`, `yes`, `n`, `no`, `on`, `off` and
+  `null` in any case, and `true` and `false` in any case but lower, the special floats, an integer with a leading
+  zero, a plus sign, an underscore or a base prefix, or beyond 64 bits (one longer than a 64-bit integer can be is
+  refused before it is converted, so that thousands of digits are refused rather than stopping the check with an
+  error), a flow collection other than an empty `[]` or `{}`, an anchor, a list in a list. Its self-test, which
+  `checkers` runs, reads 31 texts that must give a value or a refusal, and 60 plain values it must refuse - each of
+  YAML 1.1's words and the special floats in several cases, a number beginning with each digit, a dot and each sign,
+  and each first character it refuses, written out rather than drawn from the check's own tables - and runs the check
+  over the tree's `.allstar/` and over 55 changes to a folder that passes it, 50 of which it must fail with the words
+  its case names, so that taking away any one of its rules, or any one word, character or bound of a rule, fails the
+  self-test. The check's table of keys and types matched the json tags
+  of Allstar v4.6's configuration types, read by a program built in Allstar's module at the tag, which also decoded
+  each file with unknown keys refused and the same values, and refused twelve broken files that the check fails too;
+  and over 5,782 texts - the tree's files, the self-test's, and the tree's files with each value replaced and each
+  line given a character before and after it - every text the check reads, Allstar's own decoding reads the same,
+  and every folder it passes, Allstar decodes without a type error.
+
 - **OpenSSF Scorecard's Vulnerabilities check no longer counts the semgrep job's mcp 1.29.0 advisory, which the VEX
   document declares not to apply, and a new check holds the two together.** The check runs OSV-Scanner over the tree,
   which reads the `osv-scanner.toml` in the directory of each manifest it scans and, as Scorecard runs it, no VEX

@@ -1,0 +1,21 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# OpenSSF Allstar's repository-level configuration for the project's copy on GitHub,
+# https://github.com/RainbowWizard-coder/hMailServer, which GitLab's push mirror
+# writes. Allstar reads the files of this folder from the default branch through
+# GitHub's API, as the GitHub App an Allstar instance runs as, and checks the
+# repository against the policy each names. The account has no .allstar or .github
+# repository, so no organisation-level configuration exists: Allstar's default is
+# then the opt-in strategy, with the repository's own opt-in allowed, and this file
+# opts the repository in. Each policy is opted in by its own file beside this one,
+# each with the action log: an issue cannot be opened while the repository's Issues
+# are off, and the findings go to the log of the Allstar instance that runs.
+# hmailserver/docs/ContinuousIntegration.md ("Allstar on the copy") says what each
+# policy checks, which Allstar release these files are written to (v4.6) and how
+# they were checked; build/ci/repo-hygiene.py's Allstar-Config check holds them to
+# that release's configuration types.
+
+optConfig:
+  optIn: true
