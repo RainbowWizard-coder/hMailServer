@@ -5896,7 +5896,7 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
 # build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
 # its line ends LF, with the two image pins of START_TEST_PINS each made
 # START_TEST_PIN_TAKEN_OUT (start_test_digest_problems).
-START_TEST_SHA256 = "0698212d9a91a71b4dd2bfee6a5218a9d29234b9c5e8789e87ced49661781c54"
+START_TEST_SHA256 = "bafa4f470edc332240cfb06cc5252b2fa28605847b84e29ef6e50b7d13d0cf5e"
 # The images the test starts by hand (--docker), each the default of a variable on a line
 # of its own: the variable, the one that overrides it, the image's name and the alias of
 # the start jobs' service it is. Renovate's regex manager for HM_*_IMAGE moves them, with
@@ -6709,10 +6709,12 @@ def start_test_update_problems(script):
     (hmailserver/docs/LiveUpdateKinds.md), and until this nothing started the image and
     asked. The script's lines are read, not bash: a line of the ask changed, the ask
     taken out or moved, or a line put among its lines (an if false, or an || echo on one
-    of them) fails here. Only these lines are read: what keeps them from running, or
-    answers in curl's place, from outside them is not seen - an if, a group or a
-    here-document opened before the version's line and closed after the schema's, a
-    function named curl, or a second ask_image defined after this one."""
+    of them) fails here. Only these lines are read here: what keeps them from running,
+    or answers in curl's place, from outside them is not seen by this rule - an if, a
+    group or a here-document opened before the version's line and closed after the
+    schema's, a function named curl, or a second ask_image defined after this one - but
+    START_TEST_SHA256 holds the whole script, so that any such change fails
+    start_test_digest_problems."""
     name = FILES["image-start"].replace(os.sep, "/")
     lines = script.replace("\r\n", "\n").split("\n")
     try:

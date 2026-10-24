@@ -839,10 +839,10 @@ with `--check`).
   `"liveUpdate":true`, and the test failed there, where the test as it was passed that image. The next release's tag
   pipeline is the first to ask. `ContainerImage.md` ("The start test" and its table of the jobs), `LiveUpdateKinds.md`,
   `ContinuousIntegration.md`, `RELEASE.md`'s step on the image, `Roadmap3.md`'s row on the live update and the jobs'
-  descriptions in `.gitlab/ci/container-image.yml` say so. The checker reads those lines alone, not bash: what keeps
+  descriptions in `.gitlab/ci/container-image.yml` say so. That rule reads those lines alone, not bash: what keeps
   them from running, or answers in `curl`'s place, from outside them - an `if`, a group or a here-document around
-  them and the version's and the schema's lines, a function named `curl` or a second `ask_image` - is not seen, as
-  its comment says.
+  them and the version's and the schema's lines, a function named `curl` or a second `ask_image` - is not seen by
+  it, as its comment says, and is refused by `START_TEST_SHA256`, the digest that holds the whole script.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
