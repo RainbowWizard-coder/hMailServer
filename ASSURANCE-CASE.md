@@ -416,7 +416,7 @@ credible.
   24 October 2026 (Sundays at 03:40 UTC); its first run, the schedule played
   by hand that day, pipeline 2983513656 over the whole suite of that day,
   reached 57.58% of the lines, 55.47% of the regions and 46.10% of the
-  branches, which GitLab keeps as the project's coverage
+  branches; GitLab keeps the line figure as the project's coverage
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
   *The coverage schedule*). That is a floor rather than the Windows
   figure's equal: the Linux suite runs only the fixtures its REST shims can

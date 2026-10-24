@@ -1952,7 +1952,8 @@ with `--check`).
   table of what the jobs cost gives the first run's times, the table of GitLab's features says that the Cobertura
   report is written but shows in no merge request, and the jobs that stay on the project's runners say why this one
   does. ASSURANCE-CASE.md's paragraph on coverage, which said that the job had never run on GitLab, and
-  EvidencePack.md give the first run's figures, and so do Roadmap.md's rows on the Best Practices criteria
+  EvidencePack.md give the first run's figures, of which GitLab keeps the line figure as the project's coverage,
+  and so do Roadmap.md's rows on the Best Practices criteria
   `test_statement_coverage80` and `test_branch_coverage80`, which said that the owner was to create the schedule
   and gave the figures of 26 September 2026 alone; both stay open, below 80%. Roadmap3.md's Coverage row is done:
   the schedule's pipeline has run, and GitLab shows its line figure for `master`. `HelpPagesData.cpp` is regenerated
