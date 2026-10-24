@@ -1770,7 +1770,6 @@ path = [
     "ARCHITECTURE.md",
     "ASSURANCE-CASE.md",
     "CHANGELOG.md",
-    "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "GOVERNANCE.md",
     "RELEASE.md",
@@ -1888,6 +1887,23 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # Each under its own licence, never the project's; hmailserver/docs/SourceTarball.md
 # and debian/copyright declare the ones the source tarball carries, and
 # hmailserver/docs/ThirdPartyBinaries.md the rest.
+
+# The project's code of conduct, the Contributor Covenant, version 2.1, adapted, as
+# its Attribution says: the Covenant's text, under the Creative Commons Attribution
+# 4.0 International licence (its repository's LICENSE.md from 2016 until 2025, and
+# its README when version 2.1 was added), is most of the file; the maintainers' parts are the
+# paragraph of Scope naming the project's community spaces, the routes for reports
+# in Enforcement, where the Covenant leaves a placeholder for a contact, and the
+# paragraph on reporting to GitLab or GitHub, under the project's licence. The
+# Covenant states no holder: Coraline Ada Ehmke wrote it in 2014, and its
+# contributors have changed it since, to version 2.1 of 2021.
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+SPDX-FileCopyrightText = [
+    "2014-2021 Coraline Ada Ehmke and the Contributor Covenant's contributors",
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+]
+SPDX-License-Identifier = "CC-BY-4.0 AND AGPL-3.0-or-later"
 
 # The Fat Cow icons, the 2,800 the Control Panel draws with, and the three of them
 # that three of the database tools take as their window's icon, byte for byte the

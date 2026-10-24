@@ -140,6 +140,18 @@ community.
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],
 version 2.1, available at
 https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
+The Contributor Covenant is by Coraline Ada Ehmke and its contributors, and is
+licensed under the Creative Commons Attribution 4.0 International licence
+(CC BY 4.0), https://creativecommons.org/licenses/by/4.0/.
+
+This adaptation changes it: it adds the paragraph of Scope that names this
+project's community spaces, says in Enforcement to whom and by which two routes
+a report goes, where the Covenant leaves a placeholder for a contact, and adds
+the paragraph on reporting serious cases to GitLab or GitHub; it spells
+"e-mail" as "email", and links Mozilla's repository by its present name. The
+rest is the Covenant's version 2.1 as published. The project's own parts are
+under the project's licence, the GNU Affero General Public License, version 3
+or later.
 
 Community Impact Guidelines were inspired by
 [Mozilla's code of conduct enforcement ladder][mozilla].

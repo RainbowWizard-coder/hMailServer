@@ -43,6 +43,7 @@ DEBIAN_TO_SPDX = {
     "Artistic": "Artistic-1.0-Perl",
     "BSD-1-clause": "BSD-1-Clause",
     "BSD-3-clause": "BSD-3-Clause",
+    "CC-BY-4.0": "CC-BY-4.0",
     "Expat": "MIT",
     "GPL-1+": "GPL-1.0-or-later",
     "MPL-2.0": "MPL-2.0",

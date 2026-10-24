@@ -329,6 +329,21 @@ with `--check`).
   installs the tree's notice as `share/hmailserver/licenses/Feather-icons.txt`; the Alpine package passed
   `alpine.sh`'s comparison; and the Fedora 44 RPMs of the spec passed `srcpkg-rpm.sh`. The AppImages and the
   PKGBUILD were not built for this change.
+- **Fixed: the code of conduct is credited to the Contributor Covenant, under its licence, CC BY 4.0, where every
+  record gave it the maintainers and the AGPL alone.** `CODE_OF_CONDUCT.md` is the Contributor Covenant, version
+  2.1, adapted, as its Attribution said: most of its words are the Covenant's, in order, and the maintainers wrote
+  the paragraph of Scope naming the project's community spaces, the routes for reports in Enforcement, where the
+  Covenant leaves a placeholder, and the paragraph on reporting serious cases to GitLab or GitHub. The Covenant is
+  under the Creative Commons Attribution 4.0 International licence, which asks a copy to name the licence and say
+  whether the text was changed, and the Attribution did neither: it now names the licence with its link, names the
+  Covenant's authors, says what this copy changes and that the project's own parts are under the AGPL.
+  `REUSE.toml` gives the file a table of its own among the third parties', with Coraline Ada Ehmke and the
+  Covenant's contributors (2014-2021) beside the maintainers and `CC-BY-4.0 AND AGPL-3.0-or-later`, where the
+  fork's table gave it the maintainers and the AGPL; `LICENSES/CC-BY-4.0.txt` is SPDX's text, as `reuse download`
+  gives it; `debian/copyright`, which the source tarball and so the Debian source package carry the file under,
+  has a paragraph for it with the same holders, `License: CC-BY-4.0 and AGPL-3+`, and the licence's text, and
+  `build/ci/reuse-debian.py` knows the short name; and `hmailserver/docs/SourceTarball.md`'s table of what is not
+  the project's own has a row for it. The `reuse` job, with its negative controls, passes.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the
@@ -983,7 +998,7 @@ with `--check`).
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
-  each of the fifteen licences named and no other: SPDX's own for the ten on SPDX's list, as `reuse download` wrote
+  each of the sixteen licences named and no other: SPDX's own for the eleven on SPDX's list, as `reuse download` wrote
   them and each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and
   `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
   plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows
