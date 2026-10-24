@@ -349,8 +349,11 @@ with `--check`).
   fork's table gave it the maintainers and the AGPL; `LICENSES/CC-BY-4.0.txt` is SPDX's text, as `reuse download`
   gives it; `debian/copyright`, which the source tarball and so the Debian source package carry the file under,
   has a paragraph for it with the same holders, `License: CC-BY-4.0 and AGPL-3+`, and the licence's text, and
-  `build/ci/reuse-debian.py` knows the short name; and `hmailserver/docs/SourceTarball.md`'s table of what is not
-  the project's own has a row for it. The `reuse` job, with its negative controls, passes.
+  `build/ci/reuse-debian.py` knows the short name; `hmailserver/docs/SourceTarball.md`'s table of what is not
+  the project's own has a row for it; and the source tarball's SBOM names the Covenant under CC-BY-4.0, in
+  `build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which is to be that table and had left it out, and which
+  `build/check-package-licenses.py` decides as not compiled in. The `reuse` job, with its negative controls, and
+  the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

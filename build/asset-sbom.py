@@ -163,6 +163,8 @@ SOURCE_COMPONENTS = [
      "the icons the webmail's page and the Control Deck's page are drawn after, the webmail's compiled into the server"),
     ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
+    ("contributor-covenant", "Contributor Covenant 2.1 (Coraline Ada Ehmke and its contributors)", "CODE_OF_CONDUCT.md",
+     "CC-BY-4.0", None, "the text the project's code of conduct is adapted from"),
     ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",
      "GPL-1.0-or-later OR Artistic-1.0-Perl", None, "test data the Windows suite and the fuzzing seeds read"),
 ]
