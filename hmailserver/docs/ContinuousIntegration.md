@@ -2762,16 +2762,18 @@ values. It takes a place of linix, server2 or s1-linux for about three hours
 
 **Where to read it.**
 
-- The job's log ends with `summary.txt`. GitLab reads the line figure from its
-  `lines:` line - the job's `coverage:` expression,
+- The job's log ends with `summary.txt`, then what the Cobertura converter
+  says. GitLab reads the line figure from `summary.txt`'s `lines:` line - the
+  job's `coverage:` expression,
   `lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)`, which GitLab looks for from the
   end of the log - and shows it as the job's coverage in the job and pipeline
   lists, as that pipeline's coverage, and in the project's coverage history:
   *Analyze*, *Repository analytics*, the job `linux-coverage` in its list, one
   point a day for `master`, with *Download raw data (.csv)*.
 - The Cobertura report (`build/ci/coverage-cobertura.py`), `cobertura-1.xml`
-  and on in the artifact - over the 10 MiB GitLab reads of one file, it is
-  split, whole folders to a file - is the job's `coverage_report`: each source
+  and on in the artifact - larger than 9 MiB, below the 10 MiB GitLab reads of
+  one file, it is split, whole folders to a file and a folder larger than a
+  file between its source files - is the job's `coverage_report`: each source
   file by its path from the checkout's root, each line llvm-cov maps once, with
   its count and its branches. It counts fewer lines than the figure: llvm-cov's
   summary adds up each function's lines, so that a line inside a lambda counts in
@@ -2780,10 +2782,19 @@ values. It takes a place of linix, server2 or s1-linux for about three hours
   in `DatabaseTransactionTester.cpp`, whose checks are lambdas. The figures
   llvm-cov writes into `lcov.info` from its summary must be `coverage.json`'s,
   file for file, or the job fails, so the report and the figure are one export
-  of one run. GitLab marks a merge request's diff from it only when that merge
-  request's head pipeline ran the job, and no merge request's does: a batch's
-  merge request is held to its branch's pipeline, which runs no
-  `linux-coverage`, and so its widget shows no coverage either.
+  of one run. `summary.txt` is in the log before the converter runs, so that a
+  refusal costs the report and not the figure: no `cobertura*.xml` is left for
+  GitLab, the job fails, so that the refusal is seen, and GitLab still reads the
+  figure from the log for the job and its pipeline, as it does for a failed
+  job; the project's coverage history, to which GitLab adds a pipeline's
+  coverage only when the pipeline succeeds, has no point for that week. For its
+  size the converter refuses only a source file whose own class cannot fit in a
+  file: on 24 October 2026 the largest, `Common/Util/RestApiServer.cpp`'s, came
+  to 0.63 MiB, and the largest folder, `Common/Util`, to 5.55 MiB. GitLab marks
+  a merge request's diff from it only when that merge request's head pipeline
+  ran the job, and no merge request's does: a batch's merge request is held to
+  its branch's pipeline, which runs no `linux-coverage`, and so its widget shows
+  no coverage either.
 - GitLab's coverage badge does not show it:
   `https://gitlab.com/hmailserver/hmailserver/badges/master/coverage.svg`
   takes the figure of the newest successful pipeline of `master`, and with

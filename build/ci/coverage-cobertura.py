@@ -38,18 +38,28 @@ report. A source file outside --root is not GitLab's to match and is refused the
 same way, as is an lcov.info with no file in it.
 
 GitLab reads at most 10 MiB of a Cobertura file. A report larger than --max-bytes
-(9 MiB) is written as cobertura-1.xml, cobertura-2.xml and so on, whole packages to a
-file, beside the --output name's folder; the job collects them with a wildcard and
-GitLab merges them into one.
+(9 MiB) is written as cobertura-1.xml, cobertura-2.xml and so on, beside the --output
+name's folder: whole packages to a file where a package fits in one, and a package
+larger than a file split between its classes - its source files, each whole in one
+file - with the package's own rates in each part, as each file carries the run's
+totals. The job collects them with a wildcard, and GitLab adds each class to one
+report by its filename. Only a source file whose own class cannot fit in a file is
+refused.
+
+An earlier run's report beside --output (the file, and its numbered parts) is
+removed before anything is read, and what this run wrote is removed when it fails,
+so that no report but this run's whole one is left for the job to collect.
 
 Usage:
   python3 build/ci/coverage-cobertura.py --lcov lcov.info --root DIR --output cobertura.xml [--summary coverage.json]
   python3 build/ci/coverage-cobertura.py --self-test
 
-Exit codes: 0 written, 1 refused (the reason is printed), 2 usage.
+Exit codes: 0 written, 1 refused (the reason is printed, and no report is left), 2 usage.
 """
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import shutil
@@ -187,11 +197,84 @@ def class_xml(rel, record):
     return "".join(out)
 
 
-def package_xml(name, members):
+def nbytes(text):
+    return len(text.encode("utf-8"))
+
+
+def by_package(files, root):
+    """(every source file by its path from root, with its records, and the folders'
+    package_parts, in order): lcov's files, as parse_lcov reads them, all under root."""
+    named = {}
+    for path, record in files.items():
+        rel = relative(path, root)
+        if rel in named:
+            # Two spellings of one file (a/./b and a/b): one class, the counts added.
+            for at, hits in record["lines"].items():
+                named[rel]["lines"][at] = named[rel]["lines"].get(at, 0) + hits
+            for at, taken in record["branches"].items():
+                named[rel]["branches"].setdefault(at, []).extend(taken)
+        else:
+            named[rel] = record
+    by_folder = {}
+    for rel in sorted(named):
+        folder = rel.rsplit("/", 1)[0] if "/" in rel else "."
+        by_folder.setdefault(folder, []).append((rel, named[rel]))
+    return named, [package_parts(folder, members) for folder, members in sorted(by_folder.items())]
+
+
+def package_parts(folder, members):
+    """A folder's <package>: its opening tag, with the folder's own rates, each of its
+    classes as (file name, XML), and its closing tag. A package split between files
+    opens the same way in each."""
     t = totals(dict(members))
-    body = "".join(class_xml(rel, record) for rel, record in members)
-    return '<package name=%s line-rate="%s" branch-rate="%s" complexity="0"><classes>%s</classes></package>\n' % (
-        quoteattr(name), rate(*t["lines"]), rate(*t["branches"]), body)
+    head = '<package name=%s line-rate="%s" branch-rate="%s" complexity="0"><classes>' % (
+        quoteattr(folder.replace("/", ".")), rate(*t["lines"]), rate(*t["branches"]))
+    return head, [(rel, class_xml(rel, record)) for rel, record in members], "</classes></package>\n"
+
+
+def documents(packages, t, stamp, max_bytes):
+    """The report's text: one document, or, when that is larger than max_bytes, several,
+    each of at most max_bytes - whole packages to a document where a package fits in
+    one, in order, and a package larger than a document split between its classes,
+    each class whole in one document. packages are package_parts's."""
+    whole_packages = [head + "".join(xml for _, xml in classes) + tail for head, classes, tail in packages]
+    whole = document(whole_packages, t, stamp)
+    if nbytes(whole) <= max_bytes:
+        return [whole]
+    empty = nbytes(document([], t, stamp))
+    parts, current, size = [], [], empty
+    for (head, classes, tail), package in zip(packages, whole_packages):
+        length = nbytes(package)
+        if empty + length <= max_bytes:
+            # A package that fits in a document goes whole: in this one, or the next.
+            if current and size + length > max_bytes:
+                parts.append(current)
+                current, size = [], empty
+            current.append(package)
+            size += length
+            continue
+        # Larger than a document: its classes, in order, from the room left in this
+        # one on, the package's opening and closing tags around each part of it.
+        frame = nbytes(head) + nbytes(tail)
+        chunk, chunk_size = [], frame
+        for rel, xml in classes:
+            length = nbytes(xml)
+            if empty + frame + length > max_bytes:
+                raise Refused("%s's class comes to %d bytes, more than a file of at most %d can hold with the "
+                              "document's head and tail and its folder's package around it" % (rel, length, max_bytes))
+            if size + chunk_size + length > max_bytes:
+                if chunk:
+                    current.append(head + "".join(chunk) + tail)
+                if current:
+                    parts.append(current)
+                current, size = [], empty
+                chunk, chunk_size = [], frame
+            chunk.append(xml)
+            chunk_size += length
+        current.append(head + "".join(chunk) + tail)
+        size += chunk_size
+    parts.append(current)
+    return [document(part, t, stamp) for part in parts]
 
 
 def document(packages, t, stamp):
@@ -208,7 +291,9 @@ def figures(t):
 
 
 def convert(lcov_path, root, output, summary=None, max_bytes=MAX_BYTES, stamp=None, say=print):
-    """Writes the report (one file, or several beside output); returns the paths."""
+    """Writes the report (one file, or several beside output); returns the paths. An
+    earlier run's report beside output goes first, whatever this run then does."""
+    remove_report(output)
     with open(lcov_path, encoding="utf-8", errors="strict") as f:
         files = parse_lcov(f.read())
     outside = sorted(p for p in files if relative(p, root) is None)
@@ -227,56 +312,18 @@ def convert(lcov_path, root, output, summary=None, max_bytes=MAX_BYTES, stamp=No
         if own != expected:
             raise Refused("lcov.info's own figures are not the summary's (%s): %s against %s" % (
                 summary, figures(own), figures(expected)))
-    named = {}
-    for path, record in files.items():
-        rel = relative(path, root)
-        if rel in named:
-            # Two spellings of one file (a/./b and a/b): one class, the counts added.
-            for at, hits in record["lines"].items():
-                named[rel]["lines"][at] = named[rel]["lines"].get(at, 0) + hits
-            for at, taken in record["branches"].items():
-                named[rel]["branches"].setdefault(at, []).extend(taken)
-        else:
-            named[rel] = record
+    named, packages = by_package(files, root)
     t = totals(named)
     stamp = int(time.time()) if stamp is None else stamp
-    by_folder = {}
-    for rel in sorted(named):
-        folder = rel.rsplit("/", 1)[0] if "/" in rel else "."
-        by_folder.setdefault(folder, []).append((rel, named[rel]))
-    packages = [package_xml(folder.replace("/", "."), members) for folder, members in sorted(by_folder.items())]
-    whole = document(packages, t, stamp)
-    for old in _numbered(output):
-        os.remove(old)
-    if len(whole.encode("utf-8")) <= max_bytes:
-        written = [output]
-        with open(output, "w", encoding="utf-8", newline="\n") as f:
-            f.write(whole)
-    else:
-        if os.path.exists(output):
-            os.remove(output)
-        empty = len(document([], t, stamp).encode("utf-8"))
-        groups, current, size = [], [], empty
-        for package in packages:
-            length = len(package.encode("utf-8"))
-            if empty + length > max_bytes:
-                raise Refused("one folder's classes come to %d bytes, more than the %d a file may hold" % (length, max_bytes))
-            if current and size + length > max_bytes:
-                groups.append(current)
-                current, size = [], empty
-            current.append(package)
-            size += length
-        groups.append(current)
-        stem, ext = os.path.splitext(output)
-        written = []
-        for index, group in enumerate(groups, 1):
-            # Each file carries the run's totals at its top, so that any one of them
-            # read alone says what the whole measured; GitLab reads only the lines.
-            path = "%s-%d%s" % (stem, index, ext)
-            with open(path, "w", encoding="utf-8", newline="\n") as f:
-                f.write(document(group, t, stamp))
-            written.append(path)
-    said = "Cobertura report: %d source files in %d folders, %s, each source line once" % (len(named), len(by_folder), figures(t))
+    # Each file carries the run's totals at its top, so that any one of them read alone
+    # says what the whole measured; GitLab reads only the classes' lines.
+    texts = documents(packages, t, stamp, max_bytes)
+    stem, ext = os.path.splitext(output)
+    written = [output] if len(texts) == 1 else ["%s-%d%s" % (stem, index, ext) for index in range(1, len(texts) + 1)]
+    for path, text in zip(written, texts):
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+    said = "Cobertura report: %d source files in %d folders, %s, each source line once" % (len(named), len(packages), figures(t))
     if own:
         said += "; llvm-cov's own count, the summary's, is %s, a line inside a lambda counted in it and in the function " \
                 "around it" % figures(own)
@@ -295,6 +342,13 @@ def _numbered(output):
             if name.startswith(base + "-") and name.endswith(ext) and middle.isdigit():
                 found.append(os.path.join(folder, name))
     return found
+
+
+def remove_report(output):
+    """The report beside output, the file and its numbered parts, removed."""
+    for path in [output] + _numbered(output):
+        if os.path.isfile(path):
+            os.remove(path)
 
 
 # ---------------------------------------------------------------- the self-test
@@ -338,6 +392,45 @@ end_of_record
 """
 NAMES = ["hmailserver/source/Server/common/BO/Account.cpp", "hmailserver/source/Server/common/Util/A&B<x>.cpp",
          "hmailserver/source/Server/platform/main.cpp"]
+# For the split: a folder of three files, larger than the others, and names beyond
+# ASCII, whose bytes outnumber their characters. 19 lines, 12 run; 2 branches, 1 run.
+SPLIT_SAMPLE = """SF:{root}/hmailserver/source/Server/common/Mime/Mime.cpp
+DA:1,1
+DA:2,0
+DA:3,4
+DA:4,0
+DA:5,2
+DA:6,1
+BRDA:3,0,0,1
+BRDA:3,0,1,0
+end_of_record
+SF:{root}/hmailserver/source/Server/common/Mime/Zeichensätze€.cpp
+DA:1,0
+DA:2,0
+DA:3,1
+DA:4,1
+end_of_record
+SF:{root}/hmailserver/source/Server/common/Mime/MimeHeader.cpp
+DA:7,1
+DA:8,1
+DA:9,0
+DA:10,3
+DA:11,0
+end_of_record
+SF:{root}/hmailserver/source/Server/SMTP/SMTPConnection.cpp
+DA:1,1
+DA:2,1
+DA:3,0
+end_of_record
+SF:{root}/hmailserver/source/Server/platform/über.cpp
+DA:1,1
+end_of_record
+"""
+# Its classes in the report's order: folders by name, and the files of each by name.
+SPLIT_ORDER = ["hmailserver/source/Server/SMTP/SMTPConnection.cpp", "hmailserver/source/Server/common/Mime/Mime.cpp",
+               "hmailserver/source/Server/common/Mime/MimeHeader.cpp",
+               "hmailserver/source/Server/common/Mime/Zeichensätze€.cpp",
+               "hmailserver/source/Server/platform/über.cpp"]
 
 
 def self_test():
@@ -373,7 +466,11 @@ def self_test():
                         **{k: v for k, v in extra.items() if k != "summary"})
                 failures.append(what)
             except Refused as e:
-                expect(needle in str(e) and not os.path.exists(out), "%s, and nothing is written: %s" % (what, e))
+                expect(needle in str(e) and not os.path.exists(out) and not _numbered(out),
+                       "%s, and nothing is written: %s" % (what, e))
+                # The job prints its figure before this runs, and GitLab reads the last
+                # line of the log its coverage: expression matches.
+                expect("lines: " not in str(e), "%s, in words other than summary.txt's lines figure: %s" % (what, e))
 
         write_summary((5, 8), (2, 4), NAMES)
         said = []
@@ -464,7 +561,95 @@ def self_test():
         expect(sorted(seen) == sorted(NAMES), "and together every class once: %s" % seen)
         for p in parts:
             os.remove(p)
-        refused("a folder too large for any file is refused", "more than", summary=False, max_bytes=300)
+        refused("a source file too large for any file is refused", "more than a file", summary=False, max_bytes=300)
+
+        # Every limit from below the smallest a file can be up to the whole report: each
+        # file within the limit in bytes, a later one too, so that a file's own head and
+        # tail are counted in every one, and with names beyond ASCII, whose bytes the
+        # limit counts and not their characters; split when the whole is over the limit
+        # and only then; every class once, in order; a folder that fits in a file whole
+        # in one, and a larger one in consecutive files, its classes whole; each file
+        # well-formed and carrying the run's totals; and below the smallest, refused.
+        files = parse_lcov(SPLIT_SAMPLE.format(root=root))
+        named, packages = by_package(files, root)
+        t = totals(named)
+        expect(t == {"lines": (12, 19), "branches": (1, 2)}, "the split sample's totals: %s" % t)
+        whole_text = documents(packages, t, 1, 10 ** 9)[0]
+        whole = nbytes(whole_text)
+        expect(whole > len(whole_text), "the split sample's names are beyond ASCII")
+        lowest = max(nbytes(document([head + xml + tail], t, 1)) for head, classes, tail in packages for _, xml in classes)
+        alone = {}
+        for head, classes, tail in packages:
+            name = ET.fromstring(head + tail).get("name")  # nosemgrep: the converter's own tags
+            alone[name] = nbytes(document([head + "".join(xml for _, xml in classes) + tail], t, 1))
+        expect(max(alone.values()) > lowest, "one folder is larger than the smallest file can be: %s, %d" % (alone, lowest))
+        # Each folder's own rates (lines run of its lines; branches), in every file it is in.
+        rates = {"hmailserver.source.Server.SMTP": ("0.6667", "1.0000"), "hmailserver.source.Server.common.Mime": ("0.6000", "0.5000"),
+                 "hmailserver.source.Server.platform": ("1.0000", "1.0000")}
+        splits = 0
+        for limit in range(lowest - 50, whole + 2):
+            try:
+                texts = documents(packages, t, 1, limit)
+            except Refused as e:
+                expect(limit < lowest and "more than a file" in str(e), "limit %d: refused: %s" % (limit, e))
+                continue
+            if limit < lowest:
+                failures.append("limit %d: a class that fits in no file of it was not refused" % limit)
+                continue
+            sizes = [nbytes(x) for x in texts]
+            expect(max(sizes) <= limit, "limit %d: every file within it, in bytes: %s" % (limit, sizes))
+            expect((len(texts) > 1) == (whole > limit), "limit %d: split exactly when the whole, %d bytes, is over it: %d file(s)"
+                   % (limit, whole, len(texts)))
+            seen, homes = [], {}
+            for index, x in enumerate(texts):
+                part = ET.fromstring(x.encode("utf-8"))  # nosemgrep: the report this test just made
+                expect(part.get("lines-valid") == "19" and part.get("lines-covered") == "12"
+                       and part.get("branches-valid") == "2", "limit %d: file %d carries the run's totals" % (limit, index + 1))
+                for package in part.iter("package"):
+                    homes.setdefault(package.get("name"), []).append(index)
+                    seen += [c.get("filename") for c in package.iter("class")]
+                    expect((package.get("line-rate"), package.get("branch-rate")) == rates.get(package.get("name")),
+                           "limit %d: %s in file %d with its folder's own rates: %s" % (limit, package.get("name"), index + 1,
+                                                                                         package.attrib))
+            expect(seen == SPLIT_ORDER, "limit %d: every class once, in order: %s" % (limit, seen))
+            for name, where in homes.items():
+                expect(where == list(range(where[0], where[0] + len(where))),
+                       "limit %d: %s in one file or in consecutive ones, once in each: %s" % (limit, name, where))
+                expect(len(where) == 1 or alone.get(name, 0) > limit,
+                       "limit %d: %s, which fits in a file, is whole in one: %s" % (limit, name, where))
+            splits += any(len(where) > 1 for where in homes.values())
+        expect(splits > 0, "and at some limit a folder was split between files")
+
+        # Written: numbered, each file within the limit on disk, the large folder in two
+        # or more; and a run that fails half-way, here at its second file, leaves
+        # nothing of what it wrote for the job to hand GitLab.
+        middle = (lowest + max(alone.values())) // 2
+        with open(lcov, "w", encoding="utf-8") as f:
+            f.write(SPLIT_SAMPLE.format(root=root))
+        parts = convert(lcov, root, out, None, max_bytes=middle, stamp=1, say=quiet)
+        expect([os.path.basename(p) for p in parts] == ["cobertura-%d.xml" % i for i in range(1, len(parts) + 1)]
+               and len(parts) >= 2, "a split report is cobertura-1.xml and on: %s" % parts)
+        mime = 0
+        for p in parts:
+            expect(os.path.getsize(p) <= middle, "%s is within %d bytes on disk (%d)" % (p, middle, os.path.getsize(p)))
+            part = ET.parse(p).getroot()  # nosemgrep: the report this test just wrote
+            mime += any(k.get("name") == "hmailserver.source.Server.common.Mime" for k in part.iter("package"))
+        expect(mime >= 2, "the folder larger than a file is in %d files" % mime)
+        for p in parts:
+            os.remove(p)
+        blocker = os.path.join(work, "cobertura-2.xml")
+        os.makedirs(blocker)
+        saved, heard = sys.argv, io.StringIO()
+        sys.argv = ["coverage-cobertura.py", "--lcov", lcov, "--root", root, "--output", out, "--max-bytes", str(middle)]
+        try:
+            with contextlib.redirect_stdout(heard):
+                code = main()
+        finally:
+            sys.argv = saved
+            os.rmdir(blocker)
+        expect(code == 1 and "REFUSED: no Cobertura report" in heard.getvalue(),
+               "a write that fails is a refusal: exit %s, %r" % (code, heard.getvalue()))
+        expect(not os.path.exists(out) and not _numbered(out), "and what it wrote before it is gone: %s" % _numbered(out))
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
@@ -491,7 +676,12 @@ def main():
         return 2
     try:
         convert(args.lcov, args.root, args.output, args.summary, args.max_bytes)
-    except (Refused, OSError, ValueError, KeyError) as e:
+    except (Refused, OSError, ValueError, KeyError, IndexError, TypeError) as e:
+        # Nothing half-written is left for the job's artifacts to hand GitLab.
+        try:
+            remove_report(args.output)
+        except OSError as gone:
+            print("could not remove what was written beside %s: %s" % (args.output, gone))
         print("REFUSED: no Cobertura report: %s" % e)
         return 1
     return 0

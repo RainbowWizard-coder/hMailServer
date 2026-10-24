@@ -1386,12 +1386,18 @@ with `--check`).
   lines (57.59%) and 70,545 of 152,948 branches - 2,043 of the difference in `DatabaseTransactionTester.cpp`, whose
   checks are lambdas. The two are one export of one run or there is no report: the figures llvm-cov writes into
   `lcov.info` for each file must add up to `coverage.json`'s totals and the two must name the same files, or the
-  job fails. A report larger than the 10 MiB GitLab reads of one file is written as several, whole folders to a file -
-  that run's came to two, of 4.3 and 7.6 MB - and the job's wildcard collects them. GitLab marks a merge request's
-  diff with it only when that merge request's head pipeline ran the job, which the job's rules - the coverage
-  schedule's pipeline alone - never make it; it is in the artifact for anyone to read, and for the day the job runs
-  where a merge request can show it. The converter's self-test runs first in the job, so that a broken one fails it
-  in seconds and not after the suite.
+  job fails - with the figure already in its log, since the job prints `summary.txt` before the converter runs, so
+  that GitLab still reads it for the job and its pipeline, and with no `cobertura*.xml` left for GitLab to read. A
+  report larger than 9 MiB, below the 10 MiB GitLab reads of one file, is written as several - whole folders to a
+  file, and a folder larger than a file split between its source files - and the job's wildcard collects them: that
+  run's came to two files, of 4.3 and 7.6 MB, and in the export of the first GitLab run the largest folder,
+  `Common/Util`, came to 5.55 MiB and the largest source file's class, `RestApiServer.cpp`'s, to 0.63 MiB; only a
+  source file whose own class cannot fit in a file is refused for its size. GitLab marks a merge request's diff with
+  it only when that merge request's head pipeline ran the job, which the job's rules - the coverage schedule's
+  pipeline alone - never make it; it is in the artifact for anyone to read, and for the day the job runs where a merge
+  request can show it. The converter's self-test runs first in the job, so that a broken one fails it in seconds and
+  not after the suite; it holds every file of a split report, a later one too, to the limit in bytes, over every
+  limit from below the smallest a file can be to the whole report of a sample whose file names are not ASCII.
 - **The coverage job measures the server `linux-suite` tests, where `linux-suite` runs it.** Its first run on GitLab,
   the coverage schedule's pipeline 2983513656 on 24 October 2026, failed two tests of `Security/AutoBanHookRetry`
   that `linux-suite` passes: `build/ci/linux-coverage.sh` configured the instrumented server without the prefix

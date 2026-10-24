@@ -1618,19 +1618,21 @@ linux-fuzz:
 # programs built with clang's source-based coverage, the testers run, then the whole of
 # LinuxRegressionTests against that server on the same PostgreSQL linux-suite uses, and
 # llvm-cov's line, region and branch figures. It runs in the pipeline of the schedule
-# whose description is "coverage" - weekly; docs/ContinuousIntegration.md tells the
-# owner how to create it - and nowhere else. The figure is a floor for the server as a
-# whole: the Linux suite links fewer fixtures than the Windows one runs, and the Linux
-# build has no COM layer (the Windows line figure is build/coverage-windows.ps1's). A
-# failed test does not fail this job - linux-suite is the pass or fail truth, on the
-# uninstrumented build - but a suite that did not run to its end (no TRX), no
-# counters, or no report, does. GitLab reads the line figure from the log (coverage:,
-# below, summary.txt's "lines:" line) for the job's and the pipeline's coverage and
-# the project's coverage history (Analyze, Repository analytics); the Cobertura report
-# (build/ci/coverage-cobertura.py, from the export that figure is read from) marks a
-# merge request's diff only when the job is in that merge request's head pipeline,
-# which these rules never make it. The converter's self-test runs first, so that a
-# broken one fails the job in seconds and not after the suite's hours.
+# whose description is "coverage" - weekly, schedule 4509741
+# (docs/ContinuousIntegration.md, "The coverage schedule") - and nowhere else. The
+# figure is a floor for the server as a whole: the Linux suite links fewer fixtures
+# than the Windows one runs, and the Linux build has no COM layer (the Windows line
+# figure is build/coverage-windows.ps1's). A failed test does not fail this job -
+# linux-suite is the pass or fail truth, on the uninstrumented build - but a suite
+# that did not run to its end (no TRX), no counters, no report, or a Cobertura
+# report the converter refuses, once the figure is in the log, does. GitLab reads
+# the line figure from the log (coverage:, below, summary.txt's "lines:" line) for
+# the job's and the pipeline's coverage and the project's coverage history (Analyze,
+# Repository analytics); the Cobertura report (build/ci/coverage-cobertura.py, from
+# the export that figure is read from) marks a merge request's diff only when the job
+# is in that merge request's head pipeline, which these rules never make it. The
+# converter's self-test runs first, so that a broken one fails the job in seconds and
+# not after the suite's hours.
 linux-coverage:
   extends: .linix
   tags: [linix]

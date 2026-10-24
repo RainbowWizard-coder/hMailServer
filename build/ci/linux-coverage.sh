@@ -72,10 +72,13 @@
 #   cobertura.xml      lcov.info as Cobertura XML, each file named from the
 #                      checkout's root, for GitLab's coverage_report
 #                      (build/ci/coverage-cobertura.py; cobertura-1.xml and on
-#                      when it is larger than one file GitLab reads): each source
-#                      line once, where summary.txt counts a lambda's lines in it
-#                      and in the function around it, and held to coverage.json
-#                      by llvm-cov's own figures in lcov.info
+#                      when it is larger than 9 MiB, below the 10 MiB GitLab
+#                      reads of one file): each source line once, where
+#                      summary.txt counts a lambda's lines in it and in the
+#                      function around it, and held to coverage.json by
+#                      llvm-cov's own figures in lcov.info. None when the
+#                      converter refuses, which fails the job after summary.txt
+#                      is in the log
 #   suite/             linux-suite.sh's results (console.log, the TRX, junit.xml);
 #                      suite-<HM_COV_RUN>/ for a named run
 #   profiles-*/        the raw counters, one directory per run, and its scope.txt
@@ -279,17 +282,17 @@ report() {
   llvm-cov report -instr-profile="$cov/hmailserver.profdata" "${objects[@]}" -path-equivalence="$build_dir,$src" \
       -ignore-filename-regex='^/usr/' > "$cov/report-with-vendored.txt" || true
   cd "$root" || exit 2
-  # lcov.info as Cobertura, for GitLab's coverage_report. The figures llvm-cov
-  # writes into lcov.info must be coverage.json's, and the two must name the same
-  # files, so that the diff's marks and the figure are one export of one run.
   rm -f "$cov"/cobertura*.xml
-  python3 build/ci/coverage-cobertura.py --lcov "$cov/lcov.info" --root "$root" \
-      --summary "$cov/coverage.json" --output "$cov/cobertura.xml" || exit 4
   local scopes
   scopes=$(for name in "${dirs[@]}"; do
     if [ -f "$name/scope.txt" ]; then cat "$name/scope.txt"; else echo "$(basename "$name"): no scope recorded"; fi
   done)
-  python3 - "$cov/coverage.json" "$scopes" > "$cov/summary.txt" <<'PY'
+  # The figure first, and in the log before anything else can stop the job: GitLab
+  # reads it from the log (the job's coverage:), a failed job's too. A summary that
+  # cannot be written is no figure, and fails the job. (|| on this line, not an if
+  # around it: Semgrep's bash parser cannot read an if whose condition holds a
+  # here-document, and would read none of this script.)
+  python3 - "$cov/coverage.json" "$scopes" > "$cov/summary.txt" <<'PY' || { echo "REFUSED: no summary of $cov/coverage.json, and so no figure"; exit 4; }
 import json, sys
 data = json.load(open(sys.argv[1]))
 t = data["data"][0]["totals"]
@@ -307,6 +310,18 @@ print("functions:", pct("functions"))
 print("files:    ", len(data["data"][0]["files"]))
 PY
   cat "$cov/summary.txt"
+  # lcov.info as Cobertura, for GitLab's coverage_report. The figures llvm-cov
+  # writes into lcov.info must be coverage.json's, and the two must name the same
+  # files, so that the diff's marks and the figure are one export of one run. A
+  # refusal fails the job, with the figure above already read, and leaves no
+  # report for the artifacts to hand GitLab: a pipeline that passed would tell
+  # nobody that the report is gone.
+  if ! python3 build/ci/coverage-cobertura.py --lcov "$cov/lcov.info" --root "$root" \
+      --summary "$cov/coverage.json" --output "$cov/cobertura.xml"; then
+    rm -f "$cov"/cobertura*.xml
+    echo "NO COBERTURA REPORT: the converter refused it (above), and the job fails; the figure before that is this run's."
+    exit 4
+  fi
 }
 
 case "${1:-all}" in
