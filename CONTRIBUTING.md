@@ -615,7 +615,13 @@ something which already exists.
   new file there without a header fails the job until it is. A third party's file keeps its own licence
   and holders, never the project's: its table names them, and a source of the project's that holds a
   third party's code under the header (the MIME classes, `StdString.h`, the generated tables) has the
-  third party's licence added beside the header's (`precedence = "aggregate"`). Every licence named, in a
+  third party's licence added beside the header's (`precedence = "aggregate"`). So does an icon drawn after an
+  icon set's - the webmail's sprite and the Control Deck's eye name Feather's holder
+  (`hmailserver/docs/Licenses/License - Feather icons.txt` says which) - where it keeps more of the set's drawing
+  than a simple shape. A simple shape - straight strokes on the grid's whole units, with at most one plain circle
+  or rectangle: three bars for a menu, a circle with two hands for a clock, a box with a V for a letter, a cross, a
+  plus, a chevron - which line icons of one subject on the 24-unit grid draw alike, is not counted as drawn after
+  any set, even where one set draws it point for point the same. Every licence named, in a
   header or in REUSE.toml, has its text
   in [LICENSES/](LICENSES) as `<SPDX identifier>.txt` - SPDX's own text for an identifier on SPDX's list,
   and a `LicenseRef-` text of the project's for one that is not - and LICENSES/ holds no other. A new file

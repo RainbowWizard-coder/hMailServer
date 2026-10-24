@@ -1,14 +1,31 @@
-Feather, Cole Bemis's icon set (https://feathericons.com), from whose drawings
-eight of the icons of hMailServer's own pages are made. The webmail's page,
-hmailserver/source/Server/Common/Util/Portal.html, draws seven of its icons
-after Feather's, some with their numbers rounded, some moved or resized:
-i-gear after "settings", i-pen after "edit-3", i-print after "printer", i-inbox
-after "inbox", i-file after "file", i-draft after "file-text" and i-clip after
-"paperclip". build/generate-portal-page.py embeds the page in PortalPageData.cpp,
-which is compiled into the server on Windows (hMailServer.exe) and Linux, and the
-server serves it. The Control Deck's page, hmailserver/installation/WebAdmin/
+Feather, Cole Bemis's icon set (https://feathericons.com), after whose drawings
+the icons of hMailServer's webmail and the eye of its Control Deck are drawn.
+Of the 56 symbols of the sprite of the webmail's page,
+hmailserver/source/Server/Common/Util/Portal.html, eleven follow a Feather
+icon's own drawing, some with their numbers rounded, some moved, resized or
+drawn in about the centre: i-gear after "settings", i-pen after "edit-3",
+i-print after "printer", i-inbox after "inbox", i-file after "file", i-draft
+after "file-text", i-clip after "paperclip", i-signout after "log-in", i-popout
+after "external-link", i-bell-off after "bell-off" and i-expand after
+"maximize-2". i-close, i-plus and the four chevrons are Feather's "x", "plus"
+and chevrons as they are. Others are near Feather's icon of the same subject,
+as it is or drawn in about the centre by up to 15 per cent, as i-file is near
+Feather's "file": among them i-search, i-star, i-folder, i-move, i-plane,
+i-trash, i-warn, i-calendar, i-chat and i-storage.
+build/generate-portal-page.py embeds the page in PortalPageData.cpp, which is
+compiled into the server on Windows (hMailServer.exe) and Linux, and the server
+serves it. The Control Deck's page, hmailserver/installation/WebAdmin/
 index.html, which the server serves too, draws its eye after Feather's "eye",
-laid into a box of 16 units. The drawings were compared with those of
+laid into a box of 16 units; its other icons are plain circles and rectangles
+with a few straight strokes. A simple shape - straight strokes on the grid's
+whole units, with at most one plain circle or rectangle, such as three bars for
+a menu or a box with a V for a letter - is drawn alike by line icons of one
+subject on the 24-unit grid and is not counted as drawn after any icon set: so
+i-menu, i-clock, i-mail and i-empty, which are point for point Tabler Icons'
+"menu-2", "clock-hour-4" and "mail", and i-last, which is Lucide's
+"chevron-last", are not credited to Tabler or to Lucide (Tabler Icons 3.49.0
+and lucide-static 1.61.0, from the npm registry, were compared too). The
+drawings were compared with those of
 Feather's release 4.29.2, its dist/icons.json, from the npm registry
 (feather-icons-4.29.2.tgz, whose sha512 equals the registry's integrity value,
 sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==).

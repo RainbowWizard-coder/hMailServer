@@ -2387,15 +2387,35 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 # Icons of the fork's own pages drawn after Feather's, Cole Bemis's icon set, under
 # the MIT licence (hmailserver/docs/Licenses/License - Feather icons.txt carries its
-# notice and says how they were compared with Feather 4.29.2): seven symbols of the
-# webmail's sprite in Portal.html - i-gear after "settings", i-pen after "edit-3",
-# i-print after "printer", i-inbox after "inbox", i-file after "file", i-draft after
-# "file-text" and i-clip after "paperclip", some with their numbers rounded, some
-# moved or resized - and the same page as PortalPageData.cpp embeds it, which the
-# server compiles in; and the eye of the Control Deck's page, after Feather's "eye"
-# laid into a box of 16 units. The rest of each is the fork's: the two with the
-# project's header name Feather's holder and licence beside it, and the Control
-# Deck's page, which has none, the maintainers' as the fork's table gives them.
+# notice and says how they were compared with Feather 4.29.2). The webmail's sprite
+# in Portal.html, and the same page as PortalPageData.cpp embeds it, which the
+# server compiles in, is drawn after Feather's icons. Of its 56 symbols, eleven
+# follow a Feather icon's own drawing, some with their numbers rounded, some moved,
+# resized or drawn in about the centre: i-gear after "settings", i-pen after
+# "edit-3", i-print after "printer", i-inbox after "inbox", i-file after "file",
+# i-draft after "file-text", i-clip after "paperclip", i-signout after "log-in",
+# i-popout after "external-link", i-bell-off after "bell-off" and i-expand after
+# "maximize-2". i-close, i-plus and the four chevrons are Feather's "x", "plus" and
+# chevrons as they are. Others are near Feather's icon of the same subject, as it is
+# or drawn in about the centre by up to 15 per cent, as i-file is near its "file":
+# among them i-search, i-star, i-folder, i-move, i-plane, i-trash, i-warn,
+# i-calendar, i-chat and i-storage. The Control Deck's page draws its eye after
+# Feather's "eye", laid into a box of 16 units; its other icons are plain circles
+# and rectangles with a few straight strokes. The two with the project's header
+# name Feather's holder and licence beside it, and the Control Deck's page, which
+# has none, his beside the maintainers'.
+# No other icon set's holder is named. A set is named where a symbol keeps more of
+# its drawing than a simple shape - straight strokes on the grid's whole units, with
+# at most one plain circle or rectangle: three bars for a menu, a circle with two
+# hands for a clock, a box with a V for a letter, a cross, a plus, a chevron, a
+# chevron with a bar - which line icons of one subject on the 24-unit grid draw
+# alike; Feather is, by the curves of i-gear, i-pen, i-clip and i-bell-off and the
+# eye's. The symbols that are point for point another set's icon are such shapes
+# alone: i-menu, i-clock, i-mail and i-empty are Tabler Icons' "menu-2",
+# "clock-hour-4" and "mail", i-last is Lucide's "chevron-last", and i-close, i-plus
+# and the chevrons are Lucide's and Tabler's as well as Feather's; and i-popout's box
+# and diagonal fall where Tabler's "external-link" has them, its strokes in
+# Feather's order.
 [[annotations]]
 path = [
     "hmailserver/source/Server/Common/Util/Portal.html",

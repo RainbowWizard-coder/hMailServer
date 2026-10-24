@@ -323,9 +323,11 @@ Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+ and Expat
 Comment:
  The webmail's page and the Control Deck's, the maintainers' own, with icons
- drawn after Feather's, Cole Bemis's icon set, under the MIT licence: seven
- symbols of the webmail's sprite (after Feather's settings, edit-3, printer,
- inbox, file, file-text and paperclip) and the Control Deck's eye.
+ drawn after Feather's, Cole Bemis's icon set, under the MIT licence: the
+ webmail's sprite (eleven of its symbols after Feather's settings, edit-3,
+ printer, inbox, file, file-text, paperclip, log-in, external-link, bell-off
+ and maximize-2, six as Feather's x, plus and chevrons are, and others near
+ Feather's icons of the same subjects) and the Control Deck's eye.
  PortalPageData.cpp is the webmail's page as build/generate-portal-page.py
  embeds it, compiled into /usr/bin/hmailserver, which serves both pages.
  hmailserver/docs/Licenses/License - Feather icons.txt names each icon and

@@ -278,17 +278,29 @@ with `--check`).
 ### Downloads and the release
 
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
-  gave them the project's holders and licence alone.** Seven symbols of the webmail's sprite in
-  `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, are drawn after
-  Feather's, Cole Bemis's icon set: `i-gear` after its `settings`, `i-pen` after `edit-3` and `i-print` after
-  `printer`, as an SVG optimiser leaves them (numbers rounded to one decimal, arcs joined; the printer's body
-  character for character), and `i-inbox`, `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and
-  `paperclip`, moved or resized a unit; `build/generate-portal-page.py` embeds the page in `PortalPageData.cpp`, which
-  `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
+  gave them the project's holders and licence alone.** The webmail's sprite in
+  `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after
+  the icons of Feather, Cole Bemis's icon set. Of its 56 symbols, eleven follow a Feather icon's own drawing:
+  `i-gear` after its `settings`, `i-pen` after `edit-3` and `i-print` after `printer`, as an SVG optimiser leaves
+  them (numbers rounded to one decimal, arcs joined; the printer's body character for character); `i-inbox`,
+  `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and `paperclip`, moved or resized a unit;
+  `i-signout` after `log-in` (its arrow's numbers Feather's, its door two units wider), `i-popout` after
+  `external-link` and `i-expand` after `maximize-2`, each drawn in a unit towards the centre, and `i-bell-off` after
+  `bell-off`, whose arc it keeps. `i-close`, `i-plus` and the four chevrons are Feather's `x`, `plus` and chevrons as
+  they are, and others are near Feather's icon of the same subject, as it is or drawn in about the centre by up to
+  15 per cent, as `i-file` is near Feather's `file` (`i-search`, `i-star`, `i-folder`, `i-move`, `i-plane`,
+  `i-trash`, `i-warn`, `i-calendar`, `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the
+  page in `PortalPageData.cpp`, which `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
   `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.
+  No other icon set is credited, by a line `REUSE.toml` and `CONTRIBUTING.md` now draw: a set is named where a
+  symbol keeps more of its drawing than a simple shape - straight strokes on the grid's whole units, with at most one
+  plain circle or rectangle, which line icons of one subject on the 24-unit grid draw alike - and what the sprite
+  shares with other sets is such shapes alone (`i-menu`, `i-clock`, `i-mail` and `i-empty` are point for point
+  Tabler Icons' `menu-2`, `clock-hour-4` and `mail`, and `i-last` Lucide's `chevron-last`), where Feather's credit
+  stands on the curves of `i-gear`, `i-pen`, `i-clip`, `i-bell-off` and the eye.
   The MIT licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the
   two pages and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL,
-  with a comment naming each icon; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
+  with a comment naming the icons; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
   carry, does the same in a paragraph of its own (`License: AGPL-3+ and Expat`), where its `Files: *` gave them the
   AGPL alone; `hmailserver/docs/Licenses/License - Feather icons.txt` carries Feather's LICENSE verbatim after a note
   naming the icons and how they were compared with Feather 4.29.2 (its npm tarball, held to the registry's sha512),
