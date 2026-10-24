@@ -1102,7 +1102,8 @@ with `--check`).
   texts' and notices' table, of the installer's licence page's beside the original's and the maintainers', and of
   the copyright file's beside the maintainers', is "The holders each text names" (and "The holders each notice it
   carries names"): the copyright file, like the licence page, carries the texts of the licences it declares
-  verbatim, the FSF's AGPL-3.0 text among them, which is not under the AGPL, so that its table gives it
+  verbatim, the FSF's AGPL-3.0 text among them, which is not under the AGPL, and the Creative Commons Attribution
+  4.0 International licence's, so that its table gives it
   `AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice`, where it gave it the maintainers and the AGPL alone, and
   `debian/copyright` has a paragraph of its own for the file, `License: AGPL-3+ and notices`. That copyright text points at
   the holders the texts themselves name -
