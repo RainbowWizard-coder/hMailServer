@@ -1962,6 +1962,32 @@ with `--check`).
   much again for the checks each batch adds), and ContinuousIntegration.md's "How long each job takes" gives the job's
   times from 19 October 2026 where it gave the estimate made before any job had run. No check moves, and every check
   still runs in the job.
+- **SonarQube Cloud's scope leaves out the third parties' data, the translation catalogues and more generated
+  files, and says what automatic analysis reads as tests.** `.sonarcloud.properties` now leaves out of the sources
+  the WHATWG's `entities.json`, Unicode's UTS 46 data and the RFC 7208 test suite, which are vendored as their
+  holders publish them (the third parties' code that hMailServer has changed, the MIME code, `CStdString` and
+  `ScriptSite.h`, stays analysed); the webmail's and the Control Deck's translation catalogues, whose 246 findings
+  in the analysis of `master` at `6fb8164c6` were all json:S2068 on the word "password" or "passphrase" in a
+  message; the recorded benchmark runs under `build/perf/runs`; the create scripts kept unchanged at schema 6029
+  as the upgrade test's starting point; `SPFConformanceSuite.cpp`, which `Generate-SPFConformanceSuite.py` writes
+  from the suite and which held 259 findings, every one cpp:S1313 on the suite's addresses; MIDL's `dlldata.c`;
+  `IniSettingsBaseline.h`, which `build/check-ini-coverage.py --write-baseline` writes; the ARM64 publish's NuGet
+  lock files, `packages.arm64.lock.json`; and every `*.g.cs`, where it named `SettingsSearchIndex.g.cs` alone. The
+  server's `resource.h` stays, being edited by hand. Its comments, and `hmailserver/docs/ContinuousIntegration.md`,
+  say that automatic analysis of this tree runs the SonarScanner for .NET, since the tree has `.csproj` files,
+  which ignores `sonar.sources` and `sonar.tests`, as the analysis's own warning says, and reads only the .NET test
+  projects' files as tests: the fuzz harness, the two page harnesses that `sonar.tests` names, `build/fixtures`
+  and `hmailserver/test`'s other files are not analysed at all, and `build/trusted-types-test.js` and
+  `build/testdata` stay sources. The document says that the project was imported on 6 October 2026, where it read
+  as if the import were still to be made; that each push to `master` and each merge request starts an analysis;
+  that six of the fourteen pushes to `master` to 22 October 2026, the 6.3.7 landing among them, have no completed
+  analysis, which the public API does not explain and the project's housekeeping does not either, though the
+  6.3.7 landing was analysed as the head of its merge request; which parameter each of the web API's endpoints
+  takes; the analysis's warnings on C and C++ automatic analysis and on the sources' encoding, that an automatic
+  analysis keeps no logs, and that the encoding warning comes from the replacement character U+FFFD in four
+  analysed files, three of which lost a letter in an earlier conversion; and what the analysis of `6fb8164c6`
+  found, its nine Blocker vulnerabilities among it, all older than the new code its quality gate reads. Every
+  exclusion pattern matches a tracked file, and every path in `sonar.tests` is excluded from the sources.
 
 ### Documentation
 

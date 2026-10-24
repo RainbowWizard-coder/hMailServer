@@ -6257,15 +6257,57 @@ script.
 
 SonarQube Cloud (sonarcloud.io) analyses the project from outside the pipeline.
 The organization `hmailserver` is bound to the GitLab group `hmailserver`, in
-SonarQube Cloud's EU region, on its OSS plan - free for public projects under
-an OSI licence, with branch and merge request analysis and custom quality
-gates; the plan can be chosen only when an organization is made. The project is
-imported now that it has moved into the group (29 September 2026) - the owner's
-step - and from the import on SonarQube
-Cloud's **automatic analysis** runs, from the webhook the import makes: on every
-push to the default branch and on every merge request, on SonarQube Cloud's own
-machines. It leaves a summary comment on the merge request; GitLab gets no
-inline comments from it.
+SonarQube Cloud's EU region, on its OSS plan - free for public projects under an
+OSI licence, with branch and merge request analysis and custom quality gates;
+the plan can be chosen only when an organization is made. The project,
+`hmailserver_hmailserver`
+([its page](https://sonarcloud.io/project/overview?id=hmailserver_hmailserver)),
+was imported on 6 October 2026, after the move into the group: the webhook the
+import made at `api.sonarcloud.io` dates from 00:50 UTC that day and the first
+analysis of `master` from 00:52. Since then each push to the default branch and
+each merge request (the first was !12) starts, from that webhook, SonarQube
+Cloud's **automatic analysis**, on SonarQube Cloud's own machines; `master` is
+its one branch, and its project settings read `sonar.autoscan.enabled` true. Not
+every push to `master` has a completed analysis: of the fourteen from the import
+to 22 October 2026, six - `a5a02b3be`, `9b2001ce9`, `64d278268`, `74aed9ab8`,
+`2bd79d381` and `31d656c0c`, the 6.3.7 landing of 17 October - have none in
+`api/project_analyses/search`, and the public API does not say why. GitLab's log
+of the webhook's deliveries, which goes back to 17 October, shows `31d656c0c`'s
+delivered (HTTP 200), and `31d656c0c` was analysed as the head of !22. The
+project's housekeeping, which keeps the latest analysis of a day after 24 hours
+and of a week after a week, explains one more gap: of 21 October's two pushes,
+`5e49abf06` and `72be22b4e`, it keeps the later's. It does not explain the six,
+since on each of their days or weeks it kept an earlier analysis. Every merge
+request from !12 on has one. It leaves a summary comment on the merge request,
+under the account whose token binds the organization (*Quality Gate passed* or
+*failed*, with the failed conditions); GitLab gets no inline comments from it.
+Its results are public: the page above, and the web API without a token
+(`api/project_analyses/search?project=hmailserver_hmailserver`,
+`api/issues/search?componentKeys=hmailserver_hmailserver`,
+`api/qualitygates/project_status?projectKey=hmailserver_hmailserver`, and
+`api/ce/analysis_status?component=hmailserver_hmailserver&branch=master` for the
+analysis's warnings).
+
+What it read of `master` at `6fb8164c6` (22 October 2026), by that API on 24
+October 2026: 3,253 files and 883 test files, 770,049 lines of code - C++
+415,275, C# 77,267, Python 64,687, C 46,584, JSON 84,841, PL/SQL (the database
+scripts, create and upgrade) 19,012, JavaScript 17,048, shell 15,205, PowerShell
+11,149, and the rest HTML, YAML, Docker and XML - with 929 bugs, 519
+vulnerabilities, 1,905 code smells and no open security hotspot, and its quality
+gate failed on the new code's reliability (rating 5) and security (rating 4)
+since 6 October. The JSON is mostly the translation catalogues, and 505 of the
+findings are in files the scope now leaves out (below): 259 in the generated
+`SPFConformanceSuite.cpp`, 246 in the catalogues. Nine are Blocker
+vulnerabilities, all found before 6 October and so outside the new code that the
+gate reads, and all nine are to be marked false positives there, as the triage
+below asks: three secret detections in test code - two `glpat-` strings that
+`forge-export.py`'s self-test makes up and the stub PEM EC private key that
+`GatewayEncryption.cpp`'s tester gives `Inspect()` to refuse - and six more of
+the same kind, the SigV4 documentation's example key and WebAuthn's test vectors
+in the server's testers, a made-up PyPI token in `cli-packages.py`'s self-test,
+a CI/CD variable's name in `registry-mirror.py`, and the `memset` that gives
+`OpenPgpWriter.cpp`'s boundary fixed bytes for a test, which no compiler can
+remove since the bytes are read.
 
 Automatic analysis rather than a CI job, for four reasons:
 
@@ -6284,31 +6326,72 @@ Automatic analysis rather than a CI job, for four reasons:
 
 The price: SonarQube Cloud says automatic analysis may miss some issues that an
 analysis from a compilation database finds, and its precision on the
-Windows-only files, analysed with no MSVC headers, is not documented. A project
-uses one mode or the other: a CI-based analysis needs automatic analysis turned
-off first (*Administration*, *Analysis Method*), a token, and the scanner run in
-the CI image with `static-analysis.sh`'s compile database, for protected refs
-only.
+Windows-only files, analysed with no MSVC headers, is not documented. The
+analysis of `master` (and of !29) carries two warnings of its own on this
+(`api/ce/analysis_status`, above): "C and C++ Automatic Analysis is discouraged
+for this project. Consider setting the properties in `Project Administration >
+General Settings > C / C++ / Objective-C > Automatic Analysis Settings`.
+Otherwise, please switch to Compilation Database based analysis for better
+analysis quality.", and "There are problems with file encoding in the source
+code. Please check the scanner logs for more details." An automatic analysis
+keeps no logs, signed in or not ("Automatic analysis logs are not available",
+SonarQube Cloud's automatic analysis page). The scanner gives the second warning
+the first time it reads the replacement character U+FFFD in a file, and four of
+the analysed files hold one: `Common/Util/StdString.h` (a contributor's name),
+`IMAP/IMAPFetch.cpp` (a comment) and RegressionTests' `API/Basics.cs` (a test
+message's body), where a letter was lost in an earlier conversion, and
+ControlPanel.Tests' `Services/LiveLogTailTests.cs`, which asserts that no line
+read back holds it. Restoring the three letters and writing the test's character
+as a C# escape would clear the warning. A project uses one mode or the other: a
+CI-based analysis needs automatic analysis turned off first (*Administration*,
+*Analysis Method*), a token, and the scanner run in the CI image with
+`static-analysis.sh`'s compile database, for protected refs only.
 
 **The scope** is `.sonarcloud.properties` at the root: the whole tree as
-sources, less the third-party code under `libraries/`, the vendored QuickJS and
-zlib, the generated tables (`HelpPagesData.cpp`, `PortalPageData.cpp`,
-`PortalLanguagesData.cpp`, `PortalSmimeData.cpp`, `PortalOpenPgpData.cpp`,
-`ProfilesData.*`, `SettingsDefaults.h`, `PublicSuffixListData.h`,
-UTS 46's `IdnaTables.cpp` and `IdnaTestData.cpp`, HTML's named references'
-`HtmlReferencesData.cpp`, `SettingsSearchIndex.g.cs`) and the WinForms
-designer's files; the regression
-suites, the tools' test projects, the fuzz harness and the two page harnesses as
-tests; C++14 as the standard its C++ rules report against, which is what MSVC
-compiles the shared sources as; Python 3.14. `sonar.sources` and `sonar.tests`
-take plain paths, no wildcards; the exclusions take patterns. Automatic analysis
-reads the file from the default branch only, and a value in the file replaces
-the same one set in the project's settings. So until 6.3.6 reached `master`,
-the exclusions were to be set in the project's settings as well
-(*Administration*, *General Settings*, *Analysis Scope*, or `api/settings/set`),
-with the test trees among them, since `sonar.tests` cannot be set there: until
-the file landed, the tests were to be left out rather than read as tests. The
-file has been on `master` since, so its values replace any the settings hold.
+sources, less the third parties' code and data that the tree carries as they
+publish them (`libraries/`, the vendored QuickJS and zlib, the WHATWG's
+`entities.json`, Unicode's UTS 46 data and the RFC 7208 test suite), though the
+third parties' code that hMailServer has changed (the MIME code, `CStdString`
+and `ScriptSite.h`) is analysed; the translation catalogues of the webmail and
+the Control Deck, whose values are sentences; records and fixtures kept
+unchanged (the recorded benchmark runs under `build/perf/runs`, and the create
+scripts kept at schema 6029 as the upgrade test's starting point); the generated
+files (`HelpPagesData.cpp`, `PortalPageData.cpp`, `PortalLanguagesData.cpp`,
+`PortalSmimeData.cpp`, `PortalOpenPgpData.cpp`, `ProfilesData.*`,
+`SettingsDefaults.h`, `IniSettingsBaseline.h` (`build/check-ini-coverage.py
+--write-baseline`), `PublicSuffixListData.h`, UTS 46's `IdnaTables.cpp` and
+`IdnaTestData.cpp`, HTML's named references' `HtmlReferencesData.cpp`, the RFC
+7208 suite's `SPFConformanceSuite.cpp`, MIDL's `dlldata.c`, every `*.g.cs`, the
+WinForms designer's files and the ARM64 publish's NuGet lock files,
+`packages.arm64.lock.json`; SonarQube Cloud leaves out the x64
+`packages.lock.json` by itself, and the server's `resource.h`, which the
+resource editor began and which is edited by hand with each COM class, stays);
+and the test trees. C++14 is the standard its C++ rules report against, which is
+what MSVC compiles the shared sources as, and 3.14 the Python version. Because
+the tree has `.csproj` files (automatic analysis of .NET needs one), automatic
+analysis runs the SonarScanner for .NET, which ignores `sonar.sources` and
+`sonar.tests` and computes both from the repository, as the analysis's own
+warning says: every file it reads is a source but for the .NET test projects'
+files, which are its tests - the 883 test files of the analysis of `6fb8164c6`
+are all in ControlPanel.Tests, DBSetup.Tests, ImportTool.Tests, RegressionTests,
+LinuxRegressionTests and StressTest. The exclusions are read. So the fuzz
+harness, the two page harnesses `build/deck-script-test.js` and
+`build/portal-script-test.js`, `build/fixtures` and `hmailserver/test`'s other
+files, which the exclusions leave out of the sources, are not analysed at all,
+not read as tests; `build/trusted-types-test.js` and `build/testdata` are named
+in neither and are analysed as sources. The C# analyser reads the C# of the
+Control Panel, the tools and their test projects, and of `hmailserver/test`'s
+three test projects (RegressionTests, LinuxRegressionTests, StressTest) - 20 of
+the tree's 29 C# projects: `hmailserver/test`'s other eight are excluded with
+the rest of that tree, and `ControlPanel.Core` has no C# file of its own - and
+leaves out by itself what it takes as generated. `sonar.sources` and
+`sonar.tests` take plain paths, no wildcards, and are kept for a scanner that
+reads them; the exclusions take patterns. SonarQube Cloud says to put the file
+on the default branch, and a value in the file replaces the same one set in the
+project's settings. The file was on `master` (from 5 October 2026) before the
+project was imported, so its values have been the scope since the first
+analysis; the project's settings hold none (`api/settings/values` for the
+project, 24 October 2026).
 
 **What it holds, and what it cannot.** On GitLab's free tier a merge request
 cannot be made to wait for SonarQube Cloud's quality gate (external status
