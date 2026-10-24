@@ -49,6 +49,11 @@ recorded server; this checks what they are packaged AS, and fails when:
       most 512 characters, PyPI's limit, or it or the opening of the README PyPI
       shows does not say that hmctl is Progressive Robot's fork's and not the
       original hMailServer's;
+    * pyproject.toml's project URLs are anything but the project's address as
+      Homepage and Source: deps.dev can take the package's source repository from
+      any of its URLs on gitlab.com and reads a path under /-/ as a repository's,
+      so 6.3.7's Changelog, .../-/blob/master/CHANGELOG.md, became its source
+      repository there; the README PyPI shows links the rest;
     * python/ holds anything but pyproject.toml and README.md - a setup.py or
       setup.cfg (code that runs at install), a .pth file, or a committed copy of
       hmctl, which would be a second hmctl;
@@ -110,6 +115,10 @@ REQUIREMENTS = "build/ci/cli-packages-requirements.txt"
 DIST_NAME = "hmailserver-cli"
 MODULE = "hmailserver_cli"
 PROJECT_URL = "https://gitlab.com/hmailserver/hmailserver"
+# pyproject.toml's [project.urls], exactly: deps.dev took 6.3.7's Changelog,
+# .../-/blob/master/CHANGELOG.md, for the package's source repository, and its Issues,
+# .../-/issues, for the repository "hmailserver/hmailserver/-".
+PROJECT_URLS = {"Homepage": PROJECT_URL, "Source": PROJECT_URL}
 LICENSE_EXPRESSION = "AGPL-3.0-or-later"
 CONSOLE_SCRIPTS = {"hmctl": "hmailserver_cli.hmctl:main"}
 COMMITTED_PYTHON_FILES = {"pyproject.toml", "README.md"}
@@ -553,8 +562,10 @@ def check_pyproject(root):
                 problems.append("%s/README.md, the description PyPI shows, does not say before its Install section"
                                 " that hmctl is the client of %s, %s" % (PYTHON_DIR, FORK_WORDS[0], FORK_WORDS[1]))
     urls = project.get("urls", {})
-    if not urls or any(not str(u).startswith(PROJECT_URL) for u in urls.values()):
-        problems.append("%s's project URLs are not all the project's (%s): %r" % (path, PROJECT_URL, urls))
+    if urls != PROJECT_URLS:
+        problems.append("%s's project URLs are %r, not the project's address alone, %r: deps.dev can take the source"
+                        " repository from any URL of the package on gitlab.com, and reads a path under /-/ as a"
+                        " repository's" % (path, urls, PROJECT_URLS))
     flit = data.get("tool", {}).get("flit", {})
     if flit.get("module", {}).get("name") != MODULE or set(flit) - {"module"}:
         problems.append("%s's [tool.flit] is %r: the module's name, %s, and nothing that adds a file" % (path, flit, MODULE))
@@ -858,8 +869,18 @@ def self_test():
                '"flit_core >=3.2,<4"', "does not hold flit-core")
         broken("a second entry point", PYTHON_DIR + "/pyproject.toml", 'hmctl = "hmailserver_cli.hmctl:main"',
                'hmctl = "hmailserver_cli.hmctl:main"\nhmctl2 = "x:y"', "scripts are")
-        broken("a URL elsewhere", PYTHON_DIR + "/pyproject.toml", 'Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"',
-               'Issues = "https://github.com/x/y/issues"', "project URLs")
+        broken("a URL elsewhere", PYTHON_DIR + "/pyproject.toml", 'Source = "https://gitlab.com/hmailserver/hmailserver"',
+               'Source = "https://github.com/x/y"', "project URLs")
+        broken("a changelog URL deps.dev reads as the source repository", PYTHON_DIR + "/pyproject.toml",
+               'Source = "https://gitlab.com/hmailserver/hmailserver"',
+               'Source = "https://gitlab.com/hmailserver/hmailserver"\n'
+               'Changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md"', "project URLs")
+        broken("an issues URL under the project", PYTHON_DIR + "/pyproject.toml",
+               'Source = "https://gitlab.com/hmailserver/hmailserver"',
+               'Source = "https://gitlab.com/hmailserver/hmailserver"\n'
+               'Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"', "project URLs")
+        broken("no source URL", PYTHON_DIR + "/pyproject.toml", 'Source = "https://gitlab.com/hmailserver/hmailserver"',
+               '', "project URLs")
         summary = 'description = "hmctl, the command-line client of Progressive Robot\'s fork of hMailServer'
         broken("a PyPI summary that does not say whose hmctl is", PYTHON_DIR + "/pyproject.toml", summary,
                'description = "hmctl: administer an hMailServer over its REST API from a command line"\nx = "',

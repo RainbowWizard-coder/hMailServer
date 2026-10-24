@@ -481,7 +481,19 @@ Both come with the PyPI package and need nothing else from the project:
   `api.deps.dev/v3/projects/gitlab.com%2Fhmailserver%2Fhmailserver:packageversions`
   answered with `hmailserver-cli` 6.3.7 linked that way, its attestation verified,
   naming the commit of the `master` pipeline that published it. deps.dev shows no
-  Scorecard for a GitLab project.
+  Scorecard for a GitLab project. Its unverified links for 6.3.7 were wrong:
+  `api.deps.dev/v3/systems/pypi/packages/hmailserver-cli/versions/6.3.7` gave, on
+  24 October 2026, the Changelog URL, `.../-/blob/master/CHANGELOG.md`, as the
+  source repository (`gitlab.com/hmailserver/hmailserver/-/blob/master/changelog.md`)
+  and the Issues URL as the issue tracker of a repository
+  `gitlab.com/hmailserver/hmailserver/-`, and left out the Source URL. deps.dev can
+  take the source repository from any URL of a package on gitlab.com, and reads a
+  path under `/-/` as part of a repository's name: of the other packages on PyPI
+  whose URLs have the same shape, deps.dev links some to their repository and some
+  to their changelog or their issues. So from the
+  release after 6.3.7 the package's project URLs are the project's address alone,
+  as Homepage and Source, and the README PyPI shows links the documents, the
+  changelog and the issues; `build/check-cli-packages.py` holds the two URLs.
 * **OpenSSF Package Analysis** installs every new PyPI upload in a sandbox, imports
   and runs it, and records the files, addresses and commands it touches. There is nothing
   to opt into; what the project does is keep the package free of install-time and

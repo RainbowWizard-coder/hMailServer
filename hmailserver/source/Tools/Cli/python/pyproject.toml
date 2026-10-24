@@ -56,12 +56,15 @@ classifiers = [
 # installed, and nothing but hmctl runs when it is used.
 dependencies = []
 
+# The project's address alone. deps.dev can take the package's source repository
+# from any of its URLs on gitlab.com, and reads a path under /-/ as a repository's:
+# 6.3.7's Changelog, .../-/blob/master/CHANGELOG.md, became its source repository
+# there, and its Issues the repository "hmailserver/hmailserver/-". The documents,
+# the changelog and the issues are linked from README.md, the description PyPI
+# shows. build/check-cli-packages.py holds these two URLs.
 [project.urls]
 Homepage = "https://gitlab.com/hmailserver/hmailserver"
-Documentation = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/CommandLine.md"
 Source = "https://gitlab.com/hmailserver/hmailserver"
-Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"
-Changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md"
 
 [project.scripts]
 hmctl = "hmailserver_cli.hmctl:main"

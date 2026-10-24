@@ -69,4 +69,6 @@ More
   every resource and verb, and the PowerShell module that speaks the same vocabulary.
 - [The command-line packages](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/CommandLinePackages.md):
   how this package is built and published.
+- [What changed in each release](https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md),
+  and [the issues](https://gitlab.com/hmailserver/hmailserver/-/issues), where a bug is reported.
 - Licence: AGPL-3.0-or-later.
