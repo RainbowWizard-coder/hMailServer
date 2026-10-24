@@ -336,7 +336,17 @@ checkers:
   # on 26 September 2026 (docker pull on linix); Renovate moves tag and digest
   # together (renovate.json, pinDigests).
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-  timeout: 20 minutes
+  # The script runs one check at a time, so a runner's speed on one core decides its
+  # time and its CPU count does not: on 24 October 2026 it took 1,136 s on server2 in
+  # this image with 8 CPUs, linix's limit, and 1,135 s with 2, GitLab's small hosted
+  # runner's. linix has taken 1.4 to more than 1.6 times server2's time for the same
+  # script (1,060 s against 776 s on 20 and 21 October; killed at 20 minutes in
+  # pipeline 2983075001, where server2 took 764 s), and GitLab's small runner, which
+  # a branch's or a merge request's pipeline outside the protected refs takes, more
+  # than 1.6 times (three runs killed at 20 minutes on 19 October). At 1.6 times
+  # 1,136 s that is about 30 minutes; 45 leave half as much again for the checks
+  # each batch adds (docs/ContinuousIntegration.md, "How long each job takes").
+  timeout: 45 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
   before_script:
@@ -1683,8 +1693,8 @@ linux-coverage:
 # when it or this file changes, as the path-bound checks above run. linux-coverage
 # runs only in the coverage schedule's pipeline, so that without this a change that
 # broke the converter would be seen first on the Sunday its report is lost. A job of
-# its own rather than a line of checkers, which took 13 and 16 of its 20 minutes in
-# pipelines 2983075001 and 2984129087 on 23 and 24 October 2026.
+# its own rather than a line of checkers, which took 13 and 16 of the 20 minutes it then
+# had in pipelines 2983075001 and 2984129087 on 23 and 24 October 2026.
 coverage-cobertura:
   stage: check
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
