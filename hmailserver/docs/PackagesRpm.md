@@ -908,9 +908,12 @@ container's own architecture from the folder it is given, the build's `generic/`
 6. The server is stopped and `rpm -e` takes the package off.
 
 `release` needs the job, beside the build, the install test and the SBOM job, and
-`build/check-release-chain.py` holds it to the script and its kind, the build's
-`generic/` folder, the install job's image and the database, and the script to
-installing this package without `--nodeps` (`CARRIED_PACKAGES`).
+`build/check-release-chain.py` holds it to the script and its kind, with no
+`before_script` - its own, a template's or `default:`'s - to run first and end the
+job, the build's `generic/` folder, the install job's image as `linux/arm64` (an
+`image:` written as one name has no platform, and is refused) and the database,
+and the script to installing this package without `--nodeps` and to comparing
+port 25's banner with the server's own (`CARRIED_PACKAGES`).
 
 **When the repository cannot be reached.** Both scripts try a package
 manager's step up to three times when its output shows it could not reach the

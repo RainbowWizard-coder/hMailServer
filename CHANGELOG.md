@@ -744,14 +744,18 @@ with `--check`).
   the server is started as its unit starts it (`setpriv` with the unit's user, directory and capability) and given
   `HM_START_WAIT` seconds, five minutes in the arm64 jobs, each request of the wait 30 of them at most - a server that
   exits before it answers fails at once with its exit status and output, and one whose REST port takes the connection
-  and never answers fails within those seconds, not at the job's timeout - and then asked: port 25 for the server's own banner, `220 <host name> ESMTP`, EHLO and
-  QUIT, which `linux-package-deb` now asks too; `GET /api/v1/status`; and `GET /`, the Control Deck; and the package is
-  removed. `release` needs both jobs, and `build/check-release-chain.py` holds them to it (`CARRIED_PACKAGES`' new
-  start job: present, needing its build, not `allow_failure` or manual for a tag, run of the script's kind on the
-  build's folder in the install job's linux/arm64 image beside `linux-package-deb`'s PostgreSQL with the script's
-  database, user and password; the script still creating the schema as the service's user, starting the server as its
-  unit does, asking port 25, the REST API and the Deck, removing the package, and saying `--nodeps` only for
-  linux-build's `.rpm`) and to the arm64 class (`RUNNER_CLASSES`, 17 jobs), with 22 negative controls;
+  and never answers fails within those seconds, not at the job's timeout - and then asked: port 25 for the server's
+  own banner, `220 <host name> ESMTP`, EHLO and QUIT, which `linux-package-deb` now asks too; `GET /api/v1/status`;
+  and `GET /`, the Control Deck; and the package is removed. `release` needs both jobs, and
+  `build/check-release-chain.py` holds them to it (`CARRIED_PACKAGES`' new start job: present, needing its build, not
+  `allow_failure` or manual for a tag, running the script of its kind and nothing else, with no `before_script` of its
+  own, a template's or `default:`'s, which would run first and could end the job green, on the build's folder in the
+  install job's image as linux/arm64 - an `image:` written as one name, which takes the template's platform away with
+  its mapping, is refused - beside `linux-package-deb`'s PostgreSQL with the script's database, user and password; the
+  script still creating the schema as the service's user, starting the server as its unit does, asking port 25 and
+  comparing its banner with the server's own, asking the REST API and the Deck, removing the package, and saying
+  `--nodeps` only for linux-build's `.rpm`) and to the arm64 class (`RUNNER_CLASSES`, 17 jobs), with 31 negative
+  controls;
   `build/ci/hosted-runners.py`'s `EXPECTED` for the class is 17 minutes a batch's or a tag's pipeline. Run by hand on
   server2 on 23 and 24 October 2026 over 6.3.7's own arm64 `.deb` and aarch64 `.rpm`, their SHA-256 the release's sums
   and the sums' Sigstore bundle verified, in 6.3.7's tree under qemu-user: both passed in 100 and 76 s, the REST API

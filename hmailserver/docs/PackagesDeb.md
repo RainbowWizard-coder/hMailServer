@@ -625,8 +625,11 @@ container's own architecture from the folder it is given, the build's
 6. The server is stopped and `apt-get remove` takes the package off.
 
 `release` needs the job, beside the build, the install test and the SBOM job, and
-`build/check-release-chain.py` holds it to the script, the build's folder, the
-install job's image and the database (`CARRIED_PACKAGES`). The amd64 package's
+`build/check-release-chain.py` holds it to the script, with no `before_script` -
+its own, a template's or `default:`'s - to run first and end the job, the build's
+folder, the install job's image as `linux/arm64` (an `image:` written as one name
+has no platform, and is refused) and the database, and the script to comparing
+port 25's banner with the server's own (`CARRIED_PACKAGES`). The amd64 package's
 `linux-package-deb` runs the same script, so both go through the same steps.
 
 Started under systemd

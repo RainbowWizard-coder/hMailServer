@@ -92,11 +92,13 @@ refuses it. This checker holds them to each other. It fails when:
     allow_failure or manual in a v* tag's pipeline, in the job, a template it extends
     or a rule a tag can take (a needed job that may fail lets release start after it
     failed); the start job runs build/ci/linux-package-install.sh of the package's
-    kind and nothing else, on the build's folder, in the install job's linux/arm64
-    image, beside linux-package-deb's PostgreSQL by digest as postgres with the
-    database, user and password the script logs in with, and the script still creates
-    the schema as the service's user, starts the server as its unit does, asks port
-    25 for its own banner, GET /api/v1/status and GET /, removes the package, and says
+    kind and nothing else, with no before_script of its own, a template's or
+    default:'s, on the build's folder, in the install job's linux/arm64 image (a
+    scalar image: has no platform), beside linux-package-deb's PostgreSQL by digest as
+    postgres with the database, user and password the script logs in with, and the
+    script still creates the schema as the service's user, starts the server as its
+    unit does, asks port 25 for its own banner and refuses another, GET /api/v1/status
+    and GET /, removes the package, and says
     --nodeps nowhere but in linux-build's .rpm's half (package_start_problems); and
     build/ci/release-chain.py must collect the file and its SBOM from where that
     build leaves them, as a compiled file;
@@ -697,7 +699,8 @@ START_SERVICE_FROM = "linux-package-deb"
 # What linux-package-install.sh must do for a start job's kind, each with what it is:
 # the kinds it takes; the generic .rpm installed by dnf with its dependencies; the
 # schema created as the service's user; the start as the unit starts it; port 25 asked
-# for the server's own banner, GET /api/v1/status and GET /, the Deck; and the removal.
+# for the server's own banner - the comparison that refuses another program's -
+# GET /api/v1/status and GET /, the Deck; and the removal.
 # --nodeps belongs to linux-build's .rpm alone, whose half ends before
 # START_SCRIPT_FROM; none of what follows that line may say it.
 START_SCRIPT_FROM = "# ---------------------------------------------------------------- the .deb, and the .rpm built in Fedora\n"
@@ -711,6 +714,8 @@ START_SCRIPT_LINES = (
      "    --no-new-privs /usr/bin/hmailserver --foreground )", "the start as its unit starts it"),
     ('banner="220 $(cat /proc/sys/kernel/hostname) ESMTP"\n', "the server's own SMTP banner"),
     ("  exec 3<> /dev/tcp/127.0.0.1/25 || return 1\n", "the SMTP conversation on port 25"),
+    ('  [ "$line" = "$banner" ] || { exec 3>&-; echo "the banner is not \'$banner\'"; return 2; }\n',
+     "the banner port 25 answers compared with the server's own"),
     ('[ "$rc" = 0 ] || fail "port 25 did not hold an SMTP conversation with the server', "the SMTP conversation's verdict"),
     ('curl -fsS -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail', "GET /api/v1/status"),
     ("grep -q 'Control Deck' /tmp/deck.html || fail", "GET /, the Control Deck"),
@@ -2299,9 +2304,11 @@ def function_text(source, name):
 def package_start_problems(job, found, jobs, script):
     """[problem] for each way the start job of a package a release carries
     (CARRIED_PACKAGES' start) could pass without starting the server from that file: its
-    script not build/ci/linux-package-install.sh of the package's kind; HM_PACKAGES_DIR
-    not the folder its build leaves the file in; a container other than its install job's
-    image, of linux/arm64; no PostgreSQL service by digest - linux-package-deb's - as the
+    script not build/ci/linux-package-install.sh of the package's kind; a before_script,
+    its own, a template's or default:'s, which runs before that script and can end the
+    job first; HM_PACKAGES_DIR not the folder its build leaves the file in; a container
+    other than its install job's image, of linux/arm64 - a scalar image: has no
+    platform; no PostgreSQL service by digest - linux-package-deb's - as the
     alias and with the database, user and password the script asks for; and the script
     itself (script) without what it holds the server to (START_SCRIPT_LINES), or saying
     --nodeps after linux-build's .rpm's half. found is the job's file's blocks, jobs
@@ -2329,19 +2336,43 @@ def package_start_problems(job, found, jobs, script):
                         "package in, in its own variables" % (name, folder, job["build"]))
 
     def image_of(job_name):
+        # The nearest block in template order that writes image: decides it, as GitLab
+        # takes it. A scalar image: is put in place of a template's whole mapping, its
+        # docker platform with it, so it is an image with no platform; a mapping is read
+        # for its name: and its docker platform:, and one this does not read - a flow
+        # mapping, a !reference, one not opening with name: - is given as it is
+        # written, which is no install job's image, never passed over for a template's.
         for n in template_order(job_name, named):
-            image = re.search(r"^  image:\s*\n    name: (\S+)\s*\n(?:    [^\n]*\n)*", named[n] + "\n", re.MULTILINE)
-            if image:
-                platform = re.search(r"^      platform: (\S+)\s*$", image.group(0), re.MULTILINE)
-                return image.group(1), platform.group(1) if platform else None
-        return None, None
+            key = re.search(r"^  image:[ \t]*([^\n]*?)[ \t]*$", named[n], re.MULTILINE)
+            if not key:
+                continue
+            if key.group(1) and not key.group(1).startswith("#"):
+                return key.group(1), None, " - a scalar image: of %s's, which GitLab puts in place of a template's " \
+                    "whole image mapping, its docker platform with it" % n
+            image = re.search(r"^  image:[ \t]*(?:#[^\n]*)?\n    name: (\S+)\s*\n(?:    [^\n]*\n)*", named[n] + "\n",
+                              re.MULTILINE)
+            if not image:
+                return "an image: of %s's that does not open with name:" % n, None, ""
+            platform = re.search(r"^      platform: (\S+)\s*$", image.group(0), re.MULTILINE)
+            return image.group(1), platform.group(1) if platform else None, ""
+        return None, None, ""
 
-    image, platform = image_of(name)
-    install_image, _ = image_of(job["install"])
+    image, platform, how = image_of(name)
+    install_image, _, _ = image_of(job["install"])
     if image is None or image != install_image or platform != "linux/arm64":
-        problems.append("%s runs in %s (platform %s), not in %s's image, %s, as linux/arm64: the server is started where "
+        problems.append("%s runs in %s (platform %s%s), not in %s's image, %s, as linux/arm64: the server is started where "
                         "the package is installed, a clean container of its distribution and architecture" % (
-                            name, image, platform, job["install"], install_image))
+                            name, image, platform, how, job["install"], install_image))
+    # GitLab runs a before_script in the job's shell before its script, and an exit
+    # there ends the job, green on exit 0, without the script; after_script cannot
+    # change the job's status. default: gives one to every job that sets none.
+    given = [n for n in order if "before_script" in own_keys(named[n])]
+    given += ["%s's default:" % FILES[file_key].replace(os.sep, "/") for file_key, block in (
+        ("ci", jobs.get("default", "")), (job["file"], found.get("default", ""))) if "before_script" in own_keys(block)]
+    if given:
+        problems.append("%s runs a before_script (from %s), which GitLab runs in the job's shell before its script: an "
+                        "exit 0 there ends the job green and the server is never started from the file the release "
+                        "carries" % (name, ", ".join(given)))
     pinned = [entry for service, entry in service_entries(found[name]) if re.match(r"^postgres:[^@\s]+@sha256:[0-9a-f]{64}$", service)]
     pinned = [entry for entry in pinned if re.search(r"^      alias: %s\s*$" % START_SERVICE_ALIAS, entry, re.MULTILINE)]
     reference = [service for service, _ in service_entries(jobs.get(START_SERVICE_FROM, "")) if service.startswith("postgres:")]
@@ -7326,6 +7357,10 @@ def self_test(chain, feed):
            "deb-ubuntu26.04-arm64-sbom does not run build/ci/packages/package-sbom.sh")
     # And the server started from each of them, beside PostgreSQL, before release.
     deb_pin = "    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722\n      alias: postgres\n"
+    deb_head = "deb-ubuntu26.04-arm64-start:\n  extends: .deb-image-ubuntu26.04-arm64\n"
+    rpm_head = "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n"
+    debian13_arm64 = "debian:13@sha256:1808211ab6f37c6fc6a75368651697536f7bf47993f2797befa8908b1254979d"
+    ubuntu26_arm64 = "ubuntu:26.04@sha256:a6757b311b671e9379ac0548b5abf7a7e68d33bff51f6044bbd60f68f781489a"
     for what, key, old, new, needle in (
             ("release not waiting for the arm64 .deb's start", "ci", "    - job: deb-ubuntu26.04-arm64-start\n      artifacts: false\n", "",
              "release does not need deb-ubuntu26.04-arm64-start"),
@@ -7383,7 +7418,32 @@ def self_test(chain, feed):
              "no longer has the start as its unit starts it"),
             ("the start script creating the schema as root", "package-install",
              "runuser -u hmailserver -- /usr/bin/hmailserver --create-database || fail", "/usr/bin/hmailserver --create-database || fail",
-             "no longer has the schema created as the service's user")):
+             "no longer has the schema created as the service's user"),
+            ("the start script taking any program's banner on port 25", "package-install",
+             '  [ "$line" = "$banner" ] || { exec 3>&-; echo "the banner is not \'$banner\'"; return 2; }\n', "",
+             "no longer has the banner port 25 answers compared with the server's own"),
+            ("the arm64 .deb's start job in another image, written as a scalar", "packages-deb", deb_head,
+             deb_head + "  image: " + debian13_arm64 + "\n",
+             "deb-ubuntu26.04-arm64-start runs in %s (platform None - a scalar image: of deb-ubuntu26.04-arm64-start's" % debian13_arm64),
+            ("the arm64 .deb's start job in its install job's image as a scalar, which has no platform", "packages-deb", deb_head,
+             deb_head + "  image: " + ubuntu26_arm64 + "\n",
+             "deb-ubuntu26.04-arm64-start runs in %s (platform None - a scalar image:" % ubuntu26_arm64),
+            ("the arm64 .deb's start job in another image, written as a flow mapping", "packages-deb", deb_head,
+             deb_head + "  image: {name: %s, docker: {platform: linux/arm64}}\n" % debian13_arm64,
+             "deb-ubuntu26.04-arm64-start runs in {name: " + debian13_arm64),
+            ("the aarch64 .rpm's start job given another platform by an image: without a name", "packages-rpm", rpm_head,
+             rpm_head + "  image:\n    docker:\n      platform: linux/amd64\n",
+             "rpm-fedora44-aarch64-start runs in an image: of rpm-fedora44-aarch64-start's that does not open with name:"),
+            ("the arm64 .deb's start job ending in a before_script", "packages-deb", deb_head, deb_head + "  before_script: [exit 0]\n",
+             "deb-ubuntu26.04-arm64-start runs a before_script (from deb-ubuntu26.04-arm64-start)"),
+            ("a template giving the aarch64 .rpm's start job a before_script", "packages-rpm", ".rpm-image-fedora44-aarch64:\n  image:\n",
+             ".rpm-image-fedora44-aarch64:\n  before_script: [exit 0]\n  image:\n",
+             "rpm-fedora44-aarch64-start runs a before_script (from .rpm-image-fedora44-aarch64)"),
+            ("default: giving the start jobs a before_script", "ci", "  tags: [$HM_RUNNER]\n", "  tags: [$HM_RUNNER]\n  before_script: [exit 0]\n",
+             "deb-ubuntu26.04-arm64-start runs a before_script (from .gitlab-ci.yml's default:)"),
+            ("the package file's own default: giving its start job a before_script", "packages-deb", deb_head,
+             "default:\n  before_script: [exit 0]\n\n" + deb_head,
+             "deb-ubuntu26.04-arm64-start runs a before_script (from .gitlab/ci/packages-deb.yml's default:)")):
         if texts[key].count(old) != 1:
             failures.append("%s: the text to break is not once in %s (%r)" % (what, key, old))
             continue
