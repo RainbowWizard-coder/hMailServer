@@ -106,7 +106,7 @@ namespace hMailServer.Shared
          UserControl page = _pages[_currentPage];
          IWizardPage wizPage = (IWizardPage)page;
 
-         new TabOrderManager(page).SetTabOrder(TabOrderManager.TabScheme.AcrossFirst);
+         ReadingOrder.ApplyTo(page);
 
          panelMiddle.Controls.Clear();
          panelMiddle.Controls.Add(page);

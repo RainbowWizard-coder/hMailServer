@@ -26,7 +26,9 @@
        refuses before anything is changed, and that a password reaches the server as it
        was given - reached through InternalsVisibleTo. And DBSetupQuick, the installer's
        database step: what it says and answers when the hMailServer service cannot be
-       reached, the same way. -->
+       reached, the same way. And the tab order the wizard of DBSetup, the Data Directory
+       Synchronizer and the Import Tool gives each page (Shared's ReadingOrder), which this
+       project reaches through DBSetup's reference to Shared. -->
   <ItemGroup>
     <ProjectReference Include="..\DBSetup\DBSetup.csproj" />
     <ProjectReference Include="..\DBSetupQuick\DBSetupQuick.csproj" />
