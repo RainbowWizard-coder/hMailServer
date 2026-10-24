@@ -836,7 +836,7 @@ def copy_tree(work):
     return tree
 
 
-def fake_dist(where, version, hmctl, extra_wheel=None, requires=None, project_urls=None):
+def fake_dist(where, version, hmctl, extra_wheel=None, requires=None, project_urls=None, home_page=None):
     """A wheel and an sdist shaped as flit_core makes them, in memory."""
     os.makedirs(where, exist_ok=True)
     prefix = "%s-%s" % (MODULE, version)
@@ -845,8 +845,9 @@ def fake_dist(where, version, hmctl, extra_wheel=None, requires=None, project_ur
         DIST_NAME, version, LICENSE_EXPRESSION)
     if requires:
         metadata += "Requires-Dist: %s\n" % requires
-    for label, url in project_urls or [("Canonical source", PROJECT_URL),
-                                       ("Changelog", PROJECT_URL + "/-/blob/master/CHANGELOG.md")]:
+    if home_page:
+        metadata += "Home-page: %s\n" % home_page
+    for label, url in project_urls or [("Homepage", PROJECT_URL), ("Source", PROJECT_URL)]:
         metadata += "Project-URL: %s, %s\n" % (label, url)
     init = '"""x"""\n__version__ = "%s"\n' % version
     with zipfile.ZipFile(os.path.join(where, prefix + "-py3-none-any.whl"), "w") as wheel:
@@ -955,10 +956,41 @@ def self_test():
         broken("the copy on GitHub among the project URLs", PYTHON_DIR + "/pyproject.toml",
                "\n[project.urls]\n", '\n[project.urls]\n"GitHub mirror" = "https://github.com/RainbowWizard-coder/hMailServer"\n',
                "project URLs are not all")
-        broken("a project URL whose label sorts before the project's, as 6.3.7's Changelog did",
-               PYTHON_DIR + "/pyproject.toml", "\n[project.urls]\n",
-               '\n[project.urls]\n"API reference" = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/README.md"\n',
+        # Declared last and sorted first, as 6.3.7's Changelog was: a checker that read the
+        # table in its own order would pass both.
+        broken("a project URL declared last whose label sorts before the project's",
+               PYTHON_DIR + "/pyproject.toml", "\n\n[project.scripts]\n",
+               '\n"API reference" = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/README.md"\n\n[project.scripts]\n',
                "first project URL as flit_core writes them, sorted by label, is API reference")
+        broken("6.3.7's project URLs, whose Changelog sorts first", PYTHON_DIR + "/pyproject.toml",
+               'Homepage = "https://gitlab.com/hmailserver/hmailserver"\n'
+               'Source = "https://gitlab.com/hmailserver/hmailserver"\n',
+               'Homepage = "https://gitlab.com/hmailserver/hmailserver"\n'
+               'Documentation = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/CommandLine.md"\n'
+               'Source = "https://gitlab.com/hmailserver/hmailserver"\n'
+               'Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"\n'
+               'Changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md"\n',
+               "sorted by label, is Changelog = https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md")
+        # flit_core's sort is Python's, by code point, so a lowercase label sorts after
+        # every capitalised one and the project's stays first: the order must pass it
+        # (the rule of the project's address alone refuses the third URL, as it must).
+        path = os.path.join(tree, PYTHON_DIR, "pyproject.toml")
+        with open(path, "rb") as f:
+            held = f.read()
+        lowered = held.replace(b"\r\n", b"\n").replace(
+            b"\n\n[project.scripts]\n",
+            b'\napi = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/README.md"\n\n[project.scripts]\n', 1)
+        with open(path, "wb") as f:
+            f.write(lowered)
+        try:
+            found = ([p for p in run(tree) if "first project URL as flit_core writes them" in p]
+                     if b"\napi = " in lowered else ["the text to add the label after is not there"])
+        finally:
+            with open(path, "wb") as f:
+                f.write(held)
+        print("%s  a lowercase label, which sorts after the project's, passes" % ("ok  " if not found else "FAIL"))
+        if found:
+            failures.append("a lowercase label, which sorts after the project's (found: %s)" % "; ".join(found))
         summary = 'description = "hmctl, the command-line client of Progressive Robot\'s fork of hMailServer'
         broken("a PyPI summary that does not say whose hmctl is", PYTHON_DIR + "/pyproject.toml", summary,
                'description = "hmctl: administer an hMailServer over its REST API from a command line"\nx = "',
@@ -1037,7 +1069,16 @@ def self_test():
                                    ("Source", PROJECT_URL)]},
                  "the sdist's PKG-INFO's first URL on GitHub, GitLab or Bitbucket is https://github.com/"),
                 ("no project URL in the built metadata", {"project_urls": [("Homepage", "https://example.com/")]},
-                 "first URL on GitHub, GitLab or Bitbucket is none")]:
+                 "first URL on GitHub, GitLab or Bitbucket is none"),
+                ("a Home-page of the copy on GitHub before the project's URL in the built metadata",
+                 {"home_page": "https://github.com/RainbowWizard-coder/hMailServer"},
+                 "first URL on GitHub, GitLab or Bitbucket is https://github.com/RainbowWizard-coder/hMailServer,"),
+                ("a www.github.com URL first in the built metadata",
+                 {"project_urls": [("Funding", "https://www.github.com/sponsors/x"), ("Homepage", PROJECT_URL)]},
+                 "first URL on GitHub, GitLab or Bitbucket is https://www.github.com/sponsors/x,"),
+                ("a bitbucket.org URL first in the built metadata",
+                 {"project_urls": [("Mirror", "https://bitbucket.org/x/y"), ("Homepage", PROJECT_URL)]},
+                 "first URL on GitHub, GitLab or Bitbucket is https://bitbucket.org/x/y,")]:
             where = os.path.join(work, "dist-" + what.replace(" ", "-"))
             built = hmctl + b"#" if kwargs.pop("hmctl_other", False) else hmctl
             fake_dist(where, version, built, **kwargs)

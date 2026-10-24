@@ -504,8 +504,10 @@ Both come with the PyPI package and need nothing else from the project:
   (`UNVERIFIED_METADATA`). From the next release the project itself is first, as
   `Homepage`, and `build/check-cli-packages.py` holds that order in
   `pyproject.toml` and in the built wheel's and sdist's metadata. The copy on
-  GitHub, which has a Scorecard, is not listed: deps.dev would read it as the
-  source only if it came first, in the project's place, and it is a mirror.
+  GitHub, which has a result in the OpenSSF Scorecard API, is not listed: deps.dev
+  would read it as the source only if it came first, in the project's place, and it
+  is a mirror; nor would it bring a Scorecard there, since deps.dev shows results of
+  its own run, not the API's (ContinuousIntegration.md, "Why it is self-published").
   The PowerShell Gallery is not among the systems deps.dev indexes; the module's
   manifest names the project (`ProjectUri`), its licence and its changelog.
 * **OpenSSF Package Analysis** installs every new PyPI upload in a sandbox, imports

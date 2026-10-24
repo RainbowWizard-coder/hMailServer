@@ -5919,11 +5919,14 @@ rather than publish an empty one.
 `POST /projects/{platform}/{org}/{repo}` from GitHub's Scorecard action, with an
 OIDC token GitHub issues; its weekly scan reads GitHub projects only, and adding
 one to its list is a pull request on GitHub. So neither the OpenSSF API nor
-deps.dev, which shows the API's scores, can carry this project's: what the API
-carries is the score of the copy on GitHub (below), and deps.dev has no record of
-the copy at all (its API answered "project not found" on 24 October 2026):
-`hmailserver-cli` links to this project, not to the copy (CommandLinePackages.md,
-"deps.dev and OpenSSF Package Analysis"). The site's copy is the
+deps.dev can carry this project's: what the API carries is the score of the copy
+on GitHub (below); deps.dev shows Scorecard results of its own run, not the API's
+(on 24 October 2026 those of the GitHub projects read were dated 24 August 2026),
+none for a GitLab project, and relates no package to the copy - its `projects`
+and `:packageversions` calls for it both answered "project not found" on
+24 October 2026 - while it relates `hmailserver-cli` 6.3.7 to this project
+through the upload's attestation (CommandLinePackages.md, "deps.dev and OpenSSF
+Package Analysis"). The site's copy is the
 project's own, run by its own CI from a pinned build, and says so.
 
 **The copy on GitHub.** Since 18 October 2026 the project's copy on GitHub,
