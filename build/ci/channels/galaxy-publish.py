@@ -117,65 +117,184 @@ SKIP = (".ansible", "__pycache__", "output")
 # list given one more.
 FURTHER_ITEM = r"(?=(?:\n(?:[ \t]*(?:#.*)?|[ \t]+.*))*\n[ \t]*-(?:[ \t]|$))"
 # The role's checks of what it installs and of what it logs, each a task of a file of
-# its tasks/ by name with what the task must say (Ansible.md, "What it verifies"): with
-# one of them gone the role would install what it was not given to, or log a secret,
-# and nothing it runs would show it. A file of FORBIDDEN must not say its pattern.
+# its tasks/ by name with the lines it must hold (Ansible.md, "What it verifies"): with
+# one of them gone or changed the role would install what it was not given to, or log
+# a secret, and nothing it runs would show it. Each entry is (file, task, lines, what,
+# control). lines are held whole (held()): each text as written, with its indentation,
+# and the line after it indented no deeper than its last line's, or than the number
+# given beside it, so that nothing continues its last line - a plain or folded scalar
+# goes on over the lines indented deeper than its item or key, and "- (a) == 1"
+# followed by a line "or true" is a condition that always holds. control is None for a
+# task held for what it does not log; for a check, the task keywords of CONTROL_KEYS it
+# may carry, each once, which would otherwise skip it or take its failure for a
+# success. An assertion is held as its whole that: list, so that a condition cannot be
+# made inert or moved out of it.
+CONTROL_KEYS = ("when", "failed_when", "ignore_errors", "ignore_unreachable")
+RPM_WORK = "{{ hmailserver_rpm_key_work.path }}"
+# How the settings are stored: the name on the command line, the value on standard
+# input. Nothing else of that task may name a setting's value but its changed_when
+# (SETTING_VALUE).
+SETTINGS_TASK = ("configure.yml", "Store the settings")
+SETTINGS_COMMAND = ("  ansible.builtin.command:\n    argv:\n      - hmailserver\n      - --set-setting\n"
+                    "      - \"{{ item.key if (item.value | string | trim | length) > 0 else item.key ~ '=' }}\"\n"
+                    "    stdin: \"{{ item.value | string }}\"", 2)
+# Any use of the loop's item but its key: item.value, item['value'], item itself.
+SETTING_VALUE = r"\bitem\b(?!\.key\b)"
 VERIFIED = (
+    ("rpm-key.yml", "Fetch the key from the channel",
+     ('      ansible.builtin.get_url:\n        url: "{{ hmailserver_rpm_key_url }}"\n'
+      '        dest: "%s/fetched.asc"' % RPM_WORK,),
+     "an RPM channel's key fetched into the file read", ()),
+    ("rpm-key.yml", "Read the fetched file", ('      ansible.builtin.slurp:\n        src: "%s/fetched.asc"' % RPM_WORK,),
+     "an RPM channel's key file read whole", ()),
+    ("rpm-key.yml", "Read the fetched key's fingerprint",
+     ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --show-keys,'
+      ' --with-colons,\n               "%s/fetched.asc"]' % (RPM_WORK, RPM_WORK),),
+     "gpg reading the RPM channel's key file fetched", ()),
     ("rpm-key.yml", "Refuse a file that is not the channel's key alone",
-     (r"regex_findall\('\(\?m\)\^pub:'\) \| length\) == 1\n",
-      r"\| first \| default\(''\)\)\n\s+== hmailserver_rpm_key_fingerprint\n"),
-     "an RPM channel's key file read as its one key alone"),
+     (("      ansible.builtin.assert:\n        that:\n"
+       "          - (hmailserver_rpm_key_fetched.content | b64decode | regex_findall('-----BEGIN PGP ') | length) == 1\n"
+       "          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n"
+       "          - >-\n"
+       "            (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))\n"
+       "            == hmailserver_rpm_key_fingerprint", 8),),
+     "an RPM channel's key file read as its one key alone, in one armour block", ()),
+    ("rpm-key.yml", "Put the key in a keyring of its own",
+     ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --import,\n'
+      '               "%s/fetched.asc"]' % (RPM_WORK, RPM_WORK),),
+     "the RPM channel's key put in a keyring of its own", ()),
+    ("rpm-key.yml", "Export that key alone",
+     ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --armor, --output,\n'
+      '               "%s/key.asc", --export, "{{ hmailserver_rpm_key_fingerprint }}"]' % (RPM_WORK, RPM_WORK),),
+     "the RPM channel's key exported by its fingerprint alone", ()),
+    ("rpm-key.yml", "Read the exported key", ('      ansible.builtin.slurp:\n        src: "%s/key.asc"' % RPM_WORK,),
+     "the exported key read whole", ()),
+    ("rpm-key.yml", "Read the exported key's fingerprint",
+     ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --show-keys,'
+      ' --with-colons,\n               "%s/key.asc"]' % (RPM_WORK, RPM_WORK),),
+     "gpg reading the exported key", ()),
+    ("rpm-key.yml", "Refuse an export that is not the channel's key alone",
+     (("      ansible.builtin.assert:\n        that:\n"
+       "          - (hmailserver_rpm_key_exported.content | b64decode | regex_findall('-----BEGIN PGP ') | length) == 1\n"
+       "          - (hmailserver_rpm_key_export_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n"
+       "          - >-\n"
+       "            (hmailserver_rpm_key_export_read.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first"
+       " | default(''))\n"
+       "            == hmailserver_rpm_key_fingerprint", 8),),
+     "the exported key read as that one key alone", ()),
     ("rpm-key.yml", "Import the key, held to its fingerprint",
-     (r"\n\s+key: \"\{\{ hmailserver_rpm_key_download\.path \}\}\"\n",
-      r"\n\s+fingerprint: \"\{\{ hmailserver_rpm_key_fingerprint \}\}\"\n"),
-     "an RPM channel's key imported from the file read, at its fingerprint"),
+     ('      ansible.builtin.rpm_key:\n        key: "%s/key.asc"\n'
+      '        fingerprint: "{{ hmailserver_rpm_key_fingerprint }}"' % RPM_WORK,),
+     "an RPM channel's key imported as gpg's export of it, at its fingerprint", ()),
     ("install-copr.yml", "Import Copr's key for the project, held to its fingerprint",
-     (r"\n\s+ansible\.builtin\.include_tasks: rpm-key\.yml\n",
-      r"\n\s+hmailserver_rpm_key_fingerprint: \"\{\{ hmailserver_copr_fingerprint \}\}\"\n"),
-     "Copr's key held to its fingerprint"),
-    ("install-copr.yml", "Name the Copr repository, its packages checked against that key",
-     (r"\n\s+gpgcheck: true\n",), "Copr's packages checked against its key"),
+     ('  ansible.builtin.include_tasks: rpm-key.yml',
+      '    hmailserver_rpm_key_fingerprint: "{{ hmailserver_copr_fingerprint }}"'),
+     "Copr's key held to its fingerprint", ()),
+    ("install-copr.yml", "Name the Copr repository, its packages checked against that key", ("    gpgcheck: true",),
+     "Copr's packages checked against its key", ()),
     ("install-obs.yml", "Import the Build Service's key for the project, held to its fingerprint",
-     (r"\n\s+ansible\.builtin\.include_tasks: rpm-key\.yml\n",
-      r"\n\s+hmailserver_rpm_key_fingerprint: \"\{\{ hmailserver_obs_fingerprint \}\}\"\n"),
-     "the Build Service's key held to its fingerprint"),
+     ('  ansible.builtin.include_tasks: rpm-key.yml',
+      '    hmailserver_rpm_key_fingerprint: "{{ hmailserver_obs_fingerprint }}"'),
+     "the Build Service's key held to its fingerprint", ()),
     ("install-obs.yml", "Name the Build Service repository, its metadata and packages checked against that key",
-     (r"\n\s+gpgcheck: true\n", r"\n\s+repo_gpgcheck: true\n"),
-     "the Build Service's metadata and packages checked against its key"),
+     ("    gpgcheck: true", "    repo_gpgcheck: true"),
+     "the Build Service's metadata and packages checked against its key", ()),
+    ("install-ppa.yml", "Read the fetched key's fingerprint",
+     ('      ansible.builtin.command:\n'
+      '        argv: [gpg, --batch, --show-keys, --with-colons, "{{ hmailserver_ppa_key_download.path }}"]',),
+     "gpg reading the PPA's key fetched", ()),
     ("install-ppa.yml", "Refuse a key that is not the PPA's",
-     (r"regex_findall\('\(\?m\)\^pub:'\) \| length\) == 1\n",
-      r"\| first \| default\(''\)\)\n\s+== hmailserver_ppa_fingerprint\n"),
-     "the PPA's key read as its one key alone"),
+     (("      ansible.builtin.assert:\n        that:\n"
+       "          - (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^pub:') | length) == 1\n"
+       "          - >-\n"
+       "            (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))\n"
+       "            == hmailserver_ppa_fingerprint", 8),),
+     "the PPA's key read as its one key alone", ()),
+    ("install-ppa.yml", "Put the key where the source names it",
+     ('      ansible.builtin.copy:\n        src: "{{ hmailserver_ppa_key_download.path }}"\n'
+      '        dest: "{{ hmailserver_ppa_keyring }}"',),
+     "the PPA's key put in place as it was read", ()),
     ("install-deb.yml", "Refuse a .deb whose SHA-256 is not pinned",
-     (r"\n\s+- hmailserver_deb_checksum is match\('\^\[0-9a-f\]\{64\}\$'\)\n",), "the .deb's SHA-256 pinned"),
+     (("  ansible.builtin.assert:\n    that:\n      - hmailserver_deb_checksum is match('^[0-9a-f]{64}$')", 4),),
+     "the .deb's SHA-256 pinned", ()),
     ("install-deb.yml", "Download the .deb and hold it to its SHA-256",
-     (r"\n\s+checksum: \"sha256:\{\{ hmailserver_deb_checksum \}\}\"\n",), "the .deb held to its SHA-256"),
-    ("configure.yml", "Give the configuration the database's password", (r"\n  no_log: true\n",),
-     "the database's password not logged"),
-    ("configure.yml", "Read the configuration, to see whether it has an administrator password", (r"\n  no_log: true\n",),
-     "the configuration's text not logged"),
+     ('        dest: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"',
+      '        checksum: "sha256:{{ hmailserver_deb_checksum }}"'),
+     "the .deb held to its SHA-256", ()),
+    ("install-deb.yml", "Install the .deb with its dependencies from Debian's archive",
+     ('        deb: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"',),
+     "the .deb installed as it was downloaded", ()),
+    ("configure.yml", "Give the configuration the database's password", ("  no_log: true",),
+     "the database's password not logged", None),
+    ("configure.yml", "Read the configuration, to see whether it has an administrator password", ("  no_log: true",),
+     "the configuration's text not logged", None),
     ("configure.yml", "Set the administrator password, as a PBKDF2 hash",
-     (r"\n  no_log: true\n", r"\n    stdin: \"\{\{ hmailserver_admin_password \}\}\"\n"),
-     "the administrator password on standard input, not logged"),
+     (("  ansible.builtin.command:\n    argv: [hmailserver, --set-admin-password]\n"
+       '    stdin: "{{ hmailserver_admin_password }}"', 2), "  no_log: true"),
+     "the administrator password on standard input, not logged", None),
+    ("configure.yml", "Refuse a configuration the service does not read as written",
+     (("  ansible.builtin.assert:\n    that:\n"
+       "      - hmailserver_check_config.stdout is search('(?m)^Database type:[ ]+' ~ hmailserver_database_type_number"
+       " ~ '$')\n"
+       "      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+\\S')", 4),),
+     "the configuration read as written, with its database type and a data directory", ()),
+    ("configure.yml", "Read the configuration's settings before they are stored", ("  no_log: true",),
+     "the configuration's text not logged", None),
     ("configure.yml", "Store the settings",
-     (r"\n  no_log: true\n", r"\n    stdin: \"\{\{ item\.value \| string \}\}\"\n",
-      r"\n  loop_control:\n    label: \"\{\{ item\.key \}\}\"\n"),
-     "the settings' values on standard input, not logged"),
-    ("objects.yml", "Wait for the REST API", (r"\n  no_log: true\n",), "the administrator's sign-in not logged"),
-    ("objects.yml", "Ask for each account", (r"\n  no_log: true\n",), "the accounts' passwords not logged"),
-    ("objects.yml", "Make each account the server does not have", (r"\n  no_log: true\n",),
-     "the accounts' passwords not logged"),
+     (SETTINGS_COMMAND,
+      '  loop_control:\n    label: "{{ item.key }}"', "  failed_when: false", "  no_log: true"),
+     "the settings' values on standard input, not logged", ("failed_when",)),
+    ("configure.yml", "Refuse a setting the server did not store",
+     (("  ansible.builtin.fail:", 4),
+      "  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0"),
+     "a setting the server refused refused", ("when",)),
+    ("objects.yml", "Wait for the REST API", ("  no_log: true",), "the administrator's sign-in not logged", None),
+    ("objects.yml", "Ask for each account", ("  no_log: true",), "the accounts' passwords not logged", None),
+    ("objects.yml", "Make each account the server does not have", ("  no_log: true",),
+     "the accounts' passwords not logged", None),
 )
+# What no file of the role's tasks/ may say ("*" for every one of them, but those named
+# after it), each a pattern and why. A key keyword quoted ('ignore_errors': true) is
+# the same keyword.
+RPM_KEY_MODULE = r"(?m)^[ \t-]*['\"]?(?:ansible\.(?:builtin|legacy)\.)?rpm_key['\"]?[ \t]*:"
 FORBIDDEN = (
-    ("install-copr.yml", r"(?m)^\s+gpgkey:", "Copr's repository names a gpgkey, through which dnf would import any key there"),
-    ("install-obs.yml", r"(?m)^\s+gpgkey:",
-     "the Build Service's repository names a gpgkey, through which zypper would import any key there"),
-    ("install-copr.yml", r"(?m)^\s+ansible\.builtin\.rpm_key:",
-     "Copr's key is given to rpm_key itself, not read first as one key alone (rpm-key.yml)"),
-    ("install-obs.yml", r"(?m)^\s+ansible\.builtin\.rpm_key:",
-     "the Build Service's key is given to rpm_key itself, not read first as one key alone (rpm-key.yml)"),
-    ("configure.yml", r"item\.key \}\}=\{\{ item\.value", "a setting's value is given on the command line or in a label"),
+    ("*", r"(?m)^[ \t-]*['\"]?gpgkey['\"]?[ \t]*:",
+     "a repository names a gpgkey, through which dnf or zypper would import any key there", ()),
+    ("*", RPM_KEY_MODULE, "a key is given to rpm_key itself, not read first as one key alone and exported (rpm-key.yml)",
+     ("rpm-key.yml",)),
+    ("*", r"\brpm(?:keys)?\b[^\n]*--import", "a key is given to rpm --import itself (rpm-key.yml)", ()),
+    ("*", r"(?m)^[ \t-]*['\"]?(?:ignore_errors|ignore_unreachable)['\"]?[ \t]*:",
+     "a task's failure is ignored, and with it a check's", ()),
+    ("*", r"(?m)^[ \t-]*['\"]?rescue['\"]?[ \t]*:", "a block rescues its failures, and with them a check's", ()),
+    ("*", r"(?m)^[ \t-]*['\"]?apply['\"]?[ \t]*:", "an include gives the tasks it includes keywords of its own", ()),
 )
+
+
+def held(block, lines):
+    """Whether block holds lines whole: the text as written, each line with its
+    indentation, and the next line that is not blank indented no deeper than the
+    text's last line, or than the number lines is given with as (text, deepest) - for
+    a text that ends in a block scalar, whose lines go on at its own indentation, or
+    in a key whose value follows it."""
+    text, deepest = lines if isinstance(lines, tuple) else (lines, None)
+    last = text.split("\n")[-1]
+    limit = len(last) - len(last.lstrip(" ")) if deepest is None else deepest
+    start = 0
+    while True:
+        at = block.find("\n" + text + "\n", start)
+        if at < 0:
+            return False
+        following = next((line for line in block[at + len(text) + 2:].split("\n") if line.strip()), "")
+        if len(following) - len(following.lstrip(" ")) <= limit:
+            return True
+        start = at + 1
+
+
+def task_keywords(block, keyword):
+    """The lines of the task in block (task_block's) that give it keyword, quoted or not."""
+    first = block.split("\n")[1]
+    indent = len(first) - len(first.lstrip(" ")) + 2
+    return re.findall(r"(?m)^ {%d}['\"]?%s['\"]?[ \t]*:.*$" % (indent, re.escape(keyword)), block)
 
 
 def say(line=""):
@@ -321,21 +440,42 @@ def check(root=ROOT):
     for key in ("hmailserver_database_password", "hmailserver_admin_password"):
         if re.search(r"(?m)^%s:" % key, defaults):
             problems.append("%s gives %s a default: it is required, and the role's argument spec says so" % (DEFAULTS, key))
+    directory = os.path.join(base, TASKS)
+    listed = os.listdir(directory) if os.path.isdir(directory) else []
     tasks = {}
-    for name in sorted(set(entry[0] for entry in VERIFIED + FORBIDDEN)):
+    for name in sorted(set(n for n in listed if n.endswith((".yml", ".yaml"))) | set(entry[0] for entry in VERIFIED)):
         try:
-            tasks[name] = read(os.path.join(base, TASKS, name))
+            tasks[name] = read(os.path.join(directory, name))
         except OSError:
             tasks[name] = ""
-    for name, task, patterns, what in VERIFIED:
+    for name, task, lines, what, control in VERIFIED:
         block = task_block(tasks[name], task)
         if block is None:
             problems.append("%s has no task %r: %s is not checked" % (os.path.join(TASKS, name), task, what))
-        elif not all(re.search(pattern, block) for pattern in patterns):
+            continue
+        if not all(held(block, text) for text in lines):
             problems.append("%s's task %r does not hold %s" % (os.path.join(TASKS, name), task, what))
-    for name, pattern, what in FORBIDDEN:
-        if re.search(pattern, tasks[name]):
-            problems.append("%s: %s" % (os.path.join(TASKS, name), what))
+        for keyword in CONTROL_KEYS if control is not None else ():
+            given = task_keywords(block, keyword)
+            if given and (keyword not in control or len(given) > 1):
+                problems.append("%s's task %r is given %s, which can skip it or take its failure for a success: %s is"
+                                " not held" % (os.path.join(TASKS, name), task, given[0].strip(), what))
+    block = task_block(tasks[SETTINGS_TASK[0]], SETTINGS_TASK[1])
+    if block is not None:
+        # The task but its command and its changed_when, which alone may name a value.
+        rest = block.replace("\n" + SETTINGS_COMMAND[0] + "\n", "\n", 1)
+        rest = re.sub(r"(?m)^  changed_when:.*\n(?:(?:[ ]{3,}.*)?\n)*", "", rest)
+        if re.search(SETTING_VALUE, rest) or re.search(r"\b(?:lookup|query|q)\s*\(", block):
+            problems.append("%s's task %r names a setting's value outside its standard input, or runs a lookup: a"
+                            " value would be given on a command line or shown" % (os.path.join(TASKS, SETTINGS_TASK[0]),
+                                                                                  SETTINGS_TASK[1]))
+    for name, pattern, what, spared in FORBIDDEN:
+        for each in sorted(tasks) if name == "*" else (name,):
+            if each not in spared and re.search(pattern, tasks.get(each, "")):
+                problems.append("%s: %s" % (os.path.join(TASKS, each), what))
+    if len(re.findall(RPM_KEY_MODULE, tasks.get("rpm-key.yml", ""))) != 1:
+        problems.append("%s gives rpm_key a key more than once, or never: one import, of gpg's export of the key alone"
+                        % os.path.join(TASKS, "rpm-key.yml"))
     for directory, names, files in os.walk(base):
         names[:] = [n for n in names if n not in SKIP]
         for name in files:
@@ -632,9 +772,93 @@ def self_test():
                " not hmailserver_admin_password_present\n  changed_when: true\n  no_log: true\n",
                "    stdin: \"{{ hmailserver_admin_password }}\"\n  when: hmailserver_admin_password_update == 'always' or"
                " not hmailserver_admin_password_present\n  changed_when: true\n", "does not hold")
-        broken("a setting's value on the command line", os.path.join(TASKS, "configure.yml"),
-               "      - \"{{ item.key if (item.value | string | length) > 0 else item.key ~ '=' }}\"\n",
-               "      - \"{{ item.key }}={{ item.value }}\"\n", "on the command line")
+        setting_name = "      - \"{{ item.key if (item.value | string | trim | length) > 0 else item.key ~ '=' }}\"\n"
+        broken("a setting's value on the command line", os.path.join(TASKS, "configure.yml"), setting_name,
+               "      - \"{{ item.key }}={{ item.value }}\"\n", "does not hold")
+        broken("a setting's value on the command line, joined with ~", os.path.join(TASKS, "configure.yml"), setting_name,
+               "      - \"{{ item.key ~ '=' ~ item.value }}\"\n", "does not hold")
+        broken("a setting's value on the command line, by format", os.path.join(TASKS, "configure.yml"), setting_name,
+               "      - \"{{ '%s=%s' | format(item.key, item.value) }}\"\n", "does not hold")
+        broken("a setting's value given a further argument", os.path.join(TASKS, "configure.yml"), setting_name,
+               setting_name + "      - \"{{ item.value }}\"\n", "does not hold")
+        broken("a setting's value in the task's environment", os.path.join(TASKS, "configure.yml"),
+               "  register: hmailserver_setting\n",
+               "  register: hmailserver_setting\n  environment:\n    HM_VALUE: \"{{ item['value'] }}\"\n",
+               "outside its standard input")
+        broken("a setting's value through a lookup in changed_when", os.path.join(TASKS, "configure.yml"),
+               "    hmailserver_setting.rc == 0 and\n",
+               "    hmailserver_setting.rc == 0 and lookup('ansible.builtin.pipe', 'true ' ~ item.value) == '' and\n",
+               "runs a lookup")
+        refusal = "      ansible.builtin.assert:\n        that:\n          - (hmailserver_rpm_key_fetched.content"
+        broken("the key file's check skipped by a when", rpm_key, "    - name: Refuse a file that is not the channel's key alone\n",
+               "    - name: Refuse a file that is not the channel's key alone\n      when: false\n", "skip it")
+        broken("the key file's check given failed_when", rpm_key,
+               "    - name: Refuse a file that is not the channel's key alone\n",
+               "    - name: Refuse a file that is not the channel's key alone\n      failed_when: false\n", "skip it")
+        broken("the key file's check's failure ignored", rpm_key, refusal,
+               "      ignore_errors: true\n" + refusal, "is ignored")
+        broken("the key file's check's failure ignored, the keyword quoted", rpm_key, refusal,
+               "      'ignore_errors': true\n" + refusal, "is ignored")
+        broken("the key file's pub count made true", rpm_key,
+               "          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n",
+               "          - true or (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n",
+               "does not hold")
+        broken("the key file's pub count continued with or true", rpm_key,
+               "          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n",
+               "          - (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n"
+               "            or true\n", "does not hold")
+        broken("the key file's fingerprint check continued with or true", rpm_key,
+               "            == hmailserver_rpm_key_fingerprint\n        fail_msg: >-\n          The key file fetched",
+               "            == hmailserver_rpm_key_fingerprint\n            or true\n        fail_msg: >-\n"
+               "          The key file fetched", "does not hold")
+        broken("the key file's armour blocks not counted", rpm_key,
+               "          - (hmailserver_rpm_key_fetched.content | b64decode | regex_findall('-----BEGIN PGP ') | length) == 1\n",
+               "", "does not hold")
+        broken("the key file's conditions moved out of that:", rpm_key,
+               "        that:\n          - (hmailserver_rpm_key_fetched.content",
+               "        that:\n          - true\n        msg_extra:\n          - (hmailserver_rpm_key_fetched.content",
+               "does not hold")
+        broken("gpg made to read another file", rpm_key,
+               "--show-keys, --with-colons,\n               \"{{ hmailserver_rpm_key_work.path }}/fetched.asc\"]",
+               "--show-keys, --with-colons,\n               /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora]", "does not hold")
+        broken("rpm_key given the file fetched, not the export", rpm_key,
+               "        key: \"{{ hmailserver_rpm_key_work.path }}/key.asc\"\n",
+               "        key: \"{{ hmailserver_rpm_key_work.path }}/fetched.asc\"\n", "does not hold")
+        broken("the key exported with every other key", rpm_key,
+               "--export, \"{{ hmailserver_rpm_key_fingerprint }}\"]", "--export]", "does not hold")
+        broken("the export not read as one key alone", rpm_key,
+               "          - (hmailserver_rpm_key_export_read.stdout | regex_findall('(?m)^pub:') | length) == 1\n", "",
+               "does not hold")
+        broken("a block that rescues the key's checks", rpm_key, "  always:\n",
+               "  rescue:\n    - name: Go on\n      ansible.builtin.meta: noop\n\n  always:\n", "rescues")
+        broken("a second rpm_key in rpm-key.yml", rpm_key, "  always:\n",
+               "    - name: Import the file too\n      ansible.legacy.rpm_key:\n"
+               "        key: \"{{ hmailserver_rpm_key_url }}\"\n\n  always:\n", "more than once")
+        broken("Copr's key given to rpm_key by its short name", os.path.join(TASKS, "install-copr.yml"),
+               "# No gpgkey: the key is imported already",
+               "- name: Import it again\n  rpm_key:\n    key: \"{{ hmailserver_copr_base }}/pubkey.gpg\"\n\n"
+               "# No gpgkey: the key is imported already", "rpm_key itself")
+        broken("the Build Service's key given to rpm --import", os.path.join(TASKS, "install-obs.yml"),
+               "# No gpgkey: the key is imported already",
+               "- name: Import it again\n  ansible.builtin.command:\n    argv: [rpm, --import, \"{{ hmailserver_obs_base }}\"]\n"
+               "  changed_when: true\n\n# No gpgkey: the key is imported already", "rpm --import")
+        broken("Copr's key included with keywords applied", os.path.join(TASKS, "install-copr.yml"),
+               "  ansible.builtin.include_tasks: rpm-key.yml\n",
+               "  ansible.builtin.include_tasks:\n    file: rpm-key.yml\n    apply:\n      ignore_errors: true\n", "is ignored")
+        broken("the PPA's key check's failure ignored", os.path.join(TASKS, "install-ppa.yml"),
+               "    - name: Refuse a key that is not the PPA's\n",
+               "    - name: Refuse a key that is not the PPA's\n      ignore_errors: true\n", "is ignored")
+        broken("the .deb's download given failed_when", os.path.join(TASKS, "install-deb.yml"),
+               "    - name: Download the .deb and hold it to its SHA-256\n",
+               "    - name: Download the .deb and hold it to its SHA-256\n      failed_when: false\n", "skip it")
+        broken("the .deb's download's failure ignored", os.path.join(TASKS, "install-deb.yml"),
+               "    - name: Download the .deb and hold it to its SHA-256\n",
+               "    - name: Download the .deb and hold it to its SHA-256\n      ignore_errors: true\n", "is ignored")
+        broken("the data directory's check taking a line feed", os.path.join(TASKS, "configure.yml"),
+               "search('(?m)^Data directory:[ ]+\\S')", "search('(?m)^Data directory:[ ]+[^ ]')", "does not hold")
+        broken("the refused settings' check skipped", os.path.join(TASKS, "configure.yml"),
+               "  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0\n",
+               "  when: false\n", "does not hold")
         broken("an account's password logged", os.path.join(TASKS, "objects.yml"),
                "  when: item.status == 404\n  changed_when: true\n  no_log: true\n",
                "  when: item.status == 404\n  changed_when: true\n", "does not hold")

@@ -89,7 +89,7 @@
   ansible.builtin.assert:
     that:
       - hmailserver_check_config.stdout is search('(?m)^Database type:[ ]+' ~ hmailserver_database_type_number ~ '$')
-      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+[^ ]')
+      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+\S')
     fail_msg: >-
       Run as {{ hmailserver_user }}, hmailserver --check-config does not read
       {{ hmailserver_config }} as the role wrote it (database type
@@ -139,13 +139,26 @@
 # secret back. The task is not logged, since its loop item carries the value; a
 # refusal is said by the next task, in the server's words, which never repeat a value.
 # An empty value, which clears a setting and discloses nothing, is NAME= on the command
-# line, the one way the server takes it.
+# line, the one way the server takes it; the server trims a value, so one of white
+# space alone is empty.
+- name: Read the configuration's settings before they are stored
+  ansible.builtin.slurp:
+    src: "{{ hmailserver_config }}"
+  register: hmailserver_config_before_settings
+  when: hmailserver_settings | length > 0
+  no_log: true
+
+# A setting is changed unless what the server says it held, or for the keys it keeps
+# in the file alone (PasswordPepper and the live update's trust, whose line says only
+# NAME=VALUE written to the file) what [Settings] held before, is the value given,
+# trimmed as the server trims it. The server says "empty" for an empty value it held,
+# and "(set)" for a secret's, so a secret it holds is reported changed on every run.
 - name: Store the settings
   ansible.builtin.command:
     argv:
       - hmailserver
       - --set-setting
-      - "{{ item.key if (item.value | string | length) > 0 else item.key ~ '=' }}"
+      - "{{ item.key if (item.value | string | trim | length) > 0 else item.key ~ '=' }}"
     stdin: "{{ item.value | string }}"
   loop: "{{ hmailserver_settings | dict2items }}"
   loop_control:
@@ -154,7 +167,15 @@
   failed_when: false
   changed_when: >-
     hmailserver_setting.rc == 0 and
-    ('where it was ' ~ (item.value | string) ~ ', and written to') not in hmailserver_setting.stdout
+    ('where it was ' ~ ((item.value | string | trim) or 'empty') ~ ', and written to') not in hmailserver_setting.stdout and
+    not ('stored in the database' not in hmailserver_setting.stdout and
+         hmailserver_settings_before is search('(?m)^(?i:' ~ (item.key | regex_escape) ~ ')=' ~
+                                               (item.value | string | trim | regex_escape) ~ '[ \t]*\r?$'))
+  vars:
+    # The [Settings] section as it was, to the next section's header.
+    hmailserver_settings_before: >-
+      {{ (hmailserver_config_before_settings.content | b64decode
+          | regex_search('(?ms)^\[Settings\][^\n]*\n(.*?)(?=^\[|\Z)', '\1') or ['']) | first }}
   no_log: true
   notify: Restart hmailserver
 

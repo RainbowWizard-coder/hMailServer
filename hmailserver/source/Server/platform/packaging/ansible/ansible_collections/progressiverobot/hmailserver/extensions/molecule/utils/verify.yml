@@ -6,7 +6,7 @@
 # version expected, the service enabled and running under systemd, SMTP on 25 with
 # STARTTLS, GET /api/v1/status with the administrator password and a 401 without
 # it, the domain and the account made, the configuration private to root and the
-# service, and no password of the scenario's in the configuration as written.
+# service, and the administrator password not in the configuration as it was given.
 ---
 - name: Verify
   hosts: all
@@ -46,8 +46,8 @@
           hmailserver --version said {{ hm_version.stdout }}, the package is {{ hm_package.stdout }}, and the
           collection is built for {{ hmailserver_release_version }}
       vars:
-        # The upstream version of the package's (6.3.7 of 6.3.7-1~debian13, of
-        # 6.3.7+ds-1~resolute1 and of 6.3.7).
+        # The upstream version of the package's (<version> of <version>-1~debian13,
+        # of <version>+ds-1~resolute1 and of <version>).
         hm_installed: "{{ hm_package.stdout | regex_findall('^(?:[0-9]+:)?([0-9]+(?:[.][0-9]+)*)') | first | default('') }}"
 
     - name: Ask systemd for the service

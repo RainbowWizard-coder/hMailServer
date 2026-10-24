@@ -4,7 +4,8 @@
 
 # openSUSE: the Build Service's home:progressiverobot, whose repository and packages
 # zypper verifies against the project's key there, imported only when the file the
-# Build Service serves is that one key, at the fingerprint vars/main.yml names.
+# Build Service serves is that one key, at the fingerprint vars/main.yml names
+# (rpm-key.yml).
 ---
 - name: Name the Build Service repository for this machine
   ansible.builtin.set_fact:
@@ -46,6 +47,28 @@
     owner: root
     group: root
     mode: "0644"
+
+# zypper installs a version asked for even when it is older than the one installed
+# (community.general.zypper gives it --oldpackage whenever a version is named), and
+# a server older than its database's schema does not run: such a version is refused,
+# as apt refuses it on Debian and Ubuntu.
+- name: Ask rpm for the version installed
+  ansible.builtin.command:
+    argv: [rpm, --query, "--queryformat=%{VERSION}", hmailserver]
+  register: hmailserver_obs_installed
+  changed_when: false
+  failed_when: false
+  when: hmailserver_version != ''
+
+- name: Refuse a version older than the one installed
+  ansible.builtin.assert:
+    that:
+      - hmailserver_obs_installed.rc != 0 or hmailserver_obs_installed.stdout is version(hmailserver_version | regex_replace('-.*$', ''), '<=')
+    fail_msg: >-
+      hmailserver {{ hmailserver_obs_installed.stdout }} is installed, and
+      {{ hmailserver_version }} is older: the role does not go back to an older version.
+    quiet: true
+  when: hmailserver_version != ''
 
 - name: Install hmailserver from the Build Service
   community.general.zypper:

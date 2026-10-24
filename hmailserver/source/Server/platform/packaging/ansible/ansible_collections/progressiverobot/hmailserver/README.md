@@ -2,8 +2,8 @@
 
 An Ansible collection that installs and configures **Progressive Robot's fork of
 hMailServer** on Linux. This is not the original hMailServer, which is Martin
-Knafve's and is developed separately; the fork has its own releases, from 6.0.0, its
-own Linux packages and a REST API the original does not have. The project's account
+Knafve's and is developed separately; the fork has its own releases, its own
+Linux packages and a REST API the original does not have. The project's account
 of the two is
 [ForkAndOriginal.md](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ForkAndOriginal.md).
 
@@ -20,8 +20,8 @@ installs no database server.
 |---|---|---|
 | Ubuntu 24.04 and 26.04 (amd64 and arm64) | the PPA `ppa:hmailserver/hmailserver` | apt checks the packages against the PPA's key, which the role fetches from Ubuntu's key server and imports only when gpg reads the file as the one key `F1701CED8D88F87E19B08F7B0ADD4C9C6D462C8C` |
 | Debian 12 and 13 | the release's `.deb`, from the project's package registry on GitLab | the file is installed only when its SHA-256 is the one pinned for it: this collection pins the `.deb` files of the release it is built for, taken from the release's `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified |
-| Fedora 43 and 44, and Enterprise Linux 10 (x86_64 and aarch64) | Copr `progressiverobot/hmailserver` | dnf checks the packages against the project's Copr key, imported only when gpg reads the file Copr serves as the one key `A43209E902FC9666B7DC7C7007AD13D308C7F2E7` |
-| openSUSE Leap 16.0 (x86_64 and aarch64) and Tumbleweed (x86_64) | the Build Service project `home:progressiverobot` | zypper checks the repository's metadata and the packages against the project's key there, imported only when gpg reads the file the Build Service serves as the one key `BA0868309CFBD36498CE41D22F0B9419E67EE770` |
+| Fedora 43 and 44, and Enterprise Linux 10 (x86_64 and aarch64) | Copr `progressiverobot/hmailserver` | dnf checks the packages against the project's Copr key, taken only when the file Copr serves is one armour block that gpg reads as the one key `A43209E902FC9666B7DC7C7007AD13D308C7F2E7`, and imported as gpg's export of that key alone |
+| openSUSE Leap 16.0 (x86_64 and aarch64) and Tumbleweed (x86_64) | the Build Service project `home:progressiverobot` | zypper checks the repository's metadata and the packages against the project's key there, taken only when the file the Build Service serves is one armour block that gpg reads as the one key `BA0868309CFBD36498CE41D22F0B9419E67EE770`, and imported as gpg's export of that key alone |
 
 A distribution, release or architecture the project publishes no package for is
 refused before anything is changed.

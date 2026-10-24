@@ -22,7 +22,7 @@ hmailserver_version: ""
 hmailserver_package_state: present
 
 # The SHA-256 of a release .deb this collection does not carry the pin of, keyed
-# "<version>/debian<major>_<architecture>" ("6.3.8/debian13_amd64"): take it from
+# "<version>/debian<major>_<architecture>" ("<version>/debian13_amd64"): take it from
 # that release's hmailserver-linux-<version>-SHA256SUMS.txt, verified against its
 # Sigstore bundle (hmailserver/docs/Ansible.md).
 hmailserver_deb_sha256: {}
@@ -58,10 +58,12 @@ hmailserver_stored_secrets_key: true
 hmailserver_stored_secrets_key_export: ""
 
 # [Settings] values, stored with hmailserver --set-setting NAME, each value on its
-# standard input and never on a command line, for example {RestApiPort: 8080}. A
-# setting that holds a secret is taken so as well, and never logged; since the server
-# never shows a secret it holds, such a setting is reported changed, and the service
-# restarted, on every run.
+# standard input and never on a command line, for example {RestApiPort: 8080}; an
+# empty value ("") is NAME=, which clears the setting. A setting that holds a secret
+# is taken so as well, and never logged. A setting is reported changed, and the
+# service restarted, when the value it held was another, trimmed as the server trims
+# it; since the server never shows a secret it holds, a secret is reported changed,
+# and the service restarted, on every run.
 hmailserver_settings: {}
 
 # The service. The role opens no firewall port and changes no firewall.

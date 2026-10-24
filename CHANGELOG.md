@@ -512,16 +512,20 @@ with `--check`).
   that channel allows: the PPA's, Copr's and the Build Service's keys are imported only when `gpg` reads the file the
   channel serves as the one key whose fingerprint the role names - `ansible.builtin.rpm_key` alone imports every key
   of a file in which that fingerprint is one of several, so Copr's and the Build Service's are read first and their
-  repositories name no `gpgkey` - and a `.deb` is installed only when its SHA-256 is the one pinned for it, from the
+  repositories name no `gpgkey`; and since `rpm --import` takes every armour block of a file, wherever its
+  `-----BEGIN PGP ` is, while `gpg` reads one only where that starts a line, Copr's and the Build Service's file must
+  hold one such block, and what `rpm` imports is not that file but `gpg`'s export of the key it is held to, from a
+  keyring of its own - and a `.deb` is installed only when its SHA-256 is the one pinned for it, from the
   release's `hmailserver-linux-<version>-SHA256SUMS.txt` after its Sigstore bundle verified (6.3.7's four in the
   tree); a distribution, release or architecture the project publishes no package for is refused before anything
-  changes. It then writes `[Database]` for the PostgreSQL or MariaDB database it is given (installing the MariaDB
+  changes, and so, on openSUSE, where `zypper` would install it, is a version older than the one installed. It then writes `[Database]` for the PostgreSQL or MariaDB database it is given (installing the MariaDB
   client library the server opens for MySQL), sets the administrator password with `--set-admin-password`, runs
-  `--check-config` as the service's user and stops when it does not read the database type written or a data
-  directory (the command exits 0 whatever it read), runs `--create-database` and, for an older schema,
+  `--check-config` as the service's user and stops when it does not read the database type written or reads an
+  empty data directory (the command exits 0 whatever it read), runs `--create-database` and, for an older schema,
   `--upgrade-database` as that user, makes the stored-secrets key and exports it once where asked, stores the
   `[Settings]` values it is given with `--set-setting NAME`, each value on standard input and never on a command line
-  or in the play's output, a secret's too, enables and starts the service, waits
+  or in the play's output, a secret's too, and reports one changed only when the value the server or the file held
+  was another (a secret, which the server never shows, on every run), enables and starts the service, waits
   for the SMTP banner, and makes the domains and accounts it is given over the REST API, each only when the server
   does not have it; the passwords are never logged, and it opens no firewall port. Molecule scenarios under the
   collection's `extensions/molecule` run it in containers with systemd as PID 1, beside a PostgreSQL 18 or MariaDB
@@ -534,12 +538,14 @@ with `--check`).
   until the owner's Galaxy account holds the namespace `progressiverobot`, and says "not configured" until then
   (`build/ci/channels/galaxy-publish.py`, `.gitlab/ci/channels.yml`). `galaxy-check`, in a branch's or a merge
   request's pipeline when the collection changes, runs `galaxy-publish.py check` - which holds the role's checks of
-  what it installs and of what it logs to being there, each with a negative control in its self-test - and its
+  what it installs and of what it logs to being there whole, with nothing that skips them, ignores their failure or
+  goes on over their lines, each with a negative control in its self-test - and its
   self-test, builds the collection, and runs `ansible-lint`'s production profile and `ansible-test sanity` but for the
   four tests that would install tools without hashes; the tools come from
   `build/ci/ansible-collection-requirements.txt`, pinned with their hashes. `build/check-channels.py` holds each of
   the three jobs' rules to its one reference alone, `galaxy-publish` to `galaxy-build`'s tarball and each to
-  installing its tools with their hashes alone, no line of its script installing anything else. `hmailserver/docs/Ansible.md` says how to use it, what it
+  installing its tools with their hashes alone, no command of its script, on one line or continued over several,
+  installing anything else. `hmailserver/docs/Ansible.md` says how to use it, what it
   verifies, how it is tested and how it is published; `Channels.md` lists Galaxy among the channels.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
@@ -1639,6 +1645,14 @@ with `--check`).
   CAs are ports of their own, 10281 and 10282, outside RestApiAcme's (10270 to 10280, 10283 and 10284), whose cooldown
   at a shared port held its checks.
 
+- **`build/check-linux-version-stamp.sh` lets the Ansible collection's version through, on its own three lines
+  alone.** Its step 4 refuses a version written anywhere under `platform/packaging/` but the stamps, and the
+  collection, which is there, is built for the release whose `.deb` files it pins by SHA-256 - pins that exist only
+  once that release is published, so its version cannot follow `Version.h` when a release is stamped. Its
+  `galaxy.yml` `version:`, its `vars/release.yml` `hmailserver_release_version:` and its `CHANGELOG.md`'s
+  `## <version>` headings are let through, each as written in its own file; `galaxy-build` writes the first two for
+  the release it builds, and `galaxy-publish.py check` holds them to each other. Any other version under the
+  collection is refused as before, and the collection's README, role defaults and scenarios now write `<version>`.
 - **`build/check-package-licenses.py` holds the Ansible collection's two licence fields.** Its scan reads every YAML
   file under `platform/packaging/`, and the collection's `galaxy.yml` `license` and its role's `galaxy_info`
   `license` were licence fields it did not hold, so it failed on them. Both are now among the fields that name the

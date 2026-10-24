@@ -19,7 +19,9 @@
                            channels-check, never runs for a tag or a schedule; each
                            Galaxy job's rules are its one reference and nothing
                            more; and the three install their tools with their hashes
-                           alone, no line of theirs installing anything else.
+                           alone, no command of theirs installing anything else -
+                           read line by line and with the lines a backslash or a
+                           plain scalar goes on over joined (GALAXY_INSTALLER).
   the PKGBUILD             renders for a release (build/ci/channels/aur-publish.py):
                            the release's tarball from the package registry, one
                            pkgver, pkgrel and sha256sums line each, and
@@ -64,10 +66,21 @@ GALAXY_CHANGES = '''.galaxy-changes:
 '''
 GALAXY_PIP = ("/tmp/galaxy/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes"
               " -r build/ci/ansible-collection-requirements.txt")
-# A line of a Galaxy job that installs something from an index, in any of the ways a
-# job's script, before_script or a block scalar in them could: only GALAXY_PIP may.
-GALAXY_INSTALLER = re.compile(r"\bpip[0-9.]*\s+install\b|-m\s+pip\b|\buv\s+(?:pip|tool|add|sync)\b|\buvx\b|\bpipx\b"
-                              r"|\beasy_install\b|\bansible-galaxy\s+(?:(?:collection|role)\s+)?install\b")
+# A command of a Galaxy job that installs something from an index, in any of the ways a
+# job's script, before_script or a block scalar in them could: pip, pip3 or pip3.14
+# with general options before install (each with a value or none), python -m pip with
+# or without the space, uv run, pip, tool, add or sync with options before them, uvx,
+# pipx, easy_install, ansible-galaxy's install with options anywhere before it, and
+# ansible-test with --requirements or --venv, with which it installs its tests' tools.
+# Only GALAXY_PIP may: it is read in each line of the job, and in the job's text with
+# every line a backslash or a plain scalar's continuation goes on over joined to the one
+# before it.
+OPTION = r"\s+-{1,2}[^\s;&|]+"
+GALAXY_INSTALLER = re.compile(
+    r"\bpip[0-9.]*(?:%s(?:\s+(?!install\b)[^\s;&|-][^\s;&|]*)?)*\s+install\b|-m\s*pip\b"
+    r"|\buv(?:%s)*\s+(?:run|pip|tool|add|sync)\b|\buvx\b|\bpipx\b|\beasy_install\b"
+    r"|\bansible-galaxy(?:%s)*\s+(?:(?:collection|role)(?:%s)*\s+)?install\b"
+    r"|\bansible-test\b[^;&|]*?\s--(?:requirements|venv)\b" % (OPTION, OPTION, OPTION, OPTION))
 # Each Galaxy job's rules, exactly: its one reference, with no rule before or after it.
 GALAXY_RULES = {"galaxy-check": ".galaxy-changes", "galaxy-build": ".channels-publish",
                 "galaxy-publish": ".channels-publish"}
@@ -134,6 +147,23 @@ def key_block(block, key):
     return "".join(line + "\n" for line in lines)
 
 
+def galaxy_installs(block):
+    """What a Galaxy job's text (jobs()'s) installs but GALAXY_PIP, or how that goes
+    wrong; empty when GALAXY_PIP is its one install, a list item of its own that no line
+    goes on."""
+    job = block.split("\n")
+    installs = [re.sub(r"^\s*(?:-\s+)?", "", line) for line in job if GALAXY_INSTALLER.search(line)]
+    if installs != [GALAXY_PIP]:
+        return installs or ["no pip install"]
+    at = [i for i, line in enumerate(job) if line.strip() == "- " + GALAXY_PIP]
+    following = next((line for line in job[at[0] + 1:] if line.strip()), "") if len(at) == 1 else ""
+    if len(at) != 1 or len(following) - len(following.lstrip(" ")) > len(job[at[0]]) - len(job[at[0]].lstrip(" ")):
+        return ["the hashed install, not a list item of its own, or one the next line goes on"]
+    # The job's text with each command's lines joined, the hashed install taken out.
+    joined = re.sub(r"\s+", " ", re.sub(r"\\\r?\n", " ", block)).replace(GALAXY_PIP, "", 1)
+    return [m.group(0) for m in GALAXY_INSTALLER.finditer(joined)]
+
+
 def problems_of(root):
     problems = []
     try:
@@ -183,11 +213,10 @@ def problems_of(root):
             problems.append("%s's rules are not !reference [%s, rules] alone, with no rule before or after it: %s"
                             % (name, reference, (rules or "none").strip().replace("\n", " ")))
     for name in ("galaxy-check", "galaxy-build", "galaxy-publish"):
-        installs = [re.sub(r"^\s*(?:-\s+)?", "", line) for line in (blocks.get(name) or "").split("\n")
-                    if GALAXY_INSTALLER.search(line)]
-        if installs != [GALAXY_PIP]:
+        found = galaxy_installs(blocks.get(name) or "")
+        if found:
             problems.append("%s does not install its tools from build/ci/ansible-collection-requirements.txt with their"
-                            " hashes alone: %s" % (name, installs or "no pip install"))
+                            " hashes alone: %s" % (name, found))
     arch_hosts = '    - "sed -i \'s/^hosts:.*/hosts: files dns/\' /etc/nsswitch.conf"'
     for name in NO_GITHUB_JOBS:
         # The before_script's first command; or its second, after the one line that
@@ -313,6 +342,35 @@ def self_test():
          "    - python3 build/ci/channels/galaxy-publish.py release-build --out galaxy-build\n",
          "galaxy-build does not install"),
     ]
+    # galaxy_installs() over galaxy-check's text with one change each, in memory: each
+    # must be found. The tree's text must give nothing.
+    script = "      cd \"$HM_COLLECTION\"\n"
+    hashed = "    - " + GALAXY_PIP + "\n"
+    install_cases = [("installing a tool with " + what, script, script + line) for what, line in (
+        ("pip --quiet before install", "      /tmp/galaxy/bin/pip --quiet install yamllint\n"),
+        ("pip -q before install", "      /tmp/galaxy/bin/pip -q install yamllint\n"),
+        ("pip --index-url and its value before install",
+         "      /tmp/galaxy/bin/pip --index-url https://pypi.org/simple install yamllint\n"),
+        ("python -mpip", "      /tmp/galaxy/bin/python -mpip install yamllint\n"),
+        ("pip, its install on the next line after a backslash", "      /tmp/galaxy/bin/pip \\\n        install yamllint\n"),
+        ("uv run --with", "      uv run --with yamllint yamllint .\n"),
+        ("uv --quiet pip install", "      uv --quiet pip install yamllint\n"),
+        ("ansible-galaxy -v collection install", "      ansible-galaxy -v collection install community.general\n"),
+        ("ansible-test sanity --requirements", "      ansible-test sanity --requirements --python 3.14\n"),
+        ("ansible-test sanity --venv", "      ansible-test sanity --venv --python 3.14\n"))] + [
+        ("its hashed install given a further requirement on the next line", hashed, hashed + "      yamllint\n"),
+        ("installing a tool over two list lines", hashed, hashed + "    - /tmp/galaxy/bin/pip\n      install yamllint\n"),
+        ("its hashed install twice", hashed, hashed + hashed)]
+    galaxy_check = jobs(read(ROOT, CI)).get("galaxy-check") or ""
+    print("%s  galaxy-check's installs as they are: %s" % (("ok  ", "nothing but the hashed file") if not galaxy_installs(
+        galaxy_check) else ("FAIL", galaxy_installs(galaxy_check))))
+    if galaxy_installs(galaxy_check):
+        failures.append("galaxy-check's installs")
+    for what, old, new in install_cases:
+        found = galaxy_installs(galaxy_check.replace(old, new, 1)) if old in galaxy_check else []
+        print("%s  galaxy-check %s (%s)" % ("ok  " if found else "FAIL", what, (found or ["not caught"])[-1][:80]))
+        if not found:
+            failures.append(what)
     work = tempfile.mkdtemp(prefix="hm-check-channels-")
     try:
         for relative in names + [os.path.join(CHANNELS, n) for n in os.listdir(os.path.join(ROOT, CHANNELS))

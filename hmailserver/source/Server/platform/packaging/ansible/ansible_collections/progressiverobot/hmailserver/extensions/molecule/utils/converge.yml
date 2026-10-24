@@ -23,6 +23,9 @@
         hmailserver_stored_secrets_key_export: /root/hmailserver-stored-secrets.key
         hmailserver_settings:
           RestApiPort: 8080
+          # An empty value, stored as NAME=, which the second converge must find
+          # unchanged.
+          AcmeContactEmail: ""
         hmailserver_domains:
           - name: example.test
             postmaster: postmaster@example.test

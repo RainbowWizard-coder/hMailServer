@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # The project's channels, what each builds for, and the key each one signs with, by
-# fingerprint: a key file fetched from the channel is imported only when gpg reads it
-# as the one key named here, and a release or architecture a channel does not build
+# fingerprint: a key file fetched from the channel is taken only when gpg reads it as
+# the one key named here, an RPM channel's only as one armour block, imported as gpg's
+# export of that key alone; and a release or architecture a channel does not build
 # for is refused before anything is changed (hmailserver/docs/Ansible.md, "What it
 # verifies").
 ---

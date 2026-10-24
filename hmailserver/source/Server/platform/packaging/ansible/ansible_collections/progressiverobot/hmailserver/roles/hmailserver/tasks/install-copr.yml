@@ -4,7 +4,7 @@
 
 # Fedora and Enterprise Linux 10: Copr's progressiverobot/hmailserver, whose
 # packages dnf verifies against the project's Copr key, imported only when the file
-# Copr serves is that one key, at the fingerprint vars/main.yml names.
+# Copr serves is that one key, at the fingerprint vars/main.yml names (rpm-key.yml).
 ---
 - name: Name the Copr chroot for this machine
   ansible.builtin.set_fact:

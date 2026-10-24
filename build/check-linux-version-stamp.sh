@@ -40,7 +40,11 @@
 #   4. Nothing else under platform/packaging/ carries a hard-coded version at all.
 #      The packaging README used to spell out "hmailserver_6.2.28_amd64.deb" in
 #      five places; those now say <version>, and this check is what keeps a
-#      literal from creeping back in and going stale.
+#      literal from creeping back in and going stale. The one exception is the
+#      Ansible collection (ansible/ansible_collections/progressiverobot/
+#      hmailserver), whose version is the release whose .deb pins it carries and
+#      not the one being stamped: its galaxy.yml version:, its vars/release.yml
+#      hmailserver_release_version: and its CHANGELOG.md's "## <version>" headings.
 #
 # It reads files and prints. It changes nothing, and it needs no toolchain - which
 # is what lets it run in the checkers job of .gitlab-ci.yml, before anything is
@@ -65,7 +69,7 @@ while [ "$#" -gt 0 ]; do
          shift 2
          ;;
       -h|--help)
-         sed -n '5,45p' "${BASH_SOURCE[0]}"
+         sed -n '5,49p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -217,15 +221,27 @@ fi
 # first line, the spec's Version: and its one %changelog entry. The "6" must not
 # follow a digit or a dot: the spec's %global quickjs_version 2026.06.04, the
 # vendored QuickJS release's date, holds "6.06.04" and is no hMailServer version.
+# The Ansible collection's three are the release it is built for, whose .deb files
+# its vars/release.yml pins by SHA-256: those pins exist only once that release is
+# published, so the collection cannot follow Version.h when a release is stamped.
+# The galaxy-build job writes galaxy.yml's version: and release.yml's
+# hmailserver_release_version: together for the release it builds, and
+# build/ci/channels/galaxy-publish.py check holds the two to each other in the tree;
+# its CHANGELOG.md has a "## <version>" heading for each version it was published
+# at. Each is let through on its own line in its own file alone, as written there.
+COLLECTION_LINE='^[^:]*/ansible/ansible_collections/progressiverobot/hmailserver/'
 stray="$(grep -rnE '(^|[^0-9.])6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
    | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/alpine/APKBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/debian-src/debian/changelog:1:hmailserver (' \
    | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:Version:' \
-   | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:\* .* - [0-9][0-9.]*-[0-9][0-9]*$' || true)"
+   | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:\* .* - [0-9][0-9.]*-[0-9][0-9]*$' \
+   | grep -vE "${COLLECTION_LINE}"'galaxy\.yml:[0-9]+:version: [0-9]+\.[0-9]+\.[0-9]+$' \
+   | grep -vE "${COLLECTION_LINE}"'roles/hmailserver/vars/release\.yml:[0-9]+:hmailserver_release_version: "[0-9]+\.[0-9]+\.[0-9]+"$' \
+   | grep -vE "${COLLECTION_LINE}"'CHANGELOG\.md:[0-9]+:## [0-9]+\.[0-9]+\.[0-9]+$' || true)"
 
 if [ -n "${stray}" ]; then
-   fail "A version literal has appeared under platform/packaging/ outside the stamps 3, 3a and 3b hold (the PKGBUILD's and the APKBUILD's pkgver, the Debian changelog's entry, the spec's Version: and %changelog entry). Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
+   fail "A version literal has appeared under platform/packaging/ outside the stamps 3, 3a and 3b hold (the PKGBUILD's and the APKBUILD's pkgver, the Debian changelog's entry, the spec's Version: and %changelog entry) and the Ansible collection's version lines (its galaxy.yml version:, its vars/release.yml hmailserver_release_version: and its CHANGELOG.md's headings). Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
    echo "${stray}" | sed "s|^${REPO_ROOT}/||" | sed 's/^/    /'
 fi
 
