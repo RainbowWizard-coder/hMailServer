@@ -379,6 +379,18 @@ Files: debian/*
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+
 
+Files: debian/copyright
+       hmailserver/source/Server/platform/packaging/debian-src/debian/copyright
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           the holders each text names
+License: AGPL-3+ and notices
+Comment:
+ This file: the maintainers' paragraphs, and in its stand-alone License
+ paragraphs the texts of the licences it declares, each carried verbatim as
+ its holder publishes it (the FSF's AGPL-3.0 text among them, which is not
+ under the AGPL). The tarball's copy is the one this package's debian/ is
+ taken from.
+
 License: AGPL-3+
  This program is free software: you can redistribute it and/or modify it
  under the terms of the GNU Affero General Public License as published by the

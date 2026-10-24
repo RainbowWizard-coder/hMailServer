@@ -2384,9 +2384,8 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 # ------------------------------------------- files whose text names others' licences
 # The project's own files whose text quotes licence identifiers and copyright notices
 # that are not theirs - the changelog's and roadmap's entries on the headers, the
-# contribution guide's, the source tarball's table of what is not the project's, the
-# help pages compiled from those documents, and the Debian copyright file, which
-# names every holder of the source package - and so are read for this table alone.
+# contribution guide's, the source tarball's table of what is not the project's, and
+# the help pages compiled from those documents - and so are read for this table alone.
 [[annotations]]
 path = [
     "CHANGELOG.md",
@@ -2404,11 +2403,21 @@ precedence = "override"
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
+# The Debian source package's copyright file: the maintainers' paragraphs, which name
+# every holder of the source package and quote their notices, and, in its stand-alone
+# License paragraphs, the texts of the licences it declares, carried verbatim - the
+# FSF's AGPL-3.0 text, which is not under the AGPL, the MIT, BSD and Unicode terms,
+# the WHATWG's, VisionTech's and Joseph M. O'Leary's notices, and the notices of the
+# MPL, the GPL and the Artistic Licence - which are their holders'. Read for this
+# table alone, as the installer's licence page is.
 [[annotations]]
 path = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
 precedence = "override"
-SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
-SPDX-License-Identifier = "AGPL-3.0-or-later"
+SPDX-FileCopyrightText = [
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "The holders each notice it carries names",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 
 # Icons of the fork's own pages drawn after Feather's, Cole Bemis's icon set, under
 # the MIT licence (hmailserver/docs/Licenses/License - Feather icons.txt carries its

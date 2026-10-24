@@ -634,7 +634,8 @@ something which already exists.
   reuse would read as a notice, is read for its table alone (`precedence = "override"`), so that `reuse spdx`
   takes none of those words for a holder. The table of the third parties' licence texts and notices gives
   as their copyright text "The holders each text names", and the installer's licence page's "The holders
-  each notice it carries names" beside the original's and the maintainers': a pointer to the notices the
+  each notice it carries names" beside the original's and the maintainers', as the Debian copyright file's
+  does beside the maintainers', since each carries licence texts verbatim: a pointer to the notices the
   texts carry, which name their holders, and not a holder. `debian/copyright` gives every file the Debian
   source package carries the licences REUSE.toml's record does, which the *reuse* job holds
   (`build/ci/reuse-debian.py`): a table that changes a carried file's licence changes its paragraph there

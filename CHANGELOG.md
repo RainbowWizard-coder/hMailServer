@@ -1050,9 +1050,13 @@ with `--check`).
   their table alone, as are zlib's `deflate.c` and `inftrees.c`, whose version strings reuse read with their closing
   quote, `entities.LICENSE`, whose notice it read to the end of its sentence, and `sqlce_oledb.h`, whose years it put
   after Microsoft's name: their tables name the holders each file's notices name. The copyright text of the licence
-  texts' and notices' table, and of the installer's licence page's beside the original's and the maintainers', is
-  "The holders each text names" (and "The holders each notice it carries names"): it points at the holders the texts
-  themselves name -
+  texts' and notices' table, of the installer's licence page's beside the original's and the maintainers', and of
+  the copyright file's beside the maintainers', is "The holders each text names" (and "The holders each notice it
+  carries names"): the copyright file, like the licence page, carries the texts of the licences it declares
+  verbatim, the FSF's AGPL-3.0 text among them, which is not under the AGPL, so that its table gives it
+  `AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice`, where it gave it the maintainers and the AGPL alone, and
+  `debian/copyright` has a paragraph of its own for the file, `License: AGPL-3+ and notices`. That copyright text points at
+  the holders the texts themselves name -
   each one's own notice, OpenSSL's, Boost's, FatCow's and the rest - and names none of them. The new `reuse` job, in
   the check stage of every pipeline but a schedule's, runs `build/ci/reuse-lint.sh` in `python:3.14-slim-trixie` by
   its digest: reuse 6.2.0 from PyPI at the hashes `build/ci/reuse-requirements.txt` pins, built from its sdist with
