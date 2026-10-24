@@ -604,7 +604,8 @@ something which already exists.
   `FORK_MADE`, and named in the fork's table when it has no header; then run the generator again. Any of
   his text a file keeps verbatim as its own makes it one of `DERIVED`: code, a comment, a file of his test
   data or lines of one (a fuzzer's input that splices them in among others'), or a message he wrote for a case of his code's, one sentence of an error message or a warning
-  included. A file that only names or quotes what the original does - a server's reply a test expects
+  included, even where the fork's sentence goes on after his (the REST API's sends open the reason for a
+  deferred recipient with his "Tried %d time(s)"). A file that only names or quotes what the original does - a server's reply a test expects
   or a document quotes, a setting's or a control's caption, a string table's key, the schema's SQL - or
   that only follows the original's patterns - the COM wrappers' or the test fixtures' idioms, the stock
   replies and errors his code gives wherever it meets the same case ("Authenticate first", "Failed to

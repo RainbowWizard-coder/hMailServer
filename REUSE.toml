@@ -742,6 +742,7 @@ path = [
     "hmailserver/source/Server/Common/Util/AWStats.h",
     "hmailserver/source/Server/Common/Util/AccountLogon.cpp",
     "hmailserver/source/Server/Common/Util/AccountLogon.h",
+    "hmailserver/source/Server/Common/Util/ApiSends.cpp",
     "hmailserver/source/Server/Common/Util/Assert.cpp",
     "hmailserver/source/Server/Common/Util/Assert.h",
     "hmailserver/source/Server/Common/Util/ByteBuffer.cpp",

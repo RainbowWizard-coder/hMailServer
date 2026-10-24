@@ -39,7 +39,8 @@ by hand, say where it is not:
              splices them in among others'), or a message he wrote for a case of
              his code's - one sentence of an error message or a warning included,
              as in RestApiSettings.cpp, RestApiRoutes.cpp and DateTime.cpp, even
-             where the fork's sentence goes on after his. A file of the fork's that
+             where the fork's sentence goes on after his, as ApiSends.cpp's after
+             his "Tried %d time(s)" does. A file of the fork's that
              only names or quotes what the original does is not one: a reply or
              a message of the server's that a test expects or a document quotes,
              a setting's or a control's caption, a string table's key, an SQL
@@ -214,6 +215,10 @@ DERIVED = (
     ("hmailserver/source/Server/Common/Util/RestApiRoutes.cpp",
      "hmailserver/source/Server/COM/InterfaceAccount.cpp", "c88f41983",
      "the original's refusal of an auto-reply expiry date that is not a date, in its words"),
+    ("hmailserver/source/Server/Common/Util/ApiSends.cpp",
+     "hmailserver/source/Server/SMTP/ExternalDelivery.cpp", "e3221b3cc",
+     "the original's line on how many times delivery was tried, in its words, at the head of the reason given "
+     "for a deferred recipient"),
     ("hmailserver/source/Server/Common/Persistence/MessageStore.cpp",
      "hmailserver/source/Server/Common/Util/File.cpp", "236f25a94",
      "File's errors for a file not opened or not read, and FileUtilities' for one it cannot open, in their words"),
