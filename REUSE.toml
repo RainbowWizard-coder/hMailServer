@@ -539,6 +539,7 @@ path = [
     "hmailserver/source/Server/Common/Mime/MimeTester.cpp",
     "hmailserver/source/Server/Common/Mime/MimeTester.h",
     "hmailserver/source/Server/Common/Mime/MimeType.cpp",
+    "hmailserver/source/Server/Common/Persistence/MailboxMove.cpp",
     "hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.cpp",
     "hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.h",
     "hmailserver/source/Server/Common/Persistence/NameChanger.cpp",
@@ -1313,7 +1314,6 @@ path = [
     "hmailserver/installation/InnoSocketCheck/ISC.dsw",
     "hmailserver/installation/InnoSocketCheck/ReadMe.txt",
     "hmailserver/installation/License.rtf",
-    "hmailserver/installation/Utilities/Uninstall current version.bat",
     "hmailserver/installation/hMailServer64.iss",
     "hmailserver/installation/hMailServerInnoExtension.iss",
     "hmailserver/installation/section_components.iss",
@@ -1742,8 +1742,10 @@ SPDX-License-Identifier = "AGPL-3.0-or-later"
 # own are beside them), and the projects, lock files and installer scripts it added;
 # and, each named, the files it made anew at a path of the original's, which the
 # generator's FORK_MADE leaves out of the tables above: the installer's wizard
-# picture, its brand's since June 2026, and the test keys and certificates its first
-# commit made in place of the original's.
+# picture, its brand's since June 2026, the developer script that uninstalls a test
+# machine's installation, written anew in August 2026 in place of the original's two
+# commands, and the test keys and certificates its first commit made in place of the
+# original's.
 [[annotations]]
 path = [
     ".editorconfig-checker.json",
@@ -1796,6 +1798,7 @@ path = [
     "hmailserver/installation/setup.bmp",
     "hmailserver/installation/setup-small.bmp",
     "hmailserver/installation/**/*.png",
+    "hmailserver/installation/Utilities/Uninstall current version.bat",
     "hmailserver/installation/WebAdmin/index.html",
     "hmailserver/installation/WebAdmin/languages/*.json",
     "hmailserver/source/DBScripts/Upgrade5708to6*.sql",
@@ -2233,11 +2236,20 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
 
 # The installer's Pascal code, the original's, opens its Windows service part with a
 # comment saying that it is taken from an article of the Inno Setup extensions
-# knowledge base by Silvio Iaccarino, of 6 November 2002: the Win32 service
-# declarations - the SERVICE_STATUS record, the SERVICE_* constants and the
-# advapi32.dll functions it calls - which restate those of Windows' service API. The
-# article states no licence for them. He is named beside Martin Knafve and the
-# maintainers, whose the rest of the file is, under the project's licence.
+# knowledge base by Silvio Iaccarino, of 6 November 2002. What it keeps of the
+# article, as the original and the fork changed it, is code as well as declarations:
+# the SERVICE_STATUS record and the HANDLE type; the service constants of access
+# rights, service types, start types, controls and states (the SERVICE_* ones and
+# SC_MANAGER_ALL_ACCESS); the declarations of the five advapi32.dll functions
+# OpenSCManager, OpenService, ControlService, QueryServiceStatus and
+# CloseServiceHandle; and the article's functions OpenServiceManager,
+# IsServiceInstalled, StopService and IsServiceRunning, with the article's two
+# messages. The article states no licence for them, so that
+# part of the file is LicenseRef-No-Licence-Stated: the project grants no licence for
+# it and claims no right in it. Silvio Iaccarino is named beside Martin Knafve and the
+# maintainers, whose the rest of the file is, under the project's licence. The source
+# tarball, and so the Debian source package, leaves the file out, as it does every
+# other script of the Windows installer (build/source-exclusions.txt).
 [[annotations]]
 path = "hmailserver/installation/hMailServerInnoExtension.iss"
 precedence = "aggregate"
@@ -2246,7 +2258,7 @@ SPDX-FileCopyrightText = [
     "2026 Christopher Holloway / Progressive Robot Ltd",
     "2002 Silvio Iaccarino",
 ]
-SPDX-License-Identifier = "AGPL-3.0-or-later"
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
 
 # The installer's licence page: the project's terms, and the third-party components'
 # notices copied into it verbatim, which name their own holders. Read for this table

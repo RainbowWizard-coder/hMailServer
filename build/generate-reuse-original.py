@@ -187,6 +187,9 @@ DERIVED = (
     ("hmailserver/source/Server/Common/Util/InputCostTester.cpp",
      "hmailserver/source/Server/Common/AntiSpam/DKIM/Canonicalization.cpp", "53e95b832",
      "the DKIM canonicalisation's header functions, kept as 6.3.5 had them"),
+    ("hmailserver/source/Server/Common/Persistence/MailboxMove.cpp",
+     "hmailserver/source/Server/Common/Persistence/PersistentAccount.cpp", "ee1365651",
+     "the original's refusal to rename a mailbox while message paths are full ones, in its words"),
     ("hmailserver/source/Server/SMTP/SPF/README.md",
      "1beaeab9c212cfc484c180c90cab37cb46cdb6be:hmailserver/source/Server/SMTP/SPF/README.md", "f0ee7803a",
      "the port's README, its introduction and its table of files"),
@@ -198,6 +201,8 @@ DERIVED = (
 # Files the fork made itself at a path the original's tags also hold, which keep
 # nothing of the original's file there: (the path, the fork's commit, why).
 FORK_MADE = (
+    ("hmailserver/installation/Utilities/Uninstall current version.bat", "ed8dcf97a",
+     "the fork's developer script, written anew in place of the original's two commands"),
     ("hmailserver/installation/setup.bmp", "2c16cdb28",
      "the installer's wizard picture, the fork's brand in place of the original's"),
     ("hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp", "fe45f43c3",

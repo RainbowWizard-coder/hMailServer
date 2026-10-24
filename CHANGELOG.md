@@ -866,42 +866,52 @@ with `--check`).
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
-  file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,233 of them and the
-  fork alone for 1,205, most of them files whose notice of his the fork's header replaced in 2026:
+  file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,244 of them and the
+  fork alone for 1,215, most of them files whose notice of his the fork's header replaced in 2026:
   `build/generate-reuse-original.py` writes the two tables that list them, 1,646 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
-  commit took over from the original's history before them) - the 1,633 files of the tree at one of those paths,
-  letter case aside, but for the 2,870 third parties' files among them, and 13 files the fork moved, split or copied
-  out of one of the original's to a path of its own, which its hand-kept `DERIVED` names with the original's file
-  each came from and the fork's commit: the half of the POP3 fetcher that `ExternalFetchClientBase.cpp` and `.h` took
-  over, `IMAPMove.cpp` and `IMAPCommandMove.cpp` from the COPY command's files, the Import Tool's `Program.cs` from
-  the Mercury migration tool's, the Linux suite's four shims of the Windows suite's `SingletonProvider`,
+  commit took over from the original's history before them) - the 1,632 files of the tree at one of those paths,
+  letter case aside, but for the 2,870 third parties' files among them and the ten that its hand-kept `FORK_MADE`
+  leaves out, and 14 files the fork moved, split or copied out of one of the original's to a path of its own, which
+  its `DERIVED`, kept by hand too, names with the original's file each came from and the fork's commit: the half of
+  the POP3 fetcher that `ExternalFetchClientBase.cpp` and `.h` took over, `IMAPMove.cpp` and `IMAPCommandMove.cpp`
+  from the COPY command's files, the Import Tool's `Program.cs` from the Mercury migration tool's, the Linux suite's
+  four shims of the Windows suite's `SingletonProvider`,
   `CustomAsserts`, `TestSetup` and `TestFixtureBase`, `EventsJavaScript.cs`, the event tests of `Events.cs` with their
   scripts in JavaScript, `InputCostTester.cpp`, which keeps the DKIM canonicalisation's header functions as 6.3.5 had
-  them, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after its tags, where reuse
-  recorded the fork alone for each. Its `FORK_MADE` leaves out of them the nine files the fork made anew at one of the
-  original's paths, which reuse had credited to him: the installer's wizard picture, the fork's brand since June
-  2026, the five test keys and certificates its first commit made in place of the original's (`example.key` and
-  `.crt`, `WithPassword/server.key` and `.crt`, and `localhost.pfx`, in `hmailserver/test/SSL examples`), its DMARC
-  test, `SpamTestDMARC.cpp` and `.h`, made before the original's own at those paths, and its IMAP special-use tests,
-  made four days before his; the six without a header are named in the fork's table instead. `--check` holds the
-  tables to the list and the tree, and refuses an entry of either list whose file is gone, a `DERIVED` source that is
-  not one of the original's files and a `FORK_MADE` path that is not one of their paths; it holds the list to the
-  tags when they are at hand, and the reuse job now fetches them from the project, with the fork's first commit,
-  their commits and trees alone (about 4 MB, in a few seconds), into a git directory of their own, and runs it with
-  `--require-tags`, which exits 2 without them, so that CI holds the list to the original's tags where a depth-1
-  clone took it as committed. The files the fork added in the original's directories, the registration scripts of
-  fourteen COM classes among them, are named in the fork's table one by one. The MIME files, `StdString.h` and
+  them, `MailboxMove.cpp`, which keeps `PersistentAccount`'s refusal to rename a mailbox while the database holds
+  full message paths, in its words, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after
+  its tags, where reuse recorded the fork alone for each. The ten of `FORK_MADE` are the files the fork made anew at
+  one of the original's paths, which reuse had credited to him: the installer's wizard picture, the fork's brand
+  since June 2026, the developer script `Uninstall current version.bat`, written anew in August 2026 in place of the
+  original's two commands, the five test keys and certificates its first commit made in place of the original's
+  (`example.key` and `.crt`, `WithPassword/server.key` and `.crt`, and `localhost.pfx`, in
+  `hmailserver/test/SSL examples`), its DMARC test, `SpamTestDMARC.cpp` and `.h`, made before the original's own at
+  those paths, and its IMAP special-use tests, made four days before his; the seven without a header are named in
+  the fork's table instead. `--check` holds the tables to the list and the tree, and refuses an entry of either list
+  whose file is gone, a `DERIVED` source that is not one of the original's files and a `FORK_MADE` path that is not
+  one of their paths; it holds the list to the tags when they are at hand, and the reuse job now fetches them from
+  the project, with the fork's first commit, their commits and trees alone (about 4 MB, in a few seconds), into a
+  git directory of their own - each fetch given up after two minutes, or after 30 seconds below 1,000 bytes a
+  second, and tried up to three times, so that an origin that stalls fails the job in minutes rather than at its
+  timeout, and one passing network error does not fail it - and runs it with `--require-tags`, which exits 2
+  without them, so that CI holds the list to the original's tags where a depth-1 clone took it as committed. The
+  files the fork added in the original's directories, the registration scripts of fourteen COM classes among them,
+  are named in the fork's table one by one. The MIME files, `StdString.h` and
   `ScriptSite.h` name him beside their third party, and `debian/copyright`'s paragraphs for the first two do too,
   saying that the original's changes are under the AGPL, as its `Files: *` and `ScriptSite.h` paragraphs now give his
   years as 2005-2026; `InputCostTester.cpp`'s 6.3.5 copies of two of the MIME classes' functions are Jeff Lee's code,
   whose notice the file now quotes above them, and it has his licence and holder beside the original's in both
   records, as `StringParser.cpp`, which keeps `StdString.h`'s `FindNoCase` and `ReplaceNoCase` as they were for its
   tests, has O'Leary's (`SourceTarball.md`'s table of what is not the project's names both); the installer's Pascal
-  code names Silvio Iaccarino (2002), whose article in the Inno Setup
-  extensions knowledge base its Windows service declarations are taken from, as its comment says, and which states
-  no licence for them; the RFC 7208 suite's table, `SPFConformanceSuite.cpp`, has the suite's licence
-  (BSD-3-Clause) and holders beside the header's, in `REUSE.toml` and in a paragraph of `debian/copyright`, and its
+  code names Silvio Iaccarino (2002), from whose article in the Inno Setup extensions knowledge base, as its comment
+  says, it took its Windows service declarations - the `SERVICE_STATUS` record and the `HANDLE` type, the service
+  constants and five `advapi32.dll` functions' declarations - and four of its functions, `OpenServiceManager`,
+  `IsServiceInstalled`, `StopService` and `IsServiceRunning`, as the original and the fork changed them, and since
+  the article states no licence for them its record is `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`, as is
+  that of `example+google.txt`, the original's example certificate with the Google Internet Authority's after it;
+  the RFC 7208 suite's table, `SPFConformanceSuite.cpp`, has the suite's licence (BSD-3-Clause) and holders beside
+  the header's, in `REUSE.toml` and in a paragraph of `debian/copyright`, and its
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
@@ -912,7 +922,8 @@ with `--check`).
   build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices")
-  and `LicenseRef-No-Licence-Stated` for the six files of test data no licence is stated for. A third party's file
+  and `LicenseRef-No-Licence-Stated` for the six files of test data and the installer's routines and declarations
+  that no licence is stated for. A third party's file
   keeps its own licence and holders, never the project's: the Fat Cow icons and the three of them the database tools
   take as their icon (CC-BY-3.0-US, the Creative Commons Attribution 3.0 United States licence, whose terms the
   icons' licence text carries, as does the installer's licence page now), and the four forms of the original whose
@@ -962,7 +973,7 @@ with `--check`).
   poetry-core 2.5.0 from `build/ci/reuse-build-requirements.txt` (PyPI's one wheel of reuse is for CPython 3.10), and
   libmagic for each file's encoding; `reuse lint` must pass, `generate-reuse-original.py --check --require-tags` too,
   over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
-  the original's files, but the third parties', that does not name Martin Knafve, and one of the nine the fork made
+  the original's files, but the third parties', that does not name Martin Knafve, and one of the ten the fork made
   at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
   carries - all of reuse's record but what `Files-Excluded` leaves out, 3,776 files - to having the same licences in
   the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for

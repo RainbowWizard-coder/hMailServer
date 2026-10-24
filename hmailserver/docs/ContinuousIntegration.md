@@ -2598,12 +2598,14 @@ fork's first commit took over from the original's history before them; the list 
 rather than by directory, so that a file the fork adds beside them is not credited
 to him. A path does not settle it alone, and two lists the generator keeps by hand
 say where it does not: `DERIVED` adds the files the fork moved, split or copied out
-of one of the original's to a path of its own (13, each with the original's file it
+of one of the original's to a path of its own (14, each with the original's file it
 came from and the commit), and `FORK_MADE` leaves out the files the fork made anew at
-one of the original's paths, which keep nothing of the original's file there (9:
-the installer's wizard picture, five test keys and certificates, the fork's own
-DMARC test and its IMAP special-use tests, made before the original's at those
-paths), excepted by hand and given to the maintainers. A file moved or copied out of
+one of the original's paths, which keep nothing of the original's file there (10:
+the installer's wizard picture, the developer script that uninstalls a test
+machine's installation, written anew in place of the original's two commands, five
+test keys and certificates, and the fork's own DMARC test and its IMAP special-use
+tests, made before the original's at those paths), excepted by hand and given to the
+maintainers. A file moved or copied out of
 one of the original's is added to `DERIVED`, as CONTRIBUTING.md says, and the
 generator run again. A third party's file keeps its own licence and holders: the Fat
 Cow icons (CC BY 3.0 US) and the four forms whose `.resx` carries one, SQL Server
@@ -2613,8 +2615,11 @@ project's sources that hold a third party's code under the project's header (the
 MIME classes, `StdString.h`, `InputCostTester.cpp` and `StringParser.cpp`, which keep
 earlier versions of those classes' functions for their tests, and the tables made
 from the Public Suffix List, Unicode's data and HTML's character references) with the third party's licence added beside the
-header's, and the installer's Pascal code with the author of the Windows service
-declarations it took from an article that states no licence; the licence texts and
+header's, and the installer's Pascal code with the author of the article it took its
+Windows service declarations and four of its service functions from
+(`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
+and that part of it as `LicenseRef-No-Licence-Stated` beside the project's licence,
+since the article states no licence for them; the licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data
 no licence was stated for as `LicenseRef-No-Licence-Stated`. The comments of
@@ -2634,7 +2639,13 @@ original's tags or the fork's first commit, so the script fetches them from the
 project - their commits and trees alone, `--filter=blob:none`, about 4 MB in a few
 seconds - into a git directory of their own in its temporary folder, which leaves
 the checkout the runner keeps as it was, and names it to the generator with
-`HM_REUSE_ORIGINAL_GIT_DIR`. `generate-reuse-original.py --check --require-tags`
+`HM_REUSE_ORIGINAL_GIT_DIR`. Each fetch is bounded and tried again: git gives it up
+after 30 seconds below 1,000 bytes a second (`http.lowSpeedLimit` and
+`http.lowSpeedTime`), `timeout` stops it after 120 seconds in any case, the
+connection's set-up included, and a fetch that fails is tried up to three times in
+all before the job exits 2, so that an origin that accepts the connection and never
+answers fails the job in minutes rather than at its 15-minute timeout, and one
+passing network error does not fail it. `generate-reuse-original.py --check --require-tags`
 holds the list to the tags (exit 2 when they are not at hand), the tables to the
 list, `DERIVED`, `FORK_MADE` and the tree, and the two lists to what they may name
 (no entry for a file that is gone, a `DERIVED` source that is not one of the

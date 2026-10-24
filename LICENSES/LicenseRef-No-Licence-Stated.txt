@@ -1,9 +1,13 @@
 No licence stated.
 
-The holders of the files given this identifier have stated no licence for
-them. They are other parties' material - replies captured from other parties'
-mail servers, a security advisory's text, a certificate authority's
-certificate - kept in the tree as input to the project's tests.
-The project grants no licence for them and claims no right in them. A
-distribution that carries only files under a licence leaves them out, as the
-Debian source package does (its copyright file's Files-Excluded).
+The holders of the material given this identifier have stated no licence for
+it. It is other parties' material: replies captured from other parties' mail
+servers, a security advisory's text and a certificate authority's
+certificate, kept in the tree as input to the project's tests, and a few
+routines and declarations of an article that states no licence, which the
+Windows installer's script has kept since the original hMailServer took them
+from it. Where a file's identifier joins this one to a licence, that licence
+is for the rest of the file.
+The project grants no licence for this material and claims no right in it. A
+distribution that carries only files under a licence leaves these files out,
+as the Debian source package does (its copyright file's Files-Excluded).

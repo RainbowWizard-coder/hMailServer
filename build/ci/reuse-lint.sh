@@ -30,7 +30,8 @@
 # fork's first commit: a clone that has not got them - CI's depth-1 one - has them
 # fetched from its origin into a git directory of their own in the job's temporary
 # folder, the commits and trees alone (--filter=blob:none, about 4 MB), so that the
-# checkout itself is left as it was; HM_REUSE_ORIGINAL_GIT_DIR tells the generator
+# checkout itself is left as it was, each fetch bounded to 120 seconds and tried up
+# to three times; HM_REUSE_ORIGINAL_GIT_DIR tells the generator
 # where they are. REUSE.toml's tables of the original's files must be what the
 # generator writes from that list and the tree, and the list what the tags give
 # (--check --require-tags, which exits 2 when the tags are not at hand), and reuse's
@@ -157,9 +158,35 @@ else
   for tag in "${TAGS[@]}"; do
     refspecs+=("+refs/tags/$tag:refs/tags/$tag")
   done
+  # Each fetch is bounded, so that an origin that accepts the connection and never
+  # answers does not hold the job to its own timeout: git gives up on a transfer
+  # slower than 1,000 bytes a second for 30 seconds (http.lowSpeedLimit and
+  # http.lowSpeedTime), and timeout stops it after 120 seconds in any case, the
+  # connection's set-up included, which those two do not time. A fetch that fails is
+  # tried again, three times in all, so that one passing network error does not fail
+  # the job.
+  fetch_original() {
+    local try status
+    for try in 1 2 3; do
+      timeout 120 git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 --git-dir="$original" \
+        fetch --quiet --no-tags --filter=blob:none origin "$@"
+      status=$?
+      if [ "$status" -eq 0 ]; then
+        return 0
+      fi
+      if [ "$status" -eq 124 ]; then
+        echo "The fetch from the origin took more than 120 s and was stopped (try $try of 3)."
+      else
+        echo "The fetch from the origin failed, exit $status (try $try of 3)."
+      fi
+      if [ "$try" -lt 3 ]; then
+        sleep 5
+      fi
+    done
+    return 1
+  }
   started=$(date +%s)
-  if ! git --git-dir="$original" fetch --quiet --no-tags --filter=blob:none origin "${refspecs[@]}" \
-      || ! git --git-dir="$original" fetch --quiet --no-tags --filter=blob:none origin "$FIRST_COMMIT"; then
+  if ! fetch_original "${refspecs[@]}" || ! fetch_original "$FIRST_COMMIT"; then
     echo "The original's tags (${TAGS[*]}) or the fork's first commit could not be fetched from the origin."
     exit 2
   fi

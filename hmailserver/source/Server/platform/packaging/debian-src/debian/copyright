@@ -115,8 +115,8 @@ Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+
 Comment:
  The two texts of LICENSES/ that are the project's own: what REUSE.toml's
- identifiers for the third parties' notices and for the test data with no
- licence stated mean. The rest of LICENSES/ is the licences' texts.
+ identifiers for the third parties' notices and for the material no licence
+ is stated for mean. The rest of LICENSES/ is the licences' texts.
 
 Files: hmailserver/docs/Licenses/License?list.*
 Copyright: 2010 Martin Knafve / hMailServer.com
