@@ -79,8 +79,8 @@ hmailserver/source/Tools/hMailServer Tools.sln
 # handlers and utilities (the Linux server runs its event scripts in JavaScript),
 # and a MySQL collation script that comes with them.
 hmailserver/source/Addons
-# Developer tools that are .NET Framework projects, a batch file and a Visual
-# Studio 2005 debugger file. hmailserver/tools/Scripts and Anonymizer.sql stay.
+# Developer tools that are .NET Framework projects and a batch file.
+# hmailserver/tools/Scripts and Anonymizer.sql stay.
 hmailserver/tools/APIDocumentationCreator
 hmailserver/tools/ConfigureInstallation
 hmailserver/tools/DatabaseUnicodeConversion
@@ -90,7 +90,6 @@ hmailserver/tools/PasswordDisplayer
 hmailserver/tools/SQLScriptCreator
 hmailserver/tools/TranslationExtractor
 hmailserver/tools/TranslationImporter
-hmailserver/tools/VS2005
 
 # ---------------------------------------------------------------- the Windows installer
 # Its Inno Setup sources, pictures and licence page, its socket-check DLL, the

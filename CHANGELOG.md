@@ -936,15 +936,15 @@ with `--check`).
   it, as its comment says, and is refused by `START_TEST_SHA256`, the digest that holds the whole script.
 
 - **New: the tree is REUSE-compliant, and a CI job holds it.** Every file's copyright and licence are known, as the
-  REUSE Specification 3.3 asks, by the file's own header or, for the 4,191 files that carry none (documents,
+  REUSE Specification 3.3 asks, by the file's own header or, for the 4,190 files that carry none (documents,
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
   file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,260 of them and the
   fork alone for 1,231, most of them files whose notice of his the fork's header replaced in 2026:
-  `build/generate-reuse-original.py` writes the two tables that list them, 1,662 files, from the original's tags
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,661 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
-  commit took over from the original's history before them) - the 1,632 files of the tree at one of those paths,
+  commit took over from the original's history before them) - the 1,631 files of the tree at one of those paths,
   letter case aside, but for the 2,870 third parties' files among them, the ten that its hand-kept `FORK_MADE`
   leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 30 files
   the fork moved, split or copied out of one of the original's to a path of its own, or that keep any of his text
@@ -1013,16 +1013,15 @@ with `--check`).
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices")
   and `LicenseRef-No-Licence-Stated` for the eight files of test data and the installer's routines and declarations
-  that no licence is stated for, and for the debugger rule of the original's developer tools,
-  `hmailserver/tools/VS2005/autoexp.dat`, which is Visual Studio's own rule for `std::basic_string<wchar_t>` from
-  the `autoexp.dat` of Visual Studio 2005 and 2008, its type renamed `CStdStr<wchar_t>` and its preview
-  and stringview laid out a token group to a line, and which names Microsoft beside Martin Knafve and the
-  maintainers under `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`, where the generated table gave it the
-  project's licence alone, and for the Windows tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`,
+  that no licence is stated for, and for the Windows tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`,
   Scott McMaster's class of 2004 from his CodeProject article, which states no licence (the original's note on it
   says its ReadMe lets it be used for any purposes, a ReadMe the tree does not hold), whose header the file keeps
-  and which names him beside Martin Knafve and the maintainers under the same expression, where the generated table
-  named neither him nor a licence of his - two of the eight the fuzzers' regression inputs, which the fuzzers' table gave
+  and which names him beside Martin Knafve and the maintainers under `AGPL-3.0-or-later AND
+  LicenseRef-No-Licence-Stated`, where the generated table named neither him nor a licence of his. The original's
+  debugger file for Visual Studio 2005 and 2008, `hmailserver/tools/VS2005/autoexp.dat`, whose one rule was Visual
+  Studio's own for `std::basic_string<wchar_t>` renamed, and which nothing builds or reads, is deleted, with its
+  table and its line in `build/source-exclusions.txt` and the Debian source package's `Files-Excluded`. Two of
+  the eight files of test data are the fuzzers' regression inputs, which the fuzzers' table gave
   the maintainers and the AGPL: the MIME fuzzer's `heap-buffer-overflow-findstring-boundary-scan`,
   which is Alt-N's DKIM reply, `altn.response.txt`, as the fuzzer changed it, and has that reply's record now, and
   the MIME decode fuzzer's `out-of-memory-mimeunicodeencoder-encodevalue`, which is a selector byte and Eland

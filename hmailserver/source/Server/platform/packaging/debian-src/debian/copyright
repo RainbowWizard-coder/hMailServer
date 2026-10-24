@@ -52,7 +52,6 @@ Files-Excluded:
  hmailserver/tools/SQLScriptCreator
  hmailserver/tools/TranslationExtractor
  hmailserver/tools/TranslationImporter
- hmailserver/tools/VS2005
  hmailserver/installation/Extras/7za.exe.license.txt
  hmailserver/installation/InnoSocketCheck
  hmailserver/installation/License.rtf

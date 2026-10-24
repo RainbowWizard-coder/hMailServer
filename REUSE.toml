@@ -1727,7 +1727,6 @@ path = [
     "hmailserver/tools/TranslationExtractor/TranslationExtractor.sln",
     "hmailserver/tools/TranslationImporter/TranslationImporter.csproj",
     "hmailserver/tools/TranslationImporter/TranslationImporter.sln",
-    "hmailserver/tools/VS2005/autoexp.dat",
     "libraries/README.md",
 ]
 precedence = "aggregate"
@@ -2356,31 +2355,6 @@ SPDX-FileCopyrightText = [
     "2005-2026 Martin Knafve / hMailServer.com",
     "2026 Christopher Holloway / Progressive Robot Ltd",
     "2002 Silvio Iaccarino",
-]
-SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
-
-# The original's debugger rule for its wide strings, kept unchanged from the
-# original's first commit (it is in 5.7.0 builds 2788 and 2843, and the original
-# removed it before build 3013 as an obsolete tool). Under a comment naming the type,
-# its one rule is Visual Studio's own rule for std::basic_string<wchar_t> in the
-# autoexp.dat of Visual Studio 2005 and 2008 (its visualizer rules came with 2005,
-# and Visual Studio 2010's autoexp.dat rewrote this one): the children block
-# character for character, its spacing included, and the preview and stringview the
-# same expressions laid out one token group to a line, with the type renamed
-# CStdStr<wchar_t>, StdString.h's template. Microsoft states no licence for that
-# text but Visual Studio's own terms for its users, so the rule is
-# LicenseRef-No-Licence-Stated: the project grants no licence for it and claims no
-# right in it. Microsoft is named beside Martin Knafve and the maintainers, whose the
-# comment and the layout are, under the project's licence. The source tarball, and
-# so the Debian source package, leaves the directory out
-# (build/source-exclusions.txt).
-[[annotations]]
-path = "hmailserver/tools/VS2005/autoexp.dat"
-precedence = "override"
-SPDX-FileCopyrightText = [
-    "Microsoft Corporation",
-    "2005-2026 Martin Knafve / hMailServer.com",
-    "2026 Christopher Holloway / Progressive Robot Ltd",
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
 
