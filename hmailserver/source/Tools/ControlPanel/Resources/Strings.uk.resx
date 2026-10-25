@@ -768,6 +768,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME увімкнено, але поле «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)» порожнє, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється. Перелічіть там імена вузлів, які має охоплювати сертифікат (наприклад, mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME увімкнено, але жодне ім'я в полі «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)» не може бути вказане в сертифікаті, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME увімкнено, але сертифікат ще не видано — у {0} немає обох файлів fullchain.pem і privkey.pem. Видача відбувається за власним розкладом сервера, тож протягом кількох хвилин після ввімкнення це нормально; якщо стан не змінюється, ЦС не зміг дістатися цього сервера, і сторінка «Контрольний список налаштування» перевіряє саме це.</value>
   </data>
@@ -7869,6 +7872,9 @@
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Без імені вузла сертифікат не можна випустити: додайте принаймні одне ім'я до імен вузлів нижче.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Сертифікат не можна випустити: жоден сертифікат не може містити {0}, тому сервер це пропускає. Потрібне ім'я вузла з літер, цифр і дефісів, інтернаціоналізоване у формі xn--, без символу підстановки й IP-адреси.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Файл сертифіката не налаштовано, тому цей запис не може використовувати жоден порт TLS.</value>
@@ -18718,6 +18724,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: за адресою {1} TXT-запис не знайдено, тому отримувачі не можуть перевірити підписи цього домену й можуть вважати його пошту підробленою. Опублікуйте запис у свого DNS-хостера — або, якщо ви щойно це зробили, дочекайтеся поширення й натисніть «Оновити».</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: жоден сертифікат не може містити це ім'я, тому сервер пропускає його в кожному замовленні — потрібне ім'я вузла з літер, цифр і дефісів, інтернаціоналізоване у формі xn--, без символу підстановки й IP-адреси. Виправте його або вилучіть із поля «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)».</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: файл закритого ключа не задано, тому цей сертифікат не може використовувати жоден слухач.</value>

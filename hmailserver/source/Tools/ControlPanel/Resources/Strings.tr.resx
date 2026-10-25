@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME etkin ama Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' boş; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur. Sertifikanın kapsaması gereken ana bilgisayar adlarını orada listeleyin (örneğin mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME etkin ama Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' içindeki hiçbir ad bir sertifikada yer alamıyor; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME açık ama henüz sertifika verilmemiş - fullchain.pem ve privkey.pem dosyalarının ikisi birden {0} içinde değil. Sertifika verme işlemi sunucunun kendi zamanlamasına göre olur; bu yüzden özelliği açtıktan sonraki birkaç dakika boyunca bu normaldir. Sürerse, CA bu sunucuya ulaşamamış demektir ve Kurulum kontrol listesi sayfası tam olarak bunu denetler.</value>
   </data>
@@ -7781,6 +7784,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Ana bilgisayar adı olmadan sertifika verilemez: aşağıdaki ana bilgisayar adlarına en az bir tane ekleyin.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Sertifika verilemez: hiçbir sertifika {0} adını taşıyamaz, bu yüzden sunucu onu dışarıda bırakır. Harf, rakam ve kısa çizgiden oluşan bir ana bilgisayar adı gerekir; uluslararası bir ad xn-- biçiminde yazılır, joker karakter veya IP adresi olmadan.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Hiç sertifika dosyası yapılandırılmamış; bu yüzden bu girdi hiçbir TLS portu tarafından kullanılamaz.</value>
@@ -18273,6 +18279,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: {1} konumunda TXT kaydı bulunamadı; bu yüzden alıcılar bu etki alanının imzalarını doğrulayamaz ve postasını sahte sayabilir. Kaydı DNS sağlayıcınızda yayımlayın - ya da az önce yayımladıysanız yayılmasını bekleyip Yenile'ye basın.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: hiçbir sertifika bu adı taşıyamaz, bu yüzden sunucu onu her siparişin dışında bırakır - harf, rakam ve kısa çizgiden oluşan bir ana bilgisayar adı gerekir; uluslararası bir ad xn-- biçiminde yazılır, joker karakter veya IP adresi olmadan. Düzeltin ya da Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' listesinden çıkarın.</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: özel anahtar dosyası ayarlanmamış; bu yüzden bu sertifika hiçbir dinleyici tarafından kullanılamaz.</value>

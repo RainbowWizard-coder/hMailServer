@@ -925,6 +925,20 @@ with `--check`).
 
 ### Control Panel
 
+- **Fixed: the *Automatic certificates (ACME)* page and the Setup checklist read `AcmeDomains` as the server does
+  (GitLab work item 98).** The server now leaves out of the check and the order a name no certificate can carry - a
+  wildcard, an IP address, a name past ASCII, one holding a space or a semicolon - and with only such names asks the
+  CA for nothing, as with none; the Control Panel still took every name that was not blank for a host. With ACME on
+  and `AcmeDomains` holding only such names, the page said that no certificate had been issued yet and that, if this
+  persisted, the CA could not reach this server, and the Setup checklist asked for each name's public DNS record and
+  open challenge port. `Services/AcmeHostNames.cs` now reads the list as `AcmeClient::ParseDomainList` does - trimmed,
+  in lower case, one final dot off, `IsUsableHostName`'s rule - and names the ones it leaves out as written: the page
+  says at Critical that no certificate can be issued, naming them, before anything about the network, and the
+  checklist asks for DNS and the port for the hosts the server orders for alone, says of each name left out that no
+  certificate can name it, and with no host left says that no certificate is ever requested. Three new texts, in the
+  seventeen languages; `AcmeCertificateStateTests` holds the reading, case for case with the server's self-test, and
+  the page's and the checklist's use of it.
+
 - **Fixed: the Logging page named the log destination "0 (a value this Control Panel does not know)" on every
   installation that had never chosen one.** Every CreateTables script inserts `logdevice` 0, `hLogDeviceUnknown`, and
   the server writes the log files for it as it does for 2, `hLogDeviceFile`: `Logger::SetLogDevice` starts the

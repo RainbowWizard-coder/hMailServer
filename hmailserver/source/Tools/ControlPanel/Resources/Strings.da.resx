@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME er aktiveret, men 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME) er tom, så der anmodes aldrig om et certifikat - klienten logger 'No domains configured' og stopper. Angiv dér de værtsnavne, certifikatet skal dække (for eksempel mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME er aktiveret, men intet navn i 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME) kan stå i et certifikat, så der anmodes aldrig om et certifikat - klienten logger 'No domains configured' og stopper.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME er slået til, men der er endnu ikke udstedt noget certifikat - fullchain.pem og privkey.pem ligger ikke begge i {0}. Udstedelsen sker efter serverens egen tidsplan, så dette er normalt i nogle minutter efter aktiveringen; hvis det fortsætter, kunne CA'en ikke nå denne server, og siden Tjekliste til opsætning kontrollerer netop det.</value>
   </data>
@@ -7781,6 +7784,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Der kan ikke udstedes et certifikat uden et værtsnavn: tilføj mindst ét til værtsnavnene nedenfor.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Der kan ikke udstedes et certifikat: intet certifikat kan indeholde {0}, som serveren derfor udelader. Der skal bruges et værtsnavn af bogstaver, cifre og bindestreger, et internationaliseret i sin xn---form, uden jokertegn og IP-adresse.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Der er ikke konfigureret nogen certifikatfil, så denne post kan ikke bruges af nogen TLS-port.</value>
@@ -18273,6 +18279,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: der blev ikke fundet nogen TXT-post på {1}, så modtagere kan ikke verificere dette domænes signaturer og kan behandle dets post som forfalsket. Offentliggør posten hos din DNS-vært - eller, hvis du lige har gjort det, så vent på udbredelsen, og tryk på Opdatér.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: intet certifikat kan indeholde dette navn, så serveren udelader det af hver bestilling - der skal bruges et værtsnavn af bogstaver, cifre og bindestreger, et internationaliseret i sin xn---form, uden jokertegn og IP-adresse. Ret det, eller fjern det fra 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME).</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: der er ikke angivet nogen privat nøglefil, så dette certifikat kan ikke bruges af nogen lytter.</value>

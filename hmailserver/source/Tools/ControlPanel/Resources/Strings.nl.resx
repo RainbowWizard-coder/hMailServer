@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME is ingeschakeld maar geen enkele naam in 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME) kan in een certificaat staan, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Configuratiechecklist controleert precies dat.</value>
   </data>
@@ -7781,6 +7784,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Zonder hostnaam kan geen certificaat worden uitgegeven: voeg er hieronder ten minste één toe aan de hostnamen.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Er kan geen certificaat worden uitgegeven: geen certificaat kan {0} noemen, dat de server daarom weglaat. Nodig is een hostnaam van letters, cijfers en koppeltekens, een geïnternationaliseerde in zijn xn--vorm, zonder jokerteken of IP-adres.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Er is geen certificaatbestand geconfigureerd, dus deze vermelding kan door geen enkele TLS-poort worden gebruikt.</value>
@@ -18273,6 +18279,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: er is geen TXT-record gevonden op {1}, dus ontvangers kunnen de handtekeningen van dit domein niet verifiëren en beschouwen zijn mail mogelijk als vervalst. Publiceer het record bij uw DNS-provider - of, als u dat net hebt gedaan, wacht op propagatie en druk op Vernieuwen.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: geen certificaat kan deze naam noemen, dus de server laat hem weg uit elke bestelling - nodig is een hostnaam van letters, cijfers en koppeltekens, een geïnternationaliseerde in zijn xn--vorm, zonder jokerteken of IP-adres. Verbeter hem of haal hem weg uit 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME).</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: er is geen privésleutelbestand ingesteld, dus dit certificaat kan door geen enkele listener worden gebruikt.</value>

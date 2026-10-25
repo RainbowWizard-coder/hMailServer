@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME est activé mais « Noms d'hôte pour le certificat » est vide sur la page Certificats automatiques (ACME), aucun certificat n'est donc jamais demandé - le client consigne « No domains configured » et s'arrête. Listez-y les noms d'hôte que le certificat doit couvrir (par exemple mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME est activé mais aucun nom de « Noms d'hôte pour le certificat » sur la page Certificats automatiques (ACME) ne peut figurer dans un certificat, aucun certificat n'est donc jamais demandé - le client consigne « No domains configured » et s'arrête.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME est activé mais aucun certificat n'a encore été émis - fullchain.pem et privkey.pem ne sont pas tous les deux dans {0}. L'émission se fait selon la planification propre du serveur, c'est donc normal pendant quelques minutes après l'activation ; si cela persiste, l'AC n'a pas pu atteindre ce serveur, et la page Liste de configuration vérifie exactement cela.</value>
   </data>
@@ -7781,6 +7784,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Aucun certificat ne peut être émis sans nom d'hôte : ajoutez-en au moins un aux noms d'hôte ci-dessous.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Aucun certificat ne peut être émis : aucun certificat ne peut nommer {0}, que le serveur laisse donc de côté. Il faut un nom d'hôte fait de lettres, de chiffres et de traits d'union, un nom internationalisé sous sa forme xn--, sans caractère générique ni adresse IP.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Aucun fichier de certificat n'est configuré : cette entrée ne peut donc être utilisée par aucun port TLS.</value>
@@ -18273,6 +18279,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0} : aucun enregistrement TXT n'a été trouvé à {1}, si bien que les destinataires ne peuvent pas vérifier les signatures de ce domaine et peuvent considérer son courrier comme forgé. Publiez l'enregistrement chez votre fournisseur DNS - ou, si vous venez de le faire, attendez la propagation et appuyez sur Rafraîchir.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0} : aucun certificat ne peut nommer ce nom, le serveur le laisse donc de côté dans chaque commande - il faut un nom d'hôte fait de lettres, de chiffres et de traits d'union, un nom internationalisé sous sa forme xn--, sans caractère générique ni adresse IP. Corrigez-le ou retirez-le de « Noms d'hôte pour le certificat » sur la page Certificats automatiques (ACME).</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0} : aucun fichier de clé privée n'est défini, ce certificat ne peut donc être utilisé par aucun écouteur.</value>

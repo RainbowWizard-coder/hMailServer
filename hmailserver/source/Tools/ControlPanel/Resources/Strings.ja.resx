@@ -773,6 +773,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME は有効ですが [自動証明書 (ACME)] ページの「証明書のホスト名」が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。そこに証明書に含めるホスト名を列挙してください (例: mail.example.com、mta-sts.example.com)。</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME は有効ですが [自動証明書 (ACME)] ページの「証明書のホスト名」にある名前はどれも証明書に記載できないため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME は有効になっていますが、まだ証明書が発行されていません。fullchain.pem と privkey.pem の両方が {0} にそろっていません。発行はサーバー自身のスケジュールで行われるため、有効にしてから数分間はこの状態が普通です。それが続く場合は、CA がこのサーバーに到達できていません。「セットアップ チェックリスト」ページがまさにそれを確認します。</value>
   </data>
@@ -7792,6 +7795,9 @@
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>ホスト名がないと証明書を発行できません。下のホスト名に少なくとも 1 つ追加してください。</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>証明書を発行できません: {0} はどの証明書にも記載できないため、サーバーはこれを除外します。英字、数字、ハイフンからなるホスト名が必要です。国際化ドメイン名は xn-- 形式で記述し、ワイルドカードや IP アドレスは使えません。</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>証明書ファイルが設定されていないため、このエントリはどの TLS ポートでも使えません。</value>
@@ -18284,6 +18290,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: {1} に TXT レコードが見つからなかったため、受信側はこのドメインの署名を検証できず、そのメールを偽造と見なす可能性があります。DNS ホストでこのレコードを公開してください。今公開したばかりなら、伝播を待ってから「更新」を押してください。</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: この名前はどの証明書にも記載できないため、サーバーはすべての注文からこれを除外します。英字、数字、ハイフンからなるホスト名が必要です。国際化ドメイン名は xn-- 形式で記述し、ワイルドカードや IP アドレスは使えません。[自動証明書 (ACME)] ページの「証明書のホスト名」で修正するか、削除してください。</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: 秘密キー ファイルが設定されていないため、この証明書はどのリスナーでも使用できません。</value>

@@ -1571,11 +1571,13 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// ACME certificate issuance. Verified against AcmeClient: enabled with no
-      /// AcmeDomains it logs "No domains configured" and does nothing. Beyond
-      /// that, http-01 issuance stands or falls on something no code here can
-      /// see: whether the CA, out on the internet, can reach this server on the
-      /// challenge port - firewalls, NAT and public DNS are all outside both
-      /// the server and this panel.
+      /// AcmeDomains it logs "No domains configured" and does nothing, and a name
+      /// no certificate can carry (a wildcard, an IP address, a name past ASCII,
+      /// AcmeHostNames) it leaves out of the check and the order - with only such
+      /// names, as if there were none. Beyond that, http-01 issuance stands or
+      /// falls on something no code here can see: whether the CA, out on the
+      /// internet, can reach this server on the challenge port - firewalls, NAT
+      /// and public DNS are all outside both the server and this panel.
       /// </summary>
       private SetupItem AcmeItem(IniFeatureStore ini, bool iniReadable, string iniExcuse)
       {
@@ -1604,13 +1606,28 @@ namespace hMailServer.ControlPanel.Services
          string domainList = ini.Read("AcmeDomains", "").Trim();
          int challengePort = ReadIniInt(ini, "AcmeHttpPort", 80);
 
-         var names = domainList.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+         // As the server reads the list: the hosts it orders for, and the names it
+         // leaves out because no certificate can carry them.
+         IReadOnlyList<string> names = AcmeHostNames.Usable(domainList);
+         IReadOnlyList<string> leftOut = AcmeHostNames.Unusable(domainList);
 
-         if (names.Count == 0)
+         foreach (string name in leftOut)
+         {
+            item.Add(SetupItemState.ActionNeeded,
+               F("{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page.", name));
+         }
+
+         if (names.Count == 0 && leftOut.Count == 0)
          {
             // Verified: RequestCertificate logs and returns before contacting the CA.
             item.Add(SetupItemState.ActionNeeded,
                L("ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)."));
+         }
+         else if (names.Count == 0)
+         {
+            // The same as an empty list to the server: every name is left out.
+            item.Add(SetupItemState.ActionNeeded,
+               L("ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops."));
          }
          else
          {

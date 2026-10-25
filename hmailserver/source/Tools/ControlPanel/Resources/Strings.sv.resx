@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME är aktiverat men 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME) är tomt, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar. Lista där värdnamnen certifikatet ska täcka (till exempel mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME är aktiverat men inget namn i 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME) kan stå i ett certifikat, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME är på men inget certifikat har utfärdats ännu - fullchain.pem och privkey.pem finns inte båda i {0}. Utfärdandet sker enligt serverns eget schema, så det här är normalt några minuter efter aktiveringen; om det består kunde CA:n inte nå den här servern, och sidan Konfigurationschecklista kontrollerar exakt det.</value>
   </data>
@@ -7781,6 +7784,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Inget certifikat kan utfärdas utan ett värdnamn: lägg till minst ett bland värdnamnen nedan.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Inget certifikat kan utfärdas: inget certifikat kan nämna {0}, som servern därför utelämnar. Det behövs ett värdnamn av bokstäver, siffror och bindestreck, ett internationaliserat i sin xn---form, utan jokertecken och IP-adress.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Ingen certifikatfil är konfigurerad, så den här posten kan inte användas av någon TLS-port.</value>
@@ -18273,6 +18279,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: ingen TXT-post hittades på {1}, så mottagare kan inte verifiera den här domänens signaturer och kan behandla dess post som förfalskad. Publicera posten hos din DNS-leverantör - eller, om du nyss gjorde det, vänta på spridning och tryck på Uppdatera.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: inget certifikat kan nämna detta namn, så servern utelämnar det ur varje beställning - det behövs ett värdnamn av bokstäver, siffror och bindestreck, ett internationaliserat i sin xn---form, utan jokertecken och IP-adress. Rätta det eller ta bort det från 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME).</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: ingen privat nyckelfil är satt, så det här certifikatet kan inte användas av någon lyssnare.</value>

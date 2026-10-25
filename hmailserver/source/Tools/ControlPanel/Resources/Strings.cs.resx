@@ -768,6 +768,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>ACME je zapnuto, ale pole „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) je prázdné, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí. Uveďte tam názvy hostitelů, které má certifikát pokrývat (například mail.example.com, mta-sts.example.com).</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>ACME je zapnuto, ale žádný název v poli „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) nemůže být uveden v certifikátu, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí.</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME je zapnuto, ale zatím nebyl vydán žádný certifikát – v {0} nejsou oba soubory fullchain.pem a privkey.pem. Vydání probíhá podle vlastního plánu serveru, takže je to pár minut po zapnutí normální; pokud to přetrvává, certifikační autorita na tento server nedosáhla a stránka Kontrolní seznam nastavení kontroluje přesně to.</value>
   </data>
@@ -7869,6 +7872,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>Bez názvu hostitele nelze vydat žádný certifikát: přidejte alespoň jeden do názvů hostitelů níže.</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>Nelze vydat žádný certifikát: {0} nemůže být uvedeno v žádném certifikátu, a server to proto vynechává. Je potřeba název hostitele z písmen, číslic a pomlček, internacionalizovaný ve tvaru xn--, bez zástupného znaku a bez adresy IP.</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Není nastaven žádný soubor certifikátu, takže tuto položku nemůže použít žádný TLS port.</value>
@@ -18718,6 +18724,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: na {1} nebyl nalezen žádný TXT záznam, takže příjemci nemohou ověřit podpisy této domény a mohou její poštu považovat za padělanou. Publikujte záznam u svého poskytovatele DNS – nebo, pokud jste to právě udělali, počkejte na propagaci a stiskněte Obnovit.</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}: tento název nemůže být uveden v žádném certifikátu, a server ho proto vynechává z každé objednávky – je potřeba název hostitele z písmen, číslic a pomlček, internacionalizovaný ve tvaru xn--, bez zástupného znaku a bez adresy IP. Opravte ho nebo ho odeberte z pole „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME).</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}: není nastaven žádný soubor soukromého klíče, takže tento certifikát nemůže použít žádný listener.</value>

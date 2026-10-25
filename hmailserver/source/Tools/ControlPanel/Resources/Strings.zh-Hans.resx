@@ -762,6 +762,9 @@
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
     <value>已启用 ACME，但“自动证书（ACME）”页上的“证书的主机名”为空，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。请在那里列出证书应涵盖的主机名（例如 mail.example.com、mta-sts.example.com）。</value>
   </data>
+  <data name="ACME is on, but no name in 'Host names for the certificate' on the Automatic certificates (ACME) page can be named in a certificate, so no certificate is ever requested - the client logs 'No domains configured' and stops." xml:space="preserve">
+    <value>已启用 ACME，但“自动证书（ACME）”页上的“证书的主机名”中没有一个名称能写入证书，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。</value>
+  </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME 已打开，但尚未颁发任何证书 - fullchain.pem 和 privkey.pem 并未同时位于 {0} 中。颁发按服务器自己的计划进行，因此启用后的几分钟内出现这种情况是正常的；如果一直如此，说明 CA 无法访问到本服务器，而“设置清单”页检查的正是这一点。</value>
   </data>
@@ -7781,6 +7784,9 @@
   </data>
   <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
     <value>没有主机名就无法颁发证书：请在下面的主机名中至少添加一个。</value>
+  </data>
+  <data name="No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address." xml:space="preserve">
+    <value>无法颁发证书：任何证书都无法包含 {0}，因此服务器将其排除。需要由字母、数字和连字符组成的主机名，国际化名称须写成 xn-- 形式，且不能是通配符或 IP 地址。</value>
   </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>未配置证书文件，因此任何 TLS 端口都无法使用此条目。</value>
@@ -18273,6 +18279,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}: no TXT record was found at {1}, so receivers cannot verify this domain's signatures and may treat its mail as forged. Publish the record at your DNS host - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}：在 {1} 未找到 TXT 记录，因此接收方无法验证此域的签名，可能会把它的邮件当作伪造的。请在您的 DNS 托管商处发布该记录 - 或者，如果您刚刚发布过，请等待传播并按“刷新”。</value>
+  </data>
+  <data name="{0}: no certificate can name this, so the server leaves it out of every order - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address. Correct it or take it off 'Host names for the certificate' on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>{0}：任何证书都无法包含此名称，因此服务器在每次订购中都将其排除 - 需要由字母、数字和连字符组成的主机名，国际化名称须写成 xn-- 形式，且不能是通配符或 IP 地址。请在“自动证书（ACME）”页上的“证书的主机名”中更正或删除它。</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
     <value>{0}：未设置私钥文件，因此任何监听器都无法使用此证书。</value>

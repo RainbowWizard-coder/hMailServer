@@ -1641,6 +1641,21 @@ namespace hMailServer.ControlPanel.Views
             };
          }
 
+         // Names written, and none the server can order for - a wildcard, an address, a
+         // name past ASCII: the server leaves each out, finds no name left and asks the
+         // CA for nothing, which is the same state, and the same misdirection to the
+         // network if it is not said here.
+         string acmeDomains = LiveText_("AcmeDomains", "");
+         if (AcmeHostNames.Usable(acmeDomains).Count == 0)
+         {
+            return new WarningState
+            {
+               Level = StatusLevel.Critical,
+               Text = F("No certificate can be issued: no certificate can name {0}, which the server leaves out. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.",
+                  string.Join(", ", AcmeHostNames.Unusable(acmeDomains)))
+            };
+         }
+
          if (!ServerSession.IsLocalSession)
          {
             return new WarningState
