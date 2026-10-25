@@ -20,8 +20,9 @@
 # Run inside a container it made, it updates the server instead (the 'update' it
 # leaves in /usr/bin), as the Helper-Scripts' ct scripts do.
 #
-# Every answer is a variable, so it runs unattended; asked at a terminal, it shows
-# what it will make and waits for a yes (var_yes=yes skips the question):
+# Every answer is a variable. It shows what it will make and, at a terminal, waits
+# for a yes; with no terminal to ask at (a pipe, ssh without -t) it changes nothing
+# unless var_yes=yes, which also skips the question at a terminal:
 #   var_ctid          the container's ID; default the next free one (pvesh get /cluster/nextid)
 #   var_hostname      hmailserver
 #   var_cpu, var_ram, var_swap, var_disk
@@ -49,7 +50,10 @@
 #   var_dry_run       yes: print every command that would change the host, change nothing
 #                     (the same as --dry-run: bash ct/hmailserver.sh --dry-run, or with
 #                     bash -c, whose first word after the script is the script's $0,
-#                     bash -c "$(curl ...)" _ --dry-run; a $0 of --dry-run is taken too)
+#                     bash -c "$(curl ...)" _ --dry-run; a $0 that begins with - is
+#                     taken as an argument too, so --dry-run and -h work there, and
+#                     any other is refused). Inside the container, update --dry-run
+#                     prints the commands of an update and runs none
 # and the install script's, passed on to it in a file of mode 0600 (never on a
 # command line): var_hm_version, var_db, var_db_host, var_db_port, var_db_name,
 # var_db_user, var_db_password, var_rest_port.
@@ -69,16 +73,18 @@ say() { printf '  - %s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
 
 var_dry_run="${var_dry_run:-no}"
-# bash -c "$(curl ...)" --dry-run hands --dry-run over as $0, not $1: it is read here
-# too, and any other $0 that begins with -- is refused rather than ignored.
+# bash -c "$(curl ...)" --dry-run hands --dry-run over as $0, not $1: a $0 that begins
+# with - is read as an argument too, so that an option there is either taken or
+# refused, never ignored. No shell, script or 'update' is called by such a name.
 first=()
-case "$0" in --*) first=("$0") ;; *) ;; esac
+case "$0" in -*) first=("$0") ;; *) ;; esac
 for argument in "${first[@]}" "$@"; do
   case "$argument" in
     --dry-run) var_dry_run=yes ;;
     -h | --help)
       sed -n '/^# Progressive Robot/,/^set -Eeuo/p' "${BASH_SOURCE[0]:-}" 2> /dev/null | sed '$d' | sed 's/^# \{0,1\}//' \
-        || printf 'See hmailserver/docs/Proxmox.md\n'
+        || printf 'ct/hmailserver.sh [--dry-run | --help]; every answer is a var_* variable.\nSee hmailserver/docs/Proxmox.md, or the comment at the head of %s\n' \
+          "$RAW/master/$SCRIPT_PATH/ct/hmailserver.sh"
       exit 0
       ;;
     *) fail "unknown argument $argument (--dry-run, --help)" ;;
@@ -292,7 +298,9 @@ if dry; then
 else
   say "this changes the host: nothing has been changed yet"
 fi
-if ! dry && [ "${var_yes:-no}" != yes ] && [ -t 0 ]; then
+if ! dry && [ "${var_yes:-no}" != yes ]; then
+  # Nothing changes the host unasked: with no terminal to ask at, var_yes=yes is the yes.
+  [ -t 0 ] || fail "not created: there is no terminal to ask at; give var_yes=yes to create it without the question, or var_dry_run=yes to see what it would run"
   read -r -p "Create it? [y/N] " answer
   case "$answer" in y | Y | yes | YES) ;; *) fail "not created" ;; esac
 fi
@@ -332,9 +340,10 @@ run pct exec "$ctid" -- bash /usr/local/sbin/hmailserver-lxc install --env-file 
 # 'update' in the container: this script from the same ref, which then updates the server
 # with the install script of that ref. A fetch that fails stops it: bash -c of nothing
 # would end with status 0 and update nothing.
-# The $script is the wrapper's own, read when 'update' runs.
+# The $script is the wrapper's own, read when 'update' runs; its arguments go on to
+# that script ('update --dry-run'), whose $0 is then 'update'.
 # shellcheck disable=SC2016
-printf '#!/bin/sh\n# Made by ct/hmailserver.sh: run inside its container, that script updates the server.\nset -eu\nurl=%s/%s/%s/ct/hmailserver.sh\nscript=$(curl -fsSL --proto =https "$url") || { echo "update: $url could not be fetched" >&2; exit 1; }\nvar_scripts_ref=%s\nexport var_scripts_ref\nexec bash -c "$script"\n' \
+printf '#!/bin/sh\n# Made by ct/hmailserver.sh: run inside its container, that script updates the server.\nset -eu\nurl=%s/%s/%s/ct/hmailserver.sh\nscript=$(curl -fsSL --proto =https "$url") || { echo "update: $url could not be fetched" >&2; exit 1; }\nvar_scripts_ref=%s\nexport var_scripts_ref\nexec bash -c "$script" update "$@"\n' \
   "$RAW" "$var_scripts_ref" "$SCRIPT_PATH" "$var_scripts_ref" > "$work/update"
 run pct push "$ctid" "$work/update" /usr/bin/update --perms 0755
 

@@ -46,8 +46,10 @@ bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/master/hm
 It prints what it will make - the container's ID (the next free one), its name,
 resources, storage, template and network, the install script it will run and the
 database - and whether this is a dry run or a run that changes the host, and asks
-before it changes anything. Every answer is a variable, given in front of the
-command; `var_yes=yes` makes it run without the question:
+before it changes anything. It can ask only at a terminal: run without one (from a
+pipe, or over `ssh` without `-t`) it stops there and changes nothing, unless it is
+given `var_yes=yes`. Every answer is a variable, given in front of the command;
+`var_yes=yes` makes it run without the question, at a terminal or not:
 
 ```sh
 var_ctid=120 var_hostname=mail var_ram=4096 var_disk=32 var_net=192.0.2.25/24 var_gateway=192.0.2.1 var_yes=yes \
@@ -80,8 +82,9 @@ bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/master/hm
 ```
 
 `bash -c` gives the first word after the script to the script as its `$0`, not as
-an argument, which is what the `_` is for; the script takes a `$0` of `--dry-run` as
-well, and refuses any other that begins with `--`.
+an argument, which is what the `_` is for; the script reads a `$0` that begins with
+`-` as an argument as well, so that `--dry-run` and `-h` there do what they say and
+any other such word is refused rather than ignored.
 
 The template is Proxmox VE's own `debian-13-standard`. If the template storage has
 one already, the newest there is used as it is: nothing is downloaded, and it may
@@ -139,12 +142,15 @@ machine with systemd, as root: `hmailserver-lxc install`).
    `tuf-repo-cdn.sigstore.dev` for this, so the container must be able to reach it.
 4. **Other mail servers and the ports.** Proxmox VE's `debian-13-standard` template
    comes with Postfix, running and listening on port 25 of the loopback; with it
-   there, the server would start without port 25 and answer on the others. Every
-   package installed that provides `mail-transport-agent` (Postfix, Exim and the
-   like) has its systemd units stopped and is removed with `apt-get remove`, which
-   keeps its configuration (`apt-get install postfix` puts it back), and the install
-   says so. If such a server has mail in its queue, the install stops instead, with
-   nothing removed. Then the ports the server takes - 25, 110, 143, 587 and
+   there, the server would start without port 25 and answer on the others. Postfix
+   or Exim, if installed, has its systemd units stopped and is removed with
+   `apt-get remove`, which keeps its configuration (`apt-get install postfix` puts
+   it back), and the install says so, and whether it held port 25. If its queue
+   holds mail, the install stops instead, with nothing removed. Any other installed
+   package that provides `mail-transport-agent` (sendmail, OpenSMTPD, nullmailer,
+   dma, msmtp-mta and the rest) stops the install, named, with nothing removed: the
+   install does not read its queue, so deliver what it holds, remove it yourself and
+   run the install again. Then the ports the server takes - 25, 110, 143, 587 and
    `var_rest_port` - must be free: if anything listens on one, the install stops,
    naming it, before the package is installed.
 5. **The package,** with `apt-get`, which takes its dependencies from Debian's
@@ -182,15 +188,38 @@ a mail server that cannot reach other servers on it can only receive.
 ### When the install stops
 
 The install stops at the first step that fails, with `HMAILSERVER-LXC FAILED:` and
-the reason. Up to and including step 4 nothing of the server is installed (though
-step 4 may have removed another mail server, as it says): fix the cause and run
-`hmailserver-lxc install` again. From step 5 on, the package is installed, and
-`hmailserver-lxc install` refuses to run again on this machine. If the administrator's
-password had been set (step 7), it is printed with the failure, once, as it would
-have been at the end; if it is lost, `hmailserver --set-admin-password`, run as root,
-sets another (it reads it from standard input). On a Proxmox VE host, the simplest
-way to start again is to remove the container (`pct stop <ID>` and `pct destroy
-<ID>`) and run the host's command again.
+the reason. If the administrator's password had been set (step 7), it is printed
+with the failure, once, as it would have been at the end; if it is lost, `hmailserver
+--set-admin-password`, run as root, sets another (it reads it from standard input).
+
+On a Proxmox VE host, whatever the failure, the simplest way to start again is to
+remove the container (`pct stop <ID>` and `pct destroy <ID>`), fix the cause and run
+the host's command again, with the same variables. The host's script stops when the
+install does, before it leaves `update` in the container, and the variables it passed
+on are gone from the container, since the install deletes their file once it has
+read them.
+
+To start again in the same container, or on another Debian 13 machine:
+
+- **A failure up to and including step 4** leaves nothing of the server installed
+  (though step 4 may have removed Postfix or Exim, as it says). Fix the cause and
+  run the install again, giving it its variables again in front of it, as root:
+  `var_db=external var_db_host=db.example.org var_db_password_file=/root/db-password
+  hmailserver-lxc install`, for example, or `hmailserver-lxc install` alone for the
+  defaults. `var_db_password_file` names a file whose first line is the password,
+  which keeps it off the command line.
+- **A failure from step 5 on** leaves the package installed, and `hmailserver-lxc
+  install` refuses to run again while it is. Nothing has reached the mailboxes yet,
+  so remove what the install made and run it again as above: `apt-get purge
+  hmailserver` (which leaves `/var/lib/hmailserver` and `/var/log/hmailserver`, as
+  it says), `rm -rf /var/lib/hmailserver /var/log/hmailserver
+  /root/hmailserver-stored-secrets.key /etc/hmailserver-lxc.conf`, and, with the
+  database in the container, its role and database (`runuser -u postgres -- dropdb
+  hmailserver` and `runuser -u postgres -- dropuser hmailserver`); with an
+  external one, drop and make again the database the install wrote its schema to.
+
+In a container the host's script made, `hmailserver-lxc update` does what `update`
+would have, with the install script already in the container.
 
 Updating
 --------
@@ -205,7 +234,11 @@ update
 Helper-Scripts do: it fetches `ct/hmailserver.sh` from the repository at the ref the
 container was made from, which, run inside its container, fetches the install script
 of that ref and runs `hmailserver-lxc update`. `hmailserver-lxc update` alone does the
-same with the copy already in the container. The update:
+same with the copy already in the container. `update` asks no question - running it
+is the yes - and its arguments go on to `ct/hmailserver.sh`: `update --dry-run` (or
+`var_dry_run=yes update`) fetches the scripts and prints the two commands it would
+run, the install script put in place and `hmailserver-lxc update`, and runs neither.
+The update:
 
 - does nothing when the newest release (or `var_hm_version`) is the installed one or
   older: it installs only a newer release, since `apt-get` installs nothing over
@@ -217,8 +250,16 @@ same with the copy already in the container. The update:
   (`pg_restore` puts it back);
 - stops the service, installs the package with `apt-get` - whose post-install step
   runs `hmailserver --upgrade-database` - and starts it, and asks port 25 (its
-  owner, its greeting and STARTTLS) and the REST API again (the status answers 401
-  without the password, which the update does not have).
+  owner, its greeting and STARTTLS) and the REST API again: the status must answer
+  401 without the password, which the update does not have. The REST API is asked
+  where the server has it then - `RestApiPort` and `RestApiBindAddress` in
+  `/etc/hmailserver/hMailServer.ini`, the server's copy of its stored settings (a
+  `[SettingsOverride]` line there first) - so a port moved with `hmailserver
+  --set-setting` since the install is followed, and a port of 0 skips the question.
+  No password is sent, so the certificate is not checked, and one put in the
+  install's place does not fail the update. A failure after the package was
+  installed says so: that the server was upgraded, from what to what, and whether
+  `hmailserver.service` is active.
 
 A snapshot of the container (`pct snapshot <ID> before-update`) before an update is
 the quickest way back from one that goes wrong.
@@ -258,20 +299,31 @@ Linux build machine of the project's (Docker 29):
   `ct/hmailserver.sh` run inside it took the update path: 6.3.7 verified, the
   database dumped (844 KiB), the package upgraded (its post-install step left the
   schema at 6108, the version 6.3.7 needs), and the server answered again, port 25
-  its own. A second `update`, `update` with `var_hm_version=6.3.6`, and one with the
-  `var_force=yes` of an earlier draft each said there was nothing to do and left the
-  server running.
+  its own. A second `update`, and `update` with `var_hm_version=6.3.6`, each said
+  there was nothing to do and left the server running. In another, the REST API was
+  moved to port 9443 with `hmailserver --set-setting` after the install and given a
+  certificate of another name: the update followed it there, and the status answered
+  401. In a third, with another program listening on `[::1]:25` beside the server,
+  the update upgraded the package and then failed at port 25's owner, saying that the
+  server had been upgraded from 6.3.6 to 6.3.7 and that `hmailserver.service` was
+  active.
 - **What the install refuses,** each in a fresh container of the template: a
   listener of another program on port 143 (refused before the package was
   installed, naming the program and its unit); a message in Postfix's queue (refused,
-  Postfix left installed and running); a second `hmailserver-lxc install`. With an
-  external database that is not there, the install failed at `--create-database`,
-  after the administrator's password had been set, and printed the password with
-  the failure, once; `hmailserver --set-admin-password` then set another. And
-  `ask_server`, the install's last step, run against a stand-in on port 25 that
-  greets as `220 hmailserver ESMTP` and offers STARTTLS, refused it as not the
-  server's; the scripts' first draft had taken it, and on the template that draft's
-  install failed with Postfix on port 25 and the server on the others.
+  Postfix left installed and running); nullmailer installed in Postfix's place with a
+  message in its queue (refused by name, nothing removed, the message still queued);
+  a second `hmailserver-lxc install`. With an external database that is not there,
+  the install failed at `--create-database`, after the administrator's password had
+  been set, and printed the password with the failure, once; `hmailserver
+  --set-admin-password` then set another. And `ask_server`, the install's last step,
+  run against a stand-in on port 25 that greets as `220 hmailserver ESMTP` and offers
+  STARTTLS, refused it as not the server's, and told a stand-in beside the server's
+  own socket from one that kept the server off the port.
+- **Exim and starting again:** with Exim installed in Postfix's place, the install
+  with `var_rest_port=0` stopped and removed it, saying it had held port 25, passed,
+  and said that the REST API and the Deck were off. That server, and the one whose
+  install had failed at `--create-database`, were then removed as [When the install
+  stops](#when-the-install-stops) says, and the install run again in each passed.
 - **The host's script, end to end, against stand-ins** of `pveversion`, `pvesh`,
   `pvesm`, `pveam` and `pct` that answer in Proxmox VE 9's form, `pct exec` and `pct
   push` acting on a container of the template, with `var_db=external` pointing at a
@@ -286,9 +338,12 @@ Linux build machine of the project's (Docker 29):
 - **The dry runs:** `var_dry_run=yes`, `bash ct/hmailserver.sh --dry-run`, `bash -c
   "$(cat ct/hmailserver.sh)" _ --dry-run` and `bash -c "$(cat ct/hmailserver.sh)"
   --dry-run`, with the stand-ins: no command that changes the host run, and the
-  summary saying it is a dry run (with the first draft, the last of these made the
-  container). Answered `n` at a terminal, the script changed nothing, `pveam update`
-  included. With no stand-ins, the dry run prints:
+  summary saying it is a dry run. Answered `n` at a terminal, the script changed
+  nothing, `pveam update` included, and run with no terminal and without
+  `var_yes=yes` it stopped at the question's place. `bash -c "$(cat
+  ct/hmailserver.sh)" -h` printed the help, and `-n` in its place was refused. Inside a container, with
+  a stand-in of the install script, `update --dry-run` printed the update's two
+  commands and ran neither. With no stand-ins, the dry run prints:
 
   ```text
   + pveam update
@@ -316,6 +371,7 @@ Linux build machine of the project's (Docker 29):
 What it does not show: Proxmox VE's own `pct create` and `pct start` with these
 arguments, `pveam`'s download of the template, an unprivileged container's user
 namespace and AppArmor profile (the container above has neither), `var_nesting=0`,
-a mail server other than the template's Postfix (Exim and the rest are removed the
-same way, untried), an arm64 machine, and `update` fetching the scripts from
-`master`, which holds them only once this change has landed.
+a mail server other than Postfix, Exim and nullmailer (the others are refused by
+name, as nullmailer is), starting again with an external database, an arm64
+machine, and `update` fetching the scripts from `master`, which holds them only once
+this change has landed.

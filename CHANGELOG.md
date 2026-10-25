@@ -1056,21 +1056,27 @@ with `--check`).
   `hmailserver/source/Server/platform/packaging/proxmox/`. `ct/hmailserver.sh`, run on a Proxmox VE 8 or 9 host as
   root, makes an unprivileged Debian 13 container from Proxmox VE's own template with the resources asked (2 cores,
   2 GiB, 16 GiB by default; every answer a `var_*` variable; nesting on, which systemd needs for the service's
-  sandbox; it says whether a run is a dry run, asks before it changes anything, `pveam update` included, and
-  `var_dry_run=yes` or `--dry-run`, which `bash -c` hands over as `$0`, prints every command that would change the
-  host and runs none), and copies in and runs `install/hmailserver-install.sh`, which installs the release's Debian 13
+  sandbox; it says whether a run is a dry run, asks at a terminal before it changes anything, `pveam update` included,
+  and with no terminal to ask at changes nothing unless given `var_yes=yes`, and `var_dry_run=yes` or `--dry-run`,
+  which `bash -c` hands over as `$0` - a `$0` that begins with `-` is read as an argument, so that `-h` there prints
+  the help and any other such word is refused - prints every command that would change the host and runs none), and
+  copies in and runs `install/hmailserver-install.sh`, which installs the release's Debian 13
   `.deb` for amd64 or arm64 (6.3.6 or later; an older release carries none, and the scripts spell out no version, as
   nothing under `packaging/` but its stamps may) only after `cosign verify-blob` from Debian's archive has verified it
   and the release's Linux sums as signed by the tag's pipeline, OpenSSL has read the project's id from each signing
   certificate and the package's SHA-256 is the signed sums' one line for it; stops and removes the template's
-  Postfix, which listens on port 25 of the loopback (any package that provides `mail-transport-agent`, unless its
-  queue holds mail) and refuses to go on, naming what listens, while anything holds 25, 110, 143, 587 or the REST
-  API's port; sets up PostgreSQL in the container (or an external server), the schema, the stored-secrets key
+  Postfix, which listens on port 25 of the loopback, or Exim, unless its queue holds mail, and stops, naming it and
+  removing nothing, at any other package that provides `mail-transport-agent`, whose queue it does not read; refuses
+  to go on, naming what listens, while anything holds 25, 110, 143, 587 or the REST API's port; sets up PostgreSQL
+  in the container (or an external server), the schema, the stored-secrets key
   exported to `/root`, the administrator's password generated and shown once - at the end, or with the failure if a
   later step fails - and in no file, and the Control Deck on HTTPS on port 8443 with a self-signed certificate; and
   then asks that port 25 be held by the service's user alone, and SMTP there for its greeting and STARTTLS and the REST
   API for its status. `update` inside the container moves it to a newer release the same way, after a `pg_dump` of a
-  database in the container. Nothing is fetched from GitHub, and the database password reaches the container in a
+  database in the container, and asks the REST API where `hMailServer.ini` then has it, its certificate unchecked
+  since no password is sent, so that a port or certificate changed since the install does not fail it; a failure
+  after the package was installed says that the server was upgraded; `update --dry-run` prints the commands of an
+  update and runs none. Nothing is fetched from GitHub, and the database password reaches the container in a
   file of mode 0600, never on a command line. No Proxmox VE host was available: the install, its refusals and the
   update from 6.3.6 to 6.3.7 ran in a container made from Proxmox VE's own `debian-13-standard` 13.6-1 template,
   checked against Proxmox's signed index, with systemd as PID 1, and the host's script end to end and in dry runs

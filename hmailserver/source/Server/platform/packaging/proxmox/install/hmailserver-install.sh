@@ -28,13 +28,15 @@
 #      certificate's extension with OpenSSL (SECURITY.md, "Verifying a release"), and the
 #      package's SHA-256 held to its line in the signed sums. Nothing is installed from a
 #      file that fails any of these. Nothing is fetched from GitHub.
-#   4. Any other mail server Debian has installed (a package that provides
-#      mail-transport-agent: Proxmox VE's Debian 13 template comes with Postfix, listening
-#      on port 25 of the loopback) removed with apt-get remove, which keeps its
-#      configuration, unless its queue holds mail, which stops the install; then the
-#      ports the server takes (25, 110, 143, 587 and var_rest_port) held to be free, and
-#      the install stopped, naming what listens there, if one is not. Then the package,
-#      with apt-get, which takes its dependencies from Debian's archive.
+#   4. Postfix or Exim, if Debian has installed it (Proxmox VE's Debian 13 template comes
+#      with Postfix, listening on port 25 of the loopback), stopped and removed with
+#      apt-get remove, which keeps its configuration, unless its queue holds mail, which
+#      stops the install; any other package that provides mail-transport-agent, whose
+#      queue is not read here, stops the install, naming it, for the administrator to
+#      empty and remove. Then the ports the server takes (25, 110, 143, 587 and
+#      var_rest_port) held to be free, and the install stopped, naming what listens
+#      there, if one is not. Then the package, with apt-get, which takes its
+#      dependencies from Debian's archive.
 #   5. The database: PostgreSQL from Debian's archive in this container (var_db=local,
 #      the default), with a role and an empty database of its own and a generated
 #      password; or a PostgreSQL server elsewhere (var_db=external) with the role and,
@@ -54,8 +56,11 @@
 # update does 2-3 and the package of 4 for a newer release - after a pg_dump of a
 # database in this container to /var/backups/hmailserver-lxc - with the service
 # stopped, and then 7 without the password, which it does not have: the status answers
-# 401 to a request without one. A release that is not newer than the installed one is
-# not installed.
+# 401 to a request without one, asked on the REST API's port and address as
+# hMailServer.ini has them then (the administrator may have moved them, or given the
+# listener another certificate, since the install). A release that is not newer than
+# the installed one is not installed, and a failure after the package was installed
+# says that it was.
 #
 # The variables, from the environment or from --env-file, which is read as shell
 # assignments and then deleted (ct/hmailserver.sh writes it with mode 0600, so that a
@@ -95,8 +100,15 @@ step() { printf '\n== %s\n' "$*"; }
 # after it was set shows it, as the end of an install that succeeds does, since it is
 # in no file. In this shell only, not a subshell's failure, so it is shown once.
 password_to_show=""
+# The release an update installed, once it is installed: a failure after that says so,
+# so that a failed check is not read as a failed upgrade.
+upgraded_to=""
 fail() {
   printf '\nHMAILSERVER-LXC FAILED: %s\n' "$*" >&2
+  if [ -n "$upgraded_to" ] && [ "$BASHPID" = "$$" ]; then
+    printf '\nThe package was upgraded to %s (it was %s) before this failure, and hmailserver.service is %s: what failed came after the upgrade, in the start or in the checks of the server that follow it.\n' \
+      "$upgraded_to" "$installed" "$(systemctl is-active hmailserver 2> /dev/null || true)" >&2
+  fi
   if [ -n "$password_to_show" ] && [ "$BASHPID" = "$$" ]; then
     printf '\nThe administrator'"'"'s password was set before this failure. It is shown this once and kept in no file:\n\n    %s\n\n' "$password_to_show" >&2
     printf 'The package is installed and the install did not finish; hmailserver-lxc install will not run again here.\n' >&2
@@ -291,11 +303,32 @@ random_text() {
 }
 
 wait_for_port() {
-  local port="$1" seconds="$2" started=$SECONDS
-  until (exec 3<> "/dev/tcp/127.0.0.1/$port") 2> /dev/null; do
+  # wait_for_port PORT SECONDS [ADDRESS]: ADDRESS 127.0.0.1 unless given.
+  local port="$1" seconds="$2" address="${3:-127.0.0.1}" started=$SECONDS
+  until (exec 3<> "/dev/tcp/$address/$port") 2> /dev/null; do
     [ "$((SECONDS - started))" -lt "$seconds" ] || return 1
     sleep 2
   done
+}
+
+# ini_setting NAME: NAME's value in hMailServer.ini, from [SettingsOverride], which the
+# server applies over its store, or else from [Settings], the server's copy of the
+# store; empty when neither has it. The name is matched without regard to case.
+ini_setting() {
+  awk -v want="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" '
+    { sub(/\r$/, "") }
+    /^[ \t]*\[/ { section = tolower($0); gsub(/[ \t]/, "", section); next }
+    /^[ \t]*[;#]/ { next }
+    {
+      i = index($0, "=")
+      if (i == 0) next
+      key = tolower(substr($0, 1, i - 1)); gsub(/[ \t]/, "", key)
+      if (key != want) next
+      value = substr($0, i + 1); sub(/^[ \t]+/, "", value); sub(/[ \t]+$/, "", value)
+      if (section == "[settingsoverride]") { override = value; overridden = 1 }
+      else if (section == "[settings]") setting = value
+    }
+    END { if (overridden) print override; else print setting }' "$INI"
 }
 
 # Mail servers Debian has installed besides this one: the packages that provide
@@ -311,13 +344,23 @@ mail_server_units() {
   for name in "$@"; do dpkg-query -L "$name" 2> /dev/null || true; done \
     | grep -E '^(/usr)?/lib/systemd/system/[^/]+\.(service|socket)$' | sed 's|.*/||' | sort -u || true
 }
-# The messages in Postfix's and Exim's queues, which removing the package would strand.
+# The mail servers whose queues queued_messages reads, and so the only ones the install
+# removes: Postfix (the template's) and Exim (Debian's default). Any other is left to
+# the administrator, since its queue is not read here.
+removable_mail_server() {
+  case "$1" in postfix | exim4-daemon-light | exim4-daemon-heavy) return 0 ;; *) return 1 ;; esac
+}
+# The messages in Postfix's and Exim's queues, which removing the package would strand:
+# a file a message in Postfix's, and a message's -H file in Exim's.
 queued_messages() {
-  local spool
-  for spool in /var/spool/postfix/maildrop /var/spool/postfix/incoming /var/spool/postfix/active \
-    /var/spool/postfix/deferred /var/spool/postfix/hold /var/spool/exim4/input; do
-    [ ! -d "$spool" ] || find "$spool" -type f
-  done | wc -l
+  {
+    local spool
+    for spool in /var/spool/postfix/maildrop /var/spool/postfix/incoming /var/spool/postfix/active \
+      /var/spool/postfix/deferred /var/spool/postfix/hold; do
+      [ ! -d "$spool" ] || find "$spool" -type f
+    done
+    [ ! -d /var/spool/exim4/input ] || find /var/spool/exim4/input -type f -name '*-H'
+  } | wc -l
 }
 # The listening TCP sockets on a port, IPv4 and IPv6, with their owners: ss -e gives
 # each socket's uid from the kernel's table (none when it is root's) and its cgroup,
@@ -325,6 +368,10 @@ queued_messages() {
 listeners() { ss -Hltnpe "sport = :$1" 2> /dev/null || true; }
 who_listens() {
   local users uid cgroup name
+  if [ -z "$1" ]; then
+    printf 'nothing ss can see\n'
+    return 0
+  fi
   users="$(printf '%s\n' "$1" | grep -o 'users:(([^)]*))' | head -n 1 || true)"
   uid="$(printf '%s\n' "$1" | grep -o 'uid:[0-9]*' | head -n 1 || true)"
   uid="${uid#uid:}"
@@ -337,15 +384,20 @@ who_listens() {
 # SMTP's greeting and EHLO on 25, then the REST API's status: with the password
 # when there is one (200), without it otherwise (401, which only the REST API gives).
 ask_server() {
-  local line extensions="" code held server_uid
+  local line extensions="" code held server_uid other rest_port rest_host url_host url where
   systemctl is-active --quiet hmailserver || { journalctl -u hmailserver -n 40 --no-pager >&2 || true; fail "hmailserver.service is not active"; }
   wait_for_port 25 120 || { journalctl -u hmailserver -n 40 --no-pager >&2 || true; fail "nothing answers on port 25 two minutes after the start"; }
   # Port 25 is the server's: every socket listening there is owned by the service's
   # user, so that another mail server's 220 is not taken for this one's.
   server_uid="$(id -u hmailserver)"
   held="$(listeners 25)"
-  if [ -z "$held" ] || printf '%s\n' "$held" | grep -qv "uid:$server_uid "; then
-    fail "port 25 is not the server's alone: it is held by $(who_listens "$(printf '%s\n' "$held" | grep -v "uid:$server_uid " | head -n 1)"), and the server's log in /var/log/hmailserver says why it could not bind (HM4316)"
+  [ -n "$held" ] || fail "port 25 answers, but ss lists no socket listening there, so whose it is cannot be told"
+  if printf '%s\n' "$held" | grep -qv "uid:$server_uid "; then
+    other="$(who_listens "$(printf '%s\n' "$held" | grep -v "uid:$server_uid " | head -n 1)")"
+    if printf '%s\n' "$held" | grep -q "uid:$server_uid "; then
+      fail "port 25 is not the server's alone: the server listens there, and so does $other"
+    fi
+    fail "port 25 is not the server's: it is held by $other, and the server's log in /var/log/hmailserver says why it could not bind (HM4316)"
   fi
   say "port 25: held by the server (user hmailserver)"
   exec 3<> /dev/tcp/127.0.0.1/25
@@ -361,23 +413,45 @@ ask_server() {
   case "$extensions" in *STARTTLS*) say "EHLO offers STARTTLS" ;; *) fail "EHLO does not offer STARTTLS" ;; esac
   printf 'QUIT\r\n' >&3
   exec 3>&-
-  if [ "$var_rest_port" = 0 ]; then
-    say "the REST API is off (var_rest_port=0)"
+  if [ "$mode" = install ]; then
+    rest_port="$var_rest_port"
+    rest_host=127.0.0.1
+    where="var_rest_port"
+  else
+    # The listener as the server has it now, which the administrator may have moved or
+    # given another certificate since the install: RestApiPort and RestApiBindAddress
+    # of the server's copy of its stored settings in hMailServer.ini.
+    rest_port="$(ini_setting RestApiPort)"
+    rest_port="${rest_port:-0}"
+    case "$(ini_setting RestApiBindAddress)" in
+      "" | 0.0.0.0 | 127.0.0.1) rest_host=127.0.0.1 ;;
+      :: | ::1) rest_host=::1 ;;
+      *) rest_host="$(ini_setting RestApiBindAddress)" ;;
+    esac
+    where="RestApiPort in $INI"
+  fi
+  printf '%s\n' "$rest_port" | grep -Eqx '[0-9]{1,5}' || fail "$where is '$rest_port', not a port"
+  if [ "$rest_port" = 0 ]; then
+    say "the REST API is off ($where is 0)"
     return 0
   fi
-  wait_for_port "$var_rest_port" 60 || fail "nothing answers on the REST API's port $var_rest_port"
+  url_host="$rest_host"
+  case "$url_host" in *:*) url_host="[$url_host]" ;; *) ;; esac
+  url="https://$url_host:$rest_port/api/v1/status"
+  wait_for_port "$rest_port" 60 "$rest_host" || fail "nothing answers on the REST API's port, $rest_host port $rest_port ($where)"
   if [ -n "${admin_password:-}" ]; then
-    # The password through curl's configuration on standard input, not its command line.
+    # The password through curl's configuration on standard input, not its command line,
+    # and only to the certificate the install has just made.
     code="$(printf 'user = "Administrator:%s"\n' "$admin_password" \
-      | curl -sS -o "$work/status.json" -w '%{http_code}' -K - --cacert "$REST_CERTIFICATE" \
-        "https://127.0.0.1:$var_rest_port/api/v1/status")" || code=000
+      | curl -sS -o "$work/status.json" -w '%{http_code}' -K - --cacert "$REST_CERTIFICATE" "$url")" || code=000
     [ "$code" = 200 ] || fail "GET /api/v1/status answered $code with the administrator's password, not 200"
-    say "GET https://127.0.0.1:$var_rest_port/api/v1/status: 200 $(jq -c '{version, state} | with_entries(select(.value != null))' "$work/status.json" 2> /dev/null || true)"
+    say "GET $url: 200 $(jq -c '{version, state} | with_entries(select(.value != null))' "$work/status.json" 2> /dev/null || true)"
   else
-    code="$(curl -sS -o /dev/null -w '%{http_code}' --cacert "$REST_CERTIFICATE" \
-      "https://127.0.0.1:$var_rest_port/api/v1/status")" || code=000
+    # No password is sent, and the 401 is what shows it is the REST API: the certificate,
+    # which may no longer be the install's, is not checked.
+    code="$(curl -sS -k -o /dev/null -w '%{http_code}' "$url")" || code=000
     [ "$code" = 401 ] || fail "GET /api/v1/status answered $code without a password, not 401"
-    say "GET https://127.0.0.1:$var_rest_port/api/v1/status: 401 without a password, as it should"
+    say "GET $url: 401 without a password, as it should"
   fi
 }
 
@@ -427,23 +501,34 @@ if [ "$mode" = install ]; then
   step "Other mail servers and the ports"
   others="$(other_mail_servers | tr '\n' ' ')"
   others="${others% }"
+  unknown=""
+  # shellcheck disable=SC2086 # one package name a word
+  for name in $others; do
+    removable_mail_server "$name" || unknown="${unknown:+$unknown }$name"
+  done
+  [ -z "$unknown" ] || fail "$unknown provide(s) mail-transport-agent, and the install removes only Postfix and Exim, whose queues it reads: deliver what $unknown still holds, remove it (apt-get remove $unknown), then run this again; nothing of the server has been installed, and nothing removed"
   if [ -n "$others" ]; then
     queued="$(queued_messages)"
-    [ "$queued" = 0 ] || fail "$others has $queued message(s) in its queue; deliver or remove them first: the install removes $others, which holds port 25"
-    # shellcheck disable=SC2086 # one package name a word
+    [ "$queued" = 0 ] || fail "$others has $queued message(s) in its queue; deliver or remove them first, then run this again: the install removes $others, and nothing of the server has been installed, and nothing removed"
+    held_before="$(listeners 25)"
+    # shellcheck disable=SC2086
     for unit in $(mail_server_units $others); do
       case "$unit" in
         *@.*) systemctl stop "${unit%%@*}@*.${unit##*.}" > /dev/null 2>&1 || true ;;
         *) systemctl disable --now "$unit" > /dev/null 2>&1 || true ;;
       esac
     done
+    # It held port 25 if a listener there went with its units.
+    held_note=""
+    [ -z "$held_before" ] || [ -n "$(listeners 25)" ] || held_note=", which held port 25"
     # shellcheck disable=SC2086
     apt-get remove -y -q -o Dpkg::Use-Pty=0 $others || fail "$others could not be removed"
-    say "stopped and removed $others, which held port 25 (its configuration is kept: 'apt-get install $others' puts it back)"
-    unset unit
+    say "stopped and removed $others$held_note (its configuration is kept: 'apt-get install $others' puts it back)"
+    unset unit held_before held_note
   else
     say "no other mail server is installed"
   fi
+  unset name unknown
   ports="25 110 143 587"
   [ "$var_rest_port" = 0 ] || ports="$ports $var_rest_port"
   for port in $ports; do
@@ -531,7 +616,7 @@ SQL
 
   {
     printf '# Written by hmailserver-lxc install; read by hmailserver-lxc update.\n'
-    printf 'db=%s\nrest_port=%s\ninstalled=%s\n' "$var_db" "$var_rest_port" "$version"
+    printf 'db=%s\ninstalled=%s\n' "$var_db" "$version"
   } > "$STATE"
 
   step "Starting the server"
@@ -542,12 +627,10 @@ else
   # ------------------------------------------------------------------ update
   [ -n "$installed" ] || fail "hmailserver is not installed here: run 'hmailserver-lxc install'"
   if [ -f "$STATE" ]; then
-    var_rest_port="$(sed -n 's/^rest_port=//p' "$STATE")"
     state_db="$(sed -n 's/^db=//p' "$STATE")"
   else
     state_db=""
   fi
-  var_rest_port="${var_rest_port:-0}"
   say "installed: $installed; the release: $version"
   # apt-get installs nothing over the same version and refuses an older one, and an
   # older server need not take a newer schema: only a newer release is installed.
@@ -569,6 +652,7 @@ else
   systemctl stop hmailserver
   # The package's postinst runs hmailserver --upgrade-database on an upgrade.
   apt_install "$package" || fail "the package could not be installed; the server is stopped, and 'systemctl start hmailserver' starts $installed again"
+  upgraded_to="$version"
   say "$(hmailserver --version 2>&1 | head -n 1)"
   if [ -f "$STATE" ]; then
     sed -i "s/^installed=.*/installed=$version/" "$STATE"
@@ -585,13 +669,18 @@ if [ "$mode" = install ]; then
   addresses="$(hostname -I 2> /dev/null | tr ' ' '\n' | grep -v '^$' || true)"
   printf '\nProgressive Robot'"'"'s fork of hMailServer %s is running.\n\n' "$version"
   printf 'The administrator'"'"'s password, shown this once and kept in no file:\n\n    %s\n\n' "$admin_password"
-  printf 'Sign in to the Control Deck as Administrator with it:\n'
   if [ "$var_rest_port" != 0 ]; then
+    printf 'Sign in to the Control Deck as Administrator with it:\n'
     for address in $addresses; do
       # An IPv6 address goes in brackets in a URL.
       case "$address" in *:*) address="[$address]" ;; *) ;; esac
       printf '    https://%s:%s/\n' "$address" "$var_rest_port"
     done
+  else
+    printf 'The REST API and the Control Deck are off (var_rest_port=0). To turn them on, give them a\n'
+    printf 'certificate and key and a port with hmailserver --set-setting (RestApiCertificateFile,\n'
+    printf 'RestApiPrivateKeyFile, RestApiBindAddress, RestApiPort) and restart the service, as the\n'
+    printf 'project'"'"'s packaging/README.md, step 7, says; then sign in to the Deck as Administrator with it.\n'
   fi
   printf '\nCopy %s out of this container and keep it with the database backups.\n' "$SECRETS_KEY_EXPORT"
   printf 'Update later with: hmailserver-lxc update\n'
