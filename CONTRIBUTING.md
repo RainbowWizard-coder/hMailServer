@@ -589,21 +589,25 @@ something which already exists.
   packaged configuration files have their header made canonical when they carry one and are left alone when
   they do not. Generated MIDL output and vendored third-party sources are skipped.
 
-  A file of the original hMailServer's keeps Martin Knafve's copyright notice, as the original's file wrote
-  it, on the line below the header and in the same comment - for most of them
-  `// Copyright (c) 2010 Martin Knafve / hMailServer.com.` in a C++ or C# source. Which files, and which notice, is `build/original-notices.txt`'s to say, and
+  A file of the original hMailServer's whose own file in the original carried Martin Knafve's copyright
+  notice keeps it, as that file wrote it, on the line below the header and in the same comment - for most of
+  them `// Copyright (c) 2010 Martin Knafve / hMailServer.com.` in a C++ or C# source; not every one of the
+  original's files carried one, and those that did not get none. Which files, and which notice, is `build/original-notices.txt`'s to say, and
   `build/generate-original-notices.py` makes it from the original's own trees (its docstring says how); the
-  header script writes each notice there and `--check` refuses a file of the list without its notice, and his
-  notice on any other file. Do not write his notice by hand, and do not take one out: a file moved, split or
+  header script writes each notice there and `--check` refuses a file of the list without its notice (or, for a
+  `.resx` of the list, without its header), and, in any other file it writes the header in, a line that opens
+  with a copyright statement in his name, in any wording and anywhere in the file. Do not write his notice by hand, and do not take one out: a file moved, split or
   copied out of one of his goes into `build/generate-reuse-original.py`'s `DERIVED` (below), and then the two
-  generators and the header script are run, in that order. A notice of his that a text quotes - a port's
-  attribution sentence, a document - is not one of these and stays as it is written.
+  generators and the header script are run, in that order. A notice of his that a text quotes inside a
+  sentence - a port's attribution, as in the SPF port's files of one of the original's later commits, which
+  get no line of their own, or a document - is not one of these and stays as it is written.
 * **REUSE.** Every file of the tree has its copyright and its licence, as the
   [REUSE Specification 3.3](https://reuse.software/spec-3.3/) asks: a source file by the header above, and
   a file that cannot carry one - a document, a picture, a project or data file, a test fixture, a third
   party's tree - by a table of [REUSE.toml](REUSE.toml), whose comments say which holders each one names.
   The original hMailServer's files name Martin Knafve as a holder beside the header - by his own notice in
-  those that carry the header (above), and in all of them by two tables that
+  those that carry the header and whose own file in the original carried it (above), and in all of them by
+  two tables that
   `build/generate-reuse-original.py` writes from the original's own tags, file by file (run it after
   removing or renaming one of them, and `--check` says whether they are current); a table further down
   that names one of them has to name him too, which the *reuse* job holds. A file moved, split or copied

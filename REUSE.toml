@@ -35,10 +35,12 @@
 # one, in the two tables the generator below writes from the original's own tags
 # (build/generate-reuse-original.py; its docstring says how), with the files the fork
 # moved or copied out of them and without those it made anew at their paths. Those
-# that carry the project's header carry Martin Knafve's own notice below it as well
-# (build/original-notices.txt, which build/add-license-headers.py writes), put back on
-# 25 October 2026 after the header had taken its place on 13 September; these tables
-# name him for every one of them, those that can carry no notice among them. A table
+# that carry the project's header and whose own file in the original carried Martin
+# Knafve's notice carry it below the header as well (build/original-notices.txt, which
+# build/add-license-headers.py writes), put back on 25 October 2026 after the header
+# had taken its place on 13 September; not every one of the original's files carried
+# one, and the SPF port's quote it in their attribution. These tables name him for
+# every one of them, whatever it carries, those that can carry no notice among them. A table
 # further down that names one of the original's files takes their place for it and
 # names him too, and the reuse job refuses a record of one of them that does not.
 
@@ -915,6 +917,7 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.h",
     "hmailserver/source/Server/IMAP/IMAPCommandMove.cpp",
+    "hmailserver/source/Server/IMAP/IMAPCommandMove.h",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.h",
     "hmailserver/source/Server/IMAP/IMAPCommandNamespace.cpp",
@@ -960,6 +963,7 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPListLookup.cpp",
     "hmailserver/source/Server/IMAP/IMAPListLookup.h",
     "hmailserver/source/Server/IMAP/IMAPMove.cpp",
+    "hmailserver/source/Server/IMAP/IMAPMove.h",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.cpp",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.h",
     "hmailserver/source/Server/IMAP/IMAPResult.cpp",
@@ -1027,10 +1031,41 @@ path = [
     "hmailserver/source/Server/SMTP/SMTPVacationMessageCreator.h",
     "hmailserver/source/Server/SMTP/SMTPVirusNotifier.cpp",
     "hmailserver/source/Server/SMTP/SMTPVirusNotifier.h",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/Generate-SPFConformanceSuite.py",
     "hmailserver/source/Server/SMTP/SPF/Conformance/README.md",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceLookup.cpp",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceLookup.h",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceSuite.cpp",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceSuite.h",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceTester.cpp",
+    "hmailserver/source/Server/SMTP/SPF/Conformance/SPFConformanceTester.h",
     "hmailserver/source/Server/SMTP/SPF/README.md",
     "hmailserver/source/Server/SMTP/SPF/SPF.cpp",
     "hmailserver/source/Server/SMTP/SPF/SPF.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFAddress.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFAddress.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFDnsLookup.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFDnsResolver.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFDnsResolver.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFEvaluator.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFEvaluator.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFEvaluatorTester.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFEvaluatorTester.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFMacroExpander.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFMacroExpander.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFMacroExpanderTester.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFMacroExpanderTester.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecord.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecord.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecordLocator.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecordLocator.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecordTester.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFRecordTester.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFResult.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFSyntax.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFSyntax.h",
+    "hmailserver/source/Server/SMTP/SPF/SPFTestLookup.cpp",
+    "hmailserver/source/Server/SMTP/SPF/SPFTestLookup.h",
     "hmailserver/source/Server/SMTP/ServerTargetResolver.cpp",
     "hmailserver/source/Server/SMTP/ServerTargetResolver.h",
     "hmailserver/source/Server/hMailServer.Minidump/hMailServer.Minidump.cpp",

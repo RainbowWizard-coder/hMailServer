@@ -998,16 +998,16 @@ with `--check`).
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
   file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,260 of them and the
   fork alone for 1,231, most of them files whose notice of his the fork's header replaced in 2026:
-  `build/generate-reuse-original.py` writes the two tables that list them, 1,663 files, from the original's tags
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,696 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
   commit took over from the original's history before them) - the 1,631 files of the tree at one of those paths,
   letter case aside, but for the 2,870 third parties' files among them, the ten that its hand-kept `FORK_MADE`
-  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 32 files
+  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 65 files
   the fork moved, split or copied out of one of the original's to a path of its own, or that keep any of his text
   verbatim as their own, one sentence of an error message included, which its `DERIVED`, kept by hand too, names
   with the original's file each came from and the fork's commit: the half of
   the POP3 fetcher that `ExternalFetchClientBase.cpp` and `.h` took over, `IMAPMove.cpp` and `IMAPCommandMove.cpp`
-  from the COPY command's files, the Import Tool's `Program.cs` from the Mercury migration tool's, the Linux suite's
+  and their two headers from the COPY command's files, the Import Tool's `Program.cs` from the Mercury migration tool's, the Linux suite's
   four shims of the Windows suite's `SingletonProvider`,
   `CustomAsserts`, `TestSetup` and `TestFixtureBase`, `EventsJavaScript.cs`, the event tests of `Events.cs` with their
   scripts in JavaScript, `InputCostTester.cpp`, which keeps the DKIM canonicalisation's header functions as 6.3.5 had
@@ -1027,8 +1027,9 @@ with `--check`).
   regression input that is the original's test message `EmailWith-TextPlainBody+TextHtmlBody.txt`, which a table
   after the fork's one for those inputs names him for, the MIME decode fuzzer's input into which the fuzzer spliced
   header lines of his test message `MessageContainingGreekSubject.txt`, whose table names him beside the others'
-  holders, and the two READMEs of the SPF port, from the original's commit `1beaeab9` after
-  its tags, where reuse recorded the fork alone for each. The ten of `FORK_MADE` are the files the fork made anew at
+  holders, and the 33 files of the SPF port, from the original's commit `1beaeab9` after
+  its tags: its two READMEs, where reuse recorded the fork alone for each, and its 31 sources, for which reuse read
+  him only from the attribution sentence that quotes his notice. The ten of `FORK_MADE` are the files the fork made anew at
   one of the original's paths, which reuse had credited to him: the installer's wizard picture, the fork's brand
   since June 2026, the developer script `Uninstall current version.bat`, written anew in August 2026 in place of the
   original's two commands, the five test keys and certificates its first commit made in place of the original's
@@ -1177,44 +1178,58 @@ with `--check`).
   API's needs the repository registered, which is the owner's step.
 
 - **Martin Knafve's copyright notices are back on the original's files, below the project's header.** On 13 September
-  2026 the project's header took the place of the notice each of the original hMailServer's source files carried, for
-  most of them `Copyright (c) 2010 Martin Knafve / hMailServer.com.` in the file's comment syntax. The AGPL, under
-  which the original and the fork are both published, asks (its sections 4 and 5) that a work's copyright notices be
-  kept intact, so each file's own notice is put back as the original's file wrote it, on the line below the header and
-  in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,101 files,
-  each with one line - 1,028 of 2010, 38 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one each of
-  2007 and 2012, and one with no year. The new `build/generate-original-notices.py` makes the list from the original's
-  own trees, those `build/generate-reuse-original.py` reads: for every file of the tree that is the original's, or
-  that the fork moved, split or copied out of one of the original's (its `DERIVED`), but for those the fork made at
-  the original's paths (`FORK_MADE`) and the third parties', and that carries the project's header, the notice lines
-  of the opening comment of the original's own file - at the newest of the tags `hMailServer-5.7.0-b3013`, `-b2843`
-  and `-b2788` that holds it, or as the fork's first commit took it over, which agree for every file both hold -
-  written as the original wrote them, trailing blanks aside, or in the file's own comment syntax where it has another:
-  the Control Panel's English catalogue, `Strings.resx`, which keeps a warning of the original's Administrator in its
-  words, carries it in its XML comment, and `build/check-localisation.py`, which writes that file, writes it there.
-  Its `--check` holds the list to those trees, and without them to the tree and to the original's files; its
-  `--against-history` reads every line naming him that one of the fork's commits took out of a file and finds each
-  such notice in the list, but for 21 lines its `NOT_HIS` names, with the reason for each, that were never his: the
-  original's template notice that the fork's first commit and its later work gave nine files of its own (the DMARC
-  classes and tests, `IMAPCommandID`, the `MOVE` command's two declarations, `SequenceSets.cs`), and a notice with the
-  year 2026 that the fork wrote into twelve files it ported from the original's work of August and September 2026,
-  eight of which carry none there (the four library build scripts, `Get-LibraryVersions.ps1` and three IMAP tests) and
-  four 2010 (`FetchAccountLock` and `IMAPFolderView`), which the list gives them. The SPF port's files, which quote
-  his notice in the sentence that says where they came from, keep it as they are. `build/add-license-headers.py`
-  writes each listed notice below the header, wherever in the opening comment it stood, and its `--check` refuses a
-  file of the list without its notice there and his notice in the opening comment of any file the list does not name,
-  which it leaves in place: the list, not the script, says which files are his. The `reuse` job runs the generator's
-  self-test, `--check --require-tags` over the original's trees it already fetches - the 1,240 files it reads fetched
-  into the same directory in one request - and the header check, and four more negative controls must each be refused
-  by name: `IMAPFetch.cpp` without its notice and the fork's `SpamTestDMARC.cpp` with his, by the header check, and
-  `IMAPFetch.cpp`'s notice given another year, and `SpamTestDMARC.cpp` put in the list, each in the list and the file
-  alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
-  notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and
-  `generate-reuse-original.py`'s texts no longer say that the files' own text does not name him. The notices
-  themselves went in by a commit of their own, which adds the 1,101 lines, each below its file's header in the file's
-  own line endings, and changes nothing else. The two directory-form entries of `.gitleaksignore` that name a line of
-  a file of the list, the test URLs of `SURBL.cpp` and `Basics.cs` that gitleaks' rule Password in URL reads as
-  carrying a password, follow those lines down one, to 3350 and 508.
+  2026 the project's header took the place of the notice that most of the original hMailServer's source files carried,
+  for most of those `Copyright (c) 2010 Martin Knafve / hMailServer.com.` in the file's comment syntax. The AGPL,
+  under which the original and the fork are both published, asks (its sections 4 and 5) that a work's copyright
+  notices be kept intact, so each file's own notice is put back as the original's file wrote it, on the line below the
+  header and in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,103
+  files, each with one line - 1,030 of 2010, 38 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one
+  each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,285 of them
+  that carry the project's header, 151 carried none in the original (`hMailServer.idl`, `Version.h`, `BO/Route.h`,
+  `BLCheck.h` and many of the Windows suite's tests among them) and get none, and the SPF port's 31 quote it, as
+  below. The new `build/generate-original-notices.py` makes the list from the original's own trees, those
+  `build/generate-reuse-original.py` reads: for every file of the tree that is the original's, or that the fork moved,
+  split or copied out of one of the original's (its `DERIVED`), but for those the fork made at the original's paths
+  (`FORK_MADE`) and the third parties', and that carries the project's header, the notice lines of the opening comment
+  of the original's own file - at the newest of the tags `hMailServer-5.7.0-b3013`, `-b2843` and `-b2788` that holds
+  it, or as the fork's first commit took it over, which agree for every file both hold - written as the original wrote
+  them, trailing blanks aside, or in the file's own comment syntax where it has another: the Control Panel's English
+  catalogue, `Strings.resx`, which keeps a warning of the original's Administrator in its words, carries it in its XML
+  comment, and `build/check-localisation.py`, which writes that file, writes it there. Its `--check` holds the list to
+  those trees, and without them to the tree and to the original's files; its `--against-history` reads every line
+  naming him that one of the fork's commits took out of a file and finds each such notice in the list, but for 19
+  lines its `NOT_HIS` names, with the reason for each, that were never his: the original's template notice that the
+  fork's first commit and its later work gave seven files of its own (the DMARC classes and tests, `IMAPCommandID`,
+  `SequenceSets.cs`), and a notice with the year 2026 that the fork wrote into twelve files it ported from the
+  original's work of August and September 2026, eight of which carry none there (the four library build scripts,
+  `Get-LibraryVersions.ps1` and three IMAP tests) and four 2010 (`FetchAccountLock` and `IMAPFolderView`), which the
+  list gives them. The `MOVE` command's two declarations, `IMAPMove.h` and `IMAPCommandMove.h`, which the fork's first
+  commit made from the original's `IMAPCopy.h` and `IMAPCommandCopy.h`, `COPY` made `MOVE`, as it made their `.cpp`
+  files from theirs, and of which `IMAPMove.h` keeps `IMAPCopy.h`'s `GetMissingMessagePolicy` word for word, are in
+  `DERIVED` and carry his notice. The SPF port's 31 files, which quote his notice in the sentence that says where they
+  came from, keep it as they are, and are in `DERIVED` too, with their sources at the original's commit `1beaeab9c`,
+  so that `REUSE.toml`'s tables name him for each of them; they get no line in the list, since the project's
+  repository has not that commit and the reuse job could not hold such a line to it, and an entry for any file of the
+  port, its two `README.md` files among them, is refused. `build/add-license-headers.py` writes each listed notice
+  below the header, wherever in the opening comment it stood, and its `--check` refuses a file of the list without its
+  notice there - `Strings.resx`, a `.resx` whose header is otherwise only made canonical when it carries one, gets its
+  header and notice written anew when it has lost them - and, in any file the list does not name, a line anywhere in
+  it that opens, after its comment marker, with a copyright statement in his name, in any wording ("(C)", another year
+  or none, no "hMailServer.com", "All rights reserved" after it, a block comment), which it leaves in place: the list,
+  not the script, says which files are his. The `reuse` job runs the generator's self-test, `--check --require-tags`
+  over the original's trees it already fetches - the 1,240 files it reads fetched into the same directory in one
+  request - and the header check, and seven more negative controls must each be refused by name: `IMAPFetch.cpp`
+  without its notice, the fork's `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment and
+  `SpamTestDMARC.cpp` with his notice in another wording below its first `#include`, by the header check, and
+  `IMAPFetch.cpp`'s notice given another year, `SpamTestDMARC.cpp` put in the list and the SPF port's `README.md` put
+  in the list, each in the list and the file alike, by the generator. The checkers job runs no new step.
+  CONTRIBUTING.md's header rule says how a file keeps his notice, `ContinuousIntegration.md`'s REUSE section what the
+  job runs, and `REUSE.toml`'s, `debian/copyright`'s and `generate-reuse-original.py`'s texts say which of the
+  original's files carry his notice again: those whose own file in the original carried it. The notices themselves
+  went in by a commit of their own, which adds the 1,101 lines, each below its file's header in the file's own line
+  endings, and changes nothing else. The two directory-form entries of `.gitleaksignore` that name a line of a file of
+  the list, the test URLs of `SURBL.cpp` and `Basics.cs` that gitleaks' rule Password in URL reads as carrying a
+  password, follow those lines down one, to 3350 and 508.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

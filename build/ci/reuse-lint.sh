@@ -38,12 +38,14 @@
 # record of each of the original's files but the third parties' must name Martin
 # Knafve, and of none that the fork made at the original's paths (--holders, over
 # reuse lint --json). Then his notices: build/original-notices.txt must be what
-# build/generate-original-notices.py makes from the same trees - the notice each of
-# the original's files that carries the project's header wrote in its opening
-# comment, read from the original's own file (--check --require-tags; the files it
-# reads are fetched with it, 1,240 of them in one request) - and every file of
-# it must carry its notice below the header, and no other file his notice
-# (build/add-license-headers.py --check, which the checkers job runs as well). Then
+# build/generate-original-notices.py makes from the same trees - the notice of each
+# of the original's files that carries the project's header and whose own file in the
+# original carried one in its opening comment, read from that file (--check
+# --require-tags; the files it reads are fetched with it, 1,240 of them in one
+# request; a port of a later commit of the original's, which the project's repository
+# has not, gets no line) - and every file of it must carry its notice below the
+# header, and no other file a copyright line in his name, in any wording, anywhere in
+# it (build/add-license-headers.py --check, which the checkers job runs as well). Then
 # debian/copyright: every file the Debian source package
 # carries has there the licences reuse records for it (build/ci/reuse-debian.py).
 #
@@ -64,13 +66,17 @@
 # list, as an edit of both would leave them: --check --require-tags, holding the list
 # to the tags, must refuse it, by name; and a copy of debian/copyright that has lost
 # the RFC 7208 suite's change log from its paragraph, which reuse-debian.py must
-# refuse, by name. And four of his notices, each made in the checkout and taken out
-# again: one of the list's files, IMAPFetch.cpp, with its notice taken out, and a
-# file the fork made at one of the original's paths, SpamTestDMARC.cpp (the
-# generator's FORK_MADE), given it, each of which build/add-license-headers.py
-# --check must refuse, by name; IMAPFetch.cpp's notice given another year in the
-# list and in the file alike, as an edit of both would leave them, and
-# SpamTestDMARC.cpp put in the list with his notice in the file, each of which
+# refuse, by name. And seven of his notices, each made in the checkout and taken out
+# again: one of the list's files, IMAPFetch.cpp, with its notice taken out, a file
+# the fork made at one of the original's paths, SpamTestDMARC.cpp (the generator's
+# FORK_MADE), given it, the list's Strings.resx with its whole header comment taken
+# out, and SpamTestDMARC.cpp given his notice in another wording ("(C)" and no
+# "hMailServer.com") below its first #include, each of which
+# build/add-license-headers.py --check must refuse, by name; IMAPFetch.cpp's notice
+# given another year in the list and in the file alike, as an edit of both would
+# leave them, SpamTestDMARC.cpp put in the list with his notice in the file, and the
+# SPF port's README.md, whose source is at the original's later commit 1beaeab9c, put
+# in the list with his notice in its header comment, each of which
 # build/generate-original-notices.py --check --require-tags must refuse, by name.
 # So a REUSE.toml table grown to cover the whole tree or a directory of the
 # original's, a reuse that has stopped reading the tree, a check of the original's
@@ -424,10 +430,11 @@ put_back() {
   kept=()
 }
 # edit FILE take LINE | edit FILE after N LINE | edit FILE swap OLD NEW | edit LIST entry PATH LINE |
-# edit LIST note PATH OLD NEW: take out the line LINE, put LINE in after line N, make the
-# line OLD the line NEW, put PATH with its notice LINE into the list where its order
-# puts it, or make PATH's notice OLD in the list NEW. Exits 1 when the file has not the
-# line, or has it more than once.
+# edit LIST note PATH OLD NEW | edit FILE cut OPEN CLOSE: take out the line LINE, put LINE
+# in after line N, make the line OLD the line NEW, put PATH with its notice LINE into the
+# list where its order puts it, make PATH's notice OLD in the list NEW, or take out the
+# first line OPEN and every line after it to the next line CLOSE. Exits 1 when the file
+# has not the line, or has it more than once (or, for cut, has not the two).
 edit() {
   python3 -c '
 import sys
@@ -455,6 +462,12 @@ elif action == "note":
     if i >= len(lines) or lines[i].rstrip(b"\r") != ("\t" + sys.argv[4]).encode():
         sys.exit("%s does not give %s the notice %r" % (path, sys.argv[3], sys.argv[4]))
     lines[i] = ("\t" + sys.argv[5]).encode() + end[:-1]
+elif action == "cut":
+    i = next((i for i, l in enumerate(lines) if l.rstrip(b"\r") == sys.argv[3].encode()), None)
+    j = next((j for j in range(i, len(lines)) if lines[j].rstrip(b"\r") == sys.argv[4].encode()), None) if i is not None else None
+    if j is None:
+        sys.exit("%s has not the lines %r to %r" % (path, sys.argv[3], sys.argv[4]))
+    del lines[i:j + 1]
 open(path, "wb").write(b"\n".join(lines))
 ' "$@"
 }
@@ -476,9 +489,13 @@ refused_by() {
 
 his=hmailserver/source/Server/IMAP/IMAPFetch.cpp
 made=hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp
+resx=hmailserver/source/Tools/ControlPanel/Resources/Strings.resx
+port=hmailserver/source/Server/SMTP/SPF/README.md
 # REUSE-IgnoreStart
 notice="// Copyright (c) 2010 Martin Knafve / hMailServer.com."
 other="// Copyright (c) 2011 Martin Knafve / hMailServer.com."
+variant="// Copyright (C) 2010 Martin Knafve"
+element="  Copyright (c) 2010 Martin Knafve / hMailServer.com."
 # REUSE-IgnoreEnd
 # The checkout has the list with CRLF line endings.
 tr -d '\r' < "$NOTICES" > "$work/notices.txt"
@@ -526,6 +543,42 @@ else
     put_back
     failed=1
   fi
+
+  # A file of the list whose kind only has a header it carries made canonical, with
+  # its whole header comment, the header and his notice, taken out.
+  keep "$resx"
+  if edit "$resx" cut "<!--" "-->"; then
+    refused_by "one of the list's .resx files without its header and notice" "$resx" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # His notice in another wording, below the first #include of a file the fork made.
+  keep "$made"
+  if edit "$made" after 5 "$variant"; then
+    refused_by "his notice in another wording, below the opening comment of a file the fork made" "$made carries" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # A port of one of the original's later commits put in the list with his notice in
+  # its header comment, as an edit of both would leave them: that commit is not at
+  # hand here, and the list gives such a file no line.
+  keep "$port" "$NOTICES"
+  if edit "$port" after 4 "$element" && edit "$NOTICES" entry "$port" "$element" \
+      && python3 build/add-license-headers.py --check > "$work/control-headers.txt" 2>&1; then
+    refused_by "a port of a later commit of the original's put in the list with his notice" "$port, which DERIVED" \
+      python3 build/generate-original-notices.py --check --require-tags || failed=1
+  else
+    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    echo "The port's control did not leave the list and the file agreeing: it proves nothing."
+    put_back
+    failed=1
+  fi
 fi
 
 if [ "$failed" -ne 0 ]; then
@@ -533,9 +586,11 @@ if [ "$failed" -ne 0 ]; then
 fi
 echo ""
 echo "Every file's copyright and licence are known, every licence's text is in LICENSES/, every one of"
-echo "the original's files names Martin Knafve and the list of them is the original's tags', those"
-echo "that carry the header carry his notice as his own file wrote it, and debian/copyright gives every"
-echo "file the Debian source package carries the same licences; a file without them, a file the fork"
-echo "adds among the original's, a licence without its text, a text no file uses, a table that drops"
-echo "him, a fork file in the list, a Debian paragraph that lost a file, a file of his without his"
-echo "notice, a file of the fork's with it and a notice that is not his file's are each refused."
+echo "the original's files names Martin Knafve and the list of them is the original's tags', each of"
+echo "them that carries the header and whose own file in the original carried his notice carries it"
+echo "as that file wrote it, and debian/copyright gives every file the Debian source package carries"
+echo "the same licences; a file without them, a file the fork adds among the original's, a licence"
+echo "without its text, a text no file uses, a table that drops him, a fork file in the list, a"
+echo "Debian paragraph that lost a file, a file of his without his notice or without its header, a"
+echo "file of the fork's with his notice in any wording, and a notice that is not his file's are"
+echo "each refused."

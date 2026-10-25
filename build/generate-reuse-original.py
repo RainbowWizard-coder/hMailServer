@@ -9,9 +9,11 @@ The project is a fork of Martin Knafve's hMailServer. On 13 September 2026 the
 fork's header took the place of his notice in the files that came from the
 original, so that a file's own text no longer said that he is a holder of it, and
 reuse would have recorded the fork alone; since 25 October 2026 each of them that
-carries the header carries his notice again, below it
-(build/generate-original-notices.py), and those that carry no header - documents,
-pictures, data - never did. This keeps the record true for all of them: it names
+carries the header and whose own file in the original carried his notice carries
+it again, below the header (build/generate-original-notices.py, which says which:
+most of them, not every one, since some of the original's files carried no notice),
+and those that carry no header - documents, pictures, data - never did. This keeps
+the record true for all of them, whatever they carry: it names
 Martin Knafve as a holder of every file of the
 original, as debian/copyright's "Files: *" does, beside what the file says
 itself, from the original's own trees rather than from a pattern of
@@ -43,7 +45,11 @@ by hand, say where it is not:
              his code's - one sentence of an error message or a warning included,
              as in RestApiSettings.cpp, RestApiRoutes.cpp and DateTime.cpp, even
              where the fork's sentence goes on after his, as ApiSends.cpp's after
-             his "Tried %d time(s)" does. A file of the fork's that
+             his "Tried %d time(s)" does - or a declaration of his copied for a
+             new class, as IMAPMove.h and IMAPCommandMove.h are IMAPCopy.h's and
+             IMAPCommandCopy.h's. The port of a later commit's files counts the
+             same: each file of the SPF port is here with its source at
+             1beaeab9c. A file of the fork's that
              only names or quotes what the original does is not one: a reply or
              a message of the server's that a test expects or a document quotes,
              a setting's or a control's caption, a string table's key, an SQL
@@ -184,6 +190,13 @@ DERIVED = (
     ("hmailserver/source/Server/IMAP/IMAPCommandMove.cpp",
      "hmailserver/source/Server/IMAP/IMAPCommandCopy.cpp", "fe45f43c3",
      "the COPY command's checks and parameters, for MOVE"),
+    ("hmailserver/source/Server/IMAP/IMAPMove.h",
+     "hmailserver/source/Server/IMAP/IMAPCopy.h", "fe45f43c3",
+     "IMAPCopy's declaration, its include and DoAction's word for word, for MOVE, and since c8607f392d its "
+     "GetMissingMessagePolicy as the original's IMAPCopy.h has it"),
+    ("hmailserver/source/Server/IMAP/IMAPCommandMove.h",
+     "hmailserver/source/Server/IMAP/IMAPCommandCopy.h", "fe45f43c3",
+     "the COPY command's declaration, COPY made MOVE"),
     ("hmailserver/source/Tools/ImportTool/Program.cs",
      "hmailserver/source/Migration/Mercury/Program.cs", "b19ccba0b",
      "the Mercury migration tool's entry point, which the Import Tool's replaced (git's rename, 50%)"),
@@ -274,7 +287,44 @@ DERIVED = (
     ("hmailserver/source/Server/SMTP/SPF/Conformance/README.md",
      "1beaeab9c212cfc484c180c90cab37cb46cdb6be:hmailserver/source/Server/SMTP/SPF/Conformance/README.md",
      "f0ee7803a", "the port's README of the conformance suite, most of its text"),
-)
+) + tuple(
+    # The rest of that port: each file taken from the original's commit at the same
+    # path, whose own header, below the project's, says so and quotes his notice.
+    ("hmailserver/source/Server/SMTP/SPF/" + name, LATER[0][0] + ":hmailserver/source/Server/SMTP/SPF/" + name,
+     "f0ee7803a", "the port's " + name + (", changed in this tree only as its header says" if changed else ", unchanged"))
+    for name, changed in (
+        ("Conformance/Generate-SPFConformanceSuite.py", True),
+        ("Conformance/SPFConformanceLookup.cpp", False),
+        ("Conformance/SPFConformanceLookup.h", False),
+        ("Conformance/SPFConformanceSuite.cpp", True),
+        ("Conformance/SPFConformanceSuite.h", False),
+        ("Conformance/SPFConformanceTester.cpp", False),
+        ("Conformance/SPFConformanceTester.h", False),
+        ("SPFAddress.cpp", False),
+        ("SPFAddress.h", False),
+        ("SPFDnsLookup.h", False),
+        ("SPFDnsResolver.cpp", True),
+        ("SPFDnsResolver.h", True),
+        ("SPFEvaluator.cpp", True),
+        ("SPFEvaluator.h", True),
+        ("SPFEvaluatorTester.cpp", False),
+        ("SPFEvaluatorTester.h", False),
+        ("SPFMacroExpander.cpp", False),
+        ("SPFMacroExpander.h", False),
+        ("SPFMacroExpanderTester.cpp", False),
+        ("SPFMacroExpanderTester.h", False),
+        ("SPFRecord.cpp", False),
+        ("SPFRecord.h", False),
+        ("SPFRecordLocator.cpp", False),
+        ("SPFRecordLocator.h", False),
+        ("SPFRecordTester.cpp", False),
+        ("SPFRecordTester.h", False),
+        ("SPFResult.h", False),
+        ("SPFSyntax.cpp", False),
+        ("SPFSyntax.h", False),
+        ("SPFTestLookup.cpp", False),
+        ("SPFTestLookup.h", False),
+    ))
 
 # Files the fork made itself at a path the original's tags also hold, which keep
 # nothing of the original's file there: (the path, the fork's commit, why).

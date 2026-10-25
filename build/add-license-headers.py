@@ -28,9 +28,14 @@ gives each such file the notice line or lines its original wrote, and this
 writes them there, exactly, in the file's line endings. This script took them
 out on 13 September 2026 and put them back on 25 October 2026, as the AGPL asks
 that a work's copyright notices be kept intact. --check refuses a file of the
-list whose notice is not there, and his notice in the opening comment of a file
-the list does not name, which it leaves where it is: whether a file is his is
-the list's to say, not this script's. Nothing below the header is touched - a comment that opens a file
+list whose notice is not there (a .resx of the list that has lost its header
+gets both written anew, though a .resx otherwise only has a header it carries
+made canonical), and, in a file the list does not name, any line that opens,
+after its comment marker, with a copyright statement in his name - his notice
+in any wording, anywhere in the file (HIS_STATEMENT) - which it leaves where it
+is: whether a file is his is the list's to say, not this script's. A sentence
+that quotes his notice, as the SPF port's attribution does, is not such a line.
+Nothing below the header is touched - a comment that opens a file
 stays, a third-party notice in a block comment stays (Mime.cpp, the Mime
 library's), and a file keeps its own line endings and its byte-order mark.
 A file that opens with a third party's notice whose terms forbid changing it
@@ -108,6 +113,17 @@ REPLACED = [re.compile(p) for p in (
 # REUSE-IgnoreStart
 HIS_NOTICE = re.compile(r'^Copyright \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\s*Martin Knafve / hMailServer\.com\.?$')
 # REUSE-IgnoreEnd
+# What a file the list does not name may not carry, anywhere in it: a line that, after
+# its comment marker, opens with a copyright statement - "Copyright", "(c)", the sign
+# or an SPDX copyright tag, in any letter case - and names him. That is his notice in
+# every wording (another year, "(C)", "Copyright 2010", "All rights reserved" after
+# it, a block comment), and a copyright line in his name of any other form; a text
+# that quotes his notice inside a sentence, as the SPF port's attribution does, or
+# talks about his copyright, does not open with one. The marker is taken off first.
+# REUSE-IgnoreStart
+HIS_STATEMENT = re.compile(r'^(?:SPDX-(?:File|Snippet)CopyrightText|Copyright|\(c\)|\u00a9).*\bKnafve\b', re.I)
+# REUSE-IgnoreEnd
+COMMENT_LEAD = re.compile(r'^(?:\s|//|/\*|\*|#|;|<!--|-)*')
 # build/generate-original-notices.py's list: a path, then each line of its notice, a
 # tab before it, exactly as the file writes it (a comment element's lines indented
 # by two); '#' lines are comments.
@@ -276,32 +292,20 @@ def notice_problems(rel, ext, lines):
     return problems
 
 
-def his_notices(raw, ext):
-    """The lines of a file's opening comment that are Martin Knafve's notice: what
-    a file the list does not name may not carry."""
-    if raw.startswith(UTF16_BOMS):
+def his_notices(raw):
+    """(line number, line) of each line of a file, anywhere in it, that is a copyright
+    statement in Martin Knafve's name (HIS_STATEMENT): what a file the list does not
+    name may not carry."""
+    if not re.search(rb'(?i)knafve', raw):
         return []
-    body = raw[len(BOM):] if raw.startswith(BOM) else raw
-    lines = body.split(b'\n')
+    if raw.startswith(UTF16_BOMS):
+        text = raw.decode('utf-16', 'replace')
+    else:
+        text = (raw[len(BOM):] if raw.startswith(BOM) else raw).decode('utf-8', 'replace')
     found = []
-    if ext in BLOCK_COMMENT:
-        start = 1 if lines and lines[0].lstrip().startswith(b'<?xml') else 0
-        if start < len(lines) and lines[start].lstrip().startswith(b'<!--'):
-            for line in lines[start:]:
-                text = line.strip().replace(b'<!--', b'').replace(b'-->', b'').strip().decode('utf-8', 'replace')
-                if HIS_NOTICE.match(text):
-                    found.append(line.strip().decode('utf-8', 'replace'))
-                if b'-->' in line:
-                    break
-        return found
-    m = LINE_COMMENT[ext].encode()
-    for line in lines:
-        s = line.strip()
-        if s and not s.startswith(m) and not s.startswith(b'#!'):
-            break
-        text = comment_text(line, m)
-        if text is not None and HIS_NOTICE.match(text):
-            found.append(s.decode('utf-8', 'replace'))
+    for number, line in enumerate(text.split('\n'), 1):
+        if HIS_STATEMENT.match(COMMENT_LEAD.sub('', line)):
+            found.append((number, line.strip()))
     return found
 
 
@@ -409,7 +413,10 @@ def normalised(raw, ext, notices=None):
     # first line uses.
     cr = b'\r' if body.split(b'\n', 1)[0].endswith(b'\r') else b''
     lines = body.split(b'\n')
-    add = ext not in NORMALISE_ONLY
+    # A file of the list gets the header and its notice even where its kind only has
+    # a header made canonical (Strings.resx): one that has lost both is written anew,
+    # and so --check refuses it.
+    add = ext not in NORMALISE_ONLY or notices is not None
     if ext in BLOCK_COMMENT:
         new_lines = with_block_comment(lines, ext, cr, add, notices)
     else:
@@ -474,9 +481,10 @@ def main():
             seen.add(rel)
             notice_list_problems += notice_problems(rel, ext, mine)
         else:
-            for line in his_notices(raw, ext):
-                notice_list_problems.append('%s carries Martin Knafve\'s notice (%s), and %s does not give it one: '
-                                            'the list says which files are his' % (rel, line, NOTICES_FILE))
+            for number, line in his_notices(raw):
+                notice_list_problems.append('%s carries Martin Knafve\'s notice, or a copyright line in his name, on its '
+                                            'line %d (%s), and %s does not give it one: the list says which files are '
+                                            'his' % (rel, number, line, NOTICES_FILE))
         out = normalised(raw, ext, mine)
         if out is None or out == raw:
             continue
