@@ -1067,19 +1067,24 @@ with `--check`).
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
-  each of the eighteen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download` wrote
-  them and each the same as spdx.org's text, and six of the project's, `LicenseRef-ScriptSite` and
+  each of the nineteen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download`
+  wrote them and each the same as spdx.org's text, and seven of the project's, `LicenseRef-ScriptSite` and
   `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
   plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows
   build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices"),
-  `LicenseRef-ISXKB-Public-Domain` for the installer's routines and declarations, and `LicenseRef-No-Licence-Stated`
-  for the eight files of test data that no licence is stated for, and for the Windows tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`,
-  Scott McMaster's class of 2004 from his CodeProject article, which states no licence (the original's note on it
-  says its ReadMe lets it be used for any purposes, a ReadMe the tree does not hold), whose header the file keeps
-  and which names him beside Martin Knafve and the maintainers under `AGPL-3.0-or-later AND
-  LicenseRef-No-Licence-Stated`, where the generated table named neither him nor a licence of his. The original's
+  `LicenseRef-ISXKB-Public-Domain` for the installer's routines and declarations, `LicenseRef-No-Licence-Stated` for
+  the eight files of test data that no licence is stated for, and `LicenseRef-TabOrderManager-ReadMe` for the Windows
+  tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`, Scott McMaster's class of 2004, which the
+  original took from the download of his CodeProject article: the article's page states no terms of its own, saying
+  that its download may hold some, and the download's `README.txt`, version 1.0 of 28 October 2004, ends with his "You
+  are free to use and modify this source as you find necessary" and a warranty disclaimer, which name no licence and
+  state no leave to copy or distribute the class, so that the identifier's text quotes them, says where they stand and
+  what they leave out, and grants nothing for the class (the original's note on it, that according to its ReadMe it
+  may be used for any purposes, is Martin Knafve's reading of them); the file keeps the class's header and names him
+  beside Martin Knafve and the maintainers under `AGPL-3.0-or-later AND LicenseRef-TabOrderManager-ReadMe`, where the
+  generated table named neither him nor terms of his. The original's
   debugger file for Visual Studio 2005 and 2008, `hmailserver/tools/VS2005/autoexp.dat`, whose one rule was Visual
   Studio's own for `std::basic_string<wchar_t>` renamed, and which nothing builds or reads, is deleted, with its
   table and its line in `build/source-exclusions.txt` and the Debian source package's `Files-Excluded`. Two of

@@ -2628,9 +2628,10 @@ project's licence, since the article's page ends with the knowledge base's state
 in its editor's words, that all its articles' code is public domain (no licence or
 dedication in the author's own words is known, as the identifier's text says); the
 Windows tools' `TabOrderManager.cs`, Scott McMaster's class of 2004, which the
-original took from his article, which states no licence, as
-`LicenseRef-No-Licence-Stated` beside the project's licence; the
-licence texts and
+original took from the download of his article, whose ReadMe gives leave to use and
+modify it and names no licence and states no leave to distribute it, as
+`LicenseRef-TabOrderManager-ReadMe`, whose text quotes those terms, beside the
+project's licence; the licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data
 no licence was stated for as `LicenseRef-No-Licence-Stated`, two fuzzers' regression
