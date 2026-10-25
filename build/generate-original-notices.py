@@ -52,8 +52,11 @@ reads, so that it says what he wrote and not what the fork made of it:
 Where the list and the fork's own history part (--against-history, which reads every
 line naming him that one of the fork's commits took out of a file): the fork gave
 some files of its own a notice in his name, and wrote a year of its own into some it
-ported. NOT_HIS names each such line, and why it is not put back; every other notice
-the fork's commits took out of a file of the tree is in the list.
+ported. NOT_HIS names each such line, and why it is not put back; a file of
+WORDS_ONLY gets no line by that rule, whatever a commit took out of it (the notice the
+list once gave each of them, before WORDS_ONLY); and the list's own lines, which a
+commit takes out of the list when a file leaves it, are not a notice on the list. Every
+other notice the fork's commits took out of a file of the tree is in the list.
 
 Where the original's trees come from: the clone, or the git directory that
 HM_REUSE_ORIGINAL_GIT_DIR names - build/ci/reuse-lint.sh fetches the three tags and
@@ -535,16 +538,18 @@ def is_removed_notice(line):
     return any(text.startswith(m) and bool(NOTICE.match(text[len(m):].strip())) for m in ("//", "#", ";"))
 
 
-def history_problems(removed, entries, tree, not_his=NOT_HIS):
-    """What the fork's commits took out that is neither in the list nor in NOT_HIS, and
+def history_problems(removed, entries, tree, not_his=NOT_HIS, words=WORDS_ONLY):
+    """What the fork's commits took out that is neither in the list nor in NOT_HIS - but
+    for a file of WORDS_ONLY and the list itself (the module docstring says why) - and
     what NOT_HIS names that they did not take out."""
     problems = []
     in_tree = set(tree)
     excused = {}
     for path, line, why in not_his:
         excused.setdefault(path, []).append(line)
+    words = set(words)
     for path in sorted(removed):
-        if path not in in_tree:
+        if path not in in_tree or path in words or path == LIST_FILE:
             continue
         for line in removed[path]:
             if not is_removed_notice(line):
@@ -651,9 +656,12 @@ def against_history():
     if problems:
         return 1
     in_tree = set(tree)
-    count = sum(1 for p, lines in removed.items() if p in in_tree and any(is_removed_notice(line) for line in lines))
+    taken = set(p for p, lines in removed.items() if p in in_tree and any(is_removed_notice(line) for line in lines))
+    words = taken & set(WORDS_ONLY)
+    count = len(taken - words - set([LIST_FILE]))
     print("Every notice of his that the fork's commits took out of a file of the tree, %d files, is in %s, but the %d "
-          "lines NOT_HIS names" % (count, LIST_FILE, len(NOT_HIS)))
+          "lines NOT_HIS names (and the %d files of WORDS_ONLY that a commit took one out of)"
+          % (count, LIST_FILE, len(NOT_HIS), len(words)))
     return 0
 
 
@@ -766,6 +774,12 @@ def self_test():
            len(history_problems({"a/One.cpp": [n2010]}, {"a/One.cpp": [n2010]}, tree2, not_his)), 1)
     expect("a NOT_HIS line the list puts back",
            len(history_problems(removed, {"a/One.cpp": [n2010], "a/Fork.cpp": [n2010]}, tree2, not_his)), 1)
+    removed3 = dict(removed, **{"a/Words.cpp": [n2010], LIST_FILE: ["\t" + n2010]})
+    tree3 = tree2 + ["a/Words.cpp", LIST_FILE]
+    expect("a notice taken out of a file that keeps his words alone, and a line of the list",
+           history_problems(removed3, {"a/One.cpp": [n2010]}, tree3, not_his, ("a/Words.cpp",)), [])
+    expect("a notice taken out of a file that does not keep his words alone",
+           len(history_problems(removed3, {"a/One.cpp": [n2010]}, tree3, not_his, ())), 1)
 
     for failure in failures:
         print("FAILED: " + failure)

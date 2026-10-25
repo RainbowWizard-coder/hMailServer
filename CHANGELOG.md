@@ -1204,7 +1204,8 @@ with `--check`).
   `IMAPCommandMove.h`), and a notice with the year 2026 that the fork wrote into twelve files it ported from the
   original's work of August and September 2026, eight of which carry none there (the four library build scripts,
   `Get-LibraryVersions.ps1` and three IMAP tests) and four 2010 (`FetchAccountLock` and `IMAPFolderView`), which the
-  list gives them. Four of those nine are headers that declare a class in the form the original's headers of its kind
+  list gives them; it passes over a file of `WORDS_ONLY` (below), which gets no line whatever a commit took out of
+  it, and the list's own lines, which a commit takes out of the list when a file leaves it. Four of those nine are headers that declare a class in the form the original's headers of its kind
   share - its base, constructor, destructor and the base's methods it overrides - which is not a copy of one of his
   more than of another, and so not his: `IMAPCommandMove.h` and `IMAPCommandID.h` are each his `IMAPCommandCopy.h`,
   `IMAPCommandStartTls.h` and `IMAPCommandStore.h` alike, names aside, `IMAPMove.h` declares a range action as his
