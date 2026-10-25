@@ -1209,7 +1209,9 @@ with `--check`).
   `DERIVED` and carry his notice. The SPF port's 31 files, which quote his notice in the sentence that says where they
   came from, keep it as they are, and are in `DERIVED` too, with their sources at the original's commit `1beaeab9c`,
   so that `REUSE.toml`'s tables name him for each of them (where that commit is not at hand, as in CI,
-  `generate-reuse-original.py` says in one line, and not in one a file, that their sources there are taken as given);
+  `generate-reuse-original.py` says in one line, and not in one a file, that their sources there are taken as given,
+  and asks nothing of the origin: it reads the original's history with git's lazy fetching off, as the notices'
+  generator reads the files, so that the commit, which the origin has not, is not asked of it for each file again);
   they get no line in the list, since the project's repository has not that commit and the reuse job could not hold
   such a line to it, and an entry for any file of the port, its two `README.md` files among them, is refused.
   `build/add-license-headers.py` writes each listed notice below the header, wherever in the opening comment it stood,

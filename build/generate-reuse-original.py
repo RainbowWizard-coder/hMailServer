@@ -397,14 +397,24 @@ def original_git_args():
     return ["--git-dir", git_dir] if git_dir else []
 
 
+# What this reads of the original's history is its commits and trees, which the reuse
+# job's fetch brings. In a git directory filled by a partial fetch, git would fetch
+# from the origin any object it is asked for and has not: a later commit of the
+# original's (LATER), which the project's repository has not, asked for once for each
+# DERIVED file whose source is at it, was a request the origin refused each time, about
+# a second each, with none of the limits the job puts on its own fetches.
+NO_LAZY_FETCH = dict(os.environ, GIT_NO_LAZY_FETCH="1")
+
+
 def git_original(*args):
     """git over the original's tags: the clone, or HM_REUSE_ORIGINAL_GIT_DIR."""
     return subprocess.run(["git", "-c", "core.quotepath=off"] + original_git_args() + list(args), cwd=ROOT,
-                          capture_output=True, check=True).stdout
+                          capture_output=True, check=True, env=NO_LAZY_FETCH).stdout
 
 
 def git_original_ok(*args):
-    return subprocess.run(["git"] + original_git_args() + list(args), cwd=ROOT, capture_output=True).returncode == 0
+    return subprocess.run(["git"] + original_git_args() + list(args), cwd=ROOT, capture_output=True,
+                          env=NO_LAZY_FETCH).returncode == 0
 
 
 def tree_paths():
