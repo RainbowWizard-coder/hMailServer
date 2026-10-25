@@ -2621,10 +2621,13 @@ the third party's licence added beside the header's, and the installer's Pascal 
 Windows service declarations and four of its service functions from
 (`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
 with `IsServiceStopped`, the original's copy of `IsServiceRunning` that tests for
-`SERVICE_STOPPED`, and that part of it as `LicenseRef-No-Licence-Stated` beside the
-project's licence, since the article states no licence for them; the Windows
-tools' `TabOrderManager.cs`, Scott McMaster's class of 2004, which the original took
-from his article, which states no licence, likewise; the
+`SERVICE_STOPPED`, and that part of it as `LicenseRef-ISXKB-Public-Domain` beside the
+project's licence, since the article's page ends with the knowledge base's statement,
+in its editor's words, that all its articles' code is public domain (no licence or
+dedication in the author's own words is known, as the identifier's text says); the
+Windows tools' `TabOrderManager.cs`, Scott McMaster's class of 2004, which the
+original took from his article, which states no licence, as
+`LicenseRef-No-Licence-Stated` beside the project's licence; the
 licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data

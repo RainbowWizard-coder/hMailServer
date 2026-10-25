@@ -2382,10 +2382,17 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
 # CloseServiceHandle; the article's functions OpenServiceManager,
 # IsServiceInstalled, StopService and IsServiceRunning, with the article's two
 # messages; and IsServiceStopped, which the original made from IsServiceRunning by
-# testing for SERVICE_STOPPED. The article states no licence for them, so that part
-# of the file is LicenseRef-No-Licence-Stated: the project grants no licence for it
-# and claims no right in it. Silvio Iaccarino is named beside Martin Knafve and the
-# maintainers, whose the rest of the file is, under the project's licence. The source
+# testing for SERVICE_STOPPED. The article's page (isxart.asp?idart=31, as the
+# Wayback Machine captured it on 10 October 2006) ends with the knowledge base's
+# statement of the terms of its articles' code, in the words of its editor, Vincenzo
+# Giordano: "All articles code is public domain, use it entirly at your own risk."
+# So that part of the file is LicenseRef-ISXKB-Public-Domain, whose text quotes the
+# statement and says whose it is: the editor's, for all the articles' code. The
+# author offered the same routines on his own site as "Freeware", in a file that
+# states no terms, and no licence or dedication in his own words is known; the
+# project grants no licence for that part and claims no right in it. Silvio
+# Iaccarino is named, as its author, beside Martin Knafve and the maintainers,
+# whose the rest of the file is, under the project's licence. The source
 # tarball, and so the Debian source package, leaves the file out, as it does every
 # other script of the Windows installer (build/source-exclusions.txt).
 [[annotations]]
@@ -2396,7 +2403,7 @@ SPDX-FileCopyrightText = [
     "2026 Christopher Holloway / Progressive Robot Ltd",
     "2002 Silvio Iaccarino",
 ]
-SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated"
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-ISXKB-Public-Domain"
 
 # The Windows tools' TabOrderManager, which sets a form's tab order from where its
 # controls lie (the setup wizard's pages use it, Tools/Shared/Wizard/ucWizard.cs): a

@@ -1,16 +1,15 @@
 No licence stated.
 
-The holders of the material given this identifier have stated no licence for
-it. It is other parties' material: replies captured from other parties' mail
-servers (two of them also as a fuzzer changed them), a security advisory's text
-and a certificate authority's certificate, kept in the tree as input to the
-project's tests; a few routines and declarations of an article that states no
-licence, which the Windows installer's script has kept since the original
-hMailServer took them from it; and a class of the Windows tools that the
-original took from a programming article whose publication states no licence,
-the grant its author's ReadMe is said to give being known to the tree only from
-the original's note on it. Where a file's identifier joins this one to a
-licence, that licence is for the rest of the file.
+The material given this identifier is other parties', and the tree holds no
+licence of its holders' for it, none being stated in it or where it was
+published: replies captured from other parties' mail servers (two of them also
+as a fuzzer changed them), a security advisory's text and a certificate
+authority's certificate, kept in the tree as input to the project's tests; and
+a class of the Windows tools that the original took from a programming article
+whose publication states no licence, the grant its author's ReadMe is said to
+give being known to the tree only from the original's note on it. Where a
+file's identifier joins this one to a licence, that licence is for the rest of
+the file.
 The project grants no licence for this material and claims no right in it. A
 distribution that carries only files under a licence leaves these files out,
 as the Debian source package does (its copyright file's Files-Excluded).

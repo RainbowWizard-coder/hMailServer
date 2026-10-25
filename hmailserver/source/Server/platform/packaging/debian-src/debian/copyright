@@ -113,12 +113,16 @@ License: notices
 
 Files: LICENSES/LicenseRef-No-Licence-Stated.txt
        LICENSES/LicenseRef-Verbatim-Notice.txt
+       LICENSES/LicenseRef-ISXKB-Public-Domain.txt
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+
 Comment:
- The two texts of LICENSES/ that are the project's own: what REUSE.toml's
- identifiers for the third parties' notices and for the material no licence
- is stated for mean. The rest of LICENSES/ is the licences' texts.
+ The three texts of LICENSES/ that are the project's own: what REUSE.toml's
+ identifiers for the third parties' notices, for the material no licence is
+ stated for and for the Windows installer's routines from an article of the
+ Inno Setup Extensions Knowledge Base mean, the last quoting the knowledge
+ base's one-sentence statement of its articles' code. The installer's script
+ is not in this package. The rest of LICENSES/ is the licences' texts.
 
 Files: hmailserver/docs/Licenses/License?list.*
 Copyright: 2010 Martin Knafve / hMailServer.com
