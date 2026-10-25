@@ -1361,7 +1361,6 @@ path = [
     "README.md",
     "fuzz/regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue",
     "fuzz/regression/mime_message_fuzzer/new-delete-type-mismatch-mimecodebase-nonvirtual-dtor",
-    "hmailserver/docs/Licenses/License list.ods",
     "hmailserver/installation/Extras/dh2048.pem",
     "hmailserver/installation/InnoSocketCheck/ISC.def",
     "hmailserver/installation/InnoSocketCheck/ISC.dsp",
@@ -2212,14 +2211,9 @@ SPDX-FileCopyrightText = [
 SPDX-License-Identifier = "BSD-2-Clause AND AGPL-3.0-or-later"
 
 # The original's list of the third-party components and their licences, Martin
-# Knafve's table of 2010, and the same table in Markdown with the fork's note on it,
-# License list.md, which comes into the tree in the same release as this file's
-# tables (a table that matches no file is passed over, so the second holds from then).
-[[annotations]]
-path = "hmailserver/docs/Licenses/License list.ods"
-SPDX-FileCopyrightText = "2010 Martin Knafve / hMailServer.com"
-SPDX-License-Identifier = "AGPL-3.0-or-later"
-
+# Knafve's table of 2010, which the tree keeps as the same table in Markdown with
+# the fork's note on it, License list.md; the spreadsheet it was, License list.ods,
+# is in the history.
 [[annotations]]
 path = "hmailserver/docs/Licenses/License list.md"
 SPDX-FileCopyrightText = [
