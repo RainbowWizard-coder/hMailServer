@@ -28,7 +28,8 @@ main()
    }
    catch (const std::exception &failure)
    {
-      printf("FAIL  ACME checks: %s (%s)\n", failure.what(), OpenSSL_version(OPENSSL_VERSION));
+      // The tester's sentence begins "ACME checks: " already.
+      printf("FAIL  %s (%s)\n", failure.what(), OpenSSL_version(OPENSSL_VERSION));
       return 1;
    }
 

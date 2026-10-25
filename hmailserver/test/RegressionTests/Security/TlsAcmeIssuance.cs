@@ -71,6 +71,9 @@ namespace RegressionTests.Security
          {
             WaitUntilIdle();
 
+            // Past a restart a deployment started, if one is still under way.
+            RetryHelper.TryAction(TimeSpan.FromSeconds(60), () => FindRecord());
+
             IniFileSetting.Write("AcmeEnabled", null);
             IniFileSetting.Write("AcmeDomains", null);
             IniFileSetting.Write("AcmeDirectoryUrl", null);
@@ -237,10 +240,15 @@ namespace RegressionTests.Security
                "the check at start to find nothing due and deploy the pair");
             Assert.AreEqual(0, first.Count("POST", "/order"));
 
-            // The save that adds the host starts the check.
+            // The save that adds the host starts a check - or, when the check at the start
+            // the deployment's restart made is running then, that check reads the new list
+            // and issues, and the save's check finds the cooldown its failure left. Either
+            // way the first attempt to issue after the save is the one to read, whatever
+            // started it: the save's own trigger is RestApiAcme's to hold.
+            long before = MiniJson.Number(Status(), "last_issuance.id");
             IniFileSetting.Write("AcmeDomains", "mail.example.test,new.example.test");
 
-            Dictionary<string, object> refused = WaitFor(s => MiniJson.Text(s, "last_issuance.trigger") == "settings" && MiniJson.At(s, "running") == null,
+            Dictionary<string, object> refused = WaitFor(s => MiniJson.Number(s, "last_issuance.id") > before && MiniJson.At(s, "running") == null,
                "the check the save started to end");
             Assert.AreEqual("failed", MiniJson.Text(refused, "last_issuance.outcome"), "A certificate for another key was installed.");
             Assert.AreEqual("certificate", MiniJson.Text(refused, "last_issuance.failed_step"));
@@ -271,7 +279,10 @@ namespace RegressionTests.Security
             Assert.IsTrue(MiniJson.Number(issued, "last_issued_at") > 0);
             Assert.AreEqual(second.CertificatePem, File.ReadAllText(CertificateFile).Replace("\r\n", "\n"), "The certificate the CA issued is not the one in use.");
 
-            SSLCertificate record = FindRecord();
+            // The installation restarts the servers, and COM answers "has not loaded its
+            // configuration" while they come back.
+            SSLCertificate record = null;
+            RetryHelper.TryAction(TimeSpan.FromSeconds(60), () => record = FindRecord());
             Assert.IsNotNull(record, "The deployment's record is gone.");
             Assert.AreEqual(CertificateFile, record.CertificateFile);
          }

@@ -1447,7 +1447,7 @@ with `--check`).
   obeyed with the CA's two hours; a request accepted, put on the audit trail and refused for the minute after; a body
   with names of its own refused and the run refused with ACME off; and both routes refused to a key for one domain,
   the run to a read-only key, and both to no credential. `Security/TlsAcmeIssuance.cs`, on Windows over COM, issues for
-  a host added to `AcmeDomains` end to end, after the certificate the CA first sent - for another key - was refused
+  a host added to `AcmeDomains` end to end, after the certificate the CA first sent - for another key - to the first check that read the new list was refused
   and the one in use kept.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
