@@ -1195,7 +1195,7 @@ namespace HM
          digits = text[i] >= '0' && text[i] <= '9';
 
       if (digits)
-         return atoi(text.c_str());
+         return (int) strtol(text.c_str(), nullptr, 10);
 
       // IMF-fixdate, which is fixed-width: "Sun, 06 Nov 1994 08:49:37 GMT". Read
       // by position rather than with a %s scan, whose buffer-size arguments the
@@ -2689,9 +2689,13 @@ namespace HM
       {
          time_t value = (time_t) seconds;
          tm utc = {};
-         gmtime_s(&utc, &value);
-
          String text;
+         if (gmtime_s(&utc, &value) != 0)
+         {
+            text.Format(_T("%I64d seconds after 1970-01-01 00:00:00 UTC"), seconds);
+            return text;
+         }
+
          text.Format(_T("%04d-%02d-%02d %02d:%02d:%02d UTC"), utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
             utc.tm_hour, utc.tm_min, utc.tm_sec);
          return text;
@@ -3002,7 +3006,7 @@ namespace HM
       // The hourly registration ran, whether or not it finds a check running:
       // the next is an hour on, give or take the minute the scheduler wakes in.
       if (trigger == TriggerSchedule)
-         next_scheduled_at_ = now + 60 * 60;
+         next_scheduled_at_ = now + 60LL * 60;
 
       if (running_ && current_.step == "queued" && current_.trigger == trigger)
       {
@@ -3629,7 +3633,9 @@ namespace HM
 
          char *data = nullptr;
          long length = BIO_get_mem_data(bio, &data);
-         AnsiString pem = std::string(data, (size_t) length).c_str();
+         AnsiString pem;
+         if (data != nullptr && length > 0)
+            pem = AnsiString(data, (int) length);
 
          BIO_free(bio);
          X509_free(certificate);
@@ -3874,7 +3880,7 @@ namespace HM
 
          __int64 until = 0;
          AnsiString why;
-         Expect(!AcmeChecks::Allows(spacing, ca, now + 2 * 86400, false, until, why) && why == "rate_limited" && until == now + 604800,
+         Expect(!AcmeChecks::Allows(spacing, ca, now + 2LL * 86400, false, until, why) && why == "rate_limited" && until == now + 604800,
             "an order two days into a rate limit of seven days was let through");
 
          // A check that neither ordered nor tried leaves the spacing as it was,
@@ -3911,8 +3917,8 @@ namespace HM
 
          AcmeChecks::Attempt running;
          running.step = "authorization";
-         running.queued_at = now - 3 * 3600;
-         running.started_at = now - 3 * 3600;
+         running.queued_at = now - 3LL * 3600;
+         running.started_at = now - 3LL * 3600;
          Expect(AcmeChecks::Holds(true, running, now), "a check that is running was taken to be dropped for its age");
 
          Expect(!AcmeChecks::Holds(false, queued, now) && !AcmeChecks::Holds(false, running, now),
