@@ -5,11 +5,14 @@
 
 """The original hMailServer's files in REUSE.toml, made from the original's tags.
 
-The project is a fork of Martin Knafve's hMailServer. In September 2026 the
-fork's header replaced his notice in the files that came from the original (the
-owner's decision, about the files' text), so a file's own header no longer says
-that he is a holder of it, and reuse would record the fork alone. This keeps
-the record true: it names Martin Knafve as a holder of every file of the
+The project is a fork of Martin Knafve's hMailServer. On 13 September 2026 the
+fork's header took the place of his notice in the files that came from the
+original, so that a file's own text no longer said that he is a holder of it, and
+reuse would have recorded the fork alone; since 25 October 2026 each of them that
+carries the header carries his notice again, below it
+(build/generate-original-notices.py), and those that carry no header - documents,
+pictures, data - never did. This keeps the record true for all of them: it names
+Martin Knafve as a holder of every file of the
 original, as debian/copyright's "Files: *" does, beside what the file says
 itself, from the original's own trees rather than from a pattern of
 directories, which would credit him with what the fork adds there.

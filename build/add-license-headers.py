@@ -17,10 +17,20 @@ The header is three lines, in the file's own comment syntax:
 It goes after a UTF-8 byte-order mark, after a shebang or a Python encoding
 line, and after an XML declaration, since each of those has to come first, and
 a blank line separates it from whatever the file goes on to say. Whatever
-stood in its place before is replaced: the original author's per-file notice,
-an earlier wording of this one, the same lines in another order, or an SPDX
-line that an earlier version of this script put at the foot of a long opening
-comment. Nothing below the header is touched - a comment that opens a file
+stood in its place before is replaced: an earlier wording of this one, the same
+lines in another order, or an SPDX line that an earlier version of this script
+put at the foot of a long opening comment.
+
+A file of the original hMailServer's that carried Martin Knafve's notice carries
+it again, below the header and in the same comment: build/original-notices.txt,
+which build/generate-original-notices.py makes from the original's own trees,
+gives each such file the notice line or lines its original wrote, and this
+writes them there, exactly, in the file's line endings. This script took them
+out on 13 September 2026 and put them back on 25 October 2026, as the AGPL asks
+that a work's copyright notices be kept intact. --check refuses a file of the
+list whose notice is not there, and his notice in the opening comment of a file
+the list does not name, which it leaves where it is: whether a file is his is
+the list's to say, not this script's. Nothing below the header is touched - a comment that opens a file
 stays, a third-party notice in a block comment stays (Mime.cpp, the Mime
 library's), and a file keeps its own line endings and its byte-order mark.
 A file that opens with a third party's notice whose terms forbid changing it
@@ -60,7 +70,7 @@ build scripts at the top of libraries/ are the project's own and carry the
 header.
 
 Usage:
-  python build/add-license-headers.py            # apply
+  python build/add-license-headers.py            # apply (--write says the same)
   python build/add-license-headers.py --check    # CI mode: report, change nothing
 """
 
@@ -80,10 +90,9 @@ HEADER = [
 ]
 
 # What the header replaces, wherever the lines sit in a file's opening comment:
-# the notices this tree has carried, in every wording, and any SPDX line.
+# the project's notices this tree has carried, in every wording, and any SPDX line.
 REPLACED = [re.compile(p) for p in (
     # REUSE-IgnoreStart
-    r'^Copyright \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\s*Martin Knafve / hMailServer\.com\.?$',
     r'^https?://(?:www\.)?progressiverobot\.com/?$',
     r'^Copyright \(c\) \d{4} Christopher Holloway / Progressive Robot Ltd'
     r'(?: and the hMailServer contributors)?\.?$',
@@ -91,6 +100,18 @@ REPLACED = [re.compile(p) for p in (
     r'^SPDX-License-Identifier: \S+$',
     # REUSE-IgnoreEnd
 )]
+
+# Martin Knafve's notice, whole, as the text of a comment line, in the wordings the
+# original's files carry. In a file of NOTICES_FILE it is written below the header,
+# and taken from wherever else it sits in the opening comment; in any other file it
+# is refused, and left where it is.
+# REUSE-IgnoreStart
+HIS_NOTICE = re.compile(r'^Copyright \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\s*Martin Knafve / hMailServer\.com\.?$')
+# REUSE-IgnoreEnd
+# build/generate-original-notices.py's list: a path, then each line of its notice, a
+# tab before it, exactly as the file writes it (a comment element's lines indented
+# by two); '#' lines are comments.
+NOTICES_FILE = 'build/original-notices.txt'
 
 # Comment syntax per extension: line comments, or - for XML and Markdown - one
 # comment element at the top, after the XML declaration when there is one.
@@ -170,23 +191,118 @@ UTF16_BOMS = (b'\xff\xfe', b'\xfe\xff')
 CODING = re.compile(rb'^#.*coding[:=]')
 
 
+def file_kind(dirpath, name):
+    """The extension a file is written by, or None for a file this does not write."""
+    if name in SKIP_FILES:
+        return None
+    if os.path.relpath(os.path.join(dirpath, name), ROOT).replace(os.sep, '/') in OWN_NOTICE_FIRST:
+        return None
+    ext = BY_NAME.get(name) or os.path.splitext(name)[1].lower()
+    if not ext and os.path.basename(dirpath) in SCRIPTLET_DIRS and name in SCRIPTLET_NAMES:
+        ext = '.sh'
+    if ext in LINE_COMMENT or ext in BLOCK_COMMENT:
+        return ext
+    return None
+
+
 def candidates():
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [] if dirpath in NO_DESCEND else sorted(d for d in dirnames if d not in SKIP_DIRS)
         for name in sorted(filenames):
-            if name in SKIP_FILES:
-                continue
-            if os.path.relpath(os.path.join(dirpath, name), ROOT).replace(os.sep, '/') in OWN_NOTICE_FIRST:
-                continue
-            ext = BY_NAME.get(name) or os.path.splitext(name)[1].lower()
-            if not ext and os.path.basename(dirpath) in SCRIPTLET_DIRS and name in SCRIPTLET_NAMES:
-                ext = '.sh'
-            if ext in LINE_COMMENT or ext in BLOCK_COMMENT:
+            ext = file_kind(dirpath, name)
+            if ext:
                 yield os.path.join(dirpath, name), ext
+
+
+def kind(rel):
+    """file_kind() of a path from the top of the tree, with forward slashes, as the
+    walk of candidates() would reach it: None also for one under a directory it does
+    not go into."""
+    parts = rel.split('/')
+    dirpath = os.path.join(ROOT, *parts[:-1])
+    if any(part in SKIP_DIRS for part in parts[:-1]):
+        return None
+    for i in range(1, len(parts) - 1):
+        if os.path.join(ROOT, *parts[:i]) in NO_DESCEND:
+            return None
+    return file_kind(dirpath, parts[-1])
 
 
 def replaced(text):
     return any(p.match(text) for p in REPLACED)
+
+
+def read_notices():
+    """({path: [notice lines as bytes]}, problems) from NOTICES_FILE."""
+    try:
+        with open(os.path.join(ROOT, *NOTICES_FILE.split('/')), 'rb') as f:
+            text = f.read().decode('utf-8')
+    except (OSError, UnicodeDecodeError) as e:
+        return {}, ['%s cannot be read (%s): run build/generate-original-notices.py' % (NOTICES_FILE, e)]
+    notices, problems, path = {}, [], None
+    for line in text.replace('\r\n', '\n').split('\n'):
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('\t'):
+            if path is None:
+                problems.append('%s gives a notice before any path' % NOTICES_FILE)
+            else:
+                notices[path].append(line[1:].encode('utf-8'))
+            continue
+        path = line
+        if path in notices:
+            problems.append('%s names %s twice' % (NOTICES_FILE, path))
+        notices[path] = []
+    for path, lines in sorted(notices.items()):
+        if not lines:
+            problems.append('%s names %s with no notice' % (NOTICES_FILE, path))
+    return notices, problems
+
+
+def notice_problems(rel, ext, lines):
+    """What is wrong with the list's lines for one file: each must be his notice in
+    the file's own comment syntax."""
+    problems = []
+    marker = LINE_COMMENT.get(ext)
+    for line in lines:
+        text = line.decode('utf-8')
+        if marker is None:
+            good = text.startswith('  ') and bool(HIS_NOTICE.match(text.strip()))
+        else:
+            good = text.startswith(marker + ' ') and bool(HIS_NOTICE.match(text[len(marker):].strip()))
+        if not good or text != text.rstrip():
+            problems.append('%s gives %s a line that is not his notice in its comment syntax: %r'
+                            % (NOTICES_FILE, rel, text))
+    return problems
+
+
+def his_notices(raw, ext):
+    """The lines of a file's opening comment that are Martin Knafve's notice: what
+    a file the list does not name may not carry."""
+    if raw.startswith(UTF16_BOMS):
+        return []
+    body = raw[len(BOM):] if raw.startswith(BOM) else raw
+    lines = body.split(b'\n')
+    found = []
+    if ext in BLOCK_COMMENT:
+        start = 1 if lines and lines[0].lstrip().startswith(b'<?xml') else 0
+        if start < len(lines) and lines[start].lstrip().startswith(b'<!--'):
+            for line in lines[start:]:
+                text = line.strip().replace(b'<!--', b'').replace(b'-->', b'').strip().decode('utf-8', 'replace')
+                if HIS_NOTICE.match(text):
+                    found.append(line.strip().decode('utf-8', 'replace'))
+                if b'-->' in line:
+                    break
+        return found
+    m = LINE_COMMENT[ext].encode()
+    for line in lines:
+        s = line.strip()
+        if s and not s.startswith(m) and not s.startswith(b'#!'):
+            break
+        text = comment_text(line, m)
+        if text is not None and HIS_NOTICE.match(text):
+            found.append(s.decode('utf-8', 'replace'))
+    return found
 
 
 def comment_text(line, marker):
@@ -197,7 +313,7 @@ def comment_text(line, marker):
     return s[len(marker):].strip().decode('utf-8', 'replace')
 
 
-def with_line_comments(lines, marker, cr, add):
+def with_line_comments(lines, marker, cr, add, notices=None):
     m = marker.encode()
 
     # A shebang stays on line 1, a Python encoding line with it, and a
@@ -227,7 +343,7 @@ def with_line_comments(lines, marker, cr, add):
     found = False
     for line in block:
         text = comment_text(line, m)
-        if text is not None and replaced(text):
+        if text is not None and (replaced(text) or (notices is not None and HIS_NOTICE.match(text))):
             found = True
         else:
             kept.append(line)
@@ -239,14 +355,14 @@ def with_line_comments(lines, marker, cr, add):
     while kept and kept[0].strip() in (b'', m):
         kept.pop(0)
 
-    header = [m + b' ' + h.encode() + cr for h in HEADER]
+    header = [m + b' ' + h.encode() + cr for h in HEADER] + [n + cr for n in notices or ()]
     rest = kept + lines[end:]
     if rest and rest[0].strip() != b'':
         header.append(cr)
     return lines[:start] + header + rest
 
 
-def with_block_comment(lines, ext, cr, add):
+def with_block_comment(lines, ext, cr, add, notices=None):
     # An XML declaration has to be the first thing in the file.
     start = 1 if lines and lines[0].lstrip().startswith(b'<?xml') else 0
 
@@ -263,13 +379,14 @@ def with_block_comment(lines, ext, cr, add):
             inner = inner[:inner.rfind(b'-->')]
             texts = [t.strip().decode('utf-8', 'replace') for t in inner.split(b'\n')]
             texts = [t for t in texts if t]
-            if texts and all(replaced(t) for t in texts):
+            if texts and all(replaced(t) or (notices is not None and HIS_NOTICE.match(t)) for t in texts):
                 found = True
                 end = j + 1
     if not found and not add:
         return None
 
-    header = [b'<!--' + cr] + [b'  ' + h.encode() + cr for h in HEADER] + [b'-->' + cr]
+    header = ([b'<!--' + cr] + [b'  ' + h.encode() + cr for h in HEADER] + [n + cr for n in notices or ()]
+              + [b'-->' + cr])
     rest = lines[end:]
     if ext == '.md':
         while rest and rest[0].strip() == b'':
@@ -279,8 +396,9 @@ def with_block_comment(lines, ext, cr, add):
     return lines[:start] + header + rest
 
 
-def normalised(raw, ext):
-    """The file's bytes with the canonical header, or None to leave it alone."""
+def normalised(raw, ext, notices=None):
+    """The file's bytes with the canonical header, and below it the notice lines
+    NOTICES_FILE gives the file (notices), or None to leave it alone."""
     if raw.startswith(UTF16_BOMS):
         return None
     bom = raw.startswith(BOM)
@@ -293,9 +411,9 @@ def normalised(raw, ext):
     lines = body.split(b'\n')
     add = ext not in NORMALISE_ONLY
     if ext in BLOCK_COMMENT:
-        new_lines = with_block_comment(lines, ext, cr, add)
+        new_lines = with_block_comment(lines, ext, cr, add, notices)
     else:
-        new_lines = with_line_comments(lines, LINE_COMMENT[ext], cr, add)
+        new_lines = with_line_comments(lines, LINE_COMMENT[ext], cr, add, notices)
     if new_lines is None:
         return None
     out = b'\n'.join(new_lines)
@@ -344,17 +462,31 @@ def own_notice_problems():
 def main():
     check = '--check' in sys.argv
     problems = own_notice_problems()
+    notices, notice_list_problems = read_notices()
+    seen = set()
     touched = []
     for path, ext in candidates():
+        rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
         with open(path, 'rb') as f:
             raw = f.read()
-        out = normalised(raw, ext)
+        mine = notices.get(rel)
+        if mine is not None:
+            seen.add(rel)
+            notice_list_problems += notice_problems(rel, ext, mine)
+        else:
+            for line in his_notices(raw, ext):
+                notice_list_problems.append('%s carries Martin Knafve\'s notice (%s), and %s does not give it one: '
+                                            'the list says which files are his' % (rel, line, NOTICES_FILE))
+        out = normalised(raw, ext, mine)
         if out is None or out == raw:
             continue
-        touched.append(os.path.relpath(path, ROOT))
+        touched.append(rel + ('  (with its notice from %s)' % NOTICES_FILE if mine is not None else ''))
         if not check:
             with open(path, 'wb') as f:
                 f.write(out)
+    for rel in sorted(set(notices) - seen):
+        notice_list_problems.append('%s names %s, which is not a file this script writes the header in'
+                                    % (NOTICES_FILE, rel))
 
     for problem in problems:
         print('%s.' % problem)
@@ -362,6 +494,15 @@ def main():
         print('A file of OWN_NOTICE_FIRST keeps its third party\'s notice first and unchanged, and its own SPDX line')
         print('below it; this script does not write either, so put them back by hand.')
         print()
+    for problem in notice_list_problems[:40]:
+        print('%s.' % problem)
+    if len(notice_list_problems) > 40:
+        print('... and %d more.' % (len(notice_list_problems) - 40))
+    if notice_list_problems:
+        print('Martin Knafve\'s notice goes on the files of %s, below the header, and on no other: run' % NOTICES_FILE)
+        print('build/generate-original-notices.py, which makes the list from the original\'s own trees, and then this.')
+        print()
+    problems += notice_list_problems
 
     if check:
         if touched:
@@ -375,8 +516,9 @@ def main():
             return 1
         if problems:
             return 1
-        print('Every source file opens with the project header, and the %d of OWN_NOTICE_FIRST with their own.'
-              % len(OWN_NOTICE_FIRST))
+        print('Every source file opens with the project header, the %d of %s with Martin Knafve\'s notice below it '
+              'and no other with his notice, and the %d of OWN_NOTICE_FIRST with their own.'
+              % (len(notices), NOTICES_FILE, len(OWN_NOTICE_FIRST)))
         return 0
 
     print('Put the project header on %d file(s).' % len(touched))

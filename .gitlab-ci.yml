@@ -1101,14 +1101,19 @@ editorconfig:
 # commit from the project (commits and trees alone, into a git directory of their own:
 # this job's GIT_DEPTH stays the default's), holds the list of the original's files to
 # them and REUSE.toml's tables of those files to build/generate-reuse-original.py,
-# reuse's record of each to naming Martin Knafve and debian/copyright's licences to the
+# reuse's record of each to naming Martin Knafve, his notices to the original's own
+# files and to the headers (build/generate-original-notices.py, which fetches the
+# files it reads, and build/add-license-headers.py), and debian/copyright's licences to the
 # same record (build/ci/reuse-debian.py), and then puts five files in the checkout that
 # it must refuse - a new source file without the project's header, a new file without
 # one beside the original's in Server/COM and in the Windows suite's Resources, a header
 # naming a licence LICENSES/ has no text for, and a licence text no file names - and
 # must refuse a table in REUSE.toml that drops Martin Knafve from one of the original's
-# files, a fork file added to the list with the tables written from it, and a
-# debian/copyright that gives a third party's file the project's licence. In every pipeline, as checkers is: a
+# files, a fork file added to the list with the tables written from it, a
+# debian/copyright that gives a third party's file the project's licence, one of the
+# original's files without his notice, a file the fork made with it, and a notice of
+# his given another year or put on a file the fork made in the list and the file
+# alike. In every pipeline, as checkers is: a
 # document or a picture needs its licence as much as a source does. git so that reuse
 # leaves out what git ignores, libmagic for the encoding of each file, both Debian's.
 reuse:

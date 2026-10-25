@@ -34,11 +34,13 @@
 # the whole tree, names both for every file). The original's files are listed one by
 # one, in the two tables the generator below writes from the original's own tags
 # (build/generate-reuse-original.py; its docstring says how), with the files the fork
-# moved or copied out of them and without those it made anew at their paths: the
-# fork's header replaced Martin Knafve's notice in them in 2026, so their own text no
-# longer names him, and these tables do. A table further down that names one of the
-# original's files takes their place for it and names him too, and the reuse job
-# refuses a record of one of them that does not.
+# moved or copied out of them and without those it made anew at their paths. Those
+# that carry the project's header carry Martin Knafve's own notice below it as well
+# (build/original-notices.txt, which build/add-license-headers.py writes), put back on
+# 25 October 2026 after the header had taken its place on 13 September; these tables
+# name him for every one of them, those that can carry no notice among them. A table
+# further down that names one of the original's files takes their place for it and
+# names him too, and the reuse job refuses a record of one of them that does not.
 
 version = 1
 

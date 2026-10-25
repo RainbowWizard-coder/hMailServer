@@ -574,6 +574,34 @@ def resx_row(name, value):
    return row
 
 
+# build/generate-original-notices.py's list, which gives the English catalogue, holding a
+# warning of the original's Administrator in its words, Martin Knafve's notice: the
+# lines it gives a catalogue go below the header's lines, in its comment, as
+# build/add-license-headers.py writes them.
+NOTICES_FILE = os.path.normpath(os.path.join(HERE, "original-notices.txt"))
+TREE = os.path.normpath(os.path.join(HERE, ".."))
+
+
+def original_notices(path):
+   """The notice lines the list gives the catalogue at path, or none."""
+   rel = os.path.relpath(path, TREE).replace(os.sep, "/")
+   try:
+      with open(NOTICES_FILE, encoding="utf-8") as handle:
+         text = handle.read()
+   except OSError:
+      return []
+   lines, current = [], None
+   for line in text.replace("\r\n", "\n").split("\n"):
+      if not line or line.startswith("#"):
+         continue
+      if line.startswith("\t"):
+         if current == rel:
+            lines.append(line[1:])
+      else:
+         current = line
+   return lines
+
+
 def write_resx(path, items, comment):
    # Written the way the file was read: a catalogue that carried a UTF-8 byte
    # order mark keeps it. read() strips the mark on the way in (utf-8-sig), and
@@ -586,7 +614,12 @@ def write_resx(path, items, comment):
          had_bom = handle.read(3) == b"\xef\xbb\xbf"
    except OSError:
       pass
-   lines = [RESX_HEAD.replace("{comment}", comment)]
+   head = RESX_HEAD.replace("{comment}", comment)
+   notices = original_notices(path)
+   if notices:
+      # Below the header's last line, before the end of its comment.
+      head = head.replace("\n-->\n", "\n" + "".join(line + "\n" for line in notices) + "-->\n", 1)
+   lines = [head]
    for name, value in items:
       lines.append(resx_row(name, value))
    lines.append("</root>\n")

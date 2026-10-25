@@ -97,8 +97,10 @@ Copyright: 2005-2026 Martin Knafve / hMailServer.com
 License: AGPL-3+
 Comment:
  The project is a maintained fork of hMailServer, whose files carried Martin
- Knafve's notice; the maintainers' header replaced it in each file in 2026, and
- the ported files say where they came from. REUSE.toml names him beside the
+ Knafve's notice; the maintainers' header took its place in each file on 13
+ September 2026, and since 25 October 2026 each file that carries the header
+ carries his notice again, below it, as the original's file wrote it, and the
+ ported files say where they came from. REUSE.toml names him beside the
  header for each of the original's files, listed from the original's tags by
  build/generate-reuse-original.py. The AssemblyInfo.cs of the Windows
  test projects carry the copyright strings Visual Studio's project template

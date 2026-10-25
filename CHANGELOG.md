@@ -1176,6 +1176,42 @@ with `--check`).
   the original's, and the job's section in `ContinuousIntegration.md` what it runs. No REUSE badge yet: the REUSE
   API's needs the repository registered, which is the owner's step.
 
+- **Martin Knafve's copyright notices are back on the original's files, below the project's header.** On 13 September
+  2026 the project's header took the place of the notice each of the original hMailServer's source files carried, for
+  most of them `Copyright (c) 2010 Martin Knafve / hMailServer.com.` in the file's comment syntax. The AGPL, under
+  which the original and the fork are both published, asks (its sections 4 and 5) that a work's copyright notices be
+  kept intact, so each file's own notice is put back as the original's file wrote it, on the line below the header and
+  in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,101 files,
+  each with one line - 1,028 of 2010, 38 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one each of
+  2007 and 2012, and one with no year. The new `build/generate-original-notices.py` makes the list from the original's
+  own trees, those `build/generate-reuse-original.py` reads: for every file of the tree that is the original's, or
+  that the fork moved, split or copied out of one of the original's (its `DERIVED`), but for those the fork made at
+  the original's paths (`FORK_MADE`) and the third parties', and that carries the project's header, the notice lines
+  of the opening comment of the original's own file - at the newest of the tags `hMailServer-5.7.0-b3013`, `-b2843`
+  and `-b2788` that holds it, or as the fork's first commit took it over, which agree for every file both hold -
+  written as the original wrote them, trailing blanks aside, or in the file's own comment syntax where it has another:
+  the Control Panel's English catalogue, `Strings.resx`, which keeps a warning of the original's Administrator in its
+  words, carries it in its XML comment, and `build/check-localisation.py`, which writes that file, writes it there.
+  Its `--check` holds the list to those trees, and without them to the tree and to the original's files; its
+  `--against-history` reads every line naming him that one of the fork's commits took out of a file and finds each
+  such notice in the list, but for 21 lines its `NOT_HIS` names, with the reason for each, that were never his: the
+  original's template notice that the fork's first commit and its later work gave nine files of its own (the DMARC
+  classes and tests, `IMAPCommandID`, the `MOVE` command's two declarations, `SequenceSets.cs`), and a notice with the
+  year 2026 that the fork wrote into twelve files it ported from the original's work of August and September 2026,
+  eight of which carry none there (the four library build scripts, `Get-LibraryVersions.ps1` and three IMAP tests) and
+  four 2010 (`FetchAccountLock` and `IMAPFolderView`), which the list gives them. The SPF port's files, which quote
+  his notice in the sentence that says where they came from, keep it as they are. `build/add-license-headers.py`
+  writes each listed notice below the header, wherever in the opening comment it stood, and its `--check` refuses a
+  file of the list without its notice there and his notice in the opening comment of any file the list does not name,
+  which it leaves in place: the list, not the script, says which files are his. The `reuse` job runs the generator's
+  self-test, `--check --require-tags` over the original's trees it already fetches - the 1,240 files it reads fetched
+  into the same directory in one request - and the header check, and four more negative controls must each be refused
+  by name: `IMAPFetch.cpp` without its notice and the fork's `SpamTestDMARC.cpp` with his, by the header check, and
+  `IMAPFetch.cpp`'s notice given another year, and `SpamTestDMARC.cpp` put in the list, each in the list and the file
+  alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
+  notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and
+  `generate-reuse-original.py`'s texts no longer say that the files' own text does not name him.
+
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

@@ -37,7 +37,14 @@
 # (--check --require-tags, which exits 2 when the tags are not at hand), and reuse's
 # record of each of the original's files but the third parties' must name Martin
 # Knafve, and of none that the fork made at the original's paths (--holders, over
-# reuse lint --json). Then debian/copyright: every file the Debian source package
+# reuse lint --json). Then his notices: build/original-notices.txt must be what
+# build/generate-original-notices.py makes from the same trees - the notice each of
+# the original's files that carries the project's header wrote in its opening
+# comment, read from the original's own file (--check --require-tags; the files it
+# reads are fetched with it, 1,240 of them in one request) - and every file of
+# it must carry its notice below the header, and no other file his notice
+# (build/add-license-headers.py --check, which the checkers job runs as well). Then
+# debian/copyright: every file the Debian source package
 # carries has there the licences reuse records for it (build/ci/reuse-debian.py).
 #
 # The negative controls, after the tree passes: five files the job puts in the
@@ -57,16 +64,26 @@
 # list, as an edit of both would leave them: --check --require-tags, holding the list
 # to the tags, must refuse it, by name; and a copy of debian/copyright that has lost
 # the RFC 7208 suite's change log from its paragraph, which reuse-debian.py must
-# refuse, by name.
+# refuse, by name. And four of his notices, each made in the checkout and taken out
+# again: one of the list's files, IMAPFetch.cpp, with its notice taken out, and a
+# file the fork made at one of the original's paths, SpamTestDMARC.cpp (the
+# generator's FORK_MADE), given it, each of which build/add-license-headers.py
+# --check must refuse, by name; IMAPFetch.cpp's notice given another year in the
+# list and in the file alike, as an edit of both would leave them, and
+# SpamTestDMARC.cpp put in the list with his notice in the file, each of which
+# build/generate-original-notices.py --check --require-tags must refuse, by name.
 # So a REUSE.toml table grown to cover the whole tree or a directory of the
 # original's, a reuse that has stopped reading the tree, a check of the original's
-# files that has stopped seeing them or their tags, or a Debian record that has
-# stopped being compared, fails the job too.
+# files that has stopped seeing them or their tags, a check of his notices that has
+# stopped reading the files or his own, or a Debian record that has stopped being
+# compared, fails the job too.
 #
 # Exit status: 0 the tree is compliant, its record of the original's files names
-# Martin Knafve, debian/copyright agrees with it, and every control was refused; 1 the
+# Martin Knafve, his notices are the original's and where the list puts them,
+# debian/copyright agrees with it, and every control was refused; 1 the
 # tree is not compliant, a record of the original's does not name him or one of the
-# fork's does, debian/copyright says otherwise, or a control passed; 2 reuse could not
+# fork's does, a notice of his is missing, out of place, not his own or on a file
+# that is not his, debian/copyright says otherwise, or a control passed; 2 reuse could not
 # be installed or run, the original's tags could not be fetched, or this is not the
 # root of a checkout.
 set -uo pipefail
@@ -81,13 +98,22 @@ done
 TAGS=(hMailServer-5.7.0-b2788 hMailServer-5.7.0-b2843 hMailServer-5.7.0-b3013)
 FIRST_COMMIT=fe45f43c3db6c40dfdb42c57f3db2cc312d53af1
 LIST=build/reuse-original-paths.txt
+NOTICES=build/original-notices.txt
 COPYRIGHT=hmailserver/source/Server/platform/packaging/debian-src/debian/copyright
 
 work=$(mktemp -d /tmp/hm-reuse.XXXXXX)
 controls=()
+# Files of the checkout a control edits, each copied to $work/kept/<n> first.
+kept=()
 cleanup() {
   for f in "${controls[@]}"; do
     rm -f -- "$f"
+  done
+  local i
+  for i in "${!kept[@]}"; do
+    if [ -f "$work/kept/$i" ]; then
+      cp -- "$work/kept/$i" "${kept[$i]}"
+    fi
   done
   # REUSE.toml and the list as they were, if a control was interrupted with its
   # change in.
@@ -228,6 +254,27 @@ if [ "$status" -ne 0 ]; then
 fi
 
 echo ""
+echo "== Martin Knafve's notices: $NOTICES, from the original's own files, and the files' headers"
+if ! python3 build/generate-original-notices.py --self-test; then
+  echo "build/generate-original-notices.py's self-test failed."
+  exit 1
+fi
+python3 build/generate-original-notices.py --check --require-tags
+status=$?
+if [ "$status" -ne 0 ]; then
+  echo "$NOTICES is not what build/generate-original-notices.py makes from the original's own files (it"
+  echo "exited $status): run it, then build/add-license-headers.py, and commit what they write."
+  exit "$status"
+fi
+if ! python3 build/add-license-headers.py --check > "$work/headers.txt" 2>&1; then
+  cat "$work/headers.txt"
+  echo "A file of $NOTICES does not carry its notice below the project's header, or another file carries"
+  echo "his notice: run build/add-license-headers.py, and commit what it writes."
+  exit 1
+fi
+tail -n 1 "$work/headers.txt"
+
+echo ""
 echo "== debian/copyright: the licences of every file the Debian source package carries"
 python3 build/ci/reuse-debian.py "$work/lint.json"
 status=$?
@@ -358,13 +405,137 @@ else
   echo "refused: a debian/copyright that gives a third party's file the project's licence"
 fi
 
+# His notices' controls. Each edits files of the checkout, kept in $work/kept first
+# and put back after, line by line and in each file's own line endings.
+mkdir -p "$work/kept"
+keep() {
+  local f
+  for f in "$@"; do
+    kept+=("$f")
+    cp -- "$f" "$work/kept/$(( ${#kept[@]} - 1 ))"
+  done
+}
+put_back() {
+  local i
+  for i in "${!kept[@]}"; do
+    cp -- "$work/kept/$i" "${kept[$i]}"
+    rm -f -- "$work/kept/$i"
+  done
+  kept=()
+}
+# edit FILE take LINE | edit FILE after N LINE | edit FILE swap OLD NEW | edit LIST entry PATH LINE |
+# edit LIST note PATH OLD NEW: take out the line LINE, put LINE in after line N, make the
+# line OLD the line NEW, put PATH with its notice LINE into the list where its order
+# puts it, or make PATH's notice OLD in the list NEW. Exits 1 when the file has not the
+# line, or has it more than once.
+edit() {
+  python3 -c '
+import sys
+path, action = sys.argv[1], sys.argv[2]
+data = open(path, "rb").read()
+end = b"\r\n" if data.split(b"\n", 1)[0].endswith(b"\r") else b"\n"
+lines = data.split(b"\n")
+def at(text):
+    found = [i for i, l in enumerate(lines) if l.rstrip(b"\r") == text.encode()]
+    if len(found) != 1:
+        sys.exit("%s has the line %r %d times" % (path, text, len(found)))
+    return found[0]
+if action == "take":
+    del lines[at(sys.argv[3])]
+elif action == "after":
+    lines.insert(int(sys.argv[3]), sys.argv[4].encode() + end[:-1])
+elif action == "swap":
+    i = at(sys.argv[3])
+    lines[i] = sys.argv[4].encode() + end[:-1]
+elif action == "entry":
+    i = next(i for i, l in enumerate(lines) if l and not l.startswith((b"#", b"\t")) and l.rstrip(b"\r") > sys.argv[3].encode())
+    lines[i:i] = [sys.argv[3].encode() + end[:-1], b"\t" + sys.argv[4].encode() + end[:-1]]
+elif action == "note":
+    i = at(sys.argv[3]) + 1
+    if i >= len(lines) or lines[i].rstrip(b"\r") != ("\t" + sys.argv[4]).encode():
+        sys.exit("%s does not give %s the notice %r" % (path, sys.argv[3], sys.argv[4]))
+    lines[i] = ("\t" + sys.argv[5]).encode() + end[:-1]
+open(path, "wb").write(b"\n".join(lines))
+' "$@"
+}
+# refused_by NAME EXPECT COMMAND...: the command must exit 1 and name EXPECT.
+refused_by() {
+  local name="$1" expect="$2" out code
+  shift 2
+  out=$("$@" 2>&1)
+  code=$?
+  put_back
+  if [ "$code" -ne 1 ] || ! printf '%s\n' "$out" | grep -q -F -- "$expect"; then
+    printf '%s\n' "$out" | tail -n 20
+    echo "$* did not refuse $name, naming $expect (exit $code)."
+    return 1
+  fi
+  echo "refused: $name"
+  return 0
+}
+
+his=hmailserver/source/Server/IMAP/IMAPFetch.cpp
+made=hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp
+# REUSE-IgnoreStart
+notice="// Copyright (c) 2010 Martin Knafve / hMailServer.com."
+other="// Copyright (c) 2011 Martin Knafve / hMailServer.com."
+# REUSE-IgnoreEnd
+# The checkout has the list with CRLF line endings.
+tr -d '\r' < "$NOTICES" > "$work/notices.txt"
+if ! grep -q -F -x -- "$his" "$work/notices.txt" || ! grep -q -F -x -- "	$notice" "$work/notices.txt"; then
+  echo "$NOTICES does not give $his the notice the controls expect: they prove nothing."
+  failed=1
+else
+  keep "$his"
+  if edit "$his" take "$notice"; then
+    refused_by "one of the list's files without its notice" "$his" python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  keep "$made"
+  if edit "$made" after 3 "$notice"; then
+    refused_by "his notice on a file the fork made at one of the original's paths" "$made carries" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  keep "$his" "$NOTICES"
+  if edit "$his" swap "$notice" "$other" && edit "$NOTICES" note "$his" "$notice" "$other" \
+      && python3 build/add-license-headers.py --check > "$work/control-headers.txt" 2>&1; then
+    refused_by "a notice of his given another year in the list and in the file alike" "+ $his: $other" \
+      python3 build/generate-original-notices.py --check --require-tags || failed=1
+  else
+    tail -n 20 "$work/control-headers.txt" 2> /dev/null
+    echo "The year's control did not leave the list and the file agreeing: it proves nothing."
+    put_back
+    failed=1
+  fi
+
+  keep "$made" "$NOTICES"
+  if edit "$made" after 3 "$notice" && edit "$NOTICES" entry "$made" "$notice" \
+      && python3 build/add-license-headers.py --check > "$work/control-headers.txt" 2>&1; then
+    refused_by "a file the fork made put in the list with his notice" "$made, which the fork made" \
+      python3 build/generate-original-notices.py --check --require-tags || failed=1
+  else
+    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    echo "The list's control did not leave the list and the file agreeing: it proves nothing."
+    put_back
+    failed=1
+  fi
+fi
+
 if [ "$failed" -ne 0 ]; then
   exit 1
 fi
 echo ""
 echo "Every file's copyright and licence are known, every licence's text is in LICENSES/, every one of"
-echo "the original's files names Martin Knafve and the list of them is the original's tags', and"
-echo "debian/copyright gives every file the Debian source package carries the same licences; a file"
-echo "without them, a file the fork adds among the original's, a licence without its text, a text no"
-echo "file uses, a table that drops him, a fork file in the list and a Debian paragraph that lost a"
-echo "file are each refused."
+echo "the original's files names Martin Knafve and the list of them is the original's tags', those"
+echo "that carry the header carry his notice as his own file wrote it, and debian/copyright gives every"
+echo "file the Debian source package carries the same licences; a file without them, a file the fork"
+echo "adds among the original's, a licence without its text, a text no file uses, a table that drops"
+echo "him, a fork file in the list, a Debian paragraph that lost a file, a file of his without his"
+echo "notice, a file of the fork's with it and a notice that is not his file's are each refused."
