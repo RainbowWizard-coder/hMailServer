@@ -97,6 +97,30 @@ with `--check`).
 
 ### Correctness
 
+- **Fixed: a host added to `AcmeDomains` got no certificate until the one in use was due for renewal (GitLab work
+  item 98).** The hourly check looked only at the certificate's dates and the CA's renewal window, never at its names,
+  so a name added to the list - a new customer's mail host, say - was issued for some sixty days later. A certificate
+  that does not name every host the list holds is now due at once, judged from the file before the CA is asked
+  anything (a name that starts with `*.` covers one label, as a mail client matches it; a certificate without
+  subject alternative names is read by its common name), and a save of `AcmeDomains` with such a host - through the
+  Control Panel, COM, REST or `hmailserver --set-setting` - starts the check at once rather than at the next hour
+  (`Application::SubscribeToSettings_`). A host taken off the list makes nothing due. Every check now keeps one set of
+  rules, whatever started it (`AcmeChecks`, `Common/Util/AcmeClient.h`): one at a time; no order within twenty
+  minutes of an attempt that failed, so that a setup that cannot validate fails at most three times an hour, under
+  the five failed validations per host per hour Let's Encrypt allows; and none before the time a CA's
+  `urn:ietf:params:acme:error:rateLimited` answer gave in its `Retry-After` (an hour without one, at most seven days),
+  as RFC 8555 section 6.6 asks. The cooldown and the rate limit belong to the CA they were learnt from, and a change
+  of `AcmeDirectoryUrl` starts them afresh. The certificate the CA sends was written as it came; it is now installed
+  only when it is a PEM certificate for the key the request was made with, naming every host asked for and not
+  expired, and otherwise the certificate in use stays and the application log says which. A pair on disk that no
+  ACME (automatic) record names is deployed by a check that finds a certificate due as well as by one that does not.
+  An ACME URL may be plain `http` to an address on this machine (`localhost`, `127.0.0.0/8`, `::1`), which never
+  crosses a network, so that the regression suite stands a CA of its own; any other must be `https`, and every URL
+  a directory or an order hands on is held to the same rule. On upgrade, a server whose `AcmeDomains` lists a host its
+  certificate lacks orders at the first check; if the CA cannot validate that host - it does not resolve to the server,
+  or its port 80 is not reached - the attempt fails from then on, at most three times an hour, where it used to start
+  failing at the renewal, and the host belongs off the list.
+
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
   connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
   connection, then waits for the closes and the aborted accepts to run before it stops the listener's threads; it
@@ -910,6 +934,25 @@ with `--check`).
   refused on its field as before; after a save that wrote every row, the pair saved is the one held.
   `AntiSpamPageTests` holds the rule and the page's wiring.
 
+### Administration
+
+- **New: the ACME certificate's state, and a check of it now, over REST and COM (GitLab work item 98).** `GET
+  /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the
+  file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed,
+  whether it names every host `AcmeDomains` lists and which it lacks, whether it is due and why, the check running now
+  (and its step: directory, account, order, authorization, finalize, certificate, install), the last check and the
+  last that tried to issue (outcome, the failing step, a sentence, and the CA's problem document's type and detail),
+  the next hourly check, when a request is allowed again and until when a CA's rate limit holds. `POST
+  /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for the hourly check now and answers at once: 202 with the queued
+  check, or with the one already queued or running; 429 with `Retry-After` within a minute of the last request,
+  within twenty minutes of a failed attempt, or before a CA's rate limit ends; 409 with ACME off or `AcmeDomains`
+  empty. It takes no body but `{}` and no names of its own: the names are those of `AcmeDomains`, which only a server
+  administrator sets, and a certificate is issued only when the check finds one due. The status is
+  `view_configuration`'s and the run `manage_server`'s, both refused to a key or a role confined to named domains, and
+  the COM methods are the server administrator's; every request that queues a check is on the audit trail as
+  `ssl certificate`, `ACME (automatic)`, `check requested` (*Check requested* on the Control Panel's audit trail page,
+  in its seventeen languages). Never a key, a nonce or the CA account in either.
+
 ### Build and tests
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
@@ -1373,6 +1416,31 @@ with `--check`).
   each, each of which must be caught. GitLab's CI lint finds the merged CI files valid, with 177 jobs.
   [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The lanes" and "linix", says how the lanes
   are split and what linix takes.
+
+- **New: `acme-tests`, and the ACME checks' rules held without a server.** `AcmeChecksTester`
+  (`Common/Util/AcmeClient.h`), run by `ClassTester` on Windows and by the new `acme-tests` program on Linux, holds
+  which names a certificate covers (a wildcard for one label and not two, nor its own parent; the common name of a
+  certificate with no subject alternative names), `AcmeDomains` read in lower case, trimmed and each name once,
+  `Retry-After` as delay-seconds and as an HTTP-date, a rate limit's problem document told from a `badNonce`, the
+  spacing between checks (the minute between requests, the twenty minutes after a failure, a CA's rate limit, the
+  later of two, and nothing held against another CA), and the refusal to install a certificate for another key,
+  without a host asked for, expired, or no certificate at all - against keys and certificates it makes in memory, so
+  that no private key is in the repository. `Security/TlsAcmeDeployment.cs` gains a test that a pair no record names
+  is deployed when a new certificate is due and cannot be issued, and its first test names the certificate's own host
+  so that it still tests the check that finds nothing due.
+
+- **New: the ACME routes and methods held against a CA of the suite's own.** `Shared/FakeAcmeCa.cs` answers the
+  steps of RFC 8555 on the loopback address - a directory, nonces, the account, an order that issues, is rate-limited
+  with a `Retry-After` or is held open and dropped, an authorization already valid, the finalization and the
+  certificate it is given. `API/RestApiAcme.cs`, which the Linux suite links too, holds the status's contents against
+  a certificate with a wildcard name; a certificate that lacks a configured host found due at once and its failed
+  attempt leaving it byte for byte, with the twenty-minute `Retry-After` after it; a save of `AcmeDomains` starting a
+  check and a request while it runs answered with that check, one order made; a rate-limited order reported and
+  obeyed with the CA's two hours; a request accepted, put on the audit trail and refused for the minute after; a body
+  with names of its own refused and the run refused with ACME off; and both routes refused to a key for one domain,
+  the run to a read-only key, and both to no credential. `Security/TlsAcmeIssuance.cs`, on Windows over COM, issues for
+  a host added to `AcmeDomains` end to end, after the certificate the CA first sent - for another key - was refused
+  and the one in use kept.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

@@ -85,21 +85,21 @@ Answered by `RestApiServer::ProcessRequest_` above `Authenticate_`, in this orde
 
 ## The REST API, decided by Authorize_
 
-609 rows (method, path and route kind) of 601 route kinds. Permission is `PermissionFor_`'s, with `SecondPermissionFor_`'s after a `+`; a route classified in `IsSelfServiceRoute_` or `IsSessionRoute_` needs no permission and says so. Anonymous is 401 for every row.
+611 rows (method, path and route kind) of 603 route kinds. Permission is `PermissionFor_`'s, with `SecondPermissionFor_`'s after a `+`; a route classified in `IsSelfServiceRoute_` or `IsSessionRoute_` needs no permission and says so. Anonymous is 401 for every row.
 
 What each credential reaches, counted over the rows below:
 
 | Credential | yes | own | own+ | own* | sender | no | 401 |
 |---|---|---|---|---|---|---|---|
-| Account | 187 | 0 | 0 | 0 | 0 | 403 | 19 |
-| Domain admin | 187 | 115 | 2 | 28 | 0 | 258 | 19 |
-| Help desk | 187 | 26 | 0 | 8 | 0 | 369 | 19 |
-| Auditor | 343 | 0 | 0 | 0 | 0 | 247 | 19 |
-| Server admin account | 571 | 0 | 0 | 0 | 0 | 19 | 19 |
-| Admin password | 407 | 0 | 0 | 0 | 0 | 183 | 19 |
-| Key, full | 384 | 0 | 0 | 0 | 1 | 186 | 38 |
-| Key, read-only | 150 | 0 | 0 | 0 | 0 | 421 | 38 |
-| Key, one domain | 3 | 117 | 2 | 66 | 1 | 382 | 38 |
+| Account | 187 | 0 | 0 | 0 | 0 | 405 | 19 |
+| Domain admin | 187 | 115 | 2 | 28 | 0 | 260 | 19 |
+| Help desk | 187 | 26 | 0 | 8 | 0 | 371 | 19 |
+| Auditor | 344 | 0 | 0 | 0 | 0 | 248 | 19 |
+| Server admin account | 573 | 0 | 0 | 0 | 0 | 19 | 19 |
+| Admin password | 409 | 0 | 0 | 0 | 0 | 183 | 19 |
+| Key, full | 386 | 0 | 0 | 0 | 1 | 186 | 38 |
+| Key, read-only | 151 | 0 | 0 | 0 | 0 | 422 | 38 |
+| Key, one domain | 3 | 117 | 2 | 66 | 1 | 384 | 38 |
 
 Any other path is `RouteUnknown`. It needs `view_configuration`; a credential that holds it is answered 404, and Account, Help desk are refused first (403, or 401 for a key's credential problem).
 
@@ -466,6 +466,8 @@ Any other path is `RouteUnknown`. It needs `view_configuration`; a credential th
 
 | Method | Path | Route | Permission | Account | Domain admin | Help desk | Auditor | Server admin account | Admin password | Key, full | Key, read-only | Key, one domain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/acme` | AcmeStatus | view_configuration | no | no | no | yes | yes | yes | yes | yes | no |
+| POST | `/api/v1/acme/run` | AcmeRun | manage_server | no | no | no | no | yes | yes | yes | no | no |
 | POST | `/api/v1/addresses/erase` | AddressErase | manage_roles | no | no | no | no | no | yes | 401 | 401 | 401 |
 | DELETE | `/api/v1/administrator/second-factor` | AdminSecondFactorDisable | manage_roles | no | no | no | no | no | yes | 401 | 401 | 401 |
 | GET | `/api/v1/administrator/second-factor` | AdminSecondFactorGet | view_configuration | no | no | no | yes | yes | yes | yes | yes | no |

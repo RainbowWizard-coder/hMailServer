@@ -2798,6 +2798,33 @@ namespace hMailServer
          return answer.Body;
       }
 
+      // Utilities.RunAcmeCheck and GetAcmeStatus are POST /api/v1/acme/run and
+      // GET /api/v1/acme, the same documents; a refusal of the run (409, 429,
+      // 503) is an error, as COM raises one.
+      public string RunAcmeCheck()
+      {
+         if (!ServerApi.HasRoute("/api/v1/acme/run", "post"))
+            NotOnThisServer.Ignore("needs POST /api/v1/acme/run, an ACME check now");
+
+         ApiAnswer answer = ServerApi.Post("/api/v1/acme/run", "{}");
+         if (!answer.Ok)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+
+         return answer.Body;
+      }
+
+      public string GetAcmeStatus()
+      {
+         if (!ServerApi.HasRoute("/api/v1/acme", "get"))
+            NotOnThisServer.Ignore("needs GET /api/v1/acme, the ACME certificate's state");
+
+         ApiAnswer answer = ServerApi.Get("/api/v1/acme");
+         if (!answer.Ok)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+
+         return answer.Body;
+      }
+
       public string RunMessageRetention()
       {
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);

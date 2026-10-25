@@ -2611,6 +2611,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check host in HELO" xml:space="preserve">
     <value>Host in HELO controleren</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Controle aangevraagd</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>MX-records van de afzender controleren</value>
   </data>

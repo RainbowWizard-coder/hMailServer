@@ -656,6 +656,22 @@ add_executable(dane-tests ${SERVER_DIR}/platform/dane_tests_main.cpp)
 target_link_libraries(dane-tests PRIVATE hmailserver_core)
 set_target_properties(dane-tests PROPERTIES OUTPUT_NAME dane-tests)
 
+# ---------------------------------------------------------------- ACME's checks
+#
+# AcmeChecksTester (Common/Util/AcmeClient.h) as a program of its own, for the
+# reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. Which names a certificate covers (a
+# wildcard for one label, the common name of a certificate with no subject
+# alternative names), AcmeDomains as the client reads it, Retry-After in both its
+# forms, a rate limit's problem document, the spacing that keeps on-demand checks
+# from spending the CA's limits, and the refusal to install a certificate for
+# another key, without a name asked for, expired, or no certificate at all -
+# against keys and certificates it makes in memory. No database, configuration,
+# file or network. Not installed; a bench tool.
+add_executable(acme-tests ${SERVER_DIR}/platform/acme_tests_main.cpp)
+target_link_libraries(acme-tests PRIVATE hmailserver_core)
+set_target_properties(acme-tests PROPERTIES OUTPUT_NAME acme-tests)
+
 # ---------------------------------------------------------------- the Public Suffix List's cut
 #
 # PublicSuffixListTester (Common/AntiSpam/DMARC/PublicSuffixList.h) as a program

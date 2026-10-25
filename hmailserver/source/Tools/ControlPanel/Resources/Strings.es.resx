@@ -2611,6 +2611,9 @@ Los detalles completos se escribieron en:
   <data name="Check host in HELO" xml:space="preserve">
     <value>Comprobar el host en HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Comprobación solicitada</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Comprobar los registros MX del remitente</value>
   </data>

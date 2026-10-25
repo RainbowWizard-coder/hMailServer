@@ -2199,6 +2199,15 @@ namespace HM
             throw 0;
       }
 
+      // The on-demand checks' rules: which names a certificate covers, AcmeDomains
+      // read, Retry-After, a rate limit's problem document, the spacing between
+      // checks, and the refusals of a certificate the CA issued (AcmeClient.h).
+      OutputDebugString(_T("hMailServer: Testing the ACME checks' rules\n"));
+      {
+         AcmeChecksTester acmeChecksTester;
+         acmeChecksTester.Test();
+      }
+
       OutputDebugString(_T("hMailServer: Testing the TLS-RPT record parser and report builder\n"));
       {
          // The shape RFC 8460 section 3 gives, with two mailto targets and the

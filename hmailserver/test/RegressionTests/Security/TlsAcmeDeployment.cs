@@ -179,7 +179,10 @@ namespace RegressionTests.Security
 
          IniFileSetting.Write("AcmeCertificateDirectory", AcmeDirectory);
          IniFileSetting.Write("AcmeDirectoryUrl", "https://127.0.0.1:" + UnreachableAcmePort + "/directory");
-         IniFileSetting.Write("AcmeDomains", "mail.example.test");
+         // The certificate's own name (its common name: it has no alternative names),
+         // so that it is not due: a certificate that does not name every configured
+         // host is due at once since GitLab work item 98, which is the other test.
+         IniFileSetting.Write("AcmeDomains", "tlsa-fixture.example.test");
          IniFileSetting.Write("AcmeEnabled", "1");
 
          // Reinitialize registers the renewal task afresh, and its startup instance
@@ -221,6 +224,42 @@ namespace RegressionTests.Security
          Assert.AreEqual(1, CountRecords(), "One record, however many checks have run.");
          Assert.AreEqual(1, CountOccurrences(LogHandler.ReadCurrentDefaultLog(), "issued but never deployed"),
             "The deployment happens once; with the record in place the check is a look-up.");
+      }
+
+      [Test]
+      [Description("A certificate pair on disk with no record is deployed even when a new certificate is due and cannot be issued: due because it does not name a configured host, the attempt fails against a CA that is not there, and the pair in use - the one the listeners would otherwise lack - is deployed all the same")]
+      public void AnUndeployedCertificateIsDeployedWhenTheIssuanceDueFails()
+      {
+         Directory.CreateDirectory(AcmeDirectory);
+         string certificateFile = Paths.Combine(AcmeDirectory, "fullchain.pem");
+         string privateKeyFile = Paths.Combine(AcmeDirectory, "privkey.pem");
+         File.WriteAllText(certificateFile, CertificatePem, new UTF8Encoding(false));
+         File.WriteAllText(privateKeyFile, PrivateKeyPem, new UTF8Encoding(false));
+
+         Assert.IsNull(FindRecord(), "The bench starts with no ACME record.");
+
+         IniFileSetting.Write("AcmeCertificateDirectory", AcmeDirectory);
+         IniFileSetting.Write("AcmeDirectoryUrl", "https://127.0.0.1:" + UnreachableAcmePort + "/directory");
+         // A host the certificate does not name: a new certificate is due at once.
+         IniFileSetting.Write("AcmeDomains", "tlsa-fixture.example.test,mail.example.test");
+         IniFileSetting.Write("AcmeEnabled", "1");
+
+         _application.Reinitialize();
+
+         RetryHelper.TryAction(TimeSpan.FromSeconds(60), () =>
+         {
+            SSLCertificate record = FindRecord();
+            if (record == null)
+               throw new Exception("No \"" + RecordName + "\" record yet. Log:\r\n" + LogHandler.ReadCurrentDefaultLog());
+
+            Assert.AreEqual(certificateFile, record.CertificateFile);
+         });
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains("does not name mail.example.test", log, "The certificate was not found to lack the host.");
+         StringAssert.Contains("Certificate renewal FAILED", log, "No issuance was tried for the host, or it did not fail.");
+         StringAssert.Contains("issued but never deployed", log);
+         Assert.AreEqual(1, CountRecords());
       }
    }
 }

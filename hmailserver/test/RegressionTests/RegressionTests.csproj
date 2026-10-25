@@ -364,6 +364,7 @@
     <Compile Include="SMTP\InvalidCommandLimit.cs" />
     <Compile Include="SMTP\StartTlsAlreadyActive.cs" />
     <Compile Include="Security\TlsAcmeRenewal.cs" />
+    <Compile Include="Security\TlsAcmeIssuance.cs" />
     <Compile Include="Security\TlsAcmeDeployment.cs" />
     <Compile Include="Security\TlsCertificateValidity.cs" />
     <Compile Include="Security\TlsProtocolVersions.cs" />
@@ -462,6 +463,7 @@
     <Compile Include="SMTP\OutboundPipelining.cs" />
     <Compile Include="Shared\FakeFilterEngine.cs" />
     <Compile Include="Shared\FakeHttpEndpoint.cs" />
+    <Compile Include="Shared\FakeAcmeCa.cs" />
     <Compile Include="Shared\FakeBreachCorpus.cs" />
     <Compile Include="Shared\FakeHttpProxy.cs" />
     <Compile Include="Shared\FakeSigstore.cs" />
@@ -774,6 +776,7 @@
     <Compile Include="API\RestApiHostAndThrottle.cs" />
     <Compile Include="API\RestApiDomains.cs" />
     <Compile Include="API\RestApiDkimRotation.cs" />
+    <Compile Include="API\RestApiAcme.cs" />
     <Compile Include="API\RestApiReputationWatch.cs" />
     <Compile Include="API\ReputationWatchCom.cs" />
     <Compile Include="API\RestApiSpamTraps.cs" />

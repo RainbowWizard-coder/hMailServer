@@ -66,6 +66,7 @@
     <Compile Include="..\RegressionTests\Shared\FakeDnsServer.cs" Link="Shared\FakeDnsServer.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeFilterEngine.cs" Link="Shared\FakeFilterEngine.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeHttpEndpoint.cs" Link="Shared\FakeHttpEndpoint.cs" />
+    <Compile Include="..\RegressionTests\Shared\FakeAcmeCa.cs" Link="Shared\FakeAcmeCa.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeBreachCorpus.cs" Link="Shared\FakeBreachCorpus.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeHttpProxy.cs" Link="Shared\FakeHttpProxy.cs" />
     <Compile Include="..\RegressionTests\Shared\FakeSigstore.cs" Link="Shared\FakeSigstore.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="..\RegressionTests\API\RestApiDomains.cs" Link="API\RestApiDomains.cs" />
     <Compile Include="..\RegressionTests\API\RestApiMailboxMove.cs" Link="API\RestApiMailboxMove.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDkimRotation.cs" Link="API\RestApiDkimRotation.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiAcme.cs" Link="API\RestApiAcme.cs" />
     <Compile Include="..\RegressionTests\API\RestApiReputationWatch.cs" Link="API\RestApiReputationWatch.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSetupChecklist.cs" Link="API\RestApiSetupChecklist.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSampleDomain.cs" Link="API\RestApiSampleDomain.cs" />

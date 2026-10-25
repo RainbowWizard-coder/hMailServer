@@ -2611,6 +2611,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Check host in HELO" xml:space="preserve">
     <value>Verifica l'host in HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Verifica richiesta</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Verifica i record MX del mittente</value>
   </data>

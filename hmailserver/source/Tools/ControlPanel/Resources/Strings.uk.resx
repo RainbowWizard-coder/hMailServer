@@ -2644,6 +2644,9 @@
   <data name="Check host in HELO" xml:space="preserve">
     <value>Перевіряти ім’я вузла в HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Запитано перевірку</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Перевіряти MX-записи відправника</value>
   </data>

@@ -319,6 +319,10 @@ namespace HM
          RouteListCreate,
          RouteListDelete,
          RouteCertificateList,
+         // The ACME certificate (RestApiCertificates.cpp): its state and the
+         // checks', and a check asked for now. Both are the server's.
+         RouteAcmeStatus,
+         RouteAcmeRun,
          RouteDkimGet,
          // DKIM keys that rotate (RestApiDkimRotation.cpp). The six under a domain
          // are scoped to the key's domains; the run is server-wide.
@@ -2603,6 +2607,8 @@ namespace HM
       HttpResponse HandleCreatePort_(const AnsiString &requestBody);
       HttpResponse HandleUpdatePort_(__int64 portId, const AnsiString &requestBody);
       HttpResponse HandleDeletePort_(__int64 portId);
+      // GET /api/v1/acme and POST /api/v1/acme/run (RestApiCertificates.cpp).
+      HttpResponse HandleAcme_(const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiCertificatesPaths_();
       HttpResponse HandleListRoutes_();
       HttpResponse HandleCreateRoute_(const AnsiString &requestBody);

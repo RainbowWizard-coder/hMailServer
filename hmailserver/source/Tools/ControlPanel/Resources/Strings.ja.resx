@@ -2622,6 +2622,9 @@
   <data name="Check host in HELO" xml:space="preserve">
     <value>HELO のホストを確認する</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>確認を要求</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>送信者の MX レコードを確認する</value>
   </data>

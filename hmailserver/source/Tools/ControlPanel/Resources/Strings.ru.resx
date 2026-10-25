@@ -2644,6 +2644,9 @@ Control Panel может читать файлы сообщений только
   <data name="Check host in HELO" xml:space="preserve">
     <value>Проверять узел в HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Запрошена проверка</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Проверять MX-записи отправителя</value>
   </data>

@@ -2611,6 +2611,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Check host in HELO" xml:space="preserve">
     <value>Host in HELO prüfen</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Prüfung angefordert</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>MX-Einträge des Absenders prüfen</value>
   </data>

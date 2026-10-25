@@ -272,6 +272,9 @@ namespace hMailServer.ControlPanel.Services
          ["password reset"] = N("Password reset"),
          ["restore started"] = N("Restore started"),
          ["mailbox restore started"] = N("Mailbox restore started"),
+         // An ACME check asked for over REST or COM (AcmeChecks::Request), on the
+         // ssl certificate ACME (automatic).
+         ["check requested"] = N("Check requested"),
          ["back-off cleared"] = N("Back-off cleared"),
          ["directory-opt-out-changed"] = N("Directory opt-out changed"),
          ["recovery-address-set"] = N("Recovery address set"),

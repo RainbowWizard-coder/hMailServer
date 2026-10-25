@@ -2611,6 +2611,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Check host in HELO" xml:space="preserve">
     <value>Kontrollera värden i HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Kontroll begärd</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Kontrollera avsändarens MX-poster</value>
   </data>

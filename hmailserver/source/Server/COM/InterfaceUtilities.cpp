@@ -39,6 +39,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/AuditTrail.h"
 #include "../Common/Util/Unicode.h"
+#include "../Common/Util/AcmeClient.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Util/SetupChecklist.h"
 #include "../Common/Application/SampleDomain.h"
@@ -2194,6 +2195,59 @@ STDMETHODIMP InterfaceUtilities::GetReputationReport(BSTR *Report)
 
       HM::String json = HM::String(HM::ReputationWatch::ReportJson((__int64) time(nullptr)));
       *Report = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RunAcmeCheck(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // A certificate ordered from a CA in the server's name, against its limits,
+      // installed on every TLS port: the server administrator's, as the REST
+      // route's manage_server is. GetIsServerAdmin also installs the actor the
+      // request is recorded under.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString json;
+      int retryAfterSeconds = 0;
+      HM::String sentence;
+
+      const int status = HM::AcmeChecks::RequestAnswer(json, retryAfterSeconds, sentence);
+
+      if (status != 202)
+         return COMError::GenerateError(sentence);
+
+      HM::String answer = HM::String(json);
+      *Json = answer.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::GetAcmeStatus(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String answer = HM::String(HM::AcmeChecks::StatusJson((__int64) time(nullptr)));
+      *Json = answer.AllocSysString();
       return S_OK;
    }
    catch (...)

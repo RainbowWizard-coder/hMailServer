@@ -2611,6 +2611,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Check host in HELO" xml:space="preserve">
     <value>HELO'daki ana bilgisayarı denetle</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Denetim istendi</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Gönderen MX kayıtlarını denetle</value>
   </data>

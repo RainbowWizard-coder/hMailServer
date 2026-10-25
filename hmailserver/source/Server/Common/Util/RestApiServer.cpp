@@ -3281,6 +3281,9 @@ namespace HM
             return HandleRuleMatch_(GetRequestBody_(request));
          case RouteCertificateList:
             return HandleListCertificates_();
+         case RouteAcmeStatus:
+         case RouteAcmeRun:
+            return HandleAcme_(route, GetRequestBody_(request));
          case RouteDkimGet:
             return HandleDkim_(String(route.identifier));
          case RouteDkimRotationGet:
@@ -7089,6 +7092,19 @@ namespace HM
          return;
       }
 
+      // The ACME certificate: its state, and a check of it now.
+      if (method == "GET" && path == "/api/v1/acme")
+      {
+         route.kind = RouteAcmeStatus;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/acme/run")
+      {
+         route.kind = RouteAcmeRun;
+         return;
+      }
+
       // The numbered resources of the write surface: /api/v1/<collection>/<id>
       // with a decimal id and nothing after it, as an IP range is named.
       const AnsiString certificatesPrefix = "/api/v1/certificates/";
@@ -8497,6 +8513,10 @@ namespace HM
       // A check makes this server send queries to third parties and rewrites what
       // the report says, neither of which a read-only credential should cause.
       case RouteReputationCheck:
+      // An ACME check orders a certificate from a CA when one is due, which
+      // spends the CA's limits and can replace the certificate every TLS port
+      // serves and restart the listeners.
+      case RouteAcmeRun:
       // The sample domain makes a domain, three mailboxes with a documented
       // password, a list, a rule and eight messages - or takes all of it away
       // again. Nothing this API does changes more in one call.
@@ -8918,6 +8938,10 @@ namespace HM
       case RouteDomainSessionPolicyGet:
       case RouteSessionPolicyGet:
       case RouteCertificateList:
+      // The ACME certificate's names, issuer, validity and paths, and how the
+      // checks went: the certificate listing's facts and the server's own, never
+      // a key, a nonce or the CA account.
+      case RouteAcmeStatus:
       case RouteRuleList:
       case RouteSettingsGet:
       case RouteSettingLevels:
@@ -9636,6 +9660,11 @@ namespace HM
       // caller may move: the scheduled task's pass, and refused to a confined
       // credential below because it advances every domain's rotation.
       case RouteDkimRotationRun:
+      // An ACME check now: the hourly task's, which orders a certificate from
+      // the CA when one is due - acting as the server towards a third party,
+      // with the server's account there and its limits. Refused to a confined
+      // credential below: the certificate is every domain's.
+      case RouteAcmeRun:
       // The suppression list's hourly sweep run now: expired entries, old counts
       // and old report keys removed from every domain's list, which is also why
       // it is refused to a confined credential below.
@@ -10405,6 +10434,12 @@ namespace HM
       case RouteSpamTrapHits:
       case RouteSpamTrapHitsClear:
       case RouteCertificateList:
+      // The ACME certificate names hosts of every domain, and a check of it
+      // orders one for all of them: neither is a domain's. A key confined to
+      // named domains could otherwise ask the CA for a certificate whenever it
+      // liked, or read which other customers this server is provisioned for.
+      case RouteAcmeStatus:
+      case RouteAcmeRun:
       case RouteRuleList:
       case RouteAdminSecondFactorGet:
       case RouteLogList:

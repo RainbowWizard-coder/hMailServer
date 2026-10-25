@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 103 |
-| REST routes (path and method) | 595, 263 of them writes |
+| REST routes (path and method) | 597, 264 of them writes |
 | Deck views | 40 |
 
 ## Missing over REST, by interface
@@ -933,6 +933,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria`, `from_address`, `set_header` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
 | `POST /api/v1/accounts/{address}/unlock` | ? | `compromise_lock_cleared`, `unlock_account` | yes |
+| `POST /api/v1/acme/run` | ? | `already_running` | - |
 | `POST /api/v1/addresses/erase` | ? | `address`, `include_archive`, `include_logs` | yes |
 | `POST /api/v1/administrator/second-factor` | ? | - | - |
 | `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |

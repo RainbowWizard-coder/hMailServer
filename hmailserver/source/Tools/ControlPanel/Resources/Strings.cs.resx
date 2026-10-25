@@ -2644,6 +2644,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Check host in HELO" xml:space="preserve">
     <value>Kontrolovat hostitele v HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Kontrola vyžádána</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Kontrolovat MX záznamy odesílatele</value>
   </data>

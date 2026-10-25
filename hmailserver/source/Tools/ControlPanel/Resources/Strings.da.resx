@@ -2611,6 +2611,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Check host in HELO" xml:space="preserve">
     <value>Kontrollér vært i HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Kontrol anmodet</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Kontrollér afsenderens MX-poster</value>
   </data>

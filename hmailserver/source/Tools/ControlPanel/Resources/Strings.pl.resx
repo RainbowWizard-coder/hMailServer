@@ -2644,6 +2644,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Check host in HELO" xml:space="preserve">
     <value>Sprawdzaj host w HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Zażądano sprawdzenia</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Sprawdzaj rekordy MX nadawcy</value>
   </data>

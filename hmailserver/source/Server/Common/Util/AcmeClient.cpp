@@ -7,14 +7,18 @@
 #include "StdAfx.h"
 
 #include "AcmeClient.h"
+#include "AuditTrail.h"
 #include "FileUtilities.h"
 #include "HttpsClient.h"
 #include "OtelTracer.h"
+#include "ServerStatus.h"
+#include "Unicode.h"
 #include "WebServicesServer.h"
 #include "Encoding/Base64.h"
 
 #include "../Application/NewInstallDefaults.h"
 #include "../Application/Reinitializator.h"
+#include "../Threading/WorkQueue.h"
 #include "../BO/SSLCertificate.h"
 #include "../BO/SSLCertificates.h"
 #include "../BO/TCPIPPort.h"
@@ -60,6 +64,8 @@ static const int SD_SEND = SHUT_WR;
 #include <openssl/core_names.h>
 #include <openssl/sha.h>
 
+#include <algorithm>
+#include <stdexcept>
 #include <chrono>
 #include <ctime>
 
@@ -157,33 +163,276 @@ namespace HM
          return ReadCertificateDates(certificateFile, ignoredNotBefore, notAfter);
       }
 
-      // Splits https://host[:port]/path into components.
-      bool ParseHttpsUrl(const AnsiString &url, AnsiString &host, AnsiString &port, AnsiString &path)
+      // Splits an ACME URL into components: https, or plain http to a loopback
+      // address alone (localhost, 127.0.0.0/8, ::1), which is what HttpsClient
+      // itself accepts and what lets a fixture stand a CA on this machine. RFC
+      // 8555 section 6.1 has every request made over HTTPS so that nobody on the
+      // path can read or change it; a request that never leaves the machine has
+      // no path, and every URL the CA's directory and orders hand on is judged
+      // here again, so a directory on the loopback address cannot send this
+      // client in the clear to anywhere else.
+      bool ParseAcmeUrl(const AnsiString &url, AnsiString &host, AnsiString &port, AnsiString &path)
       {
-         AnsiString prefix = "https://";
+         bool https = false;
 
-         if (!AnsiString(url).StartsWith(prefix))
+         if (!HttpsClient::ParseUrl(url, https, host, port, path))
             return false;
 
-         AnsiString remainder = url.Mid(prefix.GetLength());
+         if (host.IsEmpty())
+            return false;
 
-         int pathPosition = remainder.Find("/");
-         AnsiString hostAndPort = pathPosition >= 0 ? remainder.Mid(0, pathPosition) : remainder;
-         path = pathPosition >= 0 ? remainder.Mid(pathPosition) : AnsiString("/");
+         return https || HttpsClient::IsLoopbackHost(host);
+      }
 
-         int portPosition = hostAndPort.Find(":");
-         if (portPosition >= 0)
+      // Text a CA or a certificate supplied, made fit for a status document and
+      // a log line: printable ASCII only, a run of anything else one space, cut
+      // to at most maxLength characters.
+      AnsiString CleanBytes(const unsigned char *data, int length, int maxLength)
+      {
+         AnsiString cleaned;
+         bool spaced = false;
+
+         for (int i = 0; i < length && cleaned.GetLength() < maxLength; i++)
          {
-            host = hostAndPort.Mid(0, portPosition);
-            port = hostAndPort.Mid(portPosition + 1);
-         }
-         else
-         {
-            host = hostAndPort;
-            port = "443";
+            const unsigned char character = data[i];
+
+            if (character >= 0x20 && character < 0x7f)
+            {
+               cleaned += (char) character;
+               spaced = false;
+            }
+            else if (!spaced)
+            {
+               cleaned += ' ';
+               spaced = true;
+            }
          }
 
-         return !host.IsEmpty();
+         cleaned.Trim();
+         return cleaned;
+      }
+
+      AnsiString CleanText(const AnsiString &value, int maxLength)
+      {
+         return CleanBytes((const unsigned char *) value.c_str(), value.GetLength(), maxLength);
+      }
+
+      // A JSON string's content: the characters a JSON string may not hold as
+      // they are escaped, everything else as it is. The caller gives UTF-8.
+      AnsiString JsonEscape(const AnsiString &value)
+      {
+         AnsiString result;
+
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            const unsigned char character = (unsigned char) value[i];
+
+            switch (character)
+            {
+            case '\"':
+               result += "\\\"";
+               break;
+            case '\\':
+               result += "\\\\";
+               break;
+            case '\r':
+               result += "\\r";
+               break;
+            case '\n':
+               result += "\\n";
+               break;
+            case '\t':
+               result += "\\t";
+               break;
+            default:
+               if (character >= 0x20)
+                  result += (char) character;
+               break;
+            }
+         }
+
+         return result;
+      }
+
+      AnsiString JsonString(const AnsiString &value)
+      {
+         return "\"" + JsonEscape(value) + "\"";
+      }
+
+      AnsiString JsonText(const String &value)
+      {
+         AnsiString utf8;
+         Unicode::WideToMultiByte(value, utf8);
+         return JsonString(utf8);
+      }
+
+      AnsiString JsonNumber(__int64 value)
+      {
+         AnsiString text;
+         text.Format("%I64d", value);
+         return text;
+      }
+
+      // A time as Unix seconds, or null when there is none.
+      AnsiString JsonTime(__int64 value)
+      {
+         return value > 0 ? JsonNumber(value) : AnsiString("null");
+      }
+
+      // "a, b, c", for a log line or a sentence.
+      AnsiString JoinNames(const std::vector<AnsiString> &names)
+      {
+         AnsiString joined;
+
+         for (size_t i = 0; i < names.size(); i++)
+         {
+            if (i > 0)
+               joined += ", ";
+
+            joined += names[i];
+         }
+
+         return joined;
+      }
+
+      AnsiString JsonNames(const std::vector<AnsiString> &names)
+      {
+         AnsiString json = "[";
+
+         for (size_t i = 0; i < names.size(); i++)
+         {
+            if (i > 0)
+               json += ",";
+
+            json += JsonString(names[i]);
+         }
+
+         return json + "]";
+      }
+
+      // An X509 name in the RFC 2253 form ("CN=R11,O=Let's Encrypt,C=US"),
+      // cleaned; empty when it cannot be printed.
+      AnsiString NameText(const X509_NAME *name)
+      {
+         if (name == nullptr)
+            return "";
+
+         BIO *bio = BIO_new(BIO_s_mem());
+         if (bio == nullptr)
+            return "";
+
+         AnsiString text;
+
+         if (X509_NAME_print_ex(bio, name, 0, XN_FLAG_RFC2253) >= 0)
+         {
+            char *data = nullptr;
+            long length = BIO_get_mem_data(bio, &data);
+
+            if (data != nullptr && length > 0)
+               text = CleanBytes((const unsigned char *) data, (int) length, 400);
+         }
+
+         BIO_free(bio);
+         return text;
+      }
+
+      // The first certificate of a PEM text.
+      X509 *ReadPemCertificate(const AnsiString &pem)
+      {
+         BIO *bio = BIO_new_mem_buf(pem.c_str(), pem.GetLength());
+         if (bio == nullptr)
+            return nullptr;
+
+         X509 *certificate = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
+         BIO_free(bio);
+         return certificate;
+      }
+
+      // The first certificate of a PEM file, through a BIO OpenSSL opens itself
+      // (GetCertificateTlsa says why never a FILE* of ours).
+      X509 *ReadPemCertificateFile(const String &file)
+      {
+         if (!FileUtilities::Exists(file))
+            return nullptr;
+
+         AnsiString narrowFileName = file;
+
+         BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
+         if (bio == nullptr)
+            return nullptr;
+
+         X509 *certificate = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
+         BIO_free(bio);
+         return certificate;
+      }
+
+      // The dNSName entries of a certificate's subject alternative names in
+      // lower case, or its common name when it has no such extension.
+      void CertificateNames(X509 *certificate, std::vector<AnsiString> &names)
+      {
+         names.clear();
+
+         GENERAL_NAMES *alternatives = (GENERAL_NAMES *) X509_get_ext_d2i(certificate, NID_subject_alt_name, nullptr, nullptr);
+
+         if (alternatives != nullptr)
+         {
+            for (int i = 0; i < sk_GENERAL_NAME_num(alternatives); i++)
+            {
+               const GENERAL_NAME *entry = sk_GENERAL_NAME_value(alternatives, i);
+               if (entry == nullptr || entry->type != GEN_DNS)
+                  continue;
+
+               const ASN1_STRING *value = entry->d.dNSName;
+               const unsigned char *data = ASN1_STRING_get0_data(value);
+               const int length = ASN1_STRING_length(value);
+
+               if (data == nullptr || length <= 0)
+                  continue;
+
+               // A NUL or any other byte no host name holds becomes a space,
+               // so that a name carrying one matches nothing configured.
+               AnsiString name = CleanBytes(data, length, 253);
+               name.MakeLower();
+
+               if (!name.IsEmpty())
+                  names.push_back(name);
+            }
+
+            GENERAL_NAMES_free(alternatives);
+            return;
+         }
+
+         // const: OpenSSL 4 hands the name back as one, and 3 takes it so.
+         const X509_NAME *subject = X509_get_subject_name(certificate);
+         const int position = subject != nullptr ? X509_NAME_get_index_by_NID(subject, NID_commonName, -1) : -1;
+
+         if (position < 0)
+            return;
+
+         const ASN1_STRING *value = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, position));
+         const unsigned char *data = value != nullptr ? ASN1_STRING_get0_data(value) : nullptr;
+         const int length = value != nullptr ? ASN1_STRING_length(value) : 0;
+
+         if (data == nullptr || length <= 0)
+            return;
+
+         AnsiString name = CleanBytes(data, length, 253);
+         name.MakeLower();
+
+         if (!name.IsEmpty())
+            names.push_back(name);
+      }
+
+      // An ASN1_TIME as Unix seconds; 0 when it does not convert.
+      __int64 AsnTime(const ASN1_TIME *value)
+      {
+         tm parts = {};
+
+         if (value == nullptr || ASN1_TIME_to_tm(value, &parts) != 1)
+            return 0;
+
+         time_t converted = _mkgmtime(&parts);
+         return converted == -1 ? 0 : (__int64) converted;
       }
 
       // Extracts the JSON object that encloses the given position.
@@ -481,14 +730,133 @@ namespace HM
       return renewAt;
    }
 
+   // static
    bool
-   AcmeClient::ShouldRenewNow()
+   AcmeClient::ReadCertificateNames(const String &certificateFile, std::vector<AnsiString> &names)
    {
+      names.clear();
+
+      X509 *certificate = ReadPemCertificateFile(certificateFile);
+      if (certificate == nullptr)
+         return false;
+
+      CertificateNames(certificate, names);
+      X509_free(certificate);
+      return true;
+   }
+
+   // static
+   bool
+   AcmeClient::ReadCertificateNamesFromPem(const AnsiString &pem, std::vector<AnsiString> &names)
+   {
+      names.clear();
+
+      X509 *certificate = ReadPemCertificate(pem);
+      if (certificate == nullptr)
+         return false;
+
+      CertificateNames(certificate, names);
+      X509_free(certificate);
+      return true;
+   }
+
+   // static
+   std::vector<AnsiString>
+   AcmeClient::ParseDomainList(const AnsiString &list)
+   {
+      std::vector<AnsiString> domains;
+
+      for (AnsiString domain : StringParser::SplitString(list, ","))
+      {
+         domain.Trim();
+         domain.MakeLower();
+
+         if (domain.IsEmpty())
+            continue;
+
+         // Once each: a name written twice would be two identifiers of one
+         // order, which a CA refuses (RFC 8555 section 7.1.3 has them distinct).
+         if (std::find(domains.begin(), domains.end(), domain) == domains.end())
+            domains.push_back(domain);
+      }
+
+      return domains;
+   }
+
+   // static
+   std::vector<AnsiString>
+   AcmeClient::MissingNames(const std::vector<AnsiString> &certificateNames, const std::vector<AnsiString> &configured)
+   {
+      std::vector<AnsiString> missing;
+
+      for (size_t i = 0; i < configured.size(); i++)
+      {
+         AnsiString wanted = configured[i];
+         wanted.MakeLower();
+
+         bool covered = false;
+
+         for (size_t c = 0; c < certificateNames.size() && !covered; c++)
+         {
+            AnsiString name = certificateNames[c];
+            name.MakeLower();
+
+            if (name == wanted)
+            {
+               covered = true;
+               break;
+            }
+
+            // "*.example.com" stands for one label: a.example.com, never
+            // example.com itself or a.b.example.com (RFC 6125 section 6.4.3).
+            if (name.StartsWith("*.") && name.GetLength() > 2)
+            {
+               const AnsiString suffix = name.Mid(1);
+               const int dot = wanted.Find(".");
+
+               if (dot > 0 && wanted.Mid(dot) == suffix)
+                  covered = true;
+            }
+         }
+
+         if (!covered)
+            missing.push_back(configured[i]);
+      }
+
+      return missing;
+   }
+
+   bool
+   AcmeClient::ShouldRenewNow(AnsiString &reason)
+   {
+      reason = "";
+
       time_t notBefore = 0;
       time_t notAfter = 0;
 
-      if (!ReadCertificateDates(GetCertificateDirectory() + FileUtilities::PathSeparator + _T("fullchain.pem"), notBefore, notAfter))
+      const String certificateFile = GetCertificateDirectory() + FileUtilities::PathSeparator + _T("fullchain.pem");
+
+      if (!ReadCertificateDates(certificateFile, notBefore, notAfter))
+      {
+         reason = "missing";
          return true;
+      }
+
+      // Every configured name, or due now: from the file alone, before the CA is
+      // asked anything, since the answer does not depend on it.
+      std::vector<AnsiString> names;
+      if (ReadCertificateNames(certificateFile, names))
+      {
+         const std::vector<AnsiString> missing = MissingNames(names, ParseDomainList(IniFileSettings::Instance()->GetAcmeDomains()));
+
+         if (!missing.empty())
+         {
+            LOG_APPLICATION("ACME: The certificate in use does not name " + String(JoinNames(missing)) +
+               ", which AcmeDomains lists, so a certificate that names every one is due now.");
+            reason = "names";
+            return true;
+         }
+      }
 
       const time_t now = time(nullptr);
 
@@ -509,11 +877,19 @@ namespace HM
             if (suggested > latest)
                suggested = latest;
 
-            return now >= suggested;
+            if (now < suggested)
+               return false;
+
+            reason = "ari";
+            return true;
          }
       }
 
-      return now >= GetRenewalTime(notBefore, notAfter);
+      if (now < GetRenewalTime(notBefore, notAfter))
+         return false;
+
+      reason = "lifetime";
+      return true;
    }
 
    bool
@@ -524,14 +900,16 @@ namespace HM
       // configured.
       OtelSpanScope otelSpan("http.request", OtelSpanKindClient, AnsiString());
 
-      // https only: RFC 8555 section 6.1 has every ACME request made over HTTPS,
-      // and HttpsClient would also take plain http to a loopback address.
+      // https, or plain http to a loopback address alone (ParseAcmeUrl says why).
       AnsiString host;
       AnsiString port;
       AnsiString path;
 
-      if (!ParseHttpsUrl(url, host, port, path))
+      if (!ParseAcmeUrl(url, host, port, path))
+      {
+         LOG_DEBUG("ACME: " + String(method) + " " + String(url) + " refused: an ACME URL must be https, or http to a loopback address.");
          return false;
+      }
 
       otelSpan.AddAttribute("http.host", host);
 
@@ -572,12 +950,138 @@ namespace HM
       const std::string headerBlock(httpsResponse.headers.c_str());
       response.nonce = GetHeaderValue(headerBlock, "replay-nonce");
       response.location = GetHeaderValue(headerBlock, "location");
+      response.retry_after = GetHeaderValue(headerBlock, "retry-after");
       response.body = httpsResponse.body;
 
       if (!response.nonce.IsEmpty())
          nonce_ = response.nonce;
 
+      NoteProblem_(response);
+
       return true;
+   }
+
+   void
+   AcmeClient::NoteProblem_(const HttpResponse &response)
+   {
+      if (response.status_code >= 200 && response.status_code < 300)
+      {
+         failure_.problem_type = "";
+         failure_.problem_detail = _T("");
+         return;
+      }
+
+      // A badNonce is answered by SignedPost_ asking again, and is not what an
+      // attempt failed of; anything else the CA explains is.
+      const AnsiString type = JsonStringValue_(response.body, "type");
+
+      if (!type.StartsWith("urn:ietf:params:acme:error:") || type == "urn:ietf:params:acme:error:badNonce")
+         return;
+
+      failure_.problem_type = CleanText(type, 100);
+      failure_.problem_detail = String(CleanText(JsonStringValue_(response.body, "detail"), 300));
+
+      // RFC 8555 section 6.6: a rate limit is answered with this type and, as a
+      // rule, a Retry-After saying when to come back. Kept once seen in this
+      // attempt, whatever the CA says after it.
+      if (type == "urn:ietf:params:acme:error:rateLimited")
+      {
+         failure_.rate_limited = true;
+         failure_.retry_after_seconds = ParseRetryAfter(response.retry_after, time(nullptr));
+      }
+   }
+
+   void
+   AcmeClient::Fail_(const AnsiString &step, const String &sentence)
+   {
+      if (!failure_.step.IsEmpty())
+         return;
+
+      failure_.step = step;
+      failure_.sentence = sentence;
+   }
+
+   // static
+   bool
+   AcmeClient::IsProblemOfType(const AnsiString &body, const AnsiString &type)
+   {
+      return JsonStringValue_(body, "type") == "urn:ietf:params:acme:error:" + type;
+   }
+
+   // static
+   int
+   AcmeClient::ParseRetryAfter(const AnsiString &value, time_t now)
+   {
+      AnsiString text = value;
+      text.Trim();
+
+      if (text.IsEmpty())
+         return -1;
+
+      // delay-seconds: one or more digits and nothing else.
+      bool digits = text.GetLength() <= 9;
+      for (int i = 0; i < text.GetLength() && digits; i++)
+         digits = text[i] >= '0' && text[i] <= '9';
+
+      if (digits)
+         return atoi(text.c_str());
+
+      // IMF-fixdate, which is fixed-width: "Sun, 06 Nov 1994 08:49:37 GMT". Read
+      // by position rather than with a %s scan, whose buffer-size arguments the
+      // POSIX shim of sscanf_s does not take.
+      if (text.GetLength() != 29 || text.Mid(3, 2) != ", " || text[7] != ' ' || text[11] != ' ' ||
+          text[16] != ' ' || text[19] != ':' || text[22] != ':' || text.Mid(25) != " GMT")
+         return -1;
+
+      auto number = [&text](int start, int length) -> int
+      {
+         int result = 0;
+         for (int i = start; i < start + length; i++)
+         {
+            if (text[i] < '0' || text[i] > '9')
+               return -1;
+            result = result * 10 + (text[i] - '0');
+         }
+         return result;
+      };
+
+      static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+      const AnsiString month = text.Mid(8, 3);
+      int monthIndex = -1;
+      for (int m = 0; m < 12; m++)
+      {
+         if (month == months[m])
+            monthIndex = m;
+      }
+
+      const int day = number(5, 2);
+      const int year = number(12, 4);
+      const int hour = number(17, 2);
+      const int minute = number(20, 2);
+      const int second = number(23, 2);
+
+      if (monthIndex < 0 || day < 1 || day > 31 || year < 1970 || hour < 0 || hour > 23 ||
+          minute < 0 || minute > 59 || second < 0 || second > 60)
+         return -1;
+
+      tm parts = {};
+      parts.tm_year = year - 1900;
+      parts.tm_mon = monthIndex;
+      parts.tm_mday = day;
+      parts.tm_hour = hour;
+      parts.tm_min = minute;
+      parts.tm_sec = second;
+
+      const time_t at = _mkgmtime(&parts);
+      if (at == -1)
+         return -1;
+
+      if (at <= now)
+         return 0;
+
+      const time_t seconds = at - now;
+      return seconds > 0x7fffffff ? 0x7fffffff : (int) seconds;
    }
 
    AnsiString
@@ -975,6 +1479,7 @@ namespace HM
          message.Format(_T("ACME: Could not read the authorization (HTTP status %d). URL: %s"),
             authorizationResponse.status_code, String(authorizationUrl).c_str());
          LOG_APPLICATION(message);
+         Fail_("authorization", _T("An authorization of the order could not be read from the CA."));
 
          return false;
       }
@@ -1005,6 +1510,7 @@ namespace HM
          // precisely because it was not included.
          LOG_APPLICATION(Formatter::Format("ACME: Authorization for {0} offers no http-01 challenge. Response: {1}",
             domain, String(authorizationResponse.body.Mid(0, 500))));
+         Fail_("authorization", Formatter::Format("The CA offers no http-01 challenge for {0}, the only kind this server answers.", domain));
          return false;
       }
 
@@ -1016,6 +1522,7 @@ namespace HM
       if (challengeUrl.IsEmpty() || token.IsEmpty())
       {
          LOG_APPLICATION(Formatter::Format("ACME: The http-01 challenge for {0} carried no url or no token, so it cannot be answered.", domain));
+         Fail_("authorization", Formatter::Format("The CA's http-01 challenge for {0} carried no URL or no token.", domain));
          return false;
       }
 
@@ -1036,6 +1543,7 @@ namespace HM
          if (!challengeServer.Start(IniFileSettings::Instance()->GetAcmeHttpPort()))
          {
             LOG_APPLICATION("ACME: Failed to start the http-01 challenge listener. Is the port in use?");
+            Fail_("authorization", _T("The http-01 challenge listener could not be started on AcmeHttpPort: another program may hold the port."));
             return false;
          }
 
@@ -1047,6 +1555,7 @@ namespace HM
       if (!SignedPost_(challengeUrl, "{}", challengeResponse))
       {
          LOG_APPLICATION(Formatter::Format("ACME: Could not ask the CA to validate the http-01 challenge for {0}.", domain));
+         Fail_("authorization", Formatter::Format("The CA could not be asked to validate the http-01 challenge for {0}.", domain));
          return false;
       }
 
@@ -1062,6 +1571,7 @@ namespace HM
             message.Format(_T("ACME: Could not read the authorization while waiting for validation (HTTP status %d)."),
                pollResponse.status_code);
             LOG_APPLICATION(message);
+            Fail_("authorization", Formatter::Format("The authorization for {0} could not be read from the CA while it was being validated.", domain));
 
             return false;
          }
@@ -1074,11 +1584,24 @@ namespace HM
          if (status == "invalid")
          {
             LOG_APPLICATION(Formatter::Format("ACME: Challenge validation failed for {0}: {1}", domain, String(pollResponse.body.Mid(0, 500))));
+
+            // The reason is the authorization's challenge error, which is a
+            // problem document inside it, not the answer's own: read it so that
+            // the status says what the CA saw (no DNS record, a 404, a timeout).
+            const int errorAt = pollResponse.body.Find("\"error\"");
+            if (errorAt >= 0)
+            {
+               failure_.problem_type = CleanText(JsonStringValue_(pollResponse.body, "type", errorAt), 100);
+               failure_.problem_detail = String(CleanText(JsonStringValue_(pollResponse.body, "detail", errorAt), 300));
+            }
+
+            Fail_("authorization", Formatter::Format("The CA could not validate the http-01 challenge for {0}: it could not fetch the answer from this server on port 80.", domain));
             return false;
          }
       }
 
       LOG_APPLICATION(Formatter::Format("ACME: Timed out waiting for challenge validation of {0}.", domain));
+      Fail_("authorization", Formatter::Format("The CA had not validated the http-01 challenge for {0} after a minute.", domain));
       return false;
    }
 
@@ -1114,7 +1637,10 @@ namespace HM
          domainKey = EVP_RSA_gen(2048);
 
       if (domainKey == nullptr)
+      {
+         Fail_("finalize", "A key for the certificate could not be read or made.");
          return false;
+      }
 
       // Build the CSR with all domains as subject alternative names.
       AnsiString sanList;
@@ -1162,6 +1688,7 @@ namespace HM
       if (!csrOk)
       {
          LOG_APPLICATION("ACME: Could not build the certificate signing request.");
+         Fail_("finalize", "The certificate signing request could not be built.");
          EVP_PKEY_free(domainKey);
          return false;
       }
@@ -1176,6 +1703,7 @@ namespace HM
          // identifier. It was discarded.
          LOG_APPLICATION(Formatter::Format("ACME: The CA rejected the certificate request (HTTP status {0}). Response: {1}",
             finalizeResponse.status_code, String(finalizeResponse.body.Mid(0, 500))));
+         Fail_("finalize", "The CA rejected the certificate signing request.");
 
          EVP_PKEY_free(domainKey);
          return false;
@@ -1191,6 +1719,7 @@ namespace HM
          {
             LOG_APPLICATION(Formatter::Format("ACME: Could not read the order while waiting for the certificate to be issued (HTTP status {0}).",
                orderResponse.status_code));
+            Fail_("finalize", "The order could not be read from the CA while the certificate was being issued.");
 
             EVP_PKEY_free(domainKey);
             return false;
@@ -1207,6 +1736,7 @@ namespace HM
          if (status == "invalid")
          {
             LOG_APPLICATION("ACME: Order failed: " + String(orderResponse.body.Mid(0, 500)));
+            Fail_("finalize", "The CA marked the order invalid.");
             EVP_PKEY_free(domainKey);
             return false;
          }
@@ -1220,21 +1750,43 @@ namespace HM
          // window, or it went valid without naming a certificate. Both used to be
          // silent.
          LOG_APPLICATION("ACME: The order did not produce a certificate URL within the polling window.");
+         Fail_("finalize", "The CA had not issued the certificate a minute after the order was finalized.");
 
          EVP_PKEY_free(domainKey);
          return false;
       }
 
       // Download the certificate chain.
+      AcmeChecks::Step("certificate");
+
       HttpResponse certificateResponse;
       if (!SignedPost_(certificateUrl, "", certificateResponse) || certificateResponse.status_code != 200)
       {
          LOG_APPLICATION(Formatter::Format("ACME: Could not download the issued certificate (HTTP status {0}).",
             certificateResponse.status_code));
+         Fail_("certificate", "The issued certificate could not be downloaded from the CA.");
 
          EVP_PKEY_free(domainKey);
          return false;
       }
+
+      // What the CA sent is installed only if it is the certificate this
+      // request was for. It used to be written as it came: a body that was not
+      // a certificate, one for another key, or one without a name asked for
+      // would have replaced a working pair with one no listener could load or
+      // no client would accept, and the deployment would have restarted every
+      // TLS port onto it. The pair in use stays as it is.
+      String unusable;
+      if (!CheckIssuedCertificate(certificateResponse.body, domainKey, domains, unusable))
+      {
+         LOG_APPLICATION("ACME: The certificate the CA issued was not installed: " + unusable + " The certificate and key in use are unchanged.");
+         Fail_("certificate", "The certificate the CA issued was not installed: " + unusable);
+
+         EVP_PKEY_free(domainKey);
+         return false;
+      }
+
+      AcmeChecks::Step("install");
 
       // Both halves of the new pair are written under temporary names and moved
       // into place only once both writes have succeeded.
@@ -1276,12 +1828,14 @@ namespace HM
       if (!keyWritten)
       {
          LOG_APPLICATION(Formatter::Format("ACME: Could not write the new private key to {0}. The certificate and key in use are unchanged.", pendingKeyFile));
+         Fail_("install", "The new private key could not be written to the certificate directory; the certificate and key in use are unchanged.");
          return false;
       }
 
       if (!FileUtilities::WriteToFile(pendingCertificateFile, certificateResponse.body))
       {
          LOG_APPLICATION(Formatter::Format("ACME: Could not write the issued certificate to {0}. The certificate and key in use are unchanged.", pendingCertificateFile));
+         Fail_("install", "The issued certificate could not be written to the certificate directory; the certificate and key in use are unchanged.");
 
          // Leaving this behind would not break anything - nothing reads a .new
          // file - but it would be mistaken for a renewal in progress by the next
@@ -1293,6 +1847,7 @@ namespace HM
       if (!FileUtilities::Move(pendingKeyFile, keyFile))
       {
          LOG_APPLICATION(Formatter::Format("ACME: Could not replace {0}. The certificate and key in use are unchanged.", keyFile));
+         Fail_("install", "privkey.pem could not be replaced; the certificate and key in use are unchanged.");
 
          FileUtilities::DeleteFile(pendingKeyFile);
          FileUtilities::DeleteFile(pendingCertificateFile);
@@ -1309,6 +1864,7 @@ namespace HM
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5993, "AcmeClient::FinalizeOrder_",
             Formatter::Format("The new private key was installed as {0} but the certificate could not be moved from {1} to {2}. The key and certificate on disk no longer match, and any listener using them will refuse to start. Move {1} into place by hand, or restore the pair from a backup.",
                keyFile, pendingCertificateFile, certificateFile));
+         Fail_("install", "The new key was installed and the certificate could not be moved into place beside it: the pair on disk no longer matches (error HM5993 says what to move).");
 
          return false;
       }
@@ -1321,46 +1877,49 @@ namespace HM
    {
       AcmeChallengeStore::Clear();
 
-      AnsiString domainList = IniFileSettings::Instance()->GetAcmeDomains();
+      failure_ = Failure();
 
-      std::vector<AnsiString> domains;
-      for (AnsiString domain : StringParser::SplitString(domainList, ","))
-      {
-         domain.Trim();
-         domain.MakeLower();
-
-         if (!domain.IsEmpty())
-            domains.push_back(domain);
-      }
+      const std::vector<AnsiString> domains = ParseDomainList(IniFileSettings::Instance()->GetAcmeDomains());
 
       if (domains.empty())
       {
          LOG_APPLICATION("ACME: No domains configured. Set AcmeDomains in hMailServer.ini.");
+         Fail_("names", _T("AcmeDomains names no host, so there is nothing to ask the CA for."));
          return false;
       }
+
+      AcmeChecks::Step("directory");
 
       if (!FetchDirectory_())
       {
          LOG_APPLICATION("ACME: Failed to fetch the ACME directory.");
+         Fail_("directory", _T("The CA's ACME directory (AcmeDirectoryUrl) could not be read: the CA did not answer, or did not answer with a directory."));
          return false;
       }
+
+      AcmeChecks::Step("account");
 
       if (!LoadOrCreateAccountKey_())
       {
          LOG_APPLICATION("ACME: Failed to load or create the account key.");
+         Fail_("account", _T("The ACME account key could not be read or made in the certificate directory."));
          return false;
       }
 
       if (!RegisterAccount_())
       {
          LOG_APPLICATION("ACME: Account registration failed.");
+         Fail_("account", _T("The CA did not register this server's ACME account."));
          return false;
       }
+
+      AcmeChecks::Step("order");
 
       HttpResponse orderResponse;
       if (!CreateOrder_(domains, orderResponse))
       {
          LOG_APPLICATION("ACME: Order creation failed.");
+         Fail_("order", _T("The CA did not create an order for the names AcmeDomains lists."));
          return false;
       }
 
@@ -1376,6 +1935,7 @@ namespace HM
       {
          LOG_APPLICATION(Formatter::Format("ACME: The new order is missing its location header or its finalize URL. Response: {0}",
             String(orderResponse.body.Mid(0, 500))));
+         Fail_("order", _T("The CA's new order carried no location or no finalize URL."));
          return false;
       }
 
@@ -1385,6 +1945,7 @@ namespace HM
       {
          LOG_APPLICATION(Formatter::Format("ACME: The new order lists no authorizations. Response: {0}",
             String(orderResponse.body.Mid(0, 500))));
+         Fail_("order", _T("The CA's new order listed no authorizations."));
          return false;
       }
 
@@ -1395,8 +1956,11 @@ namespace HM
       {
          LOG_APPLICATION(Formatter::Format("ACME: The authorization list in the new order could not be parsed. Response: {0}",
             String(orderResponse.body.Mid(0, 500))));
+         Fail_("order", _T("The authorization list of the CA's new order could not be read."));
          return false;
       }
+
+      AcmeChecks::Step("authorization");
 
       AnsiString authorizationArray = orderResponse.body.Mid(arrayStart, arrayEnd - arrayStart + 1);
 
@@ -1420,13 +1984,17 @@ namespace HM
          if (!CompleteAuthorization_(authorizationUrl))
          {
             LOG_APPLICATION("ACME: Authorization failed for one of the configured domains.");
+            Fail_("authorization", _T("The CA did not validate one of the names AcmeDomains lists."));
             return false;
          }
       }
 
+      AcmeChecks::Step("finalize");
+
       if (!FinalizeOrder_(finalizeUrl, orderUrl, domains))
       {
          LOG_APPLICATION("ACME: Order finalization failed.");
+         Fail_("finalize", _T("The CA did not issue the certificate for the order."));
          return false;
       }
 
@@ -1437,6 +2005,7 @@ namespace HM
       // convenience for the administrators who publish DANE, and issue #93 was
       // that convenience taking the service down before the deployment had run.
       // Make the new certificate take effect without manual steps.
+      AcmeChecks::Step("install");
       ApplyCertificate_();
 
       // Publish-ready DANE record for administrators running inbound DANE.
@@ -1453,6 +2022,55 @@ namespace HM
       AcmeChallengeStore::Clear();
 
       return true;
+   }
+
+   // static
+   bool
+   AcmeClient::CheckIssuedCertificate(const AnsiString &chainPem, EVP_PKEY *key,
+                                       const std::vector<AnsiString> &domains, String &reason)
+   {
+      reason = _T("");
+
+      X509 *certificate = ReadPemCertificate(chainPem);
+      if (certificate == nullptr)
+      {
+         reason = _T("what the CA sent is not a PEM certificate.");
+         return false;
+      }
+
+      bool usable = true;
+
+      if (key == nullptr || X509_check_private_key(certificate, key) != 1)
+      {
+         reason = _T("it is not for the key the request was made with.");
+         usable = false;
+      }
+
+      if (usable)
+      {
+         std::vector<AnsiString> names;
+         CertificateNames(certificate, names);
+
+         const std::vector<AnsiString> missing = MissingNames(names, domains);
+         if (!missing.empty())
+         {
+            reason = _T("it does not name ") + String(JoinNames(missing)) + _T(", which the order asked for.");
+            usable = false;
+         }
+      }
+
+      if (usable)
+      {
+         const __int64 notAfter = AsnTime(X509_get0_notAfter(certificate));
+         if (notAfter <= (__int64) time(nullptr))
+         {
+            reason = _T("it has expired already, or its expiry cannot be read.");
+            usable = false;
+         }
+      }
+
+      X509_free(certificate);
+      return usable;
    }
 
    bool
@@ -1862,10 +2480,661 @@ namespace HM
    }
 
    // -------------------------------------------------------------------
+   // AcmeChecks
+   // -------------------------------------------------------------------
+
+   std::mutex AcmeChecks::mutex_;
+   bool AcmeChecks::running_ = false;
+   bool AcmeChecks::recheck_ = false;
+   AcmeChecks::Attempt AcmeChecks::current_;
+   AcmeChecks::Attempt AcmeChecks::last_;
+   bool AcmeChecks::has_last_ = false;
+   AcmeChecks::Attempt AcmeChecks::last_issuance_;
+   bool AcmeChecks::has_last_issuance_ = false;
+   __int64 AcmeChecks::next_id_ = 1;
+   __int64 AcmeChecks::last_issued_at_ = 0;
+   __int64 AcmeChecks::next_scheduled_at_ = 0;
+   AcmeChecks::Spacing AcmeChecks::spacing_;
+
+   namespace
+   {
+      // A check queued for the maintenance work queue that has not started in
+      // this long is taken to have been dropped with the queue - a stop of the
+      // servers discards what was waiting - and holds nothing any more.
+      const __int64 AbandonedQueuedSeconds = 10 * 60;
+
+      // "2026-10-25 14:03:00 UTC", for a sentence.
+      String TimeSentence(__int64 seconds)
+      {
+         time_t value = (time_t) seconds;
+         tm utc = {};
+         gmtime_s(&utc, &value);
+
+         String text;
+         text.Format(_T("%04d-%02d-%02d %02d:%02d:%02d UTC"), utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
+            utc.tm_hour, utc.tm_min, utc.tm_sec);
+         return text;
+      }
+
+      String CertificateFile()
+      {
+         return AcmeClient::GetCertificateDirectory() + FileUtilities::PathSeparator + _T("fullchain.pem");
+      }
+
+      bool Serving()
+      {
+         const int state = ServerStatus::Instance()->GetState();
+         return state == ServerStatus::StateRunning || state == ServerStatus::StateDraining;
+      }
+
+      // The sentence a check waiting for the spacing is answered with.
+      String WaitSentence(const AnsiString &why, __int64 until)
+      {
+         if (why == "rate_limited")
+            return _T("The CA answered this server's last order with a rate limit (urn:ietf:params:acme:error:rateLimited), so no check orders a certificate before ") +
+                   TimeSentence(until) + _T(", when the CA said to come back.");
+
+         if (why == "cooldown")
+            return _T("The last attempt to issue a certificate failed, and none is made within twenty minutes of a failure, so that a setup that cannot validate does not use up the CA's limit of failed validations; the next may start at ") +
+                   TimeSentence(until) + _T(".");
+
+         return _T("A check was asked for less than a minute ago; ask again at ") + TimeSentence(until) +
+                _T(", or read GET /api/v1/acme for how the last one went.");
+      }
+   }
+
+   // static
+   const char *
+   AcmeChecks::TriggerWord(Trigger trigger)
+   {
+      switch (trigger)
+      {
+      case TriggerStart: return "start";
+      case TriggerSettings: return "settings";
+      case TriggerRequest: return "request";
+      default: return "schedule";
+      }
+   }
+
+   // static
+   bool
+   AcmeChecks::Allows(const Spacing &spacing, const AnsiString &directoryUrl, __int64 now, bool requested,
+                      __int64 &until, AnsiString &why)
+   {
+      until = 0;
+      why = "";
+
+      // What was learnt of another CA holds nothing against this one.
+      if (spacing.directory_url != directoryUrl)
+         return true;
+
+      // The latest of the times that hold, and the rule it is of.
+      if (spacing.rate_limited_until > now && spacing.rate_limited_until > until)
+      {
+         until = spacing.rate_limited_until;
+         why = "rate_limited";
+      }
+
+      const __int64 cooled = spacing.failed_at > 0 ? spacing.failed_at + FailureCooldownSeconds : 0;
+      if (cooled > now && cooled > until)
+      {
+         until = cooled;
+         why = "cooldown";
+      }
+
+      const __int64 spaced = requested && spacing.last_request_at > 0 ? spacing.last_request_at + RequestIntervalSeconds : 0;
+      if (spaced > now && spaced > until)
+      {
+         until = spaced;
+         why = "interval";
+      }
+
+      return until == 0;
+   }
+
+   // static
+   bool
+   AcmeChecks::Queue_(Trigger trigger, Attempt &attempt)
+   {
+      // The reservation is made by the caller, under mutex_; this hands the
+      // check to the maintenance work queue, outside it, and takes the
+      // reservation back when there is no queue to hand it to.
+      std::shared_ptr<WorkQueue> queue = Serving() ? Application::Instance()->GetMaintenanceWorkQueue() : std::shared_ptr<WorkQueue>();
+
+      if (!queue)
+      {
+         std::lock_guard<std::mutex> guard(mutex_);
+
+         if (running_ && current_.id == attempt.id && current_.step == "queued")
+         {
+            running_ = false;
+            current_ = Attempt();
+         }
+
+         return false;
+      }
+
+      std::shared_ptr<AcmeRenewalTask> task = std::shared_ptr<AcmeRenewalTask>(new AcmeRenewalTask(trigger));
+      task->SetName(_T("ACME check"));
+      queue->AddTask(task);
+
+      return true;
+   }
+
+   // static
+   AcmeChecks::RequestResult
+   AcmeChecks::Request(Attempt &attempt, __int64 &until, AnsiString &why)
+   {
+      until = 0;
+      why = "";
+
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      if (!ini->GetAcmeEnabled())
+         return RequestDisabled;
+
+      const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(ini->GetAcmeDomains());
+      if (domains.empty())
+         return RequestNoDomains;
+
+      if (!Serving())
+         return RequestNotServing;
+
+      const __int64 now = (__int64) time(nullptr);
+      const AnsiString directoryUrl = ini->GetAcmeDirectoryUrl();
+
+      {
+         std::lock_guard<std::mutex> guard(mutex_);
+
+         if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+         {
+            running_ = false;
+            current_ = Attempt();
+         }
+
+         if (running_)
+         {
+            attempt = current_;
+            return RequestAlreadyRunning;
+         }
+
+         if (!Allows(spacing_, directoryUrl, now, true, until, why))
+            return RequestWaiting;
+
+         if (spacing_.directory_url != directoryUrl)
+         {
+            spacing_ = Spacing();
+            spacing_.directory_url = directoryUrl;
+         }
+
+         spacing_.last_request_at = now;
+
+         current_ = Attempt();
+         current_.id = next_id_++;
+         current_.trigger = TriggerRequest;
+         current_.queued_at = now;
+         current_.step = "queued";
+         running_ = true;
+
+         attempt = current_;
+      }
+
+      if (!Queue_(TriggerRequest, attempt))
+         return RequestNotServing;
+
+      // On the calling thread, which carries the actor REST or COM installed:
+      // the check itself runs on the maintenance work queue, where there is
+      // none, so the request is the half of it that says who asked. Under the
+      // object type the trail gives hm_sslcertificates and the record's name,
+      // so that the request and what a successful issuance writes to that
+      // record read as one thing; the record's change itself is recorded by the
+      // statement chokepoint, as every other change of hm_sslcertificates is.
+      AuditTrail::Instance()->RecordEvent(_T("ssl certificate"), _T("ACME (automatic)"), _T("check requested"),
+         _T("names: ") + String(JoinNames(domains)) + _T("; directory: ") + String(directoryUrl));
+
+      LOG_APPLICATION("ACME: A check was requested over the administration interface; it is queued.");
+
+      return RequestAccepted;
+   }
+
+   // static
+   void
+   AcmeChecks::DomainsChanged()
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      if (!ini->GetAcmeEnabled() || !Serving())
+         return;
+
+      const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(ini->GetAcmeDomains());
+      if (domains.empty())
+         return;
+
+      // Only a name the certificate in use lacks makes a save worth a check now.
+      // A name taken off the list needs no new certificate - the one in use still
+      // serves the rest - and is left for the renewal, as it always was.
+      std::vector<AnsiString> names;
+      if (AcmeClient::ReadCertificateNames(CertificateFile(), names) && AcmeClient::MissingNames(names, domains).empty())
+         return;
+
+      const __int64 now = (__int64) time(nullptr);
+      const AnsiString directoryUrl = ini->GetAcmeDirectoryUrl();
+
+      Attempt attempt;
+
+      {
+         std::lock_guard<std::mutex> guard(mutex_);
+
+         if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+         {
+            running_ = false;
+            current_ = Attempt();
+         }
+
+         // A check that is running read the list before this save: this one is
+         // looked at again when it ends.
+         if (running_)
+         {
+            recheck_ = true;
+            return;
+         }
+
+         __int64 until = 0;
+         AnsiString why;
+         if (!Allows(spacing_, directoryUrl, now, false, until, why))
+         {
+            LOG_APPLICATION("ACME: AcmeDomains names a host the certificate in use does not, and the check it would start waits: " +
+               WaitSentence(why, until) + " The hourly check issues it after that.");
+            return;
+         }
+
+         current_ = Attempt();
+         current_.id = next_id_++;
+         current_.trigger = TriggerSettings;
+         current_.queued_at = now;
+         current_.step = "queued";
+         running_ = true;
+
+         attempt = current_;
+      }
+
+      if (Queue_(TriggerSettings, attempt))
+         LOG_APPLICATION("ACME: AcmeDomains was saved with a host the certificate in use does not name; a check is queued now rather than at the next hour.");
+   }
+
+   // static
+   bool
+   AcmeChecks::Begin(Trigger trigger, Attempt &attempt)
+   {
+      const __int64 now = (__int64) time(nullptr);
+
+      std::lock_guard<std::mutex> guard(mutex_);
+
+      // The hourly registration ran, whether or not it finds a check running:
+      // the next is an hour on, give or take the minute the scheduler wakes in.
+      if (trigger == TriggerSchedule)
+         next_scheduled_at_ = now + 60 * 60;
+
+      if (running_ && current_.step == "queued" && current_.trigger == trigger)
+      {
+         // The check a request or a save queued, starting now.
+         current_.started_at = now;
+         current_.step = "deciding";
+         current_.directory_url_seen = IniFileSettings::Instance()->GetAcmeDirectoryUrl();
+         attempt = current_;
+         return true;
+      }
+
+      if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+      {
+         running_ = false;
+         current_ = Attempt();
+      }
+
+      if (running_)
+         return false;
+
+      current_ = Attempt();
+      current_.id = next_id_++;
+      current_.trigger = trigger;
+      current_.started_at = now;
+      current_.step = "deciding";
+      current_.directory_url_seen = IniFileSettings::Instance()->GetAcmeDirectoryUrl();
+      running_ = true;
+
+      attempt = current_;
+      return true;
+   }
+
+   // static
+   void
+   AcmeChecks::Step(const AnsiString &step)
+   {
+      std::lock_guard<std::mutex> guard(mutex_);
+
+      if (running_)
+         current_.step = step;
+   }
+
+   // static
+   void
+   AcmeChecks::Finish(Attempt attempt, bool orderedOrTried, const AcmeClient::Failure *failure)
+   {
+      const __int64 now = (__int64) time(nullptr);
+
+      bool again = false;
+
+      {
+         std::lock_guard<std::mutex> guard(mutex_);
+
+         attempt.finished_at = now;
+         attempt.step = "";
+
+         if (failure != nullptr)
+         {
+            attempt.failed_step = failure->step;
+            attempt.error = failure->sentence;
+            attempt.problem_type = failure->problem_type;
+            attempt.problem_detail = failure->problem_detail;
+         }
+
+         const AnsiString directoryUrl = attempt.directory_url_seen;
+
+         if (orderedOrTried && spacing_.directory_url != directoryUrl)
+         {
+            spacing_ = Spacing();
+            spacing_.directory_url = directoryUrl;
+         }
+
+         if (orderedOrTried && attempt.outcome == "failed")
+         {
+            spacing_.failed_at = now;
+
+            if (failure != nullptr && failure->rate_limited)
+            {
+               int seconds = failure->retry_after_seconds < 0 ? DefaultRateLimitSeconds : failure->retry_after_seconds;
+               if (seconds > MaxRateLimitSeconds)
+                  seconds = MaxRateLimitSeconds;
+
+               spacing_.rate_limited_until = now + seconds;
+            }
+         }
+
+         if (attempt.outcome == "issued")
+         {
+            last_issued_at_ = now;
+            spacing_.failed_at = 0;
+         }
+
+         last_ = attempt;
+         has_last_ = true;
+
+         if (orderedOrTried)
+         {
+            last_issuance_ = attempt;
+            has_last_issuance_ = true;
+         }
+
+         if (running_ && current_.id == attempt.id)
+         {
+            running_ = false;
+            current_ = Attempt();
+         }
+
+         again = recheck_;
+         recheck_ = false;
+      }
+
+      // A save of AcmeDomains while this ran: judged again now, against the
+      // certificate this check may just have installed.
+      if (again)
+         DomainsChanged();
+   }
+
+   // static
+   bool
+   AcmeChecks::MayOrder(__int64 now, __int64 &until, AnsiString &why)
+   {
+      const AnsiString directoryUrl = IniFileSettings::Instance()->GetAcmeDirectoryUrl();
+
+      std::lock_guard<std::mutex> guard(mutex_);
+      return Allows(spacing_, directoryUrl, now, false, until, why);
+   }
+
+   // static
+   void
+   AcmeChecks::SetNextScheduled(__int64 when)
+   {
+      std::lock_guard<std::mutex> guard(mutex_);
+      next_scheduled_at_ = when;
+   }
+
+   // static
+   AnsiString
+   AcmeChecks::AttemptJson(const Attempt &attempt)
+   {
+      const bool finished = attempt.finished_at > 0;
+      const AnsiString state = finished ? AnsiString("finished") : (attempt.step == "queued" ? AnsiString("queued") : AnsiString("running"));
+
+      AnsiString json = "{\"id\":" + JsonNumber(attempt.id);
+      json += ",\"trigger\":" + JsonString(TriggerWord(attempt.trigger));
+      json += ",\"state\":" + JsonString(state);
+      json += ",\"step\":" + (finished || attempt.step.IsEmpty() ? AnsiString("null") : JsonString(attempt.step));
+      json += ",\"queued_at\":" + JsonTime(attempt.queued_at);
+      json += ",\"started_at\":" + JsonTime(attempt.started_at);
+      json += ",\"finished_at\":" + JsonTime(attempt.finished_at);
+      json += ",\"outcome\":" + (attempt.outcome.IsEmpty() ? AnsiString("null") : JsonString(attempt.outcome));
+      json += ",\"reason\":" + (attempt.reason.IsEmpty() ? AnsiString("null") : JsonString(attempt.reason));
+      json += ",\"failed_step\":" + (attempt.failed_step.IsEmpty() ? AnsiString("null") : JsonString(attempt.failed_step));
+      json += ",\"error\":" + (attempt.error.IsEmpty() ? AnsiString("null") : JsonText(attempt.error));
+
+      if (attempt.problem_type.IsEmpty())
+         json += ",\"ca_problem\":null";
+      else
+         json += ",\"ca_problem\":{\"type\":" + JsonString(attempt.problem_type) + ",\"detail\":" + JsonText(attempt.problem_detail) + "}";
+
+      json += "}";
+      return json;
+   }
+
+   // static
+   AnsiString
+   AcmeChecks::StatusJson(__int64 now)
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      const bool enabled = ini->GetAcmeEnabled();
+      const AnsiString directoryUrl = ini->GetAcmeDirectoryUrl();
+      const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(ini->GetAcmeDomains());
+
+      bool running = false;
+      Attempt current;
+      bool hasLast = false;
+      Attempt lastIssuance;
+      bool hasLastIssuance = false;
+      Attempt last;
+      __int64 lastIssuedAt = 0;
+      __int64 nextScheduledAt = 0;
+      Spacing spacing;
+
+      {
+         std::lock_guard<std::mutex> guard(mutex_);
+
+         running = running_;
+         current = current_;
+         hasLast = has_last_;
+         lastIssuance = last_issuance_;
+         hasLastIssuance = has_last_issuance_;
+         last = last_;
+         lastIssuedAt = last_issued_at_;
+         nextScheduledAt = next_scheduled_at_;
+         spacing = spacing_;
+      }
+
+      AnsiString json = "{\"enabled\":";
+      json += enabled ? "true" : "false";
+      json += ",\"directory_url\":" + JsonString(directoryUrl);
+      json += ",\"domains\":" + JsonNames(domains);
+      json += ",\"certificate_directory\":" + JsonText(AcmeClient::GetCertificateDirectory());
+
+      // The certificate in use: what the listeners load from the ACME
+      // directory, read from the file now.
+      const String certificateFile = CertificateFile();
+      X509 *certificate = ReadPemCertificateFile(certificateFile);
+
+      std::vector<AnsiString> missing;
+      AnsiString dueReason;
+
+      if (certificate == nullptr)
+      {
+         json += ",\"certificate\":null,\"covers_domains\":null,\"missing_domains\":" + JsonNames(domains);
+         dueReason = "missing";
+      }
+      else
+      {
+         std::vector<AnsiString> names;
+         CertificateNames(certificate, names);
+         missing = AcmeClient::MissingNames(names, domains);
+
+         const __int64 notBefore = AsnTime(X509_get0_notBefore(certificate));
+         const __int64 notAfter = AsnTime(X509_get0_notAfter(certificate));
+         const __int64 renewsAt = notAfter > 0 ? (__int64) AcmeClient::GetRenewalTime((time_t) notBefore, (time_t) notAfter) : 0;
+
+         AnsiString serial;
+         BIGNUM *serialNumber = ASN1_INTEGER_to_BN(X509_get0_serialNumber(certificate), nullptr);
+         if (serialNumber != nullptr)
+         {
+            char *hex = BN_bn2hex(serialNumber);
+            if (hex != nullptr)
+            {
+               serial = CleanText(AnsiString(hex), 100);
+               serial.MakeLower();
+               OPENSSL_free(hex);
+            }
+            BN_free(serialNumber);
+         }
+
+         SSLCertificates records;
+         records.Refresh();
+         const bool deployed = (bool) records.GetItemByName(_T("ACME (automatic)"));
+
+         json += ",\"certificate\":{\"file\":" + JsonText(certificateFile);
+         json += ",\"names\":" + JsonNames(names);
+         json += ",\"subject\":" + JsonString(NameText(X509_get_subject_name(certificate)));
+         json += ",\"issuer\":" + JsonString(NameText(X509_get_issuer_name(certificate)));
+         json += ",\"serial\":" + JsonString(serial);
+         json += ",\"not_before\":" + JsonTime(notBefore);
+         json += ",\"not_after\":" + JsonTime(notAfter);
+         json += ",\"expired\":";
+         json += notAfter > 0 && notAfter <= now ? "true" : "false";
+         json += ",\"renews_at\":" + JsonTime(renewsAt);
+         json += ",\"deployed\":";
+         json += deployed ? "true" : "false";
+         json += "}";
+
+         json += ",\"covers_domains\":";
+         json += missing.empty() ? "true" : "false";
+         json += ",\"missing_domains\":" + JsonNames(missing);
+
+         if (notAfter <= 0)
+            dueReason = "missing";
+         else if (!missing.empty())
+            dueReason = "names";
+         else if (renewsAt > 0 && now >= renewsAt)
+            dueReason = "lifetime";
+
+         X509_free(certificate);
+      }
+
+      json += ",\"due\":";
+      json += !dueReason.IsEmpty() ? "true" : "false";
+      json += ",\"due_reason\":" + (dueReason.IsEmpty() ? AnsiString("null") : JsonString(dueReason));
+
+      json += ",\"running\":" + (running ? AttemptJson(current) : AnsiString("null"));
+      json += ",\"last_attempt\":" + (hasLast ? AttemptJson(last) : AnsiString("null"));
+      json += ",\"last_issuance\":" + (hasLastIssuance ? AttemptJson(lastIssuance) : AnsiString("null"));
+      json += ",\"last_issued_at\":" + JsonTime(lastIssuedAt);
+      json += ",\"next_scheduled_check_at\":" + JsonTime(enabled ? nextScheduledAt : 0);
+
+      __int64 until = 0;
+      AnsiString why;
+      const bool allowed = Allows(spacing, directoryUrl, now, true, until, why);
+
+      json += ",\"requests\":{\"allowed_now\":";
+      json += enabled && !running && allowed && !domains.empty() ? "true" : "false";
+      json += ",\"waiting_for\":" + (allowed ? AnsiString("null") : JsonString(why));
+      json += ",\"next_allowed_at\":" + JsonTime(allowed ? 0 : until);
+      json += ",\"interval_seconds\":" + JsonNumber(RequestIntervalSeconds);
+      json += ",\"cooldown_seconds\":" + JsonNumber(FailureCooldownSeconds);
+      json += "}";
+
+      json += ",\"rate_limited_until\":" +
+         JsonTime(spacing.directory_url == directoryUrl && spacing.rate_limited_until > now ? spacing.rate_limited_until : 0);
+      json += ",\"now\":" + JsonNumber(now);
+      json += "}";
+
+      return json;
+   }
+
+   // static
+   int
+   AcmeChecks::RequestAnswer(AnsiString &json, int &retryAfterSeconds, String &sentence)
+   {
+      retryAfterSeconds = 0;
+      sentence = _T("");
+
+      Attempt attempt;
+      __int64 until = 0;
+      AnsiString why;
+
+      const RequestResult result = Request(attempt, until, why);
+      const __int64 now = (__int64) time(nullptr);
+
+      switch (result)
+      {
+      case RequestAccepted:
+      case RequestAlreadyRunning:
+         json = "{\"accepted\":";
+         json += result == RequestAccepted ? "true" : "false";
+         json += ",\"already_running\":";
+         json += result == RequestAlreadyRunning ? "true" : "false";
+         json += ",\"attempt\":" + AttemptJson(attempt);
+         json += ",\"status\":\"/api/v1/acme\"}";
+         return 202;
+
+      case RequestWaiting:
+         retryAfterSeconds = until > now ? (int) (until - now) : 1;
+         sentence = WaitSentence(why, until);
+         json = "{\"error\":" + JsonText(sentence);
+         json += ",\"reason\":" + JsonString(why);
+         json += ",\"retry_at\":" + JsonNumber(until);
+         json += ",\"retry_after_seconds\":" + JsonNumber(retryAfterSeconds);
+         json += ",\"status\":\"/api/v1/acme\"}";
+         return 429;
+
+      case RequestDisabled:
+         sentence = _T("ACME is not enabled on this server (AcmeEnabled), so there is nothing to check.");
+         json = "{\"error\":" + JsonText(sentence) + ",\"reason\":\"disabled\"}";
+         return 409;
+
+      case RequestNoDomains:
+         sentence = _T("AcmeDomains names no host, so there is no certificate to issue.");
+         json = "{\"error\":" + JsonText(sentence) + ",\"reason\":\"no_domains\"}";
+         return 409;
+
+      default:
+         sentence = _T("The server is not running its services, so a check cannot be queued now.");
+         json = "{\"error\":" + JsonText(sentence) + ",\"reason\":\"not_serving\"}";
+         return 503;
+      }
+   }
+
+   // -------------------------------------------------------------------
    // AcmeRenewalTask
    // -------------------------------------------------------------------
 
-   AcmeRenewalTask::AcmeRenewalTask()
+   AcmeRenewalTask::AcmeRenewalTask(AcmeChecks::Trigger trigger) :
+      trigger_(trigger)
    {
 
    }
@@ -1875,26 +3144,118 @@ namespace HM
 
    }
 
+   namespace
+   {
+      // Ends the check Begin started, however DoWork leaves: a throw - a
+      // shutdown's interruption among them - is a failure, so that no check is
+      // left running for ever and holding every one after it.
+      class AttemptGuard
+      {
+      public:
+         explicit AttemptGuard(AcmeChecks::Attempt &attempt) : attempt_(attempt), finished_(false) { }
+
+         ~AttemptGuard()
+         {
+            if (finished_)
+               return;
+
+            attempt_.outcome = "failed";
+            attempt_.error = _T("The check was ended before it finished (the service stopped, or an error was contained).");
+            AcmeChecks::Finish(attempt_, false, nullptr);
+         }
+
+         void Finish(bool orderedOrTried, const AcmeClient::Failure *failure)
+         {
+            finished_ = true;
+            AcmeChecks::Finish(attempt_, orderedOrTried, failure);
+         }
+
+      private:
+         AcmeChecks::Attempt &attempt_;
+         bool finished_;
+      };
+   }
+
    void
    AcmeRenewalTask::DoWork()
    {
-      if (!IniFileSettings::Instance()->GetAcmeEnabled())
+      AcmeChecks::Attempt attempt;
+
+      if (!AcmeChecks::Begin(trigger_, attempt))
+      {
+         LOG_DEBUG("ACME: A check is already running, so this one does nothing.");
          return;
+      }
+
+      Check_(attempt);
+   }
+
+   void
+   AcmeRenewalTask::Check_(AcmeChecks::Attempt &attempt)
+   {
+      AttemptGuard guard(attempt);
+
+      if (!IniFileSettings::Instance()->GetAcmeEnabled())
+      {
+         attempt.outcome = "disabled";
+         guard.Finish(false, nullptr);
+         return;
+      }
 
       AcmeClient client;
 
-      if (!client.ShouldRenewNow())
+      AnsiString reason;
+      if (!client.ShouldRenewNow(reason))
       {
          // Not due - but a certificate that was issued and never deployed (issue
          // #93's aftermath) is deployed on the way out.
          client.ApplyIssuedCertificateIfUnrecorded();
+
+         attempt.outcome = "not_due";
+         guard.Finish(false, nullptr);
          return;
       }
 
-      LOG_APPLICATION("ACME: Certificate is missing or due for renewal. Requesting a new certificate.");
+      attempt.reason = reason;
+
+      // Due, and held by the spacing (AcmeChecks): a failure a few minutes ago,
+      // or a rate limit the CA set, which this check does not test again.
+      const __int64 now = (__int64) time(nullptr);
+      __int64 until = 0;
+      AnsiString why;
+
+      if (!AcmeChecks::MayOrder(now, until, why))
+      {
+         const String sentence = WaitSentence(why, until);
+         LOG_APPLICATION("ACME: A certificate is due (" + String(reason) + "), and this check orders none: " + sentence);
+
+         // A pair on disk that no record names is deployed whether or not a new
+         // one is due: it is the certificate the listeners would otherwise lack
+         // until one is issued. Due by its names, it is still the one that names
+         // the rest.
+         client.ApplyIssuedCertificateIfUnrecorded();
+
+         attempt.outcome = "waiting";
+         attempt.failed_step = why;
+         attempt.error = sentence;
+         guard.Finish(false, nullptr);
+         return;
+      }
+
+      LOG_APPLICATION("ACME: Certificate is missing or due for renewal (" + String(reason) + "). Requesting a new certificate.");
 
       if (client.RequestCertificate())
+      {
+         attempt.outcome = "issued";
+         guard.Finish(true, nullptr);
          return;
+      }
+
+      // As above: the pair in use, if it was never deployed, is deployed now.
+      client.ApplyIssuedCertificateIfUnrecorded();
+
+      attempt.outcome = "failed";
+      guard.Finish(true, &client.GetFailure());
 
       // Why the return value is looked at at all now: it was discarded. A renewal
       // that failed left exactly one line in the log - the one above, announcing
@@ -1946,4 +3307,277 @@ namespace HM
          Formatter::Format("ACME renewal failed and the certificate {0} expires in less than {1} day(s). TLS will stop working when it does. The failing step is in the hMailServer application log.",
             certificateFile, static_cast<int>(secondsRemaining / 86400) + 1));
    }
+   // -------------------------------------------------------------------
+   // AcmeChecksTester
+   // -------------------------------------------------------------------
+
+   namespace
+   {
+      void Expect(bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error("ACME checks: " + what);
+      }
+
+      std::string Narrow(const std::vector<AnsiString> &names)
+      {
+         return std::string(JoinNames(names).c_str());
+      }
+
+      // A key of its own for each case, never written anywhere.
+      EVP_PKEY *MakeKey()
+      {
+         EVP_PKEY *key = EVP_EC_gen("P-256");
+         if (key == nullptr)
+            throw std::logic_error("ACME checks: an EC key could not be made");
+         return key;
+      }
+
+      // A self-signed certificate for key: common name cn, the dNSName entries
+      // names (no extension at all when there are none), valid from
+      // fromSeconds to toSeconds relative to now. As PEM.
+      AnsiString MakeCertificate(EVP_PKEY *key, const char *cn, const std::vector<AnsiString> &names,
+                                 long fromSeconds, long toSeconds)
+      {
+         X509 *certificate = X509_new();
+         if (certificate == nullptr)
+            throw std::logic_error("ACME checks: X509_new failed");
+
+         X509_set_version(certificate, 2);
+         ASN1_INTEGER_set(X509_get_serialNumber(certificate), 4711);
+         X509_gmtime_adj(X509_getm_notBefore(certificate), fromSeconds);
+         X509_gmtime_adj(X509_getm_notAfter(certificate), toSeconds);
+         X509_set_pubkey(certificate, key);
+
+         X509_NAME *name = X509_NAME_new();
+         X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (const unsigned char *) cn, -1, -1, 0);
+         X509_set_subject_name(certificate, name);
+         X509_set_issuer_name(certificate, name);
+         X509_NAME_free(name);
+
+         if (!names.empty())
+         {
+            AnsiString list;
+            for (size_t i = 0; i < names.size(); i++)
+            {
+               if (i > 0)
+                  list += ",";
+               list += "DNS:" + names[i];
+            }
+
+            X509_EXTENSION *extension = X509V3_EXT_conf_nid(nullptr, nullptr, NID_subject_alt_name, list.c_str());
+            if (extension == nullptr)
+            {
+               X509_free(certificate);
+               throw std::logic_error("ACME checks: the subject alternative names could not be made");
+            }
+
+            X509_add_ext(certificate, extension, -1);
+            X509_EXTENSION_free(extension);
+         }
+
+         if (X509_sign(certificate, key, EVP_sha256()) <= 0)
+         {
+            X509_free(certificate);
+            throw std::logic_error("ACME checks: the certificate could not be signed");
+         }
+
+         BIO *bio = BIO_new(BIO_s_mem());
+         PEM_write_bio_X509(bio, certificate);
+
+         char *data = nullptr;
+         long length = BIO_get_mem_data(bio, &data);
+         AnsiString pem = std::string(data, (size_t) length).c_str();
+
+         BIO_free(bio);
+         X509_free(certificate);
+         return pem;
+      }
+
+      std::vector<AnsiString> Names(const char *a, const char *b = nullptr, const char *c = nullptr)
+      {
+         std::vector<AnsiString> names;
+         names.push_back(a);
+         if (b != nullptr)
+            names.push_back(b);
+         if (c != nullptr)
+            names.push_back(c);
+         return names;
+      }
+   }
+
+   void
+   AcmeChecksTester::Test()
+   {
+      const long year = 365L * 86400L;
+
+      // ---- the names a certificate covers
+      {
+         Expect(AcmeClient::MissingNames(Names("mail.example.test"), Names("mail.example.test")).empty(),
+            "a certificate naming the one configured host was taken to lack it");
+
+         Expect(AcmeClient::MissingNames(Names("MAIL.Example.TEST"), Names("mail.example.test")).empty(),
+            "names were compared with their case");
+
+         const std::vector<AnsiString> missing = AcmeClient::MissingNames(Names("mail.example.test"),
+            Names("mail.example.test", "new.example.test", "other.example.test"));
+         Expect(Narrow(missing) == "new.example.test, other.example.test",
+            "the hosts a certificate lacks were not those, in the order configured: " + Narrow(missing));
+
+         // A wildcard is one label, as a TLS client matches it.
+         Expect(AcmeClient::MissingNames(Names("*.example.test"), Names("mail.example.test")).empty(),
+            "*.example.test was taken not to cover mail.example.test");
+         Expect(AcmeClient::MissingNames(Names("*.example.test"), Names("example.test")).size() == 1,
+            "*.example.test was taken to cover example.test itself");
+         Expect(AcmeClient::MissingNames(Names("*.example.test"), Names("a.b.example.test")).size() == 1,
+            "*.example.test was taken to cover two labels");
+         Expect(AcmeClient::MissingNames(Names("*."), Names("mail.example.test")).size() == 1,
+            "a bare \"*.\" was taken to cover a host");
+
+         Expect(AcmeClient::MissingNames(std::vector<AnsiString>(), Names("mail.example.test")).size() == 1,
+            "a certificate with no names was taken to cover a host");
+         Expect(AcmeClient::MissingNames(Names("mail.example.test"), std::vector<AnsiString>()).empty(),
+            "an empty list was taken to need a host");
+      }
+
+      // ---- AcmeDomains as the client reads it
+      {
+         const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(" Mail.Example.TEST, ,new.example.test,mail.example.test ,");
+         Expect(Narrow(domains) == "mail.example.test, new.example.test",
+            "AcmeDomains was not read trimmed, in lower case, each name once, the empty ones dropped: " + Narrow(domains));
+         Expect(AcmeClient::ParseDomainList("").empty(), "an empty AcmeDomains named a host");
+      }
+
+      // ---- Retry-After, RFC 9110 section 10.2.3
+      {
+         const time_t now = 1792929600; // 2026-10-25 12:00:00 UTC
+
+         Expect(AcmeClient::ParseRetryAfter("120", now) == 120, "delay-seconds 120 was not 120");
+         Expect(AcmeClient::ParseRetryAfter(" 0 ", now) == 0, "delay-seconds 0 was not 0");
+         Expect(AcmeClient::ParseRetryAfter("", now) == -1, "an empty Retry-After was read as a time");
+         Expect(AcmeClient::ParseRetryAfter("-5", now) == -1, "a negative Retry-After was read");
+         Expect(AcmeClient::ParseRetryAfter("soon", now) == -1, "a word was read as a Retry-After");
+         Expect(AcmeClient::ParseRetryAfter("Sun, 25 Oct 2026 13:00:00 GMT", now) == 3600,
+            "an HTTP-date an hour on was not 3600 seconds");
+         Expect(AcmeClient::ParseRetryAfter("Sun, 25 Oct 2026 11:00:00 GMT", now) == 0,
+            "an HTTP-date already past was not 0");
+         Expect(AcmeClient::ParseRetryAfter("Sun, 25 Oct 2026 13:00:00 UTC", now) == -1,
+            "an HTTP-date in another zone than GMT was read");
+         Expect(AcmeClient::ParseRetryAfter("Sun, 25 Xyz 2026 13:00:00 GMT", now) == -1,
+            "an HTTP-date with no month was read");
+      }
+
+      // ---- the CA's problem document
+      {
+         Expect(AcmeClient::IsProblemOfType("{\"type\":\"urn:ietf:params:acme:error:rateLimited\",\"detail\":\"too many\",\"status\":429}", "rateLimited"),
+            "a rateLimited problem document was not recognised");
+         Expect(AcmeClient::IsProblemOfType("{\n  \"type\": \"urn:ietf:params:acme:error:rateLimited\"\n}", "rateLimited"),
+            "a pretty-printed rateLimited problem document was not recognised");
+         Expect(!AcmeClient::IsProblemOfType("{\"type\":\"urn:ietf:params:acme:error:badNonce\"}", "rateLimited"),
+            "a badNonce was taken for a rate limit");
+         Expect(!AcmeClient::IsProblemOfType("{\"status\":\"valid\"}", "rateLimited"),
+            "a body with no type was taken for a rate limit");
+      }
+
+      // ---- the spacing of the checks
+      {
+         const AnsiString ca = "https://ca.example/directory";
+         const __int64 now = 1792929600;
+         __int64 until = 0;
+         AnsiString why;
+
+         AcmeChecks::Spacing spacing;
+         Expect(AcmeChecks::Allows(spacing, ca, now, true, until, why) && until == 0 && why.IsEmpty(),
+            "a CA with nothing recorded held a check back");
+
+         spacing.directory_url = ca;
+         spacing.last_request_at = now - 30;
+         Expect(!AcmeChecks::Allows(spacing, ca, now, true, until, why) && why == "interval" && until == now + 30,
+            "a request thirty seconds after the last was let through, or not held to the minute");
+         Expect(AcmeChecks::Allows(spacing, ca, now, false, until, why),
+            "the minute between requests held back a check nobody requested");
+         Expect(AcmeChecks::Allows(spacing, ca, now + 30, true, until, why),
+            "a request a minute after the last was held back");
+         Expect(AcmeChecks::Allows(spacing, "https://other.example/directory", now, true, until, why),
+            "the minute between requests at one CA held a request to another");
+
+         spacing = AcmeChecks::Spacing();
+         spacing.directory_url = ca;
+         spacing.failed_at = now - 100;
+         Expect(!AcmeChecks::Allows(spacing, ca, now, false, until, why) && why == "cooldown" &&
+                until == now - 100 + AcmeChecks::FailureCooldownSeconds,
+            "an order a hundred seconds after a failure was let through, or not held to twenty minutes");
+         Expect(!AcmeChecks::Allows(spacing, ca, now, true, until, why) && why == "cooldown",
+            "a request a hundred seconds after a failure was let through");
+         Expect(AcmeChecks::Allows(spacing, ca, now - 100 + AcmeChecks::FailureCooldownSeconds, false, until, why),
+            "an order twenty minutes after a failure was held back");
+         Expect(AcmeChecks::Allows(spacing, "https://other.example/directory", now, false, until, why),
+            "a failure at one CA held an order at another");
+
+         // The CA's own time, when it is the later; the cooldown, when that is.
+         spacing.rate_limited_until = now + 7200;
+         Expect(!AcmeChecks::Allows(spacing, ca, now, false, until, why) && why == "rate_limited" && until == now + 7200,
+            "a CA's rate limit two hours out was not what held the order");
+         spacing.rate_limited_until = now + 60;
+         Expect(!AcmeChecks::Allows(spacing, ca, now, false, until, why) && why == "cooldown",
+            "a rate limit shorter than the cooldown was taken for the later of the two");
+         spacing.failed_at = 0;
+         Expect(!AcmeChecks::Allows(spacing, ca, now, false, until, why) && why == "rate_limited" && until == now + 60,
+            "a rate limit alone held nothing");
+         Expect(AcmeChecks::Allows(spacing, ca, now + 60, false, until, why),
+            "a rate limit held an order after its time");
+      }
+
+      // ---- what a certificate names, and whether the CA's is one to install
+      {
+         EVP_PKEY *key = MakeKey();
+         EVP_PKEY *otherKey = MakeKey();
+
+         try
+         {
+            std::vector<AnsiString> names;
+
+            const AnsiString withNames = MakeCertificate(key, "other.example.test", Names("mail.example.test", "*.wild.example.test"), -60, year);
+            Expect(AcmeClient::ReadCertificateNamesFromPem(withNames, names) && Narrow(names) == "mail.example.test, *.wild.example.test",
+               "the subject alternative names were not the names read, the common name left out: " + Narrow(names));
+
+            const AnsiString commonNameOnly = MakeCertificate(key, "Legacy.Example.TEST", std::vector<AnsiString>(), -60, year);
+            Expect(AcmeClient::ReadCertificateNamesFromPem(commonNameOnly, names) && Narrow(names) == "legacy.example.test",
+               "a certificate with no subject alternative names was not read by its common name: " + Narrow(names));
+
+            Expect(!AcmeClient::ReadCertificateNamesFromPem("not a certificate", names), "text that is no certificate was read as one");
+
+            const std::vector<AnsiString> both = Names("mail.example.test", "new.example.test");
+            const AnsiString issued = MakeCertificate(key, "mail.example.test", both, -60, year);
+            String reason;
+
+            Expect(AcmeClient::CheckIssuedCertificate(issued, key, both, reason),
+               "a certificate for the key, naming both hosts, was refused");
+
+            Expect(!AcmeClient::CheckIssuedCertificate(issued, key, Names("mail.example.test", "third.example.test"), reason) &&
+                   reason.Find(_T("third.example.test")) >= 0,
+               "a certificate that does not name a host the order asked for was installed, or the refusal did not name the host");
+
+            Expect(!AcmeClient::CheckIssuedCertificate(issued, otherKey, both, reason),
+               "a certificate for another key was installed");
+
+            const AnsiString expired = MakeCertificate(key, "mail.example.test", both, -2 * year, -year);
+            Expect(!AcmeClient::CheckIssuedCertificate(expired, key, both, reason),
+               "an expired certificate was installed");
+
+            Expect(!AcmeClient::CheckIssuedCertificate("<html>Service Unavailable</html>", key, both, reason),
+               "a body that is no certificate was installed");
+         }
+         catch (...)
+         {
+            EVP_PKEY_free(key);
+            EVP_PKEY_free(otherKey);
+            throw;
+         }
+
+         EVP_PKEY_free(key);
+         EVP_PKEY_free(otherKey);
+      }
+   }
+
 }

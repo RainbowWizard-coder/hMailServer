@@ -2611,6 +2611,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Check host in HELO" xml:space="preserve">
     <value>Verificar o host no HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Verificação solicitada</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Verificar os registros MX do remetente</value>
   </data>

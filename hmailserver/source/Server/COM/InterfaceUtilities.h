@@ -92,6 +92,8 @@ public:
    STDMETHOD(DeleteJournalRule)(/*[in]*/ long Id, /*[out, retval]*/ VARIANT_BOOL *Deleted);
    STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
+   STDMETHOD(RunAcmeCheck)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(GetAcmeStatus)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetSetupChecklist)(/*[in]*/ VARIANT_BOOL LookUpDns, /*[out, retval]*/ BSTR *Json);
    // The sample domain: what is there, making it and removing it.
    STDMETHOD(GetSampleDomain)(/*[out, retval]*/ BSTR *Json);

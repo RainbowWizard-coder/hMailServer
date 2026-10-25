@@ -1322,6 +1322,18 @@ namespace HM
          RateLimiter::Instance()->ClearBuckets(_T("smtp-out:"));
       });
 
+      // The names ACME issues for: a list saved with a host the certificate in
+      // use does not name is checked now, rather than when the certificate is
+      // next due for renewal, which was two thirds of its life away. The check
+      // runs on the maintenance work queue, under the spacing every check keeps
+      // (AcmeChecks), and is not started when ACME is off, the list is empty or
+      // the certificate already names every host on it.
+      ini->Subscribe(_T("AcmeDomains"), []()
+      {
+         if (IsServing_())
+            AcmeChecks::DomainsChanged();
+      });
+
       // The database fault injector applies when it is saved, and says so the
       // moment it is set - the start and a reinitialise say it as well.
       ini->Subscribe(_T("SimulateDatabaseFailureFor"), []()
@@ -1709,18 +1721,23 @@ namespace HM
       if (IniFileSettings::Instance()->GetAcmeEnabled())
       {
          // Once an hour...
-         std::shared_ptr<AcmeRenewalTask> acmeTask = std::shared_ptr<AcmeRenewalTask>(new AcmeRenewalTask);
+         std::shared_ptr<AcmeRenewalTask> acmeTask = std::shared_ptr<AcmeRenewalTask>(new AcmeRenewalTask(AcmeChecks::TriggerSchedule));
          acmeTask->SetReoccurance(ScheduledTask::RunInfinitely);
          acmeTask->SetMinutesBetweenRun(60);
+         AcmeChecks::SetNextScheduled(acmeTask->GetNextRunTime());
          scheduler_->ScheduleTask(acmeTask);
 
          // ...and immediately at startup. Queued last: a RunOnce task goes straight
          // onto the maintenance queue, and this one can end in a restart of the
          // servers (a certificate issued but never deployed is deployed by it),
          // which must not race the scheduling still going on here.
-         std::shared_ptr<AcmeRenewalTask> acmeStartupTask = std::shared_ptr<AcmeRenewalTask>(new AcmeRenewalTask);
+         std::shared_ptr<AcmeRenewalTask> acmeStartupTask = std::shared_ptr<AcmeRenewalTask>(new AcmeRenewalTask(AcmeChecks::TriggerStart));
          acmeStartupTask->SetReoccurance(ScheduledTask::RunOnce);
          scheduler_->ScheduleTask(acmeStartupTask);
+      }
+      else
+      {
+         AcmeChecks::SetNextScheduled(0);
       }
 
    }

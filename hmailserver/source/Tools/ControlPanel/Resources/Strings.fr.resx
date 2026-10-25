@@ -2611,6 +2611,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Check host in HELO" xml:space="preserve">
     <value>Vérifier l'hôte dans HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Vérification demandée</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Vérifier les enregistrements MX de l'expéditeur</value>
   </data>

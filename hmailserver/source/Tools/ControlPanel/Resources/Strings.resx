@@ -2611,6 +2611,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Check host in HELO" xml:space="preserve">
     <value>Check host in HELO</value>
   </data>
+  <data name="Check requested" xml:space="preserve">
+    <value>Check requested</value>
+  </data>
   <data name="Check sender MX records" xml:space="preserve">
     <value>Check sender MX records</value>
   </data>

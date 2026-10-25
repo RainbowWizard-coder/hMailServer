@@ -27,7 +27,10 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               a restore is asked for (Backup.StartRestore over COM and POST
               /api/v1/backup/restore), where what is recorded is the request,
               because the restore itself runs on the maintenance work queue
-              with no actor on it; the two ways an administrator stops Web
+              with no actor on it; an ACME check asked for (POST
+              /api/v1/acme/run and Utilities.RunAcmeCheck, both through
+              AcmeChecks::Request), for the same reason, since the check can
+              order a certificate in the server's name; the two ways an administrator stops Web
               Push on every device of an account, whose rows are the person's
               own and not audited; and by
               MailboxMove, which is the other shape: a change that IS rows, so
@@ -212,6 +215,13 @@ ALLOWED = {
       # account the elevated Updater read from its own token. It installs files,
       # not rows or settings.
       "Common/Util/UpdateInstaller.cpp",
+      # An ACME check asked for over REST (POST /api/v1/acme/run) or COM
+      # (Utilities.RunAcmeCheck): the check runs on the maintenance work queue
+      # with no actor on it, and may order a certificate from a CA in the
+      # server's name, so the request, on the thread that knows who asked, is
+      # the half that says whose decision it was. One function, AcmeChecks::Request,
+      # for both interfaces.
+      "Common/Util/AcmeClient.cpp",
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -478,6 +488,9 @@ REQUIRED = [
    ("COM/COMAuthentication.cpp",
     "AuditTrail::SetActor(GetAuditActor());",
     "COM no longer says who is making a change"),
+   ("Common/Util/AcmeClient.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("ssl certificate"), _T("ACME (automatic)"), _T("check requested"),',
+    "an ACME check asked for over REST or COM is no longer recorded - it runs on the maintenance work queue with no actor on it and can order a certificate from a CA in the server's name, so the request is the only half that can be"),
    ("Common/Application/MigrationManager.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("migration job"), AuditName_(job), _T("cancelled"),',
     "a running migration job cancelled over REST is no longer recorded - its own thread writes the row, with no actor on it, so the request is the only half that can be"),

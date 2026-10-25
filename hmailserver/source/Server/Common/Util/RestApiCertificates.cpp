@@ -29,6 +29,12 @@
 //     words); this route also refuses a certificate id that names nothing, and
 //     a second record on the same address and port, which COM lets through and
 //     the bind then fails on.
+//
+// And the certificate ACME issues (AcmeClient.h): GET /api/v1/acme, its state
+// and the checks', and POST /api/v1/acme/run, a check now, which orders a
+// certificate when one is due. The names are AcmeDomains', which only a server
+// administrator sets; the run takes none of its own, and the spacing the checks
+// keep (AcmeChecks) holds every caller alike.
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
@@ -39,6 +45,8 @@
 #include "../BO/TCPIPPorts.h"
 #include "../Persistence/PersistentSSLCertificate.h"
 #include "../Persistence/PersistentTCPIPPort.h"
+
+#include "AcmeClient.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -385,7 +393,8 @@ namespace HM
          "\"post\":{\"summary\":\"Add a TCP/IP port\",\"description\":\"The listeners are created when the server starts, so a port added here takes effect when the server restarts. address defaults to 0.0.0.0, connection_security to none, certificate_id to 0, client_certificate_policy to off and smtp_authentication to on. tls and both starttls values need a certificate_id, a client certificate policy other than off needs a CA file and a security that runs a handshake, and smtp_authentication off or honeypot needs an SMTP port - the same refusals the Control Panel meets, in the same words. smtp_authentication off: EHLO does not offer AUTH; honeypot: EHLO offers it as on does; on both, an AUTH is answered 502 5.5.1 without the account being looked up or the password evaluated, and the first of a session bans the address for minutes_to_ban (never the loopback, an address the AutoBanNeverBan setting lists or one the never-ban list by reverse name spares). Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"},\"smtp_authentication\":{\"type\":\"string\",\"enum\":[\"on\",\"off\",\"honeypot\"],\"description\":\"What an SMTP port does with AUTH. on: EHLO offers it and the password is checked. off: EHLO does not offer it. honeypot: EHLO offers it as on does. On off and honeypot an AUTH is answered 502 without the password being looked at, and the first of a session bans the address. Port 25 is where other servers deliver, and no mail client should sign in there; clients sign in on 587. Always on for POP3 and IMAP.\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created, as the listing shows it\"},\"400\":{\"description\":\"A missing or unrecognised field, a TLS security without a certificate, a certificate_id that names no certificate, a client certificate policy the port cannot enforce, or smtp_authentication off or honeypot on a port that is not SMTP\"},\"409\":{\"description\":\"A port already listens on that address and port number\"}}}},"
          "\"/api/v1/ports/{id}\":{"
          "\"put\":{\"summary\":\"Replace a TCP/IP port\",\"description\":\"The whole record, with the fields and defaults of POST: a field left out takes its default, so send back what GET returned with the change made. Takes effect when the server restarts. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"},\"smtp_authentication\":{\"type\":\"string\",\"enum\":[\"on\",\"off\",\"honeypot\"],\"description\":\"What an SMTP port does with AUTH. on: EHLO offers it and the password is checked. off: EHLO does not offer it. honeypot: EHLO offers it as on does. On off and honeypot an AUTH is answered 502 without the password being looked at, and the first of a session bans the address. Port 25 is where other servers deliver, and no mail client should sign in there; clients sign in on 587. Always on for POP3 and IMAP.\"}}}}}},\"responses\":{\"200\":{\"description\":\"Replaced, as the listing shows it\"},\"400\":{\"description\":\"As for POST\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Another port already listens on that address and port number\"}}},"
-         "\"delete\":{\"summary\":\"Delete a TCP/IP port\",\"description\":\"The row is gone at once; the listener stays up until the server restarts. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}}";
+         "\"delete\":{\"summary\":\"Delete a TCP/IP port\",\"description\":\"The row is gone at once; the listener stays up until the server restarts. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}}"
+         ",\"/api/v1/acme\":{\"get\":{\"summary\":\"The ACME certificate and its checks\",\"description\":\"What the server knows of the certificate ACME issues, read from the certificate file and this process, without asking the CA: enabled (AcmeEnabled), directory_url, domains (AcmeDomains as the client reads it: lower case, each once), certificate_directory, certificate (null when there is none: file, names - the dNSName entries of its subject alternative names, or its common name when it has none -, subject, issuer, serial, not_before, not_after, expired, renews_at - two thirds through its life, the CA's renewal window aside - and deployed, whether the ACME (automatic) record names it), covers_domains and missing_domains (the configured names it does not name), due and due_reason (missing, names or lifetime, judged from the file: a certificate that does not name every configured host is due at once), running and last_attempt (each null or {id, trigger: schedule, start, settings or request; state: queued, running or finished; step while it runs: deciding, directory, account, order, authorization, finalize, certificate, install; queued_at, started_at, finished_at; outcome: issued, failed, not_due, waiting or disabled; reason it was due; failed_step; error, a sentence in the server's words; ca_problem, the type and detail of the CA's problem document}), last_issued_at, next_scheduled_check_at (the hourly check, within the minute the scheduler wakes in), requests {allowed_now, waiting_for: interval, cooldown or rate_limited; next_allowed_at, interval_seconds, cooldown_seconds}, rate_limited_until and now. Times are Unix seconds. This process keeps the checks in memory: a start begins with none and makes a check of its own. Never a key, a nonce or the CA account. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The state\"}}}},\"/api/v1/acme/run\":{\"post\":{\"summary\":\"Check the ACME certificate now\",\"description\":\"The hourly check, now: the certificate is issued when it is missing, does not name every host AcmeDomains lists, or is due for renewal, and installed and deployed as the hourly check installs it; otherwise nothing is asked of the CA but its directory and its renewal window. The names are AcmeDomains' alone - the route takes no body but {} - so add a host there first (a save of AcmeDomains with a host the certificate lacks starts a check by itself). Answered at once: 202 with accepted, already_running and the attempt, queued or, when a check was already queued or running, that one; read GET /api/v1/acme for how it went. One check at a time, whatever started it; a requested check at most once a minute; no order within twenty minutes of an attempt that failed, so that a setup that cannot validate does not use up the CA's limit of failed validations; and none before the time a CA's rateLimited answer gave. A failed attempt leaves the certificate in use as it was, and a certificate the CA issues is installed only when it is for the key the request was made with, names every host asked for and has not expired. The request is put on the audit trail. Server-wide; refused for domain-restricted keys and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"additionalProperties\":false}}}},\"responses\":{\"202\":{\"description\":\"Queued, or the check already queued or running: accepted, already_running, attempt, status\"},\"400\":{\"description\":\"A body other than {}\"},\"409\":{\"description\":\"ACME is not enabled, or AcmeDomains names no host (reason disabled or no_domains)\"},\"429\":{\"description\":\"Not yet: error, reason (interval, cooldown or rate_limited), retry_at and retry_after_seconds, and a Retry-After header\"},\"503\":{\"description\":\"The server is not running its services\"}}}}";
 
       return AnsiString(paths);
    }
@@ -688,6 +697,37 @@ namespace HM
       return BuildResponse_(200, PortEntryJson(port,
          JsonEscape_(Utf8_(port->GetAddressString())),
          JsonEscape_(Utf8_(port->GetClientCertificateCAFile()))));
+   }
+
+   HttpResponse
+   RestApiServer::HandleAcme_(const Route &route, const AnsiString &requestBody)
+   {
+      if (route.kind == RouteAcmeStatus)
+         return BuildResponse_(200, AcmeChecks::StatusJson((__int64) time(nullptr)));
+
+      // No options: the names are AcmeDomains', and a body that asks for others,
+      // or for a reissue whatever the certificate's state, is told so rather
+      // than read as a plain check.
+      AnsiString body = requestBody;
+      body.Trim();
+      if (!body.IsEmpty() && body != "{}")
+      {
+         AnsiString inner = body.Mid(1, body.GetLength() - 2);
+         inner.Trim();
+         if (!body.StartsWith("{") || !body.EndsWith("}") || !inner.IsEmpty())
+            return BuildResponse_(400, "{\"error\":\"this route takes no body but {}: the names it issues for are AcmeDomains', and whether it issues is decided by the certificate's state\"}");
+      }
+
+      AnsiString json;
+      int retryAfterSeconds = 0;
+      String sentence;
+      const int status = AcmeChecks::RequestAnswer(json, retryAfterSeconds, sentence);
+
+      AnsiString headers;
+      if (status == 429)
+         headers.Format("Retry-After: %d\r\n", retryAfterSeconds < 1 ? 1 : retryAfterSeconds);
+
+      return BuildResponse_(status, json, headers);
    }
 
    HttpResponse
