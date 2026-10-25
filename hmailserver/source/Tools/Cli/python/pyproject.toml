@@ -61,7 +61,10 @@ dependencies = []
 # 6.3.7's Changelog, .../-/blob/master/CHANGELOG.md, became its source repository
 # there, and its Issues the repository "hmailserver/hmailserver/-". The documents,
 # the changelog and the issues are linked from README.md, the description PyPI
-# shows. build/check-cli-packages.py holds these two URLs.
+# shows. deps.dev takes the first project URL on GitHub, GitLab or Bitbucket in the
+# metadata, whatever its label, and flit_core writes them sorted by label, so the
+# first is Homepage. build/check-cli-packages.py holds these two URLs and that
+# order, in the built wheel and sdist too.
 [project.urls]
 Homepage = "https://gitlab.com/hmailserver/hmailserver"
 Source = "https://gitlab.com/hmailserver/hmailserver"
