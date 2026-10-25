@@ -1,7 +1,6 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 
 // The JavaScript event-script engine and the binding of the server's objects into
 // it. ScriptBinding.h says what a run is and what it is allowed; this file is the

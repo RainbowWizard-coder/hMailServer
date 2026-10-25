@@ -100,8 +100,9 @@ Comment:
  Martin Knafve's notice; the maintainers' header took its place in each file on
  13 September 2026, and since 25 October 2026 each of the original's files that
  carries the header and whose own file in the original carried his notice
- carries it again, below the header, as that file wrote it, and the ported
- files say where they came from. REUSE.toml names him beside the
+ carries it again, below the header, as that file wrote it (a file of the
+ fork's that keeps only a message of his in its words carries none), and the
+ ported files say where they came from. REUSE.toml names him beside the
  header for each of the original's files, listed from the original's tags by
  build/generate-reuse-original.py. The AssemblyInfo.cs of the Windows
  test projects carry the copyright strings Visual Studio's project template

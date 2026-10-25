@@ -574,10 +574,11 @@ def resx_row(name, value):
    return row
 
 
-# build/generate-original-notices.py's list, which gives the English catalogue, holding a
-# warning of the original's Administrator in its words, Martin Knafve's notice: the
-# lines it gives a catalogue go below the header's lines, in its comment, as
-# build/add-license-headers.py writes them.
+# build/generate-original-notices.py's list, which gives a catalogue that keeps a passage
+# of the original's Martin Knafve's notice (none today: the English catalogue keeps only
+# a warning of the Administrator's in its words, which gets none): the lines it gives a
+# catalogue go below the header's lines, in its comment, as build/add-license-headers.py
+# writes them.
 NOTICES_FILE = os.path.normpath(os.path.join(HERE, "original-notices.txt"))
 TREE = os.path.normpath(os.path.join(HERE, ".."))
 

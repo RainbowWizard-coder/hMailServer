@@ -592,7 +592,8 @@ something which already exists.
   A file of the original hMailServer's whose own file in the original carried Martin Knafve's copyright
   notice keeps it, as that file wrote it, on the line below the header and in the same comment - for most of
   them `// Copyright (c) 2010 Martin Knafve / hMailServer.com.` in a C++ or C# source; not every one of the
-  original's files carried one, and those that did not get none. Which files, and which notice, is `build/original-notices.txt`'s to say, and
+  original's files carried one, and those that did not get none, nor does a file of the fork's that keeps only a
+  message of his in its words (the notices generator's `WORDS_ONLY`), which the REUSE record names him for. Which files, and which notice, is `build/original-notices.txt`'s to say, and
   `build/generate-original-notices.py` makes it from the original's own trees (its docstring says how); the
   header script writes each notice there and `--check` refuses a file of the list without its notice (or, for a
   `.resx` of the list, without its header), and, in any file it writes the header in, a copyright line in his
@@ -625,9 +626,11 @@ something which already exists.
   included, even where the fork's sentence goes on after his (the REST API's sends open the reason for a
   deferred recipient with his "Tried %d time(s)"). A file that only names or quotes what the original does - a server's reply a test expects
   or a document quotes, a setting's or a control's caption, a string table's key, the schema's SQL - or
-  that only follows the original's patterns - the COM wrappers' or the test fixtures' idioms, the stock
-  replies and errors his code gives wherever it meets the same case ("Authenticate first", "Failed to
-  save object."), what a project template or a designer writes - is in neither. The generator's
+  that only follows the original's patterns - the COM wrappers' or the test fixtures' idioms, a class
+  declared in the form his headers of its kind share (an IMAP command's, a range action's, a spam test's:
+  its base, constructor, destructor and the base's methods it overrides), the stock replies and errors his
+  code gives wherever it meets the same case ("Authenticate first", "Failed to save object."), what a
+  project template or a designer writes - is in neither. The generator's
   docstring says the same. A file the fork adds is
   classified by hand: in a directory of the original's, by its own path in the fork's table, so that a
   new file there without a header fails the job until it is. A third party's file keeps its own licence

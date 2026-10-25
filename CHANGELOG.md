@@ -998,16 +998,17 @@ with `--check`).
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
   file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,260 of them and the
   fork alone for 1,231, most of them files whose notice of his the fork's header replaced in 2026:
-  `build/generate-reuse-original.py` writes the two tables that list them, 1,696 files, from the original's tags
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,694 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
   commit took over from the original's history before them) - the 1,631 files of the tree at one of those paths,
   letter case aside, but for the 2,870 third parties' files among them, the ten that its hand-kept `FORK_MADE`
-  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 65 files
+  leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 63 files
   the fork moved, split or copied out of one of the original's to a path of its own, or that keep any of his text
   verbatim as their own, one sentence of an error message included, which its `DERIVED`, kept by hand too, names
   with the original's file each came from and the fork's commit: the half of
   the POP3 fetcher that `ExternalFetchClientBase.cpp` and `.h` took over, `IMAPMove.cpp` and `IMAPCommandMove.cpp`
-  and their two headers from the COPY command's files, the Import Tool's `Program.cs` from the Mercury migration tool's, the Linux suite's
+  from the COPY command's files (their headers, which declare their classes in the form the original's headers of
+  their kind share, are the fork's), the Import Tool's `Program.cs` from the Mercury migration tool's, the Linux suite's
   four shims of the Windows suite's `SingletonProvider`,
   `CustomAsserts`, `TestSetup` and `TestFixtureBase`, `EventsJavaScript.cs`, the event tests of `Events.cs` with their
   scripts in JavaScript, `InputCostTester.cpp`, which keeps the DKIM canonicalisation's header functions as 6.3.5 had
@@ -1182,31 +1183,41 @@ with `--check`).
   for most of those `Copyright (c) 2010 Martin Knafve / hMailServer.com.` in the file's comment syntax. The AGPL,
   under which the original and the fork are both published, asks (its sections 4 and 5) that a work's copyright
   notices be kept intact, so each file's own notice is put back as the original's file wrote it, on the line below the
-  header and in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,103
-  files, each with one line - 1,030 of 2010, 38 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one
-  each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,285 of them
+  header and in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,091
+  files, each with one line - 1,019 of 2010, 37 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one
+  each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,283 of them
   that carry the project's header, 151 carried none in the original (`hMailServer.idl`, `Version.h`, `BO/Route.h`,
-  `BLCheck.h` and many of the Windows suite's tests among them) and get none, and the SPF port's 31 quote it, as
-  below. The new `build/generate-original-notices.py` makes the list from the original's own trees, those
+  `BLCheck.h` and many of the Windows suite's tests among them) and get none, the SPF port's 31 quote it, and ten
+  files of the fork's that keep only a message of his get none, as below. The new `build/generate-original-notices.py` makes the list from the original's own trees, those
   `build/generate-reuse-original.py` reads: for every file of the tree that is the original's, or that the fork moved,
   split or copied out of one of the original's (its `DERIVED`), but for those the fork made at the original's paths
   (`FORK_MADE`) and the third parties', and that carries the project's header, the notice lines of the opening comment
   of the original's own file - at the newest of the tags `hMailServer-5.7.0-b3013`, `-b2843` and `-b2788` that holds
   it, or as the fork's first commit took it over, which agree for every file both hold - written as the original wrote
-  them, trailing blanks aside, or in the file's own comment syntax where it has another: the Control Panel's English
-  catalogue, `Strings.resx`, which keeps a warning of the original's Administrator in its words, carries it in its XML
-  comment, and `build/check-localisation.py`, which writes that file, writes it there. Its `--check` holds the list to
+  them, trailing blanks aside, or in the file's own comment syntax where it has another (a `.resx` in its XML comment,
+  where `build/check-localisation.py`, which writes the Control Panel's catalogues, writes it too). Its `--check` holds the list to
   those trees, and without them to the tree and to the original's files; its `--against-history` reads every line
-  naming him that one of the fork's commits took out of a file and finds each such notice in the list, but for 19
-  lines its `NOT_HIS` names, with the reason for each, that were never his: the original's template notice that the
-  fork's first commit and its later work gave seven files of its own (the DMARC classes and tests, `IMAPCommandID`,
-  `SequenceSets.cs`), and a notice with the year 2026 that the fork wrote into twelve files it ported from the
+  naming him that one of the fork's commits took out of a file and finds each such notice in the list, but for 21
+  lines its `NOT_HIS` names, with the reason for each, that are not his notice on a work of his: the original's
+  template notice that the fork's first commit and its later work gave nine files of its own (the DMARC classes and
+  tests, `IMAPCommandID`, `SequenceSets.cs`, and the `MOVE` command's two declarations, `IMAPMove.h` and
+  `IMAPCommandMove.h`), and a notice with the year 2026 that the fork wrote into twelve files it ported from the
   original's work of August and September 2026, eight of which carry none there (the four library build scripts,
   `Get-LibraryVersions.ps1` and three IMAP tests) and four 2010 (`FetchAccountLock` and `IMAPFolderView`), which the
-  list gives them. The `MOVE` command's two declarations, `IMAPMove.h` and `IMAPCommandMove.h`, which the fork's first
-  commit made from the original's `IMAPCopy.h` and `IMAPCommandCopy.h`, `COPY` made `MOVE`, as it made their `.cpp`
-  files from theirs, and of which `IMAPMove.h` keeps `IMAPCopy.h`'s `GetMissingMessagePolicy` word for word, are in
-  `DERIVED` and carry his notice. The SPF port's 31 files, which quote his notice in the sentence that says where they
+  list gives them. Four of those nine are headers that declare a class in the form the original's headers of its kind
+  share - its base, constructor, destructor and the base's methods it overrides - which is not a copy of one of his
+  more than of another, and so not his: `IMAPCommandMove.h` and `IMAPCommandID.h` are each his `IMAPCommandCopy.h`,
+  `IMAPCommandStartTls.h` and `IMAPCommandStore.h` alike, names aside, `IMAPMove.h` declares a range action as his
+  `IMAPCopy.h`, `IMAPFetch.h` and `IMAPStore.h` do, overriding `GetMissingMessagePolicy` with an atomic command's
+  policy as `IMAPCopy.h` does, beside members of the fork's own, and `SpamTestDMARC.h` a spam test as `SpamTestDKIM.h`
+  and `SpamTestSPF.h` do; the `.cpp` files of the `MOVE` command, which keep code of his `COPY`, are in `DERIVED` and
+  carry his notice. A file of the fork's that keeps only a message of his - a sentence of an error or a warning, in
+  its words, and no code, comment or data of his - is in `DERIVED`, so that `REUSE.toml`'s tables name him for it,
+  but gets no line (the generator's `WORDS_ONLY`: the REST API's sends, routes, settings and mailbox handlers,
+  `DateTime.cpp`, the mailbox move, the message store, the scripts' transaction and binding, and the Control Panel's
+  configuration checks and English catalogue): the notice the list puts back is the one his files carried, which goes
+  with code taken from one of them, and a file the fork wrote that repeats a message of his carried none, so that a
+  line in his name at its head would say more of it than that; an entry for one is refused. The SPF port's 31 files, which quote his notice in the sentence that says where they
   came from, keep it as they are, and are in `DERIVED` too, with their sources at the original's commit `1beaeab9c`,
   so that `REUSE.toml`'s tables name him for each of them (where that commit is not at hand, as in CI,
   `generate-reuse-original.py` says in one line, and not in one a file, that their sources there are taken as given,
@@ -1224,19 +1235,20 @@ with `--check`).
   on a file it names besides the notice it gives it, another year's or a second one below the opening comment; it
   leaves such a line in place: the list, not the script, says which files are his and what his notice on each is.
   The `reuse` job runs the generator's self-test, `--check --require-tags` over the original's trees it already
-  fetches - the 1,240 files it reads fetched into the same directory in one request - and the header check, and nine
+  fetches - the 1,238 files it reads fetched into the same directory in one request - and the header check, and ten
   more negative controls must each be refused by name: `IMAPFetch.cpp` without its notice, the fork's
-  `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment, `SpamTestDMARC.cpp` with his notice in
-  another wording below its first `#include`, the fork's `App.xaml.cs` with it in a `///` comment and `IMAPFetch.cpp`
-  with a second notice of his, of 2011, below its first `#include`, by the header check, and `IMAPFetch.cpp`'s notice
-  given another year,
-  `SpamTestDMARC.cpp` put in the list and the SPF port's `README.md` put in the list, each in the list and the file
-  alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
+  `SpamTestDMARC.cpp` with his, `Strings.resx` put in the list without its header comment, `SpamTestDMARC.cpp` with
+  his notice in another wording below its first `#include`, the fork's `App.xaml.cs` with it in a `///` comment and
+  `IMAPFetch.cpp` with a second notice of his, of 2011, below its first `#include`, by the header check, and
+  `IMAPFetch.cpp`'s notice given another year, `SpamTestDMARC.cpp` put in the list, the SPF port's `README.md` put in
+  the list and `ApiSends.cpp`, which keeps his words alone, put in the list, each in the list and the file alike, by
+  the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
   notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and
   `generate-reuse-original.py`'s texts say which of the original's files carry his notice again: those whose own file
   in the original carried it. The notices themselves went in by commits of their own, which add the lines - the 1,101,
   and then the two of the `MOVE` declarations - each below its file's header in the file's own line endings, and
-  change nothing else. The two directory-form entries of `.gitleaksignore` that name a line of a file of the list, the
+  change nothing else; a later commit took the line out again of the two `MOVE` declarations and of the ten files that
+  keep only a message of his, leaving each of the twelve as it was before its line went in. The two directory-form entries of `.gitleaksignore` that name a line of a file of the list, the
   test URLs of `SURBL.cpp` and `Basics.cs` that gitleaks' rule Password in URL reads as carrying a password, follow
   those lines down one, to 3350 and 508.
 

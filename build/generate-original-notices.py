@@ -40,10 +40,14 @@ reads, so that it says what he wrote and not what the fork made of it:
     project's repository, so the reuse job could not hold a line taken from it to
     it, and each file of the port quotes his notice in its own attribution, which
     stays as the port wrote it; REUSE.toml's tables name him for each of them.
+    Nor does a DERIVED file that keeps his words alone - a sentence of an error or
+    a warning of his, verbatim, and no code, comment or data of his (WORDS_ONLY):
+    the notice the list puts back is the one his files carried, which goes with
+    code moved out of one of them, and a file the fork wrote that repeats a message
+    of his carried none; REUSE.toml's tables name him for each of them too.
     A line is written as the original wrote it, trailing blanks aside, where the
     file has the original's comment syntax, and in the file's own syntax where it
-    has another (Strings.resx, the Control Panel's English catalogue, holds a
-    warning of the Administrator's ucStatus.cs).
+    has another (a .resx, whose header is an XML comment).
 
 Where the list and the fork's own history part (--against-history, which reads every
 line naming him that one of the fork's commits took out of a file): the fork gave
@@ -115,10 +119,13 @@ NOTICE = re.compile(r"^" + "Copy" + r"right \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\
 # that the list does not put back: (the tree's path, the line, trailing blanks aside,
 # and why). The fork's first commit, fe45f43c3, and its later work gave files of its
 # own the original's template notice (build/generate-reuse-original.py does not count
-# them among the original's: they keep nothing of his), and its ports of the
+# them among the original's: they keep nothing of his, or only the form his files of
+# their kind share, which is not one of his more than another), and its ports of the
 # original's files of 2026 wrote "2026" into his notice, where the original's file
 # carries 2010 or none.
 _TEMPLATE = "the fork's own file, which keeps nothing of his, given the original's template notice by %s"
+_FORM = ("the fork's own declaration, in the form his headers of its kind share and not one of them more than "
+         "another (build/generate-reuse-original.py's docstring), given the original's template notice by %s")
 _NONE = ("the fork's port (%s) of the original's file, which carries no notice at hMailServer-5.7.0-b3013, "
          "given one in his name with the year 2026")
 _YEAR = ("the fork's port (%s) of the original's file wrote the year 2026 into his notice; the original's file at "
@@ -131,9 +138,11 @@ NOT_HIS = (
     ("hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp", "// " + _N2010,
      _TEMPLATE % "fe45f43c3" + " (FORK_MADE)"),
     ("hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.h", "// " + _N2010,
-     _TEMPLATE % "fe45f43c3" + " (FORK_MADE)"),
+     _FORM % "fe45f43c3" + " (FORK_MADE)"),
     ("hmailserver/source/Server/IMAP/IMAPCommandID.cpp", "// " + _N2010, _TEMPLATE % "fe45f43c3"),
-    ("hmailserver/source/Server/IMAP/IMAPCommandID.h", "// " + _N2010, _TEMPLATE % "fe45f43c3"),
+    ("hmailserver/source/Server/IMAP/IMAPCommandID.h", "// " + _N2010, _FORM % "fe45f43c3"),
+    ("hmailserver/source/Server/IMAP/IMAPCommandMove.h", "// " + _N2010, _FORM % "fe45f43c3"),
+    ("hmailserver/source/Server/IMAP/IMAPMove.h", "// " + _N2010, _FORM % "fe45f43c3"),
     ("hmailserver/test/RegressionTests/IMAP/SequenceSets.cs", "// " + _N2010, _TEMPLATE % "fd9729f3d"),
     ("build/Get-LibraryVersions.ps1", "# " + _N2026, _NONE % "5268247804"),
     ("libraries/build-boost.ps1", "# " + _N2026, _NONE % "5268247804"),
@@ -149,6 +158,25 @@ NOT_HIS = (
     ("hmailserver/source/Server/ExternalFetcher/FetchAccountLock.h", "// " + _N2026, _YEAR % "77915f8faa"),
     ("hmailserver/source/Server/IMAP/IMAPFolderView.cpp", "// " + _N2026, _YEAR % "c8607f392d"),
     ("hmailserver/source/Server/IMAP/IMAPFolderView.h", "// " + _N2026, _YEAR % "c8607f392d"),
+)
+
+# The DERIVED files of build/generate-reuse-original.py that keep his words alone: a
+# sentence of an error or a warning of his, verbatim, and no code, comment or data of
+# his. REUSE.toml's tables name him for each; the list gives none of them a line (the
+# module docstring says why). Each must be a DERIVED file whose source is one of the
+# original's files.
+WORDS_ONLY = (
+    "hmailserver/source/Server/Common/Persistence/MailboxMove.cpp",
+    "hmailserver/source/Server/Common/Persistence/MessageStore.cpp",
+    "hmailserver/source/Server/Common/SQL/ScriptTransaction.cpp",
+    "hmailserver/source/Server/Common/Scripting/ScriptBinding.cpp",
+    "hmailserver/source/Server/Common/Util/ApiSends.cpp",
+    "hmailserver/source/Server/Common/Util/DateTime.cpp",
+    "hmailserver/source/Server/Common/Util/RestApiMailbox.cpp",
+    "hmailserver/source/Server/Common/Util/RestApiRoutes.cpp",
+    "hmailserver/source/Server/Common/Util/RestApiSettings.cpp",
+    "hmailserver/source/Tools/ControlPanel/Resources/Strings.resx",
+    "hmailserver/source/Tools/ControlPanel/Services/ConfigurationChecks.cs",
 )
 
 LIST_HEAD = [
@@ -284,18 +312,37 @@ def later_sourced(derived=original.DERIVED):
     return set(entry[0] for entry in derived if original.LATER_SOURCE.match(entry[1]))
 
 
+def words_only_problems(words=WORDS_ONLY, derived=original.DERIVED):
+    """What WORDS_ONLY names that it may not: a path twice, or one that is not a DERIVED
+    file whose source is one of the original's files."""
+    problems = []
+    sources = dict((entry[0], entry[1]) for entry in derived)
+    seen = set()
+    for path in words:
+        if path in seen:
+            problems.append("WORDS_ONLY names %s twice" % path)
+        seen.add(path)
+        if path not in sources:
+            problems.append("WORDS_ONLY names %s, which is not in build/generate-reuse-original.py's DERIVED" % path)
+        elif original.LATER_SOURCE.match(sources[path]):
+            problems.append("WORDS_ONLY names %s, whose source is at a later commit of the original's: it gets no line "
+                            "as such" % path)
+    return problems
+
+
 def entry_problems(entries, theirs_files, tree, fork_made=original.FORK_MADE, marker_of=comment_marker,
-                   derived=original.DERIVED):
+                   derived=original.DERIVED, words=WORDS_ONLY):
     """What the list names that it may not: a file the tree has not, one that is not
     the original's (theirs_files: the original's files and the DERIVED ones), one the
     fork made at the original's paths, one ported from a later commit of the
-    original's, one the header is not written in, a line that is not his notice in
-    the file's comment syntax."""
+    original's, one that keeps his words alone (WORDS_ONLY), one the header is not
+    written in, a line that is not his notice in the file's comment syntax."""
     problems = []
     in_tree = set(tree)
     his = set(theirs_files)
     made = set(entry[0] for entry in fork_made)
     later = later_sourced(derived)
+    words = set(words)
     for path, lines in sorted(entries.items()):
         if path not in in_tree:
             problems.append("%s names %s, which the tree has not" % (LIST_FILE, path))
@@ -306,6 +353,9 @@ def entry_problems(entries, theirs_files, tree, fork_made=original.FORK_MADE, ma
             problems.append("%s names %s, which DERIVED gives a source at a later commit of the original's that the "
                             "project's repository has not: it gets no line, and quotes his notice in its own "
                             "attribution" % (LIST_FILE, path))
+        elif path in words:
+            problems.append("%s names %s, which keeps his words alone (WORDS_ONLY): REUSE.toml's tables name him, "
+                            "and it gets no line" % (LIST_FILE, path))
         elif path not in his:
             problems.append("%s names %s, which is not one of the original's files (build/generate-reuse-original.py)"
                             % (LIST_FILE, path))
@@ -386,12 +436,14 @@ def trees_at_hand():
 
 
 def wanted_entries(mine, derived=original.DERIVED, tree_reader=tree_of, blob_reader=read_blobs,
-                   marker_of=comment_marker):
+                   marker_of=comment_marker, words=WORDS_ONLY):
     """(entries, notes): the list as the original's trees give it, for the original's
     files of the tree (mine). A DERIVED file whose source is at a later commit of the
     original's gets no entry (the module docstring says why), whether or not that
-    commit is at hand, so that the list is the same wherever it is made."""
+    commit is at hand, so that the list is the same wherever it is made; nor does one
+    that keeps his words alone (WORDS_ONLY)."""
     sources = dict((entry[0], entry[1]) for entry in derived)
+    words = set(words)
     refs = tuple(reversed(original.TAGS)) + (original.TAKEN_OVER,)
     trees = dict((ref, tree_reader(ref)) for ref in refs)
     folded = dict((ref, dict((p.lower(), p) for p in trees[ref])) for ref in refs)
@@ -402,7 +454,7 @@ def wanted_entries(mine, derived=original.DERIVED, tree_reader=tree_of, blob_rea
         if target is False:
             continue
         source = sources.get(path, path)
-        if original.LATER_SOURCE.match(source):
+        if original.LATER_SOURCE.match(source) or path in words:
             continue
         for ref in refs:
             at = source if source in trees[ref] else folded[ref].get(source.lower())
@@ -533,6 +585,7 @@ def generate(check, require):
     if not check:
         # What the committed list's form is does not matter to writing it anew.
         problems = []
+    problems += words_only_problems()
     if not trees_at_hand():
         if require or not check:
             print("The original's tags (%s) and the fork's first commit are not at hand, here or in %s: %s cannot "
@@ -691,6 +744,17 @@ def self_test():
     expect("a port of a later commit not in the list",
            entry_problems({"a/One.cpp": [n2010]}, ["a/One.cpp", "g/Port.cpp"], ["a/One.cpp", "g/Port.cpp"], (),
                           tmarkers.get, derived), [])
+    got, notes = wanted_entries(["a/One.cpp", "b/Res.resx", "b/Moved.ps1"], derived, reader, blobs, tmarkers.get,
+                                ("b/Moved.ps1",))
+    expect("no line for a file that keeps his words alone", got, {"a/One.cpp": [n2010], "b/Res.resx": ["  " + _N2010]})
+    expect("a file that keeps his words alone in the list",
+           len(entry_problems({"b/Moved.ps1": ["# " + _N2010]}, ["b/Moved.ps1"], ["b/Moved.ps1"], (), tmarkers.get,
+                              derived, ("b/Moved.ps1",))), 1)
+    expect("WORDS_ONLY as it may be", words_only_problems(("b/Moved.ps1", "b/Res.resx"), derived), [])
+    expect("WORDS_ONLY naming a file not in DERIVED", len(words_only_problems(("a/One.cpp",), derived)), 1)
+    expect("WORDS_ONLY naming a port of a later commit", len(words_only_problems(("g/Port.cpp",), derived)), 1)
+    expect("WORDS_ONLY naming a file twice", len(words_only_problems(("b/Res.resx", "b/Res.resx"), derived)), 1)
+    expect("the tree's WORDS_ONLY", words_only_problems(), [])
 
     removed = {"a/One.cpp": [n2010], "a/Fork.cpp": [n2010], "gone.cpp": [n2010], "a/Two.cs": ["// a test of Knafve"]}
     not_his = (("a/Fork.cpp", n2010, "the fork's"),)

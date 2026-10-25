@@ -39,7 +39,8 @@
 # Knafve's notice carry it below the header as well (build/original-notices.txt, which
 # build/add-license-headers.py writes), put back on 25 October 2026 after the header
 # had taken its place on 13 September; not every one of the original's files carried
-# one, and the SPF port's quote it in their attribution. These tables name him for
+# one, the SPF port's quote it in their attribution, and a file of the fork's that
+# keeps only a message of his in its words carries none. These tables name him for
 # every one of them, whatever it carries, those that can carry no notice among them. A table
 # further down that names one of the original's files takes their place for it and
 # names him too, and the reuse job refuses a record of one of them that does not.
@@ -917,7 +918,6 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandLogout.h",
     "hmailserver/source/Server/IMAP/IMAPCommandMove.cpp",
-    "hmailserver/source/Server/IMAP/IMAPCommandMove.h",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.cpp",
     "hmailserver/source/Server/IMAP/IMAPCommandMyRights.h",
     "hmailserver/source/Server/IMAP/IMAPCommandNamespace.cpp",
@@ -963,7 +963,6 @@ path = [
     "hmailserver/source/Server/IMAP/IMAPListLookup.cpp",
     "hmailserver/source/Server/IMAP/IMAPListLookup.h",
     "hmailserver/source/Server/IMAP/IMAPMove.cpp",
-    "hmailserver/source/Server/IMAP/IMAPMove.h",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.cpp",
     "hmailserver/source/Server/IMAP/IMAPNotificationClient.h",
     "hmailserver/source/Server/IMAP/IMAPResult.cpp",

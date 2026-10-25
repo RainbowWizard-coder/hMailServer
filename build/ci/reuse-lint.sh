@@ -41,7 +41,7 @@
 # build/generate-original-notices.py makes from the same trees - the notice of each
 # of the original's files that carries the project's header and whose own file in the
 # original carried one in its opening comment, read from that file (--check
-# --require-tags; the files it reads are fetched with it, 1,240 of them in one
+# --require-tags; the files it reads are fetched with it, 1,238 of them in one
 # request; a port of a later commit of the original's, which the project's repository
 # has not, gets no line) - and every file of it must carry its notice below the
 # header, and no file a copyright line in his name anywhere in it but the list's own
@@ -68,20 +68,23 @@
 # list, as an edit of both would leave them: --check --require-tags, holding the list
 # to the tags, must refuse it, by name; and a copy of debian/copyright that has lost
 # the RFC 7208 suite's change log from its paragraph, which reuse-debian.py must
-# refuse, by name. And nine of his notices, each made in the checkout and taken out
+# refuse, by name. And ten of his notices, each made in the checkout and taken out
 # again: one of the list's files, IMAPFetch.cpp, with its notice taken out, a file
 # the fork made at one of the original's paths, SpamTestDMARC.cpp (the generator's
-# FORK_MADE), given it, the list's Strings.resx with its whole header comment taken
-# out, SpamTestDMARC.cpp given his notice in another wording ("(C)" and no
-# "hMailServer.com") below its first #include, the fork's App.xaml.cs given it in a
-# C# doc comment (///) below its first using, and IMAPFetch.cpp given a second
+# FORK_MADE), given it, Strings.resx put in the list (which names no .resx today)
+# with its whole header comment taken out, SpamTestDMARC.cpp given his notice in
+# another wording ("(C)" and no "hMailServer.com") below its first #include, the
+# fork's App.xaml.cs given it in a C# doc comment (///) below its first using, and
+# IMAPFetch.cpp given a second
 # notice of his, of 2011, below its first #include, each of which
 # build/add-license-headers.py --check must refuse, by name; IMAPFetch.cpp's notice
 # given another year in the list and in the file alike, as an edit of both would
 # leave them, SpamTestDMARC.cpp put in the list with his notice in the file, and the
 # SPF port's README.md, whose source is at the original's later commit 1beaeab9c, put
-# in the list with his notice in its header comment, each of which
-# build/generate-original-notices.py --check --require-tags must refuse, by name.
+# in the list with his notice in its header comment, and ApiSends.cpp, which keeps
+# his words alone (the generator's WORDS_ONLY), put in the list with his notice in
+# the file, each of which build/generate-original-notices.py --check --require-tags
+# must refuse, by name.
 # So a REUSE.toml table grown to cover the whole tree or a directory of the
 # original's, a reuse that has stopped reading the tree, a check of the original's
 # files that has stopped seeing them or their tags, a check of his notices that has
@@ -496,6 +499,7 @@ made=hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp
 resx=hmailserver/source/Tools/ControlPanel/Resources/Strings.resx
 port=hmailserver/source/Server/SMTP/SPF/README.md
 fork_cs=hmailserver/source/Tools/ControlPanel/App.xaml.cs
+words=hmailserver/source/Server/Common/Util/ApiSends.cpp
 # REUSE-IgnoreStart
 notice="// Copyright (c) 2010 Martin Knafve / hMailServer.com."
 other="// Copyright (c) 2011 Martin Knafve / hMailServer.com."
@@ -551,9 +555,11 @@ else
   fi
 
   # A file of the list whose kind only has a header it carries made canonical, with
-  # its whole header comment, the header and his notice, taken out.
-  keep "$resx"
-  if edit "$resx" cut "<!--" "-->"; then
+  # its whole header comment, the header and his notice, taken out: the list names no
+  # .resx today, so Strings.resx is put in it with his notice, as a catalogue that kept
+  # a passage of his would be, and its header comment taken out.
+  keep "$resx" "$NOTICES"
+  if edit "$NOTICES" entry "$resx" "$element" && edit "$resx" cut "<!--" "-->"; then
     refused_by "one of the list's .resx files without its header and notice" "$resx" \
       python3 build/add-license-headers.py --check || failed=1
   else
@@ -603,6 +609,21 @@ else
   else
     cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
     echo "The port's control did not leave the list and the file agreeing: it proves nothing."
+    put_back
+    failed=1
+  fi
+
+  # A file that keeps his words alone (the generator's WORDS_ONLY), put in the list
+  # with his notice below its header, as an edit of both would leave them: REUSE.toml's
+  # tables name him for it, and the list gives it no line.
+  keep "$words" "$NOTICES"
+  if edit "$words" after 3 "$notice" && edit "$NOTICES" entry "$words" "$notice" \
+      && python3 build/add-license-headers.py --check > "$work/control-headers.txt" 2>&1; then
+    refused_by "a file that keeps his words alone put in the list with his notice" "$words, which keeps his words" \
+      python3 build/generate-original-notices.py --check --require-tags || failed=1
+  else
+    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    echo "The words' control did not leave the list and the file agreeing: it proves nothing."
     put_back
     failed=1
   fi

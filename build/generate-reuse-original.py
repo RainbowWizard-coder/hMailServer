@@ -45,18 +45,28 @@ by hand, say where it is not:
              his code's - one sentence of an error message or a warning included,
              as in RestApiSettings.cpp, RestApiRoutes.cpp and DateTime.cpp, even
              where the fork's sentence goes on after his, as ApiSends.cpp's after
-             his "Tried %d time(s)" does - or a declaration of his copied for a
-             new class, as IMAPMove.h and IMAPCommandMove.h are IMAPCopy.h's and
-             IMAPCommandCopy.h's. The port of a later commit's files counts the
-             same: each file of the SPF port is here with its source at
-             1beaeab9c. A file of the fork's that
+             his "Tried %d time(s)" does (such a file, which keeps his words and
+             no code, gets no notice line of his own: the WORDS_ONLY of
+             build/generate-original-notices.py). The port of a later commit's
+             files counts the same: each file of the SPF port is here with its
+             source at 1beaeab9c. A file of the fork's that
              only names or quotes what the original does is not one: a reply or
              a message of the server's that a test expects or a document quotes,
              a setting's or a control's caption, a string table's key, an SQL
              statement of the schema, an include path; nor is one that only
              follows the original's patterns - the COM wrappers' idioms, the test
              fixtures' (the message his tests send to trip the SURBL test among
-             them), the stock replies and errors his code gives wherever it
+             them), a class declared in the form his headers of its kind share,
+             its base, constructor, destructor and the base's methods it
+             overrides, which is not one header of his more than another (the
+             fork's IMAPCommandMove.h and IMAPCommandID.h are each his
+             IMAPCommandCopy.h, IMAPCommandStartTls.h and IMAPCommandStore.h
+             alike, names aside; IMAPMove.h declares a range action as IMAPCopy.h,
+             IMAPFetch.h and IMAPStore.h do, overriding the base's
+             GetMissingMessagePolicy with the policy of an atomic command, as
+             IMAPCopy.h does, beside the fork's own members; SpamTestDMARC.h a spam
+             test as SpamTestDKIM.h and SpamTestSPF.h do),
+             the stock replies and errors his code gives wherever it
              meets the same case (an IMAP command's "Authenticate first" or
              "Folder could not be found.", a COM object's "Failed to save
              object."), what a project template or a designer writes.
@@ -190,13 +200,6 @@ DERIVED = (
     ("hmailserver/source/Server/IMAP/IMAPCommandMove.cpp",
      "hmailserver/source/Server/IMAP/IMAPCommandCopy.cpp", "fe45f43c3",
      "the COPY command's checks and parameters, for MOVE"),
-    ("hmailserver/source/Server/IMAP/IMAPMove.h",
-     "hmailserver/source/Server/IMAP/IMAPCopy.h", "fe45f43c3",
-     "IMAPCopy's declaration, its include and DoAction's word for word, for MOVE, and since c8607f392d its "
-     "GetMissingMessagePolicy as the original's IMAPCopy.h has it"),
-    ("hmailserver/source/Server/IMAP/IMAPCommandMove.h",
-     "hmailserver/source/Server/IMAP/IMAPCommandCopy.h", "fe45f43c3",
-     "the COPY command's declaration, COPY made MOVE"),
     ("hmailserver/source/Tools/ImportTool/Program.cs",
      "hmailserver/source/Migration/Mercury/Program.cs", "b19ccba0b",
      "the Mercury migration tool's entry point, which the Import Tool's replaced (git's rename, 50%)"),
@@ -336,7 +339,8 @@ FORK_MADE = (
     ("hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp", "fe45f43c3",
      "the fork's DMARC test, made before the original's own at this path (e5352cb9a, 30 August 2026)"),
     ("hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.h", "fe45f43c3",
-     "its declaration, made before the original's own at this path (e5352cb9a, 30 August 2026)"),
+     "its declaration, in the form his spam tests' headers share (SpamTestDKIM.h's and SpamTestSPF.h's), made "
+     "before the original's own at this path (e5352cb9a, 30 August 2026)"),
     ("hmailserver/test/RegressionTests/IMAP/SpecialUse.cs", "5c6a9827d",
      "the fork's tests, made four days before the original's own at this path (239f7364b, 17 August 2026)"),
     ("hmailserver/test/SSL examples/WithPassword/server.crt", "fe45f43c3",

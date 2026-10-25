@@ -1115,8 +1115,9 @@ editorconfig:
 # the fork made with his notice or with it in another wording, a file of the fork's
 # with it in a doc comment, one of the list's files with a second notice of his of
 # another year, and a notice of his
-# given another year or put on a file the fork made or on a port of a later commit of
-# the original's in the list and the file alike. In every pipeline, as checkers is: a
+# given another year or put on a file the fork made, on a port of a later commit of
+# the original's or on a file that keeps only a message of his, in the list and the
+# file alike. In every pipeline, as checkers is: a
 # document or a picture needs its licence as much as a source does. git so that reuse
 # leaves out what git ignores, libmagic for the encoding of each file, both Debian's.
 reuse:

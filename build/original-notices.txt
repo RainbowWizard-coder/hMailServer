@@ -922,13 +922,9 @@ hmailserver/source/Server/Common/Mime/MimeTester.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Mime/MimeTester.h
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Persistence/MailboxMove.cpp
-	// Copyright (c) 2005 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.cpp
 	// Copyright (c) 2009 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Persistence/Maintenance/Maintenance.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Persistence/MessageStore.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Persistence/NameChanger.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
@@ -1190,8 +1186,6 @@ hmailserver/source/Server/Common/SQL/SQLStatement.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/SQL/SQLStatement.h
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/SQL/ScriptTransaction.cpp
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Scripting/ClientInfo.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Scripting/ClientInfo.h
@@ -1203,8 +1197,6 @@ hmailserver/source/Server/Common/Scripting/Events.h
 hmailserver/source/Server/Common/Scripting/Result.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Scripting/Result.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Scripting/ScriptBinding.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Scripting/ScriptObjectContainer.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
@@ -1321,8 +1313,6 @@ hmailserver/source/Server/Common/Util/AWStats.h
 hmailserver/source/Server/Common/Util/AccountLogon.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Util/AccountLogon.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Util/ApiSends.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Util/Assert.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
@@ -1469,12 +1459,6 @@ hmailserver/source/Server/Common/Util/Registry.h
 hmailserver/source/Server/Common/Util/RegularExpression.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Util/RegularExpression.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Util/RestApiMailbox.cpp
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Util/RestApiRoutes.cpp
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/Common/Util/RestApiSettings.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/Common/Util/SSPIValidation.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
@@ -1660,8 +1644,6 @@ hmailserver/source/Server/IMAP/IMAPCommandLogout.h
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/IMAP/IMAPCommandMove.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/IMAP/IMAPCommandMove.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/IMAP/IMAPCommandMyRights.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/IMAP/IMAPCommandMyRights.h
@@ -1751,8 +1733,6 @@ hmailserver/source/Server/IMAP/IMAPListLookup.cpp
 hmailserver/source/Server/IMAP/IMAPListLookup.h
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/IMAP/IMAPMove.cpp
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Server/IMAP/IMAPMove.h
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/IMAP/IMAPNotificationClient.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
@@ -1895,10 +1875,6 @@ hmailserver/source/Server/SMTP/ServerTargetResolver.h
 hmailserver/source/Server/hMailServer/hMailServer.cpp
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Server/hMailServer/stdafx.h
-	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Tools/ControlPanel/Resources/Strings.resx
-	  Copyright (c) 2010 Martin Knafve / hMailServer.com.
-hmailserver/source/Tools/ControlPanel/Services/ConfigurationChecks.cs
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 hmailserver/source/Tools/DBSetup/Globals.cs
 	// Copyright (c) 2010 Martin Knafve / hMailServer.com.
