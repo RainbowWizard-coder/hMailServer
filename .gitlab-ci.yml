@@ -340,14 +340,16 @@ checkers:
   # time and its CPU count does not: on 24 October 2026 it took 1,136 s on server2 in
   # this image with 8 CPUs, linix's limit, and 1,135 s with 2, GitLab's small hosted
   # runner's. linix has taken 1.4 to more than 1.6 times server2's time for the same
-  # script (1,060 s against 776 s on 20 and 21 October; killed at 20 minutes in
-  # pipelines 2969966488 and 2983075001 on 21 and 23 October, where server2 took
-  # 764 s in the second), and GitLab's small runner, which a branch's or a merge
-  # request's pipeline outside the protected refs takes, more than 1.6 times (two
-  # runs killed at 20 minutes on 19 October, after 1,206 s and 1,202 s, while a
-  # third took 1,173 s and failed a check). At 1.6 times 1,136 s that is about 30
-  # minutes; 45 leave half as much again for the checks each batch adds
-  # (docs/ContinuousIntegration.md, "How long each job takes").
+  # script (1,060 s against 776 s on 21 October; killed at 20 minutes in pipelines
+  # 2969966488 and 2983075001 on 21 and 23 October, where server2 took 764 s in the
+  # second), and GitLab's small runner, which a branch's or a merge request's
+  # pipeline outside the protected refs takes, about 1.6 times: on 19 October it took
+  # 1,173 s, 1.58 times, in its one whole run, which failed a check, and at least
+  # 1.62 times in the two it killed at 20 minutes, after 1,206 s and 1,202 s, where
+  # server2 had taken 743 s for the master the three merge requests were made on.
+  # At 1.6 times 1,136 s that is about 30 minutes; 45 leave half as much again
+  # for the checks each batch adds (docs/ContinuousIntegration.md, "How long each
+  # job takes").
   timeout: 45 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
