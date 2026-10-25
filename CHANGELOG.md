@@ -297,7 +297,8 @@ with `--check`).
   copyright - familiar symbols, such as a star or a question mark, and straight strokes, circles, dots, boxes,
   triangles and polygons of a few vertices laid out as line icons of one subject lay them - and `REUSE.toml`'s
   comment and the notice say so of each of the 39 symbols not counted after Feather's, with what its figure is and
-  the icons of other sets it matches point for point or is near, and of those of the seventeen that are as near
+  the icons of other sets it matches point for point or is near - no farther from it than `i-file` is from
+  Feather's `file`, in the measure of distance they give - and of those of the seventeen that are as near
   another set's icon: among them `i-menu`, `i-clock`, `i-mail` and `i-empty`, point for point Tabler Icons'
   `menu-2`, `clock-hour-4` and `mail`, `i-junk` Humbleicons' `ban`, `i-last` Lucide's `chevron-last`, `i-back`
   Solar's `arrow-left-line-duotone`, `i-send`, whose polygon is Majesticons' `send-line`'s, and `i-refresh`, whose

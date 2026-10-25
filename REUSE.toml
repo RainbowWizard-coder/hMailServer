@@ -2571,8 +2571,12 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 # outline drawn of curves, as a gear's, a pen's, a paperclip's or a bell's is, is not
 # such a figure. Symbol by symbol, with the icons of the sets compared that it matches
 # point for point or is near (no farther from it than i-file is from Feather's
-# "file"): i-menu, three bars, point for point Tabler's "menu-2", Humbleicons' "bars"
-# and MingCute's "menu-fill"; i-clock, a circle with two hands, point for point
+# "file", 0.403 units, in the mean, taken both ways, of the distance from each point
+# along one figure's lines, at every 0.2 units of the 24-unit grid, to the nearest
+# point of the other's, with the other icon as it is or drawn in about the centre by
+# up to 15 per cent, whichever is nearer): i-menu, three bars, point for point
+# Tabler's "menu-2", Humbleicons' "bars" and MingCute's "menu-fill"; i-clock, a
+# circle with two hands, point for point
 # Tabler's "clock-hour-4", and near Feather's "clock"; i-mail and i-empty, a box with
 # a V, point for point Tabler's "mail", and near Feather's "mail"; i-junk, a circle
 # with a slash, point for point Humbleicons' "ban", and near Feather's "slash" and
@@ -2616,20 +2620,21 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Verbatim-Notice"
 # "ellipsis-vertical-outline"; i-check, a tick of two strokes, near coolicons'
 # "check-big", Lets Icons' "done-round" and Feather's "check"; i-important, a box of
 # six straight strokes with a pointed end and a notched one, near Flowbite's
-# "arrow-right-alt-outline"; i-reply-all, two chevrons and an arc, near Lucide's
-# "reply-all"; and i-tune, two strokes each with a circle on it, i-theme, a crescent,
+# "arrow-right-alt-outline"; i-theme, a crescent, near SVG Spinners' "tadpole" (MIT,
+# Utkarsh Verma), a spinner's crescent, filled where its is drawn in a line; and
+# i-tune, two strokes each with a circle on it, i-reply-all, two chevrons and an arc,
 # i-tasks, two ticks and two strokes, i-label, a pentagon with a dot, i-people, two
 # heads over two arcs, i-tag, a turned pentagon with a dot, i-reply and i-forward, a
 # chevron and an arc, and i-flag, a pole with a notched flag, near no icon of the sets
 # compared. Of the seventeen counted after Feather's, i-close, i-plus and the four
-# chevrons are drawn alike in ten to twenty-one of the sets compared, and i-expand,
+# chevrons are drawn alike in many of the sets compared, and i-expand,
 # i-popout, i-file, i-draft and i-clip are as near another set's icon or nearer - Myna
 # UI's "maximize-one", whose diagonals are a unit shorter, Flowbite's
 # "arrow-up-right-from-square-outline" and Tabler's "external-link", Majesticons'
 # "file-line", IconPark's "prescription", and Meteor Icons' and Lucide's "paperclip"
 # and Iconoir's "attachment" - while each keeps the outlines of Feather's icon, i-clip
-# its curves; i-inbox, i-print, i-signout and i-bell-off are as near Lucide's icons of
-# the same names, or a little nearer, Lucide having begun as a fork of Feather. The
+# its curves; i-inbox, i-print, i-signout and i-bell-off are about as near Lucide's
+# icons of the same names as Feather's, Lucide having begun as a fork of Feather. The
 # sets compared are Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's icon
 # sets, each from the npm registry, as the notice says.
 [[annotations]]
