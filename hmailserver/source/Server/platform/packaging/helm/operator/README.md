@@ -59,10 +59,14 @@ operator's own:
 - **One server.** `replicaCount` is at most 1: a mail server's message store is not
   something two pods may share.
 
-A misspelt value never reaches the chart, as the definition lists the chart's values
-and keeps no unknown field: `kubectl apply` refuses it (`unknown field`), and a client
-that asks for no strict check has it dropped, with a warning from the API server, or
-silently with `kubectl --validate=false`.
+A misspelt value of the chart's own never reaches it: the definition has one property
+for each of the chart's top-level values and no other, and keeps no unknown field but
+inside the Kubernetes objects it hands the chart as they are (`resources`,
+`podSecurityContext`, `securityContext`, `affinity`, and the items of `tolerations`,
+`extraEnv` and `imagePullSecrets`), where a misspelt field is kept and passed on.
+Elsewhere `kubectl apply` refuses it (`unknown field`), and a client that asks for no
+strict check has it dropped, with a warning from the API server, or silently with
+`kubectl --validate=false`.
 
 Before making one: a PostgreSQL or MariaDB the cluster reaches (the database is not in
 the chart); the passwords' Secret; a TLS Secret for the REST listener, which off loopback
@@ -112,14 +116,18 @@ Like the server's image, nothing is built or pushed while the project's CI/CD va
 `build/ci/operator-check.py` (and its `--self-test`) on every change to the chart, the
 operator or its release jobs and scripts: the definition, `watches.yaml` and the CSV held
 to the chart and to each other; the Dockerfile to its allow-list; the three jobs as
-`.gitlab/ci/operator.yml` writes them, the sign script's identity, issuer and Sigstore
-servers, and the dotenv report the sign job takes; and the context and the bundle
+`.gitlab/ci/operator.yml` writes them; the sign script whole, by the SHA-256 of its
+bytes, so that a change to how the operator is signed or checked is a change to the
+check too; the dotenv report the sign job takes; and the context and the bundle
 written as a release writes them.
 
-operator-sdk's release moves by hand: Renovate moves only each image's digest under its
-tag (`renovate.json`), since the Dockerfile's `FROM`, the builder that
-`bundle/metadata/annotations.yaml` and the CSV name, and the six scorecard images are held
-to one release and move together, in one commit.
+operator-sdk's release moves by hand. Of its pins Renovate reads the Dockerfile's
+`FROM` alone, and moves only its digest under its tag, never to another release
+(`renovate.json`), since the `FROM`, the builder that `bundle/metadata/annotations.yaml`
+and the CSV name, and the six scorecard images are held to one release and move
+together, in one commit. No Renovate manager reads the scorecard configuration, so its
+images' digests move by hand as well; `build/check-image-pins.py` reports one that has
+gone.
 
 ## Checking an image
 
@@ -175,10 +183,13 @@ the chart that starts a server (the init container and the user 999):
   on a CRLF line, while `workdir` in lower case and an indented `env` passed; given an
   image by tag, a version that is not SemVer and a CSV without its placeholder image,
   `operator-bundle.sh` refused each. `operator-bundle.sh` ran in cosign's image as well.
-- Renovate 44.115.13, the `renovate` job's, in a dry run over the Dockerfile with its
-  `FROM` put back to helm-operator v1.42.2: with `renovate.json` as it is, it dropped the
-  move to v1.42.3 ("Filtered out 1 disabled update") and kept the new digest of v1.42.2;
-  with the rule taken out, it proposed v1.42.3.
+- Renovate 44.115.13, the `renovate` job's, in dry runs over the Dockerfile alone, with
+  each pin as quay.io's API gave it: its `FROM` put back to helm-operator v1.42.2 by that
+  release's own digest, with `renovate.json` as it is, Renovate dropped the move to
+  v1.42.3 ("Filtered out 1 disabled update(s). 0 update(s) remaining.") and would make
+  no branch, and with the rule taken out it would make one, to v1.42.3; v1.42.3 given
+  v1.42.2's digest, it would move the digest alone, to v1.42.3's; and the `FROM` as it
+  is gave it nothing to move.
 - `build/ci/operator-image-push.sh` in regctl's pinned image against a registry inside the
   test cluster (the repository's name and the registry's TLS the only lines changed),
   and `build/ci/operator-bundle.sh` at that version for the index it pushed.

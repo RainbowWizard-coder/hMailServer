@@ -560,10 +560,12 @@ with `--check`).
 - **New: a Kubernetes operator, for Operator Lifecycle Manager and OperatorHub.io.**
   `platform/packaging/helm/operator` is the Helm chart as operator-sdk's Helm operator (1.42.3, by digest): each
   `HMailServer` resource (`mail.progressiverobot.com/v1alpha1`) is one installation of the project's chart, its spec
-  the chart's values. Its custom resource definition has one property for each of the chart's values and no other and
-  keeps no unknown field, so that a misspelt one never reaches the chart (`kubectl` refuses it; a client that asks for
-  no strict check has it dropped), and refuses `database.password` and `administrator.password`, which anyone who may
-  read the resource could read: the passwords are in the Secret `existingSecret` names, which is required. Its
+  the chart's values. Its custom resource definition has one property for each of the chart's top-level values and no
+  other, and keeps no unknown field but inside the Kubernetes objects it hands the chart as they are (`resources`, the
+  two security contexts, `affinity`, and the items of `tolerations`, `extraEnv` and `imagePullSecrets`), so that a
+  misspelt value of the chart's own never reaches it (`kubectl` refuses it; a client that asks for no strict check has
+  it dropped), and refuses `database.password` and `administrator.password`, which anyone who may read the resource
+  could read: the passwords are in the Secret `existingSecret` names, which is required. Its
   ClusterServiceVersion says it is Progressive Robot's fork of hMailServer, not the original, shows the fork's icon,
   says which mail ports a new installation answers (25, 587, 143 and 110 with STARTTLS, and the REST listener on 8045;
   465, 993, 995 and 4190 once their ports are added in the server), and asks for namespaced permissions alone, in one
@@ -583,18 +585,20 @@ with `--check`).
   OperatorHub.io's repository is made by hand (the operator's `README.md`). The `chart-and-compose` job runs
   `build/ci/operator-check.py`, which holds the definition, `watches.yaml` and the CSV to the chart and to each other,
   the CSV's permissions to an allow-list made from the kinds the chart renders, the Dockerfile to its allow-list, the
-  three release jobs as written, the sign script's identity, issuer and Sigstore servers, and the dotenv report the
-  sign job takes, and runs the context and bundle scripts, and its `--self-test`, which breaks them in 53 ways, each
-  in a copy, and sees each refused. Renovate moves operator-sdk's images by digest alone (`renovate.json`): the
-  Dockerfile's `FROM`, the bundle's builder annotations and the scorecard images are one release, moved by hand in one
-  commit; `build/check-image-pins.py` asks for the scorecard images too. Built and run on 25 October 2026: the image
-  built as the tag pipeline builds it, twice to the same bytes; `operator-sdk bundle validate` passed with
-  `suite=operatorframework` (`operatorhubv2`, `capabilities` and `categories`), `name=good-practices` and
-  `name=community`, and `operator-sdk scorecard` passed its six tests; in a one-node k3s 1.36.1 from Alpine Linux 3.24
-  with Operator Lifecycle Manager 0.46.0, the operator installed from a catalog for all namespaces and for one, the
-  CSV's own example resource beside PostgreSQL 18 answered SMTP with STARTTLS on 25 and `GET /api/v1/status` over TLS
-  with 6.3.7-B46, a Service deleted by hand was put back, and deleting the resource removed what the chart had made
-  and left its three claims, as `helm uninstall` does.
+  three release jobs as written, the sign script whole, by the SHA-256 of its bytes, and the dotenv report the sign
+  job takes, and runs the context and bundle scripts, and its `--self-test`, which breaks them in 83 ways, each in a
+  copy, and sees each refused with the problem it is meant to cause, every rule of the check by at least one case.
+  Renovate reads one of operator-sdk's pins, the Dockerfile's `FROM`, and moves only its digest under its tag
+  (`renovate.json`): the `FROM`, the bundle's builder annotations and the scorecard images are one release, moved by
+  hand in one commit, and no Renovate manager reads the scorecard images, whose digests move by hand too;
+  `build/check-image-pins.py` reports one that has gone. Built and run on 25 October 2026: the image built as the tag
+  pipeline builds it, twice to the same bytes; `operator-sdk bundle validate` passed with `suite=operatorframework`
+  (`operatorhubv2`, `capabilities` and `categories`), `name=good-practices` and `name=community`, and
+  `operator-sdk scorecard` passed its six tests; in a one-node k3s 1.36.1 from Alpine Linux 3.24 with Operator
+  Lifecycle Manager 0.46.0, the operator installed from a catalog for all namespaces and for one, the CSV's own
+  example resource beside PostgreSQL 18 answered SMTP with STARTTLS on 25 and `GET /api/v1/status` over TLS with
+  6.3.7-B46, a Service deleted by hand was put back, and deleting the resource removed what the chart had made and
+  left its three claims, as `helm uninstall` does.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
   release's `.deb` neither depends on nor recommends nor suggests `libmariadb3` (its Depends are `ca-certificates` and
