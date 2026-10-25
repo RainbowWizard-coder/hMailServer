@@ -3343,7 +3343,7 @@ ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
 `release-packages` and `helm-chart-package`) and the four scans.
 `release-packages` is a job of its own
 because GitLab.com lets a job need fifty jobs at most (`ci_needs_size_limit`):
-`release` needs thirty-eight, and `release-packages` forty-three, forty-one of
+`release` needs thirty-nine, and `release-packages` forty-three, forty-one of
 them jobs `release` does not need itself. Of the Windows package jobs it needs
 `windows-packages-arm64`, whose ARM64 installer the release carries from 6.3.6;
 a tag's pipeline has no `windows-packages-x64`.

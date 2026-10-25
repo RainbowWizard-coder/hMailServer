@@ -144,9 +144,11 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    the package jobs of
    `.gitlab/ci/packages-*.yml` it waits for the two whose generic files the
    release carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and
-   `rpm-fedora44-aarch64`, the generic aarch64 `.rpm` - with their SBOM jobs and
+   `rpm-fedora44-aarch64`, the generic aarch64 `.rpm` - with their SBOM jobs,
    their install jobs, which install and run each package in an AArch64
-   container under qemu-user; for `release-packages`
+   container under qemu-user, and their start jobs, which start the server from
+   each there beside PostgreSQL and ask it for SMTP, the REST API and the Deck;
+   for `release-packages`
    (`.gitlab/ci/release-packages.yml`), which waits in turn for every other
    distribution release's `.deb` and `.rpm` build and its install job, both
    AppImages and their test jobs, `appimage-runtime-sources` (the source of the

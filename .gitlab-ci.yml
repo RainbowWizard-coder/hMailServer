@@ -2137,7 +2137,7 @@ windows-installer:
 # file that can fail a tag's pipeline - a manual job can be started as soon as its own
 # needs have finished, so a gate left out here could be released past - every job whose
 # files the release carries, and the four security scans whose reports it reads; only
-# those thirteen bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml
+# those fourteen bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml
 # it needs the two whose generic files the release carries, with their SBOM, install
 # and start jobs - the last starting the server from each, in an AArch64 container
 # beside PostgreSQL (build/ci/linux-package-install.sh) - and release-packages
