@@ -13,10 +13,10 @@ project's are.**
 | | |
 |---|---|
 | The files | `hmailserver/source/Server/platform/packaging/proxmox/ct/hmailserver.sh` (run on the host) and `.../proxmox/install/hmailserver-install.sh` (run in the container) |
-| The host | Proxmox VE 8 or 9 on amd64, as root |
+| The host | Proxmox VE 8 or 9, as root, on amd64: the script makes amd64 containers only and has not been tried on any other kind of host |
 | The container | unprivileged, Debian 13 from Proxmox VE's `debian-13-standard` template, 2 cores, 2 GiB of memory, 512 MiB of swap, a 16 GiB disk, DHCP on `vmbr0`, nesting on (see [Nesting](#nesting)) |
-| What it installs | the release's `hmailserver_<version>-1~debian13_<arch>.deb` (amd64 or arm64), from 6.3.6 on; PostgreSQL 17 from Debian's archive, or a PostgreSQL server you name |
-| Fetched from | `gitlab.com` (the scripts and the release), Debian's archive and Proxmox VE's template mirror; nothing from GitHub |
+| What it installs | the release's `hmailserver_<version>-1~debian13_<arch>.deb` (amd64 or arm64), from 6.3.6 on; PostgreSQL 17 from Debian's archive, or a PostgreSQL server you name. The template's Postfix, which holds port 25, is removed |
+| Fetched from | `gitlab.com` (the scripts and the release), Debian's archive, Proxmox VE's template mirror, and Sigstore's trust root from `tuf-repo-cdn.sigstore.dev`, which cosign fetches to verify the release's signatures; nothing from GitHub |
 
 Why the project has its own
 ---------------------------
@@ -45,8 +45,9 @@ bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/master/hm
 
 It prints what it will make - the container's ID (the next free one), its name,
 resources, storage, template and network, the install script it will run and the
-database - and asks before it changes anything. Every answer is a variable, given in
-front of the command, which also makes it run without the question:
+database - and whether this is a dry run or a run that changes the host, and asks
+before it changes anything. Every answer is a variable, given in front of the
+command; `var_yes=yes` makes it run without the question:
 
 ```sh
 var_ctid=120 var_hostname=mail var_ram=4096 var_disk=32 var_net=192.0.2.25/24 var_gateway=192.0.2.1 var_yes=yes \
@@ -69,19 +70,36 @@ var_ctid=120 var_hostname=mail var_ram=4096 var_disk=32 var_net=192.0.2.25/24 va
 | `var_db` | `local` | `local`: PostgreSQL in the container; `external`: the server below |
 | `var_db_host`, `var_db_port`, `var_db_name`, `var_db_user`, `var_db_password` | -, 5432, `hmailserver`, `hmailserver` | the external PostgreSQL |
 | `var_rest_port` | 8443 | the REST API's and the Control Deck's port; 0 leaves them off |
-| `var_dry_run` | no | `yes`, or `--dry-run` after the script, prints every command that would change the host and changes nothing |
+| `var_dry_run` | no | `yes` prints every command that would change the host and changes nothing |
 
-The template is Proxmox VE's own `debian-13-standard`, the newest one `pveam
-available` lists, downloaded with `pveam download`, which checks it against the
-checksum in Proxmox's signed index. The container is made with `pct create ...
---unprivileged 1`; a privileged one is refused. The install script's variables reach
-the container in a file of mode 0600, which the install script reads and deletes, so
-a database password is never on a command line of the host or the container.
+A dry run, either way:
+
+```sh
+var_dry_run=yes bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/proxmox/ct/hmailserver.sh)"
+bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/source/Server/platform/packaging/proxmox/ct/hmailserver.sh)" _ --dry-run
+```
+
+`bash -c` gives the first word after the script to the script as its `$0`, not as
+an argument, which is what the `_` is for; the script takes a `$0` of `--dry-run` as
+well, and refuses any other that begins with `--`.
+
+The template is Proxmox VE's own `debian-13-standard`. If the template storage has
+one already, the newest there is used as it is: nothing is downloaded, and it may
+be older than the newest Proxmox VE offers. If it has none, then after the summary
+and the question, if one is asked, the script refreshes the host's list of templates (`pveam update`, which fetches
+Proxmox's signed index) and downloads the newest one offered with `pveam download`,
+which checks it against the checksum in that index. The container is made with
+`pct create ... --unprivileged 1`; a privileged one is refused. The install
+script's variables reach the container in a file of mode 0600, which the install
+script reads and deletes, so a database password is never on a command line of the
+host or the container.
 
 At the end the install script prints the administrator's password - once: it is in
 no file and no log, and the configuration holds only its PBKDF2 hash - and the
-Control Deck's address, `https://<the container's address>:8443/`. Sign in as
-`Administrator`.
+Control Deck's address, `https://<the container's address>:8443/` (an IPv6 address
+in brackets). Sign in as `Administrator`. If a step after the password was set
+fails, the password is printed with the failure instead ([When the install
+stops](#when-the-install-stops)).
 
 ### Nesting
 
@@ -103,7 +121,8 @@ What the install does
 `/usr/local/sbin/hmailserver-lxc` and run there (it runs as well on any Debian 13
 machine with systemd, as root: `hmailserver-lxc install`).
 
-1. **Tools from Debian's archive:** curl, jq, OpenSSL and cosign (2.5 in Debian 13).
+1. **Tools from Debian's archive:** curl, jq, OpenSSL, cosign (2.5 in Debian 13) and
+   iproute2.
 2. **The release:** `var_hm_version`, or the newest release of the project whose tag
    is `v<major>.<minor>.<patch>`, read from GitLab's releases API.
 3. **The download, verified.** The release's Debian 13 package for the container's
@@ -116,16 +135,27 @@ machine with systemd, as root: `hmailserver-lxc install`).
    signing certificate's extension with OpenSSL, as SECURITY.md's "Verifying a
    release" does by hand; and the package's SHA-256 must be the one line the signed
    sums give it. A file that fails any of these stops the install before anything
-   is installed.
-4. **The package,** with `apt-get`, which takes its dependencies from Debian's
+   is installed. cosign fetches Sigstore's trust root from
+   `tuf-repo-cdn.sigstore.dev` for this, so the container must be able to reach it.
+4. **Other mail servers and the ports.** Proxmox VE's `debian-13-standard` template
+   comes with Postfix, running and listening on port 25 of the loopback; with it
+   there, the server would start without port 25 and answer on the others. Every
+   package installed that provides `mail-transport-agent` (Postfix, Exim and the
+   like) has its systemd units stopped and is removed with `apt-get remove`, which
+   keeps its configuration (`apt-get install postfix` puts it back), and the install
+   says so. If such a server has mail in its queue, the install stops instead, with
+   nothing removed. Then the ports the server takes - 25, 110, 143, 587 and
+   `var_rest_port` - must be free: if anything listens on one, the install stops,
+   naming it, before the package is installed.
+5. **The package,** with `apt-get`, which takes its dependencies from Debian's
    archive.
-5. **The database.** With `var_db=local`, PostgreSQL from Debian's archive, a role
+6. **The database.** With `var_db=local`, PostgreSQL from Debian's archive, a role
    and an empty database of its own (no `CREATEDB`) and a generated password of 32
    letters and digits, given to `psql` on its standard input. With
    `var_db=external`, the server you name: make the role there first, and the
    database too unless the role may create one ([packaging/README.md](../source/Server/platform/packaging/README.md),
    "Install and get running", step 2).
-6. **The configuration,** as that README's steps 3 to 5 and 7 do it by hand: the
+7. **The configuration,** as that README's steps 3 to 5 and 7 do it by hand: the
    `[Database]` section of `/etc/hmailserver/hMailServer.ini`; the administrator's
    password, generated and given to `hmailserver --set-admin-password` on standard
    input; `hmailserver --check-config` and `--create-database` as the service's
@@ -137,15 +167,30 @@ machine with systemd, as root: `hmailserver-lxc install`).
    (`/etc/hmailserver/rest-api.crt`, whose SHA-256 fingerprint the install prints, to
    check against the browser's warning), set with `hmailserver --set-setting`. The
    server serves the REST API off the loopback only over TLS.
-7. **The start:** `systemctl restart hmailserver`. Its first start makes the mail
+8. **The start:** `systemctl restart hmailserver`. Its first start makes the mail
    ports' own self-signed certificate and offers STARTTLS on 25, 587, 110 and 143
-   ([SecureDefaults.md](SecureDefaults.md)). The install then asks the server: a
-   `220` greeting on port 25 and STARTTLS in its EHLO, and `GET /api/v1/status`
-   answered 200 with the administrator's password.
+   ([SecureDefaults.md](SecureDefaults.md)). The install then asks the server: that
+   every socket listening on port 25 belongs to the service's user, `hmailserver`
+   (`ss -e` gives each socket's owner), so that another mail server's greeting is
+   not taken for the server's; a `220` greeting there and STARTTLS in its EHLO; and
+   `GET /api/v1/status` answered 200 with the administrator's password.
 
 Nothing in the container's firewall is changed, and the container has none of its
 own unless you give it one in Proxmox VE. Many providers block outbound port 25, and
 a mail server that cannot reach other servers on it can only receive.
+
+### When the install stops
+
+The install stops at the first step that fails, with `HMAILSERVER-LXC FAILED:` and
+the reason. Up to and including step 4 nothing of the server is installed (though
+step 4 may have removed another mail server, as it says): fix the cause and run
+`hmailserver-lxc install` again. From step 5 on, the package is installed, and
+`hmailserver-lxc install` refuses to run again on this machine. If the administrator's
+password had been set (step 7), it is printed with the failure, once, as it would
+have been at the end; if it is lost, `hmailserver --set-admin-password`, run as root,
+sets another (it reads it from standard input). On a Proxmox VE host, the simplest
+way to start again is to remove the container (`pct stop <ID>` and `pct destroy
+<ID>`) and run the host's command again.
 
 Updating
 --------
@@ -163,15 +208,17 @@ of that ref and runs `hmailserver-lxc update`. `hmailserver-lxc update` alone do
 same with the copy already in the container. The update:
 
 - does nothing when the newest release (or `var_hm_version`) is the installed one or
-  older, unless `var_force=yes`;
+  older: it installs only a newer release, since `apt-get` installs nothing over
+  the same version and refuses an older one, and an older server need not accept the
+  newer one's schema;
 - downloads and verifies the new release exactly as the install does;
 - with the database in the container, writes a `pg_dump` of it to
   `/var/backups/hmailserver-lxc/hmailserver-<old version>-<time>.dump` first
   (`pg_restore` puts it back);
 - stops the service, installs the package with `apt-get` - whose post-install step
-  runs `hmailserver --upgrade-database` - and starts it, and asks port 25 and the
-  REST API again (the status answers 401 without the password, which the update
-  does not have).
+  runs `hmailserver --upgrade-database` - and starts it, and asks port 25 (its
+  owner, its greeting and STARTTLS) and the REST API again (the status answers 401
+  without the password, which the update does not have).
 
 A snapshot of the container (`pct snapshot <ID> before-update`) before an update is
 the quickest way back from one that goes wrong.
@@ -185,65 +232,90 @@ What has run
 ------------
 
 No Proxmox VE host was available, so neither script has run on one: the container's
-creation is shown by a dry run, and the install by a stand-in for the container.
-On 25 October 2026, on a Linux build machine of the project's (Docker 29, Debian 13
-images by digest):
+creation is shown by a dry run and by stand-ins of Proxmox VE's commands, and the
+install by Proxmox VE's own template run as a container. On 25 October 2026, on a
+Linux build machine of the project's (Docker 29):
 
-- **The install, in a stand-in for the container:** a Debian 13 container
-  (`debian:trixie-slim`) with systemd 257.13 as PID 1, not privileged - given
+- **The container, from Proxmox VE's own template:** `debian-13-standard_13.6-1_amd64.tar.zst`,
+  the newest Debian 13 template in Proxmox VE 9's index (`aplinfo-pve-9.dat`, whose
+  signature `gpgv` verified as the Proxmox Trixie Release Key's, `24B3 0F06 ECC1 836A
+  4E5E FECB A7BC D142 0BFE 778E`), its SHA-512 the one that index gives, imported as
+  it is and started with systemd as PID 1, not privileged - given
   `CAP_SYS_ADMIN`, which systemd needs for the units' mount namespaces, and its own
-  writable cgroup - with `systemd-binfmt` masked. `hmailserver-lxc install` with
-  `var_hm_version=6.3.6` and the database local: both files verified as signed for
-  `v6.3.6` with the project's id, the package held to the signed sums, PostgreSQL
-  17.11 installed, the schema made, and the server answered `220 hmailserver
-  ESMTP`, offered STARTTLS (which `openssl s_client -starttls smtp` then completed)
-  and answered `GET /api/v1/status` with 200 (`6.3.6-B45`). From another machine the
-  Control Deck answered `GET /` with its page over TLS, and the status 401 without a
-  password. The service ran as `hmailserver` with `CAP_NET_BIND_SERVICE` alone, no
-  new privileges and a seccomp filter, and systemd left no part of its sandbox out.
-  The administrator's password was in no file under the container's `/etc`, `/root`,
-  `/var/lib/hmailserver`, `/var/log`, `/tmp`, `/var/tmp` or `/usr/local`, and nowhere in
-  its journal.
-- **The update:** `ct/hmailserver.sh` run inside that container took the update
-  path: 6.3.7 verified, the database dumped (844 KiB), the package upgraded (its
-  post-install step found the schema at 6108, the version 6.3.7 needs), and the
-  server answered again, `6.3.7-B46`. A second `update` said there was nothing to
-  do.
+  writable cgroup - with `systemd-binfmt` masked. As Proxmox VE builds it, the
+  template has Postfix running on `127.0.0.1:25` and `[::1]:25`, with no STARTTLS.
+- **The install,** `hmailserver-lxc install` in that container with the newest
+  release, 6.3.7, and the database local: both files verified as signed for `v6.3.7`
+  with the project's id, the package held to the signed sums, Postfix stopped and
+  removed, the five ports found free, PostgreSQL 17.11 installed, the schema made;
+  then port 25 held by the user `hmailserver` alone, `220 hmailserver ESMTP`,
+  STARTTLS, and `GET /api/v1/status` 200 at `6.3.7-B46`, with the server listening
+  on 25, 110, 143, 587 and 8443 and no bind failure in its log. With an IPv6 address
+  added to what `hostname -I` lists, the Control Deck's address was printed as
+  `https://[2001:db8::25]:8443/`. `/root/.sigstore` then held the trust root cosign
+  had fetched from `tuf-repo-cdn.sigstore.dev`.
+- **The update:** 6.3.6 installed the same way in a fresh such container, then
+  `ct/hmailserver.sh` run inside it took the update path: 6.3.7 verified, the
+  database dumped (844 KiB), the package upgraded (its post-install step left the
+  schema at 6108, the version 6.3.7 needs), and the server answered again, port 25
+  its own. A second `update`, `update` with `var_hm_version=6.3.6`, and one with the
+  `var_force=yes` of an earlier draft each said there was nothing to do and left the
+  server running.
+- **What the install refuses,** each in a fresh container of the template: a
+  listener of another program on port 143 (refused before the package was
+  installed, naming the program and its unit); a message in Postfix's queue (refused,
+  Postfix left installed and running); a second `hmailserver-lxc install`. With an
+  external database that is not there, the install failed at `--create-database`,
+  after the administrator's password had been set, and printed the password with
+  the failure, once; `hmailserver --set-admin-password` then set another. And
+  `ask_server`, the install's last step, run against a stand-in on port 25 that
+  greets as `220 hmailserver ESMTP` and offers STARTTLS, refused it as not the
+  server's; the scripts' first draft had taken it, and on the template that draft's
+  install failed with Postfix on port 25 and the server on the others.
 - **The host's script, end to end, against stand-ins** of `pveversion`, `pvesh`,
   `pvesm`, `pveam` and `pct` that answer in Proxmox VE 9's form, `pct exec` and `pct
-  push` acting on a fresh container of the same kind, with `var_db=external`
-  pointing at a PostgreSQL 18 server in a container of its own: the container made
-  with the arguments below, the install script pushed and run, 6.3.7 installed and
-  answering on 25 and on `var_rest_port=9443`, `update` left in `/usr/bin`. The
-  database password was in no file the scripts left.
-- **The dry runs** (`--dry-run`), without stand-ins and with them: every command
-  that would change the host printed and none run, the stand-ins' log holding only
-  the questions (`pveversion`, `pvesh get /cluster/nextid`, `pvesm status`, `pveam
-  list` and `pveam available`); a database password in no line. With the
-  defaults the dry run prints:
+  push` acting on a container of the template, with `var_db=external` pointing at a
+  PostgreSQL 18 server in a container of its own: the stand-ins' log shows `pveam
+  update` and `pveam download` only after the summary, then the container made with
+  the arguments below, the install script pushed and run, 6.3.7 installed and
+  answering on 25 and on `var_rest_port=9443`, the schema made in the external
+  database, `update` left in `/usr/bin`. The database password was in no line of the
+  output, no file under `/root`, `/tmp`, `/var/tmp`, `/usr/local` or `/var/log` and
+  not in the journal (the server's `/etc/hmailserver/hMailServer.ini` holds it, as
+  it must).
+- **The dry runs:** `var_dry_run=yes`, `bash ct/hmailserver.sh --dry-run`, `bash -c
+  "$(cat ct/hmailserver.sh)" _ --dry-run` and `bash -c "$(cat ct/hmailserver.sh)"
+  --dry-run`, with the stand-ins: no command that changes the host run, and the
+  summary saying it is a dry run (with the first draft, the last of these made the
+  container). Answered `n` at a terminal, the script changed nothing, `pveam update`
+  included. With no stand-ins, the dry run prints:
 
-  ```
+  ```text
+  + pveam update
   + pveam download local debian-13-standard_13.1-2_amd64.tar.zst
-  + pct create 105 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst --hostname hmailserver --cores 2 --memory 2048 --swap 512 --rootfs local-lvm:16 --net0 name=eth0\,bridge=vmbr0\,ip=dhcp --unprivileged 1 --ostype debian --onboot 1 --tags hmailserver\;mail --description Progressive\ Robot\'s\ fork\ of\ hMailServer\ \(https://gitlab.com/hmailserver/hmailserver\)\,\ made\ by\ its\ ct/hmailserver.sh --features nesting=1
-  + pct start 105
-  + pct push 105 /tmp/tmp.XXXXXXXXXX/hmailserver-install.sh /usr/local/sbin/hmailserver-lxc --perms 0755
-  + pct push 105 /tmp/tmp.XXXXXXXXXX/install.env /root/.hmailserver-lxc.env --perms 0600
-  + pct exec 105 -- bash /usr/local/sbin/hmailserver-lxc install --env-file /root/.hmailserver-lxc.env
-  + pct push 105 /tmp/tmp.XXXXXXXXXX/update /usr/bin/update --perms 0755
+  + pct create 100 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst --hostname hmailserver --cores 2 --memory 2048 --swap 512 --rootfs local-lvm:16 --net0 name=eth0\,bridge=vmbr0\,ip=dhcp --unprivileged 1 --ostype debian --onboot 1 --tags hmailserver\;mail --description Progressive\ Robot\'s\ fork\ of\ hMailServer\ \(https://gitlab.com/hmailserver/hmailserver\)\,\ made\ by\ its\ ct/hmailserver.sh --features nesting=1
+  + pct start 100
+  + pct push 100 /tmp/tmp.XXXXXXXXXX/hmailserver-install.sh /usr/local/sbin/hmailserver-lxc --perms 0755
+  + pct push 100 /tmp/tmp.XXXXXXXXXX/install.env /root/.hmailserver-lxc.env --perms 0600
+  + pct exec 100 -- bash /usr/local/sbin/hmailserver-lxc install --env-file /root/.hmailserver-lxc.env
+  + pct push 100 /tmp/tmp.XXXXXXXXXX/update /usr/bin/update --perms 0755
   ```
 
-- **The refusals:** an ID the host has, a `var_net` holding a comma, a privileged
-  container, Proxmox VE 7, the script run without `--dry-run` on a machine that is
-  not a Proxmox VE host; and, of the download's checks, each run against a file made
-  to fail it: the package with one byte changed, the package checked as signed for
-  another tag, 6.3.5's package (signed at the project's first path) checked at the
-  group's, 6.3.3's bundle (signed by GitHub Actions, another repository id), sums
-  with an altered line, without the package's line and naming it twice, and altered
-  sums against the sums' bundle. Each was refused, and the real files passed.
+  (off a Proxmox VE host the ID and the template's name are made up).
+- **The host's refusals:** an ID the host has, a `var_net` holding a comma, a
+  privileged container, Proxmox VE 7, an arm64 host, an unknown argument, the script
+  run without `--dry-run` on a machine that is not a Proxmox VE host; and, of the
+  download's checks, each run against a file made to fail it: the package with one
+  byte changed, the package checked as signed for another tag, 6.3.5's package
+  (signed at the project's first path) checked at the group's, 6.3.3's bundle (signed
+  by GitHub Actions, another repository id), sums with an altered line, without the
+  package's line and naming it twice, and altered sums against the sums' bundle. Each
+  was refused, and the real files passed.
 - **shellcheck** 0.10.0 passes both scripts.
 
 What it does not show: Proxmox VE's own `pct create` and `pct start` with these
-arguments, the template's download, an unprivileged container's user namespace and
-AppArmor profile (the stand-in has neither), `var_nesting=0`, an arm64 machine, and
-`update` fetching the scripts from `master`, which holds them only once this change
-has landed.
+arguments, `pveam`'s download of the template, an unprivileged container's user
+namespace and AppArmor profile (the container above has neither), `var_nesting=0`,
+a mail server other than the template's Postfix (Exim and the rest are removed the
+same way, untried), an arm64 machine, and `update` fetching the scripts from
+`master`, which holds them only once this change has landed.

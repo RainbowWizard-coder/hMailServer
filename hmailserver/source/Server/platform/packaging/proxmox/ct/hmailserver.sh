@@ -47,7 +47,9 @@
 #   var_install_script
 #                     a local copy of install/hmailserver-install.sh to use instead
 #   var_dry_run       yes: print every command that would change the host, change nothing
-#                     (the same as --dry-run)
+#                     (the same as --dry-run: bash ct/hmailserver.sh --dry-run, or with
+#                     bash -c, whose first word after the script is the script's $0,
+#                     bash -c "$(curl ...)" _ --dry-run; a $0 of --dry-run is taken too)
 # and the install script's, passed on to it in a file of mode 0600 (never on a
 # command line): var_hm_version, var_db, var_db_host, var_db_port, var_db_name,
 # var_db_user, var_db_password, var_rest_port.
@@ -67,7 +69,11 @@ say() { printf '  - %s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
 
 var_dry_run="${var_dry_run:-no}"
-for argument in "$@"; do
+# bash -c "$(curl ...)" --dry-run hands --dry-run over as $0, not $1: it is read here
+# too, and any other $0 that begins with -- is refused rather than ignored.
+first=()
+case "$0" in --*) first=("$0") ;; *) ;; esac
+for argument in "${first[@]}" "$@"; do
   case "$argument" in
     --dry-run) var_dry_run=yes ;;
     -h | --help)
@@ -114,7 +120,7 @@ write_env_file() {
   local name
   (
     umask 077
-    for name in var_hm_version var_db var_db_host var_db_port var_db_name var_db_user var_db_password var_rest_port var_force; do
+    for name in var_hm_version var_db var_db_host var_db_port var_db_name var_db_user var_db_password var_rest_port; do
       if [ -n "${!name:-}" ]; then
         printf '%s=%q\n' "$name" "${!name}"
       fi
@@ -159,7 +165,7 @@ if command -v pveversion > /dev/null 2>&1; then
   esac
 fi
 host_arch="$(dpkg --print-architecture 2> /dev/null || echo amd64)"
-[ "$host_arch" = amd64 ] || fail "Proxmox VE's Debian 13 template is for amd64; this host is $host_arch"
+[ "$host_arch" = amd64 ] || fail "this script makes amd64 containers only, and has not been tried on any other kind of host; this host is $host_arch"
 
 var_hostname="${var_hostname:-hmailserver}"
 var_cpu="${var_cpu:-2}"
@@ -228,19 +234,22 @@ else
   template_storage="${var_template_storage:-local}"
 fi
 
-# The newest Debian 13 standard template Proxmox VE offers; pveam checks a download
-# against the SHA-512 of Proxmox's signed index.
+# The template: the newest Debian 13 standard one already on the template storage,
+# used as it is; or, with none there, the newest one Proxmox VE offers, downloaded
+# after the question, once pveam update has refreshed the host's list of templates
+# (pveam checks a download against the SHA-512 of Proxmox's signed index).
 newest_template() {
   awk -v p="$OS_TEMPLATE_PREFIX" '{ for (i = 1; i <= NF; i++) if (index($i, p) == 1 && $i ~ /_amd64\.tar\.(zst|xz|gz)$/) print $i }' \
     | sort -V | tail -n 1
 }
+offered_template() { pveam available --section system 2> /dev/null | newest_template || true; }
 template=""
 if command -v pveam > /dev/null 2>&1; then
   template="$(pveam list "$template_storage" 2> /dev/null | sed 's|^[^ ]*vztmpl/||' | newest_template || true)"
   if [ -z "$template" ]; then
-    run pveam update
-    template="$(pveam available --section system 2> /dev/null | newest_template || true)"
-    [ -n "$template" ] || fail "Proxmox VE offers no ${OS_TEMPLATE_PREFIX}*_amd64 template (pveam available --section system)"
+    # The host's list as it stands, to show; the one downloaded is chosen again after
+    # pveam update.
+    template="$(offered_template)"
     need_template=yes
   else
     need_template=no
@@ -271,13 +280,18 @@ step "$APP: a Proxmox VE container"
 say "Proxmox VE ${pve_version:-(none here)}; container $ctid, '$var_hostname', unprivileged, nesting $var_nesting"
 say "$var_cpu cores, $var_ram MiB of memory and $var_swap MiB of swap, a $var_disk GiB disk on $storage"
 if [ "$need_template" = yes ]; then
-  say "the template $template on $template_storage, downloaded first"
+  say "the template: none on $template_storage yet; the newest ${OS_TEMPLATE_PREFIX}*_amd64 Proxmox VE offers once 'pveam update' has run (now ${template:-none is listed}), downloaded first"
 else
-  say "the template $template on $template_storage"
+  say "the template $template on $template_storage, as it is"
 fi
 say "the network: $net0"
 say "the install script: ${var_install_script:-$RAW/$var_scripts_ref/$SCRIPT_PATH/install/hmailserver-install.sh}"
 say "the database: ${var_db:-local}; the release: ${var_hm_version:-the newest}"
+if dry; then
+  say "a dry run: the commands that would change the host are printed, and none is run"
+else
+  say "this changes the host: nothing has been changed yet"
+fi
 if ! dry && [ "${var_yes:-no}" != yes ] && [ -t 0 ]; then
   read -r -p "Create it? [y/N] " answer
   case "$answer" in y | Y | yes | YES) ;; *) fail "not created" ;; esac
@@ -290,6 +304,12 @@ write_env_file "$work/install.env"
 
 step "The container"
 if [ "$need_template" = yes ]; then
+  run pveam update
+  if command -v pveam > /dev/null 2>&1; then
+    template="$(offered_template)"
+    [ -n "$template" ] || fail "Proxmox VE offers no ${OS_TEMPLATE_PREFIX}*_amd64 template (pveam available --section system)"
+    create[3]="$template_storage:vztmpl/$template"
+  fi
   run pveam download "$template_storage" "$template"
 fi
 run "${create[@]}"

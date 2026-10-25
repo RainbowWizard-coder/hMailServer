@@ -13,7 +13,8 @@
 #   hmailserver-lxc update  [--env-file FILE]   move an installed server to the release
 #
 # What install does, in order:
-#   1. curl, jq, OpenSSL and cosign from Debian's own archive (cosign 2.5 in Debian 13).
+#   1. curl, jq, OpenSSL, cosign and iproute2 from Debian's own archive (cosign 2.5 in
+#      Debian 13). cosign fetches Sigstore's trust root from tuf-repo-cdn.sigstore.dev.
 #   2. The release: var_hm_version, or the newest release of the project at
 #      https://gitlab.com/hmailserver/hmailserver whose tag is v<major>.<minor>.<patch>
 #      (a release older than the first with Debian 13 packages carries none, and is refused
@@ -27,24 +28,34 @@
 #      certificate's extension with OpenSSL (SECURITY.md, "Verifying a release"), and the
 #      package's SHA-256 held to its line in the signed sums. Nothing is installed from a
 #      file that fails any of these. Nothing is fetched from GitHub.
-#   4. The package, with apt-get, which takes its dependencies from Debian's archive.
+#   4. Any other mail server Debian has installed (a package that provides
+#      mail-transport-agent: Proxmox VE's Debian 13 template comes with Postfix, listening
+#      on port 25 of the loopback) removed with apt-get remove, which keeps its
+#      configuration, unless its queue holds mail, which stops the install; then the
+#      ports the server takes (25, 110, 143, 587 and var_rest_port) held to be free, and
+#      the install stopped, naming what listens there, if one is not. Then the package,
+#      with apt-get, which takes its dependencies from Debian's archive.
 #   5. The database: PostgreSQL from Debian's archive in this container (var_db=local,
 #      the default), with a role and an empty database of its own and a generated
 #      password; or a PostgreSQL server elsewhere (var_db=external) with the role and,
 #      unless the role may create one, the database made there first.
 #   6. The [Database] section of /etc/hmailserver/hMailServer.ini, the administrator's
 #      password (generated, given to hmailserver --set-admin-password on standard input
-#      and shown once at the end, never written to a file or a log), the schema
+#      and shown once - at the end, or with the failure if a later step fails - and
+#      never written to a file or a log), the schema
 #      (hmailserver --create-database, as the service's user), the stored-secrets key,
 #      made and exported to /root/hmailserver-stored-secrets.key (mode 0600), and the
 #      REST API and Control Deck on var_rest_port (8443) over TLS with a self-signed
 #      certificate made here, since the server serves them off the loopback only with one.
-#   7. The service started, and asked: SMTP's 220 on port 25 and STARTTLS in its EHLO,
-#      and GET /api/v1/status answered 200 with the administrator's password.
+#   7. The service started, and asked: port 25 held by the service's user alone, SMTP's
+#      220 there and STARTTLS in its EHLO, and GET /api/v1/status answered 200 with the
+#      administrator's password.
 #
-# update does 2-4 for a newer release - after a pg_dump of a database in this container
-# to /var/backups/hmailserver-lxc - with the service stopped, and then 7 without the
-# password, which it does not have: the status answers 401 to a request without one.
+# update does 2-3 and the package of 4 for a newer release - after a pg_dump of a
+# database in this container to /var/backups/hmailserver-lxc - with the service
+# stopped, and then 7 without the password, which it does not have: the status answers
+# 401 to a request without one. A release that is not newer than the installed one is
+# not installed.
 #
 # The variables, from the environment or from --env-file, which is read as shell
 # assignments and then deleted (ct/hmailserver.sh writes it with mode 0600, so that a
@@ -56,7 +67,6 @@
 #   var_db_password   the external database; the password may be given in
 #   var_db_password_file instead, a file whose first line is the password
 #   var_rest_port     the REST API's and the Control Deck's port (8443); 0 leaves it off
-#   var_force         yes: update even when the installed release is the same or newer
 set -Eeuo pipefail
 
 readonly GITLAB=https://gitlab.com
@@ -81,8 +91,17 @@ trap cleanup EXIT
 
 say() { printf '  - %s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
+# The administrator's password once it is set and until it has been shown: a failure
+# after it was set shows it, as the end of an install that succeeds does, since it is
+# in no file. In this shell only, not a subshell's failure, so it is shown once.
+password_to_show=""
 fail() {
   printf '\nHMAILSERVER-LXC FAILED: %s\n' "$*" >&2
+  if [ -n "$password_to_show" ] && [ "$BASHPID" = "$$" ]; then
+    printf '\nThe administrator'"'"'s password was set before this failure. It is shown this once and kept in no file:\n\n    %s\n\n' "$password_to_show" >&2
+    printf 'The package is installed and the install did not finish; hmailserver-lxc install will not run again here.\n' >&2
+    printf 'hmailserver --set-admin-password, run as root, sets another password; hmailserver/docs/Proxmox.md, "When the install stops", says what to do next.\n' >&2
+  fi
   exit 1
 }
 trap 'fail "line $LINENO: \"$BASH_COMMAND\" exited $?"' ERR
@@ -126,7 +145,6 @@ var_db_port="${var_db_port:-5432}"
 var_db_name="${var_db_name:-hmailserver}"
 var_db_user="${var_db_user:-hmailserver}"
 var_rest_port="${var_rest_port:-8443}"
-var_force="${var_force:-no}"
 
 # ------------------------------------------------------------------ the machine
 # shellcheck disable=SC1091
@@ -280,12 +298,56 @@ wait_for_port() {
   done
 }
 
+# Mail servers Debian has installed besides this one: the packages that provide
+# mail-transport-agent (Postfix in Proxmox VE's Debian 13 template, Exim, ...).
+other_mail_servers() {
+  dpkg-query -W -f='${db:Status-Abbrev}|${Package}|${Provides}\n' 2> /dev/null \
+    | awk -F'|' '$1 ~ /^ii/ && $2 != "hmailserver" && $3 ~ /(^|[ ,])mail-transport-agent([ ,(]|$)/ { print $2 }'
+}
+# The systemd units those packages ship. Removing a package need not stop its service
+# (Debian 13's Postfix keeps listening after apt-get remove), so they are stopped first.
+mail_server_units() {
+  local name
+  for name in "$@"; do dpkg-query -L "$name" 2> /dev/null || true; done \
+    | grep -E '^(/usr)?/lib/systemd/system/[^/]+\.(service|socket)$' | sed 's|.*/||' | sort -u || true
+}
+# The messages in Postfix's and Exim's queues, which removing the package would strand.
+queued_messages() {
+  local spool
+  for spool in /var/spool/postfix/maildrop /var/spool/postfix/incoming /var/spool/postfix/active \
+    /var/spool/postfix/deferred /var/spool/postfix/hold /var/spool/exim4/input; do
+    [ ! -d "$spool" ] || find "$spool" -type f
+  done | wc -l
+}
+# The listening TCP sockets on a port, IPv4 and IPv6, with their owners: ss -e gives
+# each socket's uid from the kernel's table (none when it is root's) and its cgroup,
+# and -p names the process where root may see it.
+listeners() { ss -Hltnpe "sport = :$1" 2> /dev/null || true; }
+who_listens() {
+  local users uid cgroup name
+  users="$(printf '%s\n' "$1" | grep -o 'users:(([^)]*))' | head -n 1 || true)"
+  uid="$(printf '%s\n' "$1" | grep -o 'uid:[0-9]*' | head -n 1 || true)"
+  uid="${uid#uid:}"
+  uid="${uid:-0}"
+  cgroup="$(printf '%s\n' "$1" | grep -o 'cgroup:[^ ]*' | head -n 1 || true)"
+  name="$(getent passwd "$uid" 2> /dev/null | cut -d: -f1 || true)"
+  printf '%s\n' "${users:-a process} of the user ${name:-$uid}${cgroup:+ in ${cgroup#cgroup:}}"
+}
+
 # SMTP's greeting and EHLO on 25, then the REST API's status: with the password
 # when there is one (200), without it otherwise (401, which only the REST API gives).
 ask_server() {
-  local line extensions="" code
+  local line extensions="" code held server_uid
   systemctl is-active --quiet hmailserver || { journalctl -u hmailserver -n 40 --no-pager >&2 || true; fail "hmailserver.service is not active"; }
   wait_for_port 25 120 || { journalctl -u hmailserver -n 40 --no-pager >&2 || true; fail "nothing answers on port 25 two minutes after the start"; }
+  # Port 25 is the server's: every socket listening there is owned by the service's
+  # user, so that another mail server's 220 is not taken for this one's.
+  server_uid="$(id -u hmailserver)"
+  held="$(listeners 25)"
+  if [ -z "$held" ] || printf '%s\n' "$held" | grep -qv "uid:$server_uid "; then
+    fail "port 25 is not the server's alone: it is held by $(who_listens "$(printf '%s\n' "$held" | grep -v "uid:$server_uid " | head -n 1)"), and the server's log in /var/log/hmailserver says why it could not bind (HM4316)"
+  fi
+  say "port 25: held by the server (user hmailserver)"
   exec 3<> /dev/tcp/127.0.0.1/25
   IFS= read -r -t 15 line <&3 || fail "no greeting on port 25"
   line="${line%$'\r'}"
@@ -323,7 +385,7 @@ work="$(mktemp -d /var/tmp/hmailserver-lxc.XXXXXX)"
 
 step "Tools from Debian's archive"
 apt-get update -q || fail "apt-get update"
-apt_install ca-certificates curl jq openssl cosign || fail "the tools could not be installed"
+apt_install ca-certificates curl jq openssl cosign iproute2 || fail "the tools could not be installed"
 cosign verify-blob --help 2>&1 | grep -q -- '--new-bundle-format' \
   || fail "this cosign has no verify-blob --new-bundle-format (cosign 2.4 or later is needed)"
 say "cosign $(dpkg-query -W -f='${Version}' cosign), from Debian's archive"
@@ -340,7 +402,7 @@ fi
 
 if [ "$mode" = install ]; then
   # ------------------------------------------------------------------ install
-  [ -z "$installed" ] || fail "hmailserver $installed is installed already: run 'hmailserver-lxc update'"
+  [ -z "$installed" ] || fail "hmailserver $installed is installed already: 'hmailserver-lxc update' moves it to a newer release, and after an install that stopped part-way hmailserver/docs/Proxmox.md, \"When the install stops\", says what to do"
   case "$var_db" in
     local) db_host=127.0.0.1 ;;
     external)
@@ -358,6 +420,39 @@ if [ "$mode" = install ]; then
   printf '%s\n' "$var_db_user" | grep -Eqx '[a-z_][a-z0-9_]{0,62}' || fail "var_db_user '$var_db_user': lower-case letters, digits and _"
 
   take_release
+
+  # The server listens on 25, 587, 110 and 143 and the REST API on var_rest_port. A mail
+  # server Debian installed holds 25 (the template's Postfix on the loopback), and the
+  # server would start without it and answer on the rest.
+  step "Other mail servers and the ports"
+  others="$(other_mail_servers | tr '\n' ' ')"
+  others="${others% }"
+  if [ -n "$others" ]; then
+    queued="$(queued_messages)"
+    [ "$queued" = 0 ] || fail "$others has $queued message(s) in its queue; deliver or remove them first: the install removes $others, which holds port 25"
+    # shellcheck disable=SC2086 # one package name a word
+    for unit in $(mail_server_units $others); do
+      case "$unit" in
+        *@.*) systemctl stop "${unit%%@*}@*.${unit##*.}" > /dev/null 2>&1 || true ;;
+        *) systemctl disable --now "$unit" > /dev/null 2>&1 || true ;;
+      esac
+    done
+    # shellcheck disable=SC2086
+    apt-get remove -y -q -o Dpkg::Use-Pty=0 $others || fail "$others could not be removed"
+    say "stopped and removed $others, which held port 25 (its configuration is kept: 'apt-get install $others' puts it back)"
+    unset unit
+  else
+    say "no other mail server is installed"
+  fi
+  ports="25 110 143 587"
+  [ "$var_rest_port" = 0 ] || ports="$ports $var_rest_port"
+  for port in $ports; do
+    held="$(listeners "$port")"
+    [ -z "$held" ] || fail "port $port is in use, by $(who_listens "$held"), and the server needs it: stop that, then run this again"
+  done
+  say "the ports the server takes are free: $ports"
+  unset port held
+
   step "The package"
   apt_install "$package" || fail "the package could not be installed"
   say "$(hmailserver --version 2>&1 | head -n 1)"
@@ -398,7 +493,8 @@ SQL
   admin_password="$(random_text 24)"
   printf '%s\n' "$admin_password" | hmailserver --set-admin-password > /dev/null \
     || fail "hmailserver --set-admin-password"
-  say "the administrator's password: set (shown at the end)"
+  password_to_show="$admin_password"
+  say "the administrator's password: set (shown at the end, or with the failure if a step after this one fails)"
   runuser -u hmailserver -- hmailserver --check-config > "$work/check-config.txt" 2>&1 \
     || { cat "$work/check-config.txt" >&2; fail "hmailserver --check-config"; }
   runuser -u hmailserver -- hmailserver --create-database > "$work/create.txt" 2>&1 \
@@ -453,8 +549,10 @@ else
   fi
   var_rest_port="${var_rest_port:-0}"
   say "installed: $installed; the release: $version"
-  if dpkg --compare-versions "$installed" ge "$version" && [ "$var_force" != yes ]; then
-    say "nothing to do: $installed is $version or newer (var_force=yes installs $version over it)"
+  # apt-get installs nothing over the same version and refuses an older one, and an
+  # older server need not take a newer schema: only a newer release is installed.
+  if dpkg --compare-versions "$installed" ge "$version"; then
+    say "nothing to do: $installed is $version or newer"
     exit 0
   fi
   take_release
@@ -483,12 +581,15 @@ fi
 
 step "Done"
 if [ "$mode" = install ]; then
+  password_to_show=""
   addresses="$(hostname -I 2> /dev/null | tr ' ' '\n' | grep -v '^$' || true)"
   printf '\nProgressive Robot'"'"'s fork of hMailServer %s is running.\n\n' "$version"
   printf 'The administrator'"'"'s password, shown this once and kept in no file:\n\n    %s\n\n' "$admin_password"
   printf 'Sign in to the Control Deck as Administrator with it:\n'
   if [ "$var_rest_port" != 0 ]; then
     for address in $addresses; do
+      # An IPv6 address goes in brackets in a URL.
+      case "$address" in *:*) address="[$address]" ;; *) ;; esac
       printf '    https://%s:%s/\n' "$address" "$var_rest_port"
     done
   fi
