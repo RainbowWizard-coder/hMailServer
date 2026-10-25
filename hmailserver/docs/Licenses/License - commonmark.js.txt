@@ -14,17 +14,17 @@ written / and >, and its seventh, which blocks.js builds of common.js's OPENTAG
 and CLOSETAG, written out; inlines.js's reLinkLabel, reLinkDestinationBraces
 (without its outer group), reSpnl and reSpaceAtEndOfLine, without the ^ that a
 match at a given position makes needless, the last with $ written \Z, and its
-reLinkTitle, with its groups non-capturing and ESCAPED_CHAR written out; and
-common.js's ESCAPABLE, which inlines.js takes from it, as a string of the
-characters of its class. Its markdown_reference reads a link reference
-definition step by step as inlines.js's parseReference and parseLinkDestination
-do, and its markdown_command_ends follows blocks.js's incorporateLine and
-blockStarts: the open blocks' continuation in order, then the block starts in
-their order. The rest of the file is the maintainers'. The check is compiled
-into no program and no binary package carries it; the source tarball and the
-Debian source package carry it with the rest of build/. The release was read
-from its npm tarball, commonmark-0.31.2.tgz, whose sha512 equals the registry's
-integrity value
+reLinkTitle, without its ^ and its outer group too, its groups non-capturing
+and ESCAPED_CHAR written out; and common.js's ESCAPABLE, which inlines.js takes
+from it, as a string of the characters of its class. Its markdown_reference
+reads a link reference definition step by step as inlines.js's parseReference
+and parseLinkDestination do, and its markdown_command_ends follows blocks.js's
+incorporateLine and blockStarts: the open blocks' continuation in order, then
+the block starts in their order. The rest of the file is the maintainers'. The
+check is compiled into no program and no binary package carries it; the source
+tarball and the Debian source package carry it with the rest of build/. The
+release was read from its npm tarball, commonmark-0.31.2.tgz, whose sha512
+equals the registry's integrity value
 (sha512-2fRLTyb9r/2835k5cwcAwOj0DEc44FARnMp5veGsJ+mEAZdi52sNopLu07ZyElQUz058H43whzlERDIaaSw4rg==).
 The text below is a verbatim copy of the part of the release's LICENSE that
 covers lib/blocks.js, lib/inlines.js and lib/common.js; the rest of that

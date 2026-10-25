@@ -2335,7 +2335,8 @@ SPDX-License-Identifier = "LicenseRef-StdString AND AGPL-3.0-or-later"
 # common.js's OPENTAG and CLOSETAG, written out; inlines.js's reLinkLabel, reLinkDestinationBraces
 # (without its outer group), reSpnl and reSpaceAtEndOfLine without the ^ that a
 # match at a given position makes needless, the last with $ written \Z, and its
-# reLinkTitle with its groups non-capturing and ESCAPED_CHAR written out; and
+# reLinkTitle without its ^ and its outer group too, its groups non-capturing and
+# ESCAPED_CHAR written out; and
 # common.js's ESCAPABLE, which inlines.js takes from it, as a string of the
 # characters of its class; its markdown_reference, inlines.js's parseReference and
 # parseLinkDestination step by step; and its markdown_command_ends, which follows
