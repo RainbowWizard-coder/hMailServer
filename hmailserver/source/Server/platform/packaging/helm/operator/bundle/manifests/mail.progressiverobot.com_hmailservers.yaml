@@ -4,8 +4,9 @@
 #
 # The HMailServer resource: its spec is the chart's values (../../../hmailserver/values.yaml,
 # which says what each does), one property here for each of the chart's top-level
-# values and no other, so that a misspelt one is pruned with a warning rather than
-# passed to the chart unread (build/ci/operator-check.py holds the two to each other).
+# values and no other, so that a misspelt one is refused (kubectl's strict check) or
+# pruned, never passed to the chart unread (build/ci/operator-check.py holds the two to
+# each other).
 # Two rules are the operator's own: the database password and the administrator
 # password are never in the resource, which anyone who may read it could read, but in
 # a Secret it names (existingSecret, with the keys existingSecretKeys gives); and the

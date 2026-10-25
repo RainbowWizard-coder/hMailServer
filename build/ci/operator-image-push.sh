@@ -43,6 +43,11 @@ case "$tag" in
   *) fail "this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
 esac
 version="${tag#v}"
+# The commit's revision and time, which operator-image gives each image as its labels
+# in place of the base image's (build/ci/operator-image.sh).
+revision="${CI_COMMIT_SHA:-}"
+created="${CI_COMMIT_TIMESTAMP:-}"
+[ -n "$revision" ] && [ -n "$created" ] || fail "the job has no CI_COMMIT_SHA or CI_COMMIT_TIMESTAMP"
 case "${CI_REGISTRY_IMAGE:-}" in
   registry.gitlab.com/hmailserver/hmailserver) repository="$CI_REGISTRY_IMAGE/operator" ;;
   *) fail "the project's registry image is '${CI_REGISTRY_IMAGE:-}', not registry.gitlab.com/hmailserver/hmailserver" ;;
@@ -72,6 +77,10 @@ for arch in $platforms; do
   grep -q "\"architecture\":\"$arch\"" "$work/config-$arch.json" || fail "$tarball is not an image for $arch"
   grep -q '"os":"linux"' "$work/config-$arch.json" || fail "$tarball is not an image for linux"
   grep -q "\"org.opencontainers.image.version\":\"$version\"" "$work/config-$arch.json" || fail "$tarball is not the operator $version"
+  grep -qF "\"org.opencontainers.image.revision\":\"$revision\"" "$work/config-$arch.json" \
+    || fail "$tarball's org.opencontainers.image.revision is not the commit $revision"
+  grep -qF "\"org.opencontainers.image.created\":\"$created\"" "$work/config-$arch.json" \
+    || fail "$tarball's org.opencontainers.image.created is not the commit's time $created"
 done
 
 regctl index create "$layout:$version" --media-type application/vnd.docker.distribution.manifest.list.v2+json \

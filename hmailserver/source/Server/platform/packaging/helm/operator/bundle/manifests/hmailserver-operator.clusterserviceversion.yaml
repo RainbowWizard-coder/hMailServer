@@ -13,10 +13,12 @@
 # them namespaced (permissions, not clusterPermissions): the chart makes a
 # StatefulSet, a Service and a Secret; Helm keeps each release in a Secret; the
 # operator reads and updates its resources, records events and holds a lease to lead.
-# Installed for one namespace (OwnNamespace, SingleNamespace) they are a Role there;
-# installed for all, Operator Lifecycle Manager makes them a ClusterRole, and the
-# operator may then read every Secret of the cluster, as any operator that manages
-# Secrets in every namespace must.
+# build/ci/operator-check.py refuses any other grant. Installed for its own namespace
+# (OwnNamespace) they are a Role there; installed for another (SingleNamespace),
+# Operator Lifecycle Manager gives the same Role in the operator's own namespace as
+# well, so it belongs in a namespace of its own; installed for all, OLM makes them a
+# ClusterRole, and the operator may then read every Secret of the cluster, as any
+# operator that manages Secrets in every namespace must.
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
@@ -80,12 +82,15 @@ spec:
     Each **HMailServer** resource is one installation of the project's own Helm chart,
     the release's, and its spec is the chart's values: a StatefulSet of one pod with
     volumes for the message store, the logs and the configuration, a Service for the
-    mail ports (25, 465, 587, 143, 993, 110, 995 and 4190) and the REST listener
-    (8045), and the first start securing the new installation (a self-signed
-    certificate, STARTTLS on 25, 587, 110 and 143). The operator installs the chart
-    when a resource is made, upgrades it when the resource or the operator changes,
-    puts back what is changed or deleted by hand, and uninstalls it when the resource
-    is deleted. It is operator-sdk's Helm operator; the server's own settings are the
+    mail ports and the REST listener, and the first start securing the new
+    installation with a self-signed certificate. A new installation answers SMTP on 25
+    and 587, IMAP on 143 and POP3 on 110, each with STARTTLS, and, given its
+    certificate, the REST listener, the Control Deck and the webmail over TLS on 8045.
+    The Service carries 465, 993, 995 and 4190 (ManageSieve) as well, which answer once
+    their TCP/IP ports are added in the server's settings. The operator installs the
+    chart when a resource is made, upgrades it when the resource or the operator
+    changes, puts back what is changed or deleted by hand, and uninstalls it when the
+    resource is deleted. It is operator-sdk's Helm operator; the server's own settings are the
     chart's `settings` and `properties` values, and the
     [chart's README](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/source/Server/platform/packaging/helm/hmailserver/README.md)
     says what each value does.

@@ -11,7 +11,7 @@
 #                        operator's image built for linux/amd64 and linux/arm64 from
 #                        platform/packaging/helm/operator/Dockerfile, with the tree's
 #                        chart copied in, stamped with the release's version and held
-#                        to the release's packaged chart (helm-chart-package's), and
+#                        to the packaged chart the published release carries, and
 #                        kept as two tarballs (build/ci/operator-image.sh);
 #   operator-image-push  regctl's image, container-image's: both joined under one
 #                        index and pushed to the project's container registry as
@@ -25,19 +25,25 @@
 #                        build/ci/operator-bundle.sh).
 #
 # They follow container-image-sign: the operator installs the release's own image by
-# default, so it is published only once that image is pushed, started and signed. For
+# default, so it is published only once that image is pushed, started and signed. Like
+# the image jobs, which a maintainer may start weeks after the tag, they take nothing
+# from a job's artifact that may have expired by then: operator-image takes the chart
+# package from the published release, as container-image-deb takes the .deb files,
+# and each later job needs only the one before it, which it follows at once; their own
+# artifacts are kept as the server's image jobs keep theirs, the tarballs seven days
+# and the rest 90. For
 # a protected v* tag only (.release-rules); nothing here runs in a branch's pipeline,
 # a merge request's or a schedule's. HM_PUBLISH_IMAGE, the project's switch for the
 # release's image, is the operator's too: operator-image and operator-image-push
 # refuse while it is anything but 1, read when they run, as the server's image jobs
 # read it. Nothing here holds a secret: the push and the signatures' upload take the
-# job's own registry credentials, and Sigstore the job's ID token.
+# job's own registry credentials, and Sigstore the job's ID token. build/ci/
+# operator-check.py, which chart-and-compose runs on every change to this file or to
+# build/ci/operator-*, holds these jobs as they are written here (OPERATOR_JOBS).
 operator-image:
   stage: release
   image: !reference [linux-image, image]
   needs:
-    - job: helm-chart-package
-      artifacts: true
     - job: container-image-sign
       artifacts: false
   timeout: 20 minutes

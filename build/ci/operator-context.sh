@@ -22,8 +22,9 @@
 #           keeps the tree's 0.1.0 and "latest", the image tag a checkout's chart
 #           installs. Those two lines are all that may differ from the tree's chart.
 # CHART_PACKAGE
-#           the release's packaged chart (helm-chart/hmailserver-chart-VERSION.tgz,
-#           helm-chart-package's): every file of it but Chart.yaml, which helm package
+#           the release's packaged chart (hmailserver-chart-VERSION.tgz, which
+#           helm-chart-package makes and operator-image.sh takes from the published
+#           release): every file of it but Chart.yaml, which helm package
 #           writes anew, must be the copy's byte for byte, and the copy must have no
 #           file the package has not, so that the operator's chart is the release's.
 set -eu
@@ -51,17 +52,48 @@ if [ -n "$version" ]; then
 fi
 [ -z "$package" ] || [ -n "$version" ] || fail "a chart package is held to a release's version: give VERSION too"
 
-# The base image by digest, and the two files the Helm operator reads, as the
-# Dockerfile copies them.
-grep -Eqx 'FROM quay\.io/operator-framework/helm-operator:v[0-9]+\.[0-9]+\.[0-9]+@sha256:[0-9a-f]{64}' "$operator/Dockerfile" \
-  || fail "$operator/Dockerfile's FROM is not quay.io/operator-framework/helm-operator by its tag and digest"
-[ "$(grep -c '^FROM ' "$operator/Dockerfile")" = 1 ] || fail "$operator/Dockerfile has more than one FROM"
-! grep -Eq '^(RUN|ADD)[[:space:]]' "$operator/Dockerfile" || fail "$operator/Dockerfile runs or fetches something; it copies two things and nothing else"
-# The Dockerfile's own ${HOME}, as it is written there, not this shell's.
+# The Dockerfile, held to an allow-list and read as Docker and kaniko read it: an
+# instruction's first word in any case and after any indentation, comments and blank
+# lines dropped, continued lines joined. One instruction a line, its word in upper case
+# and its arguments' white space made single spaces, as build/ci/operator-check.py's
+# dockerfile_instructions reads it; a parser directive (which could change the escape
+# character or fetch a frontend), or a comment or blank line inside a continued
+# instruction, is a line of its own that no rule below allows.
+instructions=$(awk '
+  { sub(/\r$/, "") }
+  /^[ \t]*#/ {
+    if (tolower($0) ~ /^[ \t]*#[ \t]*(syntax|escape|check)[ \t]*=/) print "!DIRECTIVE line " NR
+    if (pending != "") print "!COMMENT-IN-CONTINUATION line " NR
+    next
+  }
+  /^[ \t]*$/ { if (pending != "") print "!BLANK-IN-CONTINUATION line " NR; next }
+  {
+    text = $0
+    continued = sub(/\\[ \t]*$/, "", text)
+    pending = pending " " text
+    if (continued) next
+    gsub(/[ \t]+/, " ", pending)
+    sub(/^ /, "", pending)
+    sub(/ $/, "", pending)
+    word = pending
+    sub(/ .*$/, "", word)
+    rest = substr(pending, length(word) + 2)
+    print toupper(word) (rest == "" ? "" : " " rest)
+    pending = ""
+  }
+  END { if (pending != "") print "!UNFINISHED" }
+' "$operator/Dockerfile") || fail "$operator/Dockerfile could not be read"
+printf '%s\n' "$instructions" | head -n 1 \
+  | grep -Eqx 'FROM quay\.io/operator-framework/helm-operator:v[0-9]+\.[0-9]+\.[0-9]+@sha256:[0-9a-f]{64}' \
+  || fail "$operator/Dockerfile's first instruction is not FROM quay.io/operator-framework/helm-operator by its tag and digest, with no flag or stage name"
+[ "$(printf '%s\n' "$instructions" | grep -c '^FROM ')" = 1 ] || fail "$operator/Dockerfile has more than one FROM"
+odd=$(printf '%s\n' "$instructions" | grep -Ev '^(FROM|ARG|LABEL|ENV|WORKDIR|COPY) ' | head -n 1)
+[ -z "$odd" ] || fail "$operator/Dockerfile has '$odd': it may have FROM, ARG, LABEL, ENV, WORKDIR and its two COPY lines alone, so that it runs and fetches nothing"
+# The two files the Helm operator reads, as the Dockerfile copies them, with no flag:
+# the Dockerfile's own ${HOME}, as it is written there, not this shell's.
 # shellcheck disable=SC2016
-grep -qx 'COPY watches.yaml ${HOME}/watches.yaml' "$operator/Dockerfile" || fail "$operator/Dockerfile does not copy watches.yaml"
-# shellcheck disable=SC2016
-grep -qx 'COPY helm-charts ${HOME}/helm-charts' "$operator/Dockerfile" || fail "$operator/Dockerfile does not copy helm-charts"
+[ "$(printf '%s\n' "$instructions" | grep '^COPY ')" = 'COPY watches.yaml ${HOME}/watches.yaml
+COPY helm-charts ${HOME}/helm-charts' ] || fail "$operator/Dockerfile's COPY lines are not exactly its two, watches.yaml and helm-charts"
 grep -qx '  chart: helm-charts/hmailserver' "$operator/watches.yaml" || fail "$operator/watches.yaml does not name helm-charts/hmailserver"
 
 mkdir -p "$out/helm-charts"
@@ -102,7 +134,7 @@ count=$(wc -l < "$listing" | tr -d ' ')
 echo "the chart copied in: $count files, each the tree's$( [ -z "$version" ] || printf ', Chart.yaml stamped %s' "$version")"
 
 if [ -n "$package" ]; then
-  [ -f "$package" ] || fail "$package is not here: helm-chart-package's artifact did not arrive"
+  [ -f "$package" ] || fail "$package is not here"
   unpacked="$scratch/package"
   mkdir -p "$unpacked"
   tar -xzf "$package" -C "$unpacked" || fail "$package could not be unpacked"

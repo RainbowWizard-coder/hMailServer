@@ -21,8 +21,10 @@ else: not whether a newer image exists (Renovate's work), and not whether the by
 are safe (the scans').
 
 What is read: .gitlab-ci.yml and the files under .gitlab/ci/, every file under build/
-(the CI scripts, the lab, the fixtures' builders), and every Dockerfile, *.Dockerfile,
-Containerfile and Compose file of the tree - the tracked files, as git ls-files lists
+(the CI scripts, the lab, the fixtures' builders), every Dockerfile, *.Dockerfile,
+Containerfile and Compose file of the tree, and the Kubernetes operator's scorecard
+configuration, whose test images operator-sdk scorecard pulls by digest (SCANNED_FILES)
+- the tracked files, as git ls-files lists
 them, or every file there when git is not to be had (a job's image without it). Not
 the documents, which record digests as they were, and not the help pages made from
 them. A reference is a name, an optional tag and @sha256: with 64 hex digits, wherever
@@ -71,7 +73,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REFERENCE = re.compile(r"(?<![A-Za-z0-9._/@:])((?:[a-z0-9][a-z0-9.-]*(?::[0-9]+)?/)?[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)*)"
                        r"(?::([A-Za-z0-9_][A-Za-z0-9_.-]{0,127}))?@(sha256:[0-9a-f]{64})(?![0-9a-f])")
 SCANNED_DIRECTORIES = (".gitlab/ci/", "build/")
-SCANNED_FILES = (".gitlab-ci.yml",)
+SCANNED_FILES = (".gitlab-ci.yml", "hmailserver/source/Server/platform/packaging/helm/operator/bundle/tests/scorecard/config.yaml")
 CONTAINER_FILE = re.compile(r"(?:^|/)(?:Dockerfile[^/]*|[^/]*\.Dockerfile|Containerfile[^/]*|(?:docker-)?compose[^/]*\.ya?ml)$")
 ACCEPT = ", ".join(["application/vnd.oci.image.index.v1+json", "application/vnd.oci.image.manifest.v1+json",
                     "application/vnd.docker.distribution.manifest.list.v2+json",
