@@ -933,7 +933,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria`, `from_address`, `set_header` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
 | `POST /api/v1/accounts/{address}/unlock` | ? | `compromise_lock_cleared`, `unlock_account` | yes |
-| `POST /api/v1/acme/run` | ? | `already_running` | - |
+| `POST /api/v1/acme/run` | ? | `already_running` | yes |
 | `POST /api/v1/addresses/erase` | ? | `address`, `include_archive`, `include_logs` | yes |
 | `POST /api/v1/administrator/second-factor` | ? | - | - |
 | `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
@@ -1196,7 +1196,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `rules` | `GET /api/v1/domains`, `GET /api/v1/domains/{}/rules`, `POST /api/v1/domains/{}/rules`, `DELETE /api/v1/domains/{}/rules/{}`, `PUT /api/v1/domains/{}/rules/{}`, `GET /api/v1/openapi.json`, `GET /api/v1/routes`, `GET /api/v1/rules`, `POST /api/v1/rules`, `DELETE /api/v1/rules/{}`, `PUT /api/v1/rules/{}` |
 | `routes` | `GET /api/v1/openapi.json`, `GET /api/v1/routes`, `POST /api/v1/routes`, `DELETE /api/v1/routes/{}`, `PUT /api/v1/routes/{}` |
 | `remotedomains` | `GET /api/v1/openapi.json`, `GET /api/v1/remote-domains`, `POST /api/v1/remote-domains`, `POST /api/v1/remote-domains/verification-cache/clear`, `DELETE /api/v1/remote-domains/{}`, `PUT /api/v1/remote-domains/{}` |
-| `certs` | `GET /api/v1/certificates`, `POST /api/v1/certificates`, `DELETE /api/v1/certificates/{}`, `GET /api/v1/openapi.json` |
+| `certs` | `GET /api/v1/acme`, `POST /api/v1/acme/run`, `GET /api/v1/certificates`, `POST /api/v1/certificates`, `DELETE /api/v1/certificates/{}`, `GET /api/v1/openapi.json` |
 | `ports` | `GET /api/v1/certificates`, `GET /api/v1/openapi.json`, `GET /api/v1/ports`, `POST /api/v1/ports`, `DELETE /api/v1/ports/{}`, `PUT /api/v1/ports/{}`, `POST /api/v1/server/reinitialize` |
 | `roles` | `GET /api/v1/role-assignments`, `DELETE /api/v1/role-assignments/{}`, `PUT /api/v1/role-assignments/{}`, `GET /api/v1/roles`, `DELETE /api/v1/roles/{}` |
 | `devices` | `GET /api/v1/accounts/{}/devices`, `DELETE /api/v1/accounts/{}/devices/{}` |

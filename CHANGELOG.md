@@ -953,6 +953,14 @@ with `--check`).
   `ssl certificate`, `ACME (automatic)`, `check requested` (*Check requested* on the Control Panel's audit trail page,
   in its seventeen languages). Never a key, a nonce or the CA account in either.
 
+- **New: the Control Deck's *Certificates* page shows the ACME certificate and asks for a check.** A card above the
+  certificate list, from `GET /api/v1/acme`: the hosts `AcmeDomains` lists, the names the certificate carries, its
+  subject and expiry, whether a check is running and at which step, a notice naming the hosts it lacks (or saying it
+  names them all), the last check and the next, the last failed attempt with its reason and the CA's words, and *Check
+  now* for a credential that holds `manage_server`, with the time the next request is allowed when it must wait. A
+  refusal of the run comes back as the card's error, and a credential the status is refused to sees the page without
+  the card. Six new texts, in the twenty languages the Deck speaks.
+
 ### Build and tests
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
@@ -2179,6 +2187,15 @@ with `--check`).
   checks a gathered file's major and minor file version against the entry's `version` and only reports its hash,
   since a Visual Studio update changes the runtime's bytes, as ThirdPartyBinaries.md says; the definition now says the
   same.
+
+- **New: `hmailserver/docs/Acme.md`, automatic certificates from Let's Encrypt or another ACME CA.** The settings and
+  when each applies, the four rules that make a certificate due (none, a host it does not name, the CA's renewal
+  window, two thirds of its life), when a check runs, the run's answers and the status's members, the spacing between
+  checks and the Let's Encrypt limits it is measured against, what a failed attempt leaves and what a certificate must
+  be to be installed, who may ask and what the audit trail keeps, the steps for adding a customer's mail host over
+  COM or REST, and what it does not do (one certificate for every host, http-01 only). The Control Panel's *Automatic
+  certificates (ACME)* page opens it as its help, `README.md` and `SecureDefaults.md` point to it, `SettingsApply.md`
+  lists the subscription on `AcmeDomains`, and the help pages the server serves are regenerated.
 
 - **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the
   release as its latest version.** GitHub's page shows the manifest pushed last as the latest version, with its pull

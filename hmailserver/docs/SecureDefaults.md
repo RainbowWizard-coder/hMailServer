@@ -85,7 +85,8 @@ click through the one an attacker's certificate raises. Replace it:
   `AcmeContactEmail` and `AcmeDomains`, publish the names and let the challenge port be reached. When
   the first certificate arrives the ACME client **gives it to every listener that
   holds the self-signed one**, as it gives it to a TLS listener with none - and
-  leaves alone any listener holding a certificate somebody chose.
+  leaves alone any listener holding a certificate somebody chose. A host added to
+  `AcmeDomains` later is issued for at once ([Acme.md](Acme.md)).
 * **With your own**: add it on the certificates page (Control Panel: *SSL
   certificates*; Deck: *Certificates*) and set it on each port.
 

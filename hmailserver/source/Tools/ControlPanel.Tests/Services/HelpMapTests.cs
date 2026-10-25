@@ -57,7 +57,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("publicfolders", "PublicFoldersAndGroups.md", null)]
       [InlineData("groups", "PublicFoldersAndGroups.md", "Groups")]
       [InlineData("certs", "SecureDefaults.md", "The certificate")]
-      [InlineData("acme", "SecureDefaults.md", "The certificate")]
+      [InlineData("acme", "Acme.md", "Automatic certificates (ACME)")]
       [InlineData("tlsoverview", "SecureDefaults.md", "What a new installation starts with")]
       [InlineData("greylistwhitelist", "Greylisting.md", "What greylisting does")]
       [InlineData("hardening", "DiagnosingStalledMail.md", "Settings that bound each stage")]

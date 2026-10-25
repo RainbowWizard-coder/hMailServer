@@ -142,6 +142,7 @@ started, and can take a new one in place, subscribes
 | `ScheduledBackupTime`, `ScheduledBackupIntervalMinutes` | Registers the backup schedule's task when a schedule is saved on a server that started without one. A registered task reads the time, the interval, the keep count and the age on every tick, so it needs nothing else. |
 | `OtelEndpoint`, `OtelServiceName`, `OtelMetricsEndpoint`, `OtelMetricsInterval`, `OtelLogsEndpoint` | Restarts the exporter in place, under a lock of its own that a reinitialise's restart shares. |
 | `CalDavRedirectUrl`, `CardDavRedirectUrl` | Drops the web-services listener's one-minute cache of the redirect targets. |
+| `AcmeDomains` | Read by each ACME check when it runs already; the subscriber starts a check now when the saved list names a host the certificate in use does not, rather than at the next hour, and nothing when ACME is off, the list is empty or the certificate already names every host ([Acme.md](Acme.md)). |
 | `SimulateDatabaseFailureFor` | The injector reads the value per statement already; the subscriber says `HM6119` the moment it is set, as a start does. |
 | `MaxSubmissionsPerIPPerMinute`, `MaxOutboundPerDestinationPerMinute` | Read per transaction already; the subscriber starts each limit's one-minute window again (`RateLimiter::ClearBuckets`), so a saved limit counts from when it was saved, as a restart always made it. Kept, the events counted under the old limit refused the first transaction a new limit saw - found by `SMTP.RateShaping` run within a minute of a test that had used the limit. |
 

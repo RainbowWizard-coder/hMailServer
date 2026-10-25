@@ -1437,6 +1437,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="actadd"){readRuleForm();editing.rule.actions.push({type:ruleWords().types[0]||"delete"});renderRuleEditor();}
   else if(d.act==="actdel"){readRuleForm();editing.rule.actions.splice(Number(d.i),1);renderRuleEditor();}
   else if(d.act==="certadd")addCertificate();
+  else if(d.act==="acmerun")runAcmeCheck();
   else if(d.act==="certdel")deleteCertificate(Number(d.id),d.name);
   else if(d.act==="portnew")openPort(0);
   else if(d.act==="portedit")openPort(Number(d.id));
@@ -6439,10 +6440,60 @@ async function deleteRule(id,name){
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_rule_"+id,e.message);}
 }
 
-/* ---------- Certificates ---------- */
+/* ---------- Certificates ----------
+   The certificate ACME issues heads the page: what GET /api/v1/acme says of it -
+   the names it carries against the names ACME is set to issue for, its expiry,
+   the last check and the next, the last attempt to issue that failed and why -
+   and, for a credential that holds manage_server, Check now (POST
+   /api/v1/acme/run). Nothing here the API does not already hold to its rules:
+   the run takes no names, and its refusals (the minute between requests, the
+   twenty minutes after a failure, a CA's rate limit) come back as the error. A
+   credential the status is refused to sees the page without the card. */
+function acmeCardHtml(a){
+  if(!a)return "";
+  if(!a.enabled)return `<div class="sect"><h2>${t("Automatic certificate (ACME)")}</h2><div class="card flat">
+      <p class="note">${t("ACME is off: AcmeEnabled is not set, so no certificate is issued or renewed.")}</p></div></div>`;
+  const c=a.certificate;
+  const missing=(a.missing_domains||[]).join(", ");
+  const cover=c?(missing?noticeHtml("warn",tf("The certificate does not name {0}; a check issues one that does.",missing))
+                       :noticeHtml("info",t("The certificate names every host in AcmeDomains."))):"";
+  const last=a.last_attempt,issue=a.last_issuance,run=a.running;
+  const when=last?tf("Last checked {0}, next {1}",auditWhen(last.finished_at),auditWhen(a.next_scheduled_check_at)):"";
+  const failed=issue&&issue.outcome==="failed"?noticeHtml("warn",tf("The last attempt failed at {0}: {1}",auditWhen(issue.finished_at),
+    (issue.error||issue.failed_step||"")+(issue.ca_problem&&issue.ca_problem.detail?" ("+issue.ca_problem.detail+")":""))):"";
+  const wait=a.requests&&!a.requests.allowed_now&&a.requests.next_allowed_at?tf("The next check can be asked for at {0}.",auditWhen(a.requests.next_allowed_at)):"";
+  return `<div class="sect"><h2>${t("Automatic certificate (ACME)")}</h2><div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/acme","get").summary||"")}</p>
+      <div class="tablewrap"><table><tbody>
+        <tr><th>${t("Domains")}</th><td>${escHtml((a.domains||[]).join(", ")||"—")}</td></tr>
+        <tr><th>${t("Names")}</th><td>${escHtml(c?(c.names||[]).join(", "):"—")}</td></tr>
+        <tr><th>${t("Subject")}</th><td>${escHtml(c?c.subject||"—":"—")}</td></tr>
+        <tr><th>${t("Expires")}</th><td>${escHtml(c?auditWhen(c.not_after):"—")}</td></tr>
+        <tr><th>${t("Status")}</th><td>${escHtml(run?t("Running")+" · "+(run.step||run.state):(last?last.outcome:"—"))}</td></tr>
+      </tbody></table></div>
+      ${cover}${failed}
+      <div class="row" style="gap:10px;align-items:center">
+        <span class="muted">${escHtml(when)}</span>
+        ${may("manage_server")?'<button class="btn ghost sm" data-act="acmerun">'+t("Check now")+"</button>":""}
+        <span class="muted">${escHtml(wait)}</span>
+      </div>
+      <div class="err" id="err_acme"></div>
+    </div></div>`;
+}
+async function runAcmeCheck(){
+  setErr("err_acme","");
+  try{
+    await api("/api/v1/acme/run",{method:"POST",body:"{}"});
+    toast(t("A check is queued."));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_acme",e.message);}
+}
 async function renderCerts(){
   await loadSpec();
   cache.certificates=asList(await api("/api/v1/certificates"),"certificates");
+  let acme=null;
+  try{acme=await api("/api/v1/acme");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}acme=null;}
   const rows=cache.certificates.map(c=>`
     <tr><td><b>${escHtml(c.name)}</b><div class="hint muted">${tf("id {0}",escHtml(c.id))}</div></td>
         <td><code>${escHtml(c.certificate_file||"—")}</code></td>
@@ -6452,6 +6503,7 @@ async function renderCerts(){
           <div class="err" id="err_cert_${escHtml(c.id)}"></div></td></tr>`).join("");
   const props=properties("/api/v1/certificates","post");
   $("#content").innerHTML=`<div class="view">
+    ${acmeCardHtml(acme)}
     <div class="card flat">
       <p class="note">${escHtml(operation("/api/v1/certificates","get").description||"")}</p>
       <div class="tablewrap"><table><thead><tr><th>${t("Name")}</th><th>${t("Certificate file")}</th><th>${t("Private key file")}</th><th></th></tr></thead>

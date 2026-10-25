@@ -671,7 +671,7 @@ Automatic certificates (Let's Encrypt):
    AcmeReuseKey=1                ; keep the same key across renewals (keeps TLSA records valid)
    </pre>
 
-   Issued certificates are stored in `Data\ACME`, registered as an SSL certificate, assigned to TLS ports without one, and loaded without a restart.
+   Issued certificates are stored in `Data\ACME`, registered as an SSL certificate, assigned to TLS ports without one, and loaded without a restart. A certificate that does not name every host in `AcmeDomains` is issued again at once, and a save of `AcmeDomains` that adds a host starts that check; `GET /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the certificate names and how the last check went, and `POST /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for a check now, spaced out so as not to spend the CA's limits. [hmailserver/docs/Acme.md](hmailserver/docs/Acme.md) has the rules.
 
 Web services (MTA-STS hosting, client autoconfiguration, CardDAV and CalDAV):
 
