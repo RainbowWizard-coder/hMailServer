@@ -3444,13 +3444,13 @@ the Control Panel alone:
 | Case | Made before the installer | Expected |
 |---|---|---|
 | `precreated-admin` | the program folder and `Bin`, inheriting the folder above | hardened before the files (R2), then the whole run |
-| `precreated-user` | the same owned by `hmsmokeuser`, and `Bin\notes.txt` it owns | the same, the folders the Administrators' with no entry for it, the file named in Inno's log (R4) |
+| `precreated-user` | the same owned by `hmsmokeuser`, and `Bin\notes.txt` it owns | the same, the folders the Administrators' with no entry for it, the file named in Inno's log (R4) and left by the uninstall, which removes only what it installed |
 | `broad-entry` | the program folder with an entry of its own for `Authenticated Users` Modify, `Bin\notes.txt` owned by `hmsmokeuser` | exit 0, both said in Inno's log (R4) |
 | `link-user` | the program folder a junction to `C:\hm-linktarget` owned by `hmsmokeuser` | exit 7, the refusal and its remedy in the log, nothing written through it (R3) |
 | `link-admin` | the same made by the administrator, with a list that lets another account change it | exit 7, likewise (R3) |
-| `link-admin-only` | the same given the remedy's list (`icacls /L`) | exit 0, installed through it, its target hardened (R3) |
+| `link-admin-only` | the same given the remedy's list (`icacls /L`) | exit 0, installed through it, its target hardened (R3); `Bin` and `ControlPanel` hardened by `/ProtectFolders`, or, for the Control Panel alone, which runs none, holding what the target hands down and nothing of their own |
 | `bin-link-user` | the program folder made by the administrator, `Bin` a junction owned by `hmsmokeuser` | exit 7, nothing written through it (R3) |
-| `nested-new` | nothing: `--install-directory` two or more folders below one that is there | every folder setup made with permissions of its own (R1); with `--components controlpanel`, none left by the uninstall |
+| `nested-new` | nothing: `--install-directory` two or more folders below one that is there | every folder setup made with permissions of its own (R1); with `--components controlpanel`, each given to the uninstaller, and none left but those that hold the `Bin\hMailServer.INI` every uninstall keeps |
 
 A run with `--components`, or of a case a whole server installation does not run (all
 but the two `precreated` ones), is one installer, the case's checks and an uninstall.

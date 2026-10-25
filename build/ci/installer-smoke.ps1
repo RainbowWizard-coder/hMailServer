@@ -308,10 +308,13 @@ $State = @{
    Database = $null
    DatabaseIniType = ''
    DatabaseScript = ''
-   # -FolderCase: the standard account the run makes, and the topmost folder setup is
-   # to make (nested-new).
+   # -FolderCase: the standard account the run makes, the topmost folder setup is to
+   # make (nested-new), and the files the case puts in the program folder before the
+   # first installer, as paths below it (Bin\notes.txt): not the installer's, so an
+   # uninstall leaves them, as Inno Setup leaves every file it did not install.
    SmokeAccountSid = ''
    TopMade = ''
+   CaseFiles = @()
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -2347,16 +2350,23 @@ function Test-Uninstalled {
    # /GrantServiceAccess makes it empty when a new installation's service moves to
    # NT SERVICE\hMailServer (docs/ServiceAccount.md), so an installation whose service
    # stays LocalSystem - every run until the new installation of 6.3.4 on 27
-   # September 2026 - has none. Everything else is a program file, and must be gone.
+   # September 2026 - has none. And the files a -FolderCase put in the program folder
+   # before the first installer ($State.CaseFiles, the precreated-user case's
+   # Bin\notes.txt) were never the installer's: Inno Setup removes only what it
+   # installed, so an uninstall leaves them where they were, which is what is held -
+   # each of them still there. Everything else is a program file, and must be gone.
    $keptPattern = '^(Bin\\hMailServer\.ini|Bin\\hMailServerApiKeys\.ini|Database\\.+|Data\\.+|Logs\\.+|Events\\.+|Addons\\(?!(DataDirectorySynchronizer|ImportTool)\\).+)$'
    $left = @()
    if (Test-Path -LiteralPath $app) {
       $left = @(Get-ChildItem -LiteralPath $app -Recurse -File -Force | ForEach-Object { $_.FullName.Substring($app.Length + 1) })
    }
-   $programFiles = @($left | Where-Object { $_ -notmatch $keptPattern })
+   $caseFiles = @($State.CaseFiles)
+   $programFiles = @($left | Where-Object { $_ -notmatch $keptPattern -and $caseFiles -notcontains $_ })
    $keptFiles = @($left | Where-Object { $_ -match $keptPattern })
 
    [void] (Test-Step 'uninstall: the program files are gone' {
+         $gone = @($caseFiles | Where-Object { $left -notcontains $_ })
+         if ($gone.Count -gt 0) { throw "the uninstall removed $($gone -join ', '), which the case made before the installer and the installer did not install" }
          if ($programFiles.Count -gt 0) {
             Write-Detail $programFiles 30
             $log = Join-Path $LogDirectory 'uninstall.log'
@@ -2374,7 +2384,7 @@ function Test-Uninstalled {
          $binaries = @(Get-ChildItem -LiteralPath $app -Recurse -File -Force -ErrorAction SilentlyContinue |
                Where-Object { @('.exe', '.dll', '.tlb') -contains $_.Extension.ToLowerInvariant() })
          if ($binaries.Count -gt 0) { throw "binaries are left: $(($binaries | ForEach-Object { $_.FullName.Substring($app.Length + 1) }) -join ', ')" }
-         "$($left.Count) files left under $app, every one of them kept on purpose"
+         "$($left.Count) files left under $app, every one of them kept on purpose$(if ($caseFiles.Count -gt 0) { " or made by the case before the installer ($($caseFiles -join ', '))" })"
       })
 
    Write-Info 'uninstall: what is left under the installation directory' (($keptFiles | ForEach-Object { ($_ -split '\\')[0] } | Group-Object | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ', ')
@@ -2742,6 +2752,7 @@ function New-FolderCase {
          Set-OwnedByAccount (Join-Path $app 'Bin')
          Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
          Set-OwnedByAccount (Join-Path $app 'Bin\notes.txt')
+         $State.CaseFiles = @('Bin\notes.txt')
          "$app, $app\Bin and $app\Bin\notes.txt owned by $SmokeAccountName ($($State.SmokeAccountSid)) with Full control of its own"
       }
       'broad-entry' {
@@ -2750,6 +2761,7 @@ function New-FolderCase {
          if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
          Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
          Set-OwnedByAccount (Join-Path $app 'Bin\notes.txt')
+         $State.CaseFiles = @('Bin\notes.txt')
          "$app made by the administrator with an entry of its own giving Authenticated Users Modify; $app\Bin\notes.txt owned by $SmokeAccountName"
       }
       'link-user' {
@@ -2869,14 +2881,33 @@ function Invoke-FocusedRun([string] $Version) {
                if (-not (Select-String -LiteralPath $log -Pattern ([regex]::Escape($app) + ' is a link that only SYSTEM, the Administrators and TrustedInstaller control') -Quiet)) { throw 'the setup log does not say the link was gone through' }
                $files = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -File -ErrorAction SilentlyContinue)
                if ($files.Count -eq 0) { throw "nothing was installed in $LinkTarget" }
+               # The target - the program folder - hardened before the files: nothing
+               # inherited. Bin and ControlPanel, which the case does not make: in an
+               # installation of the server /ProtectFolders hardens them after the files, so
+               # they inherit nothing either; in an installation of the Control Panel
+               # alone, which runs no /ProtectFolders, Inno Setup makes them in the
+               # target setup has already hardened (PrepareProgramFolders hardens a Bin
+               # and a ControlPanel that are there, and these are not), so they hold
+               # what the target hands down and nothing of their own - which lets no
+               # group of every user change them, as the target does not.
+               $withServer = (-not $Components) -or (@($Components -split ',' | ForEach-Object { $_.Trim() }) -contains 'server')
                $writers = @()
+               $said = @()
                foreach ($folder in @($LinkTarget, (Join-Path $LinkTarget 'Bin'), (Join-Path $LinkTarget 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ }) {
                   $moment = Get-FolderMoment $folder
-                  if (-not $moment.Protected) { throw "$folder inherits from the folder above" }
+                  if ($moment.Error) { throw "the permissions of $folder could not be read: $($moment.Error)" }
+                  if ($TrustedOwnerSids -notcontains $moment.Owner) { throw "$folder is owned by $($moment.Owner)" }
+                  if ($moment.Protected -and $moment.Inherited -eq 0) { $said += "$folder its own" }
+                  elseif ($folder -eq $LinkTarget -or $withServer) { throw "$folder inherits from the folder above: $($moment.Sddl)" }
+                  else {
+                     $own = @((Get-Acl -LiteralPath $folder).GetAccessRules($true, $false, [System.Security.Principal.SecurityIdentifier]))
+                     if ($own.Count -gt 0) { throw "$folder, made by Inno Setup in the hardened $LinkTarget, has entries of its own besides what it inherits: $($moment.Sddl)" }
+                     $said += "$folder what $LinkTarget hands down"
+                  }
                   foreach ($writer in $moment.Broad) { $writers += "$folder ($writer)" }
                }
                if ($writers.Count -gt 0) { throw "a group of every user may change: $($writers -join '; ')" }
-               "$($files.Count) files in $LinkTarget; the link: $(Get-LinkList $app)"
+               "$($files.Count) files in $LinkTarget ($($said -join '; ')); the link: $(Get-LinkList $app)"
             })
       }
       'nested-new' {
@@ -2919,9 +2950,30 @@ function Invoke-FocusedRun([string] $Version) {
    if ($null -ne (Get-UninstallEntry)) {
       [void] (Test-Step "case ${FolderCase}: the uninstaller ran silently and returned 0" { Invoke-Uninstall })
       if ($FolderCase -eq 'nested-new') {
-         [void] (Test-Step "case ${FolderCase}: the uninstall left none of the folders setup made" {
-               if (Test-Path -LiteralPath $State.TopMade) { throw "$($State.TopMade) is still there: $((Get-ChildItem -LiteralPath $State.TopMade -Recurse -Force | Select-Object -First 5 | ForEach-Object { $_.FullName }) -join ', ')" }
-               "$($State.TopMade) is gone"
+         # Every folder setup made, from the program folder up to the topmost, was
+         # given to the uninstaller (section_dirs.iss), which tries to remove each:
+         # its log says so. Bin\hMailServer.INI, which every installation writes and
+         # every uninstall keeps on purpose ([INI] has no uninsdeleteentry; "the
+         # program files are gone" keeps it in a whole run), keeps the folders on its
+         # way, so those - the folders setup made, the program folder and Bin - with
+         # that one file in them are what may be left, and nothing else; without it,
+         # nothing at all.
+         [void] (Test-Step "case ${FolderCase}: the uninstall removed every folder setup made but those that hold the kept Bin\hMailServer.INI, and left nothing else" {
+               $uninstallLog = Join-Path $LogDirectory 'uninstall.log'
+               $made = @()
+               $folder = $app
+               while ($folder.Length -ge $State.TopMade.Length) { $made += $folder; $folder = Split-Path -Parent $folder }
+               foreach ($folder in $made) {
+                  if (-not (Select-String -LiteralPath $uninstallLog -Pattern ('Deleting directory: ' + [regex]::Escape($folder) + '$') -Quiet)) { throw "the uninstall log does not say the uninstaller tried to remove $folder, which setup made" }
+               }
+               if (-not (Test-Path -LiteralPath $State.TopMade)) { return "$($State.TopMade) is gone" }
+               $ini = Join-Path $app 'Bin\hMailServer.INI'
+               $allowed = @($made) + @((Join-Path $app 'Bin'), $ini)
+               $left = @(Get-ChildItem -LiteralPath $State.TopMade -Recurse -Force | ForEach-Object { $_.FullName })
+               $other = @($left | Where-Object { $allowed -notcontains $_ })
+               if ($other.Count -gt 0) { Write-Detail $other 10; throw "$($other.Count) files and folders are left under $($State.TopMade) besides the kept Bin\hMailServer.INI and the folders on its way" }
+               if ($left -notcontains $ini) { throw "$($State.TopMade) is still there with no Bin\hMailServer.INI to keep it: $($left -join ', ')" }
+               "the uninstaller tried to remove each of $($made -join ', '); left: the kept $ini and the folders on its way"
             })
       }
    }
