@@ -2410,6 +2410,13 @@ namespace HM
       // runner next starts.
       DiscoverySearch::Forget();
 
+      // So does an ACME check queued on that queue and not started - a request,
+      // a save of AcmeDomains, or the recheck a check that has just installed a
+      // certificate (and asked for this reinitialise) queues: it will never run,
+      // and its reservation would answer every request as already running and
+      // keep the check at start from running (Util/AcmeClient.h, AcmeChecks).
+      AcmeChecks::Forget();
+
       // The inbound webhook routes are read again - a restore may have put the
       // database back under them - and a drain posted to the asynchronous queue
       // ExitInstance has just taken away is forgotten, since it will never run

@@ -102,11 +102,17 @@ with `--check`).
   so a name added to the list - a new customer's mail host, say - was issued for some sixty days later. A certificate
   that does not name every host the list holds is now due at once, judged from the file before the CA is asked
   anything (a name that starts with `*.` covers one label, as a mail client matches it; a certificate without
-  subject alternative names is read by its common name), and a save of `AcmeDomains` with such a host - through the
-  Control Panel, COM, REST or `hmailserver --set-setting` - starts the check at once rather than at the next hour
-  (`Application::SubscribeToSettings_`). A host taken off the list makes nothing due. Every check now keeps one set of
-  rules, whatever started it (`AcmeChecks`, `Common/Util/AcmeClient.h`): one at a time; no order within twenty
-  minutes of an attempt that failed, so that a setup that cannot validate fails at most three times an hour, under
+  subject alternative names is read by its common name), and a save of `AcmeDomains` with such a host in the running
+  server - through the Control Panel, COM or REST - starts the check at once rather than at the next hour
+  (`Application::SubscribeToSettings_`); a value `hmailserver --set-setting` stores from a process of its own is read by
+  the server at its next reinitialise (`systemctl reload`) or start, whose check then issues for the host. A host taken
+  off the list makes nothing due. `AcmeDomains` is read with a final dot taken off, and a name no certificate can carry -
+  a wildcard, which http-01 cannot validate, an IP address, a name past ASCII (written in its `xn--` form, it is taken)
+  or one holding a character no host name can - is left out of the check and of the order, and named in the status's
+  `unusable_domains` and in the application log at each check, where it would have made every certificate due and failed
+  every order, the renewal for the other hosts with it. Every check now keeps one set of rules, whatever started it
+  (`AcmeChecks`, `Common/Util/AcmeClient.h`): one at a time; no order within twenty minutes of an attempt that failed,
+  by the check at start and the hourly one as by a requested or saved one, so that a setup that cannot validate fails at most three times an hour, under
   the five failed validations per host per hour Let's Encrypt allows; and none before the time a CA's
   `urn:ietf:params:acme:error:rateLimited` answer gave in its `Retry-After` (an hour without one, at most seven days),
   as RFC 8555 section 6.6 asks. The cooldown and the rate limit belong to the CA they were learnt from, and a change
@@ -119,7 +125,15 @@ with `--check`).
   a directory or an order hands on is held to the same rule. On upgrade, a server whose `AcmeDomains` lists a host its
   certificate lacks orders at the first check; if the CA cannot validate that host - it does not resolve to the server,
   or its port 80 is not reached - the attempt fails from then on, at most three times an hour, where it used to start
-  failing at the renewal, and the host belongs off the list.
+  failing at the renewal, and the host belongs off the list: each order names every host, so that while it stays there
+  no certificate is issued and the one the other hosts use is not renewed either. A check queued and not started when a
+  reinitialise takes the maintenance work queue away - the recheck that a check which has just installed a certificate
+  queues, among others - is let go with the queue (`AcmeChecks::Forget`), where it would have held every request as
+  already running, and kept the check at start from running, for ten minutes; the check at start takes over one queued
+  and not started, and the status no longer shows one that was dropped as running. Installing a certificate
+  reinitialises the server, as it did: for the seconds that takes no SMTP, IMAP or POP3 listener accepts, the sessions
+  in flight are cut unless `ShutdownDrainSeconds` gives them a window, and maintenance mode, if it is on, ends;
+  `Acme.md` says so, and how to install a certificate with no session cut.
 
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
   connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
@@ -939,19 +953,19 @@ with `--check`).
 - **New: the ACME certificate's state, and a check of it now, over REST and COM (GitLab work item 98).** `GET
   /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the
   file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed,
-  whether it names every host `AcmeDomains` lists and which it lacks, whether it is due and why, the check running now
-  (and its step: directory, account, order, authorization, finalize, certificate, install), the last check and the
-  last that tried to issue (outcome, the failing step, a sentence, and the CA's problem document's type and detail),
-  the next hourly check, when a request is allowed again and until when a CA's rate limit holds. `POST
-  /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for the hourly check now and answers at once: 202 with the queued
-  check, or with the one already queued or running; 429 with `Retry-After` within a minute of the last request,
-  within twenty minutes of a failed attempt, or before a CA's rate limit ends; 409 with ACME off or `AcmeDomains`
-  empty. It takes no body but `{}` and no names of its own: the names are those of `AcmeDomains`, which only a server
-  administrator sets, and a certificate is issued only when the check finds one due. The status is
-  `view_configuration`'s and the run `manage_server`'s, both refused to a key or a role confined to named domains, and
-  the COM methods are the server administrator's; every request that queues a check is on the audit trail as
-  `ssl certificate`, `ACME (automatic)`, `check requested` (*Check requested* on the Control Panel's audit trail page,
-  in its seventeen languages). Never a key, a nonce or the CA account in either.
+  whether it names every host `AcmeDomains` lists and which it lacks, the names of the list no certificate can carry,
+  whether it is due and why, the check running now (and its step: directory, account, order, authorization, finalize,
+  certificate, install), the last check and the last that tried to issue (outcome, the failing step, a sentence, and
+  the CA's problem document's type and detail), the next hourly check, when a request is allowed again and until when
+  a CA's rate limit holds. `POST /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for the hourly check now and
+  answers at once: 202 with the queued check, or with the one already queued or running; 429 with `Retry-After` within
+  a minute of the last request, within twenty minutes of a failed attempt, or before a CA's rate limit ends; 409 with
+  ACME off or `AcmeDomains` empty. It takes no body but `{}` and no names of its own: the names are those of
+  `AcmeDomains`, which only a server administrator sets, and a certificate is issued only when the check finds one
+  due. The status is `view_configuration`'s and the run `manage_server`'s, both refused to a key or a role confined to
+  named domains, and the COM methods are the server administrator's; every request that queues a check is on the audit
+  trail as `ssl certificate`, `ACME (automatic)`, `check requested` (*Check requested* on the Control Panel's audit
+  trail page, in its seventeen languages). Never a key, a nonce or the CA account in either.
 
 - **New: the Control Deck's *Certificates* page shows the ACME certificate and asks for a check.** A card above the
   certificate list, from `GET /api/v1/acme`: the hosts `AcmeDomains` lists, the names the certificate carries, its
@@ -1428,10 +1442,15 @@ with `--check`).
 - **New: `acme-tests`, and the ACME checks' rules held without a server.** `AcmeChecksTester`
   (`Common/Util/AcmeClient.h`), run by `ClassTester` on Windows and by the new `acme-tests` program on Linux, holds
   which names a certificate covers (a wildcard for one label and not two, nor its own parent; the common name of a
-  certificate with no subject alternative names), `AcmeDomains` read in lower case, trimmed and each name once,
+  certificate with no subject alternative names), `AcmeDomains` read in lower case, trimmed and each name once, a final
+  dot taken off and the names no certificate can carry left out and named (a wildcard, an address, a name past ASCII, a
+  space, a semicolon, a label that starts or ends with a hyphen, an empty label, one of 64 characters, a name of 254),
   `Retry-After` as delay-seconds and as an HTTP-date, a rate limit's problem document told from a `badNonce`, the
   spacing between checks (the minute between requests, the twenty minutes after a failure, a CA's rate limit, the
-  later of two, and nothing held against another CA), and the refusal to install a certificate for another key,
+  later of two, and nothing held against another CA), what a check that ended leaves in it (`AcmeChecks::NoteFinished`:
+  a failure's cooldown, a rate limit of an hour with no `Retry-After` and of seven days at most, nothing from a check
+  that ordered nothing, the cooldown ended by an issued certificate, another CA started afresh), whether a reservation
+  still holds a check (`AcmeChecks::Holds`: a queued one ten minutes old does not, a running one does), and the refusal to install a certificate for another key,
   without a host asked for, expired, or no certificate at all - against keys and certificates it makes in memory, so
   that no private key is in the repository. `Security/TlsAcmeDeployment.cs` gains a test that a pair no record names
   is deployed when a new certificate is due and cannot be issued, and its first test names the certificate's own host
@@ -1444,7 +1463,11 @@ with `--check`).
   a certificate with a wildcard name; a certificate that lacks a configured host found due at once and its failed
   attempt leaving it byte for byte, with the twenty-minute `Retry-After` after it; a save of `AcmeDomains` starting a
   check and a request while it runs answered with that check, one order made; a rate-limited order reported and
-  obeyed with the CA's two hours; a request accepted, put on the audit trail and refused for the minute after; a body
+  obeyed with the CA's two hours; the twenty minutes after a failed attempt holding the check at start a reinitialise
+  makes (it waits, asking the CA nothing) and a save of `AcmeDomains`, which queues no check; a rate limit with no
+  `Retry-After` held for an hour, against a request and the check at start alike; a request accepted, put on the audit
+  trail as one new record naming the administrator, the names and the directory, and refused for the minute after; a
+  name written fully qualified read as the host and an address left out of the coverage; a body
   with names of its own refused and the run refused with ACME off; and both routes refused to a key for one domain,
   the run to a read-only key, and both to no credential. `Security/TlsAcmeIssuance.cs`, on Windows over COM, issues for
   a host added to `AcmeDomains` end to end, after the certificate the CA first sent - for another key - to the first check that read the new list was refused

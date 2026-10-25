@@ -24,11 +24,22 @@ All in the `[Settings]` store (the Control Panel's *Automatic certificates
 |---|---|---|
 | `AcmeEnabled` | `1` to issue and renew. | at a reinitialise |
 | `AcmeContactEmail` | The address the CA writes to about expiry. | now |
-| `AcmeDomains` | The host names, separated by commas. Read in lower case, trimmed, each once. | now - and a save that adds a host the certificate lacks starts a check |
+| `AcmeDomains` | The host names, separated by commas. Read in lower case, trimmed, each once, with a final dot taken off (`mail.example.com.` is `mail.example.com`). A name no certificate can carry is left out - see below. | now - and a save in the server's own process that adds a host the certificate lacks starts a check |
 | `AcmeDirectoryUrl` | The CA's directory. `https://acme-v02.api.letsencrypt.org/directory` by default; Let's Encrypt's staging directory is `https://acme-staging-v02.api.letsencrypt.org/directory`. | now |
 | `AcmeHttpPort` | Where the challenge is answered when the web services listener does not already hold that port. `80`. | now |
 | `AcmeReuseKey` | `1` (the default) keeps the private key across renewals, so a published DANE TLSA `3 1 1` record stays valid. | now |
 | `AcmeCertificateDirectory` | Where `fullchain.pem`, `privkey.pem` and `account.key` are kept. Empty is `Data\ACME`. | at a reinitialise |
+
+A name in `AcmeDomains` that no certificate this server orders can carry is
+**left out** of every check and every order, and the status names it in
+`unusable_domains`; the application log says so at each check. That is a name
+that is not a host name of letters, digits and hyphens - a wildcard
+(`*.example.com`: http-01 cannot validate one), an IP address, a name with a
+space, a semicolon or another character a host name cannot hold - and a name
+past ASCII: write an internationalised name in its `xn--` form. Such a name would
+otherwise be missing from every certificate, so that every check found the
+certificate due and every order, which names every host, failed - the renewal
+for the other hosts with it.
 
 `AcmeDirectoryUrl` must be `https`. Plain `http` is taken only to an address
 on this machine (`localhost`, `127.0.0.0/8`, `::1`), which is how the
@@ -60,10 +71,18 @@ A check runs:
 * when the server starts, and at every reinitialise;
 * every hour;
 * when `AcmeDomains` is saved with a host the certificate in use does not
-  name - through any route that saves it: the Control Panel, COM, REST,
-  `hmailserver --set-setting`;
+  name, through a route that saves it in the running server: the Control Panel,
+  COM (`Settings.SetIniSetting`) or REST (`PUT /api/v1/settings/ini/AcmeDomains`) -
+  unless the spacing below holds it, when the log says so and the hourly check
+  takes it;
 * when it is asked for: `POST /api/v1/acme/run`, COM `Utilities.RunAcmeCheck`,
   or *Check now* on the Control Deck's *Certificates* page.
+
+`hmailserver --set-setting AcmeDomains=...` on Linux is a process of its own: it
+stores the value in the database, and the running server does not read it until
+it is reinitialised (`systemctl reload hmailserver`) or started, as the command
+says. The check at that start then finds the new host and issues for it; until
+then every check, the hourly ones included, reads the list the server holds.
 
 A check that finds nothing due asks the CA for its directory and its renewal
 window and nothing else.
@@ -99,6 +118,7 @@ not asked. Times are Unix seconds, and null when there is none.
 | Member | What it says |
 |---|---|
 | `enabled`, `directory_url`, `domains`, `certificate_directory` | The settings, `domains` as the client reads them. |
+| `unusable_domains` | The names of `AcmeDomains` left out because no certificate can carry them, as written. |
 | `certificate` | The certificate in use, or null: `file`, `names` (its subject alternative names, or its common name when it has none), `subject`, `issuer`, `serial`, `not_before`, `not_after`, `expired`, `renews_at` (rule 4 above) and `deployed` (whether the ACME (automatic) record names it). |
 | `covers_domains`, `missing_domains` | Whether it names every configured host, and the ones it lacks. |
 | `due`, `due_reason` | Rules 1, 2 and 4, judged from the file: `missing`, `names` or `lifetime`. |
@@ -143,9 +163,10 @@ whatever started it:
   that finds nothing due still asks the CA for its directory and its renewal
   window. Read the status instead of asking again.
 * **No order within twenty minutes of an attempt that failed** (`cooldown`,
-  1,200 seconds) - requested, saved or hourly alike. Attempts twenty minutes
-  apart fail at most three times an hour, under the five Let's Encrypt allows.
-  A check that is due inside those minutes ends `waiting` and orders nothing.
+  1,200 seconds) - requested, saved, hourly or at start alike. Attempts
+  twenty minutes apart fail at most three times an hour, under the five Let's
+  Encrypt allows. A check that is due inside those minutes ends `waiting` and
+  orders nothing.
 * **None before the time a CA's rate limit gave** (`rate_limited`): when the CA
   answers `urn:ietf:params:acme:error:rateLimited`, no check orders until its
   `Retry-After` has passed - an hour when it gives none, at most seven days -
@@ -212,18 +233,46 @@ For a hosting platform that adds a customer's `mail.example.net` beside
    answer to the administrator password alone, never to an API key, since the
    section holds the server's secrets and the commands it runs; an API key reads
    the status and asks for a check, and a full one with no domain list does both.
-   The save starts a check: the certificate does not name the new host.
-3. Read the status - `$app.Utilities.GetAcmeStatus()`, or `GET /api/v1/acme` -
-   until `running` is null, then look at `last_issuance`: `outcome` `issued` and
-   `covers_domains` true, or `failed` with `failed_step`, `error` and
-   `ca_problem`.
+   The save starts a check: the certificate does not name the new host - unless
+   an attempt failed within the last twenty minutes or the CA's rate limit
+   holds, when the save starts none and the hourly check issues later.
+3. Note the time of the save, and read the status -
+   `$app.Utilities.GetAcmeStatus()`, or `GET /api/v1/acme` - until `running` is
+   null and `last_issuance.finished_at` is at or after that time. Then
+   `last_issuance.outcome` is `issued` and `covers_domains` true, or `failed`
+   with `failed_step`, `error` and `ca_problem`. An earlier `last_issuance` is
+   another attempt's - another host's, perhaps - and says nothing of this one.
+   When `running` is null and no such `last_issuance` has come, the save
+   started no check: `missing_domains` names the host still lacking,
+   `requests.waiting_for` and `requests.next_allowed_at` say what held it and
+   until when, and the first hourly check after that time
+   (`next_scheduled_check_at`) issues for it.
 4. If it failed - the record was not published yet, the proxy did not pass the
    challenge on - put that right and ask again (`Utilities.RunAcmeCheck`, or
    `POST /api/v1/acme/run`) once the time in `requests.next_allowed_at` has
-   passed, or leave it to the hourly check.
+   passed, or leave it to the hourly check. The answer's `attempt.id` is the
+   check to wait for: read the status until `last_issuance.id` (or
+   `last_attempt.id`, for a check that found nothing due) is at least that.
 
-The listeners are restarted when the certificate is installed, so the new host
-is served at once; existing hosts keep their certificate until then.
+**A host that cannot be validated holds up every host.** There is one
+certificate, and each order names every host in `AcmeDomains`: the first
+authorization that fails ends the attempt, so while a host stays on the list that
+does not resolve to this server, or whose port 80 does not reach it, no
+certificate is issued - and the one the other hosts use is not renewed either,
+until it expires (the error log's `HM5992` warns seven days before). Take a host
+that cannot validate - a customer who has gone, a name not yet published - off
+`AcmeDomains` promptly.
+
+**Installing a certificate restarts the servers.** When a check installs a new
+certificate it reinitialises the server, as it always has, so that the listeners
+load it: for the few seconds that takes no SMTP, IMAP or POP3 listener accepts a
+connection, and the sessions in flight are cut - unless `ShutdownDrainSeconds`
+gives them a window to finish - for every host, not only the new one. Existing
+hosts keep the certificate they had until then, and every host is served with
+the new one after it. Maintenance mode (`POST /api/v1/server/drain`), if it is
+on, ends with the reinitialise; entering it before asking for the check, and
+asking once the sessions have finished, is the way to install a certificate with
+no session cut.
 
 ## What it does not do
 
@@ -241,6 +290,8 @@ is served at once; existing hosts keep their certificate until then.
 
 * `ACME: The certificate in use does not name ...` - rule 2, and the check
   that follows.
+* `ACME: AcmeDomains holds ..., which no certificate this server orders can
+  name ...` - a name left out of the check and the order (`unusable_domains`).
 * `ACME: AcmeDomains was saved with a host the certificate in use does not
   name; a check is queued now ...` - the save that started a check.
 * `ACME: A certificate is due (...), and this check orders none: ...` - held by

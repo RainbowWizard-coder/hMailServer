@@ -771,7 +771,19 @@ namespace HM
          domain.Trim();
          domain.MakeLower();
 
+         // The root's dot, which a host name written fully qualified ends with,
+         // is no part of a name a certificate carries, and a CA refuses an
+         // identifier that holds it.
+         if (domain.EndsWith("."))
+            domain = domain.Left(domain.GetLength() - 1);
+
          if (domain.IsEmpty())
+            continue;
+
+         // A name no certificate can carry would be missing from every one, so
+         // that every check found the certificate due and every order - which
+         // names every host - failed, the renewal for the other hosts with it.
+         if (!IsUsableHostName(domain))
             continue;
 
          // Once each: a name written twice would be two identifiers of one
@@ -781,6 +793,83 @@ namespace HM
       }
 
       return domains;
+   }
+
+   // static
+   std::vector<AnsiString>
+   AcmeClient::UnusableDomains(const AnsiString &list)
+   {
+      std::vector<AnsiString> unusable;
+
+      for (AnsiString domain : StringParser::SplitString(list, ","))
+      {
+         domain.Trim();
+
+         AnsiString name = domain;
+         name.MakeLower();
+         if (name.EndsWith("."))
+            name = name.Left(name.GetLength() - 1);
+
+         if (name.IsEmpty() || IsUsableHostName(name))
+            continue;
+
+         // As written, for the administrator to find it in the list; printable
+         // ASCII alone, since the status is JSON and the log a line.
+         const AnsiString shown = CleanText(domain, 300);
+         if (std::find(unusable.begin(), unusable.end(), shown) == unusable.end())
+            unusable.push_back(shown);
+      }
+
+      return unusable;
+   }
+
+   // static
+   bool
+   AcmeClient::IsUsableHostName(const AnsiString &name)
+   {
+      const int length = name.GetLength();
+      if (length < 1 || length > 253)
+         return false;
+
+      int labelStart = 0;
+      bool lastLabelAllDigits = true;
+
+      for (int i = 0; i <= length; i++)
+      {
+         const bool end = i == length;
+         const char character = end ? '.' : name[i];
+
+         if (character == '.')
+         {
+            const int labelLength = i - labelStart;
+            if (labelLength < 1 || labelLength > 63)
+               return false;
+
+            if (name[labelStart] == '-' || name[i - 1] == '-')
+               return false;
+
+            if (!end)
+            {
+               labelStart = i + 1;
+               lastLabelAllDigits = true;
+            }
+
+            continue;
+         }
+
+         const bool letter = character >= 'a' && character <= 'z';
+         const bool digit = character >= '0' && character <= '9';
+
+         if (!letter && !digit && character != '-')
+            return false;
+
+         if (!digit)
+            lastLabelAllDigits = false;
+      }
+
+      // 192.0.2.1 is four labels of digits: an address, which an order of type
+      // dns does not name, whatever a CA does with type ip.
+      return !lastLabelAllDigits;
    }
 
    // static
@@ -835,6 +924,11 @@ namespace HM
       time_t notAfter = 0;
 
       const String certificateFile = GetCertificateDirectory() + FileUtilities::PathSeparator + _T("fullchain.pem");
+
+      const std::vector<AnsiString> unusable = UnusableDomains(IniFileSettings::Instance()->GetAcmeDomains());
+      if (!unusable.empty())
+         LOG_APPLICATION("ACME: AcmeDomains holds " + String(JoinNames(unusable)) +
+            ", which no certificate this server orders can name - a host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, and no wildcard or IP address - so it is left out of the check and of the order.");
 
       if (!ReadCertificateDates(certificateFile, notBefore, notAfter))
       {
@@ -2498,11 +2592,6 @@ namespace HM
 
    namespace
    {
-      // A check queued for the maintenance work queue that has not started in
-      // this long is taken to have been dropped with the queue - a stop of the
-      // servers discards what was waiting - and holds nothing any more.
-      const __int64 AbandonedQueuedSeconds = 10 * 60;
-
       // "2026-10-25 14:03:00 UTC", for a sentence.
       String TimeSentence(__int64 seconds)
       {
@@ -2593,6 +2682,54 @@ namespace HM
    }
 
    // static
+   int
+   AcmeChecks::RateLimitSeconds(int retryAfterSeconds)
+   {
+      if (retryAfterSeconds < 0)
+         return DefaultRateLimitSeconds;
+
+      // Not a conditional expression: one of two lvalues would bind the
+      // constant itself, which has no definition outside the class.
+      int seconds = retryAfterSeconds;
+      if (seconds > MaxRateLimitSeconds)
+         seconds = MaxRateLimitSeconds;
+      return seconds;
+   }
+
+   // static
+   void
+   AcmeChecks::NoteFinished(Spacing &spacing, const AnsiString &directoryUrl, __int64 now, bool orderedOrTried,
+                            const AnsiString &outcome, const AcmeClient::Failure *failure)
+   {
+      if (orderedOrTried && spacing.directory_url != directoryUrl)
+      {
+         spacing = Spacing();
+         spacing.directory_url = directoryUrl;
+      }
+
+      if (orderedOrTried && outcome == "failed")
+      {
+         spacing.failed_at = now;
+
+         if (failure != nullptr && failure->rate_limited)
+            spacing.rate_limited_until = now + RateLimitSeconds(failure->retry_after_seconds);
+      }
+
+      if (outcome == "issued")
+         spacing.failed_at = 0;
+   }
+
+   // static
+   bool
+   AcmeChecks::Holds(bool running, const Attempt &current, __int64 now)
+   {
+      if (!running)
+         return false;
+
+      return !(current.step == "queued" && now - current.queued_at > AbandonedQueuedSeconds);
+   }
+
+   // static
    bool
    AcmeChecks::Queue_(Trigger trigger, Attempt &attempt)
    {
@@ -2646,7 +2783,7 @@ namespace HM
       {
          std::lock_guard<std::mutex> guard(mutex_);
 
-         if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+         if (running_ && !Holds(running_, current_, now))
          {
             running_ = false;
             current_ = Attempt();
@@ -2725,7 +2862,7 @@ namespace HM
       {
          std::lock_guard<std::mutex> guard(mutex_);
 
-         if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+         if (running_ && !Holds(running_, current_, now))
          {
             running_ = false;
             current_ = Attempt();
@@ -2785,9 +2922,16 @@ namespace HM
          return true;
       }
 
-      if (running_ && current_.step == "queued" && now - current_.queued_at > AbandonedQueuedSeconds)
+      // A reservation that no longer holds is let go; and the check at start
+      // takes over one queued and not yet started, whatever queued it: the
+      // start is made after a stop of the servers, which can have dropped the
+      // task that reservation was for (a reinitialise's ExitInstance takes the
+      // whole queue away, Forget), and the start's check reads the list and the
+      // certificate as they are now, which is all a queued one would have done.
+      if (running_ && (!Holds(running_, current_, now) || (trigger == TriggerStart && current_.step == "queued")))
       {
          running_ = false;
+         recheck_ = false;
          current_ = Attempt();
       }
 
@@ -2838,33 +2982,10 @@ namespace HM
             attempt.problem_detail = failure->problem_detail;
          }
 
-         const AnsiString directoryUrl = attempt.directory_url_seen;
-
-         if (orderedOrTried && spacing_.directory_url != directoryUrl)
-         {
-            spacing_ = Spacing();
-            spacing_.directory_url = directoryUrl;
-         }
-
-         if (orderedOrTried && attempt.outcome == "failed")
-         {
-            spacing_.failed_at = now;
-
-            if (failure != nullptr && failure->rate_limited)
-            {
-               int seconds = failure->retry_after_seconds < 0 ? DefaultRateLimitSeconds : failure->retry_after_seconds;
-               if (seconds > MaxRateLimitSeconds)
-                  seconds = MaxRateLimitSeconds;
-
-               spacing_.rate_limited_until = now + seconds;
-            }
-         }
+         NoteFinished(spacing_, attempt.directory_url_seen, now, orderedOrTried, attempt.outcome, failure);
 
          if (attempt.outcome == "issued")
-         {
             last_issued_at_ = now;
-            spacing_.failed_at = 0;
-         }
 
          last_ = attempt;
          has_last_ = true;
@@ -2910,6 +3031,20 @@ namespace HM
    }
 
    // static
+   void
+   AcmeChecks::Forget()
+   {
+      std::lock_guard<std::mutex> guard(mutex_);
+
+      if (running_ && current_.step == "queued")
+      {
+         running_ = false;
+         recheck_ = false;
+         current_ = Attempt();
+      }
+   }
+
+   // static
    AnsiString
    AcmeChecks::AttemptJson(const Attempt &attempt)
    {
@@ -2945,7 +3080,8 @@ namespace HM
 
       const bool enabled = ini->GetAcmeEnabled();
       const AnsiString directoryUrl = ini->GetAcmeDirectoryUrl();
-      const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(ini->GetAcmeDomains());
+      const AnsiString configured = ini->GetAcmeDomains();
+      const std::vector<AnsiString> domains = AcmeClient::ParseDomainList(configured);
 
       bool running = false;
       Attempt current;
@@ -2960,7 +3096,9 @@ namespace HM
       {
          std::lock_guard<std::mutex> guard(mutex_);
 
-         running = running_;
+         // A queued check that no longer holds - its task was dropped with the
+         // queue - is not reported as running, as Request would not answer with it.
+         running = Holds(running_, current_, now);
          current = current_;
          hasLast = has_last_;
          lastIssuance = last_issuance_;
@@ -2975,6 +3113,7 @@ namespace HM
       json += enabled ? "true" : "false";
       json += ",\"directory_url\":" + JsonString(directoryUrl);
       json += ",\"domains\":" + JsonNames(domains);
+      json += ",\"unusable_domains\":" + JsonNames(AcmeClient::UnusableDomains(configured));
       json += ",\"certificate_directory\":" + JsonText(AcmeClient::GetCertificateDirectory());
 
       // The certificate in use: what the listeners load from the ACME
@@ -3446,6 +3585,35 @@ namespace HM
          Expect(Narrow(domains) == "mail.example.test, new.example.test",
             "AcmeDomains was not read trimmed, in lower case, each name once, the empty ones dropped: " + Narrow(domains));
          Expect(AcmeClient::ParseDomainList("").empty(), "an empty AcmeDomains named a host");
+
+         // A name written fully qualified is the same host; one no certificate
+         // can carry is left out, so that it neither makes every certificate due
+         // nor fails every order for the rest, and is named.
+         const AnsiString written = "mail.example.test., *.example.test, 192.0.2.1, [2001:db8::1], b\xC3\xBC" "cher.example.test, "
+                                    "mail example.test, a;b.example.test, -bad.example.test, bad-.example.test, a..example.test, "
+                                    "xn--bcher-kva.example.test, 4.example.test, MAIL.example.test";
+         const std::vector<AnsiString> usable = AcmeClient::ParseDomainList(written);
+         Expect(Narrow(usable) == "mail.example.test, xn--bcher-kva.example.test, 4.example.test",
+            "AcmeDomains was not read with the final dot taken off and the names no certificate can carry left out: " + Narrow(usable));
+
+         const std::vector<AnsiString> unusable = AcmeClient::UnusableDomains(written);
+         Expect(unusable.size() == 9 && unusable[0] == "*.example.test" && unusable[1] == "192.0.2.1" &&
+                unusable[5] == "a;b.example.test" && unusable[8] == "a..example.test",
+            "the names left out were not the nine written so, in the order written: " + Narrow(unusable));
+         Expect(AcmeClient::UnusableDomains(" mail.example.test, new.example.test. ").empty(),
+            "a host name, or one written fully qualified, was named as one no certificate can carry");
+
+         std::string label63(63, 'a');
+         std::string label64(64, 'a');
+         Expect(AcmeClient::IsUsableHostName((label63 + ".example.test").c_str()), "a label of 63 characters was refused");
+         Expect(!AcmeClient::IsUsableHostName((label64 + ".example.test").c_str()), "a label of 64 characters was taken");
+         std::string long254;
+         while (long254.size() < 254)
+            long254 += "a.";
+         long254 = long254.substr(0, 252) + "aa";
+         Expect(long254.size() == 254 && !AcmeClient::IsUsableHostName(long254.c_str()), "a name of 254 characters was taken");
+         Expect(AcmeClient::IsUsableHostName("localhost"), "a name of one label was refused");
+         Expect(!AcmeClient::IsUsableHostName("example.123"), "a name whose last label is all digits was taken");
       }
 
       // ---- Retry-After, RFC 9110 section 10.2.3
@@ -3526,6 +3694,87 @@ namespace HM
             "a rate limit alone held nothing");
          Expect(AcmeChecks::Allows(spacing, ca, now + 60, false, until, why),
             "a rate limit held an order after its time");
+      }
+
+      // ---- what a check that ended leaves in the spacing
+      {
+         const AnsiString ca = "https://ca.example/directory";
+         const __int64 now = 1792929600;
+
+         Expect(AcmeChecks::RateLimitSeconds(-1) == AcmeChecks::DefaultRateLimitSeconds && AcmeChecks::DefaultRateLimitSeconds == 3600,
+            "a rate limit with no Retry-After did not hold for an hour");
+         Expect(AcmeChecks::RateLimitSeconds(7200) == 7200, "a rate limit's Retry-After of two hours was not two hours");
+         Expect(AcmeChecks::RateLimitSeconds(10000000) == AcmeChecks::MaxRateLimitSeconds && AcmeChecks::MaxRateLimitSeconds == 604800,
+            "a Retry-After past seven days was not cut to seven days");
+
+         AcmeClient::Failure failed;
+         failed.step = "authorization";
+
+         AcmeChecks::Spacing spacing;
+         spacing.directory_url = ca;
+         spacing.last_request_at = now - 10;
+
+         AcmeChecks::NoteFinished(spacing, ca, now, true, "failed", &failed);
+         Expect(spacing.failed_at == now && spacing.rate_limited_until == 0 && spacing.last_request_at == now - 10,
+            "a failed attempt did not start the cooldown alone, or lost the last request's time");
+
+         AcmeClient::Failure limited;
+         limited.step = "order";
+         limited.rate_limited = true;
+
+         limited.retry_after_seconds = -1;
+         AcmeChecks::NoteFinished(spacing, ca, now, true, "failed", &limited);
+         Expect(spacing.rate_limited_until == now + 3600, "a rate limit with no Retry-After did not hold every order for an hour");
+
+         limited.retry_after_seconds = 10000000;
+         AcmeChecks::NoteFinished(spacing, ca, now, true, "failed", &limited);
+         Expect(spacing.rate_limited_until == now + 604800, "a rate limit's Retry-After past seven days was not cut to seven days");
+
+         __int64 until = 0;
+         AnsiString why;
+         Expect(!AcmeChecks::Allows(spacing, ca, now + 2 * 86400, false, until, why) && why == "rate_limited" && until == now + 604800,
+            "an order two days into a rate limit of seven days was let through");
+
+         // A check that neither ordered nor tried leaves the spacing as it was,
+         // whatever its outcome: one held by the spacing (waiting) above all.
+         AcmeChecks::Spacing before = spacing;
+         AcmeChecks::NoteFinished(spacing, ca, now + 100, false, "failed", &failed);
+         AcmeChecks::NoteFinished(spacing, ca, now + 100, false, "waiting", nullptr);
+         Expect(spacing.failed_at == before.failed_at && spacing.rate_limited_until == before.rate_limited_until,
+            "a check that ordered nothing moved the cooldown or the rate limit");
+
+         // An issued certificate ends the cooldown; the CA's rate limit stands.
+         AcmeChecks::NoteFinished(spacing, ca, now + 200, true, "issued", nullptr);
+         Expect(spacing.failed_at == 0 && spacing.rate_limited_until == now + 604800,
+            "an issued certificate did not end the cooldown, or ended the CA's rate limit");
+
+         // A check against another CA starts the spacing afresh for that one.
+         AcmeChecks::NoteFinished(spacing, "https://other.example/directory", now + 300, true, "failed", &failed);
+         Expect(spacing.directory_url == "https://other.example/directory" && spacing.failed_at == now + 300 &&
+                spacing.rate_limited_until == 0 && spacing.last_request_at == 0,
+            "a failure at another CA kept what was learnt of the first");
+      }
+
+      // ---- whether a reservation still holds a check
+      {
+         const __int64 now = 1792929600;
+
+         AcmeChecks::Attempt queued;
+         queued.step = "queued";
+         queued.queued_at = now - 60;
+         Expect(AcmeChecks::Holds(true, queued, now), "a check queued a minute ago was taken to be dropped");
+
+         queued.queued_at = now - AcmeChecks::AbandonedQueuedSeconds - 1;
+         Expect(!AcmeChecks::Holds(true, queued, now), "a check queued ten minutes ago and never started was taken to hold");
+
+         AcmeChecks::Attempt running;
+         running.step = "authorization";
+         running.queued_at = now - 3 * 3600;
+         running.started_at = now - 3 * 3600;
+         Expect(AcmeChecks::Holds(true, running, now), "a check that is running was taken to be dropped for its age");
+
+         Expect(!AcmeChecks::Holds(false, queued, now) && !AcmeChecks::Holds(false, running, now),
+            "a reservation was taken to hold with no check running");
       }
 
       // ---- what a certificate names, and whether the CA's is one to install

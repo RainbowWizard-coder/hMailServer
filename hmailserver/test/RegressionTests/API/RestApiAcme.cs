@@ -227,6 +227,35 @@ namespace RegressionTests.API
          return (long) (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
       }
 
+      // The audit trail's records of a requested check, newest first.
+      private static List<Dictionary<string, object>> CheckRequestedRecords()
+      {
+         (int status, string body) = Http("GET", "/api/v1/audit?object_type=ssl+certificate&action=check+requested&limit=200");
+         Assert.AreEqual(200, status, body);
+         return MiniJson.List(MiniJson.Object(body), "entries")
+            .Cast<Dictionary<string, object>>()
+            .Where(row => MiniJson.Text(row, "object_type") == "ssl certificate" && MiniJson.Text(row, "action") == "check requested")
+            .ToList();
+      }
+
+      private static long NewestCheckRequestedRecord()
+      {
+         return CheckRequestedRecords().Select(row => MiniJson.Number(row, "id")).DefaultIfEmpty(0).Max();
+      }
+
+      // A reinitialise, and the check at start it makes, waited for: the one whose id
+      // is after the last check's.
+      private Dictionary<string, object> ReinitializeAndWaitForTheCheckAtStart()
+      {
+         long before = LastAttemptId();
+
+         _application.Reinitialize();
+
+         return WaitFor(s => MiniJson.At(s, "running") == null && MiniJson.Number(s, "last_attempt.id") > before &&
+                             MiniJson.Text(s, "last_attempt.trigger") == "start",
+            "the check at start after the reinitialise to finish");
+      }
+
       private static (string id, string key) CreateKey(string label, string scope, string domains)
       {
          string body = "{\"label\":\"" + label + "\",\"scope\":\"" + scope + "\"" +
@@ -264,12 +293,16 @@ namespace RegressionTests.API
 
          using (var ca = new FakeAcmeCa(10271))
          {
-            Dictionary<string, object> state = EnableAcme(ca.DirectoryUrl, "Mail.Example.TEST, x.wild.example.test");
+            // Written fully qualified once, and beside it an address no certificate this
+            // client orders can name: neither may make the certificate due.
+            Dictionary<string, object> state = EnableAcme(ca.DirectoryUrl, "Mail.Example.TEST, x.wild.example.test., 192.0.2.7");
 
             Assert.IsTrue(MiniJson.Flag(state, "enabled"));
             Assert.AreEqual(ca.DirectoryUrl, MiniJson.Text(state, "directory_url"));
             CollectionAssert.AreEqual(new[] { "mail.example.test", "x.wild.example.test" }, Names(state, "domains"),
-               "AcmeDomains is answered as the client reads it: lower case, trimmed.");
+               "AcmeDomains is answered as the client reads it: lower case, trimmed, the final dot taken off, an address left out.");
+            CollectionAssert.AreEqual(new[] { "192.0.2.7" }, Names(state, "unusable_domains"),
+               "The name left out is named.");
 
             Assert.AreEqual(CertificateFile, MiniJson.Text(state, "certificate.file"));
             CollectionAssert.AreEqual(new[] { "mail.example.test", "*.wild.example.test" }, Names(state, "certificate.names"),
@@ -426,6 +459,84 @@ namespace RegressionTests.API
          }
       }
 
+      // ------------------------------------------------------------------ every trigger keeps the spacing
+
+      [Test]
+      [Description("The twenty minutes after a failed attempt hold every check, not only a requested one: the check at start that a reinitialise makes finds the certificate due and orders nothing (outcome waiting, failed_step cooldown), asking the CA nothing at all, and a save of AcmeDomains with another host inside those minutes queues no check.")]
+      public void TheCooldownHoldsTheCheckAtStartAndASave()
+      {
+         WriteCertificate(MailOnlyPem);
+         byte[] before = File.ReadAllBytes(CertificateFile);
+
+         using (var ca = new FakeAcmeCa(10277))
+         {
+            // The order is held a second and dropped: a CA that stopped answering.
+            ca.Mode = FakeAcmeCa.OrderMode.Stall;
+            ca.StallSeconds = 1;
+
+            Dictionary<string, object> failed = EnableAcme(ca.DirectoryUrl, "mail.example.test,new.example.test");
+            Assert.AreEqual("failed", MiniJson.Text(failed, "last_attempt.outcome"));
+            Assert.AreEqual("order", MiniJson.Text(failed, "last_attempt.failed_step"));
+            Assert.AreEqual(1, ca.Count("POST", "/order"));
+            int requestsAfterTheFailure = ca.Requests.Count;
+
+            Dictionary<string, object> held = ReinitializeAndWaitForTheCheckAtStart();
+            Assert.AreEqual("waiting", MiniJson.Text(held, "last_attempt.outcome"),
+               "The check at start, inside the twenty minutes after a failure, did not wait: " + MiniJson.Text(held, "last_attempt.error"));
+            Assert.AreEqual("cooldown", MiniJson.Text(held, "last_attempt.failed_step"));
+            Assert.AreEqual("names", MiniJson.Text(held, "last_attempt.reason"), "The certificate was due, and held.");
+            StringAssert.Contains("twenty minutes", MiniJson.Text(held, "last_attempt.error"));
+            Assert.AreEqual(MiniJson.Number(failed, "last_issuance.id"), MiniJson.Number(held, "last_issuance.id"),
+               "A check that ordered nothing was taken for the last attempt to issue.");
+            Assert.AreEqual(requestsAfterTheFailure, ca.Requests.Count,
+               "The check at start asked the CA something inside the cooldown: " + string.Join(", ", ca.Requests.Skip(requestsAfterTheFailure)));
+
+            long heldId = MiniJson.Number(held, "last_attempt.id");
+
+            IniFileSetting.Write("AcmeDomains", "mail.example.test,new.example.test,third.example.test");
+            Thread.Sleep(3000);
+
+            Dictionary<string, object> afterSave = Status();
+            Assert.IsNull(MiniJson.At(afterSave, "running"), "A save inside the cooldown queued a check.");
+            Assert.AreEqual(heldId, MiniJson.Number(afterSave, "last_attempt.id"), "A save inside the cooldown started a check.");
+            Assert.AreEqual(1, ca.Count("POST", "/order"), "A save inside the cooldown ordered a certificate.");
+            Assert.AreEqual("cooldown", MiniJson.Text(afterSave, "requests.waiting_for"));
+
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(CertificateFile), "The certificate in use was changed.");
+         }
+      }
+
+      [Test]
+      [Description("A CA's rateLimited answer with no Retry-After holds every order for an hour, as RFC 8555 section 6.6 leaves it to the client: rate_limited_until is an hour on, a request is refused for it rather than for the twenty-minute cooldown, and the check at start that a reinitialise makes waits for it (failed_step rate_limited) and orders nothing.")]
+      public void ARateLimitWithNoRetryAfterHoldsEveryCheckForAnHour()
+      {
+         WriteCertificate(MailOnlyPem);
+
+         using (var ca = new FakeAcmeCa(10278))
+         {
+            ca.Mode = FakeAcmeCa.OrderMode.RateLimited;
+            ca.RetryAfter = null;
+
+            Dictionary<string, object> state = EnableAcme(ca.DirectoryUrl, "mail.example.test,new.example.test");
+            Assert.AreEqual("failed", MiniJson.Text(state, "last_attempt.outcome"));
+            Assert.AreEqual("urn:ietf:params:acme:error:rateLimited", MiniJson.Text(state, "last_attempt.ca_problem.type"));
+            long finished = MiniJson.Number(state, "last_attempt.finished_at");
+            Assert.That(MiniJson.Number(state, "rate_limited_until"), Is.InRange(finished + 3600, finished + 3601),
+               "A rate limit with no Retry-After did not hold for an hour from the failure.");
+
+            (int status, string headers, string body) = Run();
+            Assert.AreEqual(429, status, body);
+            Assert.AreEqual("rate_limited", MiniJson.Text(MiniJson.Object(body), "reason"), "The hour, not the twenty-minute cooldown.");
+            Assert.That(RetryAfter(headers), Is.InRange(3300, 3600));
+
+            Dictionary<string, object> held = ReinitializeAndWaitForTheCheckAtStart();
+            Assert.AreEqual("waiting", MiniJson.Text(held, "last_attempt.outcome"),
+               "The check at start, inside the CA's rate limit, did not wait: " + MiniJson.Text(held, "last_attempt.error"));
+            Assert.AreEqual("rate_limited", MiniJson.Text(held, "last_attempt.failed_step"));
+            Assert.AreEqual(1, ca.Count("POST", "/order"), "The check at start ordered inside the CA's rate limit.");
+         }
+      }
+
       // ------------------------------------------------------------------ a request
 
       [Test]
@@ -437,6 +548,10 @@ namespace RegressionTests.API
          using (var ca = new FakeAcmeCa(10275))
          {
             EnableAcme(ca.DirectoryUrl, "mail.example.test");
+
+            // The trail is the bench's, kept from run to run, and other tests ask for
+            // checks too: only a record after this one is this request's.
+            long lastRecord = NewestCheckRequestedRecord();
 
             (int status, string headers, string body) = Run("");
             Assert.AreEqual(202, status, body);
@@ -452,9 +567,17 @@ namespace RegressionTests.API
             Assert.AreEqual("not_due", MiniJson.Text(done, "last_attempt.outcome"));
             Assert.AreEqual(0, ca.Count("POST", "/order"), "A check that found nothing due ordered a certificate.");
 
-            (int auditStatus, string audit) = Http("GET", "/api/v1/audit?object_type=ssl+certificate&action=check+requested&limit=200");
-            Assert.AreEqual(200, auditStatus, audit);
-            StringAssert.Contains("ACME (automatic)", audit, "The request is not on the audit trail.");
+            List<Dictionary<string, object>> records = CheckRequestedRecords()
+               .Where(row => MiniJson.Number(row, "id") > lastRecord)
+               .ToList();
+            Assert.AreEqual(1, records.Count, "The request is not on the audit trail once, as one record after the last: " +
+               string.Join(" | ", records.Select(row => MiniJson.Text(row, "detail"))));
+            Dictionary<string, object> record = records[0];
+            Assert.AreEqual("ACME (automatic)", MiniJson.Text(record, "object"));
+            Assert.AreEqual("administrator", MiniJson.Text(record, "actor"), "The record does not name the credential that asked.");
+            Assert.AreEqual("REST", MiniJson.Text(record, "interface"));
+            StringAssert.StartsWith("names: mail.example.test; directory: " + ca.DirectoryUrl, MiniJson.Text(record, "detail"),
+               "The record does not carry the names and the directory the check is for.");
 
             (int again, string againHeaders, string againBody) = Run();
             Assert.AreEqual(429, again, againBody);

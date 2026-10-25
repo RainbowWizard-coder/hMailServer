@@ -124,8 +124,25 @@ namespace HM
       static bool ReadCertificateNamesFromPem(const AnsiString &pem, std::vector<AnsiString> &names);
 
       // AcmeDomains read as RequestCertificate reads it: split at commas,
-      // trimmed, in lower case, the empty ones dropped - and each name once.
+      // trimmed, in lower case, one final dot taken off, the empty ones
+      // dropped - and each name once. A name no certificate this client
+      // orders can carry (IsUsableHostName) is left out, so that it neither
+      // makes every certificate due nor fails every order made for the rest;
+      // UnusableDomains names it.
       static std::vector<AnsiString> ParseDomainList(const AnsiString &list);
+
+      // The names of AcmeDomains ParseDomainList leaves out, trimmed, as they
+      // are written (cleaned to printable ASCII), each once.
+      static std::vector<AnsiString> UnusableDomains(const AnsiString &list);
+
+      // Whether a name, lower case and with no final dot, is one an ACME order
+      // of type dns with an http-01 challenge can be made for: labels of a-z,
+      // 0-9 and '-', none starting or ending with '-', 1 to 63 characters
+      // each, 253 in all, the last not all digits. So no wildcard (http-01
+      // cannot validate one), no IP address, nothing past ASCII (an
+      // internationalised name is written in its xn-- form), and no space,
+      // semicolon or other character a host name cannot hold.
+      static bool IsUsableHostName(const AnsiString &name);
 
       // The configured names a certificate whose names are these does not
       // cover, in the order configured. A name of the certificate that starts
@@ -352,6 +369,30 @@ namespace HM
       static bool Allows(const Spacing &spacing, const AnsiString &directoryUrl, __int64 now, bool requested,
                          __int64 &until, AnsiString &why);
 
+      // What a check that ended at now leaves in the spacing: a check that
+      // ordered or tried to (orderedOrTried) against another CA than the one
+      // spacing was learnt from starts it afresh for directoryUrl; one whose
+      // outcome is failed starts the cooldown, and, when failure says the CA
+      // answered rateLimited, holds every order until its Retry-After
+      // (RateLimitSeconds); an issued one ends the cooldown. Pure, for the
+      // self-test; Finish applies it under the mutex.
+      static void NoteFinished(Spacing &spacing, const AnsiString &directoryUrl, __int64 now, bool orderedOrTried,
+                               const AnsiString &outcome, const AcmeClient::Failure *failure);
+
+      // The seconds a CA's rateLimited answer holds every order for: its
+      // Retry-After (retryAfterSeconds, -1 when it gave none or none that could
+      // be read), an hour when it gave none, at most seven days.
+      static int RateLimitSeconds(int retryAfterSeconds);
+
+      // Whether a reservation still holds a check at now: one running holds
+      // for as long as it runs; one queued for the maintenance work queue that
+      // has not started in AbandonedQueuedSeconds is taken to have been dropped
+      // with the queue - a stop of the servers discards what was waiting - and
+      // holds nothing. Pure, for the self-test.
+      static bool Holds(bool running, const Attempt &current, __int64 now);
+
+      static const int AbandonedQueuedSeconds = 10 * 60;
+
       enum RequestResult
       {
          RequestAccepted,
@@ -395,6 +436,15 @@ namespace HM
       // When the hourly check is next due: set when it is registered and as
       // each run starts; 0 when none is registered.
       static void SetNextScheduled(__int64 when);
+
+      // A reinitialise has taken the maintenance work queue away
+      // (Application::Reinitialize_, after ExitInstance): a check queued on it
+      // and not started will never run, so its reservation is let go - or it
+      // would answer every request as already running, and keep the check at
+      // the next start from running, until it was taken to be abandoned. A
+      // check that is running is left to end as it ends, and the spacing is
+      // kept.
+      static void Forget();
 
       // GET /api/v1/acme and Utilities.GetAcmeStatus: ACME's switch, the names
       // configured, the certificate in use (names, issuer, subject, serial,
@@ -487,8 +537,11 @@ namespace HM
 
    // The rules an ACME check is decided by, held without a server, a CA or a
    // file: which names a certificate covers (a wildcard for one label), how
-   // AcmeDomains is read, Retry-After in both its forms, a problem document's
-   // type, the spacing of AcmeChecks::Allows, and the refusals of
+   // AcmeDomains is read (a name no certificate can carry left out and named),
+   // Retry-After in both its forms, a problem document's type, the spacing of
+   // AcmeChecks::Allows and what NoteFinished leaves in it (the cooldown, a rate
+   // limit of an hour with no Retry-After and of seven days at most), whether a
+   // reservation holds (AcmeChecks::Holds), and the refusals of
    // AcmeClient::CheckIssuedCertificate against certificates and keys it makes
    // itself. Run by ClassTester on Windows and by acme-tests on Linux; throws
    // std::logic_error with the sentence.
