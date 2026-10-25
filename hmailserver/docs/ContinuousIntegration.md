@@ -2600,9 +2600,9 @@ of the fork's that keep only a message of his in its words, which REUSE.toml's t
 name him for and which get no line (`WORDS_ONLY`);
 `build/original-notices.txt`, which `build/generate-original-notices.py` makes from
 the original's trees and `build/add-license-headers.py` writes and holds, refusing a
-file of the list without its notice, and any source file it writes the header in
-that carries a copyright line in his name anywhere in it but the list's own lines
-for it; CONTRIBUTING.md says how). And in all of them two
+file of the list without its notice or in UTF-16, which it does not write, and any
+source file it writes the header in, or in UTF-16, that carries a copyright line in
+his name anywhere in it but the list's own lines for it; CONTRIBUTING.md says how). And in all of them two
 tables of `REUSE.toml`, which `build/generate-reuse-original.py` writes from the
 original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (and the files the
 fork's first commit took over from the original's history before them; the list is
@@ -2692,18 +2692,21 @@ original's later commit, which the project's repository has not and so the job
 cannot read, each line his notice in the file's comment syntax); and
 `build/add-license-headers.py --check`, which the checkers job runs as well, every
 file of the list to carrying its notice below the header (a `.resx` of the list that
-has lost its header comment included) and every source file it writes the header
-in to carrying no copyright line in his name anywhere in it but the list's own lines
-for it: no line that opens, once its comment's punctuation is taken off (`//`, `///`,
-`//!`, `/*`, `*`, `#`, `<#`, `;`, `<!--`), with a copyright statement naming him -
-`Copyright`, `(c)`, the sign or an SPDX copyright tag, `Portions` before it or not,
-in any letter case, year or wording after it - on a file the list does not name, nor
-beside the notice it gives a file it names. A sentence that quotes his notice, as
-the SPF port's attribution does, does not open with one. Then `build/ci/reuse-debian.py` holds `debian/copyright` to the same
+has lost its header comment included, and a file of the list in UTF-16, which it
+does not write, refused) and every source file it writes the header in, and every
+one in UTF-16, which it decodes first, to carrying no copyright line in his name
+anywhere in it but the list's own lines for it: no line that opens, once its
+comment's punctuation is taken off (`//`, `///`, `//!`, `/*`, `*`, `#`, `<#`, `;`,
+`<!--`), with a copyright statement naming him on that line - `Copyright`, `Copr.`,
+`(c)`, the sign or an SPDX copyright tag, `Portions` before it or not, in any letter
+case, year or wording after it - on a file the list does not name, nor beside the
+notice it gives a file it names. A sentence that quotes his notice, as the SPF
+port's attribution does, does not open with one, and a statement split over two
+lines, his name on the second, is not read as one. Then `build/ci/reuse-debian.py` holds `debian/copyright` to the same
 record: every file the Debian source package carries, all of the record but what its
 `Files-Excluded` leaves out, must have the same licences in the last paragraph that
 matches it as reuse records, a Debian short name standing for its SPDX identifier.
-The three scripts' self-tests run before their checks. Then eighteen negative controls. Five are a file
+The three scripts' self-tests run before their checks. Then twenty-one negative controls. Five are a file
 put in the checkout and taken out again, which `reuse lint` must refuse by name: a
 new C++ source in the server tree without the header, which no table covers; a new
 registration script beside the original's in `Server/COM` and a new fixture beside
@@ -2719,15 +2722,17 @@ edit of both would leave them, which `--check --require-tags` must refuse, namin
 file. The eighth is a copy of `debian/copyright` whose RFC 7208 suite paragraph has
 lost the suite's change log, which then falls to `Files: *` and the project's
 licence, as it did until the paragraph named it, and which `reuse-debian.py` must
-refuse by name. The last ten are his notices, each an edit of the checkout put back
+refuse by name. The last thirteen are his notices, each an edit of the checkout put back
 after: `IMAP/IMAPFetch.cpp`, one of the list's files, with its notice taken out,
 `AntiSpam/DMARC/SpamTestDMARC.cpp`, which the fork made at one of the original's paths,
 given his notice, the Control Panel's `Strings.resx` put in the list (which names no
 `.resx` today) with its whole header comment taken out, `SpamTestDMARC.cpp` given his notice in another wording
 (`(C)`, and no `hMailServer.com`) below its first `#include`, the fork's Control Panel
-`App.xaml.cs` given it in a C# doc comment (`///`) below its first `using`, and
-`IMAPFetch.cpp` given a second notice of his, of 2011, below its first `#include`, each
-of which the header check must refuse by name; `IMAPFetch.cpp`'s notice given another year in the list and
+`App.xaml.cs` given it in a C# doc comment (`///`) below its first `using`, and given
+it with the abbreviation `Copr.` there, `IMAPFetch.cpp` given a second notice of his,
+of 2011, below its first `#include`, `IMAPFetch.cpp` saved in UTF-16 without its
+notice, and the original's `Translations/english.ini`, in UTF-16 and not in the list,
+given his notice, each of which the header check must refuse by name; `IMAPFetch.cpp`'s notice given another year in the list and
 in the file alike, as an edit of both would leave them, which the header check passes
 and the list's check must refuse by name, since the original's file says otherwise;
 `SpamTestDMARC.cpp` put in the list with his notice in the file, the SPF port's
@@ -4650,7 +4655,7 @@ measured times after the first pipelines.
 | `checkers` | 12 to 19 min on server2 and s1-linux, 18 min or more on linix | 45 min | 729 to 935 s on server2 and 801 to 844 s on s1-linux from 19 October 2026, 1,060 to 1,063 s on linix, where the job was also killed at its 20 minutes of then on 21 and 23 October, as it was twice on GitLab's small hosted runner on 19 October, after 1,206 s and 1,202 s, while a third run there took 1,173 s and failed on `check-ci-image.py`; its script took 1,136 s on server2 with 8 CPUs and 1,135 s with 2 on 24 October 2026, the checks running one at a time, and the timeout is 1.6 times that and half as much again |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
-| `reuse` | 28 s by hand, the package install with it | 15 min | reuse installed from PyPI, the original's tags and the fork's first commit fetched from gitlab.com without their files' contents (about 4 MB, three seconds), and eight runs of `reuse lint` over 7,877 files - the tree, its record as JSON, and the tree with each of the five files and the holders' table of the negative controls - with the generators' and the Debian check's runs, the original's files the notices' check reads fetched with them, and eleven runs of the header check, in the job's image on 25 October 2026 (26 s on 24 October, before the notices' checks; the generators read the original's history with git's lazy fetching off, without which each of the 33 `DERIVED` files whose source is at the original's later commit had git ask gitlab.com for that commit, which it has not, about a second each, twice a run) |
+| `reuse` | 28 s by hand, the package install with it | 15 min | reuse installed from PyPI, the original's tags and the fork's first commit fetched from gitlab.com without their files' contents (about 4 MB, three seconds), and eight runs of `reuse lint` over 7,877 files - the tree, its record as JSON, and the tree with each of the five files and the holders' table of the negative controls - with the generators' and the Debian check's runs, the original's files the notices' check reads fetched with them, and fourteen runs of the header check, in the job's image on 25 October 2026 (26 s on 24 October, before the notices' checks; the generators read the original's history with git's lazy fetching off, without which each of the 33 `DERIVED` files whose source is at the original's later commit had git ask gitlab.com for that commit, which it has not, about a second each, twice a run) |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |
 | `coverage-cobertura` | under a second by hand | 5 min | The converter's self-test, Python's own library alone |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |

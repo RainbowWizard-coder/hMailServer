@@ -45,9 +45,10 @@
 # request; a port of a later commit of the original's, which the project's repository
 # has not, gets no line) - and every file of it must carry its notice below the
 # header, and no file a copyright line in his name anywhere in it but the list's own
-# lines for it: a line that opens, once its comment's punctuation is taken off, with
-# a copyright statement naming him, in any wording (build/add-license-headers.py
-# --check, which the checkers job runs as well). Then
+# lines for it, a file in UTF-16 included (and none of the list in UTF-16, which the
+# header script does not write): a line that opens, once its comment's punctuation is
+# taken off, with a copyright statement naming him on that line, in any wording
+# (build/add-license-headers.py --check, which the checkers job runs as well). Then
 # debian/copyright: every file the Debian source package
 # carries has there the licences reuse records for it (build/ci/reuse-debian.py).
 #
@@ -68,15 +69,17 @@
 # list, as an edit of both would leave them: --check --require-tags, holding the list
 # to the tags, must refuse it, by name; and a copy of debian/copyright that has lost
 # the RFC 7208 suite's change log from its paragraph, which reuse-debian.py must
-# refuse, by name. And ten of his notices, each made in the checkout and taken out
+# refuse, by name. And thirteen of his notices, each made in the checkout and taken out
 # again: one of the list's files, IMAPFetch.cpp, with its notice taken out, a file
 # the fork made at one of the original's paths, SpamTestDMARC.cpp (the generator's
 # FORK_MADE), given it, Strings.resx put in the list (which names no .resx today)
 # with its whole header comment taken out, SpamTestDMARC.cpp given his notice in
 # another wording ("(C)" and no "hMailServer.com") below its first #include, the
 # fork's App.xaml.cs given it in a C# doc comment (///) below its first using, and
-# IMAPFetch.cpp given a second
-# notice of his, of 2011, below its first #include, each of which
+# with the abbreviation "Copr." there, IMAPFetch.cpp given a second notice of his, of
+# 2011, below its first #include, IMAPFetch.cpp saved in UTF-16 without its notice,
+# and the original's Translations/english.ini, in UTF-16 and not in the list, given
+# his notice, each of which
 # build/add-license-headers.py --check must refuse, by name; IMAPFetch.cpp's notice
 # given another year in the list and in the file alike, as an edit of both would
 # leave them, SpamTestDMARC.cpp put in the list with his notice in the file, and the
@@ -440,14 +443,20 @@ put_back() {
 # edit LIST note PATH OLD NEW | edit FILE cut OPEN CLOSE: take out the line LINE, put LINE
 # in after line N, make the line OLD the line NEW, put PATH with its notice LINE into the
 # list where its order puts it, make PATH's notice OLD in the list NEW, or take out the
-# first line OPEN and every line after it to the next line CLOSE. Exits 1 when the file
+# first line OPEN and every line after it to the next line CLOSE; edit FILE utf16: write
+# the file anew in UTF-16, little-endian with its byte-order mark. A file in UTF-16 is
+# read and written in it. Exits 1 when the file
 # has not the line, or has it more than once (or, for cut, has not the two).
 edit() {
   python3 -c '
 import sys
 path, action = sys.argv[1], sys.argv[2]
 data = open(path, "rb").read()
-end = b"\r\n" if data.split(b"\n", 1)[0].endswith(b"\r") else b"\n"
+boms = {"utf-16-le": b"\xff\xfe", "utf-16-be": b"\xfe\xff"}
+codec = next((c for c, b in boms.items() if data.startswith(b)), None)
+if codec:
+    data = data[2:].decode(codec).encode("utf-8")
+end =b"\r\n" if data.split(b"\n", 1)[0].endswith(b"\r") else b"\n"
 lines = data.split(b"\n")
 def at(text):
     found = [i for i, l in enumerate(lines) if l.rstrip(b"\r") == text.encode()]
@@ -475,7 +484,14 @@ elif action == "cut":
     if j is None:
         sys.exit("%s has not the lines %r to %r" % (path, sys.argv[3], sys.argv[4]))
     del lines[i:j + 1]
-open(path, "wb").write(b"\n".join(lines))
+elif action == "utf16":
+    codec = "utf-16-le"
+    if lines and lines[0].startswith(b"\xef\xbb\xbf"):
+        lines[0] = lines[0][3:]
+out = b"\n".join(lines)
+if codec:
+    out = boms[codec] + out.decode("utf-8").encode(codec)
+open(path, "wb").write(out)
 ' "$@"
 }
 # refused_by NAME EXPECT COMMAND...: the command must exit 1 and name EXPECT.
@@ -500,11 +516,14 @@ resx=hmailserver/source/Tools/ControlPanel/Resources/Strings.resx
 port=hmailserver/source/Server/SMTP/SPF/README.md
 fork_cs=hmailserver/source/Tools/ControlPanel/App.xaml.cs
 words=hmailserver/source/Server/Common/Util/ApiSends.cpp
+ini=hmailserver/source/Translations/english.ini
 # REUSE-IgnoreStart
 notice="// Copyright (c) 2010 Martin Knafve / hMailServer.com."
 other="// Copyright (c) 2011 Martin Knafve / hMailServer.com."
 variant="// Copyright (C) 2010 Martin Knafve"
 doc="/// Copyright (c) 2010 Martin Knafve / hMailServer.com."
+abbreviated="// Copr. 2010 Martin Knafve / hMailServer.com."
+ini_notice="; Copyright (c) 2010 Martin Knafve / hMailServer.com."
 element="  Copyright (c) 2010 Martin Knafve / hMailServer.com."
 # REUSE-IgnoreEnd
 # The checkout has the list with CRLF line endings.
@@ -581,6 +600,39 @@ else
   keep "$fork_cs"
   if edit "$fork_cs" after 5 "$doc"; then
     refused_by "his notice in a doc comment of a file of the fork's" "$fork_cs carries" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # His notice with the abbreviation "Copr.", below the first using of a file of the
+  # fork's.
+  keep "$fork_cs"
+  if edit "$fork_cs" after 5 "$abbreviated"; then
+    refused_by "his notice with \"Copr.\" in a file of the fork's" "$fork_cs carries" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # One of the list's files saved in UTF-16, which the header script does not write,
+  # without its notice.
+  keep "$his"
+  if edit "$his" take "$notice" && edit "$his" utf16; then
+    refused_by "one of the list's files in UTF-16 without its notice" "$his is a file of" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # His notice in a file in UTF-16 that the list does not name, the original's English
+  # translation, which carried none.
+  keep "$ini"
+  if edit "$ini" after 1 "$ini_notice"; then
+    refused_by "his notice in a file in UTF-16 the list does not name" "$ini carries" \
       python3 build/add-license-headers.py --check || failed=1
   else
     put_back

@@ -1230,18 +1230,23 @@ with `--check`).
   `build/add-license-headers.py` writes each listed notice below the header, wherever in the opening comment it stood,
   and its `--check` refuses a file of the list without its notice there - a `.resx` of the list, whose header is
   otherwise only made canonical when it carries one, gets its header and notice written anew when it has lost them -
-  and any copyright line in his name anywhere in a file but the list's own lines for it - a line that opens, once
-  its comment's punctuation is taken off (`//`, `///`, `//!`, `/*`, `*`, `#`, `<#`, `;`, `<!--`), with a copyright
-  statement naming him, "Portions" before it or not, in any wording ("(C)", another year or none, no
+  a file of the list in UTF-16, which it does not write (it is saved as UTF-8 first), and any copyright line in his
+  name anywhere in a file but the list's own lines for it, a file in UTF-16 included, which it decodes before it looks
+  for his name - a line that opens, once its comment's punctuation is taken off (`//`, `///`, `//!`, `/*`, `*`, `#`,
+  `<#`, `;`, `<!--`), with a copyright statement naming him on that line, "Copyright", "Copr.", "(c)", the sign or an
+  SPDX copyright tag, "Portions" before it or not, in any wording after it ("(C)", another year or none, no
   "hMailServer.com", "All rights reserved" after it, a block or a doc comment) - on a file the list does not name, and
   on a file it names besides the notice it gives it, another year's or a second one below the opening comment; it
-  leaves such a line in place: the list, not the script, says which files are his and what his notice on each is.
+  leaves such a line in place: the list, not the script, says which files are his and what his notice on each is. It
+  reads a line at a time, so a statement split over two comment lines, his name on the second, is not one.
   The `reuse` job runs the generator's self-test, `--check --require-tags` over the original's trees it already
-  fetches - the 1,238 files it reads fetched into the same directory in one request - and the header check, and ten
+  fetches - the 1,238 files it reads fetched into the same directory in one request - and the header check, and thirteen
   more negative controls must each be refused by name: `IMAPFetch.cpp` without its notice, the fork's
   `SpamTestDMARC.cpp` with his, `Strings.resx` put in the list without its header comment, `SpamTestDMARC.cpp` with
   his notice in another wording below its first `#include`, the fork's `App.xaml.cs` with it in a `///` comment and
-  `IMAPFetch.cpp` with a second notice of his, of 2011, below its first `#include`, by the header check, and
+  with it written `Copr.`, `IMAPFetch.cpp` with a second notice of his, of 2011, below its first `#include`,
+  `IMAPFetch.cpp` saved in UTF-16 without its notice, and the original's `Translations/english.ini`, in UTF-16 and
+  not in the list, with his notice, by the header check, and
   `IMAPFetch.cpp`'s notice given another year, `SpamTestDMARC.cpp` put in the list, the SPF port's `README.md` put in
   the list and `ApiSends.cpp`, which keeps his words alone, put in the list, each in the list and the file alike, by
   the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
