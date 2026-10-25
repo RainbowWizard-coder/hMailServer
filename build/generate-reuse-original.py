@@ -684,8 +684,15 @@ def generate(check, require):
     originals = read_paths(committed)
     tree = tree_paths()
     problems, notes = list_problems(originals, tree)
+    # A later commit not at hand gives a note for each file of DERIVED at it (the SPF
+    # port's 33 in CI, which has not the commit): one line says so.
+    unread = [note for note in notes if " is not at hand; " in note]
     for note in notes:
-        print(note)
+        if note not in unread:
+            print(note)
+    if unread:
+        print("%d of DERIVED's sources are at a later commit of the original's that is not at hand, and are taken as "
+              "given; the first: %s" % (len(unread), unread[0]))
     for problem in problems:
         print(problem)
     if problems:

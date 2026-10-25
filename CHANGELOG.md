@@ -1208,28 +1208,30 @@ with `--check`).
   files from theirs, and of which `IMAPMove.h` keeps `IMAPCopy.h`'s `GetMissingMessagePolicy` word for word, are in
   `DERIVED` and carry his notice. The SPF port's 31 files, which quote his notice in the sentence that says where they
   came from, keep it as they are, and are in `DERIVED` too, with their sources at the original's commit `1beaeab9c`,
-  so that `REUSE.toml`'s tables name him for each of them; they get no line in the list, since the project's
-  repository has not that commit and the reuse job could not hold such a line to it, and an entry for any file of the
-  port, its two `README.md` files among them, is refused. `build/add-license-headers.py` writes each listed notice
-  below the header, wherever in the opening comment it stood, and its `--check` refuses a file of the list without its
-  notice there - `Strings.resx`, a `.resx` whose header is otherwise only made canonical when it carries one, gets its
-  header and notice written anew when it has lost them - and, in any file the list does not name, a line anywhere in
-  it that opens, after its comment marker, with a copyright statement in his name, in any wording ("(C)", another year
-  or none, no "hMailServer.com", "All rights reserved" after it, a block comment), which it leaves in place: the list,
-  not the script, says which files are his. The `reuse` job runs the generator's self-test, `--check --require-tags`
-  over the original's trees it already fetches - the 1,240 files it reads fetched into the same directory in one
-  request - and the header check, and seven more negative controls must each be refused by name: `IMAPFetch.cpp`
-  without its notice, the fork's `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment and
-  `SpamTestDMARC.cpp` with his notice in another wording below its first `#include`, by the header check, and
-  `IMAPFetch.cpp`'s notice given another year, `SpamTestDMARC.cpp` put in the list and the SPF port's `README.md` put
-  in the list, each in the list and the file alike, by the generator. The checkers job runs no new step.
-  CONTRIBUTING.md's header rule says how a file keeps his notice, `ContinuousIntegration.md`'s REUSE section what the
-  job runs, and `REUSE.toml`'s, `debian/copyright`'s and `generate-reuse-original.py`'s texts say which of the
-  original's files carry his notice again: those whose own file in the original carried it. The notices themselves
-  went in by commits of their own, which add the lines - the 1,101, and then the two of the `MOVE` declarations - each
-  below its file's header in the file's own line endings, and change nothing else. The two directory-form entries of
-  `.gitleaksignore` that name a line of a file of the list, the test URLs of `SURBL.cpp` and `Basics.cs` that
-  gitleaks' rule Password in URL reads as carrying a password, follow those lines down one, to 3350 and 508.
+  so that `REUSE.toml`'s tables name him for each of them (where that commit is not at hand, as in CI,
+  `generate-reuse-original.py` says in one line, and not in one a file, that their sources there are taken as given);
+  they get no line in the list, since the project's repository has not that commit and the reuse job could not hold
+  such a line to it, and an entry for any file of the port, its two `README.md` files among them, is refused.
+  `build/add-license-headers.py` writes each listed notice below the header, wherever in the opening comment it stood,
+  and its `--check` refuses a file of the list without its notice there - `Strings.resx`, a `.resx` whose header is
+  otherwise only made canonical when it carries one, gets its header and notice written anew when it has lost them -
+  and, in any file the list does not name, a line anywhere in it that opens, after its comment marker, with a
+  copyright statement in his name, in any wording ("(C)", another year or none, no "hMailServer.com", "All rights
+  reserved" after it, a block comment), which it leaves in place: the list, not the script, says which files are his.
+  The `reuse` job runs the generator's self-test, `--check --require-tags` over the original's trees it already
+  fetches - the 1,240 files it reads fetched into the same directory in one request - and the header check, and seven
+  more negative controls must each be refused by name: `IMAPFetch.cpp` without its notice, the fork's
+  `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment and `SpamTestDMARC.cpp` with his notice in
+  another wording below its first `#include`, by the header check, and `IMAPFetch.cpp`'s notice given another year,
+  `SpamTestDMARC.cpp` put in the list and the SPF port's `README.md` put in the list, each in the list and the file
+  alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
+  notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and
+  `generate-reuse-original.py`'s texts say which of the original's files carry his notice again: those whose own file
+  in the original carried it. The notices themselves went in by commits of their own, which add the lines - the 1,101,
+  and then the two of the `MOVE` declarations - each below its file's header in the file's own line endings, and
+  change nothing else. The two directory-form entries of `.gitleaksignore` that name a line of a file of the list, the
+  test URLs of `SURBL.cpp` and `Basics.cs` that gitleaks' rule Password in URL reads as carrying a password, follow
+  those lines down one, to 3350 and 508.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
