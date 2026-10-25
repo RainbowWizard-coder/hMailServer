@@ -1136,7 +1136,7 @@ with `--check`).
   it, as its comment says, and is refused by `START_TEST_SHA256`, the digest that holds the whole script.
 
 - **New: the tree is REUSE-compliant, and a CI job holds it.** Every file's copyright and licence are known, as the
-  REUSE Specification 3.3 asks, by the file's own header or, for the 4,191 files that carry none (documents,
+  REUSE Specification 3.3 asks, by the file's own header or, for the 4,189 files that carry none (documents,
   pictures, project, data and test files, the vendored trees, licence texts), by a table of `REUSE.toml`, by directory
   and kind of file for what the fork made and file by file for the original's, whose comments say which holders each
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
@@ -1300,7 +1300,7 @@ with `--check`).
   over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
   the original's files, but the third parties', that does not name Martin Knafve, and one of the ten the fork made
   at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
-  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,776 files - to having the same licences in
+  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,798 files - to having the same licences in
   the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for
   its SPDX identifier (it finds `rfc7208-tests.CHANGES` alone in the record as it was); and then eight negative
   controls must each be refused by name - five files put in the checkout, a new C++ source without the header, a new
@@ -1376,7 +1376,7 @@ with `--check`).
   leaves such a line in place: the list, not the script, says which files are his and what his notice on each is. It
   reads a line at a time, so a statement split over two comment lines, his name on the second, is not one.
   The `reuse` job runs the generator's self-test, `--check --require-tags` over the original's trees it already
-  fetches - the 1,238 files it reads fetched into the same directory in one request - and the header check, and thirteen
+  fetches - the 1,237 files it reads fetched into the same directory in one request - and the header check, and thirteen
   more negative controls must each be refused by name: `IMAPFetch.cpp` without its notice, the fork's
   `SpamTestDMARC.cpp` with his, `Strings.resx` put in the list without its header comment, `SpamTestDMARC.cpp` with
   his notice in another wording below its first `#include`, the fork's `App.xaml.cs` with it in a `///` comment and

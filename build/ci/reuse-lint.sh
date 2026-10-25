@@ -41,7 +41,7 @@
 # build/generate-original-notices.py makes from the same trees - the notice of each
 # of the original's files that carries the project's header and whose own file in the
 # original carried one in its opening comment, read from that file (--check
-# --require-tags; the files it reads are fetched with it, 1,238 of them in one
+# --require-tags; the files it reads are fetched with it, 1,237 of them in one
 # request; a port of a later commit of the original's, which the project's repository
 # has not, gets no line) - and every file of it must carry its notice below the
 # header, and no file a copyright line in his name anywhere in it but the list's own

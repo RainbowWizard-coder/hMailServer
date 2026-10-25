@@ -2750,7 +2750,7 @@ the third parties' among them, that does not name Martin Knafve - a table furthe
 down `REUSE.toml` that names one of them without him - and one of a `FORK_MADE` file
 that does. Then his notices: `generate-original-notices.py --check --require-tags`
 holds `build/original-notices.txt` to what the original's own files say, reading the
-opening comment of each of them that the list could name - 1,238 files, which git
+opening comment of each of them that the list could name - 1,237 files, which git
 fetches into the same directory in one request, since the first fetch brought no
 file's contents (the check took 3 s with it from gitlab.com, and under half a second
 from a local origin, on 25 October 2026) - and the list to what it may name (a file of
