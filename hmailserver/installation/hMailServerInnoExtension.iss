@@ -172,22 +172,31 @@ var
   // is said once.
   g_szProgramFolderChecked: String;
 
-// The NT-service specific parts of the scrit below is taken
-// from the innosetup extension knowledgebase.
-// Author: Silvio Iaccarino silvio.iaccarino(at)de.adp.com
-// Article created: 6 November 2002
-// Article updated: 6 November 2002
-// http://www13.brinkster.com/vincenzog/isxart.asp?idart=31
+// The hMailServer service is looked at and stopped through Windows' Service Control
+// Manager, as Microsoft documents it (learn.microsoft.com, "Service Functions" and
+// winsvc.h): OpenSCManagerW connects to the manager of this computer, OpenServiceW
+// opens one service by its name with the access a caller needs, QueryServiceStatusEx
+// reads its state, ControlService sends it the stop, and CloseServiceHandle lets go
+// of each handle. The types, constants and declarations below restate that API; the
+// routines built on it, OpenServiceManager and those after it, follow DecodeVersion.
 
 type
+	// A Windows handle: pointer-sized, so 32 bits in this 32-bit setup. SC_HANDLE is
+	// the kind the Service Control Manager gives out, for itself and for a service,
+	// and takes back with CloseServiceHandle; 0 is no handle.
+	HANDLE = cardinal;
+	SC_HANDLE = HANDLE;
+	// SERVICE_STATUS, which ControlService fills in for the service it sent a
+	// control to: seven DWORDs, in winsvc.h's order. Nothing here reads it; the
+	// state is read through QueryServiceStatusEx (SERVICE_STATUS_PROCESS below).
 	SERVICE_STATUS = record
-    	dwServiceType				: cardinal;
-    	dwCurrentState				: cardinal;
-    	dwControlsAccepted			: cardinal;
-    	dwWin32ExitCode				: cardinal;
-    	dwServiceSpecificExitCode	: cardinal;
-    	dwCheckPoint				: cardinal;
-    	dwWaitHint					: cardinal;
+		dwServiceType: cardinal;
+		dwCurrentState: cardinal;
+		dwControlsAccepted: cardinal;
+		dwWin32ExitCode: cardinal;
+		dwServiceSpecificExitCode: cardinal;
+		dwCheckPoint: cardinal;
+		dwWaitHint: cardinal;
 	end;
 	// What QueryServiceStatusEx answers for SC_STATUS_PROCESS_INFO: SERVICE_STATUS
 	// with the id of the service's process and its flags after it, nine DWORDs,
@@ -204,7 +213,6 @@ type
 		dwProcessId					: cardinal;
 		dwServiceFlags				: cardinal;
 	end;
-	HANDLE = cardinal;
 	// What GetAclInformation answers for AclSizeInformation: the number of entries
 	// in a list of permissions, and its bytes in use and free (CheckProgramFolderPermissions).
 	ACL_SIZE_INFO = record
@@ -221,34 +229,18 @@ type
 	end;
 	
 const
-	SERVICE_QUERY_CONFIG		= $1;
-	SERVICE_CHANGE_CONFIG		= $2;
-	SERVICE_QUERY_STATUS		= $4;
-	SERVICE_START				= $10;
-	SERVICE_STOP				= $20;
-	SERVICE_ALL_ACCESS			= $f01ff;
-	SC_MANAGER_ALL_ACCESS		= $f003f;
-	SERVICE_WIN32_OWN_PROCESS	= $10;
-	SERVICE_WIN32_SHARE_PROCESS	= $20;
-	SERVICE_WIN32				= $30;
-	SERVICE_INTERACTIVE_PROCESS = $100;
-	SERVICE_BOOT_START          = $0;
-	SERVICE_SYSTEM_START        = $1;
-	SERVICE_AUTO_START          = $2;
-	SERVICE_DEMAND_START        = $3;
-	SERVICE_DISABLED            = $4;
-	SERVICE_DELETE              = $10000;
-	SERVICE_CONTROL_STOP		= $1;
-	SERVICE_CONTROL_PAUSE		= $2;
-	SERVICE_CONTROL_CONTINUE	= $3;
-	SERVICE_CONTROL_INTERROGATE = $4;
-	SERVICE_STOPPED				= $1;
-	SERVICE_START_PENDING       = $2;
-	SERVICE_STOP_PENDING        = $3;
-	SERVICE_RUNNING             = $4;
-	SERVICE_CONTINUE_PENDING    = $5;
-	SERVICE_PAUSE_PENDING       = $6;
-	SERVICE_PAUSED              = $7;
+	// The Service Control Manager's access rights, controls and states that the
+	// routines below use, with winsvc.h's values ("Service Security and Access
+	// Rights", ControlService, SERVICE_STATUS). SC_MANAGER_CONNECT is all that
+	// opening a service by its name asks of the manager; what may be done to the
+	// service is checked on the service, by the right it is opened with.
+	SC_MANAGER_CONNECT          = $0001;
+	SERVICE_QUERY_CONFIG        = $0001;
+	SERVICE_QUERY_STATUS        = $0004;
+	SERVICE_STOP                = $0020;
+	SERVICE_CONTROL_STOP        = $00000001;
+	SERVICE_STOPPED             = $00000001;
+	SERVICE_RUNNING             = $00000004;
 
 	// For the wait on the service's process (StopHMailServerAndWaitForExit). The
 	// Windows names are SC_STATUS_PROCESS_INFO, SYNCHRONIZE and WAIT_OBJECT_0; these
@@ -333,20 +325,23 @@ const
   // The current download page for the runtime, quoted in the failure message.
   DOTNET_DOWNLOAD_URL = 'https://dotnet.microsoft.com/download/dotnet/{#DOTNET_CHANNEL}';
 
-function ControlService(hService :HANDLE; dwControl :cardinal;var ServiceStatus :SERVICE_STATUS) : boolean;
-external 'ControlService@advapi32.dll stdcall';		
+// The Service Control Manager's functions, as winsvc.h declares them, through their
+// Unicode entry points where a name is passed: a String reaches a W function as a
+// pointer to its wide characters. OpenSCManagerW's two names are pointers passed as
+// cardinals, so that 0 is NULL: the manager of this computer, and its database of
+// the services installed (SERVICES_ACTIVE_DATABASE). BOOL results are read as
+// Boolean, as everywhere in this script.
+function OpenSCManagerW(lpMachineName: cardinal; lpDatabaseName: cardinal; dwDesiredAccess: cardinal): SC_HANDLE;
+external 'OpenSCManagerW@advapi32.dll stdcall';
 
-function CloseServiceHandle(hSCObject :HANDLE): boolean;
+function OpenServiceW(hSCManager: SC_HANDLE; lpServiceName: String; dwDesiredAccess: cardinal): SC_HANDLE;
+external 'OpenServiceW@advapi32.dll stdcall';
+
+function ControlService(hService: SC_HANDLE; dwControl: cardinal; var lpServiceStatus: SERVICE_STATUS): Boolean;
+external 'ControlService@advapi32.dll stdcall';
+
+function CloseServiceHandle(hSCObject: SC_HANDLE): Boolean;
 external 'CloseServiceHandle@advapi32.dll stdcall';
-
-function OpenService(hSCManager :HANDLE;lpServiceName: AnsiString; dwDesiredAccess :cardinal): HANDLE;
-external 'OpenServiceA@advapi32.dll stdcall';
-
-function OpenSCManager(lpMachineName, lpDatabaseName: AnsiString; dwDesiredAccess :cardinal): HANDLE;
-external 'OpenSCManagerA@advapi32.dll stdcall';
-
-function QueryServiceStatus(hService :HANDLE;var ServiceStatus :SERVICE_STATUS) : boolean;
-external 'QueryServiceStatus@advapi32.dll stdcall';
 
 // The service's process, opened and waited on (StopHMailServerAndWaitForExit).
 // Named apart from the Windows functions for the reason the constants above are;
@@ -1027,92 +1022,119 @@ begin
 end;
 
 
-function OpenServiceManager() : HANDLE;
+// A connection to this computer's Service Control Manager, for opening a service by
+// its name (OpenSCManagerW with SC_MANAGER_CONNECT); 0 when Windows refuses it, which
+// is said, in the log and to whoever runs setup, at each refusal, since whatever
+// asked then cannot tell whether the hMailServer service is there, running or
+// stopped.
+function OpenServiceManager() : SC_HANDLE;
+var
+   lastError: Integer;
 begin
-	if UsingWinNT() = true then begin
-		Result := OpenSCManager('','ServicesActive',SC_MANAGER_ALL_ACCESS);
-		if Result = 0 then
-			SuppressibleMsgBox('the servicemanager is not available', mbError, MB_OK, IDOK)
-	end
-	else begin
-			SuppressibleMsgBox('only nt based systems support services', mbError, MB_OK, IDOK)
-			Result := 0;
-	end
+   Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT);
+   if (Result = 0) then
+   begin
+      lastError := DLLGetLastError();
+      Log('Windows did not open its Service Control Manager to setup (error ' + IntToStr(lastError) + '): ' + SysErrorMessage(lastError));
+      SuppressibleMsgBox('Setup could not open the Service Control Manager of this computer, so it cannot tell whether the hMailServer service is installed or running, or stop it.' + #13#10#13#10 +
+             'Windows said: ' + SysErrorMessage(lastError), mbError, MB_OK, IDOK);
+   end;
 end;
 
-function IsServiceInstalled(ServiceName: AnsiString) : boolean;
-var
-	hSCM	: HANDLE;
-	hService: HANDLE;
+// The service called Name (its service name, not its display name), opened with
+// Access through a connection made for it, which Manager is given; 0, with Manager
+// closed and 0, when the connection or the service could not be opened - the
+// service is not installed, or Windows does not grant that access to it. The
+// caller lets both go with CloseServiceAndManager.
+function OpenNamedService(Name: String; Access: cardinal; var Manager: SC_HANDLE) : SC_HANDLE;
 begin
-	hSCM := OpenServiceManager();
-	Result := false;
-	if hSCM <> 0 then begin
-		hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_CONFIG);
-        if hService <> 0 then begin
-            Result := true;
-            CloseServiceHandle(hService)
-		end;
-        CloseServiceHandle(hSCM)
-	end
+   Result := 0;
+   Manager := OpenServiceManager();
+   if (Manager = 0) then
+      Exit;
+   Result := OpenServiceW(Manager, Name, Access);
+   if (Result = 0) then
+   begin
+      CloseServiceHandle(Manager);
+      Manager := 0;
+   end;
 end;
 
-function StopService(ServiceName: AnsiString) : boolean;
-var
-	hSCM	: HANDLE;
-	hService: HANDLE;
-	Status	: SERVICE_STATUS;
+procedure CloseServiceAndManager(Service: SC_HANDLE; Manager: SC_HANDLE);
 begin
-	hSCM := OpenServiceManager();
-	Result := false;
-	if hSCM <> 0 then begin
-		hService := OpenService(hSCM,ServiceName,SERVICE_STOP);
-        if hService <> 0 then begin
-        	Result := ControlService(hService,SERVICE_CONTROL_STOP,Status);
-            CloseServiceHandle(hService)
-		end;
-        CloseServiceHandle(hSCM)
-	end;
+   if (Service <> 0) then
+      CloseServiceHandle(Service);
+   if (Manager <> 0) then
+      CloseServiceHandle(Manager);
 end;
 
-function IsServiceRunning(ServiceName: AnsiString) : boolean;
+// The state the service called Name is in, as QueryServiceStatusEx reports it
+// (SERVICE_STOPPED, SERVICE_RUNNING or one of the pending and paused states); 0,
+// which is none of them, when it is not installed or its state cannot be read.
+function GetServiceState(Name: String) : cardinal;
 var
-	hSCM	: HANDLE;
-	hService: HANDLE;
-	Status	: SERVICE_STATUS;
+   manager: SC_HANDLE;
+   service: SC_HANDLE;
+   status : SERVICE_STATUS_PROCESS;
+   needed : cardinal;
 begin
-	hSCM := OpenServiceManager();
-	Result := false;
-	if hSCM <> 0 then begin
-		hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_STATUS);
-    	if hService <> 0 then begin
-			if QueryServiceStatus(hService,Status) then begin
-				Result :=(Status.dwCurrentState = SERVICE_RUNNING)
-        	end;
-            CloseServiceHandle(hService)
-		    end;
-        CloseServiceHandle(hSCM)
-	end
+   Result := 0;
+   service := OpenNamedService(Name, SERVICE_QUERY_STATUS, manager);
+   if (service = 0) then
+      Exit;
+   if QueryServiceStatusProcess(service, SERVICE_STATUS_PROCESS_INFO, status, SERVICE_STATUS_PROCESS_SIZE, needed) then
+      Result := status.dwCurrentState;
+   CloseServiceAndManager(service, manager);
 end;
 
-function IsServiceStopped(ServiceName: AnsiString) : boolean;
+// Whether Windows knows a service called Name: True when it can be opened to read
+// its configuration.
+function IsServiceInstalled(Name: String) : Boolean;
 var
-	hSCM	: HANDLE;
-	hService: HANDLE;
-	Status	: SERVICE_STATUS;
+   manager: SC_HANDLE;
+   service: SC_HANDLE;
 begin
-	hSCM := OpenServiceManager();
-	Result := false;
-	if hSCM <> 0 then begin
-		hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_STATUS);
-    	if hService <> 0 then begin
-			if QueryServiceStatus(hService,Status) then begin
-				Result :=(Status.dwCurrentState = SERVICE_STOPPED)
-        	end;
-            CloseServiceHandle(hService)
-		    end;
-        CloseServiceHandle(hSCM)
-	end
+   service := OpenNamedService(Name, SERVICE_QUERY_CONFIG, manager);
+   Result := (service <> 0);
+   CloseServiceAndManager(service, manager);
+end;
+
+// Asks the service called Name to stop (SERVICE_CONTROL_STOP) and returns at once:
+// True when Windows passed the request on, False when the service could not be
+// opened to stop it or Windows refused the request - a service that is stopped
+// already is refused (ERROR_SERVICE_NOT_ACTIVE). Whoever asks waits for the stop
+// (StopHMailServerAndWaitForExit, the one caller).
+function StopService(Name: String) : Boolean;
+var
+   manager: SC_HANDLE;
+   service: SC_HANDLE;
+   status : SERVICE_STATUS;
+   lastError  : Integer;
+begin
+   Result := false;
+   service := OpenNamedService(Name, SERVICE_STOP, manager);
+   if (service = 0) then
+      Exit;
+   Result := ControlService(service, SERVICE_CONTROL_STOP, status);
+   if not Result then
+   begin
+      lastError := DLLGetLastError();
+      Log('Windows did not pass the stop on to the ' + Name + ' service (error ' + IntToStr(lastError) + '): ' + SysErrorMessage(lastError));
+   end;
+   CloseServiceAndManager(service, manager);
+end;
+
+// Whether the service called Name is running, and whether it is stopped. A
+// service that is starting, stopping or paused is neither, and so is one that is
+// not installed or whose state cannot be read.
+function IsServiceRunning(Name: String) : Boolean;
+begin
+   Result := (GetServiceState(Name) = SERVICE_RUNNING);
+end;
+
+function IsServiceStopped(Name: String) : Boolean;
+begin
+   Result := (GetServiceState(Name) = SERVICE_STOPPED);
 end;
 
 function GetInifile() : AnsiString;
@@ -1198,22 +1220,18 @@ end;
 // the service has stopped, and when it is not installed or cannot be asked.
 function GetHMailServerProcessId() : cardinal;
 var
-	hSCM	: HANDLE;
-	hService: HANDLE;
-	Status	: SERVICE_STATUS_PROCESS;
-	needed	: cardinal;
+   manager: SC_HANDLE;
+   service: SC_HANDLE;
+   status : SERVICE_STATUS_PROCESS;
+   needed : cardinal;
 begin
-	Result := 0;
-	hSCM := OpenServiceManager();
-	if hSCM <> 0 then begin
-		hService := OpenService(hSCM,'hMailServer',SERVICE_QUERY_STATUS);
-		if hService <> 0 then begin
-			if QueryServiceStatusProcess(hService, SERVICE_STATUS_PROCESS_INFO, Status, SERVICE_STATUS_PROCESS_SIZE, needed) then
-				Result := Status.dwProcessId;
-			CloseServiceHandle(hService)
-		end;
-		CloseServiceHandle(hSCM)
-	end
+   Result := 0;
+   service := OpenNamedService('hMailServer', SERVICE_QUERY_STATUS, manager);
+   if (service = 0) then
+      Exit;
+   if QueryServiceStatusProcess(service, SERVICE_STATUS_PROCESS_INFO, status, SERVICE_STATUS_PROCESS_SIZE, needed) then
+      Result := status.dwProcessId;
+   CloseServiceAndManager(service, manager);
 end;
 
 // Stops the hMailServer service and waits, with bounds, until its PROCESS has

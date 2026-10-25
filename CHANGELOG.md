@@ -226,6 +226,24 @@ with `--check`).
   refusal to its place and its file, and the password scheme of the settings file the installed server reads - for
   the original's 5.7.0 build 3013 and later the one in ProgramData when it exists, for its earlier builds the one in
   `Bin` - passed to the decision, with twelve negative controls more.
+- **Changed: the Windows installer finds, reads and stops the hMailServer service through routines of its own,
+  written from Microsoft's documentation of the Service Control Manager.** The routines the installer and the
+  uninstaller ask whether the service is installed, running or stopped and send it the stop with
+  (`OpenServiceManager`, `IsServiceInstalled`, `IsServiceRunning`, `IsServiceStopped` and `StopService` in
+  `hmailserver/installation/hMailServerInnoExtension.iss`), and their declarations of Windows' service functions,
+  types and constants, were the original's, taken from an article of 2002 in the Inno Setup extensions knowledge base;
+  they are written anew from Microsoft's documentation of `OpenSCManagerW`, `OpenServiceW`, `QueryServiceStatusEx`,
+  `ControlService`, `CloseServiceHandle`, the `SERVICE_STATUS` structure and the service access rights, so that
+  nothing of the article is compiled into `setup.exe`. Each caller is answered as before - a service is installed when
+  it can be opened to read its configuration, running or stopped as Windows reports its state, and the stop returns
+  once Windows has passed it on, the wait for it and for the service's process being `StopHMailServerAndWaitForExit`'s
+  as before - with three differences: the service's name reaches Windows through the Unicode functions, where the
+  ANSI ones took it; the Service Control Manager is opened with the one right that opening a service by its name
+  needs, `SC_MANAGER_CONNECT`, where all of its rights were asked for; and when Windows will not open it, setup says
+  so in its own words, with Windows' reason, in its log and in a message, where the article's message said "the
+  servicemanager is not available" (its other message, for a version of Windows without services, could not be shown
+  by Inno Setup 6, which runs on none, and is gone with its test). A stop that Windows refuses is written to the setup
+  log with Windows' reason. `GetHMailServerProcessId`, the fork's own, opens the service through the same routine.
 
 - **Fixed: the PowerShell module says why a call failed when it got no answer under Windows PowerShell 5.1, and
   prints the text of an answer that is not JSON and the `message` of JSON without `error`.** Under 5.1 a request
