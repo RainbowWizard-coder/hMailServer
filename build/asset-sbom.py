@@ -164,7 +164,7 @@ SOURCE_COMPONENTS = [
     ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
     ("commonmark-js", "commonmark.js 0.31.2 (John MacFarlane)", "build/check-release-chain.py", "BSD-2-Clause", None,
-     "parts of its block parser, ported to Python in the check of the release jobs"),
+     "parts of its block and inline parsers, ported to Python in the check of the release jobs"),
     ("contributor-covenant", "Contributor Covenant 2.1 (Coraline Ada Ehmke and its contributors)", "CODE_OF_CONDUCT.md",
      "CC-BY-4.0", None, "the text the project's code of conduct is adapted from"),
     ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",

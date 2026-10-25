@@ -2599,7 +2599,7 @@ rather than by directory, so that a file the fork adds beside them is not credit
 to him. A path does not settle it alone, and two lists the generator keeps by hand
 say where it does not: `DERIVED` adds the files the fork moved, split or copied out
 of one of the original's to a path of its own, or that keep any of his text
-verbatim, one sentence of an error message included (30, each with the original's
+verbatim, one sentence of an error message included (32, each with the original's
 file it came from and the commit), and `FORK_MADE` leaves out the files the fork made anew at
 one of the original's paths, which keep nothing of the original's file there (10:
 the installer's wizard picture, the developer script that uninstalls a test
@@ -2616,7 +2616,7 @@ project's sources that hold a third party's code under the project's header (the
 MIME classes, `StdString.h`, `InputCostTester.cpp` and `StringParser.cpp`, which keep
 earlier versions of those classes' functions for their tests, and the tables made
 from the Public Suffix List, Unicode's data and HTML's character references, and
-`build/check-release-chain.py`, which ports parts of commonmark.js's block parser) with
+`build/check-release-chain.py`, which ports parts of commonmark.js's block and inline parsers) with
 the third party's licence added beside the header's, and the installer's Pascal code with the author of the article it took its
 Windows service declarations and four of its service functions from
 (`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),

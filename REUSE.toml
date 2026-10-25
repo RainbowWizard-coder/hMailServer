@@ -2285,13 +2285,22 @@ SPDX-License-Identifier = "LicenseRef-StdString AND AGPL-3.0-or-later"
 
 # The check of the release jobs (one of the gates' own files), which reads the
 # project's Markdown documents for the commands they give as CommonMark reads their
-# blocks, holds a Python port of parts of commonmark.js 0.31.2, John MacFarlane's
-# reference implementation of CommonMark, under its licence, BSD-2-Clause: its
-# MARKDOWN_* regular expressions, which are those of commonmark.js's lib/blocks.js
-# and lib/inlines.js (reThematicBreak, reMaybeSpecial, reCodeFence and the rest,
-# reHtmlBlockOpen and reHtmlBlockClose, reLinkLabel, reLinkTitle, reSpnl, ESCAPABLE)
-# character for character but for \d written [0-9] and $ written \Z; its
-# markdown_reference, inlines.js's parseReference and parseLinkDestination step by
+# blocks, holds a Python port of parts of the block and inline parsers of
+# commonmark.js 0.31.2, John MacFarlane's reference implementation of CommonMark,
+# under its licence, BSD-2-Clause: its MARKDOWN_* regular expressions, which are
+# those of commonmark.js's lib/blocks.js, lib/inlines.js and lib/common.js -
+# blocks.js's reThematicBreak, reMaybeSpecial, reCodeFence, reClosingCodeFence,
+# reATXHeadingMarker, reSetextHeadingLine, reBulletListMarker, reOrderedListMarker,
+# the first five of reHtmlBlockOpen and reHtmlBlockClose character for character
+# but for \d written [0-9] and the \/ of a JavaScript literal written /;
+# reHtmlBlockOpen's sixth with its tags "section" and "search" the other way round
+# and [/] and [>] written / and >, and its seventh, which blocks.js builds of
+# common.js's OPENTAG and CLOSETAG, written out; inlines.js's reLinkLabel, reLinkDestinationBraces
+# (without its outer group), reSpnl and reSpaceAtEndOfLine without the ^ that a
+# match at a given position makes needless, the last with $ written \Z, and its
+# reLinkTitle with its groups non-capturing and ESCAPED_CHAR written out; and
+# common.js's ESCAPABLE, which inlines.js takes from it, as a string of the
+# characters of its class; its markdown_reference, inlines.js's parseReference and parseLinkDestination step by
 # step; and its markdown_command_ends, which follows blocks.js's incorporateLine and
 # blockStarts. The rest of the file is the maintainers', under the header's licence.
 # hmailserver/docs/Licenses/License - commonmark.js.txt carries commonmark.js's

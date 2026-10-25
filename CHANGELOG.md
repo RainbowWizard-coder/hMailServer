@@ -356,22 +356,28 @@ with `--check`).
 - **Fixed: the port of commonmark.js in the check of the release jobs is credited to John MacFarlane, under
   commonmark.js's licence, BSD-2-Clause, where every record gave it the project's holders and licence alone.**
   `build/check-release-chain.py`, which reads the project's Markdown documents for the commands they give, holds a
-  Python port of parts of commonmark.js 0.31.2, a reference implementation of CommonMark: its `MARKDOWN_*` regular
-  expressions are those of commonmark.js's `lib/blocks.js` and `lib/inlines.js` character for character, but for
-  `\d` written `[0-9]` and `$` written `\Z`; `markdown_reference` reads a link reference definition step by step as
-  `parseReference` and `parseLinkDestination` do; and `markdown_command_ends` follows `incorporateLine` and
-  `blockStarts`. commonmark.js's BSD-2-Clause licence asks a copy of its source to keep its notice, and no text of
-  the tree named it, while the source tarball and the Debian source package carry `build/`. `REUSE.toml` gives the
-  file John MacFarlane (2014) and BSD-2-Clause beside its header's holders and licence, with a comment saying which
-  parts are the port; `hmailserver/docs/Licenses/License - commonmark.js.txt` carries the part of commonmark.js's
-  LICENSE that covers those two files, verbatim, after a note saying what the port takes and from which release (its
-  npm tarball, held to the registry's sha512); `LICENSES/BSD-2-Clause.txt` is SPDX's text; `debian/copyright` has a
-  paragraph for the check and one for the notice, `License: AGPL-3+ and BSD-2-clause`, and the licence's text, and
-  `build/ci/reuse-debian.py` knows the short name; `hmailserver/docs/SourceTarball.md`'s table has a row for it; and
-  the source tarball's SBOM names it (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
-  `build/check-package-licenses.py` decides as not compiled in, no package carrying the check). The check itself is
-  unchanged. The `reuse` job, with its negative controls, and the self-tests of `check-package-licenses.py`,
-  `asset-sbom.py` and `reuse-debian.py` pass.
+  Python port of parts of the block and inline parsers of commonmark.js 0.31.2, a reference implementation of
+  CommonMark: its `MARKDOWN_*` regular expressions are those of commonmark.js's `lib/blocks.js`, `lib/inlines.js` and
+  `lib/common.js` - `blocks.js`'s character for character but for `\d` written `[0-9]` and the `\/` of a JavaScript
+  literal written `/`, the sixth HTML block start but for its tags `section` and `search` the other way round and
+  `[/]` and `[>]` written `/` and `>`, and the seventh, which `blocks.js` builds of `common.js`'s `OPENTAG` and
+  `CLOSETAG`, written out; `inlines.js`'s label, destination, spaces and line end without the `^` that a match at a
+  given position makes needless (the destination without its outer group, the line end with `$` written `\Z`), and
+  its title with its groups non-capturing and `ESCAPED_CHAR` written out; and `common.js`'s `ESCAPABLE`, which
+  `inlines.js` takes from it, as a string of its characters; `markdown_reference` reads a link reference definition
+  step by step as `inlines.js`'s `parseReference` and `parseLinkDestination` do; and `markdown_command_ends` follows
+  `blocks.js`'s `incorporateLine` and `blockStarts`. commonmark.js's BSD-2-Clause licence asks a copy of its source
+  to keep its notice, and no text of the tree named it, while the source tarball and the Debian source package carry
+  `build/`. `REUSE.toml` gives the file John MacFarlane (2014) and BSD-2-Clause beside its header's holders and
+  licence, with a comment saying which parts are the port; `hmailserver/docs/Licenses/License - commonmark.js.txt`
+  carries the part of commonmark.js's LICENSE that covers those three files, verbatim, after a note saying what the
+  port takes and from which release (its npm tarball, held to the registry's sha512); `LICENSES/BSD-2-Clause.txt` is
+  SPDX's text; `debian/copyright` has a paragraph for the check and one for the notice, `License: AGPL-3+ and
+  BSD-2-clause`, and the licence's text, and `build/ci/reuse-debian.py` knows the short name;
+  `hmailserver/docs/SourceTarball.md`'s table has a row for it; and the source tarball's SBOM names it
+  (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which `build/check-package-licenses.py` decides as not compiled in,
+  no binary package carrying the check). The check itself is unchanged. The `reuse` job, with its negative controls,
+  and the self-tests of `check-package-licenses.py`, `asset-sbom.py` and `reuse-debian.py` pass.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

@@ -349,10 +349,11 @@ Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+ and BSD-2-clause
 Comment:
  The check of the release jobs, the maintainers' own, which holds a Python
- port of parts of commonmark.js 0.31.2, John MacFarlane's reference
- implementation of CommonMark, under its BSD-2-Clause licence: the regular
- expressions of its lib/blocks.js and lib/inlines.js that the check's
- MARKDOWN_* constants are, its link reference definition reader
+ port of parts of the block and inline parsers of commonmark.js 0.31.2, John
+ MacFarlane's reference implementation of CommonMark, under its BSD-2-Clause
+ licence: the regular expressions of its lib/blocks.js, lib/inlines.js and
+ lib/common.js that the check's MARKDOWN_* constants are, some written
+ otherwise as the notice says, its link reference definition reader
  (parseReference, as markdown_reference) and the order and continuation of
  its blocks (incorporateLine and blockStarts, as markdown_command_ends).
  hmailserver/docs/Licenses/License - commonmark.js.txt says what the port
