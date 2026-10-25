@@ -236,7 +236,8 @@ else
     echo "The fetch did not bring the original's tags and the fork's first commit."
     exit 2
   fi
-  echo "Fetched from the origin, their commits and trees alone, in $(( $(date +%s) - started )) s."
+  finished=$(date +%s)
+  echo "Fetched from the origin, their commits and trees alone, in $(( finished - started )) s."
   export HM_REUSE_ORIGINAL_GIT_DIR="$original"
 fi
 
@@ -567,7 +568,7 @@ else
     refused_by "a file the fork made put in the list with his notice" "$made, which the fork made" \
       python3 build/generate-original-notices.py --check --require-tags || failed=1
   else
-    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    tail -n 20 "$work/control-headers.txt" 2> /dev/null
     echo "The list's control did not leave the list and the file agreeing: it proves nothing."
     put_back
     failed=1
@@ -659,7 +660,7 @@ else
     refused_by "a port of a later commit of the original's put in the list with his notice" "$port, which DERIVED" \
       python3 build/generate-original-notices.py --check --require-tags || failed=1
   else
-    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    tail -n 20 "$work/control-headers.txt" 2> /dev/null
     echo "The port's control did not leave the list and the file agreeing: it proves nothing."
     put_back
     failed=1
@@ -674,7 +675,7 @@ else
     refused_by "a file that keeps his words alone put in the list with his notice" "$words, which keeps his words" \
       python3 build/generate-original-notices.py --check --require-tags || failed=1
   else
-    cat "$work/control-headers.txt" 2> /dev/null | tail -n 20
+    tail -n 20 "$work/control-headers.txt" 2> /dev/null
     echo "The words' control did not leave the list and the file agreeing: it proves nothing."
     put_back
     failed=1
