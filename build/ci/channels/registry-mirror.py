@@ -1151,17 +1151,19 @@ def self_test(cosign=None):
         "DOCKERHUB_USERNAME": "u", "DOCKERHUB_TOKEN": "t", "DOCKERHUB_REPOSITORY": "evil.example/x/y"}), "go nowhere else")
     # A repository is on its destination's host only when its first component is that
     # host, whole: the host's name at the start of another host's, after it, or with a
-    # port of its own, names another registry, and the credentials go to none of them.
+    # port of its own, names another registry, and the credentials go to none of them;
+    # nor does a host whose name ends in the destination's.
     for crafted in ("quay.io.evil.example/hmailserver/hmailserver", "quay.iox/hmailserver/hmailserver",
                     "evil.example/quay.io/hmailserver", "quay.io:5000/hmailserver/hmailserver",
                     "quay.io@evil.example/hmailserver/hmailserver", "QUAY.IO/hmailserver/hmailserver",
+                    "notquay.io/hmailserver/hmailserver", "evil-quay.io/hmailserver/hmailserver",
                     "quay.io", "quay.io/"):
         refused("a Quay.io repository given as %r" % crafted, lambda crafted=crafted: configured({
             "QUAY_ROBOT_USER": "hmailserver+ci", "QUAY_ROBOT_TOKEN": "q", "QUAY_REPOSITORY": crafted}),
             "go nowhere else")
-    refused("a Docker Hub repository on a host named after docker.io", lambda: configured({
-        "DOCKERHUB_USERNAME": "u", "DOCKERHUB_TOKEN": "t",
-        "DOCKERHUB_REPOSITORY": "docker.io.evil.example/progressiverobot/hmailserver"}), "go nowhere else")
+    for crafted in ("docker.io.evil.example/progressiverobot/hmailserver", "evildocker.io/progressiverobot/hmailserver"):
+        refused("a Docker Hub repository given as %r" % crafted, lambda crafted=crafted: configured({
+            "DOCKERHUB_USERNAME": "u", "DOCKERHUB_TOKEN": "t", "DOCKERHUB_REPOSITORY": crafted}), "go nowhere else")
     expect("a Quay.io repository of another name on quay.io is taken",
            [r for _, r in configured({"QUAY_ROBOT_USER": "hmailserver+ci", "QUAY_ROBOT_TOKEN": "q",
                                       "QUAY_REPOSITORY": "quay.io/hmailserver/other"})] == ["quay.io/hmailserver/other"])

@@ -2081,10 +2081,10 @@ with `--check`).
   reaches it. The repositories come from the project's CI/CD variables alone, and the job's own rule already
   compared the first component. The self-test now refuses a Quay.io repository given as
   `quay.io.evil.example/...`, `quay.iox/...`, `evil.example/quay.io/...`, `quay.io:5000/...`,
-  `quay.io@evil.example/...`, `QUAY.IO/...`, `quay.io` and `quay.io/`, and a Docker Hub one on
-  `docker.io.evil.example`. It takes `quay.io/hmailserver/other`, and holds `registry_host` to five references.
-  Run with the rule made a substring test, a prefix test without the `/`, the pattern alone, or a host without its
-  port, the self-test fails each, and it passes as it is.
+  `quay.io@evil.example/...`, `QUAY.IO/...`, `notquay.io/...`, `evil-quay.io/...`, `quay.io` and `quay.io/`, and a
+  Docker Hub one on `docker.io.evil.example` or `evildocker.io`. It takes `quay.io/hmailserver/other`, and holds
+  `registry_host` to five references. Run with the rule made a substring test, a prefix test without the `/`, a
+  suffix test, the pattern alone, or a host without its port, the self-test fails each, and it passes as it is.
 
 ### Documentation
 
