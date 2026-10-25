@@ -1,0 +1,99 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Kubernetes operator's image and its OLM bundle, in a release's tag pipeline:
+# included from .gitlab-ci.yml (hmailserver/source/Server/platform/packaging/helm/
+# operator/README.md). The operator is operator-sdk's Helm operator with the project's
+# chart; each HMailServer resource is one installation of the chart.
+#
+#   operator-image       kaniko's debug image, linux-image's by reference: the
+#                        operator's image built for linux/amd64 and linux/arm64 from
+#                        platform/packaging/helm/operator/Dockerfile, with the tree's
+#                        chart copied in, stamped with the release's version and held
+#                        to the release's packaged chart (helm-chart-package's), and
+#                        kept as two tarballs (build/ci/operator-image.sh);
+#   operator-image-push  regctl's image, container-image's: both joined under one
+#                        index and pushed to the project's container registry as
+#                        operator:<version> (build/ci/operator-image-push.sh);
+#   operator-image-sign  cosign's own image (HM_COSIGN_IMAGE): the index and each
+#                        platform's image signed by digest with Sigstore, keylessly,
+#                        as this pipeline, and verified; then the release's OLM bundle
+#                        written for that index, the job's artifact, from which a
+#                        maintainer makes the pull request to OperatorHub.io's
+#                        repository by hand (build/ci/operator-image-sign.sh,
+#                        build/ci/operator-bundle.sh).
+#
+# They follow container-image-sign: the operator installs the release's own image by
+# default, so it is published only once that image is pushed, started and signed. For
+# a protected v* tag only (.release-rules); nothing here runs in a branch's pipeline,
+# a merge request's or a schedule's. HM_PUBLISH_IMAGE, the project's switch for the
+# release's image, is the operator's too: operator-image and operator-image-push
+# refuse while it is anything but 1, read when they run, as the server's image jobs
+# read it. Nothing here holds a secret: the push and the signatures' upload take the
+# job's own registry credentials, and Sigstore the job's ID token.
+operator-image:
+  stage: release
+  image: !reference [linux-image, image]
+  needs:
+    - job: helm-chart-package
+      artifacts: true
+    - job: container-image-sign
+      artifacts: false
+  timeout: 20 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  script:
+    - sh build/ci/operator-image.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - operator-image/
+
+operator-image-push:
+  stage: release
+  image: !reference [container-image, image]
+  needs:
+    - job: operator-image
+      artifacts: true
+  timeout: 15 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  script:
+    - sh build/ci/operator-image-push.sh
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - operator-image-push/
+    reports:
+      dotenv: operator-image-push/operator.env
+
+operator-image-sign:
+  stage: release
+  image:
+    name: $HM_COSIGN_IMAGE
+    entrypoint: [""]
+  needs:
+    - job: operator-image-push
+      artifacts: true
+  timeout: 15 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  variables:
+    COSIGN_YES: "true"
+  script:
+    - sh build/ci/operator-image-sign.sh
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - operator-image-signed/
+      - operator-bundle/

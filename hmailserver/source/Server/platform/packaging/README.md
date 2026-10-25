@@ -1012,6 +1012,11 @@ Beside the image, the two files people expect, in the tree since 15 September
   without it. `helm install mail ./helm/hmailserver --set database.host=... --set
   database.password=... --set administrator.password=... --set
   rest.tlsSecretName=...`.
+* `helm/operator/` - the chart as a Kubernetes operator, operator-sdk's Helm
+  operator, for Operator Lifecycle Manager and OperatorHub.io: each `HMailServer`
+  resource is one installation of the chart. A release's tag pipeline builds,
+  pushes and signs its image and writes its OLM bundle (`.gitlab/ci/operator.yml`);
+  its `README.md` says how.
 
 Neither Helm nor Docker is on the Windows bench that gates the code, so
 GitLab CI's `chart-and-compose` job lints and renders the chart with a

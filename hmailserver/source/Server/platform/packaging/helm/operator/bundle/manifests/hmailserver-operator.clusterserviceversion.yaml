@@ -1,0 +1,311 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The operator's ClusterServiceVersion, what Operator Lifecycle Manager installs and
+# OperatorHub.io shows. As the chart's Chart.yaml does, it spells no release out: the
+# version is 0.1.0, the image :latest, the date and the icon placeholders, and
+# build/ci/operator-bundle.sh writes a release's bundle from it - the release's
+# version in the name and spec.version, the operator image by its digest, the date,
+# and platform/packaging/hmailserver.png, the fork's icon, inlined.
+#
+# The permissions are the chart's and the operator's own and no others, and all of
+# them namespaced (permissions, not clusterPermissions): the chart makes a
+# StatefulSet, a Service and a Secret; Helm keeps each release in a Secret; the
+# operator reads and updates its resources, records events and holds a lease to lead.
+# Installed for one namespace (OwnNamespace, SingleNamespace) they are a Role there;
+# installed for all, Operator Lifecycle Manager makes them a ClusterRole, and the
+# operator may then read every Secret of the cluster, as any operator that manages
+# Secrets in every namespace must.
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: hmailserver-operator.v0.1.0
+  labels:
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.arm64: supported
+    operatorframework.io/os.linux: supported
+  annotations:
+    capabilities: Basic Install
+    categories: Streaming & Messaging
+    containerImage: registry.gitlab.com/hmailserver/hmailserver/operator:latest
+    createdAt: "2026-01-01T00:00:00Z"
+    description: >-
+      Progressive Robot's fork of hMailServer, not the original: SMTP, IMAP and POP3
+      with a REST API, installed from the project's Helm chart.
+    repository: https://gitlab.com/hmailserver/hmailserver
+    support: Progressive Robot Ltd
+    operators.operatorframework.io/builder: operator-sdk-v1.42.3
+    operators.operatorframework.io/project_layout: helm.sdk.operatorframework.io/v1
+    operatorframework.io/suggested-namespace: hmailserver
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "mail.progressiverobot.com/v1alpha1",
+          "kind": "HMailServer",
+          "metadata": {
+            "name": "mail"
+          },
+          "spec": {
+            "database": {
+              "type": "PostgreSQL",
+              "host": "postgres.hmailserver.svc.cluster.local"
+            },
+            "existingSecret": "mail-passwords",
+            "rest": {
+              "tlsSecretName": "mail-tls"
+            }
+          }
+        }
+      ]
+spec:
+  displayName: hMailServer (Progressive Robot's fork)
+  version: 0.1.0
+  minKubeVersion: 1.29.0
+  maturity: alpha
+  description: |-
+    **Progressive Robot's fork of hMailServer**, not the original hMailServer by
+    Martin Knafve, which is developed separately: an SMTP, IMAP and POP3 server with
+    a REST API, the Control Deck and the webmail on one TLS listener, keeping its data
+    in PostgreSQL or MariaDB. The fork runs on Linux as well as Windows, and its
+    container image is the one this operator installs
+    (registry.gitlab.com/hmailserver/hmailserver, signed with Sigstore). The project,
+    its releases and its documentation are at
+    [gitlab.com/hmailserver/hmailserver](https://gitlab.com/hmailserver/hmailserver);
+    [the fork and the original](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ForkAndOriginal.md)
+    says how the two differ.
+
+    ## What the operator does
+
+    Each **HMailServer** resource is one installation of the project's own Helm chart,
+    the release's, and its spec is the chart's values: a StatefulSet of one pod with
+    volumes for the message store, the logs and the configuration, a Service for the
+    mail ports (25, 465, 587, 143, 993, 110, 995 and 4190) and the REST listener
+    (8045), and the first start securing the new installation (a self-signed
+    certificate, STARTTLS on 25, 587, 110 and 143). The operator installs the chart
+    when a resource is made, upgrades it when the resource or the operator changes,
+    puts back what is changed or deleted by hand, and uninstalls it when the resource
+    is deleted. It is operator-sdk's Helm operator; the server's own settings are the
+    chart's `settings` and `properties` values, and the
+    [chart's README](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/source/Server/platform/packaging/helm/hmailserver/README.md)
+    says what each value does.
+
+    A minimal resource:
+
+    ```yaml
+    apiVersion: mail.progressiverobot.com/v1alpha1
+    kind: HMailServer
+    metadata:
+      name: mail
+    spec:
+      database:
+        type: PostgreSQL
+        host: postgres.hmailserver.svc.cluster.local
+      existingSecret: mail-passwords
+      rest:
+        tlsSecretName: mail-tls
+    ```
+
+    ## Before you make one
+
+    - **A database.** The database is not in the chart: run PostgreSQL or MariaDB in
+      the cluster or beside it, with a user and an empty database named hmailserver
+      (`database.create`, on by default, lays out the schema).
+    - **The two passwords, in a Secret** in the resource's namespace. The resource
+      refuses `database.password` and `administrator.password`, since anyone who may
+      read the resource could read them:
+      `kubectl create secret generic mail-passwords --from-literal=database-password=... --from-literal=administrator-password=...`
+    - **A TLS certificate for the REST listener**, which off loopback requires TLS: a
+      Secret of type kubernetes.io/tls, from cert-manager or
+      `kubectl create secret tls mail-tls --cert=... --key=...`.
+    - **Port 25 reachable from the internet** for mail from other servers: many
+      providers block it, so ask yours. The Service is a LoadBalancer with
+      externalTrafficPolicy Local, so that the server sees each client's own address.
+
+    Deleting the resource uninstalls the release. The three PersistentVolumeClaims
+    stay, as they do after `helm uninstall`, so that the message store is never lost
+    by a deletion; delete them by hand to remove the data too.
+  icon:
+    - base64data: ""
+      mediatype: image/png
+  keywords:
+    - mail
+    - mail-server
+    - smtp
+    - imap
+    - pop3
+    - hmailserver
+  links:
+    - name: Source code
+      url: https://gitlab.com/hmailserver/hmailserver
+    - name: The operator
+      url: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/source/Server/platform/packaging/helm/operator/README.md
+    - name: The Helm chart's values
+      url: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/source/Server/platform/packaging/helm/hmailserver/README.md
+    - name: The fork and the original
+      url: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ForkAndOriginal.md
+    - name: Support forum
+      url: https://www.hmailserver.co.uk/category/8/general-support
+  maintainers:
+    - name: Christopher Holloway
+      email: chris.holloway@progressiverobot.com
+  provider:
+    name: Progressive Robot Ltd
+    url: https://www.progressiverobot.com
+  installModes:
+    - type: OwnNamespace
+      supported: true
+    - type: SingleNamespace
+      supported: true
+    - type: MultiNamespace
+      supported: false
+    - type: AllNamespaces
+      supported: true
+  customresourcedefinitions:
+    owned:
+      - name: hmailservers.mail.progressiverobot.com
+        kind: HMailServer
+        version: v1alpha1
+        displayName: hMailServer
+        description: One installation of Progressive Robot's fork of hMailServer, from the project's Helm chart.
+        resources:
+          - kind: StatefulSet
+            version: v1
+          - kind: Service
+            version: v1
+          - kind: Secret
+            version: v1
+        specDescriptors:
+          - path: database
+            displayName: Database
+            description: The PostgreSQL or MariaDB server the installation keeps its data in.
+          - path: database.type
+            displayName: Database type
+            description: PostgreSQL or MySQL (MariaDB).
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:select:PostgreSQL
+              - urn:alm:descriptor:com.tectonic.ui:select:MySQL
+          - path: database.host
+            displayName: Database host
+            description: The database server's address.
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - path: existingSecret
+            displayName: Passwords
+            description: The Secret holding the database password and the administrator password.
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:Secret
+          - path: rest
+            displayName: REST listener
+            description: The REST API, the Control Deck and the webmail, on one TLS listener.
+          - path: rest.tlsSecretName
+            displayName: REST certificate
+            description: A Secret of type kubernetes.io/tls for the REST listener.
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:Secret
+        statusDescriptors:
+          - path: conditions
+            displayName: Conditions
+            description: Whether the release is installed, and the last error, if any.
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes.conditions
+          - path: deployedRelease
+            displayName: Deployed release
+            description: The Helm release the resource is installed as.
+  install:
+    strategy: deployment
+    spec:
+      deployments:
+        - name: hmailserver-operator-controller-manager
+          label:
+            app.kubernetes.io/name: hmailserver-operator
+            control-plane: controller-manager
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app.kubernetes.io/name: hmailserver-operator
+                control-plane: controller-manager
+            template:
+              metadata:
+                annotations:
+                  kubectl.kubernetes.io/default-container: manager
+                labels:
+                  app.kubernetes.io/name: hmailserver-operator
+                  control-plane: controller-manager
+              spec:
+                serviceAccountName: hmailserver-operator-controller-manager
+                terminationGracePeriodSeconds: 10
+                securityContext:
+                  runAsNonRoot: true
+                  seccompProfile:
+                    type: RuntimeDefault
+                containers:
+                  - name: manager
+                    image: registry.gitlab.com/hmailserver/hmailserver/operator:latest
+                    # No metrics listener: serving one securely needs the cluster's
+                    # TokenReview and SubjectAccessReview, permissions the operator does
+                    # not otherwise need.
+                    args:
+                      - --leader-elect
+                      - --leader-election-id=hmailserver-operator
+                      - --health-probe-bind-address=:8081
+                      - --metrics-bind-address=0
+                    env:
+                      # The namespaces Operator Lifecycle Manager installed the operator
+                      # for: one, or empty for all.
+                      - name: WATCH_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.annotations['olm.targetNamespaces']
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                        drop: ["ALL"]
+                    livenessProbe:
+                      httpGet:
+                        path: /healthz
+                        port: 8081
+                      initialDelaySeconds: 15
+                      periodSeconds: 20
+                    readinessProbe:
+                      httpGet:
+                        path: /readyz
+                        port: 8081
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                      limits:
+                        cpu: 500m
+                        memory: 256Mi
+                    volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+                volumes:
+                  - name: tmp
+                    emptyDir: {}
+      permissions:
+        - serviceAccountName: hmailserver-operator-controller-manager
+          rules:
+            # What the chart makes, and the Secrets Helm keeps each release in.
+            - apiGroups: [""]
+              resources: [secrets, services]
+              verbs: [get, list, watch, create, update, patch, delete]
+            - apiGroups: [apps]
+              resources: [statefulsets]
+              verbs: [get, list, watch, create, update, patch, delete]
+            # The operator's own resources.
+            - apiGroups: [mail.progressiverobot.com]
+              resources: [hmailservers, hmailservers/status, hmailservers/finalizers]
+              verbs: [get, list, watch, update, patch]
+            # Events about what it did, and the lease that makes one replica the leader.
+            - apiGroups: [""]
+              resources: [events]
+              verbs: [create, patch]
+            - apiGroups: [coordination.k8s.io]
+              resources: [leases]
+              verbs: [get, list, watch, create, update, patch, delete]

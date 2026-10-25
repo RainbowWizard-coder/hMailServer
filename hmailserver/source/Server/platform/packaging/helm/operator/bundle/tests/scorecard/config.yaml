@@ -1,0 +1,45 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# operator-sdk scorecard's tests of the bundle, as operator-sdk's Helm plugin
+# configures them: the basic one and the five OLM ones, in operator-sdk 1.42.3's
+# scorecard-test image by the digest of its index as quay.io served it on
+# 25 October 2026.
+apiVersion: scorecard.operatorframework.io/v1alpha3
+kind: Configuration
+metadata:
+  name: config
+stages:
+  - parallel: true
+    tests:
+      - entrypoint: [scorecard-test, basic-check-spec]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: basic
+          test: basic-check-spec-test
+      - entrypoint: [scorecard-test, olm-bundle-validation]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: olm
+          test: olm-bundle-validation-test
+      - entrypoint: [scorecard-test, olm-crds-have-validation]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: olm
+          test: olm-crds-have-validation-test
+      - entrypoint: [scorecard-test, olm-crds-have-resources]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: olm
+          test: olm-crds-have-resources-test
+      - entrypoint: [scorecard-test, olm-spec-descriptors]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: olm
+          test: olm-spec-descriptors-test
+      - entrypoint: [scorecard-test, olm-status-descriptors]
+        image: quay.io/operator-framework/scorecard-test:v1.42.3@sha256:2370b520e3ca95b25544191d618b8b7fbe5a7c438ed84f729351847aee0ca6ea
+        labels:
+          suite: olm
+          test: olm-status-descriptors-test

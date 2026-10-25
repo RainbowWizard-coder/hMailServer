@@ -1,0 +1,14 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# What the Helm operator watches: each HMailServer resource is one release of the
+# project's own chart, its spec the chart's values (operator-sdk's Helm operator,
+# https://sdk.operatorframework.io/docs/building-operators/helm/). The chart is the
+# tree's ../hmailserver, copied into the image by build/ci/operator-context.sh, which
+# holds the copy to it. The group is a name under progressiverobot.com, the domain the
+# project's owner holds, so that it can be no one else's; mail says what it is.
+- group: mail.progressiverobot.com
+  version: v1alpha1
+  kind: HMailServer
+  chart: helm-charts/hmailserver

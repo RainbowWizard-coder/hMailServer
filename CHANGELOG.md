@@ -557,6 +557,30 @@ with `--check`).
   installing anything else with one of the installers it names (pip, uv, pipx, virtualenv, venv's `--upgrade-deps`,
   pipenv, poetry, pdm, conda, mamba and others). `hmailserver/docs/Ansible.md` says how to use it, what it
   verifies, how it is tested and how it is published; `Channels.md` lists Galaxy among the channels.
+- **New: a Kubernetes operator, for Operator Lifecycle Manager and OperatorHub.io.**
+  `platform/packaging/helm/operator` is the Helm chart as operator-sdk's Helm operator (1.42.3, by digest): each
+  `HMailServer` resource (`mail.progressiverobot.com/v1alpha1`) is one installation of the project's chart, its spec
+  the chart's values. Its custom resource definition has one property for each of the chart's values and no other, so
+  that a misspelt one is refused, and refuses `database.password` and `administrator.password`, which anyone who may
+  read the resource could read: the passwords are in the Secret `existingSecret` names, which is required. Its
+  ClusterServiceVersion says it is Progressive Robot's fork of hMailServer, not the original, shows the fork's icon,
+  and asks for namespaced permissions alone (Secrets, Services and StatefulSets, its own resources, events and a
+  lease), so that installed for one namespace it holds a Role there and nothing else. The chart is not kept a second time:
+  `build/ci/operator-context.sh` copies the tree's into the image's build context and holds the copy to it, and in a
+  release to the release's packaged chart, file by file. A `v*` tag's pipeline builds the image with kaniko for
+  linux/amd64 and linux/arm64, pushes it as `registry.gitlab.com/hmailserver/hmailserver/operator:<version>`, signs it
+  with Sigstore as the pipeline, and writes the release's OLM bundle for its digest (`.gitlab/ci/operator.yml`,
+  `build/ci/operator-image.sh`, `operator-image-push.sh`, `operator-image-sign.sh`, `operator-bundle.sh`), all after
+  the release's own image is signed and while `HM_PUBLISH_IMAGE` is 1; the pull request to OperatorHub.io's repository
+  is made by hand (the operator's `README.md`). The `chart-and-compose` job runs `build/ci/operator-check.py`, which
+  holds the definition, `watches.yaml` and the CSV to the chart and to each other and runs the context and bundle
+  scripts, and its `--self-test`, which breaks each rule in a copy and sees it refused. Built and run on 25 October
+  2026: the image built as the tag pipeline builds it; `operator-sdk bundle validate` passed with
+  `suite=operatorframework`, `name=operatorhub` and `name=good-practices`, and `operator-sdk scorecard` passed its six
+  tests; in a one-node k3s 1.36.1 from Alpine Linux 3.24 with Operator Lifecycle Manager 0.46.0, the operator installed
+  from a catalog for all namespaces and for one, the CSV's own example resource beside PostgreSQL 18 answered SMTP with
+  STARTTLS on 25 and `GET /api/v1/status` over TLS with 6.3.7-B46, a Service deleted by hand was put back, and deleting
+  the resource removed what the chart had made and left its three claims, as `helm uninstall` does.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
   release's `.deb` neither depends on nor recommends nor suggests `libmariadb3` (its Depends are `ca-certificates` and

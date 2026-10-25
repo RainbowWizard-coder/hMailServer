@@ -1,0 +1,252 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The HMailServer resource: its spec is the chart's values (../../../hmailserver/values.yaml,
+# which says what each does), one property here for each of the chart's top-level
+# values and no other, so that a misspelt one is pruned with a warning rather than
+# passed to the chart unread (build/ci/operator-check.py holds the two to each other).
+# Two rules are the operator's own: the database password and the administrator
+# password are never in the resource, which anyone who may read it could read, but in
+# a Secret it names (existingSecret, with the keys existingSecretKeys gives); and the
+# server is one pod, as the chart's StatefulSet says it must be.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: hmailservers.mail.progressiverobot.com
+spec:
+  group: mail.progressiverobot.com
+  names:
+    kind: HMailServer
+    listKind: HMailServerList
+    plural: hmailservers
+    singular: hmailserver
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Deployed
+          type: string
+          jsonPath: .status.conditions[?(@.type=="Deployed")].status
+        - name: Release
+          type: string
+          jsonPath: .status.deployedRelease.name
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          description: >-
+            One installation of Progressive Robot's fork of hMailServer: the project's
+            Helm chart installed with this spec as its values.
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: The chart's values (values.yaml in the chart says what each does).
+              type: object
+              required: [database, existingSecret]
+              properties:
+                image:
+                  type: object
+                  properties:
+                    repository:
+                      type: string
+                    tag:
+                      type: string
+                    pullPolicy:
+                      type: string
+                      enum: [Always, IfNotPresent, Never]
+                imagePullSecrets:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                replicaCount:
+                  description: At most one, since a mail server's message store is not something two pods may share.
+                  type: integer
+                  minimum: 0
+                  maximum: 1
+                database:
+                  type: object
+                  required: [host]
+                  properties:
+                    type:
+                      type: string
+                      enum: [PostgreSQL, MySQL]
+                    host:
+                      description: The database server's address; the database is not in the chart.
+                      type: string
+                      minLength: 1
+                    port:
+                      description: Empty is the type's own, 5432 or 3306.
+                      x-kubernetes-int-or-string: true
+                    name:
+                      type: string
+                    user:
+                      type: string
+                    password:
+                      description: Never given here; the Secret existingSecret names holds it.
+                      type: string
+                      maxLength: 0
+                    create:
+                      type: boolean
+                    upgrade:
+                      type: boolean
+                administrator:
+                  type: object
+                  properties:
+                    password:
+                      description: Never given here; the Secret existingSecret names holds it.
+                      type: string
+                      maxLength: 0
+                existingSecret:
+                  description: >-
+                    The Secret, in the resource's namespace, holding the database password
+                    and the administrator password under the keys existingSecretKeys names.
+                  type: string
+                  minLength: 1
+                existingSecretKeys:
+                  type: object
+                  properties:
+                    databasePassword:
+                      type: string
+                      minLength: 1
+                    administratorPassword:
+                      type: string
+                      minLength: 1
+                rest:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    bindAddress:
+                      type: string
+                    tlsSecretName:
+                      description: A Secret of type kubernetes.io/tls for the REST listener, which off loopback requires TLS.
+                      type: string
+                settings:
+                  type: object
+                  additionalProperties:
+                    x-kubernetes-int-or-string: true
+                properties:
+                  type: object
+                  additionalProperties:
+                    x-kubernetes-int-or-string: true
+                settingsFrom:
+                  type: array
+                  items:
+                    type: object
+                    required: [secretName, key]
+                    properties:
+                      secretName:
+                        type: string
+                      key:
+                        type: string
+                      setting:
+                        type: string
+                      property:
+                        type: string
+                service:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [ClusterIP, NodePort, LoadBalancer]
+                    loadBalancerIP:
+                      type: string
+                    annotations:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    externalTrafficPolicy:
+                      type: string
+                      enum: [Cluster, Local]
+                    ports:
+                      type: object
+                      additionalProperties:
+                        type: integer
+                        minimum: 1
+                        maximum: 65535
+                persistence:
+                  type: object
+                  properties:
+                    storageClassName:
+                      type: string
+                    data:
+                      type: object
+                      properties:
+                        size:
+                          x-kubernetes-int-or-string: true
+                    logs:
+                      type: object
+                      properties:
+                        size:
+                          x-kubernetes-int-or-string: true
+                    config:
+                      type: object
+                      properties:
+                        size:
+                          x-kubernetes-int-or-string: true
+                probes:
+                  type: object
+                  properties:
+                    http:
+                      type: object
+                      properties:
+                        enabled:
+                          type: boolean
+                        port:
+                          type: integer
+                          minimum: 1
+                          maximum: 65535
+                    startupSeconds:
+                      type: integer
+                      minimum: 5
+                resources:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                podSecurityContext:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                securityContext:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                nodeSelector:
+                  type: object
+                  additionalProperties:
+                    type: string
+                tolerations:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                affinity:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                podAnnotations:
+                  type: object
+                  additionalProperties:
+                    type: string
+                extraEnv:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+            status:
+              description: What the operator last did with the release (its conditions and the deployed release).
+              type: object
+              x-kubernetes-preserve-unknown-fields: true

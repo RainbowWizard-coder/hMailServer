@@ -150,6 +150,8 @@ include:
   - local: .gitlab/ci/container-image.yml
   # The Helm chart packaged as a file of the release (hmailserver/docs/ContainerImage.md).
   - local: .gitlab/ci/helm-chart.yml
+  # The Kubernetes operator's image, signed, and its OLM bundle, in a release's tag pipeline (platform/packaging/helm/operator/README.md).
+  - local: .gitlab/ci/operator.yml
   # The signed apt and dnf repositories, added to the feed's site; it turns pages' own deployment off.
   - local: .gitlab/ci/package-repos.yml
   # The weekly export of what a push mirror does not carry, on linix (docs/Mirroring.md).
@@ -1162,6 +1164,8 @@ chart-and-compose:
         - build/ci/helm-repo.py
         - build/ci/helm-chart-package.sh
         - .gitlab/ci/helm-chart.yml
+        - build/ci/operator-*
+        - .gitlab/ci/operator.yml
         - .gitlab-ci.yml
   before_script:
     - apk add --no-cache -q helm docker-cli-compose python3 py3-yaml
@@ -1323,6 +1327,11 @@ chart-and-compose:
       echo "The Compose file resolves, secures the new installation and gives the REST listener its certificate."
     # The Helm repository's writer, which package-repos runs on master: a break is seen here first.
     - python3 build/ci/helm-repo.py --self-test
+    # The Kubernetes operator (platform/packaging/helm/operator): its CRD, watches.yaml
+    # and ClusterServiceVersion held to the chart and to each other, and the context and
+    # bundle its release jobs write (.gitlab/ci/operator.yml), with the negative controls.
+    - python3 build/ci/operator-check.py
+    - python3 build/ci/operator-check.py --self-test
 
 # packaging.yml's update-helper job: the live update's Linux apply step,
 # hmailserver-update, run under dash against fakes for every outcome it can write
