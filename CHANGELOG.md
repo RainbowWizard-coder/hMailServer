@@ -525,7 +525,8 @@ with `--check`).
   `--upgrade-database` as that user, makes the stored-secrets key and exports it once where asked, stores the
   `[Settings]` values it is given with `--set-setting NAME`, each value on standard input and never on a command line
   or in the play's output, a secret's too, and reports one changed only when the value the server or the file held
-  was another (a secret, which the server never shows, on every run), enables and starts the service, waits
+  was another (a secret the server keeps in the database, which it never shows, on every run; `PasswordPepper`,
+  which it keeps in the file as given, only when the file's line was another), enables and starts the service, waits
   for the SMTP banner, and makes the domains and accounts it is given over the REST API, each only when the server
   does not have it; the passwords are never logged, and it opens no firewall port. Molecule scenarios under the
   collection's `extensions/molecule` run it in containers with systemd as PID 1, beside a PostgreSQL 18 or MariaDB
@@ -534,18 +535,27 @@ with `--check`).
   running as `hmailserver`, SMTP on 25 with STARTTLS taken, `GET /api/v1/status` with the administrator password
   and a 401 without it, the domain and account it made, the configuration's mode and the exported key. It is not on
   Ansible Galaxy yet: `galaxy-build`, pressed in a `master` pipeline, builds it for the release from the release's
-  verified sums, and `galaxy-publish`, pressed after it, sends that tarball with `GALAXY_API_KEY`, which does not exist
-  until the owner's Galaxy account holds the namespace `progressiverobot`, and says "not configured" until then
+  verified sums once the collection's `CHANGELOG.md` has a `## <version>` heading for that release, refusing the
+  release before it fetches anything until then, and `galaxy-publish`, pressed after it, sends that tarball with
+  `GALAXY_API_KEY`, which does not exist until the owner's Galaxy account holds the namespace `progressiverobot`, and
+  says "not configured" until then
   (`build/ci/channels/galaxy-publish.py`, `.gitlab/ci/channels.yml`). `galaxy-check`, in a branch's or a merge
   request's pipeline when the collection changes, runs `galaxy-publish.py check` - which holds the role's checks of
-  what it installs and of what it logs to being there whole, with nothing that skips them, ignores their failure or
-  goes on over their lines, each with a negative control in its self-test - and its
+  what it installs and of what it logs as they are written, with no task keyword that skips them (`when`, `tags`, a
+  loop, `until`, `check_mode` and every other the role does not give them), ignores their failure or goes on over
+  their lines, the blocks and includes round them held the same way; the modules that install, fetch, write a source
+  or check given only the arguments the role gives them, so that no `disable_gpg_check`, `allow_unauthenticated`,
+  apt's `force` or `validate_certs` is let through; nothing in the role's tasks or templates that switches a package
+  manager's verification off (`--nogpgcheck`, `--no-gpg-checks`, `Trusted:` and the like); the PPA's source template
+  as written; each name the checks read registered or set by one task alone, and the pins by none; and the
+  collection's `CHANGELOG.md` with a heading for its version - each with a negative control in its self-test - and its
   self-test, builds the collection, and runs `ansible-lint`'s production profile and `ansible-test sanity` but for the
   four tests that would install tools without hashes; the tools come from
   `build/ci/ansible-collection-requirements.txt`, pinned with their hashes. `build/check-channels.py` holds each of
   the three jobs' rules to its one reference alone, `galaxy-publish` to `galaxy-build`'s tarball and each to
   installing its tools with their hashes alone, no command of its script, on one line or continued over several,
-  installing anything else. `hmailserver/docs/Ansible.md` says how to use it, what it
+  installing anything else with one of the installers it names (pip, uv, pipx, virtualenv, venv's `--upgrade-deps`,
+  pipenv, poetry, pdm, conda, mamba and others). `hmailserver/docs/Ansible.md` says how to use it, what it
   verifies, how it is tested and how it is published; `Channels.md` lists Galaxy among the channels.
 - **Fixed: the container image reaches a MariaDB database, as its texts said it did.** The server opens MariaDB
   Connector/C, `libmariadb.so.3`, with `dlopen` when `HM_DB_TYPE` is `MySQL` (`Common/SQL/MySQLInterface.cpp`), so the
@@ -1650,9 +1660,11 @@ with `--check`).
   collection, which is there, is built for the release whose `.deb` files it pins by SHA-256 - pins that exist only
   once that release is published, so its version cannot follow `Version.h` when a release is stamped. Its
   `galaxy.yml` `version:`, its `vars/release.yml` `hmailserver_release_version:` and its `CHANGELOG.md`'s
-  `## <version>` headings are let through, each as written in its own file; `galaxy-build` writes the first two for
-  the release it builds, and `galaxy-publish.py check` holds them to each other. Any other version under the
-  collection is refused as before, and the collection's README, role defaults and scenarios now write `<version>`.
+  `## <version>` headings are let through, each as written in its own file, at the collection's own path under
+  `platform/packaging/` (a copy of the collection anywhere else there is refused like any other file); `galaxy-build`
+  writes the first two for the release it builds, and `galaxy-publish.py check` holds them to each other. Any other
+  version under the collection is refused as before, and the collection's README, role defaults and scenarios now
+  write `<version>`.
 - **`build/check-package-licenses.py` holds the Ansible collection's two licence fields.** Its scan reads every YAML
   file under `platform/packaging/`, and the collection's `galaxy.yml` `license` and its role's `galaxy_info`
   `license` were licence fields it did not hold, so it failed on them. Both are now among the fields that name the

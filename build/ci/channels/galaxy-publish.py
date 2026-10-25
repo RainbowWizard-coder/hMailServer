@@ -19,9 +19,13 @@ for one release, and both are written together:
                  saying it is Progressive Robot's fork and not the original, its
                  version the one vars/release.yml pins the .deb files of, each pin
                  64 hex digits for each Debian release and architecture the role
-                 takes, the channels' key fingerprints 40 hex digits, the role's
-                 checks of what it installs and of what it logs there (VERIFIED,
-                 FORBIDDEN), no default for either password, and no address on
+                 takes, the channels' key fingerprints 40 hex digits, a heading in
+                 its CHANGELOG.md for its version, the role's checks of what it
+                 installs and of what it logs there and the keywords they carry
+                 (VERIFIED, FORBIDDEN), what its package, repository and download
+                 modules are given (MODULE_ARGS), the names the checks read set once
+                 (CHECKED_NAMES, PINNED_NAMES), the PPA's apt source as written
+                 (PPA_SOURCE), no default for either password, and no address on
                  GitHub anywhere in it;
   build          the collection staged from the tree with the repository's LICENSE,
                  version and pins rendered when they are given, built by
@@ -30,7 +34,9 @@ for one release, and both are written together:
                  release.yml the version and pins it was built with, LICENSE in it;
   release-build  the galaxy-build job: the release, as every channel takes it
                  (build/ci/channels/release-files.py: HM_CHANNEL_VERSION or the feed's
-                 latest, published), its hmailserver-linux-<version>-SHA256SUMS.txt
+                 latest, published), refused before anything is fetched unless the
+                 collection's CHANGELOG.md has a "## <version>" heading for it; its
+                 hmailserver-linux-<version>-SHA256SUMS.txt
                  verified against its Sigstore bundle as this project's pipeline for
                  the tag, the .deb pins read from it, and the collection built for that
                  release from this checkout - master's, as chocolatey-publish renders
@@ -95,6 +101,7 @@ RELEASE_YML = os.path.join("roles", "hmailserver", "vars", "release.yml")
 MAIN_VARS = os.path.join("roles", "hmailserver", "vars", "main.yml")
 DEFAULTS = os.path.join("roles", "hmailserver", "defaults", "main.yml")
 ROLE_META = os.path.join("roles", "hmailserver", "meta", "main.yml")
+CHANGELOG = "CHANGELOG.md"
 TASKS = os.path.join("roles", "hmailserver", "tasks")
 NAMESPACE = "progressiverobot"
 NAME = "hmailserver"
@@ -120,37 +127,58 @@ FURTHER_ITEM = r"(?=(?:\n(?:[ \t]*(?:#.*)?|[ \t]+.*))*\n[ \t]*-(?:[ \t]|$))"
 # its tasks/ by name with the lines it must hold (Ansible.md, "What it verifies"): with
 # one of them gone or changed the role would install what it was not given to, or log
 # a secret, and nothing it runs would show it. Each entry is (file, task, lines, what,
-# control). lines are held whole (held()): each text as written, with its indentation,
-# and the line after it indented no deeper than its last line's, or than the number
-# given beside it, so that nothing continues its last line - a plain or folded scalar
-# goes on over the lines indented deeper than its item or key, and "- (a) == 1"
-# followed by a line "or true" is a condition that always holds. control is None for a
-# task held for what it does not log; for a check, the task keywords of CONTROL_KEYS it
-# may carry, each once, which would otherwise skip it or take its failure for a
-# success. An assertion is held as its whole that: list, so that a condition cannot be
-# made inert or moved out of it.
+# control, keys). lines are held whole (held()): each text as written, with its
+# indentation, and the line after it indented no deeper than its last line's, or than
+# the number given beside it, so that nothing continues its last line - a plain or
+# folded scalar goes on over the lines indented deeper than its item or key, and
+# "- (a) == 1" followed by a line "or true" is a condition that always holds. control
+# is None for a task held for what it does not log; for a check, the task keywords of
+# CONTROL_KEYS it may carry, each once, which would otherwise skip it or take its
+# failure for a success. keys are the other task keywords it may carry beside name,
+# each once (task_keys()): any other - tags, which with never skip it, loop or a
+# with_ lookup, which over an empty list skip it, until, check_mode, delegate_to,
+# environment, args - is refused, and so is a line there that is no keyword. The
+# blocks round the checks are held so too, since a block's keywords are its tasks'.
+# An assertion is held as its whole that: list, so that a condition cannot be made
+# inert or moved out of it.
 CONTROL_KEYS = ("when", "failed_when", "ignore_errors", "ignore_unreachable")
 RPM_WORK = "{{ hmailserver_rpm_key_work.path }}"
 # How the settings are stored: the name on the command line, the value on standard
 # input. Nothing else of that task may name a setting's value but its changed_when
-# (SETTING_VALUE).
+# (SETTING_VALUE), nor hmailserver_settings but its loop (SETTINGS_LOOP), nor a variable
+# by its name as a string (vars[...], hostvars[...]).
 SETTINGS_TASK = ("configure.yml", "Store the settings")
 SETTINGS_COMMAND = ("  ansible.builtin.command:\n    argv:\n      - hmailserver\n      - --set-setting\n"
                     "      - \"{{ item.key if (item.value | string | trim | length) > 0 else item.key ~ '=' }}\"\n"
                     "    stdin: \"{{ item.value | string }}\"", 2)
+SETTINGS_LOOP = "  loop: \"{{ hmailserver_settings | dict2items }}\""
 # Any use of the loop's item but its key: item.value, item['value'], item itself.
 SETTING_VALUE = r"\bitem\b(?!\.key\b)"
+COMMAND = "ansible.builtin.command"
+ASSERT = "ansible.builtin.assert"
+SLURP = "ansible.builtin.slurp"
+
+
+def rpm_include(url, fingerprint):
+    """The include of rpm-key.yml for a channel, held whole: its url and fingerprint the
+    only variables it gives, and nothing after them."""
+    return (("  ansible.builtin.include_tasks: rpm-key.yml\n  vars:\n    hmailserver_rpm_key_url: \"%s\"\n"
+             "    hmailserver_rpm_key_fingerprint: \"{{ %s }}\"" % (url, fingerprint), 2),)
+
+
 VERIFIED = (
+    ("rpm-key.yml", "Fetch, check and import the key", (("  block:", 4),),
+     "the RPM channel's key fetched, checked and imported", (), ("block", "always")),
     ("rpm-key.yml", "Fetch the key from the channel",
      ('      ansible.builtin.get_url:\n        url: "{{ hmailserver_rpm_key_url }}"\n'
       '        dest: "%s/fetched.asc"' % RPM_WORK,),
-     "an RPM channel's key fetched into the file read", ()),
+     "an RPM channel's key fetched into the file read", (), ("ansible.builtin.get_url", "changed_when")),
     ("rpm-key.yml", "Read the fetched file", ('      ansible.builtin.slurp:\n        src: "%s/fetched.asc"' % RPM_WORK,),
-     "an RPM channel's key file read whole", ()),
+     "an RPM channel's key file read whole", (), (SLURP, "register")),
     ("rpm-key.yml", "Read the fetched key's fingerprint",
      ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --show-keys,'
       ' --with-colons,\n               "%s/fetched.asc"]' % (RPM_WORK, RPM_WORK),),
-     "gpg reading the RPM channel's key file fetched", ()),
+     "gpg reading the RPM channel's key file fetched", (), (COMMAND, "register", "changed_when")),
     ("rpm-key.yml", "Refuse a file that is not the channel's key alone",
      (("      ansible.builtin.assert:\n        that:\n"
        "          - (hmailserver_rpm_key_fetched.content | b64decode | regex_findall('-----BEGIN PGP ') | length) == 1\n"
@@ -158,21 +186,21 @@ VERIFIED = (
        "          - >-\n"
        "            (hmailserver_rpm_key_read.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))\n"
        "            == hmailserver_rpm_key_fingerprint", 8),),
-     "an RPM channel's key file read as its one key alone, in one armour block", ()),
+     "an RPM channel's key file read as its one key alone, in one armour block", (), (ASSERT,)),
     ("rpm-key.yml", "Put the key in a keyring of its own",
      ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --import,\n'
       '               "%s/fetched.asc"]' % (RPM_WORK, RPM_WORK),),
-     "the RPM channel's key put in a keyring of its own", ()),
+     "the RPM channel's key put in a keyring of its own", (), (COMMAND, "changed_when")),
     ("rpm-key.yml", "Export that key alone",
      ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --armor, --output,\n'
       '               "%s/key.asc", --export, "{{ hmailserver_rpm_key_fingerprint }}"]' % (RPM_WORK, RPM_WORK),),
-     "the RPM channel's key exported by its fingerprint alone", ()),
+     "the RPM channel's key exported by its fingerprint alone", (), (COMMAND, "changed_when")),
     ("rpm-key.yml", "Read the exported key", ('      ansible.builtin.slurp:\n        src: "%s/key.asc"' % RPM_WORK,),
-     "the exported key read whole", ()),
+     "the exported key read whole", (), (SLURP, "register")),
     ("rpm-key.yml", "Read the exported key's fingerprint",
      ('      ansible.builtin.command:\n        argv: [gpg, --batch, --no-autostart, --homedir, "%s", --show-keys,'
       ' --with-colons,\n               "%s/key.asc"]' % (RPM_WORK, RPM_WORK),),
-     "gpg reading the exported key", ()),
+     "gpg reading the exported key", (), (COMMAND, "register", "changed_when")),
     ("rpm-key.yml", "Refuse an export that is not the channel's key alone",
      (("      ansible.builtin.assert:\n        that:\n"
        "          - (hmailserver_rpm_key_exported.content | b64decode | regex_findall('-----BEGIN PGP ') | length) == 1\n"
@@ -181,78 +209,152 @@ VERIFIED = (
        "            (hmailserver_rpm_key_export_read.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first"
        " | default(''))\n"
        "            == hmailserver_rpm_key_fingerprint", 8),),
-     "the exported key read as that one key alone", ()),
+     "the exported key read as that one key alone", (), (ASSERT,)),
     ("rpm-key.yml", "Import the key, held to its fingerprint",
      ('      ansible.builtin.rpm_key:\n        key: "%s/key.asc"\n'
       '        fingerprint: "{{ hmailserver_rpm_key_fingerprint }}"' % RPM_WORK,),
-     "an RPM channel's key imported as gpg's export of it, at its fingerprint", ()),
+     "an RPM channel's key imported as gpg's export of it, at its fingerprint", (), ("ansible.builtin.rpm_key",)),
     ("install-copr.yml", "Import Copr's key for the project, held to its fingerprint",
-     ('  ansible.builtin.include_tasks: rpm-key.yml',
-      '    hmailserver_rpm_key_fingerprint: "{{ hmailserver_copr_fingerprint }}"'),
-     "Copr's key held to its fingerprint", ()),
+     rpm_include("{{ hmailserver_copr_base }}/pubkey.gpg", "hmailserver_copr_fingerprint"),
+     "Copr's key held to its fingerprint", (), ("ansible.builtin.include_tasks", "vars")),
     ("install-copr.yml", "Name the Copr repository, its packages checked against that key", ("    gpgcheck: true",),
-     "Copr's packages checked against its key", ()),
+     "Copr's packages checked against its key", (), ("ansible.builtin.yum_repository",)),
     ("install-obs.yml", "Import the Build Service's key for the project, held to its fingerprint",
-     ('  ansible.builtin.include_tasks: rpm-key.yml',
-      '    hmailserver_rpm_key_fingerprint: "{{ hmailserver_obs_fingerprint }}"'),
-     "the Build Service's key held to its fingerprint", ()),
+     rpm_include("{{ hmailserver_obs_base }}/{{ hmailserver_obs_repository }}/repodata/repomd.xml.key",
+                 "hmailserver_obs_fingerprint"),
+     "the Build Service's key held to its fingerprint", (), ("ansible.builtin.include_tasks", "vars")),
     ("install-obs.yml", "Name the Build Service repository, its metadata and packages checked against that key",
      ("    gpgcheck: true", "    repo_gpgcheck: true"),
-     "the Build Service's metadata and packages checked against its key", ()),
+     "the Build Service's metadata and packages checked against its key", (), ("ansible.builtin.yum_repository",)),
+    ("install-ppa.yml", "Fetch and check the PPA's key",
+     (("  when: >-\n    hmailserver_ppa_key_present.rc != 0 or\n"
+       "    (hmailserver_ppa_key_present.stdout | regex_findall('(?m)^pub:') | length) != 1 or\n"
+       "    (hmailserver_ppa_key_present.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))\n"
+       "      != hmailserver_ppa_fingerprint", 2), ("  block:", 4)),
+     "the PPA's key fetched and checked unless the one in place is that key alone", ("when",), ("block", "always")),
     ("install-ppa.yml", "Read the fetched key's fingerprint",
      ('      ansible.builtin.command:\n'
       '        argv: [gpg, --batch, --show-keys, --with-colons, "{{ hmailserver_ppa_key_download.path }}"]',),
-     "gpg reading the PPA's key fetched", ()),
+     "gpg reading the PPA's key fetched", (), (COMMAND, "register", "changed_when")),
     ("install-ppa.yml", "Refuse a key that is not the PPA's",
      (("      ansible.builtin.assert:\n        that:\n"
        "          - (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^pub:') | length) == 1\n"
        "          - >-\n"
        "            (hmailserver_ppa_key_fetched.stdout | regex_findall('(?m)^fpr:+([0-9A-F]{40}):') | first | default(''))\n"
        "            == hmailserver_ppa_fingerprint", 8),),
-     "the PPA's key read as its one key alone", ()),
+     "the PPA's key read as its one key alone", (), (ASSERT,)),
     ("install-ppa.yml", "Put the key where the source names it",
      ('      ansible.builtin.copy:\n        src: "{{ hmailserver_ppa_key_download.path }}"\n'
       '        dest: "{{ hmailserver_ppa_keyring }}"',),
-     "the PPA's key put in place as it was read", ()),
+     "the PPA's key put in place as it was read", (), ("ansible.builtin.copy",)),
+    ("install-ppa.yml", "Name the PPA as an apt source signed by that key alone",
+     ("  ansible.builtin.template:\n    src: hmailserver-ppa.sources.j2\n"
+      "    dest: /etc/apt/sources.list.d/hmailserver-ppa.sources",),
+     "the PPA's source written from its template (PPA_SOURCE)", (), ("ansible.builtin.template", "register")),
     ("install-deb.yml", "Refuse a .deb whose SHA-256 is not pinned",
      (("  ansible.builtin.assert:\n    that:\n      - hmailserver_deb_checksum is match('^[0-9a-f]{64}$')", 4),),
-     "the .deb's SHA-256 pinned", ()),
+     "the .deb's SHA-256 pinned", (), (ASSERT,)),
+    ("install-deb.yml", "Download and install the .deb", (("  block:", 4),),
+     "the .deb downloaded and installed as one block", ("when",), ("vars", "block", "always")),
     ("install-deb.yml", "Download the .deb and hold it to its SHA-256",
      ('        dest: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"',
       '        checksum: "sha256:{{ hmailserver_deb_checksum }}"'),
-     "the .deb held to its SHA-256", ()),
+     "the .deb held to its SHA-256", (), ("ansible.builtin.get_url",)),
     ("install-deb.yml", "Install the .deb with its dependencies from Debian's archive",
      ('        deb: "/var/cache/hmailserver-ansible/{{ hmailserver_deb_file }}"',),
-     "the .deb installed as it was downloaded", ()),
+     "the .deb installed as it was downloaded", (), ("ansible.builtin.apt",)),
     ("configure.yml", "Give the configuration the database's password", ("  no_log: true",),
-     "the database's password not logged", None),
+     "the database's password not logged", None, ("community.general.ini_file", "no_log", "notify")),
     ("configure.yml", "Read the configuration, to see whether it has an administrator password", ("  no_log: true",),
-     "the configuration's text not logged", None),
+     "the configuration's text not logged", None, (SLURP, "register", "no_log")),
     ("configure.yml", "Set the administrator password, as a PBKDF2 hash",
      (("  ansible.builtin.command:\n    argv: [hmailserver, --set-admin-password]\n"
        '    stdin: "{{ hmailserver_admin_password }}"', 2), "  no_log: true"),
-     "the administrator password on standard input, not logged", None),
+     "the administrator password on standard input, not logged", None,
+     (COMMAND, "when", "changed_when", "no_log", "notify")),
     ("configure.yml", "Refuse a configuration the service does not read as written",
      (("  ansible.builtin.assert:\n    that:\n"
        "      - hmailserver_check_config.stdout is search('(?m)^Database type:[ ]+' ~ hmailserver_database_type_number"
        " ~ '$')\n"
-       "      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+\\S')", 4),),
-     "the configuration read as written, with its database type and a data directory", ()),
+       "      - hmailserver_check_config.stdout is search('(?m)^Data directory:[ ]+\\S')", 4),
+      ("  vars:\n    hmailserver_database_type_number: \"{{ 3 if hmailserver_database_type == 'PostgreSQL' else 1 }}\"",
+       2)),
+     "the configuration read as written, with its database type and a data directory", (), (ASSERT, "vars")),
     ("configure.yml", "Read the configuration's settings before they are stored", ("  no_log: true",),
-     "the configuration's text not logged", None),
+     "the configuration's text not logged", None, (SLURP, "register", "when", "no_log")),
     ("configure.yml", "Store the settings",
-     (SETTINGS_COMMAND,
-      '  loop_control:\n    label: "{{ item.key }}"', "  failed_when: false", "  no_log: true"),
-     "the settings' values on standard input, not logged", ("failed_when",)),
+     (SETTINGS_COMMAND, SETTINGS_LOOP, ('  loop_control:\n    label: "{{ item.key }}"', 2), "  failed_when: false",
+      "  no_log: true"),
+     "the settings' values on standard input, not logged", ("failed_when",),
+     (COMMAND, "loop", "loop_control", "register", "changed_when", "vars", "no_log", "notify")),
     ("configure.yml", "Refuse a setting the server did not store",
      (("  ansible.builtin.fail:", 4),
       "  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0"),
-     "a setting the server refused refused", ("when",)),
-    ("objects.yml", "Wait for the REST API", ("  no_log: true",), "the administrator's sign-in not logged", None),
-    ("objects.yml", "Ask for each account", ("  no_log: true",), "the accounts' passwords not logged", None),
+     "a setting the server refused refused", ("when",), ("ansible.builtin.fail",)),
+    ("objects.yml", "Wait for the REST API", ("  no_log: true",), "the administrator's sign-in not logged", None,
+     ("ansible.builtin.uri", "register", "until", "retries", "delay", "no_log")),
+    ("objects.yml", "Ask for each account", ("  no_log: true",), "the accounts' passwords not logged", None,
+     ("ansible.builtin.uri", "loop", "loop_control", "register", "until", "retries", "delay", "no_log")),
     ("objects.yml", "Make each account the server does not have", ("  no_log: true",),
-     "the accounts' passwords not logged", None),
+     "the accounts' passwords not logged", None,
+     ("ansible.builtin.uri", "loop", "loop_control", "when", "changed_when", "no_log")),
 )
+# The arguments each module that installs, fetches, writes a source or checks may be
+# given, wherever the role's tasks call it, each once and as a mapping of its own lines
+# (module_problems()): any other - apt's allow_unauthenticated or force (which implies
+# it), dnf's or zypper's disable_gpg_check, which ansible.builtin.package hands to them,
+# zypper's extra_args, a repository's sslverify, get_url's validate_certs - is refused.
+MODULE_ARGS = {
+    "apt": ("name", "state", "update_cache", "cache_valid_time", "deb"),
+    "package": ("name", "state"),
+    "dnf": ("name", "state"),
+    "dnf5": ("name", "state"),
+    "yum": ("name", "state"),
+    "zypper": ("name", "state", "update_cache"),
+    "yum_repository": ("name", "description", "baseurl", "gpgcheck", "repo_gpgcheck", "skip_if_unavailable", "enabled",
+                       "reposdir", "owner", "group", "mode"),
+    "get_url": ("url", "dest", "checksum", "mode", "force", "owner", "group"),
+    "rpm_key": ("key", "fingerprint", "state"),
+    "template": ("src", "dest", "owner", "group", "mode"),
+    "copy": ("src", "dest", "remote_src", "owner", "group", "mode"),
+    "assert": ("that", "fail_msg", "success_msg", "quiet"),
+    "command": ("argv", "stdin", "creates"),
+}
+MODULE_LINE = re.compile(r"^( *)(- +)?(['\"]?)(?:(?:ansible\.(?:builtin|legacy)|community\.general)\.)?(%s)\3[ \t]*:(.*)$"
+                         % "|".join(sorted(MODULE_ARGS, key=len, reverse=True)))
+# A mapping key on a line of its own, bare or quoted.
+KEY_LINE = re.compile(r"(['\"]?)([A-Za-z_][\w.]*)\1[ \t]*:(?:[ \t]|$)")
+# The names the held checks read that a task registers or sets: each is registered or
+# set by one task alone, since a later task registering or setting it again (set_fact
+# and register share one precedence, the later winning) would hand the check another
+# value. And the names of the pins themselves, the role's vars/ and release.yml, which a
+# set_fact would outrank: no task sets them.
+CHECKED_NAMES = ("hmailserver_rpm_key_work", "hmailserver_rpm_key_fetched", "hmailserver_rpm_key_read",
+                 "hmailserver_rpm_key_exported", "hmailserver_rpm_key_export_read", "hmailserver_ppa_key_download",
+                 "hmailserver_ppa_key_fetched", "hmailserver_check_config", "hmailserver_setting",
+                 "hmailserver_deb_checksum", "hmailserver_deb_file")
+PINNED_NAMES = ("hmailserver_ppa_fingerprint", "hmailserver_copr_fingerprint", "hmailserver_obs_fingerprint",
+                "hmailserver_ppa_keyring", "hmailserver_release_version", "hmailserver_release_deb_sha256")
+# The PPA's apt source, its template held whole: signed by the PPA's keyring, with no
+# Trusted:, no other option and nothing a Jinja expression could add a line with.
+PPA_TEMPLATE = os.path.join("roles", "hmailserver", "templates", "hmailserver-ppa.sources.j2")
+PPA_SOURCE = """{# https://www.progressiverobot.com #}
+{# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd #}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+# {{ ansible_managed }}
+# ppa:hmailserver/hmailserver: Progressive Robot's fork of hMailServer, signed by
+# the PPA's key {{ hmailserver_ppa_fingerprint }} alone.
+Types: deb
+URIs: {{ hmailserver_ppa_uri }}
+Suites: {{ ansible_facts['distribution_release'] }}
+Components: main
+Signed-By: {{ hmailserver_ppa_keyring }}
+"""
+# What switches a package manager's verification off, in any task or template of the
+# role, as an argument, an option or an apt, dnf or zypper setting.
+TRUST_OFF = (r"(?i)disable[-_]gpg[-_]check|allow[-_]?unauthenticated|nogpgcheck|no-gpg-checks|gpg-auto-import-keys"
+             r"|auto_import_keys|--nosignature|--nodigest|force-yes|force-bad-verify|allow[-_]?insecure|allow[-_]?weak"
+             r"|allow[-_]?downgrade[-_]?to[-_]?insecure|\btrusted\b|gpgcheck[ \t]*=[ \t]*(?:0|false|no)\b|--setopt\b")
 # What no file of the role's tasks/ may say ("*" for every one of them, but those named
 # after it), each a pattern and why. A key keyword quoted ('ignore_errors': true) is
 # the same keyword.
@@ -267,6 +369,12 @@ FORBIDDEN = (
      "a task's failure is ignored, and with it a check's", ()),
     ("*", r"(?m)^[ \t-]*['\"]?rescue['\"]?[ \t]*:", "a block rescues its failures, and with them a check's", ()),
     ("*", r"(?m)^[ \t-]*['\"]?apply['\"]?[ \t]*:", "an include gives the tasks it includes keywords of its own", ()),
+    ("*", r"(?m)^[ \t-]*['\"]?(?:args|action|local_action)['\"]?[ \t]*:",
+     "a task gives its module arguments by args or action, which MODULE_ARGS does not read", ()),
+    ("*", r"(?m)^[ \t-]*['\"]?(?:(?:ansible\.(?:builtin|legacy)|community\.general)\.)?"
+          r"(?:apt_repository|deb822_repository|apt_key|zypper_repository|copr)['\"]?[ \t]*:",
+     "a source or key is written by a module of its own, not by the role's held template and repositories", ()),
+    ("*", TRUST_OFF, "a package manager's verification is switched off", ()),
 )
 
 
@@ -295,6 +403,85 @@ def task_keywords(block, keyword):
     first = block.split("\n")[1]
     indent = len(first) - len(first.lstrip(" ")) + 2
     return re.findall(r"(?m)^ {%d}['\"]?%s['\"]?[ \t]*:.*$" % (indent, re.escape(keyword)), block)
+
+
+def task_keys(block):
+    """The keywords of the task in block (task_block's) at its own indentation, in
+    order, name first, and the lines there that are none: a comment, or an item of a
+    sequence a keyword's value goes on in, is neither."""
+    lines = block.split("\n")
+    first = lines[1]
+    indent = len(first) - len(first.lstrip(" ")) + 2
+    keys, odd = ["name"], []
+    for line in lines[2:]:
+        depth = len(line) - len(line.lstrip(" "))
+        if not line.strip() or depth > indent:
+            continue
+        text = line[depth:]
+        if depth == indent and (text.startswith("#") or text.startswith("- ") or text == "-"):
+            continue
+        match = KEY_LINE.match(text) if depth == indent else None
+        if match:
+            keys.append(match.group(2))
+        else:
+            odd.append(line.strip())
+    return keys, odd
+
+
+def module_problems(name, text):
+    """What a file of the role's tasks gives the modules of MODULE_ARGS that they may not
+    be given: an argument not named there, one given twice, a line among them that is no
+    argument, or arguments on the module's own line, which the check would not read."""
+    problems = []
+    lines = text.split("\n")
+    for number, line in enumerate(lines):
+        match = MODULE_LINE.match(line)
+        if not match:
+            continue
+        module = match.group(4)
+        column = len(match.group(1)) + len(match.group(2) or "")
+        where = "%s, line %d" % (os.path.join(TASKS, name), number + 1)
+        after = match.group(5).strip()
+        if after and not after.startswith("#"):
+            problems.append("%s gives %s its arguments on the module's own line, %r: they are a mapping of their own"
+                            " lines, each of them one MODULE_ARGS lets it be given" % (where, module, after))
+            continue
+        arguments, depth_of, odd = [], None, []
+        for following in lines[number + 1:]:
+            depth = len(following) - len(following.lstrip(" "))
+            if not following.strip():
+                continue
+            if depth <= column:
+                break
+            body = following[depth:]
+            if depth_of is None:
+                if body.startswith("#"):
+                    continue
+                depth_of = depth
+            if depth > depth_of:
+                continue
+            if depth < depth_of:
+                odd.append(body)
+                continue
+            if body.startswith("#") or body.startswith("- ") or body == "-":
+                continue
+            key = KEY_LINE.match(body)
+            if key:
+                arguments.append(key.group(2))
+            else:
+                odd.append(body)
+        stray = [a for a in arguments if a not in MODULE_ARGS[module]]
+        twice = sorted(set(a for a in arguments if arguments.count(a) > 1))
+        if stray or twice or odd:
+            problems.append("%s gives %s %s, which it may not be given (MODULE_ARGS: %s)" % (
+                where, module, ", ".join(stray + ["%s twice" % a for a in twice] + ["the line %r" % o for o in odd]),
+                ", ".join(MODULE_ARGS[module])))
+    return problems
+
+
+def has_heading(changelog, version):
+    """Whether the collection's CHANGELOG.md has the heading "## <version>"."""
+    return re.search(r"(?m)^## %s$" % re.escape(version), changelog) is not None
 
 
 def say(line=""):
@@ -421,6 +608,9 @@ def check(root=ROOT):
         version, pinned, pins = None, None, {}
     if version is not None and not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         problems.append("%s: version %s is not a release version, X.Y.Z" % (GALAXY_YML, version))
+    if version is not None and not has_heading(read(os.path.join(base, CHANGELOG)), version):
+        problems.append("%s has no heading \"## %s\" for the version %s carries: what a version carries is written"
+                        " there before it is built" % (CHANGELOG, version, GALAXY_YML))
     if version is not None and pinned != version:
         problems.append("%s pins the .deb files of %s, and %s says %s: a collection is built for one release"
                         % (RELEASE_YML, pinned, GALAXY_YML, version))
@@ -448,7 +638,7 @@ def check(root=ROOT):
             tasks[name] = read(os.path.join(directory, name))
         except OSError:
             tasks[name] = ""
-    for name, task, lines, what, control in VERIFIED:
+    for name, task, lines, what, control, keys in VERIFIED:
         block = task_block(tasks[name], task)
         if block is None:
             problems.append("%s has no task %r: %s is not checked" % (os.path.join(TASKS, name), task, what))
@@ -460,12 +650,22 @@ def check(root=ROOT):
             if given and (keyword not in control or len(given) > 1):
                 problems.append("%s's task %r is given %s, which can skip it or take its failure for a success: %s is"
                                 " not held" % (os.path.join(TASKS, name), task, given[0].strip(), what))
+        found, odd = task_keys(block)
+        allowed = set(("name",) + tuple(keys) + (CONTROL_KEYS if control is not None else ()))
+        stray = [k for k in found if k not in allowed]
+        twice = sorted(set(k for k in found if found.count(k) > 1 and (control is None or k not in CONTROL_KEYS)))
+        if stray or twice or odd:
+            problems.append("%s's task %r carries %s, which the check does not let it carry: %s is not held" % (
+                os.path.join(TASKS, name), task,
+                ", ".join(stray + ["%s twice" % k for k in twice] + ["the line %r" % line for line in odd]), what))
     block = task_block(tasks[SETTINGS_TASK[0]], SETTINGS_TASK[1])
     if block is not None:
         # The task but its command and its changed_when, which alone may name a value.
-        rest = block.replace("\n" + SETTINGS_COMMAND[0] + "\n", "\n", 1)
+        rest = block.replace("\n" + SETTINGS_COMMAND[0] + "\n", "\n", 1).replace("\n" + SETTINGS_LOOP + "\n", "\n", 1)
         rest = re.sub(r"(?m)^  changed_when:.*\n(?:(?:[ ]{3,}.*)?\n)*", "", rest)
-        if re.search(SETTING_VALUE, rest) or re.search(r"\b(?:lookup|query|q)\s*\(", block):
+        if (re.search(SETTING_VALUE, rest) or re.search(r"\b(?:lookup|query|q)\s*\(", block)
+                or re.search(r"(?<![\w.])hmailserver_settings(?!\w)", rest)
+                or re.search(r"\b(?:vars|hostvars)\s*[\[.]", block)):
             problems.append("%s's task %r names a setting's value outside its standard input, or runs a lookup: a"
                             " value would be given on a command line or shown" % (os.path.join(TASKS, SETTINGS_TASK[0]),
                                                                                   SETTINGS_TASK[1]))
@@ -476,6 +676,34 @@ def check(root=ROOT):
     if len(re.findall(RPM_KEY_MODULE, tasks.get("rpm-key.yml", ""))) != 1:
         problems.append("%s gives rpm_key a key more than once, or never: one import, of gpg's export of the key alone"
                         % os.path.join(TASKS, "rpm-key.yml"))
+    for name in sorted(tasks):
+        problems.extend(module_problems(name, tasks[name]))
+    every = "\n".join(tasks[name] for name in sorted(tasks))
+    for name in CHECKED_NAMES + PINNED_NAMES:
+        count = len(re.findall(r"(?m)^[ \t-]*['\"]?register['\"]?[ \t]*:[ \t]*['\"]?%s['\"]?[ \t]*(?:#.*)?$" % name, every))
+        count += len(re.findall(r"(?m)(?<![\w.])['\"]?%s['\"]?[ \t]*(?::(?=[ \t]|$)|=(?!=))" % name, every))
+        wanted = 1 if name in CHECKED_NAMES else 0
+        if count != wanted:
+            problems.append("the role's tasks register or set %s %s, not %s: %s" % (
+                name, {0: "never", 1: "once"}.get(count, "%d times" % count), "once" if wanted else "never",
+                "a held check reads it, and a later task registering or setting it would hand the check another value"
+                if wanted else "it is a pin, and a set_fact would outrank it"))
+    templates = os.path.join(base, os.path.dirname(PPA_TEMPLATE))
+    for name in sorted(os.listdir(templates)) if os.path.isdir(templates) else []:
+        try:
+            template = read(os.path.join(templates, name))
+        except (OSError, UnicodeDecodeError):
+            continue
+        if re.search(TRUST_OFF, template):
+            problems.append("%s: a package manager's verification is switched off" % os.path.join(
+                os.path.dirname(PPA_TEMPLATE), name))
+    try:
+        source = read(os.path.join(base, PPA_TEMPLATE))
+    except OSError:
+        source = None
+    if source != PPA_SOURCE:
+        problems.append("%s is not the PPA's source as held (PPA_SOURCE): signed by the PPA's keyring alone, with nothing"
+                        " more" % PPA_TEMPLATE)
     for directory, names, files in os.walk(base):
         names[:] = [n for n in names if n not in SKIP]
         for name in files:
@@ -571,6 +799,11 @@ def release_build(out, environ=None, root=ROOT, run=subprocess.run):
     fix = rf.fixture(environ)
     version, where = rf.release_version(environ, fix)
     say("the release: %s (from %s)" % (version, where))
+    changelog = os.path.join(root, COLLECTION, CHANGELOG)
+    if not has_heading(read(changelog) if os.path.isfile(changelog) else "", version):
+        raise Refused("the collection's %s has no heading \"## %s\": what the collection built for %s carries is written"
+                      " there, on master, before it is built (hmailserver/docs/Ansible.md, \"Publishing to Galaxy\");"
+                      " nothing was fetched or built" % (CHANGELOG, version, version))
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(out)
@@ -872,6 +1105,122 @@ def self_test():
                "hmailserver_admin_password: changeme\nhmailserver_admin_password_update:", "gives hmailserver_admin_password")
         broken("an address on GitHub", os.path.join("roles", "hmailserver", "tasks", "main.yml"), "---\n",
                "---\n# https://github.com/example/example\n", "names GitHub")
+        # The keywords a held task may carry, the modules' arguments, the names the
+        # checks read, the PPA's source and the collection's changelog.
+        copr = os.path.join(TASKS, "install-copr.yml")
+        obs = os.path.join(TASKS, "install-obs.yml")
+        ppa = os.path.join(TASKS, "install-ppa.yml")
+        deb = os.path.join(TASKS, "install-deb.yml")
+        configure = os.path.join(TASKS, "configure.yml")
+        key_check = "    - name: Refuse a file that is not the channel's key alone\n"
+        export_check = "    - name: Refuse an export that is not the channel's key alone\n"
+        carry = "does not let it carry"
+        for what, line in (("tagged never", "tags: [never]"), ("given loop: []", "loop: []"),
+                           ("given with_items: []", "with_items: []"), ("given until", "until: true"),
+                           ("given check_mode", "check_mode: true"), ("delegated", "delegate_to: localhost")):
+            broken("the key file's check %s" % what, rpm_key, key_check, key_check + "      %s\n" % line, carry)
+        broken("both of the key's checks tagged never", rpm_key, key_check, key_check + "      tags: [never]\n", carry,
+               also=((export_check, export_check + "      tags: [never]\n"),))
+        broken("the key file's check given a keyword under a quoted name", rpm_key, key_check,
+               key_check + "      \"tags\": [never]\n", carry)
+        broken("the key file's check given a line that is no keyword", rpm_key, key_check,
+               key_check + "      <<: {tags: [never]}\n", carry)
+        broken("the key's block skipped by a when", rpm_key, "- name: Fetch, check and import the key\n",
+               "- name: Fetch, check and import the key\n  when: false\n", "skip it")
+        broken("the key's block tagged never", rpm_key, "- name: Fetch, check and import the key\n",
+               "- name: Fetch, check and import the key\n  tags: never\n", carry)
+        broken("Copr's include of the key's checks tagged never", copr,
+               "- name: Import Copr's key for the project, held to its fingerprint\n",
+               "- name: Import Copr's key for the project, held to its fingerprint\n  tags: [never]\n", carry)
+        broken("the Build Service's include of the key's checks given a further variable", obs,
+               "    hmailserver_rpm_key_fingerprint: \"{{ hmailserver_obs_fingerprint }}\"\n",
+               "    hmailserver_rpm_key_fingerprint: \"{{ hmailserver_obs_fingerprint }}\"\n    hmailserver_x: y\n",
+               "does not hold")
+        broken("Copr's install given disable_gpg_check", copr,
+               "    state: \"{{ hmailserver_package_state if hmailserver_version == '' else 'present' }}\"\n",
+               "    state: \"{{ hmailserver_package_state if hmailserver_version == '' else 'present' }}\"\n"
+               "    disable_gpg_check: true\n", "may not be given")
+        broken("the Build Service's install given disable_gpg_check", obs, "    update_cache: true\n",
+               "    update_cache: true\n    disable_gpg_check: true\n", "verification is switched off")
+        broken("the Build Service's install given extra_args", obs, "    update_cache: true\n",
+               "    update_cache: true\n    extra_args: --quiet\n", "may not be given")
+        broken("zypper told --no-gpg-checks on a command line", obs, "- name: Ask rpm for the version installed\n",
+               "- name: Refresh\n  ansible.builtin.command:\n    argv: [zypper, --no-gpg-checks, refresh]\n"
+               "  changed_when: false\n\n- name: Ask rpm for the version installed\n", "verification is switched off")
+        ppa_install = "    cache_valid_time: \"{{ 0 if hmailserver_ppa_source is changed else 3600 }}\"\n"
+        broken("the PPA's install given allow_unauthenticated", ppa, ppa_install,
+               ppa_install + "    allow_unauthenticated: true\n", "verification is switched off")
+        broken("the PPA's install given force, which implies it", ppa, ppa_install, ppa_install + "    force: true\n",
+               "may not be given")
+        broken("the PPA's source trusted", PPA_TEMPLATE, "Signed-By: {{ hmailserver_ppa_keyring }}\n",
+               "Signed-By: {{ hmailserver_ppa_keyring }}\nTrusted: yes\n", "is not the PPA's source as held")
+        broken("the PPA's source without Signed-By", PPA_TEMPLATE, "Signed-By: {{ hmailserver_ppa_keyring }}\n", "",
+               "is not the PPA's source as held")
+        broken("the PPA's source given a line by Jinja", PPA_TEMPLATE, "Components: main\n",
+               "Components: main{{ '\\n' ~ 'Allow' ~ '-Insecure: yes' }}\n", "is not the PPA's source as held")
+        broken("the PPA's source written to another file", ppa, "    dest: /etc/apt/sources.list.d/hmailserver-ppa.sources\n",
+               "    dest: /etc/apt/sources.list.d/other.sources\n", "does not hold")
+        broken("the PPA's key check tagged never", ppa, "    - name: Refuse a key that is not the PPA's\n",
+               "    - name: Refuse a key that is not the PPA's\n      tags: [never]\n", carry)
+        broken("the PPA's key fetched only when it is never", ppa, "    hmailserver_ppa_key_present.rc != 0 or\n",
+               "    false and hmailserver_ppa_key_present.rc != 0 or\n", "does not hold")
+        broken("the PPA's source written by apt_repository", ppa, "- name: Install hmailserver from the PPA\n",
+               "- name: Name it again\n  ansible.builtin.apt_repository:\n    repo: ppa:hmailserver/hmailserver\n\n"
+               "- name: Install hmailserver from the PPA\n", "written by a module of its own")
+        deb_pin = "- name: Refuse a .deb whose SHA-256 is not pinned\n"
+        broken("the .deb's pin check given loop: []", deb, deb_pin, deb_pin + "  loop: []\n", carry)
+        broken("the .deb's pin check tagged never", deb, deb_pin, deb_pin + "  tags: [never]\n", carry)
+        broken("the .deb's download and install tagged never", deb, "- name: Download and install the .deb\n",
+               "- name: Download and install the .deb\n  tags: [never]\n", carry)
+        broken("the .deb fetched without checking its host", deb,
+               "        checksum: \"sha256:{{ hmailserver_deb_checksum }}\"\n",
+               "        checksum: \"sha256:{{ hmailserver_deb_checksum }}\"\n        validate_certs: false\n",
+               "may not be given")
+        broken("a setting's value in the task's environment, by the setting's name", configure,
+               "  register: hmailserver_setting\n",
+               "  register: hmailserver_setting\n  environment:\n    HM_VALUE: \"{{ hmailserver_settings[item.key] }}\"\n",
+               "outside its standard input")
+        broken("a setting's value in the task's vars, by vars[...]", configure,
+               "    # The [Settings] section as it was, to the next section's header.\n",
+               "    hmailserver_x: \"{{ vars['hmailserver_' ~ 'settings'][item.key] }}\"\n"
+               "    # The [Settings] section as it was, to the next section's header.\n", "outside its standard input")
+        broken("the settings' loop item renamed", configure, "    label: \"{{ item.key }}\"\n",
+               "    label: \"{{ item.key }}\"\n    loop_var: setting\n", "does not hold")
+        broken("the gpg read given args", rpm_key, "      register: hmailserver_rpm_key_read\n",
+               "      args:\n        chdir: /\n      register: hmailserver_rpm_key_read\n", "by args or action")
+        broken("the refused settings' check tagged never", configure,
+               "  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0\n",
+               "  when: hmailserver_setting.results | default([]) | rejectattr('rc', 'eq', 0) | list | length > 0\n"
+               "  tags: [never]\n", carry)
+        broken("the configuration's check tagged never", configure,
+               "- name: Refuse a configuration the service does not read as written\n",
+               "- name: Refuse a configuration the service does not read as written\n  tags: [never]\n", carry)
+        broken("the configuration's check taking any database type", configure,
+               "\"{{ 3 if hmailserver_database_type == 'PostgreSQL' else 1 }}\"", "\"[0-9]+\"", "does not hold")
+        broken("the database's password task given no_log twice", configure,
+               "  no_log: true\n  notify: Restart hmailserver\n\n- name: Read the configuration, to see",
+               "  no_log: true\n  no_log: false\n  notify: Restart hmailserver\n\n- name: Read the configuration, to see",
+               "no_log twice")
+        broken("gpg's reading set again by a set_fact", rpm_key, key_check,
+               "    - name: Say what gpg read\n      ansible.builtin.set_fact:\n        hmailserver_rpm_key_read:\n"
+               "          stdout: \"pub:\"\n\n" + key_check, "hmailserver_rpm_key_read 2 times")
+        broken("gpg's reading registered by another task too", rpm_key, "      register: hmailserver_rpm_key_exported\n",
+               "      register: hmailserver_rpm_key_read\n", "hmailserver_rpm_key_read 2 times")
+        broken("the PPA's fingerprint set by a set_fact", ppa, "- name: Install what the key's check needs\n",
+               "- name: Choose a key\n  ansible.builtin.set_fact:\n    hmailserver_ppa_fingerprint: \"0000\"\n\n"
+               "- name: Install what the key's check needs\n", "hmailserver_ppa_fingerprint once")
+        broken("the release's pins set by a set_fact", deb, "- name: Find the .deb's SHA-256\n",
+               "- name: Pin another\n  ansible.builtin.set_fact:\n    hmailserver_release_deb_sha256={{ {} }}\n\n"
+               "- name: Find the .deb's SHA-256\n", "hmailserver_release_deb_sha256 once")
+        broken("a package given its arguments on the module's line", rpm_key,
+               "  ansible.builtin.package:\n    name: \"{{ 'gpg2' if ansible_facts['os_family'] == 'Suse' else 'gnupg2' }}\"\n"
+               "    state: present\n", "  ansible.builtin.package: name=gnupg2 state=present\n", "on the module's own line")
+        broken("Copr's repository given gpgcheck again", copr, "    gpgcheck: true\n",
+               "    gpgcheck: true\n    gpgcheck: false\n", "gpgcheck twice")
+        broken("the Build Service's repository without its host checked", obs, "    repo_gpgcheck: true\n",
+               "    repo_gpgcheck: true\n    sslverify: false\n", "may not be given")
+        broken("a CHANGELOG.md without a heading for galaxy.yml's version", "CHANGELOG.md", "## %s\n" % version,
+               "## 0.0.1\n", "has no heading")
 
         sums = "\n".join("%s  hmailserver_9.9.9-1~%s.deb" % (("%x" % i) * 64, target) for i, target in
                          enumerate(TARGETS, start=1)) + "\n%s  hmailserver-9.9.9.tar.gz\n" % ("f" * 64)
@@ -970,7 +1319,15 @@ def self_test():
         finally:
             rf.release_version = held
 
-        # release-build, with the release verified as release-files.py verifies it
+        # release-build, with the release verified as release-files.py verifies it, from a
+        # tree whose collection's CHANGELOG.md has a heading for the release.
+        root9 = os.path.join(work, "root-9.9.9")
+        os.makedirs(os.path.join(root9, os.path.dirname(COLLECTION)))
+        shutil.copytree(os.path.join(ROOT, COLLECTION), os.path.join(root9, COLLECTION),
+                        ignore=shutil.ignore_patterns(*SKIP))
+        shutil.copyfile(os.path.join(ROOT, "LICENSE"), os.path.join(root9, "LICENSE"))
+        changelog9 = os.path.join(root9, COLLECTION, CHANGELOG)
+        write(changelog9, read(changelog9) + "\n## 9.9.9\n\nBuilt for the self-test.\n")
         held = (rf.release_version, rf.tool_path, rf.verified_files, rf.write_record)
         try:
             rf.release_version = lambda environ, fix: ("9.9.9", "HM_CHANNEL_VERSION")
@@ -982,15 +1339,20 @@ def self_test():
                 raise Refused("hmailserver-linux-9.9.9-SHA256SUMS.txt does not verify as signed by this project's pipeline")
             rf.verified_files = unverified
             del calls[:]
+            refused("release-build for a version the collection's CHANGELOG.md has no heading for: refused before"
+                    " anything is fetched", lambda: release_build(os.path.join(work, "rb0"), {}, run=fake_build(calls)),
+                    "has no heading")
+            expect("  ... nothing built", calls == [])
             refused("release-build, the sums not verifying: refused before anything is built",
-                    lambda: release_build(os.path.join(work, "rb1"), {}, run=fake_build(calls)), "does not verify")
+                    lambda: release_build(os.path.join(work, "rb1"), {}, root=root9, run=fake_build(calls)),
+                    "does not verify")
             expect("  ... nothing built", calls == [])
             rf.verified_files = lambda version, names, into, cosign, fix=None, run=None: {names[0]: {
                 "path": sums_path, "sha256": rf.sha256_file(sums_path), "size": 1,
                 "identity": rf.identities("9.9.9")[1], "repository_id": "86730559"}}
             rf.write_record = lambda *args, **kwargs: None
             out = os.path.join(work, "rb2")
-            code = release_build(out, {}, run=fake_build(calls))
+            code = release_build(out, {}, root=root9, run=fake_build(calls))
             with open(os.path.join(out, RECORD), encoding="utf-8") as f:
                 record = json.load(f)
             expect("release-build: the collection built for the release with the verified sums' pins",

@@ -103,8 +103,11 @@ commands:
    (`PasswordPepper` and the live update's trust, `UpdateSigningIdentity`,
    `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and
    `UpdateLogPublicKeyFile`) the one `[Settings]` held. A secret setting is taken the
-   same way; since the server never shows a secret it holds, one is reported changed,
-   and the service restarted, on every run.
+   same way. One the server keeps in the database, such as `SRSSecret`, which it
+   stores sealed and never shows, is reported changed, and the service restarted, on
+   every run; `PasswordPepper`, which it keeps in the file as given, is compared with
+   the file's line, as the trust keys are, and reported changed only when it is
+   another.
 8. **The service**, enabled and started; a service that ran before the role changed
    its configuration is restarted. The first start after a new database secures it
    ([SecureDefaults.md](SecureDefaults.md)). The role waits for the SMTP banner on
@@ -143,11 +146,22 @@ two of them, and is refused; and rpm is given gpg's export of the pinned key alo
 which no text of the file it came from reaches. A release or architecture a channel does not build for (`vars/main.yml`
 names what each builds) is refused before anything is changed.
 `galaxy-publish.py check` holds each fingerprint to 40 hex digits, the PPA's key to
-being fetched by the fingerprint it is held to, and the role's checks to being there:
-each key held to its fingerprint and read as one key alone in one armour block, the
-key rpm imports gpg's export of it, the repositories'
-`gpgcheck` and the Build Service's `repo_gpgcheck` on and no `gpgkey`, the `.deb`
-held to its SHA-256, and the tasks that carry a password or a setting not logged.
+being fetched by the fingerprint it is held to, and the role's checks as they are
+written: each key held to its fingerprint and read as one key alone in one armour
+block, the key rpm imports gpg's export of it, the repositories' `gpgcheck` and the
+Build Service's `repo_gpgcheck` on and no `gpgkey`, the PPA's source written from its
+template as it is, signed by the PPA's key alone, the `.deb` held to its SHA-256, and
+the tasks that carry a password or a setting not logged. Each of those tasks, and the
+blocks and includes round them, may carry only the keywords it has - no `tags`, which
+with `never` skip a task, no loop, which over an empty list skips it, no `until`,
+`check_mode`, `delegate_to`, `environment` or `args`; the modules that install, fetch,
+write a source or check may be given only the arguments the role gives them, so that
+no `disable_gpg_check`, `allow_unauthenticated`, apt's `force` or `validate_certs` is
+let through; nothing in the role's tasks or templates switches a package manager's
+verification off (`--nogpgcheck`, `--no-gpg-checks`, `Trusted:`, `trusted=yes` and the
+like); a name the checks read is registered or set by one task alone, and the pins by
+none; and its `CHANGELOG.md` has a heading for its version. It reads the files as they
+are written, and runs none of them.
 
 How it is tested
 ----------------
@@ -220,7 +234,11 @@ Two jobs in a `master` pipeline, each pressed by hand, as every channel's are
   `hmailserver-linux-<version>-SHA256SUMS.txt` against its Sigstore bundle as this
   project's pipeline for the tag, reads the four Debian `.deb` pins from it, and
   builds the collection from `master`'s tree with that version in `galaxy.yml` and
-  those pins in `vars/release.yml`. The tarball is read back: its `MANIFEST.json` must
+  those pins in `vars/release.yml`. It refuses, before it fetches anything, a release
+  for which the collection's `CHANGELOG.md` on `master` has no `## <version>` heading:
+  that heading, with what the collection built for that release carries, is written
+  and landed before `galaxy-build` is pressed for it, since the tarball takes the
+  changelog as `master` has it. The tarball is read back: its `MANIFEST.json` must
   give the namespace, name, version and licence, its `release.yml` the version and
   pins it was built with, and it must carry the repository's `LICENSE`. It publishes
   nothing, and is the dry run before the namespace exists.

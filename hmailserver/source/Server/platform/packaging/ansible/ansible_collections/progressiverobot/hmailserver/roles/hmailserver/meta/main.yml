@@ -24,7 +24,8 @@ galaxy_info:
         - trixie
     - name: Fedora
       versions:
-        - all
+        - "43"
+        - "44"
     - name: EL
       versions:
         - "10"

@@ -62,8 +62,10 @@ hmailserver_stored_secrets_key_export: ""
 # empty value ("") is NAME=, which clears the setting. A setting that holds a secret
 # is taken so as well, and never logged. A setting is reported changed, and the
 # service restarted, when the value it held was another, trimmed as the server trims
-# it; since the server never shows a secret it holds, a secret is reported changed,
-# and the service restarted, on every run.
+# it. A secret the server keeps in the database, which it never shows, is reported
+# changed, and the service restarted, on every run; PasswordPepper, which it keeps
+# in hMailServer.ini as given, is compared with the file's line, as the live update's
+# trust keys are.
 hmailserver_settings: {}
 
 # The service. The role opens no firewall port and changes no firewall.

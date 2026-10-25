@@ -5,6 +5,8 @@ hMailServer it is built for: its version is that release's, and on Debian its ro
 installs that release's `.deb`, held to the SHA-256 the release published. The
 server's own changes are in the project's
 [CHANGELOG.md](https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md).
+Each version the collection is built for has a heading of its own here, written
+before it is built: the job that builds it for a release refuses one without.
 
 ## 6.3.7
 

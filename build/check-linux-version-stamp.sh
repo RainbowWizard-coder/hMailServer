@@ -227,9 +227,13 @@ fi
 # The galaxy-build job writes galaxy.yml's version: and release.yml's
 # hmailserver_release_version: together for the release it builds, and
 # build/ci/channels/galaxy-publish.py check holds the two to each other in the tree;
-# its CHANGELOG.md has a "## <version>" heading for each version it was published
-# at. Each is let through on its own line in its own file alone, as written there.
-COLLECTION_LINE='^[^:]*/ansible/ansible_collections/progressiverobot/hmailserver/'
+# its CHANGELOG.md has a "## <version>" heading for each version it is built for,
+# which galaxy-publish.py's check and release-build require. Each is let through on
+# its own line in its own file alone, as written there: the path is the collection's
+# own, from the root of platform/packaging/, its regex characters escaped, so that a
+# copy of the collection elsewhere under packaging/ is refused like any other file.
+PACKAGING_PATTERN="$(printf '%s' "${PACKAGING}" | sed 's/[][\.*^$+?(){}|]/\\&/g')"
+COLLECTION_LINE="^${PACKAGING_PATTERN}/ansible/ansible_collections/progressiverobot/hmailserver/"
 stray="$(grep -rnE '(^|[^0-9.])6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
    | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/alpine/APKBUILD:[0-9]*:pkgver=' \
