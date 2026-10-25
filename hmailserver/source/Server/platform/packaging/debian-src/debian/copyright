@@ -117,16 +117,12 @@ License: notices
 
 Files: LICENSES/LicenseRef-No-Licence-Stated.txt
        LICENSES/LicenseRef-Verbatim-Notice.txt
-       LICENSES/LicenseRef-TabOrderManager-ReadMe.txt
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
 License: AGPL-3+
 Comment:
- The three texts of LICENSES/ that are the project's own: what REUSE.toml's
- identifiers for the third parties' notices, for the material no licence is
- stated for and for the Windows tools' class by Scott McMaster mean, the last
- quoting the terms its author's ReadMe states for the class, in his words.
- The Windows tools are not in this package. The rest of LICENSES/ is the
- licences' texts.
+ The two texts of LICENSES/ that are the project's own: what REUSE.toml's
+ identifiers for the third parties' notices and for the material no licence
+ is stated for mean. The rest of LICENSES/ is the licences' texts.
 
 Files: hmailserver/docs/Licenses/License?list.*
 Copyright: 2010 Martin Knafve / hMailServer.com

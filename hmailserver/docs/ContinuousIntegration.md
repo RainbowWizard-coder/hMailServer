@@ -2593,8 +2593,8 @@ hMailServer's files name Martin Knafve as a holder, as `debian/copyright`'s
 `Files: *` does. The fork's header took the place of his notice in them on 13
 September 2026; since 25 October 2026 each of them that carries the header and whose
 own file in the original carried his notice carries it again, below the header, as
-that file wrote it (1,091 of the 1,283 that carry the header: of the other 192, the
-original's own file carried no notice for 151, 31 are the SPF port's files from one
+that file wrote it (1,091 of the 1,282 that carry the header: of the other 191, the
+original's own file carried no notice for 150, 31 are the SPF port's files from one
 of its later commits, which quote his notice in their attribution, and 10 are files
 of the fork's that keep only a message of his in its words, which REUSE.toml's tables
 name him for and which get no line (`WORDS_ONLY`);
@@ -2632,12 +2632,7 @@ from the Public Suffix List, Unicode's data and HTML's character references, and
 `build/check-release-chain.py`, which ports parts of commonmark.js's block and inline parsers, and
 `build/check-gitleaksignore.py`, which holds two of GitLab's secret detection rules'
 regular expressions, MIT) with
-the third party's licence added beside the header's; the
-Windows tools' `TabOrderManager.cs`, Scott McMaster's class of 2004, which the
-original took from the download of his article, whose ReadMe gives leave to use and
-modify it and names no licence and states no leave to distribute it, as
-`LicenseRef-TabOrderManager-ReadMe`, whose text quotes those terms, beside the
-project's licence; the licence texts and
+the third party's licence added beside the header's; the licence texts and
 notices of what the Windows build ships as `LicenseRef-Verbatim-Notice`, whose
 copyright text in the table points at the holders each text names; and the test data
 no licence was stated for as `LicenseRef-No-Licence-Stated`, two fuzzers' regression

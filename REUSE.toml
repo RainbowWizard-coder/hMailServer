@@ -1123,7 +1123,6 @@ path = [
     "hmailserver/source/Tools/Shared/Interfaces/IPropertyEditor.cs",
     "hmailserver/source/Tools/Shared/Miscellaneous/Authenticator.cs",
     "hmailserver/source/Tools/Shared/Miscellaneous/CommandLineParser.cs",
-    "hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs",
     "hmailserver/source/Tools/Shared/Miscellaneous/WaitCursor.cs",
     "hmailserver/source/Tools/Shared/Wizard/IWizardPage.cs",
     "hmailserver/source/Tools/Shared/Wizard/ucWizard.Designer.cs",
@@ -2458,41 +2457,6 @@ SPDX-FileCopyrightText = [
     "FatCow Web Hosting <https://www.fatcow.com/free-icons>",
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND CC-BY-3.0-US"
-
-# The Windows tools' TabOrderManager, which sets a form's tab order from where its
-# controls lie (the setup wizard's pages use it, Tools/Shared/Wizard/ucWizard.cs): a
-# class by Scott McMaster, whose header the file keeps under the project's - "By
-# Scott McMaster (smcmaste@hotmail.com) 10/10/2004" and his warranty disclaimer -
-# from his CodeProject article "Automatic Runtime Tab Order Management for Windows
-# Forms" (article 8406, 2004). The original kept it (it is in 5.7.0 builds 2788, 2843
-# and 3013) in the tools' namespace, hMailServer.Shared, with Martin Knafve's note
-# that according to its ReadMe it may be used for any purposes, a test that leaves a
-# TabControl's pages in their own order, and one of its debugging lines dropped. The
-# article's page states no terms of its own - "This article has no explicit license
-# attached to it but may contain usage terms in the article text or the download files
-# themselves. If in doubt please contact the author via the discussion board below." -
-# and its download, TabOrderManager.zip, has such terms: its README.txt, version 1.0
-# of 28 October 2004, ends with its author's "You are free to use and modify this
-# source as you find necessary", followed by the warranty disclaimer the file's header
-# keeps (the download as the Wayback Machine captured it on 23 November 2024). Those
-# terms name no licence and state no leave to copy or distribute the class, so his
-# class is LicenseRef-TabOrderManager-ReadMe, whose text quotes them and says where
-# they stand and what they leave out: the project grants no licence for it and claims
-# no right in it. Scott McMaster is named beside Martin Knafve and the maintainers,
-# whose the rest of the file is - the note, the namespace and the original's changes,
-# and the fork's header, layout and changes (three fields made readonly, and the
-# catch limited to exceptions that are not fatal) - under the project's licence.
-# The source tarball, and so the Debian source package, leaves
-# hmailserver/source/Tools/Shared out (build/source-exclusions.txt).
-[[annotations]]
-path = "hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs"
-precedence = "aggregate"
-SPDX-FileCopyrightText = [
-    "2004 Scott McMaster",
-    "2005-2026 Martin Knafve / hMailServer.com",
-    "2026 Christopher Holloway / Progressive Robot Ltd",
-]
-SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-TabOrderManager-ReadMe"
 
 # The installer's licence page: the project's terms, and the third-party components'
 # notices copied into it verbatim, which name their own holders. Read for this table

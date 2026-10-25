@@ -1017,9 +1017,9 @@ with `--check`).
   one names and why. The original hMailServer's files name Martin Knafve (2005-2026) as a holder beside what each
   file says, as `debian/copyright`'s `Files: *` does, where reuse's record named him for none of 1,260 of them and the
   fork alone for 1,231, most of them files whose notice of his the fork's header replaced in 2026:
-  `build/generate-reuse-original.py` writes the two tables that list them, 1,693 files, from the original's tags
+  `build/generate-reuse-original.py` writes the two tables that list them, 1,692 files, from the original's tags
   `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (`build/reuse-original-paths.txt`, with the paths the fork's first
-  commit took over from the original's history before them) - the 1,630 files of the tree at one of those paths,
+  commit took over from the original's history before them) - the 1,629 files of the tree at one of those paths,
   letter case aside, but for the 2,869 third parties' files among them, the ten that its hand-kept `FORK_MADE`
   leaves out and one empty file, `hmailserver/test/Docker/.dockerignore`, which reuse does not read, and 63 files
   the fork moved, split or copied out of one of the original's to a path of its own, or that keep any of his text
@@ -1088,26 +1088,18 @@ with `--check`).
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
-  each of the eighteen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download`
-  wrote them and each the same as spdx.org's text, and six of the project's, `LicenseRef-ScriptSite` and
+  each of the seventeen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download`
+  wrote them and each the same as spdx.org's text, and five of the project's, `LicenseRef-ScriptSite` and
   `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
   plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows
   build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices"),
-  `LicenseRef-No-Licence-Stated` for the eight files of test data that no licence is stated for, and
-  `LicenseRef-TabOrderManager-ReadMe` for the Windows
-  tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`, Scott McMaster's class of 2004, its header
-  dated 10 October 2004, which the original took from the download of his CodeProject article: the article's page
-  states no terms of its own, saying that its download may hold some, and the download's `README.txt`, version 1.0 of
-  28 October 2004, ends with his "You are free to use and modify this source as you find necessary" and a warranty
-  disclaimer, which name no licence and state no leave to copy or distribute the class, so that the identifier's text
-  quotes them, says where they stand and what they leave out, and grants nothing for the class (the original's note on
-  it, that according to its ReadMe it may be used for any purposes, is Martin Knafve's reading of them); the file
-  keeps the class's header and names him beside Martin Knafve and the maintainers, whose the rest of the file is, the
-  fork's changes to the class among it (three fields made readonly, and its catch limited to exceptions that are not
-  fatal), under `AGPL-3.0-or-later AND LicenseRef-TabOrderManager-ReadMe`, where the generated table named neither
-  him nor terms of his. The original's
+  and `LicenseRef-No-Licence-Stated` for the eight files of test data that no licence is stated for. The Windows
+  tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`, Scott McMaster's class of 2004, which
+  the original took from the download of his CodeProject article, whose `README.txt` gives leave to use and modify
+  it but names no licence and states no leave to copy or distribute it, is no longer in the tree: the project's own
+  code took its place (the entry on the tools' wizard, below). The original's
   debugger file for Visual Studio 2005 and 2008, `hmailserver/tools/VS2005/autoexp.dat`, whose one rule was Visual
   Studio's own for `std::basic_string<wchar_t>` renamed, and which nothing builds or reads, is deleted, with its
   table, its line in `build/source-exclusions.txt` and the Debian source package's `Files-Excluded`, and its mention
@@ -1205,8 +1197,8 @@ with `--check`).
   file's own notice is put back as the original's file wrote it, on the line below the header and in the same comment,
   and nothing else in the file changes. `build/original-notices.txt` lists them: 1,091
   files, each with one line - 1,019 of 2010, 37 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one
-  each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,283 of them
-  that carry the project's header, 151 carried none in the original (`hMailServer.idl`, `Version.h`, `BO/Route.h`,
+  each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,282 of them
+  that carry the project's header, 150 carried none in the original (`hMailServer.idl`, `Version.h`, `BO/Route.h`,
   `BLCheck.h` and many of the Windows suite's tests among them) and get none, the SPF port's 31 quote it, and ten
   files of the fork's that keep only a message of his get none, as below. The new `build/generate-original-notices.py` makes the list from the original's own trees, those
   `build/generate-reuse-original.py` reads: for every file of the tree that is the original's, or that the fork moved,
