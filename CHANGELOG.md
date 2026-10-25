@@ -1227,7 +1227,7 @@ with `--check`).
   they get no line in the list, since the project's repository has not that commit and the reuse job could not hold
   such a line to it, and an entry for any file of the port, its two `README.md` files among them, is refused.
   `build/add-license-headers.py` writes each listed notice below the header, wherever in the opening comment it stood,
-  and its `--check` refuses a file of the list without its notice there - `Strings.resx`, a `.resx` whose header is
+  and its `--check` refuses a file of the list without its notice there - a `.resx` of the list, whose header is
   otherwise only made canonical when it carries one, gets its header and notice written anew when it has lost them -
   and any copyright line in his name anywhere in a file but the list's own lines for it - a line that opens, once
   its comment's punctuation is taken off (`//`, `///`, `//!`, `/*`, `*`, `#`, `<#`, `;`, `<!--`), with a copyright

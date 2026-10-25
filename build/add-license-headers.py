@@ -426,7 +426,7 @@ def normalised(raw, ext, notices=None):
     cr = b'\r' if body.split(b'\n', 1)[0].endswith(b'\r') else b''
     lines = body.split(b'\n')
     # A file of the list gets the header and its notice even where its kind only has
-    # a header made canonical (Strings.resx): one that has lost both is written anew,
+    # a header made canonical (a .resx): one that has lost both is written anew,
     # and so --check refuses it.
     add = ext not in NORMALISE_ONLY or notices is not None
     if ext in BLOCK_COMMENT:
