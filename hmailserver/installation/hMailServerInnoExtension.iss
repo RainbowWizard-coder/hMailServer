@@ -1024,19 +1024,25 @@ end;
 
 // A connection to this computer's Service Control Manager, for opening a service by
 // its name (OpenSCManagerW with SC_MANAGER_CONNECT); 0 when Windows refuses it, which
-// is said, in the log and to whoever runs setup, at each refusal, since whatever
-// asked then cannot tell whether the hMailServer service is there, running or
-// stopped.
+// is said, in the log and to whoever runs setup or the uninstaller (each named as
+// what it is, since the uninstaller runs this code too), at each refusal, since
+// whatever asked then cannot tell whether the hMailServer service is there, running
+// or stopped.
 function OpenServiceManager() : SC_HANDLE;
 var
    lastError: Integer;
+   who: String;
 begin
    Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT);
    if (Result = 0) then
    begin
       lastError := DLLGetLastError();
-      Log('Windows did not open its Service Control Manager to setup (error ' + IntToStr(lastError) + '): ' + SysErrorMessage(lastError));
-      SuppressibleMsgBox('Setup could not open the Service Control Manager of this computer, so it cannot tell whether the hMailServer service is installed or running, or stop it.' + #13#10#13#10 +
+      if IsUninstaller() then
+         who := 'The uninstaller'
+      else
+         who := 'Setup';
+      Log('Windows did not open its Service Control Manager to ' + Lowercase(who) + ' (error ' + IntToStr(lastError) + '): ' + SysErrorMessage(lastError));
+      SuppressibleMsgBox(who + ' could not open the Service Control Manager of this computer, so it cannot tell whether the hMailServer service is installed or running, or stop it.' + #13#10#13#10 +
              'Windows said: ' + SysErrorMessage(lastError), mbError, MB_OK, IDOK);
    end;
 end;

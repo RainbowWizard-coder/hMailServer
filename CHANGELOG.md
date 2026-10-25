@@ -239,8 +239,9 @@ with `--check`).
   once Windows has passed it on, the wait for it and for the service's process being `StopHMailServerAndWaitForExit`'s
   as before - with three differences: the service's name reaches Windows through the Unicode functions, where the
   ANSI ones took it; the Service Control Manager is opened with the one right that opening a service by its name
-  needs, `SC_MANAGER_CONNECT`, where all of its rights were asked for; and when Windows will not open it, setup says
-  so in its own words, with Windows' reason, in its log and in a message, where the article's message said "the
+  needs, `SC_MANAGER_CONNECT`, where all of its rights were asked for; and when Windows will not open it, setup, or
+  the uninstaller, which runs the same routines and is named as itself, says so in its own words, with Windows'
+  reason, in its log and in a message, where the article's message said "the
   servicemanager is not available" (its other message, for a version of Windows without services, could not be shown
   by Inno Setup 6, which runs on none, and is gone with its test). A stop that Windows refuses is written to the setup
   log with Windows' reason. `GetHMailServerProcessId`, the fork's own, opens the service through the same routine.
