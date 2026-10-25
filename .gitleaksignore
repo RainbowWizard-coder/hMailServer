@@ -137,10 +137,12 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # 10 October 2026: SURBL.cpp's has moved on to 2625 (below).
 # 14 October 2026, batch48's fold: SURBL.cpp's to 3349 (dns-failed-lookup's and idn-uts46's
 # edits above it) and Basics.cs's to 507 (idn-uts46's), each read again, the same fixture.
+# 25 October 2026: both down one, to 3350 and 508, with Martin Knafve's notice put back below
+# each file's header (build/original-notices.txt), each read again, the same fixture.
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:3349
-/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:507
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:3350
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:508
 #
 # b53-ci, 10 October 2026: what both scans find now that they read every path under a
 # directory named build, bin, obj, target or packages, which GitLab's rules left out
