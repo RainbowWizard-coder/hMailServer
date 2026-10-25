@@ -31,10 +31,16 @@ one another draw it alike, often point for point; an outline drawn of curves,
 as a gear's, a pen's, a paperclip's or a bell's is, is not such a figure.
 Symbol by symbol, with the icons of the sets compared that it matches point for
 point or is near (no farther from it than i-file is from Feather's "file",
-0.403 units, in the mean, taken both ways, of the distance from each point
-along one figure's lines, at every 0.2 units of the 24-unit grid, to the
-nearest point of the other's, with the other icon as it is or drawn in about
-the centre by up to 15 per cent, whichever is nearer):
+0.403 units, in the mean, taken both ways, of the distance from each of the
+points taken along one figure's lines at every 0.2 units of the 24-unit grid to
+the nearest of the points taken the same way along the other's, with the other
+icon as it is or drawn in about the centre by up to 15 per cent, whichever is
+nearer; at margins as small as some below, the numbers move with the step and
+with the measure, and what is near with them: taken every 0.1 units,
+i-reply-all, below among those near none, is 0.408 units from Lucide's
+"reply-all" where i-file is 0.402 from Feather's "file", still past the
+yardstick, and measured to the nearest point of the other's lines themselves it
+is 0.394 where i-file is 0.401, within it):
 i-menu, three bars, point for point Tabler's "menu-2", Humbleicons' "bars" and
 MingCute's "menu-fill"; i-clock, a circle with two hands, point for point
 Tabler's "clock-hour-4", and near Feather's "clock"; i-mail and i-empty, a box

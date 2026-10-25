@@ -280,35 +280,35 @@ with `--check`).
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after
-  the icons of Feather, Cole Bemis's icon set. Of its 56 symbols, eleven follow a Feather icon's own drawing:
-  `i-gear` after its `settings` and `i-pen` after `edit-3`, as an SVG optimiser leaves them (numbers rounded to one
-  decimal, arcs joined), and `i-print` after `printer`, its body character for character and its top and paper a
-  unit shorter; `i-inbox`,
-  `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and `paperclip`, moved or resized a unit;
-  `i-signout` after `log-in` (its arrow's numbers Feather's, its door two units wider), `i-popout` after
+  the icons of Feather, Cole Bemis's icon set. Of its 56 symbols, eleven follow a Feather icon's own drawing: `i-gear`
+  after its `settings` and `i-pen` after `edit-3`, as an SVG optimiser leaves them (numbers rounded to one decimal,
+  arcs joined), and `i-print` after `printer`, its body character for character and its top and paper a unit shorter;
+  `i-inbox`, `i-file`, `i-draft` and `i-clip` after its `inbox`, `file`, `file-text` and `paperclip`, moved or resized
+  a unit; `i-signout` after `log-in` (its arrow's numbers Feather's, its door two units wider), `i-popout` after
   `external-link` and `i-expand` after `maximize-2`, each drawn in a unit towards the centre, and `i-bell-off` after
   `bell-off`, whose arc it keeps. `i-close`, `i-plus` and the four chevrons are Feather's `x`, `plus` and chevrons as
-  they are, and others are near Feather's icon of the same subject, as it is or drawn in about the centre by up to
-  15 per cent, as `i-file` is near Feather's `file` (`i-search`, `i-star`, `i-folder`,
-  `i-trash`, `i-warn`, `i-calendar`, `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the
-  page in `PortalPageData.cpp`, which `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
-  `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units.
-  No other icon set is credited: what the sprite shares with other sets is figures too simple to carry anyone's
+  they are, and others are near Feather's icon of the same subject, as it is or drawn in about the centre by up to 15
+  per cent, as `i-file` is near Feather's `file` (`i-search`, `i-star`, `i-folder`, `i-trash`, `i-warn`, `i-calendar`,
+  `i-chat` and `i-storage` among them). `build/generate-portal-page.py` embeds the page in `PortalPageData.cpp`, which
+  `hMailServer.exe` and the Linux server compile; and the Control Deck's page,
+  `hmailserver/installation/WebAdmin/index.html`, draws its eye after Feather's `eye`, laid into a box of 16 units. No
+  other icon set is credited: what the sprite shares with other sets is figures too simple to carry anyone's
   copyright - familiar symbols, such as a star or a question mark, and straight strokes, circles, dots, boxes,
-  triangles and polygons of a few vertices laid out as line icons of one subject lay them - and `REUSE.toml`'s
-  comment and the notice say so of each of the 39 symbols not counted after Feather's, with what its figure is and
-  the icons of other sets it matches point for point or is near - no farther from it than `i-file` is from
-  Feather's `file`, in the measure of distance they give - and of those of the seventeen that are as near
-  another set's icon: among them `i-menu`, `i-clock`, `i-mail` and `i-empty`, point for point Tabler Icons'
-  `menu-2`, `clock-hour-4` and `mail`, `i-junk` Humbleicons' `ban`, `i-last` Lucide's `chevron-last`, `i-back`
-  Solar's `arrow-left-line-duotone`, `i-send`, whose polygon is Majesticons' `send-line`'s, and `i-refresh`, whose
-  arrowhead is Tabler's `reload`'s (Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's sets were
-  compared).
-  The MIT licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the
-  two pages and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL,
-  with a comment naming the icons; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package
-  carry, does the same in a paragraph of its own (`License: AGPL-3+ and Expat`), where its `Files: *` gave them the
-  AGPL alone; `hmailserver/docs/Licenses/License - Feather icons.txt` carries Feather's LICENSE verbatim after a note
+  triangles and polygons of a few vertices laid out as line icons of one subject lay them - and `REUSE.toml`'s comment
+  and the notice say so of each of the 39 symbols not counted after Feather's, with what its figure is and the icons
+  of other sets it matches point for point or is near - no farther from it than `i-file` is from Feather's `file`, in
+  the measure of distance they give, to the nearest of the points taken along the other figure's lines, at margins
+  small enough that the step and the measure move them (measured to the other's lines themselves, `i-reply-all`,
+  counted near none, is within it of Lucide's `reply-all`) - and of those of the seventeen that are as near another
+  set's icon: among them `i-menu`, `i-clock`, `i-mail` and `i-empty`, point for point Tabler Icons' `menu-2`,
+  `clock-hour-4` and `mail`, `i-junk` Humbleicons' `ban`, `i-last` Lucide's `chevron-last`, `i-back` Solar's
+  `arrow-left-line-duotone`, `i-send`, whose polygon is Majesticons' `send-line`'s, and `i-refresh`, whose arrowhead
+  is Tabler's `reload`'s (Tabler Icons 3.49.0, lucide-static 1.61.0 and 96 of Iconify's sets were compared). The MIT
+  licence asks for its notice with every copy, and no text of the tree named Feather: `REUSE.toml` gives the two pages
+  and `PortalPageData.cpp` Cole Bemis (2013-2023) and the MIT licence beside the maintainers and the AGPL, with a
+  comment naming the icons; `debian/copyright`, the copyright file the `.deb`, the `.rpm` and the Arch package carry,
+  does the same in a paragraph of its own (`License: AGPL-3+ and Expat`), where its `Files: *` gave them the AGPL
+  alone; `hmailserver/docs/Licenses/License - Feather icons.txt` carries Feather's LICENSE verbatim after a note
   naming the icons and how they were compared with Feather 4.29.2 (its npm tarball, held to the registry's sha512),
   and has its own table and paragraph; the installer's licence page, `hmailserver/installation/License.rtf`, carries
   the notice, since `hMailServer.exe` embeds the page; `hmailserver/docs/SourceTarball.md`'s table of what is not the
@@ -318,24 +318,23 @@ with `--check`).
   CMake's install rules put it there - for the `.deb` and the `.rpm`, the spec's RPMs, which mark it `%license`, the
   PKGBUILD, which links it in `/usr/share/licenses/hmailserver`, and the Alpine and Nix packages, and through the
   `.deb` for the container image and the snap - and `build-appimage.sh` copies it into the AppImages, where the
-  AppImages, the spec's RPMs and the Alpine and Nix packages, which carry no `debian/copyright`, had no Feather
-  notice at all. The Nix package builds from the files the flake names (`lib.fileset` in `flake.nix`), which held
-  none of the documents, so that its install stopped at the notice after every tester had passed: the flake's
-  source now holds the notice beside `dh2048.pem`, and `hmailserver/docs/Nix.md` says so.
-  `build/ci/packages/check-licenses.sh`, `appimage-test.sh` and `build/ci/alpine.sh` hold the installed notice
-  to the tree's file, its carriage returns taken off both sides as QuickJS's are, and `srcpkg-rpm.sh` checks that
-  the spec's RPM marks it `%license`, as it does the other licence files, without comparing their contents. The
-  source tarball's SBOM names the component (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
-  `build/check-package-licenses.py` now decides as compiled in, under MIT, which the five licence fields already
-  name), and the package documents (`PackagesAppImage.md`, `PackagesDeb.md`, `PackagesRpm.md`, `SourcePackages.md`,
-  `Alpine.md` and the packaging README) say four notices where they said three. The pages themselves are
-  unchanged. The `reuse` job, with its negative controls, `build/ci/reuse-debian.py`, `check-source-tarball.py
-  --self-test` and the self-tests of `check-package-licenses.py` and `asset-sbom.py` pass. Built from the source
-  tarball as their jobs build them, the `.deb` and the `.rpm` passed `check-licenses.sh`, which refused a `.deb`
-  without the notice and one with a line added to it; the Nix package, built as the nix job's third step builds it,
-  installs the tree's notice as `share/hmailserver/licenses/Feather-icons.txt`; the Alpine package passed
-  `alpine.sh`'s comparison; and the Fedora 44 RPMs of the spec passed `srcpkg-rpm.sh`. The AppImages and the
-  PKGBUILD were not built for this change.
+  AppImages, the spec's RPMs and the Alpine and Nix packages, which carry no `debian/copyright`, had no Feather notice
+  at all. The Nix package builds from the files the flake names (`lib.fileset` in `flake.nix`), which held none of the
+  documents, so that its install stopped at the notice after every tester had passed: the flake's source now holds the
+  notice beside `dh2048.pem`, and `hmailserver/docs/Nix.md` says so. `build/ci/packages/check-licenses.sh`,
+  `appimage-test.sh` and `build/ci/alpine.sh` hold the installed notice to the tree's file, its carriage returns taken
+  off both sides as QuickJS's are, and `srcpkg-rpm.sh` checks that the spec's RPM marks it `%license`, as it does the
+  other licence files, without comparing their contents. The source tarball's SBOM names the component
+  (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which `build/check-package-licenses.py` now decides as compiled in,
+  under MIT, which the five licence fields already name), and the package documents (`PackagesAppImage.md`,
+  `PackagesDeb.md`, `PackagesRpm.md`, `SourcePackages.md`, `Alpine.md` and the packaging README) say four notices
+  where they said three. The pages themselves are unchanged. The `reuse` job, with its negative controls,
+  `build/ci/reuse-debian.py`, `check-source-tarball.py --self-test` and the self-tests of `check-package-licenses.py`
+  and `asset-sbom.py` pass. Built from the source tarball as their jobs build them, the `.deb` and the `.rpm` passed
+  `check-licenses.sh`, which refused a `.deb` without the notice and one with a line added to it; the Nix package,
+  built as the nix job's third step builds it, installs the tree's notice as
+  `share/hmailserver/licenses/Feather-icons.txt`; the Alpine package passed `alpine.sh`'s comparison; and the Fedora
+  44 RPMs of the spec passed `srcpkg-rpm.sh`. The AppImages and the PKGBUILD were not built for this change.
 - **Fixed: the code of conduct is credited to the Contributor Covenant, under its licence, CC BY 4.0, where every
   record gave it the maintainers and the AGPL alone.** `CODE_OF_CONDUCT.md` is the Contributor Covenant, version
   2.1, adapted, as its Attribution said: most of its words are the Covenant's, in order, and the maintainers wrote
