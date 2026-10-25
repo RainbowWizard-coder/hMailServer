@@ -3588,7 +3588,7 @@ ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
 `release-packages` and `helm-chart-package`) and the four scans.
 `release-packages` is a job of its own
 because GitLab.com lets a job need fifty jobs at most (`ci_needs_size_limit`):
-`release` needs thirty-nine, and `release-packages` forty-three, forty-one of
+`release` needs forty, and `release-packages` forty-three, forty-one of
 them jobs `release` does not need itself. Of the Windows package jobs it needs
 `windows-packages-arm64`, whose ARM64 installer the release carries from 6.3.6;
 a tag's pipeline has no `windows-packages-x64`.
@@ -4836,7 +4836,7 @@ the file, and so is a downstream pipeline on `master`, whose
 6.3.6, but another project's trigger or the trigger API called with a job token
 would - so each of the others says it is not for one: `.own-runners` (and so
 every job on the project's runners) and `.not-a-fuzz-pipeline` (and so `checkers`,
-`harnesses` and `editorconfig`) begin with `- if: $CI_PIPELINE_SOURCE ==
+`harnesses`, `editorconfig` and `reuse`) begin with `- if: $CI_PIPELINE_SOURCE ==
 "schedule" || $CI_PIPELINE_SOURCE == "pipeline"` with `when: never`, and the
 five path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
 carry the same rule. `build/check-release-chain.py` fails on
