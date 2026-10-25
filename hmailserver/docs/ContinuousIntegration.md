@@ -4474,7 +4474,7 @@ measured times after the first pipelines.
 
 | Job | Time | Timeout | Where the time comes from |
 |---|---|---|---|
-| `checkers` | 12 to 19 min on server2 and s1-linux, 18 min or more on linix | 45 min | 729 to 935 s on server2 and 801 to 844 s on s1-linux in October 2026, 1,060 to 1,063 s on linix, where the job was also killed at its 20 minutes of then on 21 and 23 October, as it was three times on GitLab's small hosted runner on 19 October; its script took 1,136 s on server2 with 8 CPUs and 1,135 s with 2 on 24 October 2026, the checks running one at a time, and the timeout is 1.6 times that and half as much again |
+| `checkers` | 12 to 19 min on server2 and s1-linux, 18 min or more on linix | 45 min | 729 to 935 s on server2 and 801 to 844 s on s1-linux from 19 October 2026, 1,060 to 1,063 s on linix, where the job was also killed at its 20 minutes of then on 21 and 23 October, as it was twice on GitLab's small hosted runner on 19 October, after 1,206 s and 1,202 s, while a third run there took 1,173 s and failed on `check-ci-image.py`; its script took 1,136 s on server2 with 8 CPUs and 1,135 s with 2 on 24 October 2026, the checks running one at a time, and the timeout is 1.6 times that and half as much again |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |

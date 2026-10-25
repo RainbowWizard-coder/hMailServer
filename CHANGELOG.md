@@ -1420,12 +1420,14 @@ with `--check`).
 - **The `checkers` job may take 45 minutes, where it was stopped at 20.** Its script runs one check at a time, so a
   runner's speed on one core decides its time: it took 1,136 s on server2 on 24 October 2026 in the job's image with 8
   CPUs, linix's limit, and 1,135 s with 2, GitLab's small hosted runner's. linix had taken 1.4 to more than 1.6 times
-  server2's time for the same script, and was stopped at 20 minutes in a landing pipeline of 23 October (2983075001)
-  while it ran `generate-auth-matrix.py --self-test`, after 1,206 s; GitLab's small runner, which a pipeline outside the
-  protected refs takes, was stopped at 20 minutes three times on 19 October. The job's comment says how the 45 minutes
-  were reached (1.6 times the measured run, and half as much again for the checks each batch adds), and
-  ContinuousIntegration.md's "How long each job takes" gives the job's times in October 2026 where it gave the
-  estimate made before any job had run. No check moves, and every check still runs in the job.
+  server2's time for the same script, and was stopped at 20 minutes in master's pipeline of 21 October (2969966488),
+  after 1,207 s, and in a landing pipeline of 23 October (2983075001), after 1,206 s, each time while it ran
+  `generate-auth-matrix.py --self-test`; GitLab's small runner, which a pipeline outside the protected refs takes, was
+  stopped at 20 minutes twice on 19 October, after 1,206 s and 1,202 s, while a third run took 1,173 s and failed on
+  `check-ci-image.py`. The job's comment says how the 45 minutes were reached (1.6 times the measured run, and half as
+  much again for the checks each batch adds), and ContinuousIntegration.md's "How long each job takes" gives the job's
+  times from 19 October 2026 where it gave the estimate made before any job had run. No check moves, and every check
+  still runs in the job.
 
 ### Documentation
 
