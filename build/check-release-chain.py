@@ -475,14 +475,25 @@ refuses it. This checker holds them to each other. It fails when:
     HM_RUNNER_SUITE, which variables: must set to linix and nothing else in the CI files
     may set - the owner's protected project variable of the same name moves the class -
     and a class with a lane takes its resource group from HM_LANE_PACKAGES or
-    HM_LANE_SUITE, set there to linix-package-build and linix-suite. A job takes a
+    HM_LANE_SUITE, set there to linix-package-build and linix-suite - the package
+    builds' as three lanes, $HM_LANE_PACKAGES-deb, -rpm and -source, so that up to
+    three build at once on the project's machines (PACKAGE_LANES). A job takes a
     switch only when its class names it, every job a class names takes it, and its
     rules are held as a job's on linix are; a classed job names no environment,
     id_tokens or secrets, nor does .gitlab-ci.yml's default: name id_tokens, which every
     job takes - written as a block, its key alone on its line, which is how it is read -,
     and a classed job asks for a pull policy GitLab's runners allow (always, after
     if-not-present), runs in a container of its class's architecture (the CI image is
-    amd64 alone) and in its class's lane or in none; no other job waits in a lane; nix
+    amd64 alone) and in its class's lane or in none - a package build PACKAGE_LANES
+    names in its lane alone, by the variable, and no other job of its class in any; a
+    build of no class that a package lane holds, the aarch64 .rpm builds and nix, in
+    that lane alone, by its name on the project's runners; PACKAGE_LANES names each job
+    once, only jobs the CI files define and of that class or none, and no more lanes
+    than the project's machines that carry the tag linix; no other job waits in a lane:
+    one outside the classes names its resource group as a plain name, with no variable
+    in it in any of the forms GitLab expands there ($NAME, ${NAME}, %NAME%), no
+    !reference and no alias, and none that is a lane's name on the project's runners
+    or begins linix-package-build; nix
     asks for the tags linix and kvm, which server2 alone carries; and
     .gitlab/ci/hosted-runners.yml, which .gitlab-ci.yml includes, runs
     build/ci/hosted-runners.py's check and quota on linix in a pipeline any switch or
@@ -4789,6 +4800,42 @@ RUNNER_CLASSES = {
 # Each switch and lane by its default in .gitlab-ci.yml's variables:.
 SWITCH_DEFAULTS = dict([(variable, DEFAULT_RUNNER) for variable in RUNNER_CLASSES] +
                        [spec["lane"] for spec in RUNNER_CLASSES.values() if spec["lane"]])
+# The package builds' lanes (docs/ContinuousIntegration.md, "The lanes"). One resource
+# group, linix-package-build, held every package build one at a time across linix,
+# server2 and s1-linux, which all carry the tag linix: in a landing pipeline of 23 and
+# 24 October 2026 its 28 builds, of 10 to 38 minutes, ran one after another for eight
+# hours and a quarter, one machine building at a time. So the class's lane is three
+# resource groups, no more than the machines that carry the tag (PROJECT_RUNNERS), each
+# named by the lane's variable and a family - $HM_LANE_PACKAGES-deb, -rpm and -source,
+# linix-package-build-deb and the rest at its default - and each build waits in its
+# family's: up to three build at once, and the owner's hosted-$CI_JOB_NAME still gives
+# each job a lane of its own on GitLab's runners. A lane does not choose a machine, so
+# the three may all go to one: they rest on linix, the smallest machine with the tag,
+# taking two jobs of its runner at once, not three (docs/ContinuousIntegration.md,
+# "linix"), which no rule here can hold. A build that stays on the project's runners
+# whatever the switch says, being of no class - the aarch64 .rpm builds and nix - names
+# its lane by its name there. alpine-suite waits for alpine-package, so the lane that
+# holds it is kept the shortest by far: by that pipeline's job times the lanes take 216,
+# 170 and 112 minutes one build after another, and alpine-package, built last of its
+# lane, is built some 50 minutes before linux-suite, ahead of alpine-suite in the
+# suites' lane, ends - one pipeline's times, not a bound.
+PACKAGE_LANE = "HM_LANE_PACKAGES"
+# EL 10's source package, the longest of the RPM ones, waits with the Debian packages,
+# so that the source builds' lane, which alpine-package ends, is the shortest by far.
+_SRCPKG_IN_DEB_LANE = ("el10",)
+PACKAGE_LANES = {
+    # The .deb builds, the Debian and Ubuntu source packages, and EL 10's.
+    "deb": tuple(["deb-%s-amd64" % d for d in _DEB_AMD64] + ["deb-%s-arm64" % d for d in _DEB_ARM64] +
+                 ["srcpkg-%s" % t for t in _SRCPKG_TARGETS
+                  if t.startswith(("debian", "ubuntu")) or t in _SRCPKG_IN_DEB_LANE]),
+    # The .rpm builds, the aarch64 ones (of no class) by the lane's name on linix, and
+    # nix (of no class, on server2 alone, KVM_JOBS) by that name too.
+    "rpm": tuple(["rpm-%s-x86_64" % t for t in _RPM_TARGETS] + ["rpm-%s-aarch64" % t for t in _RPM_TARGETS] + ["nix"]),
+    # The other builds from source: the other RPM source packages and Alpine's.
+    "source": tuple(["srcpkg-%s" % t for t in _SRCPKG_TARGETS
+                     if not t.startswith(("debian", "ubuntu")) and t not in _SRCPKG_IN_DEB_LANE] +
+                    ["alpine-package"]),
+}
 # GitLab's hosted Linux machines (docs.gitlab.com, "Hosted runners on Linux"), by
 # architecture: the tags a switch may name.
 HOSTED_MACHINES = {
@@ -5352,7 +5399,7 @@ def runner_problems(texts):
     return problems, notes
 
 
-def runner_class_problems(texts, script=None):
+def runner_class_problems(texts, script=None, package_lanes=None):
     """[problem] for each way a class of jobs a switch moves to GitLab's hosted runners
     (RUNNER_CLASSES) could take a credential there, fail there, or run where it must not:
     a classed job that names an environment (a credential scoped to it would go with
@@ -5364,13 +5411,24 @@ def runner_class_problems(texts, script=None):
     without always, which GitLab's runners refuse; one of an amd64 class in an arm64
     container, which they cannot run, or of the arm64 class in the CI image, which is
     amd64 alone; one that waits in a resource group other than its class's lane, or in
-    any for a class without one; a job outside a class in a class's lane; a job that
+    any for a class without one; a package build PACKAGE_LANES names that waits in any
+    resource group but $HM_LANE_PACKAGES-<its lane> - none, the class's variable alone,
+    another lane, the lane by its name on linix -, and a job of the class it does not
+    name that waits in one; one of no class it names that waits in any but
+    linix-package-build-<its lane>, the lane's name on the project's runners;
+    PACKAGE_LANES naming a job no CI file defines, a job twice, a job of another class,
+    or more lanes than the project's machines that carry the tag linix
+    (PROJECT_RUNNERS); a job outside a class in a class's lane, by its variable in any
+    of the forms GitLab expands ($NAME, ${NAME}, %NAME%) or by a lane's name on the
+    project's runners or a name beginning linix-package-build, or in a resource group
+    not written as a plain name (a variable of its own, !reference, an alias); a job that
     boots a QEMU machine without the tags that put it on server2 (KVM_JOBS); the checks
     of HOSTED_CHECKS_FILE missing, not included, not run as HOSTED_SCRIPT runs them, not
     on linix, not asking of every switch and lane whether it is at its default, or
     compute-quota not allowed to fail; the script's classes not these; and the GitLab
     templates whose variables the script knows (TEMPLATE_GLOBALS) not the ones the CI
-    files include. script stands in for HOSTED_SCRIPT, for the self-test."""
+    files include. script stands in for HOSTED_SCRIPT, and package_lanes for
+    PACKAGE_LANES, for the self-test."""
     problems = []
     every_ci = ci_files(texts)
     order = [p for p in sorted(every_ci) if p != ".gitlab-ci.yml"] + [".gitlab-ci.yml"]
@@ -5379,6 +5437,31 @@ def runner_class_problems(texts, script=None):
         for name, body in blocks(every_ci[path] or "").items():
             jobs[name] = body
     lanes = dict((spec["lane"][0], variable) for variable, spec in RUNNER_CLASSES.items() if spec["lane"])
+    package_lanes = PACKAGE_LANES if package_lanes is None else package_lanes
+    package_class = lanes.get(PACKAGE_LANE)
+    lane_of = {}
+    for split, names in sorted(package_lanes.items()):
+        for name in names:
+            if name in lane_of:
+                problems.append("PACKAGE_LANES names %s in the lanes %s and %s: a build waits in one" % (
+                    name, lane_of[name], split))
+                continue
+            lane_of[name] = split
+            other = [v for v, spec in RUNNER_CLASSES.items() if name in spec["jobs"] and v != package_class]
+            if name not in jobs:
+                problems.append("PACKAGE_LANES names %s in the lane %s, and no CI file defines it" % (name, split))
+            elif other:
+                problems.append("PACKAGE_LANES names %s in the lane %s, and it is one of %s's jobs: a package lane holds "
+                                "%s's builds and builds of no class" % (name, split, other[0], package_class))
+    # One lane for each machine that carries the tag linix at most: a bound on how many
+    # builds the lanes let run at once, not a machine for each - GitLab may give them
+    # all to one runner, whose own limit alone holds what its machine takes.
+    machines = sum(len(re.findall(r"\(\d+\)", who)) for who, carried in PROJECT_RUNNERS if DEFAULT_RUNNER in carried)
+    if len(package_lanes) > machines:
+        problems.append("PACKAGE_LANES has %d lanes, and %d machines of the project's carry the tag %s (PROJECT_RUNNERS): "
+                        "up to %d package builds would run at once on fewer machines" % (
+                            len(package_lanes), machines, DEFAULT_RUNNER, len(package_lanes)))
+    package_stem = SWITCH_DEFAULTS.get(PACKAGE_LANE)
     for variable, spec in sorted(RUNNER_CLASSES.items()):
         for name in spec["jobs"]:
             if name not in jobs:
@@ -5419,25 +5502,70 @@ def runner_class_problems(texts, script=None):
                     group = yaml_scalar(found.group(1))
                     break
             lane = spec["lane"]
+            if lane and lane[0] == PACKAGE_LANE:
+                # The package builds' class: a build PACKAGE_LANES names waits in its
+                # lane by the variable and the lane's family, and no other job waits.
+                split = lane_of.get(name)
+                wanted = "$%s-%s" % (PACKAGE_LANE, split) if split else None
+                if group != wanted:
+                    problems.append("%s, one of %s's jobs, waits in %s: %s" % (
+                        name, variable, "the resource group %s" % group if group is not None else "no resource group",
+                        "it is a package build of the lane %s (PACKAGE_LANES), and waits in %s, so that one build of that "
+                        "lane runs at a time on the project's runners and the owner's %s gives it a lane of its own on "
+                        "GitLab's" % (split, wanted, PACKAGE_LANE) if split else
+                        "it is none of the package builds of PACKAGE_LANES, and waits in no lane of theirs, or more of "
+                        "them would run at once than there are lanes"))
+                continue
             if group is not None and (not lane or group != "$" + lane[0]):
                 problems.append("%s, one of %s's jobs, waits in the resource group %s: %s" % (
                     name, variable, group, "a job of its class waits in the class's lane, $%s, which the owner gives each "
                     "job a lane of its own with on GitLab's runners" % lane[0] if lane else "its class has no lane, and "
                     "on GitLab's runners a group of one name holds back jobs that share no machine"))
     classed = set(job for spec in RUNNER_CLASSES.values() for job in spec["jobs"])
+    # The lanes by their names on the project's runners, each lane's default: the
+    # suites', and the package builds' stem and every name it can begin.
+    defaults = set(SWITCH_DEFAULTS[v] for v in lanes)
     for name in sorted(jobs):
         if name.startswith(".") or name in RESERVED or name in classed:
             continue
+        group = None
         for n in template_order(name, jobs):
             found = re.search(r"^  resource_group:[ \t]*(.*?)[ \t]*$", jobs[n], re.MULTILINE)
-            if not found:
-                continue
-            lane = re.match(r"^\$\{?([A-Za-z0-9_]+)\}?$", yaml_scalar(found.group(1)))
-            if lane and lane.group(1) in lanes:
-                problems.append("%s waits in $%s, %s's lane, and is none of its jobs: on the project's runners it waits with "
-                                "them, and with none once the owner gives each of them a lane of its own" % (
-                                    name, lane.group(1), lanes[lane.group(1)]))
-            break
+            if found:
+                group = yaml_scalar(found.group(1))
+                break
+        if name in lane_of:
+            # A build of no class that a package lane holds: by the lane's name there.
+            wanted = "%s-%s" % (package_stem, lane_of[name])
+            if group != wanted:
+                problems.append("%s waits in %s: it is a package build of the lane %s (PACKAGE_LANES) that stays on the "
+                                "project's runners whatever the switches say, and waits in %s, the lane's name there, so "
+                                "that it builds while no other build of that lane does" % (
+                                    name, "the resource group %s" % group if group is not None else "no resource group",
+                                    lane_of[name], wanted))
+            continue
+        if group is None:
+            continue
+        # A variable in any of the forms GitLab expands in a resource group's name:
+        # $NAME, ${NAME} and %NAME%.
+        named = [a or b for a, b in re.findall(r"\$\{?([A-Za-z0-9_]+)\}?|%([A-Za-z0-9_]+)%", group)]
+        if [v for v in named if v in lanes]:
+            v = [v for v in named if v in lanes][0]
+            problems.append("%s waits in %s, by $%s, %s's lane, and is none of its jobs: on the project's runners it waits "
+                            "with them, and with none once the owner gives each of them a lane of its own" % (
+                                name, group, v, lanes[v]))
+        elif not re.match(r"^[A-Za-z0-9][A-Za-z0-9_.\-]*$", group):
+            # A variable of its own or the pipeline's can hold a lane's name or its
+            # variable, which GitLab expands too, and a YAML tag (!reference) or alias
+            # copies another job's group: a job outside the classes names its own.
+            problems.append("%s waits in %s, which is not a resource group's plain name - letters, digits, '.', '_' and '-' "
+                            "- and is none of a class's jobs: a variable, %%NAME%%, !reference or an alias can make it a "
+                            "lane's, so a job outside the classes names its group in full" % (
+                                name, group or "a value below its key"))
+        elif group in defaults or (package_stem and group.startswith(package_stem)):
+            problems.append("%s waits in %s, the name a lane has on the project's runners, and is none of its jobs: it "
+                            "would hold back the builds or suites of that lane, or, a lane they never take, run beside "
+                            "them" % (name, group))
     # default: gives each of its keys to every job that names none of its own - every job
     # of a class among them - so an ID token there would go with each to GitLab's runners.
     # It is read as blocks() reads a block, its key alone on its line: GitLab's YAML reader
@@ -9482,11 +9610,12 @@ def self_test(chain, feed):
              "alpine-suite, one of HM_RUNNER_SUITE's jobs, waits in the resource group linix-suite"),
             ("a job of a class without a lane in a resource group", ".gitlab-ci.yml", sbom_job, sbom_job + "  resource_group: probe\n",
              "linux-sbom, one of HM_RUNNER_BUILD's jobs, waits in the resource group probe: its class has no lane"),
-            ("a job outside the class in its lane", ".gitlab/ci/nix.yml", "  resource_group: linix-package-build\n",
-             "  resource_group: $HM_LANE_PACKAGES\n", "nix waits in $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+            ("a job outside the class in its lane", ".gitlab/ci/nix.yml", "  resource_group: linix-package-build-rpm\n",
+             "  resource_group: $HM_LANE_PACKAGES-rpm\n",
+             "nix waits in the resource group $HM_LANE_PACKAGES-rpm: it is a package build of the lane rpm"),
             ("the emulated aarch64 builds out of their lane on linix", ".gitlab/ci/packages-rpm.yml",
-             "  tags: [linix]\n  resource_group: linix-package-build\n", "  tags: [linix]\n",
-             "rpm-el10-aarch64 waits in $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+             "  tags: [linix]\n  resource_group: linix-package-build-rpm\n", "  tags: [linix]\n",
+             "rpm-el10-aarch64 waits in the resource group $HM_LANE_PACKAGES-rpm: it is a package build of the lane rpm"),
             ("nix without KVM", ".gitlab/ci/nix.yml", "  tags: [linix, kvm]\n", "  tags: [linix]\n", "nix boots a QEMU machine"),
             ("the checks not included", ".gitlab-ci.yml", "  - local: .gitlab/ci/hosted-runners.yml\n", "",
              ".gitlab-ci.yml does not include .gitlab/ci/hosted-runners.yml"),
@@ -9598,10 +9727,94 @@ def self_test(chain, feed):
              editorconfig + "  tags: [$HM_RUNNER]\n  tags: [saas-linux-small-amd64]\n",
              "editorconfig in .gitlab-ci.yml writes its key tags twice"),
             ("an included template giving its tags twice", ".gitlab/ci/packages-rpm.yml",
-             "  tags: [linix]\n  resource_group: linix-package-build\n",
-             "  tags: [linix]\n  tags: [saas-linux-small-amd64]\n  resource_group: linix-package-build\n",
+             "  tags: [linix]\n  resource_group: linix-package-build-rpm\n",
+             "  tags: [linix]\n  tags: [saas-linux-small-amd64]\n  resource_group: linix-package-build-rpm\n",
              "in .gitlab/ci/packages-rpm.yml writes its key tags twice")):
         class_broken(what, path, old, new, needle, judge=lambda copy: check(copy, chain, feed)[0])
+    # The package builds' three lanes (PACKAGE_LANES): each build in its own, by the
+    # variable or, of no class, by the lane's name on linix, and no other job in one.
+    # runner_class_problems alone holds them, so it alone is run over each copy.
+    hosted_head = "hosted-runners:\n  stage: check\n  tags: [linix]\n"
+    for what, path, old, new, needle in (
+            ("a package build in another family's lane", ".gitlab/ci/packages-deb.yml",
+             "  resource_group: $HM_LANE_PACKAGES-deb\n", "  resource_group: $HM_LANE_PACKAGES-rpm\n",
+             "deb-debian12-amd64, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group $HM_LANE_PACKAGES-rpm: it is "
+             "a package build of the lane deb"),
+            ("a package build in the one lane of before", ".gitlab/ci/alpine.yml", "  resource_group: $HM_LANE_PACKAGES-source\n",
+             "  resource_group: $HM_LANE_PACKAGES\n", "alpine-package, one of HM_RUNNER_PACKAGES's jobs, waits in the resource "
+                                                     "group $HM_LANE_PACKAGES: it is a package build of the lane source"),
+            ("a package build in no lane", ".gitlab/ci/packages-rpm.yml", "  resource_group: $HM_LANE_PACKAGES-rpm\n", "",
+             "rpm-fedora44-x86_64, one of HM_RUNNER_PACKAGES's jobs, waits in no resource group"),
+            ("a package build by its lane's name on linix", ".gitlab/ci/source-packages.yml",
+             "  resource_group: $HM_LANE_PACKAGES-deb\n", "  resource_group: linix-package-build-deb\n",
+             "srcpkg-debian13, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group linix-package-build-deb"),
+            ("a package build's lane written in a form of its own", ".gitlab/ci/packages-deb.yml",
+             "  resource_group: $HM_LANE_PACKAGES-deb\n", "  resource_group: ${HM_LANE_PACKAGES}-deb\n",
+             "deb-debian12-amd64, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group ${HM_LANE_PACKAGES}-deb"),
+            ("an install job in a package lane", ".gitlab/ci/alpine.yml", "alpine-install:\n  extends: [.no-github, .alpine-image]\n",
+             "alpine-install:\n  extends: [.no-github, .alpine-image]\n  resource_group: $HM_LANE_PACKAGES-source\n",
+             "alpine-install, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group $HM_LANE_PACKAGES-source: it is "
+             "none of the package builds"),
+            ("the emulated aarch64 builds in another lane", ".gitlab/ci/packages-rpm.yml",
+             "  resource_group: linix-package-build-rpm\n", "  resource_group: linix-package-build-deb\n",
+             "rpm-el10-aarch64 waits in the resource group linix-package-build-deb: it is a package build of the lane rpm"),
+            ("nix in the one lane of before", ".gitlab/ci/nix.yml", "  resource_group: linix-package-build-rpm\n",
+             "  resource_group: linix-package-build\n",
+             "nix waits in the resource group linix-package-build: it is a package build of the lane rpm"),
+            ("nix in no lane", ".gitlab/ci/nix.yml", "  resource_group: linix-package-build-rpm\n", "",
+             "nix waits in no resource group: it is a package build of the lane rpm"),
+            ("a job of no class in a package lane by its variable", hosted_file, hosted_head,
+             hosted_head + "  resource_group: $HM_LANE_PACKAGES-deb\n",
+             "hosted-runners waits in $HM_LANE_PACKAGES-deb, by $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+            ("a job of no class in the suites' lane by its name on linix", hosted_file, hosted_head,
+             hosted_head + "  resource_group: linix-suite\n", "hosted-runners waits in linix-suite, the name a lane has"),
+            ("a job of no class in a package lane by a name no build takes", hosted_file, hosted_head,
+             hosted_head + "  resource_group: linix-package-build-probe\n",
+             "hosted-runners waits in linix-package-build-probe, the name a lane has"),
+            ("a job of no class in the one package lane of before", hosted_file, hosted_head,
+             hosted_head + "  resource_group: linix-package-build\n",
+             "hosted-runners waits in linix-package-build, the name a lane has"),
+            ("a job of no class in a group named as the package lanes' stem with more after it", hosted_file, hosted_head,
+             hosted_head + "  resource_group: linix-package-buildx\n",
+             "hosted-runners waits in linix-package-buildx, the name a lane has"),
+            ("a job of no class in a package lane by its variable written %NAME%", hosted_file, hosted_head,
+             hosted_head + "  resource_group: \"%HM_LANE_PACKAGES%-deb\"\n",
+             "hosted-runners waits in %HM_LANE_PACKAGES%-deb, by $HM_LANE_PACKAGES, HM_RUNNER_PACKAGES's lane"),
+            ("a job of no class in the suites' lane by its variable written %NAME%", hosted_file, hosted_head,
+             hosted_head + "  resource_group: \"%HM_LANE_SUITE%\"\n",
+             "hosted-runners waits in %HM_LANE_SUITE%, by $HM_LANE_SUITE, HM_RUNNER_SUITE's lane"),
+            ("a job of no class in a group named by a variable of its own", hosted_file, hosted_head,
+             hosted_head + "  resource_group: $PROBE_LANE\n",
+             "hosted-runners waits in $PROBE_LANE, which is not a resource group's plain name"),
+            ("a job of no class in a group copied by !reference", hosted_file, hosted_head,
+             hosted_head + "  resource_group: !reference [.rpm-build-aarch64, resource_group]\n",
+             "hosted-runners waits in !reference [.rpm-build-aarch64, resource_group], which is not a resource group's "
+             "plain name"),
+            ("a job of no class in a group written below its key", hosted_file, hosted_head,
+             hosted_head + "  resource_group:\n    linix-suite\n",
+             "hosted-runners waits in a value below its key, which is not a resource group's plain name"),
+            ("a package build in its lane by its variable written %NAME%", ".gitlab/ci/packages-deb.yml",
+             "  resource_group: $HM_LANE_PACKAGES-deb\n", "  resource_group: \"%HM_LANE_PACKAGES%-deb\"\n",
+             "deb-debian12-amd64, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group %HM_LANE_PACKAGES%-deb"),
+            ("EL 10's source package back in the source builds' lane", ".gitlab/ci/source-packages.yml",
+             "  resource_group: $HM_LANE_PACKAGES-deb\n  variables: {HM_SRCPKG_TARGET: el10}\n",
+             "  variables: {HM_SRCPKG_TARGET: el10}\n",
+             "srcpkg-el10, one of HM_RUNNER_PACKAGES's jobs, waits in the resource group $HM_LANE_PACKAGES-source: it is a "
+             "package build of the lane deb")):
+        class_broken(what, path, old, new, needle, judge=runner_class_problems)
+    for what, lanes_given, needle in (
+            ("a build in two package lanes", dict(PACKAGE_LANES, source=PACKAGE_LANES["source"] + ("deb-debian12-amd64",)),
+             "PACKAGE_LANES names deb-debian12-amd64 in the lanes deb and source"),
+            ("a package lane naming a job no CI file defines", dict(PACKAGE_LANES, rpm=PACKAGE_LANES["rpm"] + ("rpm-probe-x86_64",)),
+             "PACKAGE_LANES names rpm-probe-x86_64 in the lane rpm, and no CI file defines it"),
+            ("a package lane naming a job of another class",
+             dict(PACKAGE_LANES, deb=PACKAGE_LANES["deb"] + ("deb-debian12-arm64-install",)),
+             "PACKAGE_LANES names deb-debian12-arm64-install in the lane deb, and it is one of HM_RUNNER_ARM64's jobs"),
+            ("more package lanes than machines", dict(PACKAGE_LANES, probe=()),
+             "PACKAGE_LANES has 4 lanes, and 3 machines of the project's carry the tag linix")):
+        found = runner_class_problems(texts, package_lanes=lanes_given)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
     copy = dict(texts, ci=texts["ci"].replace(sbom_job, sbom_job + "  variables:\n    \"PROBE_SETTING\": probe\n", 1))
     if job_key_problems(copy):
         failures.append("a job's variable quoted, four spaces in, is let pass by job_key_problems: %s" % job_key_problems(copy))

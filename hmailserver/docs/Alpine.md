@@ -249,9 +249,15 @@ The CI jobs
 
 They run for a push to master or a `batch*` branch that changes more than
 documentation, never for a tag, a merge request or a schedule; release needs none of
-them. `alpine-package` joins `linix-package-build`, the resource group of the package
-builds, and `alpine-suite` joins `linix-suite` with `linux-suite`, so that the two
-suites, each hours long, never share linix's CPUs.
+them. `alpine-package` waits in the source builds' lane of the package builds,
+`$HM_LANE_PACKAGES-source` (`linix-package-build-source` on the project's runners),
+with the RPM source packages but EL 10's - the shortest of the three lanes by far,
+so that, by a landing pipeline's job times, it is built about 50 minutes before
+`linux-suite` ends even when the lane builds it last: an estimate from one
+pipeline's times, with that margin for slower days
+([ContinuousIntegration.md](ContinuousIntegration.md), "The lanes") - and
+`alpine-suite` joins `linix-suite` with `linux-suite`, so that the two suites, each
+hours long, never share a machine's CPUs.
 
 What has run
 ------------

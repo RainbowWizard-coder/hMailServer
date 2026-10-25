@@ -203,8 +203,16 @@ data for UTS 46 and HTML's list of named character references under
 `/usr/share/hmailserver/licenses`. The debug information packages
 (`hmailserver-dbgsym`, `hmailserver-debuginfo` and `-debugsource`) are built and
 linted but not kept in the job's artifacts: nothing reads them, and Fedora's
-debuginfo alone is 245 MB. The builds are in the resource group
-`linix-package-build`, with the other package builds, one at a time on linix.
+debuginfo alone is 245 MB. The Debian and Ubuntu builds, and EL 10's, the longest of
+the RPM ones, wait in the Debian packages' lane, `$HM_LANE_PACKAGES-deb`, with the
+`.deb` builds, and the other RPM ones in the source builds',
+`$HM_LANE_PACKAGES-source`, with Alpine's package, which `alpine-suite` waits for and
+which that lane, the shortest, so builds well before `linux-suite` ends -
+`linix-package-build-deb` and `linix-package-build-source` on the project's
+runners, each lane one build at a time beside the `.rpm` builds' lane
+([ContinuousIntegration.md](ContinuousIntegration.md), "The lanes"). Two of these
+builds may meet on one machine, each in its 8 GB, but no more on linix, whose
+runner takes two jobs at once.
 
 **Memory, and no LTO.** A distribution builds with debug information (`-g`), and
 thirteen programs link the whole static core: the server, `openpgp-writer` and

@@ -13,16 +13,18 @@ machines (hmailserver/docs/ContinuousIntegration.md, "GitLab's hosted runners be
 the project's"):
 
   HM_RUNNER_BUILD     amd64  the builds and checks in the CI image or a distribution's
-  HM_RUNNER_PACKAGES  amd64  the package builds and their install jobs, in the lane
-                             HM_LANE_PACKAGES (linix-package-build)
+  HM_RUNNER_PACKAGES  amd64  the package builds and their install jobs, the builds in
+                             the lane HM_LANE_PACKAGES (linix-package-build) as three,
+                             $HM_LANE_PACKAGES-deb, -rpm and -source
   HM_RUNNER_ARM64     arm64  the jobs in an arm64 container
   HM_RUNNER_SUITE     amd64  linux-suite and alpine-suite, in the lane HM_LANE_SUITE
                              (linix-suite)
 
 A lane is the resource group that keeps a class's jobs one at a time on the project's
-machines. On GitLab's runners every job has a machine of its own, so a class there is
-given a lane of its own per job: the lane's variable set to hosted-$CI_JOB_NAME, which
-GitLab expands for each job as it makes the job's resource group.
+machines; the package builds' variable names three, one job of each at a time. On
+GitLab's runners every job has a machine of its own, so a class there is given a lane
+of its own per job: the lane's variable set to hosted-$CI_JOB_NAME, which GitLab
+expands for each job as it makes the job's resource group.
 
   python3 build/ci/hosted-runners.py check
       The hosted-runners job (.gitlab/ci/hosted-runners.yml), on linix, in a pipeline
@@ -49,8 +51,8 @@ GitLab expands for each job as it makes the job's resource group.
       small letter in its name is not; the deploy token GitLab gives every job, while
       the project has one, fails it (GITLAB_CREDENTIALS). Each problem is named, with
       what to do; a value is never printed. A lane that does not go with its class is
-      a warning: the jobs run, one at a time on GitLab's machines, or side by side on
-      linix.
+      a warning: the jobs run, one at a time in each of the class's lanes on GitLab's
+      machines, or side by side on linix.
   python3 build/ci/hosted-runners.py quota
       The compute-quota job, on linix, in the same pipelines, in the environment
       compute-quota, to which HM_QUOTA_TOKEN is scoped: a read_api token of an Owner of
@@ -119,6 +121,10 @@ CLASSES = (
 # What a hosted lane is set to: a lane of its own for each job, which GitLab expands
 # from CI_JOB_NAME as it makes the job (the resource group's key takes nested variables).
 HOSTED_LANE = "hosted-$CI_JOB_NAME"
+# The lanes a lane's variable names on the project's runners, by its default: the
+# package builds' three, the variable and a family ($HM_LANE_PACKAGES-deb, -rpm and
+# -source, .gitlab-ci.yml's variables:), and the suites' one.
+LANE_NAMES = {"HM_LANE_PACKAGES": "the lanes linix-package-build-deb, -rpm and -source"}
 # The compute minutes a pipeline is expected to use on GitLab's runners for each class
 # there, by its kind: the minutes each class's jobs ran on the project's runners in the
 # pipelines of 5 to 13 October 2026 (median per job, linix's for an eight-CPU machine,
@@ -395,13 +401,13 @@ def check(environ, out, ci=(frozenset(), [])):
         per_job = job in lane_value and lane_value != lane_default
         print("%s: %s" % (lane, "a lane of each job's own" if per_job else repr(lane_value)), file=out)
         if hosted and not per_job:
-            warnings.append("%s is %r while %s sends its class to GitLab's runners: its jobs wait for each other there, each "
-                            "on a machine of its own. Set %s to %s (expanded, not raw), a lane of each job's own" % (
-                                lane, lane_value, variable, lane, HOSTED_LANE))
+            warnings.append("%s is %r while %s sends its class to GitLab's runners: its jobs wait for each other there, one at "
+                            "a time in each of its lanes, each on a machine of its own. Set %s to %s (expanded, not raw), a "
+                            "lane of each job's own" % (lane, lane_value, variable, lane, HOSTED_LANE))
         elif not hosted and lane_value != lane_default:
-            warnings.append("%s is %r while its class is on the project's runners: its jobs run side by side on linix, which the "
-                            "lane %s keeps them from. Delete %s, or send the class to GitLab's runners" % (
-                                lane, lane_value, lane_default, lane))
+            warnings.append("%s is %r while its class is on the project's runners: its jobs run side by side on linix, which %s "
+                            "keeps them from. Delete %s, or send the class to GitLab's runners" % (
+                                lane, lane_value, LANE_NAMES.get(lane, "the lane %s" % lane_default), lane))
     # Every variable is a credential that is not known here to hold none.
     switch_names = set(n for c in CLASSES for n in (c[0], c[2]) if n)
     no_secret = set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | PLAIN | switch_names

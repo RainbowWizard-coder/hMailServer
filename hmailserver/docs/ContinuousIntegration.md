@@ -155,8 +155,8 @@ can fail a tag's pipeline - the checks, both suites, the upgrade gates, the
 package jobs, `linux-cross`, `linux-sanitize`, `linux-image`,
 `linux-image-arm64`, `linux-repro`, `windows-dotnet` -
 and `windows-installer` ([The release](#the-release)). Of the three
-runners with the tag `linix`, linix and server2 each run up to three jobs at
-once and s1-linux two ([The runners](#the-runners)), and the rest queue behind them in the
+runners with the tag `linix`, server2 runs up to three jobs at once and linix and
+s1-linux two each ([The runners](#the-runners)), and the rest queue behind them in the
 order GitLab hands them out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)), and `windows-gate-s1vm` takes S1-WINBENCH's.
 
@@ -443,7 +443,7 @@ as it was.
 | Switch | Its jobs | The machine to name | Lane |
 |---|---|---|---|
 | `HM_RUNNER_BUILD` | The builds and checks in the CI image or a distribution's own amd64 image, 21 jobs: `linux-build`, `linux-build-gcc`, `linux-cross`, `linux-sanitize`, `linux-repro`, `linux-sbom`, `linux-live-update`, both upgrade gates, `linux-package-deb` and `linux-package-rpm`, `linux-image`, `static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`, `repo-hygiene`, `source-tarball`, `release-packages`, and the two AArch64 SBOM jobs | `saas-linux-large-amd64` | none |
-| `HM_RUNNER_PACKAGES` | The package builds and their install jobs in amd64 containers, 45 jobs: every `.deb` build (the arm64 ones are cross-compiled in amd64 containers) and the amd64 install jobs, the x86_64 `.rpm` builds and their install jobs, the seven source packages and their install jobs, `alpine-package` and `alpine-install`, the AppImages' amd64 jobs (`appimage-aarch64-compile` among them), and `snap-build-amd64` | `saas-linux-large-amd64` | `HM_LANE_PACKAGES`, `linix-package-build` |
+| `HM_RUNNER_PACKAGES` | The package builds and their install jobs in amd64 containers, 45 jobs: every `.deb` build (the arm64 ones are cross-compiled in amd64 containers) and the amd64 install jobs, the x86_64 `.rpm` builds and their install jobs, the seven source packages and their install jobs, `alpine-package` and `alpine-install`, the AppImages' amd64 jobs (`appimage-aarch64-compile` among them), and `snap-build-amd64` | `saas-linux-large-amd64` | `HM_LANE_PACKAGES`, `linix-package-build`, as three lanes: `$HM_LANE_PACKAGES-deb`, `-rpm` and `-source` |
 | `HM_RUNNER_ARM64` | The jobs in an arm64 container, which linix, server2 and s1-linux run under qemu-user, 17 jobs: the four arm64 `.deb` and six aarch64 `.rpm` install jobs, the start jobs of the generic arm64 `.deb` and aarch64 `.rpm` (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`), `appimage-runtime-aarch64`, `appimage-aarch64`, `appimage-test-aarch64`, `snap-build-arm64` and `linux-image-arm64` | `saas-linux-medium-arm64`, where they run natively | none |
 | `HM_RUNNER_SUITE` | `linux-suite` and `alpine-suite` | `saas-linux-large-amd64` | `HM_LANE_SUITE`, `linix-suite` |
 
@@ -456,14 +456,57 @@ names no `id_tokens`, each key of a job written bare and once, as the checker re
 it; a job of a class asks for a pull policy
 GitLab's runners allow (`[if-not-present, always]`: they allow `always` alone, and
 fail a job that asks for `if-not-present` only), runs in a container of its class's
-architecture (the CI image is amd64 alone) and waits in its class's lane or in none;
-and no job outside a class waits in a lane. And `build/ci/hosted-runners.py` knows
+architecture (the CI image is amd64 alone) and waits in its class's lane or in none
+- a package build in its lane alone, and no other job of its class in any of the
+three; and no job outside a class waits in a lane - it names its resource group as a
+plain name, with no variable in any of the forms GitLab expands there (`$NAME`,
+`${NAME}`, `%NAME%`), no `!reference` and no alias, and none that is a lane's name on
+the project's runners or begins `linix-package-build` -, but the aarch64 `.rpm`
+builds and `nix`, each in the `.rpm` builds' lane by that name (`PACKAGE_LANES`,
+below). And
+`build/ci/hosted-runners.py` knows
 the variables of each GitLab template the CI files include, and of no other
 (`TEMPLATE_GLOBALS`).
 
-**The lanes.** The package builds and the two suites each wait for one another in a
-resource group, so that the project's machines run one of their kind at a time
-(`linix-package-build`, `linix-suite`; [linix](#linix)). On GitLab's runners every
+**The lanes.** The package builds and the two suites wait for one another in
+resource groups, so that the project's machines run no more of their kind at once
+than they take ([linix](#linix)). The suites have one, `linix-suite`: one whole
+suite at a time. The package builds have three, as many as the machines that carry
+the tag `linix` - linix, server2 and s1-linux - each named by the class's lane and a
+family: `$HM_LANE_PACKAGES-deb`, the `.deb` builds, the Debian and Ubuntu source
+packages and EL 10's; `$HM_LANE_PACKAGES-rpm`, the `.rpm` builds and `nix`; and
+`$HM_LANE_PACKAGES-source`, the other RPM source packages and `alpine-package` -
+`linix-package-build-deb`, `-rpm` and `-source` at the variable's default. They were
+one lane, `linix-package-build`, made when linix was the only machine to build
+packages, and with three machines carrying its tag it still ran one build at a time
+across them: in a landing pipeline of 23 and 24 October 2026 its 28 builds, of 10 to
+38 minutes each, ran one after another for eight hours and a quarter while two of the
+machines had none. Up to three now build at once, one of each lane. A lane does not
+choose a machine - GitLab gives a job to whichever runner of its tags asks first with
+a place free - so all three builds may go to one machine, and the lanes rest on the
+runners' own limits: server2 takes three jobs at once, each held to 28 CPUs and 40 GB,
+on its 32 threads and 182 GB; s1-linux two, each held to six CPUs and 8 GB, on its 32
+vCPUs and 32 GB; and linix, the smallest, two, each held to six CPUs and 8 GB, on its
+sixteen cores and 24 GB. linix took three until the lanes came: with the one lane a
+package build never met another, and with three, three package builds, or a suite
+and two, could have met there - more than its cores and memory take, where three
+heavy jobs side by side had already timed out `checkers` there and slowed a suite's
+timed tests. So its runner entry was held to two jobs ([linix](#linix)), which by
+the same pipeline's times costs a few minutes, and two package builds, or a suite
+and one, are the most it holds. `alpine-suite` waits for `alpine-package`, so the
+lane that holds it is kept the shortest by far: by that pipeline's job times the
+lanes take 216, 170 and 112 minutes one build after another, and `alpine-package`,
+built last of its lane, is built about 50 minutes before `linux-suite`, ahead of
+`alpine-suite` in the suites' lane, ends - an estimate from one pipeline's times, not
+a bound: source packages have taken twice as long on a busy day (EL 10's 85 minutes
+and Fedora 44's 62 on 13 October 2026), and the margin is what that leaves room for.
+Played over that pipeline's job times, the pipeline's longest path is then the two
+suites, `linux-build`, `linux-suite` and `alpine-suite`, 317 minutes, about five and
+a quarter hours, and the pipeline ends after about five and a half, where it took ten
+and a half. `build/check-release-chain.py` holds each package build to its lane
+(`PACKAGE_LANES`), and to no more lanes than the machines that carry the tag `linix`
+(`PROJECT_RUNNERS`) - which bounds how many build at once, not where; no rule of
+the tree can hold a runner's limit. On GitLab's runners every
 job has a machine of its own, and a group of one name would hold them back for
 nothing: the 28 package builds of a batch's pipeline ran one after another for 7.7
 to 8.3 hours in October 2026, and made each such pipeline take about eight. So a class
@@ -471,10 +514,12 @@ with a lane takes its resource group from a second variable, `HM_LANE_PACKAGES` 
 `HM_LANE_SUITE`, the group's name in `.gitlab-ci.yml`, which the owner sets beside the
 switch to `hosted-$CI_JOB_NAME`, with *Expand variable reference* on: GitLab expands
 a resource group's name with the job's variables, the nested ones too, as it makes
-the job, so each job then has a lane of its own name. A class on GitLab's runners left
-in its shared lane runs, one job at a time; one on the project's runners with lanes of
-its own runs side by side on linix; `hosted-runners` warns of both. The six aarch64
-`.rpm` builds and `nix` stay in `linix-package-build` on the project's runners.
+the job, so each job then has a lane of its own name (`hosted-deb-debian12-amd64-deb`
+for a package build, its family's name after its own). A class on GitLab's runners
+left in its shared lanes runs, one job of each lane at a time; one on the project's
+runners with lanes of its own runs side by side on linix; `hosted-runners` warns of
+both. The six aarch64 `.rpm` builds and `nix` stay in `linix-package-build-rpm` on
+the project's runners, by that name, whatever the lane's variable says.
 
 **What stays on the project's runners whatever a switch says.** Every Windows job,
 on bench150 and S1-WINBENCH; `package-systemd-ubuntu26.04` and
@@ -659,11 +704,16 @@ in October 2026, the package builds one after another its longest path, and
 split between bench150 and S1-WINBENCH ([The Windows gate](#the-windows-gate)),
 bench150's half is about two hours by estimate - its tests took 105 of the 198
 minutes of 13 October's whole run there - and its whole path a little over two.
-With the packages on GitLab's runners, each build in a lane of its own, the builds
-run side by side and are done within the hour; the longest Linux path is then the
-two suites, which `linix-suite` keeps one after the other on the project's
-runners: `linux-suite` after `linux-build`, then `alpine-suite`, about five hours
-from the start. With the suites on GitLab's runners too, each in a lane of its own,
+Since the package builds have three lanes ([The lanes](#gitlabs-hosted-runners-beside-the-projects)),
+they are done in under four hours on the project's runners too, and the longest
+Linux path there is the two suites, which `linix-suite` keeps one after the other:
+`linux-suite` after `linux-build`, then `alpine-suite`, 317 minutes, about five and
+a quarter hours, by a landing pipeline's job times of 23 and 24 October 2026, which
+took ten and a half in the one lane of before. With the packages on GitLab's
+runners, each build in a lane of its own, the builds run side by side and are done
+within the hour, and the longest Linux path is the same two suites, so the pipeline
+ends a few minutes sooner, not more. With the suites on GitLab's runners too, each
+in a lane of its own,
 they run side by side and the pipeline ends with the longest of their paths and
 the Windows ones, about three hours by the same estimates (bench150's whole path,
 about four, while one bench ran the whole Windows suite). The builds' class frees the
@@ -674,8 +724,12 @@ timeouts, not on a CPU - and GitLab's runners stop a job at three hours, before 
 suites' own 3 h 50 min, without its `after_script`.
 
 **The recommendation.** `HM_RUNNER_PACKAGES` with `HM_LANE_PACKAGES`, and
-`HM_RUNNER_ARM64`, always: about 300 minutes a batch's pipeline, which takes it from
-eight hours to five, and the arm64 jobs on real arm64 - some 19,000 to 30,000 minutes
+`HM_RUNNER_ARM64`, always: about 300 minutes a batch's pipeline, which took it from
+eight hours to five while the package builds had one lane (with three, the suites'
+path is the longest either way, and the switch no longer shortens a batch's pipeline
+by more than a few minutes; what it buys is the project's machines freed of the
+package builds, linix among them),
+and the arm64 jobs on real arm64 - some 19,000 to 30,000 minutes
 in a month of one or two release weeks. `HM_RUNNER_SUITE` with `HM_LANE_SUITE` for a
 release week, when the two hours or so it saves matter (one while one bench ran the
 whole Windows suite), for 145 more a pipeline, `master`'s
@@ -1649,34 +1703,41 @@ runners carry the same three tags and share the jobs of the tag `linix` between 
 (linix has a second entry of its own, `linix-systemd`, and server2 the tag `kvm`
 beside the three), bench150, the Windows bench, and S1-WINBENCH, a second one,
 which takes half of the Windows suite ([S1-WINBENCH](#s1-winbench)). s1-linux is an
-Ubuntu 26.04 virtual machine on server1 with 16 vCPUs and no KVM, runner 57371020,
-registered as the others are, which has taken jobs of the tag `linix` since 13
-October 2026: the docker executor with six CPUs and 8 GB of memory for each job,
-as on linix, and up to two jobs at once, in its 16 GB.
+Ubuntu 26.04 virtual machine on server1 with 32 vCPUs and 32 GB of memory and no
+KVM (25 October 2026), runner 57371020, registered as the others are, which has
+taken jobs of the tag `linix` since 13 October 2026: the docker executor with six
+CPUs and 8 GB of memory for each job, as on linix, and up to two jobs at once.
 
 ### linix
 
 The Ubuntu 26.04 lab VM on the maintainer's laptop, at 192.168.11.154: 16 cores,
-32 GB of memory, 200 GB of disk (2 October 2026). GitLab Runner 19.4 runs there
+24 GB of memory and 4 GB of swap (since 3 October 2026; 32 GB before), 200 GB of
+disk. GitLab Runner 19.4 runs there
 as a system service, with the docker executor and six CPUs and 8 GB of memory
 for each job. The default
 image is `ubuntu:26.04`, the pull policy is `if-not-present`, and the runner is
 not privileged. It has the tags `linux`, `docker` and `linix`, and it is runner
 56743206 on GitLab.
 
-**It runs up to three jobs at once.** `/etc/gitlab-runner/config.toml` says
-`concurrent = 3` for the service and `request_concurrency = 3` for this entry:
-one job at a time until 28 September 2026, then two, and three the same night.
-Three jobs of six CPUs each ask for more than the sixteen cores, so jobs side by
-side slow each other down. The jobs that must not run beside their own kind say
-so with a `resource_group` - `linix-suite` for the two whole suites
-(`linux-suite` and `alpine-suite`), `linix-package-build` for the package builds
-(the distribution releases' `.deb` and `.rpm` files, the Alpine package, the
-source packages and the Nix build) - and wait for one another across pipelines;
-the rest take whichever of the three places is free. Each of the two is a class's
-lane: a class a switch sends to GitLab's runners waits in a lane of each job's own
-there, where every job has a machine of its own ([GitLab's hosted runners beside
-the project's](#gitlabs-hosted-runners-beside-the-projects)).
+**It runs up to two jobs of the tag `linix` at once.** `/etc/gitlab-runner/config.toml`
+says `concurrent = 3` for the service, which `linix-systemd`'s entry (below) shares,
+and `limit = 2` and `request_concurrency = 2` for this entry: one job at a time until
+28 September 2026, then two, three the same night, and two again since October 2026,
+when the package builds took three lanes. Three jobs of six CPUs each ask for more
+than the sixteen cores, and three of 8 GB for all of its 24 GB: three heavy jobs side
+by side timed `checkers` out there twice in October 2026 and slowed the suite's
+timed tests. The jobs that must not run beside their own kind say so with a
+`resource_group` - `linix-suite` for the two whole suites (`linux-suite` and
+`alpine-suite`), and for the package builds (the distribution releases' `.deb` and
+`.rpm` files, the Alpine package, the source packages and the Nix build) three,
+`linix-package-build-deb`, `-rpm` and `-source` - and wait for one another across
+pipelines, one suite at a time and one build of each lane. A lane does not choose a
+machine, so two package builds, or a suite and one, may meet on linix, and this
+entry's limit keeps a third heavy job off it; the rest take whichever place is free.
+Each is a class's lane: a class a switch sends to
+GitLab's runners waits in a lane of each job's own there, where every job has a
+machine of its own ([GitLab's hosted runners beside the
+project's](#gitlabs-hosted-runners-beside-the-projects), "The lanes").
 
 What the host needs:
 
@@ -1703,7 +1764,8 @@ What the host needs:
   (`mirror/semgrep`, `mirror/secrets`).
 - The runner's local cache, which carries the fuzz corpus from night to night
   (`cache:` in `linux-fuzz`). The docker executor keeps it in volumes on the
-  host, one for each of the three places a job can run in, so a night's job
+  host, one for each place a job has run in (three until October 2026, two
+  since), so a night's job
   starts from the corpus of the place it was given and leaves its corpus there;
   nothing needs setting up.
 
@@ -1717,7 +1779,7 @@ GitLab (1 October 2026). It is privileged - its jobs' services are not
 job. Its other settings are the first entry's: the docker executor,
 `ubuntu:26.04`, six CPUs and 8 GB for each job, `if-not-present`. It asks for one
 job at a time (no `request_concurrency`), and its jobs count towards the same
-three as the first entry's: the service's `concurrent` is for both.
+three as the first entry's two: the service's `concurrent` is for both.
 `package-systemd-ubuntu26.04` and `package-systemd-fedora44` use it, since podman
 needs privilege to run the container systemd runs in inside the job's. That inner
 container is not privileged, and its image masks `systemd-binfmt`
@@ -1753,10 +1815,11 @@ without it the job runs it under TCG ([Nix.md](Nix.md)).
 others the tables above give to linix -
 goes to whichever of the three runners - linix, server2 and s1-linux - asks
 GitLab for it first with a place free, so *linix* in those tables names the tag,
-not the machine, and up to eight such jobs run at once, three on linix, three on
+not the machine, and up to seven such jobs run at once, two on linix, three on
 server2 and two on s1-linux. A `resource_group` belongs to GitLab, not to a
-runner, so `linix-suite` and `linix-package-build` still run one job of their
-kind at a time across the three machines. `linix-systemd` is an entry of
+runner, so `linix-suite` still runs one suite at a time across the three
+machines, and the package builds' three lanes up to three builds, one of each,
+on whichever machines take them. `linix-systemd` is an entry of
 linix's alone, so `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
 run only there. server2 needs what linix needs (above): the job image, which it
 pulls from the project's registry by the digest `.linix` names, as linix does,
@@ -2507,7 +2570,8 @@ not hold it.
   same matrix was left out at the port for the time a second whole build adds to
   linix's queue (about twelve minutes). The Debian and Ubuntu package jobs now
   build with those releases' GCC ([The GCC build](#the-gcc-build)), linix
-  has taken three jobs at once since 28 September 2026 ([linix](#linix)), and from 6.3.6
+  took three jobs at once from 28 September 2026 and server2 and s1-linux take
+  jobs beside it ([linix](#linix)), and from 6.3.6
   `linux-build-gcc` builds with the CI image's GCC 15, on `master` and `batch*`
   pipelines only.
 
@@ -4689,13 +4753,14 @@ measured times after the first pipelines.
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
-runner's maximum. linix runs up to three jobs at once ([linix](#linix)), but
-its longest line is one job after another all the same: the suite waits for
+runner's maximum. linix, server2 and s1-linux run up to seven jobs at once
+([linix](#linix)), but the longest line is one job after another all the same: the
+suite waits for
 `linux-build`, so about 12 minutes of build and 2 to 2.5 hours of suite, a
 little under three hours, with the package jobs, the image, `linux-repro`, the
 cross build and the security scans ([What they cost](#what-they-cost)) beside
-them and slowing them, since three jobs of six CPUs ask for more than linix's
-sixteen cores. bench150's two jobs add up one after the other, the gate lock
+them, and slowing them where they share a machine. bench150's two jobs add up one
+after the other, the gate lock
 holding the second, with `windows-gate-s1vm`'s half of the suite on S1-WINBENCH
 beside them. So a pipeline for a protected ref takes about three hours
 from start to finish, and the Windows gate and the Linux lane decide it between
@@ -6477,9 +6542,10 @@ ever wanted.
 
 The five jobs add 35 to 50 minutes of work for `static-analysis` (clang-tidy's
 static analyser is most of it) and about ten for the rest to linix's share of a
-protected pipeline. linix runs up to three jobs at once ([linix](#linix)), so they
-run beside the build and the suite rather than after them, but on the same
-sixteen cores: they lengthen the suite rather than queue behind it. linix's
+protected pipeline. linix runs up to two jobs at once and server2 and s1-linux
+more beside it ([linix](#linix)), so they run beside the build and the suite rather
+than after them, but where they share a machine with the suite they lengthen it
+rather than queue behind it. linix's
 share may so become the longer of the two lanes, against the Windows gate's 2.5
 to 3 hours on bench150. If it does, the first lever is
 `static-analysis` on `master` and `v*` only. A batch's pipeline

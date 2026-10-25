@@ -339,13 +339,15 @@ index that the CI image and `linux-package-deb` already pin (`513c0741…`).
   pipeline. That is the same refusal every job on the project's own runners
   begins with.
 
-**Serialisation.** The build jobs share `resource_group: linix-package-build`,
-so only one of these builds runs at a time, across pipelines and across the
-three runners with the tag `linix`, linix, server2 and s1-linux. Each
-build runs six compilers at once (`HM_BUILD_JOBS`); linix had 16 cores and
-11 GB of memory on 26 September 2026. The group holds only the jobs that name
-it: the RPM and AppImage builds and `linux-build` are outside it unless their
-files name it too.
+**Serialisation.** The build jobs share `resource_group: $HM_LANE_PACKAGES-deb`,
+`linix-package-build-deb` on the project's runners, with the Debian and Ubuntu
+source packages and EL 10's ([SourcePackages.md](SourcePackages.md)), so only one of these
+builds runs at a time, across pipelines and across the three runners with the tag
+`linix`, linix, server2 and s1-linux. Each build runs six compilers at once
+(`HM_BUILD_JOBS`). The `.rpm` builds and the other source builds wait in the
+package builds' two other lanes, `-rpm` and `-source`, so that up to three package
+builds run at once, one of each lane ([ContinuousIntegration.md](ContinuousIntegration.md),
+"The lanes"); the AppImage builds and `linux-build` are in none.
 
 **Artifacts.** Each build job keeps `packages-deb/<distro>-<arch>/` for 14 days:
 

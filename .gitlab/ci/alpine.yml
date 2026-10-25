@@ -39,9 +39,14 @@
 # jobs (.gitlab/ci/source-packages.yml). The build and the install job are
 # HM_RUNNER_PACKAGES's and the suite HM_RUNNER_SUITE's (.gitlab-ci.yml, variables:), on
 # linix unless the owner's switches send them to GitLab's runners. The build waits in
-# the package builds' lane, HM_LANE_PACKAGES, and the suite in linux-suite's,
-# HM_LANE_SUITE - linix-package-build and linix-suite on the project's runners, so that
-# the two suites never run side by side there, and a lane of each job's own on GitLab's.
+# the source builds' lane of the package builds, $HM_LANE_PACKAGES-source, with the RPM
+# source packages but EL 10's - the shortest of the three lanes by far, so that the
+# package, which the suite waits for, is built some 50 minutes before linux-suite,
+# ahead of the suite in its lane, ends even when the lane builds it last, by a landing
+# pipeline's job times (docs/ContinuousIntegration.md, "The lanes": an estimate, not a
+# bound) - and the suite in linux-suite's, HM_LANE_SUITE -
+# linix-package-build-source and linix-suite on the project's runners, so that the two
+# suites never run side by side there, and a lane of each job's own on GitLab's.
 
 .alpine-image:
   image:
@@ -67,7 +72,7 @@ alpine-package:
     - job: source-tarball
       artifacts: true
   timeout: 2 hours
-  resource_group: $HM_LANE_PACKAGES
+  resource_group: $HM_LANE_PACKAGES-source
   rules:
     - !reference [.alpine-rules, rules]
   # Four compilers, as the source packages' builds: a job has 8 GB.

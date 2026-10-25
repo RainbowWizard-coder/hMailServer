@@ -6,7 +6,8 @@
 # which a switch sends a class of jobs there. Included by .gitlab-ci.yml, whose
 # variables: hold the switches and their defaults (HM_RUNNER_BUILD, HM_RUNNER_PACKAGES
 # with HM_LANE_PACKAGES, HM_RUNNER_ARM64, HM_RUNNER_SUITE with HM_LANE_SUITE: linix,
-# linix-package-build and linix-suite); hmailserver/docs/ContinuousIntegration.md,
+# linix-package-build - the stem of the package builds' three lanes, -deb, -rpm and
+# -source - and linix-suite); hmailserver/docs/ContinuousIntegration.md,
 # "GitLab's hosted runners beside the project's", says which jobs each class takes,
 # what a job there is given and what each costs.
 #
@@ -24,8 +25,8 @@
 #                   runner, whose jobs would wait for one that never takes them, fails
 #                   it, and so does a credential, named - never its value - with the
 #                   environment to scope it to; a lane that disagrees with its class is
-#                   a warning (exit 3), since the jobs then run, one at a time on
-#                   GitLab's machines or side by side on linix.
+#                   a warning (exit 3), since the jobs then run, one at a time in each
+#                   lane on GitLab's machines or side by side on linix.
 #   compute-quota   linix: the namespace's compute minutes this month, against its quota
 #                   and what a pipeline of this kind made at the switches as the job
 #                   reads them, when it starts, is expected to use

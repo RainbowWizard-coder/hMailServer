@@ -276,8 +276,15 @@ variables:
   # sends the class to GitLab's hosted runners in a pipeline of a protected ref: a merge
   # request's pipeline has none of these jobs, and is given no protected variable. A lane
   # is the resource group that keeps a class's jobs one at a time on the project's
-  # machines; a class sent to GitLab's runners, whose every job has a machine of its own,
-  # is given a lane of its own per job by its variable (hosted-$CI_JOB_NAME). Nothing
+  # machines. The package builds have three, each named by their variable and a family -
+  # $HM_LANE_PACKAGES-deb, -rpm and -source, linix-package-build-deb and the rest here -
+  # so that up to three run at once; the suites have one. A lane does not choose a
+  # machine, so the three rest on linix, the smallest of the machines that carry the
+  # tag linix, taking two of that tag's jobs at once, not three (its runner's limit,
+  # docs/ContinuousIntegration.md, "linix"): two package builds or a suite and one may
+  # meet there, never three heavy jobs. A class sent to GitLab's runners, whose every job
+  # has a machine of its own, is given a lane of its own per job by its variable
+  # (hosted-$CI_JOB_NAME). Nothing
   # else in the CI files sets them (build/check-release-chain.py, which holds each class
   # to its jobs); docs/ContinuousIntegration.md, "GitLab's hosted runners beside the
   # project's", says which jobs each takes, what a job there is given, what each costs,
@@ -286,7 +293,8 @@ variables:
   #   HM_RUNNER_BUILD     the builds and checks in the CI image or a distribution's own
   #                       (linux-build, the scans, linux-repro, ...): saas-linux-large-amd64
   #   HM_RUNNER_PACKAGES  the package builds and their install jobs in amd64 containers,
-  #                       with their lane HM_LANE_PACKAGES: saas-linux-large-amd64
+  #                       the builds in the three lanes of HM_LANE_PACKAGES:
+  #                       saas-linux-large-amd64
   #   HM_RUNNER_ARM64     the jobs in an arm64 container, which linix, server2 and
   #                       s1-linux run under qemu-user: natively on
   #                       saas-linux-medium-arm64
@@ -717,8 +725,8 @@ linux-suite:
   timeout: 4 hours
   # A later push does not cut the suite off half-way (default:, above).
   interruptible: false
-  # One whole suite at a time on linix, this one or alpine-suite's
-  # (.gitlab/ci/alpine.yml): the runner takes more than one job, and two suites side
+  # One whole suite at a time on the project's runners, this one or alpine-suite's
+  # (.gitlab/ci/alpine.yml): a runner takes more than one job, and two suites side
   # by side would share its CPUs for hours, which the suite's timed fixtures feel. The
   # lane is HM_LANE_SUITE's, linix-suite unless the class is on GitLab's runners, where
   # each suite has a machine, and a lane, of its own.

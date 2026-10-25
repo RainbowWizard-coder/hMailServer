@@ -293,15 +293,18 @@ a new snapshot, and the two pins are then changed by hand.
   `build/ci/repo-hygiene.py`'s Token-Permissions check does, sees that no
   unprotected ref can start one.
 
-**Serialisation.** The build jobs name `resource_group: linix-package-build`,
-the group the Debian and Ubuntu builds use, so only one package build of the
-two files runs at a time, across pipelines and across the three runners with the
-tag `linix`, linix, server2 and s1-linux. Each build runs six
-compilers at once (`HM_BUILD_JOBS`); linix had 16 cores and 11 GB of memory on
-26 September 2026. On a `v*` tag or a `batch*` branch the twelve RPM builds
-queue behind each other and behind the Debian and Ubuntu ones: at the times
-measured above (about 500 to 700 seconds for an x86_64 build, 750 for an
-aarch64 one), the twelve take about two and a half hours of linix.
+**Serialisation.** The x86_64 build jobs name `resource_group:
+$HM_LANE_PACKAGES-rpm`, and the aarch64 ones, which stay on the project's runners
+whatever the switches say, the same lane by its name there,
+`linix-package-build-rpm`, with `nix` ([Nix.md](Nix.md)), so only one `.rpm` build
+runs at a time, across pipelines and across the three runners with the tag `linix`,
+linix, server2 and s1-linux. Each build runs six compilers at once
+(`HM_BUILD_JOBS`). The `.deb` builds and the source builds wait in the package
+builds' two other lanes, `-deb` and `-source`, so that up to three package builds
+run at once, one of each lane ([ContinuousIntegration.md](ContinuousIntegration.md),
+"The lanes"). On a `v*` tag or a `batch*` branch the twelve RPM builds queue behind
+each other: in a landing pipeline of 23 October 2026 they took 10 to 16
+minutes each, and the lane with `nix` about 170 minutes.
 
 **Artifacts.** Each build job keeps `packages-rpm/<target>-<arch>/` for 14
 days:

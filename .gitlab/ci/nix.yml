@@ -37,8 +37,14 @@
 # When it runs: for a push to master or a batch* branch that changes more than
 # documentation (.own-runners' rules), and never for a v* tag - a check, not a gate
 # of the release, which release does not need - nor for a merge request or a
-# schedule. It joins linix-package-build, the resource group of the package builds
-# that stay on the project's runners, so that it builds while none of them does.
+# schedule. It waits in linix-package-build-rpm, the name the .rpm builds' lane of the
+# package builds ($HM_LANE_PACKAGES-rpm) has on the project's runners, with the aarch64
+# .rpm builds, which stay there too, so that it builds while none of them does and the
+# package builds' three lanes keep up to three builds at once on the project's
+# machines (.gitlab-ci.yml, variables:). Not the lane of the source builds, which
+# Alpine's package ends: alpine-suite waits for that package, and the lane is kept
+# the shortest so that it is built well before linux-suite ends
+# (docs/ContinuousIntegration.md, "The lanes").
 
 nix:
   extends: .no-github
@@ -49,7 +55,7 @@ nix:
     pull_policy: [if-not-present, always]
   needs: []
   timeout: 3 hours
-  resource_group: linix-package-build
+  resource_group: linix-package-build-rpm
   rules:
     - if: $CI_COMMIT_TAG
       when: never

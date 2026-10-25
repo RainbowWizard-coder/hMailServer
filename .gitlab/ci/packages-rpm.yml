@@ -30,12 +30,12 @@
 #
 # linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
 # x86_64 builds and install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
-# lane, HM_LANE_PACKAGES; the aarch64 install jobs and the start job are
-# HM_RUNNER_ARM64's, natively on GitLab's arm64 machines when it sends them there; the
-# SBOM job is HM_RUNNER_BUILD's.
-# The aarch64 builds stay on linix, server2 and s1-linux whatever the switches say, in
-# the lane linix-package-build there: each runs its testers under qemu-user, which GitLab's
-# amd64 machines have not (.rpm-build-aarch64).
+# lane of the .rpm builds, $HM_LANE_PACKAGES-rpm; the aarch64 install jobs and the
+# start job are HM_RUNNER_ARM64's, natively on GitLab's arm64 machines when it sends
+# them there; the SBOM job is HM_RUNNER_BUILD's. The aarch64 builds stay on linix,
+# server2 and s1-linux whatever the switches say, in that lane by its name there,
+# linix-package-build-rpm: each runs its testers under qemu-user, which GitLab's amd64
+# machines have not (.rpm-build-aarch64).
 #
 # The release collects generic/hmailserver-<v>-1.aarch64.rpm from 6.3.6 with its
 # SBOM, and release waits for rpm-fedora44-aarch64, its install job, its start job
@@ -186,10 +186,13 @@
   tags: [$HM_RUNNER_PACKAGES]
   needs: []
   timeout: 1 hour
-  # One package build at a time on linix, across pipelines and across the
-  # package files that name this group (packages-deb.yml does): each runs six
-  # compilers at once, and linux-build and linux-suite need the machine too.
-  resource_group: $HM_LANE_PACKAGES
+  # One .rpm build at a time on the project's runners, across pipelines, the aarch64
+  # ones among them, and nix (.gitlab/ci/nix.yml): each runs six compilers at once,
+  # and linux-build and linux-suite need the machines too. The .deb builds and the
+  # source builds wait in the package builds' two other lanes, -deb and -source, so
+  # that one build of each lane runs at once (.gitlab-ci.yml, variables:;
+  # docs/ContinuousIntegration.md, "The lanes").
+  resource_group: $HM_LANE_PACKAGES-rpm
   rules:
     - !reference [.rpm-rules, rules]
   variables:
@@ -205,11 +208,12 @@
 # An aarch64 build is cross-compiled in the x86_64 container, as every build here is,
 # but then runs its testers there under qemu-user (rpm-build.sh): GitLab's hosted amd64
 # machines have no aarch64 emulation, so these stay on the project's runners whatever
-# HM_RUNNER_PACKAGES says, one at a time in the package builds' lane there.
+# HM_RUNNER_PACKAGES says, one at a time with the x86_64 ones in the .rpm builds' lane
+# there, by the name $HM_LANE_PACKAGES-rpm has on the project's runners.
 .rpm-build-aarch64:
   extends: .rpm-build
   tags: [linix]
-  resource_group: linix-package-build
+  resource_group: linix-package-build-rpm
 
 # The Boost tarball of the targets that build Boost (el10, el9, leap16,
 # tumbleweed), kept in linix's runner cache under its SHA-256 - rpm-build.sh's

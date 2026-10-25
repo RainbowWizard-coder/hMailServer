@@ -26,11 +26,11 @@
 #
 # linix above is where each job's class leaves it (.gitlab-ci.yml, variables:): the
 # builds and the amd64 install jobs are HM_RUNNER_PACKAGES's, the builds waiting in its
-# lane, HM_LANE_PACKAGES; the arm64 install jobs and the start job, whose containers
-# are arm64, are HM_RUNNER_ARM64's, and run natively on GitLab's arm64 machines when it
-# sends them there; the SBOM job is HM_RUNNER_BUILD's. An arm64 build asks whether its
-# machine runs aarch64 programs only where its install job will run on one of that kind
-# (deb-build.sh).
+# lane of the Debian packages, $HM_LANE_PACKAGES-deb; the arm64 install jobs and the
+# start job, whose containers are arm64, are HM_RUNNER_ARM64's, and run natively on
+# GitLab's arm64 machines when it sends them there; the SBOM job is HM_RUNNER_BUILD's.
+# An arm64 build asks whether its machine runs aarch64 programs only where its install
+# job will run on one of that kind (deb-build.sh).
 #
 # for debian12, debian13 and ubuntu24.04, amd64 and arm64, and for ubuntu26.04
 # arm64 only. The names: ubuntu26.04 arm64 makes the generic
@@ -140,11 +140,14 @@
   tags: [$HM_RUNNER_PACKAGES]
   needs: []
   timeout: 1 hour
-  # One of these builds at a time on linix, across pipelines: each runs six
-  # compilers at once (it had 16 cores and 11 GB on 26 September 2026), and
-  # linux-build and linux-suite need the machine too. The other package files'
-  # builds join this group only if they name it too.
-  resource_group: $HM_LANE_PACKAGES
+  # One of these builds at a time on the project's runners, across pipelines, with
+  # the Debian and Ubuntu source packages and EL 10's (.gitlab/ci/source-packages.yml):
+  # each runs six compilers at once, and linux-build and linux-suite need the machines
+  # too.
+  # The .rpm builds and the other source builds wait in the package builds' two other
+  # lanes, -rpm and -source, so that one build of each lane runs at once
+  # (.gitlab-ci.yml, variables:; docs/ContinuousIntegration.md, "The lanes").
+  resource_group: $HM_LANE_PACKAGES-deb
   rules:
     - !reference [.deb-rules, rules]
   variables:

@@ -359,7 +359,7 @@ and how to make it again.
     and check `MANIFEST.txt`.
 11. Copy the kept archives off linix now and then, and after the first run. They
     are in the runner's cache volumes on linix: the docker executor keeps one for
-    each of the three places a job can run in (`concurrent = 3` since 28 September
+    each place a job has run in (three from 28 September 2026, two since October
     2026, [ContinuousIntegration.md](ContinuousIntegration.md), linix), so each
     place that has run the job holds a kept set of its own, and GitLab Runner 19
     names the volumes by a hash rather than by the project. As `chris` on linix,

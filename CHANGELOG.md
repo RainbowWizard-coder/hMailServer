@@ -1337,6 +1337,41 @@ with `--check`).
   children, controls at one position, controls 0 high at one Top, and DBSetup's database connection page itself;
   with lines made by equal Tops alone, as before, the first fails.
 
+- **The package builds run up to three at once on the project's runners, in three lanes, and linix takes two jobs at
+  once.** Every package build waited in one resource group, `linix-package-build` (`HM_LANE_PACKAGES`), made when
+  linix was the only machine to build packages; linix, server2 and s1-linux all carry its tag now, and the group still
+  ran one build at a time across the three: in a landing pipeline of 23 and 24 October 2026 its 28 builds, of 10 to 38
+  minutes, ran one after another for eight hours and a quarter while two machines had none, and the pipeline took ten
+  and a half. The class's lane is now three resource groups, as many as the machines with the tag, each named by the
+  lane's variable and a family: `$HM_LANE_PACKAGES-deb` for the `.deb` builds, the Debian and Ubuntu source packages
+  and EL 10's, `$HM_LANE_PACKAGES-rpm` for the `.rpm` builds, and `$HM_LANE_PACKAGES-source` for the other RPM source
+  packages and `alpine-package` (`linix-package-build-deb`, `-rpm` and `-source` at the default). The aarch64 `.rpm`
+  builds and `nix`, which stay on the project's runners whatever the switches say, wait in `linix-package-build-rpm`
+  by that name. A lane does not choose a machine, so the three builds may all go to one: linix's runner entry, which
+  took three jobs at once on the understanding that package builds never met there, takes two (`limit = 2` and
+  `request_concurrency = 2`; the service's `concurrent = 3` still leaves `linix-systemd` its place), so that linix,
+  with sixteen cores and 24 GB, holds two package builds or a suite and one, never three heavy jobs, where three side
+  by side had already timed `checkers` out there; server2 (three jobs of 28 CPUs and 40 GB) and s1-linux (two of six
+  CPUs and 8 GB) are unchanged. `alpine-suite` waits for `alpine-package`, so its lane is kept the shortest by far -
+  EL 10's source package, the longest of the RPM ones, waits with the Debian packages: by that pipeline's job times
+  the lanes take 216, 170 and 112 minutes one build after another, `alpine-package` built last of its lane is built
+  about 50 minutes before `linux-suite` ends - an estimate from one pipeline, not a bound -, and the pipeline, whose
+  longest path is then `linux-build` and the two suites, 317 minutes, ends after about five and a half hours, a few
+  minutes later than with linix at three. With three lanes the owner's packages switch no longer shortens a batch's
+  pipeline by more than a few minutes; it frees the project's machines. The owner's `HM_LANE_PACKAGES` of
+  `hosted-$CI_JOB_NAME` still gives each build a lane of its own on GitLab's runners, and `build/ci/hosted-runners.py`'s
+  warnings name the three lanes. `build/check-release-chain.py` holds each build to its lane (`PACKAGE_LANES`), by the
+  variable or, for the builds of no class, by the lane's name on the project's runners; every other job of the class
+  to none; every job outside the classes to a resource group written as a plain name, with no variable in any of the
+  forms GitLab expands there (`$NAME`, `${NAME}`, `%NAME%`), no `!reference` and no alias - where only the lane's
+  variable written alone was refused, and `%HM_LANE_PACKAGES%`, a variable of the job's own or a `!reference` to a
+  build's group passed -, and to none that is a lane's name on the project's runners or begins `linix-package-build`;
+  and the lanes to the jobs the CI files define, each once and of the class or of none, and to no more than the
+  machines that carry the tag `linix`, which bounds how many build at once, not where. Its self-test gains a case for
+  each, each of which must be caught. GitLab's CI lint finds the merged CI files valid, with 177 jobs.
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The lanes" and "linix", says how the lanes
+  are split and what linix takes.
+
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is
