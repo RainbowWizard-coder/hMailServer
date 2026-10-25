@@ -2200,7 +2200,7 @@ namespace HM
       }
 
       // The on-demand checks' rules: which names a certificate covers, AcmeDomains
-      // read, Retry-After, a rate limit's problem document, the spacing between
+      // read, Retry-After, a CA's problem document (a rate limit told from every other problem), the spacing between
       // checks, and the refusals of a certificate the CA issued (AcmeClient.h).
       OutputDebugString(_T("hMailServer: Testing the ACME checks' rules\n"));
       {

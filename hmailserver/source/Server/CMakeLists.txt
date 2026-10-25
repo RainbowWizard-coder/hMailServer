@@ -663,7 +663,7 @@ set_target_properties(dane-tests PROPERTIES OUTPUT_NAME dane-tests)
 # ClassTester, which nothing reaches here. Which names a certificate covers (a
 # wildcard for one label, the common name of a certificate with no subject
 # alternative names), AcmeDomains as the client reads it, Retry-After in both its
-# forms, a rate limit's problem document, the spacing that keeps on-demand checks
+# forms, a CA's problem document (a rate limit told from every other problem), the spacing that keeps on-demand checks
 # from spending the CA's limits, and the refusal to install a certificate for
 # another key, without a name asked for, expired, or no certificate at all -
 # against keys and certificates it makes in memory. No database, configuration,

@@ -118,8 +118,11 @@ with `--check`).
   as RFC 8555 section 6.6 asks. The cooldown and the rate limit belong to the CA they were learnt from, and a change
   of `AcmeDirectoryUrl` starts them afresh. The certificate the CA sends was written as it came; it is now installed
   only when it is a PEM certificate for the key the request was made with, naming every host asked for and not
-  expired, and otherwise the certificate in use stays and the application log says which. A pair on disk that no
-  ACME (automatic) record names is deployed by a check that finds a certificate due as well as by one that does not.
+  expired, and otherwise the certificate in use stays and the application log says which. A pair on disk is deployed,
+  when there is no ACME (automatic) record at all, by a check that finds a certificate due as well as by one that does
+  not; a record of that name that points at other files is left as it is, and `hmailserver/docs/Acme.md` says what to
+  do after moving `AcmeCertificateDirectory`. A save of `AcmeDomains` made while a check runs is looked at again when
+  that check ends, unless the twenty minutes after a failure or a CA's rate limit then hold every check.
   An ACME URL may be plain `http` to an address on this machine (`localhost`, `127.0.0.0/8`, `::1`), which never
   crosses a network, so that the regression suite stands a CA of its own; any other must be `https`, and every URL
   a directory or an order hands on is held to the same rule. On upgrade, a server whose `AcmeDomains` lists a host its
@@ -958,7 +961,8 @@ with `--check`).
   whether it names every host `AcmeDomains` lists and which it lacks, the names of the list no certificate can carry,
   whether it is due and why, the check running now (and its step: directory, account, order, authorization, finalize,
   certificate, install), the last check and the last that tried to issue (outcome, the failing step, a sentence, and
-  the CA's problem document's type and detail), the next hourly check, when a request is allowed again and until when
+  the CA's problem document's type and detail, the detail read whole with the name it quotes and cut to 300
+  characters), the next hourly check, when a request is allowed again and until when
   a CA's rate limit holds. `POST /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for the hourly check now and
   answers at once: 202 with the queued check, or with the one already queued or running; 429 with `Retry-After` within
   a minute of the last request, within twenty minutes of a failed attempt, or before a CA's rate limit ends; 409 with
@@ -1447,7 +1451,11 @@ with `--check`).
   certificate with no subject alternative names), `AcmeDomains` read in lower case, trimmed and each name once, a final
   dot taken off and the names no certificate can carry left out and named (a wildcard, an address, a name past ASCII, a
   space, a semicolon, a label that starts or ends with a hyphen, an empty label, one of 64 characters, a name of 254),
-  `Retry-After` as delay-seconds and as an HTTP-date, a rate limit's problem document told from a `badNonce`, the
+  `Retry-After` as delay-seconds and as an HTTP-date, what the server keeps of a CA's problem document
+  (`AcmeClient::ReadProblem`, which `NoteProblem_` applies: a rate limit is `urn:ietf:params:acme:error:rateLimited`
+  exactly, and no other problem - `rejectedIdentifier`, `unauthorized`, `malformed`, `caa` and the rest - is taken for
+  one; a `badNonce`, which is asked again, is not kept; the detail is read with its escapes, a quoted name inside it,
+  each run of control characters made one space and cut to 300 characters), the
   spacing between checks (the minute between requests, the twenty minutes after a failure, a CA's rate limit, the
   later of two, and nothing held against another CA), what a check that ended leaves in it (`AcmeChecks::NoteFinished`:
   a failure's cooldown, a rate limit of an hour with no `Retry-After` and of seven days at most, nothing from a check
@@ -1459,13 +1467,18 @@ with `--check`).
   so that it still tests the check that finds nothing due.
 
 - **New: the ACME routes and methods held against a CA of the suite's own.** `Shared/FakeAcmeCa.cs` answers the
-  steps of RFC 8555 on the loopback address - a directory, nonces, the account, an order that issues, is rate-limited
-  with a `Retry-After` or is held open and dropped, an authorization already valid, the finalization and the
-  certificate it is given. `API/RestApiAcme.cs`, which the Linux suite links too, holds the status's contents against
+  steps of RFC 8555 on the loopback address - a directory, which it can hold open and drop once, nonces, the account,
+  an order that issues, is rate-limited with a `Retry-After`, is refused with another problem (`rejectedIdentifier`,
+  with a `Retry-After` of a day beside it) or is held open and dropped, an authorization already valid, the
+  finalization and the certificate it is given. `API/RestApiAcme.cs`, which the Linux suite links too, holds the status's contents against
   a certificate with a wildcard name; a certificate that lacks a configured host found due at once and its failed
   attempt leaving it byte for byte, with the twenty-minute `Retry-After` after it; a save of `AcmeDomains` starting a
   check and a request while it runs answered with that check, one order made; a rate-limited order reported and
-  obeyed with the CA's two hours; the twenty minutes after a failed attempt holding the check at start a reinitialise
+  obeyed with the CA's two hours; another problem the CA answers the order with reported with its detail whole and
+  holding nothing but the twenty-minute cooldown, `rate_limited_until` null and a request refused for the cooldown; a
+  save of `AcmeDomains` made while a requested check runs, held at the directory by the CA, queuing no check beside it
+  and looked at again when that check ends, a check with trigger `settings` and reason `names` following it; the
+  twenty minutes after a failed attempt holding the check at start a reinitialise
   makes (it waits, asking the CA nothing) and a save of `AcmeDomains`, which queues no check; a rate limit with no
   `Retry-After` held for an hour, against a request and the check at start alike; a request accepted, put on the audit
   trail as one new record naming the administrator, the names and the directory, and refused for the minute after; a
@@ -1482,7 +1495,8 @@ with `--check`).
   running, for three seconds in a row before they put the ports back and delete the record (`Shared/AcmeBench.cs`),
   and wait for the check at the start their own deployment made: a check at that start that ran after the record was
   deleted with ACME still on deployed the pair again, and its restart landed in the next fixture. TlsAcmeIssuance's
-  CAs are ports of their own, 10281 and 10282, outside RestApiAcme's, whose cooldown at a shared port held its checks.
+  CAs are ports of their own, 10281 and 10282, outside RestApiAcme's (10270 to 10280, 10283 and 10284), whose cooldown
+  at a shared port held its checks.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
@@ -2228,7 +2242,9 @@ with `--check`).
   checks and the Let's Encrypt limits it is measured against - with the fifty new certificates per registered domain
   a week that a platform adding hosts meets first, since every host added re-issues the one certificate for all of
   them -, what a failed attempt leaves and what a certificate must
-  be to be installed, who may ask and what the audit trail keeps, the steps for adding a customer's mail host over
+  be to be installed, that a pair is deployed by a check only when there is no ACME (automatic) record at all, so
+  that after moving `AcmeCertificateDirectory` the record is pointed at the new files or deleted, who may ask and
+  what the audit trail keeps, the steps for adding a customer's mail host over
   COM or REST, and what it does not do (one certificate for every host, http-01 only). The Control Panel's *Automatic
   certificates (ACME)* page opens it as its help, `README.md` and `SecureDefaults.md` point to it - `README.md`'s two
   lines that said a new certificate is loaded without a restart now say that a reinitialise of the server loads it,

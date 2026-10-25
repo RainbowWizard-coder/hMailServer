@@ -188,9 +188,10 @@ each customer's domain on it: more than fifty additions in a week and the next
 order is answered `rateLimited` - after which the server orders nothing for any
 host, renewals included, until the CA's `Retry-After` (at most seven days, the
 rule above). Add hosts in batches - several names in one save, or saves made
-while a check runs, which are taken together by the one check that follows it -
-rather than one save per host in a busy week; and a certificate holds at most a
-hundred names.
+while a check runs, which are taken together by the one check that follows it
+(when the check that ran failed, the twenty minutes after it hold that one too,
+and the hourly check after them takes the saves) - rather than one save per
+host in a busy week; and a certificate holds at most a hundred names.
 
 The cooldown and the rate limit belong to the CA they were learnt from: a change
 of `AcmeDirectoryUrl` starts them afresh. They are kept in memory, not in the
@@ -207,9 +208,17 @@ not expired**; otherwise the attempt fails at the `certificate` step and says
 which. The new key and certificate are written under temporary names and moved
 into place only when both are written, the key first.
 
-A pair on disk that no ACME (automatic) record names - a certificate issued and
-never deployed - is deployed by every check, whether or not a new one is due
-and whether or not issuing it succeeds.
+A pair on disk when there is no ACME (automatic) record at all - a certificate
+issued and never deployed - is deployed by every check, whether or not a new
+one is due and whether or not issuing it succeeds. A record of that name that
+points at other files is left as it is: the status says `deployed` false, and
+the listeners keep loading the files it names, which no check renews, until the
+next issuance in `AcmeCertificateDirectory` writes the record's paths again -
+which comes only when the certificate there is due (rule 4 above, or a host it
+lacks), while the files the record names may expire first. So after moving
+`AcmeCertificateDirectory`, point the record at the new directory's
+`fullchain.pem` and `privkey.pem`, or delete the record and let the next check
+deploy the pair.
 
 ## Who may
 

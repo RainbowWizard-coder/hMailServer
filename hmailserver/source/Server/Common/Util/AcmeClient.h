@@ -156,10 +156,23 @@ namespace HM
       // a sender must use). -1 when it is neither; 0 for a date already past.
       static int ParseRetryAfter(const AnsiString &value, time_t now);
 
-      // Whether a response body is an ACME problem document (RFC 8555 section
-      // 6.7) of the given type - "rateLimited", say - judged by its top-level
-      // "type" member.
-      static bool IsProblemOfType(const AnsiString &body, const AnsiString &type);
+      // What a response body says as an ACME problem document (RFC 8555 section
+      // 6.7), read by its top-level "type" and "detail" members: the type and
+      // the detail cleaned to printable ASCII and cut to 100 and 300
+      // characters, and whether it is a rate limit - the type
+      // urn:ietf:params:acme:error:rateLimited exactly, which holds every order
+      // until its Retry-After, so that no other problem may be taken for it.
+      // False, with nothing filled in, when the body holds no type in
+      // urn:ietf:params:acme:error: or a badNonce, which SignedPost_ answers by
+      // asking again and is not what an attempt failed of. NoteProblem_ keeps
+      // what this reads; public and static so that the self-test holds it.
+      struct Problem
+      {
+         AnsiString type;
+         String detail;
+         bool rate_limited = false;
+      };
+      static bool ReadProblem(const AnsiString &body, Problem &problem);
 
       // Whether the certificate chain the CA issued is one to install: its
       // first certificate parses, belongs to the key the request was made
@@ -419,7 +432,9 @@ namespace HM
       // The subscription on AcmeDomains: a saved list that names a host the
       // certificate in use does not is checked now rather than at the next hour.
       // Nothing is queued when ACME is off, the list is empty or the certificate
-      // already covers it; a save while a check runs is checked after it.
+      // already covers it; a save while a check runs is checked after it, when
+      // that check ends, unless the spacing then holds every check (a failed
+      // attempt's twenty minutes, a CA's rate limit).
       static void DomainsChanged();
 
       // The scheduled task's side. Begin is false when a check is already

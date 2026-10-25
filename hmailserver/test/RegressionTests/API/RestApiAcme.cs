@@ -40,8 +40,8 @@ namespace RegressionTests.API
    [TestFixture]
    public class RestApiAcme : TestFixtureBase
    {
-      // 10270 to 10280 are this fixture's: the REST listener on the Windows bench, and
-      // a CA per test. TlsAcmeIssuance's CAs are 10281 and 10282.
+      // 10270 to 10280, 10283 and 10284 are this fixture's: the REST listener on the
+      // Windows bench, and a CA per test. TlsAcmeIssuance's CAs are 10281 and 10282.
       private static int RestPort = 10270;
       private const string AdminPassword = "testar";
 
@@ -458,6 +458,91 @@ namespace RegressionTests.API
             Assert.That(RetryAfter(headers), Is.InRange(7000, 7200), "The CA's two hours, not the twenty-minute cooldown.");
 
             Assert.AreEqual(1, ca.Count("POST", "/order"), "The rate limit was not obeyed.");
+         }
+      }
+
+      [Test]
+      [Description("A CA's refusal of the order that is no rate limit (rejectedIdentifier, 400, with a Retry-After of a day beside it) is reported as the CA's problem, its detail whole with the name it quotes, and holds nothing but the twenty-minute cooldown: rate_limited_until stays null and a request is refused 429 for the cooldown, not for a rate limit.")]
+      public void AnotherProblemFromTheCaIsReportedAndIsNoRateLimit()
+      {
+         WriteCertificate(MailOnlyPem);
+         byte[] before = File.ReadAllBytes(CertificateFile);
+
+         using (var ca = new FakeAcmeCa(10283))
+         {
+            ca.Mode = FakeAcmeCa.OrderMode.Rejected;
+
+            Dictionary<string, object> state = EnableAcme(ca.DirectoryUrl, "mail.example.test,new.example.test");
+
+            Assert.AreEqual("failed", MiniJson.Text(state, "last_attempt.outcome"));
+            Assert.AreEqual("order", MiniJson.Text(state, "last_attempt.failed_step"));
+            Assert.AreEqual("urn:ietf:params:acme:error:rejectedIdentifier", MiniJson.Text(state, "last_attempt.ca_problem.type"));
+            Assert.AreEqual("Error creating new order :: Cannot issue for \"new.example.test\": Domain name does not end with a valid public suffix (TLD)",
+               MiniJson.Text(state, "last_attempt.ca_problem.detail"), "The CA's detail is not reported whole.");
+            Assert.IsNull(MiniJson.At(state, "rate_limited_until"), "A refusal that is no rate limit was taken for one.");
+
+            (int status, string headers, string body) = Run();
+            Assert.AreEqual(429, status, body);
+            Assert.AreEqual("cooldown", MiniJson.Text(MiniJson.Object(body), "reason"), "A refusal that is no rate limit held the requests as one.");
+            Assert.That(RetryAfter(headers), Is.InRange(1100, 1200), "The twenty-minute cooldown, not the day the CA's Retry-After gave.");
+
+            Dictionary<string, object> after = Status();
+            Assert.AreEqual("cooldown", MiniJson.Text(after, "requests.waiting_for"));
+            Assert.IsNull(MiniJson.At(after, "rate_limited_until"));
+
+            Assert.AreEqual(1, ca.Count("POST", "/order"));
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(CertificateFile), "A failed attempt changed the certificate in use.");
+         }
+      }
+
+      // ------------------------------------------------------------------ a save while a check runs
+
+      [Test]
+      [Description("A save of AcmeDomains made while a check runs - here a requested check that finds the names covered, held where it asks the CA's directory for the renewal window - queues no check beside it, and is looked at again when that check ends: a check with trigger settings and reason names follows it at once, not at the next hour.")]
+      public void ASaveWhileACheckRunsIsCheckedWhenThatCheckEnds()
+      {
+         WriteCertificate(MailOnlyPem);
+         byte[] before = File.ReadAllBytes(CertificateFile);
+
+         using (var ca = new FakeAcmeCa(10284))
+         {
+            Dictionary<string, object> started = EnableAcme(ca.DirectoryUrl, "mail.example.test");
+            Assert.AreEqual("not_due", MiniJson.Text(started, "last_attempt.outcome"), "The certificate names the one host configured.");
+
+            // The next directory request - the requested check's, which finds the names
+            // covered and asks for the CA's renewal window - is held eight seconds and
+            // dropped, after which the check falls back to the dates and finds nothing due.
+            ca.HoldNextDirectory(8);
+
+            (int status, string headers, string body) = Run();
+            Assert.AreEqual(202, status, body);
+            long id = MiniJson.Number(MiniJson.Object(body), "attempt.id");
+
+            DateTime until = DateTime.UtcNow.AddSeconds(30);
+            while (ca.DirectoriesHeld == 0 && DateTime.UtcNow < until)
+               Thread.Sleep(100);
+            Assert.AreEqual(1, ca.DirectoriesHeld, "The requested check did not reach the directory.");
+
+            // The order the check after it makes is held a second and dropped.
+            ca.Mode = FakeAcmeCa.OrderMode.Stall;
+            ca.StallSeconds = 1;
+
+            IniFileSetting.Write("AcmeDomains", "mail.example.test,new.example.test");
+
+            Dictionary<string, object> during = Status();
+            Assert.AreEqual(id, MiniJson.Number(during, "running.id"), "The save queued a check in place of the one running.");
+            Assert.AreEqual("request", MiniJson.Text(during, "running.trigger"));
+
+            Dictionary<string, object> after = WaitFor(s => MiniJson.At(s, "running") == null && MiniJson.Number(s, "last_attempt.id") > id,
+               "the check after the held one to end", 60);
+            Assert.AreEqual("settings", MiniJson.Text(after, "last_attempt.trigger"),
+               "The check after the held one is not the save's.");
+            Assert.AreEqual("names", MiniJson.Text(after, "last_attempt.reason"));
+            Assert.AreEqual("failed", MiniJson.Text(after, "last_attempt.outcome"));
+            Assert.AreEqual("order", MiniJson.Text(after, "last_attempt.failed_step"));
+            Assert.AreEqual(1, ca.Count("POST", "/order"), "The save's check is not the one order made.");
+
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(CertificateFile), "A failed attempt changed the certificate in use.");
          }
       }
 

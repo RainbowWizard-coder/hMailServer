@@ -217,6 +217,74 @@ namespace HM
          return CleanBytes((const unsigned char *) value.c_str(), value.GetLength(), maxLength);
       }
 
+      // A JSON string's content, as JsonStringValue_ gives it, read as text: \",
+      // \\ and \/ as the character, \uXXXX of printable ASCII as that
+      // character, and every other escape - a line break, a tab, a character
+      // past ASCII - as a control character, which CleanText then makes one
+      // space with the run it is in. A CA's sentence quotes the name it refuses
+      // ("Cannot issue for \"...\"").
+      AnsiString JsonUnescapeText(const AnsiString &value)
+      {
+         AnsiString result;
+         const int length = value.GetLength();
+
+         for (int i = 0; i < length; i++)
+         {
+            const char character = value[i];
+
+            if (character != '\\' || i + 1 >= length)
+            {
+               result += character;
+               continue;
+            }
+
+            const char escaped = value[++i];
+
+            if (escaped == '"' || escaped == '\\' || escaped == '/')
+            {
+               result += escaped;
+               continue;
+            }
+
+            if (escaped == 'u' && i + 4 < length)
+            {
+               int code = 0;
+               bool hex = true;
+
+               for (int digit = 1; digit <= 4 && hex; digit++)
+               {
+                  const char c = value[i + digit];
+                  if (c >= '0' && c <= '9')
+                     code = code * 16 + (c - '0');
+                  else if (c >= 'a' && c <= 'f')
+                     code = code * 16 + (c - 'a' + 10);
+                  else if (c >= 'A' && c <= 'F')
+                     code = code * 16 + (c - 'A' + 10);
+                  else
+                     hex = false;
+               }
+
+               if (hex)
+               {
+                  i += 4;
+                  result += (code >= 0x20 && code < 0x7f) ? (char) code : '\n';
+                  continue;
+               }
+            }
+
+            result += '\n';
+         }
+
+         return result;
+      }
+
+      // The detail of a CA's problem document, from the raw string content: read,
+      // cleaned and cut to 300 characters.
+      String ProblemDetail(const AnsiString &raw)
+      {
+         return String(CleanText(JsonUnescapeText(raw), 300));
+      }
+
       // A JSON string's content: the characters a JSON string may not hold as
       // they are escaped, everything else as it is. The caller gives UTF-8.
       AnsiString JsonEscape(const AnsiString &value)
@@ -1066,19 +1134,18 @@ namespace HM
       }
 
       // A badNonce is answered by SignedPost_ asking again, and is not what an
-      // attempt failed of; anything else the CA explains is.
-      const AnsiString type = JsonStringValue_(response.body, "type");
-
-      if (!type.StartsWith("urn:ietf:params:acme:error:") || type == "urn:ietf:params:acme:error:badNonce")
+      // attempt failed of; anything else the CA explains is (ReadProblem).
+      Problem problem;
+      if (!ReadProblem(response.body, problem))
          return;
 
-      failure_.problem_type = CleanText(type, 100);
-      failure_.problem_detail = String(CleanText(JsonStringValue_(response.body, "detail"), 300));
+      failure_.problem_type = problem.type;
+      failure_.problem_detail = problem.detail;
 
       // RFC 8555 section 6.6: a rate limit is answered with this type and, as a
       // rule, a Retry-After saying when to come back. Kept once seen in this
       // attempt, whatever the CA says after it.
-      if (type == "urn:ietf:params:acme:error:rateLimited")
+      if (problem.rate_limited)
       {
          failure_.rate_limited = true;
          failure_.retry_after_seconds = ParseRetryAfter(response.retry_after, time(nullptr));
@@ -1097,9 +1164,19 @@ namespace HM
 
    // static
    bool
-   AcmeClient::IsProblemOfType(const AnsiString &body, const AnsiString &type)
+   AcmeClient::ReadProblem(const AnsiString &body, Problem &problem)
    {
-      return JsonStringValue_(body, "type") == "urn:ietf:params:acme:error:" + type;
+      problem = Problem();
+
+      const AnsiString type = JsonStringValue_(body, "type");
+
+      if (!type.StartsWith("urn:ietf:params:acme:error:") || type == "urn:ietf:params:acme:error:badNonce")
+         return false;
+
+      problem.type = CleanText(type, 100);
+      problem.detail = ProblemDetail(JsonStringValue_(body, "detail"));
+      problem.rate_limited = type == "urn:ietf:params:acme:error:rateLimited";
+      return true;
    }
 
    // static
@@ -1305,9 +1382,24 @@ namespace HM
 
       valueStart++;
 
-      int valueEnd = json.Find("\"", valueStart);
-      if (valueEnd < 0)
-         return "";
+      // The quote that ends the string: one an odd run of backslashes comes
+      // before is a quote inside it.
+      int valueEnd = valueStart;
+      for (;;)
+      {
+         valueEnd = json.Find("\"", valueEnd);
+         if (valueEnd < 0)
+            return "";
+
+         int backslashes = 0;
+         while (valueEnd - backslashes > valueStart && json[valueEnd - backslashes - 1] == '\\')
+            backslashes++;
+
+         if (backslashes % 2 == 0)
+            break;
+
+         valueEnd++;
+      }
 
       return json.Mid(valueStart, valueEnd - valueStart);
    }
@@ -1686,7 +1778,7 @@ namespace HM
             if (errorAt >= 0)
             {
                failure_.problem_type = CleanText(JsonStringValue_(pollResponse.body, "type", errorAt), 100);
-               failure_.problem_detail = String(CleanText(JsonStringValue_(pollResponse.body, "detail", errorAt), 300));
+               failure_.problem_detail = ProblemDetail(JsonStringValue_(pollResponse.body, "detail", errorAt));
             }
 
             Fail_("authorization", Formatter::Format("The CA could not validate the http-01 challenge for {0}: it could not fetch the answer from this server on port 80.", domain));
@@ -3648,14 +3740,53 @@ namespace HM
 
       // ---- the CA's problem document
       {
-         Expect(AcmeClient::IsProblemOfType("{\"type\":\"urn:ietf:params:acme:error:rateLimited\",\"detail\":\"too many\",\"status\":429}", "rateLimited"),
-            "a rateLimited problem document was not recognised");
-         Expect(AcmeClient::IsProblemOfType("{\n  \"type\": \"urn:ietf:params:acme:error:rateLimited\"\n}", "rateLimited"),
-            "a pretty-printed rateLimited problem document was not recognised");
-         Expect(!AcmeClient::IsProblemOfType("{\"type\":\"urn:ietf:params:acme:error:badNonce\"}", "rateLimited"),
-            "a badNonce was taken for a rate limit");
-         Expect(!AcmeClient::IsProblemOfType("{\"status\":\"valid\"}", "rateLimited"),
-            "a body with no type was taken for a rate limit");
+         // What NoteProblem_ keeps of an answer: a rate limit, which holds every
+         // order until its Retry-After, is the one type of that name and no other.
+         AcmeClient::Problem problem;
+
+         Expect(AcmeClient::ReadProblem("{\"type\":\"urn:ietf:params:acme:error:rateLimited\",\"detail\":\"too many\",\"status\":429}", problem) &&
+                problem.rate_limited && problem.type == "urn:ietf:params:acme:error:rateLimited" && problem.detail == _T("too many"),
+            "a rateLimited problem document was not read as a rate limit with its type and detail");
+         Expect(AcmeClient::ReadProblem("{\n  \"type\": \"urn:ietf:params:acme:error:rateLimited\"\n}", problem) && problem.rate_limited,
+            "a pretty-printed rateLimited problem document was not read as a rate limit");
+
+         const char *others[] = { "rejectedIdentifier", "unauthorized", "malformed", "caa", "connection", "serverInternal",
+                                  "rateLimitedX", "RateLimited" };
+         for (const char *other : others)
+         {
+            const AnsiString type = AnsiString("urn:ietf:params:acme:error:") + other;
+            Expect(AcmeClient::ReadProblem("{\"type\":\"" + type + "\",\"detail\":\"refused\",\"status\":400}", problem) &&
+                   !problem.rate_limited && problem.type == type && problem.detail == _T("refused"),
+               "the problem " + std::string(other) + " was not kept, or was taken for a rate limit");
+         }
+
+         Expect(!AcmeClient::ReadProblem("{\"type\":\"urn:ietf:params:acme:error:badNonce\",\"detail\":\"JWS has an invalid anti-replay nonce\"}", problem) &&
+                !problem.rate_limited && problem.type.IsEmpty() && problem.detail.IsEmpty(),
+            "a badNonce, which is asked again, was kept as what an attempt failed of");
+         Expect(!AcmeClient::ReadProblem("{\"status\":\"valid\"}", problem) && !problem.rate_limited,
+            "a body with no type was read as a problem");
+         Expect(!AcmeClient::ReadProblem("{\"type\":\"about:blank\",\"detail\":\"rateLimited\"}", problem) && !problem.rate_limited,
+            "a problem of a type outside ACME's was read as one");
+         Expect(!AcmeClient::ReadProblem("{\"detail\":\"urn:ietf:params:acme:error:rateLimited\"}", problem) && !problem.rate_limited,
+            "a detail naming the rate limit was taken for its type");
+
+         // The detail is the CA's words, cleaned and cut: printable ASCII, a run of
+         // anything else one space, 300 characters at most.
+         const std::string longDetail(400, 'x');
+         Expect(AcmeClient::ReadProblem("{\"type\":\"urn:ietf:params:acme:error:dns\",\"detail\":\"" + AnsiString(longDetail.c_str()) + "\"}", problem) &&
+                problem.detail.GetLength() == 300,
+            "a detail of 400 characters was not cut to 300");
+         Expect(AcmeClient::ReadProblem("{\"type\":\"urn:ietf:params:acme:error:dns\",\"detail\":\"no\tA record\r\n\x01" "for it\"}", problem) &&
+                problem.detail == _T("no A record for it"),
+            "a detail's control characters were not each run made one space");
+
+         // A CA quotes the name it refuses: the escaped quote is inside the detail,
+         // not its end, and the escapes are read.
+         Expect(AcmeClient::ReadProblem("{\"type\":\"urn:ietf:params:acme:error:rejectedIdentifier\","
+                                        "\"detail\":\"Cannot issue for \\\"new.example.test\\\": no public suffix \\\\ \\/ \\u0041\\u00e9\\nend\","
+                                        "\"status\":400}", problem) &&
+                problem.detail == _T("Cannot issue for \"new.example.test\": no public suffix \\ / A end") && !problem.rate_limited,
+            "a detail holding escapes was not read whole: " + std::string(AnsiString(problem.detail).c_str()));
       }
 
       // ---- the spacing of the checks

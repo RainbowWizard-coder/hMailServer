@@ -23,10 +23,13 @@ namespace RegressionTests.Shared
    ///    not checked, and the certificate it hands out is whatever the test gave it.
    ///
    ///    The order is where a test makes it misbehave: answered with a rate limit
-   ///    (urn:ietf:params:acme:error:rateLimited and a Retry-After), or held open for
-   ///    some seconds and closed with no answer, which is a CA that stopped answering.
-   ///    Every response carries a fresh Replay-Nonce, as a CA's do. A raw socket, as
-   ///    FakeHttpEndpoint is, for the reason it gives.
+   ///    (urn:ietf:params:acme:error:rateLimited and a Retry-After), refused with
+   ///    another problem (urn:ietf:params:acme:error:rejectedIdentifier, 400), or held
+   ///    open for some seconds and closed with no answer, which is a CA that stopped
+   ///    answering. The directory can be held so once (HoldNextDirectory), which holds
+   ///    a check that finds nothing due by the names where it asks the CA for its
+   ///    renewal window. Every response carries a fresh Replay-Nonce, as a CA's do. A
+   ///    raw socket, as FakeHttpEndpoint is, for the reason it gives.
    /// </summary>
    public sealed class FakeAcmeCa : IDisposable
    {
@@ -34,6 +37,7 @@ namespace RegressionTests.Shared
       {
          Issue,
          RateLimited,
+         Rejected,
          Stall
       }
 
@@ -42,6 +46,8 @@ namespace RegressionTests.Shared
       private readonly List<string> _requests = new List<string>();
       private volatile bool _stopping;
       private int _nonce;
+      private int _holdNextDirectorySeconds;
+      private int _directoriesHeld;
 
       public FakeAcmeCa(int port)
       {
@@ -91,6 +97,18 @@ namespace RegressionTests.Shared
          lock (_lock)
             return _requests.Count(line => line == method + " " + path);
       }
+
+      /// <summary>
+      ///    The next request for the directory, and that one alone, is held this many
+      ///    seconds and closed with no answer; those after it are answered.
+      /// </summary>
+      public void HoldNextDirectory(int seconds)
+      {
+         Interlocked.Exchange(ref _holdNextDirectorySeconds, seconds);
+      }
+
+      /// <summary>How many requests for the directory have been held so far.</summary>
+      public int DirectoriesHeld => Volatile.Read(ref _directoriesHeld);
 
       public void Dispose()
       {
@@ -182,6 +200,16 @@ namespace RegressionTests.Shared
          switch (path)
          {
          case "/directory":
+            int hold = Interlocked.Exchange(ref _holdNextDirectorySeconds, 0);
+            if (hold > 0)
+            {
+               Interlocked.Increment(ref _directoriesHeld);
+               DateTime heldUntil = DateTime.UtcNow.AddSeconds(hold);
+               while (DateTime.UtcNow < heldUntil && !_stopping)
+                  Thread.Sleep(100);
+               return;
+            }
+
             status = 200;
             contentType = "application/json";
             body = "{\"newNonce\":\"" + Base + "/nonce\",\"newAccount\":\"" + Base + "/account\",\"newOrder\":\"" + Base + "/order\"}";
@@ -216,6 +244,17 @@ namespace RegressionTests.Shared
                if (RetryAfter != null)
                   headers.Add("Retry-After: " + RetryAfter);
                body = "{\n  \"type\": \"urn:ietf:params:acme:error:rateLimited\",\n  \"detail\": \"too many certificates (5) already issued for this exact set of identifiers in the last 168h0m0s\",\n  \"status\": 429\n}";
+               break;
+            }
+
+            if (Mode == OrderMode.Rejected)
+            {
+               // A refusal that is not a rate limit, with a Retry-After beside it that
+               // a client must not read as one.
+               status = 400;
+               contentType = "application/problem+json";
+               headers.Add("Retry-After: 86400");
+               body = "{\n  \"type\": \"urn:ietf:params:acme:error:rejectedIdentifier\",\n  \"detail\": \"Error creating new order :: Cannot issue for \\\"new.example.test\\\": Domain name does not end with a valid public suffix (TLD)\",\n  \"status\": 400\n}";
                break;
             }
 
@@ -254,7 +293,7 @@ namespace RegressionTests.Shared
          headers.Add("Replay-Nonce: fake-nonce-" + nonce);
 
          byte[] bodyBytes = Encoding.ASCII.GetBytes(body);
-         string reason = status == 200 ? "OK" : status == 201 ? "Created" : status == 429 ? "Too Many Requests" : "Not Found";
+         string reason = status == 200 ? "OK" : status == 201 ? "Created" : status == 429 ? "Too Many Requests" : status == 400 ? "Bad Request" : "Not Found";
          var head = new StringBuilder();
          head.Append("HTTP/1.0 " + status + " " + reason + "\r\n");
          head.Append("Content-Type: " + contentType + "\r\n");

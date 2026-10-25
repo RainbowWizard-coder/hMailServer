@@ -33,7 +33,7 @@ main()
       return 1;
    }
 
-   printf("ok    ACME checks: the names a certificate covers, AcmeDomains read (the names no certificate can carry left out), Retry-After in both forms, a rate limit's problem document, the spacing between checks and what an ended check leaves in it, a dropped reservation, and a certificate the CA issued refused for another key, a missing name, an expiry or no certificate at all (%s)\n",
+   printf("ok    ACME checks: the names a certificate covers, AcmeDomains read (the names no certificate can carry left out), Retry-After in both forms, a CA's problem document (a rate limit told from every other problem), the spacing between checks and what an ended check leaves in it, a dropped reservation, and a certificate the CA issued refused for another key, a missing name, an expiry or no certificate at all (%s)\n",
       OpenSSL_version(OPENSSL_VERSION));
    return 0;
 }
