@@ -1214,8 +1214,13 @@ versions; no source and no credential) to `metrics.semgrep.dev`, whose
 certificate is checked against that bundle. Setting `SAST_SEMGREP_METRICS` is a
 change of the job's variables, which `semgrep-sast-gate` takes as a narrowing of
 what the scan reads and holds to a change of its own ([Change
-checks](#change-checks)); a new digest brings a newer certifi once GitLab
-publishes an analyzer built with certifi 2026.10.19 or later.
+checks](#change-checks)); a new digest brings a newer certifi. GitLab's
+`semgrep:6` of 24 October 2026 (the index
+`sha256:ee625247da18524a4949e44e99f772a8cc0a18d843d8bed8255ca439f9c94669`) is
+such an analyzer: its linux/amd64 image carries certifi 2026.10.23 and Semgrep
+1.181.0, on Python 3.15. Taking it is the copy and the re-reading of
+"Re-pinning `semgrep-sast`'s analyzer", below, by a person whose token may write
+the project's registry.
 
 The script handles no token, as `build/ci/build-linux-image.sh` does not: it
 needs a `docker login registry.gitlab.com` made before it runs, by a person
@@ -6074,7 +6079,7 @@ gives the copy 5.7:
 | Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool, Fuzzing, License, Pinned-Dependencies, Security-Policy, Token-Permissions | 10 | No binary tracked; no workflow pattern Scorecard counts as dangerous; Renovate (`renovate.json`); the libFuzzer harnesses under `fuzz/`; `LICENSE`; every action pinned by commit and every image by digest; `SECURITY.md`; every workflow's token read-only but for its job's own writes. They stay 10 (*Measured on the tree*, below) |
 | Branch-Protection | 3 | `master`'s rules then forbade its deletion and a force push, and required no pull request, review or status check. Since 20 October 2026 a ruleset requires a pull request with two approvals, the code owner's among them, and CodeQL's check on an up-to-date branch ([Mirroring.md](Mirroring.md#githubs-rules-for-the-copy)): Scorecard 5.6.0, run that day with the owner's token, gave 9. The one warning left, that the rules do not apply to administrators, stays: Scorecard reads a ruleset that any role may bypass as one that administrators are not held to, and the push mirror writes `master` as the repository's administrator, past those rules, as it must |
 | SAST | 0 | "No SAST tool detected": the default setup analysed every push, but has no workflow file, and the copy has no merged pull request through whose checks Scorecard could see it. 10 once `codeql.yml` is on `master` |
-| Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). With both on `master`, scorecard.dev's run of 21 October 2026 (01:01 UTC, at `5e49abf06`) gave 9 rather than 10, for an advisory OSV published the evening before: PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2) against certifi 2026.7.22, which `build/ci/requirements.txt` and `build/ci/cli-packages-requirements.txt` pinned. Both now pin certifi 2026.10.19, the version that fixes it. Its run of 22 October 2026 (22:59 UTC, at `6fb8164c6`) gave 9 again, for GHSA-xcq7-p3pf-p88h (CVE-2026-114603), published that day, against opentelemetry-api 1.37.0, which no Semgrep release yet lets the job move past; it is declared `not_affected` too, and `build/ci/osv-scanner.toml` carries that statement as well (below) |
+| Vulnerabilities | 0 | Fifteen advisories against `build/ci/requirements.txt`, the semgrep job's own environment: fourteen against PyJWT 2.13.0 and one, GHSA-84m7-p3x7-pcfv, against mcp 1.29.0. PyJWT 2.15.1 has none, and `build/ci/osv-scanner.toml` carries mcp 1.29.0's `not_affected` statement to OSV-Scanner (below). With both on `master`, scorecard.dev's run of 21 October 2026 (01:01 UTC, at `5e49abf06`) gave 9 rather than 10, for an advisory OSV published the evening before: PYSEC-2026-4320 (GHSA-6q48-6c7w-9gw2) against certifi 2026.7.22, which `build/ci/requirements.txt` and `build/ci/cli-packages-requirements.txt` pinned. Both then pinned certifi 2026.10.19, the version that fixes it, and now pin 2026.10.23, which takes out two of the three emSign roots 2026.10.19 had put back, `emSign Root CA - C1` and `emSign ECC Root CA - C3`. Its run of 22 October 2026 (22:59 UTC, at `6fb8164c6`) gave 9 again, for GHSA-xcq7-p3pf-p88h (CVE-2026-114603), published that day, against opentelemetry-api 1.37.0, which no Semgrep release yet lets the job move past; it is declared `not_affected` too, and `build/ci/osv-scanner.toml` carries that statement as well (below) |
 | Signed-Releases | 4 | Below |
 | Code-Review, Maintained, CII-Best-Practices, Contributors | 0 | Below |
 | CI-Tests, Packaging | Inconclusive | Below |

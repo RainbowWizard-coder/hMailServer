@@ -1671,6 +1671,27 @@ with `--check`).
   GitLab publishes one built with 2026.10.19 or later. Both files install with `pip
   --require-hashes` (the second into a virtual environment on Windows), and both resolve for Linux on Python 3.14.
 
+- **certifi 2026.10.23 for the semgrep job and the command-line packages' jobs.** certifi 2026.10.23, published on 23
+  October 2026, takes out of its bundle two of the three emSign roots that 2026.10.19 had put back,
+  `emSign Root CA - C1` and `emSign ECC Root CA - C3`, keeping `emSign Root CA - G1`, and changes nothing else (its
+  bundle has 118 roots).
+  GHSA-6q48-6c7w-9gw2 still names 2026.10.19 as its fixed version. `build/ci/requirements.txt` and
+  `build/ci/cli-packages-requirements.txt` pin 2026.10.23 with the SHA-256 of the two files PyPI publishes for it:
+  the `uv pip compile` command of each file's header, run with `--upgrade-package certifi` in the
+  `python:3.14-slim-trixie` image the jobs pin, moves certifi alone, and its output, with the file's own header
+  lines put back, is the file. Both files install with `pip --require-hashes` in that image, where `pip check`
+  passes, Semgrep 1.181.0 starts, and the cli-packages job's steps pass: the self-tests of
+  `build/check-cli-packages.py` and `build/ci/cli-packages.py`, the build, `check-cli-packages.py --dist` and
+  `twine check --strict`. The second file also installs in the .NET SDK image `psgallery-publish` runs (whose
+  Python is 3.12) and in a virtual environment on Windows. From each environment, requests reaches over TLS, with
+  certifi's bundle, every host the jobs ask: PyPI and its upload address, Sigstore's Fulcio, Rekor, TUF repository
+  and OAuth addresses, the PowerShell Gallery, GitLab, semgrep.dev and metrics.semgrep.dev. None of those hosts
+  chains to an emSign root. GitHub's Dependabot alerts on the copy for certifi 2026.7.22 in both files stayed open
+  after 2026.10.19 reached `master` there: on 25 October 2026 GitHub's dependency graph of each file still listed
+  2026.7.22 beside 2026.10.19, though neither file has named 2026.7.22 since. GitLab's `semgrep:6` analyzer of 24
+  October 2026 carries certifi 2026.10.23 too; `semgrep-sast` keeps the copy of 5 October 2026 until the analyzer is
+  re-pinned (ContinuousIntegration.md, "Security scanning").
+
 - **Semgrep 1.181.0 and PyJWT 2.15.1 for the semgrep job, Playwright 1.64.0 for the build scripts, and the VEX
   document's twelve PyJWT 2.13.0 statements retired.** Renovate's Python merge request of 19 October 2026 moved the
   two `.in` files; `build/ci/requirements.txt` and `build/requirements-dev.txt` are remade with the `uv pip compile`
