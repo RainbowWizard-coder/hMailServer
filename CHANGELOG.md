@@ -1210,7 +1210,9 @@ with `--check`).
   `IMAPFetch.cpp`'s notice given another year, and `SpamTestDMARC.cpp` put in the list, each in the list and the file
   alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
   notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and
-  `generate-reuse-original.py`'s texts no longer say that the files' own text does not name him.
+  `generate-reuse-original.py`'s texts no longer say that the files' own text does not name him. The notices
+  themselves went in by a commit of their own, which adds the 1,101 lines, each below its file's header in the file's
+  own line endings, and changes nothing else.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`

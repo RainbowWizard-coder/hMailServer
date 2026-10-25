@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2010 Martin Knafve / hMailServer.com.
 
 // The Web Key Directory: this server publishing its users' OpenPGP public keys
 // (docs/OpenPGP.md). In hm_settings by the rule of 15 September 2026, with rows

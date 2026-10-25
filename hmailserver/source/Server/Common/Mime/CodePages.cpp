@@ -1,6 +1,7 @@
 // https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2007 Martin Knafve / hMailServer.com.
 
 // Contains mapping between character sets and code pages
 // http://www.iana.org/assignments/character-sets
