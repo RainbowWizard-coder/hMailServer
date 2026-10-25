@@ -2484,7 +2484,8 @@ SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-ISXKB-Public-Domain"
 # they stand and what they leave out: the project grants no licence for it and claims
 # no right in it. Scott McMaster is named beside Martin Knafve and the maintainers,
 # whose the rest of the file is - the note, the namespace and the original's changes,
-# and the fork's header and layout - under the project's licence.
+# and the fork's header, layout and changes (three fields made readonly, and the
+# catch limited to exceptions that are not fatal) - under the project's licence.
 # The source tarball, and so the Debian source package, leaves
 # hmailserver/source/Tools/Shared out (build/source-exclusions.txt).
 [[annotations]]
