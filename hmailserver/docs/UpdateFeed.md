@@ -130,10 +130,14 @@ gave it. Pointing it at this feed changes where it looks, not whom it trusts.
 A server built after 6.3.3 checks more (see [What a server built after 6.3.3
 checks](#what-a-server-built-after-633-checks)).
 
-- **The releases up to 6.3.3 install through it.** GitLab hosts them byte for
-  byte as GitHub published them, with the bundles GitHub Actions made. They
-  verify against the old server's own signer, so a server on 6.2.28 can go to
-  6.3.3 by the live update as before, with a rollback image.
+- **The releases up to 6.3.3 verify, but the feed does not offer them.** GitLab
+  hosts them byte for byte as GitHub published them, with the bundles GitHub
+  Actions made, and they verify against the old server's own signer. The server
+  is offered only the newest release in the list, though, which is signed on
+  GitLab (the next point), and it downloads only the installer its check found:
+  neither `POST /api/v1/update/download` nor `Status.DownloadUpdate()` takes a
+  version. So a server on 6.2.28 to 6.3.2 does not reach 6.3.3 by the live
+  update either; that upgrade too is done by hand, as below.
 - **A release signed on GitLab does not install through an old server's live
   update.** From 6.3.5 the releases are signed by this project's GitLab CI
   pipeline for their `v*` tag, since the project's pipelines run on GitLab and
@@ -143,11 +147,12 @@ checks](#what-a-server-built-after-633-checks)).
   installs it by the live update: one offered it says it cannot be verified and
   downloads nothing (`UpdateDownloader.cpp`; the feed's check lets it through
   by name, `UNSIGNED_BY_DESIGN` in `build/generate-update-feed.py`). It is
-  installed by hand, as below. An old server's check finds a release signed
-  on GitLab - 6.3.5 - but its download is refused: "The certificate names
-  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`,
-  not this repository's release workflow." Nothing is installed, and the server
-  runs on as it was.
+  installed by hand, as below. An old server's check finds the newest release,
+  signed on GitLab, but its download is refused: "The certificate names
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
+  not this repository's release workflow." (6.3.5's, signed before the project
+  moved to the group, names `gitlab.com/Progressiverobot/hmailserver`.) Nothing
+  is installed, and the server runs on as it was.
 - **Turn automatic download off until then.** With `UpdateAutoDownload=1`
   ("Download and verify the installer as soon as a release is found" on the
   Updates card; off by default) such a server downloads the whole installer,
