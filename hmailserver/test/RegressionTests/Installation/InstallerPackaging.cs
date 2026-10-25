@@ -1258,6 +1258,44 @@ namespace RegressionTests.Installation
       }
 
       [Test]
+      [Description("Work item 78: every mask setup's [Code] tests an entry's rights against is a named HM_ constant that counts a generic right as the rights it means for a folder - it carries exactly the generic rights whose mapping (FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS) meets one of its own - as the server maps an entry's generic rights before it compares (ServiceAccount.cpp's FileRights_); and what reads is FILE_LIST_DIRECTORY with GENERIC_READ and GENERIC_ALL ($90000001), as EveryUserReads_ asks the mapped rights for FILE_READ_DATA. An entry handed down is often written with generic rights: Program Files hands Users (OI)(CI)(IO)(GR,GE) down, and with GENERIC_READ left out of the read mask setup made C:\\Program Files\\hMailServer with no entry for Users (the installer smoke VM, 23 October 2026).")]
+      public void EveryMaskSetupTestsAnEntryAgainstCountsGenericRightsAsWhatTheyMean()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         var constants = new Dictionary<string, uint>();
+         foreach (Match constant in Regex.Matches(extension, @"^\s*(HM_\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;", RegexOptions.Multiline))
+            constants[constant.Groups[1].Value] = Convert.ToUInt32(constant.Groups[2].Value, 16);
+
+         // The masks an entry's rights are tested against: head.Mask and ..., and the
+         // rights AclLetsOthers is asked about (its own test is of its parameter).
+         var tested = new HashSet<string>(Regex.Matches(extension, @"\.Mask\s+and\s+(\$?\w+)").Cast<Match>().Select(match => match.Groups[1].Value));
+         tested.UnionWith(Regex.Matches(extension, @"\bAclLetsOthers\(\s*\w+\s*,\s*(\$?\w+)\s*,").Cast<Match>().Select(match => match.Groups[1].Value));
+         tested.Remove("Rights");
+         foreach (string name in new[] { "HM_FOLDER_WRITE_RIGHTS", "HM_FOLDER_READ_RIGHTS", "HM_REMOVE_FROM_FOLDER_RIGHTS" })
+            Assert.IsTrue(tested.Contains(name), "No entry's rights are tested against " + name + " any more; update this test.");
+
+         // Each generic right, its bit, and what it means for a file or a folder.
+         var generic = new[] { new { Name = "GENERIC_READ", Bit = 0x80000000u, Means = 0x120089u }, new { Name = "GENERIC_WRITE", Bit = 0x40000000u, Means = 0x120116u },
+                               new { Name = "GENERIC_EXECUTE", Bit = 0x20000000u, Means = 0x1200A0u }, new { Name = "GENERIC_ALL", Bit = 0x10000000u, Means = 0x1F01FFu } };
+         foreach (string name in tested)
+         {
+            Assert.IsTrue(constants.ContainsKey(name), "An entry's rights are tested against " + name + ", which is not a named HM_ mask.");
+            uint value = constants[name];
+            uint own = value & 0x0FFFFFFFu;
+            foreach (var right in generic)
+               Assert.AreEqual((right.Means & own) != 0, (value & right.Bit) != 0,
+                  name + " ($" + value.ToString("X8") + ") does not count " + right.Name + " as what it means for a folder.");
+         }
+
+         Assert.AreEqual(0x90000001u, constants["HM_FOLDER_READ_RIGHTS"], "What reads is not FILE_LIST_DIRECTORY with GENERIC_READ and GENERIC_ALL.");
+         foreach (string routine in new[] { "EveryUserMayRead", "EveryUserMayReadMadeIn" })
+            StringAssert.Contains("head.Mask and HM_FOLDER_READ_RIGHTS", CodeBody(extension, routine), routine + " does not test an entry's rights against HM_FOLDER_READ_RIGHTS.");
+         string serviceAccount = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceAccount.cpp");
+         StringAssert.Contains("FileRights_(allow->Mask) & FILE_READ_DATA", CppFunctionCode(serviceAccount, "bool EveryUserReads_(", "ServiceAccount.cpp"),
+            "The server no longer asks the mapped rights for FILE_READ_DATA before it gives Users Read & execute; hold the installer's read mask to what it asks now.");
+      }
+
+      [Test]
       [Description("Work item 78, the volumes setup does not install into: a program folder on a share of another computer or a network drive, whose permissions that computer sets, or on a volume that keeps no permissions (FAT, exFAT), where every account may change every program - refused in PrepareToInstall before anything changes, with what to do. In 6.3.7 and earlier setup installed there and could not harden anything.")]
       public void AProgramFolderNoPermissionsCanProtectIsRefused()
       {

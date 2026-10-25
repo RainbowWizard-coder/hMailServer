@@ -327,12 +327,16 @@ with `--check`).
   `PrepareToInstall`, before Inno Setup makes a folder or copies a file, makes the program folder, and every folder
   above it that is not there, with `CreateDirectoryW` and a security descriptor: SYSTEM and the Administrators full
   control, `BUILTIN\Users` Read & execute where every user could read a folder made there, nothing inherited, the
-  Administrators the owner. In 6.3.7 Inno Setup made the folder with the permissions the folder above hands down, and
-  `icacls` replaced them just after. The uninstaller is given each folder setup made (`section_dirs.iss`) and removes
-  it when it is empty, and those still empty are removed when setup is cancelled or fails before its files.
-  `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke test, which reads the folder's
-  permissions the moment it appears, hold it ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the
-  files"). Found by the hMailServer project (Progressive Robot Ltd).
+  Administrators the owner. An entry the folder above hands down with generic rights counts as the rights they mean
+  for a folder, as the server counts it, so that `C:\Program Files\hMailServer`, where Program Files hands Users
+  `(GR,GE)` down, gets its Users entry; `InstallerPackaging.cs` and `build/check-installer-scripts.py` hold every mask
+  setup tests an entry's rights against to the generic rights that mean one of its own. In 6.3.7 Inno Setup made the
+  folder with the permissions the folder above hands down, and `icacls` replaced them just after. The uninstaller is
+  given each folder setup made (`section_dirs.iss`) and removes it when it is empty, and those still empty are removed
+  when setup is cancelled or fails before its files. `InstallerPackaging.cs`, `build/check-installer-scripts.py` and
+  the installer smoke test, which reads the folder's permissions the moment it appears, hold it
+  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the files"). Found by the hMailServer project
+  (Progressive Robot Ltd).
 
 - **Fixed: on Windows, setup hardens a program folder, `Bin` and `ControlPanel` that are already there before it
   copies a file or runs a program of the installation** ([work item

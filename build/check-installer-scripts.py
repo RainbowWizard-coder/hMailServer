@@ -113,6 +113,19 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                the entries of a folder's own that let every user write (R4).
                HardenNewProgramFolder, which hardened a folder Inno Setup had made,
                is not to come back.
+  masks        Every mask the [Code] tests an entry's rights against (head.Mask and
+               HM_..., and the rights AclLetsOthers is asked about) is a named
+               HM_ constant that carries exactly the generic rights whose mapping
+               for a file or folder (FILE_GENERIC_READ, FILE_GENERIC_WRITE,
+               FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS) meets one of its own, since
+               an entry handed down is often written with generic rights and the
+               server maps them before it compares (ServiceAccount.cpp's
+               FileRights_); and HM_FOLDER_READ_RIGHTS asks for FILE_LIST_DIRECTORY,
+               as EveryUserReads_ asks the mapped rights for FILE_READ_DATA. A read
+               mask without GENERIC_READ ($10000001) found no user who could read a
+               folder made in Program Files, which hands Users (GR,GE) down, so
+               setup made C:\\Program Files\\hMailServer with no entry for Users
+               (the installer smoke VM, 23 October 2026).
 
 The check proves its own negative controls on every run, on altered copies of the
 texts it reads: an entry without a RunOnceId, two entries sharing one, an
@@ -140,8 +153,9 @@ given three entries alone, the service's inherited Read dropped from it, the hol
 without READ_CONTROL, a link gone through unasked, a link's permissions read by its
 path, Bin's link not checked, the rights on a link narrowed below the server's, the
 folders prepared without the refusal reaching PrepareToInstall's answer, the owners
-in Bin not said, the entries kept not said, and a volume without permissions not
-refused, must all be refused.
+in Bin not said, the entries kept not said, a volume without permissions not
+refused, the read mask without GENERIC_READ, and an entry's rights tested against
+an unnamed mask, must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -165,6 +179,9 @@ FILES = ('section_files_64.iss', 'section_files_common.iss', 'section_files_arm6
 MAIN = 'hMailServer/hMailServer.cpp'
 # The server's rule for a link it goes through, which the installer's is held to.
 PROTECTED_FILE = 'Common/Util/ProtectedFile.cpp'
+# The server's question before it gives Users Read & execute (EveryUserReads_),
+# which the installer's read mask is held to.
+SERVICE_ACCOUNT = 'Common/Util/ServiceAccount.cpp'
 DIRS = 'section_dirs.iss'
 EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
 # Under Tools: the database step the installer runs, and the password it hands on.
@@ -211,6 +228,7 @@ def load():
             texts[name] = read(os.path.join(INSTALLATION, name))
     texts[MAIN] = read(os.path.join(SERVER, MAIN))
     texts[PROTECTED_FILE] = read(os.path.join(SERVER, PROTECTED_FILE))
+    texts[SERVICE_ACCOUNT] = read(os.path.join(SERVER, SERVICE_ACCOUNT))
     texts[EVENT_LOG] = read(os.path.join(SERVER, EVENT_LOG))
     texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
     texts[AUTHENTICATOR] = read(os.path.join(TOOLS, AUTHENTICATOR))
@@ -752,6 +770,56 @@ def check_program_folders(texts, problems):
         problems.append('%s: the owners in Bin and ControlPanel are not read through a handle on each' % EXTENSION)
 
 
+# Each generic right, its bit, and what it means for a file or a folder (the
+# GENERIC_MAPPING ServiceAccount.cpp's FileRights_ and ProtectedFile.cpp map with:
+# FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS).
+GENERIC_RIGHTS = (('GENERIC_READ', 0x80000000, 0x120089), ('GENERIC_WRITE', 0x40000000, 0x120116),
+                  ('GENERIC_EXECUTE', 0x20000000, 0x1200A0), ('GENERIC_ALL', 0x10000000, 0x1F01FF))
+GENERIC_BITS = 0xF0000000
+# The masks the [Code] is known to test an entry's rights against, so that a rule
+# that found none of them would not pass for want of anything to look at.
+TESTED_MASKS = ('HM_FOLDER_WRITE_RIGHTS', 'HM_FOLDER_READ_RIGHTS', 'HM_REMOVE_FROM_FOLDER_RIGHTS')
+
+
+def check_access_masks(texts, problems):
+    """Every mask an entry's rights are tested against counts generic rights as what they mean (the docstring's "masks")."""
+    ext = texts.get(EXTENSION, '')
+    constants = dict((match.group(1), int(match.group(2), 16))
+                     for match in re.finditer(r'^\s*(HM_\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;', ext, re.M))
+    tested = set(match.group(1) for match in re.finditer(r'\.Mask\s+and\s+(\$?\w+)', ext))
+    tested |= set(match.group(1) for match in re.finditer(r'\bAclLetsOthers\(\s*\w+\s*,\s*(\$?\w+)\s*,', ext))
+    # AclLetsOthers' own test is of its parameter, which its calls name.
+    tested.discard('Rights')
+    for name in TESTED_MASKS:
+        if name not in tested:
+            problems.append('%s: no entry\'s rights are tested against %s any more; update this check' % (EXTENSION, name))
+    for name in sorted(tested):
+        if name not in constants:
+            problems.append('%s: an entry\'s rights are tested against %s, which is not a named HM_ mask, so what its generic '
+                            'rights mean is not held' % (EXTENSION, name))
+            continue
+        value = constants[name]
+        own = value & ~GENERIC_BITS & 0xFFFFFFFF
+        for generic, bit, meaning in GENERIC_RIGHTS:
+            if (meaning & own) and not (value & bit):
+                problems.append('%s: %s ($%08X) leaves out %s, which an entry may carry unmapped and which means one of '
+                                'its rights for a folder' % (EXTENSION, name, value, generic))
+            elif (value & bit) and not (meaning & own):
+                problems.append('%s: %s ($%08X) counts %s, which means none of its rights for a folder' % (EXTENSION, name, value, generic))
+    if constants.get('HM_FOLDER_READ_RIGHTS', 0) & ~GENERIC_BITS != 0x1:
+        problems.append('%s: HM_FOLDER_READ_RIGHTS does not ask for FILE_LIST_DIRECTORY alone, as the server asks for '
+                        'FILE_READ_DATA' % EXTENSION)
+    for routine in ('EveryUserMayRead', 'EveryUserMayReadMadeIn'):
+        if 'head.Mask and HM_FOLDER_READ_RIGHTS' not in (pascal_routine(ext, routine) or ''):
+            problems.append('%s: %s does not test an entry\'s rights against HM_FOLDER_READ_RIGHTS' % (EXTENSION, routine))
+    server = texts.get(SERVICE_ACCOUNT, '')
+    start = server.find('bool EveryUserReads_(PACL dacl)')
+    reads = server[start:server.find('\n      }\n', start)] if start >= 0 else ''
+    if 'FileRights_(allow->Mask) & FILE_READ_DATA' not in reads:
+        problems.append('%s: EveryUserReads_ no longer asks the mapped rights for FILE_READ_DATA; hold the installer\'s '
+                        'HM_FOLDER_READ_RIGHTS to what it asks now' % SERVICE_ACCOUNT)
+
+
 def check(texts):
     problems = []
     entries = check_run_once(texts, problems)
@@ -764,6 +832,7 @@ def check(texts):
     check_credential(texts, problems)
     check_original(texts, problems)
     check_program_folders(texts, problems)
+    check_access_masks(texts, problems)
     return problems, entries
 
 
@@ -918,6 +987,11 @@ def negative_controls(texts):
          altered(texts, EXTENSION, '      SayBroadEntriesKept(Folder);\n', '')),
         ('a volume without permissions not refused',
          altered(texts, EXTENSION, '      if not VolumeKeepsPermissions(handle) then', '      if false then')),
+        ('the read mask without GENERIC_READ (the program folder made in Program Files with no entry for Users)',
+         altered(texts, EXTENSION, 'HM_FOLDER_READ_RIGHTS       = $90000001;', 'HM_FOLDER_READ_RIGHTS       = $10000001;')),
+        ('an entry\'s rights tested against an unnamed mask',
+         altered(texts, EXTENSION, '((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and IsBroadSid(pAce + 8)',
+                 '((head.Mask and $000D0156) <> 0) and IsBroadSid(pAce + 8)')),
     ]
 
     missed = []

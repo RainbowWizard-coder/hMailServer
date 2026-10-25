@@ -291,9 +291,18 @@ const
 	HM_NO_PROPAGATE_INHERIT     = $04;
 	HM_INHERIT_ONLY             = $08;
 	HM_FOLDER_WRITE_RIGHTS      = $500D0156;
-	// Reading a file or listing a folder, or GENERIC_ALL unmapped
-	// (EveryUserMayRead).
-	HM_FOLDER_READ_RIGHTS       = $10000001;
+	// Reading a file or listing a folder (FILE_LIST_DIRECTORY), or GENERIC_READ or
+	// GENERIC_ALL unmapped, each of which a folder maps to it (EveryUserMayRead,
+	// EveryUserMayReadMadeIn; ServiceAccount.cpp's EveryUserReads_, which maps an
+	// entry's generic rights before it asks for FILE_READ_DATA). An entry handed down
+	// to what is made in a folder is often written with generic rights - Program
+	// Files gives Users (OI)(CI)(IO)(GR,GE), $A0000000 - so a mask that left out
+	// GENERIC_READ would find no user who may read a folder made there. Each mask
+	// here that an entry's rights are tested against carries exactly the generic
+	// rights whose mapping for a file or folder (FILE_GENERIC_READ $120089,
+	// FILE_GENERIC_WRITE $120116, FILE_GENERIC_EXECUTE $1200A0, FILE_ALL_ACCESS
+	// $1F01FF) meets one of its own: GENERIC_EXECUTE meets none of them.
+	HM_FOLDER_READ_RIGHTS       = $90000001;
 	// For the program folder, Bin and ControlPanel, held from the root of their
 	// volume down while setup prepares and installs them (HoldForSetup,
 	// HoldFolderChain): a folder held open with FILE_LIST_DIRECTORY | FILE_TRAVERSE |

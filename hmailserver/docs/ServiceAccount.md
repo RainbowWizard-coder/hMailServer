@@ -518,7 +518,11 @@ upgrade, a repair, a silent one, and the Control Panel alone.
   not there either, each with permissions of its own from the moment it exists -
   SYSTEM and the Administrators full control, the Users' Read & execute where every
   user could read a folder made there, nothing inherited, the Administrators the owner
-  - and not Inno Setup, which made it with what the folder above hands down. A folder
+  - and not Inno Setup, which made it with what the folder above hands down. Whether
+  every user could read it is read from the entries the folder above hands down to
+  folders, a generic right counted as what it means for a folder, as the server counts
+  it: Program Files hands `Users` `(GR,GE)` down, so `C:\Program Files\hMailServer`
+  gets the Users' Read & execute. A folder
   somebody else made in the meantime is not taken: setup stops, and running it again
   looks at that folder as one that is there. The uninstaller removes each folder setup
   made when it is empty, as it removes the folders it makes; when setup is cancelled,
