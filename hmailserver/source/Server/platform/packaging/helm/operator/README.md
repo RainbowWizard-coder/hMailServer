@@ -160,10 +160,10 @@ the chart that starts a server (the init container and the user 999):
   bytes (`--reproducible`), each image labelled `org.opencontainers.image.revision` and
   `created` with the commit's given (where the base image's said Red Hat UBI's `vcs-ref`
   and build date) and `operator-image-push.sh` refusing either label changed. As the
-  published release's chart is the one 6.3.7 shipped, not this tree's, the build was given
-  the package `helm-chart-package.sh` made from this tree through a stand-in for the
-  release's two addresses; fetched from the release itself, 6.3.7's chart was refused
-  (`README.md is not the copy's`). Without `HM_PUBLISH_IMAGE`, `CI_COMMIT_SHA` or a
+  latest release's published chart is the one that release shipped, not this tree's, the
+  build was given the package `helm-chart-package.sh` made from this tree through a
+  stand-in for the release's two addresses; fetched from the release itself, its chart
+  was refused (`README.md is not the copy's`). Without `HM_PUBLISH_IMAGE`, `CI_COMMIT_SHA` or a
   timestamp, and for another project, `operator-image.sh` refused. Given a package whose
   template differs, a chart file the package lacks, a package of another version, a
   `Chart.yaml` without the placeholder version, its base image by tag alone and
