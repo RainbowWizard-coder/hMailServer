@@ -1057,7 +1057,8 @@ with `--check`).
   root, makes an unprivileged Debian 13 container from Proxmox VE's own template with the resources asked (2 cores,
   2 GiB, 16 GiB by default; every answer a `var_*` variable; nesting on, which systemd needs for the service's
   sandbox; `--dry-run` prints every command that would change the host and runs none), and copies in and runs
-  `install/hmailserver-install.sh`, which installs the release's Debian 13 `.deb` for amd64 or arm64 (6.3.6 or later)
+  `install/hmailserver-install.sh`, which installs the release's Debian 13 `.deb` for amd64 or arm64 (6.3.6 or later;
+  an older release carries none, and the scripts spell out no version, as nothing under `packaging/` but its stamps may)
   only after `cosign verify-blob` from Debian's archive has verified it and the release's Linux sums as signed by the
   tag's pipeline, OpenSSL has read the project's id from each signing certificate and the package's SHA-256 is the
   signed sums' one line for it; sets up PostgreSQL in the container (or an external server), the schema, the

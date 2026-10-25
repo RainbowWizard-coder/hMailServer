@@ -284,6 +284,7 @@ namespace hMailServer.ControlPanel.Services
          "PackagesWindows.md",
          "Performance.md",
          "PersonalData.md",
+         "Proxmox.md",
          "PublishedNumbers.md",
          "RegressionEnvironment.md",
          "RegulatoryScope.md",

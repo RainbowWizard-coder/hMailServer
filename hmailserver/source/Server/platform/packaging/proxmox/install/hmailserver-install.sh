@@ -16,7 +16,8 @@
 #   1. curl, jq, OpenSSL and cosign from Debian's own archive (cosign 2.5 in Debian 13).
 #   2. The release: var_hm_version, or the newest release of the project at
 #      https://gitlab.com/hmailserver/hmailserver whose tag is v<major>.<minor>.<patch>
-#      (6.3.6 or later: the first with a Debian 13 package signed at the group's path).
+#      (a release older than the first with Debian 13 packages carries none, and is refused
+#      as such).
 #   3. The release's Debian 13 package for this machine's architecture (amd64 or arm64),
 #      the release's Linux sums and the Sigstore bundle of each, from the release's
 #      package registry, each named by the release's own links. Each bundle is verified
@@ -48,7 +49,8 @@
 # The variables, from the environment or from --env-file, which is read as shell
 # assignments and then deleted (ct/hmailserver.sh writes it with mode 0600, so that a
 # database password is never on a command line):
-#   var_hm_version    the release to install or update to (6.3.7); default the newest
+#   var_hm_version    the release to install or update to (<major>.<minor>.<patch>); default
+#                     the newest
 #   var_db            local (default) or external
 #   var_db_host, var_db_port (5432), var_db_name (hmailserver), var_db_user (hmailserver),
 #   var_db_password   the external database; the password may be given in
@@ -62,7 +64,6 @@ readonly PROJECT_PATH=hmailserver/hmailserver
 readonly PROJECT_ID=86730559
 readonly API="$GITLAB/api/v4/projects/$PROJECT_ID"
 readonly ISSUER=https://gitlab.com
-readonly MINIMUM_VERSION=6.3.6
 readonly INI=/etc/hmailserver/hMailServer.ini
 readonly STATE=/etc/hmailserver-lxc.conf
 readonly SECRETS_KEY_EXPORT=/root/hmailserver-stored-secrets.key
@@ -173,7 +174,7 @@ newest_release() {
           | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | first // empty' "$work/releases.json"
 }
 
-# The installed package's release, without Debian's revision (6.3.7-1~debian13 is 6.3.7).
+# The installed package's release, without Debian's revision (<version>-1~debian13 is <version>).
 installed_version() {
   local v
   v="$(dpkg-query -W -f='${Status} ${Version}\n' hmailserver 2> /dev/null || true)"
@@ -220,7 +221,7 @@ take_release() {
   [ "$(jq -r .tag_name "$work/release.json")" = "$tag" ] || fail "$API/releases/$tag is not the release $tag"
   for name in "$deb" "$deb.sigstore.json" "$sums" "$sums.sigstore.json"; do
     jq -e --arg url "$registry/$name" 'any(.assets.links[]; .url == $url)' "$work/release.json" > /dev/null \
-      || fail "the release $tag does not carry $name"
+      || fail "the release $tag does not carry $name (a release older than the first with Debian 13 packages carries none)"
     fetch "$registry/$name" "$work/$name" || fail "$name could not be downloaded from $registry"
     [ -s "$work/$name" ] || fail "$name is empty"
   done
@@ -329,15 +330,13 @@ say "cosign $(dpkg-query -W -f='${Version}' cosign), from Debian's archive"
 
 installed="$(installed_version)"
 if [ -n "${var_hm_version:-}" ]; then
-  version_ok "$var_hm_version" || fail "var_hm_version is '$var_hm_version', not a version such as 6.3.7"
+  version_ok "$var_hm_version" || fail "var_hm_version is '$var_hm_version', not a version <major>.<minor>.<patch>"
   version="$var_hm_version"
 else
   tag="$(newest_release)"
   [ -n "$tag" ] || fail "the project has no release with a version tag"
   version="${tag#v}"
 fi
-dpkg --compare-versions "$version" ge "$MINIMUM_VERSION" \
-  || fail "$version is older than $MINIMUM_VERSION, the first release with a Debian 13 package this script can verify"
 
 if [ "$mode" = install ]; then
   # ------------------------------------------------------------------ install

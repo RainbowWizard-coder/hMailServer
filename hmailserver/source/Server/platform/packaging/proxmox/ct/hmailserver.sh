@@ -43,7 +43,7 @@
 #                     without it, and the service may then not start
 #   var_onboot        1: start the container with the host
 #   var_scripts_ref   the ref of the project's repository the install script is taken
-#                     from: master (default), or a tag such as v6.3.7
+#                     from: master (default), or a release's tag, v<version>
 #   var_install_script
 #                     a local copy of install/hmailserver-install.sh to use instead
 #   var_dry_run       yes: print every command that would change the host, change nothing
