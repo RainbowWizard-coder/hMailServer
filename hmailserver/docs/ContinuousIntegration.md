@@ -490,8 +490,7 @@ vCPUs and 32 GB; and linix, the smallest, two, each held to six CPUs and 8 GB, o
 sixteen cores and 24 GB. linix took three until the lanes came: with the one lane a
 package build never met another, and with three, three package builds, or a suite
 and two, could have met there - more than its cores and memory take, where three
-heavy jobs side by side had already timed out `checkers` there and slowed a suite's
-timed tests. So its runner entry was held to two jobs ([linix](#linix)), which by
+heavy jobs side by side had already timed out `checkers` there. So its runner entry was held to two jobs ([linix](#linix)), which by
 the same pipeline's times costs a few minutes, and two package builds, or a suite
 and one, are the most it holds. `alpine-suite` waits for `alpine-package`, so the
 lane that holds it is kept the shortest by far: by that pipeline's job times the
@@ -517,7 +516,7 @@ a resource group's name with the job's variables, the nested ones too, as it mak
 the job, so each job then has a lane of its own name (`hosted-deb-debian12-amd64-deb`
 for a package build, its family's name after its own). A class on GitLab's runners
 left in its shared lanes runs, one job of each lane at a time; one on the project's
-runners with lanes of its own runs side by side on linix; `hosted-runners` warns of
+runners with lanes of its own runs side by side on them; `hosted-runners` warns of
 both. The six aarch64 `.rpm` builds and `nix` stay in `linix-package-build-rpm` on
 the project's runners, by that name, whatever the lane's variable says.
 
@@ -1725,8 +1724,7 @@ and `limit = 2` and `request_concurrency = 2` for this entry: one job at a time 
 28 September 2026, then two, three the same night, and two again since October 2026,
 when the package builds took three lanes. Three jobs of six CPUs each ask for more
 than the sixteen cores, and three of 8 GB for all of its 24 GB: three heavy jobs side
-by side timed `checkers` out there twice in October 2026 and slowed the suite's
-timed tests. The jobs that must not run beside their own kind say so with a
+by side timed `checkers` out there twice in October 2026. The jobs that must not run beside their own kind say so with a
 `resource_group` - `linix-suite` for the two whole suites (`linux-suite` and
 `alpine-suite`), and for the package builds (the distribution releases' `.deb` and
 `.rpm` files, the Alpine package, the source packages and the Nix build) three,
@@ -4754,17 +4752,17 @@ measured times after the first pipelines.
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
 runner's maximum. linix, server2 and s1-linux run up to seven jobs at once
-([linix](#linix)), but the longest line is one job after another all the same: the
-suite waits for
-`linux-build`, so about 12 minutes of build and 2 to 2.5 hours of suite, a
-little under three hours, with the package jobs, the image, `linux-repro`, the
-cross build and the security scans ([What they cost](#what-they-cost)) beside
-them, and slowing them where they share a machine. bench150's two jobs add up one
-after the other, the gate lock
-holding the second, with `windows-gate-s1vm`'s half of the suite on S1-WINBENCH
-beside them. So a pipeline for a protected ref takes about three hours
-from start to finish, and the Windows gate and the Linux lane decide it between
-them.
+([linix](#linix)), but the longest line is one job after another all the same:
+`linux-build`, then the two suites, which `linix-suite` keeps one after the other,
+`linux-suite` and then `alpine-suite` - 317 minutes, about five and a quarter hours,
+by the job times of a landing pipeline of 23 and 24 October 2026
+([The lanes](#gitlabs-hosted-runners-beside-the-projects)) - with the package jobs,
+the image, `linux-repro`, the cross build and the security scans
+([What they cost](#what-they-cost)) beside them, and slowing them where they share a
+machine. bench150's two jobs add up one after the other, the gate lock holding the
+second, with `windows-gate-s1vm`'s half of the suite on S1-WINBENCH beside them,
+about two hours. So a pipeline for a protected ref takes about five and a half hours
+from start to finish, and the Linux lane decides it.
 
 The update feed
 ---------------

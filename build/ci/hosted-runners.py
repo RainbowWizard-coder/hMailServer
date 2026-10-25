@@ -52,7 +52,7 @@ expands for each job as it makes the job's resource group.
       the project has one, fails it (GITLAB_CREDENTIALS). Each problem is named, with
       what to do; a value is never printed. A lane that does not go with its class is
       a warning: the jobs run, one at a time in each of the class's lanes on GitLab's
-      machines, or side by side on linix.
+      machines, or side by side on the project's.
   python3 build/ci/hosted-runners.py quota
       The compute-quota job, on linix, in the same pipelines, in the environment
       compute-quota, to which HM_QUOTA_TOKEN is scoped: a read_api token of an Owner of
@@ -121,10 +121,13 @@ CLASSES = (
 # What a hosted lane is set to: a lane of its own for each job, which GitLab expands
 # from CI_JOB_NAME as it makes the job (the resource group's key takes nested variables).
 HOSTED_LANE = "hosted-$CI_JOB_NAME"
-# The lanes a lane's variable names on the project's runners, by its default: the
-# package builds' three, the variable and a family ($HM_LANE_PACKAGES-deb, -rpm and
-# -source, .gitlab-ci.yml's variables:), and the suites' one.
-LANE_NAMES = {"HM_LANE_PACKAGES": "the lanes linix-package-build-deb, -rpm and -source"}
+# What a lane's variable at its default holds its class's jobs to on the project's
+# runners, for a lane whose default names more than one lane: the package builds'
+# three, the variable and a family ($HM_LANE_PACKAGES-deb, -rpm and -source,
+# .gitlab-ci.yml's variables:). A lane not here, the suites', is the one lane of its
+# default, which runs one job at a time.
+LANE_HOLDS = {"HM_LANE_PACKAGES": "the lanes linix-package-build-deb, -rpm and -source keep them to one build of each "
+                                  "lane at a time"}
 # The compute minutes a pipeline is expected to use on GitLab's runners for each class
 # there, by its kind: the minutes each class's jobs ran on the project's runners in the
 # pipelines of 5 to 13 October 2026 (median per job, linix's for an eight-CPU machine,
@@ -405,9 +408,10 @@ def check(environ, out, ci=(frozenset(), [])):
                             "a time in each of its lanes, each on a machine of its own. Set %s to %s (expanded, not raw), a "
                             "lane of each job's own" % (lane, lane_value, variable, lane, HOSTED_LANE))
         elif not hosted and lane_value != lane_default:
-            warnings.append("%s is %r while its class is on the project's runners: its jobs run side by side on linix, which %s "
-                            "keeps them from. Delete %s, or send the class to GitLab's runners" % (
-                                lane, lane_value, LANE_NAMES.get(lane, "the lane %s" % lane_default), lane))
+            warnings.append("%s is %r while its class is on the project's runners: its jobs run side by side on the project's "
+                            "runners, where %s. Delete %s, or send the class to GitLab's runners" % (
+                                lane, lane_value, LANE_HOLDS.get(lane, "the lane %s keeps them to one at a time" % lane_default),
+                                lane))
     # Every variable is a credential that is not known here to hold none.
     switch_names = set(n for c in CLASSES for n in (c[0], c[2]) if n)
     no_secret = set(ci_names) | GITLAB_OWN | RUNNER_OWN | PROCESS | PLAIN | switch_names
@@ -701,7 +705,12 @@ def self_test():
     code, text = run_check(HM_RUNNER_PACKAGES="saas-linux-large-amd64", HM_LANE_PACKAGES="hosted")
     expect("a class on GitLab's runners in one lane of another name: a warning", code, 3)
     code, text = run_check(HM_LANE_PACKAGES="hosted-hosted-runners")
-    expect("a lane of each job's own while the class is on linix: a warning", (code, "side by side on linix" in text), (3, True))
+    expect("a lane of each job's own while the class is on the project's runners: a warning", (code, (
+        "side by side on the project's runners, where the lanes linix-package-build-deb, -rpm and -source keep them to one "
+        "build of each lane at a time") in text), (3, True))
+    code, text = run_check(HM_LANE_SUITE="hosted-hosted-runners")
+    expect("the suites' lane of each job's own while they are on the project's runners: a warning", (code, (
+        "side by side on the project's runners, where the lane linix-suite keeps them to one at a time") in text), (3, True))
     code, text = run_check(RENOVATE_TOKEN=planted)
     expect("a credential given to every job: failed, with its environment", (code, "RENOVATE_TOKEN is given to every job" in text
                                                                              and "environment renovate" in text), (1, True))

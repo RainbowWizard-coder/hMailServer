@@ -1360,7 +1360,9 @@ with `--check`).
   minutes later than with linix at three. With three lanes the owner's packages switch no longer shortens a batch's
   pipeline by more than a few minutes; it frees the project's machines. The owner's `HM_LANE_PACKAGES` of
   `hosted-$CI_JOB_NAME` still gives each build a lane of its own on GitLab's runners, and `build/ci/hosted-runners.py`'s
-  warnings name the three lanes. `build/check-release-chain.py` holds each build to its lane (`PACKAGE_LANES`), by the
+  warnings name the three lanes: a lane of each job's own while the class is on the project's runners lets its jobs
+  run side by side there, where the three lanes keep them to one build of each lane at a time, and the suites' lane to
+  one suite at a time, which its self-test asks of both. `build/check-release-chain.py` holds each build to its lane (`PACKAGE_LANES`), by the
   variable or, for the builds of no class, by the lane's name on the project's runners; every other job of the class
   to none; every job outside the classes to a resource group written as a plain name, with no variable in any of the
   forms GitLab expands there (`$NAME`, `${NAME}`, `%NAME%`), no `!reference` and no alias - where only the lane's
