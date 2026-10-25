@@ -73,7 +73,7 @@ The other tables on this page name runners the same way.
 | `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |
-| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files and their list held to the original's tags, which it fetches (`build/generate-reuse-original.py`), his notices held to the original's own files and to the headers (`build/generate-original-notices.py`, `build/add-license-headers.py`), `debian/copyright`'s licences held to the same record (`build/ci/reuse-debian.py`), and fifteen negative controls ([REUSE](#reuse)) |
+| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files and their list held to the original's tags, which it fetches (`build/generate-reuse-original.py`), his notices held to the original's own files and to the headers (`build/generate-original-notices.py`, `build/add-license-headers.py`), `debian/copyright`'s licences held to the same record (`build/ci/reuse-debian.py`), and seventeen negative controls ([REUSE](#reuse)) |
 | `chart-and-compose` | check | linix | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
 | `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
 | `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
@@ -2598,9 +2598,9 @@ original's own file carried no notice for 151, and 31 are the SPF port's files f
 one of its later commits, which quote his notice in their attribution;
 `build/original-notices.txt`, which `build/generate-original-notices.py` makes from
 the original's trees and `build/add-license-headers.py` writes and holds, refusing a
-file of the list without its notice, and any other source file it writes the header
-in that carries a copyright line in his name, in any wording, anywhere in it;
-CONTRIBUTING.md says how). And in all of them two
+file of the list without its notice, and any source file it writes the header in
+that carries a copyright line in his name anywhere in it but the list's own lines
+for it; CONTRIBUTING.md says how). And in all of them two
 tables of `REUSE.toml`, which `build/generate-reuse-original.py` writes from the
 original's tags `hMailServer-5.7.0-b2788`, `-b2843` and `-b3013` (and the files the
 fork's first commit took over from the original's history before them; the list is
@@ -2690,13 +2690,18 @@ original's later commit, which the project's repository has not and so the job
 cannot read, each line his notice in the file's comment syntax); and
 `build/add-license-headers.py --check`, which the checkers job runs as well, every
 file of the list to carrying its notice below the header (a `.resx` of the list that
-has lost its header comment included) and every other source file it writes the
-header in to carrying no line that opens, after its comment marker, with a copyright
-statement in his name, in any wording and anywhere in the file. Then `build/ci/reuse-debian.py` holds `debian/copyright` to the same
+has lost its header comment included) and every source file it writes the header
+in to carrying no copyright line in his name anywhere in it but the list's own lines
+for it: no line that opens, once its comment's punctuation is taken off (`//`, `///`,
+`//!`, `/*`, `*`, `#`, `<#`, `;`, `<!--`), with a copyright statement naming him -
+`Copyright`, `(c)`, the sign or an SPDX copyright tag, `Portions` before it or not,
+in any letter case, year or wording after it - on a file the list does not name, nor
+beside the notice it gives a file it names. A sentence that quotes his notice, as
+the SPF port's attribution does, does not open with one. Then `build/ci/reuse-debian.py` holds `debian/copyright` to the same
 record: every file the Debian source package carries, all of the record but what its
 `Files-Excluded` leaves out, must have the same licences in the last paragraph that
 matches it as reuse records, a Debian short name standing for its SPDX identifier.
-The three scripts' self-tests run before their checks. Then fifteen negative controls. Five are a file
+The three scripts' self-tests run before their checks. Then seventeen negative controls. Five are a file
 put in the checkout and taken out again, which `reuse lint` must refuse by name: a
 new C++ source in the server tree without the header, which no table covers; a new
 registration script beside the original's in `Server/COM` and a new fixture beside
@@ -2712,13 +2717,15 @@ edit of both would leave them, which `--check --require-tags` must refuse, namin
 file. The eighth is a copy of `debian/copyright` whose RFC 7208 suite paragraph has
 lost the suite's change log, which then falls to `Files: *` and the project's
 licence, as it did until the paragraph named it, and which `reuse-debian.py` must
-refuse by name. The last seven are his notices, each an edit of the checkout put back
+refuse by name. The last nine are his notices, each an edit of the checkout put back
 after: `IMAP/IMAPFetch.cpp`, one of the list's files, with its notice taken out,
 `AntiSpam/DMARC/SpamTestDMARC.cpp`, which the fork made at one of the original's paths,
 given his notice, the Control Panel's `Strings.resx`, one of the list's, with its whole
-header comment taken out, and `SpamTestDMARC.cpp` given his notice in another wording
-(`(C)`, and no `hMailServer.com`) below its first `#include`, each of which the header
-check must refuse by name; `IMAPFetch.cpp`'s notice given another year in the list and
+header comment taken out, `SpamTestDMARC.cpp` given his notice in another wording
+(`(C)`, and no `hMailServer.com`) below its first `#include`, the fork's Control Panel
+`App.xaml.cs` given it in a C# doc comment (`///`) below its first `using`, and
+`IMAPFetch.cpp` given a second notice of his, of 2011, below its first `#include`, each
+of which the header check must refuse by name; `IMAPFetch.cpp`'s notice given another year in the list and
 in the file alike, as an edit of both would leave them, which the header check passes
 and the list's check must refuse by name, since the original's file says otherwise;
 `SpamTestDMARC.cpp` put in the list with his notice in the file, and the SPF port's

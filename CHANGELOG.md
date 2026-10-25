@@ -1217,14 +1217,19 @@ with `--check`).
   `build/add-license-headers.py` writes each listed notice below the header, wherever in the opening comment it stood,
   and its `--check` refuses a file of the list without its notice there - `Strings.resx`, a `.resx` whose header is
   otherwise only made canonical when it carries one, gets its header and notice written anew when it has lost them -
-  and, in any file the list does not name, a line anywhere in it that opens, after its comment marker, with a
-  copyright statement in his name, in any wording ("(C)", another year or none, no "hMailServer.com", "All rights
-  reserved" after it, a block comment), which it leaves in place: the list, not the script, says which files are his.
+  and any copyright line in his name anywhere in a file but the list's own lines for it - a line that opens, once
+  its comment's punctuation is taken off (`//`, `///`, `//!`, `/*`, `*`, `#`, `<#`, `;`, `<!--`), with a copyright
+  statement naming him, "Portions" before it or not, in any wording ("(C)", another year or none, no
+  "hMailServer.com", "All rights reserved" after it, a block or a doc comment) - on a file the list does not name, and
+  on a file it names besides the notice it gives it, another year's or a second one below the opening comment; it
+  leaves such a line in place: the list, not the script, says which files are his and what his notice on each is.
   The `reuse` job runs the generator's self-test, `--check --require-tags` over the original's trees it already
-  fetches - the 1,240 files it reads fetched into the same directory in one request - and the header check, and seven
+  fetches - the 1,240 files it reads fetched into the same directory in one request - and the header check, and nine
   more negative controls must each be refused by name: `IMAPFetch.cpp` without its notice, the fork's
-  `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment and `SpamTestDMARC.cpp` with his notice in
-  another wording below its first `#include`, by the header check, and `IMAPFetch.cpp`'s notice given another year,
+  `SpamTestDMARC.cpp` with his, `Strings.resx` without its header comment, `SpamTestDMARC.cpp` with his notice in
+  another wording below its first `#include`, the fork's `App.xaml.cs` with it in a `///` comment and `IMAPFetch.cpp`
+  with a second notice of his, of 2011, below its first `#include`, by the header check, and `IMAPFetch.cpp`'s notice
+  given another year,
   `SpamTestDMARC.cpp` put in the list and the SPF port's `README.md` put in the list, each in the list and the file
   alike, by the generator. The checkers job runs no new step. CONTRIBUTING.md's header rule says how a file keeps his
   notice, `ContinuousIntegration.md`'s REUSE section what the job runs, and `REUSE.toml`'s, `debian/copyright`'s and

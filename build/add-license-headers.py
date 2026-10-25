@@ -30,11 +30,17 @@ out on 13 September 2026 and put them back on 25 October 2026, as the AGPL asks
 that a work's copyright notices be kept intact. --check refuses a file of the
 list whose notice is not there (a .resx of the list that has lost its header
 gets both written anew, though a .resx otherwise only has a header it carries
-made canonical), and, in a file the list does not name, any line that opens,
-after its comment marker, with a copyright statement in his name - his notice
-in any wording, anywhere in the file (HIS_STATEMENT) - which it leaves where it
-is: whether a file is his is the list's to say, not this script's. A sentence
-that quotes his notice, as the SPF port's attribution does, is not such a line.
+made canonical), and any copyright line in his name anywhere in a file but the
+list's own lines for it: a line that opens, once its comment's punctuation is
+taken off (//, ///, //!, /*, *, #, <#, ;, <!-- and the like), with a copyright
+statement naming him - "Copyright", "(c)", the sign or an SPDX copyright tag,
+"Portions" before one or not, in any letter case, year or wording after it
+(HIS_STATEMENT). Such a line is refused on a file the list does not name, and on
+a file it names besides the notice it gives it - another year, "All rights
+reserved" after it, a second notice below the opening comment - and left where
+it is: whether a file is his, and what his notice on it says, is the list's to
+say, not this script's. A sentence that quotes his notice, as the SPF port's
+attribution does, does not open with one, and is not such a line.
 Nothing below the header is touched - a comment that opens a file
 stays, a third-party notice in a block comment stays (Mime.cpp, the Mime
 library's), and a file keeps its own line endings and its byte-order mark.
@@ -113,17 +119,23 @@ REPLACED = [re.compile(p) for p in (
 # REUSE-IgnoreStart
 HIS_NOTICE = re.compile(r'^Copyright \(c\)\s*(?:\d{4}(?:\s*-\s*\d{4})?)?\s*Martin Knafve / hMailServer\.com\.?$')
 # REUSE-IgnoreEnd
-# What a file the list does not name may not carry, anywhere in it: a line that, after
-# its comment marker, opens with a copyright statement - "Copyright", "(c)", the sign
-# or an SPDX copyright tag, in any letter case - and names him. That is his notice in
-# every wording (another year, "(C)", "Copyright 2010", "All rights reserved" after
-# it, a block comment), and a copyright line in his name of any other form; a text
+# What no file may carry, anywhere in it, but the lines the list gives it: a line that,
+# once its comment's punctuation is taken off (COMMENT_LEAD), opens with a copyright
+# statement - "Copyright", "(c)", the sign or an SPDX copyright tag, "Portions" before
+# it or not, in any letter case - and names him. That is his notice in every wording
+# (another year, "(C)", "Copyright 2010", "All rights reserved" after it, a block
+# comment, a doc comment), and a copyright line in his name of any other form; a text
 # that quotes his notice inside a sentence, as the SPF port's attribution does, or
-# talks about his copyright, does not open with one. The marker is taken off first.
+# talks about his copyright, does not open with one.
 # REUSE-IgnoreStart
-HIS_STATEMENT = re.compile(r'^(?:SPDX-(?:File|Snippet)CopyrightText|Copyright|\(c\)|\u00a9).*\bKnafve\b', re.I)
+HIS_STATEMENT = re.compile(r'^(?:Portions\s+)?(?:SPDX-(?:File|Snippet)CopyrightText|Copyright|\(c\)|\u00a9)'
+                           r'.*\bKnafve\b', re.I)
 # REUSE-IgnoreEnd
-COMMENT_LEAD = re.compile(r'^(?:\s|//|/\*|\*|#|;|<!--|-)*')
+# Any run of comment punctuation at a line's start, in every syntax a candidate has: C++'s
+# and C#'s // and /* */ with their doc forms (///, //!, /**, /*!, a block's *), #, a
+# PowerShell block's <#, an ini's ;, XML's <!--, a Python docstring's quotes, and a
+# rule of dashes.
+COMMENT_LEAD = re.compile(r'^(?:\s|/|\*|!|#|<#|;|<!--|-|"""|\'\'\')*')
 # build/generate-original-notices.py's list: a path, then each line of its notice, a
 # tab before it, exactly as the file writes it (a comment element's lines indented
 # by two); '#' lines are comments.
@@ -294,8 +306,8 @@ def notice_problems(rel, ext, lines):
 
 def his_notices(raw):
     """(line number, line) of each line of a file, anywhere in it, that is a copyright
-    statement in Martin Knafve's name (HIS_STATEMENT): what a file the list does not
-    name may not carry."""
+    statement in Martin Knafve's name (HIS_STATEMENT): what a file may carry only as
+    the list's lines for it."""
     if not re.search(rb'(?i)knafve', raw):
         return []
     if raw.startswith(UTF16_BOMS):
@@ -477,11 +489,22 @@ def main():
         with open(path, 'rb') as f:
             raw = f.read()
         mine = notices.get(rel)
+        found = his_notices(raw)
         if mine is not None:
             seen.add(rel)
             notice_list_problems += notice_problems(rel, ext, mine)
+            # Each of the list's lines once, where this writes it; any other copyright
+            # line in his name is the file's own, and the list's to say.
+            given = [line.decode('utf-8', 'replace').strip() for line in mine]
+            for number, line in found:
+                if line in given:
+                    given.remove(line)
+                    continue
+                notice_list_problems.append('%s carries a copyright line in Martin Knafve\'s name on its line %d (%s) '
+                                            'besides the notice %s gives it: the list says what his notice on it is'
+                                            % (rel, number, line, NOTICES_FILE))
         else:
-            for number, line in his_notices(raw):
+            for number, line in found:
                 notice_list_problems.append('%s carries Martin Knafve\'s notice, or a copyright line in his name, on its '
                                             'line %d (%s), and %s does not give it one: the list says which files are '
                                             'his' % (rel, number, line, NOTICES_FILE))

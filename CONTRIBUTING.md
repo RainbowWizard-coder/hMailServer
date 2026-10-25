@@ -595,8 +595,11 @@ something which already exists.
   original's files carried one, and those that did not get none. Which files, and which notice, is `build/original-notices.txt`'s to say, and
   `build/generate-original-notices.py` makes it from the original's own trees (its docstring says how); the
   header script writes each notice there and `--check` refuses a file of the list without its notice (or, for a
-  `.resx` of the list, without its header), and, in any other file it writes the header in, a line that opens
-  with a copyright statement in his name, in any wording and anywhere in the file. Do not write his notice by hand, and do not take one out: a file moved, split or
+  `.resx` of the list, without its header), and, in any file it writes the header in, a copyright line in his
+  name anywhere in the file but the list's own lines for it - a line that opens, once its comment's punctuation
+  (`//`, `///`, `//!`, `/*`, `#`, `<#`, `<!--` and the like) is taken off, with a copyright statement naming him,
+  "Portions" before it or not, in any wording: on a file the list does not name, or beside the notice it gives a
+  file it names, another year's or a second one below the opening comment. Do not write his notice by hand, and do not take one out: a file moved, split or
   copied out of one of his goes into `build/generate-reuse-original.py`'s `DERIVED` (below), and then the two
   generators and the header script are run, in that order. A notice of his that a text quotes inside a
   sentence - a port's attribution, as in the SPF port's files of one of the original's later commits, which

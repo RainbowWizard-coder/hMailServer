@@ -44,8 +44,10 @@
 # --require-tags; the files it reads are fetched with it, 1,240 of them in one
 # request; a port of a later commit of the original's, which the project's repository
 # has not, gets no line) - and every file of it must carry its notice below the
-# header, and no other file a copyright line in his name, in any wording, anywhere in
-# it (build/add-license-headers.py --check, which the checkers job runs as well). Then
+# header, and no file a copyright line in his name anywhere in it but the list's own
+# lines for it: a line that opens, once its comment's punctuation is taken off, with
+# a copyright statement naming him, in any wording (build/add-license-headers.py
+# --check, which the checkers job runs as well). Then
 # debian/copyright: every file the Debian source package
 # carries has there the licences reuse records for it (build/ci/reuse-debian.py).
 #
@@ -66,12 +68,14 @@
 # list, as an edit of both would leave them: --check --require-tags, holding the list
 # to the tags, must refuse it, by name; and a copy of debian/copyright that has lost
 # the RFC 7208 suite's change log from its paragraph, which reuse-debian.py must
-# refuse, by name. And seven of his notices, each made in the checkout and taken out
+# refuse, by name. And nine of his notices, each made in the checkout and taken out
 # again: one of the list's files, IMAPFetch.cpp, with its notice taken out, a file
 # the fork made at one of the original's paths, SpamTestDMARC.cpp (the generator's
 # FORK_MADE), given it, the list's Strings.resx with its whole header comment taken
-# out, and SpamTestDMARC.cpp given his notice in another wording ("(C)" and no
-# "hMailServer.com") below its first #include, each of which
+# out, SpamTestDMARC.cpp given his notice in another wording ("(C)" and no
+# "hMailServer.com") below its first #include, the fork's App.xaml.cs given it in a
+# C# doc comment (///) below its first using, and IMAPFetch.cpp given a second
+# notice of his, of 2011, below its first #include, each of which
 # build/add-license-headers.py --check must refuse, by name; IMAPFetch.cpp's notice
 # given another year in the list and in the file alike, as an edit of both would
 # leave them, SpamTestDMARC.cpp put in the list with his notice in the file, and the
@@ -491,10 +495,12 @@ his=hmailserver/source/Server/IMAP/IMAPFetch.cpp
 made=hmailserver/source/Server/Common/AntiSpam/DMARC/SpamTestDMARC.cpp
 resx=hmailserver/source/Tools/ControlPanel/Resources/Strings.resx
 port=hmailserver/source/Server/SMTP/SPF/README.md
+fork_cs=hmailserver/source/Tools/ControlPanel/App.xaml.cs
 # REUSE-IgnoreStart
 notice="// Copyright (c) 2010 Martin Knafve / hMailServer.com."
 other="// Copyright (c) 2011 Martin Knafve / hMailServer.com."
 variant="// Copyright (C) 2010 Martin Knafve"
+doc="/// Copyright (c) 2010 Martin Knafve / hMailServer.com."
 element="  Copyright (c) 2010 Martin Knafve / hMailServer.com."
 # REUSE-IgnoreEnd
 # The checkout has the list with CRLF line endings.
@@ -565,6 +571,27 @@ else
     failed=1
   fi
 
+  # His notice in a C# doc comment, below the first using of a file of the fork's.
+  keep "$fork_cs"
+  if edit "$fork_cs" after 5 "$doc"; then
+    refused_by "his notice in a doc comment of a file of the fork's" "$fork_cs carries" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
+  # A second notice of his, of another year, below the first #include of one of the
+  # list's files, which carries its own notice where the list puts it.
+  keep "$his"
+  if edit "$his" after 6 "$other"; then
+    refused_by "a second notice of his, of another year, in one of the list's files" "$his carries a copyright line" \
+      python3 build/add-license-headers.py --check || failed=1
+  else
+    put_back
+    failed=1
+  fi
+
   # A port of one of the original's later commits put in the list with his notice in
   # its header comment, as an edit of both would leave them: that commit is not at
   # hand here, and the list gives such a file no line.
@@ -592,5 +619,5 @@ echo "as that file wrote it, and debian/copyright gives every file the Debian so
 echo "the same licences; a file without them, a file the fork adds among the original's, a licence"
 echo "without its text, a text no file uses, a table that drops him, a fork file in the list, a"
 echo "Debian paragraph that lost a file, a file of his without his notice or without its header, a"
-echo "file of the fork's with his notice in any wording, and a notice that is not his file's are"
-echo "each refused."
+echo "copyright line in his name on a file of the fork's or beside a listed file's own notice, and a"
+echo "notice that is not his file's are each refused."
