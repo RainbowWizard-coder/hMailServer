@@ -216,6 +216,8 @@ NOT_COMPILED_IN = {
     "rfc7208-tests": "the SPF conformance tests spf-tests runs, which no package carries",
     "atl-script-host": "compiled into hMailServer.exe only",
     "commonmark-js": "ported into build/check-release-chain.py, a check of the CI that no package carries",
+    "gitlab-secret-detection-rules": "two regular expressions held by build/check-gitleaksignore.py, a check of the CI "
+                                     "that no package carries",
     "contributor-covenant": "the text the project's code of conduct, CODE_OF_CONDUCT.md, is adapted from, a document "
                             "no package carries",
     "mail-dkim-corpus": "test data the Windows suite and the fuzzing seeds read",
@@ -855,6 +857,7 @@ GOOD_SBOM = '''SOURCE_COMPONENTS = [
     ("feather-icons", "Feather icons", "f", "MIT", None, "x"),
     ("atl-script-host", "ATL", "a", None, "its own", "x"),
     ("commonmark-js", "commonmark.js", "k", "BSD-2-Clause", None, "x"),
+    ("gitlab-secret-detection-rules", "GitLab rules", "g", "MIT", None, "x"),
     ("contributor-covenant", "Contributor Covenant", "c", "CC-BY-4.0", None, "x"),
     ("mail-dkim-corpus", "DKIM", "d", "GPL-1.0-or-later OR Artistic-1.0-Perl", None, "x"),
 ]

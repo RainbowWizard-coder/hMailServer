@@ -371,6 +371,19 @@ Comment:
  commonmark.js's notice, verbatim, after the maintainers' note on what
  build/check-release-chain.py ports from its release 0.31.2.
 
+Files: build/check-gitleaksignore.py
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           2011-present GitLab B.V.
+License: AGPL-3+ and Expat
+Comment:
+ The check of .gitleaksignore, the maintainers' own, which holds two regular
+ expressions of GitLab's secret detection rules, release 0.25.1 of
+ gitlab-org/security-products/secret-detection/secret-detection-rules, under
+ its MIT (Expat) licence: the "AWS" rule's, from rules/mit/aws/aws.toml, and
+ the "Password in URL" rule's, from rules/mit/password/password.toml. Its
+ other patterns are private keys' armour headers. No package installs the
+ check.
+
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
            2005-2026 Martin Knafve / hMailServer.com

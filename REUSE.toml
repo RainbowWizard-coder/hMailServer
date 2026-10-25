@@ -2300,9 +2300,10 @@ SPDX-License-Identifier = "LicenseRef-StdString AND AGPL-3.0-or-later"
 # match at a given position makes needless, the last with $ written \Z, and its
 # reLinkTitle with its groups non-capturing and ESCAPED_CHAR written out; and
 # common.js's ESCAPABLE, which inlines.js takes from it, as a string of the
-# characters of its class; its markdown_reference, inlines.js's parseReference and parseLinkDestination step by
-# step; and its markdown_command_ends, which follows blocks.js's incorporateLine and
-# blockStarts. The rest of the file is the maintainers', under the header's licence.
+# characters of its class; its markdown_reference, inlines.js's parseReference and
+# parseLinkDestination step by step; and its markdown_command_ends, which follows
+# blocks.js's incorporateLine and blockStarts. The rest of the file is the
+# maintainers', under the header's licence.
 # hmailserver/docs/Licenses/License - commonmark.js.txt carries commonmark.js's
 # notice and says what the port takes.
 [[annotations]]
@@ -2310,6 +2311,25 @@ path = "build/check-release-chain.py"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2014 John MacFarlane"
 SPDX-License-Identifier = "BSD-2-Clause"
+
+# The check of .gitleaksignore holds, in its RULES, the patterns of the secret
+# detection rules its directory-form entries name as GitLab's rules write them, in
+# gitlab-org/security-products/secret-detection/secret-detection-rules 0.25.1, under
+# its licence, MIT (Expat; "Copyright (c) 2011-present GitLab B.V.", for all of the
+# repository but doc/, ee/ and jh/): the "AWS" expression, rules/mit/aws/aws.toml's
+# regex, and the "Password in URL" expression, rules/mit/password/password.toml's,
+# character for character but for a double quote the Python string writes with a
+# backslash before it. Its other five patterns are the armour headers of a PGP, a
+# PKCS #8, an RSA, an OpenSSH and an EC private key, which the formats themselves
+# define, as rules/mit/pgp, pkcs8, rsa and ssh write them. The file's own comment
+# names the rules, their release and their licence (between REUSE-IgnoreStart and
+# REUSE-IgnoreEnd, so that reuse does not read the line as the file's own notice);
+# the rest of the file is the maintainers', under the header's licence.
+[[annotations]]
+path = "build/check-gitleaksignore.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-present GitLab B.V."
+SPDX-License-Identifier = "MIT"
 
 # The RFC 7208 test suite's zones and cases, transcribed into a C++ table by
 # Generate-SPFConformanceSuite.py from rfc7208-tests.yml (the suite, BSD-3-Clause,

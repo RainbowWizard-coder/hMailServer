@@ -378,6 +378,21 @@ with `--check`).
   (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which `build/check-package-licenses.py` decides as not compiled in,
   no binary package carrying the check). The check itself is unchanged. The `reuse` job, with its negative controls,
   and the self-tests of `check-package-licenses.py`, `asset-sbom.py` and `reuse-debian.py` pass.
+- **Fixed: the two regular expressions of GitLab's secret detection rules in the check of `.gitleaksignore` are
+  credited to GitLab B.V., under the rules' licence, MIT, where every record gave the file the project's holders and
+  licence alone.** `build/check-gitleaksignore.py`'s `RULES` hold the patterns of the rules its directory-form
+  entries name as GitLab's `secret-detection-rules` 0.25.1 write them: the "AWS" expression,
+  `rules/mit/aws/aws.toml`'s regex, and the "Password in URL" expression, `rules/mit/password/password.toml`'s,
+  character for character but for a double quote the Python string writes with a backslash before it (the other five
+  are private keys' armour headers). The rules' LICENSE, "Copyright (c) 2011-present GitLab B.V.", gives everything
+  but `doc/`, `ee/` and `jh/` the MIT (Expat) licence, which asks a copy to keep its notice, and the source tarball
+  and the Debian source package carry `build/`; the file's comment named the release and the licence, between
+  `REUSE-IgnoreStart` and `REUSE-IgnoreEnd`, so that reuse read no holder but the header's. `REUSE.toml` gives the
+  file GitLab B.V. and MIT beside its header's holders and licence, precedence aggregate, with a comment saying which
+  parts are GitLab's; `debian/copyright` has a paragraph for it, `License: AGPL-3+ and Expat`;
+  `hmailserver/docs/SourceTarball.md`'s table has a row for it; and the source tarball's SBOM names the rules
+  (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which `build/check-package-licenses.py` decides as not compiled in,
+  no binary package carrying the check). The check itself is unchanged.
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

@@ -165,6 +165,8 @@ SOURCE_COMPONENTS = [
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
     ("commonmark-js", "commonmark.js 0.31.2 (John MacFarlane)", "build/check-release-chain.py", "BSD-2-Clause", None,
      "parts of its block and inline parsers, ported to Python in the check of the release jobs"),
+    ("gitlab-secret-detection-rules", "GitLab secret detection rules 0.25.1 (GitLab B.V.)", "build/check-gitleaksignore.py",
+     "MIT", None, "two of its rules' regular expressions, which the check of .gitleaksignore holds"),
     ("contributor-covenant", "Contributor Covenant 2.1 (Coraline Ada Ehmke and its contributors)", "CODE_OF_CONDUCT.md",
      "CC-BY-4.0", None, "the text the project's code of conduct is adapted from"),
     ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",

@@ -2616,7 +2616,9 @@ project's sources that hold a third party's code under the project's header (the
 MIME classes, `StdString.h`, `InputCostTester.cpp` and `StringParser.cpp`, which keep
 earlier versions of those classes' functions for their tests, and the tables made
 from the Public Suffix List, Unicode's data and HTML's character references, and
-`build/check-release-chain.py`, which ports parts of commonmark.js's block and inline parsers) with
+`build/check-release-chain.py`, which ports parts of commonmark.js's block and inline parsers, and
+`build/check-gitleaksignore.py`, which holds two of GitLab's secret detection rules'
+regular expressions, MIT) with
 the third party's licence added beside the header's, and the installer's Pascal code with the author of the article it took its
 Windows service declarations and four of its service functions from
 (`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
