@@ -1751,10 +1751,12 @@ SPDX-FileCopyrightText = [
 ]
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
-# What the fork made that carries no header: its documents and their pictures, the
-# repository's own files, the CI's baselines and data, the test fixtures it made
-# (the OpenPGP keys, the PST files, the fuzzers' regression inputs), the Control
-# Deck's and the webmail's catalogues and pages, the packaging's data files, the
+# What the fork made that carries no header: its documents and their pictures (the
+# two tables after this one give the three screenshots the holders of the icons they
+# show as well), the repository's own files, the CI's baselines and data, the test
+# fixtures it made (the OpenPGP keys, the PST files, the fuzzers' regression
+# inputs), the Control Deck's and the webmail's catalogues and pages, the
+# packaging's data files, the
 # registration scripts of the COM classes it added (each named, since the original's
 # own are beside them), and the projects, lock files and installer scripts it added;
 # and, each named, the files it made anew at a path of the original's, which the
@@ -1870,6 +1872,41 @@ path = [
 ]
 SPDX-FileCopyrightText = "2026 Christopher Holloway / Progressive Robot Ltd"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Two of the documents' pictures, which README.md shows, are screenshots of the
+# webmail, and draw the icons of its sprite as the page draws them, among them those
+# drawn after Feather's (the table of Portal.html below says which): the gear, the
+# pen of Compose, the inbox, the box and arrow of the reading pane's pop-out and the
+# chevrons in both, the paperclip of a message with an attachment in the inbox's and
+# the file of an attachment in the message's. Each names Cole Bemis and Feather's
+# licence, MIT, beside the maintainers, as the page does.
+[[annotations]]
+path = [
+    "hmailserver/docs/images/webmail-inbox.png",
+    "hmailserver/docs/images/webmail-message.png",
+]
+SPDX-FileCopyrightText = [
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "2013-2023 Cole Bemis",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND MIT"
+
+# The third, a screenshot of the Control Panel's welcome page, draws the glyphs the
+# Control Panel shows through WPF-UI 4.3.0's SymbolIcon - among them the title bar's
+# mail, the search, the sidebar's areas and the theme's sun -
+# which are Microsoft's Fluent UI System Icons, under the MIT licence ("Copyright (c)
+# 2020 Microsoft Corporation"), as WPF-UI's ThirdPartyNotices.txt says of the font it
+# carries; it names Microsoft and MIT beside the maintainers. Its window's caption
+# buttons, WPF-UI's own drawings, are a bar, a box and a cross, figures too simple to
+# carry anyone's copyright (as the comment on the webmail's sprite below says of such
+# figures).
+[[annotations]]
+path = "hmailserver/docs/images/control-panel-welcome.png"
+SPDX-FileCopyrightText = [
+    "2026 Christopher Holloway / Progressive Robot Ltd",
+    "2020 Microsoft Corporation",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND MIT"
 
 # Of the fuzzers' regression inputs, which the table above gives the maintainers, one
 # is the original's test message EmailWith-TextPlainBody+TextHtmlBody.txt, the same

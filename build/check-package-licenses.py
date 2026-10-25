@@ -214,6 +214,8 @@ COMPILED_IN = {
 # And those it is not, with why.
 NOT_COMPILED_IN = {
     "rfc7208-tests": "the SPF conformance tests spf-tests runs, which no package carries",
+    "fluent-ui-system-icons": "shown in a screenshot of the Control Panel among the documents' pictures, which no "
+                              "package carries",
     "atl-script-host": "compiled into hMailServer.exe only",
     "commonmark-js": "ported into build/check-release-chain.py, a check of the CI that no package carries",
     "gitlab-secret-detection-rules": "two regular expressions held by build/check-gitleaksignore.py, a check of the CI "
@@ -855,6 +857,7 @@ GOOD_SBOM = '''SOURCE_COMPONENTS = [
     ("unicode-idna-data", "Unicode data", "u", "Unicode-3.0", None, "x"),
     ("whatwg-html-named-references", "HTML references", "w", "BSD-3-Clause", None, "x"),
     ("feather-icons", "Feather icons", "f", "MIT", None, "x"),
+    ("fluent-ui-system-icons", "Fluent UI System Icons", "i", "MIT", None, "x"),
     ("atl-script-host", "ATL", "a", None, "its own", "x"),
     ("commonmark-js", "commonmark.js", "k", "BSD-2-Clause", None, "x"),
     ("gitlab-secret-detection-rules", "GitLab rules", "g", "MIT", None, "x"),

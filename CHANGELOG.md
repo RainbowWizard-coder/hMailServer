@@ -393,6 +393,19 @@ with `--check`).
   `hmailserver/docs/SourceTarball.md`'s table has a row for it; and the source tarball's SBOM names the rules
   (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which `build/check-package-licenses.py` decides as not compiled in,
   no binary package carrying the check). The check itself is unchanged.
+- **Fixed: the README's three screenshots name the holders of the icons they show, where every record gave them the
+  project's holders and licence alone.** `hmailserver/docs/images/webmail-inbox.png` and `webmail-message.png` show
+  the webmail's icons as its page draws them, among them those its record says are drawn after Feather's - the gear,
+  the pen, the inbox, the pop-out, the chevrons, the paperclip and the file - and `REUSE.toml` now gives both Cole
+  Bemis and MIT beside the maintainers and the AGPL, as it gives the page; `control-panel-welcome.png` shows the
+  glyphs the Control Panel draws through WPF-UI's `SymbolIcon`, which are Microsoft's Fluent UI System Icons (MIT,
+  "Copyright (c) 2020 Microsoft Corporation", as WPF-UI 4.3.0's `ThirdPartyNotices.txt` says of the font it carries),
+  and names Microsoft and MIT beside them, its caption buttons, WPF-UI's own bar, box and cross, being figures too
+  simple to carry anyone's copyright. The source tarball and the Debian source package carry the pictures:
+  `debian/copyright` has a paragraph for each kind, `License: AGPL-3+ and Expat`,
+  `hmailserver/docs/SourceTarball.md`'s Feather row names the two screenshots and a new row the Fluent icons, and the
+  source tarball's SBOM names them (`build/asset-sbom.py`'s `SOURCE_COMPONENTS`, which
+  `build/check-package-licenses.py` decides as not compiled in, no package carrying the pictures).
 - **Fixed: the Debian source package leaves out a certificate authority's certificate, for which no licence is
   stated, and carries Martin Knafve's own test message, which it left out.** `hmailserver/test/SSL examples/google.cer`,
   the certificate Equifax issued to the Google Internet Authority in 2009, and `example+google.txt` beside it, the

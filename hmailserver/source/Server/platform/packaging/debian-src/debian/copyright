@@ -347,6 +347,26 @@ Comment:
  drawn after Feather's, how they were compared with its release 4.29.2 and
  with other icon sets, and why no other set is named.
 
+Files: hmailserver/docs/images/webmail-inbox.png
+       hmailserver/docs/images/webmail-message.png
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           2013-2023 Cole Bemis
+License: AGPL-3+ and Expat
+Comment:
+ Screenshots of the webmail, which README.md shows: they draw the icons of
+ its sprite as the page draws them, among them those drawn after Feather's
+ (the gear, the pen, the inbox, the pop-out, the chevrons, the paperclip and
+ the file), under Feather's MIT licence.
+
+Files: hmailserver/docs/images/control-panel-welcome.png
+Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
+           2020 Microsoft Corporation
+License: AGPL-3+ and Expat
+Comment:
+ A screenshot of the Control Panel's welcome page, which README.md shows: it
+ draws the glyphs the Control Panel shows through WPF-UI's SymbolIcon, which
+ are Microsoft's Fluent UI System Icons, under the MIT licence.
+
 Files: build/check-release-chain.py
 Copyright: 2026 Christopher Holloway / Progressive Robot Ltd
            2014 John MacFarlane

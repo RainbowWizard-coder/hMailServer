@@ -161,6 +161,8 @@ SOURCE_COMPONENTS = [
      "every named reference HTML defines, compiled into the server as the table its link reader reads an HTML part's references with"),
     ("feather-icons", "Feather icons (Cole Bemis)", "hmailserver/source/Server/Common/Util/Portal.html", "MIT", None,
      "the icons the webmail's page and the Control Deck's page are drawn after, the webmail's compiled into the server"),
+    ("fluent-ui-system-icons", "Fluent UI System Icons (Microsoft)", "hmailserver/docs/images/control-panel-welcome.png",
+     "MIT", None, "the Control Panel's glyphs, as a screenshot of it among the documents' pictures shows them"),
     ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
      None, "its own permissive notice", "compiled into hMailServer.exe only"),
     ("commonmark-js", "commonmark.js 0.31.2 (John MacFarlane)", "build/check-release-chain.py", "BSD-2-Clause", None,
