@@ -154,8 +154,11 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    AppImages and their test jobs, `appimage-runtime-sources` (the source of the
    libraries linked into the AppImages' runtime), `appimage-bundled-sources` (the
    source of the libraries they carry in `usr/lib`) and the source tarball, and
-   gathers those files, each but the two sources files with an SBOM; and for
-   `helm-chart-package`, the chart. (Release may need fifty jobs at most,
+   gathers those files, each but the two sources files with an SBOM; for
+   `helm-chart-package`, the chart; and for `linux-image-arm64`
+   (`.gitlab/ci/container-image.yml`), the linux/arm64 container image, which it
+   builds from the generic AArch64 `.deb` beside `linux-image`'s linux/amd64 one.
+   (Release may need fifty jobs at most,
    GitLab's `ci_needs_size_limit`; `release-packages` waits for forty-three,
    forty-one of them jobs `release` does not need itself.) Of the Windows
    package jobs it waits for `windows-packages-arm64`, whose ARM64 installer the

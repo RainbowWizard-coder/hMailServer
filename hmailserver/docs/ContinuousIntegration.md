@@ -3337,7 +3337,9 @@ qemu-user, and their start jobs, which start the server from each there beside
 PostgreSQL and ask it for SMTP, the REST API and the Deck, and so are gates;
 `release-packages`, which needs every other package
 build and its install job, both AppImages and their test jobs,
-`appimage-runtime-sources`, `appimage-bundled-sources` and the source tarball; and `helm-chart-package`. It brings the artifacts of fourteen jobs: the
+`appimage-runtime-sources`, `appimage-bundled-sources` and the source tarball; `helm-chart-package`; and
+`linux-image-arm64`, the linux/arm64 container image, which it builds from the generic AArch64 `.deb` beside
+`linux-image`'s linux/amd64 one. It brings the artifacts of fourteen jobs: the
 ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
 `windows-packages-arm64`, the two package builds and their SBOM jobs,
 `release-packages` and `helm-chart-package`) and the four scans.
