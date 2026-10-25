@@ -127,6 +127,17 @@ DESTINATIONS = [
      "repository": "ECR_PUBLIC_REPOSITORY", "default": None, "host": "public.ecr.aws"},
 ]
 REPOSITORY = re.compile(r"^[a-z0-9.\-]+(:[0-9]+)?(/[a-z0-9]+([._\-][a-z0-9]+)*)+$")
+
+
+def registry_host(reference):
+    """The registry an image reference written <host>/<path>[:<tag>|@<digest>] names:
+    its first component, the port with it, compared whole wherever a reference's host
+    is asked, as regctl and cosign read it; "" for a reference with no '/', which names
+    no host of its own."""
+    host, slash, _ = reference.partition("/")
+    return host if slash else ""
+
+
 ATTESTATION_TYPE = "cyclonedx"
 SIG_CERTIFICATE = "dev.sigstore.cosign/certificate"
 PEM_CERTIFICATE = re.compile(r"\A\s*-----BEGIN CERTIFICATE-----\s+([A-Za-z0-9+/=\s]+?)-----END CERTIFICATE-----\s*\Z")
@@ -156,7 +167,7 @@ def configured(environ, fix=None):
         elif not repository:
             raise Refused("%s needs %s, the repository to push to (public.ecr.aws/<alias>/hmailserver)"
                           % (d["name"], d["repository"]))
-        elif not repository.startswith(d["host"] + "/") or not REPOSITORY.match(repository):
+        elif registry_host(repository) != d["host"] or not REPOSITORY.match(repository):
             raise Refused("%s is %r: %s's repository is %s/<namespace>/<name>, and its credentials go nowhere else"
                           % (d["repository"], repository, d["name"], d["host"]))
         chosen.append((d, repository))
@@ -778,7 +789,7 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
                                 for p in checked["platforms"]],
                   "destinations": {}}
         for number, (destination, repository) in enumerate(destinations):
-            host = repository.split("/", 1)[0]
+            host = registry_host(repository)
             if destination["name"] == "Amazon ECR Public" and not (fix and fix.get("registry_destinations")):
                 user, password = "AWS", ecr_public_password(environ)
             else:
@@ -1138,6 +1149,26 @@ def self_test(cosign=None):
     refused("half a pair", lambda: configured({"DOCKERHUB_TOKEN": "t"}), "DOCKERHUB_TOKEN is set and DOCKERHUB_USERNAME")
     refused("a Docker Hub repository on another host", lambda: configured({
         "DOCKERHUB_USERNAME": "u", "DOCKERHUB_TOKEN": "t", "DOCKERHUB_REPOSITORY": "evil.example/x/y"}), "go nowhere else")
+    # A repository is on its destination's host only when its first component is that
+    # host, whole: the host's name at the start of another host's, after it, or with a
+    # port of its own, names another registry, and the credentials go to none of them.
+    for crafted in ("quay.io.evil.example/hmailserver/hmailserver", "quay.iox/hmailserver/hmailserver",
+                    "evil.example/quay.io/hmailserver", "quay.io:5000/hmailserver/hmailserver",
+                    "quay.io@evil.example/hmailserver/hmailserver", "QUAY.IO/hmailserver/hmailserver",
+                    "quay.io", "quay.io/"):
+        refused("a Quay.io repository given as %r" % crafted, lambda crafted=crafted: configured({
+            "QUAY_ROBOT_USER": "hmailserver+ci", "QUAY_ROBOT_TOKEN": "q", "QUAY_REPOSITORY": crafted}),
+            "go nowhere else")
+    refused("a Docker Hub repository on a host named after docker.io", lambda: configured({
+        "DOCKERHUB_USERNAME": "u", "DOCKERHUB_TOKEN": "t",
+        "DOCKERHUB_REPOSITORY": "docker.io.evil.example/progressiverobot/hmailserver"}), "go nowhere else")
+    expect("a Quay.io repository of another name on quay.io is taken",
+           [r for _, r in configured({"QUAY_ROBOT_USER": "hmailserver+ci", "QUAY_ROBOT_TOKEN": "q",
+                                      "QUAY_REPOSITORY": "quay.io/hmailserver/other"})] == ["quay.io/hmailserver/other"])
+    expect("a reference's host is its first component whole, the port with it, and none without a '/'",
+           [registry_host(r) for r in ("quay.io/hmailserver/hmailserver:9.9.9", "quay.io.evil.example/quay.io/x",
+                                       "evil.example/quay.io/x", "localhost:5000/x@sha256:00", "quay.io")]
+           == ["quay.io", "quay.io.evil.example", "evil.example", "localhost:5000", ""])
     refused("ECR Public without its repository", lambda: configured({"AWS_ACCESS_KEY_ID": "a", "AWS_SECRET_ACCESS_KEY": "s"}),
             "needs ECR_PUBLIC_REPOSITORY")
     said = []
@@ -1249,7 +1280,7 @@ def self_test(cosign=None):
         def logged_in(self, reference):
             """Whether regctl, reading reference from this view's directory, would send a
             login: the host's, kept in that directory and not logged out of."""
-            return reference.split("/", 1)[0] in self.logins.get(self.home, set())
+            return registry_host(reference) in self.logins.get(self.home, set())
 
         def resolve(self, reference):
             answers = self.tags.get(reference)
@@ -1422,7 +1453,7 @@ def self_test(cosign=None):
                 logout = next((i for i, c in enumerate(fake.calls) if c[1:4] == ("registry", "logout", host)), None)
                 reads = [(fake.homes[i], c) for i, c in enumerate(fake.calls) if logout is not None and i > logout
                          and c[0] == "regctl" and c[1:3] in (("manifest", "get"), ("blob", "get"), ("image", "digest"))
-                         and c[3].startswith(host + "/")]
+                         and registry_host(c[3]) == host]
                 anonymous_reads[host] = bool(reads) and all(
                     home not in homes_logged_in and c[-1] != "<logged in>" for home, c in reads)
             expect("the re-check at each destination reads from a configuration no login was written to%s (%s)"
@@ -1624,7 +1655,7 @@ def self_test(cosign=None):
                        ("source-platform-0", platforms[0].get("attestation"), "%s:sha256-%s.att" % (repository, ahex)),
                        ("source-platform-1", platforms[1].get("signature"), "%s:sha256-%s.sig" % (repository, mhex)),
                        ("source-platform-1", platforms[1].get("attestation"), "%s:sha256-%s.att" % (repository, mhex))]
-        quay_first = next((i for i, c in enumerate(fake.calls) if c in copies and c[-1].startswith("quay.io/")), 0)
+        quay_first = next((i for i, c in enumerate(fake.calls) if c in copies and registry_host(c[-1]) == "quay.io"), 0)
         expect("  ... then out of those layouts the index's signature and each platform's signature and attestation,"
                " at the tags beside the digests they were verified over, after the destination's copies",
                [(os.path.basename(c[-2][len("ocidir://"):].rpartition("@")[0]), c[-2].rpartition("@")[2], c[-1])

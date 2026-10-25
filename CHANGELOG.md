@@ -2069,6 +2069,23 @@ with `--check`).
   found, its nine Blocker vulnerabilities among it, all older than the new code its quality gate reads. Every
   exclusion pattern matches a tracked file, and every path in `sonar.tests` is excluded from the sources.
 
+- **The registry mirror compares a repository's host whole.** `build/ci/channels/registry-mirror.py` takes the host
+  of an image reference in one place, `registry_host`: its first component, the port with it, or none for a
+  reference with no `/`. The check that keeps each destination's credentials on its own registry (a `DOCKERHUB_`,
+  `QUAY_` or `ECR_PUBLIC_REPOSITORY` must name `docker.io`, `quay.io` or `public.ecr.aws`), the host the job logs in
+  to and out of, and the self-test's reading of what the job did all ask it, where they asked whether the
+  reference began with the host and a `/`, or split it at the first `/`. The rule is the one it was. The change
+  answers CodeQL's `py/incomplete-url-substring-sanitization` on the copy on GitHub, which flagged the self-test's
+  test for a copy to Quay.io, `c[-1].startswith("quay.io/")`, as a check that `quay.io/` could pass at any
+  position. That line reads the calls the self-test's own in-memory registry recorded, and nothing from outside
+  reaches it. The repositories come from the project's CI/CD variables alone, and the job's own rule already
+  compared the first component. The self-test now refuses a Quay.io repository given as
+  `quay.io.evil.example/...`, `quay.iox/...`, `evil.example/quay.io/...`, `quay.io:5000/...`,
+  `quay.io@evil.example/...`, `QUAY.IO/...`, `quay.io` and `quay.io/`, and a Docker Hub one on
+  `docker.io.evil.example`. It takes `quay.io/hmailserver/other`, and holds `registry_host` to five references.
+  Run with the rule made a substring test, a prefix test without the `/`, the pattern alone, or a host without its
+  port, the self-test fails each, and it passes as it is.
+
 ### Documentation
 
 - **SECURITY.md's "Build provenance" says that a release's SLSA provenance names every file of the release but the
