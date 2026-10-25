@@ -1071,31 +1071,31 @@ with `--check`).
   whose notice the file now quotes above them, and it has his licence and holder beside the original's in both
   records, as `StringParser.cpp`, which keeps `StdString.h`'s `FindNoCase` and `ReplaceNoCase` as they were for its
   tests, has O'Leary's (`SourceTarball.md`'s table of what is not the project's names both); the installer's Pascal
-  code names Silvio Iaccarino (2002), from whose article in the Inno Setup extensions knowledge base, as its comment
-  says, it took its Windows service declarations - the `SERVICE_STATUS` record and the `HANDLE` type, the service
-  constants and five `advapi32.dll` functions' declarations - and four of its functions, `OpenServiceManager`,
-  `IsServiceInstalled`, `StopService` and `IsServiceRunning`, with `IsServiceStopped`, the original's copy of
-  `IsServiceRunning` that tests for `SERVICE_STOPPED`, as the original and the fork changed them, and since
-  the article's page ends with the knowledge base's statement, in the words of its editor, Vincenzo Giordano, that
-  all its articles' code is public domain, its record is `AGPL-3.0-or-later AND LicenseRef-ISXKB-Public-Domain`,
-  whose text quotes the statement and says that it is the editor's and that no licence or dedication in the
-  author's own words is known (he offered the routines on his own site as freeware, in a file that states no
-  terms), while `example+google.txt`, the original's example certificate with the Google Internet Authority's
-  after it, is `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`;
+  code, `hmailserver/installation/hMailServerInnoExtension.iss`, has the generated table's record alone, Martin
+  Knafve's and the maintainers' under the project's licence, since the Windows service routines and declarations
+  the original took from Silvio Iaccarino's article of 2002 in the Inno Setup extensions knowledge base - the
+  `SERVICE_STATUS` record and the `HANDLE` type, the service constants, five `advapi32.dll` functions'
+  declarations, `OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`, and
+  `IsServiceStopped`, the original's copy of `IsServiceRunning` - were written anew from Microsoft's documentation of
+  the Service Control Manager (Correctness, above): the article's page ends with its knowledge base's statement, in
+  the words of its editor, that all its articles' code is public domain, and no licence or dedication in the
+  author's own words is known, so that the record named him and that statement for that part of the file until
+  nothing of the article was left in it, while `example+google.txt`, the original's example certificate with the
+  Google Internet Authority's after it, is `AGPL-3.0-or-later AND LicenseRef-No-Licence-Stated`;
   the RFC 7208 suite's table, `SPFConformanceSuite.cpp`, has the suite's licence (BSD-3-Clause) and holders beside
   the header's, in `REUSE.toml` and in a paragraph of `debian/copyright`, and its
   generator writes the suite's notice into its header, the table itself unchanged; and `debian/copyright`'s paragraph
   for the suite names its change log, `rfc7208-tests.CHANGES`, which it gave the project's licence and Martin
   Knafve's copyright through `Files: *` where `REUSE.toml` gives it the suite's. And `LICENSES/` holds the text of
-  each of the nineteen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download`
-  wrote them and each the same as spdx.org's text, and seven of the project's, `LicenseRef-ScriptSite` and
+  each of the eighteen licences named and no other: SPDX's own for the twelve on SPDX's list, as `reuse download`
+  wrote them and each the same as spdx.org's text, and six of the project's, `LicenseRef-ScriptSite` and
   `LicenseRef-StdString` as `debian/copyright` gives them, `LicenseRef-Microsoft-SQL-Server-Compact-4.0` with the
   plain text of SQL Server Compact 4.0 SP1's licence terms (`hmailserver/docs/Licenses`), under which the Windows
   build ships it and has its OLE DB headers - version 4.0's, as each says, in a folder named for 3.5 - and which the
   installer's licence page now heads "Microsoft SQL Server Compact 4.0 SP1" where it said 3.5,
   `LicenseRef-Verbatim-Notice` for third parties' licence texts carried verbatim (the copyright file's "notices"),
-  `LicenseRef-ISXKB-Public-Domain` for the installer's routines and declarations, `LicenseRef-No-Licence-Stated` for
-  the eight files of test data that no licence is stated for, and `LicenseRef-TabOrderManager-ReadMe` for the Windows
+  `LicenseRef-No-Licence-Stated` for the eight files of test data that no licence is stated for, and
+  `LicenseRef-TabOrderManager-ReadMe` for the Windows
   tools' `hmailserver/source/Tools/Shared/Miscellaneous/TabOrderManager.cs`, Scott McMaster's class of 2004, its header
   dated 10 October 2004, which the original took from the download of his CodeProject article: the article's page
   states no terms of its own, saying that its download may hold some, and the download's `README.txt`, version 1.0 of

@@ -2632,14 +2632,7 @@ from the Public Suffix List, Unicode's data and HTML's character references, and
 `build/check-release-chain.py`, which ports parts of commonmark.js's block and inline parsers, and
 `build/check-gitleaksignore.py`, which holds two of GitLab's secret detection rules'
 regular expressions, MIT) with
-the third party's licence added beside the header's, and the installer's Pascal code with the author of the article it took its
-Windows service declarations and four of its service functions from
-(`OpenServiceManager`, `IsServiceInstalled`, `StopService` and `IsServiceRunning`),
-with `IsServiceStopped`, the original's copy of `IsServiceRunning` that tests for
-`SERVICE_STOPPED`, and that part of it as `LicenseRef-ISXKB-Public-Domain` beside the
-project's licence, since the article's page ends with the knowledge base's statement,
-in its editor's words, that all its articles' code is public domain (no licence or
-dedication in the author's own words is known, as the identifier's text says); the
+the third party's licence added beside the header's; the
 Windows tools' `TabOrderManager.cs`, Scott McMaster's class of 2004, which the
 original took from the download of his article, whose ReadMe gives leave to use and
 modify it and names no licence and states no leave to distribute it, as
@@ -2650,7 +2643,17 @@ copyright text in the table points at the holders each text names; and the test 
 no licence was stated for as `LicenseRef-No-Licence-Stated`, two fuzzers' regression
 inputs made from two of the DKIM verifiers' replies among it (the one made from
 Eland's with the DKIM test corpus's and the original's holders beside, for the
-fragments of their messages the fuzzer spliced in). The comments of
+fragments of their messages the fuzzer spliced in). The installer's Pascal code,
+`hmailserver/installation/hMailServerInnoExtension.iss`, has the generated table's
+record alone, Martin Knafve's and the maintainers' under the project's licence: the
+Windows service routines and declarations the original took from Silvio Iaccarino's
+article of 2002 in the Inno Setup extensions knowledge base (`OpenServiceManager`,
+`IsServiceInstalled`, `StopService` and `IsServiceRunning`, with the original's copy
+of it, `IsServiceStopped`, the `SERVICE_STATUS` record, the `HANDLE` type, the service
+constants and five `advapi32.dll` declarations) were written anew from Microsoft's documentation of the
+Service Control Manager, so that nothing of the article, whose terms rested on its
+knowledge base's statement and not on its author's, is in the file or compiled into
+`setup.exe`. The comments of
 `REUSE.toml` say why each table says what it does, and `debian/copyright` says the
 same of what the source tarball carries ([SourceTarball.md](SourceTarball.md)),
 which the job holds it to.
