@@ -133,7 +133,8 @@ with `--check`).
   and not started, and the status no longer shows one that was dropped as running. Installing a certificate
   reinitialises the server, as it did: for the seconds that takes no SMTP, IMAP or POP3 listener accepts, the sessions
   in flight are cut unless `ShutdownDrainSeconds` gives them a window, and maintenance mode, if it is on, ends;
-  `Acme.md` says so, and how to install a certificate with no session cut.
+  `Acme.md` says so, and that maintenance mode, which avoids the cut, refuses every new connection to every host
+  while it lasts and stays on, until it is left, whenever no certificate is installed.
 
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
   connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
@@ -952,7 +953,8 @@ with `--check`).
 
 - **New: the ACME certificate's state, and a check of it now, over REST and COM (GitLab work item 98).** `GET
   /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the
-  file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed,
+  file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed
+  (whether the ACME (automatic) record names that file),
   whether it names every host `AcmeDomains` lists and which it lacks, the names of the list no certificate can carry,
   whether it is due and why, the check running now (and its step: directory, account, order, authorization, finalize,
   certificate, install), the last check and the last that tried to issue (outcome, the failing step, a sentence, and
@@ -1468,10 +1470,19 @@ with `--check`).
   `Retry-After` held for an hour, against a request and the check at start alike; a request accepted, put on the audit
   trail as one new record naming the administrator, the names and the directory, and refused for the minute after; a
   name written fully qualified read as the host and an address left out of the coverage; a body
-  with names of its own refused and the run refused with ACME off; and both routes refused to a key for one domain,
+  with names of its own refused and the run refused with ACME off; the check at start a reinitialise makes not begun
+  beside a check a save started and the CA holds at the order, one order made; a save naming only hosts the
+  certificate carries - in another case, fully qualified, through its wildcard, with a host taken off - queuing no
+  check, and one with a host it lacks then queuing one; and both routes refused to a key for one domain,
   the run to a read-only key, and both to no credential. `Security/TlsAcmeIssuance.cs`, on Windows over COM, issues for
   a host added to `AcmeDomains` end to end, after the certificate the CA first sent - for another key - to the first check that read the new list was refused
-  and the one in use kept.
+  and the one in use kept. `Security/TlsAcmeDeployment.cs` holds the status's `deployed` false for a record of that
+  name pointing at another file and true for the same path in another case. The two COM fixtures that let the server
+  deploy a certificate switch ACME off by a reinitialise and wait until the bench answers, with ACME off and no check
+  running, for three seconds in a row before they put the ports back and delete the record (`Shared/AcmeBench.cs`),
+  and wait for the check at the start their own deployment made: a check at that start that ran after the record was
+  deleted with ACME still on deployed the pair again, and its restart landed in the next fixture. TlsAcmeIssuance's
+  CAs are ports of their own, 10281 and 10282, outside RestApiAcme's, whose cooldown at a shared port held its checks.
 
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
@@ -2214,10 +2225,14 @@ with `--check`).
 - **New: `hmailserver/docs/Acme.md`, automatic certificates from Let's Encrypt or another ACME CA.** The settings and
   when each applies, the four rules that make a certificate due (none, a host it does not name, the CA's renewal
   window, two thirds of its life), when a check runs, the run's answers and the status's members, the spacing between
-  checks and the Let's Encrypt limits it is measured against, what a failed attempt leaves and what a certificate must
+  checks and the Let's Encrypt limits it is measured against - with the fifty new certificates per registered domain
+  a week that a platform adding hosts meets first, since every host added re-issues the one certificate for all of
+  them -, what a failed attempt leaves and what a certificate must
   be to be installed, who may ask and what the audit trail keeps, the steps for adding a customer's mail host over
   COM or REST, and what it does not do (one certificate for every host, http-01 only). The Control Panel's *Automatic
-  certificates (ACME)* page opens it as its help, `README.md` and `SecureDefaults.md` point to it, `SettingsApply.md`
+  certificates (ACME)* page opens it as its help, `README.md` and `SecureDefaults.md` point to it - `README.md`'s two
+  lines that said a new certificate is loaded without a restart now say that a reinitialise of the server loads it,
+  restarting the listeners for a few seconds -, `SettingsApply.md`
   lists the subscription on `AcmeDomains`, and the help pages the server serves are regenerated.
 
 - **Mirroring.md says in what order a release's image is copied to `ghcr.io`, so that GitHub's package page shows the

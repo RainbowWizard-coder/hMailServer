@@ -3153,9 +3153,20 @@ namespace HM
             BN_free(serialNumber);
          }
 
+         // Deployed: the ACME (automatic) record names this file. A record of that
+         // name that points elsewhere - AcmeCertificateDirectory changed since it
+         // was made, or its paths edited by hand - is what the listeners load, and
+         // this certificate is then not in use, whatever the record is called.
+         // The path compared as the file system compares it: without regard to
+         // case on Windows.
          SSLCertificates records;
          records.Refresh();
-         const bool deployed = (bool) records.GetItemByName(_T("ACME (automatic)"));
+         std::shared_ptr<SSLCertificate> record = records.GetItemByName(_T("ACME (automatic)"));
+#ifdef HM_PLATFORM_POSIX
+         const bool deployed = record && record->GetCertificateFile() == certificateFile;
+#else
+         const bool deployed = record && record->GetCertificateFile().CompareNoCase(certificateFile) == 0;
+#endif
 
          json += ",\"certificate\":{\"file\":" + JsonText(certificateFile);
          json += ",\"names\":" + JsonNames(names);

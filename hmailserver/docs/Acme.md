@@ -119,7 +119,7 @@ not asked. Times are Unix seconds, and null when there is none.
 |---|---|
 | `enabled`, `directory_url`, `domains`, `certificate_directory` | The settings, `domains` as the client reads them. |
 | `unusable_domains` | The names of `AcmeDomains` left out because no certificate can carry them, as written. |
-| `certificate` | The certificate in use, or null: `file`, `names` (its subject alternative names, or its common name when it has none), `subject`, `issuer`, `serial`, `not_before`, `not_after`, `expired`, `renews_at` (rule 4 above) and `deployed` (whether the ACME (automatic) record names it). |
+| `certificate` | The certificate in use, or null: `file`, `names` (its subject alternative names, or its common name when it has none), `subject`, `issuer`, `serial`, `not_before`, `not_after`, `expired`, `renews_at` (rule 4 above) and `deployed` (whether the ACME (automatic) record names this file - a record of that name that points at another file, after `AcmeCertificateDirectory` changed or its paths were edited, is not this certificate's deployment). |
 | `covers_domains`, `missing_domains` | Whether it names every configured host, and the ones it lacks. |
 | `due`, `due_reason` | Rules 1, 2 and 4, judged from the file: `missing`, `names` or `lifetime`. |
 | `running` | The check queued or running now, or null. |
@@ -151,7 +151,9 @@ whole answer at each failing step, as it always had.
 
 Let's Encrypt counts what an account does: five failed validations per host per
 hour, refilled one every twelve minutes; three hundred new orders per three
-hours; five certificates per week for exactly the same set of names. A
+hours; fifty new certificates per registered domain (`example.com` for
+`mail.example.com`) per week, refilled one every 202 minutes; five
+certificates per week for exactly the same set of names. A
 provisioning script that asks for a check in a loop while a DNS record is
 missing could spend the first of those in minutes, and a setup that cannot
 validate would then fail its renewal too. So every check keeps three rules,
@@ -175,6 +177,20 @@ whatever started it:
 A certificate is issued only when one is due, so these do not need to guard the
 weekly duplicate-certificate limit: after a certificate that names every host
 is installed, the next check finds nothing due.
+
+**The limit a platform that adds hosts meets first is the registered
+domain's.** A certificate whose set of names has changed is a new certificate,
+not a renewal, to Let's Encrypt (this client does not send ACME Renewal
+Information's `replaces`, which would exempt a renewal), and the one
+certificate counts against every registered domain it names. So every host
+added re-issues the certificate for every host, and each issue counts once for
+each customer's domain on it: more than fifty additions in a week and the next
+order is answered `rateLimited` - after which the server orders nothing for any
+host, renewals included, until the CA's `Retry-After` (at most seven days, the
+rule above). Add hosts in batches - several names in one save, or saves made
+while a check runs, which are taken together by the one check that follows it -
+rather than one save per host in a busy week; and a certificate holds at most a
+hundred names.
 
 The cooldown and the rate limit belong to the CA they were learnt from: a change
 of `AcmeDirectoryUrl` starts them afresh. They are kept in memory, not in the
@@ -270,9 +286,23 @@ connection, and the sessions in flight are cut - unless `ShutdownDrainSeconds`
 gives them a window to finish - for every host, not only the new one. Existing
 hosts keep the certificate they had until then, and every host is served with
 the new one after it. Maintenance mode (`POST /api/v1/server/drain`), if it is
-on, ends with the reinitialise; entering it before asking for the check, and
-asking once the sessions have finished, is the way to install a certificate with
-no session cut.
+on, ends with the reinitialise.
+
+Maintenance mode can be used to install a certificate with no session cut, but
+it is not free and nothing ends it but an installation or the caller. Entering
+it closes the SMTP, IMAP and POP3 listeners: from then on **every new
+connection, to every host, is refused** - new mail and clients alike - until it
+is left, which is longer than the few seconds the reinitialise itself takes: the
+sessions' drain, the validation and any wait. And it is left by the
+reinitialise only when a certificate is installed; when the attempt fails (a
+DNS record not yet published, a proxy that does not pass the challenge on), when
+the save starts no check (the twenty minutes after a failure, a rate limit) or
+when the check finds nothing due, it stays on, with no timeout. So a caller that
+enters it must leave it itself (`DELETE /api/v1/server/drain`) whenever
+`last_issuance` does not come back `issued`, or no check came; it suits a quiet
+window an administrator watches, not unattended provisioning, for which
+`ShutdownDrainSeconds` - a window for the sessions in flight at the
+reinitialise - is the better choice.
 
 ## What it does not do
 

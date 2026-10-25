@@ -40,8 +40,8 @@ namespace RegressionTests.API
    [TestFixture]
    public class RestApiAcme : TestFixtureBase
    {
-      // 10270 to 10279 are this fixture's: the REST listener on the Windows bench, and
-      // a CA per test.
+      // 10270 to 10280 are this fixture's: the REST listener on the Windows bench, and
+      // a CA per test. TlsAcmeIssuance's CAs are 10281 and 10282.
       private static int RestPort = 10270;
       private const string AdminPassword = "testar";
 
@@ -197,8 +197,10 @@ namespace RegressionTests.API
          DateTime until = DateTime.UtcNow.AddSeconds(90);
          while (DateTime.UtcNow < until)
          {
+            // A refused or failed read is not idle: it is the listener restarting,
+            // and a check runs at that start.
             (int status, string body) = Http("GET", "/api/v1/acme");
-            if (status != 200 || MiniJson.At(MiniJson.Object(body), "running") == null)
+            if (status == 200 && MiniJson.At(MiniJson.Object(body), "running") == null)
                return;
             Thread.Sleep(250);
          }
@@ -534,6 +536,99 @@ namespace RegressionTests.API
                "The check at start, inside the CA's rate limit, did not wait: " + MiniJson.Text(held, "last_attempt.error"));
             Assert.AreEqual("rate_limited", MiniJson.Text(held, "last_attempt.failed_step"));
             Assert.AreEqual(1, ca.Count("POST", "/order"), "The check at start ordered inside the CA's rate limit.");
+         }
+      }
+
+      // ------------------------------------------------------------------ one at a time, whatever started it
+
+      [Test]
+      [Description("One check at a time holds across triggers, not only for a request: while a check a save started is held at the order, the check at start that a reinitialise makes does not begin beside it - the CA sees one order - and the held check is the last to finish.")]
+      public void TheCheckAtStartDoesNotBeginBesideARunningCheck()
+      {
+         WriteCertificate(MailOnlyPem);
+         byte[] before = File.ReadAllBytes(CertificateFile);
+
+         using (var ca = new FakeAcmeCa(10279))
+         {
+            // Held longer than the reinitialise takes: its stop waits ten seconds for
+            // the maintenance queue's threads and then goes on without one inside an
+            // HTTP request, which the stop does not interrupt, so that the held check
+            // outlives the stop and the start comes while it runs.
+            ca.Mode = FakeAcmeCa.OrderMode.Stall;
+            ca.StallSeconds = 25;
+
+            Dictionary<string, object> started = EnableAcme(ca.DirectoryUrl, "mail.example.test");
+            Assert.AreEqual("not_due", MiniJson.Text(started, "last_attempt.outcome"), "The certificate names the one host configured.");
+
+            IniFileSetting.Write("AcmeDomains", "mail.example.test,new.example.test");
+
+            Dictionary<string, object> running = WaitFor(s => MiniJson.Text(s, "running.trigger") == "settings" &&
+                                                              MiniJson.Text(s, "running.step") == "order",
+               "the check the save started to reach the order", 30);
+            long id = MiniJson.Number(running, "running.id");
+
+            // The start's check is queued as the servers start again; it finds this one
+            // running and does nothing.
+            _application.Reinitialize();
+
+            Dictionary<string, object> during = Status();
+            Assert.AreEqual(id, MiniJson.Number(during, "running.id"),
+               "The check at start took the place of the one running: " + MiniJson.Text(during, "running.trigger"));
+
+            Dictionary<string, object> done = WaitFor(s => MiniJson.At(s, "running") == null && MiniJson.Number(s, "last_attempt.id") >= id,
+               "the held check to end", 90);
+            Assert.AreEqual(id, MiniJson.Number(done, "last_attempt.id"),
+               "A check began beside the held one and ended after it: " + MiniJson.Text(done, "last_attempt.trigger"));
+            Assert.AreEqual("settings", MiniJson.Text(done, "last_attempt.trigger"));
+            Assert.AreEqual("failed", MiniJson.Text(done, "last_attempt.outcome"));
+            Assert.AreEqual("order", MiniJson.Text(done, "last_attempt.failed_step"));
+            Assert.AreEqual(1, ca.Count("POST", "/order"), "The check at start ordered beside the check that was running.");
+
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(CertificateFile), "A failed attempt changed the certificate in use.");
+         }
+      }
+
+      // ------------------------------------------------------------------ a save that adds nothing
+
+      [Test]
+      [Description("A save of AcmeDomains that names only hosts the certificate already carries - in another case, fully qualified, reordered, through its wildcard, with a host taken off or beside an address - queues no check, though the spacing would allow one; a save that adds a host it lacks then does.")]
+      public void ASaveNamingOnlyHostsTheCertificateCarriesQueuesNoCheck()
+      {
+         // mail.example.test and *.wild.example.test.
+         WriteCertificate(WildcardPem);
+
+         using (var ca = new FakeAcmeCa(10280))
+         {
+            Dictionary<string, object> started = EnableAcme(ca.DirectoryUrl, "mail.example.test,x.wild.example.test");
+            Assert.AreEqual("not_due", MiniJson.Text(started, "last_attempt.outcome"));
+            Assert.IsTrue(MiniJson.Flag(started, "covers_domains"));
+            Assert.IsTrue(MiniJson.Flag(started, "requests.allowed_now"), "The spacing holds a check, so this test would prove nothing.");
+            long startId = MiniJson.Number(started, "last_attempt.id");
+            int requestsBefore = ca.Requests.Count;
+
+            foreach (string list in new[] { "MAIL.Example.Test.", "x.wild.example.test,mail.example.test", "y.wild.example.test", "mail.example.test, 192.0.2.7" })
+               IniFileSetting.Write("AcmeDomains", list);
+
+            // A check queued by any of them would have run and ended within this.
+            Thread.Sleep(3000);
+
+            Dictionary<string, object> after = Status();
+            Assert.IsNull(MiniJson.At(after, "running"), "A save of hosts the certificate carries queued a check.");
+            Assert.AreEqual(startId, MiniJson.Number(after, "last_attempt.id"),
+               "A save of hosts the certificate carries started a check: " + MiniJson.Text(after, "last_attempt.trigger"));
+            Assert.AreEqual(requestsBefore, ca.Requests.Count,
+               "A save of hosts the certificate carries asked the CA something: " + string.Join(", ", ca.Requests.Skip(requestsBefore)));
+
+            // The control: a host it lacks is a check at once, as the subscription is
+            // there to make it.
+            ca.Mode = FakeAcmeCa.OrderMode.Stall;
+            ca.StallSeconds = 1;
+            IniFileSetting.Write("AcmeDomains", "mail.example.test,new.example.test");
+
+            Dictionary<string, object> saved = WaitFor(s => MiniJson.At(s, "running") == null && MiniJson.Number(s, "last_attempt.id") > startId,
+               "the check the save of a missing host started to end");
+            Assert.AreEqual("settings", MiniJson.Text(saved, "last_attempt.trigger"));
+            Assert.AreEqual("names", MiniJson.Text(saved, "last_attempt.reason"));
          }
       }
 

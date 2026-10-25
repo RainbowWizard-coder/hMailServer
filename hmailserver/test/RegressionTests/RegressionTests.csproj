@@ -464,6 +464,7 @@
     <Compile Include="Shared\FakeFilterEngine.cs" />
     <Compile Include="Shared\FakeHttpEndpoint.cs" />
     <Compile Include="Shared\FakeAcmeCa.cs" />
+    <Compile Include="Shared\AcmeBench.cs" />
     <Compile Include="Shared\FakeBreachCorpus.cs" />
     <Compile Include="Shared\FakeHttpProxy.cs" />
     <Compile Include="Shared\FakeSigstore.cs" />

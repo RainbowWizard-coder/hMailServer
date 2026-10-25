@@ -37,9 +37,12 @@ namespace RegressionTests.Security
    [TestFixture]
    public class TlsAcmeIssuance : TestFixtureBase
    {
-      // 10277 and 10278 are this fixture's CAs.
-      private const int FirstCaPort = 10277;
-      private const int SecondCaPort = 10278;
+      // 10281 and 10282 are this fixture's CAs, outside RestApiAcme's 10270 to 10280:
+      // the spacing between checks is kept against the CA's directory URL for the
+      // life of the process, so a CA that fixture left in its cooldown would hold
+      // this one's checks.
+      private const int FirstCaPort = 10281;
+      private const int SecondCaPort = 10282;
 
       private const string RecordName = "ACME (automatic)";
 
@@ -69,12 +72,12 @@ namespace RegressionTests.Security
       {
          try
          {
-            WaitUntilIdle();
+            // ACME off where it applies, and the bench quiet, before the record goes:
+            // a check at the start a deployment made would otherwise find the pair
+            // with no record, deploy it again and restart the servers into the next
+            // fixture (AcmeBench).
+            AcmeBench.SwitchOff(_application);
 
-            // Past a restart a deployment started, if one is still under way.
-            RetryHelper.TryAction(TimeSpan.FromSeconds(60), () => FindRecord());
-
-            IniFileSetting.Write("AcmeEnabled", null);
             IniFileSetting.Write("AcmeDomains", null);
             IniFileSetting.Write("AcmeDirectoryUrl", null);
             IniFileSetting.Write("AcmeCertificateDirectory", null);
@@ -136,47 +139,7 @@ namespace RegressionTests.Security
 
       private Dictionary<string, object> WaitFor(Func<Dictionary<string, object>, bool> condition, string what, int seconds = 60)
       {
-         DateTime until = DateTime.UtcNow.AddSeconds(seconds);
-         string last = "";
-
-         while (DateTime.UtcNow < until)
-         {
-            try
-            {
-               last = _application.Utilities.GetAcmeStatus();
-               Dictionary<string, object> state = MiniJson.Object(last);
-               if (condition(state))
-                  return state;
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-               // A deployment restarts the servers; COM answers again a moment later.
-            }
-
-            System.Threading.Thread.Sleep(250);
-         }
-
-         Assert.Fail("Waited " + seconds + " seconds for " + what + ". Last status: " + last);
-         return null;
-      }
-
-      private void WaitUntilIdle()
-      {
-         DateTime until = DateTime.UtcNow.AddSeconds(90);
-         while (DateTime.UtcNow < until)
-         {
-            try
-            {
-               if (MiniJson.At(Status(), "running") == null)
-                  return;
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-               return;
-            }
-
-            System.Threading.Thread.Sleep(250);
-         }
+         return AcmeBench.WaitFor(_application, condition, what, seconds);
       }
 
       // An EC key the CNG provider lets this process export, so that it can be
@@ -279,8 +242,17 @@ namespace RegressionTests.Security
             Assert.IsTrue(MiniJson.Number(issued, "last_issued_at") > 0);
             Assert.AreEqual(second.CertificatePem, File.ReadAllText(CertificateFile).Replace("\r\n", "\n"), "The certificate the CA issued is not the one in use.");
 
-            // The installation restarts the servers, and COM answers "has not loaded its
-            // configuration" while they come back.
+            // The installation restarts the servers, and the check at that start - an id
+            // after the one that issued - finds the certificate it installed, names every
+            // host and orders nothing. Waited for here, so that no restart and no check
+            // of this test's is still to come when it ends.
+            Dictionary<string, object> settled = WaitFor(s => MiniJson.Text(s, "last_attempt.trigger") == "start" &&
+                                                              MiniJson.Number(s, "last_attempt.id") > id && MiniJson.At(s, "running") == null,
+               "the check at the start the installation made");
+            Assert.AreEqual("not_due", MiniJson.Text(settled, "last_attempt.outcome"), "Error: " + MiniJson.Text(settled, "last_attempt.error"));
+            Assert.IsTrue(MiniJson.Flag(settled, "certificate.deployed"));
+
+            // COM answers "has not loaded its configuration" while the servers come back.
             SSLCertificate record = null;
             RetryHelper.TryAction(TimeSpan.FromSeconds(60), () => record = FindRecord());
             Assert.IsNotNull(record, "The deployment's record is gone.");

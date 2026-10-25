@@ -85,7 +85,12 @@ namespace RegressionTests.Security
       {
          try
          {
-            IniFileSetting.Write("AcmeEnabled", null);
+            // ACME off where it applies, and the bench quiet, before the record goes:
+            // a check at the start a deployment made would otherwise find the pair
+            // with no record, deploy it again and restart the servers into the next
+            // fixture (AcmeBench).
+            AcmeBench.SwitchOff(_application);
+
             IniFileSetting.Write("AcmeDomains", null);
             IniFileSetting.Write("AcmeDirectoryUrl", null);
             IniFileSetting.Write("AcmeCertificateDirectory", null);
@@ -224,6 +229,30 @@ namespace RegressionTests.Security
          Assert.AreEqual(1, CountRecords(), "One record, however many checks have run.");
          Assert.AreEqual(1, CountOccurrences(LogHandler.ReadCurrentDefaultLog(), "issued but never deployed"),
             "The deployment happens once; with the record in place the check is a look-up.");
+
+         // The status's deployed is the record naming this file, not a record of that
+         // name: pointed at a copy elsewhere - as after AcmeCertificateDirectory moved,
+         // or the paths were edited by hand - it is what the listeners load, and the
+         // certificate in the ACME directory is not deployed. The same path in another
+         // case is the same file on Windows.
+         AcmeBench.WaitFor(_application, s => MiniJson.Flag(s, "certificate.deployed"), "the deployed pair to be reported as deployed", 10);
+
+         string elsewhere = Paths.Combine(AcmeDirectory, "elsewhere");
+         Directory.CreateDirectory(elsewhere);
+         string copy = Paths.Combine(elsewhere, "fullchain.pem");
+         File.WriteAllText(copy, CertificatePem, new UTF8Encoding(false));
+
+         SSLCertificate moved = FindRecord();
+         moved.CertificateFile = copy;
+         moved.Save();
+         AcmeBench.WaitFor(_application, s => MiniJson.At(s, "certificate") != null && !MiniJson.Flag(s, "certificate.deployed"),
+            "a record of that name that loads another file not to be taken for this certificate's deployment", 10);
+
+         moved = FindRecord();
+         moved.CertificateFile = certificateFile.ToUpperInvariant();
+         moved.Save();
+         AcmeBench.WaitFor(_application, s => MiniJson.Flag(s, "certificate.deployed"),
+            "the record naming this file in another case to be taken for it", 10);
       }
 
       [Test]
@@ -259,6 +288,18 @@ namespace RegressionTests.Security
          StringAssert.Contains("does not name mail.example.test", log, "The certificate was not found to lack the host.");
          StringAssert.Contains("Certificate renewal FAILED", log, "No issuance was tried for the host, or it did not fail.");
          StringAssert.Contains("issued but never deployed", log);
+         Assert.AreEqual(1, CountRecords());
+
+         // The deployment restarts the servers, and the check at that start finds the
+         // certificate still due and held by the twenty minutes after the failure: it
+         // orders nothing, and with the record in place deploys nothing. Waited for
+         // here, so that no restart and no check of this test's is still to come when
+         // it ends.
+         Dictionary<string, object> settled = AcmeBench.WaitFor(_application,
+            s => MiniJson.Text(s, "last_attempt.trigger") == "start" && MiniJson.Text(s, "last_attempt.outcome") == "waiting" &&
+                 MiniJson.At(s, "running") == null,
+            "the check at the start the deployment made");
+         Assert.AreEqual("cooldown", MiniJson.Text(settled, "last_attempt.failed_step"));
          Assert.AreEqual(1, CountRecords());
       }
    }

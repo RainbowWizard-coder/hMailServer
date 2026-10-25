@@ -78,7 +78,7 @@ Transport security
 * DNSSEC validation also protects SPF, DKIM and DMARC record lookups.
 * **TLS-RPT** (RFC 8460) daily aggregate reports to recipient domains — off until `TlsRptFromAddress` is set (the server notes this in the application log while statistics are collected unsent).
 * **The reports our own domains receive, read**: name a report mailbox on a domain (`Domain.ReportMailbox`, `report_mailbox`), publish it as `rua=mailto:` in the domain's `_dmarc` and `_smtp._tls` records, and the DMARC aggregate reports (RFC 7489 and RFC 9990) and TLS-RPT reports (RFC 8460) that arrive there - gzip, zip or plain, XML or JSON - are parsed into `hm_dmarcreports`, `hm_dmarcreportrecords` and `hm_tlsreports`. The Control Deck's DMARC page charts who sends as the domain and with what result, per source and per day, the way the paid DMARC services do; `hmctl dmarc` and `GET /api/v1/domains/{domain}/dmarc-reports/summary` answer the same numbers. Only the named mailbox is an intake, a report about a domain that names none is not recorded, and nothing read here acts on any mail ([DmarcReports.md](hmailserver/docs/DmarcReports.md)).
-* **ACME v2 (Let's Encrypt)** built in: certificates are issued, renewed, assigned to TLS ports and hot-reloaded without a restart. The private key is reused across renewals, so published DANE TLSA records stay valid.
+* **ACME v2 (Let's Encrypt)** built in: certificates are issued, renewed and assigned to TLS ports, and a new one is loaded by a reinitialise of the server - the listeners restart for a few seconds, the service does not ([Acme.md](hmailserver/docs/Acme.md)). The private key is reused across renewals, so published DANE TLSA records stay valid.
 
 Sender authentication and anti-abuse
 ------------------------------------
@@ -671,7 +671,7 @@ Automatic certificates (Let's Encrypt):
    AcmeReuseKey=1                ; keep the same key across renewals (keeps TLSA records valid)
    </pre>
 
-   Issued certificates are stored in `Data\ACME`, registered as an SSL certificate, assigned to TLS ports without one, and loaded without a restart. A certificate that does not name every host in `AcmeDomains` is issued again at once, and a save of `AcmeDomains` that adds a host starts that check; `GET /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the certificate names and how the last check went, and `POST /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for a check now, spaced out so as not to spend the CA's limits. [hmailserver/docs/Acme.md](hmailserver/docs/Acme.md) has the rules.
+   Issued certificates are stored in `Data\ACME`, registered as an SSL certificate, assigned to TLS ports without one, and loaded by a reinitialise of the server, which restarts the listeners for a few seconds (not the service) and cuts the sessions in flight unless `ShutdownDrainSeconds` gives them a window. A certificate that does not name every host in `AcmeDomains` is issued again at once, and a save of `AcmeDomains` that adds a host starts that check; `GET /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the certificate names and how the last check went, and `POST /api/v1/acme/run` (`Utilities.RunAcmeCheck`) asks for a check now, spaced out so as not to spend the CA's limits. [hmailserver/docs/Acme.md](hmailserver/docs/Acme.md) has the rules.
 
 Web services (MTA-STS hosting, client autoconfiguration, CardDAV and CalDAV):
 
