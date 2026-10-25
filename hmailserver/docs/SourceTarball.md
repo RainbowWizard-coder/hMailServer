@@ -71,7 +71,7 @@ literal path per line, with the reason for each group; in short:
 | `hmailserver/source/Server/zlib` | zlib as `hMailServer.exe` compiles it. The POSIX build links the distribution's zlib and, since 28 September 2026, includes the distribution's `zlib.h` too (before that it read the vendored header over the distribution's library). |
 | `hmailserver/source/Tools/*` but `Cli` | The Control Panel and the database tools, every one a `net10.0-windows` project. `Cli` stays: the packages install its `hmctl`. |
 | `hmailserver/source/Addons` | The VBScript add-ons the Windows installer copies (the Linux server runs its event scripts in JavaScript). |
-| `hmailserver/tools/*` but `Scripts` and `Anonymizer.sql` | .NET Framework developer tools, a batch file, a Visual Studio 2005 file. |
+| `hmailserver/tools/*` but `Scripts` and `Anonymizer.sql` | .NET Framework developer tools and a batch file. |
 | `hmailserver/installation/*` but `WebAdmin/` and `Extras/dh2048.pem` | The Inno Setup sources, pictures and licence page, the socket-check DLL's source, the uninstall helper, the winget and Chocolatey templates, 7-Zip's licence. What stays is what `CMakeLists.txt` installs: the Control Deck and its catalogues, and the Diffie-Hellman group. |
 
 Left in on purpose: the whole of `hmailserver/test` (the Linux suite links about

@@ -1089,7 +1089,9 @@ with `--check`).
   him nor terms of his. The original's
   debugger file for Visual Studio 2005 and 2008, `hmailserver/tools/VS2005/autoexp.dat`, whose one rule was Visual
   Studio's own for `std::basic_string<wchar_t>` renamed, and which nothing builds or reads, is deleted, with its
-  table and its line in `build/source-exclusions.txt` and the Debian source package's `Files-Excluded`. Two of
+  table, its line in `build/source-exclusions.txt` and the Debian source package's `Files-Excluded`, and its mention
+  in `hmailserver/docs/SourceTarball.md`'s row of the developer tools the source tarball leaves out, which with the
+  help pages made of it now gives them as .NET Framework developer tools and a batch file. Two of
   the eight files of test data are the fuzzers' regression inputs, which the fuzzers' table gave
   the maintainers and the AGPL: the MIME fuzzer's `heap-buffer-overflow-findstring-boundary-scan`,
   which is Alt-N's DKIM reply, `altn.response.txt`, as the fuzzer changed it, and has that reply's record now, and
