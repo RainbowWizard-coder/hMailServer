@@ -12,8 +12,9 @@ notice in their opening comment - most of them "Copyright (c) 2010 Martin Knafve
 hMailServer.com." in the file's comment syntax. On 13 September 2026 (adb5e3743)
 the fork's header took the place of that notice in about 1,100 files; on 24 October
 2026 it was decided to put each file's own notice back beside the header, as it
-was, since the AGPL (its sections 4 and 5) asks that the notices a work carries be
-kept intact. build/original-notices.txt is the list of them, and
+was: the AGPL asks that each copy carry an appropriate copyright notice (its
+section 4, which its section 5 applies to modified versions), and for his code
+that is his own notice. build/original-notices.txt is the list of them, and
 build/add-license-headers.py writes each one below the project's header and refuses
 a file of the list without it, and his notice on a file the list does not name.
 

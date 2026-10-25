@@ -1181,9 +1181,10 @@ with `--check`).
 - **Martin Knafve's copyright notices are back on the original's files, below the project's header.** On 13 September
   2026 the project's header took the place of the notice that most of the original hMailServer's source files carried,
   for most of those `Copyright (c) 2010 Martin Knafve / hMailServer.com.` in the file's comment syntax. The AGPL,
-  under which the original and the fork are both published, asks (its sections 4 and 5) that a work's copyright
-  notices be kept intact, so each file's own notice is put back as the original's file wrote it, on the line below the
-  header and in the same comment, and nothing else in the file changes. `build/original-notices.txt` lists them: 1,091
+  under which the original and the fork are both published, asks that each copy carry an appropriate copyright notice
+  (its section 4, which its section 5 applies to modified versions), and for his code that is his own notice, so each
+  file's own notice is put back as the original's file wrote it, on the line below the header and in the same comment,
+  and nothing else in the file changes. `build/original-notices.txt` lists them: 1,091
   files, each with one line - 1,019 of 2010, 37 of 2005, 10 of 2006, 9 of 2009, 6 of 2008, 5 of 2014, 2 of 2013, one
   each of 2007 and 2012, and one with no year. Not every one of the original's files carried one: of the 1,283 of them
   that carry the project's header, 151 carried none in the original (`hMailServer.idl`, `Version.h`, `BO/Route.h`,

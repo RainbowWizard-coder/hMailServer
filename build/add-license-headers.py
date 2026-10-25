@@ -26,8 +26,10 @@ it again, below the header and in the same comment: build/original-notices.txt,
 which build/generate-original-notices.py makes from the original's own trees,
 gives each such file the notice line or lines its original wrote, and this
 writes them there, exactly, in the file's line endings. This script took them
-out on 13 September 2026 and put them back on 25 October 2026, as the AGPL asks
-that a work's copyright notices be kept intact. --check refuses a file of the
+out on 13 September 2026 and put them back on 25 October 2026: the AGPL asks
+that each copy carry an appropriate copyright notice (its section 4, which its
+section 5 applies to modified versions), and for his code that is his own
+notice. --check refuses a file of the
 list whose notice is not there (a .resx of the list that has lost its header
 gets both written anew, though a .resx otherwise only has a header it carries
 made canonical), and any copyright line in his name anywhere in a file but the
