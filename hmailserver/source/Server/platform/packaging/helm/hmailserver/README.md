@@ -198,8 +198,9 @@ inside a container; its update check says that a newer release exists and that t
 image is the way to it.
 
 A release installed from a chart published before the chart gave the pod its user
-and group has a pod that never started (Installed into a cluster, above). The same `helm upgrade` moves it to a chart that
-starts one, and then its pod has to be deleted by hand:
+and group has a pod that never started (Installed into a cluster, above). The same
+`helm upgrade` moves it to a chart that starts one, and then its pod has to be
+deleted by hand:
 
 ```
 kubectl delete pod mail-hmailserver-0

@@ -33,8 +33,8 @@ spec:
              values leave them out or null, and a number the values give is kept.
              Here and not only in values.yaml: helm upgrade --reuse-values renders
              the new chart with the values of the chart the release was installed
-             with, and the charts published before this one gave the pod its user
-             named none (podSecurityContext was fsGroup 1000 alone), with which the
+             with, and the values of the charts published before this one named
+             no user (podSecurityContext was fsGroup 1000 alone), with which the
              pod never starts. */}}
       {{- $podSecurityContext := deepCopy (.Values.podSecurityContext | default dict) }}
       {{- range $key := list "runAsUser" "runAsGroup" "fsGroup" }}
