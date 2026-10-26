@@ -139,6 +139,20 @@ with `--check`).
   `Acme.md` says so, and that maintenance mode, which avoids the cut, refuses every new connection to every host
   while it lasts and stays on, until it is left, whenever no certificate is installed.
 
+- **Fixed: `Utilities.RunAcmeCheck` and `Utilities.GetAcmeStatus` are the last two members of `IInterfaceUtilities`,
+  so that a COM client built against 6.3.7's type library calls the method it names.** The two were declared after
+  `GetReputationReport`, in the middle of the interface, which is dual and keeps 6.3.7's IID: a dual interface's
+  vtable follows the order the members are declared in, not their dispatch ids, so the 63 members after them moved
+  two slots down, and an early-bound client - .NET through the `Interop.hMailServer.dll` 6.3.7 installed in `Bin`, C++
+  through a header made from 6.3.7's type library, VB6 - would have called `RunAcmeCheck` for `IsValidDomainName` and
+  `GetAcmeStatus` for `MD5`, each writing its answer over the caller's input string, and for each later member the
+  one two places above it. Scripts and the Control Panel, which bind late, by name and dispatch id, were not
+  affected, and neither were the tools and the tests, whose interop is made from the type library they are built
+  with. Both are now after `BackupArchiveIsEncrypted`, the last member 6.3.7 had, under the note the other appended
+  interfaces carry, with their dispatch ids, 71 and 72, and what they do unchanged; every member of
+  `IInterfaceUtilities` is in the slot and has the dispatch id 6.3.7 gave it, and no other interface of
+  `hMailServer.idl` changed since 6.3.7.
+
 - **Fixed: on Windows, the five seconds a stop of the REST API's or the web services' HTTP listener gives the
   connections it closed to drain were about six and a quarter.** `HttpServer::Stop` closes the listeners and every
   connection, then waits for the closes and the aborted accepts to run before it stops the listener's threads; it
