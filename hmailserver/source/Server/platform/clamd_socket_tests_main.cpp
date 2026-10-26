@@ -27,9 +27,9 @@
 //   - a path longer than a socket address holds is refused before anything is
 //     tried, and a host name is not a path.
 //
-// Given the path of a real clamd's socket (the first argument, or
-// HMTEST_CLAMD_SOCKET), it then runs the connection test against that clamd too:
-// PING, VERSION, the plain sample and EICAR, as the Control Panel's button does.
+// Given the path of a real clamd's socket as its argument, it then runs the
+// connection test against that clamd too: PING, VERSION, the plain sample and
+// EICAR, as the Control Panel's button does.
 //
 // A configuration file of its own and the sockets in a directory under the
 // system's temp directory (or /tmp, when that path would be too long for a socket
@@ -193,10 +193,11 @@ namespace
          return have == size;
       }
 
-      void Say_(int client, const std::string &line)
+      // A client that has gone is not answered, and there is nothing more to do.
+      bool Say_(int client, const std::string &line)
       {
          const std::string text = line + "\n";
-         (void) ::send(client, text.data(), text.size(), MSG_NOSIGNAL);
+         return ::send(client, text.data(), text.size(), MSG_NOSIGNAL) == static_cast<ssize_t>(text.size());
       }
 
       void Converse_(int client)
@@ -246,7 +247,7 @@ namespace
                                 (static_cast<size_t>(prefix[2]) << 8) | static_cast<size_t>(prefix[3]);
             if (size == 0)
                break;
-            if (size > 1024 * 1024)
+            if (size > size_t{1024} * 1024)
                return;
 
             std::string chunk(size, '\0');
@@ -309,7 +310,6 @@ namespace
    void Report(bool passed, const std::string &name, const std::string &said)
    {
       printf("%s  %s: %s\n", passed ? "ok  " : "FAIL", name.c_str(), said.c_str());
-      fflush(stdout);
       if (!passed)
          failures++;
    }
@@ -545,11 +545,8 @@ main(int argc, char *argv[])
 
       TheFakeCases(directory);
 
-      std::string real = argc > 1 ? argv[1] : "";
-      if (real.empty() && getenv("HMTEST_CLAMD_SOCKET") != nullptr)
-         real = getenv("HMTEST_CLAMD_SOCKET");
-      if (!real.empty())
-         TheRealClamd(real);
+      if (argc > 1)
+         TheRealClamd(argv[1]);
 
       boost::system::error_code error;
       boost::filesystem::remove_all(scratch, error);

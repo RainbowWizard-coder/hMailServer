@@ -205,6 +205,7 @@ namespace hMailServer.ControlPanel.Services
             ["antispam#Greylisting"] = new HelpTarget("Greylisting.md", "What greylisting does"),
             ["antispam#Spam traps"] = new HelpTarget("SpamTraps.md"),
 
+            ["antivirus#ClamAV"] = new HelpTarget("ClamAV.md", "The settings"),
             ["antivirus#Sandbox"] = new HelpTarget("Sandbox.md"),
 
             ["autoban#Countries"] = new HelpTarget("CountryBlocking.md"),

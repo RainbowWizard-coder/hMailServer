@@ -57,6 +57,10 @@ namespace HM
 
       String GetRemoteName_() const;
 
+#ifdef HM_PLATFORM_POSIX
+      void CloseLocal_();
+#endif
+
       boost::asio::io_context io_context_;
       tcp::socket socket_;
 #ifdef HM_PLATFORM_POSIX

@@ -137,9 +137,9 @@ How it is tested
 and holds the client to it: clean and infected streams from memory and from a
 file of three chunks, PING and VERSION, the connection test, a missing socket and
 a socket nothing accepts on reported as nothing listening, a socket the user may
-not write to, the deadline and a path too long. Given a real clamd's socket (an
-argument, or `HMTEST_CLAMD_SOCKET`) it runs the connection test against that
-clamd as well. The Linux suite's `AntiVirus/ClamdUnixSocket` sends messages
+not write to, the deadline and a path too long. Given a real clamd's socket as
+its argument (`clamd-socket-tests /var/run/clamav/clamd.ctl`) it runs the
+connection test against that clamd as well. The Linux suite's `AntiVirus/ClamdUnixSocket` sends messages
 through the running server to a fake clamd of its own, and through a real one
 when `HMTEST_CLAMD_SOCKET` names it ([RegressionEnvironment.md](RegressionEnvironment.md),
 *On Linux*). On Windows, `AntiVirus/ClamdSocketPathOnWindows` holds the

@@ -51,8 +51,7 @@ namespace HM
          socket_.shutdown(tcp::socket::shutdown_both, err);
          socket_.close(err);
 #ifdef HM_PLATFORM_POSIX
-         local_socket_.shutdown(boost::asio::socket_base::shutdown_both, err);
-         local_socket_.close(err);
+         CloseLocal_();
 #endif
       }
       catch (...)
@@ -297,9 +296,26 @@ namespace HM
       boost::system::error_code err;
       socket_.close(err);
 #ifdef HM_PLATFORM_POSIX
-      local_socket_.close(err);
+      CloseLocal_();
 #endif
    }
+
+#ifdef HM_PLATFORM_POSIX
+   void
+   SynchronousConnection::CloseLocal_()
+   {
+      // Closing a socket that was never opened, or is closed already, does nothing.
+      // The call returns the error code it writes, as TCPServer::Close reads them: a
+      // failure as the connection goes has nothing left to act on, and goes to the
+      // debug log alone. No shutdown first: the peer is told the connection has gone
+      // by the close itself.
+      boost::system::error_code err;
+      if (local_socket_.close(err))
+      {
+         LOG_DEBUG(Formatter::Format("Closing the socket to {0} failed: {1}", remote_host_, AnsiString(err.message())));
+      }
+   }
+#endif
 
 
 }
