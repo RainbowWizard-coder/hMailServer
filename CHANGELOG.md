@@ -3118,8 +3118,8 @@ with `--check`).
   STARTTLS and has the Internet range take a password only over TLS, and left out that it also makes port 25 a
   honeypot for AUTH (`NewInstallDefaults.cpp`: an AUTH there is refused and its address banned for
   `AutoBanMinutes`; mail clients sign in on 587). `HelpPagesData.cpp` is regenerated.
-- **The roadmaps say where their rows stand on 26 October 2026, and four of Roadmap3's are done.** Roadmap3.md's rows
-  on the `.sigstore.json` copies, a green `master` pipeline, secret detection and Docker Hub are marked done with
+- **The roadmaps say where their rows stand on 26 October 2026, and eleven of Roadmap3's are done.** Roadmap3.md's
+  rows on the `.sigstore.json` copies, a green `master` pipeline, secret detection and Docker Hub are marked done with
   their evidence: 6.3.6's and 6.3.7's 35 copies, each byte for byte its bundle, *Done when* now naming the primary
   files, which are what `release-sign.sh` copies; `master`'s push pipeline 2978723670 (23 October 2026), which passed
   with no failed job, `db-matrix` among the 60 jobs that ran, recorded on GitLab work item 21; the one run of the
@@ -3138,7 +3138,13 @@ with `--check`).
   it said of the protected branches API and of project access tokens, which the group has had since 13 October 2026,
   on GitLab's open-source plan, as Mirroring.md now says for the export job's tokens; Channels.md records the job's
   copy to Docker Hub; and SourcePackages.md names the roadmap rows it points at, where it gave their old numbers.
-  `HelpPagesData.cpp` is regenerated.
+  Roadmap3.md's rows on the Compose file and the Helm chart, the zypper repository, the live update, Copr, the
+  openSUSE Build Service, PyPI and the PowerShell Gallery are marked done from the installations that
+  ContainerImage.md, Channels.md and CommandLinePackages.md record (23 and 24 October 2026), PyPI's on Linux and
+  Windows, which were taken as enough on 24 October 2026, macOS not having been tried; the PPA's row has its install
+  half done and waits for 6.3.8 for `apt upgrade`; and the rows on the AArch64 `.deb` and `.rpm`, the chart as a
+  package and its Artifact Hub listing say that they wait for 6.3.8's tag pipeline, the first to run the AArch64 start
+  jobs and to publish a chart that starts a server. `HelpPagesData.cpp` is regenerated.
 
 ---
 
