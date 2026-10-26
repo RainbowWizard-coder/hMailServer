@@ -207,8 +207,14 @@ file that gives either a value.
 | `HM_EXPORT_TOKEN` | the job at all | A personal access token with the scopes `read_api` and `read_repository`, of an account with the Reporter role or above in the project, so that it sees the confidential issues (the job refuses a lower role) |
 | `HM_EXPORT_FULL_TOKEN` | GitLab's project export | A personal access token with the scope `api`, of an account with the Maintainer role |
 
-Personal access tokens, because project and group access tokens are a Premium
-feature on GitLab.com. A personal access token acts for its account across every
+Personal access tokens, or a project access token. On GitLab.com project and group
+access tokens need a Premium or Ultimate subscription (GitLab's documentation, read
+on 26 October 2026), and the group has had Ultimate's features since 13 October
+2026, on GitLab's open-source plan (its namespace's plan reads `opensource`). A
+project access token is a bot member of this project alone, with the role it is
+given, and the job reads the role from what the project says of the token's
+account (`permissions`), so either kind serves it. A personal access token acts
+for its account across every
 project that account can reach, so the safest holder is an account made for this
 alone and given the role in this project only. The owner's own account works too;
 then the `api` token of the second row can change anything the owner can. Each

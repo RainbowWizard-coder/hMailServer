@@ -12,7 +12,7 @@ Two channels have no job here because nothing is published to them: the Nix flak
 in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
 merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
-**Where each channel stands, read on 21 October 2026, Chocolatey's on 23 October.** Three build services carry
+**Where each channel stands, read on 21 October 2026, Chocolatey's on 23 October and Docker Hub's on 26 October.** Three build services carry
 6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
 OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0
 (x86_64 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
@@ -25,7 +25,9 @@ and Tumbleweed, x86_64 - and the server it installed started and answered SMTP a
 the REST API over TLS ([What was tried](#what-was-tried)). Docker Hub's
 `progressiverobot/hmailserver` has it too, copied by hand that day after
 `registry-mirror`, written for an image of one platform, refused the release's image
-index; the job now verifies and copies an index
+index; the job, changed to verify and copy an index, copied it there itself on 22
+October 2026, and on 26 October 2026 Docker Hub gave `6.3.7`, `6.3` and `latest`
+the digest GitLab's registry gives them
 ([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
 Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which
 then waited for Chocolatey's moderation; a moderator approved it on 23 October 2026
@@ -712,7 +714,18 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   there as that identity, with the project's id, `86730559`, in every signing and
   attesting certificate. The repository is public; its description and overview say
   that it is Progressive Robot's fork of hMailServer. The job's own copy to Docker
-  Hub has not run since.
+  Hub ran the next day (below).
+- **On 22 October 2026, Docker Hub, by the job.** `registry-mirror` (job
+  17362512829, in `master`'s pipeline 2973751489) read the release, 6.3.7, from the
+  update feed, verified its index in GitLab's registry, signed as
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.7`
+  with the project's id in the certificate, and each platform's image, signature
+  and SBOM attestation, and published it to `docker.io/progressiverobot/hmailserver`
+  at `6.3.7`, `6.3` and `latest`, each
+  `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`,
+  verified there as the same identity ("PUBLISHED: ... to Docker Hub"). On 26
+  October 2026 Docker Hub answered an anonymous request for each of the three tags
+  with that digest, the one GitLab's registry gives them.
 - **On 21 October 2026, OBS, Copr and the PPA**, each from its job in `master`'s
   pipeline 2966261322, for 6.3.7. `obs-publish` (job 17306495327) verified the
   release's tarball and started the package's service: `download_url` followed
@@ -840,9 +853,8 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
     not installed. Each run took 182 to 260 seconds, three minutes of it the
     first refresh of the distribution's own repositories.
 
-Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist;
-and `registry-mirror`'s own copy of a release to Docker Hub (6.3.7 there was copied
-by hand, above). `chocolatey-publish` has run on bench150, and pushed 6.3.7
+Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist.
+`chocolatey-publish` has run on bench150, and pushed 6.3.7
 ([Chocolatey](#chocolatey)). `snap-upload` ran for 6.3.7 on 18 October 2026 (job
 17257943981) and stopped before it reached the store or the credential, the image
 having no `git` for its check of the tag; the store's answer to an upload is still

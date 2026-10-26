@@ -1655,10 +1655,14 @@ re-pinned analyzers and the exceptions of 6.3.6's release did on 5 October 2026
 Maintainers push and merge. The owner makes the change in Settings, Repository,
 Protected branches: for `master`, *Allowed to push and merge* becomes *No one*,
 *Allowed to merge* stays *Maintainers*, and force push stays off. The edit is in
-place. Through the API the same takes two calls on the Free tier, whose `PATCH`
-of a protected branch cannot change an access level (`allowed_to_push` is
-Premium's), so the branch is unprotected and protected again, and is unprotected
-for the moment between the two:
+place. Through the API, the protected branches API's `PATCH` changes an access
+level (`allowed_to_push` with an `access_level`) on Premium and Ultimate alone
+(GitLab's documentation, read on 26 October 2026). The group has had Ultimate's
+features since 13 October 2026, on GitLab's open-source plan, but no such `PATCH`
+of `master`'s rule has been run here. The two calls below work on every tier, and
+were the only way on the Free tier the project was on before: the branch is
+unprotected and protected again, and is unprotected for the moment between the
+two:
 
 ```
 glab api -X DELETE projects/86730559/protected_branches/master && \
@@ -4544,8 +4548,10 @@ Each merge request carries its own note of these steps.
    Renovate's commits and merge requests are authored as the token's user, so a
    personal token puts the owner's name on them. A project access token (project,
    Settings, Access tokens, role Developer, scope `api`) gives Renovate a bot user
-   of its own, but gitlab.com offers project access tokens on the Premium and
-   Ultimate plans only. The free alternative is a separate GitLab account for the
+   of its own; gitlab.com offers project access tokens on the Premium and
+   Ultimate plans only, and the group has had Ultimate's features since 13 October
+   2026, on GitLab's open-source plan. On the Free tier the alternative is a
+   separate GitLab account for the
    bot, made a Developer of the project, with a personal token of its own.
 2. **The CI variable.** In the project, open Settings, then CI/CD, then
    Variables, and choose Add variable. Set the type to Variable, the environment
@@ -5121,7 +5127,10 @@ quoted, it is a finding in this document and in the help pages made from it), th
 and the sample keys under `hmailserver/test/SSL examples` and Boost's asio
 examples. They are the thirty lines of `.gitleaksignore`; with the file in the
 checkout the scan found nothing, and the job's check passed, and it failed on
-the report of the thirty. The schedule's run on GitLab is still to be made. It
+the report of the thirty. The schedule's run on GitLab was made on 23 October
+2026: the schedule `security` (4507673, on `master`) was played once, and its
+pipeline 2979108094 ran `secret_detection` (job 17401663221) over 3,937 commits,
+881 MB, in 2 min 51 s, and found no leaks; the schedule was left inactive. It
 scans what the job's checkout reaches, which may be less than the clone did (five
 of the thirty are in a commit only the upstream tags reach) but not more while
 `master` is the project's one branch.
@@ -5254,8 +5263,11 @@ the commit's pipeline's four reports before the tag.
 
 ### Before a push: the secret scan
 
-GitLab's push protection, which refuses a push that carries a secret, is
-GitLab Ultimate. What the Free tier allows is built instead, before the push:
+GitLab's secret push protection, which refuses a push that carries a secret, is
+an Ultimate feature. The group has had Ultimate's features since 13 October 2026,
+on GitLab's open-source plan, and the project's security settings read
+`secret_push_protection_enabled` true on 26 October 2026. Beside it, and in its
+place on the Free tier the project was on before, these are built before the push:
 
 - **Hooks the repository ships.** `build/hooks/pre-commit` scans the lines a
   commit adds and `build/hooks/pre-push` the commits a push brings, with

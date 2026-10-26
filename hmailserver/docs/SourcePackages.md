@@ -604,8 +604,9 @@ What is not done
   CI build shows only where something runs the damaged bytes: `%check` and the
   install jobs run the server, and the testers, and nothing checks the rest.
 - **Manual pages** for `hmailserver` and `hmctl`, which lintian and rpmlint ask for.
-- **The distributions' archives.** Debian's (Roadmap3 row 66), Fedora's (row 68)
-  and openSUSE's `server:mail` (row 70) each need a named maintainer, who takes
+- **The distributions' archives.** Debian's, Fedora's and openSUSE's `server:mail`
+  (Roadmap3.md, section 9d: *Debian's own archive*, *Fedora's own repositories* and
+  *openSUSE's own repositories*) each need a named maintainer, who takes
   these packages to the archive's review. The questions they will meet first are
   below.
 - **A signature uscan can check.** The release signs its files with Sigstore; a
