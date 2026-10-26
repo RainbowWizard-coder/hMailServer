@@ -2318,6 +2318,16 @@ with `--check`).
   said the 24 October run had 8 CPUs, "linix's limit", where linix gives a job six, and reasoned the margin from that
   run alone; they now give the later runs' times beside it, and ContinuousIntegration.md's row for the job gives them
   too. Comments and the docstring alone: no rule or job changes.
+- **The Debian and RPM source packages' builds run `acme-tests`.** The tester the ACME checks brought, the rules an
+  ACME check is decided by with the certificate the CA issued refused for another key, a missing name or its expiry,
+  needs no database, configuration, file or network and judges keys and certificates made in memory with the
+  distribution's own OpenSSL, as `dane-tests` does; `linux-build.sh`, the Nix build and the Alpine package run every
+  `*-tests` program they find, but `debian/rules`' `TESTERS`, which `dh_auto_test` runs, and the spec's `%check`
+  loop name theirs one by one and did not name it, so the PPA's, Copr's and the Build Service's builds would not
+  have run it. Both now do, with the comments beside them saying what it holds, and SourcePackages.md lists it. Built
+  from a tarball of the tree in the source-package jobs' images on 26 October 2026, with the network refused, Debian
+  13's (`dh_auto_test`, OpenSSL 3.5.7), Fedora 44's (OpenSSL 3.5.9), Leap 16.0's (OpenSSL 3.5.0) and Tumbleweed's
+  (OpenSSL 3.5.3) packages each ran `== acme-tests` and passed, lintian and rpmlint with no error.
 
 ### Documentation
 

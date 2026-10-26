@@ -216,15 +216,18 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # schema 6107 gives every row, the auto-ban's never-ban list by reverse name
 # and the run a widened ban covers, the limit on what IMAP compression
 # inflates, DANE's records held to in-memory TLS handshakes, the REST API's
-# OpenAPI document held to its router, and UTS 46 held to Unicode's
-# conformance tests - the list debian/rules runs. No
+# OpenAPI document held to its router, UTS 46 held to Unicode's
+# conformance tests, and the rules an ACME check is decided by, the certificate
+# the CA issued refused for another key, a missing name or its expiry among them,
+# against keys and certificates made in memory with the distribution's own
+# OpenSSL - the list debian/rules runs. No
 # socket (file-utilities-tests' download, from a loopback server of its own,
 # says it did not run with every socket refused), none of the system's
 # configuration, no database, no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests; do
   echo "== $tester"
   ./$tester
 done
