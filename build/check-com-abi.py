@@ -55,9 +55,20 @@ written over two lines and a member commented out where it would have been
 inserted must each pass. The parse is held to see every HRESULT of every
 interface body, so a member it stopped reading is not one it silently passes.
 
+MIDL runs the C preprocessor over hMailServer.idl before it reads it, and this
+reads the text as written, so it refuses to read a file the preprocessor would
+change: a preprocessor line (#if 0 ... #endif around a member takes it out of
+the vtable, an #include in a body brings members in, each moving every member
+below) and a line ending in a backslash (which joins the next line on, so a //
+comment can swallow the member under it). hMailServer.idl has neither; a # in a
+string or a comment is text. A released member inside #if 0 ... #endif, an
+#include at the top of a body and a // comment ending in a backslash above a
+member are three more of the controls, and each must stop the parse.
+
 Usage:  python build/check-com-abi.py [--self-test] [--write-baseline TAG]
 Exit 0 when every interface keeps the release's members, 1 when one does not,
-2 for a usage or git error.
+2 for a usage or git error or an hMailServer.idl this does not read, such as one
+with a preprocessor line.
 """
 import os
 import re
@@ -72,8 +83,9 @@ BASELINE = os.path.join(HERE, "com-abi-baseline.txt")
 TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 
 # A string literal (helpstring text holds any punctuation: semicolons, brackets,
-# "//" in a URL), a comment of either kind, a preprocessor line, a word (an
-# identifier, a number, a piece of a uuid), or any other single character.
+# "//" in a URL), a comment of either kind, a preprocessor line (which tokens()
+# refuses), a word (an identifier, a number, a piece of a uuid), or any other
+# single character - a # among them, refused too.
 TOKEN = re.compile(r'"(?:[^"\\\n]|\\.)*"|//[^\n]*|/\*.*?\*/|^[ \t]*#[^\n]*|[A-Za-z0-9_.]+|\S',
                    re.DOTALL | re.MULTILINE)
 WORD = re.compile(r"^[A-Za-z0-9_.]+$")
@@ -87,13 +99,39 @@ class IdlError(Exception):
     pass
 
 
+def line_number(text, offset):
+    return text.count("\n", 0, offset) + 1
+
+
 def tokens(text):
-    """(text, start, end) of each token, comments and preprocessor lines left out."""
+    """(text, start, end) of each token, comments left out.
+
+    MIDL runs the C preprocessor over the file before it reads it, and this reads
+    the text as it is written, so anything the preprocessor would change is
+    refused rather than read past: a directive, which can take a member out
+    (#if 0 ... #endif) or bring one in (#include) and move every member below it,
+    and a backslash at the end of a line, which splices the next line on and so
+    makes a // comment swallow the member written below it. hMailServer.idl has
+    neither; a # inside a string or a comment is text and stays allowed.
+    """
+    splice = re.search(r"\\[ \t]*(?:\n|$)", text)
+    if splice:
+        raise IdlError("line %d ends in a backslash, which the C preprocessor MIDL runs first joins to the next line "
+                       "(after a // comment, the next line is part of the comment): write it on one line"
+                       % line_number(text, splice.start()))
     found = []
     for match in TOKEN.finditer(text):
         value = match.group(0)
-        if value.startswith("//") or value.startswith("/*") or value.lstrip().startswith("#"):
+        if value.startswith("//") or value.startswith("/*"):
             continue
+        if value.lstrip().startswith("#"):
+            line_start = text.rfind("\n", 0, match.start()) + 1
+            line_end = text.find("\n", match.start())
+            line = text[line_start:line_end if line_end >= 0 else len(text)].strip()
+            raise IdlError("line %d is a preprocessor line (%s): MIDL runs the C preprocessor first, so it can take "
+                           "members out of an interface or bring them in where this check reads the text as written; "
+                           "hMailServer.idl holds none - write the members out"
+                           % (line_number(text, match.start()), line[:60]))
         found.append((value, match.start(), match.end()))
     return found
 
@@ -392,7 +430,8 @@ def cut(text, span):
 
 
 def self_test(text, release):
-    """Each control: (what, the IDL text changed, whether it must be refused, the interface the refusal names)."""
+    """Each control: (what, the IDL text changed, whether it must be refused - True, False, or "unread" for a
+    text the parse must refuse to read as MIDL's preprocessor would change it - and the interface it is about)."""
     tree = parse(text)
     spans = tree["spans"]
 
@@ -435,6 +474,13 @@ def self_test(text, release):
     if wrapped == one:
         wrapped = one.replace(" HRESULT ", "\n      HRESULT ", 1)
     controls.append(("the first member written over two lines", text[:first[0]] + wrapped + text[first[1]:], False, name))
+    # What MIDL's preprocessor would change: each must stop the parse, not be read past.
+    controls.append(("the first member inside #if 0 ... #endif", text[:first[0]] + "#if 0\n" + one + "#endif\n"
+                     + text[first[1]:], "unread", name))
+    controls.append(("an #include at the top of a body", text[:first[0]] + "   #include \"self-test.idl\"\n"
+                     + text[first[0]:], "unread", name))
+    controls.append(("a // comment ending in a backslash above the first member", text[:first[0]] + "   // note \\\n"
+                     + text[first[0]:], "unread", name))
 
     # A parameter's type, a parameter's direction and a property's kind, wherever the tree first has each.
     def first_line(pattern):
@@ -466,10 +512,15 @@ def self_test(text, release):
     failures = []
     for what, changed_text, refused, interface in controls:
         try:
-            found = [p for p in problems(release, parse(changed_text), "the release") if p not in already]
+            changed_tree = parse(changed_text)
         except IdlError as error:
-            failures.append("self-test: %s: the parse failed: %s" % (what, error))
+            if refused != "unread" or "preprocessor" not in str(error):
+                failures.append("self-test: %s: the parse failed: %s" % (what, error))
             continue
+        if refused == "unread":
+            failures.append("self-test: %s (%s) was read past rather than refused" % (what, interface))
+            continue
+        found = [p for p in problems(release, changed_tree, "the release") if p not in already]
         named = [p for p in found if p.startswith(interface + ":")]
         if refused and not named:
             failures.append("self-test: %s (%s) was not refused%s" % (what, interface,

@@ -1078,7 +1078,12 @@ with `--check`).
   them, proves its negative controls first (`--self-test` runs only those): the ACME methods put back after
   `GetReputationReport`, a member inserted, removed, swapped, given another dispatch id, kind, parameter type or
   direction, an IID changed and an interface taken away are refused, and a member appended, wrapped over two lines or
-  commented out are not; the parse is held to read every `HRESULT` of every interface body. It takes under a second.
+  commented out are not; the parse is held to read every `HRESULT` of every interface body. MIDL runs the C
+  preprocessor first, and the check reads the text as written, so it refuses an `hMailServer.idl` that preprocessor
+  would change, naming the line: a preprocessor line (`#if 0` ... `#endif` around a member takes it out of the vtable,
+  an `#include` in a body brings members in) or a line ending in a backslash, which joins the next line to a `//`
+  comment; the file has neither, and three more controls - a released member inside `#if 0` ... `#endif`, an
+  `#include` in a body and such a comment above a member - must each stop the parse. It takes under a second.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in
