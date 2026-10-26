@@ -3,7 +3,8 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""The source tarball's exclusion list against the tree, and a source tarball against the list.
+"""The source tarball's exclusion list against the tree, and a source tarball against the list;
+and the testers the source packages built from it run.
 
 build/ci/source-tarball.sh writes hmailserver-<version>.tar.gz: the tree of one
 commit, less every path build/source-exclusions.txt names - SQL Server
@@ -48,7 +49,16 @@ tarball a third:
       own debian/) matches a file the repacked source holds - one the tree
       tracks and neither the list nor Files-Excluded leaves out - so a file
       removed or renamed takes its licence paragraph with it (XMLite's outlived
-      its files by a commit on 29 September 2026).
+      its files by a commit on 29 September 2026);
+    - the source packages' testers: debian/rules' TESTERS and the RPM spec's
+      %check loop run the same tester programs in the same order, each once,
+      each one CMakeLists.txt makes (add_executable(<name>-tests ...)), and
+      every one it makes but those SOURCE_TESTERS_LEFT_OUT below leaves out,
+      each with its reason (a database, a loopback socket, root, or a pass
+      held to a time on a builder a distribution shares), and nothing that
+      list names is run or no longer made - so a tester added to the build is
+      run by the PPA's, Copr's and the Build Service's builds as linux-build.sh
+      runs it, or this says why it is not.
 
   a tarball (python3 build/check-source-tarball.py TARBALL [--commit SHA]):
     - gzip without a file name or a time in its header (gzip -n);
@@ -220,6 +230,29 @@ REQUIRED = (
 )
 
 
+# The source packages' testers. debian/rules' TESTERS, which dh_auto_test runs, and
+# the spec's %check loop name the tester programs the PPA's, Copr's and the Build
+# Service's builds run, one by one, where linux-build.sh, the CI's package builds, the
+# APKBUILD and the Nix package run every *-tests program CMake makes: so a tester
+# CMakeLists.txt makes is in both lists, in the same order, or left out here with the
+# reason. Written by hand, the lists had missed acme-tests, a tester of the release
+# after 6.3.7, and quarantine-search-tests, report-parser-tests and
+# workqueue-teardown-tests, which 6.3.6 and 6.3.7 made.
+SPEC = "hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec"
+SOURCE_TESTERS_LEFT_OUT = {
+    "database-claim-tests": "it needs a database: given no configuration it says SKIPPED and tests nothing",
+    "database-transaction-tests": "it needs a database: given no configuration it says SKIPPED and tests nothing",
+    "http-server-tests": "it serves and asks on a loopback socket, which the Debian build's offline.c refuses",
+    "network-deadline-tests": "it holds connections on loopback sockets to their deadlines, which offline.c refuses",
+    "root-command-tests": "most of it needs root, which a distribution's build does not run as",
+    "imap-parse-tests": "every case in it is a pass held to a time over an input made to be 6.3.5's worst, the "
+                        "bound one of them broke under emulation (a FETCH of 200,000 \"[]\" in 2.7 s against 2 s, "
+                        "4 October 2026), on a builder a distribution shares with other builds",
+    "input-cost-tests": "every case in it is a pass held to a time over an input made to be 6.3.5's worst, on a "
+                        "builder a distribution shares with other builds",
+}
+
+
 class Problem(Exception):
     pass
 
@@ -378,6 +411,75 @@ def check_debian_copyright(tracked, read, entries, cmake_text):
             elif any(path == r or path.startswith(r + "/") for r in debian_reads):
                 problems.append("%s's Files-Excluded has %r, which leaves out %s, and the Debian build reads it" %
                                 (DEBIAN_COPYRIGHT, pattern, path))
+    return problems
+
+
+# ---------------------------------------------------------------- the source packages' testers
+
+def cmake_testers(cmake_text):
+    """The *-tests programs CMakeLists.txt makes, in its order."""
+    return re.findall(r"^\s*add_executable\(\s*([A-Za-z0-9_.+-]+-tests)\b", cmake_text, re.M)
+
+
+def rules_testers(text):
+    """debian/rules' TESTERS, or None where it has no such line."""
+    lines = re.findall(r"^TESTERS\s*:?=(.*)$", text, re.M)
+    return lines[0].split() if len(lines) == 1 else None
+
+
+def spec_testers(text):
+    """The names the spec's %check loop runs, or None where it has no one such loop."""
+    check = re.search(r"^%check\s*$(.*?)^%(?!%)", text, re.M | re.S)
+    if not check:
+        return None
+    loops = re.findall(r"^for tester in ([^;\r\n]*); do\r?$", check.group(1), re.M)
+    return loops[0].split() if len(loops) == 1 else None
+
+
+def check_source_testers(read):
+    """debian/rules' TESTERS and the spec's %check loop against each other and against
+    the *-tests programs CMakeLists.txt makes, less SOURCE_TESTERS_LEFT_OUT."""
+    problems = []
+    made = cmake_testers(read(CMAKELISTS))
+    rules = rules_testers(read(DEBIAN_RULES))
+    spec = spec_testers(read(SPEC))
+    if not made:
+        problems.append("%s makes no *-tests program (add_executable(<name>-tests ...)): the source packages' "
+                        "testers cannot be held to it" % CMAKELISTS)
+    if rules is None:
+        problems.append("%s has no one TESTERS := line: the testers dh_auto_test runs cannot be read" % DEBIAN_RULES)
+    if spec is None:
+        problems.append("%s's %%check has no one 'for tester in ...; do' line: the testers it runs cannot be read" %
+                        SPEC)
+    if problems:
+        return problems
+    for where, names in ((DEBIAN_RULES + "'s TESTERS", rules), (SPEC + "'s %check", spec)):
+        seen = set()
+        for name in names:
+            if name in seen:
+                problems.append("%s names %s twice" % (where, name))
+            seen.add(name)
+            if name not in made:
+                problems.append("%s runs %s, which %s does not make: a tester renamed or removed" %
+                                (where, name, CMAKELISTS))
+            elif name in SOURCE_TESTERS_LEFT_OUT:
+                problems.append("%s runs %s, which SOURCE_TESTERS_LEFT_OUT in build/check-source-tarball.py leaves "
+                                "out (%s): run it or leave it out, not both" %
+                                (where, name, SOURCE_TESTERS_LEFT_OUT[name]))
+    if rules != spec:
+        problems.append("%s's TESTERS and %s's %%check do not run the same testers in the same order: the PPA's "
+                        "build and Copr's and the Build Service's run different checks (only in TESTERS: %s; only in "
+                        "%%check: %s)" % (DEBIAN_RULES, SPEC, ", ".join(n for n in rules if n not in spec) or "none",
+                                          ", ".join(n for n in spec if n not in rules) or "none"))
+    for name in made:
+        if name not in rules and name not in spec and name not in SOURCE_TESTERS_LEFT_OUT:
+            problems.append("%s makes %s, and neither %s's TESTERS nor %s's %%check runs it: add it to both, or to "
+                            "SOURCE_TESTERS_LEFT_OUT in build/check-source-tarball.py with the reason a distribution's "
+                            "build cannot run it" % (CMAKELISTS, name, DEBIAN_RULES, SPEC))
+    for name in sorted(SOURCE_TESTERS_LEFT_OUT):
+        if name not in made:
+            problems.append("SOURCE_TESTERS_LEFT_OUT in build/check-source-tarball.py leaves out %s, which %s does not "
+                            "make: a tester renamed or removed" % (name, CMAKELISTS))
     return problems
 
 
@@ -1025,6 +1127,52 @@ def self_test():
     expect("another commit recorded", check(tarball(), commit="f" * 40), "was made from commit 0123456789")
     expect("not gzip at all", check(b"plain text"), "is not gzip")
 
+    # The source packages' testers, over the tree's own CMakeLists.txt, debian/rules
+    # and spec, each changed in a copy.
+    texts = {path: read_file(ROOT, path) for path in (CMAKELISTS, DEBIAN_RULES, SPEC)}
+
+    def testers(cmake=None, rules=None, spec=None):
+        given = {CMAKELISTS: cmake, DEBIAN_RULES: rules, SPEC: spec}
+        return check_source_testers(lambda p: given[p] if given.get(p) is not None else texts[p])
+
+    def changed(path, old, new):
+        if old not in texts[path]:
+            failures.append("the self-test's %r is no longer in %s: the case below cannot be made" % (old, path))
+            return texts[path]
+        return texts[path].replace(old, new, 1)
+
+    rules_line = re.search(r"^TESTERS\s*:?=[^\r\n]*", texts[DEBIAN_RULES], re.M).group(0)
+    spec_line = re.search(r"^for tester in [^;\r\n]*; do(?=\r?$)", texts[SPEC], re.M).group(0)
+    new_target = ("add_executable(cache-tests ${SERVER_DIR}/platform/cache_tests_main.cpp)\n"
+                  "target_link_libraries(cache-tests PRIVATE hmailserver_core)\n")
+    expect("the source packages' testers as the tree has them", testers(), None)
+    expect("a tester CMakeLists.txt makes and neither list runs",
+           testers(cmake=texts[CMAKELISTS] + "\n" + new_target), "makes cache-tests, and neither")
+    expect("the same tester added to both lists", testers(
+        cmake=texts[CMAKELISTS] + "\n" + new_target,
+        rules=changed(DEBIAN_RULES, rules_line, rules_line + " cache-tests"),
+        spec=changed(SPEC, spec_line, spec_line.replace("; do", " cache-tests; do"))), None)
+    expect("a tester the spec runs and debian/rules does not",
+           testers(rules=changed(DEBIAN_RULES, " acme-tests", "")), "only in %check: acme-tests")
+    expect("the two lists in another order",
+           testers(spec=changed(SPEC, " idna-tests acme-tests ", " acme-tests idna-tests ")), "in the same order")
+    expect("a tester left out and run",
+           testers(rules=changed(DEBIAN_RULES, rules_line, rules_line + " root-command-tests"),
+                   spec=changed(SPEC, spec_line, spec_line.replace("; do", " root-command-tests; do"))),
+           "runs root-command-tests, which SOURCE_TESTERS_LEFT_OUT")
+    expect("a tester run twice",
+           testers(rules=changed(DEBIAN_RULES, rules_line, rules_line + " dane-tests")), "names dane-tests twice")
+    expect("a tester CMakeLists.txt no longer makes",
+           testers(cmake=changed(CMAKELISTS, "add_executable(acme-tests ", "add_executable(acme-checks ")),
+           "runs acme-tests, which %s does not make" % CMAKELISTS)
+    expect("a tester left out that CMakeLists.txt no longer makes",
+           testers(cmake=changed(CMAKELISTS, "add_executable(root-command-tests ", "add_executable(root-command ")),
+           "leaves out root-command-tests, which")
+    expect("debian/rules without its TESTERS line",
+           testers(rules=changed(DEBIAN_RULES, rules_line, "# " + rules_line)), "has no one TESTERS := line")
+    expect("the spec's loop outside %check",
+           testers(spec=changed(SPEC, "\n%check", "\n%check_moved")), "has no one 'for tester in")
+
     if failures:
         print("")
         for failure in failures:
@@ -1109,18 +1257,25 @@ def main(argv):
     try:
         tracked = git_tracked(ROOT)
         problems, entries = check_tree(tracked, lambda p: read_file(ROOT, p), list_text)
+        tester_problems = check_source_testers(lambda p: read_file(ROOT, p))
     except Problem as e:
         print(str(e))
         return 2
-    if problems:
-        print("%s: %d problem(s)" % (EXCLUSIONS, len(problems)))
-        for problem in problems:
-            print("  " + problem)
+    if problems or tester_problems:
+        for what, found in ((EXCLUSIONS, problems), ("the source packages' testers", tester_problems)):
+            if found:
+                print("%s: %d problem(s)" % (what, len(found)))
+                for problem in found:
+                    print("  " + problem)
         return 1
     left = sum(1 for p in tracked if excluded_by(p, entries))
     print("%s: %d lines leave out %d of the %d tracked files; none is read by the Linux build, every file of the "
           "Windows-only trees is accounted for, and every licence the tarball must carry stays." %
           (EXCLUSIONS, len(entries), left, len(tracked)))
+    made = cmake_testers(read_file(ROOT, CMAKELISTS))
+    print("The source packages' builds run %d of the %d tester programs CMakeLists.txt makes, debian/rules and the "
+          "spec alike; the other %d are left out, each with its reason." %
+          (len(made) - len(SOURCE_TESTERS_LEFT_OUT), len(made), len(SOURCE_TESTERS_LEFT_OUT)))
     return 0
 
 

@@ -2328,6 +2328,16 @@ with `--check`).
   from a tarball of the tree in the source-package jobs' images on 26 October 2026, with the network refused, Debian
   13's (`dh_auto_test`, OpenSSL 3.5.7), Fedora 44's (OpenSSL 3.5.9), Leap 16.0's (OpenSSL 3.5.0) and Tumbleweed's
   (OpenSSL 3.5.3) packages each ran `== acme-tests` and passed, lintian and rpmlint with no error.
+- **The source packages' builds run every tester the build makes that they can, and a check holds them to it.**
+  `debian/rules`' `TESTERS` and the spec's `%check` loop, written by hand, had also missed `quarantine-search-tests`
+  (6.3.7), `report-parser-tests` (6.3.6) and `workqueue-teardown-tests` (6.3.7), none of which needs a database,
+  the system's configuration, a socket or root; both lists now run them. `build/check-source-tarball.py`, which the
+  checkers job runs, holds the two lists to each other, name for name and in order, and to every `*-tests` program
+  `CMakeLists.txt` makes but the seven it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a
+  loopback socket, which `offline.c` refuses, root, or every case held to a time on a builder shared with other
+  builds), and its `--self-test` sees a tester made and run by neither list, one list without a tester, the two in
+  another order, a tester left out and run, a tester run twice and a name the build no longer makes refused;
+  SourcePackages.md says which seven are left out and why.
 
 ### Documentation
 

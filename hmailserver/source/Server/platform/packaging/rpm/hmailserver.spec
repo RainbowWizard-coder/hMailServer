@@ -220,14 +220,19 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # conformance tests, and the rules an ACME check is decided by, the certificate
 # the CA issued refused for another key, a missing name or its expiry among them,
 # against keys and certificates made in memory with the distribution's own
-# OpenSSL - the list debian/rules runs. No
+# OpenSSL, the statements a search of the quarantine sends, the readers of
+# delivery status notifications and abuse feedback reports, and a work queue
+# removed while its worker is still in a task (a scratch directory under
+# $TMPDIR, about twenty-two seconds) - the list debian/rules runs, and
+# build/check-source-tarball.py holds both to every *-tests program
+# CMakeLists.txt makes but those it leaves out, each with its reason. No
 # socket (file-utilities-tests' download, from a loopback server of its own,
 # says it did not run with every socket refused), none of the system's
-# configuration, no database, no root; seconds.
+# configuration, no database, no root; under a minute.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests quarantine-search-tests report-parser-tests workqueue-teardown-tests; do
   echo "== $tester"
   ./$tester
 done
