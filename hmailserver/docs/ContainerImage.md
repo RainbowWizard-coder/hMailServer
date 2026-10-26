@@ -365,9 +365,11 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
   defaults once by hand before taking the new lines: `docker compose stop
   hmailserver`, then `docker compose run --rm hmailserver hmailserver
   --apply-new-install-defaults`, then `docker compose up -d`. That makes the pair,
-  and also offers STARTTLS on the four listeners a new database has and has the
-  Internet IP range take a password only over TLS ([SecureDefaults.md](SecureDefaults.md),
-  "By hand"); on a database changed since, it changes nothing and says why.
+  and also offers STARTTLS on the four listeners a new database has, makes port 25
+  a honeypot for AUTH (an AUTH there is refused and the address that sent it banned
+  for `AutoBanMinutes`; mail clients sign in on 587) and has the Internet IP range
+  take a password only over TLS ([SecureDefaults.md](SecureDefaults.md), "By
+  hand"); on a database changed since, it changes nothing and says why.
 - Helm: `helm repo update`, then `helm upgrade mail hmailserver/hmailserver
   --reset-then-reuse-values` (Helm 3.14 or later): the new chart's defaults, with the
   values the release was given. `--reuse-values` keeps the defaults of the chart the

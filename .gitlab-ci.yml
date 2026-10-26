@@ -361,7 +361,7 @@ checkers:
   # script to 1,247 s and 1,386 to 1,405 s on server2 on 25 October, and to 1,873 s
   # and 1,909 s there that day under linix's limits (six CPUs and 8 GB) on a machine
   # loaded with other work (a load of 20 to 50): at 1.6 times 1,247 s that is about
-  # 33 minutes, and 45 leave about a third again for the checks each batch adds
+  # 33 minutes, and 45 leave about a third again for the checks added later
   # (docs/ContinuousIntegration.md, "How long each job takes").
   timeout: 45 minutes
   rules:
