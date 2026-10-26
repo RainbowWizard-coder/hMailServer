@@ -55,8 +55,10 @@
 #                       than as its /db switches (the installer's other route)
 #   --case NAME         what the program folder is made as before FIRST, with
 #                       --install-directory (installer-smoke.ps1 -FolderCase):
-#                       precreated-admin, precreated-user, broad-entry, link-user,
-#                       link-admin, link-admin-only, bin-link-user, nested-new -
+#                       precreated-admin, precreated-user, precreated-user-locked,
+#                       earlier-user-locked, data-inherits, foreign-dll, broad-entry,
+#                       link-user, link-admin, link-admin-only, bin-link-user,
+#                       nested-new -
 #                       work item 78's cases (docs/ContinuousIntegration.md, "The
 #                       installer smoke test")
 #   --components LIST   FIRST installed with /COMPONENTS=LIST rather than /TYPE=full
@@ -178,7 +180,7 @@ if [[ -n "$folder_case" && -z "$install_directory" ]]; then
    exit 2
 fi
 case "$folder_case" in
-   ''|precreated-admin|precreated-user|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new) ;;
+   ''|precreated-admin|precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new) ;;
    *) echo "--case $folder_case is not one of the cases" >&2; exit 2 ;;
 esac
 if [[ -n "$components" ]]; then
@@ -192,7 +194,7 @@ if [[ -n "$components" ]]; then
    fi
 fi
 case "$folder_case" in
-   broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new)
+   precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new)
       if [ -n "$second" ]; then
          echo "--case $folder_case is one installer: FIRST alone, no SECOND" >&2
          exit 2
