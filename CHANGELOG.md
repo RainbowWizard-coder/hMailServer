@@ -3150,7 +3150,12 @@ with `--check`).
   now, `registry-mirror`'s destination for it kept; and the installer smoke test as a job is paused, the test staying
   a step by hand that a maintainer runs for the owner at each release, as RELEASE.md's step 5 now says, the pipeline's
   `installer-smoke` job staying the placeholder it is. The owner's list and the order of work in Roadmap3.md say the
-  same. `HelpPagesData.cpp` is regenerated.
+  same. Copr's row says why its *Done when* names the tag's source tarball: the package is built from `master`, whose
+  `.copr/Makefile` makes the source package from the latest release's verified tarball. ContinuousIntegration.md's
+  two accounts of what the free tier shows, its tier table's push protection row and its GitLab for Open Source
+  paragraph say that the group is on the open-source plan since 13 October 2026, with push protection on;
+  Roadmap.md's regression suite row dates its count of the files compiled on Linux (10 September 2026) and gives
+  today's; and its totals agree with its sections. `HelpPagesData.cpp` is regenerated.
 
 ---
 

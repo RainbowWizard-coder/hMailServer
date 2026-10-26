@@ -5429,7 +5429,7 @@ which this tree has.
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its Scorecard workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
-| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history; and since the group's move to GitLab's open-source plan on 13 October 2026, GitLab's secret push protection, an Ultimate feature (`secret_push_protection_enabled` true, read on 26 October 2026) | Nothing: on the Free tier the project was on before, the refusal |
 
 ### The jobs, and where each tool comes from
 
@@ -5458,8 +5458,10 @@ sources. That is GitHub's data, not a download from GitHub.
 
 ### What GitLab's free tier shows
 
-The project is on GitLab's free tier: its namespace's plan read `free` on 25
-September 2026.
+The project was on GitLab's free tier when this was written: its namespace's plan
+read `free` on 25 September 2026. Since 13 October 2026 it reads `opensource`,
+GitLab's open-source plan, which gives Ultimate's features; what follows says
+what the free tier shows.
 
 - **The SAST and dependency-scanning reports** are uploaded with the job as
   reports, and are also in its ordinary artifacts (`security/`). A job uploads
@@ -6485,9 +6487,11 @@ accepted, with the reason.
 
 ### What GitLab gives on the free tier, and what Ultimate would
 
-The project is on GitLab's free tier (its namespace's plan read `free` on 25
-September 2026). What each feature this page touches needs, by
-docs.gitlab.com on 28 September 2026:
+The project was on GitLab's free tier when this was written (its namespace's plan
+read `free` on 25 September 2026); since 13 October 2026 it reads `opensource`,
+GitLab's open-source plan, with Ultimate's features. What each feature this page
+touches needs, by docs.gitlab.com on 28 September 2026, and the *Here* column as
+it stood on the free tier, but for push protection:
 
 | Feature | Tier | Here |
 |---|---|---|
@@ -6503,20 +6507,19 @@ docs.gitlab.com on 28 September 2026:
 | The Security tab, the merge request security widget, the vulnerability report | Ultimate | No; the same reports would appear there unchanged |
 | Dependency scanning, the dependency list, `reports:cyclonedx` | Ultimate | No: `dependency-scan` and `mr-dependency-check` instead |
 | Licence scanning of CycloneDX files | Ultimate | No |
-| Secret push protection | Ultimate | No: the hooks, the landing's scan and `secret_detection` instead |
+| Secret push protection | Ultimate | Yes since the open-source plan (`secret_push_protection_enabled` true, read on 26 October 2026), beside the hooks, the landing's scan and `secret_detection`, which were all there was on the free tier |
 | Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline |
 
 **GitLab for Open Source** grants Ultimate and 50,000 compute minutes a year to
 a qualifying namespace: every project in it under an OSI-approved licence,
 public, and an organisation that does not "seek to make a profit by selling
-services, by charging for enhancements or add-ons, or by other means". Whether
-Progressive Robot Ltd meets that last clause is the owner's to say; if it does,
-the application is for the group `hmailserver`, where the project has been
-since 29 September 2026. With Ultimate,
-and no change to a job, the rows above marked Ultimate come on: the Security
-tab and the vulnerability report for the reports already uploaded, required
-approvals, external status checks for SonarQube Cloud's quality gate, and push
-protection.
+services, by charging for enhancements or add-ons, or by other means". The
+group `hmailserver`, where the project has been since 29 September 2026, has
+been on it since 13 October 2026: its namespace's plan reads `opensource`. With
+Ultimate, and no change to a job, the rows above marked Ultimate can come on:
+the Security tab and the vulnerability report for the reports already uploaded,
+required approvals, external status checks for SonarQube Cloud's quality gate,
+and push protection, which is on.
 
 **Why GitLab's Code Quality widget is not used.** On the free tier the widget
 shows the findings of a `codequality` report written by a job of the merge

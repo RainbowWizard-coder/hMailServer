@@ -40,8 +40,9 @@ each. A Fedora server that died before `main` on 29 September was a file the
 laptop's WSL had corrupted, not a defect of GCC 16, Fedora's flags or the server
 ([The Fedora crash](#the-fedora-crash-of-29-september-2026)). No
 distribution carries either yet; Debian's, Fedora's and
-openSUSE's own archives each need a named maintainer (Roadmap3, rows 66, 68 and
-70), and these packages are what that person starts from.
+openSUSE's own archives each need a named maintainer (Roadmap3.md, section 9d:
+*Debian's own archive*, *Fedora's own repositories* and *openSUSE's own
+repositories*), and these packages are what that person starts from.
 
 How they differ from the project's own packages
 -----------------------------------------------
