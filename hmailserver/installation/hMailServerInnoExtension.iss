@@ -271,6 +271,23 @@ type
 		lpSecurityDescriptor		: cardinal;
 		bInheritHandle				: cardinal;
 	end;
+	// BY_HANDLE_FILE_INFORMATION, named apart from it: what a handle says of the
+	// folder it holds - its attributes first (HeldIsLink) - thirteen DWORDs, 52 bytes.
+	HM_FILE_INFORMATION = record
+		dwFileAttributes			: cardinal;
+		ftCreationTimeLow			: cardinal;
+		ftCreationTimeHigh			: cardinal;
+		ftLastAccessTimeLow			: cardinal;
+		ftLastAccessTimeHigh		: cardinal;
+		ftLastWriteTimeLow			: cardinal;
+		ftLastWriteTimeHigh			: cardinal;
+		dwVolumeSerialNumber		: cardinal;
+		nFileSizeHigh				: cardinal;
+		nFileSizeLow				: cardinal;
+		nNumberOfLinks				: cardinal;
+		nFileIndexHigh				: cardinal;
+		nFileIndexLow				: cardinal;
+	end;
 	
 const
 	// The Service Control Manager's access rights, controls and states that the
@@ -386,6 +403,10 @@ const
 	HM_RIGHTS_READ_EXECUTE      = $1200A9;
 	HM_DACL_PROTECTED           = $1000;
 	HM_PERSISTENT_ACLS          = $8;
+	// GetFinalPathNameByHandleW's VOLUME_NAME_GUID with FILE_NAME_NORMALIZED: the path
+	// a held folder is at now, as \\?\Volume{...}\..., whatever drive letter or mount
+	// point it is reached by (FinalPathOfHeld).
+	HM_VOLUME_NAME_GUID         = 1;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -555,6 +576,15 @@ external 'GetDriveTypeW@kernel32.dll stdcall';
 function LookupNameOfSid(lpSystemName: cardinal; Sid: cardinal; Name: String; var cchName: cardinal; ReferencedDomainName: String; var cchReferencedDomainName: cardinal;
                          var peUse: cardinal): Boolean;
 external 'LookupAccountSidW@advapi32.dll stdcall';
+// What a held folder is now, read through its handle, which names that folder
+// whatever has been done to its path since: GetFileInformationByHandle, for its
+// attributes (HeldIsLink), and GetFinalPathNameByHandleW, for where it is
+// (FinalPathOfHeld). Named apart from the API for the reason
+// SetProcessEnvironmentVariable is.
+function ReadHeldInformation(hFile: Integer; var lpFileInformation: HM_FILE_INFORMATION): Boolean;
+external 'GetFileInformationByHandle@kernel32.dll stdcall';
+function FinalPathOfHandle(hFile: Integer; lpszFilePath: String; cchFilePath: cardinal; dwFlags: cardinal): cardinal;
+external 'GetFinalPathNameByHandleW@kernel32.dll stdcall';
 
 // The groups that hold every user of the computer, as SIDs - Everyone,
 // Authenticated Users, Users and the rest of ServiceAccount.cpp's BroadSids_ that a
@@ -1179,6 +1209,63 @@ begin
    SetArrayLength(g_aHeldFolders, 0);
 end;
 
+// Where a held folder is now (GetFinalPathNameByHandleW), as \\?\Volume{...}\..., read
+// through the handle that holds it, or '' when it cannot be read.
+function FinalPathOfHeld(HeldHandle: Integer): String;
+var
+   buffer: String;
+   size: cardinal;
+   capacity: cardinal;
+begin
+   Result := '';
+   capacity := 1024;
+   SetLength(buffer, capacity);
+   size := FinalPathOfHandle(HeldHandle, buffer, capacity, HM_VOLUME_NAME_GUID);
+   if size >= capacity then
+   begin
+      capacity := size + 1;
+      SetLength(buffer, capacity);
+      size := FinalPathOfHandle(HeldHandle, buffer, capacity, HM_VOLUME_NAME_GUID);
+   end;
+   if (size > 0) and (size < capacity) then
+      Result := Copy(buffer, 1, size);
+end;
+
+// Whether a held folder is a link now - a junction, a symbolic link, a mount point,
+// any reparse point - read through the handle that holds it, which was opened on the
+// folder itself and not through a link: an empty folder another account may write
+// can be made one while it is held, since the hold shares writing. True too when its
+// attributes cannot be read, Known then false.
+function HeldIsLink(HeldHandle: Integer; var Known: Boolean): Boolean;
+var
+   information: HM_FILE_INFORMATION;
+begin
+   Result := true;
+   Known := ReadHeldInformation(HeldHandle, information);
+   if Known then
+      Result := (information.dwFileAttributes and HM_REPARSE_POINT) <> 0;
+end;
+
+// Whether the folder held by Made is the one named Name in the folder held by Parent,
+// read through the two handles: where a link was put on the way since the walk, a
+// folder made by its path is made where the link leads, and its path then is not the
+// held folder's with its name. Where says where it is when it is not.
+function MadeWhereNamed(Parent: Integer; Made: Integer; Name: String; var Where: String): Boolean;
+var
+   szParent: String;
+   szMade: String;
+begin
+   Result := false;
+   szParent := FinalPathOfHeld(Parent);
+   szMade := FinalPathOfHeld(Made);
+   if (szParent = '') or (szMade = '') then
+      Where := 'where it was made could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')'
+   else if CompareText(szMade, AddBackslash(szParent) + Name) <> 0 then
+      Where := 'was made at ' + szMade + ', not in ' + szParent
+   else
+      Result := true;
+end;
+
 // What an administrator does with a link setup does not install through: makes it
 // theirs alone, as the link setup takes, or installs elsewhere.
 function LinkRemedy(Link: String): String;
@@ -1427,12 +1514,21 @@ end;
 // below Held, the deepest folder the walk found and held (HoldFolderChain), and
 // nothing is looked at again by its path: a name that somebody else has taken since
 // the walk - a folder or a link made in the meantime - is refused by CreateDirectoryW
-// (ERROR_ALREADY_EXISTS), and then setup does not install: false, with Why. Kind says
+// (ERROR_ALREADY_EXISTS), and then setup does not install: false, with Why. A link put
+// on the way since the walk is refused too, through the handles: Held is read again
+// through HeldHandle before anything is made, and refused when it is a link now
+// (HeldIsLink) - an empty folder another account may write can be made one while it
+// is held, since the hold shares writing; and each folder made is held at once and
+// read through its handle where it is (MadeWhereNamed), refused unless it is in the
+// folder held above it with its name - CreateDirectoryW goes by the path, and so
+// through a link put there in the meantime. Once a folder is made in the one above,
+// that one is no longer empty, and nothing can make it a link. Kind says
 // what is made: 0 the program folder and the folders above it (g_aFoldersMade,
 // g_bProgramFolderNew), 1 Bin and 2 ControlPanel in a program folder that is there
 // (g_szBinMade, g_szControlPanelMade; section_dirs.iss gives each to the uninstaller
-// with SetupMadeBin and SetupMadeControlPanel).
-function MakeFolders(Held: String; HeldHandle: Integer; Folder: String; Kind: Integer; var Why: String): Boolean;
+// with SetupMadeBin and SetupMadeControlPanel). MadeHandle holds the last folder made,
+// Folder itself, when it is made.
+function MakeFolders(Held: String; HeldHandle: Integer; Folder: String; Kind: Integer; var MadeHandle: Integer; var Why: String): Boolean;
 var
    missing: array of String;
    szBase: String;
@@ -1441,15 +1537,20 @@ var
    szPath: String;
    szDescriptor: String;
    szSaid: String;
+   szWhere: String;
    attributes: HM_SECURITY_ATTRIBUTES;
    pDescriptor: cardinal;
    count: Integer;
    index: Integer;
    separator: Integer;
    lastError: Integer;
+   handle: Integer;
+   parent: Integer;
+   bKnown: Boolean;
 begin
    Result := false;
    Why := '';
+   MadeHandle := -1;
 
    // The names below Held, shallowest first.
    szBase := AddBackslash(Held);
@@ -1506,7 +1607,16 @@ begin
    attributes.bInheritHandle := 0;
 
    Result := true;
+   if HeldIsLink(HeldHandle, bKnown) then
+   begin
+      if bKnown then
+         Why := Held + ' was made a junction, a symbolic link or a mount point while setup was preparing the installation, so setup does not install there - run setup again to have it looked at'
+      else
+         Why := 'what ' + Held + ' is now could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Result := false;
+   end;
    index := 0;
+   parent := HeldHandle;
    while Result and (index < count) do
    begin
       if MakeFolderWithSecurity(missing[index], attributes) then
@@ -1520,12 +1630,23 @@ begin
             g_szBinMade := missing[index]
          else
             g_szControlPanelMade := missing[index];
-         Log('Setup made ' + missing[index] + ' with permissions of its own from the start - SYSTEM and the Administrators full control, ' + szSaid +
-             ', nothing inherited, the Administrators the owner - before anything is copied into it.');
-         if HoldForSetup(missing[index]) = -1 then
+         handle := HoldForSetup(missing[index]);
+         if handle = -1 then
          begin
             Why := missing[index] + ', just made, could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')';
             Result := false;
+         end
+         else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then
+         begin
+            Why := missing[index] + ', just made, ' + szWhere + ': a folder on the way was made a link while setup was preparing the installation, so setup does not install there - run setup again to have it looked at';
+            Result := false;
+         end
+         else
+         begin
+            Log('Setup made ' + missing[index] + ' with permissions of its own from the start - SYSTEM and the Administrators full control, ' + szSaid +
+                ', nothing inherited, the Administrators the owner - before anything is copied into it.');
+            parent := handle;
+            MadeHandle := handle;
          end;
       end
       else
@@ -2676,6 +2797,7 @@ var
    szInherits: String;
    index: Integer;
    found: Integer;
+   hMade: Integer;
 begin
    Result := '';
    szApp := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
@@ -2691,7 +2813,7 @@ begin
 
    if not g_bProgramFolderThere then
    begin
-      if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, szWhy) then
+      if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, hMade, szWhy) then
          Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been installed.';
       if MadeParentOffset() > 0 then
          for index := 0 to MadeParentOffset() - 1 do
@@ -2729,7 +2851,7 @@ begin
          Exit;
       end;
    end
-   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then
+   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then
    begin
       Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been installed.';
       Exit;
@@ -2745,7 +2867,7 @@ begin
       end;
    end
    else if ControlPanelIsInstalled() then
-      if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, szWhy) then
+      if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, hMade, szWhy) then
       begin
          Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been installed.';
          Exit;

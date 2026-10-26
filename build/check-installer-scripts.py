@@ -659,7 +659,8 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'IsProgramFile', 'OwnerIsAllowed', 'HeldOwnerIsTrusted', 'WalksAgree', 'DataFolderThatInherits', 'InheritsNothing',
                            'VolumeKeepsPermissions', 'SplitAtRoot', 'DeinitializeSetup', 'FolderMadeBySetup', 'SetupMadeFolder',
                            'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel', 'AclLetsOthers', 'IsTrustedSid',
-                           'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn')
+                           'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn',
+                           'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -737,13 +738,28 @@ PROGRAM_FOLDER_STATEMENTS = (
      "lastError := DLLGetLastError(); if lastError = HM_ERROR_ALREADY_EXISTS then Why := ~ else Why := ~; Result := false;"),
     ('MakeFolders', 'what is made is not the names below the deepest folder held',
      "szBase := AddBackslash(Held); if (Length(Folder) <= Length(szBase)) or (CompareText(Copy(Folder, 1, Length(szBase)), szBase) <> 0) then"),
+    ('MakeFolders', 'the folder the walk held is not read again before a folder is made in it, so a link put in its place since is gone through (the review of 26 October 2026)',
+     "Result := true; if HeldIsLink(HeldHandle, bKnown) then begin if bKnown then Why := ~ else Why := ~; Result := false; end; index := 0; parent := HeldHandle; while Result and (index < count) do"),
+    ('MakeFolders', 'a folder made is not held and read where it is through its handle, so one made through a link put on the way is taken',
+     "handle := HoldForSetup(missing[index]); if handle = -1 then begin Why := ~; Result := false; end "
+     "else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then begin Why := ~; Result := false; end "
+     "else begin Log(~); parent := handle; MadeHandle := handle; end;"),
+    ('MadeWhereNamed', 'a folder made is taken wherever it is, or where it is when that cannot be read',
+     "if (szParent = '') or (szMade = '') then Where := ~ else if CompareText(szMade, AddBackslash(szParent) + Name) <> 0 then Where := ~ else Result := true;"),
+    ('MadeWhereNamed', 'where a folder made is is not read through the handles',
+     "Result := false; szParent := FinalPathOfHeld(Parent); szMade := FinalPathOfHeld(Made);"),
+    ('HeldIsLink', 'a held folder that is a link now, or whose attributes cannot be read, is taken for a folder',
+     "^function HeldIsLink(HeldHandle: Integer; var Known: Boolean): Boolean; var information: HM_FILE_INFORMATION; begin Result := true; "
+     "Known := ReadHeldInformation(HeldHandle, information); if Known then Result := (information.dwFileAttributes and HM_REPARSE_POINT) <> 0; end;$"),
+    ('FinalPathOfHeld', 'where a held folder is is not read through its handle, by its volume\'s name',
+     "size := FinalPathOfHandle(HeldHandle, buffer, capacity, HM_VOLUME_NAME_GUID); if size >= capacity then begin"),
     ('RemoveFoldersMadeHere', 'a folder setup made is removed with what is in it',
      "if RemoveDir(g_aFoldersMade[index]) then Log("),
     ('RemoveFoldersMadeHere', 'a Bin or ControlPanel setup made is removed with what is in it',
      "if RemoveDir(szMade) then Log("),
     # R2: hardened, and refused when it cannot be.
     ('PrepareProgramFolders', 'a program folder that is not there is decided by its path',
-     "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, szWhy) then Result := "),
+     "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, hMade, szWhy) then Result := "),
     ('PrepareProgramFolders', 'more than a drive\'s root is taken for one, or Bin and ControlPanel are passed over at a root',
      "if Length(g_szProgramFolderReal) <= 3 then Log(~) else begin szInherits := '';"),
     ('PrepareProgramFolders', 'the program folder is left as it is for an inheriting data folder that is not the earlier installation\'s',
@@ -754,11 +770,11 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('PrepareProgramFolders', 'a Bin that is there is not hardened, or one that could not be is installed into',
      "if g_bBinThere then begin if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
     ('PrepareProgramFolders', 'a Bin that is not there is not made by setup',
-     "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then begin Result := ~; Exit; end;"),
+     "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then begin Result := ~; Exit; end;"),
     ('PrepareProgramFolders', 'a ControlPanel that is there is not hardened, or one that could not be is installed into',
      "if g_bControlPanelThere then begin if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
     ('PrepareProgramFolders', 'a ControlPanel that is not there is not made by setup',
-     "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, szWhy) then begin Result := ~; Exit; end;"),
+     "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, hMade, szWhy) then begin Result := ~; Exit; end;"),
     ('PrepareProgramFolders', 'what is in Bin and ControlPanel is not looked at again once they are hardened',
      "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy); if g_bControlPanelThere then "
      "CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy); if found > 0 then begin Result := ~; Exit; end;"),
@@ -945,9 +961,14 @@ def check_program_folders(texts, problems):
     if not re.search(r"function\s+MakeFolderWithSecurity\(lpPathName:\s*String;\s*var\s+lpSecurityAttributes:\s*HM_SECURITY_ATTRIBUTES\):\s*Boolean;\s*external\s+'CreateDirectoryW@kernel32\.dll stdcall';", ext):
         problems.append('%s: CreateDirectoryW is not declared with a SECURITY_ATTRIBUTES' % EXTENSION)
     for word in ("'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", 'EveryUserMayReadMadeIn(HeldHandle)', 'g_aFoldersMade',
-                 'g_szBinMade := missing[index]', 'g_szControlPanelMade := missing[index]', 'HoldForSetup(missing[index])'):
+                 'g_szBinMade := missing[index]', 'g_szControlPanelMade := missing[index]', 'HoldForSetup(missing[index])', 'HeldIsLink(HeldHandle, bKnown)',
+                 'MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere)'):
         if word not in make:
             problems.append('%s: MakeFolders does not use %s' % (EXTENSION, word))
+    if not re.search(r"function\s+ReadHeldInformation\(hFile:\s*Integer;\s*var\s+lpFileInformation:\s*HM_FILE_INFORMATION\):\s*Boolean;\s*external\s+'GetFileInformationByHandle@kernel32\.dll stdcall';", ext) or \
+       not re.search(r"function\s+FinalPathOfHandle\(hFile:\s*Integer;\s*lpszFilePath:\s*String;\s*cchFilePath:\s*cardinal;\s*dwFlags:\s*cardinal\):\s*cardinal;\s*external\s+'GetFinalPathNameByHandleW@kernel32\.dll stdcall';", ext) or \
+       not re.search(r'HM_VOLUME_NAME_GUID\s*=\s*1;', ext):
+        problems.append('%s: what a held folder is now, and where, is not read through its handle (GetFileInformationByHandle, GetFinalPathNameByHandleW by the volume\'s name)' % EXTENSION)
     if pascal_routine(ext, 'HardenNewProgramFolder') is not None or pascal_routine(ext, 'MakeProgramFolder') is not None:
         problems.append('%s: HardenNewProgramFolder or MakeProgramFolder is back' % EXTENSION)
     dirs = [line for _, line in section_entries(texts.get(DIRS, ''), 'Dirs')]
@@ -1183,6 +1204,16 @@ def negative_controls(texts):
         ('a folder somebody else made in the meantime taken (ERROR_ALREADY_EXISTS taken for made)',
          altered(texts, EXTENSION, 'if MakeFolderWithSecurity(missing[index], attributes) then',
                  'if MakeFolderWithSecurity(missing[index], attributes) or (DLLGetLastError() = HM_ERROR_ALREADY_EXISTS) then')),
+        ('the folder the walk held not read again before a folder is made in it (a link put in its place gone through; the review of 26 October 2026)',
+         altered(texts, EXTENSION, '   if HeldIsLink(HeldHandle, bKnown) then\n', '   if false then\n')),
+        ('a folder made not read where it is (one made through a link put on the way taken)',
+         altered(texts, EXTENSION, 'else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then', 'else if false then')),
+        ('each folder made compared with the folder the walk held, not with the one made above it',
+         altered(texts, EXTENSION, '            parent := handle;\n            MadeHandle := handle;\n', '            MadeHandle := handle;\n')),
+        ('a held folder whose attributes cannot be read taken for one that is no link',
+         altered(texts, EXTENSION, '   Result := true;\n   Known := ReadHeldInformation(HeldHandle, information);', '   Result := false;\n   Known := ReadHeldInformation(HeldHandle, information);')),
+        ('a folder made taken wherever it is',
+         altered(texts, EXTENSION, 'else if CompareText(szMade, AddBackslash(szParent) + Name) <> 0 then', 'else if false then')),
         ('the program folder recorded for the uninstaller whatever made it',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; Flags: uninsalwaysuninstall')),
         ('HardenNewProgramFolder back after Inno Setup\'s folder',
@@ -1206,7 +1237,7 @@ def negative_controls(texts):
         ('walks that disagree taken (a folder or a link made while setup looked)',
          altered(texts, EXTENSION, 'if (not WalksAgree(g_szBinHeld, g_bBinThere))', 'if false and (not WalksAgree(g_szBinHeld, g_bBinThere))')),
         ('a Bin that is not there left to Inno Setup to make',
-         altered(texts, EXTENSION, 'end\n   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then', 'end\n   else if false then')),
+         altered(texts, EXTENSION, 'end\n   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then', 'end\n   else if false then')),
         ('a ControlPanel that is not there left to Inno Setup to make',
          altered(texts, EXTENSION, 'else if ControlPanelIsInstalled() then\n      if not MakeFolders(', 'else if false then\n      if not MakeFolders(')),
         # R2: hardened before the files, or refused.
