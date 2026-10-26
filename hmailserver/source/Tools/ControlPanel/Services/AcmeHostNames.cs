@@ -25,9 +25,16 @@ namespace hMailServer.ControlPanel.Services
       // What the server's Trim takes off: isspace in the C locale.
       private static readonly char[] Space = { ' ', '\t', '\n', '\v', '\f', '\r' };
 
-      /// <summary>True when the list holds at least one name that is not blank.</summary>
+      /// <summary>
+      /// True when the list holds a name the server reads as one: a host it orders for, or
+      /// a name it leaves out and names (<see cref="Unusable"/>). A name of blanks and one
+      /// dot is empty once the dot is off, and the server drops it as it drops a blank one
+      /// (AcmeClient::ParseDomainList, UnusableDomains), so that a list of only such names
+      /// is an empty list: counted as a name, "." passed for one and the page went on to say
+      /// that no certificate could name "", which the server leaves out.
+      /// </summary>
       public static bool Any(string domains)
-         => Split(domains).Any(name => name.Length > 0);
+         => Usable(domains).Count > 0 || Unusable(domains).Count > 0;
 
       /// <summary>
       /// The hosts the server orders a certificate for, as it reads them: trimmed, in

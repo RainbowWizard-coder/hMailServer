@@ -30,8 +30,35 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("   ", false)]
       [InlineData(" , ,", false)]
       [InlineData(null, false)]
+      // A name of blanks and one dot is empty once the dot is off, and the server drops it
+      // (ParseDomainList, UnusableDomains): such a list is empty to it, and the page says
+      // that no host name is set, not that no certificate can name "".
+      [InlineData(".", false)]
+      [InlineData(" , .", false)]
+      [InlineData(" . , ., ", false)]
+      [InlineData("mail.example.com.", true)]
+      [InlineData("*.example.com", true)]
+      [InlineData("..", true)]
       public void AHostName_IsReadAsTheServerReadsTheList(string domains, bool any)
          => Assert.Equal(any, AcmeHostNames.Any(domains));
+
+      // The page's second Critical sentence names AcmeHostNames.Unusable, and is reached when
+      // Any holds and Usable is empty: there is then always a name to name, and none empty.
+      [Theory]
+      [InlineData(".")]
+      [InlineData(" , .")]
+      [InlineData("..")]
+      [InlineData("*.example.com")]
+      [InlineData(" . , 192.0.2.7, .")]
+      [InlineData("mail.example.com")]
+      public void ANameTheServerLeavesOut_IsNamed_AndNoneIsEmpty(string domains)
+      {
+         if (!AcmeHostNames.Any(domains) || AcmeHostNames.Usable(domains).Count > 0)
+            return;
+
+         Assert.NotEmpty(AcmeHostNames.Unusable(domains));
+         Assert.All(AcmeHostNames.Unusable(domains), name => Assert.False(string.IsNullOrWhiteSpace(name)));
+      }
 
       // AcmeClient::ParseDomainList and UnusableDomains, case for case: the hosts the
       // server orders for, and the names it leaves out as written.

@@ -949,7 +949,10 @@ with `--check`).
   in lower case, one final dot off, `IsUsableHostName`'s rule - and names the ones it leaves out as written: the page
   says at Critical that no certificate can be issued, naming them, before anything about the network, and the
   checklist asks for DNS and the port for the hosts the server orders for alone, says of each name left out that no
-  certificate can name it, and with no host left says that no certificate is ever requested. Three new texts, in the
+  certificate can name it, and with no host left says that no certificate is ever requested. A list of only blanks
+  and dots, which the server reads as empty (one final dot taken off, the empty name dropped), is read as empty here
+  too, and the page says that no certificate can be issued without a host name, where it counted "." as a name and
+  said "no certificate can name , which the server leaves out" with nothing named. Three new texts, in the
   seventeen languages; `AcmeCertificateStateTests` holds the reading, case for case with the server's self-test, and
   the page's and the checklist's use of it.
 
