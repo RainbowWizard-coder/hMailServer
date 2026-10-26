@@ -152,22 +152,26 @@ with `--check`).
   the environment of a container started to run the verb. ContainerImage.md and EncryptionAtRest.md say so, and
   `build/test-docker-entrypoint.sh` holds it, with a case of its own for `--decrypt-store` as the command.
 - **Fixed: a run of failed logons under a user name could fail to ban the address, when the auto-ban could not save
-  the range it is written as under a name of its own.** The
-  IP range a ban is written as is named `Auto-ban: <user name>`, with `(1)` or another suffix after it when a range of
-  that name exists, in a column of 100 characters that no two ranges may share. Up to 6.3.7 the suffix went after
-  the whole user name and the name was then cut to 100 characters, so for a long user name every name the server could
-  choose could be the one in use: a later ban for it was refused and the address was not banned (reported as HM6099
-  from 6.2.19) - and its counted failures were cleared all the same, so it was given a whole new set of attempts. On
-  SQL Server the check for a name in use compared the name in the database's code page, so it could also miss a name
-  in use. Now the user name (or the spam trap)
-  is shortened so that the name, its suffix included, fits the column, never in the middle of a character, and the
-  check asks about the name exactly as it will be stored, compared as the database compares it; a range refused
-  even so - a name another server sharing the database wrote in between - is written again once under a GUID name
-  before HM6099 is reported; and an address's counted failures are cleared only once its range is saved, so when it
-  cannot be the next failed logon tries again (with `AutoBanMinutes` 0, which writes no range, as before). A ban for
-  a long user name is named with the user name cut, and the Auto-ban page shows it so; a range name over 100
-  characters given over COM or the REST API is stored as its first 100, as before, and now reads back as stored; and
-  `POST /api/v1/ipranges` reads the name in UTF-8, as `PUT` does, where it stored a name with characters outside
+  the range it is written as under a name of its own.** The IP range a ban is written as is named
+  `Auto-ban: <user name>`, with `(1)` or
+  another suffix after it when a range of that name exists, in a column of 100 characters that no two ranges may
+  share. Up to 6.3.7 the suffix went after the whole user name and the name was cut to 100 characters only after the
+  check for a name in use: for a long user name the suffix `(1)` could be cut, and a later ban for the user name
+  could take a name in use. Such a ban was refused and the address was not banned (reported as HM6099 from 6.2.19) -
+  and its counted failures were cleared all the same, so it was given a whole new set of attempts. On SQL Server the
+  check for a name in use compared the name in the database's code page, so it could also miss a name in use. A ban
+  for a user name holding a NUL could fail too. Now the
+  user name (or the spam trap) ends before a NUL and is shortened so that the name, its suffix included, fits the
+  column, never in the middle of a character, and the check asks about the name exactly as it will be stored,
+  compared as the database compares it; a range refused even so - a name another server sharing the database wrote
+  in between - is written again once under a GUID name before HM6099 is reported; and an address's counted failures
+  are cleared only once its range is saved, so while it cannot be each later failed logon within
+  `MaxInvalidLogonAttemptsWithin` tries again (with `AutoBanMinutes` 0, which writes no range, as before). Sessions
+  from one address that were open before it was banned, and that each cross the threshold, write no second range
+  while the ban in force lasts at least as long as a new one would. A ban for a long user name is named with the
+  user name cut, and the Auto-ban page shows it so; a range name over 100 characters given over COM or the REST API
+  is stored as its first 100, as before, and now reads back as stored, and one holding a NUL as the part before it;
+  and `POST /api/v1/ipranges` reads the name in UTF-8, as `PUT` does, where it stored a name with characters outside
   ASCII as other characters, one for each of its bytes.
   `AccountLogonRangeNameTester` holds the names (inside the server on Windows, with a half against the database, and
   in `autoban-widen-tests` on Linux), and the regression fixtures `Security.AutoBanRangeName` and

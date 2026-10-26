@@ -11,6 +11,7 @@
 namespace HM
 {
    class SecurityRange;
+   class DateTime;
 
    class PersistentSecurityRange
    {
@@ -40,10 +41,13 @@ namespace HM
 
       // text cut to at most units of its own (UTF-16 code units where wchar_t is
       // 16 bits, as on Windows, code points where it is 32), one fewer where the
-      // cut would keep the first half of a surrogate pair without the second.
-      // Every engine's column counts a character as no more than that, so text
-      // cut to MaxNameLength fits the column on each, and the cut never leaves
-      // half a character for the database to refuse or replace.
+      // cut would keep the first half of a surrogate pair without the second,
+      // and before its first U+0000 where that comes sooner. Every engine's
+      // column counts a character as no more than that, so text cut to
+      // MaxNameLength fits the column on each, and the cut never leaves half a
+      // character for the database to refuse or replace. No engine stores a NUL
+      // as part of a name: SQL Server and Compact bind a string up to its first
+      // one, and the statement MySQL and PostgreSQL are given ends at it.
       static String CutName(const String &text, int units);
 
       // A range's name as the column stores it: CutName(name, MaxNameLength).
@@ -68,6 +72,16 @@ namespace HM
       // under the column's own collation, and MySQL and PostgreSQL are given
       // the literal the INSERT is written with.
       static bool Exists(const String &name);
+
+      // Whether the range that decides what address may do (ReadMatchingIP) is
+      // an auto-ban's (its name begins "Auto-ban: "), refuses SMTP, POP3 and IMAP
+      // connections, as an auto-ban writes it, and bans until until or later: it
+      // does not expire,
+      // or expires then or after. A widened one counts (a run of addresses that
+      // holds address). False when it is none of that, and when the question
+      // could not be asked, so that a caller that would write a ban otherwise
+      // writes it.
+      static bool AutoBanCovers(const IPAddress &address, const DateTime &until);
 
       // An auto-ban's row widened to lower..upper (Util/AutoBanWidener.h): the
       // row with that id, and only while it is still the single expiring IPv4

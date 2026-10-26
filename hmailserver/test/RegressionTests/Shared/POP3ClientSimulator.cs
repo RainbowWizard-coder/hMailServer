@@ -124,6 +124,24 @@ namespace RegressionTests.Shared
          return reply.StartsWith("+OK");
       }
 
+      /// <summary>
+      ///    USER and PASS on a session already greeted (Connect and ReceiveBanner).
+      ///    True for +OK; reply is the server's last answer.
+      /// </summary>
+      public bool LogonOnOpenSession(string username, string password, out string reply)
+      {
+         _tcpConnection.Send("USER " + username + "\r\n");
+
+         reply = _tcpConnection.ReadUntil("+OK Send your password");
+         if (!reply.StartsWith("+OK"))
+            return false;
+
+         _tcpConnection.Send("PASS " + password + "\r\n");
+         reply = _tcpConnection.ReadUntil(new List<string> { "+OK", "-ERR" });
+
+         return reply.StartsWith("+OK");
+      }
+
       public bool ReceiveBanner(out string errorMessage)
       {
          errorMessage = string.Empty;

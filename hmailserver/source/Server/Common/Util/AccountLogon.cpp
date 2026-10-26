@@ -391,11 +391,41 @@ namespace HM
 
          // The spent failures are cleared only once the range that bans the
          // address has been saved. When it could not be (CreateIPRange has said
-         // so, HM6099), they are left: the next failure from the address crosses
-         // the threshold again and the range is tried again, where until 6.3.7
-         // they were cleared first and an address whose range was not written was
+         // so, HM6099), they are left: each later failure from the address, while
+         // the kept failures are within MaxInvalidLogonAttemptsWithin, crosses the
+         // threshold again and the range is tried again, where until 6.3.7 they
+         // were cleared first and an address whose range was not written was
          // given a whole new set of attempts.
-         if (CreateIPRange(ipaddress, username, minutes))
+         //
+         // Failures from one address at the same moment - parallel connections -
+         // each read the count before any of them cleared it, so each crosses the
+         // threshold. Under the lock CreateIPRange takes (recursive), the question
+         // and the write are one: the first writes the range, and each after it
+         // finds the address banned by an auto-ban's range at least as long as its
+         // own would be, within a minute, takes that for its ban, clears the
+         // failures and writes and announces nothing. One that would ban for
+         // longer than the range in force writes its own.
+         bool covered = false;
+         bool written = false;
+         {
+            boost::lock_guard<boost::recursive_mutex> guard(ip_range_creation_mutex_);
+
+            DateTime until = DateTime::GetCurrentTime();
+            DateTimeSpan span;
+            span.SetDateTimeSpan(0, 0, minutes > 1 ? minutes - 1 : 0, 0);
+            until = until + span;
+
+            covered = PersistentSecurityRange::AutoBanCovers(ipaddress, until);
+            if (!covered)
+               written = CreateIPRange(ipaddress, username, minutes);
+         }
+
+         if (covered)
+         {
+            ClearSpentFailures_(logonFailure, ipaddress);
+            LOG_DEBUG("AccountLogon::RegisterFailedLogin - " + String(ipaddress.ToString()) + " crossed the threshold while an auto-ban's range bans it; no range is written.");
+         }
+         else if (written)
          {
             ClearSpentFailures_(logonFailure, ipaddress);
             AutoBanFirewall::Banned(ipaddress, minutes, username, failureCount);
@@ -646,11 +676,16 @@ namespace HM
    AccountLogon::RangeName(const String &reason, const String &suffix)
    {
       // As much of the reason as the column leaves beside the prefix and the
-      // suffix, so that the suffix is never what the cut takes. Up to 6.3.7 the
-      // whole reason went in and SaveObject cut the name to 100 characters, so
-      // that with a user name of 90 characters or more every suffix was cut off
-      // and every candidate was stored as the same name: while one range of that
-      // name stood, every other ban named for the user name was refused by the
+      // suffix, so that the suffix is never what the cut takes - and the reason
+      // ends before a U+0000 it holds, which no engine stores (CutName), so that
+      // the suffix is not lost there either. Up to 6.3.7 the whole reason went in
+      // and SaveObject cut the name to 100 characters after the check for a name
+      // in use had asked about it uncut. With a user name of more than 86
+      // characters a suffix was cut: from 87 characters the second ban was stored
+      // under a cut suffix that the third chose again, at 89 the cut left the
+      // name and a space, which SQL Server and MySQL take for the name without
+      // it, and from 90 every candidate was the name in use. While one range of
+      // that name stood, a later ban named for the user name was refused by the
       // unique index, and the address it was earned by was not banned.
       const String prefix = AutoBanRangePrefix;
       const int room = PersistentSecurityRange::MaxNameLength - prefix.GetLength() - suffix.GetLength();
@@ -776,6 +811,8 @@ namespace HM
                  what + " is " + Shown(StringParser::IntToString(name.GetLength())) + " units, past the column's 100: " + Shown(name));
          Require(PersistentSecurityRange::StoredName(name) == name, what + " is not the name the column stores: " + Shown(name));
          Require(!Unicode::HasUnpairedSurrogate(name), what + " holds half of a surrogate pair: " + Shown(name));
+         const int nul = name.Find((wchar_t) 0);
+         Require(nul < 0, what + " holds a U+0000, which no engine stores, after " + (nul < 0 ? std::string() : Shown(name.Mid(0, nul))));
          Require(name.Left(10) == _T("Auto-ban: "), what + " has lost the \"Auto-ban: \" prefix: " + Shown(name));
       }
    }
@@ -830,11 +867,12 @@ namespace HM
                  "a pair that ends at the 100th unit was not kept");
       }
 
-      // Every candidate a ban for a user name of 89, 90, 91 and 200 units can be
+      // Every candidate a ban for a user name of 86 to 91 and 200 units can be
       // written under: within the column, the prefix kept, its suffix intact
-      // after the cut, and no two the same once stored.
+      // after the cut, and no two the same once stored. Up to 6.3.7 a suffix was
+      // cut from 87 units (86 and " (1)" are the column's 100).
       const String guid = _T(" {0F1E2D3C-4B5A-6978-8796-A5B4C3D2E1F0}");
-      const int lengths[] = { 89, 90, 91, 200 };
+      const int lengths[] = { 86, 87, 88, 89, 90, 91, 200 };
       for (int length : lengths)
       {
          const String user = UserName(length);
@@ -908,6 +946,61 @@ namespace HM
             const String name = AccountLogon::RangeName(user, suffix);
             RequireStored(name, "the candidate for a user name with a pair at the cut, with [" + Shown(suffix) + "]");
             Require(name.Right(suffix.GetLength()) == suffix, "the candidate for a user name with a pair at the cut lost its suffix: " + Shown(name));
+         }
+      }
+
+      // A U+0000 in the reason - the web services listener's HTTP Basic decoder
+      // keeps one in a user name. No engine stores it (CutName): SQL Server and
+      // Compact bind a name up to it, so that every candidate would be bound as
+      // the name before it and none could be written while a range of that name
+      // stood, and MySQL and PostgreSQL fail the statement. The name ends before
+      // it and the suffix goes after: at the start, before the cut, and in the
+      // part of a long name that a suffix's room takes.
+      {
+         String nul;
+         nul += (wchar_t) 0;
+         Require(PersistentSecurityRange::CutName(_T("ab") + nul + _T("cd"), 100) == _T("ab"), "a name is not cut before a U+0000 it holds");
+         Require(PersistentSecurityRange::StoredName(nul + _T("cd")).IsEmpty(), "a name that begins with a U+0000 is not stored empty");
+         Require(PersistentSecurityRange::StoredName(Repeat(_T('a'), 100) + nul) == Repeat(_T('a'), 100), "a U+0000 past the column changes the name of 100 units before it");
+
+         struct NulCase { const char *what; String user; String before; };
+         const NulCase cases[] =
+         {
+            { "at the start", nul + _T("junk@example.test"), String() },
+            { "before the cut", _T("victim@example.test") + nul + _T("junk") + Repeat(_T('x'), 100), _T("victim@example.test") },
+            { "where a suffix's room cuts", Repeat(_T('v'), 88) + nul + Repeat(_T('x'), 31), Repeat(_T('v'), 88) },
+         };
+
+         for (const NulCase &nulCase : cases)
+         {
+            const std::string what = std::string("for a user name with a U+0000 ") + nulCase.what + ", ";
+
+            std::vector<String> suffixes;
+            suffixes.push_back(String());
+            for (int i = 1; i <= 10; i++)
+               suffixes.push_back(" (" + StringParser::IntToString(i) + ")");
+            suffixes.push_back(_T(" (Z012345678)"));
+            suffixes.push_back(guid);
+
+            std::set<String> stored;
+            for (const String &suffix : suffixes)
+            {
+               const String name = AccountLogon::RangeName(nulCase.user, suffix);
+               RequireStored(name, what + "the candidate with [" + Shown(suffix) + "]");
+               Require(name.Right(suffix.GetLength()) == suffix, what + "the candidate with [" + Shown(suffix) + "] lost its suffix: " + Shown(name));
+               Require(name == _T("Auto-ban: ") + PersistentSecurityRange::CutName(nulCase.before, 100 - 10 - suffix.GetLength()) + suffix,
+                       what + "the candidate with [" + Shown(suffix) + "] is not the user name before the U+0000 and the suffix: " + Shown(name));
+               Require(stored.insert(name).second, what + "two candidates are the same name once stored: " + Shown(name));
+            }
+
+            // Against a store holding the name the user name before the U+0000
+            // gives - what the bindings stored up to 6.3.7 - the chooser chooses
+            // the next, which is what the INSERT then binds.
+            std::set<String> store;
+            store.insert(AccountLogon::RangeName(nulCase.before, String()));
+            const String chosen = AccountLogon::ChooseRangeName(nulCase.user, [&](const String &name) { return store.count(name) > 0; });
+            RequireStored(chosen, what + "the chosen name");
+            Require(chosen == AccountLogon::RangeName(nulCase.before, _T(" (1)")), what + "the chooser did not choose the next suffix after the name before the U+0000: " + Shown(chosen));
          }
       }
 
@@ -1016,5 +1109,37 @@ namespace HM
       Require(collision->GetID() > 0 && collision->GetName() != stored->GetName() && collision->GetName().Right(1) == _T("}"),
               "the write under a name taken was not written under a GUID name: " + Shown(collision->GetName()));
       RequireStored(collision->GetName(), "the name the write was written again under");
+
+      // An auto-ban's range in force bans its address for as long as it lasts
+      // (AutoBanCovers), so that a burst's later threshold writes no second
+      // range; an administrator's range does not, nor one that lets the address
+      // in, nor one that ends before the ban asked about would.
+      {
+         IPAddress address;
+         address.TryParse(AnsiString("192.0.2.204"), false);
+
+         DateTime soon = DateTime::GetCurrentTime();
+         DateTimeSpan minute;
+         minute.SetDateTimeSpan(0, 0, 1, 0);
+         soon = soon + minute;
+
+         DateTime later = soon + minute + minute + minute;
+
+         Require(!PersistentSecurityRange::AutoBanCovers(address, soon), "an address no range holds is found banned");
+
+         std::shared_ptr<SecurityRange> ban = range(AccountLogon::RangeName(_T("AccountLogonRangeNameTester ") + token + _T(" covers"), String()), "192.0.2.204");
+         Require(PersistentSecurityRange::SaveObject(ban), "an auto-ban's range to cover the address could not be saved");
+         Require(PersistentSecurityRange::AutoBanCovers(address, soon), "an auto-ban's range in force for two minutes is not found to ban its address for one");
+         Require(!PersistentSecurityRange::AutoBanCovers(address, later), "an auto-ban's range in force for two minutes is found to ban its address for four");
+
+         ban->SetAllowPOP3(true);
+         Require(PersistentSecurityRange::SaveObject(ban), "the auto-ban's range could not be saved letting POP3 in");
+         Require(!PersistentSecurityRange::AutoBanCovers(address, soon), "an auto-ban's range that lets POP3 in is found to ban its address");
+
+         ban->SetAllowPOP3(false);
+         ban->SetName(_T("AccountLogonRangeNameTester ") + token + _T(" administrator's"));
+         Require(PersistentSecurityRange::SaveObject(ban), "the range could not be saved under an administrator's name");
+         Require(!PersistentSecurityRange::AutoBanCovers(address, soon), "an administrator's range is found to be an auto-ban's");
+      }
    }
 }

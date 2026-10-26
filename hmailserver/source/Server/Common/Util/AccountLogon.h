@@ -214,21 +214,25 @@ namespace HM
    };
 
    // The names of the ranges an auto-ban writes (AccountLogon::RangeName,
-   // ChooseRangeName, UniqueRangeName): for user names of 89, 90, 91 and 200
+   // ChooseRangeName, UniqueRangeName): for user names of 86 to 91 and 200
    // characters, every candidate within the column's 100, the "Auto-ban: "
    // prefix kept, its suffix intact after the cut and no two the same once
-   // stored; a surrogate pair never split by the cut; the chooser, against a
-   // store holding the name a ban stands under, choosing another and asking
-   // about names only as the column stores them; and the other writers' names
-   // within the column. No database, configuration or network: Test runs in
-   // ClassTester on Windows and in autoban-widen-tests on Linux. TestDatabase,
-   // in ClassTester on Windows against the bench's database, with rows of its
-   // own deleted again: a name past the column finds the range stored under its
-   // cut, a name of characters outside the Latin code pages finds its range, and
-   // a new range under a name a range holds is refused as taken without an error
-   // and written again under a GUID name. TestAll is the two, which ClassTester
-   // runs. Every check runs; each throws std::logic_error once at the end, naming
-   // every one that did not hold.
+   // stored; a surrogate pair never split by the cut; a user name holding
+   // U+0000 named for the part before it, suffix kept, at the start, before the
+   // cut and where a suffix's room cuts; the chooser, against a store holding
+   // the name a ban stands under, choosing another and asking about names only
+   // as the column stores them; and the other writers' names within the
+   // column. No database, configuration or network: Test runs in ClassTester on
+   // Windows and in autoban-widen-tests on Linux. TestDatabase, in ClassTester
+   // on Windows against the bench's database, with rows of its own deleted
+   // again: a name past the column finds the range stored under its cut, a name
+   // of characters outside the Latin code pages finds its range, a new range
+   // under a name a range holds is refused as taken without an error and
+   // written again under a GUID name, and an auto-ban's range in force is found
+   // to ban its address for as long as it lasts, and no longer, while an
+   // administrator's range or one that lets the address in is not. TestAll is
+   // the two, which ClassTester runs. Every check runs; each throws
+   // std::logic_error once at the end, naming every one that did not hold.
    class AccountLogonRangeNameTester
    {
    public:

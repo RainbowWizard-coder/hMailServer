@@ -191,6 +191,126 @@ namespace RegressionTests.Infrastructure
          }
       }
 
+      [Test]
+      [Description("Auto-ban: the check for a range's name in use binds the name as a parameter. With every " +
+                   "statement that holds a range's name as a literal failing, a range standing under the name " +
+                   "a ban takes is still found, and the ban is written under the next name. Up to 6.3.7 the " +
+                   "check wrote the name into the statement, which SQL Server reads in the database's code " +
+                   "page: a name with characters outside it was not found, and the ban was refused (HM6099).")]
+      public void TheCheckForANameInUseBindsTheName()
+      {
+         const string userName = "bindcheck@example.test";
+
+         try
+         {
+            StandAutoBanRange("Auto-ban: " + userName);
+            FailStatementsContaining("rangename = '");
+
+            FailThreshold(userName);
+
+            ClassicAssert.AreEqual("", new Pop3ClientSimulator().GetWelcomeMessage(),
+               "The address was not banned: the check for the name in use did not find the range standing under it.");
+            ClassicAssert.Contains("Auto-ban: " + userName + " (1)", RangeNames(), "The ban was not written under the next name.");
+            AssertNotInErrorLog("HM6099");
+         }
+         finally
+         {
+            RemoveAutoBans();
+         }
+      }
+
+      [Test]
+      [Description("Auto-ban: a range's name that the unique index refuses after the name was chosen as free - " +
+                   "as another server sharing the database can write it in between - is written again under " +
+                   "a GUID name, and the refusal is not reported. The check for a name in use is made to fail, " +
+                   "so the name a range stands under is chosen, and the index alone refuses it.")]
+      public void ANameTheIndexRefusesIsWrittenAgainUnderAGuid()
+      {
+         const string userName = "racecheck@example.test";
+
+         try
+         {
+            StandAutoBanRange("Auto-ban: " + userName);
+            FailStatementsContaining("count(*) as c from hm_securityranges where rangename");
+
+            FailThreshold(userName);
+
+            ClassicAssert.AreEqual("", new Pop3ClientSimulator().GetWelcomeMessage(),
+               "The address was not banned after the index refused the name chosen.");
+
+            var names = RangeNames();
+            ClassicAssert.IsTrue(names.Exists(n => n.StartsWith("Auto-ban: " + userName + " {") && n.EndsWith("}")),
+               "The ban was not written again under a GUID name. The ranges: " + string.Join(" | ", names));
+            AssertNotInErrorLog("HM6099");
+            AssertNotInErrorLog("HM5032");
+         }
+         finally
+         {
+            RemoveAutoBans();
+         }
+      }
+
+      private void StandAutoBanRange(string name)
+      {
+         _settings.AutoBanOnLogonFailure = true;
+         _settings.MaxInvalidLogonAttempts = 3;
+         _settings.MaxInvalidLogonAttemptsWithin = 5;
+         _settings.AutoBanMinutes = 3;
+         _settings.ClearLogonFailureList();
+
+         var range = _settings.SecurityRanges.Add();
+         range.Name = name;
+         range.LowerIP = "192.0.2.78";
+         range.UpperIP = "192.0.2.78";
+         range.Priority = 100;
+         range.AllowSMTPConnections = false;
+         range.AllowPOP3Connections = false;
+         range.AllowIMAPConnections = false;
+         range.Expires = true;
+         range.ExpiresTime = DateTime.Now.AddMinutes(30);
+         range.Save();
+
+         ClassicAssert.Contains(name, RangeNames(), "The range the test stands on was not saved.");
+      }
+
+      private static void FailThreshold(string userName)
+      {
+         for (var i = 1; i <= 3; i++)
+            ClassicAssert.IsFalse(FailLogon(userName), "Failed logon " + i + " was not refused.");
+      }
+
+      private System.Collections.Generic.List<string> RangeNames()
+      {
+         var names = new System.Collections.Generic.List<string>();
+         var ranges = _settings.SecurityRanges;
+         for (var i = 0; i < ranges.Count; i++)
+            names.Add(ranges[i].Name);
+         return names;
+      }
+
+      private void RemoveAutoBans()
+      {
+         var ranges = _settings.SecurityRanges;
+         for (var i = ranges.Count - 1; i >= 0; i--)
+         {
+            var range = ranges[i];
+            if (range.Name.StartsWith("Auto-ban: "))
+               ranges.DeleteByDBID(range.ID);
+         }
+
+         _settings.ClearLogonFailureList();
+         _settings.AutoBanOnLogonFailure = false;
+      }
+
+      // The error log as it stands holds no line with the code given. The
+      // injector's HM6119 is always in it while a fragment is set (and the
+      // tear-down clears it), so there is a log to read.
+      private static void AssertNotInErrorLog(string code)
+      {
+         var text = LogHandler.ReadErrorLog();
+         ClassicAssert.IsFalse(text.Contains(code), code + " was reported: " + text);
+      }
+
       private static bool FailLogon(string userName)
       {
          var pop3 = new Pop3ClientSimulator();

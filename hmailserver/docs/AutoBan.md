@@ -73,25 +73,37 @@ end of the name, and what stands before it - the user name or the trap - is
 shortened to leave it room, never in the middle of a character: a ban for a user
 name of 120 characters while one for it already stands is named `Auto-ban:`, a
 space, the user name's first 86 characters, a space and `(1)`. The *Banned now*
-list shows the shortened user name. Up to 6.3.7 the suffix came after the whole user name and
-the cut to 100 characters took it off again, so that for a long user name every
-name the server could choose could be the one already in use, and the address
-was not banned (reported as HM6099 from 6.2.19); and on SQL Server a name in use
-could also go unrecognised.
+list shows the shortened user name. A user name holding a NUL character, which a
+sign-in can pass on, is named for the part before it: no
+database stores a NUL in a name. Up to 6.3.7 the suffix came after the whole user
+name and the cut to 100 characters, made after the check for a name in use, took
+it off again: with a user name long enough for its `(1)` to be cut, a later ban
+named for it could be refused, and the address was not banned (reported as HM6099
+from 6.2.19). On SQL Server a name in use could also go unrecognised; and a ban
+for a user name holding a NUL could fail too.
 
 The check for a name in use is the server's own; the database's unique index is
 the judge. A range it refuses even so - a name another server sharing the
 database wrote in the moment between the check and the save - is written again
 once, under the reason and a GUID, before HM6099 is reported. When a ban's range
-cannot be saved at all, the address's counted failed logons are kept, so its
-next failed logon crosses the threshold again and the range is tried again (up to
-6.3.7 they were cleared before the save, and the address was given a whole new
-set of attempts). With `AutoBanMinutes` 0, which disconnects and writes no range,
-the failures are cleared when the threshold is reached, as before.
+cannot be saved at all, the address's counted failed logons are kept, so each
+later failed logon from it, while they are within `MaxInvalidLogonAttemptsWithin`,
+crosses the threshold again and the range is tried again (up to 6.3.7 they were
+cleared before the save, and the address was given a whole new set of attempts).
+With `AutoBanMinutes` 0, which disconnects and writes no range, the failures are
+cleared when the threshold is reached, as before.
+
+An address that crosses the threshold while an auto-ban's range already bans it -
+each of a burst of parallel connections, which were open before the ban and all
+counted their failures before the first was banned - is not banned a second time
+while the ban in force lasts at least as long as a new one would, give or take a
+minute: its failures are cleared, and no range is written or announced. One whose
+ban in force ends sooner is banned again, under a range of its own.
 
 The name of a range written on the IP ranges page, over COM or the REST API is
 held to the same 100 characters: a longer one is stored as its first 100, and
-the range reads back with the name it was stored under.
+the range reads back with the name it was stored under; a name holding a NUL is
+stored as the part before it.
 
 `AccountLogon::RangeName`, `ChooseRangeName` and `UniqueRangeName` make the
 names, and `PersistentSecurityRange::StoredName` the cut, which `SaveObject`,

@@ -86,6 +86,17 @@ namespace HM
       if (units <= 0)
          return String();
 
+      // Nothing from a U+0000 on, which no engine stores as part of the name:
+      // SQL Server and Compact bind a string up to its first NUL, and MySQL and
+      // PostgreSQL are given the name in the statement's text, which ends there,
+      // so that the statement fails. A name cut here is the name each stores and
+      // a statement each runs, and a suffix put after it is kept (the auto-ban's
+      // RangeName cuts its reason here before the suffix goes on).
+      const wchar_t nulCharacter = 0;
+      const int nul = text.Find(nulCharacter);
+      if (nul >= 0 && nul < units)
+         return text.Mid(0, nul);
+
       if (text.GetLength() <= units)
          return text;
 
@@ -337,6 +348,30 @@ namespace HM
    }
 
    bool
+   PersistentSecurityRange::AutoBanCovers(const IPAddress &address, const DateTime &until)
+   {
+      // The range that decides what the address may do, as every listener that
+      // consults the ranges asks (ReadMatchingIP): an auto-ban's only while it
+      // is the one that decides - not outranked by an administrator's range that
+      // lets the address in - refuses SMTP, POP3 and IMAP, as the auto-ban
+      // writes it, and lasts until until.
+      std::shared_ptr<SecurityRange> range = ReadMatchingIP(address);
+      if (!range)
+         return false;
+
+      if (range->GetName().Left(10) != _T("Auto-ban: "))
+         return false;
+
+      if (range->GetAllowSMTP() || range->GetAllowPOP3() || range->GetAllowIMAP())
+         return false;
+
+      if (!range->GetExpires())
+         return true;
+
+      return !(range->GetExpiresTime() < until);
+   }
+
+   bool
    PersistentSecurityRange::WidenAutoBan(__int64 id, const IPAddress &address, const IPAddress &lower, const IPAddress &upper)
    {
       if (id <= 0 || address.GetType() != IPAddress::IPV4 || lower.GetType() != IPAddress::IPV4 || upper.GetType() != IPAddress::IPV4)
@@ -367,7 +402,8 @@ namespace HM
    bool
    PersistentSecurityRange::Validate(std::shared_ptr<SecurityRange> pSR, String &result)
    {
-      if (pSR->GetName().IsEmpty())
+      // As the column would store it: a name that begins with U+0000 is empty.
+      if (StoredName(pSR->GetName()).IsEmpty())
       {
          result = "The name cannot be empty.";
          return false;
