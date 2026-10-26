@@ -659,9 +659,9 @@ Questions for a Debian or Fedora maintainer
 - **The rpmlint filters.** `rpm/hmailserver.rpmlintrc` keeps the mail store's and the
   configuration's modes and the data file in `/usr/bin` from being reported; a
   reviewer may prefer other modes, or the data file moved (above). openSUSE's
-  build takes only its lines for the data file, from `obs/hmailserver-rpmlintrc`
-  (openSUSE's rpmlint makes an error of a filter that matches nothing, and reports
-  none of the others), and still warns of what no filter is for: the mail store's
+  build takes only its lines for the data file and the summary's naming the
+  package, from `obs/hmailserver-rpmlintrc` (openSUSE's rpmlint makes an error of a
+  filter that matches nothing, and reports none of the others), and still warns of what no filter is for: the mail store's
   and the configuration's user and group, which openSUSE's rpmlint knows only from
   its own register (`non-standard-uid`, `non-standard-gid`), the data file's mode
   in `/usr/bin` (`non-executable-in-bin`), the server's symbols

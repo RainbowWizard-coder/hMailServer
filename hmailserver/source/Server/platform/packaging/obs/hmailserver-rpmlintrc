@@ -11,10 +11,12 @@
 # reports, and no others, each with that file's reason: openSUSE's rpmlint makes an
 # error of a filter that matched nothing (unused-rpmlintrc-filter), and it reports
 # nothing the file's other lines filter - the modes of the mail store, the logs and
-# the configuration, and the summary's repeating the package's name. Over the
-# packages of the last release built without this file, Leap 16.0's rpmlint and
-# Tumbleweed's report two errors with no filters, the two below; eight with the
-# whole of that file, every one an unused filter; and none with these lines
+# the configuration. Over the packages the spec makes since its summary names
+# "Progressive Robot's fork of hMailServer", Leap 16.0's rpmlint and Tumbleweed's
+# report two errors with no filters, the two dh2048.pem lines below, and the
+# summary's repeating the package's name as a warning on the binary package and on
+# the source package; seven errors with the whole of that file, every one an unused
+# filter; and with these lines no error, and none of those warnings
 # (hmailserver/docs/Channels.md, "What was tried").
 # build/ci/channels/obs-publish.py's self-test holds every line here to that file.
 
@@ -24,3 +26,9 @@
 # maintainer, in SourcePackages.md).
 addFilter("script-without-shebang /usr/bin/dh2048.pem")
 addFilter("wrong-script-end-of-line-encoding /usr/bin/dh2048.pem")
+
+# The summary says whose package this is, "Progressive Robot's fork of hMailServer",
+# and so repeats the package's name: the original hMailServer, Martin Knafve's, is
+# developed separately, and a summary without that name would not say which
+# hMailServer this is (build/check-package-texts.py holds the summary to it).
+addFilter("name-repeated-in-summary hMailServer")

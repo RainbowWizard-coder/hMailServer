@@ -318,8 +318,13 @@ openSUSE's rpmlint reports, and no others: the rpmlint of an OBS build
 over the packages it built) loads every `*-rpmlintrc` and `*.rpmlintrc` in
 `/home/abuild/rpmbuild/SOURCES` by itself, and makes an error of a filter that
 matches nothing (`unused-rpmlintrc-filter`). openSUSE's rpmlint reports nothing the
-spec's other filters are for, so that whole file, given to it, would turn 6.3.7's
-two errors into eight ([What was tried](#what-was-tried)). `obs-publish.py
+spec's filters of the modes are for, so that whole file, given to it, would turn
+6.3.7's two errors into eight ([What was tried](#what-was-tried)). From the release
+after 6.3.7 the spec's summary names "Progressive Robot's fork of hMailServer",
+which openSUSE's rpmlint reports as `name-repeated-in-summary hMailServer`, a
+warning, on the binary and the source package, so the file takes that filter of the
+spec's too: over that release's packages the dh2048.pem filters and it leave no
+error and no unused filter, and the whole spec file seven unused. `obs-publish.py
 --self-test` holds every line of `obs/hmailserver-rpmlintrc` to the spec's file.
 6.3.7's build had no filters: its tarball carries no `obs/hmailserver-rpmlintrc`,
 and the release after it is the first that does.
@@ -726,6 +731,25 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   errors and a badness of 0, the warnings as before (82 on Leap, 87 on Tumbleweed).
   OBS's public API gave the package's `_service` as `master`'s before the change.
   Nothing was sent to OBS.
+- **On 26 October 2026, the same rpmlint over the next release's packages.** The
+  spec's summary had become "Progressive Robot's fork of hMailServer: mail server for
+  SMTP, IMAP and POP3" since 6.3.7, and the filters had been measured on 6.3.7's. The
+  x86_64, `noarch` and source packages `srcpkg-rpm.sh` built from a tarball of the
+  tree in Leap 16.0's and Tumbleweed's images (by the jobs' digests), then
+  `/opt/testing/bin/rpmlint --info` over them in a clean container of each (Leap
+  16.0's rpmlint-mini 2.7.0, Tumbleweed's 2.10.0, with binutils, file, cpio and perl,
+  which a build root has), with each file in `/home/abuild/rpmbuild/SOURCES` as
+  `hmailserver-rpmlintrc`: with none, 2 errors (the two of `dh2048.pem`) and
+  `W: name-repeated-in-summary hMailServer` on `hmailserver.x86_64` and
+  `hmailserver.src`; with the tree's `obs/hmailserver-rpmlintrc` of then, 0 errors
+  and those two warnings; with it and the spec's `name-repeated-in-summary` filter,
+  0 errors, a badness of 0 and neither warning (82 warnings on Leap, 87 on
+  Tumbleweed); with the spec's whole `rpm/hmailserver.rpmlintrc`, 7 errors, every
+  one `unused-rpmlintrc-filter` (the six directory modes and the configuration's).
+  openSUSE's package description guidelines ask a summary to say what the package
+  is and to help a user tell it from similar ones, and set no rule against its
+  naming the package; the warning has no badness in openSUSE's scoring. So the
+  summary stays, and the filter went into `obs/hmailserver-rpmlintrc`.
 - **On 23 October 2026, an installation from each of the three, as a user installs
   from it.** Eleven clean containers, each beside one PostgreSQL 18.6 container
   (`postgres:18`, `sha256:74935e72...4336`) with a database of its own, the arm64

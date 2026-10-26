@@ -924,9 +924,16 @@ with `--check`).
   `wrong-script-end-of-line-encoding`, both `/usr/bin/dh2048.pem`, which `rpm/hmailserver.rpmlintrc` filters with its
   reason). The spec's file could not simply be given to it: an OBS build's rpmlint loads any `*-rpmlintrc` in its
   sources and makes an error of a filter that matches nothing (`unused-rpmlintrc-filter`), and openSUSE's rpmlint
-  reports nothing the spec's other filters are for, so over 6.3.7's published packages the whole file made eight
-  errors of the two. The tree has `packaging/obs/hmailserver-rpmlintrc`, the two lines for the data file with their
-  reason, and the `_service` takes it out of the tarball as well; with it the same rpmlint reports no error.
+  reports nothing the spec's filters of the modes are for, so over 6.3.7's published packages the whole file made
+  eight errors of the two. The tree has `packaging/obs/hmailserver-rpmlintrc`, the two lines for the data file and the
+  spec's line for its summary's naming the package, each with its reason, and the `_service` takes it out of the
+  tarball as well; with it the same rpmlint reports no error. The summary's line is there since the summary names
+  "Progressive Robot's fork of hMailServer": the filters were first measured on 6.3.7's packages, whose summary did
+  not, and over the packages `srcpkg-rpm.sh` built from the tree on 26 October 2026 in Leap 16.0's and Tumbleweed's
+  images, OBS's rpmlint reported `name-repeated-in-summary hMailServer`, a warning with no badness, on the binary
+  and the source package; with the line it reports neither, and no error, and the whole spec file makes seven unused
+  filters there. openSUSE's package description guidelines ask a summary to help a user tell the package from
+  similar ones and set no rule against its naming it, so the summary stays.
   `obs-publish` now refuses a verified tarball that lacks a file the `_service` extracts, since the service would fail
   on OBS after the job had started it, and refuses when the OBS package's `_service`, which it reads from OBS's public
   API without its token, is not the tree's, since OBS runs the package's copy and the job checked the tree's;
