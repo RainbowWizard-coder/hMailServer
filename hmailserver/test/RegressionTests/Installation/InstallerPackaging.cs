@@ -1223,6 +1223,28 @@ namespace RegressionTests.Installation
             Assert.AreNotEqual(0u, 0x500D0156u & rights[name], "The installer does not count " + name + " on a link, which the server does.");
          }
 
+         // A folder on the way that is not a link - the root of its volume included - is
+         // held to the live update's rule of a folder above the program folder
+         // (AdminUpdateChecks.cpp's CheckAncestors_ and ReplaceRights_): owned by SYSTEM,
+         // the Administrators or TrustedInstaller, and nobody else may rename it, remove
+         // what is in it or change who may (the review of 26 October 2026).
+         Match replace = Regex.Match(extension, @"HM_REPLACE_RIGHTS\s*=\s*\$([0-9A-Fa-f]+);");
+         Assert.IsTrue(replace.Success, "HM_REPLACE_RIGHTS is not there.");
+         uint replaceMask = Convert.ToUInt32(replace.Groups[1].Value, 16);
+         string updateChecks = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\AdminUpdateChecks.cpp");
+         Match above = Regex.Match(updateChecks, @"const DWORD ReplaceRights_\s*=\s*([A-Z_ |]+);");
+         Assert.IsTrue(above.Success, "AdminUpdateChecks.cpp no longer names the rights it counts on a folder above the program folder.");
+         foreach (string name in above.Groups[1].Value.Split('|').Select(part => part.Trim()))
+         {
+            Assert.IsTrue(rights.ContainsKey(name), "ReplaceRights_ counts " + name + ", which this test does not know.");
+            Assert.AreNotEqual(0u, replaceMask & rights[name], "Setup does not count " + name + " on a folder above the program folder, which the live update does.");
+         }
+         string aboveRule = CodeBody(extension, "FolderAboveIsAdministratorsAlone");
+         StringAssert.Contains("ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION", aboveRule, "A folder above the program folder is not read through the handle that holds it.");
+         Assert.IsFalse(Regex.IsMatch(aboveRule, @"ReadFolder(Permissions|Owner)\("), "A folder above the program folder is read by its path.");
+         foreach (string word in new[] { "FolderAboveIsAdministratorsAlone(parent, szRoot, szWhy)", "FolderAboveIsAdministratorsAlone(handle, szNext, szWhy)" })
+            StringAssert.Contains(word, chain, "HoldFolderChain does not use " + word + ".");
+
          // Where a link leads, read from the link (FSCTL_GET_REPARSE_POINT).
          string target = CodeBody(extension, "LinkTarget");
          StringAssert.Contains("ReadReparseData(hLink, HM_GET_REPARSE_POINT", target);
@@ -1306,6 +1328,14 @@ namespace RegressionTests.Installation
          new[] { "LinkIsAdministratorsAlone", "what may remove a link from its folder is not asked", "else if AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho) then Why := " },
          new[] { "AclLetsOthers", "the rights on a link itself are not weighed", "if (aceFlags and HM_INHERIT_ONLY) = 0 then begin if aceType = HM_ACCESS_ALLOWED then" },
          new[] { "IsTrustedSid", "an account other than the three is trusted", "^function IsTrustedSid(pSid: cardinal): Boolean; begin Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID); end;$" },
+         new[] { "HoldFolderChain", "the root of the volume is not held to the rule of a folder above the program folder", "if szRest <> '' then if not IsAtOrAboveChecked(szRoot) then if not FolderAboveIsAdministratorsAlone(parent, szRoot, szWhy) then begin Why := szWhy; Exit; end;" },
+         new[] { "HoldFolderChain", "a folder above the program folder that another account owns, or may rename or empty, is gone through, or the walk goes on from a folder it did not take", "if szRest <> '' then if not IsAtOrAboveChecked(szNext) then if not FolderAboveIsAdministratorsAlone(handle, szNext, szWhy) then begin Why := szWhy; bDone := true; end; if not bDone then begin parent := handle; szCurrent := szNext;" },
+         new[] { "FolderAboveIsAdministratorsAlone", "a folder above the program folder is not read through the handle that holds it, or one that cannot be read is taken", "readResult := ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin Why := ~; Exit; end;" },
+         new[] { "FolderAboveIsAdministratorsAlone", "a folder above the program folder that another account owns is gone through", "if not IsTrustedSid(pOwner) then Why := " },
+         new[] { "FolderAboveIsAdministratorsAlone", "what may rename or empty a folder above the program folder, or change who may, is not asked", "else if AclLetsOthers(pDacl, HM_REPLACE_RIGHTS, true, szWho) then begin" },
+         new[] { "IsAtOrAboveChecked", "Bin's and ControlPanel's walks pass folders the program folder's walk did not hold to the rule", "^function IsAtOrAboveChecked(Folder: String): Boolean; var szFolder: String; begin Result := false; if g_szFolderAboveChecked = '' then Exit; szFolder := AddBackslash(Folder); Result := CompareText(Copy(AddBackslash(g_szFolderAboveChecked), 1, Length(szFolder)), szFolder) = 0; end;$" },
+         new[] { "CheckProgramFolders", "the program folder's walk passes a folder above it unasked", "g_szFolderAboveChecked := ''; CheckProgramFolderPermissions(szApp, false); if not HoldFolderChain(szApp, 0," },
+         new[] { "CheckProgramFolders", "Bin's and ControlPanel's walks are not held to the rule past what the program folder's walk held", "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0," },
          new[] { "LinkTarget", "a link to a share is gone through", "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := " },
          new[] { "VolumeKeepsPermissions", "a volume that keeps no permissions is taken", "else if (flags and HM_PERSISTENT_ACLS) = 0 then Why := " },
          new[] { "VolumeKeepsPermissions", "a volume that cannot be told is taken", "begin Result := false; Why := ''; serial := 0; longest := 0; flags := 0; if not VolumeOfHeldFolder(HeldHandle, " },

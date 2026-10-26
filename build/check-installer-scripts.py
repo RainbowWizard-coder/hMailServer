@@ -191,6 +191,9 @@ FILES = ('section_files_64.iss', 'section_files_common.iss', 'section_files_arm6
 MAIN = 'hMailServer/hMailServer.cpp'
 # The server's rule for a link it goes through, which the installer's is held to.
 PROTECTED_FILE = 'Common/Util/ProtectedFile.cpp'
+# The live update's rule for the folders above the program folder, which the
+# installer's is held to.
+ADMIN_UPDATE_CHECKS = 'Common/Util/AdminUpdateChecks.cpp'
 # The server's question before it gives Users Read & execute (EveryUserReads_),
 # which the installer's read mask is held to.
 SERVICE_ACCOUNT = 'Common/Util/ServiceAccount.cpp'
@@ -240,6 +243,7 @@ def load():
             texts[name] = read(os.path.join(INSTALLATION, name))
     texts[MAIN] = read(os.path.join(SERVER, MAIN))
     texts[PROTECTED_FILE] = read(os.path.join(SERVER, PROTECTED_FILE))
+    texts[ADMIN_UPDATE_CHECKS] = read(os.path.join(SERVER, ADMIN_UPDATE_CHECKS))
     texts[SERVICE_ACCOUNT] = read(os.path.join(SERVER, SERVICE_ACCOUNT))
     texts[EVENT_LOG] = read(os.path.join(SERVER, EVENT_LOG))
     texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
@@ -660,7 +664,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'VolumeKeepsPermissions', 'SplitAtRoot', 'DeinitializeSetup', 'FolderMadeBySetup', 'SetupMadeFolder',
                            'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel', 'AclLetsOthers', 'IsTrustedSid',
                            'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn',
-                           'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld')
+                           'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld', 'FolderAboveIsAdministratorsAlone', 'IsAtOrAboveChecked')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -693,6 +697,22 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('IsTrustedSid', 'an account other than SYSTEM, the Administrators and TrustedInstaller is trusted',
      "^function IsTrustedSid(pSid: cardinal): Boolean; begin "
      "Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID); end;$"),
+    ('HoldFolderChain', 'the root of the volume is not held to the rule of a folder above the program folder',
+     "if szRest <> '' then if not IsAtOrAboveChecked(szRoot) then if not FolderAboveIsAdministratorsAlone(parent, szRoot, szWhy) then begin Why := szWhy; Exit; end;"),
+    ('HoldFolderChain', 'a folder above the program folder that another account owns, or may rename or empty, is gone through, or the walk goes on from a folder it did not take',
+     "if szRest <> '' then if not IsAtOrAboveChecked(szNext) then if not FolderAboveIsAdministratorsAlone(handle, szNext, szWhy) then begin Why := szWhy; bDone := true; end; if not bDone then begin parent := handle; szCurrent := szNext;"),
+    ('FolderAboveIsAdministratorsAlone', 'a folder above the program folder is not read through the handle that holds it, or one that cannot be read is taken',
+     "readResult := ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin Why := ~; Exit; end;"),
+    ('FolderAboveIsAdministratorsAlone', 'a folder above the program folder that another account owns is gone through',
+     "if not IsTrustedSid(pOwner) then Why := "),
+    ('FolderAboveIsAdministratorsAlone', 'what may rename or empty a folder above the program folder, or change who may, is not asked',
+     "else if AclLetsOthers(pDacl, HM_REPLACE_RIGHTS, true, szWho) then begin"),
+    ('IsAtOrAboveChecked', 'Bin\'s and ControlPanel\'s walks pass folders the program folder\'s walk did not hold to the rule',
+     "^function IsAtOrAboveChecked(Folder: String): Boolean; var szFolder: String; begin Result := false; if g_szFolderAboveChecked = '' then Exit; szFolder := AddBackslash(Folder); Result := CompareText(Copy(AddBackslash(g_szFolderAboveChecked), 1, Length(szFolder)), szFolder) = 0; end;$"),
+    ('CheckProgramFolders', 'the program folder\'s walk passes a folder above it unasked',
+     "g_szFolderAboveChecked := ''; CheckProgramFolderPermissions(szApp, false); if not HoldFolderChain(szApp, 0,"),
+    ('CheckProgramFolders', 'Bin\'s and ControlPanel\'s walks are not held to the rule past what the program folder\'s walk held',
+     "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0,"),
     ('LinkTarget', 'a link to a share is gone through',
      "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := "),
     # The volumes.
@@ -934,6 +954,17 @@ def check_program_folders(texts, problems):
                 problems.append('%s: the installer does not count %s on a link, which the server does' % (EXTENSION, right))
     if not re.search(r'HM_REMOVE_FROM_FOLDER_RIGHTS\s*=\s*\$100C0040;', ext):
         problems.append('%s: what removes a link from its folder is not FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL' % EXTENSION)
+    # The folders above the program folder: every right the live update counts on one.
+    replace = re.search(r'HM_REPLACE_RIGHTS\s*=\s*\$([0-9A-Fa-f]+);', ext)
+    above = re.search(r'const DWORD ReplaceRights_\s*=\s*([A-Z_ |]+);', texts.get(ADMIN_UPDATE_CHECKS, ''))
+    if not replace or not above:
+        problems.append('%s or %s: the rights counted on a folder above the program folder are not there' % (EXTENSION, ADMIN_UPDATE_CHECKS))
+    else:
+        for right in [part.strip() for part in above.group(1).split('|')]:
+            if right not in FILE_RIGHTS:
+                problems.append('%s: ReplaceRights_ counts %s, which this check does not know' % (ADMIN_UPDATE_CHECKS, right))
+            elif not int(replace.group(1), 16) & FILE_RIGHTS[right]:
+                problems.append('%s: setup does not count %s on a folder above the program folder, which the live update does' % (EXTENSION, right))
     if not re.search(r"else\s+if\s+Copy\(Path,\s*1,\s*2\)\s*=\s*'\\\\'\s+then\s+Why\s*:=", routines['SplitAtRoot']):
         problems.append('%s: a program folder on a share is not refused' % EXTENSION)
 
@@ -1214,6 +1245,21 @@ def negative_controls(texts):
          altered(texts, EXTENSION, '   Result := true;\n   Known := ReadHeldInformation(HeldHandle, information);', '   Result := false;\n   Known := ReadHeldInformation(HeldHandle, information);')),
         ('a folder made taken wherever it is',
          altered(texts, EXTENSION, 'else if CompareText(szMade, AddBackslash(szParent) + Name) <> 0 then', 'else if false then')),
+        ('a folder above the program folder that another account may rename or empty gone through (the review of 26 October 2026)',
+         altered(texts, EXTENSION, 'if not FolderAboveIsAdministratorsAlone(handle, szNext, szWhy) then', 'if false then')),
+        ('the root of the volume not held to the rule of a folder above the program folder',
+         altered(texts, EXTENSION, 'if not FolderAboveIsAdministratorsAlone(parent, szRoot, szWhy) then', 'if false then')),
+        ('renaming a folder above the program folder not counted (DELETE out of the mask)',
+         altered(texts, EXTENSION, 'HM_REPLACE_RIGHTS           = $100D0040;', 'HM_REPLACE_RIGHTS           = $100C0040;')),
+        ('a folder above the program folder that another account owns gone through',
+         altered(texts, EXTENSION, "   if not IsTrustedSid(pOwner) then\n      Why := Folder + ', a folder on the way to it, is owned by '",
+                 "   if false then\n      Why := Folder + ', a folder on the way to it, is owned by '")),
+        ('a folder above the program folder asked what may remove a link from it alone',
+         altered(texts, EXTENSION, 'AclLetsOthers(pDacl, HM_REPLACE_RIGHTS, true, szWho)', 'AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho)')),
+        ('every folder taken for one the program folder\'s walk held to the rule',
+         altered(texts, EXTENSION, "   Result := false;\n   if g_szFolderAboveChecked = '' then\n      Exit;", "   Result := true;\n   if g_szFolderAboveChecked = '' then\n      Exit;")),
+        ('the program folder\'s own walk passing what is above it as checked',
+         altered(texts, EXTENSION, "g_szFolderAboveChecked := '';\n   CheckProgramFolderPermissions(szApp, false);", "g_szFolderAboveChecked := szApp;\n   CheckProgramFolderPermissions(szApp, false);")),
         ('the program folder recorded for the uninstaller whatever made it',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; Flags: uninsalwaysuninstall')),
         ('HardenNewProgramFolder back after Inno Setup\'s folder',

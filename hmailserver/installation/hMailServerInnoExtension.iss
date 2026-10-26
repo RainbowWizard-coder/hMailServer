@@ -208,6 +208,11 @@ var
   // The last folder CheckProgramFolderPermissions looked at, so that one choice
   // is said once.
   g_szProgramFolderChecked: String;
+  // The program folder where its walk ended, once that walk is done: Bin's and
+  // ControlPanel's walks do not hold the folders at it and above it to the rule of a
+  // folder above the program folder again (IsAtOrAboveChecked); '' during the
+  // program folder's own walk.
+  g_szFolderAboveChecked: String;
 
 // The hMailServer service is looked at and stopped through Windows' Service Control
 // Manager, as Microsoft documents it (learn.microsoft.com, "Service Functions" and
@@ -382,6 +387,13 @@ const
 	// and of the service's virtual account, NT SERVICE\hMailServer
 	// (ServiceAccount::ServiceSid, which ServiceAccountTester holds to this value).
 	HM_REMOVE_FROM_FOLDER_RIGHTS = $100C0040;
+	// For a folder above the program folder (FolderAboveIsAdministratorsAlone): what
+	// lets the next folder down be replaced - removing a name from it
+	// (FILE_DELETE_CHILD), renaming or removing it (DELETE), or changing who may
+	// (WRITE_DAC, WRITE_OWNER), or GENERIC_ALL unmapped: AdminUpdateChecks.cpp's
+	// ReplaceRights_, which the live update holds every folder above the program
+	// folder to.
+	HM_REPLACE_RIGHTS           = $100D0040;
 	HM_GET_REPARSE_POINT        = $000900A8;
 	HM_DRIVE_REMOTE             = 4;
 	HM_TRUSTED_INSTALLER_SID    = 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464';
@@ -732,8 +744,9 @@ begin
       szText := szWhere + ', the folder ' + Folder + ' would be made in, lets ' + szWho + ' change what is in a folder made there';
    szText := szText + ', so any account of the computer could replace hMailServer''s programs, which the service and the administrators run. ' +
              'Setup takes that right away from the program folder, Bin and ControlPanel before it copies anything - it makes a new program folder with permissions of its own, ' +
-             'and hardens one that is there - and hMailServer.exe /ProtectFolders does again after the files, but a folder made for programs, such as the default ' + ExpandConstant('{commonpf}') + '\hMailServer, ' +
-             'is the safer place.';
+             'and hardens one that is there - and hMailServer.exe /ProtectFolders does again after the files. A folder above the program folder that lets such an account rename ' +
+             'it, or remove what is in it, setup does not install below, since nothing setup does to the program folder stops that: it says so when the installation starts. ' +
+             'A folder made for programs, such as the default ' + ExpandConstant('{commonpf}') + '\hMailServer, is the safer place.';
    Log('The program folder: ' + szText);
    if Show and not WizardSilent() then
       SuppressibleMsgBox(szText, mbInformation, MB_OK, IDOK);
@@ -1274,6 +1287,93 @@ begin
              '" /L /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F *S-1-5-32-545:RX - and runs setup again; otherwise it is removed, or hMailServer installed into a folder that is not reached through it';
 end;
 
+// The SID in what SidNameAt says of an account - the text between its last
+// parentheses when it is one - or '' when there is none.
+function SidInName(Who: String): String;
+var
+   index: Integer;
+   close: Integer;
+begin
+   Result := '';
+   close := 0;
+   for index := Length(Who) downto 1 do
+   begin
+      if (close = 0) and (Who[index] = ')') then
+         close := index
+      else if (close > 0) and (Result = '') and (Who[index] = '(') then
+         Result := Copy(Who, index + 1, close - index - 1);
+   end;
+   if Copy(Result, 1, 2) <> 'S-' then
+      Result := '';
+end;
+
+// Whether Folder is the program folder its walk ended at, or a folder above it
+// (g_szFolderAboveChecked): one Bin's and ControlPanel's walks pass on the way, which
+// the program folder's held to the rule already.
+function IsAtOrAboveChecked(Folder: String): Boolean;
+var
+   szFolder: String;
+begin
+   Result := false;
+   if g_szFolderAboveChecked = '' then
+      Exit;
+   szFolder := AddBackslash(Folder);
+   Result := CompareText(Copy(AddBackslash(g_szFolderAboveChecked), 1, Length(szFolder)), szFolder) = 0;
+end;
+
+// Work item 78's R3, for a folder on the way that is not a link: whether a folder
+// above the program folder, Bin or ControlPanel - the root of its volume included -
+// held open as itself (Handle), is SYSTEM's, the Administrators' or TrustedInstaller's
+// and lets no other account rename it, remove what is in it or change who may
+// (HM_REPLACE_RIGHTS, an allow entry that applies to it): the rule the live update
+// holds every folder above the program folder to (AdminUpdateChecks' CheckAncestors_),
+// read through the handle that holds it. Any other account could, once setup has let
+// it go, put a folder of its own, and programs of its own, in the program folder's
+// place - one a link setup refuses or not - and the program folder's own permissions
+// cannot stop it. Why names the folder, the account and what to do.
+function FolderAboveIsAdministratorsAlone(Handle: Integer; Folder: String; var Why: String): Boolean;
+var
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   readResult: cardinal;
+   szWho: String;
+   szSid: String;
+   szRemedy: String;
+begin
+   Result := false;
+   Why := '';
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   readResult := ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+   if readResult <> 0 then
+   begin
+      Why := 'the owner and permissions of ' + Folder + ', a folder on the way to it, could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   if not IsTrustedSid(pOwner) then
+      Why := Folder + ', a folder on the way to it, is owned by ' + SidNameAt(pOwner) + ', who may change its permissions whatever they say, and so rename it or remove what is ' +
+             'in it, and put a folder of its own in the program folder''s place once setup has finished. An administrator who means it to be there gives it to the Administrators - ' +
+             'icacls "' + Folder + '" /setowner *S-1-5-32-544 - and runs setup again; otherwise hMailServer is installed into a folder such as the default ' +
+             ExpandConstant('{commonpf}') + '\hMailServer'
+   else if AclLetsOthers(pDacl, HM_REPLACE_RIGHTS, true, szWho) then
+   begin
+      szSid := SidInName(szWho);
+      if szSid <> '' then
+         szRemedy := 'icacls "' + Folder + '" /inheritance:d, then icacls "' + Folder + '" /remove:g *' + szSid
+      else
+         szRemedy := 'icacls "' + Folder + '" /inheritance:d, then icacls "' + Folder + '" /remove:g with that account''s SID';
+      Why := Folder + ', a folder on the way to it, lets ' + szWho + ' rename it, remove what is in it or change who may, so that account could put a folder of its own, ' +
+             'and programs of its own, in the program folder''s place once setup has finished, whatever the program folder''s own permissions say; the live update refuses such an ' +
+             'installation too. An administrator who means that account to have no such right takes it away - ' + szRemedy + ' - and runs setup again; otherwise hMailServer is ' +
+             'installed into a folder such as the default ' + ExpandConstant('{commonpf}') + '\hMailServer';
+   end
+   else
+      Result := true;
+   FreeWindowsMemory(pDescriptor);
+end;
+
 // The path given held from the root of its volume down, every folder on it that is
 // there opened as itself and held (HoldForSetup), each before the one below it is
 // looked at - work item 78's links (R3). A folder on the way that is a link is gone
@@ -1291,7 +1391,10 @@ end;
 // a name somebody else has taken (MakeFolders). False, with Why - which names the
 // folder and what to do - when a link is not gone through, a folder cannot be held
 // or read, or the path is not one setup installs into: a share's, a network drive's,
-// one whose volume cannot be named. Nothing is changed.
+// one whose volume cannot be named. A folder on the way that is not a link - the root
+// of the volume included - is held to the rule of a folder above the program folder
+// (FolderAboveIsAdministratorsAlone), but for those the program folder's walk held to
+// it already (IsAtOrAboveChecked). Nothing is changed.
 function HoldFolderChain(Path: String; Depth: Integer; var Real: String; var Held: String; var HeldHandle: Integer; var Whole: Boolean; var Why: String): Boolean;
 var
    szRoot: String;
@@ -1333,6 +1436,13 @@ begin
       Why := 'the root of ' + Path + ', ' + szRoot + ', could not be opened (Windows error ' + IntToStr(DLLGetLastError()) + ')';
       Exit;
    end;
+   if szRest <> '' then
+      if not IsAtOrAboveChecked(szRoot) then
+         if not FolderAboveIsAdministratorsAlone(parent, szRoot, szWhy) then
+         begin
+            Why := szWhy;
+            Exit;
+         end;
 
    szCurrent := szRoot;
    bDone := false;
@@ -1421,16 +1531,28 @@ begin
                end
                else
                begin
-                  parent := handle;
-                  szCurrent := szNext;
-                  if szRest = '' then
+                  // A folder with a name below it: one above the program folder, Bin
+                  // or ControlPanel.
+                  if szRest <> '' then
+                     if not IsAtOrAboveChecked(szNext) then
+                        if not FolderAboveIsAdministratorsAlone(handle, szNext, szWhy) then
+                        begin
+                           Why := szWhy;
+                           bDone := true;
+                        end;
+                  if not bDone then
                   begin
-                     Real := szNext;
-                     Held := szNext;
-                     HeldHandle := handle;
-                     Whole := true;
-                     Result := true;
-                     bDone := true;
+                     parent := handle;
+                     szCurrent := szNext;
+                     if szRest = '' then
+                     begin
+                        Real := szNext;
+                        Held := szNext;
+                        HeldHandle := handle;
+                        Whole := true;
+                        Result := true;
+                        bDone := true;
+                     end;
                   end;
                end;
             end;
@@ -2688,6 +2810,7 @@ begin
    g_bEarlierInstallation := false;
    if Trim(Earlier) <> '' then
       g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;
+   g_szFolderAboveChecked := '';
    CheckProgramFolderPermissions(szApp, false);
 
    if not HoldFolderChain(szApp, 0, g_szProgramFolderReal, g_szProgramFolderHeld, g_hProgramFolder, g_bProgramFolderThere, szWhy) then
@@ -2703,7 +2826,9 @@ begin
    end;
 
    // Bin and ControlPanel, each by the same rules: a link there is on the way to what
-   // setup copies, and may lead to another volume.
+   // setup copies, and may lead to another volume, whose folders above it are held to
+   // the rule in their turn.
+   g_szFolderAboveChecked := g_szProgramFolderReal;
    if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0, g_szBinReal, g_szBinHeld, g_hBin, g_bBinThere, szWhy) then
    begin
       Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been changed.';
