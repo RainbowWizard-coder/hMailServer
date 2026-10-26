@@ -142,6 +142,74 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The overview's verdict said "refused (550 before the body, 554 after it)" whatever
+      /// the quarantine switch was, and "None is only marked" of every sender. With
+      /// quarantining on, SMTPConnection::DoSpamProtection_ holds the verdict of the
+      /// checks after the body in the quarantine and answers 250; the connection checks'
+      /// verdict is refused with a 550, after the body too for mail from an incoming relay;
+      /// and a sender the list of allowed and blocked domains allows, by its domain or by
+      /// its HELO name, is neither refused nor held on its score. Each pair the verdict
+      /// refuses on - one at or below the mark, the ordinary pair and a refuse threshold
+      /// alone - now says so for the switch on, off and unread.
+      /// </summary>
+      [Theory]
+      [InlineData(5, 5, true)]
+      [InlineData(5, 5, false)]
+      [InlineData(5, 5, null)]
+      [InlineData(5, 20, true)]
+      [InlineData(5, 20, false)]
+      [InlineData(5, 20, null)]
+      [InlineData(0, 20, true)]
+      [InlineData(0, 20, false)]
+      [InlineData(0, 20, null)]
+      public void TheVerdict_SaysWhatTheRefuseThresholdDoes_WithTheQuarantineSwitch(int mark, int delete, bool? quarantine)
+      {
+         SpamPipelineConfig config = Defaults();
+         config.MarkThreshold = mark;
+         config.DeleteThreshold = delete;
+         config.QuarantineEnabled = quarantine == true;
+         if (quarantine == null)
+            config.Unread.Add(nameof(config.QuarantineEnabled));
+
+         string verdict = SpamPipeline.Verdict(config);
+         string refused = quarantine == true
+            ? "A message scoring " + delete + " or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body."
+            : quarantine == false
+            ? "A message scoring " + delete + " or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body."
+            : "A message scoring " + delete + " or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off.";
+         string allowed = "A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score";
+
+         string expected = mark == 0
+            ? refused + " Nothing is marked. " + allowed + "."
+            : delete <= mark
+            ? refused + " None is only marked: the mark threshold, " + mark + ", is not below that. " + allowed + ", and is marked at " + mark + " or more."
+            : "A message scoring " + mark + " or more is marked as spam and delivered. " + refused + " " + allowed + ", and is marked at " + mark + " or more.";
+         Assert.Equal(expected, verdict);
+
+         Assert.DoesNotContain("550 before the body, 554 after it", verdict, StringComparison.Ordinal);
+         Assert.Equal(quarantine != false, verdict.Contains("held in the quarantine", StringComparison.Ordinal));
+         Assert.Equal(quarantine != true, verdict.Contains("554", StringComparison.Ordinal));
+
+         // A pair at or below the mark is said on the overview as on the settings page.
+         if (delete <= mark)
+            Assert.Equal(SpamPipeline.ThresholdWarning(mark, delete, quarantine), verdict);
+      }
+
+      /// <summary>A verdict that refuses nothing on score names neither the switch nor the allowed sender.</summary>
+      [Fact]
+      public void AVerdictThatRefusesNothing_SaysNothingOfTheQuarantine()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.DeleteThreshold = 0;
+         foreach (bool on in new[] { true, false })
+         {
+            config.QuarantineEnabled = on;
+            string verdict = SpamPipeline.Verdict(config);
+            Assert.Equal("A message scoring 5 or more is marked as spam and delivered. Nothing is refused on score.", verdict);
+         }
+      }
+
+      /// <summary>
       /// A mark threshold of 0 reads as "mark everything" and means the opposite.
       /// This is the one that costs an administrator the most: they turn on the
       /// checks, watch the score in the log, and no message is ever marked.

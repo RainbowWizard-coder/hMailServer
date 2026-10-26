@@ -7301,9 +7301,12 @@ namespace hMailServer.ControlPanel.Views
 
             // The pair refused is said on its field, and not again under the two. What a pair
             // at or below the mark does after the body is the quarantine switch's, as ticked
-            // now; where the server's [Settings] could not be read the switch shows its
-            // default, and the warning names both outcomes.
-            bool? holds = quarantine?.Box == null || quarantine.IniStore == null || !quarantine.IniStore.SettingsReachable
+            // now - where its row was built from the server's answer (built_). A switch whose
+            // read fell back (GetIniSetting failed: an older server, or a session lost as the
+            // page was built) is a Not read row, its box hidden and holding the file's value
+            // or the default, and the warning then names both outcomes; so does a page whose
+            // [Settings] cannot be reached at all.
+            bool? holds = quarantine?.Box == null || quarantine.IniStore == null || !quarantine.IniStore.SettingsReachable || !built_.Contains(quarantine)
                ? null
                : quarantine.Box.IsChecked is true;
             string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt, holds) : null;

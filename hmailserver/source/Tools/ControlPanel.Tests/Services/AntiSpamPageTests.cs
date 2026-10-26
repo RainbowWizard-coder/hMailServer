@@ -81,20 +81,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(same >= 0 && clamp > same, "CommitTypedNumber clamps a box nobody typed in.");
       }
 
-      // A pair at or below the mark is what SMTPConnection::DoSpamProtection_ makes of it:
-      // refused with a 550 before the body; after it refused with a 554 while quarantining
-      // is off and held in the quarantine while it is on (where the sentence said 554 of
-      // both); and the mail of a sender whose domain is allowed neither refused nor held, and marked at the
-      // mark threshold (where it said that none was only marked, of any sender). With the
-      // switch unread, both outcomes are named.
+      // What a score at the refuse threshold does, as SMTPConnection::DoSpamProtection_
+      // does it: the connection checks' verdict is refused with a 550, before the body and
+      // after it for mail from an incoming relay, which DoPreAcceptSpamProtection_ puts to
+      // those checks once the body is in - never held; the verdict of the checks of the
+      // message after the body is refused with a 554 while quarantining is off and held in
+      // the quarantine while it is on.
+      private const string Refused550 = "refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay";
+      private const string SwitchOff = " or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body.";
+      private const string SwitchOn = " or more is " + Refused550 + " - and held in the quarantine when it is reached with the checks of the message, after the body.";
+      private const string SwitchUnread = " or more is " + Refused550 + ". When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off.";
+
+      // The list of allowed and blocked domains allows a sender by its envelope domain or
+      // by its HELO name (DomainPolicyList::Decide), and either makes the session white
+      // (CheckDomainPolicy_): its mail is neither refused nor held on its score.
+      private const string Allowed = "A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score";
+
+      // A pair at or below the mark is what SMTPConnection::DoSpamProtection_ makes of it,
+      // the switch read as ticked, both outcomes named with it unread; and the mail of a
+      // sender the list allows neither refused nor held, and marked at the mark threshold
+      // (where it said that none was only marked, of any sender).
       [Theory]
       [InlineData(5, 20, false, false, null)]
       [InlineData(5, 20, false, true, null)]
-      [InlineData(5, 5, true, false, "A message scoring 5 or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, 5, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 5 or more.")]
-      [InlineData(20, 5, true, false, "A message scoring 5 or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
-      [InlineData(5, 5, true, true, "A message scoring 5 or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, 5, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 5 or more.")]
-      [InlineData(20, 5, true, true, "A message scoring 5 or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
-      [InlineData(20, 5, true, null, "A message scoring 5 or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
+      [InlineData(5, 5, true, false, "A message scoring 5" + SwitchOff + " None is only marked: the mark threshold, 5, is not below that. " + Allowed + ", and is marked at 5 or more.")]
+      [InlineData(20, 5, true, false, "A message scoring 5" + SwitchOff + " None is only marked: the mark threshold, 20, is not below that. " + Allowed + ", and is marked at 20 or more.")]
+      [InlineData(5, 5, true, true, "A message scoring 5" + SwitchOn + " None is only marked: the mark threshold, 5, is not below that. " + Allowed + ", and is marked at 5 or more.")]
+      [InlineData(20, 5, true, true, "A message scoring 5" + SwitchOn + " None is only marked: the mark threshold, 20, is not below that. " + Allowed + ", and is marked at 20 or more.")]
+      [InlineData(5, 5, true, null, "A message scoring 5" + SwitchUnread + " None is only marked: the mark threshold, 5, is not below that. " + Allowed + ", and is marked at 5 or more.")]
+      [InlineData(20, 5, true, null, "A message scoring 5" + SwitchUnread + " None is only marked: the mark threshold, 20, is not below that. " + Allowed + ", and is marked at 20 or more.")]
       [InlineData(0, 20, false, true, "The mark threshold is 0, so no message is marked as spam: 0 means never.")]
       [InlineData(5, 0, false, false, "The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")]
       [InlineData(0, 0, false, null, "Both thresholds are 0, so no score marks, refuses or holds any message.")]
@@ -114,8 +129,81 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("554", on, StringComparison.Ordinal);
          Assert.Contains("held in the quarantine", on, StringComparison.Ordinal);
          foreach (bool? quarantine in new bool?[] { true, false, null })
-            Assert.Contains("allowed on the list of allowed and blocked domains", SpamPipeline.ThresholdWarning(20, 5, quarantine), StringComparison.Ordinal);
+            Assert.Contains("allowed and blocked domains allows", SpamPipeline.ThresholdWarning(20, 5, quarantine), StringComparison.Ordinal);
          Assert.DoesNotContain("quarantine", SpamPipeline.ThresholdWarning(20, 5, false), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// With quarantining on, the warning said a message reaching the refuse threshold
+      /// "is held in the quarantine when the score is reached after the body", and the
+      /// unread sentence "held in the quarantine after the body while quarantining is on":
+      /// mail from an incoming relay is put to the connection checks after the body, and
+      /// their verdict is refused with a 550, never held - which the quarantine switch's
+      /// own text on the same page says. Every reading of the switch says so now, and none
+      /// says the outcome after the body of every verdict reached there.
+      /// </summary>
+      [Fact]
+      public void TheConnectionChecksAfterTheBody_ForAnIncomingRelay_AreRefusedWith550_WhateverTheSwitch()
+      {
+         foreach (bool? quarantine in new bool?[] { true, false, null })
+         {
+            string warning = SpamPipeline.ThresholdWarning(20, 5, quarantine);
+            Assert.Contains("550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay", warning, StringComparison.Ordinal);
+            Assert.DoesNotContain("when the score is reached after the body", warning, StringComparison.Ordinal);
+            Assert.DoesNotContain("in the quarantine after the body", warning, StringComparison.Ordinal);
+            Assert.DoesNotContain("550 before the body, 554 after it", warning, StringComparison.Ordinal);
+         }
+
+         // The page's switch says the same of the incoming relay.
+         string code = AntiSpam_();
+         Assert.Contains("and so does that check when it is made after the body, for mail from an incoming relay, against the address in its headers.", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The warning's exception named only "a sender whose domain is allowed" on the list
+      /// of allowed and blocked domains; the list also allows a transaction by its HELO
+      /// name (an entry matched on the HELO name, or on either), whose mail the score
+      /// neither refuses nor holds whatever the sender's domain - as the list's own page
+      /// says it allows organisations "by their domain or HELO name".
+      /// </summary>
+      [Fact]
+      public void TheAllowedSender_IsAllowedByItsDomainOrItsHeloName()
+      {
+         foreach (bool? quarantine in new bool?[] { true, false, null })
+         {
+            string warning = SpamPipeline.ThresholdWarning(20, 5, quarantine);
+            Assert.Contains("allows, by its domain or by its HELO name, is the exception", warning, StringComparison.Ordinal);
+            Assert.DoesNotContain("A sender whose domain is allowed", warning, StringComparison.Ordinal);
+         }
+
+         string list = ReadControlPanelFile(Path.Join("Views", "DomainPolicyListView.cs"));
+         Assert.Contains("allowed or blocked by their domain or HELO name", list, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The Anti-spam overview's verdict read no quarantine switch, and said 554 of every
+      /// verdict after the body. It reads QuarantineEnabled with the thresholds, as the
+      /// settings page reads its switch, and a read that fell back to the file on this
+      /// computer or the default is marked unread, so that the verdict names both outcomes.
+      /// </summary>
+      [Fact]
+      public void TheOverview_ReadsTheQuarantineSwitch_AndAFallBackIsUnread()
+      {
+         string overview = ReadControlPanelFile(Path.Join("Views", "SpamOverviewView.cs"));
+         string read = WithheldRowTests.MemberText(overview, "private SpamPipelineConfig ReadConfig()");
+         Assert.True(read != null, "SpamOverviewView.ReadConfig is gone.");
+         int thresholds = read.IndexOf("config.DeleteThreshold = Read(config, nameof(config.DeleteThreshold),", StringComparison.Ordinal);
+         int quarantine = read.IndexOf("config.QuarantineEnabled = Read(config, nameof(config.QuarantineEnabled), () => QuarantineSwitch_());", StringComparison.Ordinal);
+         Assert.True(thresholds >= 0 && quarantine > thresholds, "The overview does not read the quarantine switch after the thresholds.");
+
+         string fellBack = WithheldRowTests.MemberText(overview, "private static bool QuarantineSwitch_()");
+         Assert.True(fellBack != null, "SpamOverviewView.QuarantineSwitch_ is gone.");
+         Assert.Contains("bool on = ini.ReadBool(\"QuarantineEnabled\", false);", fellBack, StringComparison.Ordinal);
+         Assert.Contains("if (ini.FallbackCause is Exception fellBack)", fellBack, StringComparison.Ordinal);
+         Assert.Contains("ExceptionDispatchInfo.Throw(fellBack);", fellBack, StringComparison.Ordinal);
+
+         string pipeline = ReadControlPanelFile(Path.Join("Services", "SpamPipeline.cs"));
+         Assert.Contains("bool? quarantine = config.WasRead(nameof(config.QuarantineEnabled)) ? config.QuarantineEnabled : null;", pipeline, StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -143,7 +231,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // As read, the bench's pair opens the page with no error and says what it does.
          Assert.Null(SpamPipeline.ThresholdProblem(heldMark, heldRefuse, heldMark, heldRefuse));
          if (heldMark > 0 && heldRefuse > 0 && heldRefuse <= heldMark)
-            Assert.Contains("none is only marked", SpamPipeline.ThresholdWarning(heldMark, heldRefuse, false), StringComparison.Ordinal);
+            Assert.Contains("None is only marked", SpamPipeline.ThresholdWarning(heldMark, heldRefuse, false), StringComparison.Ordinal);
       }
 
       [Fact]
@@ -168,6 +256,18 @@ namespace hMailServer.ControlPanel.Tests.Services
          // unread, it is neither on nor off.
          Assert.Contains(": quarantine.Box.IsChecked is true;", check, StringComparison.Ordinal);
          Assert.Contains("!quarantine.IniStore.SettingsReachable", check, StringComparison.Ordinal);
+
+         // A switch whose read fell back is a Not read row, its box hidden and holding the
+         // file's value or the default: the warning reads it only where the row was built
+         // from the server's answer, and the page's [Settings] being reachable says nothing
+         // of that - ServerSession routes GetIniSetting for every session, local or remote.
+         Assert.Contains("!quarantine.IniStore.SettingsReachable || !built_.Contains(quarantine)", check, StringComparison.Ordinal);
+         string build = WithheldRowTests.MemberText(page, "private void BuildUi()");
+         Assert.True(build != null, "ServerSettingsView.BuildUi is gone.");
+         int fellBack = build.IndexOf("if (iniRow && iniStore_.FallbackCause is Exception fellBack)", StringComparison.Ordinal);
+         int added = build.IndexOf("built_.Add(setting);", StringComparison.Ordinal);
+         int wired = build.IndexOf("afterBuildUi_?.Invoke();", StringComparison.Ordinal);
+         Assert.True(fellBack >= 0 && added > fellBack && wired > added, "BuildUi does not keep a fallen-back row out of built_ before the page's wiring runs.");
          Assert.Contains("quarantine.Box.Checked += (_, _) => Later();", check, StringComparison.Ordinal);
          Assert.Contains("quarantine.Box.Unchecked += (_, _) => Later();", check, StringComparison.Ordinal);
 

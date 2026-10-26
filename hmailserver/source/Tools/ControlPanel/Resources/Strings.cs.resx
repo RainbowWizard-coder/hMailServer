@@ -513,26 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Zpráva se skóre na této hodnotě nebo vyšším je odmítnuta během SMTP komunikace, nebo zadržena v karanténě, je-li karanténa zapnutá. Starší verze jej nazývaly prahem pro smazání.</value>
   </data>
-  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je zadržena v karanténě, je-li skóre dosaženo po těle zprávy, a odmítnuta s kódem 550, je-li dosaženo před ním; žádná není jen označena: práh pro označení, {1}, není nižší.</value>
+  <data name="A message scoring {0} or more is marked as spam and delivered." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je označena jako spam a doručena.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Zpráva se skóre {0} nebo vyšším je označena jako spam a doručena. Nic není odmítnuto na základě skóre.</value>
   </data>
-  <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je označena jako spam a doručena; se skóre {1} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm).</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta s kódem 550, když tohoto skóre dosáhnou kontroly připojení - před tělem zprávy, nebo po něm u pošty z příchozího relay - a zadržena v karanténě, je-li ho dosaženo kontrolami zprávy po těle zprávy.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm) a žádná není jen označena: práh pro označení, {1}, není nižší.</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta s kódem 550, když tohoto skóre dosáhnou kontroly připojení - před tělem zprávy, nebo po něm u pošty z příchozího relay. Je-li ho dosaženo kontrolami zprávy po těle zprávy, je zpráva zadržena v karanténě, je-li karanténa zapnutá, a odmítnuta s kódem 554, je-li vypnutá.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm), nebo po těle zprávy zadržena v karanténě, je-li karanténa zapnutá; žádná není jen označena: práh pro označení, {1}, není nižší.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm). Žádná není jen označena: práh pro označení, {1}, není nižší.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
-    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm). Nic není označeno.</value>
+  <data name="A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta: s kódem 550, když tohoto skóre dosáhnou kontroly připojení - před tělem zprávy, nebo po něm u pošty z příchozího relay - a s kódem 554, je-li ho dosaženo kontrolami zprávy po těle zprávy.</value>
   </data>
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Zpráva pro deset místních poštovních schránek se zapíše jednou a desetkrát se na ni vytvoří odkaz, místo aby se desetkrát kopírovala, což je u velké zprávy pro distribuční seznam rozdíl mezi jedním zápisem na disk a deseti. Vyžaduje datový adresář na NTFS; kde odkaz nelze vytvořit, server soubor zkopíruje a řekne to v logu SMTP.</value>
@@ -681,8 +675,11 @@
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Odesílatel, který se přihlásí (SMTP AUTH), neprojde žádným z těchto seznamů kromě seznamu povolených a blokovaných, a to při doručení: server u přihlášené relace nespouští žádnou kontrolu spamu a nepodrobí ji greylistingu.</value>
   </data>
-  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
-    <value>Výjimkou je odesílatel, jehož doména je povolena na seznamu povolených a blokovaných domén: jeho pošta není kvůli skóre odmítnuta ani zadržena a při skóre {0} nebo vyšším je označena.</value>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Výjimkou je odesílatel, kterého seznam povolených a blokovaných domén povoluje podle jeho domény nebo podle jeho názvu HELO: jeho pošta není kvůli skóre odmítnuta ani zadržena a při skóre {0} nebo vyšším je označena.</value>
+  </data>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score." xml:space="preserve">
+    <value>Výjimkou je odesílatel, kterého seznam povolených a blokovaných domén povoluje podle jeho domény nebo podle jeho názvu HELO: jeho pošta není kvůli skóre odmítnuta ani zadržena.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Strop oddělený od časového limitu, protože hledání, které čte obrovské množství obsahu zpráv, je nákladné, i když skončí rychle.</value>
@@ -8245,6 +8242,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>Pro veřejného klienta není potřeba; PKCE ho činí bezpečným.</value>
   </data>
+  <data name="None is only marked: the mark threshold, {0}, is not below that." xml:space="preserve">
+    <value>Žádná není jen označena: práh pro označení, {0}, není nižší.</value>
+  </data>
   <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>Žádný z vybraných účtů nemá e-mailovou adresu.</value>
   </data>
@@ -8439,6 +8439,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Není nic zadrženo. Karanténa je vypnutá: dokud ji nezapnete v Nastavení antispamu, je spam nad prahem pro odmítnutí odmítnut během SMTP relace, nikoli uložen.</value>
+  </data>
+  <data name="Nothing is marked." xml:space="preserve">
+    <value>Nic není označeno.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
     <value>Dotazu „{0}“ nic neodpovídalo. Zkuste popsat, čeho chcete dosáhnout („zastavit spam“, „povolit zařízení odesílat poštu“), název stránky nebo klíč z hMailServer.ini.</value>

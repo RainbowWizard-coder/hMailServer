@@ -148,6 +148,13 @@ namespace hMailServer.ControlPanel.Services
       public int MarkThreshold { get; set; }
       public int DeleteThreshold { get; set; }
 
+      /// <summary>
+      /// QuarantineEnabled ([Settings]): what the refuse threshold does after the body,
+      /// a message held in the quarantine where it would be refused with a 554. The
+      /// verdict names both outcomes while it is unread (<see cref="Unread"/>).
+      /// </summary>
+      public bool QuarantineEnabled { get; set; }
+
       /// <summary>AntiSpam.MaximumMessageSize, in KB. 0 = no limit of our own.</summary>
       public int MaxScanKilobytes { get; set; }
 
@@ -504,8 +511,8 @@ namespace hMailServer.ControlPanel.Services
       /// COM's put_SpamMarkThreshold and put_SpamDeleteThreshold and the REST API's
       /// spam_mark_threshold and spam_delete_threshold check neither against the other -
       /// and acts on one at or below the mark as it always has, refusing what reaches
-      /// it, or holding it in the quarantine while quarantining is on, a white
-      /// domain's message being marked at the mark threshold instead; the
+      /// it, or holding it in the quarantine while quarantining is on, an allowed
+      /// sender's message being marked at the mark threshold instead; the
       /// regression suite leaves both at 10000. Refused as it was read, such a pair
       /// opened the page in error, every save from it refused until the pair was
       /// changed, where the rule is for an edit: a pair typed in is refused, the one
@@ -520,11 +527,7 @@ namespace hMailServer.ControlPanel.Services
       /// threshold at or below a mark threshold above 0 - a pair the server holds,
       /// which the page does not refuse (<see cref="ThresholdProblem(int, int, int, int)"/>) -
       /// takes every message the mark would mark, as SMTPConnection::DoSpamProtection_
-      /// does: refused with a 550 when the score is reached before the body, and after it
-      /// held in the quarantine while quarantining is on, refused with a 554 while it is
-      /// off; a sender whose domain is allowed on the list of allowed and blocked
-      /// domains (the domain policy list) is neither refused nor held on its score,
-      /// and its mail is marked where the score reaches the mark threshold.
+      /// does it (<see cref="RefuseSentence_"/>, <see cref="AllowedSender_"/>).
       /// <paramref name="quarantine"/> is the page's Hold messages for review switch, or
       /// null where it could not be read, and the sentence then names both outcomes.
       /// Null while both are above 0 and the refuse threshold is above the mark.
@@ -537,22 +540,58 @@ namespace hMailServer.ControlPanel.Services
             : refuse <= 0
             ? L("The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")
             : refuse <= mark
-            ? Sentences(
-               quarantine == true
-                  ? F("A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that.", refuse, mark)
-                  : quarantine == false
-                  ? F("A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that.", refuse, mark)
-                  : F("A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that.", refuse, mark),
-               F("A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more.", mark))
+            ? RefusedNoneMarked_(refuse, mark, quarantine)
             : null;
 
-      /// <summary>The verdict on a refuse threshold at or below a mark threshold above 0.</summary>
-      private static string RefusedNoneMarked_(int refuse, int mark)
-         => F("A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that.", refuse, mark);
+      /// <summary>
+      /// What a score at or over the refuse threshold does, as
+      /// SMTPConnection::DoSpamProtection_ does it. The connection checks' verdict
+      /// (SPPreTransmission) is never held, since there is no message to hold where it
+      /// is reached, and is refused with a 550: before the body, and after it for mail
+      /// from an incoming relay, which DoPreAcceptSpamProtection_ puts to those checks
+      /// once the body is in, against the address in its headers. The verdict of the
+      /// checks of the message after the body (SPPostTransmission), taken on the total
+      /// of both, is held in the quarantine while quarantining is on and refused with a
+      /// 554 while it is off. <paramref name="quarantine"/> null is a switch that could
+      /// not be read, and both are named.
+      /// </summary>
+      private static string RefuseSentence_(int refuse, bool? quarantine)
+         => quarantine == true
+            ? F("A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body.", refuse)
+            : quarantine == false
+            ? F("A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body.", refuse)
+            : F("A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off.", refuse);
 
       /// <summary>
-      /// What the total score does to the message, in one sentence, including the
-      /// two cases where the answer is "nothing".
+      /// The one sender the score neither refuses nor holds: one the list of allowed
+      /// and blocked domains allows, by the envelope sender's domain or by the HELO
+      /// name (DomainPolicyList::Decide's white verdict, which
+      /// SMTPConnection::CheckDomainPolicy_ makes the session's for the transaction).
+      /// Its mail is marked where the score reaches a mark threshold above 0
+      /// (<paramref name="mark"/>), and with none it is not marked.
+      /// </summary>
+      private static string AllowedSender_(int mark)
+         => mark > 0
+            ? F("A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more.", mark)
+            : L("A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score.");
+
+      /// <summary>
+      /// The verdict on a refuse threshold at or below a mark threshold above 0, on the
+      /// settings page and on the overview alike: the server tests the refuse threshold
+      /// first, so none is only marked.
+      /// </summary>
+      private static string RefusedNoneMarked_(int refuse, int mark, bool? quarantine)
+         => Sentences(
+            RefuseSentence_(refuse, quarantine),
+            F("None is only marked: the mark threshold, {0}, is not below that.", mark),
+            AllowedSender_(mark));
+
+      /// <summary>
+      /// What the total score does to the message, including the two cases where the
+      /// answer is "nothing": what reaches the refuse threshold is refused or held as
+      /// <see cref="RefuseSentence_"/> says, read with the quarantine switch, and the
+      /// sender the list of allowed and blocked domains allows is named wherever a
+      /// score refuses.
       /// </summary>
       public static string Verdict(SpamPipelineConfig config)
       {
@@ -567,25 +606,31 @@ namespace hMailServer.ControlPanel.Services
          bool marks = config.MarkThreshold > 0;
          bool refuses = config.DeleteThreshold > 0;
 
+         // The switch as the server answered it; unread, both of its outcomes are said.
+         bool? quarantine = config.WasRead(nameof(config.QuarantineEnabled)) ? config.QuarantineEnabled : null;
+
          // The server tests the delete threshold first (SMTPConnection), so with
          // it at or below the mark threshold every message that reaches the mark
          // is refused and none is only marked - "10000 or more is marked and
          // delivered; 10000 or more is refused" said both of one message.
          if (marks && refuses && config.DeleteThreshold <= config.MarkThreshold)
          {
-            return RefusedNoneMarked_(config.DeleteThreshold, config.MarkThreshold);
+            return RefusedNoneMarked_(config.DeleteThreshold, config.MarkThreshold, quarantine);
          }
 
          if (marks && refuses)
          {
-            return F("A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it).", config.MarkThreshold, config.DeleteThreshold);
+            return Sentences(
+               F("A message scoring {0} or more is marked as spam and delivered.", config.MarkThreshold),
+               RefuseSentence_(config.DeleteThreshold, quarantine),
+               AllowedSender_(config.MarkThreshold));
          }
 
          if (marks)
             return F("A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score.", config.MarkThreshold);
 
          if (refuses)
-            return F("A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked.", config.DeleteThreshold);
+            return Sentences(RefuseSentence_(config.DeleteThreshold, quarantine), L("Nothing is marked."), AllowedSender_(0));
 
          return L("Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0.");
       }

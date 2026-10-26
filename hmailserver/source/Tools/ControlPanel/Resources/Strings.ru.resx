@@ -513,26 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Сообщение с таким баллом или выше отклоняется во время SMTP-сеанса или задерживается в карантине, пока карантин включён. В прежних версиях он назывался порогом удаления.</value>
   </data>
-  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше задерживается в карантине, если оценка достигнута после тела письма, и отклоняется с кодом 550, если она достигнута до него; ни одно не только помечается: порог пометки, {1}, не ниже.</value>
+  <data name="A message scoring {0} or more is marked as spam and delivered." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется. По оценке ничего не отклоняется.</value>
   </data>
-  <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется; с оценкой {1} и выше — отклоняется (550 до тела письма, 554 после него).</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется с кодом 550, когда эту оценку набирают проверки подключения - до тела письма или, для почты от входящей ретрансляции, после него, - и задерживается в карантине, когда она набирается с проверками сообщения, после тела письма.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него), и ни одно не только помечается: порог пометки, {1}, не ниже.</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется с кодом 550, когда эту оценку набирают проверки подключения - до тела письма или, для почты от входящей ретрансляции, после него. Когда она набирается с проверками сообщения, после тела письма, сообщение задерживается в карантине, пока карантин включён, и отклоняется с кодом 554, пока он выключен.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него) или, пока карантин включён, после тела письма задерживается в карантине; ни одно не только помечается: порог пометки, {1}, не ниже.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него). Ни одно не только помечается: порог пометки, {1}, не ниже.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
-    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него). Ничего не помечается.</value>
+  <data name="A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется: с кодом 550, когда эту оценку набирают проверки подключения - до тела письма или, для почты от входящей ретрансляции, после него, - и с кодом 554, когда она набирается с проверками сообщения, после тела письма.</value>
   </data>
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Сообщение для десяти локальных почтовых ящиков записывается один раз и связывается ссылками десять раз, а не копируется десять раз, — а это разница между одной записью на диск и десятью для крупного сообщения, отправленного в список рассылки. Требуется каталог данных на NTFS; там, где создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
@@ -681,8 +675,11 @@
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Отправитель, выполнивший вход (SMTP AUTH), не проходит ни через один из этих списков, кроме списка разрешённых и заблокированных при доставке: для сеанса со входом сервер не выполняет проверок на спам и не применяет серый список.</value>
   </data>
-  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
-    <value>Исключение — отправитель, чей домен разрешён в списке разрешённых и заблокированных доменов: его почта не отклоняется и не задерживается из-за оценки и помечается при оценке {0} и выше.</value>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Исключение — отправитель, которого список разрешённых и заблокированных доменов разрешает по его домену или по его имени HELO: его почта не отклоняется и не задерживается из-за оценки и помечается при оценке {0} и выше.</value>
+  </data>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score." xml:space="preserve">
+    <value>Исключение — отправитель, которого список разрешённых и заблокированных доменов разрешает по его домену или по его имени HELO: его почта не отклоняется и не задерживается из-за оценки.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Отдельная верхняя граница, независимая от ограничения по времени, поскольку поиск, читающий огромные объёмы содержимого сообщений, обходится дорого, даже если завершается быстро.</value>
@@ -8245,6 +8242,9 @@ Control Panel может читать файлы сообщений только
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>Не нужен для публичного клиента, которого PKCE делает безопасным.</value>
   </data>
+  <data name="None is only marked: the mark threshold, {0}, is not below that." xml:space="preserve">
+    <value>Ни одно не только помечается: порог пометки, {0}, не ниже.</value>
+  </data>
   <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>Ни у одной из выбранных учётных записей нет адреса электронной почты.</value>
   </data>
@@ -8439,6 +8439,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Ничего не задержано. Карантин выключен: пока он не включён в разделе «Параметры антиспама», спам выше порога отклонения отклоняется во время SMTP-сеанса, а не сохраняется.</value>
+  </data>
+  <data name="Nothing is marked." xml:space="preserve">
+    <value>Ничего не помечается.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
     <value>Ничто не совпало с «{0}». Попробуйте описать то, чего вы хотите добиться («остановить спам», «разрешить устройству отправлять почту»), либо имя страницы, либо ключ из hMailServer.ini.</value>

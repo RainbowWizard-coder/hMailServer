@@ -969,24 +969,42 @@ with `--check`).
 
 - **Fixed: the Control Panel's Anti-spam settings opened with "The refuse threshold must be above the mark threshold"
   on a server holding a refuse threshold at or below its mark threshold, and refused every save from the page until
-  the pair was changed.** The server takes any pair: COM's `SpamMarkThreshold` and `SpamDeleteThreshold` and the
-  REST API's `spam_mark_threshold` and `spam_delete_threshold` check neither against the other, and the server tests
-  the refuse threshold first, so that such a pair refuses every message that reaches it, or holds it while the
-  quarantine is on, and a white
-  domain's message, which it does not refuse, is marked only where its score reaches the mark threshold; the
-  regression suite leaves both at 10000. The page's check of the pair, which refuses a refuse threshold
-  at or below a mark threshold above 0 as the two are typed, also ran as the page opened, on the pair as read, so
-  that the field opened in error and a save of any setting on any of the page's tabs wrote nothing. The pair the
-  server holds is now shown without an error and saved as it is, with a Warning under the two saying what it does,
-  read with the page's *Hold messages for review instead of refusing them* switch as it is ticked: with it off, "A
-  message scoring 10000 or more is refused (550 before the body, 554 after it), and none is only marked: the mark
-  threshold, 10000, is not below that."; with it on, that such a message is held in the quarantine when the score
-  is reached after the body and refused with a 550 when it is reached before; where the switch could not be read,
-  both; and in each case that a sender whose domain is allowed on the list of allowed and blocked domains is the
-  exception, its mail neither refused nor held on its score and marked at the mark threshold. An edit that makes or
-  keeps such a pair is refused on its field as before; after a save that wrote every row, the pair saved is the one
-  held. Four new texts, in the seventeen languages; `AntiSpamPageTests` holds the rule, each sentence and the
-  page's wiring, the switch's among it.
+  the pair was changed.** The server takes any pair: COM's `SpamMarkThreshold` and `SpamDeleteThreshold` and the REST
+  API's `spam_mark_threshold` and `spam_delete_threshold` check neither against the other, and the server tests the
+  refuse threshold first, so that such a pair refuses every message that reaches it, or holds it while the quarantine
+  is on, and the message of a sender the list of allowed and blocked domains allows, which it does not refuse, is
+  marked only where its score reaches the mark threshold; the regression suite leaves both at 10000. The page's check
+  of the pair, which refuses a refuse threshold at or below a mark threshold above 0 as the two are typed, also ran as
+  the page opened, on the pair as read, so that the field opened in error and a save of any setting on any of the
+  page's tabs wrote nothing. The pair the server holds is now shown without an error and saved as it is, with a
+  Warning under the two saying what it does as `SMTPConnection::DoSpamProtection_` does it, read with the page's *Hold
+  messages for review instead of refusing them* switch as it is ticked: with it off, "A message scoring 10000 or more
+  is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an
+  incoming relay - and with a 554 when it is reached with the checks of the message, after the body. None is only
+  marked: the mark threshold, 10000, is not below that."; with it on, that such a message is held in the quarantine
+  when the score is reached with the checks of the message after the body, and refused with a 550 when the connection
+  checks reach it, whose verdict is never held, after the body too for mail from an incoming relay, which is put to
+  those checks once the body is in; where the switch's row was not built from the server's answer - its read fell back
+  to the file on this computer or the default, and the row is marked Not read - both; and in each case that a sender
+  the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception, its mail
+  neither refused nor held on its score and marked at the mark threshold. An edit that makes or keeps such a pair is
+  refused on its field as before; after a save that wrote every row, the pair saved is the one held. Five new texts,
+  in the seventeen languages; `AntiSpamPageTests` holds the rule, each sentence and the page's wiring, the switch's
+  among it.
+
+- **Fixed: the Control Panel's *Anti-spam overview* said what the refuse threshold does without reading the quarantine
+  switch, and named no sender the score spares.** Its verdict said "refused (550 before the body, 554 after it)" of
+  every score at the refuse threshold - for a refuse threshold at or below the mark threshold, for the ordinary pair
+  and for a refuse threshold alone - and "None is only marked" of every sender. With *Hold messages for review instead
+  of refusing them* on, `SMTPConnection::DoSpamProtection_` holds the verdict of the checks of the message after the
+  body in the quarantine and answers 250; the connection checks' verdict is refused with a 550 whatever the switch,
+  after the body too for mail from an incoming relay; and a sender the list of allowed and blocked domains allows, by
+  its domain or by its HELO name, is neither refused nor held on its score. The overview now reads `QuarantineEnabled`
+  with the thresholds, as the settings page reads its switch, a read that fell back to the file on this computer or
+  the default counting as not read, and its verdict says each of these, with both outcomes where the switch could not
+  be read; a pair at or below the mark is said in the settings page's words. Three new texts, in the seventeen
+  languages; `SpamPipelineTests` holds each verdict to the switch on, off and unread, and `AntiSpamPageTests` the
+  overview's read of it.
 
 ### Administration
 

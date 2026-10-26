@@ -510,26 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Un messaggio con questo punteggio o più viene rifiutato durante la conversazione SMTP, oppure trattenuto in quarantena mentre la quarantena è attiva. Le versioni precedenti la chiamavano soglia di eliminazione.</value>
   </data>
-  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene trattenuto in quarantena quando il punteggio è raggiunto dopo il corpo, e rifiutato con un 550 quando è raggiunto prima; nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
+  <data name="A message scoring {0} or more is marked as spam and delivered." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene contrassegnato come spam e consegnato.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Un messaggio con punteggio {0} o superiore viene contrassegnato come spam e consegnato. Nulla viene rifiutato in base al punteggio.</value>
   </data>
-  <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene contrassegnato come spam e consegnato; {1} o superiore viene rifiutato (550 prima del corpo, 554 dopo).</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene rifiutato con un 550 quando i controlli sulla connessione raggiungono quel punteggio - prima del corpo, o dopo per la posta da un relay in ingresso - e trattenuto in quarantena quando è raggiunto con i controlli del messaggio, dopo il corpo.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo), e nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene rifiutato con un 550 quando i controlli sulla connessione raggiungono quel punteggio - prima del corpo, o dopo per la posta da un relay in ingresso. Quando è raggiunto con i controlli del messaggio, dopo il corpo, il messaggio viene trattenuto in quarantena mentre la quarantena è attiva e rifiutato con un 554 mentre è disattivata.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo), oppure trattenuto in quarantena dopo il corpo mentre la quarantena è attiva; nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo). Nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
-    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo). Nulla viene contrassegnato.</value>
+  <data name="A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene rifiutato: con un 550 quando i controlli sulla connessione raggiungono quel punteggio - prima del corpo, o dopo per la posta da un relay in ingresso - e con un 554 quando è raggiunto con i controlli del messaggio, dopo il corpo.</value>
   </data>
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Un messaggio per dieci caselle locali viene scritto una volta e collegato dieci volte invece che copiato dieci volte, il che, per un messaggio grande diretto a una lista di distribuzione, è la differenza tra una scrittura su disco e dieci. Richiede la directory dei dati su NTFS; dove non è possibile creare un collegamento il server copia il file e lo dice nel registro SMTP.</value>
@@ -675,8 +669,11 @@
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Un mittente che esegue l'accesso (SMTP AUTH) non incontra nessuno di questi elenchi tranne l'elenco consentiti e bloccati, alla consegna: il server non esegue alcun controllo antispam e non sottopone a greylisting una sessione autenticata.</value>
   </data>
-  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
-    <value>Fa eccezione un mittente il cui dominio è consentito nell'elenco dei domini consentiti e bloccati: la sua posta non viene né rifiutata né trattenuta per il punteggio, e viene contrassegnata da {0} in su.</value>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Fa eccezione un mittente che l'elenco dei domini consentiti e bloccati consente, per il suo dominio o per il suo nome HELO: la sua posta non viene né rifiutata né trattenuta per il punteggio, e viene contrassegnata da {0} in su.</value>
+  </data>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score." xml:space="preserve">
+    <value>Fa eccezione un mittente che l'elenco dei domini consentiti e bloccati consente, per il suo dominio o per il suo nome HELO: la sua posta non viene né rifiutata né trattenuta per il punteggio.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Un limite separato dal limite di tempo, perché una ricerca che legge enormi quantità di contenuto dei messaggi è costosa anche quando finisce in fretta.</value>
@@ -8151,6 +8148,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>Non serve per un client pubblico, che PKCE rende sicuro.</value>
   </data>
+  <data name="None is only marked: the mark threshold, {0}, is not below that." xml:space="preserve">
+    <value>Nessuno viene solo contrassegnato: la soglia di contrassegno, {0}, non è inferiore.</value>
+  </data>
   <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>Nessuno degli account selezionati ha un indirizzo e-mail.</value>
   </data>
@@ -8339,6 +8339,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Non è trattenuto nulla. La quarantena è disattivata: finché non viene attivata in Impostazioni antispam, lo spam oltre la soglia di rifiuto viene rifiutato durante la conversazione SMTP anziché conservato.</value>
+  </data>
+  <data name="Nothing is marked." xml:space="preserve">
+    <value>Nulla viene contrassegnato.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
     <value>Nessuna corrispondenza per "{0}". Conviene provare con l'obiettivo da raggiungere ("bloccare lo spam", "far inviare posta a un dispositivo"), con il nome di una pagina, oppure con una chiave di hMailServer.ini.</value>

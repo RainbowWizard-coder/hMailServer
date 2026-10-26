@@ -149,6 +149,11 @@ namespace hMailServer.ControlPanel.Views
 
             config.MarkThreshold = Read(config, nameof(config.MarkThreshold), () => (int)antiSpam.SpamMarkThreshold);
             config.DeleteThreshold = Read(config, nameof(config.DeleteThreshold), () => (int)antiSpam.SpamDeleteThreshold);
+
+            // What the refuse threshold does after the body: held in the quarantine or
+            // refused with a 554 (SpamPipeline.Verdict). Read with the thresholds, so that
+            // a verdict is never given with the switch neither read nor marked unread.
+            config.QuarantineEnabled = Read(config, nameof(config.QuarantineEnabled), () => QuarantineSwitch_());
             config.MaxScanKilobytes = Read(config, nameof(config.MaxScanKilobytes), () => (int)antiSpam.MaximumMessageSize);
             config.BlockedSenderCount = Read(config, nameof(config.BlockedSenderCount), () => (int)antiSpam.BlockedSenders.Count);
 
@@ -260,6 +265,23 @@ namespace hMailServer.ControlPanel.Views
                config.Unread.Add(property);
             return default;
          }
+      }
+
+      /// <summary>
+      /// QuarantineEnabled as the server answers it, read as the Anti-spam settings page
+      /// reads its switch (IniFeatureStore: over COM, GetIniSetting). A read that fell
+      /// back to hMailServer.ini on this computer, or to the default, is not the server's
+      /// answer and is thrown as the failure it fell back from, so that the switch is
+      /// marked unread and the verdict names both outcomes, where it would say the
+      /// file's or the default's as the server's.
+      /// </summary>
+      private static bool QuarantineSwitch_()
+      {
+         var ini = new IniFeatureStore();
+         bool on = ini.ReadBool("QuarantineEnabled", false);
+         if (ini.FallbackCause is Exception fellBack)
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(fellBack);
+         return on;
       }
 
       /// <summary>How many rows the domain white and black list's document carries; 0 for a document with none or one that cannot be read.</summary>

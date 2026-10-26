@@ -510,26 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>En meddelelse med denne score eller mere afvises under SMTP-samtalen eller tilbageholdes i karantænen, mens karantæne er slået til. Ældre versioner kaldte den sletningstærsklen.</value>
   </data>
-  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover tilbageholdes i karantænen, når scoren nås efter brødteksten, og afvises med 550, når den nås før; ingen markeres blot: markeringstærsklen, {1}, er ikke lavere.</value>
+  <data name="A message scoring {0} or more is marked as spam and delivered." xml:space="preserve">
+    <value>En meddelelse med en score på {0} eller derover markeres som spam og leveres.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>En meddelelse med en score på {0} eller derover markeres som spam og leveres. Intet afvises på baggrund af score.</value>
   </data>
-  <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover markeres som spam og leveres; {1} eller derover afvises (550 før brødteksten, 554 efter den).</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>En meddelelse med en score på {0} eller derover afvises med 550, når forbindelseskontrollerne når den score - før brødteksten, eller efter den for post fra et indgående relay - og tilbageholdes i karantænen, når den nås med kontrollerne af meddelelsen, efter brødteksten.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover afvises (550 før brødteksten, 554 efter den), og ingen markeres blot: markeringstærsklen, {1}, er ikke lavere.</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off." xml:space="preserve">
+    <value>En meddelelse med en score på {0} eller derover afvises med 550, når forbindelseskontrollerne når den score - før brødteksten, eller efter den for post fra et indgående relay. Når den nås med kontrollerne af meddelelsen, efter brødteksten, tilbageholdes meddelelsen i karantænen, mens karantæne er slået til, og afvises med 554, mens den er slået fra.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover afvises (550 før brødteksten, 554 efter den) eller tilbageholdes efter brødteksten i karantænen, mens karantæne er slået til; ingen markeres blot: markeringstærsklen, {1}, er ikke lavere.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover afvises (550 før brødteksten, 554 efter den). Ingen markeres blot: markeringstærsklen, {1}, er ikke lavere.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
-    <value>En meddelelse med en score på {0} eller derover afvises (550 før brødteksten, 554 efter den). Intet markeres.</value>
+  <data name="A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>En meddelelse med en score på {0} eller derover afvises: med 550, når forbindelseskontrollerne når den score - før brødteksten, eller efter den for post fra et indgående relay - og med 554, når den nås med kontrollerne af meddelelsen, efter brødteksten.</value>
   </data>
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>En meddelelse til ti lokale postkasser skrives én gang og linkes ti gange frem for at blive kopieret ti gange, hvilket er forskellen på én diskskrivning og ti for en stor meddelelse til en distributionsliste. Kræver, at datamappen ligger på NTFS; hvor et link ikke kan oprettes, kopierer serveren filen og siger det i SMTP-loggen.</value>
@@ -675,8 +669,11 @@
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>En afsender, der logger på (SMTP AUTH), møder ingen af disse lister undtagen listen over tilladte og blokerede, ved levering: serveren kører ingen spamkontrol og greylister ikke en session, der er logget på.</value>
   </data>
-  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
-    <value>Undtagelsen er en afsender, hvis domæne er tilladt på listen over tilladte og blokerede domæner: dens post hverken afvises eller tilbageholdes på grund af sin score og markeres ved {0} eller derover.</value>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Undtagelsen er en afsender, som listen over tilladte og blokerede domæner tillader på sit domæne eller på sit HELO-navn: dens post hverken afvises eller tilbageholdes på grund af sin score og markeres ved {0} eller derover.</value>
+  </data>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score." xml:space="preserve">
+    <value>Undtagelsen er en afsender, som listen over tilladte og blokerede domæner tillader på sit domæne eller på sit HELO-navn: dens post hverken afvises eller tilbageholdes på grund af sin score.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Et loft adskilt fra tidsgrænsen, fordi en søgning, der læser enorme mængder meddelelsesindhold, er dyr, selv når den bliver hurtigt færdig.</value>
@@ -8151,6 +8148,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>Ingen er nødvendig for en offentlig klient, som PKCE gør sikker.</value>
   </data>
+  <data name="None is only marked: the mark threshold, {0}, is not below that." xml:space="preserve">
+    <value>Ingen markeres blot: markeringstærsklen, {0}, er ikke lavere.</value>
+  </data>
   <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>Ingen af de valgte konti har en e-mailadresse.</value>
   </data>
@@ -8339,6 +8339,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Der tilbageholdes intet. Karantæne er slået fra: indtil den slås til under Antispam-indstillinger, afvises spam over afvisningstærsklen under SMTP-samtalen i stedet for at blive gemt.</value>
+  </data>
+  <data name="Nothing is marked." xml:space="preserve">
+    <value>Intet markeres.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
     <value>Intet matchede "{0}". Prøv det, du forsøger at opnå ("stop spam", "lad en enhed sende post"), et sidenavn eller en hMailServer.ini-nøgle.</value>

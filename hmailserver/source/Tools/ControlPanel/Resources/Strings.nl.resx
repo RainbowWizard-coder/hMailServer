@@ -510,26 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Een bericht met deze score of hoger wordt tijdens het SMTP-gesprek geweigerd, of in quarantaine vastgehouden zolang quarantaine aan staat. Oudere versies noemden dit de verwijderdrempel.</value>
   </data>
-  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt in quarantaine vastgehouden als de score na de inhoud wordt bereikt, en met een 550 geweigerd als die ervoor wordt bereikt; geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
+  <data name="A message scoring {0} or more is marked as spam and delivered." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd. Er wordt niets geweigerd op score.</value>
   </data>
-  <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd; {1} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna).</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and held in the quarantine when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt met een 550 geweigerd als de verbindingscontroles die score bereiken - vóór de inhoud, of erna voor mail van een inkomende relay - en in quarantaine vastgehouden als die met de controles van het bericht wordt bereikt, na de inhoud.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna), en geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
+  <data name="A message scoring {0} or more is refused with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay. When it is reached with the checks of the message, after the body, it is held in the quarantine while quarantining is on and refused with a 554 while it is off." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt met een 550 geweigerd als de verbindingscontroles die score bereiken - vóór de inhoud, of erna voor mail van een inkomende relay. Wordt die met de controles van het bericht bereikt, na de inhoud, dan wordt het bericht in quarantaine vastgehouden zolang quarantaine aan staat en met een 554 geweigerd zolang die uit staat.</value>
   </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna), of na de inhoud in quarantaine vastgehouden zolang quarantaine aan staat; geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna). Geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
-  </data>
-  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
-    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna). Er wordt niets gemarkeerd.</value>
+  <data name="A message scoring {0} or more is refused: with a 550 when the connection checks reach that score - before the body, or after it for mail from an incoming relay - and with a 554 when it is reached with the checks of the message, after the body." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt geweigerd: met een 550 als de verbindingscontroles die score bereiken - vóór de inhoud, of erna voor mail van een inkomende relay - en met een 554 als die met de controles van het bericht wordt bereikt, na de inhoud.</value>
   </data>
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Een bericht aan tien lokale postvakken wordt één keer weggeschreven en tien keer gekoppeld in plaats van tien keer gekopieerd, en dat is bij een groot bericht aan een distributielijst het verschil tussen één schijfschrijfactie en tien. Vereist dat de datamap op NTFS staat; kan de koppeling niet worden gemaakt, dan kopieert de server het bestand en meldt dat in het SMTP-logboek.</value>
@@ -675,8 +669,11 @@
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Een afzender die zich aanmeldt (SMTP AUTH), komt geen van deze lijsten tegen behalve de toestaan- en blokkeerlijst, bij de bezorging: de server voert voor een aangemelde sessie geen spamcontrole uit en greylist haar niet.</value>
   </data>
-  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
-    <value>De uitzondering is een afzender wiens domein is toegestaan op de lijst van toegestane en geblokkeerde domeinen: zijn mail wordt om zijn score niet geweigerd of vastgehouden, en wordt vanaf {0} gemarkeerd.</value>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>De uitzondering is een afzender die de lijst van toegestane en geblokkeerde domeinen toestaat, op zijn domein of op zijn HELO-naam: zijn mail wordt om zijn score niet geweigerd of vastgehouden, en wordt vanaf {0} gemarkeerd.</value>
+  </data>
+  <data name="A sender the list of allowed and blocked domains allows, by its domain or by its HELO name, is the exception: its mail is neither refused nor held on its score." xml:space="preserve">
+    <value>De uitzondering is een afzender die de lijst van toegestane en geblokkeerde domeinen toestaat, op zijn domein of op zijn HELO-naam: zijn mail wordt om zijn score niet geweigerd of vastgehouden.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Een apart plafond naast de tijdslimiet, omdat een zoekopdracht die enorme hoeveelheden berichtinhoud leest duur is, ook wanneer die snel klaar is.</value>
@@ -8151,6 +8148,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="None is needed for a public client, which PKCE makes safe." xml:space="preserve">
     <value>Voor een openbare client is er geen nodig; PKCE maakt die veilig.</value>
   </data>
+  <data name="None is only marked: the mark threshold, {0}, is not below that." xml:space="preserve">
+    <value>Geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {0}, ligt niet lager.</value>
+  </data>
   <data name="None of the selected accounts have an email address." xml:space="preserve">
     <value>Geen van de geselecteerde accounts heeft een e-mailadres.</value>
   </data>
@@ -8339,6 +8339,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Er wordt niets vastgehouden. Quarantaine staat uit: totdat deze onder Antispaminstellingen wordt ingeschakeld, wordt spam boven de weigerdrempel tijdens het SMTP-gesprek geweigerd in plaats van opgeslagen.</value>
+  </data>
+  <data name="Nothing is marked." xml:space="preserve">
+    <value>Er wordt niets gemarkeerd.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
     <value>Niets kwam overeen met "{0}". Probeer wat u wilt bereiken ("spam stoppen", "een apparaat mail laten verzenden"), een paginanaam, of een sleutel uit hMailServer.ini.</value>
