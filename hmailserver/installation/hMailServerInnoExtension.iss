@@ -1194,6 +1194,21 @@ begin
       Why := Path + ' is not a full path';
 end;
 
+// Whether a path is the root of a volume - C:\, or \\?\Volume{...}\, where a mount point
+// or a link to a volume's root leads - whose permissions are the volume's: setup does
+// not change them (PrepareProgramFolders) nor hold its owner to the rule of the three
+// (CheckProgramFolders), and makes or hardens Bin and ControlPanel there. Inno Setup's
+// RemoveBackslashUnlessRoot takes the last backslash off the second, as off the root
+// of a share, and the path then names the volume's device rather than its root folder;
+// HoldFolderChain keeps it.
+function IsVolumeRoot(Path: String): Boolean;
+begin
+   Result := Length(Path) <= 3;
+   if not Result then
+      if CompareText(Copy(Path, 1, 11), '\\?\Volume{') = 0 then
+         Result := Copy(Path, Length(Path) - 1, 2) = '}\';
+end;
+
 // A folder held open as itself (HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE,
 // HM_HOLD_FOLDER_FLAGS) and kept in g_aHeldFolders until DeinitializeSetup lets
 // every one go: opened without following a link, for listing, its attributes and its
@@ -1465,7 +1480,12 @@ begin
       begin
          if szRest = '' then
          begin
-            Real := RemoveBackslashUnlessRoot(szCurrent);
+            // The root of the volume as it is, \\?\Volume{...}\ with its backslash
+            // (IsVolumeRoot).
+            if CompareText(szCurrent, szRoot) = 0 then
+               Real := szRoot
+            else
+               Real := RemoveBackslashUnlessRoot(szCurrent);
             Held := Real;
             HeldHandle := parent;
             Whole := true;
@@ -1487,7 +1507,10 @@ begin
                Real := szNext;
                if szRest <> '' then
                   Real := AddBackslash(szNext) + szRest;
-               Held := RemoveBackslashUnlessRoot(szCurrent);
+               if CompareText(szCurrent, szRoot) = 0 then
+                  Held := szRoot
+               else
+                  Held := RemoveBackslashUnlessRoot(szCurrent);
                HeldHandle := parent;
                Whole := false;
                Result := true;
@@ -2858,9 +2881,9 @@ begin
       Exit;
    end;
 
-   // The owners of the three, and what is in Bin and ControlPanel. A drive's root is
-   // the volume's, and is not looked at.
-   if g_bProgramFolderThere and (Length(g_szProgramFolderReal) > 3) then
+   // The owners of the three, and what is in Bin and ControlPanel. The root of a
+   // volume is the volume's, and is not looked at.
+   if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then
       if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then
       begin
          Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been changed.';
@@ -2946,8 +2969,8 @@ begin
       Exit;
    end;
 
-   if Length(g_szProgramFolderReal) <= 3 then
-      Log('The program folder ' + szApp + ' is the root of a drive, whose permissions are the volume''s, so setup does not change them, and makes or hardens Bin and ControlPanel there, ' +
+   if IsVolumeRoot(g_szProgramFolderReal) then
+      Log('The program folder ' + szApp + ' is the root of a volume (' + g_szProgramFolderReal + '), whose permissions are the volume''s, so setup does not change them, and makes or hardens Bin and ControlPanel there, ' +
           'but a folder of its own, such as ' + ExpandConstant('{commonpf}') + '\hMailServer, is the safer place.')
    else
    begin

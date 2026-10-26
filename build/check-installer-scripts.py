@@ -664,7 +664,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'VolumeKeepsPermissions', 'SplitAtRoot', 'DeinitializeSetup', 'FolderMadeBySetup', 'SetupMadeFolder',
                            'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel', 'AclLetsOthers', 'IsTrustedSid',
                            'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn',
-                           'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld', 'FolderAboveIsAdministratorsAlone', 'IsAtOrAboveChecked')
+                           'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld', 'FolderAboveIsAdministratorsAlone', 'IsAtOrAboveChecked', 'IsVolumeRoot')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -683,7 +683,11 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('HoldFolderChain', 'a link is gone through without the rule',
      "else if (attributes and HM_REPARSE_POINT) <> 0 then begin if not LinkIsAdministratorsAlone(handle, parent, szWhy) then Why := "),
     ('HoldFolderChain', 'what a missing name is made below is not the deepest folder held',
-     "Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;"),
+     "if CompareText(szCurrent, szRoot) = 0 then Held := szRoot else Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;"),
+    ('HoldFolderChain', 'the root of a volume reached by its name is taken for its device, its last backslash taken off (the review of 26 October 2026)',
+     "if CompareText(szCurrent, szRoot) = 0 then Real := szRoot else Real := RemoveBackslashUnlessRoot(szCurrent); Held := Real;"),
+    ('IsVolumeRoot', 'more than the root of a volume is taken for one, or the root of a volume reached by its name is not',
+     "^function IsVolumeRoot(Path: String): Boolean; begin Result := Length(Path) <= 3; if not Result then if CompareText(Copy(Path, 1, 11), '\\\\?\\Volume{') = 0 then Result := Copy(Path, Length(Path) - 1, 2) = '}\\'; end;$"),
     ('HoldFolderChain', 'the last folder found is not marked as held',
      "Real := szNext; Held := szNext; HeldHandle := handle; Whole := true; Result := true;"),
     ('LinkIsAdministratorsAlone', 'a link\'s own owner is not held to the three',
@@ -738,7 +742,7 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('CheckProgramFolders', 'the program folder is taken for the earlier installation\'s whatever that installation\'s folder',
      "g_bEarlierInstallation := false; if Trim(Earlier) <> '' then g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;"),
     ('CheckProgramFolders', 'the program folder\'s owner is not held to the rule',
-     "if g_bProgramFolderThere and (Length(g_szProgramFolderReal) > 3) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := "),
+     "if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := "),
     ('CheckProgramFolders', 'Bin\'s owner is not held to the rule',
      "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := "),
     ('CheckProgramFolders', 'ControlPanel\'s owner is not held to the rule',
@@ -781,7 +785,7 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('PrepareProgramFolders', 'a program folder that is not there is decided by its path',
      "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, hMade, szWhy) then Result := "),
     ('PrepareProgramFolders', 'more than a drive\'s root is taken for one, or Bin and ControlPanel are passed over at a root',
-     "if Length(g_szProgramFolderReal) <= 3 then Log(~) else begin szInherits := '';"),
+     "if IsVolumeRoot(g_szProgramFolderReal) then Log(~) else begin szInherits := '';"),
     ('PrepareProgramFolders', 'the program folder is left as it is for an inheriting data folder that is not the earlier installation\'s',
      "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or "
      "FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);"),
@@ -1288,9 +1292,16 @@ def negative_controls(texts):
          altered(texts, EXTENSION, 'else if ControlPanelIsInstalled() then\n      if not MakeFolders(', 'else if false then\n      if not MakeFolders(')),
         # R2: hardened before the files, or refused.
         ('every path up to 300 characters taken for a drive\'s root (nothing made or hardened)',
-         altered(texts, EXTENSION, 'if Length(g_szProgramFolderReal) <= 3 then', 'if Length(g_szProgramFolderReal) <= 300 then')),
+         altered(texts, EXTENSION, '   Result := Length(Path) <= 3;\n', '   Result := Length(Path) <= 300;\n')),
         ('Bin and ControlPanel passed over at a drive\'s root',
-         altered(texts, EXTENSION, 'if Length(g_szProgramFolderReal) <= 3 then\n      Log(', 'if Length(g_szProgramFolderReal) <= 3 then\n      Exit;\n   if false then\n      Log(')),
+         altered(texts, EXTENSION, 'if IsVolumeRoot(g_szProgramFolderReal) then\n      Log(', 'if IsVolumeRoot(g_szProgramFolderReal) then\n      Exit;\n   if false then\n      Log(')),
+        ('a volume\'s root reached by its name taken for its device again (its last backslash taken off; the review of 26 October 2026)',
+         altered(texts, EXTENSION, '            if CompareText(szCurrent, szRoot) = 0 then\n               Real := szRoot\n            else\n               Real := RemoveBackslashUnlessRoot(szCurrent);',
+                 '            Real := RemoveBackslashUnlessRoot(szCurrent);')),
+        ('any path under a volume\'s name taken for its root',
+         altered(texts, EXTENSION, "         Result := Copy(Path, Length(Path) - 1, 2) = '}\\';", '         Result := true;')),
+        ('the program folder\'s owner never asked (every program folder taken for a volume\'s root)',
+         altered(texts, EXTENSION, 'if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then', 'if g_bProgramFolderThere and false then')),
         ('an existing Bin never hardened (its condition inverted)',
          altered(texts, EXTENSION, 'if g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal', 'if not g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal')),
         ('an existing ControlPanel never hardened (its condition inverted)',

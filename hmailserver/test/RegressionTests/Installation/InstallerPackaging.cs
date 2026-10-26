@@ -1163,6 +1163,17 @@ namespace RegressionTests.Installation
          Assert.IsTrue(extension.Contains("HM_SERVICE_SID              = '" + serviceSid.Groups[1].Value + "';"),
             "HM_SERVICE_SID is not NT SERVICE\\hMailServer's SID, " + serviceSid.Groups[1].Value + ".");
 
+         // The root of a volume: C:\ and \\?\Volume{...}\ - where a mount point, or a link to
+         // a volume's root, leads - with its backslash, which names the root folder and not
+         // the volume's device (the review of 26 October 2026: RemoveBackslashUnlessRoot took
+         // it off, and icacls was then refused the device).
+         string root = CodeBody(extension, "IsVolumeRoot");
+         Assert.IsTrue(root.Contains("Result := Length(Path) <= 3;") && root.Contains("CompareText(Copy(Path, 1, 11), '\\\\?\\Volume{') = 0") && root.Contains("Copy(Path, Length(Path) - 1, 2) = '}\\'"),
+            "IsVolumeRoot does not take C:\\ and \\\\?\\Volume{...}\\ alone for the root of a volume.");
+         Assert.IsFalse(Regex.IsMatch(prepare + CodeBody(extension, "CheckProgramFolders"), @"Length\(g_szProgramFolderReal\)\s*(<=|>)\s*3"),
+            "The root of a volume is told by the length of its path, which a volume reached by its name is longer than.");
+         Assert.AreEqual(2, Regex.Matches(CodeBody(extension, "HoldFolderChain"), @"if\s+CompareText\(szCurrent,\s*szRoot\)\s*=\s*0\s+then").Count,
+            "HoldFolderChain takes the last backslash off the root of a volume it ends at, or holds a missing name below.");
          AssertNoPlainMessageBox(extension, "PrepareProgramFolders", "CheckProgramFolders", "HardenHeldFolder", "RebuildFolderOfUntrustedOwner", "HeldFolderIsHardened", "DataFolderThatInherits", "InheritsNothing", "OwnerIsAllowed");
       }
 
@@ -1321,7 +1332,9 @@ namespace RegressionTests.Installation
          new[] { "HoldFolderChain", "a name that cannot be read is taken for one that is not there", "if (lastError = 2) or (lastError = 3) then begin" },
          new[] { "HoldFolderChain", "a folder is not read again once it is held", "handle := HoldForSetup(szNext); if handle = -1 then begin Why := ~; bDone := true; end else begin @@attributes := FolderAttributes(szNext); if (attributes = HM_INVALID_ATTRIBUTES) or ((attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then" },
          new[] { "HoldFolderChain", "a link is gone through without the rule", "else if (attributes and HM_REPARSE_POINT) <> 0 then begin if not LinkIsAdministratorsAlone(handle, parent, szWhy) then Why := " },
-         new[] { "HoldFolderChain", "what a missing name is made below is not the deepest folder held", "Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;" },
+         new[] { "HoldFolderChain", "what a missing name is made below is not the deepest folder held", "if CompareText(szCurrent, szRoot) = 0 then Held := szRoot else Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;" },
+         new[] { "HoldFolderChain", "the root of a volume reached by its name is taken for its device, its last backslash taken off", "if CompareText(szCurrent, szRoot) = 0 then Real := szRoot else Real := RemoveBackslashUnlessRoot(szCurrent); Held := Real;" },
+         new[] { "IsVolumeRoot", "more than the root of a volume is taken for one, or the root of a volume reached by its name is not", "^function IsVolumeRoot(Path: String): Boolean; begin Result := Length(Path) <= 3; if not Result then if CompareText(Copy(Path, 1, 11), '\\\\?\\Volume{') = 0 then Result := Copy(Path, Length(Path) - 1, 2) = '}\\'; end;$" },
          new[] { "HoldFolderChain", "the last folder found is not marked as held", "Real := szNext; Held := szNext; HeldHandle := handle; Whole := true; Result := true;" },
          new[] { "LinkIsAdministratorsAlone", "a link's own owner is not held to the three", "if not IsTrustedSid(pOwner) then Why := 'it is owned by '" },
          new[] { "LinkIsAdministratorsAlone", "what may change a link is not asked", "else if AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho) then Why := szWho + ' may change it'" },
@@ -1347,7 +1360,7 @@ namespace RegressionTests.Installation
          new[] { "CheckProgramFolders", "ControlPanel's volume is not asked", "if not VolumeKeepsPermissions(g_hControlPanel, g_szControlPanelHeld, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "walks that disagree are not refused", "if (not WalksAgree(g_szBinHeld, g_bBinThere)) or (not WalksAgree(g_szControlPanelHeld, g_bControlPanelThere)) then begin Result := " },
          new[] { "CheckProgramFolders", "the program folder is taken for the earlier installation's whatever that installation's folder", "g_bEarlierInstallation := false; if Trim(Earlier) <> '' then g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;" },
-         new[] { "CheckProgramFolders", "the program folder's owner is not held to the rule", "if g_bProgramFolderThere and (Length(g_szProgramFolderReal) > 3) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "the program folder's owner is not held to the rule", "if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "Bin's owner is not held to the rule", "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "ControlPanel's owner is not held to the rule", "if g_bControlPanelThere then if not OwnerIsAllowed(g_szControlPanelReal, g_hControlPanel, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "what is in Bin and ControlPanel is not refused before the service is stopped", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy); if found > 0 then Result := " },
@@ -1365,7 +1378,7 @@ namespace RegressionTests.Installation
          new[] { "RemoveFoldersMadeHere", "a folder setup made is removed with what is in it", "if RemoveDir(g_aFoldersMade[index]) then Log(" },
          new[] { "RemoveFoldersMadeHere", "a Bin or ControlPanel setup made is removed with what is in it", "if RemoveDir(szMade) then Log(" },
          new[] { "PrepareProgramFolders", "a program folder that is not there is decided by its path", "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, hMade, szWhy) then Result := " },
-         new[] { "PrepareProgramFolders", "more than a drive's root is taken for one, or Bin and ControlPanel are passed over at a root", "if Length(g_szProgramFolderReal) <= 3 then Log(~) else begin szInherits := '';" },
+         new[] { "PrepareProgramFolders", "more than a drive's root is taken for one, or Bin and ControlPanel are passed over at a root", "if IsVolumeRoot(g_szProgramFolderReal) then Log(~) else begin szInherits := '';" },
          new[] { "PrepareProgramFolders", "the program folder is left as it is for an inheriting data folder that is not the earlier installation's", "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);" },
          new[] { "PrepareProgramFolders", "a program folder that could not be hardened is installed into", "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end;" },
          new[] { "PrepareProgramFolders", "a Bin that is there is not hardened, or one that could not be is installed into", "if g_bBinThere then begin if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end" },
