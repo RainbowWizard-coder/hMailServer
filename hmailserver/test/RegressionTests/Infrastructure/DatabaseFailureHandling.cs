@@ -140,6 +140,66 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("Auto-ban: when the range that bans an address cannot be saved (HM6099), the address's " +
+                   "spent logon failures are kept, so that its next failed logon crosses the threshold " +
+                   "again and the range is written then. Up to 6.3.7 they were cleared before the save, " +
+                   "and an address whose range was refused was given a whole new set of attempts.")]
+      public void AnAutoBanThatCannotBeSavedIsTriedAgainOnTheNextFailure()
+      {
+         const string userName = "banretry@example.test";
+
+         _settings.AutoBanOnLogonFailure = true;
+         _settings.MaxInvalidLogonAttempts = 3;
+         _settings.MaxInvalidLogonAttemptsWithin = 5;
+         _settings.AutoBanMinutes = 3;
+         _settings.ClearLogonFailureList();
+
+         try
+         {
+            // The range's INSERT alone - the check for a name in use is a SELECT -
+            // and the save's second attempt under a GUID name is the same INSERT.
+            FailStatementsContaining("INSERT INTO hm_securityranges");
+
+            for (var i = 1; i <= 3; i++)
+               ClassicAssert.IsFalse(FailLogon(userName), "Failed logon " + i + " was not refused.");
+
+            CustomAsserts.AssertReportedError("HM6099");
+            StringAssert.StartsWith("+OK", new Pop3ClientSimulator().GetWelcomeMessage(),
+               "The address was banned although its range could not be saved.");
+
+            FailStatementsContaining("");
+
+            // One failure more, and no more: the three kept and this one cross the
+            // threshold. Had the three been cleared, this would be the first of three.
+            ClassicAssert.IsFalse(FailLogon(userName), "The failed logon after the refused range was not refused.");
+
+            ClassicAssert.AreEqual("", new Pop3ClientSimulator().GetWelcomeMessage(),
+               "The next failed logon from the address did not ban it: its spent failures were not kept.");
+         }
+         finally
+         {
+            var ranges = _settings.SecurityRanges;
+            for (var i = ranges.Count - 1; i >= 0; i--)
+            {
+               var range = ranges[i];
+               if (range.Name.StartsWith("Auto-ban: "))
+                  ranges.DeleteByDBID(range.ID);
+            }
+
+            _settings.ClearLogonFailureList();
+            _settings.AutoBanOnLogonFailure = false;
+         }
+      }
+
+      private static bool FailLogon(string userName)
+      {
+         var pop3 = new Pop3ClientSimulator();
+         var signedIn = pop3.ConnectAndLogon(userName, "the-wrong-password");
+         pop3.Disconnect();
+         return signedIn;
+      }
+
+      [Test]
       [Description("IMAP SUBSCRIBE answers NO when the subscription cannot be saved. It used to answer " +
                    "OK, and a client that is told OK does not ask again.")]
       public void SubscribeAnswersNoWhenItCannotBeSaved()

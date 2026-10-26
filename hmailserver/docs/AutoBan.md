@@ -58,6 +58,49 @@ bans among the administrator's ranges, with an *Expires* column and *Show
 auto-bans only*. *Clear logon-failure list* lifts no ban: it forgets the failures
 counted towards the next one.
 
+## The name of a ban's range
+
+A ban's range is named `Auto-ban:` and, after a space, what it was earned by:
+the user name a run of failed logons guessed at, `spam trap <trap>`,
+`multi-recipient null sender <address>` or `AUTH on a delivery port <address>`.
+Range names are unique, so when a range of that name exists already - the same
+user name guessed at from a second address while the first is banned, say - the
+name is given a suffix after a space: `(1)` to `(10)`, then `(Z` and nine random
+characters and `)`, then a GUID in braces.
+
+The name column holds 100 characters. The suffix is always kept whole at the
+end of the name, and what stands before it - the user name or the trap - is
+shortened to leave it room, never in the middle of a character: a ban for a user
+name of 120 characters while one for it already stands is named `Auto-ban:`, a
+space, the user name's first 86 characters, a space and `(1)`. The *Banned now*
+list shows the shortened user name. Up to 6.3.7 the suffix came after the whole user name and
+the cut to 100 characters took it off again, so that for a long user name every
+name the server could choose could be the one already in use, and the address
+was not banned (reported as HM6099 from 6.2.19); and on SQL Server a name in use
+could also go unrecognised.
+
+The check for a name in use is the server's own; the database's unique index is
+the judge. A range it refuses even so - a name another server sharing the
+database wrote in the moment between the check and the save - is written again
+once, under the reason and a GUID, before HM6099 is reported. When a ban's range
+cannot be saved at all, the address's counted failed logons are kept, so its
+next failed logon crosses the threshold again and the range is tried again (up to
+6.3.7 they were cleared before the save, and the address was given a whole new
+set of attempts). With `AutoBanMinutes` 0, which disconnects and writes no range,
+the failures are cleared when the threshold is reached, as before.
+
+The name of a range written on the IP ranges page, over COM or the REST API is
+held to the same 100 characters: a longer one is stored as its first 100, and
+the range reads back with the name it was stored under.
+
+`AccountLogon::RangeName`, `ChooseRangeName` and `UniqueRangeName` make the
+names, and `PersistentSecurityRange::StoredName` the cut, which `SaveObject`,
+`Exists` and `ReadObject` by name all use. `AccountLogonRangeNameTester` holds
+them (ClassTester on Windows, with a half against the bench's database;
+`autoban-widen-tests` on Linux), and the regression fixtures
+`Security/AutoBanRangeName` (both suites) and
+`Infrastructure/DatabaseFailureHandling` the behaviour.
+
 ## The never-ban list by reverse name (GitLab work item #56)
 
 `AutoBanNeverBan` can spare a provider's nets only if the administrator knows

@@ -14,12 +14,18 @@
 // suffix list is compiled in, and every reverse and forward lookup is answered by
 // the tester's own zone.
 //
-// It prints one line and exits non-zero on the first failure.
+// And the names of the ranges an auto-ban writes (AccountLogonRangeNameTester,
+// Common/Util/AccountLogon.h), which need nothing either: within the column's 100
+// characters, whatever the length of the user name, with the suffix that makes
+// each unique intact. Its half against a database runs on Windows alone.
+//
+// It prints one line a tester and exits non-zero on the first failure.
 
 #include <cstdio>
 #include <stdexcept>
 
 #include "../Common/Util/AutoBanWidener.h"
+#include "../Common/Util/AccountLogon.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -35,6 +41,18 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
+   try
+   {
+      HM::AccountLogonRangeNameTester tester;
+      tester.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  the names of auto-ban ranges: %s\n", failure.what());
+      return 1;
+   }
+
    printf("ok    an auto-ban widened to its reverse-name neighbours: the run of a shared registrable domain (not one label stripped, a private-section suffix a domain of its own), the stops below and above (a foreign domain, no name, an address for a name, a name the never-ban list covers, AutoBanNeverBan, an administrator's range, the /24's edges, 32 lookups each way), the banned address's own name forward-confirmed, a lookup not answered or the time run out leaving the single address, hostile names kept out of the log, and the shapes the firewall mirrors\n");
+   printf("ok    the names of auto-ban ranges: for user names of 89, 90, 91 and 200 characters every candidate within the column's 100, the prefix kept, its suffix intact after the cut and none the same once stored, a surrogate pair never split, the chooser never choosing the name a range stands under and asking only about names as the column stores them, the retry's GUID names, and the spam trap's, the null sender's and AUTH on a delivery port's names within the column\n");
    return 0;
 }

@@ -842,6 +842,7 @@
     <Compile Include="Security\AutoBanWiden.cs" />
     <Compile Include="Security\AutoBanHookRetry.cs" />
     <Compile Include="Security\AutoBanWidenCom.cs" />
+    <Compile Include="Security\AutoBanRangeName.cs" />
     <Compile Include="Security\PasswordPolicyTests.cs" />
     <Compile Include="Security\PasswordBreachCheck.cs" />
     <Compile Include="Security\PasswordExpiryTests.cs" />

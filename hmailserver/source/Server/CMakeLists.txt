@@ -728,8 +728,11 @@ set_target_properties(never-ban-tests PROPERTIES OUTPUT_NAME never-ban-tests)
 # program of its own, for the same reason: the run of a shared registrable domain
 # inside one /24, each direction's stops, the banned address's own reverse name
 # forward-confirmed, a lookup not answered leaving the single address, and the
-# shapes the firewall mirrors. No network - the tester answers its own lookups -
-# no configuration, no database. Not installed; a bench tool.
+# shapes the firewall mirrors. And AccountLogonRangeNameTester
+# (Common/Util/AccountLogon.h): the names of the ranges an auto-ban writes, within
+# the column's 100 characters with the suffix that makes each unique intact,
+# whatever the length of the user name. No network - the tester answers its own
+# lookups - no configuration, no database. Not installed; a bench tool.
 add_executable(autoban-widen-tests ${SERVER_DIR}/platform/autoban_widen_tests_main.cpp)
 target_link_libraries(autoban-widen-tests PRIVATE hmailserver_core)
 set_target_properties(autoban-widen-tests PROPERTIES OUTPUT_NAME autoban-widen-tests)

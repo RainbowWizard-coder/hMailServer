@@ -5,9 +5,13 @@
 
 #pragma once
 
+#include <functional>
+
 namespace HM
 {
    class Account;
+   class PersistentLogonFailure;
+   class SecurityRange;
    struct SecondFactorOffer;
 
    class AccountLogon
@@ -162,17 +166,78 @@ namespace HM
       // is how the next AUTH from the address finds it in force.
       static String AuthOnDeliveryPortRangeName(const IPAddress &ipaddress);
 
+      // What every auto-ban's range name begins with, "Auto-ban: ".
+      static const TCHAR *const AutoBanRangePrefix;
+
+      // The name of an auto-ban's range: the prefix, as much of reason (the user
+      // name a run of failed logons guessed at, "spam trap " and the trap, what
+      // was done) as the column leaves room for, and suffix whole - so that within
+      // the column's 100 characters (PersistentSecurityRange::MaxNameLength) the
+      // suffix that makes a name unique is never what the cut takes, and no
+      // surrogate pair is split. It is the name as the column stores it.
+      static String RangeName(const String &reason, const String &suffix);
+
+      // The first of RangeName(reason, ...) that taken says no to: no suffix, then
+      // " (1)" to " (10)", then " (Z" and nine random characters ")" ten times,
+      // then UniqueRangeName. taken is asked about each as the column stores it.
+      static String ChooseRangeName(const String &reason, const std::function<bool(const String &)> &taken);
+
+      // RangeName(reason, " " and a GUID in braces): unique by construction, the
+      // name a range is written under when the one chosen was refused.
+      static String UniqueRangeName(const String &reason);
+
    private:
 
-      // True if the range was saved, which is the only case in which the address
-      // is actually banned and the firewall may be told.
-      bool CreateIPRange(const IPAddress &ipaddress, const String &username, int minutes);
+      friend class AccountLogonRangeNameTester;
 
-      String GetIPRangeName_(const String &username);
+      // True if the range was saved, which is the only case in which the address
+      // is actually banned and the firewall may be told. reason is what follows
+      // "Auto-ban: " in its name (RangeName). The name is chosen free
+      // (GetIPRangeName_); one the unique index refuses even so is written once
+      // more under UniqueRangeName before HM6099 is reported (WriteRange_).
+      bool CreateIPRange(const IPAddress &ipaddress, const String &reason, int minutes);
+
+      // ChooseRangeName against the database (PersistentSecurityRange::Exists).
+      String GetIPRangeName_(const String &reason);
+
+      // The save of a new range, and when it is refused, the one more under
+      // UniqueRangeName(reason). True when one of the two was written.
+      static bool WriteRange_(std::shared_ptr<SecurityRange> range, const String &reason);
+
+      // The address's spent failures cleared, HM6113 when they could not be.
+      static void ClearSpentFailures_(PersistentLogonFailure &logonFailure, const IPAddress &ipaddress);
 
       // What follows "Auto-ban: " in AuthOnDeliveryPortRangeName.
       static String AuthOnDeliveryPortReason_(const IPAddress &ipaddress);
 
       static boost::recursive_mutex ip_range_creation_mutex_;
+   };
+
+   // The names of the ranges an auto-ban writes (AccountLogon::RangeName,
+   // ChooseRangeName, UniqueRangeName): for user names of 89, 90, 91 and 200
+   // characters, every candidate within the column's 100, the "Auto-ban: "
+   // prefix kept, its suffix intact after the cut and no two the same once
+   // stored; a surrogate pair never split by the cut; the chooser, against a
+   // store holding the name a ban stands under, choosing another and asking
+   // about names only as the column stores them; and the other writers' names
+   // within the column. No database, configuration or network: Test runs in
+   // ClassTester on Windows and in autoban-widen-tests on Linux. TestDatabase,
+   // in ClassTester on Windows against the bench's database, with rows of its
+   // own deleted again: a name past the column finds the range stored under its
+   // cut, a name of characters outside the Latin code pages finds its range, and
+   // a new range under a name a range holds is refused as taken without an error
+   // and written again under a GUID name. TestAll is the two, which ClassTester
+   // runs. Every check runs; each throws std::logic_error once at the end, naming
+   // every one that did not hold.
+   class AccountLogonRangeNameTester
+   {
+   public:
+      void Test();
+      void TestDatabase();
+      void TestAll();
+
+   private:
+      void Names_();
+      void Database_();
    };
 }

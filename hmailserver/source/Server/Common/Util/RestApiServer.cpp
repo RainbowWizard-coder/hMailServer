@@ -12879,8 +12879,15 @@ namespace HM
       if (!ReadIpRangePriority(requestBody, priority))
          return BuildResponse_(400, "{\"error\":\"priority must be a whole number between -2000000000 and 2000000000\"}");
 
+      // The name as the JSON carries it, in UTF-8, as PUT /api/v1/ipranges/{id}
+      // reads it. Up to 6.3.7 its bytes were widened one by one, so a name with a
+      // character outside ASCII was stored as other characters, and longer.
+      String wideName;
+      if (!Unicode::MultiByteToWide(name, wideName))
+         return BuildResponse_(400, "{\"error\":\"name must be UTF-8\"}");
+
       std::shared_ptr<SecurityRange> range(new SecurityRange);
-      range->SetName(String(name));
+      range->SetName(wideName);
       range->SetLowerIP(lower);
       range->SetUpperIP(upper);
       range->SetPriority(priority);

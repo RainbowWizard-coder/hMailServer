@@ -68,19 +68,71 @@ namespace HM
    bool
    PersistentSecurityRange::SaveObject(std::shared_ptr<SecurityRange> pSR, String &result,  PersistenceMode mode)
    {
+      return Save_(pSR, result, mode, nullptr);
+   }
+
+   bool
+   PersistentSecurityRange::SaveNewObject(std::shared_ptr<SecurityRange> pSR, bool &nameTaken)
+   {
+      nameTaken = false;
+
+      String result;
+      return Save_(pSR, result, PersistenceModeNormal, &nameTaken);
+   }
+
+   String
+   PersistentSecurityRange::CutName(const String &text, int units)
+   {
+      if (units <= 0)
+         return String();
+
+      if (text.GetLength() <= units)
+         return text;
+
+      // The unit kept last is the first half of a surrogate pair: it goes with
+      // its second half. A wchar_t of 32 bits holds no such half in text that
+      // was decoded, and one that holds it is cut the same way.
+      int keep = units;
+      const wchar_t last = text[keep - 1];
+      if (last >= 0xD800 && last <= 0xDBFF)
+         keep--;
+
+      return text.Mid(0, keep);
+   }
+
+   String
+   PersistentSecurityRange::StoredName(const String &name)
+   {
+      return CutName(name, MaxNameLength);
+   }
+
+   bool
+   PersistentSecurityRange::Save_(std::shared_ptr<SecurityRange> pSR, String &result, PersistenceMode mode, bool *nameTaken)
+   {
+      if (nameTaken != nullptr)
+         *nameTaken = false;
+
       if (!Validate(pSR, result))
          return false;
 
-      if (!PreSaveLimitationsCheck::CheckLimitations(mode, pSR, result))
+      // The limitation check's one question about a range is whether a range has
+      // its name already. SaveNewObject's caller chose the name as free a moment
+      // ago, and the unique index is what decides - between servers sharing the
+      // database too, which the check cannot - so it is asked there alone, and its
+      // refusal is what nameTaken says.
+      if (nameTaken == nullptr && !PreSaveLimitationsCheck::CheckLimitations(mode, pSR, result))
          return false;
 
       DateTime rangeExpiresTime = pSR->GetExpiresTime();
       if (rangeExpiresTime.GetStatus() != DateTime::valid)
          rangeExpiresTime.SetDateTime(2001,01,01,0,0,0);
 
-      String name = pSR->GetName();
-      if (name.GetLength() > 100)
-         name = name.Mid(0, 100);
+      // The name the column stores, and the object is given it, so that what the
+      // caller reads back and reports is the row's name. Up to 6.3.7 the cut was
+      // made here alone, at 100 units whatever they were, while the auto-ban's
+      // choice of a free name asked about the name before the cut.
+      const String name = StoredName(pSR->GetName());
+      pSR->SetName(name);
 
       IPAddressSQLHelper helper;
 
@@ -114,9 +166,22 @@ namespace HM
 
       bool bNewObject = pSR->GetID() == 0;
 
+      // A refusal by the database's own rules is forgiven only for an insert a
+      // caller asked to be told of one (SaveNewObject), and an insert forgiven is
+      // answered as a success with no id (DALConnection::TryExecute): the id is
+      // what tells a row written from one refused.
+      const bool forgive = nameTaken != nullptr && bNewObject;
+
       // Save and fetch ID
       __int64 iDBID = 0;
-      bool bRetVal = Application::Instance()->GetDBManager()->Execute(oStatement, bNewObject ? &iDBID : 0);
+      bool bRetVal = Application::Instance()->GetDBManager()->Execute(oStatement, bNewObject ? &iDBID : 0, forgive ? DALConnection::DALErrorInSQL : 0);
+      if (bRetVal && forgive && iDBID <= 0)
+      {
+         *nameTaken = true;
+         result = "A range of this name exists already.";
+         return false;
+      }
+
       if (bRetVal && bNewObject)
          pSR->SetID((int) iDBID);
 
@@ -139,7 +204,7 @@ namespace HM
    PersistentSecurityRange::ReadObject(std::shared_ptr<SecurityRange> pSR, const String &name)
    {
       SQLCommand command(_T("select * from hm_securityranges where rangename = @RANGENAME"));
-      command.AddParameter("@RANGENAME", name);
+      command.AddParameter("@RANGENAME", StoredName(name));
 
       return ReadObject(pSR, command);
    }
@@ -250,27 +315,25 @@ namespace HM
    bool
    PersistentSecurityRange::Exists(const String &name)
    {
-      String whereClause = "rangename = '" + SQLStatement::Escape(name) + "'";
+      // Bound as a parameter, as ReadObject(name) binds it and SaveObject's
+      // INSERT binds the name. Up to 6.3.7 the name was written into the WHERE
+      // clause as a '...' literal, which SQL Server reads as varchar in the
+      // database's code page: a name with a character outside it compared
+      // unequal to the nvarchar the INSERT had stored under it, so the auto-ban's
+      // choice of a free name chose the stored one again and the unique index
+      // refused the range. MySQL and PostgreSQL are given the literal the INSERT
+      // is written with (SQLStatement::GenerateFromCommand), as before.
+      SQLCommand command(_T("select count(*) as c from hm_securityranges where rangename = @RANGENAME"));
+      command.AddParameter("@RANGENAME", StoredName(name));
 
-      SQLStatement oStatement;
-      oStatement.SetStatementType(SQLStatement::STSelect);
-      oStatement.SetTable("hm_securityranges");
-      oStatement.AddColumn("count(*) as c");
-      oStatement.SetWhereClause(whereClause);
-
-      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(oStatement);
+      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!pRS)
          return false;
 
-      bool bRetVal = false;
-      if (!pRS->IsEOF())
-      {
-         int count = pRS->GetLongValue("c");
-         if (count > 0)
-            return true;
-      }
+      if (pRS->IsEOF())
+         return false;
 
-      return false;
+      return pRS->GetLongValue("c") > 0;
    }
 
    bool

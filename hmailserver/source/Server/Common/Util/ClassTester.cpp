@@ -157,6 +157,7 @@ namespace
 #include "../AntiSpam/DMARC/PublicSuffixList.h"
 #include "NeverBanNameList.h"
 #include "AutoBanWidener.h"
+#include "AccountLogon.h"
 #include "../AntiSpam/SURBL.h"
 #include "../AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
 #include "RateLimiter.h"
@@ -510,6 +511,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing AutoBanWidener\n"));
       AutoBanWidenerTester autoBanWidenerTester;
       autoBanWidenerTester.Test();
+
+      // The names of the ranges an auto-ban writes: within the column's 100
+      // characters with the suffix that makes each unique intact, whatever the
+      // length of the user name; and against the bench's database, a name past
+      // the column or outside its code page finding the range stored under it,
+      // and a name taken between the choice and the insert written again under
+      // a GUID rather than refused.
+      OutputDebugString(_T("hMailServer: Testing the names of auto-ban ranges\n"));
+      AccountLogonRangeNameTester accountLogonRangeNameTester;
+      accountLogonRangeNameTester.TestAll();
 
       // UTS 46, which the next reads a link's host with when it is not ASCII:
       // Unicode's own conformance tests, IdnaTestV2.txt, every line - the

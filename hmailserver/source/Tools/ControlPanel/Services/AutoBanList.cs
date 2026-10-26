@@ -57,7 +57,9 @@ namespace hMailServer.ControlPanel.Services
          // braces) - a counter the reader has no use for, and one a second address that
          // mails the same spam trap while the first is banned is given as readily as a
          // second run of failed sign-ins as one user name. So the suffix goes before the
-         // cause is read, for each of the four.
+         // cause is read, for each of the four. The suffix is always the name's end: the
+         // user name or the trap before it is shortened to leave it room within the
+         // column's 100 characters (AccountLogon::RangeName), so a long one is shown cut.
          rest = UniqueSuffix_.Replace(rest, "");
 
          const string trap = "spam trap "; // no-loc: the server's words (AccountLogon::BanForSpamTrap)

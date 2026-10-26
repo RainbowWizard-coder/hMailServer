@@ -102,6 +102,28 @@ namespace RegressionTests.Shared
          return errorMessage.StartsWith("+OK");
       }
 
+      /// <summary>
+      ///    Connects and signs in with AUTH PLAIN (RFC 4616), the user name and the
+      ///    password in UTF-8 as the mechanism carries them, so that a name outside
+      ///    ASCII reaches the server as written. True for +OK; reply is the server's
+      ///    answer, or the greeting when there was no +OK one.
+      /// </summary>
+      public bool ConnectAndLogonPlain(string username, string password, out string reply)
+      {
+         reply = "";
+         if (!Connect())
+            return false;
+
+         if (!ReceiveBanner(out reply))
+            return false;
+
+         var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes("\0" + username + "\0" + password));
+         _tcpConnection.Send("AUTH PLAIN " + credentials + "\r\n");
+
+         reply = _tcpConnection.ReadUntil(new List<string> { "+OK", "-ERR" });
+         return reply.StartsWith("+OK");
+      }
+
       public bool ReceiveBanner(out string errorMessage)
       {
          errorMessage = string.Empty;
