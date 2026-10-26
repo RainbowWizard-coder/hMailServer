@@ -989,6 +989,14 @@ that administrators upgrade by hand.
 14. **Close the loop**: answer every issue the release resolves on GitLab (and
     close them), update the ones it does not resolve saying so plainly; the
     repository on GitHub has no Issues.
+15. **The COM baseline**: `python build/check-com-abi.py --write-baseline
+    vX.Y.Z` with the tag just made, and land `build/com-abi-baseline.txt` as it
+    writes it. From then on every COM member the release has keeps its place:
+    an early-bound client built against its type library calls the member it
+    names only while every member added after the release is declared after
+    the last one the release had. Until it is rewritten the check holds the
+    tree to the older release, and, in a clone that has both tags, to the new
+    tag's `hMailServer.idl` as well.
 
 ## Standing rules
 

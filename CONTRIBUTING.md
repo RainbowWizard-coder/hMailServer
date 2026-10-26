@@ -466,6 +466,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-cli.py` | `hmctl` and the PowerShell module against a recorded server | The PowerShell half skips itself when neither `pwsh` nor `powershell` is present |
 | `check-cli-packages.py` | The two clients' packages: `HmailServer.psd1`'s version and function list against `Version.h` and the module, and `hmailserver-cli` built from `hmctl` with no dependency and no install-time code ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)) | `--self-test`; `--dist DIR` also checks a built sdist and wheel |
 | `check-collection-iteration.py` | Every loop over a shared collection iterates a locked copy (`GetSnapshot()`) | `--self-test` |
+| `check-com-abi.py` | Every COM interface keeps the last release's members in their places: each interface's IID and base, and its members in their declared order with their kinds, dispatch ids, return types and parameter types and directions, are those of `build/com-abi-baseline.txt` (written from the release tag) before anything added after them, since a dual interface's vtable follows declaration order and an early-bound client built against the released type library otherwise calls another method; the library's and each coclass's identity are held too | `--self-test`; **Rewrites** the baseline with `--write-baseline vX.Y.Z` (RELEASE.md, step 15) |
 | `check-com-dispids.py` | No two members of one COM interface share a dispatch id | |
 | `check-com-error-info.py` | Every COM class that raises errors answers `ISupportErrorInfo` | `--self-test` |
 | `check-com-shared-copies.py` | A COM change to an item of one of the running server's collections is written onto a copy, and every hand-out attaches the shared collection | `--self-test` |
@@ -552,7 +553,7 @@ something which already exists.
 | You changed | Run at least |
 |---|---|
 | Anything | `add-license-headers.py --check`, `check-project-items.py`, `check-control-bytes.py`; `build/ci/reuse-lint.sh` when you add, remove or rename a file, or add a third party's code |
-| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
+| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-abi.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `generate-auth-matrix.py` (and commit the matrix it writes; if it stops on a changed step, read `decide()` against the step and update `STEPS`), `check-cli.py` if a client verb changed |
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-help-map.py`, `check-spacing.py`, `generate-settings-index.ps1`, `dotnet format` |
@@ -711,7 +712,8 @@ Then:
 
 * Implement every member you declare: a declared, unimplemented property makes the class abstract.
 * `Release`, `AddRef` and `QueryInterface` cannot be member names.
-* `check-com-dispids.py` (find the interface's highest dispatch id first), `check-com-error-info.py`,
+* `check-com-abi.py` (a new member goes after the last one of its interface, never above one that shipped),
+  `check-com-dispids.py` (find the interface's highest dispatch id first), `check-com-error-info.py`,
   `check-idl-case.py` (a name must not be spelled like one already in the IDL in another case), and
   `check-audit-choke-point.py` for a COM write.
 * The COM wrapper regenerates itself; build the server first, then the tools, so it is made from the new type

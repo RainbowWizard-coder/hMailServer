@@ -1885,6 +1885,7 @@ interface IInterfaceUtilities : IDispatch{
    // library then calls the wrong method rather than failing to bind. The id()
    // values are what keep late binding stable; position is what keeps early
    // binding stable, and only one of the two is visible in a diff.
+   // build/check-com-abi.py holds every member of the last release in its place.
    //
    // The ACME certificate: a check asked for now, and how the checks went. See
    // Common/Util/AcmeClient.h.

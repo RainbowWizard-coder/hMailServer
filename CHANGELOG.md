@@ -1011,6 +1011,23 @@ with `--check`).
 
 ### Build and tests
 
+- **New: `build/check-com-abi.py` holds every COM interface to the members the last release gave it, in their
+  places.** A dual interface's vtable follows the order its members are declared in, so a member declared above one
+  that shipped calls another method for every early-bound client built against the released type library, and no
+  build, test of the tree or late-bound script notices; `Utilities.RunAcmeCheck` and `GetAcmeStatus` were so declared
+  (Correctness, above). `build/com-abi-baseline.txt` is what 6.3.7's `hMailServer.idl` says - the library's uuid and
+  version, each coclass's uuid and default interface, and each interface's IID, base and members in order, with each
+  member's kind, dispatch id, name, return type and its parameters' directions and types - and the check holds the
+  tree to beginning each of those interfaces with exactly those members, refusing an insertion, a removal, a move, a
+  changed dispatch id, kind or parameter type or direction, a changed IID and a missing interface, and naming the
+  interface, the member's place and its vtable slot. The baseline is written from a release tag with
+  `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag the file is also held to what the
+  tag's `hMailServer.idl` says, and the tree to every newer release tag there. Every run, the checkers job's among
+  them, proves its negative controls first (`--self-test` runs only those): the ACME methods put back after
+  `GetReputationReport`, a member inserted, removed, swapped, given another dispatch id, kind, parameter type or
+  direction, an IID changed and an interface taken away are refused, and a member appended, wrapped over two lines or
+  commented out are not; the parse is held to read every `HRESULT` of every interface body. It takes under a second.
+
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in
   version 2.2.0 of the format (the specification's current release, of 31 January 2026) what the OSPS Baseline
