@@ -33,6 +33,10 @@ namespace HM
 
    SynchronousConnection::SynchronousConnection(int timeoutSeconds) :
       socket_(io_context_),
+#ifdef HM_PLATFORM_POSIX
+      local_socket_(io_context_),
+      local_(false),
+#endif
       seconds_(timeoutSeconds),
       remote_port_(0)
    {
@@ -46,6 +50,10 @@ namespace HM
          boost::system::error_code err;
          socket_.shutdown(tcp::socket::shutdown_both, err);
          socket_.close(err);
+#ifdef HM_PLATFORM_POSIX
+         local_socket_.shutdown(boost::asio::socket_base::shutdown_both, err);
+         local_socket_.close(err);
+#endif
       }
       catch (...)
       {
@@ -70,6 +78,7 @@ namespace HM
          auto endpoints = resolver.resolve(hostName, AnsiString(StringParser::IntToString(port)), resolve_error);
          if (resolve_error)
          {
+            last_error_ = resolve_error;
             LOG_DEBUG(Formatter::Format("Failed while resolving {0}. Error: {1}", hostName, AnsiString(resolve_error.message())));
 
             return false;
@@ -88,13 +97,50 @@ namespace HM
 
          return true;
       }
-      catch (boost::system::system_error&)
+      catch (boost::system::system_error &error)
       {
+         last_error_ = error.code();
          Close();
 
          return false;
       }
    }
+
+#ifdef HM_PLATFORM_POSIX
+   bool
+   SynchronousConnection::ConnectLocal(const AnsiString &path)
+   {
+      remote_host_ = path;
+      remote_port_ = 0;
+      local_ = true;
+
+      try
+      {
+         // A path longer than a socket address holds is refused here, by the
+         // endpoint, with name_too_long.
+         const boost::asio::local::stream_protocol::endpoint endpoint(std::string(path.c_str()));
+
+         boost::optional<error_code> connect_result;
+         local_socket_.async_connect(endpoint, std::bind(set_result, &connect_result, std::placeholders::_1));
+
+         if (!WaitForCompletion_(connect_result, "connecting"))
+         {
+            Close();
+
+            return false;
+         }
+
+         return true;
+      }
+      catch (boost::system::system_error &error)
+      {
+         last_error_ = error.code();
+         Close();
+
+         return false;
+      }
+   }
+#endif
 
    bool
    SynchronousConnection::Write(const AnsiString &data)
@@ -114,15 +160,19 @@ namespace HM
    {
       try
       {
-         // Start an asynchronous write.
-         boost::optional<error_code> write_result;
-         async_write(socket_, boost::asio::buffer(buf, bufSize), std::bind(set_result, &write_result, std::placeholders::_1));
+         return OnSocket_([&](auto &socket)
+            {
+               // Start an asynchronous write.
+               boost::optional<error_code> write_result;
+               async_write(socket, boost::asio::buffer(buf, bufSize), std::bind(set_result, &write_result, std::placeholders::_1));
 
-         // Wait for data to be written.
-         return WaitForCompletion_(write_result, "sending data");
+               // Wait for data to be written.
+               return WaitForCompletion_(write_result, "sending data");
+            });
       }
-      catch (boost::system::system_error&)
+      catch (boost::system::system_error &error)
       {
+         last_error_ = error.code();
          return false;
       } 
    }
@@ -138,12 +188,17 @@ namespace HM
          // does not return until the operation has reported its result.
          boost::asio::streambuf readBuffer;
 
-         // Start an asynchronous read.
-         boost::optional<error_code> read_result;
-         async_read_until(socket_, readBuffer, delimiter, std::bind(set_result, &read_result, std::placeholders::_1));
+         const bool read = OnSocket_([&](auto &socket)
+            {
+               // Start an asynchronous read.
+               boost::optional<error_code> read_result;
+               async_read_until(socket, readBuffer, delimiter, std::bind(set_result, &read_result, std::placeholders::_1));
 
-         // Wait for input.
-         if (!WaitForCompletion_(read_result, "reading response"))
+               // Wait for input.
+               return WaitForCompletion_(read_result, "reading response");
+            });
+
+         if (!read)
             return false;
 
          std::istream is(&readBuffer);
@@ -152,8 +207,9 @@ namespace HM
 
          return true;
       }
-      catch (boost::system::system_error&)
+      catch (boost::system::system_error &error)
       {
+         last_error_ = error.code();
          return false;
       }  
    }
@@ -202,6 +258,8 @@ namespace HM
 
       if (deadline_reached)
       {
+         last_error_ = boost::asio::error::timed_out;
+
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5523, "SynchronousConnection::WaitForCompletion_",
             Formatter::Format("Timed out after {0} seconds while {1}. Remote server: {2}.", seconds_, operation_description, GetRemoteName_()));
 
@@ -210,10 +268,12 @@ namespace HM
 
       if (operation_result)
       {
+         last_error_ = *operation_result;
          LOG_DEBUG(Formatter::Format("Failed while {0}. Remote server: {1}. Error: {2}", operation_description, GetRemoteName_(), AnsiString(operation_result->message())));
       }
       else
       {
+         last_error_ = boost::asio::error::operation_aborted;
          LOG_DEBUG(Formatter::Format("No result was reported while {0}. Remote server: {1}.", operation_description, GetRemoteName_()));
       }
 
@@ -223,6 +283,11 @@ namespace HM
    String
    SynchronousConnection::GetRemoteName_() const
    {
+#ifdef HM_PLATFORM_POSIX
+      // A local socket is named by its path alone.
+      if (local_)
+         return String(remote_host_);
+#endif
       return Formatter::Format("{0}:{1}", remote_host_, remote_port_);
    }
 
@@ -231,6 +296,9 @@ namespace HM
    {
       boost::system::error_code err;
       socket_.close(err);
+#ifdef HM_PLATFORM_POSIX
+      local_socket_.close(err);
+#endif
    }
 
 

@@ -3375,7 +3375,12 @@ namespace hMailServer.ControlPanel.Views
 
          var clamav = Card(L("ClamAV (clamd)"));
          clamav.Settings.Add(new ComBool { Path = "AntiVirus.ClamAVEnabled", Label = L("Scan with clamd") });
-         var clamHost = new ComText { Path = "AntiVirus.ClamAVHost", Label = L("Host") };
+         var clamHost = new ComText
+         {
+            Path = "AntiVirus.ClamAVHost",
+            Label = L("Host"),
+            Blurb = L("The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one.")
+         };
          var clamPort = new ComText { Path = "AntiVirus.ClamAVPort", Label = L("Port"), Numeric = true };
          clamav.Settings.Add(clamHost);
          clamav.Settings.Add(clamPort);

@@ -498,7 +498,12 @@ STDMETHODIMP InterfaceAntiVirus::put_ClamAVHost(BSTR host)
       if (!GetIsServerAdmin())
          return GetAccessDenied();
 
-   
+      // The path of a Unix socket, which the Linux server takes here, is refused on
+      // Windows rather than stored, so that nothing is left to fail at the next scan.
+      const HM::String refusal = HM::AntiVirusConfiguration::ClamAVHostRefusal(host);
+      if (!refusal.IsEmpty())
+         return COMError::GenerateError(refusal);
+
       antiVirusConfiguration_.SetClamAVHost(host);
    
       return S_OK;

@@ -1923,13 +1923,14 @@ namespace
    // collection and not a setting, and are not in this group.
    const Row AntiVirusRows[] =
    {
-      // ClamAV, over TCP.
+      // ClamAV, over TCP or, on Linux, over clamd's Unix socket.
       { "clamav_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether messages are scanned by a ClamAV daemon.",
         ROW_FLAG(AntiVirus().GetClamAVEnabled()), ROW_SET(AntiVirus().SetClamAVEnabled(v.flag)), ROW_NO_CHECK },
       { "clamav_host", KindString, ReadWrite, EffectNow, nullptr,
-        "The ClamAV daemon's host.",
-        ROW_TEXT(AntiVirus().GetClamAVHost()), ROW_SET(AntiVirus().SetClamAVHost(v.text)), ROW_NO_CHECK },
+        "The ClamAV daemon's host name or address, reached over TCP on clamav_port. On Linux, the absolute path of clamd's Unix socket instead (LocalSocket in clamd.conf: /var/run/clamav/clamd.ctl on Debian and Ubuntu, /run/clamav/clamd.sock on Alpine), and clamav_port is then not used; the server's user needs write permission on the socket. A path is refused on Windows, where clamd listens on TCP.",
+        ROW_TEXT(AntiVirus().GetClamAVHost()), ROW_SET(AntiVirus().SetClamAVHost(v.text)),
+        [] (const Value &v) { return AntiVirusConfiguration::ClamAVHostRefusal(v.text); } },
       { "clamav_port", KindInteger, ReadWrite, EffectNow, nullptr,
         "The ClamAV daemon's port, 1 to 65535.",
         ROW_NUMBER(AntiVirus().GetClamAVPort()), ROW_SET(AntiVirus().SetClamAVPort((int) v.number)),

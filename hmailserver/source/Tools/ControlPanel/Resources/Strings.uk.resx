@@ -13534,6 +13534,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Не вдалося прочитати ім'я вузла із сервера.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Ім'я хоста або адреса, на якій слухає clamd (TCPAddr у clamd.conf); з'єднання йде через TCP на порт нижче. Сервер для Linux приймає тут і шлях до Unix-сокета clamd, наприклад /var/run/clamav/clamd.ctl; цей сервер, у Windows, такий шлях відхиляє.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Ім'я вузла {0} закінчується іменем, на яке не відповідає жоден публічний DNS, тому отримувач в інтернеті не може його знайти.</value>
   </data>

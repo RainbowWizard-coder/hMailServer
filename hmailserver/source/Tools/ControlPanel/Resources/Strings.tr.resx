@@ -13353,6 +13353,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Ana bilgisayar adı sunucudan okunamadı.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>clamd'nin dinlediği ana bilgisayar adı veya adres (clamd.conf içindeki TCPAddr); aşağıdaki bağlantı noktasına TCP üzerinden ulaşılır. Linux sunucusu buraya clamd'nin Unix soketinin yolunu da kabul eder, örneğin /var/run/clamav/clamd.ctl; Windows üzerindeki bu sunucu ise bir yolu reddeder.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>{0} ana bilgisayar adı, hiçbir genel DNS'in yanıt vermediği bir adla bitiyor; bu yüzden İnternet'teki bir alıcı onu arayamaz.</value>
   </data>

@@ -13364,6 +13364,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>サーバーからホスト名を読み取れませんでした。</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>clamd が待ち受けるホスト名またはアドレス (clamd.conf の TCPAddr) で、下のポートに TCP で接続します。Linux 版のサーバーはここに clamd の Unix ソケットのパス (/var/run/clamav/clamd.ctl など) も受け付けますが、Windows 上のこのサーバーはパスを拒否します。</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>ホスト名 {0} は、どの公開 DNS も応答しない名前で終わっているため、インターネット上の受信側はこれを参照できません。</value>
   </data>

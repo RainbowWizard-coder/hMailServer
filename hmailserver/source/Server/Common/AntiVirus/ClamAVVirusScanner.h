@@ -11,6 +11,11 @@ using boost::asio::ip::tcp;
 
 namespace HM
 {
+   // clamd is reached at hostName and port over TCP, or, on Linux and the other
+   // POSIX systems, where hostName is the absolute path of clamd's Unix socket
+   // (AntiVirusConfiguration::IsClamAVSocketPath), at that socket, and port is not
+   // used. Every command below is the same over either; on Windows a path is
+   // refused, naming ClamAVHost, before anything is tried.
    class ClamAVVirusScanner
    {
    public:

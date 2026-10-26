@@ -129,6 +129,10 @@ NoNewPrivileges=yes
 # side: the only code that writes hMailServer.INI is the COM administration API,
 # which is not part of this build, so a configuration this service could rewrite
 # would be a privilege nothing here uses.
+#
+# Read-only does not keep the service from a socket: connecting to clamd's
+# /run/clamav/clamd.ctl is a write to the socket, which a read-only mount allows
+# (it refuses writes to files, directories and links), so ClamAVHost may name it.
 ProtectSystem=strict
 ProtectHome=yes
 
@@ -136,8 +140,9 @@ ProtectHome=yes
 # rather than to /tmp, so a private /tmp costs nothing. The exception is a Custom
 # or ClamWin scanner, which hands a path to an external program: a helper started
 # outside this unit cannot see into a private /tmp. clamd is unaffected - it is
-# reached over TCP and the message is streamed to it with INSTREAM, never shared
-# through the filesystem.
+# reached over TCP or over its Unix socket under /run, and the message is streamed
+# to it with INSTREAM, never shared through the filesystem. A clamd socket under
+# /tmp is the exception: this unit sees its own /tmp, not clamd's.
 PrivateTmp=yes
 PrivateDevices=yes
 
@@ -161,10 +166,11 @@ RestrictSUIDSGID=yes
 LockPersonality=yes
 RemoveIPC=yes
 
-# AF_INET and AF_INET6 are the protocols; AF_UNIX is what syslog and the name
-# service switch use; AF_NETLINK is what glibc's getaddrinfo uses to enumerate
-# local addresses, and without it name resolution degrades in ways that are hard
-# to attribute afterwards. AF_PACKET and the rest have no business here.
+# AF_INET and AF_INET6 are the protocols; AF_UNIX is what syslog, the name
+# service switch and clamd's local socket (ClamAVHost set to its path) use;
+# AF_NETLINK is what glibc's getaddrinfo uses to enumerate local addresses, and
+# without it name resolution degrades in ways that are hard to attribute
+# afterwards. AF_PACKET and the rest have no business here.
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
 
 SystemCallArchitectures=native

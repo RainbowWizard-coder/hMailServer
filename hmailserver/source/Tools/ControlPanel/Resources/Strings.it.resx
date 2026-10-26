@@ -13353,6 +13353,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Impossibile leggere il nome host dal server.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Il nome host o l'indirizzo su cui clamd è in ascolto (TCPAddr in clamd.conf), raggiunto via TCP sulla porta qui sotto. Il server Linux accetta qui anche il percorso del socket Unix di clamd, ad esempio /var/run/clamav/clamd.ctl; questo server, su Windows, lo rifiuta.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Il nome host {0} termina con un nome per cui nessun DNS pubblico risponde, quindi un destinatario su Internet non può cercarlo.</value>
   </data>

@@ -11,6 +11,7 @@
 #include "../TCPIP/SynchronousConnection.h"
 #include "../Util/ByteBuffer.h"
 #include "../Util/File.h"
+#include "../Util/Unicode.h"
 
 #include "../Application/TimeoutCalculator.h"
 
@@ -28,6 +29,73 @@ namespace HM
 {
    namespace
    {
+      // Where clamd is, as the messages name it: the path of its socket, or the host
+      // and the port.
+      String Where_(const String &hostName, int port)
+      {
+         if (AntiVirusConfiguration::IsClamAVSocketPath(hostName))
+            return hostName;
+
+         return Formatter::Format("{0}:{1}", hostName, port);
+      }
+
+#ifdef HM_PLATFORM_POSIX
+      // Why a local socket could not be reached, in the administrator's terms: no
+      // socket at the path and a socket nobody accepts on are both nothing listening,
+      // and a socket this server's user may not write to is a matter of the socket's
+      // mode or group, not of clamd.
+      String LocalFailure_(const boost::system::error_code &error)
+      {
+         if (error == boost::system::errc::no_such_file_or_directory)
+            return "nothing is listening there, as there is no socket at that path. Check that clamd is running and that LocalSocket in clamd.conf names this path.";
+
+         if (error == boost::system::errc::connection_refused)
+            return "nothing is listening there: the socket is there, and no clamd accepts on it. Check that clamd is running.";
+
+         if (error == boost::system::errc::permission_denied || error == boost::system::errc::operation_not_permitted)
+            return "the socket is there, and this server's user may not connect to it. Give that user write permission on the socket "
+                   "(LocalSocketMode 666 in clamd.conf, or LocalSocketGroup a group the user is in) and a way to it.";
+
+         if (error == boost::asio::error::timed_out)
+            return "it did not accept the connection in the time allowed.";
+
+         return String(AnsiString(error.message()));
+      }
+#endif
+
+      // Connects to clamd at ClamAVHost: over TCP to hostName and port, or, where
+      // hostName is the absolute path of a Unix socket, to that socket. error says why
+      // when it fails; a path that cannot be used here is refused before anything is
+      // tried.
+      bool Connect_(SynchronousConnection &connection, const String &hostName, int port, String &error)
+      {
+         if (AntiVirusConfiguration::IsClamAVSocketPath(hostName))
+         {
+            const String refusal = AntiVirusConfiguration::ClamAVHostRefusal(hostName);
+            if (!refusal.IsEmpty())
+            {
+               error = refusal;
+               return false;
+            }
+
+#ifdef HM_PLATFORM_POSIX
+            AnsiString path;
+            Unicode::WideToMultiByte(hostName, path);
+            if (connection.ConnectLocal(path))
+               return true;
+
+            error = Formatter::Format("Unable to connect to ClamAV server at {0}: {1}", hostName, LocalFailure_(connection.GetLastError()));
+            return false;
+#endif
+         }
+
+         if (connection.Connect(hostName, port))
+            return true;
+
+         error = Formatter::Format("Unable to connect to ClamAV server at {0}:{1}.", hostName, port);
+         return false;
+      }
+
       // The INSTREAM chunk prefix: the chunk's length as four octets in network order,
       // and a zero length ends the stream.
       bool WriteChunkLength_(SynchronousConnection &connection, uint32_t size)
@@ -48,11 +116,9 @@ namespace HM
 
          LOG_DEBUG("Connecting to ClamAV virus scanner...");
          SynchronousConnection commandConnection(calculator.Calculate(IniFileSettings::Instance()->GetClamMinTimeout(), IniFileSettings::Instance()->GetClamMaxTimeout()));
-         if (!commandConnection.Connect(hostName, port))
-         {
-            return VirusScanningResult(_T("ClamAVVirusScanner::Scan"),
-               Formatter::Format("Unable to connect to ClamAV server at {0}:{1}.", hostName, port));
-         }
+         String connectError;
+         if (!Connect_(commandConnection, hostName, port, connectError))
+            return VirusScanningResult(_T("ClamAVVirusScanner::Scan"), connectError);
 
          if (!commandConnection.Write("nINSTREAM\n"))
             return VirusScanningResult("ClamAVVirusScanner::Scan", "Unable to write INSTREAM command.");
@@ -126,16 +192,13 @@ namespace HM
 
       {
          SynchronousConnection connection(timeout);
-         if (!connection.Connect(hostName, port))
-         {
-            error = Formatter::Format("Unable to connect to ClamAV server at {0}:{1}.", hostName, port);
+         if (!Connect_(connection, hostName, port, error))
             return false;
-         }
 
          AnsiString reply;
          if (!connection.Write("nPING\n") || !connection.ReadUntil("\n", reply))
          {
-            error = Formatter::Format("clamd at {0}:{1} did not answer PING.", hostName, port);
+            error = Formatter::Format("clamd at {0} did not answer PING.", Where_(hostName, port));
             return false;
          }
          connection.Close();
@@ -143,7 +206,7 @@ namespace HM
          reply.TrimRight("\n");
          if (reply != "PONG")
          {
-            error = Formatter::Format("clamd at {0}:{1} answered PING with '{2}' rather than PONG.", hostName, port, String(reply));
+            error = Formatter::Format("clamd at {0} answered PING with '{1}' rather than PONG.", Where_(hostName, port), String(reply));
             return false;
          }
       }
@@ -151,7 +214,8 @@ namespace HM
       // The version is a courtesy: a daemon that answers PING but not VERSION is
       // still a daemon, so a failure here is reported in the text, not as a failure.
       SynchronousConnection connection(timeout);
-      if (connection.Connect(hostName, port))
+      String versionError;
+      if (Connect_(connection, hostName, port, versionError))
       {
          AnsiString reply;
          if (connection.Write("nVERSION\n") && connection.ReadUntil("\n", reply))

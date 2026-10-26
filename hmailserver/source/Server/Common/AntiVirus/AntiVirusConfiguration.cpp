@@ -6,6 +6,12 @@
 #include "stdafx.h"
 #include "AntiVirusConfiguration.h"
 
+#include "../Util/Unicode.h"
+
+#ifdef HM_PLATFORM_POSIX
+#include <sys/un.h>
+#endif
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -203,5 +209,34 @@ namespace HM
    AntiVirusConfiguration::GetClamAVPort() 
    {
       return GetSettings_()->GetLong(PROPERTY_CLAMAV_PORT);
+   }
+
+   bool
+   AntiVirusConfiguration::IsClamAVSocketPath(const String &host)
+   {
+      return host.GetLength() > 0 && host.GetAt(0) == '/';
+   }
+
+   String
+   AntiVirusConfiguration::ClamAVHostRefusal(const String &host)
+   {
+      if (!IsClamAVSocketPath(host))
+         return String();
+
+#ifdef HM_PLATFORM_POSIX
+      // sun_path holds the path and the zero that ends it.
+      AnsiString path;
+      Unicode::WideToMultiByte(host, path);
+      const int longest = static_cast<int>(sizeof(static_cast<sockaddr_un*>(nullptr)->sun_path)) - 1;
+      if (path.GetLength() > longest)
+         return Formatter::Format("ClamAVHost is {0}, a socket path of {1} bytes, and the path of a Unix socket can have at most {2}.",
+            host, path.GetLength(), longest);
+
+      return String();
+#else
+      return Formatter::Format("ClamAVHost is {0}, the path of a Unix socket, which this server cannot reach on Windows: "
+         "clamd on Windows listens on TCP, so set ClamAVHost to its host name or address and ClamAVPort to its port "
+         "(TCPAddr and TCPSocket in clamd.conf).", host);
+#endif
    }
 }

@@ -532,6 +532,22 @@ listeners, an account was created over the REST API, a message submitted over
 SMTP with authentication was delivered, and the same message was read back over
 IMAP with its subject intact.
 
+**Virus scanning with the distribution's clamd.** ClamAV's daemon listens on a
+Unix socket on every distribution, and the server takes the socket's path as
+its ClamAV host. On Debian and Ubuntu, whose `clamav-daemon` makes
+`/var/run/clamav/clamd.ctl` open to every user, that is all:
+
+```sh
+sudo apt install clamav-daemon
+hmctl settings set antivirus --set-string clamav_host=/var/run/clamav/clamd.ctl --set clamav_enabled=true
+```
+
+Elsewhere the `hmailserver` user may need to be in the socket's group (Fedora's
+`clamd@scan` has no socket until `LocalSocket` is uncommented in
+`/etc/clamd.d/scan.conf`). [ClamAV.md](../../../../docs/ClamAV.md) has each
+distribution's socket, its permissions and what the log says when the server
+cannot reach it.
+
 ## The live update
 
 > In the tree since 18 September 2026.

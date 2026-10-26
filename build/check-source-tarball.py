@@ -244,6 +244,8 @@ SOURCE_TESTERS_LEFT_OUT = {
     "database-transaction-tests": "it needs a database: given no configuration it says SKIPPED and tests nothing",
     "http-server-tests": "it serves and asks on a loopback socket, which the Debian build's offline.c refuses",
     "network-deadline-tests": "it holds connections on loopback sockets to their deadlines, which offline.c refuses",
+    "clamd-socket-tests": "it binds Unix sockets of its own under the temporary directory, and the lists hold the "
+                          "testers that need no socket",
     "root-command-tests": "most of it needs root, which a distribution's build does not run as",
     "imap-parse-tests": "every case in it is a pass held to a time over an input made to be 6.3.5's worst, the "
                         "bound one of them broke under emulation (a FETCH of 200,000 \"[]\" in 2.7 s against 2 s, "

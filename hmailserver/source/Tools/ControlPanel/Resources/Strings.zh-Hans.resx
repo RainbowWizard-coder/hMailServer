@@ -13353,6 +13353,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>无法从服务器读取主机名。</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>clamd 监听的主机名或地址（clamd.conf 中的 TCPAddr），通过 TCP 连接下面的端口。Linux 版服务器在此处也接受 clamd 的 Unix 套接字路径，例如 /var/run/clamav/clamd.ctl；Windows 上的本服务器会拒绝路径。</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>主机名 {0} 以一个没有任何公共 DNS 会应答的名称结尾，因此互联网上的接收方无法查询它。</value>
   </data>

@@ -13534,6 +13534,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Název hostitele se nepodařilo ze serveru přečíst.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Název hostitele nebo adresa, na které clamd naslouchá (TCPAddr v clamd.conf), dosažitelná přes TCP na portu níže. Linuxový server zde přijímá také cestu k unixovému soketu clamd, například /var/run/clamav/clamd.ctl; tento server ve Windows ji odmítne.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Název hostitele {0} končí názvem, na který neodpovídá žádný veřejný DNS, takže příjemce na internetu ho nemůže vyhledat.</value>
   </data>

@@ -60,6 +60,19 @@ namespace HM
       int GetClamAVPort();
       void SetClamAVPort(int bNewVal);
 
+      // ClamAVHost names clamd's host, reached over TCP on ClamAVPort, or, on Linux
+      // and the other POSIX systems, the absolute path of clamd's Unix socket
+      // (LocalSocket in clamd.conf), when ClamAVPort is not used. No host name starts
+      // with a slash, so that is what tells the two apart.
+      static bool IsClamAVSocketPath(const String &host);
+
+      // Why ClamAVHost cannot be host on this server, or nothing when it can. A socket
+      // path is refused on Windows, where clamd listens on TCP and this server reaches
+      // no Unix socket, and elsewhere when it is longer than a socket address holds.
+      // The COM and REST setters refuse with it, and the scanner and its connection
+      // test report it for a value that reached the database some other way.
+      static String ClamAVHostRefusal(const String &host);
+
 
    private:
       

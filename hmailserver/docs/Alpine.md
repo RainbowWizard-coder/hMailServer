@@ -77,6 +77,13 @@ the package is built without the live update) brings the database schema forward
 as the service's account when the configuration names a database, as the `.deb`
 does, and says to restart the service: `rc-service hmailserver restart`.
 
+To scan mail with ClamAV, Alpine's `clamav-daemon` listens on
+`/run/clamav/clamd.sock`: set `clamav_host` to that path and `clamav_enabled` on.
+Its `clamd.conf` sets no `LocalSocketMode`, which it describes as leaving the
+socket open to every user; with one that closes it, add the `hmailserver` user to
+the socket's group (`addgroup hmailserver clamav`) and restart the service
+([ClamAV.md](ClamAV.md)).
+
 The OpenRC service
 ------------------
 

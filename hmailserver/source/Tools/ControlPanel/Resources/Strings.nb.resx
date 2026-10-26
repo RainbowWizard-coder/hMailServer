@@ -13353,6 +13353,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Vertsnavnet kunne ikke leses fra serveren.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Vertsnavnet eller adressen clamd lytter på (TCPAddr i clamd.conf), som nås over TCP på porten nedenfor. Linux-serveren tar her også stien til clamds Unix-socket, for eksempel /var/run/clamav/clamd.ctl; denne serveren, på Windows, avviser en slik.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Vertsnavnet {0} slutter på et navn som ingen offentlig DNS svarer for, så en mottaker på internett kan ikke slå det opp.</value>
   </data>

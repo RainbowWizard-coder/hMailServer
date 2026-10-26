@@ -13534,6 +13534,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Nie udało się odczytać nazwy hosta z serwera.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Nazwa hosta lub adres, na którym nasłuchuje clamd (TCPAddr w clamd.conf), osiągany przez TCP na porcie poniżej. Serwer dla Linuksa przyjmuje tu również ścieżkę do gniazda Unix clamd, np. /var/run/clamav/clamd.ctl; ten serwer, w systemie Windows, ją odrzuca.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Nazwa hosta {0} kończy się nazwą, dla której żaden publiczny DNS nie udziela odpowiedzi, więc odbiorca w internecie nie może jej wyszukać.</value>
   </data>

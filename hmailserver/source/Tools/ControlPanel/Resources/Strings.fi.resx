@@ -13353,6 +13353,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The host name could not be read from the server." xml:space="preserve">
     <value>Konenimeä ei voitu lukea palvelimelta.</value>
   </data>
+  <data name="The host name or address clamd listens on (TCPAddr in clamd.conf), reached over TCP on the port below. The Linux server also takes the path of clamd's Unix socket here, such as /var/run/clamav/clamd.ctl; this server, on Windows, refuses one." xml:space="preserve">
+    <value>Isäntänimi tai osoite, jossa clamd kuuntelee (TCPAddr tiedostossa clamd.conf) ja johon yhdistetään TCP:llä alla olevaan porttiin. Linux-palvelin hyväksyy tähän myös clamdin Unix-socketin polun, kuten /var/run/clamav/clamd.ctl; tämä palvelin Windowsissa hylkää sen.</value>
+  </data>
   <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
     <value>Konenimi {0} päättyy nimeen, johon mikään julkinen DNS ei vastaa, joten internetissä oleva vastaanottaja ei voi hakea sitä.</value>
   </data>

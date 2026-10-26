@@ -21,6 +21,9 @@
        names a COM member the REST API has no equivalent of anywhere in the file, so
        there is nothing to link - or reads the repository it was built from rather
        than the server, which the Linux runs do not have beside them.
+       Beside Shims/, the project's own files are the fixtures of what the Windows
+       server refuses and so has no fixture for: AntiVirus/ClamdUnixSocket.cs, clamd
+       reached over its Unix socket, with a fake clamd of its own on one.
        docs/RegressionEnvironment.md ("On Linux") says how to run this. -->
 
   <PropertyGroup>

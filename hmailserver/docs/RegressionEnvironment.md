@@ -328,6 +328,8 @@ is through the environment, read once when the assembly loads:
 | `HMTEST_ADMIN_PASSWORD` | `testar` |
 | `HMTEST_SERVER_INI` | *unset; the ini is searched for* |
 | `HMTEST_NO_FAKE_DNS` | *unset; set to `1` to run without the fake DNS zone, so the DNS fixtures skip. Not needed for WSL2 or the hosted runner: the suite serves the zone on 127.0.0.1, or on 127.0.53.53 where that address is held or does not deliver, and proves delivery with a query before it points the server there* |
+| `HMTEST_FAKE_CLAMD_DIR` | *unset; the temporary directory. Where `AntiVirus/ClamdUnixSocket` makes the Unix socket of its fake clamd, which the server must see: set it when the server's `/tmp` is not the suite's, as under the systemd unit's `PrivateTmp`. The fixture skips against a server on another host* |
+| `HMTEST_CLAMD_SOCKET` | *unset; the socket of a running clamd (`/var/run/clamav/clamd.ctl` for Debian's `clamav-daemon`), through which `AntiVirus/ClamdUnixSocket` then sends a clean message and EICAR; unset, that one test skips* |
 
 `HMTEST_SERVER_INI` is the one that is not a port. A few fixtures write a
 setting the COM API does not carry - an account-lockout threshold, a DNS
