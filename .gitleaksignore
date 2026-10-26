@@ -186,4 +186,5 @@ c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private k
 # 15 October 2026, the help wiki link's twelve lines above it: to 5300, read again.
 # 16 October 2026, batch48's fold-2b: the help list's reading of generate-help-pages.py and HelpPagesData.cpp
 # (row A1's unit) under the wiki lines: to 5318, read again.
-/builds/hmailserver/hmailserver/build/deck-script-test.js:PGP private key:5318
+# 26 October 2026, the recorded server's GET /api/v1/acme and its state, four lines above it: to 5322, read again.
+/builds/hmailserver/hmailserver/build/deck-script-test.js:PGP private key:5322

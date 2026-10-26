@@ -1436,6 +1436,9 @@ function smimeAuthorityDoc(domain) {
 }
 
 const state = {
+   // GET /api/v1/acme's answer, or null for a status refused to the credential
+   // (the route then answers as one this server does not have).
+   acme: null,
    // What the recorded server has been asked to do, for the checks that count it.
    reputationChecks: 0,
    // The domains' S/MIME authorities, made as the page asks for them.
@@ -3453,6 +3456,7 @@ function answer(method, path, headers, raw) {
       if (method === 'DELETE') { state.remotedomains.splice(at, 1); return json(200, { deleted: true }); }
    }
 
+   if (path === '/api/v1/acme' && method === 'GET' && state.acme) { return json(200, state.acme); }
    if (path === '/api/v1/certificates' && method === 'GET') { return json(200, state.certificates); }
    if (path === '/api/v1/certificates' && method === 'POST') {
       const cert = { id: nextId++, name: parsed.name, certificate_file: parsed.certificate_file, private_key_file: parsed.private_key_file };
@@ -7326,6 +7330,55 @@ async function main() {
    click(act('certdel', { id: newCert }));
    await flush();
    check('an unbound one is deleted and gone from the re-read list', rows().length === 1);
+
+   // ---- the ACME card, from GET /api/v1/acme as AcmeClient::StatusJson writes it:
+   // domains and missing_domains are the hosts the server orders for, and a name of
+   // AcmeDomains no certificate can carry is in unusable_domains alone.
+   const acmeCertificate = { file: '/var/lib/hmailserver/ACME/fullchain.pem', names: ['mail.example.com'], subject: 'CN=mail.example.com',
+      issuer: 'CN=R11', serial: '0a1b', not_before: '2026-10-01T00:00:00Z', not_after: '2026-12-30T00:00:00Z', expired: false,
+      renews_at: '2026-11-30T00:00:00Z', deployed: true };
+   const acmeCard = async (status) => {
+      state.acme = Object.assign({ enabled: true, directory_url: 'https://acme-v02.api.letsencrypt.org/directory', certificate_directory: '/var/lib/hmailserver/ACME',
+         domains: [], unusable_domains: [], certificate: null, covers_domains: null, missing_domains: [] }, status);
+      await goTo('certs');
+      const card = content().querySelectorAll('.sect')[0];
+      const notices = card ? card.querySelectorAll('.notice').map((n) => n.attributes['data-level'] + ': ' + n.textContent) : [];
+      return { text: card ? card.textContent : '', notices };
+   };
+   let acmeSeen = await acmeCard({ domains: ['mail.example.com'], unusable_domains: ['*.example.com'], certificate: acmeCertificate,
+      covers_domains: true, missing_domains: [] });
+   check('a name of AcmeDomains no certificate can carry is named on the ACME card, and the certificate is not said to name every host',
+      acmeSeen.text.indexOf('Automatic certificate (ACME)') >= 0 &&
+      acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('No certificate can name *.example.com, so the server leaves it out of every check and order.') >= 0) &&
+      acmeSeen.notices.some((n) => n.indexOf('info: ') === 0 && n.indexOf('The certificate names every other host in AcmeDomains.') >= 0) &&
+      acmeSeen.text.indexOf('names every host in AcmeDomains') < 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: [], unusable_domains: ['*.example.com', '192.0.2.7'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
+   check('with every name of AcmeDomains left out, the card names them and says nothing is requested, whatever certificate is on disk',
+      acmeSeen.notices.some((n) => n.indexOf('No certificate can name *.example.com, 192.0.2.7, so') >= 0) &&
+      acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('AcmeDomains names no host a certificate can carry, so no certificate is requested.') >= 0) &&
+      acmeSeen.text.indexOf('The certificate names every') < 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: [], unusable_domains: [], certificate: null, missing_domains: [] });
+   check('a list of only blanks and dots, which the server reads as empty, gives the card no sentence with an empty name',
+      acmeSeen.notices.length === 1 && acmeSeen.notices[0].indexOf('AcmeDomains names no host a certificate can carry') >= 0 &&
+      acmeSeen.text.indexOf('No certificate can name') < 0 && acmeSeen.text.indexOf('The certificate names every') < 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: ['mail.example.com'], certificate: null, missing_domains: ['mail.example.com'] });
+   check('with no certificate on disk the card says so and names the hosts a check issues one for',
+      acmeSeen.notices.length === 1 &&
+      acmeSeen.notices[0].indexOf('No ACME certificate could be read from the server\'s disk; a check issues one for mail.example.com.') >= 0,
+      JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: ['mail.example.com', 'mta-sts.example.com'], certificate: acmeCertificate, covers_domains: false,
+      missing_domains: ['mta-sts.example.com'] });
+   check('a host the certificate lacks is named, and nothing is left out',
+      acmeSeen.notices.length === 1 && acmeSeen.notices[0].indexOf('warn: ') === 0 &&
+      acmeSeen.notices[0].indexOf('The certificate does not name mta-sts.example.com; a check issues one that does.') >= 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: ['mail.example.com'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
+   check('a certificate that names every host of a list with nothing left out says so, at the information level',
+      acmeSeen.notices.length === 1 && acmeSeen.notices[0].indexOf('info: ') === 0 &&
+      acmeSeen.notices[0].indexOf('The certificate names every host in AcmeDomains.') >= 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: ['mail.example.com'], unusable_domains: ['<b>x</b>'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
+   check('a name left out is drawn as text', acmeSeen.notices.some((n) => n.indexOf('No certificate can name <b>x</b>, so') >= 0) &&
+      content().querySelectorAll('.sect')[0].querySelectorAll('b').every((b) => b.textContent !== 'x'), JSON.stringify(acmeSeen.notices));
+   state.acme = null;
 
    // ---- ports
    before = requests.length;

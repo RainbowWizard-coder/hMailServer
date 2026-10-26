@@ -1002,12 +1002,18 @@ with `--check`).
   trail page, in its seventeen languages). Never a key, a nonce or the CA account in either.
 
 - **New: the Control Deck's *Certificates* page shows the ACME certificate and asks for a check.** A card above the
-  certificate list, from `GET /api/v1/acme`: the hosts `AcmeDomains` lists, the names the certificate carries, its
-  subject and expiry, whether a check is running and at which step, a notice naming the hosts it lacks (or saying it
-  names them all), the last check and the next, the last failed attempt with its reason and the CA's words, and *Check
-  now* for a credential that holds `manage_server`, with the time the next request is allowed when it must wait. A
-  refusal of the run comes back as the card's error, and a credential the status is refused to sees the page without
-  the card. Six new texts, in the twenty languages the Deck speaks.
+  certificate list, from `GET /api/v1/acme`: the hosts of `AcmeDomains` the server orders for, the names the
+  certificate carries, its subject and expiry, whether a check is running and at which step, the last check and the
+  next, the last failed attempt with its reason and the CA's words, and *Check now* for a credential that holds
+  `manage_server`, with the time the next request is allowed when it must wait. Its notices say what the server does
+  with the list: a name no certificate can carry (`unusable_domains`: a wildcard, an IP address, a name past ASCII,
+  one holding a space or a semicolon) is named as left out of every check and order; the hosts the certificate lacks
+  are named, or it is said to name them all - "every other host" when a name is left out; with no certificate the
+  server can read, a check is said to issue one for the hosts; and a list that holds no host a certificate can carry -
+  only such names, or only blanks and dots - is said to request no certificate, where the card said "The certificate
+  names every host in AcmeDomains" of a list whose names the server had left out. A refusal of the run comes back as
+  the card's error, and a credential the status is refused to sees the page without the card. Ten new texts, in the
+  twenty languages the Deck speaks; the Deck's script harness holds each notice to the status it is drawn from.
 
 ### Build and tests
 

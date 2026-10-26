@@ -120,7 +120,7 @@ not asked. Times are Unix seconds, and null when there is none.
 | `enabled`, `directory_url`, `domains`, `certificate_directory` | The settings, `domains` as the client reads them. |
 | `unusable_domains` | The names of `AcmeDomains` left out because no certificate can carry them, as written. |
 | `certificate` | The certificate in use, or null: `file`, `names` (its subject alternative names, or its common name when it has none), `subject`, `issuer`, `serial`, `not_before`, `not_after`, `expired`, `renews_at` (rule 4 above) and `deployed` (whether the ACME (automatic) record names this file - a record of that name that points at another file, after `AcmeCertificateDirectory` changed or its paths were edited, is not this certificate's deployment). |
-| `covers_domains`, `missing_domains` | Whether it names every configured host, and the ones it lacks. |
+| `covers_domains`, `missing_domains` | Whether it names every host of `domains`, and the ones it lacks: a name of `unusable_domains` is never among them, since nothing orders it. |
 | `due`, `due_reason` | Rules 1, 2 and 4, judged from the file: `missing`, `names` or `lifetime`. |
 | `running` | The check queued or running now, or null. |
 | `last_attempt` | The last check that finished, whatever it found. |
@@ -280,7 +280,7 @@ For a hosting platform that adds a customer's `mail.example.net` beside
    `last_attempt.id`, for a check that found nothing due) is at least that.
 
 **A host that cannot be validated holds up every host.** There is one
-certificate, and each order names every host in `AcmeDomains`: the first
+certificate, and each order names every host of `AcmeDomains` a certificate can carry: the first
 authorization that fails ends the attempt, so while a host stays on the list that
 does not resolve to this server, or whose port 80 does not reach it, no
 certificate is issued - and the one the other hosts use is not renewed either,
