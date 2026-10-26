@@ -102,28 +102,44 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                change or remove - every right ProtectedFile.cpp's
                OnlyAdministratorsControl counts on the link, read through the held
                handle (GetSecurityInfo) - and goes on from where an administrators'
-               link leads; refuses a share, a network drive, walks that disagree,
-               and a volume of any of the three that keeps no permissions or cannot
-               be told; refuses one of the three another account owns unless it is
-               the earlier installation's; and refuses a link, or a program, a
-               library or a folder another account controls, in Bin and
-               ControlPanel at any depth (R4). PrepareProgramFolders, the last step
-               of PrepareToInstall, then makes a program folder that is not there
-               with CreateDirectoryW and a protected descriptor - exactly the names
-               below the deepest folder held, the folders above it too - and
-               section_dirs.iss gives the uninstaller each, when this setup made
-               it, while DeinitializeSetup removes those still empty when the files
-               were not installed (R1); hardens one that is there whatever it
-               holds, but for the earlier installation's whose data folders
-               inherit, through the held handle, an entry of its own that lets
-               every user write taken away, one another account owns given to the
-               Administrators with takeown /A and rebuilt, each read again, any
-               failure a refusal; then makes or hardens Bin and ControlPanel, and
-               looks at what is in them again (R2, R4). Each decision is held to its
-               statement (PROGRAM_FOLDER_STATEMENTS), so that a one-line change of
-               one is refused. HardenNewProgramFolder, which hardened a folder Inno
-               Setup had made, and MakeProgramFolder, which looked at a path again,
-               are not to come back.
+               link leads; refuses a folder on the way that is not a link, the root
+               of its volume included, that another account owns or may rename,
+               empty or change who may (AdminUpdateChecks.cpp's ReplaceRights_,
+               which HM_REPLACE_RIGHTS is held to); refuses a share, a network
+               drive, walks that disagree, and a volume of any of the three that
+               keeps no permissions or cannot be told; refuses one of the three
+               another account owns unless it is the earlier installation's; and
+               refuses a link, or a program, a library or a folder another account
+               controls, in Bin and ControlPanel at any depth, and on the program
+               folder's own level and in Addons, Events, DBScripts, WebAdmin and
+               Languages, scripts counted as programs there (R4).
+               PrepareProgramFolders, the last step of PrepareToInstall, then makes
+               a program folder that is not there with CreateDirectoryW and a
+               protected descriptor - exactly the names below the deepest folder
+               held, that folder read again through its handle and each folder made
+               read where it is (HeldIsLink, MadeWhereNamed) - and section_dirs.iss
+               gives the uninstaller each, when this setup made it, while
+               DeinitializeSetup removes those still empty when the files were not
+               installed (R1); hardens one that is there whatever it holds, but for
+               the earlier installation's whose data folders inherit, through the
+               held handle, an entry of its own that lets every user write taken
+               away, one another account owns given to the Administrators with
+               takeown /A and rebuilt, each read again, any failure a refusal; then
+               makes Bin and ControlPanel again when they hold nothing and let
+               another account write them, or hardens or makes them, removes the
+               empty folders in them, and looks at what is in them again (R2, R4);
+               and after the files, before setup runs any program of the
+               installation, reads the three again through the handles that hold
+               them (FoldersStillAsPrepared), any change failing the installation
+               and keeping the service from starting. Each decision is held to its
+               statement (PROGRAM_FOLDER_STATEMENTS), the helpers it relies on
+               among them (SidIs, IsBroadSid, BroadGroupSid, AclLetsOthers and
+               HoldForSetup whole), so that a one-line change of one is refused;
+               HM_SERVICE_SID is the SID ServiceAccountTester holds the service's
+               to, and a folder is made with its descriptor set once.
+               HardenNewProgramFolder, which hardened a folder Inno Setup had made,
+               and MakeProgramFolder, which looked at a path again, are not to come
+               back.
   masks        Every mask the [Code] tests an entry's rights against (head.Mask and
                ..., and the rights AclLetsOthers and OwnEntriesLetOthers are asked
                about) is a named HM_ constant alone that carries exactly the
@@ -167,7 +183,13 @@ account owns taken whoever's it is, a held folder read by its path, an entry tha
 lets every user write kept, the hardened folder not read again, takeown not run,
 what is in Bin and ControlPanel only said or not looked at, a volume that cannot be
 told taken, the folders checked after the service is stopped, a refusal after the
-stop not saying so, a mask in parentheses or narrowed) - must all be refused.
+stop not saying so, a mask in parentheses or narrowed) and of its second repair (a
+folder held made a link before what is made in it, a folder above the program folder
+another account may rename or empty, an empty folder left for an earlier handle, the
+look after the files left out, scripts and the program folder's other folders not
+looked at, a volume's root taken for its device, the service's stop forgotten, and
+the sixteen one-line changes of the review of 26 October 2026 to the helpers) - must
+all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -667,7 +689,8 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld', 'FolderAboveIsAdministratorsAlone', 'IsAtOrAboveChecked', 'IsVolumeRoot',
                            'IsScriptFile', 'IsDataFolderName', 'CheckWhatElseIsInside',
                            'RemakeEmptyFolder', 'LetGoOfHeld', 'FolderHoldsNothing', 'ItemIsIn', 'NothingTurnedIn', 'PreparedFolderIsAsLeft',
-                           'FoldersStillAsPrepared', 'CurStepChanged', 'KeepServiceFromStarting', 'LinkRemedy', 'HeldLetsOthersWrite')
+                           'FoldersStillAsPrepared', 'CurStepChanged', 'KeepServiceFromStarting', 'LinkRemedy', 'HeldLetsOthersWrite',
+                           'SidIs', 'IsBroadSid', 'BroadGroupSid')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -721,6 +744,28 @@ PROGRAM_FOLDER_STATEMENTS = (
      "CheckProgramFolderPermissions(szApp, false); if not HoldFolderChain(szApp, 0,"),
     ('CheckProgramFolders', 'Bin\'s and ControlPanel\'s walks are not held to the rule past what the program folder\'s walk held',
      "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0,"),
+    ('SidIs', 'a SID is taken for another, so that every owner is trusted or every group of every user is not one (the review of 26 October 2026)',
+     "^function SidIs(pSid: cardinal; szSid: String): Boolean; var pOther: cardinal; begin Result := false; if pSid = 0 then Exit; pOther := 0; if SidOfText(szSid, pOther) then begin Result := SidsAreEqual(pSid, pOther); FreeWindowsMemory(pOther); end; end;$"),
+    ('IsBroadSid', 'a group of every user is not taken for one, so that an entry that lets every user write is kept',
+     "^function IsBroadSid(pSid: cardinal): Boolean; var szSid: String; szName: String; group: Integer; begin Result := false; group := 0; szSid := BroadGroupSid(group, szName); while (not Result) and (szSid <> '') do begin if SidIs(pSid, szSid) then Result := true; group := group + 1; szSid := BroadGroupSid(group, szName); end; end;$"),
+    ('BroadGroupSid', 'a group of every user is left out, or its SID mistyped',
+     "^function BroadGroupSid(Index: Integer; var Name: String): String; begin Result := ''; Name := ''; case Index of 0: begin Result := 'S-1-1-0'; Name := 'Everyone'; end; 1: begin Result := 'S-1-5-11'; Name := 'Authenticated Users'; end; 2: begin Result := 'S-1-5-32-545'; Name := 'Users'; end; 3: begin Result := 'S-1-5-4'; Name := 'INTERACTIVE'; end; 4: begin Result := 'S-1-2-0'; Name := 'LOCAL'; end; 5: begin Result := 'S-1-5-32-546'; Name := 'Guests'; end; 6: begin Result := 'S-1-5-32-547'; Name := 'Power Users'; end; 7: begin Result := 'S-1-5-32-555'; Name := 'Remote Desktop Users'; end; 8: begin Result := 'S-1-5-14'; Name := 'REMOTE INTERACTIVE LOGON'; end; 9: begin Result := 'S-1-5-13'; Name := 'TERMINAL SERVER USER'; end; end; end;$"),
+    ('AclLetsOthers', 'an entry of a form setup does not read, or one it cannot read, is taken for one that lets nobody, or another right counted',
+     "^function AclLetsOthers(pDacl: cardinal; Rights: cardinal; OwnerTrusted: Boolean; var Who: String): Boolean; var info: ACL_SIZE_INFO; head: ACE_START; pAce: cardinal; index: cardinal; aceType: cardinal; aceFlags: cardinal; begin Result := false; Who := ''; if pDacl = 0 then begin Result := true; Who := 'everyone (it has no list of permissions at all)'; Exit; end; if not ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then begin Result := true; Who := 'an account in a list of permissions that could not be read'; Exit; end; index := 0; while (not Result) and (index < info.AceCount) do begin pAce := 0; if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then begin CopyAceStart(head, pAce, 8); aceType := head.TypeFlagsSize and $FF; aceFlags := (head.TypeFlagsSize shr 8) and $FF; if (aceFlags and HM_INHERIT_ONLY) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) then begin if not (OwnerTrusted and SidIs(pAce + 8, 'S-1-3-4')) then begin Result := true; Who := SidNameAt(pAce + 8); end; end; end else if (aceType = 4) or (aceType = 5) or (aceType = 9) or (aceType = 11) then begin Result := true; Who := 'an account in an entry of a form setup does not read'; end; end; end else begin Result := true; Who := 'an account in an entry that could not be read'; end; index := index + 1; end; end;$"),
+    ('HoldForSetup', 'a folder is held shared for deleting, or through its link, or not kept until the end',
+     "^function HoldForSetup(Folder: String): Integer; begin Result := HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if Result <> -1 then begin SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1); g_aHeldFolders[GetArrayLength(g_aHeldFolders) - 1] := Result; end; end;$"),
+    ('HoldFolderChain', 'a network drive is taken',
+     "if KindOfDrive(szRoot) = HM_DRIVE_REMOTE then begin Why := "),
+    ('LinkTarget', 'a reparse point other than a mount point or a symbolic link is gone through',
+     "if (tagHigh = $A000) and (tagLow = $0003) then start := 9 else if (tagHigh = $A000) and (tagLow = $000C) then begin start := 11; relative := (Ord(buffer[9]) and 1) <> 0; end else begin Why := 'it is a reparse point of a kind setup does not go through (tag ' + IntToStr(tagHigh) + ':' + IntToStr(tagLow) + ')'; Exit; end;"),
+    ('CheckWhatIsInside', 'an item of Bin or ControlPanel that cannot be opened is taken',
+     "handle := HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then szWho := 'its owner could not be read (Windows error '"),
+    ('CheckWhatElseIsInside', 'an item of the program folder that cannot be opened is taken',
+     "handle := HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then szWho := 'its owner could not be read (Windows error '"),
+    ('HeldFolderIsHardened', 'a rebuilt folder is taken although another account may still write it',
+     "else if AnyAccount and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) then begin Result := false;"),
+    ('MakeFolders', 'a folder is made without its descriptor',
+     "attributes.nLength := 12; attributes.lpSecurityDescriptor := pDescriptor; attributes.bInheritHandle := 0; Result := true; if HeldIsLink(HeldHandle, bKnown) then"),
     ('LinkTarget', 'a link to a share is gone through',
      "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := "),
     # The volumes.
@@ -1028,6 +1073,16 @@ def check_program_folders(texts, problems):
                 problems.append('%s: OnlyAdministratorsControl counts %s, which this check does not know' % (PROTECTED_FILE, right))
             elif not value & FILE_RIGHTS[right]:
                 problems.append('%s: the installer does not count %s on a link, which the server does' % (EXTENSION, right))
+    # The service's SID, which a rebuilt Bin keeps the Read of and whose files in Bin are
+    # not said: the one ServiceAccountTester holds NT SERVICE\hMailServer's to.
+    tester = re.search(r'ServiceAccount::ServiceSid\(_T\("hMailServer"\)\)\s*!=\s*_T\("(S-1-5-80-[0-9-]+)"\)', texts.get(SERVICE_ACCOUNT, ''))
+    if not tester:
+        problems.append('%s: ServiceAccountTester no longer holds NT SERVICE\\hMailServer\'s SID to a value' % SERVICE_ACCOUNT)
+    elif "HM_SERVICE_SID              = '%s';" % tester.group(1) not in ext:
+        problems.append('%s: HM_SERVICE_SID is not NT SERVICE\\hMailServer\'s SID, %s' % (EXTENSION, tester.group(1)))
+    # A folder is made with a descriptor of its own, and nothing takes it away.
+    if len(re.findall(r'attributes\.lpSecurityDescriptor\s*:=', ext)) != 1:
+        problems.append('%s: the descriptor a folder is made with is set other than once, as setup made it' % EXTENSION)
     if not re.search(r'HM_REMOVE_FROM_FOLDER_RIGHTS\s*=\s*\$100C0040;', ext):
         problems.append('%s: what removes a link from its folder is not FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL' % EXTENSION)
     # The folders above the program folder: every right the live update counts on one.
@@ -1376,6 +1431,41 @@ def negative_controls(texts):
                  ' - and runs setup again;')),
         ('the earlier installation\'s folder another account owned not said',
          altered(texts, EXTENSION, "      g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;\n   end;\n   Result := true;\nend;", "   end;\n   Result := true;\nend;")),
+        ('HoldForSetup holding a folder shared for deleting (the review of 26 October 2026: missed)',
+         altered(texts, EXTENSION, 'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);',
+                 'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);')),
+        ('HoldForSetup following a link',
+         altered(texts, EXTENSION, 'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);',
+                 'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, $02000000, 0);')),
+        ('a folder made with no descriptor after its attributes are set',
+         altered(texts, EXTENSION, '   attributes.bInheritHandle := 0;\n', '   attributes.bInheritHandle := 0;\n   attributes.lpSecurityDescriptor := 0;\n')),
+        ('IsBroadSid taking no group for one of every user',
+         altered(texts, EXTENSION, '      if SidIs(pSid, szSid) then\n         Result := true;\n      group := group + 1;', '      if SidIs(pSid, szSid) then\n         Result := false;\n      group := group + 1;')),
+        ('Authenticated Users\' SID mistyped',
+         altered(texts, EXTENSION, "1: begin Result := 'S-1-5-11'; Name := 'Authenticated Users'; end;", "1: begin Result := 'S-1-5-111'; Name := 'Authenticated Users'; end;")),
+        ('SidIs answering true for every SID',
+         altered(texts, EXTENSION, '      Result := SidsAreEqual(pSid, pOther);\n', '      Result := true;\n')),
+        ('AclLetsOthers reading a callback or object entry as letting nobody',
+         altered(texts, EXTENSION, "            else if (aceType = 4) or (aceType = 5) or (aceType = 9) or (aceType = 11) then\n            begin\n               Result := true;\n               Who := 'an account in an entry of a form setup does not read';",
+                 "            else if false then\n            begin\n               Result := true;\n               Who := 'an account in an entry of a form setup does not read';")),
+        ('AclLetsOthers taking an entry it cannot read for one that lets nobody',
+         altered(texts, EXTENSION, "      else\n      begin\n         Result := true;\n         Who := 'an account in an entry that could not be read';\n      end;\n      index := index + 1;\n   end;\nend;\n\n// Whether only SYSTEM",
+                 "      else\n      begin\n         Result := false;\n         Who := 'an account in an entry that could not be read';\n      end;\n      index := index + 1;\n   end;\nend;\n\n// Whether only SYSTEM")),
+        ('a network drive taken, the test keeping its words',
+         altered(texts, EXTENSION, 'if KindOfDrive(szRoot) = HM_DRIVE_REMOTE then', 'if KindOfDrive(szRoot) = HM_DRIVE_REMOTE + 100 then')),
+        ('HeldFolderIsHardened\'s test of every other account on a rebuilt folder taken out',
+         altered(texts, EXTENSION, '            else if AnyAccount and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED)', '            else if false and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED)')),
+        ('a reparse point of any kind gone through',
+         altered(texts, EXTENSION, "   else\n   begin\n      Why := 'it is a reparse point of a kind setup does not go through (tag '",
+                 "   else if false then\n   begin\n      Why := 'it is a reparse point of a kind setup does not go through (tag '")),
+        ('an item of Bin or ControlPanel that cannot be opened taken',
+         altered(texts, EXTENSION, "               if handle = -1 then\n                  szWho := 'its owner could not be read (Windows error '",
+                 "               if false then\n                  szWho := 'its owner could not be read (Windows error '")),
+        ('the walk going on without taking the folder it held for the next one\'s (parent := handle gone)',
+         altered(texts, EXTENSION, '                     parent := handle;\n                     szCurrent := szNext;', '                     szCurrent := szNext;')),
+        ('the service\'s SID mistyped',
+         altered(texts, EXTENSION, "HM_SERVICE_SID              = 'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809';",
+                 "HM_SERVICE_SID              = 'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046800';")),
         ('the program folder recorded for the uninstaller whatever made it',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; Flags: uninsalwaysuninstall')),
         ('HardenNewProgramFolder back after Inno Setup\'s folder',
