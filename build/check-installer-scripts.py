@@ -822,7 +822,7 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('NextButtonClick', 'the folders are not checked before the service is stopped, or a refusal there stops it all the same',
      "g_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder()); if g_szFolderRefusal <> '' then Exit;"),
     ('NextButtonClick', 'whether setup stopped a running service is not known',
-     "bWasRunning := IsServiceRunning('hMailServer'); if (StopHMailServerService() = false) then Result := false else g_bServiceStoppedForSetup := bWasRunning;"),
+     "bWasRunning := IsServiceRunning('hMailServer'); if bWasRunning then g_bServiceStoppedForSetup := true; if (StopHMailServerService() = false) then Result := false;"),
     ('PrepareToInstall', 'a refusal after setup stopped the service does not say so',
      "Result := PrepareToInstallRefusal(); if Result <> '' then begin @@if g_bServiceStoppedForSetup then Result := Result + ' Setup stopped the hMailServer service~; "
      "Log('Refused: ' + Result); end; end;$"),
@@ -935,6 +935,8 @@ def check_program_folders(texts, problems):
     if 'IsComponentSelected(' in prepare or 'IsComponentSelected(' in check:
         problems.append('%s: the program folders are prepared for some components only' % EXTENSION)
     ready = routines['NextButtonClick']
+    if re.findall(r'g_bServiceStoppedForSetup\s*:=\s*(\w+)', ext) != ['true']:
+        problems.append('%s: whether setup stopped a running service is set other than once, to true, so a later pass may clear it' % EXTENSION)
     if ready.find('CheckProgramFolders(') < 0 or ready.find('CheckProgramFolders(') > ready.find('StopHMailServerService()'):
         problems.append('%s: the folders are checked after the service is stopped, so a refusal leaves a running server stopped' % EXTENSION)
 
@@ -1336,6 +1338,11 @@ def negative_controls(texts):
         # The service.
         ('the folders checked after the service is stopped',
          altered(texts, EXTENSION, "\t\tg_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder());\n\t\tif g_szFolderRefusal <> '' then\n\t\t\tExit;\n", '')),
+        ('whether setup stopped the service cleared by a later click on the Ready page (the review of 26 October 2026)',
+         altered(texts, EXTENSION, "\t\tif bWasRunning then\n\t\t\tg_bServiceStoppedForSetup := true;\n\t\tif (StopHMailServerService() = false) then\n\t\t\tResult := false;\n",
+                 "\t\tif (StopHMailServerService() = false) then\n\t\t\tResult := false\n\t\telse\n\t\t\tg_bServiceStoppedForSetup := bWasRunning;\n")),
+        ('whether setup stopped the service cleared elsewhere',
+         altered(texts, EXTENSION, "   Result := PrepareToInstallRefusal();\n", "   Result := PrepareToInstallRefusal();\n   g_bServiceStoppedForSetup := false;\n")),
         ('a refusal after the service was stopped not saying so',
          altered(texts, EXTENSION, "      if g_bServiceStoppedForSetup then\n         Result := Result + ' Setup stopped",
                  "      if false then\n         Result := Result + ' Setup stopped")),

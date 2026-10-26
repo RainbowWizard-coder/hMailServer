@@ -1353,7 +1353,7 @@ namespace RegressionTests.Installation
          new[] { "OwnEntriesLetOthers", "an inherited entry is weighed, or an entry of the item's own is not", "if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
          new[] { "SayWriteEntriesKept", "an entry kept that lets an account other than the three write is not said", "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
          new[] { "NextButtonClick", "the folders are not checked before the service is stopped, or a refusal there stops it all the same", "g_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder()); if g_szFolderRefusal <> '' then Exit;" },
-         new[] { "NextButtonClick", "whether setup stopped a running service is not known", "bWasRunning := IsServiceRunning('hMailServer'); if (StopHMailServerService() = false) then Result := false else g_bServiceStoppedForSetup := bWasRunning;" },
+         new[] { "NextButtonClick", "whether setup stopped a running service is not known", "bWasRunning := IsServiceRunning('hMailServer'); if bWasRunning then g_bServiceStoppedForSetup := true; if (StopHMailServerService() = false) then Result := false;" },
          new[] { "PrepareToInstall", "a refusal after setup stopped the service does not say so", "Result := PrepareToInstallRefusal(); if Result <> '' then begin @@if g_bServiceStoppedForSetup then Result := Result + ' Setup stopped the hMailServer service~; Log('Refused: ' + Result); end; end;$" },
          new[] { "PrepareToInstallRefusal", "the program folders are not prepared last, their refusal the answer", "Result := PrepareProgramFolders(PreviousInstallationFolder()); end;$" },
       };
@@ -1408,6 +1408,11 @@ namespace RegressionTests.Installation
             StringAssert.Contains("('" + statement[0] + "', ", checker, "build/check-installer-scripts.py does not hold " + statement[0] + " to a statement.");
          Assert.AreEqual(ProgramFolderStatements.Length, Regex.Matches(checker, @"^    \('\w+', '", RegexOptions.Multiline).Count,
             "build/check-installer-scripts.py's PROGRAM_FOLDER_STATEMENTS and this test's ProgramFolderStatements hold different numbers of statements.");
+
+         // Whether setup stopped a running service is set once, to true, and never
+         // cleared: a later click on the Ready page finds the service it stopped stopped.
+         CollectionAssert.AreEqual(new[] { "true" }, Regex.Matches(extension, @"g_bServiceStoppedForSetup\s*:=\s*(\w+)").Cast<Match>().Select(match => match.Groups[1].Value).ToArray(),
+            "Whether setup stopped a running service is set other than once, to true, so a later pass may clear it and a refusal would not say the service was stopped.");
       }
 
       [Test]

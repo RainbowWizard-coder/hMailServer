@@ -6285,12 +6285,16 @@ begin
 		// Stop the service before any program file is replaced, and refuse to go
 		// past this page if it will not stop. See StopHMailServerService for why
 		// that has to be a refusal rather than a warning, and for why the wait is
-		// now bounded.
+		// now bounded. Whether setup stopped a running service, which a refusal
+		// after this says (PrepareToInstall), is set before the stop, whatever the
+		// stop returns, and never cleared: a stop that timed out on one click may
+		// still have stopped the service before the next, which then finds it
+		// stopped.
 		bWasRunning := IsServiceRunning('hMailServer');
+		if bWasRunning then
+			g_bServiceStoppedForSetup := true;
 		if (StopHMailServerService() = false) then
-			Result := false
-		else
-			g_bServiceStoppedForSetup := bWasRunning;
+			Result := false;
     end;
 	
     hWnd := StrToInt(ExpandConstant('{wizardhwnd}'));
