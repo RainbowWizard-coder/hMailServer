@@ -46,13 +46,14 @@ effect for the next message.
 
 `ClamAVHost` is a path when it starts with `/`; no host name does. A path is
 used as it is written, and may be at most 107 bytes long, which is what a Unix
-socket's address holds; a longer one is refused when it is saved. **On Windows
-a path is refused** - clamd on Windows listens on TCP, and this server reaches
-no Unix socket there - with a sentence that names the setting, over COM (the
-Control Panel), over REST (the Deck), and by the connection test; a path that
-reached the database some other way, with a database moved from a Linux
-server, say, is reported the same way at each scan and the message is
-handled as for a clamd that cannot be reached.
+socket's address holds; a longer one is refused when it is saved over REST.
+**On Windows a path is refused** - clamd on Windows listens on TCP, and this
+server reaches no Unix socket there - with a sentence that names the setting,
+over COM (the Control Panel), over REST (the Deck), and by the connection test.
+A value either rule refuses that reached the database some other way - a
+database moved from a Linux server to Windows, say - is reported with the same
+sentence at each scan, and the message is handled as for a clamd that cannot
+be reached.
 
 clamd on Linux
 --------------

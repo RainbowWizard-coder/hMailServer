@@ -145,14 +145,18 @@ namespace RegressionTests.AntiVirus
       [Description("A socket nothing accepts on - its listener gone and the file left, as a clamd that stopped uncleanly leaves it - is reported as nothing listening there too.")]
       public void ASocketNothingAcceptsOnIsReportedAsNothingListening()
       {
+         // .NET removes the file of a socket it bound when the socket is closed, as
+         // clamd does when it stops cleanly; moved aside while bound, the file stays.
          string socket = Path.Combine(_directory, "stale.sock");
+         string bound = Path.Combine(_directory, "bound.sock");
          using (var stale = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
          {
-            stale.Bind(new UnixDomainSocketEndPoint(socket));
-            File.SetUnixFileMode(socket, (UnixFileMode) Convert.ToInt32("666", 8));
+            stale.Bind(new UnixDomainSocketEndPoint(bound));
+            File.SetUnixFileMode(bound, (UnixFileMode) Convert.ToInt32("666", 8));
+            File.Move(bound, socket);
          }
 
-         Assert.That(File.Exists(socket), Is.True, "Closing a bound socket should have left its file.");
+         Assert.That(File.Exists(socket), Is.True, "The socket's file should have been left behind.");
 
          _antiVirus.ClamAVHost = socket;
          _antiVirus.ClamAVEnabled = true;

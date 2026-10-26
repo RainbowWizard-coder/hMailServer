@@ -1198,16 +1198,17 @@ with `--check`).
   (`SynchronousConnection::ConnectLocal`); `ClamAVPort` is not used, and no setting is new. A path with no socket at
   it and a socket nothing accepts on are reported as nothing listening there, a socket the server's user may not write
   to as a matter of its mode or group, and a path longer than the 107 bytes a socket address holds is refused when it
-  is saved over COM or REST. On Windows, where clamd listens on TCP, a path is refused, naming `ClamAVHost`, over COM,
-  over REST and by the connection test, and one that reached the database another way is reported at each scan as a
-  scanner that cannot be reached is. The Control Panel's Host field (one new text, in the seventeen catalogues), the
-  description of `clamav_host` that the Deck shows and the new `hmailserver/docs/ClamAV.md` say what the field takes,
-  each distribution's socket and whom it lets in, and the group to put the `hmailserver` user in when it is closed;
-  the systemd unit's comments say why `ProtectSystem=strict` does not stand in the way and why a socket under `/tmp`
-  would. Held by `clamd-socket-tests`, a tester the Linux build runs against a fake clamd on a Unix socket (and, given
-  a real clamd's socket, the connection test against it), by the Linux suite's `AntiVirus/ClamdUnixSocket`, a fixture
-  of that project's own, and by the Windows suite's `AntiVirus/ClamdSocketPathOnWindows`. Roadmap.md's *Other clamd
-  transports and commands* keeps TLS to clamd, STATS, MULTISCAN and zINSTREAM declined.
+  is saved over REST. On Windows, where clamd listens on TCP, a path is refused, naming `ClamAVHost`, over COM, over
+  REST and by the connection test, and a value either rule refuses that reached the database another way is reported
+  with the same sentence at each scan, as a scanner that cannot be reached is. The Control Panel's Host field (one new
+  text, in the seventeen catalogues), the description of `clamav_host` that the Deck shows and the new
+  `hmailserver/docs/ClamAV.md` say what the field takes, each distribution's socket and whom it lets in, and the group
+  to put the `hmailserver` user in when it is closed; the systemd unit's comments say why `ProtectSystem=strict` does
+  not stand in the way and why a socket under `/tmp` would. Held by `clamd-socket-tests`, a tester the Linux build
+  runs against a fake clamd on a Unix socket (and, given a real clamd's socket, the connection test against it), by
+  the Linux suite's `AntiVirus/ClamdUnixSocket`, a fixture of that project's own, and by the Windows suite's
+  `AntiVirus/ClamdSocketPathOnWindows`. Roadmap.md's *Other clamd transports and commands* keeps TLS to clamd, STATS,
+  MULTISCAN and zINSTREAM declined.
 
 ### Build and tests
 
