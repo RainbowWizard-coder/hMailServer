@@ -1005,8 +1005,9 @@ end;
 // since. On the link: its owner, and every right that changes it, what it leads to
 // or who may (HM_FOLDER_WRITE_RIGHTS: a link's data and attributes are how it is
 // turned elsewhere, as ProtectedFile.cpp says). On its folder: its owner, and removing a
-// name from it or taking its permissions (HM_REMOVE_FROM_FOLDER_RIGHTS). Why says
-// what else may, or what could not be read.
+// name from it or taking its permissions (HM_REMOVE_FROM_FOLDER_RIGHTS) - not asked when
+// hParent is -1, for a link in the program folder itself, which setup hardens or holds
+// (CheckWhatElseIsInside). Why says what else may, or what could not be read.
 function LinkIsAdministratorsAlone(hLink: Integer; hParent: Integer; var Why: String): Boolean;
 var
    pOwner: cardinal;
@@ -1034,6 +1035,8 @@ begin
       Result := true;
    FreeWindowsMemory(pDescriptor);
    if not Result then
+      Exit;
+   if hParent = -1 then
       Exit;
 
    Result := false;
@@ -2552,10 +2555,33 @@ begin
    Result := (szExtension = '.exe') or (szExtension = '.dll');
 end;
 
+// Whether a file's name is that of a script something of the installation runs: the
+// event script the service runs from Events (EventHandlers.vbs, or a JScript one), the
+// SQL DBSetup runs from DBScripts, the PHP of WebAdmin, and a script of PowerShell or of
+// the command prompt an administrator may keep beside them.
+function IsScriptFile(Name: String): Boolean;
+var
+   szExtension: String;
+begin
+   szExtension := Lowercase(ExtractFileExt(Name));
+   Result := (szExtension = '.vbs') or (szExtension = '.js') or (szExtension = '.sql') or (szExtension = '.php') or (szExtension = '.ps1') or
+             (szExtension = '.cmd') or (szExtension = '.bat');
+end;
+
+// Whether a folder in the program folder is one of the data folders the service writes
+// in - Data, Logs, Temp, Database - which /GrantServiceAccess gives the service Modify
+// on, and the service may own what it made there; setup does not look inside them.
+function IsDataFolderName(Name: String): Boolean;
+begin
+   Result := (CompareText(Name, 'Data') = 0) or (CompareText(Name, 'Logs') = 0) or (CompareText(Name, 'Temp') = 0) or (CompareText(Name, 'Database') = 0);
+end;
+
 // Work item 78's R4: what is in Bin or ControlPanel, there before this installation,
 // at any depth - the scope of the live update's check of an installation
-// (AdminUpdateChecks' CheckFolderTree_) - each read through a handle opened on it as
-// itself. Refused, each named with what to do, in Why:
+// (AdminUpdateChecks' CheckFolderTree_) - and in the program folder's other folders that
+// hold what the service and the administrators run (CheckWhatElseIsInside, Scripts set:
+// a script, IsScriptFile, counts as a program there), each read through a handle opened
+// on it as itself. Refused, each named with what to do, in Why:
 //   - a link (a junction, a symbolic link, a mount point, any reparse point): what is
 //     reached through it is not in the folder, and setup would install, and the
 //     service and the administrators run, through it - the live update refuses one too;
@@ -2568,7 +2594,7 @@ end;
 // g_szFolderFindings when Final is set; the service's own files are not. Found counts
 // what was refused. Run before the service is stopped, and again once Bin and
 // ControlPanel are hardened (Final), when only the administrators can add to them.
-function CheckWhatIsInside(Folder: String; Depth: Integer; Final: Boolean; var Found: Integer; var Why: String): Boolean;
+function CheckWhatIsInside(Folder: String; Depth: Integer; Final: Boolean; Scripts: Boolean; var Found: Integer; var Why: String): Boolean;
 var
    rec: TFindRec;
    folders: array of String;
@@ -2610,7 +2636,7 @@ begin
             szItem := AddBackslash(Folder) + rec.Name;
             bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;
             bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;
-            bCode := (not bFolder) and IsProgramFile(rec.Name);
+            bCode := (not bFolder) and (IsProgramFile(rec.Name) or (Scripts and IsScriptFile(rec.Name)));
             szWho := '';
             szRemedy := '';
             if bLink then
@@ -2702,8 +2728,169 @@ begin
    end;
 
    for index := 0 to count - 1 do
-      if not CheckWhatIsInside(folders[index], Depth + 1, Final, Found, Why) then
+      if not CheckWhatIsInside(folders[index], Depth + 1, Final, Scripts, Found, Why) then
          Result := false;
+end;
+
+// Work item 78's R4, past Bin and ControlPanel: what else in a program folder that is
+// there holds what the service and the administrators run. Each item of the program
+// folder's own level but Bin and ControlPanel, which have rules of their own - the
+// uninstaller, a folder setup installs into, a data folder - read through a handle
+// opened on it as itself (AppHandle holds the program folder):
+//   - a link there that anybody but SYSTEM, the Administrators and TrustedInstaller owns
+//     or may change (LinkIsAdministratorsAlone, the link itself: the program folder it
+//     is in is setup's to harden), refused with the icacls that makes it theirs alone -
+//     a data folder behind an administrator's junction is an ordinary layout;
+//   - a program, a library, a script (IsScriptFile) or a folder whose owner is not one
+//     of the three, or cannot be read, or an entry of whose own lets another account
+//     change it, refused; but for Data, Logs, Temp and Database (IsDataFolderName),
+//     which the service may own and has an entry of its own on (/GrantServiceAccess),
+//     whose owner another account is is said, as another file another account owns is;
+// and then everything, at any depth, in Addons, Events, DBScripts, WebAdmin and
+// Languages, the folders setup installs into that hold programs, the event script
+// the service runs, the SQL DBSetup runs and the PHP of WebAdmin, held to
+// CheckWhatIsInside's rule with scripts counted as programs. A program folder that is
+// the root of a volume (IsVolumeRoot) is not looked at on its own level. Found counts
+// what was refused; what is said is said when Final is set.
+function CheckWhatElseIsInside(App: String; AppHandle: Integer; Final: Boolean; var Found: Integer; var Why: String): Boolean;
+var
+   rec: TFindRec;
+   index: Integer;
+   handle: Integer;
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   readResult: cardinal;
+   bFolder: Boolean;
+   bLink: Boolean;
+   bData: Boolean;
+   bCode: Boolean;
+   szItem: String;
+   szWho: String;
+   szText: String;
+   szRemedy: String;
+   szFolder: String;
+begin
+   Result := true;
+   if not IsVolumeRoot(App) then
+   begin
+      if not FindFirst(AddBackslash(App) + '*', rec) then
+      begin
+         Found := Found + 1;
+         Why := Why + 'what is in ' + App + ' could not be read (Windows error ' + IntToStr(DLLGetLastError()) + '). ';
+         Result := false;
+         Exit;
+      end;
+      try
+         repeat
+            if (rec.Name <> '.') and (rec.Name <> '..') and (CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) then
+            begin
+               szItem := AddBackslash(App) + rec.Name;
+               bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;
+               bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;
+               bData := bFolder and IsDataFolderName(rec.Name);
+               bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsScriptFile(rec.Name));
+               szWho := '';
+               szRemedy := '';
+               handle := HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+               if handle = -1 then
+                  szWho := 'its owner could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')'
+               else
+               begin
+                  if bLink then
+                  begin
+                     if not LinkIsAdministratorsAlone(handle, -1, szText) then
+                     begin
+                        szWho := 'is a junction, a symbolic link or a mount point, and ' + szText;
+                        szRemedy := LinkRemedy(szItem) + '.';
+                     end;
+                  end
+                  else
+                  begin
+                     pOwner := 0;
+                     pDacl := 0;
+                     pDescriptor := 0;
+                     readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+                     if readResult <> 0 then
+                        szWho := 'its owner could not be read (Windows error ' + IntToStr(readResult) + ')'
+                     else
+                     begin
+                        if pOwner = 0 then
+                           szWho := 'its owner could not be read'
+                        else if not IsTrustedSid(pOwner) then
+                        begin
+                           if bData and SidIs(pOwner, HM_SERVICE_SID) then
+                              szWho := ''
+                           else
+                              szWho := 'is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators or TrustedInstaller, which may change it whatever its permissions say';
+                        end
+                        else if bCode or (bFolder and (not bData)) then
+                        begin
+                           if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then
+                           begin
+                              szWho := 'has an entry of its own that lets ' + szText + ' change it';
+                              szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - and runs setup again.';
+                           end;
+                        end;
+                        FreeWindowsMemory(pDescriptor);
+                     end;
+                  end;
+                  ReleaseFolder(handle);
+               end;
+               if (szWho <> '') and (szRemedy = '') then
+               begin
+                  if Pos('could not be read', szWho) > 0 then
+                     szRemedy := 'An administrator takes it - takeown /F "' + szItem + '" /A - checks it and runs setup again.'
+                  else
+                     szRemedy := 'An administrator checks that it is meant to be there and gives it to the Administrators - icacls "' + szItem + '" /setowner *S-1-5-32-544 - or removes it, and runs setup again.';
+               end;
+
+               if szWho <> '' then
+               begin
+                  if Pos('is ', szWho) <> 1 then
+                     if Pos('has ', szWho) <> 1 then
+                        szWho := 'is there, and ' + szWho;
+                  szText := szItem + ' ' + szWho + '. ' + szRemedy;
+                  if bLink or bCode or (bFolder and (not bData)) then
+                  begin
+                     Found := Found + 1;
+                     if Found <= 10 then
+                        Why := Why + szText + ' '
+                     else if Found = 11 then
+                        Why := Why + 'There are more; the setup log names each. ';
+                     Log('The program folder: refused, ' + szText);
+                     Result := false;
+                  end
+                  else if Final then
+                  begin
+                     szText := szText + ' Setup replaces the files it installs; one it does not install stays as it is.';
+                     Log('The program folder: ' + szText);
+                     g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
+                  end;
+               end;
+            end;
+         until not FindNext(rec);
+      finally
+         FindClose(rec);
+      end;
+   end;
+
+   // The folders setup installs into that hold what is run, at any depth.
+   for index := 0 to 4 do
+   begin
+      case index of
+         0: szFolder := 'Addons';
+         1: szFolder := 'Events';
+         2: szFolder := 'DBScripts';
+         3: szFolder := 'WebAdmin';
+         4: szFolder := 'Languages';
+      end;
+      szFolder := AddBackslash(App) + szFolder;
+      if FolderAttributes(szFolder) <> HM_INVALID_ATTRIBUTES then
+         if (FolderAttributes(szFolder) and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+            if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then
+               Result := false;
+   end;
 end;
 
 // The first of the data folders hMailServer.exe /ProtectFolders makes private - Data,
@@ -2905,9 +3092,11 @@ begin
    found := 0;
    szWhy := '';
    if g_bBinThere then
-      CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy);
+      CheckWhatIsInside(g_szBinReal, 0, false, false, found, szWhy);
    if g_bControlPanelThere then
-      CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy);
+      CheckWhatIsInside(g_szControlPanelReal, 0, false, false, found, szWhy);
+   if g_bProgramFolderThere then
+      CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, false, found, szWhy);
    if found > 0 then
       Result := 'Setup does not install into ' + szApp + ', since the service and the administrators would run programs there that another account controls: ' + szWhy + 'Nothing has been changed.';
 end;
@@ -3021,13 +3210,16 @@ begin
          Exit;
       end;
 
-   // What is in Bin and ControlPanel, now that only the administrators can add to it.
+   // What is in Bin and ControlPanel, and in the program folder's other folders, now
+   // that only the administrators can add to it.
    found := 0;
    szWhy := '';
    if g_bBinThere then
-      CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy);
+      CheckWhatIsInside(g_szBinReal, 0, true, false, found, szWhy);
    if g_bControlPanelThere then
-      CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy);
+      CheckWhatIsInside(g_szControlPanelReal, 0, true, false, found, szWhy);
+   if g_bProgramFolderThere then
+      CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, true, found, szWhy);
    if found > 0 then
    begin
       Result := 'Setup does not install into ' + szApp + ', since the service and the administrators would run programs there that another account controls: ' + szWhy + 'Nothing has been installed.';

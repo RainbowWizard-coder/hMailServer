@@ -1363,7 +1363,7 @@ namespace RegressionTests.Installation
          new[] { "CheckProgramFolders", "the program folder's owner is not held to the rule", "if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "Bin's owner is not held to the rule", "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "ControlPanel's owner is not held to the rule", "if g_bControlPanelThere then if not OwnerIsAllowed(g_szControlPanelReal, g_hControlPanel, szWhy) then begin Result := " },
-         new[] { "CheckProgramFolders", "what is in Bin and ControlPanel is not refused before the service is stopped", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy); if found > 0 then Result := " },
+         new[] { "CheckProgramFolders", "what is in Bin and ControlPanel is not refused before the service is stopped", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, false, false, found, szWhy); if g_bProgramFolderThere then CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, false, found, szWhy); if found > 0 then Result := " },
          new[] { "OwnerIsAllowed", "a folder another account owns is taken although it is not the earlier installation's", "else if g_bEarlierInstallation then Result := true else Why := " },
          new[] { "WalksAgree", "what one walk found is not held to the others", "if g_bProgramFolderThere then Result := Whole or (CompareText(Held, g_szProgramFolderReal) = 0) else Result := (not Whole) and (CompareText(Held, g_szProgramFolderHeld) = 0);" },
          new[] { "MakeFolders", "a folder somebody else made in the meantime is taken", "if MakeFolderWithSecurity(missing[index], attributes) then begin if Kind = 0 then" },
@@ -1385,7 +1385,7 @@ namespace RegressionTests.Installation
          new[] { "PrepareProgramFolders", "a Bin that is not there is not made by setup", "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then begin Result := ~; Exit; end;" },
          new[] { "PrepareProgramFolders", "a ControlPanel that is there is not hardened, or one that could not be is installed into", "if g_bControlPanelThere then begin if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end" },
          new[] { "PrepareProgramFolders", "a ControlPanel that is not there is not made by setup", "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, hMade, szWhy) then begin Result := ~; Exit; end;" },
-         new[] { "PrepareProgramFolders", "what is in Bin and ControlPanel is not looked at again once they are hardened", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy); if found > 0 then begin Result := ~; Exit; end;" },
+         new[] { "PrepareProgramFolders", "what is in Bin and ControlPanel is not looked at again once they are hardened", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, true, false, found, szWhy); if g_bProgramFolderThere then CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, true, found, szWhy); if found > 0 then begin Result := ~; Exit; end;" },
          new[] { "HardenHeldFolder", "a held folder's owner and permissions are not read through its handle", "readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);" },
          new[] { "HardenHeldFolder", "an entry of the folder's own that lets every user write is kept", "if ((((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0) and LetsEveryUserWrite(pAce) then begin szSid := TextOfSidAt(pAce + 8);" },
          new[] { "HardenHeldFolder", "an entry that lets every user write is not taken away, or a failure to take it is not a refusal", "'\" /remove:g ' + szSid, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then begin Why := ~; Exit; end; if ResultCode <> 0 then begin Why := ~; Exit; end;" },
@@ -1401,13 +1401,24 @@ namespace RegressionTests.Installation
          new[] { "RebuildFolderOfUntrustedOwner", "the deny entries are not kept on a rebuilt folder", "if pass = 0 then begin if aceType = HM_ACCESS_DENIED then ok := AddAsOwnEntry(pNew, pAce); end" },
          new[] { "RebuildFolderOfUntrustedOwner", "a folder another account owns is not given to the Administrators with their privilege first", "if not Exec(ExpandConstant('{sys}\\takeown.exe'), '/F \"' + Folder + '\" /A', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then Why := ~ else if ResultCode <> 0 then Why := ~ else begin written := WriteFolderSecurity(Folder, HM_FILE_OBJECT, HM_PROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);" },
          new[] { "CheckWhatIsInside", "a program, a library, a folder or a link another account controls is said and not refused", "if bLink or bCode or bFolder then begin Found := Found + 1;" },
-         new[] { "CheckWhatIsInside", "a link, a program or a library inside Bin or ControlPanel is not known as one", "bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0; bCode := (not bFolder) and IsProgramFile(rec.Name);" },
+         new[] { "CheckWhatIsInside", "a link, a program or a library inside Bin or ControlPanel is not known as one", "bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0; bCode := (not bFolder) and (IsProgramFile(rec.Name) or (Scripts and IsScriptFile(rec.Name)));" },
          new[] { "CheckWhatIsInside", "an owner other than the three is not refused", "else if not IsTrustedSid(pOwner) then begin if (not bCode) and (not bFolder) and SidIs(pOwner, HM_SERVICE_SID) then szWho := ''" },
          new[] { "CheckWhatIsInside", "a program or a folder an entry of whose own lets another account change it is not refused", "else if bCode or bFolder then begin if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then" },
-         new[] { "CheckWhatIsInside", "what is below the first level is not looked at", "for index := 0 to count - 1 do if not CheckWhatIsInside(folders[index], Depth + 1, Final, Found, Why) then Result := false;" },
+         new[] { "CheckWhatIsInside", "what is below the first level is not looked at", "for index := 0 to count - 1 do if not CheckWhatIsInside(folders[index], Depth + 1, Final, Scripts, Found, Why) then Result := false;" },
          new[] { "CheckWhatIsInside", "the owner of what is in Bin and ControlPanel is not read through a handle on each", "readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);" },
          new[] { "IsProgramFile", "a program or a library is not what the live update holds to its rule", "Result := (szExtension = '.exe') or (szExtension = '.dll');" },
          new[] { "OwnEntriesLetOthers", "an inherited entry is weighed, or an entry of the item's own is not", "if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
+         new[] { "IsScriptFile", "a script the service, DBSetup or the web server runs is not counted as a program", "Result := (szExtension = '.vbs') or (szExtension = '.js') or (szExtension = '.sql') or (szExtension = '.php') or (szExtension = '.ps1') or (szExtension = '.cmd') or (szExtension = '.bat');" },
+         new[] { "IsDataFolderName", "a folder other than the data folders the service writes in is taken for one", "Result := (CompareText(Name, 'Data') = 0) or (CompareText(Name, 'Logs') = 0) or (CompareText(Name, 'Temp') = 0) or (CompareText(Name, 'Database') = 0);" },
+         new[] { "CheckWhatElseIsInside", "which items of the program folder are links, programs, scripts or data folders is not read", "bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0; bData := bFolder and IsDataFolderName(rec.Name); bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsScriptFile(rec.Name));" },
+         new[] { "CheckWhatElseIsInside", "a link in the program folder that another account controls is taken (the review of 26 October 2026)", "if bLink then begin if not LinkIsAdministratorsAlone(handle, -1, szText) then begin szWho := ~; szRemedy := ~; end; end" },
+         new[] { "CheckWhatElseIsInside", "the owner of what is in the program folder is not read through a handle on each", "readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);" },
+         new[] { "CheckWhatElseIsInside", "an owner other than the three is taken in the program folder, the service's of a data folder aside", "else if not IsTrustedSid(pOwner) then begin if bData and SidIs(pOwner, HM_SERVICE_SID) then szWho := '' else szWho := " },
+         new[] { "CheckWhatElseIsInside", "an entry of its own that lets another account change a program, a script or a folder of the program folder is taken", "else if bCode or (bFolder and (not bData)) then begin if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then" },
+         new[] { "CheckWhatElseIsInside", "a link, a program, a script or a folder another account controls in the program folder is said, not refused", "if bLink or bCode or (bFolder and (not bData)) then begin Found := Found + 1;" },
+         new[] { "CheckWhatElseIsInside", "the folders setup installs into that hold what is run are not these five", "0: szFolder := 'Addons'; 1: szFolder := 'Events'; 2: szFolder := 'DBScripts'; 3: szFolder := 'WebAdmin'; 4: szFolder := 'Languages';" },
+         new[] { "CheckWhatElseIsInside", "what is in those folders is not looked at at any depth, scripts counted as programs", "if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then Result := false;" },
+         new[] { "LinkIsAdministratorsAlone", "the folder a link is in is not asked about unless the link is in the program folder itself", "FreeWindowsMemory(pDescriptor); if not Result then Exit; if hParent = -1 then Exit; Result := false;" },
          new[] { "SayWriteEntriesKept", "an entry kept that lets an account other than the three write is not said", "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
          new[] { "NextButtonClick", "the folders are not checked before the service is stopped, or a refusal there stops it all the same", "g_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder()); if g_szFolderRefusal <> '' then Exit;" },
          new[] { "NextButtonClick", "whether setup stopped a running service is not known", "bWasRunning := IsServiceRunning('hMailServer'); if bWasRunning then g_bServiceStoppedForSetup := true; if (StopHMailServerService() = false) then Result := false;" },
@@ -1505,12 +1516,25 @@ namespace RegressionTests.Installation
          // Before the service is stopped, and again after the hardening.
          string check = CodeBody(extension, "CheckProgramFolders");
          string prepare = CodeBody(extension, "PrepareProgramFolders");
-         Assert.IsTrue(check.Contains("CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy)") && check.Contains("CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy)"),
+         Assert.IsTrue(check.Contains("CheckWhatIsInside(g_szBinReal, 0, false, false, found, szWhy)") && check.Contains("CheckWhatIsInside(g_szControlPanelReal, 0, false, false, found, szWhy)"),
             "What is in Bin and ControlPanel is not looked at before the service is stopped.");
+         // And what else in the program folder holds what is run (the review of 26 October
+         // 2026): its own level, and Addons, Events, DBScripts, WebAdmin and Languages at
+         // any depth with scripts counted as programs, in both passes.
+         Assert.IsTrue(check.Contains("CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, false, found, szWhy)") &&
+                       prepare.Contains("CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, true, found, szWhy)"),
+            "What else is in the program folder is not looked at before the service is stopped, or again once the folders are hardened.");
+         string elsewhere = CodeBody(extension, "CheckWhatElseIsInside");
+         foreach (string word in new[] { "'Addons'", "'Events'", "'DBScripts'", "'WebAdmin'", "'Languages'", "CheckWhatIsInside(szFolder, 0, Final, true, Found, Why)", "LinkIsAdministratorsAlone(handle, -1, szText)",
+                                         "HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0)", "IsVolumeRoot(App)" })
+            StringAssert.Contains(word, elsewhere, "CheckWhatElseIsInside does not use " + word + ".");
+         Assert.IsFalse(Regex.IsMatch(elsewhere, @"ReadFolder(Permissions|Owner)\("), "What is in the program folder is read by its path.");
+         foreach (string extensionName in new[] { "'.vbs'", "'.js'", "'.sql'", "'.php'", "'.ps1'", "'.cmd'", "'.bat'" })
+            StringAssert.Contains(extensionName, CodeBody(extension, "IsScriptFile"), "IsScriptFile does not count " + extensionName + ".");
          int lastHarden = Math.Max(prepare.LastIndexOf("HardenHeldFolder(", StringComparison.Ordinal), prepare.LastIndexOf("MakeFolders(", StringComparison.Ordinal));
-         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy)", StringComparison.Ordinal), lastHarden,
+         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szBinReal, 0, true, false, found, szWhy)", StringComparison.Ordinal), lastHarden,
             "What is in Bin is looked at for the last time before setup has hardened the folders, when another account may still add to them.");
-         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy)", StringComparison.Ordinal), lastHarden,
+         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szControlPanelReal, 0, true, false, found, szWhy)", StringComparison.Ordinal), lastHarden,
             "What is in ControlPanel is looked at for the last time before setup has hardened the folders.");
 
          // The entries kept that let another account write, after icacls: every account
@@ -1527,7 +1551,7 @@ namespace RegressionTests.Installation
          // Said in one box when somebody is there to read it.
          Assert.IsTrue(Regex.IsMatch(prepare, @"if\s+\(g_szFolderFindings\s*<>\s*''\)\s+and\s+\(not\s+WizardSilent\(\)\)\s+then\s+SuppressibleMsgBox\("),
             "An attended installation does not show what setup found in the program folder.");
-         AssertNoPlainMessageBox(extension, "SayWriteEntriesKept", "CheckWhatIsInside", "OwnEntriesLetOthers", "IsProgramFile");
+         AssertNoPlainMessageBox(extension, "SayWriteEntriesKept", "CheckWhatIsInside", "OwnEntriesLetOthers", "IsProgramFile", "CheckWhatElseIsInside", "IsScriptFile", "IsDataFolderName");
       }
 
       [Test]
