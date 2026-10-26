@@ -417,7 +417,19 @@ refuses it. This checker holds them to each other. It fails when:
     check-provenance); or release-chain.py's publish uploads before it has held the
     copies, the provenance, GitLab's rules for the links and the site's budget
     (_redirects, the feed's size) to the release, or collect copies before counting
-    that budget; or its limit on the feed's size is not UpdateChecker.cpp's;
+    that budget; or its limit on the feed's size is not UpdateChecker.cpp's; or
+    check-provenance or publish stops giving provenance_problems the commit
+    (CI_COMMIT_SHA) and the pipeline (CI_PIPELINE_URL) it runs in, which the
+    statement's invocation must name, or provenance_problems stops reading the source
+    digest and ref the provenance's certificate records with
+    sigstore_certificate.source, to which it holds the commit and the tag;
+  * a document of the project (the README, SECURITY.md, RELEASE.md,
+    ASSURANCE-CASE.md and every page of hmailserver/docs) stops saying where
+    SLSA_CLAIMS says it that the release's provenance meets SLSA Build L1, or shows
+    the slsa.dev badge of a higher level, names a higher level without a negation
+    attached to it or affirms one (slsa_level_problems): a tripwire for a claim,
+    not a reader of every wording, the level itself held to the specification by
+    hand (SECURITY.md, "Build provenance");
   * the rehearsal (.gitlab/ci/release-rehearsal.yml) can run for a tag, for master,
     for a merge request or where the package jobs are not made; runs anything but
     release-chain.py collect --rehearse and sbom --rehearse, release-sign.sh
@@ -447,7 +459,12 @@ refuses it. This checker holds them to each other. It fails when:
     a length DER would write shorter, and bundles whose chain's first certificate -
     the one cosign verifies - is spelled so that a count of "rawBytes" misses it,
     its second carrying this project's id) as the cases say, the shell one under sh here
-    (a CI job without sh fails); and no file of build/ or .gitlab/ but those two may
+    (a CI job without sh fails), and sigstore-certificate.py's reader of the source
+    digest and ref (1.3.6.1.4.1.57264.1.13 and .14, which the Python reader alone
+    reads) must answer each of its source cases (both in the extensions, neither, the
+    ref alone, a digest planted in the key with another in the extensions, the digest
+    twice, an empty ref, a ref with a space, a certificate Fulcio issued and the same
+    with its digest's extension left out) as they say; and no file of build/ or .gitlab/ but those two may
     hold the Sigstore OID arc 1.3.6.1.4.1.57264 as bytes - as hex in any spelling,
     as decimal numbers, or as the base64 of a certificate that holds it; and
     container-image-deb.sh must refuse a cosign without verify-blob

@@ -2247,13 +2247,15 @@ with `--check`).
   passed with it chosen by `linux-suite.sh`.
 - **The `checkers` job may take 45 minutes, where it was stopped at 20.** Its script runs one check at a time, so a
   runner's speed on one core decides its time: it took 1,136 s on server2 on 24 October 2026 in the job's image with 8
-  CPUs, linix's limit, and 1,135 s with 2, GitLab's small hosted runner's. linix had taken 1.4 to more than 1.6 times
+  CPUs (linix gives a job six), and 1,135 s with 2, GitLab's small hosted runner's. linix had taken 1.4 to more than 1.6 times
   server2's time for the same script, and was stopped at 20 minutes in master's pipeline of 21 October (2969966488),
   after 1,207 s, and in a landing pipeline of 23 October (2983075001), after 1,206 s, each time while it ran
   `generate-auth-matrix.py --self-test`; GitLab's small runner, which a pipeline outside the protected refs takes, was
   stopped at 20 minutes twice on 19 October, after 1,206 s and 1,202 s, while a third run took 1,173 s and failed on
-  `check-ci-image.py`. The job's comment says how the 45 minutes were reached (1.6 times the measured run, and half as
-  much again for the checks each batch adds), and ContinuousIntegration.md's "How long each job takes" gives the job's
+  `check-ci-image.py`. The job's comment says how the 45 minutes were reached: 1.6 times the measured run, and room
+  for the checks each batch adds, which with the checks added since 24 October is about a third again - the script
+  took 1,247 s and 1,386 to 1,405 s on server2 on 25 October, and 1,873 s and 1,909 s there under linix's limits
+  (six CPUs and 8 GB) on that machine loaded with other work -, and ContinuousIntegration.md's "How long each job takes" gives the job's
   times from 19 October 2026 where it gave the estimate made before any job had run. No check moves, and every check
   still runs in the job.
 - **SonarQube Cloud's scope leaves out the third parties' data, the translation catalogues and more generated
@@ -2299,6 +2301,16 @@ with `--check`).
   Docker Hub one on `docker.io.evil.example` or `evildocker.io`. It takes `quay.io/hmailserver/other`, and holds
   `registry_host` to five references. Run with the rule made a substring test, a prefix test without the `/`, a
   suffix test, the pattern alone, or a host without its port, the self-test fails each, and it passes as it is.
+- **`build/check-release-chain.py`'s account of what it fails on names the rules it gained with the provenance's
+  hold and the SLSA level, and `checkers`' timeout comment gives linix's limit and the job's times since.** The
+  module docstring now names the hold of `check-provenance` and `publish` to giving
+  `provenance_problems` the commit and `CI_PIPELINE_URL`, and of `provenance_problems` to reading the source its
+  certificate records with `sigstore_certificate.source`; the SLSA level tripwire (`SLSA_CLAIMS`,
+  `slsa_level_problems`) and the documents it reads; and the source cases the certificate item's reader of the
+  source digest and ref must answer. `.gitlab-ci.yml`'s comment on `checkers`' 45 minutes, and the entry above on it,
+  said the 24 October run had 8 CPUs, "linix's limit", where linix gives a job six, and reasoned the margin from that
+  run alone; they now give the later runs' times beside it, and ContinuousIntegration.md's row for the job gives them
+  too. Comments and the docstring alone: no rule or job changes.
 
 ### Documentation
 
