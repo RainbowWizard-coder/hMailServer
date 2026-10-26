@@ -3118,33 +3118,39 @@ with `--check`).
   STARTTLS and has the Internet range take a password only over TLS, and left out that it also makes port 25 a
   honeypot for AUTH (`NewInstallDefaults.cpp`: an AUTH there is refused and its address banned for
   `AutoBanMinutes`; mail clients sign in on 587). `HelpPagesData.cpp` is regenerated.
-- **The roadmaps say where their rows stand on 26 October 2026, and eleven of Roadmap3's are done.** Roadmap3.md's
-  rows on the `.sigstore.json` copies, a green `master` pipeline, secret detection and Docker Hub are marked done with
-  their evidence: 6.3.6's and 6.3.7's 35 copies, each byte for byte its bundle, *Done when* now naming the primary
-  files, which are what `release-sign.sh` copies; `master`'s push pipeline 2978723670 (23 October 2026), which passed
-  with no failed job, `db-matrix` among the 60 jobs that ran, recorded on GitLab work item 21; the one run of the
-  `security` schedule over the whole history (pipeline 2979108094, 3,937 commits, no leaks), with push protection on;
-  and `registry-mirror`'s publication of 6.3.7's image index to Docker Hub on 22 October 2026 (job 17362512829), whose
-  three tags Docker Hub gives GitLab's digest. The rows on immutable releases, EPEL (Enterprise Linux 10 alone, since
-  9's Boost is below the floor), Hetzner, selfh.st and the files GitLab does not have (the Internet Archive holds none
-  of them) say what was read, and five of the rows removed on 13 October 2026 because they needed GitHub give the
-  reasons that hold now that GitHub is reachable again. Roadmap.md's client-facing surfaces are paused at JMAP, the
-  one surface left, and its row on the regression suite on Linux says that `ACL.cs`, `API/Basics.cs` and
-  `MessageUids.cs` are compiled, that the gate is GitLab's `linux-suite`, and what it ran on 23 October 2026 (2,645
-  tests: 2,284 passed, 0 failed, 361 skipped). Roadmap2.md's active-active row names the three units 6.3.7 carries and
-  the three that come next; its Windows on ARM row says that the ARM64 installer is built, Authenticode-signed and
-  released since 6.3.6, which leaves an installation and a suite run on ARM64 hardware; and its row on Apple's push
-  says that Web Push is built. ContinuousIntegration.md records the history scan and push protection and corrects what
-  it said of the protected branches API and of project access tokens, which the group has had since 13 October 2026,
-  on GitLab's open-source plan, as Mirroring.md now says for the export job's tokens; Channels.md records the job's
-  copy to Docker Hub; and SourcePackages.md names the roadmap rows it points at, where it gave their old numbers.
-  Roadmap3.md's rows on the Compose file and the Helm chart, the zypper repository, the live update, Copr, the
-  openSUSE Build Service, PyPI and the PowerShell Gallery are marked done from the installations that
-  ContainerImage.md, Channels.md and CommandLinePackages.md record (23 and 24 October 2026), PyPI's on Linux and
-  Windows, which were taken as enough on 24 October 2026, macOS not having been tried; the PPA's row has its install
-  half done and waits for 6.3.8 for `apt upgrade`; and the rows on the AArch64 `.deb` and `.rpm`, the chart as a
-  package and its Artifact Hub listing say that they wait for 6.3.8's tag pipeline, the first to run the AArch64 start
-  jobs and to publish a chart that starts a server. `HelpPagesData.cpp` is regenerated.
+- **The roadmaps say where their rows stand on 26 October 2026, eleven of Roadmap3's are done, and seven more are
+  decided.** Roadmap3.md's rows on the `.sigstore.json` copies, a green `master` pipeline, secret detection and Docker
+  Hub are marked done with their evidence: 6.3.6's and 6.3.7's 35 copies, each byte for byte its bundle, *Done when*
+  now naming the primary files, which are what `release-sign.sh` copies; `master`'s push pipeline 2978723670 (23
+  October 2026), which passed with no failed job, `db-matrix` among the 60 jobs that ran, recorded on GitLab work item
+  21; the one run of the `security` schedule over the whole history (pipeline 2979108094, 3,937 commits, no leaks),
+  with push protection on; and `registry-mirror`'s publication of 6.3.7's image index to Docker Hub on 22 October 2026
+  (job 17362512829), whose three tags Docker Hub gives GitLab's digest. The rows on immutable releases, EPEL
+  (Enterprise Linux 10 alone, since 9's Boost is below the floor), Hetzner, selfh.st and the files GitLab does not
+  have (the Internet Archive holds none of them) say what was read, and five of the rows removed on 13 October 2026
+  because they needed GitHub give the reasons that hold now that GitHub is reachable again. Roadmap.md's client-facing
+  surfaces are paused at JMAP, the one surface left, and its row on the regression suite on Linux says that `ACL.cs`,
+  `API/Basics.cs` and `MessageUids.cs` are compiled, that the gate is GitLab's `linux-suite`, and what it ran on 23
+  October 2026 (2,645 tests: 2,284 passed, 0 failed, 361 skipped). Roadmap2.md's active-active row names the three
+  units 6.3.7 carries and the three that come next; its Windows on ARM row says that the ARM64 installer is built,
+  Authenticode-signed and released since 6.3.6, which leaves an installation and a suite run on ARM64 hardware; and
+  its row on Apple's push says that Web Push is built. ContinuousIntegration.md records the history scan and push
+  protection and corrects what it said of the protected branches API and of project access tokens, which the group has
+  had since 13 October 2026, on GitLab's open-source plan, as Mirroring.md now says for the export job's tokens;
+  Channels.md records the job's copy to Docker Hub; and SourcePackages.md names the roadmap rows it points at, where
+  it gave their old numbers. Roadmap3.md's rows on the Compose file and the Helm chart, the zypper repository, the
+  live update, Copr, the openSUSE Build Service, PyPI and the PowerShell Gallery are marked done from the
+  installations that ContainerImage.md, Channels.md and CommandLinePackages.md record (23 and 24 October 2026), PyPI's
+  on Linux and Windows, which were taken as enough on 24 October 2026, macOS not having been tried; the PPA's row has
+  its install half done and waits for 6.3.8 for `apt upgrade`; and the rows on the AArch64 `.deb` and `.rpm`, the
+  chart as a package and its Artifact Hub listing say that they wait for 6.3.8's tag pipeline, the first to run the
+  AArch64 start jobs and to publish a chart that starts a server. Under the owner's "do whats best" of 24 October
+  2026, Roadmap3.md's rows on Docker Hub's badges, Scoop, Cloudron, Google Cloud Marketplace and DigitalOcean
+  Marketplace move to *Rows removed* as dropped, each with its reason; Amazon ECR Public is paused as not wanted for
+  now, `registry-mirror`'s destination for it kept; and the installer smoke test as a job is paused, the test staying
+  a step by hand that a maintainer runs for the owner at each release, as RELEASE.md's step 5 now says, the pipeline's
+  `installer-smoke` job staying the placeholder it is. The owner's list and the order of work in Roadmap3.md say the
+  same. `HelpPagesData.cpp` is regenerated.
 
 ---
 

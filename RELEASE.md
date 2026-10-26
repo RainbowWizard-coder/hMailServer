@@ -260,7 +260,10 @@ merge request whose pipeline passed, the change checks in it (SECURITY.md, "Ever
    on its own, a new installation, which is where the secure defaults are
    checked (`hmailserver/docs/SecureDefaults.md`)
    (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
-   Both must pass before the next step.
+   Both must pass before the next step. The test stays a step by hand, which a
+   maintainer runs for the owner at each release, as decided on 24 October 2026;
+   the pipeline's `installer-smoke` job is a placeholder that exits 1 (Roadmap3.md,
+   section 5, *The installer smoke test as a job*).
 6. **Start `release-publish`, as the owner.** The job uploads and creates the
    release with its `CI_JOB_TOKEN`, which acts with the permissions of whoever
    started it, and the package protection rules let only an Owner push to the
