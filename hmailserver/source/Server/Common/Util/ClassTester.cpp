@@ -73,6 +73,7 @@
 #include "PasskeyStore.h"
 #include "SignInBudget.h"
 #include "SignInState.h"
+#include "LogonName.h"
 #include "MaskedAddresses.h"
 #include "ListManager.h"
 #include "ListArchive.h"
@@ -894,6 +895,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SignInState\n"));
       SignInStateTester signInStateTester;
       signInStateTester.Test();
+
+      // Which account a name given at sign-in names: the stored address itself,
+      // in other case, under the default domain or a domain alias, and no other
+      // spelling the databases take for it; and the lockout's key the account's
+      // for every name the rule takes.
+      OutputDebugString(_T("hMailServer: Testing LogonName\n"));
+      LogonNameTester logonNameTester;
+      logonNameTester.Test();
 
       // Masked addresses: the local part a label gives.
       OutputDebugString(_T("hMailServer: Testing MaskedAddresses\n"));
@@ -2721,6 +2730,29 @@ namespace HM
          lockout->RecordSuccess(_T("selftest-b@x.test"));
          lockout->RecordSuccess(_T("selftest-c@x.test"));
          lockout->RecordSuccess(_T("selftest-d@x.test"));
+
+         // The key is LogonName::Key, the one the sign-in's rule compares with
+         // (LogonName.h): a spelling is locked with the name exactly when its key
+         // is the name's, so whatever the sign-in takes for an account is locked
+         // with it, and a padded name, which the sign-in refuses, is too.
+         lockout->RecordFailureAt(_T("selftest-v@x.test"), t0, 1, 600, 300);
+         const String lockedKey = LogonName::Key(_T("selftest-v@x.test"));
+         const String spellings[] =
+         {
+            _T("selftest-v@x.test"), _T("SELFTEST-V@X.TEST"), _T("  selftest-v@x.test\t"),
+            String(_T("s")) + String(1, static_cast<wchar_t>(0xE8)) + _T("lftest-v@x.test"),
+            String(_T("selftest-v@x.test")) + String(1, static_cast<wchar_t>(0xFEFF)),
+            _T("selftest-w@x.test")
+         };
+         for (const String &spelling : spellings)
+         {
+            if (lockout->IsLockedOutAt(spelling, t0 + 1, 300) != (LogonName::Key(spelling) == lockedKey))
+               throw 0;
+         }
+         if (!lockout->IsLockedOutAt(_T(" SELFTEST-V@x.test "), t0 + 1, 300) ||
+             lockout->IsLockedOutAt(String(_T("selftest-v@x.tes")) + String(1, static_cast<wchar_t>(0xFF54)), t0 + 1, 300))
+            throw 0;
+         lockout->RecordSuccess(_T("selftest-v@x.test"));
       }
 
       OutputDebugString(_T("hMailServer: Testing CompromiseDetector\n"));

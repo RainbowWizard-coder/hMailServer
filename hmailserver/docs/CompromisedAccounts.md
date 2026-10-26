@@ -78,7 +78,11 @@ When the mode is `enforce` and a submission completes the shape:
    nothing, since the client most likely to keep presenting a valid token for
    a locked account is its owner's. Unlike the lockout it has no clock and no
    password clears it. The lock is a row (`hm_accountreview.arvlocked`), so it
-   survives a restart. Its browser sessions are ended.
+   survives a restart. Its browser sessions are ended. A password logon asks it
+   twice: of the name as the client gave it, before the password, and of the
+   account's own address once the password has found the account - and a name
+   finds an account only when it is the account's address (below), so no other
+   spelling of the name reaches a held account.
 3. **The alert is raised.** `account.compromised`, seeded on, with the account,
    the client address, the score, the signals and one sentence per signal; and
    the `account.locked` webhook, with the reason.
@@ -99,6 +103,42 @@ alert ceiling (`alert_max_per_hour`) on itself and push every other condition
 into the digest for the rest of the hour. `hm_accountreview.arvalertedat` is
 what says the hour is not up. A lock is always said, whatever the hour, since it
 is a new state.
+
+Which account a name signs in to
+--------------------------------
+
+The lock is asked of a name, and so is the per-name lockout that counts failed
+passwords (`AccountLockoutThreshold`), so what matters is which account a name
+signs in to. It is the account whose stored address **is** the name: compared in
+lower case, after a name under one of a domain's aliases is given the domain's
+name and a bare local part the default domain. Every sign-in that finds an
+account by a name the client gave finds it this way (`LogonName`, in
+`Common/Util/LogonName.h`): the password logons of SMTP `AUTH`, IMAP, POP3,
+ManageSieve, the DAV services, the webmail, REST and COM, the authorisation
+identity the IMAP master user names, SCRAM-SHA-256, an OAuth2 bearer token's
+name, a client certificate's address, a Kerberos principal's, and the address an
+OpenID Connect or SAML identity provider signs a person in with. A name the
+database would also have taken for the account under another spelling names no
+account: it fails as a name that
+does not exist fails, with the same reply, and the failure is counted as any
+failure is. The lockout counts each name under the same key the comparison is
+made with (the name trimmed, in lower case, with the alias and the default
+domain applied), so a name that signs in to an account is counted as that
+account, and a name with spaces around it, which does not sign in, is counted as
+the account too.
+
+Up to 6.3.7 the account a name signed in to was whichever one the database's own
+comparison found, and the databases find an account under spellings the lockout
+counted apart: so each such spelling had a
+threshold of its own, and an account held here could be signed into under another
+spelling of its name with its password. A password logon now also asks the hold,
+the country policy and - for the account that authenticated - the lockout of the
+account's own address once the password has found it.
+
+The case folded is what the C library lowers in the C locale the server runs in:
+the letters of ASCII on Windows and with glibc, and more with musl (Alpine). A
+name that differs from the stored address in the case of a letter it does not
+lower is refused, as the lockout always counted it apart.
 
 Reviewing
 ---------

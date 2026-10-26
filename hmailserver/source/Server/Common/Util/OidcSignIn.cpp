@@ -7,6 +7,7 @@
 #include "HttpsClient.h"
 #include "JsonDocument.h"
 #include "JwksKeySet.h"
+#include "LogonName.h"
 #include "OAuth2TokenValidator.h"
 #include "ReaderOAuth.h"
 #include "SignInState.h"
@@ -692,6 +693,16 @@ namespace HM
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       if (PersistentAccount::ReadObject(account, address) && account->GetID() > 0)
       {
+         // The mailbox whose stored address the issuer's address is, as every
+         // sign-in finds an account (LogonName.h), and not one the database's
+         // comparison takes for it under another spelling: an address the issuer
+         // verified for somebody else. Nor is a mailbox made for it.
+         if (!LogonName::Names(address, account->GetAddress()))
+         {
+            problem = "that address has no mailbox on this server";
+            return false;
+         }
+
          if (!account->GetActive())
          {
             problem = "that mailbox is not active on this server";

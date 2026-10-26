@@ -7,11 +7,9 @@
 #include "StdAfx.h"
 
 #include "AccountLockout.h"
+#include "LogonName.h"
 #include "WebhookManager.h"
 
-#include "../Application/DefaultDomain.h"
-#include "../Application/ObjectCache.h"
-#include "../BO/DomainAliases.h"
 #include "../Cache/CacheContainer.h"
 
 #include <ctime>
@@ -40,37 +38,23 @@ namespace HM
    String
    AccountLockout::NormalizeKey_(const String &username)
    {
-      String key = username;
-      key.Trim();
-      key.ToLower();
-
-      if (key.IsEmpty())
-         return key;
-
-      // Canonicalize exactly as the authentication paths do before they match an
-      // account - aliases first, then the default domain - so that one mailbox is
-      // one bucket however the client spelled it. Without this the lock is evaded
-      // by alternating "victim" and "victim@example.com", each spelling carrying
-      // its own untouched threshold. See the header for why this stays free of an
-      // existence oracle: neither transformation asks whether an account exists.
-      try
-      {
-         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
-         if (aliases)
-            key = aliases->ApplyAliasesOnAddress(key);
-
-         key = DefaultDomain::ApplyDefaultDomain(key);
-         key.ToLower();
-      }
-      catch (...)
-      {
-         // The caches are not available - very early startup, or a failure inside
-         // the alias collection. The plain lowercased name is the safe fallback:
-         // it costs strictness for the spellings that would have canonicalized,
-         // and can never count a failure against a different mailbox.
-      }
-
-      return key;
+      // Trimmed, in lower case, and canonicalized exactly as the authentication
+      // paths do before they match an account - aliases first, then the default
+      // domain - so that one mailbox is one bucket however the client spelled it.
+      // Without this the lock is evaded by alternating "victim" and
+      // "victim@example.com", each spelling carrying its own untouched threshold.
+      // See the header for why this stays free of an existence oracle: neither
+      // transformation asks whether an account exists.
+      //
+      // LogonName::Key, the function the sign-in's rule for which account a name
+      // names compares with (LogonName.h): every name a sign-in takes for an
+      // account has the key of the account's own address, so no spelling of a
+      // name the sign-in accepts carries a threshold or a hold of its own. When
+      // the caches are not available - very early startup, or a failure inside
+      // the alias collection - the key is the plain lowercased name, which costs
+      // strictness for the spellings that would have canonicalized and can never
+      // count a failure against a different mailbox.
+      return LogonName::Key(username);
    }
 
    void
@@ -411,8 +395,11 @@ namespace HM
             // member and spend a subscription's ceiling on fictitious lockouts,
             // after which the real bounces and deliveries it exists for are
             // dropped. The webhook is internal, so the lookup leaks nothing to
-            // the client: the lock is applied to the name either way.
-            if (CacheContainer::Instance()->GetAccount(lockedName))
+            // the client: the lock is applied to the name either way. The account
+            // is found as a sign-in finds it (LogonName.h): a name the database
+            // would take for an account under another spelling is not that
+            // account's name, and its lock is not the account's.
+            if (LogonName::FindAccount(lockedName))
             {
                WebhookManager::Event event;
                event.name = WebhookManager::EventAccountLocked;

@@ -17,11 +17,17 @@
 // the sealed state the sign-ins that begin with no credential are carried in
 // since its second review.
 //
-// It prints one line and exits non-zero on the first failure.
+// And which account a name given at sign-in names (LogonNameTester,
+// Common/Util/LogonName.h), the rule every sign-in path finds the account by and
+// the key the per-name lockout and the compromise hold ask under, asked with the
+// aliases and the default domain given: no database or configuration either.
+//
+// It prints one line a group and exits non-zero on the first failure.
 
 #include <cstdio>
 #include <stdexcept>
 
+#include "../Common/Util/LogonName.h"
 #include "../Common/Util/PasskeyStore.h"
 #include "../Common/Util/SignInBudget.h"
 #include "../Common/Util/SignInState.h"
@@ -47,5 +53,18 @@ main(int /*argc*/, char * /*argv*/[])
    }
 
    printf("ok    the sign-in tables' room: a holder at its cap gives up its own oldest, a full table the oldest of the holder with the most, of the largest group among holders tied, and never an administrator's session; floods from one source, from many and from one /48 leave another's passkey registration and session; sources by address, an IPv6 address by its /64, a NAT64 or Teredo client by its IPv4 address; a pending sign-in sealed, opened only as its own kind under this process's key, and spent once\n");
+
+   try
+   {
+      HM::LogonNameTester names;
+      names.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  which account a sign-in's name names: %s\n", failure.what());
+      return 1;
+   }
+
+   printf("ok    which account a sign-in's name names: the stored address, in other case, under the default domain and a domain alias, and no other spelling - accented, dotted, dotless and full-width letters, the characters a comparison ignores, a NUL, padding - and whatever it takes keyed as the account by the lockout and the hold\n");
    return 0;
 }

@@ -334,6 +334,7 @@
     <Compile Include="..\RegressionTests\SSL\StartTls\SmtpServerTests.cs" Link="SSL\StartTls\SmtpServerTests.cs" />
     <Compile Include="..\RegressionTests\SSL\TlsOptionsTests.cs" Link="SSL\TlsOptionsTests.cs" />
     <Compile Include="..\RegressionTests\Security\AccountLockoutTests.cs" Link="Security\AccountLockoutTests.cs" />
+    <Compile Include="..\RegressionTests\Security\LogonNameVariants.cs" Link="Security\LogonNameVariants.cs" />
     <Compile Include="..\RegressionTests\Security\AccountSendingLimits.cs" Link="Security\AccountSendingLimits.cs" />
     <Compile Include="..\RegressionTests\Security\AdministratorTwoFactor.cs" Link="Security\AdministratorTwoFactor.cs" />
     <Compile Include="..\RegressionTests\Security\AuthenticatedSenderCheck.cs" Link="Security\AuthenticatedSenderCheck.cs" />

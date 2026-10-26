@@ -136,17 +136,40 @@ namespace HM
       if (matchedAppPassword)
          *matchedAppPassword = viaAppPassword;
 
+      // The account the password proved, asked again by its own address now that
+      // it is resolved: its compromise hold and its country policy
+      // (RefusedByHold), and, when it is the account that authenticated, its
+      // per-name lockout. The checks above asked of the name as the client gave
+      // it, and PasswordValidator takes a name for an account only when the
+      // account's stored address is that name (LogonName.h), whose key is the
+      // account's own - so these refuse nothing the early checks let through,
+      // unless that rule is ever got round: then no spelling of a name reaches a
+      // held or a locked account all the same. Up to 6.3.7 the database's
+      // comparison chose the account, and a held account was signed into under
+      // another spelling of its name with its password. The password was right,
+      // so a refusal here is charged to nothing, as a hold or a lock is.
+      //
       // An authorisation identity that is not the name that authenticated (the
       // IMAP master user, RFC 4616): the checks above judged the account that
       // proved the password, and the session is the other one's. Its country
-      // policy and its compromise hold are asked too, with its own address, so
+      // policy and its compromise hold are asked here, with its own address, so
       // that a master user in a domain with no policy cannot open a mailbox
       // from a country the mailbox's domain or the mailbox itself refuses, nor
-      // one held for review. Until 26 September 2026 neither was asked. The
-      // password was right, so the refusal is charged to nothing, as a country
-      // refusal or a hold is for the account itself.
-      if (account && !masqname.IsEmpty() && masqname.CompareNoCase(username) != 0)
+      // one held for review. Until 26 September 2026 neither was asked. Its
+      // per-name lockout is not: that counts guesses at the mailbox's own
+      // password, and a master user's tool is not to be locked out of a mailbox
+      // by somebody guessing at it.
+      const bool asItself = masqname.IsEmpty() || masqname.CompareNoCase(username) == 0;
+      if (account)
       {
+         if (asItself && AccountLockout::Instance()->IsLockedOut(account->GetAddress()))
+         {
+            ServerStatus::Instance()->OnAuthenticationFailed();
+
+            std::shared_ptr<Account> empty;
+            return empty;
+         }
+
          if (RefusedByHold(account, ipaddress))
          {
             std::shared_ptr<Account> empty;
@@ -165,7 +188,7 @@ namespace HM
          // not an app password, and not another account's password signing in
          // as this one (an authorisation identity that is not the name that
          // authenticated, RFC 4616).
-         if (!viaAppPassword && (masqname.IsEmpty() || masqname.CompareNoCase(username) == 0))
+         if (!viaAppPassword && asItself)
             MailboxKeys::OnPasswordLogon(account, password);
 
          return account;

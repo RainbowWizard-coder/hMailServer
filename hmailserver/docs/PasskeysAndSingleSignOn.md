@@ -319,8 +319,14 @@ session answer clears the cookie.
 
 ### Mapping and provisioning
 
-The verified address is looked up as a mailbox on this server. When there is
-one, that is the session. When there is not:
+The verified address is looked up as a mailbox on this server: the mailbox whose
+stored address it is, in other case or not, as every sign-in finds an account
+(see *Which account a name signs in to* in
+[CompromisedAccounts.md](CompromisedAccounts.md)). A mailbox the database would
+also take for it under another spelling is somebody else's, so that sign-in is
+refused
+and no mailbox is made for it. When there is one, that is the session. When there
+is not:
 
 * with `oidc_auto_provision` **off** (the default), the sign-in is refused. A
   directory of ten thousand people is not ten thousand mailboxes;

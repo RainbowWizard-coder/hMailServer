@@ -34,6 +34,12 @@ Two kinds of policy, in one grammar:
   The domain is the one the account belongs to, however the name was written: a
   name under one of the domain's aliases, or a bare local part the default domain
   completes, meets that domain's policy (and the account's own, where it has one).
+  A password sign-in meets it again once the password has found the account, asked
+  with the account's own address, beside its compromise hold; and a name signs in
+  to an account only when the account's stored address is that name, in other case,
+  under an alias or the default domain (see *Which account a name signs in to* in
+  [CompromisedAccounts.md](CompromisedAccounts.md)), so no other spelling of a name
+  chooses the policy either.
   The IMAP master user signing in as another account (`AUTHENTICATE PLAIN` with an
   authorisation identity) meets both accounts' policies: its own before the
   password, and the mailbox's after it - and the mailbox's compromise hold - so a

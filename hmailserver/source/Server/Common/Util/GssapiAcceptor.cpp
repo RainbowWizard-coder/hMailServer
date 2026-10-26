@@ -12,6 +12,7 @@
 #include "StdAfx.h"
 #include "GssapiAcceptor.h"
 #include "AccountLogon.h"
+#include "LogonName.h"
 #include "ServerStatus.h"
 #include "Unicode.h"
 #include "../BO/Account.h"
@@ -421,19 +422,26 @@ namespace HM
             account = CacheContainer::Instance()->GetAccount(recordset->GetStringValue("accountaddress"));
       }
 
-      // 2. The address the directory gives the user: user@realm.
+      // 2. The address the directory gives the user: user@realm - the account
+      // whose stored address it is (LogonName.h), and not one the database's
+      // comparison takes for it under another spelling, which is somebody else's
+      // principal.
       if (!account && !userLower.IsEmpty() && !realmLower.IsEmpty())
-         account = CacheContainer::Instance()->GetAccount(userLower + _T("@") + realmLower);
+      {
+         const String principalAddress = userLower + _T("@") + realmLower;
+         account = CacheContainer::Instance()->GetAccount(principalAddress);
+         if (account && !LogonName::Names(principalAddress, account->GetAddress()))
+            account.reset();
+      }
 
       if (account && !account->GetActive())
          account.reset();
 
-      // The authorization identity, when the client gave one, is this account.
+      // The authorization identity, when the client gave one, is this account:
+      // its stored address, by the sign-in's rule (LogonName.h).
       if (account && !authzid.IsEmpty())
       {
-         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
-         const String wanted = DefaultDomain::ApplyDefaultDomain(aliases->ApplyAliasesOnAddress(authzid));
-         if (wanted.CompareNoCase(account->GetAddress()) != 0)
+         if (!LogonName::Names(authzid, account->GetAddress()))
             account.reset();
       }
 

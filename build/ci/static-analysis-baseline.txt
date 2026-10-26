@@ -8,7 +8,7 @@
 # that has been fixed, or end a line that has no reason with a tab and the reason its
 # triage gave; nothing else. docs/ContinuousIntegration.md, "Security scanning", says how.
 #
-# 691 findings, 216 of them with a reason.
+# 690 findings, 216 of them with a reason.
 de067b660072084e4de7	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/AntiSpam/AntiSpamDiagnostics.h:56	performing an implicit widening conversion to type 'const ULONGLONG' (aka 'const unsigned long') of a multiplication performed in type 'int'
 691624b920e4eb995d68	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/AntiSpam/DKIM/Arc.cpp:279	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
 85f8d8f13812b0b7e1aa	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/AntiSpam/DKIM/Arc.cpp:477	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
@@ -291,7 +291,6 @@ ffe6cae174e1b8000e33	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/C
 683661f8dee6fcfe8116	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Threading/WorkQueue.cpp:762	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether
 8e3f249050c9eb525cc9	clang-tidy	readability-suspicious-call-argument	hmailserver/source/Server/Common/Util/AWStats.cpp:38	3rd argument 'sFromAddress' (passed to 'sender') looks like it might be swapped with the 5th, 'senderIP' (passed to 'sourceIP')
 3eb7df8ea4103118024b	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Util/AccountLockout.cpp:65	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether
-6f5fa3d1b6f0eaf73e0a	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Util/AccountLockout.cpp:127	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether
 b4535d023f52a159bb2b	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/AccountRecovery.cpp:73	performing an implicit widening conversion to type 'const time_t' (aka 'const long') of a multiplication performed in type 'int'
 be6e09258627c2b6cbfc	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/AcmeClient.cpp:79	performing an implicit widening conversion to type 'const size_t' (aka 'const unsigned long') of a multiplication performed in type 'int'
 c7b904d4b589af60a3f9	clang-tidy	cert-err33-c	hmailserver/source/Server/Common/Util/AlertManager.cpp:234	the value returned by this function should not be disregarded; neglecting it may lead to errors

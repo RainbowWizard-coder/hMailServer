@@ -18,6 +18,7 @@
 #include "../Common/Util/RestApiServer.h"
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
+#include "../Common/Util/LogonName.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/Hashing/ScramSha256.h"
 #include "../Common/Util/OAuth2TokenValidator.h"
@@ -188,11 +189,13 @@ namespace HM
             sAddress = DefaultDomain::ApplyDefaultDomain(sAddress);
             sLoginName = sAddress;
 
-            std::shared_ptr<const Account> pCandidate = CacheContainer::Instance()->GetAccount(sAddress);
+            // The account whose stored address the token's name is (LogonName.h),
+            // and not one the database's comparison takes for it under another
+            // spelling: a token issued for such a name names somebody else.
+            std::shared_ptr<const Account> pCandidate = LogonName::FindAccount(sTokenUser);
             if (pCandidate && pCandidate->GetActive())
             {
-               String sDomain = StringParser::ExtractDomain(sAddress);
-               std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+               std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sTokenUser, pCandidate);
                if (pDomain && pDomain->GetIsActive())
                   pAccount = pCandidate;
             }
@@ -807,8 +810,17 @@ namespace HM
       if (AccountLockout::Instance()->IsLockedOut(sAccountAddress))
          return std::shared_ptr<const Account>();
 
-      std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
+      // The account the name names under the sign-in's rule (LogonName.h): the
+      // one whose stored address is the name, and no other spelling of one. A
+      // spelling the rule refuses runs the forced-failure exchange, as an unknown
+      // name does. And its lockout and hold asked again by its own address, which
+      // the rule makes the name's own key; this refuses nothing the check above
+      // let through unless that rule is ever got round.
+      std::shared_ptr<const Account> pAccount = LogonName::FindAccount(sAddress);
       if (!pAccount || !pAccount->GetActive())
+         return std::shared_ptr<const Account>();
+
+      if (AccountLockout::Instance()->IsLockedOut(pAccount->GetAddress()))
          return std::shared_ptr<const Account>();
 
       // A room or a piece of equipment cannot be signed into by any means
@@ -821,8 +833,7 @@ namespace HM
       if (pAccount->GetIsAD())
          return std::shared_ptr<const Account>();
 
-      String sDomain = StringParser::ExtractDomain(sAccountAddress);
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sAddress, pAccount);
       if (!pDomain || !pDomain->GetIsActive())
          return std::shared_ptr<const Account>();
 

@@ -7,6 +7,7 @@
 #include "ClientCertificateIdentity.h"
 
 #include "AccountLogon.h"
+#include "LogonName.h"
 #include "ServerStatus.h"
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
@@ -202,12 +203,16 @@ namespace HM
       // The same eligibility the bearer-token logon applies: an active account in an
       // active domain, whatever its stored password hash - the certificate is the
       // proof, so the hash type is irrelevant.
+      //
+      // The account whose stored address the certificate's address is
+      // (LogonName.h), and not one the database's comparison takes for it under
+      // another spelling: a certificate an authority issued for such an address
+      // names somebody else.
       std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(address);
-      if (!account || !account->GetActive())
+      if (!account || !account->GetActive() || !LogonName::Names(address, account->GetAddress()))
          return std::shared_ptr<const Account>();
 
-      const String domainName = StringParser::ExtractDomain(address);
-      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(domainName);
+      std::shared_ptr<const Domain> domain = LogonName::FindDomain(address, account);
       if (!domain || !domain->GetIsActive())
          return std::shared_ptr<const Account>();
 

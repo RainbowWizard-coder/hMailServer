@@ -184,6 +184,40 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A held account is not signed into under another spelling of its name with its right password: every spelling the databases took for it is refused over IMAP LOGIN while the hold stands, and the account's own name signs in once it is unlocked.")]
+      public void AHeldAccountIsNotSignedIntoUnderAnotherSpellingOfItsName()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"compromise_detection_mode\":\"enforce\"}").status);
+
+         Account sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldvariant@" + _domain.Name, Password);
+         Account first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger1@" + _domain.Name, Password);
+         Account second = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger2@" + _domain.Name, Password);
+         Account third = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger3@" + _domain.Name, Password);
+         _locked.Add(sender.Address);
+
+         StringAssert.StartsWith("OK", global::RegressionTests.Security.LogonNameVariants.ImapLogin(sender.Address, Password), "The account signs in before it is held.");
+
+         Submit(sender.Address, first.Address, "Message 1");
+         Submit(sender.Address, second.Address, "Message 2");
+         Pop3ClientSimulator.AssertMessageCount(first.Address, Password, 1);
+         Pop3ClientSimulator.AssertMessageCount(second.Address, Password, 1);
+         Submit(sender.Address, third.Address, "Message 3");
+         Assert.IsTrue(MiniJson.Flag(MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review", null).body), "locked"), "The shape held the account.");
+
+         string held = global::RegressionTests.Security.LogonNameVariants.ImapLogin(sender.Address, Password);
+         StringAssert.StartsWith("NO", held, "The held account's own name is refused its right password.");
+
+         foreach (string variant in global::RegressionTests.Security.LogonNameVariants.Variants(sender.Address))
+         {
+            Assert.AreEqual(held, global::RegressionTests.Security.LogonNameVariants.ImapLogin(variant, Password),
+               "A spelling of the held account's name with its right password must be refused as the name itself is: " + variant.Length + " characters.");
+         }
+
+         Assert.AreEqual(200, Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review/unlock", null).status);
+         StringAssert.StartsWith("OK", global::RegressionTests.Security.LogonNameVariants.ImapLogin(sender.Address, Password), "Unlocked, the account's own name signs in again.");
+      }
+
+      [Test]
       [Description("In watch mode, the default, the same shape is recorded on the account and raises the alert saying what enforcing would have done, and nothing is held or locked.")]
       public void WatchModeRecordsTheShapeAndHoldsNothing()
       {

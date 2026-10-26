@@ -239,6 +239,32 @@ with `--check`).
   from another address are still charged to it
   ([AutoBan.md](hmailserver/docs/AutoBan.md), [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).
   Found by the hMailServer project (Progressive Robot Ltd).
+- **Fixed: a sign-in took for an account every spelling of its name that the database's own comparison took for it,
+  so the per-name lockout and the compromised-account hold could be got round with another spelling of the name.**
+  The per-name lockout (`AccountLockoutThreshold`, from 6.2.22-pre2) and the hold the compromised-account detection
+  puts on an account (from 6.3.4) are asked of the name the client gives - trimmed, in lower case, with a domain
+  alias or the default domain applied - before the password is checked. The account the name then signed in to was
+  whichever one the database found under it, and the databases find an account under spellings that key counts
+  apart: they differ by database and collation. Each such
+  spelling had a lockout threshold of its own, so the lockout limited the guesses at an account only up to the
+  number of its spellings, and on some databases not at all; and an account held for review could
+  be signed into under another spelling of its name with its password. Now a name signs in to an account only when
+  the account's stored address is that name, compared in lower case after the alias and the default domain, by the
+  function the lockout's key is made with: any other spelling names no account, fails as a name that does not
+  exist fails, with the same reply and no password verified, and is counted as a failure. The same rule finds the
+  account for every sign-in by a name a client or another party gives: the password sign-ins of SMTP, IMAP, POP3,
+  ManageSieve, the DAV services, the webmail, the REST API and COM, the IMAP master user's authorisation identity,
+  SCRAM-SHA-256, the name of an OAuth2 bearer token, a client certificate and a Kerberos ticket, and the address an
+  OpenID Connect or SAML identity provider signs a person in with (for which no mailbox is made either). A password
+  sign-in also asks the hold, the country policy and, for the account that authenticated, the lockout of the
+  account's own address once the password has found it, and the `account.locked` webhook is raised only for a locked
+  name that is an account's own. A name with spaces after it no longer signs in (it is still counted against the
+  account), nor does one that
+  differs from the stored address in the case of a letter the C library does not lower in the C locale (outside
+  ASCII on Windows and with glibc). `LogonNameTester` holds the rule (inside the server on Windows, and in
+  `sign-in-budget-tests` on Linux), and the regression fixtures `Security.LogonNameVariants` and
+  `API.RestApiCompromisedAccount` the sign-ins ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)).
+  Found by the hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 

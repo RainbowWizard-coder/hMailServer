@@ -25,6 +25,7 @@
 #include "../Scripting/Result.h"
 #include "../Scripting/Events.h"
 #include "AccountRecovery.h"
+#include "LogonName.h"
 #include "PasswordHistory.h"
 
 #include <set>
@@ -55,12 +56,10 @@ namespace HM
    {
       std::shared_ptr<Account> pEmpty;
 
-      std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
-      String sAccountAddress = pDA->ApplyAliasesOnAddress(sUsername);
-
-      sAccountAddress = DefaultDomain::ApplyDefaultDomain(sAccountAddress);
-
-      std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
+      // Domain aliases and the default domain applied, and the account the name
+      // names under the sign-in's rule (LogonName.h): one whose stored address is
+      // the name, not any the database's comparison takes for it.
+      std::shared_ptr<const Account> pAccount = LogonName::FindAccount(sUsername);
 
       if (!pAccount || !pAccount->GetActive())
          return pEmpty;
@@ -70,8 +69,7 @@ namespace HM
       if (pAccount->IsResource())
          return pEmpty;
 
-      String sDomain = StringParser::ExtractDomain(sAccountAddress);
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sUsername, pAccount);
 
       if (!pDomain || !pDomain->GetIsActive())
          return pEmpty;
@@ -89,25 +87,26 @@ namespace HM
       if (matchedAppPasswordName)
          *matchedAppPasswordName = String();
 
-      // Apply domain name aliases to this domain name.
-      std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
-      String sAccountAddress = pDA->ApplyAliasesOnAddress(sUsername);
+      // Domain aliases and the default domain applied, and the account the name
+      // names under the sign-in's rule (LogonName.h): the one whose stored address
+      // IS the name, in lower case. One the database's comparison takes for the
+      // name under another spelling - an accented letter, padding, a full-width
+      // letter, a character the comparison ignores, a NUL - is no account, and the
+      // attempt fails here as for a name that does not exist, before any password
+      // is verified. Up to 6.3.7 it was the account, while the per-name lockout
+      // and the compromise hold, asked of the name before this, counted the
+      // spelling apart.
+      std::shared_ptr<const Account> pAccount = LogonName::FindAccount(sUsername);
 
-      // Apply default domain
-      sAccountAddress = DefaultDomain::ApplyDefaultDomain(sAccountAddress);
-
-      std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
-      
       if (!pAccount)
          return pEmpty;
 
       if (!pAccount->GetActive())
          return pEmpty;
 
-      // Check that the domain is active as well.
-      
-      String sDomain = StringParser::ExtractDomain(sAccountAddress);
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      // Check that the domain is active as well: the account's own domain, named
+      // by the name.
+      std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sUsername, pAccount);
 
       if (!pDomain)
          return pEmpty;
@@ -124,14 +123,9 @@ namespace HM
       // if we get this far, we are authenticating against one username, but will actually login
       // as a second username (rfc-4616)
 
-      // Apply domain name aliases to this domain name.
-      pDA = ObjectCache::Instance()->GetDomainAliases();
-      sAccountAddress = pDA->ApplyAliasesOnAddress(sMasqname);
-
-      // Apply default domain
-      sAccountAddress = DefaultDomain::ApplyDefaultDomain(sAccountAddress);
-
-      pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
+      // Found by the same rule: the authorisation identity names the account
+      // whose stored address it is, and no other spelling of one.
+      pAccount = LogonName::FindAccount(sMasqname);
 
       if (!pAccount)
          return pEmpty;
@@ -146,8 +140,7 @@ namespace HM
 
       // Check that the domain is active as well.
 
-      sDomain = StringParser::ExtractDomain(sAccountAddress);
-      pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      pDomain = LogonName::FindDomain(sMasqname, pAccount);
 
       if (!pDomain)
          return pEmpty;

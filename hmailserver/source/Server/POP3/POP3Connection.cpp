@@ -14,6 +14,7 @@
 #include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/SessionFollow.h"
 #include "../Common/Util/AccountLockout.h"
+#include "../Common/Util/LogonName.h"
 #include "../Common/Util/Pop3LoginDelay.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/Crypt.h"
@@ -1565,8 +1566,17 @@ namespace HM
       if (AccountLockout::Instance()->IsLockedOut(sAccountAddress))
          return std::shared_ptr<const Account>();
 
-      std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
+      // The account the name names under the sign-in's rule (LogonName.h): the
+      // one whose stored address is the name, and no other spelling of one. A
+      // spelling the rule refuses runs the forced-failure exchange, as an unknown
+      // name does. And its lockout and hold asked again by its own address, which
+      // the rule makes the name's own key; this refuses nothing the check above
+      // let through unless that rule is ever got round.
+      std::shared_ptr<const Account> pAccount = LogonName::FindAccount(sAddress);
       if (!pAccount || !pAccount->GetActive())
+         return std::shared_ptr<const Account>();
+
+      if (AccountLockout::Instance()->IsLockedOut(pAccount->GetAddress()))
          return std::shared_ptr<const Account>();
 
       // A room or a piece of equipment cannot be signed into by any means
@@ -1579,8 +1589,7 @@ namespace HM
       if (pAccount->GetIsAD())
          return std::shared_ptr<const Account>();
 
-      String sDomain = StringParser::ExtractDomain(sAccountAddress);
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sAddress, pAccount);
       if (!pDomain || !pDomain->GetIsActive())
          return std::shared_ptr<const Account>();
 
@@ -1602,14 +1611,17 @@ namespace HM
    {
       // OAuth2 bearer login: the token is the proof of identity, so any active account
       // in an active domain is eligible regardless of its stored password hash type.
+      // The account is the one whose stored address the name is (LogonName.h), and
+      // not one the database's comparison takes for it under another spelling: a
+      // token, a certificate or a ticket another party issued for such a name names
+      // somebody else. The default domain applied and no alias, as before.
       String sAccountAddress = DefaultDomain::ApplyDefaultDomain(sAddress);
 
       std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
-      if (!pAccount || !pAccount->GetActive())
+      if (!pAccount || !pAccount->GetActive() || !LogonName::Names(sAccountAddress, pAccount->GetAddress()))
          return std::shared_ptr<const Account>();
 
-      String sDomain = StringParser::ExtractDomain(sAccountAddress);
-      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
+      std::shared_ptr<const Domain> pDomain = LogonName::FindDomain(sAccountAddress, pAccount);
       if (!pDomain || !pDomain->GetIsActive())
          return std::shared_ptr<const Account>();
 

@@ -954,6 +954,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\PasswordBreachCheck.cpp" />
     <ClCompile Include="..\Common\Util\Pop3LoginDelay.cpp" />
     <ClCompile Include="..\Common\Util\AccountLockout.cpp" />
+    <ClCompile Include="..\Common\Util\LogonName.cpp" />
     <ClCompile Include="..\Common\Util\DmarcRptStore.cpp" />
     <ClCompile Include="..\Common\Util\TlsRptStore.cpp" />
     <ClCompile Include="..\Common\Util\ServiceManager.cpp" />
@@ -1869,6 +1870,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\PasswordBreachCheck.h" />
     <ClInclude Include="..\Common\Util\Pop3LoginDelay.h" />
     <ClInclude Include="..\Common\Util\AccountLockout.h" />
+    <ClInclude Include="..\Common\Util\LogonName.h" />
     <ClInclude Include="..\Common\Util\DmarcRptStore.h" />
     <ClInclude Include="..\Common\Util\TlsRptStore.h" />
     <ClInclude Include="..\Common\Util\AuditTrail.h" />
