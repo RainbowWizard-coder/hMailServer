@@ -17,6 +17,13 @@
 
 #include <boost/regex.hpp>
 #include <functional>
+
+#ifdef HM_PLATFORM_POSIX
+#include <sys/stat.h>
+#include <cerrno>
+#include <string>
+#endif
+
 using namespace boost;
 
 
@@ -40,24 +47,87 @@ namespace HM
       }
 
 #ifdef HM_PLATFORM_POSIX
+      // What is at path where it is reachable and not a socket - a directory, such as
+      // the one clamd's socket is in, or a file, such as clamd.conf - and empty
+      // otherwise. connect() follows a symbolic link, and so does this.
+      String NotASocket_(const AnsiString &path)
+      {
+         struct stat status = {};
+         if (::stat(path.c_str(), &status) != 0 || S_ISSOCK(status.st_mode))
+            return String();
+
+         if (S_ISDIR(status.st_mode))
+            return "it is a directory, not a socket. Set ClamAVHost to the socket's own path, the one LocalSocket in clamd.conf names.";
+
+         if (S_ISREG(status.st_mode))
+            return "it is a file, not a socket. Set ClamAVHost to the socket's own path, the one LocalSocket in clamd.conf names.";
+
+         return "it is not a socket. Set ClamAVHost to the socket's own path, the one LocalSocket in clamd.conf names.";
+      }
+
+      // The directory on the way to path that this server's user may not enter, found
+      // as the kernel finds it: the first leading part of the path that cannot be
+      // looked up for want of permission is in that directory. Empty where every part
+      // can be looked up.
+      AnsiString DirectoryNotEntered_(const AnsiString &path)
+      {
+         const std::string whole(path.c_str());
+         size_t end = 0;
+         while (end != std::string::npos)
+         {
+            end = whole.find('/', end + 1);
+            const std::string part = whole.substr(0, end);
+
+            struct stat status = {};
+            if (::stat(part.c_str(), &status) == 0)
+               continue;
+
+            if (errno != EACCES)
+               return AnsiString();
+
+            const size_t slash = part.rfind('/');
+            return AnsiString(slash == 0 ? std::string("/") : part.substr(0, slash));
+         }
+
+         return AnsiString();
+      }
+
       // Why a local socket could not be reached, in the administrator's terms: no
-      // socket at the path and a socket nobody accepts on are both nothing listening,
-      // and a socket this server's user may not write to is a matter of the socket's
-      // mode or group, not of clamd.
-      String LocalFailure_(const boost::system::error_code &error)
+      // socket at the path and a socket nobody accepts on are both nothing listening;
+      // a path that is something else is not a socket; a directory on the way that
+      // this server's user may not enter is a matter of that directory, and a socket
+      // the user may not write to of the socket's mode or group, not of clamd; and a
+      // queue that stays full is a clamd too busy to take the connection.
+      String LocalFailure_(const boost::system::error_code &error, const AnsiString &path)
       {
          if (error == boost::system::errc::no_such_file_or_directory)
             return "nothing is listening there, as there is no socket at that path. Check that clamd is running and that LocalSocket in clamd.conf names this path.";
 
+         if (error == boost::system::errc::connection_refused || error == boost::system::errc::permission_denied)
+         {
+            const String notASocket = NotASocket_(path);
+            if (!notASocket.IsEmpty())
+               return notASocket;
+         }
+
          if (error == boost::system::errc::connection_refused)
             return "nothing is listening there: the socket is there, and no clamd accepts on it. Check that clamd is running.";
+
+         if (error == boost::system::errc::permission_denied)
+         {
+            const AnsiString directory = DirectoryNotEntered_(path);
+            if (!directory.IsEmpty())
+               return Formatter::Format("this server's user may not enter {0}, a directory on the way to the socket, so the socket's own mode does not help. "
+                                        "Put that user in a group that may enter {0}, such as the directory's own group (ls -ld {0} shows it).", String(directory));
+         }
 
          if (error == boost::system::errc::permission_denied || error == boost::system::errc::operation_not_permitted)
             return "the socket is there, and this server's user may not connect to it. Give that user write permission on the socket "
                    "(LocalSocketMode 666 in clamd.conf, or LocalSocketGroup a group the user is in) and a way to it.";
 
          if (error == boost::asio::error::timed_out)
-            return "it did not accept the connection in the time allowed.";
+            return "it did not accept the connection in the time allowed: the queue of connections waiting for clamd stayed full. "
+                   "clamd is busy (MaxThreads, MaxQueue and MaxConnectionQueueLength in clamd.conf) or reloading its signatures.";
 
          return String(AnsiString(error.message()));
       }
@@ -84,7 +154,7 @@ namespace HM
             if (connection.ConnectLocal(path))
                return true;
 
-            error = Formatter::Format("Unable to connect to ClamAV server at {0}: {1}", hostName, LocalFailure_(connection.GetLastError()));
+            error = Formatter::Format("Unable to connect to ClamAV server at {0}: {1}", hostName, LocalFailure_(connection.GetLastError(), path));
             return false;
 #endif
          }

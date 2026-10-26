@@ -22,7 +22,9 @@ namespace HM
 #ifdef HM_PLATFORM_POSIX
       // A Unix stream socket at path, such as clamd's LocalSocket, in place of a host
       // and a port. Connecting, writing and reading on it keep the deadlines of the
-      // TCP connection; only the socket differs.
+      // TCP connection; only the socket differs. A listener whose queue of
+      // connections waiting to be accepted is full is waited for until the deadline,
+      // as a TCP connection is, and not taken for a connection made.
       bool ConnectLocal(const AnsiString &path);
 #endif
 
@@ -54,6 +56,10 @@ namespace HM
 #endif
          return operation(socket_);
       }
+
+      // The deadline ended operation_description: kept as timed_out, and reported
+      // as HM5523, naming the remote server.
+      void ReportTimeout_(const AnsiString &operation_description);
 
       String GetRemoteName_() const;
 

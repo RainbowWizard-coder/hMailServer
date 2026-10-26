@@ -1040,12 +1040,14 @@ set_target_properties(http-server-tests PROPERTIES OUTPUT_NAME http-server-tests
 # fake clamd of its own on a Unix socket: INSTREAM from memory and from a file of
 # three chunks, a verdict of each kind, PING and VERSION, the connection test, a
 # missing socket and one nothing accepts on reported as nothing listening, a socket
-# the user may not write to, the deadline, and a path too long for a socket address.
+# the user may not write to, a directory the user may not enter, a directory and a
+# file at the path, a listener whose queue stays full for a while and one whose
+# queue stays full, the deadline, and a path too long for a socket address.
 # Given a real clamd's socket as its argument, the connection test against it as
 # well. A configuration file and the sockets under the system's
 # temp directory, removed again; no database and no network - Unix sockets only -
 # but sockets of its own, so the source packages' lists, which hold the testers
-# that need none, leave it out. About three seconds. Not installed; a bench tool.
+# that need none, leave it out. About six seconds. Not installed; a bench tool.
 add_executable(clamd-socket-tests ${SERVER_DIR}/platform/clamd_socket_tests_main.cpp)
 target_link_libraries(clamd-socket-tests PRIVATE hmailserver_core)
 set_target_properties(clamd-socket-tests PROPERTIES OUTPUT_NAME clamd-socket-tests)

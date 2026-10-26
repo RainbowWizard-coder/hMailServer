@@ -305,7 +305,9 @@ the settings themselves away from it:
   (`message_store_object_endpoint`), the identity provider (`oidc_issuer`), the mail
   importers' token addresses (`import_oauth_*_token_url`), an alert rule's webhook. A
   holder of `manage_settings` makes the server reach what the server reaches, which on
-  most networks is more than the holder reaches.
+  most networks is more than the holder reaches. On Linux `clamav_host` may also name
+  the path of a local Unix socket, which the server connects to, and streams the mail
+  it receives to, as its service account: any socket that account may write to.
 * **Commands.** The external virus scanner's command line (`custom_scanner_executable`,
   `clamwin_executable`) is a setting, and the server runs it as its service account.
 * **Some `[Settings]` keys, by what they are for - not the section by name, not the key

@@ -532,9 +532,11 @@ listeners, an account was created over the REST API, a message submitted over
 SMTP with authentication was delivered, and the same message was read back over
 IMAP with its subject intact.
 
-**Virus scanning with the distribution's clamd.** ClamAV's daemon listens on a
-Unix socket on every distribution, and the server takes the socket's path as
-its ClamAV host. On Debian and Ubuntu, whose `clamav-daemon` makes
+**Virus scanning with the distribution's clamd.** Debian's, Ubuntu's and
+Alpine's ClamAV daemon listens on a Unix socket by default (Fedora's
+`clamd@scan` on nothing until `LocalSocket` or `TCPSocket` is uncommented in
+`/etc/clamd.d/scan.conf`), and the server takes the socket's path as its ClamAV
+host. On Debian and Ubuntu, whose `clamav-daemon` makes
 `/var/run/clamav/clamd.ctl` open to every user, that is all:
 
 ```sh
@@ -542,9 +544,10 @@ sudo apt install clamav-daemon
 hmctl settings set antivirus --set-string clamav_host=/var/run/clamav/clamd.ctl --set clamav_enabled=true
 ```
 
-Elsewhere the `hmailserver` user may need to be in the socket's group (Fedora's
-`clamd@scan` has no socket until `LocalSocket` is uncommented in
-`/etc/clamd.d/scan.conf`). [ClamAV.md](../../../../docs/ClamAV.md) has each
+Where the socket's mode leaves others out, the `hmailserver` user goes into the
+socket's group. On Fedora it goes into `virusgroup` in every case: the socket's
+directory, `/run/clamd.scan`, is made `0710 clamscan:virusgroup`
+(`/usr/lib/tmpfiles.d/clamd.scan.conf`), whatever `LocalSocketMode` says. [ClamAV.md](../../../../docs/ClamAV.md) has each
 distribution's socket, its permissions and what the log says when the server
 cannot reach it.
 

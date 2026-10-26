@@ -21,7 +21,12 @@
 //     TestClamAVScanner runs) passes against it and names the daemon;
 //   - a path with no socket at it, and a socket nothing accepts on, are reported as
 //     nothing listening there; a socket the user may not write to as a matter of
-//     its permissions (as an ordinary user only: root is never refused);
+//     its permissions, and a socket in a directory the user may not enter as a
+//     matter of that directory (both as an ordinary user only: root is never
+//     refused); a directory or a file at the path as not a socket;
+//   - a clamd whose queue of connections waiting to be accepted is full is waited
+//     for until the deadline, as over TCP: drained inside it, the scan is answered,
+//     and never drained, the deadline is reported, naming the socket;
 //   - a clamd that takes the stream and never answers is let go at the deadline
 //     (ClamMinTimeout and ClamMaxTimeout, 2 seconds in this program's settings);
 //   - a path longer than a socket address holds is refused before anything is
@@ -35,7 +40,7 @@
 // system's temp directory (or /tmp, when that path would be too long for a socket
 // address), removed again. No database, no network: only Unix sockets of its own,
 // for which the source packages' tester lists, which hold the testers that need no
-// socket, leave it out (build/check-source-tarball.py). About three seconds.
+// socket, leave it out (build/check-source-tarball.py). About six seconds.
 //
 // It prints one line per case and exits non-zero when any fails.
 
@@ -48,6 +53,7 @@
 #include <unistd.h>
 
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -98,11 +104,14 @@ namespace
          NeverAnswers    // reads the command and the stream and says nothing
       };
 
-      FakeClamd(const std::string &path, Behaviour behaviour) :
+      // held: accepts nothing until Release, so that the listener's queue of
+      // connections waiting to be accepted, backlog long, can be filled.
+      FakeClamd(const std::string &path, Behaviour behaviour, int backlog = 8, bool held = false) :
          path_(path),
          behaviour_(behaviour),
          listener_(-1),
-         stop_(false)
+         stop_(false),
+         held_(held)
       {
          listener_ = ::socket(AF_UNIX, SOCK_STREAM, 0);
          if (listener_ < 0)
@@ -112,7 +121,7 @@ namespace
          address.sun_family = AF_UNIX;
          strncpy(address.sun_path, path_.c_str(), sizeof(address.sun_path) - 1);
          ::unlink(path_.c_str());
-         if (::bind(listener_, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0 || ::listen(listener_, 8) != 0)
+         if (::bind(listener_, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0 || ::listen(listener_, backlog) != 0)
          {
             ::close(listener_);
             listener_ = -1;
@@ -133,6 +142,9 @@ namespace
       }
 
       bool Listening() const { return listener_ >= 0; }
+
+      // Starts accepting, and so drains the queue.
+      void Release() { held_ = false; }
 
       std::vector<std::string> Commands()
       {
@@ -162,6 +174,12 @@ namespace
       {
          while (!stop_)
          {
+            if (held_)
+            {
+               std::this_thread::sleep_for(std::chrono::milliseconds(20));
+               continue;
+            }
+
             pollfd ready = { listener_, POLLIN, 0 };
             if (::poll(&ready, 1, 100) <= 0)
                continue;
@@ -297,6 +315,7 @@ namespace
       const Behaviour behaviour_;
       int listener_;
       std::atomic<bool> stop_;
+      std::atomic<bool> held_;
       std::thread thread_;
 
       std::mutex mutex_;
@@ -328,6 +347,46 @@ namespace
       boost::filesystem::path scratch = base / leaf;
       boost::filesystem::create_directories(scratch, error);
       return error ? boost::filesystem::path() : scratch;
+   }
+
+   // Connects to the socket at path without waiting, until the listener's queue of
+   // connections waiting to be accepted is full, which a non-blocking connect() to a
+   // Unix socket reports as EAGAIN. Returns the connections made, for the caller to
+   // close; full says whether the queue was filled.
+   std::vector<int> FillQueue(const std::string &path, bool &full)
+   {
+      std::vector<int> made;
+      full = false;
+
+      sockaddr_un address = {};
+      address.sun_family = AF_UNIX;
+      strncpy(address.sun_path, path.c_str(), sizeof(address.sun_path) - 1);
+
+      for (int i = 0; i < 64; i++)
+      {
+         const int client = ::socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
+         if (client < 0)
+            break;
+
+         if (::connect(client, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0)
+         {
+            made.push_back(client);
+            continue;
+         }
+
+         full = errno == EAGAIN;
+         ::close(client);
+         break;
+      }
+
+      return made;
+   }
+
+   void CloseAll(std::vector<int> &connections)
+   {
+      for (const int connection : connections)
+         ::close(connection);
+      connections.clear();
    }
 
    void TheFakeCases(const std::string &directory)
@@ -463,6 +522,97 @@ namespace
          Report(closed && !pinged && Contains(Narrow(error), "the socket is there, and this server's user may not connect to it") &&
                 Contains(Narrow(error), "LocalSocketMode 666"),
             "a socket this user may not write to", Narrow(error));
+      }
+
+      // A path that is there and is not a socket: the directory the sockets are in,
+      // and a file, this program's configuration.
+      {
+         HM::VirusScanningResult scanned = HM::ClamAVVirusScanner::ScanData(HM::String(directory.c_str()), 0, "Test");
+         Report(scanned.GetErrorOccured() && Contains(Narrow(scanned.GetDetails()), "Unable to connect to ClamAV server at " + directory + ": it is a directory, not a socket.") &&
+                Contains(Narrow(scanned.GetDetails()), "LocalSocket in clamd.conf"),
+            "a directory at the path", Narrow(scanned.GetDetails()));
+
+         const std::string file = directory + "/hMailServer.ini";
+         HM::String version, error;
+         const bool pinged = HM::ClamAVVirusScanner::Ping(HM::String(file.c_str()), 0, version, error);
+         Report(!pinged && Contains(Narrow(error), "Unable to connect to ClamAV server at " + file + ": it is a file, not a socket."),
+            "a file at the path", Narrow(error));
+      }
+
+      // A socket this user could write to, in a directory this user may not enter, as
+      // Fedora's /run/clamd.scan (0710 clamscan:virusgroup) is to a user outside its
+      // group. Root enters every directory, so the case says it was not run.
+      if (::geteuid() == 0)
+      {
+         printf("skip  a directory this user may not enter: running as root, which no directory's mode refuses\n");
+      }
+      else
+      {
+         const std::string closed = directory + "/closed";
+         const bool made = ::mkdir(closed.c_str(), 0700) == 0;
+         {
+            const std::string path = closed + "/clamd.sock";
+            FakeClamd clamd(path, FakeClamd::Answers);
+            const bool shut = made && clamd.Listening() && ::chmod(path.c_str(), 0666) == 0 && ::chmod(closed.c_str(), 0600) == 0;
+            HM::String version, error;
+            const bool pinged = shut && HM::ClamAVVirusScanner::Ping(HM::String(path.c_str()), 0, version, error);
+            Report(shut && !pinged && Contains(Narrow(error), "this server's user may not enter " + closed + ", a directory on the way to the socket") &&
+                   !Contains(Narrow(error), "LocalSocketMode 666"),
+               "a directory this user may not enter", Narrow(error));
+
+            // Opened again before the fake removes its socket.
+            ::chmod(closed.c_str(), 0700);
+         }
+         ::rmdir(closed.c_str());
+      }
+
+      // A clamd whose queue of connections waiting to be accepted is full is waited
+      // for until the deadline, as over TCP: a scan begun with the queue full and the
+      // queue drained half a second later is answered, where it once failed at once
+      // with "Unable to write INSTREAM command." on a socket connected to nothing.
+      {
+         const std::string path = directory + "/queue-drained.sock";
+         FakeClamd clamd(path, FakeClamd::Answers, 1, true);
+         bool full = false;
+         std::vector<int> queued = clamd.Listening() ? FillQueue(path, full) : std::vector<int>();
+
+         std::thread drain([&clamd, &queued]()
+            {
+               std::this_thread::sleep_for(std::chrono::milliseconds(500));
+               CloseAll(queued);
+               clamd.Release();
+            });
+
+         const Clock::time_point started = Clock::now();
+         HM::VirusScanningResult scanned = HM::ClamAVVirusScanner::ScanData(HM::String(path.c_str()), 0, "Test");
+         const double seconds = SecondsSince(started);
+         drain.join();
+
+         Report(full && !scanned.GetErrorOccured() && !scanned.GetVirusFound() && Narrow(scanned.GetDetails()) == "Result: stream: OK" &&
+                seconds >= 0.4 && seconds < 2,
+            "a queue full until half a second later",
+            (full ? std::string() : "the queue was never full; ") + Narrow(scanned.GetDetails()) + " after " + std::to_string(seconds).substr(0, 4) + " s");
+      }
+
+      // And one that stays full is the deadline, naming the socket, not a write that
+      // failed.
+      {
+         const std::string path = directory + "/queue-full.sock";
+         FakeClamd clamd(path, FakeClamd::Answers, 1, true);
+         bool full = false;
+         std::vector<int> queued = clamd.Listening() ? FillQueue(path, full) : std::vector<int>();
+
+         const Clock::time_point started = Clock::now();
+         HM::VirusScanningResult scanned = HM::ClamAVVirusScanner::ScanData(HM::String(path.c_str()), 0, "Test");
+         const double seconds = SecondsSince(started);
+         CloseAll(queued);
+         clamd.Release();
+
+         Report(full && scanned.GetErrorOccured() &&
+                Contains(Narrow(scanned.GetDetails()), "Unable to connect to ClamAV server at " + path + ": it did not accept the connection in the time allowed") &&
+                seconds >= 1.5 && seconds < 10,
+            "a queue that stays full",
+            (full ? std::string() : "the queue was never full; ") + Narrow(scanned.GetDetails()) + " after " + std::to_string(seconds).substr(0, 4) + " s");
       }
 
       // A clamd that takes the stream and never answers is let go at the deadline.

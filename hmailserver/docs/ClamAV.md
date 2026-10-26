@@ -4,9 +4,9 @@ ClamAV: scanning with clamd over TCP or its Unix socket
 **The server sends every message it scans to a ClamAV daemon, clamd, with
 clamd's INSTREAM command, and reads clamd's verdict. On Windows it reaches
 clamd over TCP, at a host and a port. On Linux it reaches clamd over TCP too,
-or over the Unix socket that the distributions' clamd listens on by default:
-set `ClamAVHost` to the path of that socket, and nothing else is needed on
-Debian and Ubuntu. Scanning is off until `ClamAVEnabled` is turned on.**
+or over clamd's Unix socket, which Debian's, Ubuntu's and Alpine's clamd listen
+on by default: set `ClamAVHost` to the path of that socket, and nothing else is
+needed on Debian and Ubuntu. Scanning is off until `ClamAVEnabled` is turned on.**
 
 What the server sends
 ---------------------
@@ -17,7 +17,9 @@ its length in four bytes, then a length of zero, and reads clamd's one-line
 answer: `stream: OK`, or `stream: <name> FOUND`, which is a virus called
 `<name>`. A message found infected is handled as **Action** says (the message
 deleted, or its attachments). A clamd that cannot be reached, or does not
-answer within the ClamAV timeouts, is reported in the error log, and the
+answer within the ClamAV timeouts, is reported in the error log - over a Unix
+socket as over TCP, a clamd too busy to accept the connection at once is waited
+for within the same timeouts - and the
 message is then delivered unscanned unless `AVFailAction=1` holds it
 ([DiagnosingStalledMail.md](DiagnosingStalledMail.md) says how the timeouts
 work).
@@ -58,19 +60,23 @@ be reached.
 clamd on Linux
 --------------
 
-Each distribution's own clamd package listens on a Unix socket, and the server's
-user needs write permission on that socket, and permission to pass through the
-directories above it, to connect. Under the packages the server runs as the
+Debian's, Ubuntu's and Alpine's clamd packages listen on a Unix socket by
+default; Fedora's `clamd@scan` listens on nothing, neither a socket nor TCP,
+until `LocalSocket` (or `TCPSocket`) is uncommented in its configuration. The
+server's user needs write permission on the socket, and permission to pass
+through the directories above it, to connect. Under the packages the server runs as the
 user `hmailserver`.
 
 | Distribution | Package | The socket (`LocalSocket`) | Who may connect |
 |---|---|---|---|
 | Debian, Ubuntu | `clamav-daemon` | `/var/run/clamav/clamd.ctl` (`/var/run` is `/run`) | Everybody: `LocalSocketMode 666`, `LocalSocketGroup clamav`. When systemd starts clamd through `clamav-daemon.socket`, the socket is the same, `/run/clamav/clamd.ctl`, made by systemd with its default mode, 0666. |
 | Alpine | `clamav-daemon` | `/run/clamav/clamd.sock` | `LocalSocketMode` is not set, which `clamd.conf` describes as "socket is world accessible". |
-| Fedora | `clamd`, as the `clamd@scan` service | none until `LocalSocket /run/clamd.scan/clamd.sock` in `/etc/clamd.d/scan.conf` is uncommented | The file's own suggestion beside it is `LocalSocketGroup virusgroup` and `LocalSocketMode 660`, with which the server's user must be in `virusgroup`. |
+| Fedora | `clamd`, as the `clamd@scan` service | none until `LocalSocket /run/clamd.scan/clamd.sock` in `/etc/clamd.d/scan.conf` is uncommented (`TCPSocket` is commented out too) | Only members of `virusgroup`, whatever the socket's mode: the directory `/run/clamd.scan` is made `0710 clamscan:virusgroup` (`/usr/lib/tmpfiles.d/clamd.scan.conf`), so the server's user must be in `virusgroup` to pass through it. The file's own suggestion beside `LocalSocket` is `LocalSocketGroup virusgroup` and `LocalSocketMode 660`. |
 
 Read from the packages' own `clamd.conf` (Debian 13's clamav-daemon 1.4.3,
-Alpine 3.24's clamav-daemon, Fedora 44's clamd 1.4.6) on 26 October 2026.
+Alpine 3.24's clamav-daemon, Fedora 44's clamd 1.4.6) and from what makes each
+socket's directory - Debian's init script and systemd socket, Alpine's OpenRC
+script, Fedora's `tmpfiles.d` entry - on 26 October 2026.
 
 So on Debian or Ubuntu:
 
@@ -82,11 +88,13 @@ hmctl settings set antivirus --set-string clamav_host=/var/run/clamav/clamd.ctl 
 When the socket's mode leaves others out (`LocalSocketMode 660`, as Fedora's
 file suggests and any `clamd.conf` may say), put the server's user in the
 socket's group - `LocalSocketGroup`, or else the primary group of the user clamd
-runs as - and restart the server, which reads its groups when it starts:
+runs as - and when a directory above the socket leaves others out (Fedora's
+`/run/clamd.scan`, always), in that directory's group; then restart the server,
+which reads its groups when it starts:
 
 ```sh
 sudo usermod -aG clamav hmailserver     # Debian, Ubuntu (adduser hmailserver clamav, or addgroup on Alpine)
-sudo usermod -aG virusgroup hmailserver # Fedora, with the group its scan.conf names
+sudo usermod -aG virusgroup hmailserver # Fedora, the group of /run/clamd.scan, whatever scan.conf says
 sudo systemctl restart hmailserver
 ```
 
@@ -109,14 +117,17 @@ What the log says
 |---|---|
 | `Unable to connect to ClamAV server at <path>: nothing is listening there, as there is no socket at that path.` | No socket at that path: clamd is not running, or `LocalSocket` names another path. |
 | `Unable to connect to ClamAV server at <path>: nothing is listening there: the socket is there, and no clamd accepts on it.` | A socket left behind by a clamd that is no longer running. |
-| `Unable to connect to ClamAV server at <path>: the socket is there, and this server's user may not connect to it. ...` | The socket's mode or group, or a directory above it, keeps the server's user out: see above. |
+| `Unable to connect to ClamAV server at <path>: it is a directory, not a socket. ...` (or `it is a file, not a socket`) | `ClamAVHost` names the socket's directory, or another file such as `clamd.conf`, rather than the socket that `LocalSocket` names. |
+| `Unable to connect to ClamAV server at <path>: this server's user may not enter <directory>, a directory on the way to the socket, ...` | A directory above the socket keeps the server's user out, whatever the socket's own mode (Fedora's `/run/clamd.scan`): put the user in that directory's group, as above. |
+| `Unable to connect to ClamAV server at <path>: the socket is there, and this server's user may not connect to it. ...` | The socket's mode or group keeps the server's user out: see above. |
+| `Unable to connect to ClamAV server at <path>: it did not accept the connection in the time allowed: the queue of connections waiting for clamd stayed full. ...`, after `Timed out after <n> seconds while connecting. Remote server: <path>.` | clamd accepted no new connection within the timeout: it is busy with as many scans as `MaxThreads`, `MaxQueue` and `MaxConnectionQueueLength` allow, or reloading its signatures. |
 | `ClamAVHost is <path>, a socket path of <n> bytes, and the path of a Unix socket can have at most 107.` | The path is too long for a socket address. |
 | `ClamAVHost is <path>, the path of a Unix socket, which this server cannot reach on Windows: ...` | A path on Windows. |
 | `Unable to connect to ClamAV server at <host>:<port>.` | Over TCP, nothing answered at that host and port. |
 | `Timed out after <n> seconds while reading response. Remote server: <path or host:port>.` | clamd took the message and did not answer within the timeout. |
 
 With debug logging on, a scanned message adds `Connecting to ClamAV virus
-scanner...` and `No virus detected: Result: stream: OK` to the log; with
+scanner...` and `No virus detected: stream: OK` to the log; with
 application logging on, an infected one adds `Message will be deleted
 (contained virus <name>).`
 
@@ -136,8 +147,12 @@ How it is tested
 (`platform/clamd_socket_tests_main.cpp`), stands up a fake clamd on a Unix socket
 and holds the client to it: clean and infected streams from memory and from a
 file of three chunks, PING and VERSION, the connection test, a missing socket and
-a socket nothing accepts on reported as nothing listening, a socket the user may
-not write to, the deadline and a path too long. Given a real clamd's socket as
+a socket nothing accepts on reported as nothing listening, a directory and a file
+at the path reported as not a socket, a socket the user may not write to and one
+in a directory the user may not enter, a clamd whose queue of waiting
+connections is full for half a second (the scan answered) and one whose queue
+stays full (the deadline reported), the deadline of a clamd that never answers,
+and a path too long. Given a real clamd's socket as
 its argument (`clamd-socket-tests /var/run/clamav/clamd.ctl`) it runs the
 connection test against that clamd as well. The Linux suite's `AntiVirus/ClamdUnixSocket` sends messages
 through the running server to a fake clamd of its own, and through a real one

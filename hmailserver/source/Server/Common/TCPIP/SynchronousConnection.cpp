@@ -10,6 +10,13 @@
 #include <boost/optional.hpp>
 #include <boost/system/error_code.hpp>
 
+#ifdef HM_PLATFORM_POSIX
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <cerrno>
+#include <chrono>
+#endif
+
 using namespace boost::system;
 
 #ifdef _DEBUG
@@ -119,17 +126,70 @@ namespace HM
          // endpoint, with name_too_long.
          const boost::asio::local::stream_protocol::endpoint endpoint(std::string(path.c_str()));
 
-         boost::optional<error_code> connect_result;
-         local_socket_.async_connect(endpoint, std::bind(set_result, &connect_result, std::placeholders::_1));
+         // The connection is made by a blocking connect() that the socket's send
+         // timeout bounds, not by async_connect. Where the queue of connections
+         // waiting for the listener to accept them is full - clamd at its
+         // MaxConnectionQueueLength, or not accepting while it reloads its signatures -
+         // Linux's non-blocking connect() on a Unix socket fails at once with EAGAIN
+         // rather than waiting for room. Asio takes that for a connection in progress,
+         // and the socket, connected to nothing, then polls writable with no error, so
+         // the connection was reported made and the first command could not be
+         // written. A blocking connect() waits in the kernel for room in the queue for
+         // as long as the send timeout allows, and fails with EAGAIN when that time is
+         // up; the time is this connection's deadline, as over TCP. Every later
+         // operation is one of Asio's non-blocking ones, on which the send timeout has
+         // no effect.
+         local_socket_.open(endpoint.protocol());
+         local_socket_.non_blocking(false);
+         const int handle = local_socket_.native_handle();
 
-         if (!WaitForCompletion_(connect_result, "connecting"))
+         const std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::seconds(seconds_);
+         for (;;)
          {
+            // A send timeout of zero is no limit, as a timeout of zero seconds is here.
+            timeval timeout = {};
+            if (seconds_ > 0)
+            {
+               const long long left = std::chrono::duration_cast<std::chrono::microseconds>(deadline - std::chrono::steady_clock::now()).count();
+               if (left <= 0)
+               {
+                  ReportTimeout_("connecting");
+                  Close();
+
+                  return false;
+               }
+
+               timeout.tv_sec = static_cast<time_t>(left / 1000000);
+               timeout.tv_usec = static_cast<suseconds_t>(left % 1000000);
+            }
+
+            if (::setsockopt(handle, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != 0)
+            {
+               last_error_ = error_code(errno, system_category());
+               LOG_DEBUG(Formatter::Format("Failed while setting the time allowed for connecting. Remote server: {0}. Error: {1}", GetRemoteName_(), AnsiString(last_error_.message())));
+               Close();
+
+               return false;
+            }
+
+            if (::connect(handle, endpoint.data(), static_cast<socklen_t>(endpoint.size())) == 0)
+               return true;
+
+            const int error = errno;
+
+            // A signal ends the wait early, and the time left is waited again. EAGAIN
+            // (EWOULDBLOCK, on Linux the same) is the time allowed ended with the queue
+            // still full, which the deadline's check above reports; with no limit the
+            // kernel waits and does not report it.
+            if (error == EINTR || (error == EAGAIN && seconds_ > 0))
+               continue;
+
+            last_error_ = error_code(error, system_category());
+            LOG_DEBUG(Formatter::Format("Failed while connecting. Remote server: {0}. Error: {1}", GetRemoteName_(), AnsiString(last_error_.message())));
             Close();
 
             return false;
          }
-
-         return true;
       }
       catch (boost::system::system_error &error)
       {
@@ -257,10 +317,7 @@ namespace HM
 
       if (deadline_reached)
       {
-         last_error_ = boost::asio::error::timed_out;
-
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5523, "SynchronousConnection::WaitForCompletion_",
-            Formatter::Format("Timed out after {0} seconds while {1}. Remote server: {2}.", seconds_, operation_description, GetRemoteName_()));
+         ReportTimeout_(operation_description);
 
          return false;
       }
@@ -277,6 +334,15 @@ namespace HM
       }
 
       return false;
+   }
+
+   void
+   SynchronousConnection::ReportTimeout_(const AnsiString &operation_description)
+   {
+      last_error_ = boost::asio::error::timed_out;
+
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5523, "SynchronousConnection::WaitForCompletion_",
+         Formatter::Format("Timed out after {0} seconds while {1}. Remote server: {2}.", seconds_, operation_description, GetRemoteName_()));
    }
 
    String
