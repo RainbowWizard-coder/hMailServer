@@ -73,7 +73,7 @@ The other tables on this page name runners the same way.
 | `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |
-| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files and their list held to the original's tags, which it fetches (`build/generate-reuse-original.py`), his notices held to the original's own files and to the headers (`build/generate-original-notices.py`, `build/add-license-headers.py`), `debian/copyright`'s licences held to the same record (`build/ci/reuse-debian.py`), and eighteen negative controls ([REUSE](#reuse)) |
+| `reuse` | check | linix | every pipeline but a schedule's | `reuse lint`: every file's copyright and licence known and every licence's text in `LICENSES/` (REUSE 3.3), Martin Knafve named for each of the original's files and their list held to the original's tags, which it fetches (`build/generate-reuse-original.py`), his notices held to the original's own files and to the headers (`build/generate-original-notices.py`, `build/add-license-headers.py`), `debian/copyright`'s licences held to the same record (`build/ci/reuse-debian.py`), and twenty-one negative controls ([REUSE](#reuse)) |
 | `chart-and-compose` | check | linix | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
 | `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
 | `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
@@ -4129,9 +4129,11 @@ pattern:
    `container-image` pushes only at the group's path, and fails at any other,
    the first path included, which is another project's since the move.
 
-A stable release of an older line - a 6.2 release after 6.3.0 - would take
-`:latest` from the newer one. The project releases one line at a time, and the
-job does not look.
+A stable release of an older line - a 6.2 release after 6.3.0 - pushes its
+own tag and moves `:6.2`, and leaves `:latest` on the newer line, with a `NOT
+MOVED` line in the log and in `container-image/tags.txt` for it: `container-image`
+moves `:latest` and `:<major>.<minor>` only forward (the jobs table above;
+[ContainerImage.md](ContainerImage.md), "Publishing").
 
 ### What waits for the owner
 

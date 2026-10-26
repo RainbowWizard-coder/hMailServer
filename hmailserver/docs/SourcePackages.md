@@ -111,12 +111,13 @@ taken for a third party's).
 
 `build/check-source-tarball.py`, in the `checkers` job, holds this: the field must
 begin with the list as it stands, and each pattern after it must match at least
-one file, only files under `hmailserver/test/`, and none that `CMakeLists.txt` or
-`debian/rules` reads. The CI build holds the repack to it as well: the repacked
-tarball must have lost exactly those six files and gained none.
+one file, only files under `hmailserver/test/` or `fuzz/regression/`, and none that
+`CMakeLists.txt` or `debian/rules` reads. The CI build holds the repack to it as
+well: the repacked tarball must have lost exactly those eight files and gained
+none.
 
 The RPM spec builds from the project's tarball as it is: rpm's source package
-carries the tarball whole, and the six files are neither read nor installed. A
+carries the tarball whole, and the eight files are neither read nor installed. A
 distribution that wants them out of its source package too repacks the way
 Debian does; its `%prep` already removes every path of the list, for a source made
 another way, and removes nothing from the project's tarball.
@@ -199,8 +200,8 @@ lintian of Debian 13 (2.122) and of Ubuntu 26.04 (2.129) reports none of them. L
 soname among its dependencies, no `hmailserver-update` in it, the `sysusers.d`
 file, and `hmctl` in `hmailserver-cli`; and the RPM build its licences, each marked
 `%license` - `LICENSE`, the AGPL-3.0 text and the notices of QuickJS, Unicode's
-data for UTS 46 and HTML's list of named character references under
-`/usr/share/hmailserver/licenses`. The debug information packages
+data for UTS 46, HTML's list of named character references and the Feather icons
+under `/usr/share/hmailserver/licenses`. The debug information packages
 (`hmailserver-dbgsym`, `hmailserver-debuginfo` and `-debugsource`) are built and
 linted but not kept in the job's artifacts: nothing reads them, and Fedora's
 debuginfo alone is 245 MB. The Debian and Ubuntu builds, and EL 10's, the longest of
