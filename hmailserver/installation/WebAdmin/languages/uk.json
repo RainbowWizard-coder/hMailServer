@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(ім'я без символу, який можна показати)",
   "(choose a route)": "(виберіть маршрут)",
   "(empty)": "(порожньо)",
   "(no archives in the backup destination)": "(у місці призначення резервних копій немає архівів)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Місце для резервної копії не задано.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Базової лінії ще немає: менше ніж {0} надсилань у вікні, тому оцінюються лише нижні пороги обсягу та одержувачів.",
   "No bounces have been counted for this domain.": "Для цього домену відмови не підраховано.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Жоден сертифікат не може містити {0}, тому сервер пропускає це в кожній перевірці й кожному замовленні. Потрібне ім'я вузла з літер, цифр і дефісів, інтернаціоналізоване у формі xn--, без символу підстановки й IP-адреси.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Жоден сертифікат не може містити {0}, що сервер пропускає в кожній перевірці й кожному замовленні. Потрібне ім'я вузла з літер, цифр і дефісів, інтернаціоналізоване у формі xn--, без символу підстановки й IP-адреси.",
   "No certificates are configured.": "Сертифікати не налаштовано.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Поштову скриньку для скарг не вказано, тому жоден звіт не читається. Поле є в Налаштуваннях; це адреса, на яку зареєстровано петлі зворотного зв'язку.",
   "No criteria: the rule matches every message.": "Умов немає: правило підходить до кожного повідомлення.",

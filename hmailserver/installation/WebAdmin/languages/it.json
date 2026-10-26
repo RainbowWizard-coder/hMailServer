@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(un nome senza alcun carattere visualizzabile)",
   "(choose a route)": "(scegliere un instradamento)",
   "(empty)": "(vuoto)",
   "(no archives in the backup destination)": "(nessun archivio nella destinazione di backup)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Nessuna destinazione di backup è impostata.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Nessuna base di riferimento ancora: meno di {0} invii nella finestra, quindi si giudicano solo le soglie minime di volume e destinatari.",
   "No bounces have been counted for this domain.": "Nessun rimbalzo è stato contato per questo dominio.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nessun certificato può nominare {0}, quindi il server lo tralascia in ogni verifica e in ogni ordine. Serve un nome host di lettere, cifre e trattini, uno internazionalizzato nella sua forma xn--, senza carattere jolly né indirizzo IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nessun certificato può nominare {0}, che il server tralascia in ogni verifica e in ogni ordine. Serve un nome host di lettere, cifre e trattini, uno internazionalizzato nella sua forma xn--, senza carattere jolly né indirizzo IP.",
   "No certificates are configured.": "Non è configurato alcun certificato.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Non è indicata alcuna casella per i reclami, quindi nessuna segnalazione viene mai letta. Il campo è in Impostazioni; è l'indirizzo presso cui sono registrati i circuiti di feedback.",
   "No criteria: the rule matches every message.": "Nessun criterio: la regola corrisponde a tutti i messaggi.",

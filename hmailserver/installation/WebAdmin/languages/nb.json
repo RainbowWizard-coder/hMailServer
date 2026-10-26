@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(et navn uten tegn som kan vises)",
   "(choose a route)": "(velg en rute)",
   "(empty)": "(tom)",
   "(no archives in the backup destination)": "(ingen arkiver i sikkerhetskopimålet)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Ingen mål for sikkerhetskopier er angitt.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Ingen grunnlinje ennå: færre enn {0} innsendinger i vinduet, så bare gulvene for volum og mottakere bedømmes.",
   "No bounces have been counted for this domain.": "Ingen returmeldinger er talt for dette domenet.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Ingen sertifikater kan nevne {0}, så serveren utelater det fra hver kontroll og hver bestilling. Det trengs et vertsnavn av bokstaver, sifre og bindestreker, et internasjonalisert i sin xn---form, uten jokertegn og IP-adresse.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Ingen sertifikater kan nevne {0}, som serveren utelater fra hver kontroll og hver bestilling. Det trengs et vertsnavn av bokstaver, sifre og bindestreker, et internasjonalisert i sin xn---form, uten jokertegn og IP-adresse.",
   "No certificates are configured.": "Ingen sertifikater er konfigurert.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Ingen klagepostkasse er oppgitt, så ingen rapport blir lest. Feltet finnes under Innstillinger; det er adressen tilbakemeldingssløyfene er registrert på.",
   "No criteria: the rule matches every message.": "Ingen kriterier: regelen passer på hver melding.",

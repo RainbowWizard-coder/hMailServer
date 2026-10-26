@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(gösterilebilecek karakteri olmayan bir ad)",
   "(choose a route)": "(bir rota seçin)",
   "(empty)": "(boş)",
   "(no archives in the backup destination)": "(yedekleme hedefinde arşiv yok)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Yedek hedefi ayarlanmamış.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Henüz taban çizgisi yok: pencerede {0} gönderimden az olduğundan yalnızca hacim ve alıcı alt sınırları değerlendirilir.",
   "No bounces have been counted for this domain.": "Bu etki alanı için sayılmış geri dönüş yok.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Hiçbir sertifika {0} adını taşıyamaz, bu yüzden sunucu onu her denetimin ve her siparişin dışında bırakır. Harf, rakam ve kısa çizgiden oluşan bir ana bilgisayar adı gerekir; uluslararası bir ad xn-- biçiminde yazılır, joker karakter veya IP adresi olmadan.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Hiçbir sertifikanın taşıyamadığı {0}, her denetimin ve her siparişin dışında bırakılır. Harf, rakam ve kısa çizgiden oluşan bir ana bilgisayar adı gerekir; uluslararası bir ad xn-- biçiminde yazılır, joker karakter veya IP adresi olmadan.",
   "No certificates are configured.": "Yapılandırılmış sertifika yok.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Şikâyet posta kutusu belirtilmediği için hiçbir bildirim okunmuyor. Alan Ayarlar bölümünde; geri bildirim döngülerinin kayıtlı olduğu adrestir.",
   "No criteria: the rule matches every message.": "Ölçüt yok: kural her iletiyle eşleşir.",

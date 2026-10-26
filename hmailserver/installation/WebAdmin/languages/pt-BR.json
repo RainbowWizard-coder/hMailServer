@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(um nome sem nenhum caractere que possa ser exibido)",
   "(choose a route)": "(escolher uma rota)",
   "(empty)": "(vazio)",
   "(no archives in the backup destination)": "(nenhum arquivo no destino do backup)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Nenhum destino de backup foi definido.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Ainda não há linha de base: menos de {0} envios na janela, então só os pisos de volume e destinatários são julgados.",
   "No bounces have been counted for this domain.": "Nenhum retorno foi contado para este domínio.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nenhum certificado pode nomear {0}, então o servidor o deixa de fora de toda verificação e todo pedido. É preciso um nome de host de letras, dígitos e hifens, um internacionalizado na sua forma xn--, sem curinga nem endereço IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nenhum certificado pode nomear {0}, que o servidor deixa de fora de toda verificação e todo pedido. É preciso um nome de host de letras, dígitos e hifens, um internacionalizado na sua forma xn--, sem curinga nem endereço IP.",
   "No certificates are configured.": "Nenhum certificado está configurado.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Nenhuma caixa de reclamações foi indicada, então nenhuma denúncia é lida. O campo fica em Configurações; é o endereço em que os ciclos de retorno estão registrados.",
   "No criteria: the rule matches every message.": "Nenhum critério: a regra corresponde a todas as mensagens.",

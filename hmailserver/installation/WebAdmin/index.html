@@ -6460,15 +6460,19 @@ function acmeCardHtml(a){
   // the server orders for. The card names what is left out, claims of the
   // certificate only what it holds for those hosts, and with none of them says
   // that nothing is requested - which a list of only blanks and dots is too.
+  // What was left out is decided on the list, not on its names joined: a name
+  // an older server answers as "" (each byte past printable ASCII made a space,
+  // then trimmed) is still a name left out, and is shown by a placeholder.
   const c=a.certificate;
   const hosts=a.domains||[];
-  const unusable=(a.unusable_domains||[]).join(", ");
+  const leftOut=(a.unusable_domains||[]).map(n=>String(n||"")||t("(a name with no character that can be shown)"));
+  const unusable=leftOut.join(", ");
   const missing=(a.missing_domains||[]).join(", ");
-  const left=unusable?noticeHtml("warn",tf("No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.",unusable)):"";
+  const left=leftOut.length?noticeHtml("warn",tf("No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.",unusable)):"";
   const cover=!hosts.length?noticeHtml("warn",t("AcmeDomains names no host a certificate can carry, so no certificate is requested."))
     :missing?(c?noticeHtml("warn",tf("The certificate does not name {0}; a check issues one that does.",missing))
                :noticeHtml("warn",tf("No ACME certificate could be read from the server's disk; a check issues one for {0}.",missing)))
-    :c?noticeHtml("info",unusable?t("The certificate names every other host in AcmeDomains."):t("The certificate names every host in AcmeDomains.")):"";
+    :c?noticeHtml("info",leftOut.length?t("The certificate names every other host in AcmeDomains."):t("The certificate names every host in AcmeDomains.")):"";
   const last=a.last_attempt,issue=a.last_issuance,run=a.running;
   const when=last?tf("Last checked {0}, next {1}",auditWhen(last.finished_at),auditWhen(a.next_scheduled_check_at)):"";
   const failed=issue&&issue.outcome==="failed"?noticeHtml("warn",tf("The last attempt failed at {0}: {1}",auditWhen(issue.finished_at),

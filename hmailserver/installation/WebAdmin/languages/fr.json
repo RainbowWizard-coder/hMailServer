@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(un nom sans aucun caractère affichable)",
   "(choose a route)": "(choisir une route)",
   "(empty)": "(vide)",
   "(no archives in the backup destination)": "(aucune archive dans la destination de sauvegarde)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Aucune destination de sauvegarde n'est définie.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Pas encore de référence : moins de {0} envois dans la fenêtre, seuls les planchers de volume et de destinataires sont donc jugés.",
   "No bounces have been counted for this domain.": "Aucun rebond n'a été compté pour ce domaine.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Aucun certificat ne peut nommer {0}, que le serveur laisse donc de côté à chaque vérification et à chaque commande. Il faut un nom d’hôte fait de lettres, de chiffres et de traits d’union, un nom internationalisé sous sa forme xn--, sans caractère générique ni adresse IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Aucun certificat ne peut nommer {0}, que le serveur laisse de côté à chaque vérification et à chaque commande. Il faut un nom d’hôte fait de lettres, de chiffres et de traits d’union, un nom internationalisé sous sa forme xn--, sans caractère générique ni adresse IP.",
   "No certificates are configured.": "Aucun certificat n'est configuré.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Aucune boîte de plaintes n'est indiquée, donc aucun signalement n'est jamais lu. Le champ se trouve dans Paramètres ; c'est l'adresse auprès de laquelle les boucles de retour sont enregistrées.",
   "No criteria: the rule matches every message.": "Aucun critère : la règle correspond à chaque message.",

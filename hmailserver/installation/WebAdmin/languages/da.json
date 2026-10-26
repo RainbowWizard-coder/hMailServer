@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(et navn uden et tegn, der kan vises)",
   "(choose a route)": "(vælg en rute)",
   "(empty)": "(tom)",
   "(no archives in the backup destination)": "(ingen arkiver i backupdestinationen)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Ingen sikkerhedskopidestination er angivet.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Ingen basislinje endnu: færre end {0} afsendelser i vinduet, så kun grænserne for mængde og modtagere bedømmes.",
   "No bounces have been counted for this domain.": "Der er ikke talt nogen returmails for dette domæne.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Intet certifikat kan nævne {0}, så serveren udelader det fra alle kontroller og bestillinger. Der skal bruges et værtsnavn af bogstaver, cifre og bindestreger, et internationaliseret i sin xn---form, uden jokertegn og IP-adresse.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Intet certifikat kan nævne {0}, som serveren udelader fra alle kontroller og bestillinger. Der skal bruges et værtsnavn af bogstaver, cifre og bindestreger, et internationaliseret i sin xn---form, uden jokertegn og IP-adresse.",
   "No certificates are configured.": "Der er ikke konfigureret nogen certifikater.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Der er ikke angivet nogen klagepostkasse, så ingen rapport bliver nogensinde læst. Feltet findes under Indstillinger; det er adressen, som feedbackløkkerne er registreret til.",
   "No criteria: the rule matches every message.": "Ingen kriterier: reglen passer på hver besked.",

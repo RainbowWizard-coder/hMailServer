@@ -1036,12 +1036,14 @@ with `--check`).
   next, the last failed attempt with its reason and the CA's words, and *Check now* for a credential that holds
   `manage_server`, with the time the next request is allowed when it must wait. Its notices say what the server does
   with the list: a name no certificate can carry (`unusable_domains`: a wildcard, an IP address, a name past ASCII,
-  one holding a space or a semicolon) is named as left out of every check and order; the hosts the certificate lacks
+  one holding a space or a semicolon) is named as left out of every check and order, in a sentence that holds one name
+  or several, and a name a server answers empty, as one before this did of a name of only bytes past printable ASCII,
+  by a placeholder, the card deciding on the list and not on its names joined; the hosts the certificate lacks
   are named, or it is said to name them all - "every other host" when a name is left out; with no certificate the
   server can read, a check is said to issue one for the hosts; and a list that holds no host a certificate can carry -
   only such names, or only blanks and dots - is said to request no certificate, where the card said "The certificate
   names every host in AcmeDomains" of a list whose names the server had left out. A refusal of the run comes back as
-  the card's error, and a credential the status is refused to sees the page without the card. Ten new texts, in the
+  the card's error, and a credential the status is refused to sees the page without the card. Eleven new texts, in the
   twenty languages the Deck speaks; the Deck's script harness holds each notice to the status it is drawn from.
 
 ### Build and tests

@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(um nome sem nenhum caráter que possa ser apresentado)",
   "(choose a route)": "(escolher uma rota)",
   "(empty)": "(vazio)",
   "(no archives in the backup destination)": "(sem arquivos no destino da cópia de segurança)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Não está definido nenhum destino de cópia de segurança.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Ainda sem linha de base: menos de {0} envios na janela, pelo que só os limiares mínimos de volume e destinatários são avaliados.",
   "No bounces have been counted for this domain.": "Não foram contadas devoluções para este domínio.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nenhum certificado pode nomear {0}, por isso o servidor deixa-o de fora de todas as verificações e encomendas. É necessário um nome de anfitrião de letras, dígitos e hífenes, um internacionalizado na sua forma xn--, sem caráter universal nem endereço IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Nenhum certificado pode nomear {0}, que o servidor deixa de fora de todas as verificações e encomendas. É necessário um nome de anfitrião de letras, dígitos e hífenes, um internacionalizado na sua forma xn--, sem caráter universal nem endereço IP.",
   "No certificates are configured.": "Não está configurado qualquer certificado.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Nenhuma caixa de reclamações foi indicada, pelo que nenhuma denúncia é lida. O campo está nas Definições; é o endereço em que os ciclos de retorno estão registados.",
   "No criteria: the rule matches every message.": "Nenhum critério: a regra corresponde a todas as mensagens.",

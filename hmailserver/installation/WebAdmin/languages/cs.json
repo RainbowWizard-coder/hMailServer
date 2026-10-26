@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(název bez znaku, který lze zobrazit)",
   "(choose a route)": "(vyberte trasu)",
   "(empty)": "(prázdné)",
   "(no archives in the backup destination)": "(v cíli zálohy nejsou žádné archivy)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Není nastaven žádný cíl zálohy.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Zatím žádná základní úroveň: méně než {0} odeslání v okně, posuzují se tedy jen prahy objemu a příjemců.",
   "No bounces have been counted for this domain.": "Pro tuto doménu nebyly započítány žádné nedoručenky.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Žádný certifikát nemůže obsahovat {0}, a server to proto vynechává ze všech kontrol i objednávek. Je potřeba název hostitele z písmen, číslic a pomlček, internacionalizovaný ve tvaru xn--, bez zástupného znaku a bez adresy IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Žádný certifikát nemůže obsahovat {0}, což server vynechává ze všech kontrol i objednávek. Je potřeba název hostitele z písmen, číslic a pomlček, internacionalizovaný ve tvaru xn--, bez zástupného znaku a bez adresy IP.",
   "No certificates are configured.": "Nejsou nastaveny žádné certifikáty.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Není určena žádná schránka pro stížnosti, takže se nikdy nenacte žádné hlášení. Pole je v Nastavení; je to adresa, na kterou jsou zpětné vazby registrovány.",
   "No criteria: the rule matches every message.": "Žádné podmínky: pravidlo platí pro každou zprávu.",

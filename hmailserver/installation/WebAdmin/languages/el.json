@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(ένα όνομα χωρίς χαρακτήρα που μπορεί να εμφανιστεί)",
   "(choose a route)": "(επιλέξτε διαδρομή)",
   "(empty)": "(κενό)",
   "(no archives in the backup destination)": "(δεν υπάρχουν αρχεία στον προορισμό αντιγράφων ασφαλείας)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Δεν έχει οριστεί προορισμός αντιγράφων ασφαλείας.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Δεν υπάρχει ακόμη βάση αναφοράς: λιγότερες από {0} υποβολές στο παράθυρο, οπότε κρίνονται μόνο τα κατώτατα όρια όγκου και παραληπτών.",
   "No bounces have been counted for this domain.": "Δεν έχουν μετρηθεί επιστροφές για αυτόν τον τομέα.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Κανένα πιστοποιητικό δεν μπορεί να περιέχει το {0}, οπότε ο διακομιστής το παραλείπει από κάθε έλεγχο και κάθε παραγγελία. Χρειάζεται όνομα κεντρικού υπολογιστή από γράμματα, ψηφία και παύλες, ένα διεθνοποιημένο στη μορφή xn--, χωρίς χαρακτήρα μπαλαντέρ ή διεύθυνση IP.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Κανένα πιστοποιητικό δεν μπορεί να περιέχει {0}, κάτι που ο διακομιστής παραλείπει από κάθε έλεγχο και κάθε παραγγελία. Χρειάζεται όνομα κεντρικού υπολογιστή από γράμματα, ψηφία και παύλες, ένα διεθνοποιημένο στη μορφή xn--, χωρίς χαρακτήρα μπαλαντέρ ή διεύθυνση IP.",
   "No certificates are configured.": "Δεν έχει ρυθμιστεί κανένα πιστοποιητικό.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Δεν έχει οριστεί γραμματοκιβώτιο καταγγελιών, επομένως καμία αναφορά δεν διαβάζεται ποτέ. Το πεδίο βρίσκεται στις Ρυθμίσεις: είναι η διεύθυνση στην οποία έχουν δηλωθεί οι βρόχοι ανάδρασης.",
   "No criteria: the rule matches every message.": "Κανένα κριτήριο: ο κανόνας ταιριάζει με κάθε μήνυμα.",

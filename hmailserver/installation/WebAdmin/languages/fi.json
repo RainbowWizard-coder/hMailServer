@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(nimi, jossa ei ole näytettävää merkkiä)",
   "(choose a route)": "(valitse reitti)",
   "(empty)": "(tyhjä)",
   "(no archives in the backup destination)": "(varmuuskopiokohteessa ei ole arkistoja)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "Varmuuskopion kohdetta ei ole asetettu.",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "Ei vielä perustasoa: alle {0} lähetystä aikaikkunassa, joten vain määrän ja vastaanottajien alarajat arvioidaan.",
   "No bounces have been counted for this domain.": "Tälle verkkotunnukselle ei ole laskettu palautuksia.",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Mikään varmenne ei voi nimetä kohdetta {0}, joten palvelin jättää sen pois jokaisesta tarkistuksesta ja tilauksesta. Tarvitaan konenimi, jossa on kirjaimia, numeroita ja yhdysmerkkejä, kansainvälistetty nimi xn---muodossaan, ilman jokerimerkkiä tai IP-osoitetta.",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "Palvelin jättää jokaisesta tarkistuksesta ja tilauksesta pois sen, mitä mikään varmenne ei voi nimetä: {0}. Tarvitaan konenimi, jossa on kirjaimia, numeroita ja yhdysmerkkejä, kansainvälistetty nimi xn---muodossaan, ilman jokerimerkkiä tai IP-osoitetta.",
   "No certificates are configured.": "Varmenteita ei ole määritetty.",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "Valituspostilaatikkoa ei ole määritetty, joten yhtään ilmoitusta ei lueta. Kenttä on Asetuksissa; se on osoite, jolle palautesilmukat on rekisteröity.",
   "No criteria: the rule matches every message.": "Ei ehtoja: sääntö täsmää jokaiseen viestiin.",

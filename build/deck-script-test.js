@@ -7349,12 +7349,13 @@ async function main() {
       covers_domains: true, missing_domains: [] });
    check('a name of AcmeDomains no certificate can carry is named on the ACME card, and the certificate is not said to name every host',
       acmeSeen.text.indexOf('Automatic certificate (ACME)') >= 0 &&
-      acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('No certificate can name *.example.com, so the server leaves it out of every check and order.') >= 0) &&
+      acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('No certificate can name *.example.com, which the server leaves out of every check and order.') >= 0) &&
       acmeSeen.notices.some((n) => n.indexOf('info: ') === 0 && n.indexOf('The certificate names every other host in AcmeDomains.') >= 0) &&
       acmeSeen.text.indexOf('names every host in AcmeDomains') < 0, JSON.stringify(acmeSeen.notices));
    acmeSeen = await acmeCard({ domains: [], unusable_domains: ['*.example.com', '192.0.2.7'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
    check('with every name of AcmeDomains left out, the card names them and says nothing is requested, whatever certificate is on disk',
-      acmeSeen.notices.some((n) => n.indexOf('No certificate can name *.example.com, 192.0.2.7, so') >= 0) &&
+      acmeSeen.notices.some((n) => n.indexOf('No certificate can name *.example.com, 192.0.2.7, which the server leaves out of every check and order.') >= 0) &&
+      acmeSeen.text.indexOf('leaves it out') < 0 &&
       acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('AcmeDomains names no host a certificate can carry, so no certificate is requested.') >= 0) &&
       acmeSeen.text.indexOf('The certificate names every') < 0, JSON.stringify(acmeSeen.notices));
    acmeSeen = await acmeCard({ domains: [], unusable_domains: [], certificate: null, missing_domains: [] });
@@ -7376,8 +7377,20 @@ async function main() {
       acmeSeen.notices.length === 1 && acmeSeen.notices[0].indexOf('info: ') === 0 &&
       acmeSeen.notices[0].indexOf('The certificate names every host in AcmeDomains.') >= 0, JSON.stringify(acmeSeen.notices));
    acmeSeen = await acmeCard({ domains: ['mail.example.com'], unusable_domains: ['<b>x</b>'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
-   check('a name left out is drawn as text', acmeSeen.notices.some((n) => n.indexOf('No certificate can name <b>x</b>, so') >= 0) &&
+   check('a name left out is drawn as text', acmeSeen.notices.some((n) => n.indexOf('No certificate can name <b>x</b>, which') >= 0) &&
       content().querySelectorAll('.sect')[0].querySelectorAll('b').every((b) => b.textContent !== 'x'), JSON.stringify(acmeSeen.notices));
+   // A server before AcmeClient::ShownName answered a name of only bytes past
+   // printable ASCII (a Latin-1 'é', kept as its byte) as "": the card decided on
+   // the names joined, said the certificate names every host and named nothing.
+   acmeSeen = await acmeCard({ domains: ['mail.example.com'], unusable_domains: [''], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
+   check('a name left out that the server answers empty is still named left out, by a placeholder, and the certificate is not said to name every host',
+      acmeSeen.notices.some((n) => n.indexOf('warn: ') === 0 && n.indexOf('No certificate can name (a name with no character that can be shown), which the server leaves out') >= 0) &&
+      acmeSeen.notices.some((n) => n.indexOf('info: ') === 0 && n.indexOf('The certificate names every other host in AcmeDomains.') >= 0) &&
+      acmeSeen.text.indexOf('names every host in AcmeDomains') < 0, JSON.stringify(acmeSeen.notices));
+   acmeSeen = await acmeCard({ domains: [], unusable_domains: ['', '*.example.com'], certificate: acmeCertificate, covers_domains: true, missing_domains: [] });
+   check('an empty name among others gives no sentence with an empty name',
+      acmeSeen.notices.some((n) => n.indexOf('No certificate can name (a name with no character that can be shown), *.example.com, which') >= 0) &&
+      acmeSeen.text.indexOf('name , ') < 0, JSON.stringify(acmeSeen.notices));
    state.acme = null;
 
    // ---- ports

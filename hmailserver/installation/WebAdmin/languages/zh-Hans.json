@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "（没有可显示字符的名称）",
   "(choose a route)": "（选择路由）",
   "(empty)": "（空）",
   "(no archives in the backup destination)": "(备份目标中没有存档)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "未设置备份目标。",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "尚无基线：窗口内的发送少于 {0} 次，因此仅按发送量和收件人的下限判断。",
   "No bounces have been counted for this domain.": "此域尚未统计到退信。",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "任何证书都无法包含 {0}，因此服务器在每次检查和每个订单中都将其排除。需要由字母、数字和连字符组成的主机名，国际化名称须写成 xn-- 形式，且不能是通配符或 IP 地址。",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "任何证书都无法包含 {0}，服务器在每次检查和每个订单中都将其排除。需要由字母、数字和连字符组成的主机名，国际化名称须写成 xn-- 形式，且不能是通配符或 IP 地址。",
   "No certificates are configured.": "没有配置任何证书。",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "未指定投诉邮箱，因此不会读取任何举报。该字段在设置中，它是注册反馈环时使用的地址。",
   "No criteria: the rule matches every message.": "没有条件：此规则匹配每一封邮件。",

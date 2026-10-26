@@ -1,4 +1,5 @@
 {
+  "(a name with no character that can be shown)": "(表示できる文字のない名前)",
   "(choose a route)": "(ルートを選択)",
   "(empty)": "(空)",
   "(no archives in the backup destination)": "(バックアップ先にアーカイブはありません)",
@@ -868,7 +869,7 @@
   "No backup destination is set.": "バックアップ先が設定されていません。",
   "No baseline yet: fewer than {0} submissions in the window, so only the volume and recipients floors are judged.": "まだ基準がありません: 期間内の送信が {0} 件未満のため、量と宛先の下限だけで判定します。",
   "No bounces have been counted for this domain.": "このドメインで数えられたバウンスはありません。",
-  "No certificate can name {0}, so the server leaves it out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "{0} はどの証明書にも記載できないため、サーバーはすべての確認と注文からこれを除外します。英字、数字、ハイフンからなるホスト名が必要です。国際化ドメイン名は xn-- 形式で記述し、ワイルドカードや IP アドレスは使えません。",
+  "No certificate can name {0}, which the server leaves out of every check and order. A host name of letters, digits and hyphens is needed, an internationalised one in its xn-- form, with no wildcard or IP address.": "{0} はどの証明書にも記載できないため、サーバーはすべての確認と注文から除外します。英字、数字、ハイフンからなるホスト名が必要です。国際化ドメイン名は xn-- 形式で記述し、ワイルドカードや IP アドレスは使えません。",
   "No certificates are configured.": "証明書が設定されていません。",
   "No complaint mailbox is named, so no report is ever read. Settings has the field; it is the address the feedback loops are registered against.": "苦情用メールボックスが設定されていないため、報告は読み取られません。項目は設定にあります。フィードバックループを登録したアドレスです。",
   "No criteria: the rule matches every message.": "条件がありません。このルールはすべてのメッセージに一致します。",
