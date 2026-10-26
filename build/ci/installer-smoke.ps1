@@ -2704,7 +2704,7 @@ function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, 
 # trusted owner; and the setup log makes each before the first file it copies there.
 # Missing names the folders the installation installs into that were not there.
 function Test-FoldersMadeBeforeTheFiles([string] $Phase, [string] $Claimed, $Watched, [string] $LogPath, [string[]] $Missing) {
-   if ($Missing.Count -eq 0) { return }
+   if (-not $Missing) { return }
    $name = "${Phase}: $(($Missing | ForEach-Object { Split-Path -Leaf $_ }) -join ' and '), not there in the program folder that was, were made by setup with permissions of their own before their files (work item 78, R1 and R2)"
    $said = @()
    foreach ($folder in $Missing) {
@@ -2953,9 +2953,9 @@ function Invoke-FocusedRun([string] $Version) {
    $log = Join-Path $LogDirectory 'install.log'
    $refused = $RefusedCases -contains $FolderCase
    $there = @(@((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
-   $missing = Get-FoldersToMake $app $Components
+   $missing = @(Get-FoldersToMake $app $Components)
    $appBefore = Test-Path -LiteralPath $app
-   $itemsBefore = Get-ProgramFolderItems $app
+   $itemsBefore = @(Get-ProgramFolderItems $app)
    $State.ProgramFoldersReadable = Get-ProgramFoldersReadable $app
    $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$log", "/DIR=$app")
    if ($Components) { $arguments += "/COMPONENTS=$Components" } else { $arguments += '/TYPE=full' }
@@ -2987,7 +2987,7 @@ function Invoke-FocusedRun([string] $Version) {
       }
       else {
          [void] (Test-Step "case ${FolderCase}: nothing was written, and the folders the case made are as they were" {
-               $after = Get-ProgramFolderItems $app
+               $after = @(Get-ProgramFolderItems $app)
                $new = @($after | Where-Object { $itemsBefore -notcontains $_ })
                $gone = @($itemsBefore | Where-Object { $after -notcontains $_ })
                if ($new.Count -gt 0) { Write-Detail $new 10; throw "$($new.Count) files and folders were written into $app" }
@@ -3250,7 +3250,7 @@ Write-Info 'install: every user could read, before the installer' (($State.Progr
 # Work item 78: the program folder watched while the installer runs - its first
 # moment when it is not there yet, and Bin's and ControlPanel's when they are.
 $installThere = @(@((Join-Path $State.App 'Bin'), (Join-Path $State.App 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
-$installMissing = Get-FoldersToMake $State.App ''
+$installMissing = @(Get-FoldersToMake $State.App '')
 $installWatch = Start-FolderWatch $State.App
 try {
    $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
