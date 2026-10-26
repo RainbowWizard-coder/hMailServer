@@ -350,7 +350,24 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
 
 - Compose: set the new version on the `image:` line, `docker compose pull`,
   `docker compose up -d`; the entrypoint upgrades the database at the start. The
-  file's own PostgreSQL moved from 16 to 18 in 6.3.6: see below.
+  file's own PostgreSQL moved from 16 to 18 in 6.3.6: see below. The file of the
+  release after 6.3.7 gives the REST listener the self-signed pair
+  `--apply-new-install-defaults --if-marked` makes at a new installation's first
+  start, where the files before it named `/certs/rest.pem` and `/certs/rest.key`
+  from `./certs`. A deployment made from an earlier file has no such pair, and
+  `--if-marked` makes none for a database made more than a day before, so with the
+  new file's two `HM_REST_` lines as they stand its REST API - the Control Deck,
+  the webmail and `hmctl` - does not start. Keep that deployment's
+  `HM_REST_CERTIFICATE_FILE: /certs/rest.pem`, `HM_REST_PRIVATE_KEY_FILE:
+  /certs/rest.key` and the `./certs:/certs:ro` mount in the new file, with the key
+  readable by the image's user (`sudo chown 999 certs/rest.key`). Or, for a
+  database still as its create step left it, give it a new installation's
+  defaults once by hand before taking the new lines: `docker compose stop
+  hmailserver`, then `docker compose run --rm hmailserver hmailserver
+  --apply-new-install-defaults`, then `docker compose up -d`. That makes the pair,
+  and also offers STARTTLS on the four listeners a new database has and has the
+  Internet IP range take a password only over TLS ([SecureDefaults.md](SecureDefaults.md),
+  "By hand"); on a database changed since, it changes nothing and says why.
 - Helm: `helm repo update`, then `helm upgrade mail hmailserver/hmailserver
   --reset-then-reuse-values` (Helm 3.14 or later): the new chart's defaults, with the
   values the release was given. `--reuse-values` keeps the defaults of the chart the

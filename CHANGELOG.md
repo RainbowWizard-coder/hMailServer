@@ -842,7 +842,14 @@ with `--check`).
   `ExecStartPre=-` does. The Compose file gives its REST listener the self-signed pair that makes, where it named a
   pair in `./certs` made with `openssl req -nodes`, whose key is 0600 and its owner's: the image's user could not read
   it (HM5113, "Permission denied"), and the REST API did not listen. `./certs` is now the way to a certificate of one's
-  own, its key readable by 999. The chart itself gives the pod 999 for whichever of the three its values leave out or
+  own, its key readable by 999. **A deployment made from an earlier Compose file has no such pair**, and
+  `--if-marked` makes none for a database made more than a day before, so given the new file's `HM_REST_` lines as
+  they stand its REST API, and with it the Control Deck, the webmail and `hmctl`, does not start: keep its
+  `HM_REST_CERTIFICATE_FILE: /certs/rest.pem`, `HM_REST_PRIVATE_KEY_FILE: /certs/rest.key` and `./certs` mount in the
+  new file, the key readable by 999 (`sudo chown 999 certs/rest.key`), or, for a database still as its create step
+  left it, run `docker compose stop hmailserver`, then `docker compose run --rm hmailserver hmailserver
+  --apply-new-install-defaults` once, which makes the pair and gives the rest of a new installation's defaults, then
+  `docker compose up -d` (ContainerImage.md, "Updates"). The chart itself gives the pod 999 for whichever of the three its values leave out or
   null, and keeps a number they give: `helm upgrade --reuse-values` renders a new chart with the values of the chart
   the release was installed with, and those of 6.3.6 and 6.3.7 named no user, so a release of one upgraded so runs as
   999:999 too. The charts of 6.3.6 and 6.3.7 that the Helm repository serves start no server, and the chart's README
