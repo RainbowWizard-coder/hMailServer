@@ -513,11 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Сообщение с таким баллом или выше отклоняется во время SMTP-сеанса или задерживается в карантине, пока карантин включён. В прежних версиях он назывался порогом удаления.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше задерживается в карантине, если оценка достигнута после тела письма, и отклоняется с кодом 550, если она достигнута до него; ни одно не только помечается: порог пометки, {1}, не ниже.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется. По оценке ничего не отклоняется.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется; с оценкой {1} и выше — отклоняется (550 до тела письма, 554 после него).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него), и ни одно не только помечается: порог пометки, {1}, не ниже.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него) или, пока карантин включён, после тела письма задерживается в карантине; ни одно не только помечается: порог пометки, {1}, не ниже.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него). Ни одно не только помечается: порог пометки, {1}, не ниже.</value>
@@ -671,6 +680,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Отправитель, выполнивший вход (SMTP AUTH), не проходит ни через один из этих списков, кроме списка разрешённых и заблокированных при доставке: для сеанса со входом сервер не выполняет проверок на спам и не применяет серый список.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Исключение — отправитель, чей домен разрешён в списке разрешённых и заблокированных доменов: его почта не отклоняется и не задерживается из-за оценки и помечается при оценке {0} и выше.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Отдельная верхняя граница, независимая от ограничения по времени, поскольку поиск, читающий огромные объёмы содержимого сообщений, обходится дорого, даже если завершается быстро.</value>

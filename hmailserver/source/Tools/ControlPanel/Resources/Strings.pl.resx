@@ -513,11 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Wiadomość z tym wynikiem lub wyższym jest odrzucana podczas rozmowy SMTP albo wstrzymywana w kwarantannie, gdy kwarantanna jest włączona. Starsze wersje nazywały go progiem usuwania.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Wiadomość z punktacją {0} lub wyższą jest wstrzymywana w kwarantannie, gdy punktacja zostaje osiągnięta po treści, i odrzucana kodem 550, gdy zostaje osiągnięta przed nią; żadna nie jest tylko oznaczana: próg oznaczania, {1}, nie jest niższy.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Wiadomość z punktacją {0} lub wyższą jest oznaczana jako spam i dostarczana. Nic nie jest odrzucane na podstawie punktacji.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Wiadomość z punktacją {0} lub wyższą jest oznaczana jako spam i dostarczana; {1} lub wyższa jest odrzucana (550 przed treścią, 554 po niej).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Wiadomość z punktacją {0} lub wyższą jest odrzucana (550 przed treścią, 554 po niej) i żadna nie jest tylko oznaczana: próg oznaczania, {1}, nie jest niższy.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Wiadomość z punktacją {0} lub wyższą jest odrzucana (550 przed treścią, 554 po niej) albo po treści wstrzymywana w kwarantannie, gdy kwarantanna jest włączona; żadna nie jest tylko oznaczana: próg oznaczania, {1}, nie jest niższy.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Wiadomość z punktacją {0} lub wyższą jest odrzucana (550 przed treścią, 554 po niej). Żadna nie jest tylko oznaczana: próg oznaczania, {1}, nie jest niższy.</value>
@@ -671,6 +680,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Nadawca, który się loguje (SMTP AUTH), nie przechodzi przez żadną z tych list poza listą dozwolonych i zablokowanych, przy doręczeniu: serwer nie wykonuje dla zalogowanej sesji żadnej kontroli antyspamowej i nie poddaje jej greylistingowi.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Wyjątkiem jest nadawca, którego domena jest dozwolona na liście dozwolonych i zablokowanych domen: jego poczta nie jest ze względu na punktację ani odrzucana, ani wstrzymywana i jest oznaczana od {0} punktów.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Pułap odrębny od limitu czasu, ponieważ wyszukiwanie czytające ogromne ilości treści wiadomości jest kosztowne nawet wtedy, gdy kończy się szybko.</value>

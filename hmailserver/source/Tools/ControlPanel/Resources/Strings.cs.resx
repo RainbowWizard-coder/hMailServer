@@ -513,11 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Zpráva se skóre na této hodnotě nebo vyšším je odmítnuta během SMTP komunikace, nebo zadržena v karanténě, je-li karanténa zapnutá. Starší verze jej nazývaly prahem pro smazání.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je zadržena v karanténě, je-li skóre dosaženo po těle zprávy, a odmítnuta s kódem 550, je-li dosaženo před ním; žádná není jen označena: práh pro označení, {1}, není nižší.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Zpráva se skóre {0} nebo vyšším je označena jako spam a doručena. Nic není odmítnuto na základě skóre.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Zpráva se skóre {0} nebo vyšším je označena jako spam a doručena; se skóre {1} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm) a žádná není jen označena: práh pro označení, {1}, není nižší.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm), nebo po těle zprávy zadržena v karanténě, je-li karanténa zapnutá; žádná není jen označena: práh pro označení, {1}, není nižší.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Zpráva se skóre {0} nebo vyšším je odmítnuta (550 před tělem zprávy, 554 po něm). Žádná není jen označena: práh pro označení, {1}, není nižší.</value>
@@ -671,6 +680,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Odesílatel, který se přihlásí (SMTP AUTH), neprojde žádným z těchto seznamů kromě seznamu povolených a blokovaných, a to při doručení: server u přihlášené relace nespouští žádnou kontrolu spamu a nepodrobí ji greylistingu.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Výjimkou je odesílatel, jehož doména je povolena na seznamu povolených a blokovaných domén: jeho pošta není kvůli skóre odmítnuta ani zadržena a při skóre {0} nebo vyšším je označena.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Strop oddělený od časového limitu, protože hledání, které čte obrovské množství obsahu zpráv, je nákladné, i když skončí rychle.</value>

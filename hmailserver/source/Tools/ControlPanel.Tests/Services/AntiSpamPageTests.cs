@@ -81,20 +81,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(same >= 0 && clamp > same, "CommitTypedNumber clamps a box nobody typed in.");
       }
 
+      // A pair at or below the mark is what SMTPConnection::DoSpamProtection_ makes of it:
+      // refused with a 550 before the body; after it refused with a 554 while quarantining
+      // is off and held in the quarantine while it is on (where the sentence said 554 of
+      // both); and the mail of a sender whose domain is allowed neither refused nor held, and marked at the
+      // mark threshold (where it said that none was only marked, of any sender). With the
+      // switch unread, both outcomes are named.
       [Theory]
-      [InlineData(5, 20, false, null)]
-      [InlineData(5, 5, true, "A message scoring 5 or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, 5, is not below that.")]
-      [InlineData(20, 5, true, "A message scoring 5 or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, 20, is not below that.")]
-      [InlineData(0, 20, false, "The mark threshold is 0, so no message is marked as spam: 0 means never.")]
-      [InlineData(5, 0, false, "The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")]
-      [InlineData(0, 0, false, "Both thresholds are 0, so no score marks, refuses or holds any message.")]
-      public void ThePairOfThresholds_IsRefusedWhenItContradictsItself_AndAZeroIsWarnedOf(int mark, int refuse, bool refused, string warning)
+      [InlineData(5, 20, false, false, null)]
+      [InlineData(5, 20, false, true, null)]
+      [InlineData(5, 5, true, false, "A message scoring 5 or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, 5, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 5 or more.")]
+      [InlineData(20, 5, true, false, "A message scoring 5 or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
+      [InlineData(5, 5, true, true, "A message scoring 5 or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, 5, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 5 or more.")]
+      [InlineData(20, 5, true, true, "A message scoring 5 or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
+      [InlineData(20, 5, true, null, "A message scoring 5 or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, 20, is not below that. A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at 20 or more.")]
+      [InlineData(0, 20, false, true, "The mark threshold is 0, so no message is marked as spam: 0 means never.")]
+      [InlineData(5, 0, false, false, "The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")]
+      [InlineData(0, 0, false, null, "Both thresholds are 0, so no score marks, refuses or holds any message.")]
+      public void ThePairOfThresholds_IsRefusedWhenItContradictsItself_AndAZeroIsWarnedOf(int mark, int refuse, bool refused, bool? quarantine, string warning)
       {
          string problem = SpamPipeline.ThresholdProblem(mark, refuse);
          Assert.Equal(refused, problem != null);
          if (refused)
             Assert.Contains(mark.ToString(System.Globalization.CultureInfo.InvariantCulture), problem, StringComparison.Ordinal);
-         Assert.Equal(warning, SpamPipeline.ThresholdWarning(mark, refuse));
+         Assert.Equal(warning, SpamPipeline.ThresholdWarning(mark, refuse, quarantine));
+      }
+
+      [Fact]
+      public void APairAtOrBelowTheMark_SaysNo554WhileQuarantiningIsOn_AndTheWhiteSendersMark()
+      {
+         string on = SpamPipeline.ThresholdWarning(20, 5, true);
+         Assert.DoesNotContain("554", on, StringComparison.Ordinal);
+         Assert.Contains("held in the quarantine", on, StringComparison.Ordinal);
+         foreach (bool? quarantine in new bool?[] { true, false, null })
+            Assert.Contains("allowed on the list of allowed and blocked domains", SpamPipeline.ThresholdWarning(20, 5, quarantine), StringComparison.Ordinal);
+         Assert.DoesNotContain("quarantine", SpamPipeline.ThresholdWarning(20, 5, false), StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -122,7 +143,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // As read, the bench's pair opens the page with no error and says what it does.
          Assert.Null(SpamPipeline.ThresholdProblem(heldMark, heldRefuse, heldMark, heldRefuse));
          if (heldMark > 0 && heldRefuse > 0 && heldRefuse <= heldMark)
-            Assert.Contains("None is only marked", SpamPipeline.ThresholdWarning(heldMark, heldRefuse), StringComparison.Ordinal);
+            Assert.Contains("none is only marked", SpamPipeline.ThresholdWarning(heldMark, heldRefuse, false), StringComparison.Ordinal);
       }
 
       [Fact]
@@ -133,14 +154,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Label = L(\"Spam refuse threshold (score)\"),", code, StringComparison.Ordinal);
          Assert.Contains("Older versions called it the delete threshold.", code, StringComparison.Ordinal);
          Assert.DoesNotContain("L(\"Spam delete threshold (score)\")", code, StringComparison.Ordinal);
-         Assert.Contains("afterBuildUi_ = () => WireThresholdCheck_(markThreshold, refuseThreshold, thresholdNotice);", code, StringComparison.Ordinal);
+         Assert.Contains("afterBuildUi_ = () => WireThresholdCheck_(markThreshold, refuseThreshold, thresholdNotice, quarantineSwitch);", code, StringComparison.Ordinal);
+         Assert.Contains("quarantine.Settings.Add(quarantineSwitch);", code, StringComparison.Ordinal);
 
          string page = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         string check = WithheldRowTests.MemberText(page, "private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)");
+         string check = WithheldRowTests.MemberText(page, "private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice, IniBool quarantine)");
          Assert.True(check != null, "ServerSettingsView.WireThresholdCheck_ is gone.");
          Assert.Contains("thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt, thresholdsHeld_.Mark, thresholdsHeld_.Refuse);", check, StringComparison.Ordinal);
          Assert.Contains("row.Error = thresholdProblem_;", check, StringComparison.Ordinal);
-         Assert.Contains("string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt) : null;", check, StringComparison.Ordinal);
+         Assert.Contains("string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt, holds) : null;", check, StringComparison.Ordinal);
+
+         // The warning reads the quarantine switch as it is ticked, and again when it changes;
+         // unread, it is neither on nor off.
+         Assert.Contains(": quarantine.Box.IsChecked is true;", check, StringComparison.Ordinal);
+         Assert.Contains("!quarantine.IniStore.SettingsReachable", check, StringComparison.Ordinal);
+         Assert.Contains("quarantine.Box.Checked += (_, _) => Later();", check, StringComparison.Ordinal);
+         Assert.Contains("quarantine.Box.Unchecked += (_, _) => Later();", check, StringComparison.Ordinal);
 
          // The pair held is the one the boxes were filled with, taken before the first
          // check, which runs as the page opens.

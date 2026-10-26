@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Un mensaje con esta puntuación o más se rechaza durante la conversación SMTP, o se retiene en la cuarentena mientras la cuarentena está activada. Las versiones anteriores lo llamaban umbral de borrado.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un mensaje con puntuación {0} o más se retiene en la cuarentena cuando la puntuación se alcanza después del cuerpo, y se rechaza con un 550 cuando se alcanza antes; ninguno se limita a marcarse: el umbral de marcado, {1}, no es inferior.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Un mensaje con puntuación {0} o más se marca como spam y se entrega. No se rechaza nada por puntuación.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Un mensaje con puntuación {0} o más se marca como spam y se entrega; {1} o más se rechaza (550 antes del cuerpo, 554 después).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un mensaje con puntuación {0} o más se rechaza (550 antes del cuerpo, 554 después), y ninguno se limita a marcarse: el umbral de marcado, {1}, no es inferior.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un mensaje con puntuación {0} o más se rechaza (550 antes del cuerpo, 554 después), o se retiene en la cuarentena después del cuerpo mientras la cuarentena está activada; ninguno se limita a marcarse: el umbral de marcado, {1}, no es inferior.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Un mensaje con puntuación {0} o más se rechaza (550 antes del cuerpo, 554 después). Ninguno se limita a marcarse: el umbral de marcado, {1}, no es inferior.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Un remitente que inicia sesión (SMTP AUTH) no pasa por ninguna de estas listas salvo la lista de permitidos y bloqueados, en la entrega: el servidor no ejecuta ninguna comprobación de spam ni somete a greylisting una sesión que ha iniciado sesión.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>La excepción es un remitente cuyo dominio está permitido en la lista de dominios permitidos y bloqueados: su correo no se rechaza ni se retiene por su puntuación, y se marca con {0} o más.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Un tope separado del límite de tiempo, porque una búsqueda que lee cantidades enormes de contenido de mensajes es cara aunque termine rápido.</value>

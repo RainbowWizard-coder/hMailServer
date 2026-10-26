@@ -521,11 +521,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>スコアがこの値以上のメッセージは、SMTP のやり取り中に拒否されるか、検疫が有効な間は検疫に保留されます。以前のバージョンでは削除しきい値と呼ばれていました。</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>スコアが {0} 以上のメッセージは、本文の受信後にそのスコアに達した場合は検疫に保留され、受信前に達した場合は 550 で拒否されます。マークだけされるメッセージはありません: マークしきい値 {1} がそれより低くないためです。</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージはスパムとしてマークされたうえで配信されます。スコアを理由に拒否されるものはありません。</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージはスパムとしてマークされたうえで配信され、{1} 以上のメッセージは拒否されます (本文の受信前は 550、受信後は 554)。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>スコアが {0} 以上のメッセージは拒否され (本文の受信前は 550、受信後は 554)、マークだけされるメッセージはありません: マークしきい値 {1} がそれより低くないためです。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>スコアが {0} 以上のメッセージは拒否されるか (本文の受信前は 550、受信後は 554)、検疫が有効な間は本文の受信後に検疫に保留されます。マークだけされるメッセージはありません: マークしきい値 {1} がそれより低くないためです。</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージは拒否されます (本文の受信前は 550、受信後は 554)。マークだけされるメッセージはありません: マークしきい値 {1} がそれより低くないためです。</value>
@@ -676,6 +685,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>サインインした送信者 (SMTP AUTH) は、配信時の許可・ブロック一覧を除き、これらのリストのどれにも照合されません。サーバーはサインイン済みのセッションに対してスパム チェックを実行せず、グレイリスティングも行いません。</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>例外は、許可・ブロックするドメインの一覧でドメインが許可されている送信者です: そのメールはスコアによって拒否も保留もされず、{0} 以上でマークされます。</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>時間の制限とは別の上限です。大量のメッセージ本文を読み取る検索は、短時間で終わったとしてもコストが高いためです。</value>

@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Bu puana veya daha fazlasına ulaşan bir ileti SMTP görüşmesi sırasında reddedilir ya da karantina açıkken karantinada bekletilir. Eski sürümler buna silme eşiği diyordu.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>{0} veya daha yüksek puan alan bir ileti, puana gövdeden sonra ulaşıldığında karantinada bekletilir, gövdeden önce ulaşıldığında 550 ile reddedilir; hiçbiri yalnızca işaretlenmez: işaretleme eşiği, {1}, bundan düşük değildir.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>{0} veya daha yüksek puan alan bir ileti spam olarak işaretlenir ve teslim edilir. Puan nedeniyle hiçbir şey reddedilmez.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>{0} veya daha yüksek puan alan bir ileti spam olarak işaretlenir ve teslim edilir; {1} veya daha yükseği reddedilir (gövdeden önce 550, sonra 554).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>{0} veya daha yüksek puan alan bir ileti reddedilir (gövdeden önce 550, sonra 554) ve hiçbiri yalnızca işaretlenmez: işaretleme eşiği, {1}, bundan düşük değildir.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>{0} veya daha yüksek puan alan bir ileti reddedilir (gövdeden önce 550, sonra 554) ya da karantina açıkken gövdeden sonra karantinada bekletilir; hiçbiri yalnızca işaretlenmez: işaretleme eşiği, {1}, bundan düşük değildir.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>{0} veya daha yüksek puan alan bir ileti reddedilir (gövdeden önce 550, sonra 554). Hiçbiri yalnızca işaretlenmez: işaretleme eşiği, {1}, bundan düşük değildir.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Oturum açan bir gönderen (SMTP AUTH), teslim sırasındaki izin ve engel listesi dışında bu listelerin hiçbirine uğramaz: sunucu, oturum açmış bir oturum için hiçbir spam denetimi çalıştırmaz ve onu greylisting'e takmaz.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>İstisna, alan adına izin verilen ve engellenen alan adları listesinde izin verilen bir gönderendir: postası puanı yüzünden ne reddedilir ne bekletilir ve {0} veya daha yüksek puanda işaretlenir.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Süre sınırından ayrı bir üst sınır; çünkü çok büyük miktarda ileti içeriği okuyan bir arama, hızlı bitse bile pahalıdır.</value>

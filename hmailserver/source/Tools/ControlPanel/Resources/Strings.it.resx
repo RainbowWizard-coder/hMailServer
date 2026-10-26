@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Un messaggio con questo punteggio o più viene rifiutato durante la conversazione SMTP, oppure trattenuto in quarantena mentre la quarantena è attiva. Le versioni precedenti la chiamavano soglia di eliminazione.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene trattenuto in quarantena quando il punteggio è raggiunto dopo il corpo, e rifiutato con un 550 quando è raggiunto prima; nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Un messaggio con punteggio {0} o superiore viene contrassegnato come spam e consegnato. Nulla viene rifiutato in base al punteggio.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Un messaggio con punteggio {0} o superiore viene contrassegnato come spam e consegnato; {1} o superiore viene rifiutato (550 prima del corpo, 554 dopo).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo), e nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo), oppure trattenuto in quarantena dopo il corpo mentre la quarantena è attiva; nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Un messaggio con punteggio {0} o superiore viene rifiutato (550 prima del corpo, 554 dopo). Nessuno viene solo contrassegnato: la soglia di contrassegno, {1}, non è inferiore.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Un mittente che esegue l'accesso (SMTP AUTH) non incontra nessuno di questi elenchi tranne l'elenco consentiti e bloccati, alla consegna: il server non esegue alcun controllo antispam e non sottopone a greylisting una sessione autenticata.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Fa eccezione un mittente il cui dominio è consentito nell'elenco dei domini consentiti e bloccati: la sua posta non viene né rifiutata né trattenuta per il punteggio, e viene contrassegnata da {0} in su.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Un limite separato dal limite di tempo, perché una ricerca che legge enormi quantità di contenuto dei messaggi è costosa anche quando finisce in fretta.</value>

@@ -519,10 +519,17 @@ namespace hMailServer.ControlPanel.Services
       /// them on the settings page: a threshold at 0 means never, and a refuse
       /// threshold at or below a mark threshold above 0 - a pair the server holds,
       /// which the page does not refuse (<see cref="ThresholdProblem(int, int, int, int)"/>) -
-      /// refuses every message the mark would mark, as the overview's verdict says.
+      /// takes every message the mark would mark, as SMTPConnection::DoSpamProtection_
+      /// does: refused with a 550 when the score is reached before the body, and after it
+      /// held in the quarantine while quarantining is on, refused with a 554 while it is
+      /// off; a sender whose domain is allowed on the list of allowed and blocked
+      /// domains (the domain policy list) is neither refused nor held on its score,
+      /// and its mail is marked where the score reaches the mark threshold.
+      /// <paramref name="quarantine"/> is the page's Hold messages for review switch, or
+      /// null where it could not be read, and the sentence then names both outcomes.
       /// Null while both are above 0 and the refuse threshold is above the mark.
       /// </summary>
-      public static string ThresholdWarning(int mark, int refuse)
+      public static string ThresholdWarning(int mark, int refuse, bool? quarantine)
          => mark <= 0 && refuse <= 0
             ? L("Both thresholds are 0, so no score marks, refuses or holds any message.")
             : mark <= 0
@@ -530,7 +537,13 @@ namespace hMailServer.ControlPanel.Services
             : refuse <= 0
             ? L("The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")
             : refuse <= mark
-            ? RefusedNoneMarked_(refuse, mark)
+            ? Sentences(
+               quarantine == true
+                  ? F("A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that.", refuse, mark)
+                  : quarantine == false
+                  ? F("A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that.", refuse, mark)
+                  : F("A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that.", refuse, mark),
+               F("A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more.", mark))
             : null;
 
       /// <summary>The verdict on a refuse threshold at or below a mark threshold above 0.</summary>

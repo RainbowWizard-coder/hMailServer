@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Viesti, jonka pisteet ovat tämä tai enemmän, hylätään SMTP-keskustelun aikana tai pidätetään karanteeniin, kun karanteeni on käytössä. Vanhemmat versiot kutsuivat sitä poistokynnykseksi.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Viesti, jonka pistemäärä on {0} tai enemmän, pidätetään karanteeniin, kun pistemäärä saavutetaan rungon jälkeen, ja hylätään koodilla 550, kun se saavutetaan ennen runkoa; yhtäkään ei vain merkitä: merkintäkynnys, {1}, ei ole sitä alempi.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Viesti, jonka pistemäärä on {0} tai enemmän, merkitään roskapostiksi ja toimitetaan. Mitään ei hylätä pistemäärän perusteella.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Viesti, jonka pistemäärä on {0} tai enemmän, merkitään roskapostiksi ja toimitetaan; {1} tai enemmän hylätään (550 ennen runkoa, 554 sen jälkeen).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Viesti, jonka pistemäärä on {0} tai enemmän, hylätään (550 ennen runkoa, 554 sen jälkeen), eikä yhtäkään vain merkitä: merkintäkynnys, {1}, ei ole sitä alempi.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Viesti, jonka pistemäärä on {0} tai enemmän, hylätään (550 ennen runkoa, 554 sen jälkeen) tai pidätetään rungon jälkeen karanteeniin, kun karanteeni on käytössä; yhtäkään ei vain merkitä: merkintäkynnys, {1}, ei ole sitä alempi.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Viesti, jonka pistemäärä on {0} tai enemmän, hylätään (550 ennen runkoa, 554 sen jälkeen). Yhtäkään ei vain merkitä: merkintäkynnys, {1}, ei ole sitä alempi.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Kirjautuva lähettäjä (SMTP AUTH) ei kohtaa yhtäkään näistä luetteloista paitsi sallittujen ja estettyjen luetteloa toimituksen yhteydessä: palvelin ei aja kirjautuneelle istunnolle yhtään roskapostitarkistusta eikä harmaalistaa sitä.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Poikkeus on lähettäjä, jonka verkkotunnus on sallittu sallittujen ja estettyjen verkkotunnusten luettelossa: sen postia ei hylätä eikä pidätetä pistemäärän vuoksi, ja se merkitään pistemäärällä {0} tai enemmän.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Aikarajasta erillinen yläraja, koska valtavia määriä viestisisältöä lukeva haku on kallis silloinkin, kun se valmistuu nopeasti.</value>

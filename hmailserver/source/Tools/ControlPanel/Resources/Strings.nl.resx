@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Een bericht met deze score of hoger wordt tijdens het SMTP-gesprek geweigerd, of in quarantaine vastgehouden zolang quarantaine aan staat. Oudere versies noemden dit de verwijderdrempel.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt in quarantaine vastgehouden als de score na de inhoud wordt bereikt, en met een 550 geweigerd als die ervoor wordt bereikt; geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd. Er wordt niets geweigerd op score.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd; {1} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna), en geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna), of na de inhoud in quarantaine vastgehouden zolang quarantaine aan staat; geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Een bericht met score {0} of hoger wordt geweigerd (550 vóór de inhoud, 554 erna). Geen enkel bericht wordt alleen gemarkeerd: de markeringsdrempel, {1}, ligt niet lager.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Een afzender die zich aanmeldt (SMTP AUTH), komt geen van deze lijsten tegen behalve de toestaan- en blokkeerlijst, bij de bezorging: de server voert voor een aangemelde sessie geen spamcontrole uit en greylist haar niet.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>De uitzondering is een afzender wiens domein is toegestaan op de lijst van toegestane en geblokkeerde domeinen: zijn mail wordt om zijn score niet geweigerd of vastgehouden, en wordt vanaf {0} gemarkeerd.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Een apart plafond naast de tijdslimiet, omdat een zoekopdracht die enorme hoeveelheden berichtinhoud leest duur is, ook wanneer die snel klaar is.</value>

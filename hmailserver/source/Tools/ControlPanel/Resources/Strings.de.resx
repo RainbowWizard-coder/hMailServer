@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Eine Nachricht mit dieser Bewertung oder mehr wird während der SMTP-Sitzung abgewiesen oder, solange die Quarantäne eingeschaltet ist, in der Quarantäne zurückgehalten. Ältere Versionen nannten sie die Löschschwelle.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird in der Quarantäne zurückgehalten, wenn die Bewertung nach dem Nachrichtentext erreicht wird, und mit 550 abgelehnt, wenn sie davor erreicht wird; keine wird nur markiert: die Markierungsschwelle, {1}, liegt nicht darunter.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird als Spam markiert und zugestellt. Wegen der Bewertung wird nichts abgelehnt.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird als Spam markiert und zugestellt; {1} oder mehr wird abgelehnt (550 vor dem Nachrichtentext, 554 danach).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird abgelehnt (550 vor dem Nachrichtentext, 554 danach), und keine wird nur markiert: die Markierungsschwelle, {1}, liegt nicht darunter.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird abgelehnt (550 vor dem Nachrichtentext, 554 danach) oder, solange die Quarantäne eingeschaltet ist, nach dem Nachrichtentext in der Quarantäne zurückgehalten; keine wird nur markiert: die Markierungsschwelle, {1}, liegt nicht darunter.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Eine Nachricht mit einer Bewertung von {0} oder mehr wird abgelehnt (550 vor dem Nachrichtentext, 554 danach). Keine wird nur markiert: die Markierungsschwelle, {1}, liegt nicht darunter.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Ein Absender, der sich anmeldet (SMTP AUTH), trifft auf keine dieser Listen außer der Zulassungs- und Sperrliste, bei der Zustellung: Der Server führt für eine angemeldete Sitzung keine Spamprüfung aus und greylistet sie nicht.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Die Ausnahme ist ein Absender, dessen Domain auf der Liste der zugelassenen und gesperrten Domains zugelassen ist: Seine Mail wird wegen ihrer Bewertung weder abgelehnt noch zurückgehalten und ab {0} markiert.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Eine vom Zeitlimit getrennte Obergrenze, weil eine Suche, die riesige Mengen Nachrichteninhalt liest, teuer ist, auch wenn sie schnell fertig ist.</value>

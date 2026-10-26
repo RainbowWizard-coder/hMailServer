@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Uma mensagem com esta pontuação ou mais é recusada durante a conversa SMTP, ou retida na quarentena enquanto a quarentena está ligada. As versões anteriores o chamavam de limite de exclusão.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Uma mensagem com pontuação {0} ou mais é retida na quarentena quando a pontuação é atingida depois do corpo, e recusada com um 550 quando é atingida antes; nenhuma é apenas marcada: o limite de marcação, {1}, não é menor.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Uma mensagem com pontuação {0} ou mais é marcada como spam e entregue. Nada é recusado por pontuação.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Uma mensagem com pontuação {0} ou mais é marcada como spam e entregue; {1} ou mais é recusada (550 antes do corpo, 554 depois).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Uma mensagem com pontuação {0} ou mais é recusada (550 antes do corpo, 554 depois), e nenhuma é apenas marcada: o limite de marcação, {1}, não é menor.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Uma mensagem com pontuação {0} ou mais é recusada (550 antes do corpo, 554 depois), ou retida na quarentena depois do corpo enquanto a quarentena está ligada; nenhuma é apenas marcada: o limite de marcação, {1}, não é menor.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Uma mensagem com pontuação {0} ou mais é recusada (550 antes do corpo, 554 depois). Nenhuma é apenas marcada: o limite de marcação, {1}, não é menor.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Um remetente que se autentica (SMTP AUTH) não passa por nenhuma destas listas, a não ser a lista de permitidos e bloqueados, na entrega: o servidor não executa nenhuma verificação de spam e não submete a greylisting uma sessão autenticada.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>A exceção é um remetente cujo domínio está permitido na lista de domínios permitidos e bloqueados: seu e-mail não é recusado nem retido pela pontuação, e é marcado a partir de {0}.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Um teto separado do limite de tempo, porque uma busca que lê quantidades enormes de conteúdo de mensagens é cara mesmo quando termina rápido.</value>

@@ -513,11 +513,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Повідомлення з таким балом або вищим відхиляється під час SMTP-сеансу або затримується в карантині, поки карантин увімкнено. У попередніх версіях він називався порогом видалення.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Повідомлення з оцінкою {0} або вищою затримується в карантині, якщо оцінки досягнуто після тіла повідомлення, і відхиляється з кодом 550, якщо її досягнуто до нього; жодне не лише позначається: поріг позначення, {1}, не нижчий.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою позначається як спам і доставляється. За оцінкою нічого не відхиляється.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою позначається як спам і доставляється; з оцінкою {1} або вищою — відхиляється (550 до тіла повідомлення, 554 після нього).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього), і жодне не лише позначається: поріг позначення, {1}, не нижчий.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього) або, поки карантин увімкнено, після тіла повідомлення затримується в карантині; жодне не лише позначається: поріг позначення, {1}, не нижчий.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього). Жодне не лише позначається: поріг позначення, {1}, не нижчий.</value>
@@ -671,6 +680,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Відправник, який виконав вхід (SMTP AUTH), не проходить жодного з цих списків, крім списку дозволених і заблокованих під час доставки: для сеансу з входом сервер не виконує перевірок на спам і не застосовує сірий список.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Виняток — відправник, чий домен дозволено у списку дозволених і заблокованих доменів: його пошту не відхиляють і не затримують через оцінку, і її позначають при оцінці {0} або вищій.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Окрема межа, відмінна від обмеження за часом, бо пошук, який читає величезні обсяги вмісту повідомлень, дорогий навіть тоді, коли завершується швидко.</value>

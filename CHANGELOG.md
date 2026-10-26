@@ -977,11 +977,16 @@ with `--check`).
   regression suite leaves both at 10000. The page's check of the pair, which refuses a refuse threshold
   at or below a mark threshold above 0 as the two are typed, also ran as the page opened, on the pair as read, so
   that the field opened in error and a save of any setting on any of the page's tabs wrote nothing. The pair the
-  server holds is now shown without an error and saved as it is, with a Warning under the two saying what it does -
-  the overview's verdict, "A message scoring 10000 or more is refused (550 before the body, 554 after it). None is
-  only marked: the mark threshold, 10000, is not below that." - and an edit that makes or keeps such a pair is
-  refused on its field as before; after a save that wrote every row, the pair saved is the one held.
-  `AntiSpamPageTests` holds the rule and the page's wiring.
+  server holds is now shown without an error and saved as it is, with a Warning under the two saying what it does,
+  read with the page's *Hold messages for review instead of refusing them* switch as it is ticked: with it off, "A
+  message scoring 10000 or more is refused (550 before the body, 554 after it), and none is only marked: the mark
+  threshold, 10000, is not below that."; with it on, that such a message is held in the quarantine when the score
+  is reached after the body and refused with a 550 when it is reached before; where the switch could not be read,
+  both; and in each case that a sender whose domain is allowed on the list of allowed and blocked domains is the
+  exception, its mail neither refused nor held on its score and marked at the mark threshold. An edit that makes or
+  keeps such a pair is refused on its field as before; after a save that wrote every row, the pair saved is the one
+  held. Four new texts, in the seventeen languages; `AntiSpamPageTests` holds the rule, each sentence and the
+  page's wiring, the switch's among it.
 
 ### Administration
 

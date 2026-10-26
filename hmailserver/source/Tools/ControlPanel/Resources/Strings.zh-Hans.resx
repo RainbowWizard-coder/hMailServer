@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>得分达到或超过此值的邮件会在 SMTP 会话期间被拒绝；开启隔离时则会被暂挂在隔离区中。旧版本称其为删除阈值。</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>分数达到 {0} 或以上的邮件，若在正文之后达到该分数，会被暂挂在隔离区中；若在正文之前达到，则以 550 拒收。没有邮件只被标记：标记阈值 {1} 并不低于它。</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被标记为垃圾邮件并投递。不会因分数而拒收任何邮件。</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被标记为垃圾邮件并投递；达到 {1} 或以上的会被拒收（正文之前为 550，之后为 554）。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554），没有邮件只被标记：标记阈值 {1} 并不低于它。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554），或在开启隔离时于正文之后被暂挂在隔离区中；没有邮件只被标记：标记阈值 {1} 并不低于它。</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554）。没有邮件只被标记：标记阈值 {1} 并不低于它。</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>已登录（SMTP AUTH）的发件人除了投递时的允许与拦截名单外，不会经过这些列表中的任何一个：服务器对已登录的会话不做任何垃圾邮件检查，也不做灰名单处理。</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>例外是其域在允许与拦截的域名单中被允许的发件人：其邮件不会因分数被拒收或暂挂，并在分数达到 {0} 或以上时被标记。</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>与时间限制分开的另一个上限，因为读取大量邮件内容的搜索即使很快完成，代价也很高。</value>

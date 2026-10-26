@@ -2886,7 +2886,6 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(refuseThreshold);
          var thresholdNotice = new FollowingNoticeRow();
          general.Settings.Add(thresholdNotice);
-         afterBuildUi_ = () => WireThresholdCheck_(markThreshold, refuseThreshold, thresholdNotice);
          general.Settings.Add(new ComBool { Path = "AntiSpam.AddHeaderSpam", Label = L("Add X-hMailServer-Spam header") });
          general.Settings.Add(new ComBool { Path = "AntiSpam.AddHeaderReason", Label = L("Add X-hMailServer-Reason header") });
          general.Settings.Add(new ComBool { Path = "AntiSpam.PrependSubject", Label = L("Prepend text to subject") });
@@ -2904,13 +2903,17 @@ namespace hMailServer.ControlPanel.Views
             // incoming relay's mail is put to after it, against the address in its
             // headers, are the second kind (release review finding CPV-6).
             L("Changes what happens at the refuse threshold, for the checks that run once the message body has been received. Off, a message over it is refused during the SMTP conversation with a 554 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. A verdict reached before the body (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal, with a 550 - and so does that check when it is made after the body, for mail from an incoming relay, against the address in its headers."));
-         quarantine.Settings.Add(new IniBool
+         var quarantineSwitch = new IniBool
          {
             Path = "QuarantineEnabled",
             Label = L("Hold messages for review instead of refusing them"),
             Blurb = L("Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below."),
             IniStore = iniStore_
-         });
+         };
+         quarantine.Settings.Add(quarantineSwitch);
+         // The warning under the thresholds says what a pair at or below the mark does,
+         // which this switch decides after the body: it is read with the two.
+         afterBuildUi_ = () => WireThresholdCheck_(markThreshold, refuseThreshold, thresholdNotice, quarantineSwitch);
          quarantine.Settings.Add(new IniNumber
          {
             Path = "QuarantineRetentionDays",
@@ -7258,7 +7261,7 @@ namespace hMailServer.ControlPanel.Views
       /// and saved as it is; an edit that makes or keeps such a pair is refused
       /// (SpamPipeline.ThresholdProblem).
       /// </summary>
-      private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)
+      private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice, IniBool quarantine)
       {
          thresholdProblem_ = null;
          thresholdRefusal_ = null;
@@ -7296,8 +7299,14 @@ namespace hMailServer.ControlPanel.Views
                thresholdRefusal_ = null;
             }
 
-            // The pair refused is said on its field, and not again under the two.
-            string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt) : null;
+            // The pair refused is said on its field, and not again under the two. What a pair
+            // at or below the mark does after the body is the quarantine switch's, as ticked
+            // now; where the server's [Settings] could not be read the switch shows its
+            // default, and the warning names both outcomes.
+            bool? holds = quarantine?.Box == null || quarantine.IniStore == null || !quarantine.IniStore.SettingsReachable
+               ? null
+               : quarantine.Box.IsChecked is true;
+            string warning = thresholdProblem_ == null ? SpamPipeline.ThresholdWarning(markAt, refuseAt, holds) : null;
             notice.Notice.Text = warning;
             shown.Visibility = warning == null ? Visibility.Collapsed : Visibility.Visible;
          }
@@ -7308,6 +7317,11 @@ namespace hMailServer.ControlPanel.Views
          {
             box.TextChanged += (_, _) => Later();
             box.ValueChanged += (_, _) => Later();
+         }
+         if (quarantine?.Box != null)
+         {
+            quarantine.Box.Checked += (_, _) => Later();
+            quarantine.Box.Unchecked += (_, _) => Later();
          }
 
          Check();

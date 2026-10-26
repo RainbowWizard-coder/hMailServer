@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>Un message dont le score atteint ou dépasse cette valeur est refusé pendant la conversation SMTP, ou retenu en quarantaine tant que la mise en quarantaine est activée. Les versions antérieures l'appelaient le seuil de suppression.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un message avec un score de {0} ou plus est retenu en quarantaine quand le score est atteint après le corps, et refusé avec un 550 quand il est atteint avant ; aucun n'est seulement marqué : le seuil de marquage, {1}, n'est pas inférieur.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Un message avec un score de {0} ou plus est marqué comme spam et livré. Rien n'est refusé sur le score.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Un message avec un score de {0} ou plus est marqué comme spam et livré ; {1} ou plus est refusé (550 avant le corps, 554 après).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un message avec un score de {0} ou plus est refusé (550 avant le corps, 554 après), et aucun n'est seulement marqué : le seuil de marquage, {1}, n'est pas inférieur.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un message avec un score de {0} ou plus est refusé (550 avant le corps, 554 après), ou retenu en quarantaine après le corps tant que la mise en quarantaine est activée ; aucun n'est seulement marqué : le seuil de marquage, {1}, n'est pas inférieur.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>Un message avec un score de {0} ou plus est refusé (550 avant le corps, 554 après). Aucun n'est seulement marqué : le seuil de marquage, {1}, n'est pas inférieur.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>Un expéditeur qui s'authentifie (SMTP AUTH) ne rencontre aucune de ces listes sauf la liste d'autorisation et de blocage, à la livraison : le serveur n'exécute aucune vérification anti-spam et ne met pas en liste grise une session authentifiée.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>L'exception est un expéditeur dont le domaine est autorisé sur la liste des domaines autorisés et bloqués : son courrier n'est ni refusé ni retenu pour son score, et il est marqué à partir de {0}.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Un plafond distinct de la limite de temps, parce qu'une recherche qui lit d'énormes quantités de contenu de messages est coûteuse même quand elle finit vite.</value>

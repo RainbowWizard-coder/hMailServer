@@ -510,11 +510,20 @@
   <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
     <value>En melding med denne poengsummen eller mer avvises under SMTP-samtalen, eller holdes tilbake i karantene mens karantene er slått på. Eldre versjoner kalte den sletteterskelen.</value>
   </data>
+  <data name="A message scoring {0} or more is held in the quarantine when the score is reached after the body, and refused with a 550 when it is reached before; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>En melding som får {0} poeng eller mer, holdes tilbake i karantene når poengsummen nås etter meldingskroppen, og avvises med 550 når den nås før; ingen blir bare merket: merketerskelen, {1}, er ikke lavere.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>En melding som får {0} poeng eller mer merkes som spam og leveres. Ingenting avvises på poengsum.</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>En melding som får {0} poeng eller mer merkes som spam og leveres; {1} eller mer avvises (550 før meldingskroppen, 554 etter den).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), and none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>En melding som får {0} poeng eller mer, avvises (550 før meldingskroppen, 554 etter den), og ingen blir bare merket: merketerskelen, {1}, er ikke lavere.</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it), or held in the quarantine after the body while quarantining is on; none is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>En melding som får {0} poeng eller mer, avvises (550 før meldingskroppen, 554 etter den) eller holdes tilbake i karantene etter meldingskroppen mens karantene er slått på; ingen blir bare merket: merketerskelen, {1}, er ikke lavere.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
     <value>En melding som får {0} poeng eller mer avvises (550 før meldingskroppen, 554 etter den). Ingen blir bare merket: merketerskelen, {1}, er ikke lavere.</value>
@@ -665,6 +674,9 @@
   </data>
   <data name="A sender that signs in (SMTP AUTH) meets none of these lists but the allow and block list, at delivery: the server runs no spam check and does not greylist a session that has signed in." xml:space="preserve">
     <value>En avsender som logger på (SMTP AUTH), møter ingen av disse listene unntatt listen over tillatte og blokkerte, ved levering: serveren kjører ingen spamkontroll og grålister ikke en økt som har logget på.</value>
+  </data>
+  <data name="A sender whose domain is allowed on the list of allowed and blocked domains is the exception: its mail is neither refused nor held on its score, and is marked at {0} or more." xml:space="preserve">
+    <value>Unntaket er en avsender hvis domene er tillatt på listen over tillatte og blokkerte domener: e-posten fra den verken avvises eller holdes tilbake på grunn av poengsummen, og merkes ved {0} poeng eller mer.</value>
   </data>
   <data name="A separate ceiling from the time limit, because a search that reads enormous amounts of message content is expensive even when it finishes quickly." xml:space="preserve">
     <value>Et eget tak i tillegg til tidsgrensen, fordi et søk som leser enorme mengder meldingsinnhold, er dyrt selv når det blir ferdig raskt.</value>
