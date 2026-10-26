@@ -7,8 +7,9 @@ names it asks for must resolve to this server (or to a proxy that passes
 `/.well-known/acme-challenge/` on to it) and port 80 must be reachable from the
 internet. It does not do dns-01, and so no wildcard certificates.
 
-One certificate carries every name. The client asks for one certificate whose
-subject alternative names are the hosts `AcmeDomains` lists, writes it to the
+One certificate serves every host. The client asks for one certificate whose
+subject alternative names are the hosts of `AcmeDomains` a certificate can carry
+(below), writes it to the
 certificate directory, records it as the SSL certificate **ACME (automatic)**,
 gives it to every TLS listener that has no certificate or holds the self-signed
 one a new installation made ([SecureDefaults.md](SecureDefaults.md)), and
@@ -51,7 +52,8 @@ orders hand on is held to the same rule.
 A check decides, in this order. The certificate is due when:
 
 1. **there is none** that can be read in the certificate directory;
-2. **it does not name every host `AcmeDomains` lists** - due at once, whatever
+2. **it does not name every host of `AcmeDomains` a certificate can carry** -
+   due at once, whatever
    its dates. A name it carries that starts with `*.` covers one label in its
    place, as a mail client matches it. A host taken off the list does not make
    it due: the certificate still serves the rest, and the next renewal drops
@@ -118,7 +120,7 @@ not asked. Times are Unix seconds, and null when there is none.
 | Member | What it says |
 |---|---|
 | `enabled`, `directory_url`, `domains`, `certificate_directory` | The settings, `domains` as the client reads them. |
-| `unusable_domains` | The names of `AcmeDomains` left out because no certificate can carry them, as written. |
+| `unusable_domains` | The names of `AcmeDomains` left out because no certificate can carry them, as written, each byte that is not printable ASCII shown as `\xHH`, so that no name is shown empty. |
 | `certificate` | The certificate in use, or null: `file`, `names` (its subject alternative names, or its common name when it has none), `subject`, `issuer`, `serial`, `not_before`, `not_after`, `expired`, `renews_at` (rule 4 above) and `deployed` (whether the ACME (automatic) record names this file - a record of that name that points at another file, after `AcmeCertificateDirectory` changed or its paths were edited, is not this certificate's deployment). |
 | `covers_domains`, `missing_domains` | Whether it names every host of `domains`, and the ones it lacks: a name of `unusable_domains` is never among them, since nothing orders it. |
 | `due`, `due_reason` | Rules 1, 2 and 4, judged from the file: `missing`, `names` or `lifetime`. |

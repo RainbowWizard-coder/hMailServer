@@ -217,6 +217,36 @@ namespace HM
          return CleanBytes((const unsigned char *) value.c_str(), value.GetLength(), maxLength);
       }
 
+      // A name of AcmeDomains as written, for the status and the log: printable
+      // ASCII as it is, and every other byte as \xHH, so that a name is never
+      // shown empty. CleanText made a run of other bytes one space and trimmed
+      // it, and a name of only such bytes - a Latin-1 character, which the
+      // setting's narrowing keeps as its byte - was answered as "" in
+      // unusable_domains and as nothing in the log line that names it. Cut to
+      // at most maxLength characters, never inside an escape.
+      AnsiString ShownName(const AnsiString &value, int maxLength)
+      {
+         AnsiString shown;
+
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            const unsigned char character = (unsigned char) value[i];
+
+            AnsiString piece;
+            if (character >= 0x20 && character < 0x7f)
+               piece += (char) character;
+            else
+               piece.Format("\\x%02X", (unsigned int) character);
+
+            if (shown.GetLength() + piece.GetLength() > maxLength)
+               break;
+
+            shown += piece;
+         }
+
+         return shown;
+      }
+
       // A JSON string's content, as JsonStringValue_ gives it, read as text: \",
       // \\ and \/ as the character, \uXXXX of printable ASCII as that
       // character, and every other escape - a line break, a tab, a character
@@ -882,8 +912,9 @@ namespace HM
             continue;
 
          // As written, for the administrator to find it in the list; printable
-         // ASCII alone, since the status is JSON and the log a line.
-         const AnsiString shown = CleanText(domain, 300);
+         // ASCII alone, since the status is JSON and the log a line, any other
+         // byte as \xHH (ShownName), so that no name is shown empty.
+         const AnsiString shown = ShownName(domain, 300);
          if (std::find(unusable.begin(), unusable.end(), shown) == unusable.end())
             unusable.push_back(shown);
       }
@@ -3711,6 +3742,19 @@ namespace HM
             "the names left out were not the nine written so, in the order written: " + Narrow(unusable));
          Expect(AcmeClient::UnusableDomains(" mail.example.test, new.example.test. ").empty(),
             "a host name, or one written fully qualified, was named as one no certificate can carry");
+
+         // A byte that is not printable ASCII is shown as \xHH, so that a name of
+         // only such bytes - a Latin-1 character, kept as its byte when the
+         // setting is narrowed - is never shown empty, as it was with each run of
+         // them made a space and trimmed; cut never inside an escape.
+         Expect(unusable[3] == "b\\xC3\\xBCcher.example.test",
+            "a name past ASCII was not shown with its other bytes as \\xHH: " + Narrow(unusable));
+         const std::vector<AnsiString> latin1 = AcmeClient::UnusableDomains("mail.example.test, \xE9, \xF1, \xE9");
+         Expect(Narrow(latin1) == "\\xE9, \\xF1",
+            "a name of only bytes past ASCII was not shown, each once, as \\xHH: " + Narrow(latin1));
+         const std::vector<AnsiString> longName = AcmeClient::UnusableDomains(AnsiString(std::string(200, '\xE9').c_str()));
+         Expect(longName.size() == 1 && longName[0].GetLength() == 300 && longName[0].Right(4) == "\\xE9",
+            "a long name past ASCII was not cut to 300 characters between two escapes: " + Narrow(longName));
 
          std::string label63(63, 'a');
          std::string label64(64, 'a');

@@ -109,7 +109,9 @@ with `--check`).
   off the list makes nothing due. `AcmeDomains` is read with a final dot taken off, and a name no certificate can carry -
   a wildcard, which http-01 cannot validate, an IP address, a name past ASCII (written in its `xn--` form, it is taken)
   or one holding a character no host name can - is left out of the check and of the order, and named in the status's
-  `unusable_domains` and in the application log at each check, where it would have made every certificate due and failed
+  `unusable_domains` and in the application log at each check (as written, each byte that is not printable ASCII as
+  `\xHH`, so that a name of only such bytes, a Latin-1 character the setting keeps as its byte, is not named empty),
+  where it would have made every certificate due and failed
   every order, the renewal for the other hosts with it. Every check now keeps one set of rules, whatever started it
   (`AcmeChecks`, `Common/Util/AcmeClient.h`): one at a time; no order within twenty minutes of an attempt that failed,
   by the check at start and the hourly one as by a requested or saved one, so that a setup that cannot validate fails at most three times an hour, under
@@ -1012,7 +1014,8 @@ with `--check`).
   /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the
   file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed
   (whether the ACME (automatic) record names that file),
-  whether it names every host `AcmeDomains` lists and which it lacks, the names of the list no certificate can carry,
+  whether it names every host of `AcmeDomains` a certificate can carry and which it lacks, the names of the list no
+  certificate can carry (as written, each byte that is not printable ASCII as `\xHH`, so that none is shown empty),
   whether it is due and why, the check running now (and its step: directory, account, order, authorization, finalize,
   certificate, install), the last check and the last that tried to issue (outcome, the failing step, a sentence, and
   the CA's problem document's type and detail, the detail read whole with the name it quotes and cut to 300
