@@ -474,9 +474,16 @@ chosen - or, when that is not there yet, of the nearest folder above it that is 
 when `Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` or another group of
 every user may change what an installation there would hold, it says so, in a box and
 in the setup log (the log alone for a silent installation, and for an upgrade, whose
-folder page is not shown). It never refuses the folder for that: one made for the
-purpose off a drive's root is an administrator's choice, and the hardening is what
-closes it.
+folder page is not shown). It does not refuse the folder for that alone: one made for
+the purpose off a drive's root is an administrator's choice, and for the program
+folder, `Bin` and `ControlPanel` the hardening before the files is what closes it. A
+folder *above* the program folder is another matter: one that lets such a group, or
+any account but SYSTEM, the Administrators and TrustedInstaller, rename it, remove what
+is in it or change who may - `C:\Apps` inheriting `Authenticated Users` Modify from a
+client's drive root, for `C:\Apps\hMailServer` - is not one setup installs below,
+since nothing done to the program folder changes what such an account may do there:
+setup refuses it when the installation starts ("A folder on the way", below), as the
+live update refuses such an installation.
 
 **Before the files.** From the release after 6.3.7 ([work item
 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78)), setup makes the
@@ -498,10 +505,12 @@ that a refusal here leaves a running server running:
   themselves, a link not followed, with nobody else allowed to delete or rename them -
   each before the one below it is looked at, and kept so until setup ends. A name
   found missing is not held, and somebody else may make it, or put a link there, the
-  moment after: setup never looks at such a name again by its path, but makes it
+  moment after: setup never decides what is there by its path again, but makes it
   itself in the second step, which fails when the name has been taken; and the three
   walks are held to agree with one another, so that a folder or a link made while
-  setup looked is refused, with nothing changed.
+  setup looked is refused, with nothing changed. The hold shares writing, which the
+  files setup copies need; what setup makes, and what it hardens, it reads again
+  through its own handles (below).
 - **A link on the way.** A junction, a symbolic link or a mount point among those
   folders is gone through only when SYSTEM, the Administrators and TrustedInstaller
   alone control it - its owner, the rights on it that change it or what it leads to,
@@ -519,7 +528,21 @@ that a refusal here leaves a running server running:
   icacls "C:\hMailServer" /L /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F *S-1-5-32-545:RX
   ```
 
-  with the link's own path, and runs setup again.
+  with the link's own path, restarts Windows, so that nothing opened while another
+  account could change the link stays open, and runs setup again.
+- **A folder on the way.** Every other folder on the way to the three - the root of
+  its volume included, and the folders a link the administrators control leads
+  through - is held to the rule the live update holds the folders above the program
+  folder to (`AdminUpdateChecks`' `CheckAncestors_`), read through the handle that
+  holds it: its owner is SYSTEM, the Administrators or TrustedInstaller, and no other
+  account may rename or remove it, remove what is in it, or change who may
+  (`FILE_DELETE_CHILD`, `DELETE`, `WRITE_DAC`, `WRITE_OWNER`): what such an account may
+  do there, nothing setup does to the program folder changes. The refusal names the
+  folder and the account, and
+  the `icacls` that deals with it: `/setowner *S-1-5-32-544` for an owner,
+  `/inheritance:d` then `/remove:g` with the account's SID for an entry. The root of a
+  Windows client's system drive, of Windows Server's, Program Files and ProgramData
+  pass it as Windows makes them.
 - **Not on a share, and not on FAT.** A program folder on a share of another computer
   or on a network drive, whose permissions that computer sets, is refused; so is a
   program folder, a `Bin` or a `ControlPanel` - each asked of its own volume, since a
@@ -534,16 +557,27 @@ that a refusal here leaves a running server running:
   which a handle keeps whoever owns the folder after. The refusal says to remove or
   rename the folder and run setup again, which makes a new one with permissions of its
   own, or to install into another folder.
-- **What is in `Bin` and `ControlPanel`.** Everything in them, at any depth - what the
-  live update's check of an installation looks at - is read through a handle on each.
-  Setup does not install where the service and the administrators would run what
-  another account controls: a link there (a junction, a symbolic link, a mount point,
-  any reparse point), or a program, a library (`.exe`, `.dll`) or a folder whose owner
-  is not SYSTEM, the Administrators or TrustedInstaller, or cannot be read, or an
-  entry of whose own lets another account change it. The refusal names each, with
-  what to do - `icacls ... /setowner *S-1-5-32-544` for an owner, `icacls ... /reset`
-  for an entry, `rmdir` or `del` for a link, `takeown ... /A` for what cannot be read -
-  once an administrator has checked that it is meant to be there.
+- **What is in `Bin` and `ControlPanel`, and the program folder's other folders.**
+  Everything in `Bin` and `ControlPanel` at any depth - what the live update's check of
+  an installation looks at - everything on the program folder's own level, and
+  everything in `Addons`, `Events`, `DBScripts`, `WebAdmin` and `Languages` at any
+  depth, where the service runs the event script, the administrators the tools and
+  DBSetup the SQL, is looked at; each item but a link, which is known by what the
+  folder's listing says of it, is read through a handle opened on it as itself. Setup
+  does not install where the service and the administrators would run what another
+  account controls: a link there (a junction, a symbolic link, a mount point, any
+  reparse point), but for one on the program folder's own level that only the
+  administrators control - a data folder behind an administrator's junction is an
+  ordinary layout - or a program, a library (`.exe`, `.dll`), a script (`.vbs`, `.js`,
+  `.sql`, `.php`, `.ps1`, `.cmd`, `.bat`, in those five folders and on the program
+  folder's own level) or a folder whose owner is not SYSTEM, the Administrators or
+  TrustedInstaller, or cannot be read, or an entry of whose own lets another account
+  change it. `Data`, `Logs`, `Temp` and `Database`, which the service writes in and may
+  own what it made in, are not looked inside; one another account owns is said. The
+  refusal names each, with what to do - `icacls ... /setowner *S-1-5-32-544` for an
+  owner, `icacls ... /reset` for an entry, `rmdir` or `del` for a link, `takeown ...
+  /A` for what cannot be read - once an administrator has checked that it is meant to
+  be there.
 
 **Then, in `PrepareToInstall`** - after the service has stopped, the last thing setup
 does before the files:
@@ -559,7 +593,11 @@ does before the files:
   hands `Users` `(GR,GE)` down, so `C:\Program Files\hMailServer` gets the Users' Read
   & execute. A name somebody else has taken by then, a folder or a link, is not taken:
   setup stops, and running it again looks at what is there. What Inno Setup then makes
-  in the folder inherits those permissions.
+  in the folder inherits those permissions. Before it makes anything, setup reads the
+  folder the walk held again through the handle that holds it, and refuses it when it
+  has been made a link since; and it holds each folder the moment it is made and reads,
+  through the handles, where it is, refusing one that is not in the folder held above
+  it with its name.
 - **A program folder that is there** is hardened, as `/ProtectFolders` hardens it,
   before the files, whatever it holds; only the earlier installation's is left, when
   its `Data`, `Logs`, `Temp`, `Database` or `Events` still inherit from it - an
@@ -570,8 +608,12 @@ does before the files:
   it). Then `Bin` and `ControlPanel` are hardened before their files are copied; or,
   when one is not there, setup makes it with the same permissions its own (Bin always,
   ControlPanel when the Control Panel is installed), and not Inno Setup with what the
-  program folder hands down. Each folder setup hardens is read through the handle that
-  holds it and read again once it is done:
+  program folder hands down; and one that holds nothing and let another account write
+  it is removed and made again in the same way, so that nothing opened while another
+  account could write it stays on the way to the files - a folder another program
+  holds open cannot be removed, or cannot be made again until that program closes it,
+  and either is a refusal. Each folder setup hardens is read through
+  the handle that holds it and read again once it is done:
   - owned by SYSTEM, the Administrators or TrustedInstaller, it keeps the entries of
     its own, as `/ProtectFolders` keeps them, but for those that let a group of every
     user (`Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` and the like)
@@ -586,26 +628,42 @@ does before the files:
     Administrators with their privilege (`takeown /A`), and its permissions rebuilt
     with the entries of its own that give no right to write kept - the service's Read
     & execute on `Bin`, from the grant, among them - as `/ProtectFolders` keeps them,
-    and those that gave a right to write named;
+    and those that gave a right to write named; the log and the box say to restart
+    Windows once the installation is done;
   - a folder setup could not harden, or that is not as setup means to leave it when
     read again, ends the installation: the refusal says what, and that an
     administrator takes the folder (`takeown /F ... /A`) and runs setup again, or
     installs into a folder setup makes.
 
-  Last, what is in `Bin` and `ControlPanel` is looked at again, as in the first step,
-  now that only the administrators can add to it; another file whose owner is not
-  SYSTEM, the Administrators or TrustedInstaller - a note, a settings file - is said
-  in the setup log and the box, with the `icacls ... /setowner *S-1-5-32-544` that
-  gives it to the Administrators. Setup replaces the files it installs; one it does
-  not install stays as it is.
-- **A drive's root** as the program folder is not changed: its permissions are the
-  volume's. `Bin` and `ControlPanel` there are made, or hardened, and looked at, as
-  in any other program folder.
+  Last, what is in `Bin`, `ControlPanel` and the program folder's other folders is
+  looked at again, as in the first step, now that only the administrators can add to
+  it; an empty folder there before the installation is removed - Inno Setup makes it
+  again when it installs into it - as an empty `Bin` is made again; and
+  another file whose owner is not SYSTEM, the Administrators or TrustedInstaller - a
+  note, a settings file - is said in the setup log and the box, with the `icacls ...
+  /setowner *S-1-5-32-544` that gives it to the Administrators. Setup replaces the
+  files it installs; one it does not install stays as it is.
+- **The root of a volume** as the program folder - a drive's, or the one a mount point
+  or a link to a volume's root leads to, `\\?\Volume{...}\` - is not changed: its
+  permissions are the volume's. `Bin` and `ControlPanel` there are made, or hardened,
+  and looked at, as in any other program folder.
 
 A refusal in `PrepareToInstall` comes after setup stopped the service for an upgrade:
 the refusal then says so, and that it is started again with `net start hMailServer`
 once what it names has been seen to; setup does not start it, since it has just found
 the installation not as it should be.
+
+**After the files**, before setup runs any program of the installation, it reads the
+program folder, `Bin` and `ControlPanel` it made or hardened again through the handles
+that hold them: none may be a link now; `Bin` in the program folder,
+`Bin\hMailServer.INI` and `ControlPanel\hMailCP.exe` reached by their paths, as the
+files were copied, must be in the folders it holds; their permissions must be as setup
+left them; and `Bin`, `ControlPanel` and the five folders above must hold no link and
+no empty folder that setup did not leave (each such is removed). Anything not as setup
+left it ends the installation with exit code 10 and what was found: setup runs nothing
+of the installation, sets an installed service not to start (`sc config hMailServer
+start= disabled`), and an administrator looks at what is named, restarts Windows and
+runs setup again.
 
 `/ProtectFolders` still runs after the files at every installation and upgrade of the
 server, and hardens the three again; for a folder setup made, or hardened before the
@@ -1592,16 +1650,24 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   folder lets every user change what is in it; and what setup does before the files
   (work item 78), a test each: a new program folder, and the folders above it, made by
   `CreateDirectoryW` with a protected descriptor in `PrepareToInstall`'s last step,
-  recorded for the uninstaller and removed again when the files were not installed;
-  `Bin`, `ControlPanel` and the program folder that are there hardened before the
-  files at every installation, a folder another account owns rebuilt with the entries
-  that give no right to write kept, the service's among them; every folder held from
-  the drive's root through a handle with `READ_CONTROL`, a link gone through only
-  when the administrators alone control it - every right the server's
+  the folder it is made in read again and each folder made read where it is through
+  the handles, recorded for the uninstaller and removed again when the files were not
+  installed; `Bin`, `ControlPanel` and the program folder that are there hardened
+  before the files at every installation - an empty `Bin` or `ControlPanel` another
+  account could write made again - the earlier installation's folder another account
+  owns given to the Administrators and rebuilt with the entries that give no right to
+  write kept, the service's among them, any other refused; every folder held from the
+  drive's root through a handle with `READ_CONTROL`, a link gone through only when the
+  administrators alone control it - every right the server's
   `OnlyAdministratorsControl` counts - and walked again from where it leads, and
-  refused otherwise; a share, a network drive and a volume without permissions
-  refused; and the owners directly inside `Bin` and `ControlPanel` and the entries
-  kept said. `build/check-installer-scripts.py` holds the same shapes, with a negative
+  refused otherwise, and a folder on the way held to the live update's rule of a
+  folder above the program folder; a share, a network drive and a volume without
+  permissions refused; a link, or a program, a library, a script or a folder another
+  account controls, in `Bin` and `ControlPanel` at any depth, on the program folder's
+  own level and in the five folders that hold what is run, refused, and the entries
+  kept said; and the folders read again after the files before anything of the
+  installation runs. Each decision, and each helper it relies on, is held to its
+  statement. `build/check-installer-scripts.py` holds the same, with a negative
   control each, and the installer smoke test's watch and cases
   ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer smoke test")
   hold what the installer does on a machine.
