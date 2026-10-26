@@ -90,38 +90,50 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                this holds that they are run.
   program folder
                Work item 78's R1 to R4: the program folder, Bin and ControlPanel
-               never let anybody but SYSTEM and the Administrators change them at
-               any point of an installation. PrepareToInstall's last step,
-               PrepareProgramFolders, holds each from the root of its volume down
-               (HoldFolderChain, HM_HOLD_FOLDER_ACCESS with READ_CONTROL, not shared
-               for deleting) until DeinitializeSetup; refuses a link on the way that
-               anybody but SYSTEM, the Administrators and TrustedInstaller owns or may
+               let nobody but SYSTEM and the Administrators change them at any
+               point of an installation, but for an entry of a folder's own for a
+               named account, which setup says, or setup does not install.
+               CheckProgramFolders, on the Ready page before the service is
+               stopped, changes nothing: it holds each from the root of its volume
+               down (HoldFolderChain, HM_HOLD_FOLDER_ACCESS with READ_CONTROL, not
+               shared for deleting) until DeinitializeSetup, a missing name never
+               looked at again by its path; refuses a link on the way that anybody
+               but SYSTEM, the Administrators and TrustedInstaller owns or may
                change or remove - every right ProtectedFile.cpp's
                OnlyAdministratorsControl counts on the link, read through the held
                handle (GetSecurityInfo) - and goes on from where an administrators'
-               link leads; refuses a share, a network drive and a volume that keeps
-               no permissions; makes a program folder that is not there with
-               CreateDirectoryW and a protected descriptor, the folders above it
-               too, and section_dirs.iss gives the uninstaller each, when this
-               setup made it, while DeinitializeSetup removes those still empty
-               when the files were not installed (R1); hardens one that is there,
-               Bin and ControlPanel, before the files, the program folder of a
-               server installation only when its data folders inherit nothing, and
-               one another account owns rebuilt with the entries that give no right
-               to write kept, the service's among them (R2); and says, in the log,
-               what another account owns directly inside Bin and ControlPanel and
-               the entries of a folder's own that let every user write (R4).
-               HardenNewProgramFolder, which hardened a folder Inno Setup had made,
-               is not to come back.
+               link leads; refuses a share, a network drive, walks that disagree,
+               and a volume of any of the three that keeps no permissions or cannot
+               be told; refuses one of the three another account owns unless it is
+               the earlier installation's; and refuses a link, or a program, a
+               library or a folder another account controls, in Bin and
+               ControlPanel at any depth (R4). PrepareProgramFolders, the last step
+               of PrepareToInstall, then makes a program folder that is not there
+               with CreateDirectoryW and a protected descriptor - exactly the names
+               below the deepest folder held, the folders above it too - and
+               section_dirs.iss gives the uninstaller each, when this setup made
+               it, while DeinitializeSetup removes those still empty when the files
+               were not installed (R1); hardens one that is there whatever it
+               holds, but for the earlier installation's whose data folders
+               inherit, through the held handle, an entry of its own that lets
+               every user write taken away, one another account owns given to the
+               Administrators with takeown /A and rebuilt, each read again, any
+               failure a refusal; then makes or hardens Bin and ControlPanel, and
+               looks at what is in them again (R2, R4). Each decision is held to its
+               statement (PROGRAM_FOLDER_STATEMENTS), so that a one-line change of
+               one is refused. HardenNewProgramFolder, which hardened a folder Inno
+               Setup had made, and MakeProgramFolder, which looked at a path again,
+               are not to come back.
   masks        Every mask the [Code] tests an entry's rights against (head.Mask and
-               HM_..., and the rights AclLetsOthers is asked about) is a named
-               HM_ constant that carries exactly the generic rights whose mapping
-               for a file or folder (FILE_GENERIC_READ, FILE_GENERIC_WRITE,
-               FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS) meets one of its own, since
-               an entry handed down is often written with generic rights and the
-               server maps them before it compares (ServiceAccount.cpp's
-               FileRights_); and HM_FOLDER_READ_RIGHTS asks for FILE_LIST_DIRECTORY,
-               as EveryUserReads_ asks the mapped rights for FILE_READ_DATA. A read
+               ..., and the rights AclLetsOthers and OwnEntriesLetOthers are asked
+               about) is a named HM_ constant alone that carries exactly the
+               generic rights whose mapping for a file or folder
+               (FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE,
+               FILE_ALL_ACCESS) meets one of its own, since an entry handed down is
+               often written with generic rights and the server maps them before it
+               compares (ServiceAccount.cpp's FileRights_); and
+               HM_FOLDER_READ_RIGHTS asks for FILE_LIST_DIRECTORY, as
+               EveryUserReads_ asks the mapped rights for FILE_READ_DATA. A read
                mask without GENERIC_READ ($10000001) found no user who could read a
                folder made in Program Files, which hands Users (GR,GE) down, so
                setup made C:\\Program Files\\hMailServer with no entry for Users
@@ -145,17 +157,17 @@ asked after a window check, the database
 read from a stopped service, the settings file's password scheme not passed to the
 decision, the settings file read in Bin alone, the one in ProgramData read whatever
 the installed server's build, the original's builds 2788 and 2843 taken to read it,
-the self-test not run before the installer is built, a program folder made without
-its descriptor, the program folder recorded for the uninstaller whatever made it,
-HardenNewProgramFolder back after Inno Setup's folder, the folders setup made left
-after a cancel, Bin not hardened before its files, a folder another account owns
-given three entries alone, the service's inherited Read dropped from it, the hold
-without READ_CONTROL, a link gone through unasked, a link's permissions read by its
-path, Bin's link not checked, the rights on a link narrowed below the server's, the
-folders prepared without the refusal reaching PrepareToInstall's answer, the owners
-in Bin not said, the entries kept not said, a volume without permissions not
-refused, the read mask without GENERIC_READ, and an entry's rights tested against
-an unnamed mask, must all be refused.
+the self-test not run before the installer is built, and work item 78's: each of
+R1 to R4's decisions changed by one line - the nineteen of the review of 26 October
+2026 among them - and each shape of its first repair undone (a folder made in the
+meantime taken, a missing folder decided by its path, walks that disagree taken,
+Bin and ControlPanel left to Inno Setup, a folder that could not be hardened
+installed into, the program folder left for any inheriting Data, a folder another
+account owns taken whoever's it is, a held folder read by its path, an entry that
+lets every user write kept, the hardened folder not read again, takeown not run,
+what is in Bin and ControlPanel only said or not looked at, a volume that cannot be
+told taken, the folders checked after the service is stopped, a refusal after the
+stop not saying so, a mask in parentheses or narrowed) - must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -641,11 +653,210 @@ FILE_RIGHTS = {'FILE_WRITE_DATA': 0x2, 'FILE_APPEND_DATA': 0x4, 'FILE_WRITE_EA':
                'FILE_DELETE_CHILD': 0x40, 'DELETE': 0x10000, 'WRITE_DAC': 0x40000, 'WRITE_OWNER': 0x80000}
 # The [Code] of work item 78's R1 to R4, every one of which an attended and a silent
 # installation run.
-PROGRAM_FOLDER_ROUTINES = ('PrepareProgramFolders', 'HoldFolderChain', 'HoldForSetup', 'LinkIsAdministratorsAlone', 'LinkTarget',
-                           'MakeProgramFolder', 'RemoveFoldersMadeHere', 'HardenHeldFolder', 'RebuildFolderOfUntrustedOwner',
-                           'SayBroadEntriesKept', 'SayForeignOwners', 'DataFolderThatInherits', 'InheritsNothing',
+PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'HoldFolderChain', 'HoldForSetup', 'LinkIsAdministratorsAlone',
+                           'LinkTarget', 'MakeFolders', 'RemoveFoldersMadeHere', 'HardenHeldFolder', 'RebuildFolderOfUntrustedOwner',
+                           'HeldFolderIsHardened', 'LetsEveryUserWrite', 'SayWriteEntriesKept', 'CheckWhatIsInside', 'OwnEntriesLetOthers',
+                           'IsProgramFile', 'OwnerIsAllowed', 'HeldOwnerIsTrusted', 'WalksAgree', 'DataFolderThatInherits', 'InheritsNothing',
                            'VolumeKeepsPermissions', 'SplitAtRoot', 'DeinitializeSetup', 'FolderMadeBySetup', 'SetupMadeFolder',
-                           'SetupMadeProgramFolder', 'AclLetsOthers', 'IsTrustedSid')
+                           'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel', 'AclLetsOthers', 'IsTrustedSid',
+                           'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn')
+
+# Each decision of R1 to R4 held by its exact statement, so that a one-line change of
+# one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
+# time, and the rule that looked for words refused none of them). Each is (routine,
+# what a change of it would do, its statement): Pascal as the script has it, where a
+# space stands for any run of white space, ~ for anything up to the next semicolon,
+# @@ for comment lines, and a ^ that starts it or a $ that ends it for the start or
+# the end of the routine.
+PROGRAM_FOLDER_STATEMENTS = (
+    # R3: the chain and the rule of a link.
+    ('HoldFolderChain', 'a name that cannot be read is taken for one that is not there',
+     "if (lastError = 2) or (lastError = 3) then begin"),
+    ('HoldFolderChain', 'a folder is not read again once it is held, so a link put in its place before the hold is taken for a folder',
+     "handle := HoldForSetup(szNext); if handle = -1 then begin Why := ~; bDone := true; end else begin @@"
+     "attributes := FolderAttributes(szNext); if (attributes = HM_INVALID_ATTRIBUTES) or ((attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then"),
+    ('HoldFolderChain', 'a link is gone through without the rule',
+     "else if (attributes and HM_REPARSE_POINT) <> 0 then begin if not LinkIsAdministratorsAlone(handle, parent, szWhy) then Why := "),
+    ('HoldFolderChain', 'what a missing name is made below is not the deepest folder held',
+     "Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;"),
+    ('HoldFolderChain', 'the last folder found is not marked as held',
+     "Real := szNext; Held := szNext; HeldHandle := handle; Whole := true; Result := true;"),
+    ('LinkIsAdministratorsAlone', 'a link\'s own owner is not held to the three',
+     "if not IsTrustedSid(pOwner) then Why := 'it is owned by '"),
+    ('LinkIsAdministratorsAlone', 'what may change a link is not asked',
+     "else if AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho) then Why := szWho + ' may change it'"),
+    ('LinkIsAdministratorsAlone', 'what may remove a link from its folder is not asked',
+     "else if AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho) then Why := "),
+    ('AclLetsOthers', 'the rights on a link itself are not weighed',
+     "if (aceFlags and HM_INHERIT_ONLY) = 0 then begin if aceType = HM_ACCESS_ALLOWED then"),
+    ('IsTrustedSid', 'an account other than SYSTEM, the Administrators and TrustedInstaller is trusted',
+     "^function IsTrustedSid(pSid: cardinal): Boolean; begin "
+     "Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID); end;$"),
+    ('LinkTarget', 'a link to a share is gone through',
+     "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := "),
+    # The volumes.
+    ('VolumeKeepsPermissions', 'a volume that keeps no permissions is taken',
+     "else if (flags and HM_PERSISTENT_ACLS) = 0 then Why := "),
+    ('VolumeKeepsPermissions', 'a volume that cannot be told is taken',
+     "begin Result := false; Why := ''; serial := 0; longest := 0; flags := 0; if not VolumeOfHeldFolder(HeldHandle, "),
+    # The check, before anything changes and before the service is stopped.
+    ('CheckProgramFolders', 'the program folder is not held and checked',
+     "if not HoldFolderChain(szApp, 0, g_szProgramFolderReal, g_szProgramFolderHeld, g_hProgramFolder, g_bProgramFolderThere, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'Bin is not held and checked',
+     "if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0, g_szBinReal, g_szBinHeld, g_hBin, g_bBinThere, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'ControlPanel is not held and checked',
+     "if not HoldFolderChain(AddBackslash(szApp) + 'ControlPanel', 0, g_szControlPanelReal, g_szControlPanelHeld, g_hControlPanel, g_bControlPanelThere, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'the program folder\'s volume is not asked',
+     "if not VolumeKeepsPermissions(g_hProgramFolder, g_szProgramFolderHeld, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'Bin\'s volume is not asked',
+     "if not VolumeKeepsPermissions(g_hBin, g_szBinHeld, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'ControlPanel\'s volume is not asked',
+     "if not VolumeKeepsPermissions(g_hControlPanel, g_szControlPanelHeld, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'walks that disagree - a folder or a link made while setup looked - are not refused',
+     "if (not WalksAgree(g_szBinHeld, g_bBinThere)) or (not WalksAgree(g_szControlPanelHeld, g_bControlPanelThere)) then begin Result := "),
+    ('CheckProgramFolders', 'the program folder is taken for the earlier installation\'s whatever that installation\'s folder',
+     "g_bEarlierInstallation := false; if Trim(Earlier) <> '' then g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;"),
+    ('CheckProgramFolders', 'the program folder\'s owner is not held to the rule',
+     "if g_bProgramFolderThere and (Length(g_szProgramFolderReal) > 3) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'Bin\'s owner is not held to the rule',
+     "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'ControlPanel\'s owner is not held to the rule',
+     "if g_bControlPanelThere then if not OwnerIsAllowed(g_szControlPanelReal, g_hControlPanel, szWhy) then begin Result := "),
+    ('CheckProgramFolders', 'what is in Bin and ControlPanel is not refused before the service is stopped',
+     "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy); if g_bControlPanelThere then "
+     "CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy); if found > 0 then Result := "),
+    ('OwnerIsAllowed', 'a folder another account owns is taken although it is not the earlier installation\'s',
+     "else if g_bEarlierInstallation then Result := true else Why := "),
+    ('WalksAgree', 'what one walk found is not held to the others',
+     "if g_bProgramFolderThere then Result := Whole or (CompareText(Held, g_szProgramFolderReal) = 0) else "
+     "Result := (not Whole) and (CompareText(Held, g_szProgramFolderHeld) = 0);"),
+    # R1: made.
+    ('MakeFolders', 'a folder somebody else made in the meantime is taken',
+     "if MakeFolderWithSecurity(missing[index], attributes) then begin if Kind = 0 then"),
+    ('MakeFolders', 'a name somebody else took is not refused',
+     "lastError := DLLGetLastError(); if lastError = HM_ERROR_ALREADY_EXISTS then Why := ~ else Why := ~; Result := false;"),
+    ('MakeFolders', 'what is made is not the names below the deepest folder held',
+     "szBase := AddBackslash(Held); if (Length(Folder) <= Length(szBase)) or (CompareText(Copy(Folder, 1, Length(szBase)), szBase) <> 0) then"),
+    ('RemoveFoldersMadeHere', 'a folder setup made is removed with what is in it',
+     "if RemoveDir(g_aFoldersMade[index]) then Log("),
+    ('RemoveFoldersMadeHere', 'a Bin or ControlPanel setup made is removed with what is in it',
+     "if RemoveDir(szMade) then Log("),
+    # R2: hardened, and refused when it cannot be.
+    ('PrepareProgramFolders', 'a program folder that is not there is decided by its path',
+     "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, szWhy) then Result := "),
+    ('PrepareProgramFolders', 'more than a drive\'s root is taken for one, or Bin and ControlPanel are passed over at a root',
+     "if Length(g_szProgramFolderReal) <= 3 then Log(~) else begin szInherits := '';"),
+    ('PrepareProgramFolders', 'the program folder is left as it is for an inheriting data folder that is not the earlier installation\'s',
+     "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or "
+     "FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);"),
+    ('PrepareProgramFolders', 'a program folder that could not be hardened is installed into',
+     "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end;"),
+    ('PrepareProgramFolders', 'a Bin that is there is not hardened, or one that could not be is installed into',
+     "if g_bBinThere then begin if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
+    ('PrepareProgramFolders', 'a Bin that is not there is not made by setup',
+     "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then begin Result := ~; Exit; end;"),
+    ('PrepareProgramFolders', 'a ControlPanel that is there is not hardened, or one that could not be is installed into',
+     "if g_bControlPanelThere then begin if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
+    ('PrepareProgramFolders', 'a ControlPanel that is not there is not made by setup',
+     "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, szWhy) then begin Result := ~; Exit; end;"),
+    ('PrepareProgramFolders', 'what is in Bin and ControlPanel is not looked at again once they are hardened',
+     "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy); if g_bControlPanelThere then "
+     "CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy); if found > 0 then begin Result := ~; Exit; end;"),
+    ('HardenHeldFolder', 'a held folder\'s owner and permissions are not read through its handle',
+     "readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);"),
+    ('HardenHeldFolder', 'an entry of the folder\'s own that lets every user write is kept',
+     "if ((((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0) and LetsEveryUserWrite(pAce) then begin szSid := TextOfSidAt(pAce + 8);"),
+    ('HardenHeldFolder', 'an entry that lets every user write is not taken away, or a failure to take it is not a refusal',
+     "'\" /remove:g ' + szSid, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then begin Why := ~; Exit; end; if ResultCode <> 0 then begin Why := ~; Exit; end;"),
+    ('HardenHeldFolder', 'a trusted owner\'s folder does not stop inheriting, or icacls\'s failure is not a refusal',
+     "'\"' + Folder + '\" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then "
+     "begin Why := ~; Exit; end; Log(~); if ResultCode <> 0 then begin Why := ~; Exit; end;"),
+    ('HardenHeldFolder', 'a folder another account owns is taken although it is not the earlier installation\'s',
+     "else if not Adopt then begin Why := ~; FreeWindowsMemory(pDescriptor); Exit; end else begin "
+     "Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, Why);"),
+    ('HardenHeldFolder', 'a hardened folder is not read again',
+     "if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then begin Why := ~; Exit; end; if bTrusted then SayWriteEntriesKept(Folder, HeldHandle); Result := true;"),
+    ('HeldFolderIsHardened', 'a list that still inherits is taken for hardened',
+     "else if (control and HM_DACL_PROTECTED) = 0 then Why := "),
+    ('HeldFolderIsHardened', 'a folder another account still owns is taken for hardened',
+     "else if not IsTrustedSid(pOwner) then Why := "),
+    ('HeldFolderIsHardened', 'an entry that lets every user write is taken for hardened',
+     "if LetsEveryUserWrite(pAce) then begin Result := false;"),
+    ('LetsEveryUserWrite', 'what lets every user write is not an allow entry with a right to write for a group of every user',
+     "if (head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED then if (head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0 then Result := IsBroadSid(pAce + 8);"),
+    ('RebuildFolderOfUntrustedOwner', 'a rebuilt folder keeps an entry of its own that lets another account write',
+     "if aceType <> HM_ACCESS_ALLOWED then szDropped := szDropped + ', an entry of its own of another kind' "
+     "else if writes and (not IsTrustedSid(pAce + 8)) then szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s own' "
+     "else ok := AddAsOwnEntry(pNew, pAce);"),
+    ('RebuildFolderOfUntrustedOwner', 'a rebuilt folder keeps an inherited entry other than the service\'s Read',
+     "if aceType <> HM_ACCESS_ALLOWED then szDropped := szDropped + ', an inherited entry of another kind' "
+     "else if SidIs(pAce + 8, HM_SERVICE_SID) and (not writes) then ok := AddAsOwnEntry(pNew, pAce) "
+     "else if writes and (not SidIs(pAce + 8, 'S-1-5-18')) and (not SidIs(pAce + 8, 'S-1-5-32-544')) then szDropped := ~; end;"),
+    ('RebuildFolderOfUntrustedOwner', 'the deny entries are not kept on a rebuilt folder',
+     "if pass = 0 then begin if aceType = HM_ACCESS_DENIED then ok := AddAsOwnEntry(pNew, pAce); end"),
+    ('RebuildFolderOfUntrustedOwner', 'a folder another account owns is not given to the Administrators with their privilege first',
+     "if not Exec(ExpandConstant('{sys}\\takeown.exe'), '/F \"' + Folder + '\" /A', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then Why := ~ "
+     "else if ResultCode <> 0 then Why := ~ else begin written := WriteFolderSecurity(Folder, HM_FILE_OBJECT, HM_PROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);"),
+    # R4: what is in Bin and ControlPanel, and what is said.
+    ('CheckWhatIsInside', 'a program, a library, a folder or a link another account controls is said and not refused',
+     "if bLink or bCode or bFolder then begin Found := Found + 1;"),
+    ('CheckWhatIsInside', 'a link, a program or a library inside Bin or ControlPanel is not known as one',
+     "bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0; bCode := (not bFolder) and IsProgramFile(rec.Name);"),
+    ('CheckWhatIsInside', 'an owner other than the three is not refused',
+     "else if not IsTrustedSid(pOwner) then begin if (not bCode) and (not bFolder) and SidIs(pOwner, HM_SERVICE_SID) then szWho := ''"),
+    ('CheckWhatIsInside', 'a program or a folder an entry of whose own lets another account change it is not refused',
+     "else if bCode or bFolder then begin if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then"),
+    ('CheckWhatIsInside', 'what is below the first level is not looked at',
+     "for index := 0 to count - 1 do if not CheckWhatIsInside(folders[index], Depth + 1, Final, Found, Why) then Result := false;"),
+    ('CheckWhatIsInside', 'the owner of what is in Bin and ControlPanel is not read through a handle on each',
+     "readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);"),
+    ('IsProgramFile', 'a program or a library is not what the live update holds to its rule',
+     "Result := (szExtension = '.exe') or (szExtension = '.dll');"),
+    ('OwnEntriesLetOthers', 'an inherited entry is weighed, or an entry of the item\'s own is not',
+     "if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin "
+     "if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then"),
+    ('SayWriteEntriesKept', 'an entry kept that lets an account other than the three write is not said',
+     "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and "
+     "(not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then"),
+    # The service: what is refused before it is stopped, and said after.
+    ('NextButtonClick', 'the folders are not checked before the service is stopped, or a refusal there stops it all the same',
+     "g_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder()); if g_szFolderRefusal <> '' then Exit;"),
+    ('NextButtonClick', 'whether setup stopped a running service is not known',
+     "bWasRunning := IsServiceRunning('hMailServer'); if (StopHMailServerService() = false) then Result := false else g_bServiceStoppedForSetup := bWasRunning;"),
+    ('PrepareToInstall', 'a refusal after setup stopped the service does not say so',
+     "Result := PrepareToInstallRefusal(); if Result <> '' then begin @@if g_bServiceStoppedForSetup then Result := Result + ' Setup stopped the hMailServer service~; "
+     "Log('Refused: ' + Result); end; end;$"),
+    ('PrepareToInstallRefusal', 'the program folders are not prepared last, their refusal the answer',
+     "Result := PrepareProgramFolders(PreviousInstallationFolder()); end;$"),
+)
+
+
+def statement_pattern(statement):
+    """A PROGRAM_FOLDER_STATEMENTS statement as a regular expression."""
+    out = []
+    if statement.startswith('^'):
+        out.append(r'\A')
+        statement = statement[1:]
+    end = statement.endswith('$')
+    if end:
+        statement = statement[:-1]
+    index = 0
+    while index < len(statement):
+        if statement.startswith('@@', index):
+            out.append(r'(?://[^\n]*\n\s*)*')
+            index += 2
+        elif statement[index] == '~':
+            out.append(r'[^;]*')
+            index += 1
+        elif statement[index] == ' ':
+            out.append(r'\s*')
+            index += 1
+        else:
+            out.append(re.escape(statement[index]))
+            index += 1
+    if end:
+        out.append(r'\s*\Z')
+    return ''.join(out)
 
 
 def check_program_folders(texts, problems):
@@ -662,11 +873,12 @@ def check_program_folders(texts, problems):
         if re.search(r'(?<!Suppressible)MsgBox\(', body):
             problems.append('%s: %s uses a message box /SUPPRESSMSGBOXES does not suppress' % (EXTENSION, name))
 
+    for routine, decision, statement in PROGRAM_FOLDER_STATEMENTS:
+        if not re.search(statement_pattern(statement), routines[routine]):
+            problems.append('%s: %s: %s (the statement work item 78 holds it to is not there)' % (EXTENSION, routine, decision))
+
     prepare = routines['PrepareProgramFolders']
-    # Last in PrepareToInstall, its refusal PrepareToInstall's answer.
-    to_install = pascal_routine(ext, 'PrepareToInstall') or ''
-    if not re.search(r"Result\s*:=\s*PrepareProgramFolders\(\);\s*if\s+Result\s*<>\s*''\s*then\s*Log\('Refused: '\s*\+\s*Result\);\s*end;\s*$", to_install):
-        problems.append('%s: PrepareToInstall does not end by preparing the program folders, its refusal its answer' % EXTENSION)
+    check = routines['CheckProgramFolders']
     step = pascal_routine(ext, 'CurStepChanged') or ''
     if re.search(r'Harden\w*\(', step):
         problems.append('%s: a program folder is hardened at ssInstall, after Inno Setup has begun, rather than in PrepareToInstall' % EXTENSION)
@@ -677,18 +889,22 @@ def check_program_folders(texts, problems):
     if not re.search(r'HM_SHARE_ALL_BUT_DELETE\s*=\s*\$3;', ext) or not re.search(r'HM_HOLD_FOLDER_FLAGS\s*=\s*\$02200000;', ext):
         problems.append('%s: a folder is held shared for deleting, or through its link' % EXTENSION)
     chain = routines['HoldFolderChain']
-    for word in ('HoldForSetup(szNext)', 'LinkIsAdministratorsAlone(handle, parent, szWhy)', 'LinkTarget(handle, szNext, szTarget, szWhy)',
-                 'HoldFolderChain(szTarget, Depth + 1, Real, Why)', 'Depth >= 8', 'LinkRemedy(szNext)', 'HM_DRIVE_REMOTE'):
+    for word in ('HoldForSetup(szNext)', 'LinkTarget(handle, szNext, szTarget, szWhy)', 'HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why)',
+                 'Depth >= 8', 'LinkRemedy(szNext)', 'HM_DRIVE_REMOTE'):
         if word not in chain:
             problems.append('%s: HoldFolderChain does not use %s' % (EXTENSION, word))
+    if len(re.findall(r'attributes\s*:=\s*FolderAttributes\(szNext\);', chain)) != 2:
+        problems.append('%s: HoldFolderChain does not read a folder\'s attributes before and after it holds it' % EXTENSION)
     rule = routines['LinkIsAdministratorsAlone']
     if len(re.findall(r'ReadHeldSecurity\(h(?:Link|Parent),\s*HM_FILE_OBJECT,\s*HM_OWNER_AND_DACL_INFORMATION', rule)) != 2:
         problems.append('%s: a link\'s and its folder\'s owner and permissions are not read through the handles that hold them' % EXTENSION)
-    if re.search(r'ReadFolder(?:Permissions|Owner)\(', rule):
-        problems.append('%s: a link\'s permissions are read by its path' % EXTENSION)
-    for word in ('AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho)', 'AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho)'):
-        if word not in rule:
-            problems.append('%s: LinkIsAdministratorsAlone does not use %s' % (EXTENSION, word))
+    if len(re.findall(r'not\s+IsTrustedSid\(pOwner\)', rule)) != 2:
+        problems.append('%s: the owner of a link, or of the folder it is in, is not held to SYSTEM, the Administrators and TrustedInstaller' % EXTENSION)
+    for name in ('LinkIsAdministratorsAlone', 'HardenHeldFolder', 'HeldFolderIsHardened', 'HeldOwnerIsTrusted', 'CheckWhatIsInside',
+                 'SayWriteEntriesKept', 'EveryUserMayReadMadeIn', 'RebuildFolderOfUntrustedOwner', 'MakeFolders', 'CheckProgramFolders', 'PrepareProgramFolders'):
+        if re.search(r'ReadFolder(?:Permissions|Owner)\(', routines[name]):
+            problems.append('%s: %s reads a folder\'s permissions by its path, which names whatever is there by then, rather than through the handle '
+                            'that holds it' % (EXTENSION, name))
     mask = re.search(r'HM_FOLDER_WRITE_RIGHTS\s*=\s*\$([0-9A-Fa-f]+);', ext)
     on_it = re.search(r'const ACCESS_MASK onIt\s*=\s*([A-Z_ |]+);', texts.get(PROTECTED_FILE, ''))
     if not mask or not on_it:
@@ -702,72 +918,70 @@ def check_program_folders(texts, problems):
                 problems.append('%s: the installer does not count %s on a link, which the server does' % (EXTENSION, right))
     if not re.search(r'HM_REMOVE_FROM_FOLDER_RIGHTS\s*=\s*\$100C0040;', ext):
         problems.append('%s: what removes a link from its folder is not FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL' % EXTENSION)
-    chains = [prepare.find('if not HoldFolderChain(' + path + ') then') for path in
-              ('szApp, 0, szReal, szWhy', "AddBackslash(szApp) + 'Bin', 0, szBin, szWhy", "AddBackslash(szApp) + 'ControlPanel', 0, szControlPanel, szWhy")]
-    if min(chains) < 0:
-        problems.append('%s: PrepareProgramFolders does not hold and check the program folder, Bin and ControlPanel each' % EXTENSION)
-    else:
-        changes = [prepare.find(word) for word in ('MakeProgramFolder(', 'HardenHeldFolder(', 'SayForeignOwners(')]
-        if min(changes) < 0 or min(changes) < max(chains):
-            problems.append('%s: PrepareProgramFolders changes or reads a folder before every link on the way is checked' % EXTENSION)
-    if 'ReleaseFolder(' in prepare or 'ReleaseHeldFolders();' not in routines['DeinitializeSetup']:
-        problems.append('%s: the folders are not held until DeinitializeSetup' % EXTENSION)
-
-    # The volumes no permissions protect.
-    if 'if not VolumeKeepsPermissions(handle) then' not in prepare or 'HM_PERSISTENT_ACLS' not in routines['VolumeKeepsPermissions']:
-        problems.append('%s: a program folder on a volume that keeps no permissions is not refused' % EXTENSION)
     if not re.search(r"else\s+if\s+Copy\(Path,\s*1,\s*2\)\s*=\s*'\\\\'\s+then\s+Why\s*:=", routines['SplitAtRoot']):
         problems.append('%s: a program folder on a share is not refused' % EXTENSION)
 
+    # Nothing changed before every walk is checked, nothing decided by a path again, and
+    # the check before the service is stopped.
+    if re.search(r'\b(?:MakeFolders|HardenHeldFolder|RebuildFolderOfUntrustedOwner)\(', check):
+        problems.append('%s: CheckProgramFolders, which runs before the service is stopped, changes a folder' % EXTENSION)
+    if 'CheckProgramFolders(' not in prepare or prepare.find('CheckProgramFolders(') > prepare.find('MakeFolders('):
+        problems.append('%s: PrepareProgramFolders changes a folder before the walks are checked' % EXTENSION)
+    for name in ('MakeFolders', 'PrepareProgramFolders', 'CheckProgramFolders', 'HoldFolderChain'):
+        if re.search(r'DirExists\((?:szReal|szPath|missing\[|szNext|Folder\)|g_szProgramFolderReal\)|g_szProgramFolderHeld|g_szBin|g_szControlPanel)', routines[name]):
+            problems.append('%s: %s decides what is there by looking at a path again, not by what the walk held' % (EXTENSION, name))
+    if 'ReleaseFolder(' in prepare or 'ReleaseFolder(' in check or 'ReleaseHeldFolders();' not in routines['DeinitializeSetup']:
+        problems.append('%s: the folders are not held until DeinitializeSetup' % EXTENSION)
+    if 'IsComponentSelected(' in prepare or 'IsComponentSelected(' in check:
+        problems.append('%s: the program folders are prepared for some components only' % EXTENSION)
+    ready = routines['NextButtonClick']
+    if ready.find('CheckProgramFolders(') < 0 or ready.find('CheckProgramFolders(') > ready.find('StopHMailServerService()'):
+        problems.append('%s: the folders are checked after the service is stopped, so a refusal leaves a running server stopped' % EXTENSION)
+
     # R1: made with its descriptor, recorded for the uninstaller, removed when not used.
-    make = routines['MakeProgramFolder']
+    make = routines['MakeFolders']
     if not re.search(r"function\s+MakeFolderWithSecurity\(lpPathName:\s*String;\s*var\s+lpSecurityAttributes:\s*HM_SECURITY_ATTRIBUTES\):\s*Boolean;\s*external\s+'CreateDirectoryW@kernel32\.dll stdcall';", ext):
         problems.append('%s: CreateDirectoryW is not declared with a SECURITY_ATTRIBUTES' % EXTENSION)
-    for word in ("'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", 'MakeFolderWithSecurity(missing[index], attributes)',
-                 'HM_ERROR_ALREADY_EXISTS', 'g_aFoldersMade', 'HoldForSetup(missing[index])'):
+    for word in ("'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", 'EveryUserMayReadMadeIn(HeldHandle)', 'g_aFoldersMade',
+                 'g_szBinMade := missing[index]', 'g_szControlPanelMade := missing[index]', 'HoldForSetup(missing[index])'):
         if word not in make:
-            problems.append('%s: MakeProgramFolder does not use %s' % (EXTENSION, word))
-    if pascal_routine(ext, 'HardenNewProgramFolder') is not None:
-        problems.append('%s: HardenNewProgramFolder is back' % EXTENSION)
+            problems.append('%s: MakeFolders does not use %s' % (EXTENSION, word))
+    if pascal_routine(ext, 'HardenNewProgramFolder') is not None or pascal_routine(ext, 'MakeProgramFolder') is not None:
+        problems.append('%s: HardenNewProgramFolder or MakeProgramFolder is back' % EXTENSION)
     dirs = [line for _, line in section_entries(texts.get(DIRS, ''), 'Dirs')]
     expected = ['Name: "{code:FolderMadeBySetup|%d}"; Flags: uninsalwaysuninstall; Check: SetupMadeFolder(%d)' % (index, index) for index in range(8)] + \
-               ['Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder']
-    if dirs[:9] != expected:
-        problems.append('%s: the first nine [Dirs] entries are not the folders setup made, above the program folder first, then the program folder, '
-                        'each recorded for the uninstaller only when setup made it' % DIRS)
+               ['Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder',
+                'Name: "{app}\\Bin"; Flags: uninsalwaysuninstall; Check: SetupMadeBin',
+                'Name: "{app}\\ControlPanel"; Flags: uninsalwaysuninstall; Check: SetupMadeControlPanel']
+    if dirs[:11] != expected:
+        problems.append('%s: the first eleven [Dirs] entries are not the folders setup made, above the program folder first, then the program folder, Bin and '
+                        'ControlPanel, each recorded for the uninstaller only when setup made it' % DIRS)
     if any('AfterInstall:' in line for line in dirs):
         problems.append('%s: a [Dirs] entry gives a folder its permissions after Inno Setup has made it' % DIRS)
+    if not re.search(r"Result\s*:=\s*g_szBinMade\s*<>\s*'';", routines['SetupMadeBin']) or \
+       not re.search(r"Result\s*:=\s*g_szControlPanelMade\s*<>\s*'';", routines['SetupMadeControlPanel']):
+        problems.append('%s: Bin or ControlPanel is given to the uninstaller whatever made it' % EXTENSION)
     if not re.search(r'ReleaseHeldFolders\(\);\s*if\s+not\s+g_bFilesInstalled\s+then\s+RemoveFoldersMadeHere\(\);', routines['DeinitializeSetup']):
         problems.append('%s: the empty folders setup made are not removed when the files were not installed' % EXTENSION)
     if not re.search(r'CurStep\s*=\s*ssPostInstall\s+then\s+begin\s+(?://[^\n]*\n\s*)*g_bFilesInstalled\s*:=\s*true;', step):
         problems.append('%s: the files are not marked installed at ssPostInstall' % EXTENSION)
+    if 'DelTree(' in routines['RemoveFoldersMadeHere']:
+        problems.append('%s: RemoveFoldersMadeHere removes what is in a folder setup made' % EXTENSION)
 
-    # R2: hardened before the files, every installation, the service's entries kept.
-    for word in ('HardenHeldFolder(szBin)', 'HardenHeldFolder(szControlPanel)', 'HardenHeldFolder(szReal)', 'DataFolderThatInherits(szReal)'):
-        if word not in prepare:
-            problems.append('%s: PrepareProgramFolders does not use %s' % (EXTENSION, word))
-    if 'IsComponentSelected(' in prepare:
-        problems.append('%s: the program folders are prepared for some components only' % EXTENSION)
+    # R2: in order - the program folder, then Bin and ControlPanel, then what is in them.
+    order = [prepare.find(word) for word in ('HardenHeldFolder(g_szProgramFolderReal', 'HardenHeldFolder(g_szBinReal', 'MakeFolders(g_szBinHeld',
+                                             'HardenHeldFolder(g_szControlPanelReal', 'MakeFolders(g_szControlPanelHeld', 'CheckWhatIsInside(g_szBinReal, 0, true')]
+    if min(order) < 0 or order != sorted(order):
+        problems.append('%s: PrepareProgramFolders does not harden the program folder, then make or harden Bin and ControlPanel, then look at what is in them' % EXTENSION)
     held = routines['HardenHeldFolder']
-    if 'Result := RebuildFolderOfUntrustedOwner(Folder, bUsers);' not in held or 'O:BAD:PAI' in held:
-        problems.append('%s: a folder another account owns is not rebuilt with the entries that give no right to write kept' % EXTENSION)
-    rebuild = routines['RebuildFolderOfUntrustedOwner']
-    if not re.search(r'SidIs\(pAce\s*\+\s*8,\s*HM_SERVICE_SID\)\s+and\s+\(not\s+writes\)\s+then\s+ok\s*:=\s*AddAsOwnEntry', rebuild):
-        problems.append('%s: the service\'s inherited Read is not kept on a rebuilt folder' % EXTENSION)
-    if not re.search(r'aceType\s*=\s*HM_ACCESS_DENIED\s+then\s+ok\s*:=\s*AddAsOwnEntry', rebuild):
-        problems.append('%s: the deny entries are not kept on a rebuilt folder' % EXTENSION)
-
-    # R4: said.
-    position = held.find('SayBroadEntriesKept(Folder);')
-    if position < 0 or position < held.find('icacls hardened'):
-        problems.append('%s: the entries kept on a folder the administrators own are not said after icacls' % EXTENSION)
-    first_harden = prepare.find('HardenHeldFolder(')
-    for word in ('SayForeignOwners(szBin);', 'SayForeignOwners(szControlPanel);'):
-        position = prepare.find(word)
-        if position < 0 or position > first_harden:
-            problems.append('%s: %s is not said before setup changes the folders' % (EXTENSION, word))
-    if 'ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_INFORMATION' not in routines['SayForeignOwners']:
-        problems.append('%s: the owners in Bin and ControlPanel are not read through a handle on each' % EXTENSION)
+    if 'O:BAD:PAI' in held:
+        problems.append('%s: a folder another account owns is given three entries alone' % EXTENSION)
+    if held.find('/remove:g') < 0 or held.find('/remove:g') > held.find('/inheritance:r'):
+        problems.append('%s: the entries that let every user write are not taken away before the folder stops inheriting' % EXTENSION)
+    if 'IsBroadSid(' in routines['SayWriteEntriesKept']:
+        problems.append('%s: SayWriteEntriesKept says the groups of every user alone, not every other account an entry kept lets write' % EXTENSION)
+    if not re.search(r'HM_PROTECTED_DACL_INFORMATION\s*=\s*\$80000004;', ext):
+        problems.append('%s: a rebuilt list is not written as one that inherits nothing ($80000004)' % EXTENSION)
 
 
 # Each generic right, its bit, and what it means for a file or a folder (the
@@ -786,16 +1000,21 @@ def check_access_masks(texts, problems):
     ext = texts.get(EXTENSION, '')
     constants = dict((match.group(1), int(match.group(2), 16))
                      for match in re.finditer(r'^\s*(HM_\w+)\s*=\s*\$([0-9A-Fa-f]+)\s*;', ext, re.M))
-    tested = set(match.group(1) for match in re.finditer(r'\.Mask\s+and\s+(\$?\w+)', ext))
-    tested |= set(match.group(1) for match in re.finditer(r'\bAclLetsOthers\(\s*\w+\s*,\s*(\$?\w+)\s*,', ext))
+    tested = set()
+    for match in re.finditer(r'\.Mask\s+and\s+([^)]*)\)', ext):
+        tested.add(match.group(1).strip())
+    for match in re.finditer(r'\b(?:AclLetsOthers|OwnEntriesLetOthers)\(([^,()]*),([^,]*),', ext):
+        if match.group(1).strip() != 'pDacl: cardinal':
+            tested.add(match.group(2).strip())
     # AclLetsOthers' own test is of its parameter, which its calls name.
     tested.discard('Rights')
     for name in TESTED_MASKS:
         if name not in tested:
             problems.append('%s: no entry\'s rights are tested against %s any more; update this check' % (EXTENSION, name))
+    tested.discard('Rights: cardinal')
     for name in sorted(tested):
         if name not in constants:
-            problems.append('%s: an entry\'s rights are tested against %s, which is not a named HM_ mask, so what its generic '
+            problems.append('%s: an entry\'s rights are tested against %s, which is not a named HM_ mask alone, so what its generic '
                             'rights mean is not held' % (EXTENSION, name))
             continue
         value = constants[name]
@@ -953,21 +1172,107 @@ def negative_controls(texts):
         ('the password on DBUpdater\'s command line',
          altered(texts, DBSETUPQUICK, 'upgradeProcess.Environment[Authenticator.PasswordVariable] = password;',
                  'upgradeProcess.ArgumentList.Add("password:" + password);')),
+        # Work item 78's R1 to R4: each decision, one line changed at a time - the
+        # nineteen of the review of 26 October 2026 among them - and each shape the
+        # first repair of that review gave the installer.
+        # R1: made, below what the walk held, and recorded for the uninstaller.
         ('a program folder made without its descriptor',
          altered(texts, EXTENSION, 'if MakeFolderWithSecurity(missing[index], attributes) then', 'if CreateDir(missing[index]) then')),
+        ('a folder somebody else made in the meantime taken (ERROR_ALREADY_EXISTS taken for made)',
+         altered(texts, EXTENSION, 'if MakeFolderWithSecurity(missing[index], attributes) then',
+                 'if MakeFolderWithSecurity(missing[index], attributes) or (DLLGetLastError() = HM_ERROR_ALREADY_EXISTS) then')),
         ('the program folder recorded for the uninstaller whatever made it',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; Flags: uninsalwaysuninstall')),
         ('HardenNewProgramFolder back after Inno Setup\'s folder',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; AfterInstall: HardenNewProgramFolder')),
+        ('Bin recorded for the uninstaller whatever made it',
+         altered(texts, DIRS, 'Name: "{app}\\Bin"; Flags: uninsalwaysuninstall; Check: SetupMadeBin', 'Name: "{app}\\Bin"; Flags: uninsalwaysuninstall')),
         ('the folders setup made left after a cancel',
          altered(texts, EXTENSION, '\tif not g_bFilesInstalled then\n\t\tRemoveFoldersMadeHere();\n', '')),
-        ('Bin not hardened before its files',
-         altered(texts, EXTENSION, '   if DirExists(szBin) then\n      HardenHeldFolder(szBin);\n', '')),
+        ('the folders setup made removed with what is in them (DelTree)',
+         altered(texts, EXTENSION, 'if RemoveDir(g_aFoldersMade[index]) then', 'if DelTree(g_aFoldersMade[index], True, True, True) then')),
+        ('a Bin setup made removed with what is in it',
+         altered(texts, EXTENSION, 'if RemoveDir(szMade) then', 'if DelTree(szMade, True, True, True) then')),
+        ('a missing program folder decided by its path again, not by the walk',
+         altered(texts, EXTENSION, 'if not g_bProgramFolderThere then\n   begin\n      if not MakeFolders(',
+                 'if not DirExists(g_szProgramFolderReal) then\n   begin\n      if not MakeFolders(')),
+        ('MakeFolders looking at a name again by its path',
+         altered(texts, EXTENSION, '         szPath := AddBackslash(szPath) + szName;\n',
+                 '         szPath := AddBackslash(szPath) + szName;\n         if DirExists(szPath) then\n            szName := \'\';\n')),
+        ('a missing name taken for one the walk held',
+         altered(texts, EXTENSION, '               HeldHandle := parent;\n               Whole := false;', '               HeldHandle := parent;\n               Whole := true;')),
+        ('walks that disagree taken (a folder or a link made while setup looked)',
+         altered(texts, EXTENSION, 'if (not WalksAgree(g_szBinHeld, g_bBinThere))', 'if false and (not WalksAgree(g_szBinHeld, g_bBinThere))')),
+        ('a Bin that is not there left to Inno Setup to make',
+         altered(texts, EXTENSION, 'end\n   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then', 'end\n   else if false then')),
+        ('a ControlPanel that is not there left to Inno Setup to make',
+         altered(texts, EXTENSION, 'else if ControlPanelIsInstalled() then\n      if not MakeFolders(', 'else if false then\n      if not MakeFolders(')),
+        # R2: hardened before the files, or refused.
+        ('every path up to 300 characters taken for a drive\'s root (nothing made or hardened)',
+         altered(texts, EXTENSION, 'if Length(g_szProgramFolderReal) <= 3 then', 'if Length(g_szProgramFolderReal) <= 300 then')),
+        ('Bin and ControlPanel passed over at a drive\'s root',
+         altered(texts, EXTENSION, 'if Length(g_szProgramFolderReal) <= 3 then\n      Log(', 'if Length(g_szProgramFolderReal) <= 3 then\n      Exit;\n   if false then\n      Log(')),
+        ('an existing Bin never hardened (its condition inverted)',
+         altered(texts, EXTENSION, 'if g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal', 'if not g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal')),
+        ('an existing ControlPanel never hardened (its condition inverted)',
+         altered(texts, EXTENSION, 'if g_bControlPanelThere then\n   begin\n      if not HardenHeldFolder(g_szControlPanelReal',
+                 'if not g_bControlPanelThere then\n   begin\n      if not HardenHeldFolder(g_szControlPanelReal')),
+        ('a Bin that could not be hardened installed into (the result unused)',
+         altered(texts, EXTENSION, 'if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then',
+                 'HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy);\n      if false then')),
+        ('a program folder that could not be hardened installed into',
+         altered(texts, EXTENSION, 'else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then',
+                 'else if HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) and false then')),
+        ('the program folder left as it is for any inheriting Data, not only the earlier installation\'s',
+         altered(texts, EXTENSION, "if g_bEarlierInstallation then\n         if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data')",
+                 "if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data')")),
+        ('every program folder taken for the earlier installation\'s',
+         altered(texts, EXTENSION, 'g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;', 'g_bEarlierInstallation := true;')),
+        ('a held folder\'s owner and permissions read by its path',
+         altered(texts, EXTENSION, "readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);\n"
+                 "   if readResult <> 0 then\n   begin\n      Why := 'its owner and permissions",
+                 "readResult := ReadFolderPermissions(Folder, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);\n"
+                 "   if readResult <> 0 then\n   begin\n      Why := 'its owner and permissions")),
+        ('an entry of the folder\'s own that lets every user write kept',
+         altered(texts, EXTENSION, 'and LetsEveryUserWrite(pAce) then\n               begin\n                  szSid := TextOfSidAt(pAce + 8);',
+                 'and false then\n               begin\n                  szSid := TextOfSidAt(pAce + 8);')),
+        ('a failure to take such an entry away not a refusal',
+         altered(texts, EXTENSION, "if ResultCode <> 0 then\n         begin\n            Why := 'icacls could not take '",
+                 "if false then\n         begin\n            Why := 'icacls could not take '")),
+        ('a trusted owner\'s folder not stopped inheriting (icacls /inheritance:e)',
+         altered(texts, EXTENSION, "/inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers,",
+                 "/inheritance:e /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers,")),
+        ('icacls\'s failure on the folder not a refusal',
+         altered(texts, EXTENSION, "if ResultCode <> 0 then\n      begin\n         Why := 'icacls could not change its permissions",
+                 "if false then\n      begin\n         Why := 'icacls could not change its permissions")),
+        ('a folder another account owns taken whoever\'s it is (HardenHeldFolder)',
+         altered(texts, EXTENSION, 'else if not Adopt then', 'else if false then')),
+        ('a folder another account owns taken whoever\'s it is (OwnerIsAllowed)',
+         altered(texts, EXTENSION, 'else if g_bEarlierInstallation then\n      Result := true', 'else if true then\n      Result := true')),
+        ('the program folder\'s owner not asked',
+         altered(texts, EXTENSION, 'if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then', 'if false then')),
+        ('a hardened folder not read again',
+         altered(texts, EXTENSION, 'if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then', 'if false then')),
+        ('a list that still inherits taken for hardened',
+         altered(texts, EXTENSION, 'else if (control and HM_DACL_PROTECTED) = 0 then', 'else if false then')),
+        ('a folder another account owns not given to the Administrators with their privilege (no takeown)',
+         altered(texts, EXTENSION, "if not Exec(ExpandConstant('{sys}\\takeown.exe'), '/F \"' + Folder + '\" /A', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then",
+                 'if false then')),
         ('a folder another account owns given three entries alone',
-         altered(texts, EXTENSION, '   Result := RebuildFolderOfUntrustedOwner(Folder, bUsers);',
-                 "   szDescriptor := 'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)';")),
+         altered(texts, EXTENSION, '      Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, Why);',
+                 "      szSid := 'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)';")),
+        ('a rebuilt folder keeping the entries of its own that let another account write',
+         altered(texts, EXTENSION, "else if writes and (not IsTrustedSid(pAce + 8)) then\n                     szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s own'",
+                 "else if false then\n                     szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s own'")),
+        ('a rebuilt folder keeping every inherited entry that lets another account write, as its own',
+         altered(texts, EXTENSION, "else if writes and (not SidIs(pAce + 8, 'S-1-5-18')) and (not SidIs(pAce + 8, 'S-1-5-32-544')) then\n"
+                 "                     szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s inherited';",
+                 "else\n                     ok := AddAsOwnEntry(pNew, pAce);")),
         ('the service\'s inherited Read dropped from a rebuilt folder',
          altered(texts, EXTENSION, 'SidIs(pAce + 8, HM_SERVICE_SID) and (not writes)', 'false')),
+        ('the deny entries dropped from a rebuilt folder',
+         altered(texts, EXTENSION, 'if aceType = HM_ACCESS_DENIED then\n                  ok := AddAsOwnEntry(pNew, pAce);', 'if false then\n                  ok := AddAsOwnEntry(pNew, pAce);')),
+        # R3: the hold, the chain and the rule of a link.
         ('the hold without READ_CONTROL',
          altered(texts, EXTENSION, 'HM_HOLD_FOLDER_ACCESS       = $200A1;', 'HM_HOLD_FOLDER_ACCESS       = $A1;')),
         ('a link gone through unasked',
@@ -976,22 +1281,72 @@ def negative_controls(texts):
          altered(texts, EXTENSION, 'readResult := ReadHeldSecurity(hLink, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);',
                  'readResult := ReadFolderPermissions(Link, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);')),
         ('Bin\'s link not checked',
-         altered(texts, EXTENSION, "if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0, szBin, szWhy) then", 'if false then')),
+         altered(texts, EXTENSION, "if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0, g_szBinReal, g_szBinHeld, g_hBin, g_bBinThere, szWhy) then", 'if false then')),
         ('the rights on a link narrowed below the server\'s (no FILE_WRITE_ATTRIBUTES)',
          altered(texts, EXTENSION, 'HM_FOLDER_WRITE_RIGHTS      = $500D0156;', 'HM_FOLDER_WRITE_RIGHTS      = $500D0056;')),
+        ('Authenticated Users trusted like the administrators',
+         altered(texts, EXTENSION, "Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID);",
+                 "Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID) or SidIs(pSid, 'S-1-5-11');")),
+        ('a link\'s own owner not asked',
+         altered(texts, EXTENSION, "   if not IsTrustedSid(pOwner) then\n      Why := 'it is owned by '", "   if false then\n      Why := 'it is owned by '")),
+        ('only inherit-only entries on a link weighed (every right on the link itself ignored)',
+         altered(texts, EXTENSION, 'if (aceFlags and HM_INHERIT_ONLY) = 0 then', 'if (aceFlags and HM_INHERIT_ONLY) <> 0 then')),
+        ('a folder\'s attributes not read again once it is held',
+         altered(texts, EXTENSION, '               attributes := FolderAttributes(szNext);\n               if (attributes = HM_INVALID_ATTRIBUTES)',
+                 '               if (attributes = HM_INVALID_ATTRIBUTES)')),
+        ('a folder that cannot be read taken for one that is not there',
+         altered(texts, EXTENSION, 'if (lastError = 2) or (lastError = 3) then', 'if true then')),
+        ('a link to a share gone through',
+         altered(texts, EXTENSION, "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then", "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 1 then")),
         ('the folders prepared without the refusal reaching PrepareToInstall\'s answer',
-         altered(texts, EXTENSION, '   Result := PrepareProgramFolders();\n', '   PrepareProgramFolders();\n')),
-        ('the owners in Bin not said',
-         altered(texts, EXTENSION, '   if DirExists(szBin) then\n      SayForeignOwners(szBin);\n', '')),
+         altered(texts, EXTENSION, '   Result := PrepareProgramFolders(PreviousInstallationFolder());\n', '   PrepareProgramFolders(PreviousInstallationFolder());\n')),
+        # The volumes.
+        ('a volume without permissions taken (the flag test always true)',
+         altered(texts, EXTENSION, 'else if (flags and HM_PERSISTENT_ACLS) = 0 then', 'else if (flags and HM_PERSISTENT_ACLS) < 0 then')),
+        ('a volume that cannot be told taken',
+         altered(texts, EXTENSION, "   Result := false;\n   Why := '';\n   serial := 0;", "   Result := true;\n   Why := '';\n   serial := 0;")),
+        ('Bin\'s volume not asked',
+         altered(texts, EXTENSION, 'if not VolumeKeepsPermissions(g_hBin, g_szBinHeld, szWhy) then', 'if false then')),
+        # R4: what is in Bin and ControlPanel, and what is said.
+        ('a program another account controls in Bin said, not refused',
+         altered(texts, EXTENSION, 'if bLink or bCode or bFolder then', 'if false then')),
+        ('a link in Bin or ControlPanel not known as one',
+         altered(texts, EXTENSION, 'bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;', 'bLink := false;')),
+        ('no owner in Bin or ControlPanel held to the three',
+         altered(texts, EXTENSION, 'else if not IsTrustedSid(pOwner) then\n                     begin\n                        if (not bCode)',
+                 'else if false then\n                     begin\n                        if (not bCode)')),
+        ('what is below the first level of Bin and ControlPanel not looked at',
+         altered(texts, EXTENSION, 'if not CheckWhatIsInside(folders[index], Depth + 1, Final, Found, Why) then', 'if false then')),
+        ('what is in Bin not looked at once it is hardened',
+         altered(texts, EXTENSION, '   if g_bBinThere then\n      CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy);\n', '')),
+        ('what is in Bin not looked at before the service is stopped',
+         altered(texts, EXTENSION, '   if g_bBinThere then\n      CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy);\n', '')),
+        ('a program an entry of whose own lets another account change it taken',
+         altered(texts, EXTENSION, 'if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then', 'if false then')),
+        ('a library not taken for a program',
+         altered(texts, EXTENSION, "(szExtension = '.exe') or (szExtension = '.dll')", "(szExtension = '.exe')")),
+        ('deny entries said instead of the allow entries kept that let another account write',
+         altered(texts, EXTENSION, '((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and\n',
+                 '((head.TypeFlagsSize and $FF) = HM_ACCESS_DENIED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and\n')),
+        ('the entries kept said for the groups of every user alone',
+         altered(texts, EXTENSION, "(not IsTrustedSid(pAce + 8)) and\n               (not SidIs(pAce + 8, 'S-1-3-0'))",
+                 "IsBroadSid(pAce + 8) and\n               (not SidIs(pAce + 8, 'S-1-3-0'))")),
         ('the entries kept on a folder the administrators own not said',
-         altered(texts, EXTENSION, '      SayBroadEntriesKept(Folder);\n', '')),
-        ('a volume without permissions not refused',
-         altered(texts, EXTENSION, '      if not VolumeKeepsPermissions(handle) then', '      if false then')),
+         altered(texts, EXTENSION, '      SayWriteEntriesKept(Folder, HeldHandle);\n', '')),
+        # The service.
+        ('the folders checked after the service is stopped',
+         altered(texts, EXTENSION, "\t\tg_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder());\n\t\tif g_szFolderRefusal <> '' then\n\t\t\tExit;\n", '')),
+        ('a refusal after the service was stopped not saying so',
+         altered(texts, EXTENSION, "      if g_bServiceStoppedForSetup then\n         Result := Result + ' Setup stopped",
+                 "      if false then\n         Result := Result + ' Setup stopped")),
+        # The masks.
         ('the read mask without GENERIC_READ (the program folder made in Program Files with no entry for Users)',
          altered(texts, EXTENSION, 'HM_FOLDER_READ_RIGHTS       = $90000001;', 'HM_FOLDER_READ_RIGHTS       = $10000001;')),
-        ('an entry\'s rights tested against an unnamed mask',
-         altered(texts, EXTENSION, '((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and IsBroadSid(pAce + 8)',
-                 '((head.Mask and $000D0156) <> 0) and IsBroadSid(pAce + 8)')),
+        ('an entry\'s rights tested against a literal mask in parentheses',
+         altered(texts, EXTENSION, '((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and\n',
+                 '((head.Mask and ($000D0156)) <> 0) and (not IsTrustedSid(pAce + 8)) and\n')),
+        ('the link rule asked about a narrowed mask',
+         altered(texts, EXTENSION, 'AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho)', 'AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS and $FFFFFEFF, true, szWho)')),
     ]
 
     missed = []
@@ -1025,7 +1380,8 @@ def main():
           'event source; the upgrade\'s start is marked; the database tools\' password is on no command line; '
           'the original\'s 5.7 is refused first, by bounds the upgrade chain holds, and its self-test runs before the '
           'installer is built; the program folder, Bin and ControlPanel are held from the root down, a link only the '
-          'administrators control is the only one gone through, and they are made or hardened before the files; '
+          'administrators control is the only one gone through, they are made or hardened before the files or refused, '
+          'what is in Bin and ControlPanel is held to the live update\'s rule, and each decision is held to its statement; '
           '%d negative controls refused' % (entries, controls))
     return 0
 

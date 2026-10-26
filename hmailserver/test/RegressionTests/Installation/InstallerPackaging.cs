@@ -989,14 +989,14 @@ namespace RegressionTests.Installation
          // permissions, or hardens it, Bin and ControlPanel, as its last step
          // (PrepareProgramFolders; work item 78's R1 to R4, each held by a test of its
          // own below) - not [Dirs] or ssInstall, after Inno Setup has made the folder.
-         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "PrepareToInstall"), @"Result\s*:=\s*PrepareProgramFolders\(\);\s*if\s+Result\s*<>\s*''\s*then\s*Log\('Refused: '\s*\+\s*Result\);\s*end;\s*$"),
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "PrepareToInstallRefusal"), @"Result\s*:=\s*PrepareProgramFolders\(PreviousInstallationFolder\(\)\);\s*end;\s*$"),
             "PrepareToInstall does not make or harden the program folder, Bin and ControlPanel as its last step, before any file is copied.");
 
          // The chosen folder is checked and said - in a box that /SUPPRESSMSGBOXES
          // suppresses, and in the setup log - and never refused for its permissions.
          StringAssert.Contains("CheckProgramFolderPermissions(WizardDirValue(), true)", CodeBody(extension, "NextButtonClick"),
             "The folder page does not say when the chosen folder lets every user change what is in it.");
-         StringAssert.Contains("CheckProgramFolderPermissions(szApp, false)", CodeBody(extension, "PrepareProgramFolders"),
+         StringAssert.Contains("CheckProgramFolderPermissions(szApp, false)", CodeBody(extension, "CheckProgramFolders"),
             "A silent installation, or an upgrade, whose folder page was not shown does not say in the setup log when the folder lets every user change what is in it.");
          Assert.IsTrue(Regex.IsMatch(extension, @"^procedure\s+CheckProgramFolderPermissions\s*\(", RegexOptions.Multiline),
             "CheckProgramFolderPermissions is not a procedure: it says, and does not refuse the folder.");
@@ -1008,8 +1008,8 @@ namespace RegressionTests.Installation
             "The installer does not take TrustedInstaller for a trusted owner, as ServiceAccount.cpp's IsTrustedWriter_ does.");
          Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "IsTrustedSid"), @"SidIs\(pSid,\s*'S-1-5-18'\)\s*or\s*SidIs\(pSid,\s*'S-1-5-32-544'\)\s*or\s*SidIs\(pSid,\s*HM_TRUSTED_INSTALLER_SID\)"),
             "IsTrustedSid does not take SYSTEM, the Administrators and TrustedInstaller, ServiceAccount.cpp's IsTrustedWriter_.");
-         StringAssert.Contains("Result := IsTrustedSid(pOwner);", CodeBody(extension, "FolderOwnerIsTrusted"),
-            "FolderOwnerIsTrusted does not take SYSTEM, the Administrators and TrustedInstaller for a trusted owner.");
+         StringAssert.Contains("Result := IsTrustedSid(pOwner);", CodeBody(extension, "HeldOwnerIsTrusted"),
+            "HeldOwnerIsTrusted does not take SYSTEM, the Administrators and TrustedInstaller for a trusted owner.");
       }
 
       private const string HmTrustedInstallerSid = "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
@@ -1029,7 +1029,7 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("Work item 78, R1: setup makes a new program folder itself in PrepareToInstall, before Inno Setup makes or copies anything, with permissions of its own from the moment it is made - CreateDirectoryW with a security descriptor that gives SYSTEM and the Administrators full control, Users Read & execute where every user could read a folder made there, inherits nothing and makes the Administrators the owner - and the folders above it that were not there with it; the uninstaller is given each to remove when empty (section_dirs.iss), and those still empty are removed when the installation does not reach its files. In 6.3.7 and earlier Inno Setup made the folder with what the folder above handed down, and icacls replaced that about 45 ms later (the installer smoke VM, 6 October 2026).")]
+      [Description("Work item 78, R1: setup makes a new program folder itself in PrepareToInstall, before Inno Setup makes or copies anything, with permissions of its own from the moment it is made - CreateDirectoryW with a security descriptor that gives SYSTEM and the Administrators full control, Users Read & execute where every user could read a folder made there, inherits nothing and makes the Administrators the owner - and the folders above it that were not there with it, exactly the names below the deepest folder its walk found and held, a name somebody else took since refused (ERROR_ALREADY_EXISTS); and makes Bin and ControlPanel the same way when the program folder is there and they are not. The uninstaller is given each to remove when empty (section_dirs.iss), and those still empty are removed when the installation does not reach its files. In 6.3.7 and earlier Inno Setup made the folder with what the folder above handed down, and icacls replaced that about 45 ms later (the installer smoke VM, 6 October 2026); a Bin or ControlPanel Inno Setup made in a program folder that was there took what that folder handed down (25 October 2026).")]
       public void ANewProgramFolderIsMadeWithPermissionsOfItsOwnFromTheStart()
       {
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
@@ -1037,51 +1037,47 @@ namespace RegressionTests.Installation
          // CreateDirectoryW with a SECURITY_ATTRIBUTES, and the descriptor by SID.
          Assert.IsTrue(Regex.IsMatch(extension, @"function\s+MakeFolderWithSecurity\(lpPathName:\s*String;\s*var\s+lpSecurityAttributes:\s*HM_SECURITY_ATTRIBUTES\):\s*Boolean;\s*external\s+'CreateDirectoryW@kernel32\.dll stdcall';"),
             "The installer does not declare CreateDirectoryW with a SECURITY_ATTRIBUTES, the only way a folder is made with permissions of its own from its first moment.");
-         string make = CodeBody(extension, "MakeProgramFolder");
-         foreach (string word in new[] { "'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", "EveryUserMayReadMadeIn(szPath)", "SecurityDescriptorOfText(szDescriptor, 1, pDescriptor, 0)",
-                                         "attributes.lpSecurityDescriptor := pDescriptor;", "MakeFolderWithSecurity(missing[index], attributes)", "g_aFoldersMade", "HoldForSetup(missing[index])",
-                                         "HM_ERROR_ALREADY_EXISTS", "g_bProgramFolderNew := Result;" })
-            StringAssert.Contains(word, make, "MakeProgramFolder does not use " + word + ".");
-         // Every folder not there, deepest found first and made from the top down.
-         Assert.IsTrue(Regex.IsMatch(make, @"while\s*\(szPath\s*<>\s*''\)\s*and\s*\(not\s+DirExists\(szPath\)\)\s*do") && Regex.IsMatch(make, @"index\s*:=\s*count\s*-\s*1;\s*while\s+Result\s+and\s+\(index\s*>=\s*0\)\s+do"),
-            "MakeProgramFolder does not make every folder above the program folder that is not there, from the top down.");
+         string make = CodeBody(extension, "MakeFolders");
+         foreach (string word in new[] { "'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", "EveryUserMayReadMadeIn(HeldHandle)", "SecurityDescriptorOfText(szDescriptor, 1, pDescriptor, 0)",
+                                         "attributes.lpSecurityDescriptor := pDescriptor;", "g_aFoldersMade", "g_szBinMade := missing[index]", "g_szControlPanelMade := missing[index]",
+                                         "HoldForSetup(missing[index])", "g_bProgramFolderNew := Result;" })
+            StringAssert.Contains(word, make, "MakeFolders does not use " + word + ".");
+         Assert.IsFalse(make.Contains("DirExists("), "MakeFolders decides what to make by looking at the path again, where somebody else may have made a folder or a link since the walk.");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_ERROR_ALREADY_EXISTS\s*=\s*183;"), "ERROR_ALREADY_EXISTS is not 183: a folder somebody else made since setup looked would be taken.");
-         StringAssert.Contains("(A;OICI;0x1200a9;;;BU)", make);
-         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "EveryUserMayReadMadeIn"), @"HM_CONTAINER_INHERIT\)\s*<>\s*0"),
-            "Whether every user could read a folder made there is not read from what the folder above hands down to folders.");
-
-         // Made in PrepareToInstall's last step, when the folder is not there.
-         string prepare = CodeBody(extension, "PrepareProgramFolders");
-         Assert.IsTrue(Regex.IsMatch(prepare, @"if\s+not\s+DirExists\(szReal\)\s+then\s+begin\s+if\s+not\s+MakeProgramFolder\(szReal,\s*szWhy\)\s+then"),
-            "PrepareProgramFolders does not make a program folder that is not there.");
-
-         // Inno Setup no longer makes it, and nothing hardens it after it is made.
-         Assert.IsFalse(Regex.IsMatch(extension, @"^procedure\s+HardenNewProgramFolder\s*\(", RegexOptions.Multiline),
-            "HardenNewProgramFolder is back: the folder Inno Setup made would carry what the folder above hands down until icacls ran.");
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "EveryUserMayReadMadeIn"), @"HM_CONTAINER_INHERIT\)\s*<>\s*0") &&
+                       CodeBody(extension, "EveryUserMayReadMadeIn").Contains("ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION"),
+            "Whether every user could read a folder made there is not read, through the handle that holds it, from what it hands down to folders.");
+         Assert.IsFalse(Regex.IsMatch(extension, @"^(procedure|function)\s+(HardenNewProgramFolder|MakeProgramFolder)\s*\(", RegexOptions.Multiline),
+            "HardenNewProgramFolder or MakeProgramFolder is back.");
          Assert.IsFalse(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"g_bProgramFolderNew\s*:="),
             "Whether this installation made the program folder is decided at ssInstall again, after PrepareToInstall made it.");
 
          // [Dirs]: the folders setup made, for the uninstaller - the eight above the
-         // program folder, shallowest first, then the program folder - each recorded
-         // although it was there when [Dirs] ran, and only when this setup made it.
+         // program folder, shallowest first, then the program folder, Bin and
+         // ControlPanel - each recorded although it was there when [Dirs] ran, and only
+         // when this setup made it.
          string dirs = ReadInstallerScript("section_dirs.iss");
          List<Match> entries = Regex.Matches(dirs, @"^Name:\s*""([^""]+)""([^\r\n]*)", RegexOptions.Multiline).Cast<Match>().ToList();
-         Assert.GreaterOrEqual(entries.Count, 9, "section_dirs.iss has too few entries.");
+         Assert.GreaterOrEqual(entries.Count, 11, "section_dirs.iss has too few entries.");
          for (int index = 0; index < 8; index++)
          {
             Assert.AreEqual("{code:FolderMadeBySetup|" + index + "}", entries[index].Groups[1].Value, "Entry " + index + " of [Dirs] is not the folder above the program folder setup made, " + index + " from the top.");
             StringAssert.Contains("Flags: uninsalwaysuninstall", entries[index].Groups[2].Value, "A folder setup made above the program folder is not recorded for the uninstaller.");
             StringAssert.Contains("Check: SetupMadeFolder(" + index + ")", entries[index].Groups[2].Value, "A folder above the program folder that setup did not make would be removed by the uninstaller.");
          }
-         Assert.AreEqual("{app}", entries[8].Groups[1].Value, "The program folder is not recorded after the folders above it, which the uninstaller removes after it.");
-         StringAssert.Contains("Flags: uninsalwaysuninstall", entries[8].Groups[2].Value, "The program folder setup made is not recorded for the uninstaller.");
-         StringAssert.Contains("Check: SetupMadeProgramFolder", entries[8].Groups[2].Value, "A program folder that was there before would be recorded for the uninstaller.");
+         string[] names = { "{app}", "{app}\\Bin", "{app}\\ControlPanel" };
+         string[] checks = { "SetupMadeProgramFolder", "SetupMadeBin", "SetupMadeControlPanel" };
+         for (int index = 0; index < 3; index++)
+         {
+            Assert.AreEqual(names[index], entries[8 + index].Groups[1].Value, "[Dirs] does not give the uninstaller " + names[index] + " after the folders above it.");
+            StringAssert.Contains("Flags: uninsalwaysuninstall", entries[8 + index].Groups[2].Value, names[index] + ", made by setup, is not recorded for the uninstaller.");
+            StringAssert.Contains("Check: " + checks[index], entries[8 + index].Groups[2].Value, names[index] + " would be recorded for the uninstaller although setup did not make it.");
+         }
          Assert.IsFalse(dirs.Contains("AfterInstall:"), "[Dirs] gives a folder its permissions after Inno Setup has made it.");
-         foreach (string name in new[] { "FolderMadeBySetup", "SetupMadeFolder", "SetupMadeProgramFolder" })
-            CodeBody(extension, name);
          StringAssert.Contains("Result := ProgramFolderMadeAsNamed();", CodeBody(extension, "SetupMadeProgramFolder"));
-         // Made where an administrators' link leads, the program folder is given to the
-         // uninstaller by its own path, not as {app}, whose removal would take the link.
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "SetupMadeBin"), @"Result\s*:=\s*g_szBinMade\s*<>\s*'';") &&
+                       Regex.IsMatch(CodeBody(extension, "SetupMadeControlPanel"), @"Result\s*:=\s*g_szControlPanelMade\s*<>\s*'';"),
+            "Bin or ControlPanel is given to the uninstaller whatever made it.");
          Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "ProgramFolderMadeAsNamed"), @"CompareText\(g_szProgramFolderReal,\s*RemoveBackslashUnlessRoot\(ExpandConstant\('\{app\}'\)\)\)\s*=\s*0"),
             "A program folder made where a link leads is given to the uninstaller as {app}.");
 
@@ -1094,71 +1090,62 @@ namespace RegressionTests.Installation
          Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"CurStep\s*=\s*ssPostInstall\s+then\s+begin\s+(//[^\n]*\n\s*)*g_bFilesInstalled\s*:=\s*true;"),
             "The installation does not mark its files installed at ssPostInstall, so DeinitializeSetup would remove a folder it made, or leave one empty.");
          string remove = CodeBody(extension, "RemoveFoldersMadeHere");
-         Assert.IsTrue(Regex.IsMatch(remove, @"for\s+index\s*:=\s*GetArrayLength\(g_aFoldersMade\)\s*-\s*1\s+downto\s+0\s+do") && remove.Contains("RemoveDir(g_aFoldersMade[index])"),
+         Assert.IsTrue(Regex.IsMatch(remove, @"for\s+index\s*:=\s*GetArrayLength\(g_aFoldersMade\)\s*-\s*1\s+downto\s+0\s+do") && remove.Contains("RemoveDir(g_aFoldersMade[index])") &&
+                       remove.Contains("RemoveDir(szMade)") && !remove.Contains("DelTree("),
             "RemoveFoldersMadeHere does not remove the folders setup made deepest first, and only when empty (RemoveDir).");
-         Assert.IsTrue(Regex.IsMatch(prepare, @"^\s*ReleaseHeldFolders\(\);\s*RemoveFoldersMadeHere\(\);", RegexOptions.Multiline),
-            "A second pass of PrepareToInstall, after the folder page was gone back to, keeps what the first held and made.");
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "CheckProgramFolders"), @"^\s*ReleaseHeldFolders\(\);\s*RemoveFoldersMadeHere\(\);", RegexOptions.Multiline),
+            "A second pass, after the folder page was gone back to, keeps what the first held and made.");
 
-         AssertNoPlainMessageBox(extension, "MakeProgramFolder", "RemoveFoldersMadeHere", "DeinitializeSetup");
+         AssertNoPlainMessageBox(extension, "MakeFolders", "RemoveFoldersMadeHere", "DeinitializeSetup");
       }
 
       [Test]
-      [Description("Work item 78, R2: a program folder, Bin and ControlPanel that are there before the installation - a server installed into a folder made beforehand, an upgrade, a repair, the Control Panel alone - are hardened in PrepareToInstall, before any file is copied and before setup runs any program of the installation; the program folder of a server installation only when its Data, Logs, Temp, Database and Events inherit nothing from it. One another account owns is given to the Administrators with the entries of its own that give no right to write kept, the service's Read & execute on Bin among them, as ServiceAccount.cpp's RebuiltAcl_ keeps them. In 6.3.7 and earlier an upgrade copied Bin's files and ran hMailServer.exe /Register from it before /ProtectFolders hardened it (the installer smoke VM, 6 October 2026).")]
+      [Description("Work item 78, R2: a program folder, Bin and ControlPanel that are there before the installation - a server installed into a folder made beforehand, an upgrade, a repair, the Control Panel alone - are hardened in PrepareToInstall, before any file is copied and before setup runs any program of the installation, and setup does not install into one it could not harden: the program folder whatever is in it, but for the earlier installation's whose Data, Logs, Temp, Database or Events inherit from it; an entry of its own that lets a group of every user write taken away; one another account owns taken only when it is the earlier installation's - given to the Administrators with takeown.exe /A, the entries of its own that give no right to write kept, the service's Read & execute on Bin among them, as ServiceAccount.cpp's RebuiltAcl_ keeps them - and refused otherwise; each read through the handle that holds it and read again once hardened. In 6.3.7 and earlier an upgrade copied Bin's files and ran hMailServer.exe /Register from it before /ProtectFolders hardened it (the installer smoke VM, 6 October 2026), and the first R2 of 6.3.8 left a folder that held a Data, and one it could not harden, as they were (the review of 26 October 2026).")]
       public void FoldersThatAreThereAreHardenedBeforeTheFiles()
       {
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
          string prepare = CodeBody(extension, "PrepareProgramFolders");
 
          // Every installation: no condition on the components, the server's included.
-         Assert.IsFalse(prepare.Contains("IsComponentSelected("),
-            "PrepareProgramFolders depends on the components chosen; a server installation into a folder that is there would not be hardened before its files.");
-         int bin = prepare.IndexOf("HardenHeldFolder(szBin)", StringComparison.Ordinal);
-         int controlPanel = prepare.IndexOf("HardenHeldFolder(szControlPanel)", StringComparison.Ordinal);
-         int app = prepare.IndexOf("HardenHeldFolder(szReal)", StringComparison.Ordinal);
-         Assert.GreaterOrEqual(bin, 0, "Bin is not hardened before its files are copied.");
-         Assert.GreaterOrEqual(controlPanel, 0, "ControlPanel is not hardened before its files are copied.");
-         Assert.GreaterOrEqual(app, 0, "The program folder is not hardened before the files.");
+         Assert.IsFalse(prepare.Contains("IsComponentSelected(") || CodeBody(extension, "CheckProgramFolders").Contains("IsComponentSelected("),
+            "The program folders are prepared for some components only; a server installation into a folder that is there would not be hardened before its files.");
 
-         // The program folder of a server installation only when the data folders
-         // inherit nothing from it, so that its change is not handed down through the
-         // message store.
-         Assert.IsTrue(Regex.IsMatch(prepare, @"if\s+DirExists\(AddBackslash\(szReal\)\s*\+\s*'Data'\)\s+or\s+FileExists\(AddBackslash\(szBin\)\s*\+\s*'hMailServer\.INI'\)\s+then\s+szInherits\s*:=\s*DataFolderThatInherits\(szReal\);\s*if\s+szInherits\s*=\s*''\s+then\s+HardenHeldFolder\(szReal\)"),
-            "The program folder of a server installation is hardened before the files whatever its data folders inherit, or never.");
+         // The order: the program folder, then Bin and ControlPanel - hardened or made -
+         // then what is in them.
+         int[] order = new[] { "HardenHeldFolder(g_szProgramFolderReal", "HardenHeldFolder(g_szBinReal", "MakeFolders(g_szBinHeld", "HardenHeldFolder(g_szControlPanelReal",
+                               "MakeFolders(g_szControlPanelHeld", "CheckWhatIsInside(g_szBinReal, 0, true" }.Select(word => prepare.IndexOf(word, StringComparison.Ordinal)).ToArray();
+         Assert.IsTrue(order.All(position => position >= 0) && order.SequenceEqual(order.OrderBy(position => position)),
+            "PrepareProgramFolders does not harden the program folder, then make or harden Bin and ControlPanel, then look at what is in them.");
+
+         // The program folder of the earlier installation alone is left for
+         // /ProtectFolders when its data folders inherit from it.
+         StringAssert.Contains("g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;", CodeBody(extension, "CheckProgramFolders"),
+            "The earlier installation's folder is not the one the registry records.");
          string inherits = CodeBody(extension, "DataFolderThatInherits");
          foreach (string folder in new[] { "'Data'", "'Logs'", "'Temp'", "'Database'", "'Events'" })
             StringAssert.Contains(folder, inherits, "DataFolderThatInherits does not look at " + folder + ".");
-         StringAssert.Contains("InheritsNothing(szFolder)", inherits);
-         string nothing = CodeBody(extension, "InheritsNothing");
-         StringAssert.Contains("ControlOfDescriptor(pDescriptor, control, revision)", nothing);
-         StringAssert.Contains("HM_DACL_PROTECTED", nothing);
+         StringAssert.Contains("ControlOfDescriptor(pDescriptor, control, revision)", CodeBody(extension, "InheritsNothing"));
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_DACL_PROTECTED\s*=\s*\$1000;"), "SE_DACL_PROTECTED is not $1000.");
 
-         // In PrepareToInstall, before any file: nothing of it is left at ssInstall,
-         // which comes after Inno Setup has started on the folders.
-         string step = CodeBody(extension, "CurStepChanged");
-         Assert.IsFalse(Regex.IsMatch(step, @"Harden\w*\("), "A program folder that is there is hardened at ssInstall again rather than in PrepareToInstall.");
+         // In PrepareToInstall, before any file: nothing of it is left at ssInstall.
+         Assert.IsFalse(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"Harden\w*\("), "A program folder that is there is hardened at ssInstall again rather than in PrepareToInstall.");
 
-         // A folder another account owns: rebuilt, the entries that give no right to
-         // write kept, the Administrators the owner - not a list of three entries,
-         // which drops the service's Read & execute on Bin and would stop the service.
+         // Hardened through the handle that holds it, every failure a refusal, and read
+         // again after.
          string held = CodeBody(extension, "HardenHeldFolder");
-         StringAssert.Contains("Result := RebuildFolderOfUntrustedOwner(Folder, bUsers);", held,
-            "HardenHeldFolder does not rebuild a folder another account owns with the entries that give no right to write kept.");
-         StringAssert.DoesNotContain("O:BAD:PAI", held, "HardenHeldFolder gives a folder another account owns a list of SYSTEM, the Administrators and Users alone, dropping the service's entries.");
-         foreach (string word in new[] { "/inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F", "*S-1-5-32-545:(OI)(CI)RX", "EveryUserMayRead(Folder)", "FolderOwnerIsTrusted(Folder, bKnown)" })
+         Assert.IsFalse(Regex.IsMatch(held, @"ReadFolder(Permissions|Owner)\("), "HardenHeldFolder reads the folder's owner or permissions by its path rather than through the handle that holds it.");
+         Assert.IsFalse(held.Contains("O:BAD:PAI"), "HardenHeldFolder gives a folder another account owns a list of SYSTEM, the Administrators and Users alone, dropping the service's entries.");
+         Assert.Less(held.IndexOf("/remove:g", StringComparison.Ordinal), held.IndexOf("/inheritance:r", StringComparison.Ordinal),
+            "The entries of the folder's own that let every user write are not taken away before it stops inheriting.");
+         foreach (string word in new[] { "/inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F", "*S-1-5-32-545:(OI)(CI)RX", "EveryUserMayRead(pDacl)" })
             StringAssert.Contains(word, held, "HardenHeldFolder does not use " + word + ".");
          string rebuild = CodeBody(extension, "RebuildFolderOfUntrustedOwner");
-         Assert.IsTrue(Regex.IsMatch(rebuild, @"if\s+pass\s*=\s*0\s+then\s+begin\s+if\s+aceType\s*=\s*HM_ACCESS_DENIED\s+then\s+ok\s*:=\s*AddAsOwnEntry\(pNew,\s*pAce\);"),
-            "RebuildFolderOfUntrustedOwner does not keep every deny entry, first.");
-         Assert.IsTrue(Regex.IsMatch(rebuild, @"else\s+if\s+writes\s+and\s+\(not\s+IsTrustedSid\(pAce\s*\+\s*8\)\)\s+then\s+szDropped\s*:=[^;]*;?\s*else\s+ok\s*:=\s*AddAsOwnEntry\(pNew,\s*pAce\)"),
-            "RebuildFolderOfUntrustedOwner does not keep the entries of the folder's own that give no right to write, or keeps one that lets another account write.");
-         Assert.IsTrue(Regex.IsMatch(rebuild, @"SidIs\(pAce\s*\+\s*8,\s*HM_SERVICE_SID\)\s+and\s+\(not\s+writes\)\s+then\s+ok\s*:=\s*AddAsOwnEntry\(pNew,\s*pAce\)"),
-            "RebuildFolderOfUntrustedOwner does not keep the service's inherited Read, as RebuiltAcl_ does.");
-         foreach (string word in new[] { "HM_FOLDER_WRITE_RIGHTS", "HM_OWNER_AND_PROTECTED_DACL", "SidOfText('S-1-5-32-544', pAdministrators)", "HM_RIGHTS_READ_EXECUTE", "HM_FILE_ALL_ACCESS" })
+         foreach (string word in new[] { "HM_FOLDER_WRITE_RIGHTS", "HM_PROTECTED_DACL_INFORMATION", "HM_RIGHTS_READ_EXECUTE", "HM_FILE_ALL_ACCESS", "takeown.exe" })
             StringAssert.Contains(word, rebuild, "RebuildFolderOfUntrustedOwner does not use " + word + ".");
+         Assert.IsFalse(Regex.IsMatch(rebuild, @"ReadFolder(Permissions|Owner)\("), "RebuildFolderOfUntrustedOwner reads the folder's permissions by its path.");
          StringAssert.Contains("HM_INHERITED_FLAG_BIT", CodeBody(extension, "AddAsOwnEntry"), "An entry kept is not made the folder's own.");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_INHERITED_FLAG_BIT\s*=\s*\$1000;") && Regex.IsMatch(extension, @"HM_ACCESS_DENIED\s*=\s*1;") && Regex.IsMatch(extension, @"HM_FILE_ALL_ACCESS\s*=\s*\$1F01FF;") &&
-                       Regex.IsMatch(extension, @"HM_RIGHTS_READ_EXECUTE\s*=\s*\$1200A9;"),
+                       Regex.IsMatch(extension, @"HM_RIGHTS_READ_EXECUTE\s*=\s*\$1200A9;") && Regex.IsMatch(extension, @"HM_PROTECTED_DACL_INFORMATION\s*=\s*\$80000004;"),
             "A constant of the rebuilt list is not the Windows value.");
 
          // The service's SID is the one the server computes for NT SERVICE\hMailServer.
@@ -1168,11 +1155,11 @@ namespace RegressionTests.Installation
          Assert.IsTrue(extension.Contains("HM_SERVICE_SID              = '" + serviceSid.Groups[1].Value + "';"),
             "HM_SERVICE_SID is not NT SERVICE\\hMailServer's SID, " + serviceSid.Groups[1].Value + ".");
 
-         AssertNoPlainMessageBox(extension, "PrepareProgramFolders", "HardenHeldFolder", "RebuildFolderOfUntrustedOwner", "DataFolderThatInherits", "InheritsNothing");
+         AssertNoPlainMessageBox(extension, "PrepareProgramFolders", "CheckProgramFolders", "HardenHeldFolder", "RebuildFolderOfUntrustedOwner", "HeldFolderIsHardened", "DataFolderThatInherits", "InheritsNothing", "OwnerIsAllowed");
       }
 
       [Test]
-      [Description("Work item 78, R3: setup holds the program folder, Bin and ControlPanel from the root of their volume down, as itself and not shared for deleting, from PrepareToInstall until DeinitializeSetup, and refuses - before anything changes, exit code 7 when silent - a junction, symbolic link or mount point on the way that anybody but SYSTEM, the Administrators and TrustedInstaller owns or may change or remove (ProtectedFile.cpp's OnlyAdministratorsControl, read through the handle that holds it), saying how to make it the administrators' alone; one they alone control is gone through and the path walked again from where it leads. In 6.3.7 and earlier setup installed through any link (the installer smoke VM, 6 October 2026: through a junction a standard account owned).")]
+      [Description("Work item 78, R3: setup holds the program folder, Bin and ControlPanel from the root of their volume down, as itself and not shared for deleting, from the Ready page until DeinitializeSetup, and refuses - before anything changes and before the service is stopped, exit code 7 when silent - a junction, symbolic link or mount point on the way that anybody but SYSTEM, the Administrators and TrustedInstaller owns or may change or remove (ProtectedFile.cpp's OnlyAdministratorsControl, read through the handle that holds it), saying how to make it the administrators' alone; one they alone control is gone through and the path walked again from where it leads. A name the walk found missing is not held: what is there is decided by the walk alone, and the three walks are held to agree. In 6.3.7 and earlier setup installed through any link (the installer smoke VM, 6 October 2026: through a junction a standard account owned).")]
       public void ALinkOnTheWayThatAnybodyButTheAdministratorsControlsIsRefused()
       {
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
@@ -1193,10 +1180,11 @@ namespace RegressionTests.Installation
          // rule, and then walked again from where it leads, at most eight deep.
          string chain = CodeBody(extension, "HoldFolderChain");
          foreach (string word in new[] { "HoldForSetup(szRoot)", "HoldForSetup(szNext)", "HM_REPARSE_POINT", "LinkIsAdministratorsAlone(handle, parent, szWhy)", "LinkTarget(handle, szNext, szTarget, szWhy)",
-                                         "HoldFolderChain(szTarget, Depth + 1, Real, Why)", "Depth >= 8", "LinkRemedy(szNext)", "KindOfDrive(szRoot) = HM_DRIVE_REMOTE", "parent := handle;" })
+                                         "HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why)", "Depth >= 8", "LinkRemedy(szNext)", "KindOfDrive(szRoot) = HM_DRIVE_REMOTE", "parent := handle;" })
             StringAssert.Contains(word, chain, "HoldFolderChain does not use " + word + ".");
          Assert.IsTrue(chain.IndexOf("HoldForSetup(szNext)", StringComparison.Ordinal) < chain.IndexOf("LinkIsAdministratorsAlone(", StringComparison.Ordinal),
             "A link is looked at before it is held.");
+         Assert.AreEqual(2, Regex.Matches(chain, @"attributes\s*:=\s*FolderAttributes\(szNext\);").Count, "A folder's attributes are not read before and after it is held.");
          string remedy = CodeBody(extension, "LinkRemedy");
          StringAssert.Contains("/L /setowner *S-1-5-32-544", remedy, "The refusal does not say how to give the link to the Administrators.");
          StringAssert.Contains("/L /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F *S-1-5-32-545:RX", remedy, "The refusal does not say how to give the link a list only the administrators may change.");
@@ -1208,8 +1196,6 @@ namespace RegressionTests.Installation
             "The link's and its folder's owner and permissions are not read through the handles that hold them.");
          Assert.IsFalse(Regex.IsMatch(rule, @"ReadFolder(Permissions|Owner)\("), "A link's permissions are read by its path, which names whatever is there by then.");
          Assert.AreEqual(2, Regex.Matches(rule, @"not\s+IsTrustedSid\(pOwner\)").Count, "The owner of the link, or of the folder it is in, is not held to SYSTEM, the Administrators and TrustedInstaller.");
-         StringAssert.Contains("AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho)", rule);
-         StringAssert.Contains("AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho)", rule);
          Assert.IsTrue(Regex.IsMatch(extension, @"external\s+'GetSecurityInfo@advapi32\.dll stdcall';"), "GetSecurityInfo, which reads through a handle, is not declared.");
 
          // The rights: every right on the link that ProtectedFile.cpp's
@@ -1229,32 +1215,27 @@ namespace RegressionTests.Installation
             Assert.AreNotEqual(0u, 0x500D0156u & rights[name], "The installer does not count " + name + " on a link, which the server does.");
          }
 
-         // Where a link leads, read from the link (FSCTL_GET_REPARSE_POINT), not from
-         // an open through it, which follows every link after it unasked; a share is
-         // not gone to.
+         // Where a link leads, read from the link (FSCTL_GET_REPARSE_POINT).
          string target = CodeBody(extension, "LinkTarget");
          StringAssert.Contains("ReadReparseData(hLink, HM_GET_REPARSE_POINT", target);
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_GET_REPARSE_POINT\s*=\s*\$000900A8;"), "FSCTL_GET_REPARSE_POINT is not $000900A8.");
-         StringAssert.Contains("'\\??\\UNC\\'", target, "A link to a share is gone through.");
          Assert.IsTrue(target.Contains("(tagHigh = $A000) and (tagLow = $0003)") && target.Contains("(tagHigh = $A000) and (tagLow = $000C)"),
             "LinkTarget does not know a mount point's and a symbolic link's tags, and nothing else.");
-
-         // OWNER RIGHTS is the owner's, trusted only with a trusted owner.
          StringAssert.Contains("if not (OwnerTrusted and SidIs(pAce + 8, 'S-1-3-4')) then", CodeBody(extension, "AclLetsOthers"));
 
-         // PrepareToInstall refuses - its answer, exit 7 when silent - for the program
-         // folder, Bin and ControlPanel alike, before it changes anything.
-         string prepare = CodeBody(extension, "PrepareProgramFolders");
-         foreach (string path in new[] { "szApp, 0, szReal, szWhy", "AddBackslash(szApp) + 'Bin', 0, szBin, szWhy", "AddBackslash(szApp) + 'ControlPanel', 0, szControlPanel, szWhy" })
-            StringAssert.Contains("if not HoldFolderChain(" + path + ") then", prepare, "PrepareProgramFolders does not hold and check " + path + ".");
-         int lastChain = prepare.LastIndexOf("HoldFolderChain(", StringComparison.Ordinal);
-         foreach (string change in new[] { "MakeProgramFolder(", "HardenHeldFolder(", "SayForeignOwners(" })
-            Assert.Greater(prepare.IndexOf(change, StringComparison.Ordinal), lastChain, change + " comes before every link on the way is checked.");
-         Assert.AreEqual(3, Regex.Matches(prepare, @"Result\s*:=\s*'Setup does not install into '\s*\+\s*szApp\s*\+\s*':\s*'\s*\+\s*szWhy\s*\+\s*'\.\s*Nothing has been changed\.';").Count,
-            "A refusal of a link does not say that nothing has been changed.");
-         Assert.IsFalse(Regex.IsMatch(prepare, @"ReleaseFolder\("), "PrepareProgramFolders lets a folder go before the installation ends.");
+         // The check refuses - PrepareToInstall's answer, exit 7 when silent - before it
+         // changes anything, and before the service is stopped.
+         string check = CodeBody(extension, "CheckProgramFolders");
+         Assert.IsFalse(Regex.IsMatch(check, @"\b(MakeFolders|HardenHeldFolder|RebuildFolderOfUntrustedOwner)\("), "The check, run before the service is stopped, changes a folder.");
+         Assert.IsFalse(Regex.IsMatch(check, @"ReleaseFolder\(") || Regex.IsMatch(CodeBody(extension, "PrepareProgramFolders"), @"ReleaseFolder\("),
+            "A folder is let go before the installation ends.");
+         Assert.GreaterOrEqual(Regex.Matches(check, @"Nothing has been changed\.'").Count, 8, "A refusal of the check does not say that nothing has been changed.");
+         string ready = CodeBody(extension, "NextButtonClick");
+         int checkedAt = ready.IndexOf("CheckProgramFolders(PreviousInstallationFolder())", StringComparison.Ordinal);
+         Assert.IsTrue(checkedAt >= 0 && checkedAt < ready.IndexOf("StopHMailServerService()", StringComparison.Ordinal),
+            "The folders are not checked before the service is stopped, so a refusal would leave a running server stopped.");
 
-         AssertNoPlainMessageBox(extension, "HoldFolderChain", "LinkIsAdministratorsAlone", "LinkTarget", "HoldForSetup");
+         AssertNoPlainMessageBox(extension, "HoldFolderChain", "LinkIsAdministratorsAlone", "LinkTarget", "HoldForSetup", "WalksAgree");
       }
 
       [Test]
@@ -1267,9 +1248,11 @@ namespace RegressionTests.Installation
             constants[constant.Groups[1].Value] = Convert.ToUInt32(constant.Groups[2].Value, 16);
 
          // The masks an entry's rights are tested against: head.Mask and ..., and the
-         // rights AclLetsOthers is asked about (its own test is of its parameter).
-         var tested = new HashSet<string>(Regex.Matches(extension, @"\.Mask\s+and\s+(\$?\w+)").Cast<Match>().Select(match => match.Groups[1].Value));
-         tested.UnionWith(Regex.Matches(extension, @"\bAclLetsOthers\(\s*\w+\s*,\s*(\$?\w+)\s*,").Cast<Match>().Select(match => match.Groups[1].Value));
+         // rights AclLetsOthers and OwnEntriesLetOthers are asked about (their own tests
+         // are of their parameter).
+         // Whatever the expression: a mask that is not a named constant alone fails below.
+         var tested = new HashSet<string>(Regex.Matches(extension, @"\.Mask\s+and\s+([^)]*)\)").Cast<Match>().Select(match => match.Groups[1].Value.Trim()));
+         tested.UnionWith(Regex.Matches(extension, @"\b(?:AclLetsOthers|OwnEntriesLetOthers)\(([^,()]*),([^,]*),").Cast<Match>().Select(match => match.Groups[2].Value.Trim()));
          tested.Remove("Rights");
          foreach (string name in new[] { "HM_FOLDER_WRITE_RIGHTS", "HM_FOLDER_READ_RIGHTS", "HM_REMOVE_FROM_FOLDER_RIGHTS" })
             Assert.IsTrue(tested.Contains(name), "No entry's rights are tested against " + name + " any more; update this test.");
@@ -1295,57 +1278,194 @@ namespace RegressionTests.Installation
             "The server no longer asks the mapped rights for FILE_READ_DATA before it gives Users Read & execute; hold the installer's read mask to what it asks now.");
       }
 
-      [Test]
-      [Description("Work item 78, the volumes setup does not install into: a program folder on a share of another computer or a network drive, whose permissions that computer sets, or on a volume that keeps no permissions (FAT, exFAT), where every account may change every program - refused in PrepareToInstall before anything changes, with what to do. In 6.3.7 and earlier setup installed there and could not harden anything.")]
-      public void AProgramFolderNoPermissionsCanProtectIsRefused()
+      /// <summary>
+      ///    Work item 78's R1 to R4: each decision and the statement it is held to - as
+      ///    build/check-installer-scripts.py's PROGRAM_FOLDER_STATEMENTS holds it - as
+      ///    (routine, what a change of it would do, its statement): Pascal as the script
+      ///    has it, where a space stands for any run of white space, ~ for anything up
+      ///    to the next semicolon, @@ for comment lines, and a ^ that starts it or a $
+      ///    that ends it for the start or the end of the routine.
+      /// </summary>
+      private static readonly string[][] ProgramFolderStatements =
       {
-         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
-         string prepare = CodeBody(extension, "PrepareProgramFolders");
-         Assert.IsTrue(Regex.IsMatch(prepare, @"if\s+not\s+VolumeKeepsPermissions\(handle\)\s+then\s+begin\s+Result\s*:=\s*'Setup does not install into '"),
-            "A program folder on a volume that keeps no permissions is not refused.");
-         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "VolumeKeepsPermissions"), @"\(flags\s+and\s+HM_PERSISTENT_ACLS\)\s*<>\s*0") && Regex.IsMatch(extension, @"HM_PERSISTENT_ACLS\s*=\s*\$8;"),
-            "Whether a volume keeps permissions is not FILE_PERSISTENT_ACLS.");
-         Assert.IsTrue(Regex.IsMatch(extension, @"external\s+'GetVolumeInformationByHandleW@kernel32\.dll stdcall';"), "The volume is not read through the held folder.");
-         string split = CodeBody(extension, "SplitAtRoot");
-         Assert.IsTrue(Regex.IsMatch(split, @"else\s+if\s+Copy\(Path,\s*1,\s*2\)\s*=\s*'\\\\'\s+then\s+Why\s*:="), "A program folder on a share is not refused.");
-         Assert.IsTrue(Regex.IsMatch(extension, @"HM_DRIVE_REMOTE\s*=\s*4;"), "DRIVE_REMOTE is not 4.");
-         StringAssert.Contains("Nothing has been changed.", prepare);
+         new[] { "HoldFolderChain", "a name that cannot be read is taken for one that is not there", "if (lastError = 2) or (lastError = 3) then begin" },
+         new[] { "HoldFolderChain", "a folder is not read again once it is held", "handle := HoldForSetup(szNext); if handle = -1 then begin Why := ~; bDone := true; end else begin @@attributes := FolderAttributes(szNext); if (attributes = HM_INVALID_ATTRIBUTES) or ((attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then" },
+         new[] { "HoldFolderChain", "a link is gone through without the rule", "else if (attributes and HM_REPARSE_POINT) <> 0 then begin if not LinkIsAdministratorsAlone(handle, parent, szWhy) then Why := " },
+         new[] { "HoldFolderChain", "what a missing name is made below is not the deepest folder held", "Held := RemoveBackslashUnlessRoot(szCurrent); HeldHandle := parent; Whole := false; Result := true;" },
+         new[] { "HoldFolderChain", "the last folder found is not marked as held", "Real := szNext; Held := szNext; HeldHandle := handle; Whole := true; Result := true;" },
+         new[] { "LinkIsAdministratorsAlone", "a link's own owner is not held to the three", "if not IsTrustedSid(pOwner) then Why := 'it is owned by '" },
+         new[] { "LinkIsAdministratorsAlone", "what may change a link is not asked", "else if AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho) then Why := szWho + ' may change it'" },
+         new[] { "LinkIsAdministratorsAlone", "what may remove a link from its folder is not asked", "else if AclLetsOthers(pDacl, HM_REMOVE_FROM_FOLDER_RIGHTS, true, szWho) then Why := " },
+         new[] { "AclLetsOthers", "the rights on a link itself are not weighed", "if (aceFlags and HM_INHERIT_ONLY) = 0 then begin if aceType = HM_ACCESS_ALLOWED then" },
+         new[] { "IsTrustedSid", "an account other than the three is trusted", "^function IsTrustedSid(pSid: cardinal): Boolean; begin Result := SidIs(pSid, 'S-1-5-18') or SidIs(pSid, 'S-1-5-32-544') or SidIs(pSid, HM_TRUSTED_INSTALLER_SID); end;$" },
+         new[] { "LinkTarget", "a link to a share is gone through", "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := " },
+         new[] { "VolumeKeepsPermissions", "a volume that keeps no permissions is taken", "else if (flags and HM_PERSISTENT_ACLS) = 0 then Why := " },
+         new[] { "VolumeKeepsPermissions", "a volume that cannot be told is taken", "begin Result := false; Why := ''; serial := 0; longest := 0; flags := 0; if not VolumeOfHeldFolder(HeldHandle, " },
+         new[] { "CheckProgramFolders", "the program folder is not held and checked", "if not HoldFolderChain(szApp, 0, g_szProgramFolderReal, g_szProgramFolderHeld, g_hProgramFolder, g_bProgramFolderThere, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "Bin is not held and checked", "if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0, g_szBinReal, g_szBinHeld, g_hBin, g_bBinThere, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "ControlPanel is not held and checked", "if not HoldFolderChain(AddBackslash(szApp) + 'ControlPanel', 0, g_szControlPanelReal, g_szControlPanelHeld, g_hControlPanel, g_bControlPanelThere, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "the program folder's volume is not asked", "if not VolumeKeepsPermissions(g_hProgramFolder, g_szProgramFolderHeld, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "Bin's volume is not asked", "if not VolumeKeepsPermissions(g_hBin, g_szBinHeld, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "ControlPanel's volume is not asked", "if not VolumeKeepsPermissions(g_hControlPanel, g_szControlPanelHeld, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "walks that disagree are not refused", "if (not WalksAgree(g_szBinHeld, g_bBinThere)) or (not WalksAgree(g_szControlPanelHeld, g_bControlPanelThere)) then begin Result := " },
+         new[] { "CheckProgramFolders", "the program folder is taken for the earlier installation's whatever that installation's folder", "g_bEarlierInstallation := false; if Trim(Earlier) <> '' then g_bEarlierInstallation := CompareText(RemoveBackslashUnlessRoot(Trim(Earlier)), szApp) = 0;" },
+         new[] { "CheckProgramFolders", "the program folder's owner is not held to the rule", "if g_bProgramFolderThere and (Length(g_szProgramFolderReal) > 3) then if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "Bin's owner is not held to the rule", "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "ControlPanel's owner is not held to the rule", "if g_bControlPanelThere then if not OwnerIsAllowed(g_szControlPanelReal, g_hControlPanel, szWhy) then begin Result := " },
+         new[] { "CheckProgramFolders", "what is in Bin and ControlPanel is not refused before the service is stopped", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy); if found > 0 then Result := " },
+         new[] { "OwnerIsAllowed", "a folder another account owns is taken although it is not the earlier installation's", "else if g_bEarlierInstallation then Result := true else Why := " },
+         new[] { "WalksAgree", "what one walk found is not held to the others", "if g_bProgramFolderThere then Result := Whole or (CompareText(Held, g_szProgramFolderReal) = 0) else Result := (not Whole) and (CompareText(Held, g_szProgramFolderHeld) = 0);" },
+         new[] { "MakeFolders", "a folder somebody else made in the meantime is taken", "if MakeFolderWithSecurity(missing[index], attributes) then begin if Kind = 0 then" },
+         new[] { "MakeFolders", "a name somebody else took is not refused", "lastError := DLLGetLastError(); if lastError = HM_ERROR_ALREADY_EXISTS then Why := ~ else Why := ~; Result := false;" },
+         new[] { "MakeFolders", "what is made is not the names below the deepest folder held", "szBase := AddBackslash(Held); if (Length(Folder) <= Length(szBase)) or (CompareText(Copy(Folder, 1, Length(szBase)), szBase) <> 0) then" },
+         new[] { "RemoveFoldersMadeHere", "a folder setup made is removed with what is in it", "if RemoveDir(g_aFoldersMade[index]) then Log(" },
+         new[] { "RemoveFoldersMadeHere", "a Bin or ControlPanel setup made is removed with what is in it", "if RemoveDir(szMade) then Log(" },
+         new[] { "PrepareProgramFolders", "a program folder that is not there is decided by its path", "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, szWhy) then Result := " },
+         new[] { "PrepareProgramFolders", "more than a drive's root is taken for one, or Bin and ControlPanel are passed over at a root", "if Length(g_szProgramFolderReal) <= 3 then Log(~) else begin szInherits := '';" },
+         new[] { "PrepareProgramFolders", "the program folder is left as it is for an inheriting data folder that is not the earlier installation's", "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);" },
+         new[] { "PrepareProgramFolders", "a program folder that could not be hardened is installed into", "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end;" },
+         new[] { "PrepareProgramFolders", "a Bin that is there is not hardened, or one that could not be is installed into", "if g_bBinThere then begin if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end" },
+         new[] { "PrepareProgramFolders", "a Bin that is not there is not made by setup", "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, szWhy) then begin Result := ~; Exit; end;" },
+         new[] { "PrepareProgramFolders", "a ControlPanel that is there is not hardened, or one that could not be is installed into", "if g_bControlPanelThere then begin if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end" },
+         new[] { "PrepareProgramFolders", "a ControlPanel that is not there is not made by setup", "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, szWhy) then begin Result := ~; Exit; end;" },
+         new[] { "PrepareProgramFolders", "what is in Bin and ControlPanel is not looked at again once they are hardened", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy); if found > 0 then begin Result := ~; Exit; end;" },
+         new[] { "HardenHeldFolder", "a held folder's owner and permissions are not read through its handle", "readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);" },
+         new[] { "HardenHeldFolder", "an entry of the folder's own that lets every user write is kept", "if ((((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0) and LetsEveryUserWrite(pAce) then begin szSid := TextOfSidAt(pAce + 8);" },
+         new[] { "HardenHeldFolder", "an entry that lets every user write is not taken away, or a failure to take it is not a refusal", "'\" /remove:g ' + szSid, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then begin Why := ~; Exit; end; if ResultCode <> 0 then begin Why := ~; Exit; end;" },
+         new[] { "HardenHeldFolder", "a trusted owner's folder does not stop inheriting, or icacls's failure is not a refusal", "'\"' + Folder + '\" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then begin Why := ~; Exit; end; Log(~); if ResultCode <> 0 then begin Why := ~; Exit; end;" },
+         new[] { "HardenHeldFolder", "a folder another account owns is taken although it is not the earlier installation's", "else if not Adopt then begin Why := ~; FreeWindowsMemory(pDescriptor); Exit; end else begin Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, Why);" },
+         new[] { "HardenHeldFolder", "a hardened folder is not read again", "if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then begin Why := ~; Exit; end; if bTrusted then SayWriteEntriesKept(Folder, HeldHandle); Result := true;" },
+         new[] { "HeldFolderIsHardened", "a list that still inherits is taken for hardened", "else if (control and HM_DACL_PROTECTED) = 0 then Why := " },
+         new[] { "HeldFolderIsHardened", "a folder another account still owns is taken for hardened", "else if not IsTrustedSid(pOwner) then Why := " },
+         new[] { "HeldFolderIsHardened", "an entry that lets every user write is taken for hardened", "if LetsEveryUserWrite(pAce) then begin Result := false;" },
+         new[] { "LetsEveryUserWrite", "what lets every user write is not an allow entry with a right to write for a group of every user", "if (head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED then if (head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0 then Result := IsBroadSid(pAce + 8);" },
+         new[] { "RebuildFolderOfUntrustedOwner", "a rebuilt folder keeps an entry of its own that lets another account write", "if aceType <> HM_ACCESS_ALLOWED then szDropped := szDropped + ', an entry of its own of another kind' else if writes and (not IsTrustedSid(pAce + 8)) then szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s own' else ok := AddAsOwnEntry(pNew, pAce);" },
+         new[] { "RebuildFolderOfUntrustedOwner", "a rebuilt folder keeps an inherited entry other than the service's Read", "if aceType <> HM_ACCESS_ALLOWED then szDropped := szDropped + ', an inherited entry of another kind' else if SidIs(pAce + 8, HM_SERVICE_SID) and (not writes) then ok := AddAsOwnEntry(pNew, pAce) else if writes and (not SidIs(pAce + 8, 'S-1-5-18')) and (not SidIs(pAce + 8, 'S-1-5-32-544')) then szDropped := ~; end;" },
+         new[] { "RebuildFolderOfUntrustedOwner", "the deny entries are not kept on a rebuilt folder", "if pass = 0 then begin if aceType = HM_ACCESS_DENIED then ok := AddAsOwnEntry(pNew, pAce); end" },
+         new[] { "RebuildFolderOfUntrustedOwner", "a folder another account owns is not given to the Administrators with their privilege first", "if not Exec(ExpandConstant('{sys}\\takeown.exe'), '/F \"' + Folder + '\" /A', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then Why := ~ else if ResultCode <> 0 then Why := ~ else begin written := WriteFolderSecurity(Folder, HM_FILE_OBJECT, HM_PROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);" },
+         new[] { "CheckWhatIsInside", "a program, a library, a folder or a link another account controls is said and not refused", "if bLink or bCode or bFolder then begin Found := Found + 1;" },
+         new[] { "CheckWhatIsInside", "a link, a program or a library inside Bin or ControlPanel is not known as one", "bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0; bCode := (not bFolder) and IsProgramFile(rec.Name);" },
+         new[] { "CheckWhatIsInside", "an owner other than the three is not refused", "else if not IsTrustedSid(pOwner) then begin if (not bCode) and (not bFolder) and SidIs(pOwner, HM_SERVICE_SID) then szWho := ''" },
+         new[] { "CheckWhatIsInside", "a program or a folder an entry of whose own lets another account change it is not refused", "else if bCode or bFolder then begin if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then" },
+         new[] { "CheckWhatIsInside", "what is below the first level is not looked at", "for index := 0 to count - 1 do if not CheckWhatIsInside(folders[index], Depth + 1, Final, Found, Why) then Result := false;" },
+         new[] { "CheckWhatIsInside", "the owner of what is in Bin and ControlPanel is not read through a handle on each", "readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);" },
+         new[] { "IsProgramFile", "a program or a library is not what the live update holds to its rule", "Result := (szExtension = '.exe') or (szExtension = '.dll');" },
+         new[] { "OwnEntriesLetOthers", "an inherited entry is weighed, or an entry of the item's own is not", "if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
+         new[] { "SayWriteEntriesKept", "an entry kept that lets an account other than the three write is not said", "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then" },
+         new[] { "NextButtonClick", "the folders are not checked before the service is stopped, or a refusal there stops it all the same", "g_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder()); if g_szFolderRefusal <> '' then Exit;" },
+         new[] { "NextButtonClick", "whether setup stopped a running service is not known", "bWasRunning := IsServiceRunning('hMailServer'); if (StopHMailServerService() = false) then Result := false else g_bServiceStoppedForSetup := bWasRunning;" },
+         new[] { "PrepareToInstall", "a refusal after setup stopped the service does not say so", "Result := PrepareToInstallRefusal(); if Result <> '' then begin @@if g_bServiceStoppedForSetup then Result := Result + ' Setup stopped the hMailServer service~; Log('Refused: ' + Result); end; end;$" },
+         new[] { "PrepareToInstallRefusal", "the program folders are not prepared last, their refusal the answer", "Result := PrepareProgramFolders(PreviousInstallationFolder()); end;$" },
+      };
+
+      /// <summary>A ProgramFolderStatements statement as a regular expression.</summary>
+      private static string StatementPattern(string statement)
+      {
+         var pattern = new StringBuilder();
+         if (statement.StartsWith("^", StringComparison.Ordinal))
+         {
+            pattern.Append(@"\A");
+            statement = statement.Substring(1);
+         }
+         bool end = statement.EndsWith("$", StringComparison.Ordinal);
+         if (end)
+            statement = statement.Substring(0, statement.Length - 1);
+         for (int index = 0; index < statement.Length; index++)
+         {
+            if (string.CompareOrdinal(statement, index, "@@", 0, 2) == 0)
+            {
+               pattern.Append(@"(?://[^\n]*\n\s*)*");
+               index++;
+            }
+            else if (statement[index] == '~')
+               pattern.Append(@"[^;]*");
+            else if (statement[index] == ' ')
+               pattern.Append(@"\s*");
+            else
+               pattern.Append(Regex.Escape(statement[index].ToString()));
+         }
+         if (end)
+            pattern.Append(@"\s*\z");
+         return pattern.ToString();
       }
 
       [Test]
-      [Description("Work item 78, R4: what an administrator is to look at in a program folder that is there is said in the setup log, and in one box in an attended installation, with what to do: an entry of a folder's own that lets a group of every user write, which setup keeps on a folder the administrators own as ServiceAccount::Harden keeps it, and a file or folder directly inside Bin or ControlPanel owned by an account other than SYSTEM, the Administrators or TrustedInstaller, read through a handle on each before anything changes. In 6.3.7 and earlier neither was said.")]
+      [Description("Work item 78, R1 to R4: every decision of the program folder's preparation is the statement it is held to - as build/check-installer-scripts.py's PROGRAM_FOLDER_STATEMENTS holds it - so that a one-line change of one fails: the drive's root and the walk, each folder's hardening and its refusal, the rule of a link, a name that cannot be read, a link to a share, a folder made in the meantime, a list rebuilt, what is in Bin and ControlPanel, the volumes and the service. The review of 26 October 2026 changed nineteen such lines one at a time, and the tests that looked for words caught six.")]
+      public void EachDecisionOfTheProgramFoldersIsTheStatementItIsHeldTo()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         var failed = new List<string>();
+         foreach (string[] statement in ProgramFolderStatements)
+         {
+            if (!Regex.IsMatch(CodeBody(extension, statement[0]), StatementPattern(statement[2])))
+               failed.Add(statement[0] + ": " + statement[1]);
+         }
+         Assert.IsEmpty(failed, "The statement work item 78 holds each to is not there: " + string.Join("; ", failed) + ".");
+
+         // The checker holds the same, statement for statement.
+         string checker = ReadRepositoryFile(@"build\check-installer-scripts.py");
+         foreach (string[] statement in ProgramFolderStatements)
+            StringAssert.Contains("('" + statement[0] + "', ", checker, "build/check-installer-scripts.py does not hold " + statement[0] + " to a statement.");
+         Assert.AreEqual(ProgramFolderStatements.Length, Regex.Matches(checker, @"^    \('\w+', '", RegexOptions.Multiline).Count,
+            "build/check-installer-scripts.py's PROGRAM_FOLDER_STATEMENTS and this test's ProgramFolderStatements hold different numbers of statements.");
+      }
+
+      [Test]
+      [Description("Work item 78, the volumes setup does not install into: a program folder on a share of another computer or a network drive, whose permissions that computer sets, or a program folder, Bin or ControlPanel - each walk's own, since an administrators' link may lead to another volume - on a volume that keeps no permissions (FAT, exFAT), where every account may change every program, or one whose volume cannot be told: refused before anything changes, with what to do. In 6.3.7 and earlier setup installed there and could not harden anything; the first R1 to R4 of 6.3.8 asked the program folder's volume alone, and took one it could not tell.")]
+      public void AProgramFolderNoPermissionsCanProtectIsRefused()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string check = CodeBody(extension, "CheckProgramFolders");
+         foreach (string chain in new[] { "g_hProgramFolder, g_szProgramFolderHeld", "g_hBin, g_szBinHeld", "g_hControlPanel, g_szControlPanelHeld" })
+            Assert.IsTrue(Regex.IsMatch(check, @"if\s+not\s+VolumeKeepsPermissions\(" + Regex.Escape(chain) + @",\s*szWhy\)\s+then\s+begin\s+Result\s*:=\s*'Setup does not install into '"),
+               "The volume of " + chain + " is not asked.");
+         string volume = CodeBody(extension, "VolumeKeepsPermissions");
+         Assert.IsTrue(Regex.IsMatch(volume, @"\(flags\s+and\s+HM_PERSISTENT_ACLS\)\s*=\s*0") && Regex.IsMatch(extension, @"HM_PERSISTENT_ACLS\s*=\s*\$8;"),
+            "Whether a volume keeps permissions is not FILE_PERSISTENT_ACLS.");
+         Assert.AreEqual(1, Regex.Matches(volume, @"Result\s*:=\s*true").Count, "A volume that cannot be told is taken for one that keeps permissions.");
+         Assert.IsTrue(Regex.IsMatch(extension, @"external\s+'GetVolumeInformationByHandleW@kernel32\.dll stdcall';"), "The volume is not read through the held folder.");
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "SplitAtRoot"), @"else\s+if\s+Copy\(Path,\s*1,\s*2\)\s*=\s*'\\\\'\s+then\s+Why\s*:="), "A program folder on a share is not refused.");
+         Assert.IsTrue(Regex.IsMatch(extension, @"HM_DRIVE_REMOTE\s*=\s*4;"), "DRIVE_REMOTE is not 4.");
+      }
+
+      [Test]
+      [Description("Work item 78, R4: what is in Bin and ControlPanel at any depth - the scope of the live update's check of an installation - is read through a handle on each, before the service is stopped and again once the two are hardened, and setup does not install where the service and the administrators would run what another account controls: a link, or a program, a library or a folder whose owner is not SYSTEM, the Administrators or TrustedInstaller, or cannot be read, or an entry of whose own lets another account change it - each named, with what to do. What else another account owns, and an entry kept on one of the three folders that lets an account other than the three write, is said in the setup log and in one box in an attended installation. In 6.3.7 and earlier none of it was said, and the first R4 of 6.3.8 said and used such a program (the review of 26 October 2026).")]
       public void WhatAnAdministratorIsToLookAtInTheProgramFolderIsSaid()
       {
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
 
-         // An entry of its own that lets every user write, after the hardening that
-         // keeps it.
-         string held = CodeBody(extension, "HardenHeldFolder");
-         Assert.Greater(held.IndexOf("SayBroadEntriesKept(Folder);", StringComparison.Ordinal), held.IndexOf("icacls hardened", StringComparison.Ordinal),
-            "The entries a trusted owner's folder keeps through icacls are not said after icacls.");
-         string broad = CodeBody(extension, "SayBroadEntriesKept");
-         foreach (string word in new[] { "IsBroadSid(pAce + 8)", "HM_FOLDER_WRITE_RIGHTS", "Log('The program folder: ' + szText);", "g_szFolderFindings", "/remove:g *" })
-            StringAssert.Contains(word, broad, "SayBroadEntriesKept does not use " + word + ".");
-
-         // What another account owns directly inside Bin and ControlPanel, read before
-         // the hardening.
-         string prepare = CodeBody(extension, "PrepareProgramFolders");
-         int binOwners = prepare.IndexOf("SayForeignOwners(szBin);", StringComparison.Ordinal);
-         int controlPanelOwners = prepare.IndexOf("SayForeignOwners(szControlPanel);", StringComparison.Ordinal);
-         Assert.GreaterOrEqual(binOwners, 0, "The owners of what is in Bin are not looked at.");
-         Assert.GreaterOrEqual(controlPanelOwners, 0, "The owners of what is in ControlPanel are not looked at.");
-         int firstHarden = prepare.IndexOf("HardenHeldFolder(", StringComparison.Ordinal);
-         Assert.Less(binOwners, firstHarden, "The owners in Bin are read after setup has changed the folders.");
-         Assert.Less(controlPanelOwners, firstHarden, "The owners in ControlPanel are read after setup has changed the folders.");
-         string owners = CodeBody(extension, "SayForeignOwners");
+         string inside = CodeBody(extension, "CheckWhatIsInside");
          foreach (string word in new[] { "FindFirst(AddBackslash(Folder) + '*', rec)", "HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0)",
-                                         "ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_INFORMATION", "not IsTrustedSid(pOwner)", "Log('The program folder: ' + szText);", "/setowner *S-1-5-32-544", "FindClose(rec)" })
-            StringAssert.Contains(word, owners, "SayForeignOwners does not use " + word + ".");
+                                         "Log('The program folder: refused, ' + szText);", "Log('The program folder: ' + szText);", "g_szFolderFindings", "/setowner *S-1-5-32-544", "FindClose(rec)", "/reset" })
+            StringAssert.Contains(word, inside, "CheckWhatIsInside does not use " + word + ".");
+         Assert.IsFalse(Regex.IsMatch(inside, @"ReadFolder(Permissions|Owner)\("), "The owners in Bin and ControlPanel are read by their paths.");
+
+         // Before the service is stopped, and again after the hardening.
+         string check = CodeBody(extension, "CheckProgramFolders");
+         string prepare = CodeBody(extension, "PrepareProgramFolders");
+         Assert.IsTrue(check.Contains("CheckWhatIsInside(g_szBinReal, 0, false, found, szWhy)") && check.Contains("CheckWhatIsInside(g_szControlPanelReal, 0, false, found, szWhy)"),
+            "What is in Bin and ControlPanel is not looked at before the service is stopped.");
+         int lastHarden = Math.Max(prepare.LastIndexOf("HardenHeldFolder(", StringComparison.Ordinal), prepare.LastIndexOf("MakeFolders(", StringComparison.Ordinal));
+         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szBinReal, 0, true, found, szWhy)", StringComparison.Ordinal), lastHarden,
+            "What is in Bin is looked at for the last time before setup has hardened the folders, when another account may still add to them.");
+         Assert.Greater(prepare.IndexOf("CheckWhatIsInside(g_szControlPanelReal, 0, true, found, szWhy)", StringComparison.Ordinal), lastHarden,
+            "What is in ControlPanel is looked at for the last time before setup has hardened the folders.");
+
+         // The entries kept that let another account write, after icacls: every account
+         // but the three, not the groups of every user alone, whose entries are taken
+         // away.
+         string held = CodeBody(extension, "HardenHeldFolder");
+         Assert.Greater(held.IndexOf("SayWriteEntriesKept(Folder, HeldHandle);", StringComparison.Ordinal), held.IndexOf("icacls hardened", StringComparison.Ordinal),
+            "The entries a trusted owner's folder keeps through icacls are not said after icacls.");
+         string kept = CodeBody(extension, "SayWriteEntriesKept");
+         Assert.IsFalse(kept.Contains("IsBroadSid("), "SayWriteEntriesKept says the groups of every user alone.");
+         foreach (string word in new[] { "ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION", "HM_FOLDER_WRITE_RIGHTS", "Log('The program folder: ' + szText);", "g_szFolderFindings", "/remove:g *" })
+            StringAssert.Contains(word, kept, "SayWriteEntriesKept does not use " + word + ".");
 
          // Said in one box when somebody is there to read it.
          Assert.IsTrue(Regex.IsMatch(prepare, @"if\s+\(g_szFolderFindings\s*<>\s*''\)\s+and\s+\(not\s+WizardSilent\(\)\)\s+then\s+SuppressibleMsgBox\("),
             "An attended installation does not show what setup found in the program folder.");
-         AssertNoPlainMessageBox(extension, "SayBroadEntriesKept", "SayForeignOwners");
+         AssertNoPlainMessageBox(extension, "SayWriteEntriesKept", "CheckWhatIsInside", "OwnEntriesLetOthers", "IsProgramFile");
       }
 
       [Test]
