@@ -665,7 +665,9 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel', 'AclLetsOthers', 'IsTrustedSid',
                            'PrepareToInstall', 'PrepareToInstallRefusal', 'NextButtonClick', 'EveryUserMayRead', 'EveryUserMayReadMadeIn',
                            'HeldIsLink', 'MadeWhereNamed', 'FinalPathOfHeld', 'FolderAboveIsAdministratorsAlone', 'IsAtOrAboveChecked', 'IsVolumeRoot',
-                           'IsScriptFile', 'IsDataFolderName', 'CheckWhatElseIsInside')
+                           'IsScriptFile', 'IsDataFolderName', 'CheckWhatElseIsInside',
+                           'RemakeEmptyFolder', 'LetGoOfHeld', 'FolderHoldsNothing', 'ItemIsIn', 'NothingTurnedIn', 'PreparedFolderIsAsLeft',
+                           'FoldersStillAsPrepared', 'CurStepChanged', 'KeepServiceFromStarting', 'LinkRemedy', 'HeldLetsOthersWrite')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -715,7 +717,8 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('IsAtOrAboveChecked', 'Bin\'s and ControlPanel\'s walks pass folders the program folder\'s walk did not hold to the rule',
      "^function IsAtOrAboveChecked(Folder: String): Boolean; var szFolder: String; begin Result := false; if g_szFolderAboveChecked = '' then Exit; szFolder := AddBackslash(Folder); Result := CompareText(Copy(AddBackslash(g_szFolderAboveChecked), 1, Length(szFolder)), szFolder) = 0; end;$"),
     ('CheckProgramFolders', 'the program folder\'s walk passes a folder above it unasked',
-     "g_szFolderAboveChecked := ''; CheckProgramFolderPermissions(szApp, false); if not HoldFolderChain(szApp, 0,"),
+     "g_szFolderAboveChecked := ''; g_hProgramFolderPrepared := -1; g_hBinPrepared := -1; g_hControlPanelPrepared := -1; g_bProgramFolderHardened := false; "
+     "CheckProgramFolderPermissions(szApp, false); if not HoldFolderChain(szApp, 0,"),
     ('CheckProgramFolders', 'Bin\'s and ControlPanel\'s walks are not held to the rule past what the program folder\'s walk held',
      "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0,"),
     ('LinkTarget', 'a link to a share is gone through',
@@ -792,15 +795,20 @@ PROGRAM_FOLDER_STATEMENTS = (
      "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or "
      "FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);"),
     ('PrepareProgramFolders', 'a program folder that could not be hardened is installed into',
-     "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end;"),
+     "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end "
+     "else g_bProgramFolderHardened := true; end; g_hProgramFolderPrepared := g_hProgramFolder;"),
     ('PrepareProgramFolders', 'a Bin that is there is not hardened, or one that could not be is installed into',
-     "if g_bBinThere then begin if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
+     "if g_bBinThere then begin if FolderHoldsNothing(g_szBinReal) and HeldLetsOthersWrite(g_hBin) then begin if not RemakeEmptyFolder(g_szBinReal, g_hBin, 1, hMade, szWhy) then begin Result := ~; Exit; end; "
+     "g_hBinPrepared := hMade; end else if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end else g_hBinPrepared := g_hBin; end"),
     ('PrepareProgramFolders', 'a Bin that is not there is not made by setup',
-     "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then begin Result := ~; Exit; end;"),
+     "end else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then begin Result := ~; Exit; end else g_hBinPrepared := hMade;"),
     ('PrepareProgramFolders', 'a ControlPanel that is there is not hardened, or one that could not be is installed into',
-     "if g_bControlPanelThere then begin if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then begin Result := ~; Exit; end; end"),
+     "if g_bControlPanelThere then begin if FolderHoldsNothing(g_szControlPanelReal) and HeldLetsOthersWrite(g_hControlPanel) then begin if not RemakeEmptyFolder(g_szControlPanelReal, g_hControlPanel, 2, hMade, szWhy) then "
+     "begin Result := ~; Exit; end; g_hControlPanelPrepared := hMade; end else if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then "
+     "begin Result := ~; Exit; end else g_hControlPanelPrepared := g_hControlPanel; end"),
     ('PrepareProgramFolders', 'a ControlPanel that is not there is not made by setup',
-     "end else if ControlPanelIsInstalled() then if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, hMade, szWhy) then begin Result := ~; Exit; end;"),
+     "end else if ControlPanelIsInstalled() then begin if not MakeFolders(g_szControlPanelHeld, g_hControlPanel, g_szControlPanelReal, 2, hMade, szWhy) then begin Result := ~; Exit; end; "
+     "g_hControlPanelPrepared := hMade; end;"),
     ('PrepareProgramFolders', 'what is in Bin and ControlPanel is not looked at again once they are hardened',
      "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, true, false, found, szWhy); if g_bControlPanelThere then "
      "CheckWhatIsInside(g_szControlPanelReal, 0, true, false, found, szWhy); if g_bProgramFolderThere then "
@@ -818,7 +826,7 @@ PROGRAM_FOLDER_STATEMENTS = (
      "else if not Adopt then begin Why := ~; FreeWindowsMemory(pDescriptor); Exit; end else begin "
      "Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, Why);"),
     ('HardenHeldFolder', 'a hardened folder is not read again',
-     "if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then begin Why := ~; Exit; end; if bTrusted then SayWriteEntriesKept(Folder, HeldHandle); Result := true;"),
+     "if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then begin Why := ~; Exit; end; if bTrusted then SayWriteEntriesKept(Folder, HeldHandle) else begin"),
     ('HeldFolderIsHardened', 'a list that still inherits is taken for hardened',
      "else if (control and HM_DACL_PROTECTED) = 0 then Why := "),
     ('HeldFolderIsHardened', 'a folder another account still owns is taken for hardened',
@@ -880,6 +888,45 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then Result := false;"),
     ('LinkIsAdministratorsAlone', 'the folder a link is in is not asked about unless the link is in the program folder itself',
      "FreeWindowsMemory(pDescriptor); if not Result then Exit; if hParent = -1 then Exit; Result := false;"),
+    ('RemakeEmptyFolder', 'a Bin or ControlPanel that holds nothing is not let go, removed and made again, or a failure of either is taken (the review of 26 October 2026)',
+     "parent := HoldForSetup(szParent); if parent = -1 then begin Why := ~; Exit; end; LetGoOfHeld(HeldHandle); if not RemoveDir(Folder) then begin Why := ~; Exit; end; Log(~); Result := MakeFolders(szParent, parent, Folder, Kind, MadeHandle, Why);"),
+    ('HeldLetsOthersWrite', 'a folder another account could write before it was hardened is taken for one it could not, or one that cannot be read is',
+     "Result := true; pOwner := 0; pDacl := 0; pDescriptor := 0; if ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) <> 0 then Exit; "
+     "if IsTrustedSid(pOwner) then Result := AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho);"),
+    ('LetGoOfHeld', 'a folder let go is let go again at the end, or another is',
+     "if g_aHeldFolders[index] = Handle then begin ReleaseFolder(Handle); last := GetArrayLength(g_aHeldFolders) - 1; g_aHeldFolders[index] := g_aHeldFolders[last]; SetArrayLength(g_aHeldFolders, last); end;"),
+    ('FolderHoldsNothing', 'a folder that holds something is taken for empty, or an empty one for one that holds something',
+     "Result := false; if FindFirst(AddBackslash(Folder) + '*', rec) then begin try Result := true; repeat if (rec.Name <> '.') and (rec.Name <> '..') then Result := false; until (not Result) or (not FindNext(rec));"),
+    ('CheckWhatIsInside', 'an empty folder in Bin, ControlPanel or the folders that hold what is run is left, once they are hardened, for a handle opened before to make a junction',
+     "if Final and FolderHoldsNothing(szItem) then begin if RemoveDir(szItem) then Log('Setup removed ' + szItem + ', an empty folder there before this installation"),
+    ('CheckWhatIsInside', 'an empty folder that could not be removed is taken',
+     "Log('The program folder: refused, ' + szText); Result := false; end; end else begin SetArrayLength(folders, count + 1);"),
+    ('CheckWhatElseIsInside', 'an empty folder of the program folder\'s own level is left, once it is hardened, for a handle opened before to make a junction',
+     "else if Final and bFolder and (not bLink) and (not bData) and FolderHoldsNothing(szItem) then begin @@if RemoveDir(szItem) then Log('Setup removed ' + szItem + ', an empty folder there before this installation"),
+    ('ItemIsIn', 'what the path reaches is taken for what is in the folder setup holds without being read through the two handles',
+     "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then Exit; szItem := FinalPathOfHeld(handle); ReleaseFolder(handle); szFolder := FinalPathOfHeld(FolderHandle); if (szItem <> '') and (szFolder <> '') then Result := CompareText(szItem, AddBackslash(szFolder) + ExtractFileName(Item)) = 0;"),
+    ('NothingTurnedIn', 'a link or an empty folder setup did not leave is taken after the files, or left where it is',
+     "if bLink or (bFolder and FolderHoldsNothing(szItem)) then begin if bLink then szWhat := ~ else szWhat := ~; if bLink and (not bFolder) then DeleteFile(szItem) else RemoveDir(szItem); Found := Found + 1;"),
+    ('NothingTurnedIn', 'what is below the first level is not looked at after the files',
+     "for index := 0 to count - 1 do if not NothingTurnedIn(folders[index], Depth + 1, Found, Why) then Result := false;"),
+    ('PreparedFolderIsAsLeft', 'a folder setup prepared is taken after the files as a link, reached elsewhere by its path, or with its permissions changed',
+     "Result := false; if HeldIsLink(Handle, bKnown) then Why := ~ else if (Item <> '') and (not ItemIsIn(Item, Handle)) then Why := ~ else if Hardened and (not HeldFolderIsHardened(Handle, false, szWhy)) then Why := ~ else Result := true;"),
+    ('FoldersStillAsPrepared', 'the program folder and Bin are not read again after the files',
+     "if g_hProgramFolderPrepared <> -1 then PreparedFolderIsAsLeft(g_szProgramFolderReal, g_hProgramFolderPrepared, szApp + 'Bin', g_bProgramFolderHardened, Why); if g_hBinPrepared <> -1 then PreparedFolderIsAsLeft(g_szBinReal, g_hBinPrepared, szApp + 'Bin\\hMailServer.INI', true, Why);"),
+    ('FoldersStillAsPrepared', 'ControlPanel is not read again after the files',
+     "if ControlPanelIsInstalled() then PreparedFolderIsAsLeft(g_szControlPanelReal, g_hControlPanelPrepared, szApp + 'ControlPanel\\hMailCP.exe', true, Why) else PreparedFolderIsAsLeft(g_szControlPanelReal, g_hControlPanelPrepared, '', true, Why);"),
+    ('FoldersStillAsPrepared', 'what is in Bin, ControlPanel and the folders that hold what is run is not looked at after the files',
+     "NothingTurnedIn(szApp + 'Bin', 0, found, Why); NothingTurnedIn(szApp + 'ControlPanel', 0, found, Why); for index := 0 to 4 do begin case index of 0: NothingTurnedIn(szApp + 'Addons', 0, found, Why); 1: NothingTurnedIn(szApp + 'Events', 0, found, Why); 2: NothingTurnedIn(szApp + 'DBScripts', 0, found, Why); 3: NothingTurnedIn(szApp + 'WebAdmin', 0, found, Why); 4: NothingTurnedIn(szApp + 'Languages', 0, found, Why); end; end; Result := Why = '';"),
+    ('CurStepChanged', 'the folders are not read again before setup runs a program of the installation, or what is not as left does not fail it and keep the service from starting',
+     "g_bFilesInstalled := true; @@if not FoldersStillAsPrepared(szWhy) then begin g_bStepsIncomplete := true; KeepServiceFromStarting(); RaiseException("),
+    ('KeepServiceFromStarting', 'the service is not set not to start',
+     "if Exec(ExpandConstant('{sys}\\sc.exe'), 'config hMailServer start= disabled', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then"),
+    ('LinkRemedy', 'the remedy of a link does not say that a restart takes away what a program opened it for',
+     "/L /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F *S-1-5-32-545:RX - restarts Windows, since a program that opened the link while another account could ' + 'change it keeps that right until it closes it, and runs setup again"),
+    ('HardenHeldFolder', 'the earlier installation\'s folder another account owned is not said, with the restart that takes its handles away',
+     "if bTrusted then SayWriteEntriesKept(Folder, HeldHandle) else begin @@szText := ~; Log('The program folder: ' + szText); g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10; end; Result := true;"),
+    ('PrepareProgramFolders', 'a program folder setup made is not held for the look after the files',
+     "else begin g_hProgramFolderPrepared := hMade; g_bProgramFolderHardened := true; end;"),
     ('SayWriteEntriesKept', 'an entry kept that lets an account other than the three write is not said',
      "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and "
      "(not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then"),
@@ -1011,6 +1058,10 @@ def check_program_folders(texts, problems):
     if 'IsComponentSelected(' in prepare or 'IsComponentSelected(' in check:
         problems.append('%s: the program folders are prepared for some components only' % EXTENSION)
     ready = routines['NextButtonClick']
+    after = routines['CurStepChanged']
+    looked = after.find('FoldersStillAsPrepared(')
+    if looked < 0 or any(0 <= after.find(word) < looked for word in ('RunPostInstallTasks()', 'RegisterTypeLib()', 'DeleteOldFiles()')):
+        problems.append('%s: the folders setup prepared are not read again before setup runs a program of the installation' % EXTENSION)
     if re.findall(r'g_bServiceStoppedForSetup\s*:=\s*(\w+)', ext) != ['true']:
         problems.append('%s: whether setup stopped a running service is set other than once, to true, so a later pass may clear it' % EXTENSION)
     if ready.find('CheckProgramFolders(') < 0 or ready.find('CheckProgramFolders(') > ready.find('StopHMailServerService()'):
@@ -1288,7 +1339,43 @@ def negative_controls(texts):
         ('every folder taken for one the program folder\'s walk held to the rule',
          altered(texts, EXTENSION, "   Result := false;\n   if g_szFolderAboveChecked = '' then\n      Exit;", "   Result := true;\n   if g_szFolderAboveChecked = '' then\n      Exit;")),
         ('the program folder\'s own walk passing what is above it as checked',
-         altered(texts, EXTENSION, "g_szFolderAboveChecked := '';\n   CheckProgramFolderPermissions(szApp, false);", "g_szFolderAboveChecked := szApp;\n   CheckProgramFolderPermissions(szApp, false);")),
+         altered(texts, EXTENSION, "g_szFolderAboveChecked := '';\n   g_hProgramFolderPrepared := -1;", "g_szFolderAboveChecked := szApp;\n   g_hProgramFolderPrepared := -1;")),
+        ('an empty Bin that was there hardened, not made again (a handle opened before keeps its rights; the review of 26 October 2026)',
+         altered(texts, EXTENSION, 'if FolderHoldsNothing(g_szBinReal) and HeldLetsOthersWrite(g_hBin) then', 'if false then')),
+        ('an empty ControlPanel that was there hardened, not made again',
+         altered(texts, EXTENSION, 'if FolderHoldsNothing(g_szControlPanelReal) and HeldLetsOthersWrite(g_hControlPanel) then', 'if false then')),
+        ('a folder another account owned taken for one it could not write',
+         altered(texts, EXTENSION, '   if IsTrustedSid(pOwner) then\n      Result := AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho);',
+                 '   Result := AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho);')),
+        ('a folder made again not held to where it is made',
+         altered(texts, EXTENSION, '   Result := MakeFolders(szParent, parent, Folder, Kind, MadeHandle, Why);\n', '   Result := CreateDir(Folder);\n')),
+        ('no folder ever taken for empty',
+         altered(texts, EXTENSION, '         Result := true;\n         repeat\n            if (rec.Name <> \'.\')', '         Result := false;\n         repeat\n            if (rec.Name <> \'.\')')),
+        ('an empty folder in Bin or ControlPanel left once they are hardened',
+         altered(texts, EXTENSION, 'if Final and FolderHoldsNothing(szItem) then', 'if false then')),
+        ('an empty folder of the program folder\'s own level left once it is hardened',
+         altered(texts, EXTENSION, 'else if Final and bFolder and (not bLink) and (not bData) and FolderHoldsNothing(szItem) then', 'else if false then')),
+        ('the folders not read again after the files',
+         altered(texts, EXTENSION, 'if not FoldersStillAsPrepared(szWhy) then', 'if false then')),
+        ('the service let start when the folders are not as setup left them',
+         altered(texts, EXTENSION, '\t    KeepServiceFromStarting();\n', '')),
+        ('the folders not as setup left them ending in exit code 0',
+         altered(texts, EXTENSION, '\t    g_bStepsIncomplete := true;\n\t    KeepServiceFromStarting();', '\t    KeepServiceFromStarting();')),
+        ('a link found after the files left',
+         altered(texts, EXTENSION, 'if bLink or (bFolder and FolderHoldsNothing(szItem)) then', 'if bFolder and FolderHoldsNothing(szItem) then')),
+        ('Bin not held to holding the file setup installed there',
+         altered(texts, EXTENSION, "szApp + 'Bin\\hMailServer.INI', true, Why)", "'', true, Why)")),
+        ('a folder setup prepared not read for a link after the files',
+         altered(texts, EXTENSION, '   if HeldIsLink(Handle, bKnown) then\n      Why := Why + Folder', '   if false then\n      Why := Why + Folder')),
+        ('a folder setup prepared not read for its permissions after the files',
+         altered(texts, EXTENSION, 'else if Hardened and (not HeldFolderIsHardened(Handle, false, szWhy)) then', 'else if false then')),
+        ('what a path reaches taken for what is in the folder held',
+         altered(texts, EXTENSION, 'Result := CompareText(szItem, AddBackslash(szFolder) + ExtractFileName(Item)) = 0;', 'Result := true;')),
+        ('the remedy of a link without the restart',
+         altered(texts, EXTENSION, ' - restarts Windows, since a program that opened the link while another account could \' +\n             \'change it keeps that right until it closes it, and runs setup again;',
+                 ' - and runs setup again;')),
+        ('the earlier installation\'s folder another account owned not said',
+         altered(texts, EXTENSION, "      g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;\n   end;\n   Result := true;\nend;", "   end;\n   Result := true;\nend;")),
         ('the program folder recorded for the uninstaller whatever made it',
          altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder', 'Name: "{app}"; Flags: uninsalwaysuninstall')),
         ('HardenNewProgramFolder back after Inno Setup\'s folder',
@@ -1314,7 +1401,7 @@ def negative_controls(texts):
         ('a Bin that is not there left to Inno Setup to make',
          altered(texts, EXTENSION, 'end\n   else if not MakeFolders(g_szBinHeld, g_hBin, g_szBinReal, 1, hMade, szWhy) then', 'end\n   else if false then')),
         ('a ControlPanel that is not there left to Inno Setup to make',
-         altered(texts, EXTENSION, 'else if ControlPanelIsInstalled() then\n      if not MakeFolders(', 'else if false then\n      if not MakeFolders(')),
+         altered(texts, EXTENSION, 'else if ControlPanelIsInstalled() then\n   begin\n      if not MakeFolders(', 'else if false then\n   begin\n      if not MakeFolders(')),
         # R2: hardened before the files, or refused.
         ('every path up to 300 characters taken for a drive\'s root (nothing made or hardened)',
          altered(texts, EXTENSION, '   Result := Length(Path) <= 3;\n', '   Result := Length(Path) <= 300;\n')),
@@ -1328,10 +1415,10 @@ def negative_controls(texts):
         ('the program folder\'s owner never asked (every program folder taken for a volume\'s root)',
          altered(texts, EXTENSION, 'if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then', 'if g_bProgramFolderThere and false then')),
         ('an existing Bin never hardened (its condition inverted)',
-         altered(texts, EXTENSION, 'if g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal', 'if not g_bBinThere then\n   begin\n      if not HardenHeldFolder(g_szBinReal')),
+         altered(texts, EXTENSION, 'if g_bBinThere then\n   begin\n      if FolderHoldsNothing(g_szBinReal)', 'if not g_bBinThere then\n   begin\n      if FolderHoldsNothing(g_szBinReal)')),
         ('an existing ControlPanel never hardened (its condition inverted)',
-         altered(texts, EXTENSION, 'if g_bControlPanelThere then\n   begin\n      if not HardenHeldFolder(g_szControlPanelReal',
-                 'if not g_bControlPanelThere then\n   begin\n      if not HardenHeldFolder(g_szControlPanelReal')),
+         altered(texts, EXTENSION, 'if g_bControlPanelThere then\n   begin\n      if FolderHoldsNothing(g_szControlPanelReal)',
+                 'if not g_bControlPanelThere then\n   begin\n      if FolderHoldsNothing(g_szControlPanelReal)')),
         ('a Bin that could not be hardened installed into (the result unused)',
          altered(texts, EXTENSION, 'if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then',
                  'HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy);\n      if false then')),
@@ -1471,7 +1558,7 @@ def negative_controls(texts):
          altered(texts, EXTENSION, "(not IsTrustedSid(pAce + 8)) and\n               (not SidIs(pAce + 8, 'S-1-3-0'))",
                  "IsBroadSid(pAce + 8) and\n               (not SidIs(pAce + 8, 'S-1-3-0'))")),
         ('the entries kept on a folder the administrators own not said',
-         altered(texts, EXTENSION, '      SayWriteEntriesKept(Folder, HeldHandle);\n', '')),
+         altered(texts, EXTENSION, '      SayWriteEntriesKept(Folder, HeldHandle)\n', '      Log(Folder)\n')),
         # The service.
         ('the folders checked after the service is stopped',
          altered(texts, EXTENSION, "\t\tg_szFolderRefusal := CheckProgramFolders(PreviousInstallationFolder());\n\t\tif g_szFolderRefusal <> '' then\n\t\t\tExit;\n", '')),

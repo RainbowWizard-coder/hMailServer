@@ -110,14 +110,17 @@
    (-InstallDirectory) is to be found as - as the administrator; what a standard
    account owns is made and given to the account hmsmokeuser, which the run makes:
      precreated-admin  the program folder and Bin, inheriting from the folder above:
-                       hardened before the files, ControlPanel made by setup (R2);
+                       the program folder hardened before the files, Bin, empty and
+                       open to other accounts, made again by setup, ControlPanel made
+                       by setup (R2);
      precreated-user   the same owned by hmsmokeuser, with Full control of its own,
                        and Bin\notes.txt it owns: refused, exit code 7 - the account
                        may hold its folder open - nothing written (R2);
      precreated-user-locked  the program folder made by the administrator, Bin owned
                        by hmsmokeuser with a list of its own that leaves SYSTEM and
                        the Administrators no right to change it: refused, exit 7 (R2);
-     earlier-user-locked  the same, the program folder recorded as the earlier
+     earlier-user-locked  the same, with Bin\hMailServer.INI the administrator
+                       made, the program folder recorded as the earlier
                        installation's (InstallLocation): Bin given to the
                        Administrators with takeown /A and rebuilt, exit 0 (R2);
      data-inherits     the program folder, Bin and an inheriting Data made by the
@@ -140,6 +143,12 @@
                        through, its target hardened (R3);
      bin-link-user     the program folder made by the administrator and Bin a
                        junction hmsmokeuser owns: refused, exit code 7 (R3);
+     held-open         the program folder and an empty Bin, inheriting from the
+                       folder above, and Bin held open for writing by this script
+                       before the installer, which makes it a junction to
+                       C:\hm-linktarget through that handle the moment the
+                       uninstaller appears in the program folder: setup made Bin
+                       again, and nothing was copied through the junction (R2);
      nested-new        nothing: -InstallDirectory is two or more folders below one
                        that is there, and every folder setup makes has permissions of
                        its own; with -Components controlpanel the uninstall leaves
@@ -212,7 +221,7 @@ param(
    [switch] $DatabaseInEnvironment,
    [string] $InstallDirectory = '',
    [switch] $WeakParent,
-   [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new')]
+   [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -2630,6 +2639,74 @@ function Stop-FolderWatch($Watch) {
    return $Watch.Sync
 }
 
+# Work item 78's R2, the held-open case: a program that opened a folder for writing
+# while it let others write keeps that right after setup hardens it, and may make the
+# folder, while it is empty, a junction. A runspace of its own opens Folder for writing
+# its data (FILE_WRITE_DATA, every sharing, the folder itself), before the installer,
+# then waits for Marker - the uninstaller, which Inno Setup copies into the program
+# folder before Bin's files - and makes Folder a junction to Target through that handle,
+# holding it until it is stopped. What it did is in its Sync.
+$HeldOpenTurnScript = {
+   param([string] $Folder, [string] $Marker, [string] $Target, [int] $Minutes, $Sync)
+   try {
+      Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class HmHeldOpenTurn {
+  [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
+  public static extern IntPtr CreateFileW(string n, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  public static extern bool CloseHandle(IntPtr h);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  public static extern bool DeviceIoControl(IntPtr h, uint code, byte[] inb, int inl, IntPtr outb, int outl, out int ret, IntPtr ov);
+  public static int Turn(IntPtr h, string target) {
+    byte[] s = Encoding.Unicode.GetBytes("\\??\\" + target);
+    byte[] p = Encoding.Unicode.GetBytes(target);
+    int pathBuf = s.Length + 2 + p.Length + 2;
+    byte[] b = new byte[16 + pathBuf];
+    BitConverter.GetBytes((uint)0xA0000003).CopyTo(b, 0);
+    BitConverter.GetBytes((ushort)(8 + pathBuf)).CopyTo(b, 4);
+    BitConverter.GetBytes((ushort)s.Length).CopyTo(b, 10);
+    BitConverter.GetBytes((ushort)(s.Length + 2)).CopyTo(b, 12);
+    BitConverter.GetBytes((ushort)p.Length).CopyTo(b, 14);
+    s.CopyTo(b, 16);
+    p.CopyTo(b, 16 + s.Length + 2);
+    int r;
+    return DeviceIoControl(h, 0x000900A4, b, b.Length, IntPtr.Zero, 0, out r, IntPtr.Zero) ? 0 : Marshal.GetLastWin32Error();
+  }
+}
+'@
+      $handle = [HmHeldOpenTurn]::CreateFileW($Folder, 0x2, 7, [IntPtr]::Zero, 3, 0x02200000, [IntPtr]::Zero)
+      if ($handle -eq [IntPtr]-1) { $Sync['Error'] = "$Folder could not be opened for writing: Windows error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"; $Sync['Ready'] = $true; return }
+      $Sync['Ready'] = $true
+      $deadline = (Get-Date).AddMinutes($Minutes)
+      while (-not $Sync['Stop'] -and (Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $Marker)) { [System.Threading.Thread]::Sleep(2) }
+      if (Test-Path -LiteralPath $Marker) {
+         $Sync['MarkerAt'] = (Get-Date).ToString('HH:mm:ss.fff')
+         $result = [HmHeldOpenTurn]::Turn($handle, $Target)
+         $Sync['Turned'] = ($result -eq 0)
+         $Sync['TurnResult'] = $(if ($result -eq 0) { 'made a junction' } else { "refused, Windows error $result" })
+      }
+      else { $Sync['TurnResult'] = "$Marker never appeared" }
+      while (-not $Sync['Stop'] -and (Get-Date) -lt $deadline) { [System.Threading.Thread]::Sleep(50) }
+      [void] [HmHeldOpenTurn]::CloseHandle($handle)
+   }
+   catch { $Sync['Error'] = "$_"; $Sync['Ready'] = $true }
+}
+
+function Start-HeldOpenTurn([string] $Folder, [string] $Marker, [string] $Target) {
+   $sync = [hashtable]::Synchronized(@{ Stop = $false })
+   $runspace = [runspacefactory]::CreateRunspace()
+   $runspace.Open()
+   $shell = [powershell]::Create()
+   $shell.Runspace = $runspace
+   [void] $shell.AddScript($HeldOpenTurnScript).AddArgument($Folder).AddArgument($Marker).AddArgument($Target).AddArgument($TimeoutMinutes).AddArgument($sync)
+   $handle = $shell.BeginInvoke()
+   [void] (Wait-Until 60 { $sync.ContainsKey('Ready') })
+   return [pscustomobject] @{ Shell = $shell; Runspace = $runspace; Handle = $handle; Sync = $sync }
+}
+
 # Work item 78's R1: a program folder the installer made had permissions of its own
 # from the first moment it was there - no inherited entry, nothing that lets a group
 # of every user change it - and Inno Setup did not make it: setup did, in
@@ -2683,7 +2760,9 @@ function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, 
             $hardened = -1
             $copied = -1
             for ($index = 0; $index -lt $lines.Count; $index++) {
-               if ($hardened -lt 0 -and $lines[$index] -match "(icacls hardened $escaped before the files|$escaped was owned by an account other than SYSTEM)") { $hardened = $index }
+               # Hardened, rebuilt, or - one that held nothing and was open to other
+               # accounts - made again by setup (RemakeEmptyFolder).
+               if ($hardened -lt 0 -and $lines[$index] -match "(icacls hardened $escaped before the files|$escaped was owned by an account other than SYSTEM|Setup made $escaped with permissions of its own)") { $hardened = $index }
                if ($copied -lt 0 -and $lines[$index] -match "Dest filename: $escaped\\") { $copied = $index }
             }
             if ($hardened -lt 0) { throw "Inno's log does not say $folder was hardened before the files" }
@@ -2852,6 +2931,9 @@ function New-FolderCase {
       'earlier-user-locked' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
          Set-LockedByAccount (Join-Path $app 'Bin')
+         # An earlier installation's Bin holds its settings file: a Bin that holds
+         # nothing setup makes again rather than takes (RemakeEmptyFolder).
+         Set-Content -LiteralPath (Join-Path $app 'Bin\hMailServer.INI') -Value '[Directories]' -Encoding ASCII
          # The earlier installation's folder as section_registry.iss records it, in the
          # 32-bit view (PreviousInstallationFolder): the VM is reverted after the run.
          New-Item -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Force | Out-Null
@@ -2906,6 +2988,11 @@ function New-FolderCase {
          Set-OwnedByAccount (Join-Path $app 'Bin') -Link
          "$app made by the administrator, $app\Bin a junction to $LinkTarget owned by ${SmokeAccountName}: $(Get-LinkList (Join-Path $app 'Bin'))"
       }
+      'held-open' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         New-LinkTarget $LinkTarget
+         "$app and $app\Bin made by the administrator, inheriting from the folder above; Bin to be held open for writing before the installer"
+      }
       'nested-new' {
          $top = $app
          while ((Split-Path -Parent $top) -and -not (Test-Path -LiteralPath (Split-Path -Parent $top))) { $top = Split-Path -Parent $top }
@@ -2934,7 +3021,7 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # folder is kept as it was, or which check what the uninstall leaves. One installer,
 # its exit code held to the case, what it wrote checked, and an uninstall when
 # anything was installed.
-$FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new')
+$FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open')
 $RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user')
 $LinkCases = @('link-user', 'link-admin', 'bin-link-user')
 # What a refused case's refusal says, and the remedy it gives (Inno's log, "Refused:").
@@ -2960,10 +3047,18 @@ function Invoke-FocusedRun([string] $Version) {
    $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$log", "/DIR=$app")
    if ($Components) { $arguments += "/COMPONENTS=$Components" } else { $arguments += '/TYPE=full' }
    if (-not $State.PasswordInEnvironment) { $arguments += "/adminpassword=$AdminPassword" }
+   $turn = $null
+   if ($FolderCase -eq 'held-open') {
+      $turn = Start-HeldOpenTurn (Join-Path $app 'Bin') (Join-Path $app 'unins000.exe') $LinkTarget
+      if ($turn.Sync['Error']) { Write-Result 'FAIL' "case ${FolderCase}: Bin held open before the installer" $turn.Sync['Error'] }
+   }
    $watch = Start-FolderWatch $app
    $code = -1
    try { $code = Invoke-WithAdminPassword { Invoke-SetupForExitCode $Installer $arguments $log } }
-   finally { $watched = Stop-FolderWatch $watch }
+   finally {
+      $watched = Stop-FolderWatch $watch
+      if ($turn) { $turned = Stop-FolderWatch $turn }
+   }
 
    if ($refused) {
       $pattern = Get-RefusalPattern
@@ -3010,6 +3105,19 @@ function Invoke-FocusedRun([string] $Version) {
    Test-FoldersMadeBeforeTheFiles "case $FolderCase" $Version $watched $log $missing
 
    switch ($FolderCase) {
+      'held-open' {
+         Write-Info "case ${FolderCase}: the handle opened before the installer" ("$(if ($turned['MarkerAt']) { "at $($turned['MarkerAt']), when the uninstaller appeared: " })$($turned['TurnResult'])$(if ($turned['Error']) { "; $($turned['Error'])" })")
+         [void] (Test-Step "case ${FolderCase}: nothing was copied through the junction the handle opened before the installer made, and Bin is the folder setup made again (work item 78, R2)" {
+               $bin = Join-Path $app 'Bin'
+               $written = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+               if ($written.Count -gt 0) { Write-Detail $written 10; throw "$($written.Count) files and folders are in $LinkTarget, where the junction made through the handle leads" }
+               $item = Get-Item -LiteralPath $bin -Force
+               if ($item.LinkType) { throw "$bin is a $($item.LinkType) to $(@($item.Target)[0])" }
+               if (-not (Test-Path -LiteralPath (Join-Path $bin 'hMailServer.exe'))) { throw "$bin holds no hMailServer.exe" }
+               if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed ' + [regex]::Escape($bin) + ', which was there and held nothing') -Quiet)) { throw 'the setup log does not say setup removed Bin to make it again' }
+               "$LinkTarget is empty; $bin is a folder holding the installation's files, made again by setup"
+            })
+      }
       'broad-entry' {
          [void] (Test-Step "case ${FolderCase}: the entry of the program folder's own that let Authenticated Users change it was taken away before the files, and the setup log says so and who owns Bin\notes.txt (work item 78, R2 and R4)" {
                $taken = Select-String -LiteralPath $log -Pattern ('icacls took away the entries of ' + [regex]::Escape($app) + '''s own for \*S-1-5-11, a group of every user') | Select-Object -First 1
