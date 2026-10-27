@@ -124,7 +124,10 @@
      earlier-user-locked  the same, with Bin\hMailServer.INI the administrator
                        made, the program folder recorded as the earlier
                        installation's (InstallLocation): Bin given to the
-                       Administrators with takeown /A and rebuilt, exit 0 (R2);
+                       Administrators with takeown /A and rebuilt, and the
+                       installation refused until Windows has restarted, exit 7, a
+                       second run refused by the record, and, the record taken away
+                       as a restart takes it, installed, exit 0 (R2);
      data-inherits     the program folder, Bin and an inheriting Data made by the
                        administrator, no ControlPanel: the program folder hardened
                        before the files, Bin, which holds nothing, made again,
@@ -134,8 +137,9 @@
                        written (R4);
      broad-entry       the program folder with an entry of its own giving
                        Authenticated Users Modify, and Bin\notes.txt hmsmokeuser
-                       owns: the entry taken away before the files and the file
-                       said in the setup log (R2, R4);
+                       owns: the entry taken away and the installation refused until
+                       Windows has restarted, exit 7, refused again by the record, then
+                       installed with the file said in the setup log (R2, R4);
      link-user         the program folder a junction to C:\hm-linktarget that
                        hmsmokeuser owns: refused, exit code 7, nothing written
                        through it (R3);
@@ -153,7 +157,27 @@
                        folder's Data appears - after PrepareToInstall, before any
                        file is copied: setup removed Bin and made it again before
                        its first file, and nothing was copied through the junction
-                       (R2); the base, which hardens Bin in place, copies through it;
+                       (R2); the base, which does not harden Bin before the files,
+                       copies through it;
+     held-full         the program folder, Bin and Bin\notes.txt, inheriting from the
+                       folder above, Bin held open for writing and notes.txt for
+                       deleting before the installer, the file deleted and Bin made a
+                       junction through those handles the moment Data appears: Bin
+                       and the program folder hardened and the installation refused
+                       until Windows has restarted, exit 7, nothing copied through,
+                       refused again by the record, then, the handles closed and the
+                       record taken away, installed into the folder Bin is (R2); the
+                       base copies through the junction;
+     dac-handle        the program folder with an entry of its own giving Everyone
+                       Full control, held open with WRITE_DAC before the installer:
+                       hardened and refused until Windows has restarted, exit 7,
+                       refused again, then installed with no entry for Everyone (R2,
+                       R3); the base installs at once;
+     copy-fails        -InstallDirectory two folders below a drive's root, a 64 MB
+                       volume mounted on the folder between: setup makes the program
+                       folder, Bin and ControlPanel there, the copy fails for want of
+                       space, and setup leaves nothing it made (R1); the base leaves
+                       Bin, and so the program folder;
      nested-new        nothing: -InstallDirectory is two or more folders below one
                        that is there, and every folder setup makes has permissions of
                        its own; with -Components controlpanel the uninstall leaves
@@ -181,8 +205,8 @@
    -Components LIST installs the first installer with /COMPONENTS=LIST rather than
    /TYPE=full - controlpanel for the Control Panel alone. A run with -Components, or
    one of the cases a whole server installation does not run (all but
-   precreated-admin), is one installer with the case's checks and an uninstall,
-   without the server's.
+   precreated-admin), is one installer - the same one three times for a case refused until a
+   restart - with the case's checks and an uninstall, without the server's.
 
    A new installation and an upgrade from a release without the defaults are two
    runs, each on the clean machine: the new installer alone, and the previous
@@ -247,7 +271,7 @@ param(
    [string] $InstallDirectory = '',
    [switch] $WeakParent,
    [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
-                'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied')]
+                'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -966,6 +990,28 @@ function Get-BroadWriters([string] $Path, [string[]] $Sids = $BroadGroupSids) {
       if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
       if ($Sids -notcontains $rule.IdentityReference.Value) { continue }
       if (([long] $rule.FileSystemRights -band $WriteRightsMask) -ne 0) { $found += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
+   }
+   return $found
+}
+
+# The allow entries of a folder above the program folder that apply to it and give a
+# group of every user a right the installer refuses there (HM_REPLACE_RIGHTS,
+# FolderAboveIsAdministratorsAlone; AdminUpdateChecks.cpp's ReplaceRights_): renaming or
+# removing it, removing what is in it, changing who may, or GENERIC_ALL unmapped - not
+# adding to it. A folder given the refusal's remedy (icacls /inheritance:d, then
+# /remove:g *S-1-5-11) keeps the drive root's BUILTIN\Users (CI)(AD) and (CI)(IO)(WD) as
+# entries of its own, which let Users make a folder or a file in it and nothing more,
+# and which the installer, rightly, does not count (smoke run 4, 27 October 2026: the
+# case's own check counted every write right and refused the remedy the installer takes).
+$ReplaceRightsMask = 0x100D0040
+function Get-BroadReplacers([string] $Path) {
+   $acl = Get-Acl -LiteralPath $Path
+   $found = @()
+   foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow) { continue }
+      if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+      if ($BroadGroupSids -notcontains $rule.IdentityReference.Value) { continue }
+      if (([long] $rule.FileSystemRights -band $ReplaceRightsMask) -ne 0) { $found += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
    }
    return $found
 }
@@ -2678,7 +2724,7 @@ function Stop-FolderWatch($Watch) {
 # junction to Target through that handle, holding it until it is stopped. What it did
 # is in its Sync.
 $HeldOpenTurnScript = {
-   param([string] $Folder, [string] $Marker, [string] $Target, [int] $Minutes, $Sync)
+   param([string] $Folder, [string] $Marker, [string] $Target, [int] $Minutes, $Sync, [string] $DeleteFirst)
    try {
       Add-Type -TypeDefinition @'
 using System;
@@ -2691,6 +2737,14 @@ public static class HmHeldOpenTurn {
   public static extern bool CloseHandle(IntPtr h);
   [DllImport("kernel32.dll", SetLastError=true)]
   public static extern bool DeviceIoControl(IntPtr h, uint code, byte[] inb, int inl, IntPtr outb, int outl, out int ret, IntPtr ov);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  public static extern bool SetFileInformationByHandle(IntPtr h, int infoClass, ref uint info, int size);
+  public static int Delete(IntPtr h) {
+    uint posix = 3;
+    if (SetFileInformationByHandle(h, 21, ref posix, 4)) return 0;
+    uint classic = 1;
+    return SetFileInformationByHandle(h, 4, ref classic, 1) ? 0 : Marshal.GetLastWin32Error();
+  }
   public static int Turn(IntPtr h, string target) {
     byte[] s = Encoding.Unicode.GetBytes("\\??\\" + target);
     byte[] p = Encoding.Unicode.GetBytes(target);
@@ -2710,29 +2764,102 @@ public static class HmHeldOpenTurn {
 '@
       $handle = [HmHeldOpenTurn]::CreateFileW($Folder, 0x2, 7, [IntPtr]::Zero, 3, 0x02200000, [IntPtr]::Zero)
       if ($handle -eq [IntPtr]-1) { $Sync['Error'] = "$Folder could not be opened for writing: Windows error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"; $Sync['Ready'] = $true; return }
+      # held-full: a file in Folder held open for deleting too, before the installer,
+      # deleted through that handle when the marker appears, so that Folder is empty
+      # for the junction (check 4 of R1 to R4, 27 October 2026).
+      $doomed = [IntPtr]::Zero
+      if ($DeleteFirst) {
+         $doomed = [HmHeldOpenTurn]::CreateFileW($DeleteFirst, 0x10000, 7, [IntPtr]::Zero, 3, 0, [IntPtr]::Zero)
+         if ($doomed -eq [IntPtr]-1) { $Sync['Error'] = "$DeleteFirst could not be opened for deleting: Windows error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"; $Sync['Ready'] = $true; return }
+      }
       $Sync['Ready'] = $true
       $deadline = (Get-Date).AddMinutes($Minutes)
       while (-not $Sync['Stop'] -and (Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $Marker)) { [System.Threading.Thread]::Sleep(2) }
       if (Test-Path -LiteralPath $Marker) {
          $Sync['MarkerAt'] = (Get-Date).ToString('HH:mm:ss.fff')
+         if ($doomed -ne [IntPtr]::Zero) {
+            $deleted = [HmHeldOpenTurn]::Delete($doomed)
+            [void] [HmHeldOpenTurn]::CloseHandle($doomed)
+            $doomed = [IntPtr]::Zero
+            $Sync['Deleted'] = $(if ($deleted -eq 0) { "deleted $DeleteFirst through its handle" } else { "could not delete $DeleteFirst through its handle, Windows error $deleted" })
+         }
          $result = [HmHeldOpenTurn]::Turn($handle, $Target)
          $Sync['Turned'] = ($result -eq 0)
          $Sync['TurnResult'] = $(if ($result -eq 0) { 'made a junction' } else { "refused, Windows error $result" })
       }
       else { $Sync['TurnResult'] = "$Marker never appeared" }
       while (-not $Sync['Stop'] -and (Get-Date) -lt $deadline) { [System.Threading.Thread]::Sleep(50) }
+      if ($doomed -ne [IntPtr]::Zero) { [void] [HmHeldOpenTurn]::CloseHandle($doomed) }
       [void] [HmHeldOpenTurn]::CloseHandle($handle)
    }
    catch { $Sync['Error'] = "$_"; $Sync['Ready'] = $true }
 }
 
-function Start-HeldOpenTurn([string] $Folder, [string] $Marker, [string] $Target) {
+# dac-handle: a handle on Folder opened with the right to change its permissions
+# (WRITE_DAC | READ_CONTROL, every sharing, the folder itself) while an entry gave it,
+# before the installer, and held until the watch is stopped - what a program another
+# account started would keep after any change of the permissions (check 4 of R1 to R4,
+# 27 October 2026).
+$HeldDacScript = {
+   param([string] $Folder, [int] $Minutes, $Sync)
+   try {
+      Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class HmHeldDac {
+  [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
+  public static extern IntPtr CreateFileW(string n, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  public static extern bool CloseHandle(IntPtr h);
+}
+'@
+      $handle = [HmHeldDac]::CreateFileW($Folder, 0x60000, 7, [IntPtr]::Zero, 3, 0x02200000, [IntPtr]::Zero)
+      if ($handle -eq [IntPtr]-1) { $Sync['Error'] = "$Folder could not be opened with WRITE_DAC: Windows error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"; $Sync['Ready'] = $true; return }
+      $Sync['Ready'] = $true
+      $deadline = (Get-Date).AddMinutes($Minutes)
+      while (-not $Sync['Stop'] -and (Get-Date) -lt $deadline) { [System.Threading.Thread]::Sleep(50) }
+      [void] [HmHeldDac]::CloseHandle($handle)
+   }
+   catch { $Sync['Error'] = "$_"; $Sync['Ready'] = $true }
+}
+
+function Start-HeldDac([string] $Folder) {
    $sync = [hashtable]::Synchronized(@{ Stop = $false })
    $runspace = [runspacefactory]::CreateRunspace()
    $runspace.Open()
    $shell = [powershell]::Create()
    $shell.Runspace = $runspace
-   [void] $shell.AddScript($HeldOpenTurnScript).AddArgument($Folder).AddArgument($Marker).AddArgument($Target).AddArgument($TimeoutMinutes).AddArgument($sync)
+   [void] $shell.AddScript($HeldDacScript).AddArgument($Folder).AddArgument($TimeoutMinutes * 4).AddArgument($sync)
+   $handle = $shell.BeginInvoke()
+   [void] (Wait-Until 60 { $sync.ContainsKey('Ready') })
+   return [pscustomobject] @{ Shell = $shell; Runspace = $runspace; Handle = $handle; Sync = $sync }
+}
+
+# Work item 78 (check 4 of R1 to R4, 27 October 2026): the volatile key in which setup
+# records, until Windows restarts, that it is not to install into a program folder
+# again before then (RecordRestartNeeded), and what it recorded for one; and the key
+# taken away, as a restart takes it away - the stand-in the run uses for a restart of
+# the VM, whose own effect on handles is Windows'.
+$RestartKey = 'HKLM:\SOFTWARE\hMailServerSetupRestart'
+function Get-RestartRecord([string] $App) {
+   $item = Get-ItemProperty -LiteralPath $RestartKey -ErrorAction SilentlyContinue
+   if ($null -eq $item) { return '' }
+   $value = $item.PSObject.Properties | Where-Object { $_.Name -ieq $App } | Select-Object -First 1
+   if ($null -eq $value) { return '' }
+   return [string] $value.Value
+}
+function Clear-RestartRecord {
+   Remove-Item -LiteralPath $RestartKey -Recurse -Force -ErrorAction SilentlyContinue
+   return $(if (Test-Path -LiteralPath $RestartKey) { "$RestartKey is still there" } else { "$RestartKey taken away, as a restart of Windows takes a volatile key away" })
+}
+
+function Start-HeldOpenTurn([string] $Folder, [string] $Marker, [string] $Target, [string] $DeleteFirst = '') {
+   $sync = [hashtable]::Synchronized(@{ Stop = $false })
+   $runspace = [runspacefactory]::CreateRunspace()
+   $runspace.Open()
+   $shell = [powershell]::Create()
+   $shell.Runspace = $runspace
+   [void] $shell.AddScript($HeldOpenTurnScript).AddArgument($Folder).AddArgument($Marker).AddArgument($Target).AddArgument($TimeoutMinutes).AddArgument($sync).AddArgument($DeleteFirst)
    $handle = $shell.BeginInvoke()
    [void] (Wait-Until 60 { $sync.ContainsKey('Ready') })
    return [pscustomobject] @{ Shell = $shell; Runspace = $runspace; Handle = $handle; Sync = $sync }
@@ -3105,9 +3232,43 @@ function New-FolderCase {
             $answer = @(& icacls.exe @arguments 2>&1)
             if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
          }
-         $left = @(Get-BroadWriters $above)
-         if ($left.Count -gt 0) { throw "$above still lets a group of every user change it after the remedy: $($left -join ', ')" }
+         $left = @(Get-BroadReplacers $above)
+         if ($left.Count -gt 0) { throw "$above still lets a group of every user rename it, remove what is in it or change who may after the remedy: $($left -join ', ')" }
          "$above made by the administrator in $root, which hands down Authenticated Users' Modify, and given the refusal's remedy (icacls /inheritance:d, then /remove:g *S-1-5-11): $((@(& icacls.exe $above) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')"
+      }
+      'dac-handle' {
+         New-Item -ItemType Directory -Force -Path $app | Out-Null
+         $answer = @(& icacls.exe $app /grant '*S-1-1-0:(OI)(CI)F' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         "$app made by the administrator with an entry of its own giving Everyone Full control, to be held open with the right to change its permissions before the installer"
+      }
+      'held-full' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
+         New-LinkTarget $LinkTarget
+         $State.CaseFiles = @('Bin\notes.txt')
+         "$app, $app\Bin and $app\Bin\notes.txt made by the administrator, inheriting from the folder above; Bin held open for writing and notes.txt for deleting before the installer, the file deleted and Bin made a junction to $LinkTarget through those handles the moment $app\Data appears"
+      }
+      'copy-fails' {
+         # A volume of its own, too small for the installation, mounted on the folder above
+         # the program folder: setup makes the program folder, Bin and ControlPanel there,
+         # the copy fails for want of space, and nothing setup made is to be left.
+         $mount = Split-Path -Parent $app
+         if ((Split-Path -Parent $mount) -ne ((Split-Path -Qualifier $app) + '\')) { throw "-InstallDirectory $app is not two folders below the root of its drive: copy-fails mounts a small volume on the one between" }
+         $vhd = 'C:\hm-small.vhdx'
+         New-Item -ItemType Directory -Force -Path $mount | Out-Null
+         $script = Join-Path $env:TEMP 'hm-small-diskpart.txt'
+         Set-Content -LiteralPath $script -Encoding ASCII -Value @("create vdisk file=`"$vhd`" maximum=64 type=expandable", "select vdisk file=`"$vhd`"", 'attach vdisk',
+                                                                    'create partition primary', 'format fs=ntfs quick label=hmsmall', "assign mount=`"$mount`"")
+         $answer = Invoke-Native "diskpart.exe /s `"$script`""
+         if ($answer.ExitCode -ne 0) { throw "diskpart /s returned $($answer.ExitCode): $($answer.Output)" }
+         if (((Get-Item -LiteralPath $mount -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) { throw "$mount is not a mount point after diskpart: $($answer.Output)" }
+         foreach ($arguments in @(@($mount, '/L', '/setowner', '*S-1-5-32-544'), @($mount, '/L', '/inheritance:r', '/grant:r', '*S-1-5-18:F', '*S-1-5-32-544:F', '*S-1-5-32-545:RX'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         $State.SmallVolume = $mount
+         "$mount a mount point of a 64 MB volume of its own ($vhd, NTFS), its list the administrators' alone; $app to be made on it, where the files do not fit"
       }
       'nested-new' {
          $top = $app
@@ -3138,12 +3299,29 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # its exit code held to the case, what it wrote checked, and an uninstall when
 # anything was installed.
 $FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
-                  'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied')
+                  'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails')
+# The cases whose folders another account could change before the installer - their
+# permissions, or what is in one that holds something - which setup hardens and then
+# refuses until Windows has restarted (work item 78, check 4 of R1 to R4, 27 October
+# 2026): the installer is run three times, refused, refused again by what setup
+# recorded, and, the record taken away as a restart takes it away and every handle the
+# case held closed, run to the end.
+$RestartCases = @('broad-entry', 'earlier-user-locked', 'dac-handle', 'held-full')
+# What a restart case's refusal names, and the folders setup is to have hardened by then.
+function Get-RestartPattern {
+   $bin = Join-Path $State.App 'Bin'
+   switch ($FolderCase) {
+      'broad-entry' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App, $bin)) }
+      'earlier-user-locked' { return @(([regex]::Escape($bin) + ' was owned by [^;]*' + [regex]::Escape($State.SmokeAccountSid)), @($bin)) }
+      'dac-handle' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-1-0[^;]* change its permissions or its owner'), @($State.App)) }
+      'held-full' { return @(([regex]::Escape($bin) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App, $bin)) }
+   }
+}
 $RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user', 'settings-user', 'events-link', 'volume-root', 'weak-above')
 $LinkCases = @('link-user', 'link-admin', 'bin-link-user', 'events-link')
 # Which of work item 78's R1 to R4 a refused case is for.
 function Get-CaseItem {
-   if ($FolderCase -in @('link-user', 'link-admin', 'bin-link-user', 'weak-above')) { return 'R3' }
+   if ($FolderCase -in @('link-user', 'link-admin', 'bin-link-user', 'weak-above', 'dac-handle')) { return 'R3' }
    if ($FolderCase -in @('foreign-dll', 'settings-user', 'events-link')) { return 'R4' }
    return 'R2'
 }
@@ -3178,16 +3356,104 @@ function Invoke-FocusedRun([string] $Version) {
    if ($Components) { $arguments += "/COMPONENTS=$Components" } else { $arguments += '/TYPE=full' }
    if (-not $State.PasswordInEnvironment) { $arguments += "/adminpassword=$AdminPassword" }
    $turn = $null
+   $dac = $null
    if ($FolderCase -eq 'held-open') {
       $turn = Start-HeldOpenTurn (Join-Path $app 'Bin') (Join-Path $app 'Data') $LinkTarget
       if ($turn.Sync['Error']) { Write-Result 'FAIL' "case ${FolderCase}: Bin held open before the installer" $turn.Sync['Error'] }
+   }
+   if ($FolderCase -eq 'held-full') {
+      $turn = Start-HeldOpenTurn (Join-Path $app 'Bin') (Join-Path $app 'Data') $LinkTarget (Join-Path $app 'Bin\notes.txt')
+      if ($turn.Sync['Error']) { Write-Result 'FAIL' "case ${FolderCase}: Bin and Bin\notes.txt held open before the installer" $turn.Sync['Error'] }
+   }
+   if ($FolderCase -eq 'dac-handle') {
+      $dac = Start-HeldDac $app
+      if ($dac.Sync['Error']) { Write-Result 'FAIL' "case ${FolderCase}: the program folder held open with WRITE_DAC before the installer" $dac.Sync['Error'] }
    }
    $watch = Start-FolderWatch $app
    $code = -1
    try { $code = Invoke-WithAdminPassword { Invoke-SetupForExitCode $Installer $arguments $log } }
    finally {
       $watched = Stop-FolderWatch $watch
-      if ($turn) { $turned = Stop-FolderWatch $turn }
+      if ($turn -and -not ($RestartCases -contains $FolderCase)) { $turned = Stop-FolderWatch $turn }
+   }
+
+   # Work item 78 (check 4 of R1 to R4, 27 October 2026): a folder another account could
+   # change - its permissions, or what is in one that holds something - hardened by setup
+   # and the installation refused until Windows has restarted; a second run before then
+   # refused by what setup recorded; and, every handle the case held closed and the
+   # volatile key taken away, as a restart closes and takes them, the installation run
+   # once more and held to the case's checks.
+   if ($RestartCases -contains $FolderCase) {
+      $restart = Get-RestartPattern
+      $State.FirstLog = $log
+      [void] (Test-Step "case ${FolderCase}: setup hardened what another account could change before the installer and refused until Windows has restarted - exit code 7, PrepareToInstall's (work item 78, $(Get-CaseItem))" {
+            if ($code -ne 7) { throw "it returned $code" }
+            $line = Select-String -LiteralPath $log -Pattern ('Refused: Setup does not install into ' + [regex]::Escape($app) + ' until Windows has restarted: before this installation, .*' + $restart[0]) | Select-Object -First 1
+            if ($null -eq $line) { throw "Inno's log does not refuse until a restart, naming what another account could change (/$($restart[0])/)" }
+            if ($line.Line -notmatch 'Restart Windows, and run setup again') { throw 'the refusal does not say to restart Windows' }
+            if ($line.Line -match 'Setup stopped the hMailServer service') { throw 'the refusal says setup stopped the service: it refuses before the stop' }
+            if (-not (Get-RestartRecord $app)) { throw "$RestartKey does not record $app" }
+            if (Test-Path -LiteralPath (Join-Path $app 'Bin\hMailServer.exe')) { throw "$app\Bin\hMailServer.exe is there: something was installed" }
+            $said = @()
+            foreach ($folder in $restart[1]) {
+               $moment = Get-FolderMoment $folder
+               if ($moment.Error) { throw "the permissions of $folder could not be read: $($moment.Error)" }
+               if (-not $moment.Protected -or $moment.Broad.Count -gt 0 -or $TrustedOwnerSids -notcontains $moment.Owner) { throw "$folder was not hardened: $($moment.Sddl)" }
+               foreach ($sid in @('S-1-1-0', 'S-1-5-11', $State.SmokeAccountSid) | Where-Object { $_ }) {
+                  if (@((Get-Acl -LiteralPath $folder).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -eq $sid }).Count -gt 0) { throw "$folder still has an entry for $sid" }
+               }
+               $said += "$folder owner $($moment.Owner)"
+            }
+            "exit code 7, recorded ($(Get-RestartRecord $app)); hardened: $($said -join '; ')"
+         })
+      if ($turn) {
+         [void] (Test-Step "case ${FolderCase}: nothing was copied through a junction the handles opened before the installer could make (work item 78, R2)" {
+               $written = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+               if ($written.Count -gt 0) { Write-Detail $written 10; throw "$($written.Count) files and folders are in $LinkTarget" }
+               $item = Get-Item -LiteralPath (Join-Path $app 'Bin') -Force
+               if ($item.LinkType) { throw "$app\Bin is a $($item.LinkType)" }
+               "$LinkTarget is empty, Bin a folder; the turn: $(if ($turn.Sync['TurnResult']) { $turn.Sync['TurnResult'] } else { 'not taken: the marker never appeared' })"
+            })
+      }
+      $before = Join-Path $LogDirectory 'install-before-restart.log'
+      $againArguments = @($arguments | ForEach-Object { if ($_ -like '/LOG=*') { "/LOG=$before" } else { $_ } })
+      $againCode = Invoke-WithAdminPassword { Invoke-SetupForExitCode $Installer $againArguments $before }
+      [void] (Test-Step "case ${FolderCase}: the installer run again before the restart was refused by what setup recorded - exit code 7 (work item 78)" {
+            if ($againCode -ne 7) { throw "it returned $againCode" }
+            if (-not (Select-String -LiteralPath $before -Pattern ('Refused: Setup does not install into ' + [regex]::Escape($app) + ' until Windows has restarted: since Windows last started, setup has recorded') -Quiet)) {
+               throw "Inno's log does not refuse by the record"
+            }
+            'exit code 7, by the record'
+         })
+      # The restart, stood in for: the handles the case held closed, the volatile key gone.
+      if ($turn) { $turned = Stop-FolderWatch $turn; $turn = $null }
+      if ($dac) { [void] (Stop-FolderWatch $dac); $dac = $null }
+      Write-Info "case ${FolderCase}: the restart, stood in for" (Clear-RestartRecord)
+      $there = @(@((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+      $remade = @(Get-FoldersThatHoldNothing $there)
+      $missing = @(Get-FoldersToMake $app $Components)
+      $log = Join-Path $LogDirectory 'install-after-restart.log'
+      $arguments = @($arguments | ForEach-Object { if ($_ -like '/LOG=*') { "/LOG=$log" } else { $_ } })
+      $watch = Start-FolderWatch $app
+      $code = -1
+      try { $code = Invoke-WithAdminPassword { Invoke-SetupForExitCode $Installer $arguments $log } }
+      finally { $watched = Stop-FolderWatch $watch }
+   }
+   elseif ($dac) { [void] (Stop-FolderWatch $dac) }
+
+   # Work item 78's R1 (check 4 of R1 to R4, 27 October 2026): a copy that fails leaves
+   # nothing setup made - Bin and ControlPanel, which setup now makes and records in a
+   # program folder it made, removed with it.
+   if ($FolderCase -eq 'copy-fails') {
+      [void] (Test-Step "case ${FolderCase}: the installation failed for want of space, and setup left nothing it made on the volume (work item 78, R1)" {
+            if ($code -eq 0) { throw 'it returned 0: the files fitted, and the case shows nothing' }
+            if (Test-Path -LiteralPath $app) { throw "$app is still there: $((@(Get-ChildItem -LiteralPath $app -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }) | Select-Object -First 10) -join ', ')" }
+            foreach ($folder in @((Join-Path $app 'Bin'), $app)) {
+               if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed ' + [regex]::Escape($folder) + ', which it had made and nothing was installed into') -Quiet)) { throw "Inno's log does not say setup removed $folder" }
+            }
+            "exit code ${code}; $app is gone, Bin and the program folder removed by setup"
+         })
+      return
    }
 
    if ($refused) {
@@ -3257,7 +3523,7 @@ function Invoke-FocusedRun([string] $Version) {
       }
       'broad-entry' {
          [void] (Test-Step "case ${FolderCase}: the entry of the program folder's own that let Authenticated Users change it was taken away before the files, and the setup log says so and who owns Bin\notes.txt (work item 78, R2 and R4)" {
-               $taken = Select-String -LiteralPath $log -Pattern ('icacls took away the entries of ' + [regex]::Escape($app) + '''s own for \*S-1-5-11, a group of every user') | Select-Object -First 1
+               $taken = Select-String -LiteralPath $State.FirstLog -Pattern ('icacls took away the entries of ' + [regex]::Escape($app) + '''s own for \*S-1-5-11, a group of every user') | Select-Object -First 1
                $owned = Select-String -LiteralPath $log -Pattern ('The program folder: ' + [regex]::Escape((Join-Path $app 'Bin\notes.txt')) + ' is owned by ') | Select-Object -First 1
                if ($null -eq $taken) { throw 'the setup log does not say the entry was taken away' }
                if ($null -eq $owned) { throw 'the setup log does not say who owns Bin\notes.txt' }
@@ -3267,6 +3533,25 @@ function Invoke-FocusedRun([string] $Version) {
                'taken away, and both said'
             })
          Write-Info "case ${FolderCase}: the program folder afterwards" ((@(& icacls.exe $app) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')
+      }
+      'held-full' {
+         [void] (Test-Step "case ${FolderCase}: after the restart, nothing was copied through the junction, and Bin is the folder setup hardened, holding the installation's files (work item 78, R2)" {
+               $bin = Join-Path $app 'Bin'
+               $written = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+               if ($written.Count -gt 0) { Write-Detail $written 10; throw "$($written.Count) files and folders are in $LinkTarget, where the junction made through the handles leads" }
+               $item = Get-Item -LiteralPath $bin -Force
+               if ($item.LinkType) { throw "$bin is a $($item.LinkType) to $(@($item.Target)[0])" }
+               if (-not (Test-Path -LiteralPath (Join-Path $bin 'hMailServer.exe'))) { throw "$bin holds no hMailServer.exe" }
+               "$LinkTarget is empty; $bin a folder holding the installation's files"
+            })
+      }
+      'dac-handle' {
+         [void] (Test-Step "case ${FolderCase}: after the restart, the program folder is the Administrators' with no entry for Everyone (work item 78, R2 and R3)" {
+               $moment = Get-FolderMoment $app
+               if (-not $moment.Protected -or $TrustedOwnerSids -notcontains $moment.Owner) { throw "$app is not hardened: $($moment.Sddl)" }
+               if (@((Get-Acl -LiteralPath $app).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -eq 'S-1-1-0' }).Count -gt 0) { throw "$app still has an entry for Everyone: $($moment.Sddl)" }
+               "$app owner $($moment.Owner): $($moment.Sddl)"
+            })
       }
       'link-admin-only' {
          [void] (Test-Step "case ${FolderCase}: the installation went through the junction only the administrators control, and its target is hardened (work item 78, R3)" {
@@ -3305,7 +3590,7 @@ function Invoke-FocusedRun([string] $Version) {
       'earlier-user-locked' {
          [void] (Test-Step "case ${FolderCase}: Bin, the earlier installation's and owned by $SmokeAccountName with a list that left the Administrators no right to change it, was given to the Administrators with takeown /A and rebuilt before the files (work item 78, R2)" {
                $bin = Join-Path $app 'Bin'
-               if (-not (Select-String -LiteralPath $log -Pattern ([regex]::Escape($bin) + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller') -Quiet)) { throw 'the setup log does not say Bin was rebuilt' }
+               if (-not (Select-String -LiteralPath $State.FirstLog -Pattern ([regex]::Escape($bin) + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller') -Quiet)) { throw 'the setup log of the run refused until the restart does not say Bin was rebuilt' }
                $moment = Get-FolderMoment $bin
                if ($moment.Owner -ne 'S-1-5-32-544') { throw "$bin is owned by $($moment.Owner)" }
                if (-not $moment.Protected) { throw "$bin inherits: $($moment.Sddl)" }
@@ -3333,9 +3618,9 @@ function Invoke-FocusedRun([string] $Version) {
          [void] (Test-Step "case ${FolderCase}: the folder above the program folder, given the refusal's remedy, was gone through and the installation made below it (work item 78, R3)" {
                if (Select-String -LiteralPath $log -Pattern 'Refused: ' -Quiet) { throw "Inno's log has a refusal" }
                if (-not (Test-Path -LiteralPath (Join-Path $app 'Bin\hMailServer.exe'))) { throw "$app\Bin holds no hMailServer.exe" }
-               $writers = @(Get-BroadWriters $State.AboveMade)
-               if ($writers.Count -gt 0) { throw "$($State.AboveMade) lets a group of every user change it: $($writers -join ', ')" }
-               "$app installed below $($State.AboveMade), which no group of every user may change"
+               $writers = @(Get-BroadReplacers $State.AboveMade)
+               if ($writers.Count -gt 0) { throw "$($State.AboveMade) lets a group of every user rename it, remove what is in it or change who may: $($writers -join ', ')" }
+               "$app installed below $($State.AboveMade), which no group of every user may rename, empty or change who may"
             })
       }
       'nested-new' {
@@ -3593,13 +3878,53 @@ if ($State.Installed) {
       $upgradeThere = @(@((Join-Path (Get-InstallDirectory) 'Bin'), (Join-Path (Get-InstallDirectory) 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
       $upgradeProgramFolderToo = Test-DataFoldersInheritNothing (Get-InstallDirectory)
       Write-Info 'upgrade: the data folders inherit nothing from the program folder, before the installer' $(if ($upgradeProgramFolderToo) { 'yes: the program folder is to be hardened before the files too' } else { 'no: the program folder is left to /ProtectFolders, after the files' })
+      $upgradeArguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog")
+      if (-not $State.PasswordInEnvironment) { $upgradeArguments += "/adminpassword=$AdminPassword" }
       $upgradeWatch = Start-FolderWatch (Get-InstallDirectory)
-      try {
-         $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
-            Invoke-SetupWithAdminPassword $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog") $upgradeLog
-         }
-      }
+      $upgradeCode = -1
+      try { $upgradeCode = Invoke-WithAdminPassword { Invoke-SetupForExitCode $UpgradeInstaller $upgradeArguments $upgradeLog } }
       finally { $upgradeWatched = Stop-FolderWatch $upgradeWatch }
+      # Work item 78 (check 4 of R1 to R4, 27 October 2026): an earlier installation whose
+      # folders another account could change - 6.3.6's, in a folder that hands Authenticated
+      # Users Modify down - hardened and refused until Windows has restarted, a second run
+      # refused by the record, and the upgrade run again once the record is taken away, as
+      # a restart takes it away.
+      if ($upgradeCode -eq 7 -and (Test-HardensBeforeFiles $secondVersion) -and (Select-String -LiteralPath $upgradeLog -Pattern 'until Windows has restarted: before this installation' -Quiet)) {
+         $upgradeApp = Get-InstallDirectory
+         [void] (Test-Step "upgrade: setup hardened what another account could change in $firstVersion's folders and refused until Windows has restarted - exit code 7, the service left running (work item 78, R2)" {
+               $line = Select-String -LiteralPath $upgradeLog -Pattern 'Refused: Setup does not install into .* until Windows has restarted: before this installation' | Select-Object -First 1
+               if ($line.Line -notmatch 'Restart Windows, and run setup again') { throw 'the refusal does not say to restart Windows' }
+               if (-not (Get-RestartRecord $upgradeApp)) { throw "$RestartKey does not record $upgradeApp" }
+               $service = Get-HmService
+               if ($null -eq $service -or $service.State -ne 'Running') { throw "the service is $(if ($service) { $service.State } else { 'not there' }): the refusal comes before the stop" }
+               $said = @()
+               foreach ($folder in @($upgradeApp, (Join-Path $upgradeApp 'Bin')) | Where-Object { Test-Path -LiteralPath $_ }) {
+                  $moment = Get-FolderMoment $folder
+                  if (-not $moment.Protected -or $moment.Broad.Count -gt 0 -or $TrustedOwnerSids -notcontains $moment.Owner) { throw "$folder was not hardened: $($moment.Sddl)" }
+                  $said += "$folder owner $($moment.Owner)"
+               }
+               "$($line.Line.Substring($line.Line.IndexOf('Refused:'), [math]::Min(300, $line.Line.Length - $line.Line.IndexOf('Refused:'))))...; hardened: $($said -join '; ')"
+            })
+         $before = Join-Path $LogDirectory 'upgrade-before-restart.log'
+         $againCode = Invoke-WithAdminPassword { Invoke-SetupForExitCode $UpgradeInstaller @($upgradeArguments | ForEach-Object { if ($_ -like '/LOG=*') { "/LOG=$before" } else { $_ } }) $before }
+         [void] (Test-Step 'upgrade: the upgrade run again before the restart was refused by what setup recorded - exit code 7 (work item 78)' {
+               if ($againCode -ne 7) { throw "it returned $againCode" }
+               if (-not (Select-String -LiteralPath $before -Pattern 'until Windows has restarted: since Windows last started, setup has recorded' -Quiet)) { throw "Inno's log does not refuse by the record" }
+               'exit code 7, by the record'
+            })
+         Write-Info 'upgrade: the restart, stood in for' (Clear-RestartRecord)
+         $upgradeThere = @(@((Join-Path $upgradeApp 'Bin'), (Join-Path $upgradeApp 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+         $upgradeProgramFolderToo = Test-DataFoldersInheritNothing $upgradeApp
+         $upgradeLog = Join-Path $LogDirectory 'upgrade-after-restart.log'
+         $upgradeArguments = @($upgradeArguments | ForEach-Object { if ($_ -like '/LOG=*') { "/LOG=$upgradeLog" } else { $_ } })
+         $upgradeWatch = Start-FolderWatch $upgradeApp
+         try { $upgradeCode = Invoke-WithAdminPassword { Invoke-SetupForExitCode $UpgradeInstaller $upgradeArguments $upgradeLog } }
+         finally { $upgradeWatched = Stop-FolderWatch $upgradeWatch }
+      }
+      $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
+         if ($upgradeCode -ne 0) { Write-LogTail $upgradeLog; throw "it returned $upgradeCode" }
+         'exit code 0'
+      }
       if (-not $upgraded) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 
       Test-Installed 'upgrade' $secondVersion

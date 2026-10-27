@@ -59,7 +59,8 @@
 #                       earlier-user-locked, data-inherits, foreign-dll, broad-entry,
 #                       link-user, link-admin, link-admin-only, bin-link-user,
 #                       nested-new, held-open, settings-user, events-link,
-#                       volume-root, weak-above, weak-above-remedied -
+#                       volume-root, weak-above, weak-above-remedied, dac-handle,
+#                       held-full, copy-fails -
 #                       work item 78's cases (docs/ContinuousIntegration.md, "The
 #                       installer smoke test")
 #   --components LIST   FIRST installed with /COMPONENTS=LIST rather than /TYPE=full
@@ -181,7 +182,7 @@ if [[ -n "$folder_case" && -z "$install_directory" ]]; then
    exit 2
 fi
 case "$folder_case" in
-   ''|precreated-admin|precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new|held-open|settings-user|events-link|volume-root|weak-above|weak-above-remedied) ;;
+   ''|precreated-admin|precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new|held-open|settings-user|events-link|volume-root|weak-above|weak-above-remedied|dac-handle|held-full|copy-fails) ;;
    *) echo "--case $folder_case is not one of the cases" >&2; exit 2 ;;
 esac
 if [[ -n "$components" ]]; then
@@ -195,7 +196,7 @@ if [[ -n "$components" ]]; then
    fi
 fi
 case "$folder_case" in
-   precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new|held-open|settings-user|events-link|volume-root|weak-above|weak-above-remedied)
+   precreated-user|precreated-user-locked|earlier-user-locked|data-inherits|foreign-dll|broad-entry|link-user|link-admin|link-admin-only|bin-link-user|nested-new|held-open|settings-user|events-link|volume-root|weak-above|weak-above-remedied|dac-handle|held-full|copy-fails)
       if [ -n "$second" ]; then
          echo "--case $folder_case is one installer: FIRST alone, no SECOND" >&2
          exit 2
