@@ -98,10 +98,35 @@ refuses it. This checker holds them to each other. It fails when:
     postgres with the database, user and password the script logs in with, and the
     script still creates the schema as the service's user, starts the server as its
     unit does, asks port 25 for its own banner and refuses another, GET /api/v1/status
-    and GET /, removes the package, and says
-    --nodeps nowhere but in linux-build's .rpm's half (package_start_problems); and
+    and GET /, removes the package, says --nodeps nowhere but in linux-build's .rpm's
+    half and gives every curl it runs after that line a --max-time
+    (package_start_problems); the start job writes no key but PACKAGE_START_KEYS',
+    each bare and once (no hooks, cache or allow_failure), extends one template of its
+    own file that writes image: alone - not one of a third CI file's -, is defined once
+    in the CI files with all it reaches, sets no variable but HM_PACKAGES_DIR and a
+    number of seconds in HM_START_WAIT (BASH_ENV, which bash runs first, among those
+    refused), takes no before_script, hooks or cache from default:, and needs its build
+    alone, whose artifacts stay under its file's folder and carry no dotenv report
+    (package_start_key_problems);
+    build/ci/linux-package-install.sh, which those jobs and linux-package-deb run, is
+    the script this file holds by the SHA-256 of its text, its line ends LF
+    (PACKAGE_INSTALL_SHA256, package_install_digest_problems) - whoever changes it runs
+    this check, which prints the new digest, puts it there in the same commit and lands
+    the change with --gates-read, this file being a gate file and the script not; and
     build/ci/release-chain.py must collect the file and its SBOM from where that
     build leaves them, as a compiled file;
+  * a job of the release chain (chain_rule_jobs: the release jobs, the image's and
+    Artifact Hub's, CARRIED_PACKAGES' four of each package, release-packages, the
+    chart's, the ARM64 installer's, build-inputs-authenticode, the two sources jobs,
+    pages and package-repos) takes a rule - its own, or one of a template's it takes
+    with !reference [X, rules], .release-rules among them - that brings a key but
+    CHAIN_RULE_KEYS' (if, when, allow_failure, changes) or a when but never, on_success
+    and manual: GitLab applies the matching rule's needs in place of the job's whole,
+    its variables over the job's and its start_in, where this reads the chain's order
+    from each job's own needs, and when: always runs a job whatever the jobs it needs
+    did; or such a template writes a key beside rules:, which a job that extends it
+    would take; or a job of the chain, or a template it extends, says when: always
+    itself, which GitLab keeps beside its rules (chain_rule_problems);
   * the release job's tag check (build/ci/release-chain.py collect), given a git
     that answers as the job's checkout would, accepts a tag signed by a key the
     tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
@@ -275,7 +300,13 @@ refuses it. This checker holds them to each other. It fails when:
     character but a space and a tab for white space, where this reads lines at line
     feeds alone and Python takes every Unicode space for white space, so that a
     comment line holding an LS hid from every rule what GitLab reads after it
-    (character_problems); and each Python script of GATE_FILES must keep its own
+    (character_problems); nor may a file of FILES - the shell scripts this reads among
+    them - hold a control byte but a tab and a line feed (DEL included), a carriage
+    return in a shell script, or one not right before a line feed in any other: bash
+    and busybox sh drop a NUL from the line they run, so that e<NUL>xit 0 after
+    container-image-push.sh's set -eu passed every line scan and ended the push, and a
+    NUL early in a file makes git and build/check-control-bytes.py take it for binary
+    (control_byte_problems); and each Python script of GATE_FILES must keep its own
     directory off sys.path before it imports anything but os and sys (PATH_GUARD).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
@@ -298,7 +329,10 @@ refuses it. This checker holds them to each other. It fails when:
     START_JOB_LINES write it - with no argument, nothing before or after it on its
     line, after the before_script it is held to - or either, or container-image-sign,
     is defined more than once in the CI files, which GitLab merges into one job
-    (start_job_line_problems); or container-image's dotenv report, which the start
+    (start_job_line_problems); or container-image-sign writes a key but SIGN_JOB_KEYS',
+    bare and once - a when: always of its own would sign an image whose start test
+    failed -, or its image, needs, rules, variables or script otherwise than
+    SIGN_JOB_LINES write them (sign_job_problems); or container-image's dotenv report, which the start
     jobs take over their own variables, can say more than the images and the tags
     pushed, or its artifacts, or those it unpacks, more than its own directories
     (start_dotenv_problems); or
@@ -429,7 +463,14 @@ refuses it. This checker holds them to each other. It fails when:
     the slsa.dev badge of a higher level, names a higher level without a negation
     attached to it or affirms one (slsa_level_problems): a tripwire for a claim,
     not a reader of every wording, the level itself held to the specification by
-    hand (SECURITY.md, "Build provenance");
+    hand (SECURITY.md, "Build provenance"); and so every sentence of those documents
+    that names SLSA beside a level or a figure, a level as SLSA_MENTION reads one or
+    the slsa.dev badge (slsa_sentences) must be one of SLSA_SENTENCES, which lists them
+    as the tree has them, and each listed one must still be said there
+    (slsa_sentence_problems): "Our SLSA level is 3.", "SLSA compliance level: 3" and a
+    double negation passed the tripwire. Whoever adds or rewords such a sentence reads
+    it against the specification, copies it from the problem into SLSA_SENTENCES, takes
+    out the one it replaced, and lands the change with --gates-read;
   * the rehearsal (.gitlab/ci/release-rehearsal.yml) can run for a tag, for master,
     for a merge request or where the package jobs are not made; runs anything but
     release-chain.py collect --rehearse and sbom --rehearse, release-sign.sh
@@ -752,7 +793,8 @@ START_SCRIPT_LINES = (
     ('  [ "$line" = "$banner" ] || { exec 3>&-; echo "the banner is not \'$banner\'"; return 2; }\n',
      "the banner port 25 answers compared with the server's own"),
     ('[ "$rc" = 0 ] || fail "port 25 did not hold an SMTP conversation with the server', "the SMTP conversation's verdict"),
-    ('curl -fsS -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail', "GET /api/v1/status"),
+    ('curl -fsS --max-time 30 -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail',
+     "GET /api/v1/status"),
     ("grep -q 'Control Deck' /tmp/deck.html || fail", "GET /, the Control Deck"),
     ("  rpm -e hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail \"rpm -e\"; }\n", "the .rpm's removal"),
     ("  apt-get remove -y -qq hmailserver > /tmp/remove.log 2>&1 || { tail -n 20 /tmp/remove.log; fail \"apt-get remove\"; }\n",
@@ -1864,6 +1906,224 @@ def slsa_level_problems(docs):
     return problems
 
 
+# Every sentence of the documents slsa_texts reads that names SLSA beside a level or a
+# figure (slsa_sentences), as the tree has it, its white space taken as one space: the
+# tripwire above is a reader of wordings, and "Our SLSA level is 3.", "SLSA compliance
+# level: 3" and "It cannot be said that Build L2 is not met." each passed it. A sentence
+# that is not here fails until it has been read against the specification (SECURITY.md,
+# "Build provenance") and added, and one here that the documents no longer say fails until
+# it is taken out: what the documents say of the release's SLSA level is a list a person
+# has read, and this file is a gate file, which build/land-via-mr.py lands only with
+# --gates-read.
+SLSA_SENTENCES = {
+    "README.md": (
+        "[![OpenSSF Best "
+        "Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949) "
+        "[![OpenSSF Scorecard, the copy on "
+        "GitHub](https://api.scorecard.dev/projects/github.com/RainbowWizard-coder/hMailServer/badge)](https://scorecard.dev/viewer/?uri=github.com/RainbowWizard-coder/hMailServer) "
+        "[![SLSA Build "
+        "L1](https://slsa.dev/images/gh-badge-level1.svg)](https://slsa.dev/spec/v1.0/levels#build-l1)",
+    ),
+    "RELEASE.md": (
+        "`release-sbom` makes each signed installer's own SBOM and the statement of the release's SLSA v1 "
+        "provenance, which names every file by its SHA-256; the x86-64 `.deb`'s and `.rpm`'s SBOMs come from "
+        "`linux-build`, the generic AArch64 ones' from `deb-ubuntu26.04-arm64-sbom` and "
+        "`rpm-fedora44-aarch64-sbom`, and every other package's, both AppImages' and the tarball's from "
+        "`release-packages`, and every compiled file goes out with its `<file>.cdx.json` (SECURITY.md, "
+        "\"Software bills of materials\").",
+    ),
+    "SECURITY.md": (
+        "`hmailserver-<version>.intoto.sigstore.json` on the release page is the release's SLSA v1 build "
+        "provenance: an in-toto statement that names every file of the release but the Sigstore bundles by "
+        "its SHA-256 - the installers, the PowerShell module's two files, every package, the AppImages, the "
+        "source of the libraries linked into their runtime and of the libraries they carry, the source "
+        "tarball, the chart, the sums and every SBOM; not a file's `.cosign.bundle` or `.sigstore.json`, nor "
+        "the provenance itself or its `.intoto.jsonl` (below) - with the commit it was built from and the "
+        "tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE "
+        "envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's "
+        "`slsa-verifier` is not needed.",
+        "That is the form in-toto's attestation specification gives a bundle of attestations, JSON Lines "
+        "with one DSSE envelope a line, in a file whose name ends in `.intoto.jsonl` - the name the SLSA "
+        "generator's provenance of 6.3.2 and 6.3.3 also had, though those two files are Sigstore bundles "
+        "under it.",
+        "**SLSA Build level.** The releases from 6.3.6 meet Build L1 of SLSA v1.0 "
+        "(slsa.dev/spec/v1.0/levels) for every file the provenance names, and no higher Build level is "
+        "claimed.",
+        "Build L2 is not met, for two reasons, each in the specification's own words.",
+        "It requires a hosted build platform: \"All build steps ran using a hosted build platform on shared "
+        "or dedicated infrastructure, not on an individual's workstation.\" The files of 6.3.7, and those of "
+        "6.3.6 but its chart, its sums and its two installers' SBOMs, which GitLab's hosted runners made, "
+        "were built on the project's own runners (hmailserver/docs/ContinuousIntegration.md, \"The "
+        "provenance's SLSA Build level\", says which runner built which files).",
+        "Build L3 is not met either: it requires L2 and, beyond it, builds isolated from one another in an "
+        "ephemeral environment, with the signing material out of every build step's reach, and none of that "
+        "holds here - the server and tools in the x64 Windows installer, for one, are an incremental build "
+        "in the Windows runner's long-lived checkout, not a clean one. 6.3.4 and 6.3.5 carry no provenance, "
+        "so no Build level; the levels of 6.3.3 and earlier, built and attested on GitHub, are not assessed "
+        "here.",
+    ),
+    "hmailserver/docs/ContinuousIntegration.md": (
+        "Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and "
+        "`hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s "
+        "component list for that processor (both kept by `release` in `release-tools/`), the tools' lock "
+        "files and that installer's script; refuses an installer Authenticode left unchanged, and a module "
+        "file that is not collect's bytes with one signature block appended; then writes the statement of "
+        "the release's SLSA v1 provenance, an in-toto statement naming all sixty-two files by their SHA-256, "
+        "the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, "
+        "`build/asset-sbom.py`)",
+        "**What a release carries.** From 6.3.6, sixty-two files, a bundle beside each, a `.sigstore.json` "
+        "copy of each primary file's bundle, and the SLSA provenance: 160 files and as many links; from the "
+        "release after 6.3.7 the provenance's envelope as one line too, 161 (`build/ci/release-chain.py`'s "
+        "`release_files`).",
+        "`hmailserver-<v>.intoto.sigstore.json`, the SLSA v1 build provenance: an in-toto statement naming "
+        "all 62 by their SHA-256, the commit and the tag's pipeline, signed with `cosign attest-blob` - a "
+        "Sigstore bundle holding the DSSE envelope, the certificate and the transparency log's entry, the "
+        "file a download is verified with (SECURITY.md, \"Build provenance\").",
+        "`hmailserver-<v>.intoto.jsonl`, from the release after 6.3.7: that bundle's DSSE envelope alone, "
+        "the statement and its signature as the bundle has them, as one line of JSON - in-toto's JSON Lines "
+        "of envelopes - under a name ending in `.intoto.jsonl`, the name the SLSA generator's provenance of "
+        "6.3.2 and 6.3.3 also had (those two files are Sigstore bundles under it) and the one name OpenSSF "
+        "Scorecard's Signed-Releases check counts as provenance.",
+        "**The provenance's SLSA Build level.** Build L1 of SLSA v1.0, for every file the statement names, "
+        "and nothing higher (SECURITY.md, \"Build provenance\", gives the reasons in the specification's "
+        "words).",
+        "Build L2 is not met: it requires that every build step ran on a hosted build platform, not on an "
+        "individual's workstation, and the files are built on the project's own runners ([The "
+        "runners](#the-runners)), the Windows installers on bench150 and the Linux packages on whichever of "
+        "linix, server2 and s1-linux takes each job of the tag `linix` first, unless a switch sends the "
+        "job's class to GitLab's hosted runners ([GitLab's hosted runners beside the "
+        "project's](#gitlabs-hosted-runners-beside-the-projects)); bench150 and linix are virtual machines "
+        "on the maintainer's laptop, s1-linux one on server1.",
+        "GitLab Runner can write a statement for a job's artifacts (`RUNNER_GENERATE_ARTIFACTS_METADATA`: an "
+        "in-toto v0.1 statement with the SLSA v1 predicate, unsigned, in a JSON file stored with the "
+        "artifacts, which GitLab's documentation has its SLSA CI/CD component sign), but it describes one "
+        "job's artifacts where a release's files take their final bytes over several jobs (an installer is "
+        "built by one and Authenticode-signed by another), its builder is the runner, and on these runners "
+        "it would raise no level.",
+        "GitLab.com's own attestations, which GitLab calls SLSA Build L3 (not met here), are not open to the "
+        "release either: an experiment behind a feature flag that is off by default, for artifacts of the "
+        "`build` stage up to 100 MB, where the installers take their final bytes in the `release` stage.",
+    ),
+    "hmailserver/docs/EvidencePack.md": (
+        "* **CI actions:** the GitHub workflows, which ran until 18 September 2026 and are in the git "
+        "history at `v6.3.3`, pinned every action by commit hash, except the SLSA generator, which was "
+        "referenced by tag because its verifier requires it (`sign-release.yml` said why).",
+        "* **SLSA provenance.** From 6.3.2, each release carries `hmailserver-<tag>.intoto.jsonl`, made by "
+        "the SLSA project's generic generator over the digests of the assets as attached, and checked with "
+        "`slsa-verifier` before publication (`sign-release.yml`, the `provenance` and `attach-provenance` "
+        "jobs; RELEASE.md step 12 says 6.3.1 and earlier have none).",
+        "The generator is a GitHub reusable workflow, so 6.3.3 is the last release with provenance from it; "
+        "6.3.4 and 6.3.5 have none, and from 6.3.6 the GitLab release jobs make the release's own, "
+        "`hmailserver-<version>.intoto.sigstore.json`, an SLSA v1 statement that `release-sbom` writes and "
+        "`release-sign` attests ([SECURITY.md](../../SECURITY.md), *Build provenance*; "
+        "[ContinuousIntegration.md](ContinuousIntegration.md), *The release*).",
+        "The provenance of 6.3.6 and later meets SLSA v1.0 Build L1 for every file it names, and no higher "
+        "level is claimed.",
+        "Build L2 is not met: it needs every build step on a hosted build platform, not an individual's "
+        "workstation, and provenance made by the platform itself, where the Windows installers of 6.3.6 and "
+        "6.3.7 and their generic x86-64 packages were built on bench150 and linix, virtual machines on the "
+        "maintainer's laptop, and this statement is written and signed by jobs of the project's own pipeline "
+        "([SECURITY.md](../../SECURITY.md), *Build provenance*, gives the reasons in the specification's "
+        "words, and [ContinuousIntegration.md](ContinuousIntegration.md), *The provenance's SLSA Build "
+        "level*, which runner made which file).",
+    ),
+    "hmailserver/docs/UpdateFeed.md": (
+        "From 6.3.6 a release also carries each distribution release's own package - "
+        "`hmailserver_<v>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04, "
+        "`hmailserver-<v>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9 and openSUSE Leap 16.0 "
+        "and Tumbleweed - the source tarball, the Helm chart, a `.sigstore.json` copy of each primary file's "
+        "bundle and the SLSA provenance.",
+    ),
+}
+# A document's text in the units its sentences are read in: a paragraph, a list item, a
+# heading, a cell of a table, a line of a fenced block, and a line that is an image or a
+# badge alone - so that a table, a block of badges or a code block does not make one
+# sentence of the text around it, which any edit nearby would change.
+SLSA_NAMED = re.compile(r"\bSLSA\b|\bSupply[\s-]*chain\s+Levels\s+for\s+Software\s+Artifacts\b", re.IGNORECASE)
+SLSA_FIGURE = re.compile(r"[0-9]|\blevels?\b", re.IGNORECASE)
+SLSA_FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+SLSA_ITEM = re.compile(r"^\s*(?:[*+-]|[0-9]{1,9}[.)])\s")
+
+
+def slsa_units(text):
+    """The units of a document's text (SLSA_SENTENCES' comment), in order."""
+    units, paragraph, fence = [], [], None
+
+    def flush():
+        if paragraph:
+            units.append(" ".join(paragraph))
+            del paragraph[:]
+
+    for line in text.split("\n"):
+        opened = SLSA_FENCE.match(line)
+        if fence:
+            if opened and opened.group(1)[0] == fence[0] and len(opened.group(1)) >= len(fence):
+                fence = None
+            else:
+                units.append(line)
+            continue
+        if opened:
+            flush()
+            fence = opened.group(1)
+        elif not line.strip():
+            flush()
+        elif line.lstrip().startswith("|"):
+            flush()
+            units.extend(re.split(r"(?<!\\)\|", line))
+        elif line.lstrip().startswith(("#", "[![", "![")) or re.match(r"^\s*(?:=+|-+)\s*$", line):
+            flush()
+            units.append(line)
+        else:
+            if SLSA_ITEM.match(line):
+                flush()
+            paragraph.append(line)
+    flush()
+    return units
+
+
+def slsa_sentences(docs):
+    """{path: [sentence]} of each document's sentences, in order, that name SLSA beside a
+    level or a figure: SLSA (or Supply-chain Levels for Software Artifacts) with a figure
+    or the word level in the sentence, a level as SLSA_MENTION reads one (Build L2, SLSA3,
+    SLSA_level-3) or the slsa.dev badge of any level - each sentence of a unit
+    (slsa_units) with its white space taken as one space."""
+    found = {}
+    for name in sorted(docs):
+        for unit in slsa_units(docs[name]):
+            flat = re.sub(r"\s+", " ", unit).strip()
+            for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z*`(\[])", flat):
+                if (SLSA_NAMED.search(sentence) and SLSA_FIGURE.search(sentence)) or SLSA_MENTION.search(sentence) or \
+                        re.search(r"slsa\.dev/images/", sentence, re.IGNORECASE):
+                    found.setdefault(name, []).append(sentence)
+    return found
+
+
+def slsa_sentence_problems(docs):
+    """[problem] for each sentence of docs that names SLSA beside a level or a figure
+    (slsa_sentences) and is not one SLSA_SENTENCES lists for its document, and for each
+    one listed there that its document no longer says."""
+    problems = []
+    found = slsa_sentences(docs)
+    for name, sentences in sorted(found.items()):
+        listed = SLSA_SENTENCES.get(name, ())
+        for sentence in sentences:
+            if sentence not in listed:
+                problems.append("%s says %r, which names SLSA beside a level or a figure and is not one of the sentences "
+                                "SLSA_SENTENCES lists for it: what the documents say of the release's SLSA level is read "
+                                "against the specification (SECURITY.md, \"Build provenance\") before it is published - "
+                                "read the sentence, and if it claims no level the provenance does not meet, add it to "
+                                "SLSA_SENTENCES in build/check-release-chain.py as the document has it, its white space "
+                                "taken as one space (a gate file: build/land-via-mr.py lands it only with --gates-read)"
+                                % (name, sentence[:300]))
+    for name, listed in sorted(SLSA_SENTENCES.items()):
+        for sentence in listed:
+            if sentence not in found.get(name, []):
+                problems.append("SLSA_SENTENCES lists for %s %r, which it no longer says: take it out, or put back the "
+                                "sentence the list was read for, so that the list is what the documents say"
+                                % (name, sentence[:300]))
+    return problems
+
+
 def yaml_command_ends(lines, first, last, ends, shell=None, before=None):
     """Add to ends the number of each line of lines[first:last], a YAML document's or a
     part of one, after which the shell ends a command, as a script's lines are read: each
@@ -2336,7 +2596,7 @@ def function_text(source, name):
     return match.group(0) if match else ""
 
 
-def package_start_problems(job, found, jobs, script):
+def package_start_problems(job, found, jobs, script, every_ci=None):
     """[problem] for each way the start job of a package a release carries
     (CARRIED_PACKAGES' start) could pass without starting the server from that file: its
     script not build/ci/linux-package-install.sh of the package's kind; a before_script,
@@ -2345,9 +2605,11 @@ def package_start_problems(job, found, jobs, script):
     other than its install job's image, of linux/arm64 - a scalar image: has no
     platform; no PostgreSQL service by digest - linux-package-deb's - as the
     alias and with the database, user and password the script asks for; and the script
-    itself (script) without what it holds the server to (START_SCRIPT_LINES), or saying
-    --nodeps after linux-build's .rpm's half. found is the job's file's blocks, jobs
-    .gitlab-ci.yml's."""
+    itself (script) without what it holds the server to (START_SCRIPT_LINES), saying
+    --nodeps after linux-build's .rpm's half, or running curl there without --max-time
+    on its line; and what package_start_key_problems holds. found is the job's file's
+    blocks, jobs .gitlab-ci.yml's, every_ci every CI file's text by its path (ci_files).
+    The script is held whole besides, by its digest (package_install_digest_problems)."""
     problems = []
     name = job["start"]
     if name not in found:
@@ -2435,6 +2697,298 @@ def package_start_problems(job, found, jobs, script):
     elif "--nodeps" in script.split(START_SCRIPT_FROM, 1)[1]:
         problems.append("build/ci/linux-package-install.sh says --nodeps where it installs the .deb and the .rpm built in "
                         "Fedora, which %s starts: their dependencies are the distribution's to resolve" % name)
+    if START_SCRIPT_FROM in script:
+        for number, line in enumerate(script.split(START_SCRIPT_FROM, 1)[1].split("\n"), script.split(START_SCRIPT_FROM, 1)[0].count("\n") + 2):
+            if not line.lstrip().startswith("#") and PACKAGE_START_CURL.search(line) and "--max-time " not in line:
+                problems.append("build/ci/linux-package-install.sh's line %d runs curl without --max-time on its line (%s): "
+                                "a request that hangs would hold %s to its timeout, where the script's own wait "
+                                "(HM_START_WAIT) and 30 s a request after it are what a server that does not answer is "
+                                "given" % (number, line.strip()[:80], name))
+    problems.extend(package_start_key_problems(job, found, jobs, every_ci))
+    return problems
+
+
+# build/ci/linux-package-install.sh as this file holds it: the SHA-256 of its text, its
+# line ends LF (package_install_digest_problems). The script starts the server from the
+# packages a release carries in their start jobs, and from linux-build's .deb in
+# linux-package-deb, every one a job release waits for; START_SCRIPT_LINES name what it
+# must do, and an exit 0 after set -uo pipefail, a fail() that returns 0 or an rc=0 before
+# the SMTP verdict kept every one of those lines and passed. The digest holds the rest.
+PACKAGE_INSTALL_SHA256 = "3ad39b3ae01b8e51fb796de57bf1bb48fbf6f83c4e424970f126217833b1ca38"
+
+
+def package_install_digest_problems(script):
+    """build/ci/linux-package-install.sh is the script this file holds, by the SHA-256 of
+    its text with its line ends LF (PACKAGE_INSTALL_SHA256), as START_TEST_SHA256 holds the
+    container image's start test. The script is not one of land-via-mr.py's GATE_FILES,
+    and this file is: a change to the script fails this check until PACKAGE_INSTALL_SHA256
+    changes with it here, so that the landing that changes what the start jobs and
+    linux-package-deb run changes a gate file, which build/land-via-mr.py lands only with
+    --gates-read, a person's word that the change was read whole. A digest rather than a
+    place in GATE_FILES: the start test is held so; the gate files are what judges a change
+    and says how the gate jobs run, the list check() holds to those; and the branch's own
+    checkers job, not only the landing, says that the script changed. Whoever changes the
+    script runs this check, whose problem gives the new digest, and puts it here."""
+    digest = hashlib.sha256(script.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    if digest == PACKAGE_INSTALL_SHA256:
+        return []
+    return ["%s is not the script build/check-release-chain.py holds (the SHA-256 of its text, its line ends LF, is %s; "
+            "PACKAGE_INSTALL_SHA256 %s): what the package start jobs and linux-package-deb run is held whole, so a change to "
+            "it takes a change to PACKAGE_INSTALL_SHA256 with it, in a gate file, which build/land-via-mr.py lands only "
+            "with --gates-read, a person's word that the change was read whole"
+            % (FILES["package-install"].replace(os.sep, "/"), digest, PACKAGE_INSTALL_SHA256)]
+
+
+# What a package start job may write itself (CARRIED_PACKAGES' start): its image comes from
+# the one template it extends, its install job's image template, which writes image: alone;
+# its rules from its install job's rules template; its variables are the build's folder and
+# the start wait; its one service PostgreSQL; its script the start (package_start_problems).
+# No hooks, before_script, after_script, cache, artifacts, dependencies, inherit,
+# allow_failure, when or parallel: hooks: and a cache lay their work over the job's
+# checkout before the script, a before_script can end the job green first, and a matrix's
+# variables are the job's.
+PACKAGE_START_KEYS = ("extends", "stage", "tags", "needs", "timeout", "rules", "variables", "services", "script")
+PACKAGE_START_TEMPLATE_KEYS = ("image",)
+PACKAGE_START_VARIABLES = ("HM_PACKAGES_DIR", "HM_START_WAIT")
+# What default: may not give a package start job, which sets none of them itself: GitLab
+# runs default:'s hooks before the checkout and a before_script before the script, and a
+# cache is unpacked over the checkout - where build/ci/linux-package-install.sh is.
+PACKAGE_START_DEFAULTS = ("before_script", "hooks", "cache")
+# Where a command starts on a line of build/ci/linux-package-install.sh, and curl is it:
+# not a word of an apt-get install's list of packages.
+PACKAGE_START_CURL = re.compile(r"(?:^\s*|[;&|(]\s*|\$\(\s*|\b(?:if|then|do|while|until|elif|else)\s+|!\s+)curl(?=\s)")
+
+
+def package_start_key_problems(job, found, jobs, every_ci=None):
+    """[problem] for each way what a package start job (CARRIED_PACKAGES' start) takes
+    could run before or around build/ci/linux-package-install.sh, or change the shell it
+    runs in, past package_start_problems' reading of its script, image, services and
+    before_script: a key of its own but PACKAGE_START_KEYS', or one written twice; a
+    template it extends, at any remove, that writes a key but PACKAGE_START_TEMPLATE_KEYS'
+    or is not defined in the job's own file - GitLab takes a template from any CI file
+    .gitlab-ci.yml includes, and this check would read none of a third file's -; the job,
+    or a block it reaches by extends or !reference, defined more than once in the CI files
+    (every_ci, {path: text}), which GitLab merges into one; a variable of its own but
+    PACKAGE_START_VARIABLES' - BASH_ENV, which bash runs before the script, ENV,
+    SHELLOPTS, PATH and the rest of START_TEST_ENVIRONMENT, or one the script reads
+    (HM_PG_HOST, HM_REST_PORT) -, one written in a form variable_block does not read, or
+    an HM_START_WAIT that is not a number of seconds; a key of PACKAGE_START_DEFAULTS in
+    .gitlab-ci.yml's default:; and a need but its build, a build whose artifacts are not
+    under its own file's folder (packages-deb/, packages-rpm/), since GitLab unpacks a
+    need's artifacts over the job's checkout before its script, where the script is, or a
+    build (or a template of it) whose artifacts carry a dotenv report, whose variables
+    GitLab gives the job over its own."""
+    problems = []
+    name = job["start"]
+    if name not in found:
+        return problems
+    block = found[name]
+    own_file = FILES[job["file"]].replace(os.sep, "/")
+    every_ci = every_ci or {own_file: "\n".join("%s:\n%s" % (k, v) for k, v in found.items())}
+    for line in block.split("\n"):
+        if not line.startswith("  ") or line.startswith("   ") or not line.strip():
+            continue
+        key = re.match(r"^  ([\"']?)([A-Za-z_][A-Za-z0-9_\-]*)\1[ \t]*:", line)
+        if not key or key.group(2) not in PACKAGE_START_KEYS or key.group(1):
+            problems.append("%s writes %s, which is not one of the keys this check holds a package start job to (%s), "
+                            "bare: hooks, a cache and a before_script run before or around "
+                            "build/ci/linux-package-install.sh, and allow_failure or when would let release start past "
+                            "it" % (name, line.strip()[:80], ", ".join(PACKAGE_START_KEYS)))
+    for key in PACKAGE_START_KEYS:
+        if len(_job_key_texts(block, key)) > 1:
+            problems.append("%s writes %s more than once: GitLab's YAML reader takes the last" % (name, key))
+    every_named = {}
+    for path in [".gitlab-ci.yml"] + sorted(p for p in every_ci if p != ".gitlab-ci.yml"):
+        for other, body in blocks(every_ci.get(path) or "").items():
+            every_named.setdefault(other, body)
+    for reached, paths in sorted(reached_definitions(every_ci, [name]).items()):
+        count = sum(top_level_keys(every_ci[path]).count(reached) for path in paths)
+        if count > 1:
+            problems.append("%s, which %s takes, is defined %s: GitLab merges the definitions, so that one this check "
+                            "does not read would say what the job runs - define it once" % (
+                                reached, name, "in " + " and ".join(paths) if len(paths) > 1 else
+                                "%s in %s" % ({2: "twice"}.get(count, "%d times" % count), paths[0])))
+    own_file_blocks = set(top_level_keys(every_ci.get(own_file, "")))
+    for template in template_order(name, every_named)[1:]:
+        if template not in own_file_blocks:
+            problems.append("%s extends %s, which %s does not define: GitLab takes a template from any CI file "
+                            ".gitlab-ci.yml includes, and this check reads a start job's templates in its own file "
+                            "alone" % (name, template, own_file))
+        extra = [key for key in own_keys(every_named[template]) if key not in PACKAGE_START_TEMPLATE_KEYS]
+        if extra or unread_keys(every_named[template], 2):
+            problems.append("%s, which %s extends, writes %s: a start job's template gives it its image alone (%s), "
+                            "and any other key it takes from one - variables, hooks, a cache, a script - would change "
+                            "what the job runs past this check" % (
+                                template, name, ", ".join(extra + unread_keys(every_named[template], 2))[:160],
+                                ", ".join(PACKAGE_START_TEMPLATE_KEYS)))
+    values, unread = variable_block(block)
+    for what in unread:
+        problems.append("%s writes its variables in a form this check does not read (%s): write them as a block, one "
+                        "KEY: value a line" % (name, what))
+    for key in sorted(set(values) - set(PACKAGE_START_VARIABLES)):
+        problems.append("%s sets %s, which is not one of the variables this check holds a package start job to (%s): "
+                        "bash runs BASH_ENV before build/ci/linux-package-install.sh, and the shell, its programs and "
+                        "the script read more" % (name, key, ", ".join(PACKAGE_START_VARIABLES)))
+    if "HM_START_WAIT" in values and not re.match(r"^[0-9]+$", values["HM_START_WAIT"]):
+        problems.append("%s's HM_START_WAIT is %r, not a number of seconds" % (name, values["HM_START_WAIT"]))
+    default = jobs.get("default", "")
+    for key in PACKAGE_START_DEFAULTS:
+        if key in own_keys(default):
+            problems.append(".gitlab-ci.yml's default: writes %s, which %s takes, setting none of its own: GitLab runs "
+                            "default:'s hooks before the checkout and its before_script before the script, and unpacks "
+                            "its cache over the checkout, where build/ci/linux-package-install.sh is" % (key, name))
+    wanted_needs = [job["build"]]
+    if needs(block) != wanted_needs:
+        problems.append("%s needs %s, not %s alone: GitLab unpacks a need's artifacts over the job's checkout before its "
+                        "script, so that another job's could be the script it runs" % (
+                            name, ", ".join(needs(block)) or "nothing", job["build"]))
+    folder = job["dir"].split("/", 1)[0] + "/"
+    # GitLab merges artifacts: of the build and its templates key by key, a list whole from
+    # the nearest that writes it: the nearest paths: decide, and a dotenv report from any of
+    # them would be the start job's variables, over its own.
+    build_order = template_order(job["build"], every_named)
+    holder = next((n for n in build_order if artifact_paths_text(every_named[n])), None)
+    kept = [line.strip() for line in artifact_paths_text(every_named[holder]).split("\n") if line.strip()] if holder else []
+    if holder is None or any(not item.startswith("- " + folder) for item in kept):
+        problems.append("%s's artifacts, which %s unpacks over its checkout, are %s, not paths under %s alone: one of "
+                        "them could be the build/ci/linux-package-install.sh the start runs" % (
+                            job["build"], name, ", ".join(item[2:] for item in kept) or "not read", folder))
+    for n in build_order:
+        given = re.search(r"^  artifacts:[ \t]*\n((?:    [^\n]*\n?)+)", every_named[n] + "\n", re.MULTILINE)
+        if given and re.search(r"\bdotenv\b", given.group(1)):
+            problems.append("%s's artifacts, from %s, carry a dotenv report, whose variables GitLab gives %s over its "
+                            "own: BASH_ENV there would run before build/ci/linux-package-install.sh" % (job["build"], n, name))
+    return problems
+
+
+def artifact_paths_text(block):
+    """The items of a block's artifacts: paths:, each "- <path>" on a line of its own six
+    spaces in, as the package builds write them; "" when they are not written so."""
+    match = re.search(r"^  artifacts:[ \t]*\n((?:    [^\n]*\n?)+)", block + "\n", re.MULTILINE)
+    inner = re.search(r"^    paths:[ \t]*\n((?:      - [^\n]*\n?)+)", match.group(1), re.MULTILINE) if match else None
+    return inner.group(1) if inner else ""
+
+
+# ---------------------------------------------------------------- what a rule may bring
+#
+# GitLab applies the rule that matches to the job: its when and allow_failure, and its
+# needs, variables and start_in too - a rule's needs replace the job's whole (rules:needs),
+# its variables go over the job's and its templates', and when: always runs the job
+# whatever the jobs it needs did (GitLab's CI lint, 27 October 2026, took a job with
+# needs, when: always and rules, and kept when always). This checker reads the order of
+# the release chain from each job's own needs: and its gates from its own keys, so a
+# rule, the job's own or one of a template it takes with !reference [X, rules] - such as
+# .release-rules, which every release and image job takes - could say otherwise past
+# every rule here: needs: [] in .release-rules' tag rule would start release-sign before
+# Authenticode had signed, and when: always on container-image-sign would sign an image
+# whose start test had failed. The jobs of the chain (chain_rule_jobs) take rules of
+# CHAIN_RULE_KEYS alone, a when of CHAIN_RULE_WHEN's, and a block whose rules they take
+# by !reference writes rules: alone, so that a job that extends it takes nothing else.
+CHAIN_RULE_KEYS = ("if", "when", "allow_failure", "changes")
+CHAIN_RULE_WHEN = ("never", "on_success", "manual")
+
+
+def chain_rule_jobs():
+    """The jobs of the release chain whose rules chain_rule_problems holds: the release
+    jobs, the container image's and Artifact Hub's, each package a release carries from a
+    package job built, described, installed and started (CARRIED_PACKAGES), the job that
+    gathers the other packages, the chart's, the ARM64 installer's, the build inputs'
+    check, the two sources jobs, and pages and package-repos, which deploy the feed."""
+    return (list(RELEASE_JOBS) + list(IMAGE_JOBS) + [ARTIFACTHUB_JOB] +
+            [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install", "start")] +
+            [GATHER_JOB, CHART_JOB, ARM64_INSTALLER_JOB, BUILD_INPUTS_JOB, RUNTIME_SOURCES_JOB, BUNDLED_SOURCES_JOB, "pages",
+             "package-repos"])
+
+
+def rule_owners(name, jobs, seen=None):
+    """The rules of a block as rule_items reads them, each (the block it is written in,
+    its text), and the blocks a !reference [X, rules] names, at any remove."""
+    seen = set() if seen is None else seen
+    match = re.search(r"^  rules:\s*\n(.*?)(?=^  [A-Za-z_]|\Z)", jobs.get(name, ""), re.MULTILINE | re.DOTALL)
+    items, referenced = [], []
+    if not match:
+        return items, referenced
+    for item in re.split(r"^    - ", match.group(1), flags=re.MULTILINE)[1:]:
+        reference = re.match(r"!reference \[([^,\]]+), rules\]", item.strip())
+        if reference:
+            other = reference.group(1)
+            if other not in seen:
+                seen.add(other)
+                referenced.append(other)
+                more, further = rule_owners(other, jobs, seen)
+                items += more
+                referenced += further
+        else:
+            items.append((name, item))
+    return items, referenced
+
+
+def chain_rule_problems(texts):
+    """[problem] for each rule a job of the release chain (chain_rule_jobs) takes - those
+    of the first of it and its templates that has rules:, every !reference [X, rules] in
+    them followed - that brings a key but CHAIN_RULE_KEYS' (needs, variables, start_in,
+    exists, interruptible among them) or a when but CHAIN_RULE_WHEN's (always, delayed);
+    for each template (a block whose name begins with a dot) such a !reference names that
+    writes a key but rules:, which a job that extends it would take; for a when: of the
+    job's own, or of a template it extends, but CHAIN_RULE_WHEN's; and for those rules
+    written in a form unread_rules finds this does not read. The blocks are read from every CI file (ci_files), the first definition
+    of each, .gitlab-ci.yml's first; a job defined twice is refused elsewhere."""
+    every_ci = ci_files(texts)
+    named = {}
+    for path in [".gitlab-ci.yml"] + sorted(p for p in every_ci if p != ".gitlab-ci.yml"):
+        for other, body in blocks(every_ci.get(path) or "").items():
+            named.setdefault(other, body)
+    problems = []
+    said = set()
+
+    def say(text):
+        if text not in said:
+            said.add(text)
+            problems.append(text)
+
+    for name in chain_rule_jobs():
+        if name not in named:
+            continue
+        for current in template_order(name, named):
+            for value in re.findall(r"^  when:[ \t]*([^\n]*)$", named[current], re.MULTILINE):
+                if value.split("#")[0].strip() not in CHAIN_RULE_WHEN:
+                    say("%s%s says when: %s: GitLab keeps a job's own when beside its rules, and runs a job when: always "
+                        "whatever the jobs it needs did - a job of the release chain says never, on_success or manual "
+                        "(CHAIN_RULE_WHEN)" % (current, "" if current == name else ", which %s extends," % name,
+                                               value.split("#")[0].strip()))
+        deciding = next((n for n in template_order(name, named) if re.search(r"^  rules:", named[n], re.MULTILINE)), None)
+        if deciding is None:
+            continue
+        for what in unread_rules(deciding, named):
+            say("%s's rules, which %s takes, are written in a form this check does not read (%s): a rule is a list item "
+                "of bare keys, six spaces in, or !reference [X, rules]" % (deciding, name, what))
+        items, referenced = rule_owners(deciding, named)
+        for owner, item in items:
+            lines = item.rstrip("\n").split("\n")
+            keys = [(lines[0].partition(":")[0].strip(), lines[0].partition(":")[2].strip())]
+            keys += [(m.group(1), m.group(2).strip()) for m in
+                     (re.match(r"^      ([A-Za-z_][A-Za-z0-9_]*)[ \t]*:(.*)$", line) for line in lines[1:]) if m]
+            condition = next((value for key, value in keys if key == "if"), "")
+            for key, value in keys:
+                if key not in CHAIN_RULE_KEYS:
+                    say("%s takes a rule of %s's (%s) that brings %s: GitLab applies the rule that matches to the job - "
+                        "a rule's needs replace the job's whole, its variables go over the job's, start_in delays it - "
+                        "where this checker reads the chain's order from the job's own needs and its keys from the job; "
+                        "a rule of the release chain says if, when, allow_failure or changes alone (CHAIN_RULE_KEYS)" % (
+                            name, owner, condition[:80] or lines[0].strip()[:80], key))
+                elif key == "when" and value.split("#")[0].strip() not in CHAIN_RULE_WHEN:
+                    say("%s takes a rule of %s's (%s) that makes it when: %s: GitLab runs a job when: always whatever "
+                        "the jobs it needs did, and a delayed one later than this checker reads; a rule of the release "
+                        "chain says never, on_success or manual (CHAIN_RULE_WHEN)" % (
+                            name, owner, condition[:80] or lines[0].strip()[:80], value.split("#")[0].strip()))
+        for other in referenced:
+            # A template's: a job's rules another job takes (package-repos takes pages')
+            # are that job's, held as its own.
+            extra = [key for key in own_keys(named.get(other, "")) if key != "rules"] if other.startswith(".") else []
+            if extra:
+                say("%s, whose rules %s takes by !reference, writes %s beside rules:: a job that extends it takes "
+                    "those keys too, and a rules template of the release chain writes rules: alone" % (
+                        other, name, ", ".join(extra)))
     return problems
 
 
@@ -2508,7 +3062,7 @@ def check(texts, chain, feed):
         for role, does in (("sbom", "describes"), ("install", "installs"), ("start", "starts the server from")):
             if job[role] in found and job["build"] not in needs(found[job[role]]):
                 problems.append("%s does not need %s, whose package it %s" % (job[role], job["build"], does))
-        problems.extend(package_start_problems(job, found, jobs, texts["package-install"]))
+        problems.extend(package_start_problems(job, found, jobs, texts["package-install"], ci_files(texts)))
         # A job release needs that may fail, or waits for a press, is no gate: GitLab
         # starts release after it failed, or before it ran.
         named = dict(jobs, **found)
@@ -2529,6 +3083,12 @@ def check(texts, chain, feed):
                     file_name, where.get(file_name), job["dir"], file_name, job["sbom"] if file_name != name else job["build"]))
         if name not in chain.compiled_assets("9.9.9"):
             problems.append("build/ci/release-chain.py's compiled_assets does not carry %s, which %s builds for it" % (name, job["build"]))
+
+    # The script the start jobs run, whole; and what every job of the release chain takes
+    # from its rules.
+    if texts["package-install"]:
+        problems.extend(package_install_digest_problems(texts["package-install"]))
+    problems.extend(chain_rule_problems(texts))
 
     # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
     # and held to its file before the release is published.
@@ -3199,6 +3759,7 @@ def check(texts, chain, feed):
                         "the source its certificate records (sigstore_certificate.source)")
     # The SLSA Build level said where it is said, and no higher one claimed anywhere.
     problems.extend(slsa_level_problems(texts["slsa-docs"]))
+    problems.extend(slsa_sentence_problems(texts["slsa-docs"]))
     collect_text = function_text(texts["chain"], "collect")
     if collect_text.find("check_budget(") < 0 or collect_text.find("check_budget(") > collect_text.find("shutil.copyfile(") \
             or "tarball_problems(" not in collect_text:
@@ -3824,6 +4385,7 @@ def check(texts, chain, feed):
     problems.extend(variable_key_problems(texts))
     problems.extend(character_problems(texts))
     problems.extend(script_line_end_problems(texts))
+    problems.extend(control_byte_problems(texts))
     return problems, notes
 
 
@@ -4705,13 +5267,12 @@ def character_problems(texts):
 
 
 def script_bytes():
-    """{key: the file's bytes} for each shell script of FILES the tree has: what sh and
-    bash read, where read() gives this checker the text with every line end, a carriage
-    return alone among them, made a line feed."""
+    """{key: the file's bytes} for each file of FILES the tree has - its shell scripts,
+    the Python and PowerShell ones, the CI files and the rest this checker reads: what sh,
+    bash, Python and PowerShell read, where read() gives this checker the text with each
+    CR LF made a line feed (script_line_end_problems, control_byte_problems)."""
     found = {}
     for key, relative in FILES.items():
-        if not relative.endswith(".sh"):
-            continue
         try:
             with open(os.path.join(ROOT, relative), "rb") as f:
                 found[key] = f.read()
@@ -4731,12 +5292,63 @@ def script_line_end_problems(texts):
     plain-HTTP check could never fail, and the digest still matched."""
     problems = []
     for key, data in sorted(texts.get("script-bytes", {}).items()):
+        if not FILES.get(key, "").endswith(".sh"):
+            continue
         lone = re.search(b"\r(?!\n)", data)
         if lone:
             problems.append("%s has a carriage return not followed by a line feed on its line %d: sh and bash take it for an "
                             "ordinary character, not a line end, so that what they run is not the lines this check reads, "
                             "nor the text a digest here is taken over" % (
                                 FILES[key].replace(os.sep, "/"), data.count(b"\n", 0, lone.start()) + 1))
+    return problems
+
+
+# The control bytes no file this checker reads may hold: every C0 byte but tab and line
+# feed, and DEL; a carriage return is let through only right before a line feed, and not
+# in a shell script at all (CONTROL_BYTES, control_byte_problems).
+CONTROL_BYTES = re.compile(b"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+C0_NAMES = ("NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL", "BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI", "DLE",
+            "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US")
+
+
+def control_byte_problems(texts):
+    """[problem] for each file of FILES whose bytes (texts["script-bytes"], script_bytes)
+    hold a control byte: a C0 byte but tab, line feed and carriage return, or DEL,
+    anywhere; a carriage return in a shell script, whose lines .gitattributes checks out
+    LF everywhere and bash reads a carriage return as a part of the word before it; and a
+    carriage return not right before a line feed in any other, which Python and
+    PowerShell read as a line end where read() does not. bash and busybox sh drop a NUL
+    from the line they read, so that e<NUL>xit 0 is exit 0 to them and passes every line
+    scan here, and a NUL in the first 8,000 bytes makes git show the file as binary and
+    build/check-control-bytes.py take it for one and read none of it: in
+    build/ci/container-image-push.sh after set -eu, it would have ended the push green
+    having pushed nothing. Each is named with its line and its byte."""
+    problems = []
+    for key, data in sorted(texts.get("script-bytes", {}).items()):
+        relative = FILES.get(key, key).replace(os.sep, "/")
+        stray = CONTROL_BYTES.search(data)
+        if stray:
+            byte = data[stray.start()]
+            problems.append("%s holds the control byte %s (0x%02X) on its line %d: bash and busybox sh drop a NUL, so that "
+                            "what they run is not the line this checker reads, and a NUL early in a file makes git and "
+                            "build/check-control-bytes.py take it for binary; a file this checker reads holds no control "
+                            "byte but a tab and a line feed (and a carriage return before a line feed, but in a shell "
+                            "script) - write the escape the byte was meant as" % (
+                                relative, "DEL" if byte == 0x7F else C0_NAMES[byte], byte,
+                                data.count(b"\n", 0, stray.start()) + 1))
+        if relative.endswith(".sh"):
+            carriage = re.search(b"\r\n", data)
+            if carriage:
+                problems.append("%s has a carriage return before a line feed on its line %d: it is checked out LF "
+                                "everywhere (.gitattributes), and bash reads the carriage return as a part of the word "
+                                "before it, so that the line it runs is not the line this checker reads" % (
+                                    relative, data.count(b"\n", 0, carriage.start()) + 1))
+        else:
+            lone = re.search(b"\r(?!\n)", data)
+            if lone:
+                problems.append("%s has a carriage return not followed by a line feed on its line %d: Python and "
+                                "PowerShell read it as a line end, and this checker does not, so that what they run is not "
+                                "the lines this check reads" % (relative, data.count(b"\n", 0, lone.start()) + 1))
     return problems
 
 
@@ -6562,6 +7174,60 @@ def start_job_line_problems(image_jobs, every_ci=None):
     return problems
 
 
+# container-image-sign's keys, each once (SIGN_JOB_KEYS), and the lines of those that say
+# when it runs, after what and what it runs (SIGN_JOB_LINES): the release's rules alone,
+# the image, its SBOM and both start tests needed, cosign's image, COSIGN_YES alone, and
+# build/ci/container-image-sign.sh. container-image.yml is not one of land-via-mr.py's
+# GATE_FILES, so these hold the job as START_JOB_KEYS hold the start jobs: no when (a
+# job's own when: always is kept beside its rules, and runs it whatever the start tests
+# did), no before_script, hooks, after_script, dependencies, allow_failure, parallel,
+# inherit or extends.
+SIGN_JOB = "container-image-sign"
+SIGN_JOB_KEYS = ("stage", "image", "needs", "timeout", "interruptible", "rules", "id_tokens", "variables", "script",
+                 "artifacts")
+SIGN_JOB_LINES = {
+    "image": ("  image:", "    name: $HM_COSIGN_IMAGE", '    entrypoint: [""]'),
+    "needs": ("  needs:", "    - job: container-image", "      artifacts: true", "    - job: container-image-sbom",
+              "      artifacts: true", "    - job: container-image-start", "      artifacts: false",
+              "    - job: container-image-start-arm64", "      artifacts: false"),
+    "rules": START_JOB_RULES,
+    "variables": ("  variables:", '    COSIGN_YES: "true"'),
+    "script": ("  script:", "    - sh build/ci/container-image-sign.sh"),
+}
+
+
+def sign_job_problems(image_jobs):
+    """container-image-sign signs the image only once both start tests have passed, and
+    signs nothing but by its script: its keys are SIGN_JOB_KEYS' alone, bare and each
+    once, and the lines of SIGN_JOB_LINES as they are written there - so that no when,
+    rule, before_script, hooks or variable of its own (BASH_ENV, ENV, which sh reads,
+    among them) can make it sign an image whose start failed, or sign another way. Its
+    one definition in the CI files is held by start_job_line_problems
+    (START_HELD_DEFINITIONS)."""
+    problems = []
+    block = image_jobs.get(SIGN_JOB, "")
+    if not block:
+        return problems
+    for line in block.replace("\r\n", "\n").split("\n"):
+        if not line.startswith("  ") or line.startswith("   ") or not line.strip():
+            continue
+        key = re.match(r"^  ([\"']?)([A-Za-z_][A-Za-z0-9_\-]*)\1[ \t]*:", line)
+        if not key or key.group(2) not in SIGN_JOB_KEYS or key.group(1):
+            problems.append("%s writes %s, which is not one of the keys this check holds it to (%s), bare: when: always "
+                            "would sign an image whose start test failed, and another key change what it runs or "
+                            "before what" % (SIGN_JOB, line.strip()[:80], ", ".join(SIGN_JOB_KEYS)))
+    for key in SIGN_JOB_KEYS:
+        if len(_job_key_texts(block, key)) > 1:
+            problems.append("%s writes %s more than once" % (SIGN_JOB, key))
+    for key, wanted in sorted(SIGN_JOB_LINES.items()):
+        written = _job_key_texts(block, key)
+        if written != [wanted]:
+            problems.append("%s's %s is not %s, as it must be for the image to be signed only after both start tests: %s"
+                            % (SIGN_JOB, key, " / ".join(line.strip() for line in wanted),
+                               " / ".join(line.strip() for text in written for line in text) or "none"))
+    return problems
+
+
 # What container-image's dotenv report says, written by build/ci/container-image-push.sh
 # as these lines and no other: the images by digest and the tags pushed. The start jobs
 # take the report, and its variables outrank a job's own.
@@ -6772,6 +7438,7 @@ def image_start_database_problems(texts, image_jobs):
                                                      FILES["image"].replace(os.sep, "/"): texts["image"]})
     problems += start_database_variable_problems(image_jobs, every_ci)
     problems += start_job_line_problems(image_jobs, ci_files(texts))
+    problems += sign_job_problems(image_jobs)
     problems += start_dotenv_problems(texts, image_jobs)
     problems += start_service_problems(image_jobs)
     problems += start_test_digest_problems(texts["image-start"], image_jobs)
@@ -10639,6 +11306,169 @@ def self_test(chain, feed):
     broken("container-image-deb.sh going on with a cosign that has no --new-bundle-format", "image-deb",
            "  || fail \"this cosign has no verify-blob --new-bundle-format", "  || true \"this cosign has no verify-blob "
            "--new-bundle-format", "never the old format's cert")
+
+    # What a rule of the release chain may bring (chain_rule_problems): needs, variables
+    # or start_in in .release-rules' tag rule, which every release and image job takes,
+    # a when: always there or in the job, needs in the install jobs' rules template, which
+    # the package start jobs take, and a key beside rules: in .release-rules. Each passed
+    # the checker of 27 October 2026 but for the first, which only the container scans'
+    # own rule on rules:needs refused, and that for the scans alone.
+    tag_rule = '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n\n# The installer is built'
+    for what, key, old, new, needle in (
+            ("needs: [] in .release-rules' tag rule", "ci", tag_rule, tag_rule.replace("\n\n", "\n      needs: []\n\n", 1),
+             "release-sign takes a rule of .release-rules's"),
+            ("when: always in .release-rules' tag rule", "ci", tag_rule, tag_rule.replace("\n\n", "\n      when: always\n\n", 1),
+             "that makes it when: always"),
+            ("variables in .release-rules' tag rule", "ci", tag_rule,
+             tag_rule.replace("\n\n", "\n      variables:\n        GIT_STRATEGY: none\n\n", 1), "that brings variables"),
+            ("a delayed start in .release-rules' tag rule", "ci", tag_rule,
+             tag_rule.replace("\n\n", "\n      when: delayed\n      start_in: 1 minute\n\n", 1), "that brings start_in"),
+            ("needs: [] in a rule of the install jobs' rules template", "packages-rpm",
+             ".rpm-install-rules:\n  rules:\n    - !reference [.own-runners, rules]",
+             ".rpm-install-rules:\n  rules:\n    - if: $CI_PIPELINE_SOURCE != \"merge_request_event\" && $CI_COMMIT_REF_PROTECTED == "
+             "\"true\" && $CI_COMMIT_TAG =~ /^v/\n      needs: []\n    - !reference [.own-runners, rules]",
+             "rpm-fedora44-aarch64-start takes a rule of .rpm-install-rules's"),
+            ("needs beside rules: in .release-rules", "ci", ".release-rules:\n  rules:\n",
+             ".release-rules:\n  needs: []\n  rules:\n", ".release-rules, whose rules release-sign takes by !reference, writes needs"),
+            ("release-sign when: always", "ci",
+             "    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n"
+             "    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN",
+             "    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  when: always\n"
+             "  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN", "release-sign says when: always"),
+            # container-image-sign's keys and lines (sign_job_problems): a when: always of its
+            # own or a rule's, a before_script that ends it, a variable of its own, and its
+            # needs without the arm64 start; none of the first four was refused before.
+            ("container-image-sign when: always", "image",
+             "  timeout: 15 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:",
+             "  timeout: 15 minutes\n  interruptible: false\n  when: always\n  rules:\n    - !reference [.release-rules, rules]\n"
+             "  id_tokens:", "container-image-sign writes when: always"),
+            ("container-image-sign's rule when: always", "image",
+             "  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:",
+             "  interruptible: false\n  rules:\n    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == \"true\"\n"
+             "      when: always\n    - !reference [.release-rules, rules]\n  id_tokens:", "container-image-sign's rules is not"),
+            ("container-image-sign's before_script exit 0", "image",
+             "    COSIGN_YES: \"true\"\n  script:\n    - sh build/ci/container-image-sign.sh",
+             "    COSIGN_YES: \"true\"\n  before_script:\n    - exit 0\n  script:\n    - sh build/ci/container-image-sign.sh",
+             "container-image-sign writes before_script"),
+            ("container-image-sign's ENV", "image",
+             "    COSIGN_YES: \"true\"\n  script:\n    - sh build/ci/container-image-sign.sh",
+             "    COSIGN_YES: \"true\"\n    ENV: /dev/null\n  script:\n    - sh build/ci/container-image-sign.sh",
+             "container-image-sign's variables is not"),
+            ("container-image-sign without the arm64 start", "image",
+             "    - job: container-image-start-arm64\n      artifacts: false\n  timeout: 15 minutes",
+             "  timeout: 15 minutes", "container-image-sign's needs is not"),
+            # The package start jobs (package_start_key_problems): hooks: of the job's own,
+            # BASH_ENV, a template from a file other than its own, a template's variables,
+            # default:'s hooks, a second need, a build's artifact that is a script, and a
+            # request after the wait without --max-time. None was refused before.
+            ("a package start job's hooks", "packages-deb",
+             "    HM_PACKAGES_DIR: packages-deb/ubuntu26.04-arm64\n    HM_START_WAIT: \"300\"\n",
+             "    HM_PACKAGES_DIR: packages-deb/ubuntu26.04-arm64\n    HM_START_WAIT: \"300\"\n  hooks:\n"
+             "    pre_get_sources_script:\n      - echo planted\n", "deb-ubuntu26.04-arm64-start writes hooks"),
+            ("a package start job's BASH_ENV", "packages-deb",
+             "    HM_PACKAGES_DIR: packages-deb/ubuntu26.04-arm64\n    HM_START_WAIT: \"300\"\n",
+             "    HM_PACKAGES_DIR: packages-deb/ubuntu26.04-arm64\n    HM_START_WAIT: \"300\"\n    BASH_ENV: build/ci/planted.sh\n",
+             "deb-ubuntu26.04-arm64-start sets BASH_ENV"),
+            ("a package start job's template's variables", "packages-rpm", ".rpm-image-fedora44-aarch64:\n  image:\n",
+             ".rpm-image-fedora44-aarch64:\n  variables:\n    BASH_ENV: build/ci/planted.sh\n  image:\n",
+             ".rpm-image-fedora44-aarch64, which rpm-fedora44-aarch64-start extends, writes variables"),
+            ("default:'s hooks", "ci", "\ndefault:\n", "\ndefault:\n  hooks:\n    pre_get_sources_script:\n      - echo planted\n",
+             ".gitlab-ci.yml's default: writes hooks, which deb-ubuntu26.04-arm64-start takes"),
+            ("a package start job's second need", "packages-deb",
+             "  needs: [deb-ubuntu26.04-arm64]\n  timeout: 30 minutes\n  rules:\n    - !reference [.deb-install-rules, rules]\n"
+             "  variables:\n    HM_PACKAGES_DIR",
+             "  needs: [deb-ubuntu26.04-arm64, linux-build]\n  timeout: 30 minutes\n  rules:\n"
+             "    - !reference [.deb-install-rules, rules]\n  variables:\n    HM_PACKAGES_DIR",
+             "deb-ubuntu26.04-arm64-start needs deb-ubuntu26.04-arm64, linux-build, not deb-ubuntu26.04-arm64 alone"),
+            ("a build's artifact that is the start's script", "packages-deb",
+             "  artifacts:\n    when: always\n    expire_in: 14 days\n    paths:\n      - packages-deb/\n",
+             "  artifacts:\n    when: always\n    expire_in: 14 days\n    paths:\n      - packages-deb/\n"
+             "      - build/ci/linux-package-install.sh\n", "deb-ubuntu26.04-arm64's artifacts, which deb-ubuntu26.04-arm64-start "
+             "unpacks"),
+            ("a build's dotenv report", "packages-deb",
+             "  artifacts:\n    when: always\n    expire_in: 14 days\n    paths:\n      - packages-deb/\n",
+             "  artifacts:\n    when: always\n    expire_in: 14 days\n    paths:\n      - packages-deb/\n    reports:\n"
+             "      dotenv: packages-deb/build.env\n", "deb-ubuntu26.04-arm64's artifacts, from .deb-build, carry a dotenv report"),
+            ("a request after the start wait without --max-time", "package-install",
+             'curl -fsS --max-time 30 -D /tmp/headers.txt', 'curl -fsS -D /tmp/headers.txt', "runs curl without --max-time"),
+            # The script held whole (package_install_digest_problems): three edits each of
+            # which kept every line of START_SCRIPT_LINES and passed before.
+            ("an exit 0 after set -uo pipefail", "package-install", "set -uo pipefail\n", "set -uo pipefail\nexit 0\n",
+             "linux-package-install.sh is not the script build/check-release-chain.py holds"),
+            ("fail() returning 0", "package-install", "  show_logs\n  exit 1\n}", "  show_logs\n  return 0\n}",
+             "linux-package-install.sh is not the script build/check-release-chain.py holds"),
+            ("rc=0 before the SMTP verdict", "package-install", 'echo "$said"\n[ "$rc" = 0 ]', 'echo "$said"\nrc=0; [ "$rc" = 0 ]',
+             "linux-package-install.sh is not the script build/check-release-chain.py holds")):
+        broken(what, key, old, new, needle)
+    # A template of the start job's from a third CI file, which GitLab takes and this
+    # check read none of, giving it a before_script that ends it green.
+    third = ".gitlab/ci/alpine.yml"
+    if third not in texts["ci-includes"] or "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n" not in \
+            texts["packages-rpm"]:
+        failures.append("the start job's template from a third file: %s, or the job's extends, is not in the tree" % third)
+    else:
+        copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{
+            third: texts["ci-includes"][third] + "\n.planted-start:\n  before_script:\n    - exit 0\n"})})
+        copy["packages-rpm"] = texts["packages-rpm"].replace(
+            "rpm-fedora44-aarch64-start:\n  extends: .rpm-image-fedora44-aarch64\n",
+            "rpm-fedora44-aarch64-start:\n  extends: [.rpm-image-fedora44-aarch64, .planted-start]\n", 1)
+        found, _ = check(copy, chain, feed)
+        if not any("rpm-fedora44-aarch64-start extends .planted-start, which .gitlab/ci/packages-rpm.yml does not define" in p
+                   for p in found):
+            failures.append("a start job's template from a third CI file is caught: %s" % found)
+    # Control bytes in a file this checker reads (control_byte_problems): a NUL that
+    # splits an exit 0 after container-image-push.sh's set -eu, which bash and busybox sh
+    # run as exit 0 and git takes for binary; an ESC in release-chain.py; a CR LF in a
+    # shell script; and a carriage return alone in a Python one. None was refused before.
+    for what, key, old, new, needle in (
+            ("a NUL in container-image-push.sh", "image-push", b"set -eu\n", b"set -eu\ne\x00xit 0\n",
+             "container-image-push.sh holds the control byte NUL (0x00) on its line"),
+            ("an ESC in release-chain.py", "chain", b"\n", b"\n# \x1b[2K\n", "release-chain.py holds the control byte ESC"),
+            ("a DEL in the start jobs' script", "package-install", b"set -uo pipefail\n", b"set -uo pipefail\x7f\n",
+             "linux-package-install.sh holds the control byte DEL"),
+            ("a CR LF in release-sign.sh", "sign", b"\n", b"\r\n", "release-sign.sh has a carriage return before a line feed"),
+            ("a lone carriage return in release-chain.py", "chain", b"\n", b"\rimport os\n",
+             "release-chain.py has a carriage return not followed by a line feed")):
+        raw = texts["script-bytes"].get(key, b"")
+        if old not in raw:
+            failures.append("%s: the bytes to break are not in %s" % (what, key))
+            continue
+        copy = dict(texts, **{"script-bytes": dict(texts["script-bytes"], **{key: raw.replace(old, new, 1)})})
+        found, _ = check(copy, chain, feed)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    # The SLSA sentences (slsa_sentence_problems): the three claims the tripwire passed,
+    # a listed sentence changed, and one gone; and the tree's own, each listed.
+    for what, name, old, new, needles in (
+            ("Our SLSA level is 3.", "README.md", None, "\n\nOur SLSA level is 3.\n", ["README.md says 'Our SLSA level is 3.'"]),
+            ("SLSA compliance level: 3", "README.md", None, "\n\nSLSA compliance level: 3\n",
+             ["README.md says 'SLSA compliance level: 3'"]),
+            ("a double negation", "README.md", None, "\n\nIt cannot be said that Build L2 is not met.\n",
+             ["README.md says 'It cannot be said that Build L2 is not met.'"]),
+            ("a listed sentence changed", "SECURITY.md", "and no higher Build level is claimed.",
+             "and a higher Build level is near.", ["SECURITY.md says '**SLSA Build level.**",
+                                                    "SLSA_SENTENCES lists for SECURITY.md '**SLSA Build level.**"]),
+            ("a listed sentence gone", "hmailserver/docs/ContinuousIntegration.md",
+             "GitLab.com's own attestations, which GitLab calls SLSA Build L3 (not met\nhere)", "GitLab.com's own attestations",
+             ["SLSA_SENTENCES lists for hmailserver/docs/ContinuousIntegration.md \"GitLab.com's own attestations, which GitLab "
+              "calls SLSA Build L3"])):
+        docs = dict(texts["slsa-docs"])
+        if old is not None and old not in docs.get(name, ""):
+            failures.append("%s: the text to break is not in %s" % (what, name))
+            continue
+        docs[name] = docs.get(name, "") + new if old is None else docs[name].replace(old, new, 1)
+        found = slsa_sentence_problems(docs)
+        for needle in needles:
+            if not any(p.startswith(needle) for p in found):
+                failures.append("%s is caught (%s): %s" % (what, needle, found))
+        copy = dict(texts, **{"slsa-docs": docs})
+        found, _ = check(copy, chain, feed)
+        if not any(needles[0] in p for p in found):
+            failures.append("%s is caught by check(): %s" % (what, found))
+    if slsa_sentence_problems(texts["slsa-docs"]) or not SLSA_SENTENCES or \
+            sum(len(v) for v in slsa_sentences(texts["slsa-docs"]).values()) != sum(len(v) for v in SLSA_SENTENCES.values()):
+        failures.append("the tree's sentences naming SLSA beside a level or a figure are SLSA_SENTENCES': %s" %
+                        slsa_sentence_problems(texts["slsa-docs"]))
 
     for failure in failures:
         print("FAILED: " + failure)

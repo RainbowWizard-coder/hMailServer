@@ -31,7 +31,10 @@
 # the started server is given to answer (60; the arm64 jobs give more, since under
 # qemu-user every instruction of it is emulated), each request of the wait 30 of them
 # at most, so that a REST port that takes the connection and never answers fails
-# within it.
+# within it; and each request after the wait - GET /api/v1/status, GET /, the German
+# catalogue and the four that must be 404 - is given 30 s (--max-time), so that one
+# that hangs fails the job there, not at the job's timeout. build/check-release-chain.py
+# holds the whole script by its SHA-256 (PACKAGE_INSTALL_SHA256).
 #
 # The .deb, and the generic .rpm built in Fedora 44: the distribution's package
 # manager installs it with its dependencies from that release's own repositories -
@@ -455,11 +458,11 @@ echo "$said"
 echo "port 25 answered with the server's banner, EHLO and QUIT"
 
 step "the REST API answers"
-curl -fsS -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail "GET /api/v1/status"
+curl -fsS --max-time 30 -u "Administrator:$ADMIN_PASSWORD" "http://127.0.0.1:$REST_PORT/api/v1/status" || fail "GET /api/v1/status"
 echo ""
 
 step "GET / returns the Control Deck and not the stub"
-curl -fsS -D /tmp/headers.txt -o /tmp/deck.html "http://127.0.0.1:$REST_PORT/" || fail "GET /"
+curl -fsS --max-time 30 -D /tmp/headers.txt -o /tmp/deck.html "http://127.0.0.1:$REST_PORT/" || fail "GET /"
 head -n 1 /tmp/headers.txt
 grep -i '^content-type' /tmp/headers.txt
 grep -m 1 -o '<title>[^<]*</title>' /tmp/deck.html || true
@@ -469,11 +472,11 @@ cmp /tmp/deck.html /usr/share/hmailserver/WebAdmin/index.html || fail "GET / is 
 echo "GET / served the installed Control Deck, byte for byte."
 
 step "GET /deck-lang/de.json returns the installed catalogue, and nothing else is served"
-curl -fsS -D /tmp/lang-headers.txt -o /tmp/deck-de.json "http://127.0.0.1:$REST_PORT/deck-lang/de.json" || fail "GET /deck-lang/de.json"
+curl -fsS --max-time 30 -D /tmp/lang-headers.txt -o /tmp/deck-de.json "http://127.0.0.1:$REST_PORT/deck-lang/de.json" || fail "GET /deck-lang/de.json"
 grep -qi '^content-type: application/json' /tmp/lang-headers.txt || fail "de.json is not served as JSON"
 cmp /tmp/deck-de.json /usr/share/hmailserver/WebAdmin/languages/de.json || fail "de.json is not the installed catalogue"
 for wrong in xx ../index ..%2Findex de.json; do
-  code=$(curl -s --path-as-is -o /dev/null -w '%{http_code}' "http://127.0.0.1:$REST_PORT/deck-lang/${wrong}.json")
+  code=$(curl -s --max-time 30 --path-as-is -o /dev/null -w '%{http_code}' "http://127.0.0.1:$REST_PORT/deck-lang/${wrong}.json")
   [ "$code" = 404 ] || fail "/deck-lang/${wrong}.json answered $code; a code that is not an installed language is 404"
 done
 echo "the German catalogue, byte for byte, and a 404 for what is not a language"

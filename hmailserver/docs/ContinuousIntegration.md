@@ -1370,7 +1370,15 @@ character but printable ASCII, a tab and a line feed, since GitLab's YAML
 reader ends a line at NEL, LS and PS too and takes no character but a space and
 a tab for white space, where the checker reads a CI file's lines at line feeds
 alone and Python takes every Unicode space for white space, so that a comment
-line holding an LS would hide from every rule what GitLab reads after it; and
+line holding an LS would hide from every rule what GitLab reads after it; when
+a file the checker reads - the release's and the image's shell scripts, the
+Python and PowerShell ones, the CI files and the rest of its `FILES` - holds a
+control byte but a tab and a line feed (DEL among them), a carriage return in a
+shell script, or one not right before a line feed in any other, since bash and
+busybox sh drop a NUL from the line they run, so that `e`, a NUL and `xit 0` is
+`exit 0` to them and passed every line the checker reads, and a NUL early in a
+file makes git and `build/check-control-bytes.py` take it for binary and show
+or read none of it; and
 when a Python script of `GATE_FILES` imports anything but `os` and `sys` before
 it takes its own directory off its module path (`PATH_GUARD`). Each of those
 has a case in its self-test that must fail.
@@ -3624,6 +3632,59 @@ alone, and start `release-publish` when both pass. Both are
 `allow_failure: false`, so the pipeline waits at each and the jobs after them
 do not start.
 
+**What a job of the chain takes from its rules and its templates.** The checker
+reads the chain's order from each job's own `needs:`, which GitLab puts in
+place of a template's whole, and GitLab applies to a job the rule that
+matches, with more than its `when`: a rule's `needs` replace the job's whole,
+its `variables` go over the job's, `start_in` delays it, and a job's `when:
+always`, its own or a rule's, runs it whatever the jobs it needs did - GitLab
+keeps a job's own `when` beside its rules. So it fails when a rule a job of the
+release chain takes (the release jobs, the image's and Artifact Hub's, the
+packages a release carries from the package jobs, `release-packages`, the
+chart's, the ARM64 installer's, `build-inputs-authenticode`, the two sources
+jobs, `pages` and `package-repos`) - its own, or a template's it takes with
+`!reference [X, rules]`, `.release-rules` and the install jobs' rules among
+them - brings a key but `if`, `when`, `allow_failure` and `changes`, or a
+`when` but `never`, `on_success` and `manual`; when such a template writes a
+key beside `rules:`, which a job that extends it would take; and when a job of
+the chain, or a template it extends, says `when: always` itself. `needs: []` in
+`.release-rules`' tag rule would have started `release-sign` before
+`release-authenticode` had signed, and only the container scans' own rule on
+`rules:needs` refused it, for the scans alone.
+
+**What the package start jobs take, and their script.** The two start jobs
+(`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`) write `extends`,
+`stage`, `tags`, `needs`, `timeout`, `rules`, `variables`, `services` and
+`script` alone, each once - no `hooks`, `before_script`, `cache` or
+`allow_failure` -, extend one template of their own file that writes `image:`
+alone (GitLab takes a template from any CI file `.gitlab-ci.yml` includes, and a
+third file's was read by nothing), take no `before_script`, `hooks` or `cache`
+from `default:`, set no variable but `HM_PACKAGES_DIR` and `HM_START_WAIT` (a
+number) - `BASH_ENV`, which bash runs before the script, and the rest are
+refused -, and need their build alone, whose artifacts stay under its own
+file's folder and carry no dotenv report, since GitLab unpacks them over the
+checkout the script is in and gives a dotenv report's variables over the job's.
+`build/ci/linux-package-install.sh`, which they and `linux-package-deb` run, is
+held whole, by the SHA-256 of its text with its line ends LF
+(`PACKAGE_INSTALL_SHA256` in `build/check-release-chain.py`), as
+`container-image-start-test.sh` is by `START_TEST_SHA256`: an `exit 0` after
+`set -uo pipefail`, a `fail` that returns 0 and an `rc=0` before the SMTP
+verdict each kept every line `START_SCRIPT_LINES` names. Whoever changes the
+script reads the change whole, runs `python build/check-release-chain.py`,
+whose failure prints the script's new digest, puts that digest in
+`PACKAGE_INSTALL_SHA256` in the same commit, and lands it with `--gates-read`,
+since the checker is one of `build/land-via-mr.py`'s `GATE_FILES` and the
+script is not. A digest rather than a place in `GATE_FILES`: the script
+changed in ten commits from 25 September to 24 October 2026, three of them in
+the last two days, which is a one-line change to the checker each time, as the
+start test has taken four since its digest was added on 23 October 2026; the gate files are what judges a change and says
+how its jobs run, a list the checker holds to those; and the branch's own
+`checkers` job says the script changed, not only the landing. Every `curl` the
+script runs after the start is given a time (`--max-time`): the wait's requests
+what is left of `HM_START_WAIT`, 30 s at most, and `GET /api/v1/status`, `GET
+/`, the German catalogue and the four requests that must be answered 404 30 s
+each, so that one that hangs fails the job there and not at its timeout.
+
 **Why no secret.** Sigstore takes the job's ID token for the audience
 `sigstore`; Entra ID takes another, for `api://AzureADTokenExchange`, through a
 federated credential on the app registration in place of a client secret; and
@@ -3761,6 +3822,26 @@ records the kind of runner the signing job ran on (its runner environment
 extension): `gitlab-hosted` for 6.3.6, whose `release-sbom` and `release-sign`
 ran on GitLab's runners, and `self-hosted` for 6.3.7 - the runner that signed
 the provenance, which says nothing of where the files were built.
+
+**What holds the documents to that level.** `build/check-release-chain.py`
+fails when SECURITY.md, this page or EvidencePack.md stops saying the level
+where its `SLSA_CLAIMS` says it, and when a sentence of the README,
+SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs`
+names a higher level without a negation attached to it or affirms one - a
+tripwire over wordings, which three claims passed. So it also holds each of
+those sentences by a list: every sentence of those documents that names the
+framework beside a level or a figure, a level in its own form (a Build level
+by its number) or its badge must be one of `SLSA_SENTENCES`, the sentences the
+checker lists for each document as the document has them, read in units of a
+paragraph, a list item, a heading, a table cell, a line of a fenced block or a
+badge's line, with their white space taken as one space. A sentence added or
+reworded fails `checkers`, naming the sentence as the check reads it, until it
+is listed; a listed one the document no longer says fails until it is taken
+out. Whoever writes or rewords such a sentence reads it against SECURITY.md's
+"Build provenance" - it may claim no level the provenance does not meet -,
+copies it from the failure into `SLSA_SENTENCES` under its document, takes out
+the one it replaced, and lands the change with `--gates-read`, the checker
+being a gate file.
 
 Which runner made which of the 62 files, as the jobs of the two tag pipelines,
 2914690858 (6.3.6) and 2958958332 (6.3.7), show; where a job ran more than once,

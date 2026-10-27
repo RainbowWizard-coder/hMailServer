@@ -3123,6 +3123,71 @@ with `--check`).
 - `build/lab/interop.sh` and `build/lab/active-active/node.sh` escape the account password they write into a JSON
   body. A password from the environment holding a double quote or a backslash had made a body that was not JSON,
   which the REST API now refuses. Before, it was misread.
+- **The release-chain check holds what a job of the chain takes from its rules, and `container-image-sign`'s keys.**
+  GitLab applies to a job the rule that matches with more than its `when`: a rule's `needs` replace the job's whole,
+  its `variables` go over the job's, `start_in` delays it, and a job's `when: always`, its own or a rule's, runs it
+  whatever the jobs it needs did (GitLab's CI lint keeps a job's own `when: always` beside its `rules:`). The check
+  reads the chain's order from each job's own `needs:`, so `needs: []` in `.release-rules`' tag rule, which every
+  release and image job takes, would have started `release-sign` before `release-authenticode` had signed, and
+  only the container scans' own rule on `rules:needs` refused it, for the scans alone; `when: always`, `variables`
+  or `start_in` there, `needs` in the install jobs' rules template, and `when: always` on `container-image-sign`,
+  in its own keys or a rule of its own, which would sign an image whose start test failed, passed it.
+  `build/check-release-chain.py` now fails when a rule a job of the chain takes (the release jobs, the image's and
+  Artifact Hub's, the four jobs of each package a release carries from a package job, `release-packages`, the
+  chart's, the ARM64 installer's, `build-inputs-authenticode`, the two sources jobs, `pages` and `package-repos`) -
+  its own or a template's it takes with `!reference [X, rules]` - brings a key but `if`, `when`, `allow_failure` and
+  `changes`, or a `when` but `never`, `on_success` and `manual` (`chain_rule_problems`); when such a template writes
+  a key beside `rules:`, which a job that extends it would take; and when a job of the chain or a template it
+  extends says `when: always`. `container-image-sign`, in `.gitlab/ci/container-image.yml`, which is not a gate file,
+  is held as the start jobs are: its keys bare and each once, and none but its stage, image, needs, timeout,
+  interruptible, rules, ID token, variables, script and artifacts - no `when`, `before_script`, `hooks` or
+  `allow_failure` -, and its image, needs (the image, its SBOM and both start tests), rules (`.release-rules`'
+  alone), variables (`COSIGN_YES` alone) and script as they are written (`sign_job_problems`).
+- **The release-chain check refuses a control byte in any file it reads.** bash and busybox sh drop a NUL from the
+  line they run, so `e`, a NUL and `xit 0` after `build/ci/container-image-push.sh`'s `set -eu` is `exit 0` to them,
+  would end the push green having pushed nothing, and passed every line the check reads; and a NUL in a file's first 8,000
+  bytes makes git show it as binary and `build/check-control-bytes.py` take it for one and read none of it. Each file
+  of the check's `FILES` - the release's and the image's shell scripts, the Python and PowerShell ones, the CI files
+  and the rest - may now hold no control byte but a tab and a line feed (DEL refused too), no carriage return in a
+  shell script, which `.gitattributes` checks out LF everywhere, and none but right before a line feed in any other
+  file, which Python and PowerShell would read as a line end where the check does not (`control_byte_problems`,
+  over the files' bytes).
+- **The package start jobs are held to what they write and take, and `build/ci/linux-package-install.sh` whole.**
+  The check held a start job's script line, image, services and `before_script`, and nothing held its `hooks:`, a
+  variable beyond those it read - `BASH_ENV`, which bash runs before the script, `ENV`, `PATH` - or a template from
+  a third CI file, which GitLab takes and the check read none of. A start job (`deb-ubuntu26.04-arm64-start`,
+  `rpm-fedora44-aarch64-start`) now writes `extends`, `stage`, `tags`, `needs`, `timeout`, `rules`, `variables`,
+  `services` and `script` alone, bare and each once; extends one template of its own file that writes `image:`
+  alone; is defined once in the CI files with all it reaches; sets no variable but `HM_PACKAGES_DIR` and a number of
+  seconds in `HM_START_WAIT`; takes no `before_script`, `hooks` or `cache` from `default:`; and needs its build alone,
+  whose artifacts stay under its own file's folder and carry no dotenv report, since GitLab unpacks a need's
+  artifacts over the checkout the script runs from and gives its dotenv variables over the job's
+  (`package_start_key_problems`). The script was held by the lines `START_SCRIPT_LINES` names, and
+  an `exit 0` after `set -uo pipefail`, a `fail` made to return 0 and an `rc=0` before the SMTP verdict each kept
+  them and passed, while the start jobs and `linux-package-deb` are jobs `release` waits for and the script is not
+  one of `build/land-via-mr.py`'s gate files: it is now held whole by the SHA-256 of its text with its line ends LF
+  (`PACKAGE_INSTALL_SHA256`), as the image's start test is by `START_TEST_SHA256`, so a change to it fails the check,
+  printing the new digest, until the digest in the check changes with it - a gate change, landed only with
+  `--gates-read`. A digest rather than a place in the gate files: the script changed in ten commits from 25 September
+  to 24 October 2026, a one-line change to the check each time; the gate files are what judges a change and says how
+  the gate jobs run; and the branch's own `checkers` job says the script changed, not only the landing. Whoever
+  changes the script reads the change whole, runs the check, puts the digest it prints in `PACKAGE_INSTALL_SHA256`
+  and lands with `--gates-read`; the script's header and ContinuousIntegration.md say so. And the script's requests
+  after the start wait - `GET /api/v1/status`, `GET /`, the German catalogue and the four that must be answered 404 -
+  had no `--max-time`, so one that hung held the job to its timeout: each is given 30 s, and the check refuses a
+  `curl` there without `--max-time` on its line.
+- **The release-chain check holds the documents' sentences on the SLSA level by a list.** Its tripwire over the
+  README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and the pages of `hmailserver/docs` refuses a higher level named
+  without a negation attached to it or affirmed, and "Our SLSA level is 3.", "SLSA compliance level: 3" and "It
+  cannot be said that Build L2 is not met." each passed it. Rather than more patterns, every sentence of those
+  documents that names SLSA beside a level or a figure, a level in SLSA's own form (Build L2, SLSA3) or the slsa.dev
+  badge must now be one of `SLSA_SENTENCES`, which lists the tree's 22 as the documents have them, read in units of
+  a paragraph, a list item, a heading, a table cell, a line of a fenced block or a badge's line, with their white
+  space as one space (`slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, named as the
+  check reads it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and
+  a listed one the documents no longer say fails until it is taken out. Whoever writes or rewords such a sentence
+  copies it from the failure into `SLSA_SENTENCES`, takes out the one it replaced and lands the change with
+  `--gates-read`; ContinuousIntegration.md says so. The tripwire stays.
 
 ### Documentation
 
