@@ -1247,33 +1247,53 @@ with `--check`).
   attributes a client binds by (`dual`, `local`, `object`, `oleautomation`) and members in order, with each member's
   kind, dispatch id, name, return type and its parameters' directions and types - and the check holds the tree to
   beginning each of those interfaces with exactly those members, refusing an insertion, a removal, a move, a changed
-  dispatch id, kind or parameter type or direction, a changed IID, base or binding attribute and a missing
-  interface, and naming the interface, the member's place and its vtable slot, and to keeping each of those
-  enumerators with its value, which an early-bound client compiles in. Every interface, a new one too, must derive
-  from `IDispatch` or `IUnknown`: one derived from another of the file's interfaces would have its own members moved
-  by a member appended to its base, which the check lets through, so it refuses such a base; none exists. It does
-  not hold an interface's other attributes, an enum's uuid or the parameters' names and default values. The baseline
-  is written from a release tag with `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag
-  the file is also held to what the tag's `hMailServer.idl` says, and the tree to every newer release tag there. The
-  CI's checkouts are a commit deep and have no tag, so in a CI job the check fetches the baseline's tag and every
-  newer release tag from `origin`, a commit deep each, and holds both there too, failing the job when it cannot: a
-  change that edits the baseline along with `hMailServer.idl`, or names an older release in it, is refused by the
-  checkers job. Every run, the checkers job's among them, proves its negative controls first (`--self-test` runs
-  only those): the ACME methods put back after `GetReputationReport`, a member inserted, removed, swapped, given
-  another dispatch id, kind, parameter type or direction, an IID changed, an interface taken away, a new interface
-  derived from a released one, `dual` taken off and an enumerator's value changed or removed are refused, and a
-  member appended, wrapped over two lines or commented out, a new interface derived from `IDispatch` and an
-  enumerator appended are not; the parse is held to read every `HRESULT` of every interface body. Its tokens are
-  string literals, comments of both kinds, words and single characters; MIDL runs the C preprocessor first and
-  reads character literals, so the check refuses an `hMailServer.idl` it would read otherwise than MIDL, naming the
-  line: a preprocessor line (`#if 0` ... `#endif` around a member takes it out of the vtable, an `#include` in a body
-  brings members in), a line ending in a backslash, which joins the next line to a `//` comment, a `'` outside a
-  string or a comment (in `custom(<uuid>, '"')` or `helpcontext('"')`, which MIDL builds, a reader that knew no
-  character literal took the `"` to open a string, and a member written between two of them on one line was text to
-  it, so that it passed a member MIDL inserted above `Address`, moving `IInterfaceAccount`'s vtable), a `"` that
-  opens no string on its line, and an enumerator without its value written out; the file has none of them, and seven
-  more controls - a released member inside `#if 0` ... `#endif`, an `#include` in a body, such a comment above a
-  member, a member between two `'"'` in `custom()` and in `helpcontext()`, the same with `L'"'`, and an enumerator
+  dispatch id, kind or parameter type or direction, a changed IID, base or binding attribute and a missing interface,
+  and naming the interface, the member's place and its vtable slot, and to keeping each of those enumerators with its
+  value, which an early-bound client compiles in. Every interface, a new one too, must be declared with `IDispatch`
+  or `IUnknown` for its base: one derived from another of the file's interfaces would have its own members moved by a
+  member appended to its base, which the check lets through, so it refuses such a base, and one declared with no
+  base, which MIDL builds with a warning, is refused as a vtable it does not read; none exists. It does not hold an
+  interface's other attributes, an enum's uuid, the parameters' names and default values, or what the Windows SDK's
+  `oaidl.idl` and `ocidl.idl`, which the file imports, declare. The baseline is written from a release tag with
+  `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag the file is also held to what the
+  tag's `hMailServer.idl` says, and the tree to every newer release tag there. In a CI job the tags are not taken
+  from the clone, which may have none (a checkout a commit deep), only those its fork was made with, or tags that
+  something run in a clone the runner keeps between jobs made or moved: every run lists the release tags of the
+  project, `https://gitlab.com/hmailserver/hmailserver.git`, whatever project the job runs in, fetches the baseline's
+  tag and every newer one from it over the clone's own, a commit deep each, and holds the baseline and the tree to
+  them, failing the job when they cannot be listed or fetched or when a tag the clone had pointed elsewhere: a change
+  that edits the baseline along with `hMailServer.idl`, or names an older release in it, is refused by the checkers
+  job whatever its clone held, and a fork's merge request is held to the project's releases rather than failing for
+  want of the fork's tags. Every run, the checkers job's among them, proves its negative controls first
+  (`--self-test` runs only those): the ACME methods put back after `GetReputationReport`, a member inserted, removed,
+  swapped, given another dispatch id, kind, parameter type or direction, an IID changed, an interface taken away, a
+  new interface derived from a released one, `dual` taken off and an enumerator's value changed or removed are
+  refused, and a member appended, wrapped over two lines or commented out, a new interface derived from `IDispatch`
+  and an enumerator appended are not; every `HRESULT` of the file must be a member of an interface body the parse
+  read. Its tokens are string literals, comments of both kinds, words and single characters; MIDL runs the C
+  preprocessor first and reads character literals, so the check reads, outside strings and comments, words and `( ) *
+  , - : ; = [ ] { }` alone, which are all the file has been written with since 6.0.0, with spaces, tabs and line
+  feeds between them, and refuses an `hMailServer.idl` in which MIDL could read otherwise, naming the line: a
+  preprocessor line (`#if 0` ... `#endif` around a member takes it out of the vtable, an `#include` in a body brings
+  members in); the same directives spelt with the digraph `%:`, which the preprocessor obeys as it does `#` (a
+  `%:define` after the imports used in `Address`'s attributes declared a member above it, `%:if 0` ... `%:endif` in
+  the middle of an attribute's argument took its getter out, and `%:define VARIANT_BOOL long` changed 38 interfaces'
+  parameters, each built by MIDL and passed by the check); any other character outside a string or a comment, among
+  them a `'` (in `custom(<uuid>, '"')` or `helpcontext('"')`, which MIDL builds, a reader that knew no character
+  literal took the `"` to open a string, and a member written between two of them on one line was text to it, so that
+  it passed a member MIDL inserted above `Address`, moving `IInterfaceAccount`'s vtable), a `"` that opens no string
+  on its line, the `<` and `>` of the digraphs `<:` `:>` `<%` `%>`, and a character that is not ASCII; a line ending
+  in a backslash, which joins the next line to a `//` comment; a carriage return not followed by a line feed,
+  anywhere, which the preprocessor takes as part of the line, so that after a `//` comment a member written after it
+  on the line is comment, where the check had read the file with universal newlines and so read the member (it passed
+  `Address`'s getter so removed, a file git keeps byte for byte; the file is now read from its bytes, a carriage
+  return and a line feed taken for a line feed and nothing else); an import of a file but those two; and an
+  enumerator without its value written out. The file has none of them, and fifteen more controls - a released member
+  inside `#if 0` ... `#endif`, an `#include` in a body, such a comment above a member, a member between two `'"'` in
+  `custom()` and in `helpcontext()`, the same with `L'"'`, a `%:define` of a member used in a member's attributes, a
+  released member inside `%:if 0` ... `%:endif` in an attribute's argument, a `%:include` in a body, a `//` comment
+  and a carriage return before a released member, read from bytes with CRLF line ends, a no-break space between two
+  tokens, an import of another file, an interface with no base, a dispinterface with a member and an enumerator
   without a value - must each stop the parse with that refusal. It takes about a second.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
@@ -2547,22 +2567,43 @@ with `--check`).
   `debian/rules`' `TESTERS` and the spec's `%check` loop, written by hand, had also missed `quarantine-search-tests`
   (6.3.7) and `report-parser-tests` (6.3.6), neither of which needs a database, the system's configuration, a socket
   or root; both lists now run them. `build/check-source-tarball.py`, which the checkers job runs, holds the two lists
-  to each other, name for name and in order, and to every `*-tests` program `CMakeLists.txt` makes but the eight it
-  leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback socket, which `offline.c` refuses,
-  root, every case held to a time on a builder shared with other builds, or, for `workqueue-teardown-tests`, two
-  tasks of twenty seconds held to outlast removes whose stops each give up after ten, a margin of ten seconds of
-  wall clock that such a builder, or an emulated one, can take up, where a failure would say only that the builder
-  was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the project's runners). It
-  reads `add_executable` as CMake does, in any case and with spaces before the bracket, and refuses what it cannot
-  read - an `add_executable` named by a variable or a `foreach`, a tester whose `OUTPUT_NAME` is not its target's
-  name, an `add_subdirectory` or an `include()` of a file - and it holds the loops to running what the lists name:
-  `debian/rules`' `override_dh_auto_test` to one `set -e; ... for tester in $(TESTERS); do ...; done` running
-  `./$$tester` as a command of its own, and the spec's loop to `./$tester` on a line of its own. Its `--self-test`
-  sees a tester made and run by neither list, one made by `ADD_EXECUTABLE` and one by `add_executable (`, testers
-  made in a `foreach`, a tester's `OUTPUT_NAME` another name, an `add_subdirectory`, one list without a tester, the
-  two in another order, a tester left out and run, a tester run twice, a name the build no longer makes, the Debian
-  loop over another variable, without `set -e`, with `: ./$$tester` and with `./$$tester || true`, and the spec's
-  loop with `: ./$tester` and with `./$tester || :` refused; SourcePackages.md says which eight are left out and why.
+  to each other, name for name and in order, and to every `*-tests` program `CMakeLists.txt` makes by
+  `add_executable` but the eight it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback
+  socket, which `offline.c` refuses, root, every case held to a time on a builder shared with other builds, or, for
+  `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops each give up after ten,
+  a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up, where a failure would
+  say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the
+  project's runners). It reads `add_executable` as CMake reads a command, at the start of its line, in any case and
+  with spaces before the bracket, and refuses what would make a `*-tests` program otherwise: an `add_executable`
+  named by a variable or a `foreach`; a program named or placed otherwise than its target (`OUTPUT_NAME`,
+  `RUNTIME_OUTPUT_NAME`, `SUFFIX`, `PREFIX` or `RUNTIME_OUTPUT_DIRECTORY` set by `set_target_properties` or
+  `set_property`, or `CMAKE_EXECUTABLE_SUFFIX`, `CMAKE_RUNTIME_OUTPUT_DIRECTORY` or `EXECUTABLE_OUTPUT_PATH` named);
+  CMake code from elsewhere or by another name (`add_subdirectory`, `subdirs`, an `include()` of a file,
+  `CMAKE_MODULE_PATH`, `FetchContent`, `ExternalProject`, `cmake_language`, a `_`-prefixed command, a function or a
+  macro); and a `configure_file`, `file()`, `add_custom_command`, `add_custom_target` or `execute_process` that names
+  a `*-tests` file. A name such a command works out from variables is not read; the tree has none. And it holds the
+  loops to running what the lists name, word for word: `debian/rules`' `override_dh_auto_test` is the recipe the
+  check holds (`set -e`, the server, then `./$$tester` for each of `$(TESTERS)`, skipped only for `nocheck` and a
+  cross build), and every line of the file outside a recipe is one of the shapes it has (the one `TESTERS :=` line,
+  `BUILDDIR`, `DEB_BUILD_MAINT_OPTIONS`, dpkg's makefiles, the rules `%` and `override_dh_<step>`, each once, and no
+  `eval`), so that `TESTERS` given another value for the recipe (indented by a space, by a tab outside a rule,
+  target-specific, assigned again), `.IGNORE`, `MAKEFLAGS`, a conditional around the rule, `set +e` or an `exit` is
+  refused; and the spec's one `%check`, outside any conditional, is the section it holds but for its comments and the
+  loop's list, with no macro defined but the ones the spec has (the build directory `%check` goes to as the spec
+  gives it) and none taken away, read from another file or made by Lua. What the other rules' recipes and the build
+  do to the build directory is not read. Its `--self-test` sees a tester made and run by neither list, one made by
+  `ADD_EXECUTABLE` and one by `add_executable (`, testers made in a `foreach`, a tester's `OUTPUT_NAME` another name,
+  an `add_subdirectory`, one list without a tester, the two in another order, a tester left out and run, a tester run
+  twice, a name the build no longer makes, the Debian loop over another variable, without `set -e`, with `:
+  ./$$tester` and with `./$$tester || true`, the spec's loop with `: ./$tester` and with `./$tester || :`, a tester
+  named by `set_property`, by `RUNTIME_OUTPUT_NAME` and by `SUFFIX`, one placed elsewhere, every program placed
+  elsewhere, testers made by `cmake_language(CALL)`, by `_add_executable`, by a macro defined over `add_executable`
+  and in a function, `subdirs`, a module of the tree through `CMAKE_MODULE_PATH`, `FetchContent` and a `*-tests` file
+  written by `configure_file`; in `debian/rules` `TESTERS` emptied for the recipe alone, assigned again (plainly,
+  indented by a space, by a tab outside a rule, by an `eval` in another recipe), `.IGNORE`, `MAKEFLAGS += -i`, `set
+  +e`, `exit 0`, another condition and the rule inside a conditional; and in the spec `continue`, `set +e` and `exit
+  0` in `%check`, a build directory that ends the section, a check macro defined, `%check` inside `%if 0` and a macro
+  defined by Lua refused; SourcePackages.md says which eight are left out and why, and what the check reads.
 
 ### Documentation
 

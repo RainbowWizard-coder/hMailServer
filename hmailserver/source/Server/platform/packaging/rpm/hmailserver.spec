@@ -223,8 +223,9 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # OpenSSL, the statements a search of the quarantine sends, and the readers of
 # delivery status notifications and abuse feedback reports - the list
 # debian/rules runs, and build/check-source-tarball.py holds both to every
-# *-tests program CMakeLists.txt makes but those it leaves out, each with its
-# reason, and this loop to running each of them. No
+# *-tests program CMakeLists.txt makes by add_executable but those it leaves
+# out, each with its reason, and this section, but for its comments and the
+# list, and the spec's macros to what it holds word for word. No
 # socket (file-utilities-tests' download, from a loopback server of its own,
 # says it did not run with every socket refused), none of the system's
 # configuration, no database, no root; under a minute.

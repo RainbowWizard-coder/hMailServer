@@ -36,18 +36,22 @@ version, and each coclass's uuid and default interface - is held the same way,
 and so is each enumerator's value, which an early-bound client compiles in: an
 enumerator the release had is in its enum with its value. A new interface,
 coclass, enum or enumerator is free, and so is anything added at an
-interface's end. Every interface of the tree, new ones too, must derive from
-IDispatch or IUnknown: one derived from another of the file's interfaces has
-its base's members first in its vtable, so a member appended to the base, which
-this lets through, would move each of its own, and the check, which counts an
-interface's members from the slot after IDispatch's or IUnknown's, refuses such
-a base rather than pass it. None derives from another today.
+interface's end. Every interface of the tree, new ones too, must be declared
+interface <name> : <base> { ... } with IDispatch or IUnknown its base: one
+derived from another of the file's interfaces has its base's members first in
+its vtable, so a member appended to the base, which this lets through, would
+move each of its own, and the check, which counts an interface's members from
+the slot after IDispatch's or IUnknown's, refuses such a base rather than pass
+it; one declared with no base is refused as one it does not read. None derives
+from another today.
 
 What it does not hold: an interface's other attributes (helpstring,
 nonextensible, pointer_default, hidden), a member's attributes other than its
-kind and dispatch id, an enum's own uuid, the parameters' names and defaultvalues, and
-whatever hMailServer.idl does not declare, such as the coclasses' interfaces
-other than the default one and the registry entries an install writes.
+kind and dispatch id, an enum's own uuid, the parameters' names and defaultvalues,
+what the Windows SDK's oaidl.idl and ocidl.idl declare, which the file imports
+(an import of any other file is refused), and whatever hMailServer.idl does not
+declare, such as the coclasses' interfaces other than the default one and the
+registry entries an install writes.
 
 The baseline is written from a release tag, never from the tree:
 
@@ -58,13 +62,19 @@ hMailServer.idl through git. A clone that has the baseline's tag is also held to
 the baseline being what that tag's hMailServer.idl says, so that the file cannot
 be edited to let a change through, and the tree is held to each newer release
 tag it has as well, so that a baseline not yet rewritten after a release still
-holds that release. The CI's checkouts are a commit deep and have no tag: in a
-CI job (GITLAB_CI=true) the check fetches the baseline's tag and every newer
-release tag from origin, a commit deep each, and holds the baseline and the
-tree to them as in a clone that has them, and the job fails when they cannot be
-listed or fetched - so a change of hMailServer.idl that edits the baseline to
-match, or names an older release in it, is refused there. Elsewhere a clone
-without the tag holds the tree to the baseline as committed, and says so.
+holds that release. In a CI job (GITLAB_CI=true) the tags are not taken from
+the clone, which may have none (a checkout a commit deep), the tags its fork was
+made with, or tags that something run in a clone the runner keeps between jobs
+made or moved: every run lists the release tags of the project the releases are
+tagged in (PROJECT_URL, gitlab.com's hmailserver/hmailserver, whatever project
+the job runs in, so that a fork's merge request is held to the project's
+releases), fetches the baseline's tag and every newer one from it, a commit deep
+each, over the clone's own, and holds the baseline and the tree to them; a tag
+the clone had that pointed elsewhere than the project's is a problem, and so is
+a tag that cannot be listed or fetched - so a change of hMailServer.idl that
+edits the baseline to match, or names an older release in it, is refused there,
+whatever the clone held. Elsewhere a clone without the tag holds the tree to the
+baseline as committed, and says so.
 
 The check proves its negative controls on every run (--self-test runs only
 those), against the tree's hMailServer.idl changed in memory: a member inserted
@@ -75,34 +85,53 @@ interface taken away, a new interface derived from a released one, dual taken
 off an interface, an enumerator's value changed and an enumerator removed must
 each be refused, and a member appended, a member written over two lines, a
 member commented out where it would have been inserted, a new interface derived
-from IDispatch and an enumerator appended must each pass. The parse is held to
-see every HRESULT of every interface body, so a member it stopped reading is
-not one it silently passes.
+from IDispatch and an enumerator appended must each pass. Every HRESULT of the
+file must be a member of an interface body the parse read, so a member it
+stopped reading, or one declared where it does not read (a dispinterface, a
+macro), is not one it silently passes.
 
 The text is read as MIDL reads it or not at all. Its tokens are string
 literals, comments of both kinds, words and single characters; MIDL runs the C
 preprocessor over hMailServer.idl first, and reads character literals, which
-this does not. So it refuses, naming the line, a file in which MIDL would read
-otherwise: a preprocessor line (#if 0 ... #endif around a member takes it out of
-the vtable, an #include in a body brings members in, each moving every member
-below), a line ending in a backslash (which joins the next line on, so a //
-comment can swallow the member under it), a ' (a character literal, which MIDL
-takes as an attribute's argument: in custom(<uuid>, '"') a reader that knew no
-such literal would take the " to open a string, and a member written between
-two such literals on one line would be text to it where MIDL reads a member) and
-a " that opens no string on its line. hMailServer.idl has none of them; a #, a '
-or a " inside a string or a comment is text. And it reads an enumerator only
-with its value written out, as each is, refusing one whose value C or MIDL
-would work out. A released member inside #if 0 ... #endif, an #include at the
-top of a body, a // comment ending in a backslash above a member, a member
-between two '"' on one line in custom() and in helpcontext(), the same with
-L'"', and an enumerator without its value are seven more of the controls, and
-each must stop the parse with its refusal.
+this does not. So it reads, outside strings and comments, words and the single
+characters ( ) * , - : ; = [ ] { } alone, which are all hMailServer.idl has
+been written with since 6.0.0, with only spaces, tabs and line feeds between
+them, and refuses, naming the line, a file in which MIDL could read otherwise:
+a preprocessor line (#if 0 ... #endif around a member takes it out of the
+vtable, an #include in a body brings members in, each moving every member
+below), the same directives spelt %:, which the preprocessor obeys as it does
+# (a %:define can declare a member where the macro is used, or make
+VARIANT_BOOL a long), and any other character - a < or > of the digraphs <: :>
+<% %>, a ', a " that opens no string on its line, a character not ASCII, a
+form feed; a line ending in a backslash (which joins the next line on, so a //
+comment can swallow the member under it); a carriage return not followed by a
+line feed, anywhere (the preprocessor takes it as part of the line, so after a
+// comment the rest of the line, a member among it, is comment, where a reader
+that split lines at it would read the member - the file is read from its bytes,
+a carriage return and a line feed taken for a line feed and nothing else); and
+an import of a file other than the Windows SDK's two. A ' is a character
+literal, which MIDL takes as an attribute's argument: in custom(<uuid>, '"') a
+reader that knew no such literal would take the " to open a string, and a
+member written between two such literals on one line would be text to it where
+MIDL reads a member. hMailServer.idl has none of them; a #, a %, a ' or a "
+inside a string or a comment is text. And it reads an enumerator only with its
+value written out, as each is, refusing one whose value C or MIDL would work
+out. A released member inside #if 0 ... #endif, an #include at the top of a
+body, a // comment ending in a backslash above a member, a member between two
+'"' on one line in custom() and in helpcontext(), the same with L'"', a
+%:define of a member used in a member's attributes, a released member inside
+%:if 0 ... %:endif in the middle of an attribute's argument, a %:include at the
+top of a body, a // comment followed by a carriage return and a released
+member, read from bytes with CRLF line ends, a no-break space between two
+tokens, an import of another file, a new interface with no base, a
+dispinterface with a member and an enumerator without its value are fifteen
+more of the controls, and each must stop the parse with its refusal.
 
 Usage:  python build/check-com-abi.py [--self-test] [--write-baseline TAG]
 Exit 0 when every interface keeps the release's members, 1 when one does not
-or, in CI, the baseline's tag cannot be fetched, 2 for a usage or git error or
-an hMailServer.idl this does not read, such as one with a preprocessor line.
+or, in CI, the baseline's tag cannot be listed or fetched from the project or a
+tag the clone had is not the project's, 2 for a usage or git error or an
+hMailServer.idl this does not read, such as one with a preprocessor line.
 """
 import os
 import re
@@ -115,15 +144,24 @@ IDL_PATH = "hmailserver/source/Server/hMailServer/hMailServer.idl"
 IDL = os.path.join(ROOT, *IDL_PATH.split("/"))
 BASELINE = os.path.join(HERE, "com-abi-baseline.txt")
 TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
+# The project the releases are tagged in, which a CI job fetches the release tags from: not the clone's origin,
+# which in a fork's pipeline is the fork, and not a variable, which a fork's settings could give another value.
+PROJECT_URL = "https://gitlab.com/hmailserver/hmailserver.git"
 
 # A string literal (helpstring text holds any punctuation: semicolons, brackets,
 # "//" in a URL), a comment of either kind, a preprocessor line (which tokens()
 # refuses), a word (an identifier, a number, a piece of a uuid), or any other
-# single character - a # among them, refused too, and a ' or a " that opens no
-# string on its line, refused as this does not read character literals.
+# single character, of which tokens() reads only SINGLES and refuses the rest.
 TOKEN = re.compile(r'"(?:[^"\\\n]|\\.)*"|//[^\n]*|/\*.*?\*/|^[ \t]*#[^\n]*|[A-Za-z0-9_.]+|\S',
                    re.DOTALL | re.MULTILINE)
 WORD = re.compile(r"^[A-Za-z0-9_.]+$")
+# The single characters hMailServer.idl is written with outside its strings and comments, each release's since
+# 6.0.0 as well; any other is refused, # (a directive) and % (%: is the preprocessor's other spelling of #, and
+# <: :> <% %> of [ ] { }) among them. Between tokens only spaces, tabs and line feeds.
+SINGLES = frozenset("()*,-:;=[]{}")
+GAP = re.compile(r"[^ \t\n]")
+# The files hMailServer.idl imports, the Windows SDK's: MIDL reads an imported file too, and this does not.
+IMPORTS = ("oaidl.idl", "ocidl.idl")
 KINDS = ("propget", "propput", "propputref")
 # What a parameter's attributes say that the vtable and the marshalling read.
 DIRECTIONS = ("in", "out", "retval", "lcid")
@@ -159,14 +197,33 @@ def tokens(text):
     but not '...', so in '"' the " would open a string for this check running to
     the next " on the line, and a member written between two such literals would
     be text to it where MIDL reads it. So is a " that opens no string on its line.
+    Outside strings and comments only words and SINGLES are read, so a % is refused
+    as a # is (%:define, %:if 0 and %:include are directives to the preprocessor),
+    and so is any other character the file is not written with; between tokens only
+    spaces, tabs and line feeds. A carriage return that ends no line is refused
+    wherever it is: a reader that splits lines at it would end a // comment there,
+    where for the preprocessor the rest of the line, a member perhaps, is comment.
     """
+    carriage = text.find("\r")
+    if carriage >= 0:
+        raise IdlError("line %d has a carriage return that is not followed by a line feed: the C preprocessor MIDL "
+                       "runs takes it as part of the line, so after a // comment the text after it is comment too, "
+                       "a member among it - end each line with a line feed (or a carriage return and a line feed)"
+                       % line_number(text, carriage))
     splice = re.search(r"\\[ \t]*(?:\n|$)", text)
     if splice:
         raise IdlError("line %d ends in a backslash, which the C preprocessor MIDL runs first joins to the next line "
                        "(after a // comment, the next line is part of the comment): write it on one line"
                        % line_number(text, splice.start()))
     found = []
+    previous = 0
     for match in TOKEN.finditer(text):
+        odd = GAP.search(text, previous, match.start())
+        if odd:
+            raise IdlError("line %d has U+%04X between tokens: this check reads spaces, tabs and line feeds there "
+                           "and nothing else, and hMailServer.idl holds nothing else" % (
+                               line_number(text, odd.start()), ord(odd.group(0))))
+        previous = match.end()
         value = match.group(0)
         if value.startswith("//") or value.startswith("/*"):
             continue
@@ -186,7 +243,20 @@ def tokens(text):
                            "members out of an interface or bring them in where this check reads the text as written; "
                            "hMailServer.idl holds none - write the members out"
                            % (line_number(text, match.start()), line[:60]))
+        if not value.startswith('"') and not WORD.match(value) and value not in SINGLES:
+            raise IdlError("line %d has %s outside a string or a comment, where hMailServer.idl is written with words "
+                           "and %s alone%s" % (
+                               line_number(text, match.start()),
+                               ("a %s" % value) if " " < value < "\x7f" else "U+%04X" % ord(value),
+                               " ".join(sorted(SINGLES)),
+                               (": %: is the C preprocessor's other spelling of #, a directive MIDL obeys (%:define, "
+                                "%:if 0, %:include), and <: :> <% %> are its spellings of [ ] { }" if value in "%<>"
+                                else ": this check reads no other, as MIDL might read it otherwise")))
         found.append((value, match.start(), match.end()))
+    odd = GAP.search(text, previous)
+    if odd:
+        raise IdlError("line %d has U+%04X after the last token: this check reads spaces, tabs and line feeds there "
+                       "and nothing else" % (line_number(text, odd.start()), ord(odd.group(0))))
     return found
 
 
@@ -311,9 +381,26 @@ def parse(text):
     interfaces, spans, types = {}, {}, []
     pending = {}
     index = 0
-    hresults = 0
+    # Every HRESULT of the file, so that one outside the interface bodies read below - in an interface declared
+    # some other way, a dispinterface, anywhere - stops the parse rather than being passed unread.
+    hresults = sum(1 for token in toks if token[0] == "HRESULT")
     while index < len(toks):
         value = toks[index][0]
+        if value == "import":
+            end = next((i for i in range(index, len(toks)) if toks[i][0] == ";"), len(toks))
+            names = [token[0] for token in toks[index + 1:end]]
+            if not names or any(name != "," and name.strip('"') not in IMPORTS for name in names):
+                raise IdlError("line %d imports %s: MIDL reads an imported file as well, and this check reads "
+                               "hMailServer.idl alone, which imports the Windows SDK's %s and nothing else"
+                               % (line_number(text, toks[index][1]), " ".join(names) or "nothing",
+                                  " and ".join(IMPORTS)))
+            index = end + 1
+            continue
+        if value == "interface" and not (index + 2 < len(toks) and toks[index + 2][0] in (":", ";")):
+            raise IdlError("line %d: interface %s is not declared as interface <name> : <base> { ... } or "
+                           "interface <name>; - one with no base is a vtable this check does not read, and every "
+                           "interface of hMailServer.idl derives from IDispatch" % (
+                               line_number(text, toks[index][1]), toks[index + 1][0] if index + 1 < len(toks) else ""))
         if value == "[":
             end = closing(toks, index, "[", "]")
             pending = attributes(toks[index + 1:end])
@@ -326,7 +413,6 @@ def parse(text):
                 raise IdlError("interface %s: no { after its base" % name)
             end = closing(toks, brace, "{", "}")
             body = toks[brace + 1:end]
-            hresults += sum(1 for token in body if token[0] == "HRESULT")
             members, member_spans = [], []
             for part in split_top(body, ";"):
                 if not part:
@@ -382,7 +468,9 @@ def parse(text):
         index += 1
     counted = sum(len(entry[2]) for entry in interfaces.values())
     if counted != hresults:
-        raise IdlError("read %d members in the interfaces' bodies, where they hold %d HRESULTs" % (counted, hresults))
+        raise IdlError("read %d members in the interfaces' bodies, where the file holds %d HRESULTs: one outside "
+                       "every interface body this reads (a dispinterface's, or one in a declaration it does not know) "
+                       "is one it would pass unread" % (counted, hresults))
     return {"interfaces": interfaces, "types": types, "spans": spans}
 
 
@@ -497,8 +585,10 @@ def base_problems(tree):
 
 def git(*arguments, timeout=120):
     try:
+        # No prompt for a password: the project's tags are read anonymously, and a failure is a problem.
         done = subprocess.run(["git", "-C", ROOT] + list(arguments), stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, timeout=timeout)
+                              stderr=subprocess.PIPE, timeout=timeout,
+                              env=dict(os.environ, GIT_TERMINAL_PROMPT="0"))
     except (OSError, subprocess.SubprocessError):
         return None
     if done.returncode != 0:
@@ -517,7 +607,7 @@ def tag_idl(tag):
     blob = git("show", "%s:%s" % (commit, IDL_PATH))
     if blob is None:
         raise IdlError("%s has no %s" % (tag, IDL_PATH))
-    return commit, blob.decode("utf-8-sig", errors="replace").replace("\r\n", "\n")
+    return commit, decode(blob)
 
 
 def newer_tags(release):
@@ -533,32 +623,55 @@ def newer_tags(release):
     return [name for _, name in sorted(found)]
 
 
+def local_tag(name):
+    """What this clone's refs/tags/<name> points at (a tag object or a commit), or None."""
+    found = git("rev-parse", "--verify", "--quiet", "refs/tags/%s" % name)
+    return found.decode("ascii").strip() if found else None
+
+
 def fetch_release_tags(release):
-    """In a CI job, whose checkout is a commit deep and has no tag: fetch the baseline's release tag and every
-    newer release tag from origin, a commit deep each, so that the baseline is held to what its tag says and
-    the tree to every release after it, as in a clone that has them. None when they are here, or a problem."""
-    listed = git("ls-remote", "--tags", "--refs", "origin", timeout=300)
+    """In a CI job: the release tags of the project the releases are made in (PROJECT_URL, whatever project the
+    job runs in - a fork's has the tags it was made with alone - and whether or not the clone has tags already),
+    the baseline's and every newer one, fetched a commit deep each over this clone's own, so that the baseline is
+    held to what its tag says and the tree to every release after it. (problems, the newer tags): a tag this clone
+    had that pointed elsewhere than the project's is a problem, as a tag made or moved by anything that ran in a
+    clone the runner keeps between jobs is not believed."""
+    listed = git("ls-remote", "--tags", "--refs", PROJECT_URL, timeout=300)
     if listed is None:
-        return "origin's tags could not be listed (git ls-remote --tags origin)"
-    names = set()
+        return ["%s's tags could not be listed (git ls-remote --tags)" % PROJECT_URL], []
+    names = {}
     for line in listed.decode("ascii", errors="replace").splitlines():
-        found = re.match(r"^[0-9a-f]{40}\trefs/tags/(v\d+\.\d+\.\d+)$", line)
+        found = re.match(r"^([0-9a-f]{40})\trefs/tags/(v\d+\.\d+\.\d+)$", line)
         if found:
-            names.add(found.group(1))
+            names[found.group(2)] = found.group(1)
     if release not in names:
-        return "origin has no tag %s, the release the baseline names" % release
+        return ["%s has no tag %s, the release the baseline names" % (PROJECT_URL, release)], []
     own = tuple(int(part) for part in TAG.match(release).groups())
-    wanted = [release] + sorted((n for n in names if tuple(int(p) for p in TAG.match(n).groups()) > own),
-                                key=lambda n: tuple(int(p) for p in TAG.match(n).groups()))
-    if git("fetch", "--quiet", "--no-tags", "--depth=1", "origin",
+    newer = sorted((n for n in names if tuple(int(p) for p in TAG.match(n).groups()) > own),
+                   key=lambda n: tuple(int(p) for p in TAG.match(n).groups()))
+    wanted = [release] + newer
+    problems = ["this clone's tag %s pointed at %s, where %s's points at %s: a tag made or moved in the clone is not "
+                "believed, and the project's was fetched over it" % (name, local_tag(name), PROJECT_URL, names[name])
+                for name in wanted if local_tag(name) not in (None, names[name])]
+    if git("fetch", "--quiet", "--no-tags", "--depth=1", PROJECT_URL,
            *["+refs/tags/%s:refs/tags/%s" % (name, name) for name in wanted], timeout=600) is None:
-        return "origin's tag(s) %s could not be fetched" % ", ".join(wanted)
-    return None
+        return problems + ["%s's tag(s) %s could not be fetched" % (PROJECT_URL, ", ".join(wanted))], newer
+    problems += ["fetched %s from %s, and this clone's tag points at %s, not %s" % (name, PROJECT_URL,
+                                                                                   local_tag(name), names[name])
+                 for name in wanted if local_tag(name) != names[name]]
+    return problems, newer
+
+
+def decode(raw):
+    """hMailServer.idl's bytes as the text tokens() reads: a carriage return and a line feed become a line feed,
+    and a carriage return alone stays one, for tokens() to refuse - universal newlines would make it a line's end,
+    which for the preprocessor it is not."""
+    return raw.decode("utf-8-sig", errors="replace").replace("\r\n", "\n")
 
 
 def read_tree():
-    with open(IDL, encoding="utf-8-sig", errors="replace") as f:
-        return f.read().replace("\r\n", "\n")
+    with open(IDL, "rb") as f:
+        return decode(f.read())
 
 
 def cut(text, span):
@@ -617,6 +730,39 @@ def make_controls(text, release, tree):
                      + text[first[0]:], ("unread", "is a preprocessor line"), name))
     controls.append(("a // comment ending in a backslash above the first member", text[:first[0]] + "   // note \\\n"
                      + text[first[0]:], ("unread", "ends in a backslash"), name))
+    # The same directives spelt with the digraph %:, which the preprocessor obeys as it does #: a macro that
+    # declares a member, used in the first member's attributes; the first member inside %:if 0 ... %:endif in
+    # the middle of a custom() attribute's argument; and a %:include at the top of a body.
+    custom = "custom(D3A9C1F0-0000-4000-8000-000000000001, %s)"
+    # (The second definition closes the first one's [ for a reader that takes both for text.)
+    macro = ("%%:define SELFTEST_HIDDEN 1)] HRESULT SelfTestMember([out, retval] long *Value); [%s\n"
+             "%%:define SELFTEST_UNUSED ]\n" % (custom % "1")[:-1])
+    after_imports = text.find("\n", text.find('import "%s";' % IMPORTS[-1])) + 1
+    if after_imports <= 0 or after_imports > first[0]:
+        raise IdlError("self-test: the tree does not import %s above %s" % (IMPORTS[-1], name))
+    controls.append(("a %:define of a member after the imports, used in the first member's attributes",
+                     text[:after_imports] + macro + text[after_imports:first[0]]
+                     + one.replace("[", "[%s, " % (custom % "SELFTEST_HIDDEN"), 1) + text[first[1]:],
+                     ("unread", "other spelling of #"), name))
+    opened = "   [%s\n" % (custom % "1")[:-1]
+    controls.append(("the first member inside %:if 0 ... %:endif in an attribute's argument", text[:first[0]] + opened
+                     + "%:if 0\n   ), " + one.lstrip()[1:].rstrip("\n") + " " + opened.lstrip() + "%:endif\n   ), "
+                     + two.lstrip()[1:] + text[second[1]:], ("unread", "other spelling of #"), name))
+    controls.append(("a %:include at the top of a body", text[:first[0]] + "   %:include \"self-test.idl\"\n"
+                     + text[first[0]:], ("unread", "other spelling of #"), name))
+    # A carriage return alone after a // comment, the first member after it on the same line for the preprocessor:
+    # the member is comment to MIDL, so that it is removed, where a reader that ended the line there reads it.
+    # Read from bytes with CRLF line ends, as a Windows checkout has them, through the reader the tree is read by.
+    lone = (text[:first[0]] + "   // note\r" + one + text[first[1]:]).replace("\n", "\r\n").encode("utf-8")
+    controls.append(("a // comment and a carriage return before the first member on its line", decode(lone),
+                     ("unread", "carriage return that is not followed"), name))
+    controls.append(("a no-break space between two of the first member's tokens", text[:first[0]]
+                     + one.replace("] HRESULT ", "]" + chr(0xA0) + "HRESULT ", 1) + text[first[1]:],
+                     ("unread", "between tokens"), name))
+    imported = text.replace('import "%s";' % IMPORTS[-1], 'import "%s";\nimport "self-test.idl";' % IMPORTS[-1], 1)
+    if imported == text:
+        raise IdlError("self-test: the tree does not import %s" % IMPORTS[-1])
+    controls.append(("an import of another file", imported, ("unread", "MIDL reads an imported file"), name))
     # A member between two character literals on one line: to a reader that took the
     # " in '"' to open a string, the member and the first one's attributes are one
     # string, where MIDL reads two members. In custom(), in helpcontext() and wide.
@@ -662,6 +808,15 @@ def make_controls(text, release, tree):
         "SelfTestNew", "IDispatch", "D3A9C1F0-0000-4000-8000-000000000002"), False, "SelfTestNew"))
     controls.append(("a new interface derived from %s" % name, text + new_interface(
         "SelfTestDerived", name, "D3A9C1F0-0000-4000-8000-000000000003"), True, "SelfTestDerived"))
+    # An interface with no base, which MIDL builds (with a warning), and a member in a dispinterface: HRESULTs
+    # outside every interface body read, which must stop the parse rather than pass unread.
+    controls.append(("a new interface with no base", text + new_interface(
+        "SelfTestNoBase", "IDispatch", "D3A9C1F0-0000-4000-8000-000000000004").replace(" : IDispatch {", " {"),
+        ("unread", "is not declared as interface"), "SelfTestNoBase"))
+    controls.append(("a dispinterface with a member", text + "\n[\n   uuid(D3A9C1F0-0000-4000-8000-000000000005)\n]\n"
+                     "dispinterface SelfTestDispatch {\nproperties:\nmethods:\n"
+                     "   [id(1)] HRESULT SelfTestMember([out, retval] long *Value);\n};\n",
+                     ("unread", "HRESULTs: one outside"), "SelfTestDispatch"))
     position = re.search(r"\binterface %s\s*:" % name, text).start()
     head = text.rfind("\n[", 0, position)
     undual = re.sub(r"\bdual\s*,\s*", "", text[head:position], count=1)
@@ -754,22 +909,24 @@ def main(arguments):
         found += base_problems(tree)
         found += failures
         notes = []
+        in_ci = os.environ.get("GITLAB_CI") == "true"
+        newer, fetched = None, []
+        if in_ci:
+            # In CI the baseline is held to its tag as the project has it, fetched every time over whatever
+            # the clone holds, and the job fails when it cannot be, so that a change of hMailServer.idl and the
+            # baseline together cannot pass where nothing reads the tag, nor a tag the clone was given.
+            fetched, newer = fetch_release_tags(tag)
+            found += ["in CI the baseline is held to the tag it names as %s has it, and %s" % (PROJECT_URL, p)
+                      for p in fetched]
+            if not fetched:
+                notes.append("fetched %s%s from %s" % (tag, (" and " + ", ".join(newer)) if newer else "",
+                                                        PROJECT_URL))
         at_tag = tag_idl(tag)
-        if at_tag is None and os.environ.get("GITLAB_CI") == "true":
-            # A CI checkout has no tag: there the baseline is held to its tag all the same, fetched, and the
-            # job fails when it cannot be, so that a change of hMailServer.idl and the baseline together
-            # cannot pass where nothing reads the tag.
-            fetched = fetch_release_tags(tag)
-            if fetched:
-                found.append("in CI the baseline is held to the tag it names, and %s: it is not held" % fetched)
-            else:
-                notes.append("fetched %s and the release tags after it from origin" % tag)
-                at_tag = tag_idl(tag)
-                if at_tag is None:
-                    found.append("fetched %s from origin, and this clone still has no such tag" % tag)
         if at_tag is None:
-            if os.environ.get("GITLAB_CI") != "true":
+            if not in_ci:
                 notes.append("this clone has no tag %s: the committed baseline is held as it is" % tag)
+            elif not fetched:
+                found.append("fetched %s from %s, and this clone still has no such tag" % (tag, PROJECT_URL))
         else:
             if at_tag[0] != commit:
                 found.append("build/com-abi-baseline.txt names %s as commit %s, where the tag is %s" % (tag, commit, at_tag[0]))
@@ -781,15 +938,18 @@ def main(arguments):
                 # And the tree against what the tag says, so that what the edited baseline let through is named.
                 found += ["against %s's own hMailServer.idl: %s" % (tag, p) for p in problems(
                     {"types": tagged["types"], "interfaces": tagged["interfaces"]}, tree, tag)]
-            for newer in newer_tags(tag):
-                newer_idl = tag_idl(newer)
-                if newer_idl is None:
+            # In CI the project's newer tags, fetched; elsewhere the clone's own.
+            for later in (newer if newer is not None else newer_tags(tag)):
+                later_idl = tag_idl(later)
+                if later_idl is None:
+                    if in_ci:
+                        found.append("fetched %s from %s, and this clone has no such tag" % (later, PROJECT_URL))
                     continue
-                parsed = parse(newer_idl[1])
-                found += ["against %s: %s" % (newer, p) for p in problems(
-                    {"types": parsed["types"], "interfaces": parsed["interfaces"]}, tree, newer)]
+                parsed = parse(later_idl[1])
+                found += ["against %s: %s" % (later, p) for p in problems(
+                    {"types": parsed["types"], "interfaces": parsed["interfaces"]}, tree, later)]
                 notes.append("%s is newer than the baseline's %s: python build/check-com-abi.py --write-baseline %s"
-                             % (newer, tag, newer))
+                             % (later, tag, later))
     except (IdlError, OSError) as error:
         sys.stdout.write("  FAIL  check-com-abi: %s\n" % error)
         return 2
