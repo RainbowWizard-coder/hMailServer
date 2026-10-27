@@ -2588,39 +2588,77 @@ with `--check`).
   `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops each give up after ten,
   a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up, where a failure would
   say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the
-  project's runners). It reads `add_executable` as CMake reads a command, at the start of its line, in any case and
-  with spaces before the bracket, and refuses what would make a `*-tests` program otherwise: an `add_executable`
-  named by a variable or a `foreach`; a program named or placed otherwise than its target (`OUTPUT_NAME`,
-  `RUNTIME_OUTPUT_NAME`, `SUFFIX`, `PREFIX` or `RUNTIME_OUTPUT_DIRECTORY` set by `set_target_properties` or
-  `set_property`, or `CMAKE_EXECUTABLE_SUFFIX`, `CMAKE_RUNTIME_OUTPUT_DIRECTORY` or `EXECUTABLE_OUTPUT_PATH` named);
-  CMake code from elsewhere or by another name (`add_subdirectory`, `subdirs`, an `include()` of a file,
-  `CMAKE_MODULE_PATH`, `FetchContent`, `ExternalProject`, `cmake_language`, a `_`-prefixed command, a function or a
-  macro); and a `configure_file`, `file()`, `add_custom_command`, `add_custom_target` or `execute_process` that names
-  a `*-tests` file. A name such a command works out from variables is not read; the tree has none. And it holds the
-  loops to running what the lists name, word for word: `debian/rules`' `override_dh_auto_test` is the recipe the
-  check holds (`set -e`, the server, then `./$$tester` for each of `$(TESTERS)`, skipped only for `nocheck` and a
-  cross build), and every line of the file outside a recipe is one of the shapes it has (the one `TESTERS :=` line,
-  `BUILDDIR`, `DEB_BUILD_MAINT_OPTIONS`, dpkg's makefiles, the rules `%` and `override_dh_<step>`, each once, and no
-  `eval`), so that `TESTERS` given another value for the recipe (indented by a space, by a tab outside a rule,
-  target-specific, assigned again), `.IGNORE`, `MAKEFLAGS`, a conditional around the rule, `set +e` or an `exit` is
-  refused; and the spec's one `%check`, outside any conditional, is the section it holds but for its comments and the
-  loop's list, with no macro defined but the ones the spec has (the build directory `%check` goes to as the spec
-  gives it) and none taken away, read from another file or made by Lua, on any line, a comment's too, since rpm
-  expands the macros of a comment, and in the `%{define:...}` spelling as well. What the other rules' recipes and the
-  build do to the build directory is not read. Its `--self-test` sees a tester made and run by neither list, one made
-  by `ADD_EXECUTABLE` and one by `add_executable (`, testers made in a `foreach`, a tester's `OUTPUT_NAME` another
-  name, an `add_subdirectory`, one list without a tester, the two in another order, a tester left out and run, a
-  tester run twice, a name the build no longer makes, the Debian loop over another variable, without `set -e`, with
-  `: ./$$tester` and with `./$$tester || true`, the spec's loop with `: ./$tester` and with `./$tester || :`, a
-  tester named by `set_property`, by `RUNTIME_OUTPUT_NAME` and by `SUFFIX`, one placed elsewhere, every program
-  placed elsewhere, testers made by `cmake_language(CALL)`, by `_add_executable`, by a macro defined over
-  `add_executable` and in a function, `subdirs`, a module of the tree through `CMAKE_MODULE_PATH`, `FetchContent` and
-  a `*-tests` file written by `configure_file`; in `debian/rules` `TESTERS` emptied for the recipe alone, assigned
-  again (plainly, indented by a space, by a tab outside a rule, by an `eval` in another recipe), `.IGNORE`,
-  `MAKEFLAGS += -i`, `set +e`, `exit 0`, another condition and the rule inside a conditional; and in the spec
-  `continue`, `set +e` and `exit 0` in `%check`, a build directory that ends the section, a check macro defined,
-  plainly, in a comment and as `%{define:...}`, `%check` inside `%if 0`, and a macro defined by Lua, plainly and in a
-  comment, refused; SourcePackages.md says which eight are left out and why, and what the check reads.
+  project's runners). It reads `CMakeLists.txt` as CMake reads it, each command in any case with its quoted, bracket
+  and unquoted arguments, so that a key given quoted is read unquoted, reads only the commands the file uses
+  (`try_compile`, `exec_program`, `add_custom_command`, `execute_process` and any other are refused), and refuses
+  what would make or write a `*-tests` program otherwise than by `add_executable` under its own name: an
+  `add_executable` named by a variable or a `foreach`; a program named or placed otherwise than its target
+  (`OUTPUT_NAME`, quoted or not, `RUNTIME_OUTPUT_NAME`, `SUFFIX`, `PREFIX`, a `<CONFIG>_POSTFIX` such as
+  `RELEASE_POSTFIX`, or `RUNTIME_OUTPUT_DIRECTORY`, set by `set_target_properties` or `set_property`, or by a key or
+  a list CMake works out from variables; `CMAKE_EXECUTABLE_SUFFIX`, `CMAKE_RUNTIME_OUTPUT_DIRECTORY`,
+  `EXECUTABLE_OUTPUT_PATH`, a module's or a library's prefix or suffix named); CMake code from elsewhere or by another
+  name (`add_subdirectory`, `subdirs`, an `include()` of anything but `CheckCSourceRuns`, `GNUInstallDirs` and
+  `CPack`, as a bare name no module has is a file beside `CMakeLists.txt`, `CMAKE_MODULE_PATH`, `cmake_language`, a
+  `_`-prefixed command, a function or a macro); a `find_package()` of a package the file does not use or given
+  `PATHS`, `HINTS`, `NAMES` or `CONFIGS`, and a package's `<name>_DIR` or `<name>_ROOT`, `CMAKE_PREFIX_PATH` or an
+  `ENV{}` named, any of which could take a package's configuration from the tree; a `file()` that does more than
+  read, list, make a directory or write a file it names out that is not a `*-tests`; a `configure_file` whose input
+  or output is not named out or is a `*-tests`; an `add_custom_target` built with every build; and an
+  `install(CODE)` or `install(SCRIPT)`, which rpm runs before `%check`. Of the toolchain it lets through what the
+  file gives it: `set_target_properties` sets `OUTPUT_NAME` alone, `set_property` appends to the directory's
+  `CMAKE_CONFIGURE_DEPENDS` alone, the compile and link options are the flags the file gives, `target_link_libraries`
+  gives no flag (one there comes after the linker's own `-o`, and `-ohidden-tests` there made `hidden-tests` in the
+  srcpkg-debian13 job's image), a launcher, another compiler or linker, `CMAKE_<LANG>_FLAGS`, `-o`, `-Wl,`, `-B`,
+  `-fuse-ld` and a specs file are refused anywhere, and `check_c_source_runs`, which runs its program while CMake
+  configures, runs the iconv check's alone, held by its SHA-256, with `CMAKE_REQUIRED_LIBRARIES Iconv::Iconv`. A
+  variable whose name CMake works out from variables is not read, and the tree has none; nor is what CMake's own
+  modules and the distribution's compiler and linker do. And it holds the loops to running what the lists name:
+  `debian/rules` is
+  held whole, line for line but for its comments, its blank lines and the names `TESTERS` gives, its
+  `override_dh_auto_test` the recipe the check holds (`set -e`, the server, then `./$$tester` for each of
+  `$(TESTERS)`, skipped only for `nocheck` and a cross build), so that `TESTERS` given another value for the recipe
+  (indented by a space, by a tab outside a rule, target-specific, assigned again, by an `eval`), `.IGNORE`,
+  `MAKEFLAGS`, a conditional around the rule, `set +e` or an `exit` is refused, and so is another rule's recipe
+  that runs `dh` with `DEB_BUILD_OPTIONS=nocheck`, with which `dpkg-buildpackage` never ran the testers, or
+  `MAKEFLAGS=TESTERS=`, with which the loop ran over nothing, or that rewrites `debian/rules` before `dh` runs the
+  held recipe; a comment ending in a backslash, which joins the next line to it, and a carriage return are refused
+  too. The spec's one `%check` is the section it holds but for its comments and the loop's list, outside any
+  conditional as rpm reads one - an `%if` with spaces or a tab before it, which rpm obeys, and none after something
+  else on its line, as `%{?nil}%if 0` is - with comments that expand no macro (rpm expands a comment's macros, and
+  `# %{___build_post}`, which ends in a line break and `exit ${RPM_EC}`, or a shell's output, `%(...)`, in a comment
+  of `%check` ended the section before the testers, `rpmbuild` exit 0), no macro defined but the ones the spec has
+  (the build directory `%check` goes to as the spec gives it), spelt `%define`, `%global`, `%{define:...}` or
+  `%{global:...}` with or without blanks after the colon, on any line, a comment's too, and none taken away, read
+  from another file or made by Lua, macro or shell code, no `BuildSystem` or `BuildOption` tag and no carriage
+  return. What the build does to the build directory, and what debian/'s other files tell debhelper, are not read.
+  Its `--self-test` sees a tester made and run by neither list, one made by `ADD_EXECUTABLE` and one by
+  `add_executable (`, testers made in a `foreach`, a tester's `OUTPUT_NAME` another name, an `add_subdirectory`, one
+  list without a tester, the two in another order, a tester left out and run, a tester run twice, a name the build no
+  longer makes, the Debian loop over another variable, without `set -e`, with `: ./$$tester` and with
+  `./$$tester || true`, the spec's loop with `: ./$tester` and with `./$tester || :`, a tester named by
+  `set_property`, by `RUNTIME_OUTPUT_NAME` and by `SUFFIX`, one placed elsewhere, every program placed elsewhere,
+  testers made by `cmake_language(CALL)`, by `_add_executable`, by a macro defined over `add_executable` and in a
+  function, `subdirs`, a module of the tree through `CMAKE_MODULE_PATH`, `FetchContent`, a `*-tests` file written
+  by `configure_file`, a tester named by a quoted `OUTPUT_NAME` in `set_target_properties` and in `set_property`, by
+  a key in a variable and in a bracket and by `RELEASE_POSTFIX`, testers copied out of `try_compile`, by
+  `exec_program` and by `file(COPY)`, one written by `file(WRITE)`, a package's configuration from the tree by
+  `PATHS`, a `Boost_DIR` and `ENV{PATH}` set, a file of the tree brought in by `include()` by its path and by a bare
+  name, `configure_file` writing under its input's name and under a name it works out, a custom target built with
+  every build, `install(CODE)`, `add_custom_command`, a module's prefix emptied, a bracket never closed, a tester
+  named by the linker's `-o` in `target_link_libraries`, a compiler plugin from the tree, a target's and the
+  directory's `LINK_OPTIONS`, a compiler launcher, another program for `check_c_source_runs` and a library of the
+  tree for it; in
+  `debian/rules` `TESTERS` emptied for the recipe alone, assigned again (plainly, indented by a space, by a tab
+  outside a rule, by an `eval` in another recipe), `.IGNORE`, `MAKEFLAGS += -i`, `set +e`, `exit 0`, another
+  condition, the rule inside a conditional, `dh` given `DEB_BUILD_OPTIONS=nocheck` and `MAKEFLAGS=TESTERS=` in the
+  `%` rule's recipe, `debian/rules` rewritten by another recipe, a comment ending in a backslash above `TESTERS`, a
+  comment joined to the test recipe's first line and a carriage return; and in the spec `continue`, `set +e` and
+  `exit 0` in `%check`, a build directory that ends the section, a check macro defined plainly, in a comment, as
+  `%{define:...}`, as `%{define: ...}` and as `%{global:` and a tab, `%check` inside `%if 0`, inside one indented by
+  spaces and by a tab and inside `%{?nil}%if 0`, a macro defined by Lua, plainly and in a comment, a comment of
+  `%check` expanding `%{___build_post}` and one running the shell, a macro whose name a macro gives, a
+  `BuildSystem` tag, a shell command in a tag and a carriage return, refused; SourcePackages.md says which eight are
+  left out and why, and what the check reads.
 
 ### Documentation
 

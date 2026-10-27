@@ -58,40 +58,77 @@ tarball a third:
       pass held to a time on a builder a distribution shares), and nothing
       that list names is run or no longer made - so a tester added to the
       build is run by the PPA's, Copr's and the Build Service's builds as
-      linux-build.sh runs it, or this says why it is not. add_executable is
-      read as CMake reads a command: at the start of its line, in any case,
-      with spaces before its bracket. What would make a *-tests program
-      otherwise it refuses: an add_executable whose name is not a literal (a
+      linux-build.sh runs it, or this says why it is not. CMakeLists.txt is
+      read as CMake reads it: each command, its name in any case, with its
+      quoted, bracket and unquoted arguments, comments of both kinds left out,
+      so that a key given quoted is read unquoted. Only the commands the file
+      uses are read (CMAKE_COMMANDS); any other - try_compile, exec_program,
+      add_custom_command, execute_process, a module's command - is refused, and
+      add_subdirectory, subdirs, cmake_language, a _-prefixed command, a
+      function and a macro with a word of why. Of those it reads, it refuses
+      what would make or write a *-tests program otherwise than add_executable
+      under its own name: an add_executable whose name is not a literal (a
       variable, a foreach's); a program named or placed otherwise than its
-      target (OUTPUT_NAME, RUNTIME_OUTPUT_NAME, SUFFIX, PREFIX or
-      RUNTIME_OUTPUT_DIRECTORY by set_target_properties or set_property, and
-      CMAKE_EXECUTABLE_SUFFIX, CMAKE_RUNTIME_OUTPUT_DIRECTORY or
-      EXECUTABLE_OUTPUT_PATH named anywhere); CMake code from elsewhere or run
-      by another name (add_subdirectory, subdirs, an include() of a file,
-      CMAKE_MODULE_PATH, CMAKE_PROJECT_*INCLUDE, FetchContent, ExternalProject,
-      cmake_language, a _-prefixed command, a function or a macro); and a
-      configure_file, file(), add_custom_command, add_custom_target or
-      execute_process that names a *-tests file. It does not read a name such
-      a command works out (a file written under a name made of variables); the
-      tree has none of them. And the loops run what the lists name, as held
-      word for word: debian/rules' override_dh_auto_test is RULES_TEST_RECIPE
-      below (set -e, the server, then ./$$tester for each of $(TESTERS), each a
-      command of its own, skipped only for nocheck and a cross build), and
-      every line of debian/rules outside a recipe is one of RULES_LINES (the
-      one TESTERS := line, BUILDDIR, DEB_BUILD_MAINT_OPTIONS, dpkg's makefiles,
-      the rules % and override_dh_<step>, each once, and no eval anywhere), so
-      that a TESTERS made another for the recipe (indented, target-specific, a
-      second one), .IGNORE, MAKEFLAGS, a conditional around the rule, set +e or
-      an exit is refused; the spec's one %check is SPEC_CHECK_LINES but for its
-      comments and the loop's list, outside any conditional, with no macro
-      defined but SPEC_MACROS (the build directory %check goes to as the spec
-      defines it) and none taken away, read from another file or made by macro
-      code (%undefine, %include, %lua, %expand, %load, %bcond), on any line, a
-      comment's too, since rpm expands the macros of a comment, and spelt
-      %{define:...} or %{global:...} as well - so a loop over another list, a
-      tester not run, a continue, set +e or an exit is refused.
-      What the other rules' recipes and the build do to the build directory is
-      not read.
+      target by set_target_properties or set_property (OUTPUT_NAME but the
+      target's own, RUNTIME_OUTPUT_NAME, SUFFIX, PREFIX, a <CONFIG>_POSTFIX,
+      RUNTIME_OUTPUT_DIRECTORY and their like), or by a key or a list CMake
+      works out from variables or gets in a bracket; the variables that name
+      or place every program (CMAKE_EXECUTABLE_SUFFIX,
+      CMAKE_RUNTIME_OUTPUT_DIRECTORY, EXECUTABLE_OUTPUT_PATH, a module's or a
+      library's prefix and suffix, CMAKE_<CONFIG>_POSTFIX) named anywhere; CMake
+      code from elsewhere (an include() of anything but CMAKE_INCLUDES, as a
+      bare name no module has is a file beside CMakeLists.txt, CMAKE_MODULE_PATH,
+      CMAKE_PROJECT_*INCLUDE); a find_package() of a package not in
+      CMAKE_PACKAGES or given PATHS, HINTS, NAMES or CONFIGS, and a package's
+      <name>_DIR or <name>_ROOT, CMAKE_PREFIX_PATH or an ENV{} named anywhere,
+      which could take a package's configuration from the tree; a file() that
+      does other than read, list, make a directory or write a file it names out
+      that is not a *-tests (it makes it 0644, which linux-build.sh's find
+      passes over); a configure_file whose input or output is not named out, or
+      is a *-tests; an add_custom_target built with every build (ALL); and an
+      install(CODE) or install(SCRIPT), which rpm runs before %check. Of the
+      toolchain it lets through what CMakeLists.txt gives it: set_target_properties
+      sets OUTPUT_NAME alone (CMAKE_TARGET_PROPERTIES), set_property appends to
+      the directory's CMAKE_CONFIGURE_DEPENDS alone, add_compile_options,
+      add_link_options and target_compile_options give CMAKE_FLAGS alone,
+      target_link_libraries gives libraries and targets and no flag (one there
+      comes after the linker's own -o: -ohidden-tests made hidden-tests), a
+      launcher, another linker or compiler, CMAKE_<LANG>_FLAGS, -o, -Wl,, -B,
+      -fuse-ld and a specs file are refused anywhere, and check_c_source_runs,
+      which compiles and runs its program while CMake configures, runs the
+      iconv check's alone, held by its SHA-256 (CMAKE_RUN_SOURCES), with
+      CMAKE_REQUIRED_LIBRARIES Iconv::Iconv and no other CMAKE_REQUIRED_. It
+      does not read a variable's name CMake works out from variables
+      (set(${X} ...)) or what the commands it allows do with a name so made,
+      nor what CMake's own modules and the distribution's compiler and linker
+      do; the tree has none of the first. And the loops run what the lists name, as held: debian/rules is
+      held whole, line for line but for its comments, its blank lines and the
+      names TESTERS gives (RULES_HELD, whose override_dh_auto_test is
+      RULES_TEST_RECIPE: set -e, the server, then ./$$tester for each of
+      $(TESTERS), each a command of its own, skipped only for nocheck and a
+      cross build), so that a TESTERS made another for the recipe (indented,
+      target-specific, a second one, an eval), .IGNORE, MAKEFLAGS, a
+      conditional around the rule, set +e or an exit is refused, and so is
+      another rule's recipe that runs dh with DEB_BUILD_OPTIONS=nocheck or
+      MAKEFLAGS=TESTERS=, or rewrites debian/rules before dh runs the held one;
+      a comment ending in a backslash, which joins the next line to it, and a
+      carriage return are refused, and a comment that a backslash joins to the
+      line above is read as a line. The spec's one %check is SPEC_CHECK_LINES
+      but for its comments and the loop's list, outside any conditional, as
+      rpm reads one (%if, %ifarch and their like with spaces or tabs before
+      them, and none after something else on its line, as %{?nil}%if is), its
+      comments expanding no macro (rpm expands a comment's macros, and one that
+      ends in a line break and an exit, as %{___build_post} does, or a shell's
+      output, %(...), ends the section there), with no macro defined but
+      SPEC_MACROS (the build directory %check goes to as the spec defines it),
+      spelt %define, %global, %{define:...} or %{global:...} with or without
+      blanks after the colon, on any line, a comment's too, none taken away,
+      read from another file or made by macro or shell code (%undefine,
+      %include, %lua, %expand, %load, %bcond, %(...)), no BuildSystem or
+      BuildOption tag and no carriage return - so a loop over another list, a
+      tester not run, a continue, set +e or an exit is refused. What the build
+      does to the build directory, and what the files debian/ holds besides
+      debian/rules tell debhelper, are not read.
 
   a tarball (python3 build/check-source-tarball.py TARBALL [--commit SHA]):
     - gzip without a file name or a time in its header (gzip -n);
@@ -128,6 +165,7 @@ Exit status: 0 when everything holds, 1 when anything does not, 2 on a usage
 error or a file that cannot be read.
 """
 import gzip
+import hashlib
 import io
 import os
 import posixpath
@@ -457,110 +495,344 @@ def check_debian_copyright(tracked, read, entries, cmake_text):
 
 # ---------------------------------------------------------------- the source packages' testers
 
-# A command as CMake reads it: it begins its line (after spaces and tabs; CMake
-# 3.31 refuses one after another command or a bracket comment on the line), its
-# name in any case, spaces before its bracket, its arguments to the bracket that
-# closes it. A target's name is a literal or it is refused: one CMake works out - a
-# variable, a foreach's - cannot be held to the lists.
-CMAKE_COMMAND = re.compile(r"^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(", re.M)
+# CMakeLists.txt read as CMake reads it (cmake_commands): each command's name, in any
+# case, then its arguments to the bracket that closes it - each a quoted argument, a
+# bracket argument ([[ ... ]], [=[ ... ]=]) or an unquoted one, comments of both kinds
+# left out - so that a key or a name given quoted, or a command after a bracket
+# argument, is read as CMake reads it. A target's name is a literal or it is refused:
+# one CMake works out - a variable, a foreach's - cannot be held to the lists.
+CMAKE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+CMAKE_BRACKET = re.compile(r"\[(=*)\[")
 CMAKE_LITERAL = re.compile(r"^[A-Za-z0-9_.+-]+$")
+# The commands this reads, the ones CMakeLists.txt uses: any other is refused, as one
+# that could make or write a program this does not see (try_compile's COPY_FILE,
+# exec_program, add_custom_command, find_program, a command of a module). Those that
+# could make or write one among these have their arguments read below.
+CMAKE_COMMANDS = frozenset((
+    "add_compile_options", "add_custom_target", "add_executable", "add_library", "add_link_options",
+    "check_c_source_runs", "cmake_minimum_required", "configure_file", "else", "elseif", "endforeach", "endif",
+    "file", "find_library", "find_package", "find_path", "foreach", "if", "include", "install", "list", "message",
+    "option", "project", "set", "set_property", "set_target_properties", "string", "target_compile_definitions",
+    "target_compile_options", "target_include_directories", "target_link_libraries", "unset"))
+# The CMake modules include() may load, CMake's own that CMakeLists.txt uses: include()
+# of anything else could load a file of the tree (a bare name CMake finds no module of is
+# taken for a file beside CMakeLists.txt), a tester among it.
+CMAKE_INCLUDES = ("CheckCSourceRuns", "GNUInstallDirs", "CPack")
+# The packages find_package() may look for, by CMake's own modules and the system's
+# configuration files alone: a package's file from the tree (PATHS, HINTS, a <name>_DIR or
+# <name>_ROOT, CMAKE_PREFIX_PATH) could make a tester.
+CMAKE_PACKAGES = ("Threads", "OpenSSL", "ZLIB", "Boost", "PostgreSQL", "Iconv")
+CMAKE_PACKAGE_PATHS = ("PATHS", "HINTS", "NAMES", "CONFIGS")
+# What file() may do: read, list, make a directory, and write or append to a file it names
+# out, which it makes 0644, so that linux-build.sh's find (-perm -u+x) never runs one;
+# never copy, install, download, link or change a file's mode.
+CMAKE_FILE_READS = ("STRINGS", "READ", "GLOB", "GLOB_RECURSE", "MAKE_DIRECTORY")
+CMAKE_FILE_WRITES = ("WRITE", "APPEND")
 # The properties that name a target's file or the directory it is made in: a tester
 # named or placed otherwise than its target is one the lists and linux-build.sh's find
-# would not agree on.
-CMAKE_NAMING = re.compile(r"^(?:(?:RUNTIME_)?OUTPUT_NAME(?:_\w+)?|SUFFIX|PREFIX|RUNTIME_OUTPUT_DIRECTORY(?:_\w+)?)$",
-                          re.I)
-# The variables that do the same for every target, or bring in CMake code from elsewhere.
+# would not agree on. A <CONFIG>_POSTFIX names an executable too (RELEASE_POSTFIX -tests
+# under the Release build the Linux builds configure).
+CMAKE_NAMING = re.compile(r"^(?:(?:RUNTIME_|LIBRARY_|ARCHIVE_)?OUTPUT_NAME(?:_\w+)?|SUFFIX|PREFIX|IMPORT_(?:PREFIX|SUFFIX)|"
+                          r"(?:RUNTIME|LIBRARY|ARCHIVE)_OUTPUT_DIRECTORY(?:_\w+)?|\w*POSTFIX)$", re.I)
+# The variables that do the same for every target, bring in CMake code from elsewhere, or
+# point find_package() at a directory, named anywhere but in a comment.
 CMAKE_NAMING_VARIABLES = re.compile(r"\b(?:CMAKE_EXECUTABLE_SUFFIX\w*|CMAKE_RUNTIME_OUTPUT_DIRECTORY\w*|"
                                     r"EXECUTABLE_OUTPUT_PATH|CMAKE_MODULE_PATH|CMAKE_PROJECT_\w*INCLUDE\w*|"
-                                    r"CMAKE_USER_MAKE_RULES_OVERRIDE\w*)\b")
+                                    r"CMAKE_USER_MAKE_RULES_OVERRIDE\w*|CMAKE_\w*(?:LIBRARY|MODULE)_(?:PREFIX|SUFFIX)\w*|"
+                                    r"CMAKE_\w+_POSTFIX|CMAKE_PREFIX_PATH|CMAKE_SYSTEM_PREFIX_PATH|"
+                                    r"CMAKE_FIND_(?:ROOT_PATH\w*|PACKAGE_\w+|USE_\w+)|"
+                                    r"(?:Threads|OpenSSL|OPENSSL|ZLIB|Boost|BOOST|PostgreSQL|POSTGRESQL|Iconv|ICONV)_"
+                                    r"(?:DIR|ROOT\w*)|BOOSTROOT)\b|\bENV\{|"
+                                    # And the toolchain told to run another program or write another output:
+                                    # a launcher, another linker or compiler, flags for every compile or link,
+                                    # the try_run of check_c_source_runs given other inputs, and the options
+                                    # that name an output or a program (-o, -Wl,, -B, -fuse-ld, a specs file).
+                                    r"\b(?:CMAKE_\w*LAUNCHER\w*|RULE_LAUNCH_\w+|CMAKE_\w*LINKER\w*|CMAKE_\w*_FLAGS\w*|"
+                                    r"CMAKE_\w+_COMPILER|CMAKE_REQUIRED_(?!LIBRARIES\b)\w+)\b|"
+                                    r"(?<![\w-])(?:-o|--output|-Xlinker|-wrapper)\b|-Wl,|(?<![\w-])-B|-fuse-ld|"
+                                    r"--ld-path|-specs\b|\b(?:LINKER|SHELL):")
+# The target properties set_target_properties may set, and how: OUTPUT_NAME, to the
+# target's own name, which is all CMakeLists.txt sets; any other (LINK_OPTIONS, a
+# launcher, a naming property) is refused. set_property only appends to the directory's
+# CMAKE_CONFIGURE_DEPENDS, as CMakeLists.txt does.
+CMAKE_TARGET_PROPERTIES = ("OUTPUT_NAME",)
+CMAKE_SET_PROPERTY = ("DIRECTORY", "APPEND", "PROPERTY", "CMAKE_CONFIGURE_DEPENDS")
+# The flags add_compile_options, add_link_options and target_compile_options may give,
+# the ones CMakeLists.txt gives (the operand of -include and -mllvm after it): another
+# could name another output or program for the compiler or the linker.
+CMAKE_FLAGS = frozenset(("-fno-common", "-fsanitize=address,undefined", "-fno-sanitize-recover=undefined",
+                         "-fno-omit-frame-pointer", "-fprofile-instr-generate", "-fcoverage-mapping", "-mllvm",
+                         "-runtime-counter-relocation", "-fwrapv", "-include",
+                         "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=."))
+CMAKE_FLAG_OPERANDS = ("-include", "-mllvm")
+CMAKE_FLAG_KEYWORDS = ("PUBLIC", "PRIVATE", "INTERFACE", "BEFORE")
+# check_c_source_runs compiles and runs its C program while CMake configures, in a
+# directory under the build directory, so it could write a *-tests program there: the one
+# program CMakeLists.txt runs so, the iconv check's, is held by its SHA-256 (as read, from
+# the line break after its [=[ to its ]=]), with CMAKE_REQUIRED_LIBRARIES Iconv::Iconv.
+CMAKE_RUN_SOURCES = {"HM_ICONV_CONVERTS_UTF7": "d0a9eb5e46dab6ca9bf20769c405e3a516f6a76b44b1cade7413f8f5cf73cfd2"}
+CMAKE_REQUIRED = ("CMAKE_REQUIRED_LIBRARIES", "Iconv::Iconv")
 # The commands that make targets or run CMake code this does not read: from another
 # directory, file or project, by another name (cmake_language(CALL ...), the _-prefixed
 # originals of a command defined over), or in a function or macro, whose arguments it
-# cannot read.
+# cannot read. (Refused as any command not in CMAKE_COMMANDS is, with a word of why.)
 CMAKE_ELSEWHERE = re.compile(r"^(?:add_subdirectory|subdirs|cmake_language|function|macro|load_command|"
                              r"variable_watch|fetchcontent_\w+|externalproject_\w+|_\w+)$", re.I)
-# The commands that write a file or run one: a *-tests file named in them could be a
-# program linux-build.sh's find would run.
-CMAKE_WRITERS = re.compile(r"^(?:configure_file|file|add_custom_command|add_custom_target|execute_process)$", re.I)
+
+
+class CMakeUnread(Exception):
+    pass
 
 
 def cmake_commands(cmake_text):
-    """(name, its arguments' text, line) of each command of a CMakeLists.txt, comment lines left out."""
-    found = []
-    for match in CMAKE_COMMAND.finditer(cmake_text):
-        depth, position, quoted = 1, match.end(), False
-        while position < len(cmake_text) and depth:
-            char = cmake_text[position]
-            if quoted:
-                if char == "\\":
-                    position += 1
-                elif char == '"':
-                    quoted = False
-            elif char == '"':
-                quoted = True
+    """(name, [(argument, kind), ...], line) of each command of a CMakeLists.txt, read as CMake reads it: kind
+    is "quoted", "bracket" or "unquoted", a quoted or bracket argument given without its quotes or brackets, and
+    ( and ) unquoted arguments of their own; comments are left out. CMakeUnread for a text CMake would not read
+    as commands."""
+    text, found, at = cmake_text.replace("\r\n", "\n"), [], 0
+
+    def line(offset):
+        return text.count("\n", 0, offset) + 1
+
+    def bracket(offset):
+        """(content, end) of a bracket argument or comment opening at offset, or None."""
+        opened = CMAKE_BRACKET.match(text, offset)
+        if not opened:
+            return None
+        close = text.find("]%s]" % opened.group(1), opened.end())
+        if close < 0:
+            raise CMakeUnread("line %d: a bracket opened there is never closed" % line(offset))
+        return text[opened.end():close], close + len(opened.group(1)) + 2
+
+    def comment(offset):
+        """The end of the comment opening at offset."""
+        block = bracket(offset + 1)
+        if block:
+            return block[1]
+        end = text.find("\n", offset)
+        return len(text) if end < 0 else end
+
+    while at < len(text):
+        char = text[at]
+        if char in " \t\n":
+            at += 1
+            continue
+        if char == "#":
+            at = comment(at)
+            continue
+        name = CMAKE_NAME.match(text, at)
+        if not name:
+            raise CMakeUnread("line %d: %r is not the start of a command" % (line(at), text[at:at + 20]))
+        start, at = at, name.end()
+        while at < len(text) and text[at] in " \t":
+            at += 1
+        if at >= len(text) or text[at] != "(":
+            raise CMakeUnread("line %d: %s is not followed by its (" % (line(start), name.group(0)))
+        at += 1
+        arguments, depth = [], 1
+        while True:
+            if at >= len(text):
+                raise CMakeUnread("line %d: %s( is never closed" % (line(start), name.group(0)))
+            char = text[at]
+            if char in " \t\n":
+                at += 1
+            elif char == "#":
+                at = comment(at)
             elif char == "(":
                 depth += 1
+                arguments.append(("(", "unquoted"))
+                at += 1
             elif char == ")":
                 depth -= 1
-            position += 1
-        found.append((match.group(1), cmake_text[match.end():position - 1],
-                      cmake_text.count("\n", 0, match.start()) + 1))
+                at += 1
+                if not depth:
+                    break
+                arguments.append((")", "unquoted"))
+            elif char == '"':
+                end = at + 1
+                while end < len(text) and text[end] != '"':
+                    end += 2 if text[end] == "\\" else 1
+                arguments.append((text[at + 1:end], "quoted"))
+                at = end + 1
+            elif bracket(at):
+                content, at = bracket(at)
+                arguments.append((content, "bracket"))
+            else:
+                end, quoted = at, False
+                while end < len(text) and (quoted or text[end] not in " \t\n()#"):
+                    if text[end] == "\\":
+                        end += 1
+                    elif text[end] == '"':
+                        quoted = not quoted
+                    end += 1
+                arguments.append((text[at:end], "unquoted"))
+                at = end
+        found.append((name.group(0), arguments, line(start)))
     return found
 
 
 def cmake_targets(cmake_text):
-    """(the *-tests programs CMakeLists.txt makes in its order, problems): a target named by other than a
-    literal, a tester named or placed otherwise than its target, CMake code from elsewhere and a *-tests file
-    written or run are problems."""
+    """(the *-tests programs CMakeLists.txt makes in its order, problems): a command this does not read, a target
+    named by other than a literal, a tester named or placed otherwise than its target, CMake code from elsewhere,
+    a package looked for in a directory, and a file written that could be a *-tests program are problems."""
     cmake_text = cmake_text.replace("\r\n", "\n")
     testers, problems = [], []
-    for command, arguments, line in cmake_commands(cmake_text):
-        lower, words = command.lower(), arguments.split()
+    try:
+        commands = cmake_commands(cmake_text)
+    except CMakeUnread as error:
+        return [], ["%s %s: CMake would read it otherwise than build/check-source-tarball.py does" % (CMAKELISTS, error)]
+
+    def worked_out(arguments):
+        """Whether an argument is one CMake works out: unquoted, a variable or a list of them that becomes any
+        number of arguments; or anywhere, a key or a name made of variables."""
+        return [value for value, kind in arguments if kind == "unquoted" and "$" in value]
+
+    for command, arguments, line in commands:
+        lower = command.lower()
+        values = [value for value, _ in arguments]
+        where = "%s line %d: %s(%s)" % (CMAKELISTS, line, command, " ".join(values)[:50])
+        if CMAKE_ELSEWHERE.match(command):
+            problems.append("%s line %d: %s() makes targets or runs CMake code this does not read (another "
+                            "directory or project, another command's name, a function's or macro's arguments), a "
+                            "tester among them perhaps - write each tester's add_executable out in %s"
+                            % (CMAKELISTS, line, command, CMAKELISTS))
+            continue
+        if lower not in CMAKE_COMMANDS:
+            problems.append("%s is a command build/check-source-tarball.py does not read (CMAKE_COMMANDS): it could "
+                            "make or write a *-tests program, which linux-build.sh's find would run and the source "
+                            "packages' lists would not - add it to CMAKE_COMMANDS with what it may do, or make the "
+                            "testers with add_executable" % where)
+            continue
         if lower == "add_executable":
-            name = words[0] if words else ""
-            if not CMAKE_LITERAL.match(name):
+            name = values[0] if values else ""
+            if arguments[:1] and arguments[0][1] == "bracket" or not CMAKE_LITERAL.match(name):
                 problems.append("%s line %d: add_executable(%s ...) is not named by a literal (a variable, or a "
                                 "foreach's): whether it makes a *-tests program, which linux-build.sh would run, "
                                 "cannot be read - write each tester's add_executable out" % (CMAKELISTS, line, name))
             elif name.endswith("-tests"):
                 testers.append(name)
         elif lower == "set_target_properties":
-            upper = [word.upper() for word in words]
-            at = upper.index("PROPERTIES") if "PROPERTIES" in upper else len(words)
-            targets = words[:at]
-            for key, value in zip(words[at + 1::2], words[at + 2::2]):
+            upper = [value.upper() for value in values]
+            at = upper.index("PROPERTIES") if "PROPERTIES" in upper else len(values)
+            targets = values[:at]
+            if worked_out(arguments) or any(kind == "bracket" for _, kind in arguments):
+                problems.append("%s gives a target's properties by an argument CMake works out (%s): a variable "
+                                "that names OUTPUT_NAME, or a list that moves every key after it, cannot be read - "
+                                "write each property out" % (where, ", ".join(worked_out(arguments)) or "a bracket"))
+            for key, value in zip(values[at + 1::2], values[at + 2::2]):
                 if CMAKE_NAMING.match(key) and not (key.upper() == "OUTPUT_NAME" and targets == [value]):
                     problems.append("%s line %d: set_target_properties(%s ...) gives %s %s %s: the lists run a "
                                     "tester by its target's name, and linux-build.sh the file it finds in the build "
                                     "directory - make each program under its own name, there"
                                     % (CMAKELISTS, line, " ".join(targets), "/".join(targets), key, value))
-        elif lower == "set_property" and words[:1] and words[0].upper() == "TARGET":
-            upper = [word.upper() for word in words]
-            key = words[upper.index("PROPERTY") + 1] if "PROPERTY" in upper[:-1] else ""
-            if CMAKE_NAMING.match(key):
-                problems.append("%s line %d: set_property(TARGET ... PROPERTY %s) names or places a program "
-                                "otherwise than its target: the lists run a tester by its target's name, and "
-                                "linux-build.sh the file it finds in the build directory" % (CMAKELISTS, line, key))
-        elif lower == "include":
-            if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", words[0] if words else ""):
-                problems.append("%s line %d: include(%s) brings in CMake code from a file this does not read, a "
-                                "tester among it perhaps - make the testers in %s"
-                                % (CMAKELISTS, line, " ".join(words)[:60], CMAKELISTS))
-        elif CMAKE_ELSEWHERE.match(command):
-            problems.append("%s line %d: %s() makes targets or runs CMake code this does not read (another "
-                            "directory or project, another command's name, a function's or macro's arguments), a "
-                            "tester among them perhaps - write each tester's add_executable out in %s"
-                            % (CMAKELISTS, line, command, CMAKELISTS))
-        elif CMAKE_WRITERS.match(command) and re.search(r"-tests\b", arguments, re.I):
-            problems.append("%s line %d: %s() names a *-tests file, which it would write or run where "
-                            "linux-build.sh finds and runs every *-tests program - make a tester with "
-                            "add_executable" % (CMAKELISTS, line, command))
+                elif "$" in key:
+                    problems.append("%s names a property by %s, which CMake works out: it could be OUTPUT_NAME"
+                                    % (where, key))
+                elif key not in CMAKE_TARGET_PROPERTIES:
+                    problems.append("%s sets %s, a target property build/check-source-tarball.py does not read "
+                                    "(CMAKE_TARGET_PROPERTIES: OUTPUT_NAME, to the target's name): it could give the "
+                                    "linker another output or run another program - add it there with what it may "
+                                    "be" % (where, key))
+        elif lower == "set_property":
+            scope = values[0].upper() if values else ""
+            if arguments and (arguments[0][1] == "bracket" or "$" in values[0]):
+                problems.append("%s gives its scope by an argument CMake works out" % where)
+            elif scope == "TARGET":
+                upper = [value.upper() for value in values]
+                key = values[upper.index("PROPERTY") + 1] if "PROPERTY" in upper[:-1] else ""
+                if worked_out(arguments) or any(kind == "bracket" for _, kind in arguments) or "$" in key:
+                    problems.append("%s gives a target's property by an argument CMake works out (%s): it could "
+                                    "be OUTPUT_NAME - write it out" % (where, ", ".join(worked_out(arguments)) or key))
+                elif CMAKE_NAMING.match(key):
+                    problems.append("%s line %d: set_property(TARGET ... PROPERTY %s) names or places a program "
+                                    "otherwise than its target: the lists run a tester by its target's name, and "
+                                    "linux-build.sh the file it finds in the build directory" % (CMAKELISTS, line, key))
+                else:
+                    problems.append("%s sets a target's property, which build/check-source-tarball.py reads only "
+                                    "as set_target_properties gives it (CMAKE_TARGET_PROPERTIES)" % where)
+            elif tuple(value.upper() for value in values[:4]) != CMAKE_SET_PROPERTY or any(
+                    kind == "bracket" for _, kind in arguments):
+                problems.append("%s sets a property build/check-source-tarball.py does not read (it reads set_property"
+                                "(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ...) alone): a directory's "
+                                "COMPILE_OPTIONS or LINK_OPTIONS could give the compiler or the linker another output"
+                                % where)
+        elif lower in ("add_compile_options", "add_link_options", "target_compile_options"):
+            given = values[1:] if lower == "target_compile_options" else values
+            for index, value in enumerate(given):
+                operand = index and given[index - 1] in CMAKE_FLAG_OPERANDS and not value.startswith("-")
+                if value not in CMAKE_FLAGS and value not in CMAKE_FLAG_KEYWORDS and not operand:
+                    problems.append("%s gives %s, a flag build/check-source-tarball.py does not read (CMAKE_FLAGS): "
+                                    "the compiler or the linker could write another output or run another program "
+                                    "(-o, -Wl,, -B, -fuse-ld) - add it there" % (where, value[:40]))
+                    break
+        elif lower == "target_link_libraries":
+            odd = [value for value, kind in arguments if kind != "unquoted" or value.startswith("-")
+                   or re.match(r"^(?:LINKER|SHELL):|^\$<", value)]
+            if odd:
+                problems.append("%s gives the linker %s, which is not a library or a target: a flag there comes after "
+                                "the linker's -o, and could name another output" % (where, odd[0][:40]))
+        elif lower == "check_c_source_runs":
+            source = arguments[0][0] if arguments and arguments[0][1] == "bracket" else None
+            result = values[1] if len(values) == 2 else None
+            if (result not in CMAKE_RUN_SOURCES or source is None
+                    or hashlib.sha256(source.encode("utf-8")).hexdigest() != CMAKE_RUN_SOURCES[result]):
+                problems.append("%s line %d: check_c_source_runs(... %s) compiles and runs a program while CMake "
+                                "configures, in the build directory, which could write a *-tests program there: "
+                                "build/check-source-tarball.py holds the one it runs by its SHA-256 "
+                                "(CMAKE_RUN_SOURCES) - change both together" % (CMAKELISTS, line, result or ""))
+        if any(value.startswith("CMAKE_REQUIRED_") for value in values) and not (
+                lower == "unset" and values == [CMAKE_REQUIRED[0]]
+                or lower == "set" and tuple(values) == CMAKE_REQUIRED):
+            problems.append("%s gives check_c_source_runs' compile other inputs than %s %s: a flag or a library "
+                            "there is code its program runs" % ((where,) + CMAKE_REQUIRED))
+        if lower == "include":
+            if len(arguments) != 1 or arguments[0][1] != "unquoted" or values[0] not in CMAKE_INCLUDES:
+                problems.append("%s line %d: include(%s) brings in CMake code build/check-source-tarball.py does not "
+                                "read, from a file of the tree perhaps (a bare name no module has is a file beside "
+                                "CMakeLists.txt), a tester among it: it loads %s alone - make the testers in %s"
+                                % (CMAKELISTS, line, " ".join(values)[:60], ", ".join(CMAKE_INCLUDES), CMAKELISTS))
+        elif lower == "find_package":
+            if (not values or values[0] not in CMAKE_PACKAGES or worked_out(arguments)
+                    or any(kind == "bracket" for _, kind in arguments)
+                    or any(value.upper() in CMAKE_PACKAGE_PATHS for value in values)):
+                problems.append("%s looks for a package build/check-source-tarball.py does not read, or where it does "
+                                "not look (%s; no PATHS, HINTS, NAMES or CONFIGS): a package's configuration file "
+                                "from the tree could make a tester" % (where, ", ".join(CMAKE_PACKAGES)))
+        elif lower == "file":
+            written = values[1:2] and re.split(r"[/\\]", values[1])[-1]
+            if (not values or arguments[0][1] != "unquoted"
+                    or values[0] not in CMAKE_FILE_READS + CMAKE_FILE_WRITES
+                    or values[0] in CMAKE_FILE_WRITES and (arguments[1][1] == "bracket" or not written
+                                                           or not CMAKE_LITERAL.match(written)
+                                                           or written.endswith("-tests"))):
+                problems.append("%s: file(%s) could copy, install or write a file, a *-tests program among them, "
+                                "which linux-build.sh's find would run - file() may %s, and %s a file whose name "
+                                "it gives out, not a *-tests" % (where, " ".join(values[:2])[:60],
+                                                                 ", ".join(CMAKE_FILE_READS),
+                                                                 " or ".join(CMAKE_FILE_WRITES)))
+        elif lower == "configure_file":
+            ends = [re.split(r"[/\\]", value)[-1] for value in values[:2]]
+            if (len(values) < 2 or any(kind == "bracket" for _, kind in arguments[:2])
+                    or any(not CMAKE_LITERAL.match(end) or end in (".", "..") or end.endswith("-tests")
+                           for end in ends)):
+                problems.append("%s line %d: configure_file() names a *-tests file, or one whose name it works out "
+                                "or takes from its input (%s): it could write a program where linux-build.sh finds "
+                                "and runs every *-tests program - name both files out, neither a *-tests"
+                                % (CMAKELISTS, line, " ".join(values[:2])[:60]))
+        elif lower == "add_custom_target":
+            if any(value.upper() == "ALL" for value in values):
+                problems.append("%s is built with every build (ALL): its commands could write a *-tests program, "
+                                "which linux-build.sh's find would run" % where)
+        elif lower == "install":
+            if any(value.upper() in ("CODE", "SCRIPT") for value in values):
+                problems.append("%s runs CMake code at install, which rpm runs before %%check: it could write a "
+                                "*-tests program" % where)
     for number, text in enumerate(cmake_text.split("\n"), 1):
         named = CMAKE_NAMING_VARIABLES.search(text)
         if named and not text.lstrip().startswith("#"):
-            problems.append("%s line %d: %s names or places every program, or brings in CMake code from elsewhere: "
-                            "the testers would not be the files the lists name, or not all made here"
-                            % (CMAKELISTS, number, named.group(0)))
+            problems.append("%s line %d: %s names or places every program, brings in CMake code from elsewhere or "
+                            "points find_package() at a directory: the testers would not be the files the lists "
+                            "name, or not all made here" % (CMAKELISTS, number, named.group(0)))
     return testers, problems
 
 
@@ -590,10 +862,10 @@ def spec_testers(text):
     return loops[0].split() if len(loops) == 1 else None
 
 
-# What dh_auto_test runs: override_dh_auto_test's recipe, held word for word - it runs
-# the server and every name of $(TESTERS), each as a command of its own under set -e,
-# skipping them only for nocheck and a cross build - so that a tester not run, a
-# failure let through or a condition that runs nothing is refused.
+# What dh_auto_test runs: override_dh_auto_test's recipe - it runs the server and every
+# name of $(TESTERS), each as a command of its own under set -e, skipping them only for
+# nocheck and a cross build - so that a tester not run, a failure let through or a
+# condition that runs nothing is refused.
 RULES_TEST_RECIPE = (
     "override_dh_auto_test:\n"
     "ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))\n"
@@ -602,17 +874,39 @@ RULES_TEST_RECIPE = (
     "\t  for tester in $(TESTERS); do echo \"== $$tester\"; ./$$tester; done\n"
     "endif\n"
     "endif\n")
-# And debian/rules' lines outside the recipes, each one of these: what make reads there
-# could otherwise give TESTERS another value for the recipe, ignore its failures, run
-# another shell or leave the rule out - a target-specific or a second assignment, .IGNORE,
-# MAKEFLAGS, SHELL, an eval, a conditional around the rule.
-RULES_LINES = (
-    re.compile(r"^export DEB_BUILD_MAINT_OPTIONS = [^$]*$"),
-    re.compile(r"^include /usr/share/dpkg/[a-z]+\.mk$"),
-    re.compile(r"^BUILDDIR := obj-\$\(DEB_HOST_GNU_TYPE\)$"),
-    re.compile(r"^TESTERS := [a-z0-9 -]*$"),
-    re.compile(r"^(?:%|override_dh_[a-z_]+):$"),
-)
+# And debian/rules as a whole, held line for line but for its comments, its blank lines
+# and the names TESTERS gives: what make reads anywhere in it - another recipe that
+# runs dh with DEB_BUILD_OPTIONS=nocheck or MAKEFLAGS=TESTERS=, rewrites debian/rules or
+# the build directory, a second or target-specific TESTERS, .IGNORE, MAKEFLAGS, an eval, a
+# conditional around the rule - can change what override_dh_auto_test runs, so a change
+# to any rule of it is a change to this too.
+RULES_HELD = (
+    "export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto\n"
+    "include /usr/share/dpkg/architecture.mk\n"
+    "BUILDDIR := obj-$(DEB_HOST_GNU_TYPE)\n"
+    "%:\n"
+    "\tdh $@ --buildsystem=cmake+ninja --sourcedirectory=hmailserver/source/Server --builddirectory=$(BUILDDIR)\n"
+    "override_dh_auto_configure:\n"
+    "\tdh_auto_configure -- \\\n"
+    "\t\t-DHM_LIVE_UPDATE=OFF \\\n"
+    "\t\t\"-DHM_UPDATE_COMMAND=apt upgrade hmailserver\" \\\n"
+    "\t\t-DHM_BOOST_STATIC=OFF \\\n"
+    "\t\t-DCMAKE_JOB_POOLS=link=1 \\\n"
+    "\t\t-DCMAKE_JOB_POOL_LINK=link\n"
+    "TESTERS := <the testers>\n"
+    + RULES_TEST_RECIPE +
+    "override_dh_auto_install:\n"
+    "\tdh_auto_install\n"
+    "\tsed -i '1s|^#!/usr/bin/env python3$$|#!/usr/bin/python3|' debian/tmp/usr/bin/hmctl\n"
+    "\t# CMake's FILES_MATCHING install of DBScripts leaves the one subdirectory that\n"
+    "\t# holds no .sql behind, empty.\n"
+    "\tfind debian/tmp/usr/share/hmailserver -type d -empty -delete\n"
+    "override_dh_fixperms:\n"
+    "\tdh_fixperms\n"
+    "\tchmod 0644 debian/hmailserver/usr/bin/dh2048.pem\n"
+    "override_dh_installsystemd:\n"
+    "\tdh_installsystemd --no-start\n")
+RULES_TESTERS = re.compile(r"^TESTERS := [a-z0-9 -]*$")
 # The spec's %check, held line for line but for its comments: the server, then each
 # tester the loop names, as a command of its own (rpmbuild runs the section under sh -e).
 SPEC_CHECK_LINES = ("cd %{hm_builddir}", "echo \"== hmailserver --version\"", "./hmailserver --version",
@@ -622,86 +916,107 @@ SPEC_CHECK_LINES = ("cd %{hm_builddir}", "echo \"== hmailserver --version\"", ".
 SPEC_MACROS = {"_vpath_srcdir": None, "__sourcedir": None, "__builddir": None, "__builder": None,
                "hm_builddir": ("_build", "%{__cmake_builddir}"), "hm_update_command": None,
                "quickjs_version": None, "_lto_cflags": None}
+# rpm's conditionals, which it reads with blanks before them (spaces or tabs); and %if
+# reached through a macro on the line ("%{?nil}%if 0"), which rpm reads too.
+SPEC_IF = re.compile(r"^[ \t]*%if(?:arch|narch|os|nos)?\b")
+SPEC_ENDIF = re.compile(r"^[ \t]*%endif\b")
+SPEC_CONDITIONAL = re.compile(r"(?<!%)%(?:if(?:arch|narch|os|nos)?|el(?:se|if\w*)|endif)\b")
 
 
-def rules_lines(text):
-    """debian/rules' lines, a line ending in a backslash joined to the next."""
-    return re.sub(r"\\\n", "\x00", text.replace("\r\n", "\n")).split("\n")
-
-
-def rules_loop_problems(text):
-    """override_dh_auto_test's recipe is RULES_TEST_RECIPE, and every other line of debian/rules outside a recipe
-    is one of RULES_LINES, each rule once."""
-    text = text.replace("\r\n", "\n")
+def rules_problems(text):
+    """debian/rules is RULES_HELD but for its comments, blank lines and the TESTERS list."""
     problems = []
-    if text.count(RULES_TEST_RECIPE) != 1 or len(re.findall(r"^override_dh_auto_test\b", text, re.M)) != 1:
-        problems.append("%s's override_dh_auto_test is not, once, the recipe build/check-source-tarball.py holds "
-                        "(RULES_TEST_RECIPE: set -e, the server, then ./$$tester for each of $(TESTERS), skipped "
-                        "only for nocheck and a cross build): a tester it names may not be run, or its failure may "
-                        "not fail the build - change both together" % DEBIAN_RULES)
-    rest = text.replace(RULES_TEST_RECIPE, "", 1)
-    seen, in_rule = set(), False
-    for line in rules_lines(rest):
-        shown = line.replace("\x00", "\\ ")[:80]
-        if re.search(r"\$[({]\s*eval\b", line):
-            problems.append("%s has %r: an eval can assign TESTERS or define a rule where nothing reads it"
-                            % (DEBIAN_RULES, shown))
-        # Make reads a line that begins with a tab as a recipe's only while a rule is open; outside one it reads
-        # it as any other line, an assignment among them.
-        if not line.strip() or line.startswith("#") or (line.startswith("\t") and in_rule):
+    if "\r" in text:
+        return ["%s has a carriage return: make would read it as part of a line (a rule's name, a recipe), and the "
+                "file is checked out with line feeds alone on every platform (.gitattributes)" % DEBIAN_RULES]
+    read, previous = [], ""
+    for number, line in enumerate(text.split("\n"), 1):
+        # make ignores a comment and a blank line, but not one a backslash joined to the line above.
+        continued, previous = previous.endswith("\\"), line
+        if not continued and line.startswith("#"):
+            if line.endswith("\\"):
+                problems.append("%s line %d is a comment ending in a backslash, which joins the next line to it: "
+                                "make would read that line as comment" % (DEBIAN_RULES, number))
             continue
-        if not any(shape.match(line) for shape in RULES_LINES):
-            problems.append("%s has %r outside a recipe, which is none of the lines build/check-source-tarball.py "
-                            "reads there (RULES_LINES): what make reads outside the recipes can change what "
-                            "override_dh_auto_test runs - another TESTERS, a failure ignored, the rule left out"
-                            % (DEBIAN_RULES, shown))
-            in_rule = False
+        if not continued and not line.strip():
             continue
-        name = line if line.startswith(("include ", "export ")) else line.split(" ")[0]
-        if name in seen:
-            problems.append("%s has %s twice: the rule or the variable would be another than the one held"
-                            % (DEBIAN_RULES, name))
-        seen.add(name)
-        in_rule = line.endswith(":")
+        read.append((number, "TESTERS := <the testers>" if RULES_TESTERS.match(line) else line))
+    held = RULES_HELD.rstrip("\n").split("\n")
+    for index, want in enumerate(held):
+        have = read[index] if index < len(read) else None
+        if have is None or have[1] != want:
+            problems.append("%s %s, where build/check-source-tarball.py holds %r there (RULES_HELD): debian/rules "
+                            "is held line for line but for its comments and the testers TESTERS names, as what make "
+                            "reads anywhere in it can change what override_dh_auto_test runs - another rule's "
+                            "recipe running dh with DEB_BUILD_OPTIONS or MAKEFLAGS, a second TESTERS, a failure "
+                            "ignored - change both together"
+                            % (DEBIAN_RULES, ("line %d is %r" % have) if have else "ends", want[:70]))
+            return problems
+    if len(read) > len(held):
+        problems.append("%s line %d is %r, after the last line build/check-source-tarball.py holds (RULES_HELD): "
+                        "change both together" % ((DEBIAN_RULES,) + read[len(held)]))
     return problems
 
 
 def spec_loop_problems(text):
-    """The spec's one %check, outside any conditional, is SPEC_CHECK_LINES with the loop's list, and the spec
-    defines only SPEC_MACROS and runs no macro code."""
-    text = text.replace("\r\n", "\n")
+    """The spec's one %check, outside any conditional, is SPEC_CHECK_LINES with the loop's list, its comments
+    expand no macro, and the spec defines only SPEC_MACROS and runs no macro code."""
     problems = []
+    if "\r" in text:
+        problems.append("%s has a carriage return: rpm would read it as part of a line, and the file is checked out "
+                        "with line feeds alone on every platform (.gitattributes)" % SPEC)
+        text = text.replace("\r\n", "\n")
     check = spec_check(text)
     lines = [line for line in (check or "").split("\n") if line.strip() and not line.startswith("#")]
     shape = len(lines) == len(SPEC_CHECK_LINES) and all(
         want is None and re.match(r"^for tester in [a-z0-9 -]+; do$", have) or have == want
         for have, want in zip(lines, SPEC_CHECK_LINES))
-    if len(re.findall(r"^%check\b", text, re.M)) != 1 or not shape:
+    if len(re.findall(r"^[ \t]*%check\b", text, re.M)) != 1 or not shape:
         problems.append("%s's %%check is not, once, the section build/check-source-tarball.py holds "
                         "(SPEC_CHECK_LINES: the server, then ./$tester for each tester the loop names): a tester "
                         "it names may not be run, or its failure may not fail the build - change both together"
                         % SPEC)
+    # rpm expands the macros of a comment: one whose text holds a line break (%{___build_post} ends in
+    # "exit ${RPM_EC}") or a shell's output (%(...)) runs as the section's script, so %check's comments hold
+    # none, a %% (an escaped %) aside.
+    for line in (check or "").split("\n"):
+        if line.startswith("#") and re.search(r"(?<!%)%(?!%)", line.replace("%%", "")):
+            problems.append("%s's %%check has the comment %r, which expands a macro: rpm expands a comment's "
+                            "macros too, and one that ends in a line break and an exit, as %%{___build_post} "
+                            "does, ends the section there - write %%%% for a %%" % (SPEC, line[:60]))
     depth = 0
     for number, line in enumerate(text.split("\n"), 1):
-        if re.match(r"^%if(?:arch|narch|os|nos)?\b", line):
+        if SPEC_IF.match(line):
             depth += 1
-        elif line.startswith("%endif"):
+        elif SPEC_ENDIF.match(line):
             depth -= 1
-        elif line.startswith("%check") and depth:
+        elif re.match(r"^[ \t]*%check\b", line) and depth:
             problems.append("%s line %d: %%check is inside a conditional, which can leave it out" % (SPEC, number))
+        if (SPEC_CONDITIONAL.search(line) and not re.match(r"^[ \t]*%(?:if|el|endif)", line)
+                and not line.lstrip().startswith("#")):
+            problems.append("%s line %d has a conditional after something else on the line (%r): rpm reads "
+                            "\"%%{?nil}%%if 0\" as a conditional, which this would not count"
+                            % (SPEC, number, line[:60]))
         # Anywhere on the line, a comment's too: rpm expands the macros in a comment as well, a %define and a
-        # %{lua:} among them. %{define:...} and %{global:...} are the same as %define and %global.
+        # %{lua:} among them. %{define:...} and %{global:...} are the same as %define and %global, with or
+        # without blanks after the colon.
         for defined in list(re.finditer(r"(?<!%)%(?:global|define)\s+(\w+)\s*(.*?)\s*$", line)) + list(
-                re.finditer(r"(?<!%)%\{(?:global|define):(\w+)\s*([^}]*?)\s*\}", line)):
+                re.finditer(r"(?<!%)%\{(?:global|define):\s*(\w+)\s*([^}]*?)\s*\}", line)):
             if defined.group(1) not in SPEC_MACROS or (SPEC_MACROS[defined.group(1)] is not None
                                                        and defined.group(2) not in SPEC_MACROS[defined.group(1)]):
                 problems.append("%s line %d defines %%%s as %r, which is none of the macros "
                                 "build/check-source-tarball.py lets the spec define (SPEC_MACROS): a macro can change "
                                 "what %%check runs or where" % (SPEC, number, defined.group(1), defined.group(2)[:40]))
-        if re.search(r"(?<!%)%\{?(?:undefine|include|lua|expand|load|bcond\w*)\b", line):
-            problems.append("%s line %d takes a macro away, reads another file or runs macro code (%%undefine, "
-                            "%%include, %%lua, %%expand, %%load, %%bcond): what %%check runs could be another "
-                            "section's than the one held" % (SPEC, number))
+        if re.search(r"(?<!%)%(?:\{(?:global|define):\s*(?!\w)|(?:global|define)\b(?!\s+\w))", line):
+            problems.append("%s line %d defines a macro this cannot read the name of (%r)" % (SPEC, number,
+                                                                                          line[:60]))
+        if re.search(r"(?<!%)%(?:\{?(?:undefine|include|lua|expand|load|bcond\w*)\b|\()", line):
+            problems.append("%s line %d takes a macro away, reads another file or runs macro or shell code "
+                            "(%%undefine, %%include, %%lua, %%expand, %%load, %%bcond, %%(...)): what %%check runs "
+                            "could be another section's than the one held" % (SPEC, number))
+        if re.match(r"^\s*(?:BuildSystem|BuildOption)\b", line, re.I):
+            problems.append("%s line %d: %s makes or changes rpm's own build sections, %%check among them"
+                            % (SPEC, number, line.split(":")[0].strip()))
     return problems
 
 
@@ -711,7 +1026,7 @@ def check_source_testers(read):
     made, problems = cmake_targets(read(CMAKELISTS))
     rules = rules_testers(read(DEBIAN_RULES))
     spec = spec_testers(read(SPEC))
-    problems += rules_loop_problems(read(DEBIAN_RULES)) + spec_loop_problems(read(SPEC))
+    problems += rules_problems(read(DEBIAN_RULES)) + spec_loop_problems(read(SPEC))
     if not made:
         problems.append("%s makes no *-tests program (add_executable(<name>-tests ...)): the source packages' "
                         "testers cannot be held to it" % CMAKELISTS)
@@ -1459,16 +1774,16 @@ def self_test():
     # The two loops: each runs every name it is given, and a failure fails the build.
     expect("debian/rules' loop over another variable",
            testers(rules=changed(DEBIAN_RULES, "for tester in $(TESTERS); do", "for tester in $(OTHER_TESTERS); do")),
-           "is not, once, the recipe")
+           "(RULES_HELD)")
     expect("debian/rules' loop without set -e",
            testers(rules=changed(DEBIAN_RULES, "set -e; cd $(BUILDDIR);", "cd $(BUILDDIR);")),
-           "is not, once, the recipe")
+           "(RULES_HELD)")
     expect("debian/rules' loop that does not run its tester",
            testers(rules=changed(DEBIAN_RULES, "; ./$$tester; done", "; : ./$$tester; done")),
-           "is not, once, the recipe")
+           "(RULES_HELD)")
     expect("debian/rules' loop whose tester's failure is let through",
            testers(rules=changed(DEBIAN_RULES, "; ./$$tester; done", "; ./$$tester || true; done")),
-           "is not, once, the recipe")
+           "(RULES_HELD)")
     expect("the spec's loop that does not run its tester",
            testers(spec=changed(SPEC, "  ./$tester", "  : ./$tester")), "is not, once, the section")
     expect("the spec's loop whose tester's failure is let through",
@@ -1508,29 +1823,29 @@ def self_test():
     recipe_line = "\tset -e; cd $(BUILDDIR); echo"
     for label, rules, needle in (
             ("TESTERS emptied for the recipe alone", rules_text + "\noverride_dh_auto_test: TESTERS :=\n",
-             "none of the lines"),
+             "(RULES_HELD)"),
             ("TESTERS assigned again, indented by a space", rules_text.replace(rules_line, rules_line + "\n "
-             + "TESTERS := spf-tests", 1), "none of the lines"),
+             + "TESTERS := spf-tests", 1), "(RULES_HELD)"),
             ("TESTERS assigned again, indented by a tab outside a rule", rules_text.replace(
-                "BUILDDIR := ", "\tTESTERS := spf-tests\nBUILDDIR := ", 1), "none of the lines"),
+                "BUILDDIR := ", "\tTESTERS := spf-tests\nBUILDDIR := ", 1), "(RULES_HELD)"),
             ("TESTERS assigned again", rules_text.replace(rules_line, rules_line + "\nTESTERS := spf-tests", 1),
-             "has TESTERS twice"),
+             "(RULES_HELD)"),
             ("TESTERS assigned by an eval in another recipe", rules_text.replace(
-                "\tdh_auto_install\n", "\tdh_auto_install $(eval TESTERS := spf-tests)\n", 1), "an eval can"),
+                "\tdh_auto_install\n", "\tdh_auto_install $(eval TESTERS := spf-tests)\n", 1), "(RULES_HELD)"),
             ("the recipe's failures ignored by .IGNORE", rules_text + "\n.IGNORE: override_dh_auto_test\n",
-             "none of the lines"),
+             "(RULES_HELD)"),
             ("every failure ignored by MAKEFLAGS", rules_text.replace("BUILDDIR := ", "MAKEFLAGS += -i\nBUILDDIR := ",
-                                                                       1), "none of the lines"),
+                                                                       1), "(RULES_HELD)"),
             ("set +e after set -e", rules_text.replace(recipe_line, "\tset -e; set +e; cd $(BUILDDIR); echo", 1),
-             "is not, once, the recipe"),
+             "(RULES_HELD)"),
             ("exit 0 before the loop", rules_text.replace("./hmailserver --version; \\", "./hmailserver --version; "
-                                                           "exit 0; \\", 1), "is not, once, the recipe"),
+                                                           "exit 0; \\", 1), "(RULES_HELD)"),
             ("the testers run only for another condition", rules_text.replace(
                 "ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))", "ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))",
-                1), "is not, once, the recipe"),
+                1), "(RULES_HELD)"),
             ("the rule inside a conditional", rules_text.replace("override_dh_auto_test:\n", "ifeq (a,b)\n"
                                                                   "override_dh_auto_test:\n", 1).replace(
-                "\n\n# hmctl", "endif\n\n# hmctl", 1), "none of the lines")):
+                "\n\n# hmctl", "endif\n\n# hmctl", 1), "(RULES_HELD)")):
         expect("debian/rules: " + label, testers(rules=rules), needle)
     loop_line = spec_line + "\n"
     for label, spec, needle in (
@@ -1549,7 +1864,7 @@ def self_test():
                 "\ndone\n", "\ndone\n%endif\n", 1), "inside a conditional"),
             ("a macro defined by Lua", spec_text.replace("%global quickjs_version", "%{lua: rpm.define(\"hm_builddir "
                                                          "/nowhere\")}\n%global quickjs_version", 1),
-             "runs macro code"),
+             "runs macro or shell code"),
             # rpm expands the macros of a comment too.
             ("a check macro defined in a comment", spec_text.replace("\n%check\n", "\n%check\n# %define "
                                                                      "__spec_check_pre exit 0\n", 1),
@@ -1559,7 +1874,122 @@ def self_test():
                                                                          "quickjs_version", 1),
              "defines %__spec_check_pre"),
             ("Lua in a comment", spec_text.replace("\n%check\n", "\n%check\n# %{lua: rpm.define(\"hm_builddir "
-                                                   "/nowhere\")}\n", 1), "runs macro code")):
+                                                   "/nowhere\")}\n", 1), "runs macro or shell code")):
+        expect("the spec: " + label, testers(spec=spec), needle)
+    # More ways CMake makes or writes an executable *-tests file in the top build directory, or could: a project
+    # in the srcpkg-debian13 job's image (cmake 3.31.6) configured with -DCMAKE_BUILD_TYPE=Release made one by
+    # each of the two quoted keys, the variable key, RELEASE_POSTFIX, try_compile, exec_program, file(COPY),
+    # find_package() from the tree and include() of a bare name; the rest are what this does not read.
+    hidden = "add_executable(hidden ${SERVER_DIR}/platform/cache_tests_main.cpp)\n"
+    for label, added, needle in (
+            ("a tester's name given by a quoted OUTPUT_NAME", hidden + "set_target_properties(hidden PROPERTIES "
+             "\"OUTPUT_NAME\" hidden-tests)\n", "gives hidden OUTPUT_NAME hidden-tests"),
+            ("a tester's name given by set_property and a quoted OUTPUT_NAME", hidden + "set_property(TARGET hidden "
+             "PROPERTY \"OUTPUT_NAME\" hidden-tests)\n", "PROPERTY OUTPUT_NAME) names or places"),
+            ("a tester's name given by a property named by a variable", "set(HM_KEY OUTPUT_NAME)\n" + hidden
+             + "set_target_properties(hidden PROPERTIES ${HM_KEY} hidden-tests)\n", "an argument CMake works out"),
+            ("a tester's name given by a property in a bracket argument", hidden + "set_target_properties(hidden "
+             "PROPERTIES [[OUTPUT_NAME]] hidden-tests)\n", "an argument CMake works out"),
+            ("a tester's name given by RELEASE_POSTFIX", hidden + "set_target_properties(hidden PROPERTIES "
+             "RELEASE_POSTFIX -tests)\n", "gives hidden RELEASE_POSTFIX -tests"),
+            ("a tester copied out of try_compile", "try_compile(HM_RESULT ${CMAKE_BINARY_DIR}/tc SOURCES "
+             "${SERVER_DIR}/x.c COPY_FILE ${CMAKE_BINARY_DIR}/hidden-tests)\n", "try_compile(HM_RESULT"),
+            ("a tester copied by exec_program", "exec_program(cp ARGS ${SERVER_DIR}/scripts/hidden "
+             "${CMAKE_BINARY_DIR}/hidden-tests)\n", "exec_program(cp"),
+            ("a directory holding a tester copied by file(COPY)", "file(COPY ${SERVER_DIR}/scripts/ DESTINATION "
+             "${CMAKE_BINARY_DIR})\n", "file(COPY"),
+            ("a tester written by file(WRITE)", "file(WRITE ${CMAKE_BINARY_DIR}/hidden-tests \"#!/bin/sh\")\n",
+             "file(WRITE"),
+            ("a package's configuration from the tree", "find_package(HmHidden CONFIG REQUIRED PATHS "
+             "${SERVER_DIR}/cmake NO_DEFAULT_PATH)\n", "looks for a package"),
+            ("a package the tree uses, from a directory of the tree", "find_package(Boost CONFIG PATHS "
+             "${SERVER_DIR}/cmake)\n", "looks for a package"),
+            ("a package's directory set", "set(Boost_DIR ${SERVER_DIR}/cmake)\n", "Boost_DIR names or places"),
+            ("a directory put first on the path find_package() searches", "set(ENV{PATH} \"${SERVER_DIR}/x/bin:"
+             "$ENV{PATH}\")\n", "ENV{ names or places"),
+            ("a file of the tree brought in by include() and its path", "include(${SERVER_DIR}/cmake/x.cmake)\n",
+             "include(${SERVER_DIR}/cmake/x.cmake) brings in"),
+            ("a file of the tree brought in by include() and a bare name", "include(HmHiddenTesters)\n",
+             "include(HmHiddenTesters) brings in"),
+            ("a tester written by configure_file under its input's name", "configure_file(${SERVER_DIR}/t/"
+             "hidden-tests .)\n", "configure_file() names a *-tests file"),
+            ("a file written by configure_file under a name it works out", "configure_file(${SERVER_DIR}/t.sh "
+             "${CMAKE_BINARY_DIR}/${HM_NAME})\n", "configure_file() names a *-tests file"),
+            ("a custom target built with every build", "add_custom_target(hidden ALL COMMAND cp a b)\n",
+             "built with every build"),
+            ("CMake code run at install", "install(CODE \"message(x)\")\n", "runs CMake code at install"),
+            ("a command this does not read", "add_custom_command(OUTPUT x COMMAND cp a b)\n",
+             "a command build/check-source-tarball.py does not read"),
+            ("every module made a program", "set(CMAKE_SHARED_MODULE_PREFIX \"\")\n",
+             "CMAKE_SHARED_MODULE_PREFIX names or places"),
+            ("a bracket never closed", "message([=[ x ]])\n", "CMake would read it otherwise"),
+            # The toolchain: a flag after the linker's own -o names the output (made, as above), and the rest
+            # are what this does not read.
+            ("a tester named by the linker's -o", hidden + "target_link_libraries(hidden PRIVATE -ohidden-tests)\n",
+             "gives the linker -ohidden-tests"),
+            ("a compiler plugin from the tree", "add_compile_options(-fplugin=${SERVER_DIR}/x.so)\n",
+             "a flag build/check-source-tarball.py does not read"),
+            ("a target's link options", hidden + "set_target_properties(hidden PROPERTIES LINK_OPTIONS "
+             "-ohidden-tests)\n", "LINK_OPTIONS, a target property build/check-source-tarball.py does not read"),
+            ("the directory's link options", "set_property(DIRECTORY APPEND PROPERTY LINK_OPTIONS -ohidden-tests)\n",
+             "sets a property build/check-source-tarball.py does not read"),
+            ("a launcher for every compile", "set(CMAKE_C_COMPILER_LAUNCHER ${SERVER_DIR}/x.sh)\n",
+             "CMAKE_C_COMPILER_LAUNCHER names or places"),
+            ("another program run while CMake configures", "include(CheckCSourceRuns)\ncheck_c_source_runs([=[\n"
+             "int main(void) { return 0; }\n]=] HM_ICONV_CONVERTS_UTF7)\n", "compiles and runs a program"),
+            ("that program given a library of the tree", "set(CMAKE_REQUIRED_LIBRARIES ${SERVER_DIR}/x.a)\n",
+             "gives check_c_source_runs' compile other inputs")):
+        expect(label, testers(cmake=texts[CMAKELISTS] + "\n" + added), needle)
+    # debian/rules, held whole: what the other rules' recipes run, and comments make joins on.
+    for label, rules, needle in (
+            ("dh told nocheck in the % rule's recipe", rules_text.replace("\tdh $@ ", "\tDEB_BUILD_OPTIONS=nocheck "
+                                                                          "dh $@ ", 1), "(RULES_HELD)"),
+            ("dh given an empty TESTERS in the % rule's recipe", rules_text.replace("\tdh $@ ", "\tMAKEFLAGS=TESTERS= "
+                                                                                  "dh $@ ", 1), "(RULES_HELD)"),
+            ("debian/rules rewritten by another recipe", rules_text.replace(
+                "\t\t-DCMAKE_JOB_POOL_LINK=link\n", "\t\t-DCMAKE_JOB_POOL_LINK=link\n\tsed -i 's/^TESTERS :=.*/"
+                "TESTERS :=/' debian/rules\n", 1), "(RULES_HELD)"),
+            ("a comment ending in a backslash above TESTERS", rules_text.replace(rules_line, "# note \\\n"
+                                                                                 + rules_line, 1),
+             "a comment ending in a backslash"),
+            ("a comment joined to the test recipe's first line", rules_text.replace(
+                "./hmailserver --version; \\\n", "./hmailserver --version; \\\n# note\n", 1), "(RULES_HELD)"),
+            ("a carriage return", rules_text.replace("override_dh_auto_test:\n", "override_dh_auto_test:\r\n", 1),
+             "has a carriage return")):
+        expect("debian/rules: " + label, testers(rules=rules), needle)
+    # The spec: conditionals and definitions as rpm reads them (rpm 6.0.2 in the srcpkg-fedora44 job's image
+    # left %check out, exit 0, for each of the first five, and for a comment of %check that expands
+    # %{___build_post} or runs the shell). The %endif closes the indented %if after the section.
+    check_end = "\ndone\n"
+    for label, spec, needle in (
+            ("%check inside an %if indented by spaces", spec_text.replace("\n%check\n", "\n  %if 0\n%check\n", 1)
+             .replace(check_end, check_end + "%endif\n", 1), "inside a conditional"),
+            ("%check inside an %if indented by a tab", spec_text.replace("\n%check\n", "\n\t%if 0\n%check\n", 1)
+             .replace(check_end, check_end + "%endif\n", 1), "inside a conditional"),
+            ("%check inside an %if reached through a macro", spec_text.replace(
+                "\n%check\n", "\n%{?nil}%if 0\n%check\n", 1).replace(check_end, check_end + "%endif\n", 1),
+             "a conditional after something else"),
+            ("a check macro defined as %{define: ...}", spec_text.replace(
+                "%global quickjs_version", "%{define: __spec_check_pre exit 0}\n%global quickjs_version", 1),
+             "defines %__spec_check_pre"),
+            ("a check macro defined as %{global:\\t...}", spec_text.replace(
+                "%global quickjs_version", "%{global:\t__spec_check_pre exit 0}\n%global quickjs_version", 1),
+             "defines %__spec_check_pre"),
+            ("a comment of %check that ends the section", spec_text.replace(
+                "\ncd %{hm_builddir}\n", "\n# %{___build_post}\ncd %{hm_builddir}\n", 1), "which expands a macro"),
+            ("a comment of %check that runs the shell", spec_text.replace(
+                "\ncd %{hm_builddir}\n", "\n# %(printf 'exit 0')\ncd %{hm_builddir}\n", 1), "which expands a macro"),
+            ("a macro defined by name worked out", spec_text.replace(
+                "%global quickjs_version", "%global %{?hm_x}__spec_check_pre exit 0\n%global quickjs_version", 1),
+             "defines a macro this cannot read the name of"),
+            ("rpm's own build sections", spec_text.replace("\n%description\n", "\nBuildSystem: cmake\n%description\n",
+                                                            1), "makes or changes rpm's own build sections"),
+            ("a shell command run while rpm reads the spec", spec_text.replace("1%{?dist}\n", "1%{?dist}%(true)\n", 1),
+             "runs macro or shell code"),
+            ("a carriage return", spec_text.replace("\n%check\n", "\n%check\r\n", 1), "has a carriage return")):
+        if spec == spec_text:
+            failures.append("the spec: %s: the case cannot be made from the tree's spec" % label)
+            continue
         expect("the spec: " + label, testers(spec=spec), needle)
 
     if failures:

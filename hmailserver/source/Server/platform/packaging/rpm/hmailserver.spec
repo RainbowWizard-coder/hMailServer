@@ -224,8 +224,9 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # delivery status notifications and abuse feedback reports - the list
 # debian/rules runs, and build/check-source-tarball.py holds both to every
 # *-tests program CMakeLists.txt makes by add_executable but those it leaves
-# out, each with its reason, and this section, but for its comments and the
-# list, and the spec's macros to what it holds word for word. No
+# out, each with its reason, and this section, but for its comments, which
+# expand no macro, and the list, and the spec's macros and conditionals to
+# what it holds word for word. No
 # socket (file-utilities-tests' download, from a loopback server of its own,
 # says it did not run with every socket refused), none of the system's
 # configuration, no database, no root; under a minute.
