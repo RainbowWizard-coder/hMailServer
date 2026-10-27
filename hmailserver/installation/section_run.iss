@@ -9,4 +9,7 @@
 ; on every install for as long as DotNetDesktopMissing was broken - the Check could
 ; never go false.
 Filename: "{tmp}\{#DOTNET_RUNTIME_FILE}"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing .NET {#DOTNET_MAJOR} Desktop Runtime..."; Check: DotNetDesktopMissing; Components: server controlpanel;
-Filename: "{app}\ControlPanel\hMailCP.exe";  Flags: skipifsilent postinstall nowait; Description: Run hMailServer Control Panel; Components: controlpanel;
+; The Control Panel on the last page runs only when the folders setup prepared were as
+; it left them after the files (FoldersWereAsPrepared, work item 78): otherwise
+; ControlPanel is not the folder setup prepared, and setup runs nothing from it.
+Filename: "{app}\ControlPanel\hMailCP.exe";  Flags: skipifsilent postinstall nowait; Description: Run hMailServer Control Panel; Components: controlpanel; Check: FoldersWereAsPrepared;

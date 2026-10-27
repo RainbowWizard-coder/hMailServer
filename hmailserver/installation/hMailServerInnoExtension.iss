@@ -222,6 +222,25 @@ var
   g_hBinPrepared: Integer;
   g_hControlPanelPrepared: Integer;
   g_bProgramFolderHardened: Boolean;
+  // Work item 78's R2, decided by CheckProgramFolders before anything changes: whether
+  // Bin and ControlPanel were there and held nothing, which PrepareProgramFolders then
+  // removes and makes again rather than hardens, whoever could write it - asked before
+  // the program folder is hardened, whose new permissions Windows hands down to them.
+  g_bRemakeBin: Boolean;
+  g_bRemakeControlPanel: Boolean;
+  // For each folder this setup made (MakeFolders), recorded once it was found where it
+  // was named: where it was made, read through the handle that holds it
+  // (FinalPathOfHeld), and that handle - g_aFoldersMade's, Bin's and ControlPanel's -
+  // so that it is removed only while it is still that folder (RemoveMadeFolder).
+  g_aFoldersMadeAt: array of String;
+  g_aFoldersMadeHandle: array of Integer;
+  g_szBinMadeAt: String;
+  g_hBinMade: Integer;
+  g_szControlPanelMadeAt: String;
+  g_hControlPanelMade: Integer;
+  // Set when the folders setup prepared were not as it left them after the files
+  // (FoldersStillAsPrepared): the last page then runs nothing (FoldersWereAsPrepared).
+  g_bFoldersNotAsPrepared: Boolean;
 
 // The hMailServer service is looked at and stopped through Windows' Service Control
 // Manager, as Microsoft documents it (learn.microsoft.com, "Service Functions" and
@@ -1724,8 +1743,11 @@ end;
 // BUILTIN\Users Read & execute where every user could read a folder made there
 // (EveryUserMayReadMadeIn), handed down, nothing inherited, the Administrators the
 // owner - what hMailServer.exe /ProtectFolders gives a program folder
-// (ServiceAccount::Harden), by SID. Each is held as it is made (HoldForSetup), and
-// recorded in g_aFoldersMade, shallowest first: section_dirs.iss gives the
+// (ServiceAccount::Harden), by SID. Each is held as it is made (HoldForSetup), and,
+// once it is found where it was named (below), recorded in g_aFoldersMade,
+// shallowest first, with where it was made and the handle that holds it - one found
+// elsewhere is not recorded, and so never removed through the path that led it
+// there (RemoveMadeFolder): section_dirs.iss gives the
 // uninstaller each to remove when it is empty (FolderMadeBySetup, SetupMadeFolder,
 // SetupMadeProgramFolder), and DeinitializeSetup removes those still empty when the
 // installation did not reach its files. What is made is exactly the names of Folder
@@ -1839,28 +1861,46 @@ begin
    begin
       if MakeFolderWithSecurity(missing[index], attributes) then
       begin
-         if Kind = 0 then
-         begin
-            SetArrayLength(g_aFoldersMade, GetArrayLength(g_aFoldersMade) + 1);
-            g_aFoldersMade[GetArrayLength(g_aFoldersMade) - 1] := missing[index];
-         end
-         else if Kind = 1 then
-            g_szBinMade := missing[index]
-         else
-            g_szControlPanelMade := missing[index];
          handle := HoldForSetup(missing[index]);
          if handle = -1 then
          begin
             Why := missing[index] + ', just made, could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+            Log(missing[index] + ', which setup made, is not removed by setup: a path it could not hold need not lead to the folder it made.');
             Result := false;
          end
          else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then
          begin
             Why := missing[index] + ', just made, ' + szWhere + ': a folder on the way was made a link while setup was preparing the installation, so setup does not install there - run setup again to have it looked at';
+            Log('The folder setup made for ' + missing[index] + ' is not removed by setup, which would remove it through the link that led it elsewhere: it stays, empty, with setup''s permissions.');
             Result := false;
          end
          else
          begin
+            // Recorded only now that it is where it was named, with where that is, read
+            // through its handle, and the handle: removed later only while it is still
+            // that folder (RemoveMadeFolder).
+            szWhere := FinalPathOfHeld(handle);
+            if Kind = 0 then
+            begin
+               SetArrayLength(g_aFoldersMade, GetArrayLength(g_aFoldersMade) + 1);
+               g_aFoldersMade[GetArrayLength(g_aFoldersMade) - 1] := missing[index];
+               SetArrayLength(g_aFoldersMadeAt, GetArrayLength(g_aFoldersMade));
+               g_aFoldersMadeAt[GetArrayLength(g_aFoldersMade) - 1] := szWhere;
+               SetArrayLength(g_aFoldersMadeHandle, GetArrayLength(g_aFoldersMade));
+               g_aFoldersMadeHandle[GetArrayLength(g_aFoldersMade) - 1] := handle;
+            end
+            else if Kind = 1 then
+            begin
+               g_szBinMade := missing[index];
+               g_szBinMadeAt := szWhere;
+               g_hBinMade := handle;
+            end
+            else
+            begin
+               g_szControlPanelMade := missing[index];
+               g_szControlPanelMadeAt := szWhere;
+               g_hControlPanelMade := handle;
+            end;
             Log('Setup made ' + missing[index] + ' with permissions of its own from the start - SYSTEM and the Administrators full control, ' + szSaid +
                 ', nothing inherited, the Administrators the owner - before anything is copied into it.');
             parent := handle;
@@ -1884,37 +1924,17 @@ begin
       g_bProgramFolderNew := Result;
 end;
 
-// Whether a folder held open as itself lets an account other than SYSTEM, the
-// Administrators and TrustedInstaller write it, by its owner or an allow entry that
-// applies to it (AclLetsOthers, HM_FOLDER_WRITE_RIGHTS), read through the handle that
-// holds it: what a program of such an account may have opened it for already. True
-// when it cannot be read.
-function HeldLetsOthersWrite(HeldHandle: Integer): Boolean;
-var
-   pOwner: cardinal;
-   pDacl: cardinal;
-   pDescriptor: cardinal;
-   szWho: String;
-begin
-   Result := true;
-   pOwner := 0;
-   pDacl := 0;
-   pDescriptor := 0;
-   if ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) <> 0 then
-      Exit;
-   if IsTrustedSid(pOwner) then
-      Result := AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho);
-   FreeWindowsMemory(pDescriptor);
-end;
-
-// Work item 78's R2: a Bin or a ControlPanel that was there, holds nothing, and let
-// another account write it before setup hardened it (HeldLetsOthersWrite), removed
-// and made again by setup (MakeFolders), not hardened: a program that opened it while
-// another account could change it keeps what it opened it for whatever its permissions
-// say after - the right to write its data or its attributes, with which an empty folder
-// is made a junction, and setup would copy through it - and the folder made again is
-// another, which no such handle reaches. Its hold is let go first (LetGoOfHeld); a folder
-// another program holds open without sharing delete cannot be removed, and one held open
+// Work item 78's R2: a Bin or a ControlPanel that was there and held nothing when
+// CheckProgramFolders looked, before anything changed (g_bRemakeBin,
+// g_bRemakeControlPanel), removed and made again by setup (MakeFolders), not hardened,
+// whoever could write it: a program that opened it while another account could change
+// it keeps what it opened it for whatever its permissions say after - the right to
+// write its data or its attributes, with which an empty folder is made a junction, and
+// setup would copy through it - and the folder made again is another, which no such
+// handle reaches. Who could write it is not asked: the program folder's hardening hands
+// its permissions down to it first, and what they were before is then gone. Its hold is
+// let go first (LetGoOfHeld); a folder another program holds open without sharing
+// delete cannot be removed, nor one something was put in since, and one held open
 // sharing it is removed at once or left pending until it is closed, when making it again
 // fails: each is a refusal, false with Why. Kind and MadeHandle are MakeFolders'.
 function RemakeEmptyFolder(Folder: String; HeldHandle: Integer; Kind: Integer; var MadeHandle: Integer; var Why: String): Boolean;
@@ -1938,8 +1958,8 @@ begin
    LetGoOfHeld(HeldHandle);
    if not RemoveDir(Folder) then
    begin
-      Why := Folder + ' holds nothing, and setup makes it again with permissions of its own, but it could not be removed (Windows error ' + IntToStr(DLLGetLastError()) +
-             '): another program may hold it open. An administrator closes that program, or restarts Windows, and runs setup again';
+      Why := Folder + ' held nothing, and setup makes it again with permissions of its own, but it could not be removed (Windows error ' + IntToStr(DLLGetLastError()) +
+             '): another program may hold it open, or have put something in it since. An administrator closes that program, or restarts Windows, and runs setup again';
       Exit;
    end;
    Log('Setup removed ' + Folder + ', which was there and held nothing, to make it again with permissions of its own: a program that opened it while another account could ' +
@@ -1947,43 +1967,60 @@ begin
    Result := MakeFolders(szParent, parent, Folder, Kind, MadeHandle, Why);
 end;
 
+// One folder this setup made (MakeFolders), removed when it is empty and is still the
+// folder setup made: its own hold let go (Handle, LetGoOfHeld), its path opened as
+// itself, a link not followed, and read through that handle - no link, and where setup
+// made it (At, FinalPathOfHeld) - before it is removed by its path. Run while the
+// folders above it are still held (RemoveFoldersMadeHere before ReleaseHeldFolders),
+// and the folder made with permissions only the administrators may change, so that
+// nobody else can put anything in its place in the meantime. What the path leads to
+// otherwise - a link put on the way, another folder - is left as it is, and said.
+procedure RemoveMadeFolder(Folder: String; At: String; Handle: Integer);
+var
+   check: Integer;
+   bKnown: Boolean;
+   bSame: Boolean;
+begin
+   LetGoOfHeld(Handle);
+   check := HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+   if check = -1 then
+   begin
+      Log(Folder + ', which setup made, could not be opened again (Windows error ' + IntToStr(DLLGetLastError()) + '), and is left as it is.');
+      Exit;
+   end;
+   bSame := (not HeldIsLink(check, bKnown)) and (At <> '') and (CompareText(FinalPathOfHeld(check), At) = 0);
+   ReleaseFolder(check);
+   if not bSame then
+      Log(Folder + ' is not the folder setup made there now, or what it is could not be read, so setup leaves it as it is.')
+   else if RemoveDir(Folder) then
+      Log('Setup removed ' + Folder + ', which it had made and nothing was installed into.')
+   else
+      Log(Folder + ', which setup made, is not empty and stays.');
+end;
+
 // The folders this setup made (MakeFolders) that are still empty, deepest
-// first, removed - after a cancel or a failure before the files, and when the folder
-// page is gone back to and the preparation runs again - and forgotten.
+// first, removed (RemoveMadeFolder) - after a cancel or a failure before the files,
+// and when the folder page is gone back to and the preparation runs again - and
+// forgotten. The holds of the walks are let go after this, not before.
 procedure RemoveFoldersMadeHere();
 var
    index: Integer;
-   szMade: String;
 begin
    // Bin and ControlPanel first, which setup made in a program folder that was there.
-   for index := 0 to 1 do
-   begin
-      if index = 0 then
-         szMade := g_szBinMade
-      else
-         szMade := g_szControlPanelMade;
-      if (szMade <> '') and DirExists(szMade) then
-      begin
-         if RemoveDir(szMade) then
-            Log('Setup removed ' + szMade + ', which it had made and nothing was installed into.')
-         else
-            Log(szMade + ', which setup made, is not empty and stays.');
-      end;
-   end;
+   if g_szBinMade <> '' then
+      RemoveMadeFolder(g_szBinMade, g_szBinMadeAt, g_hBinMade);
+   if g_szControlPanelMade <> '' then
+      RemoveMadeFolder(g_szControlPanelMade, g_szControlPanelMadeAt, g_hControlPanelMade);
    g_szBinMade := '';
+   g_szBinMadeAt := '';
    g_szControlPanelMade := '';
+   g_szControlPanelMadeAt := '';
 
    for index := GetArrayLength(g_aFoldersMade) - 1 downto 0 do
-   begin
-      if DirExists(g_aFoldersMade[index]) then
-      begin
-         if RemoveDir(g_aFoldersMade[index]) then
-            Log('Setup removed ' + g_aFoldersMade[index] + ', which it had made and nothing was installed into.')
-         else
-            Log(g_aFoldersMade[index] + ', which setup made, is not empty and stays.');
-      end;
-   end;
+      RemoveMadeFolder(g_aFoldersMade[index], g_aFoldersMadeAt[index], g_aFoldersMadeHandle[index]);
    SetArrayLength(g_aFoldersMade, 0);
+   SetArrayLength(g_aFoldersMadeAt, 0);
+   SetArrayLength(g_aFoldersMadeHandle, 0);
    g_bProgramFolderNew := false;
 end;
 
@@ -2632,8 +2669,11 @@ end;
 // SYSTEM, the Administrators or TrustedInstaller do any of Rights, to what it is on or
 // to what is made in it: CREATOR OWNER's is the maker's, and only the administrators
 // make anything in Bin and ControlPanel once setup has hardened them; OWNER RIGHTS is
-// the owner's, held to the three before this is asked. Who is that account.
-function OwnEntriesLetOthers(pDacl: cardinal; Rights: cardinal; var Who: String): Boolean;
+// the owner's, held to the three before this is asked; and, when ServiceMay is set,
+// NT SERVICE\hMailServer's (HM_SERVICE_SID), which /GrantServiceAccess gives Modify
+// on the REST API's key store, the one file of the program folder the service writes.
+// Who is that account.
+function OwnEntriesLetOthers(pDacl: cardinal; Rights: cardinal; ServiceMay: Boolean; var Who: String): Boolean;
 var
    info: ACL_SIZE_INFO;
    head: ACE_START;
@@ -2667,7 +2707,8 @@ begin
          begin
             if aceType = HM_ACCESS_ALLOWED then
             begin
-               if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) then
+               if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-0')) and (not SidIs(pAce + 8, 'S-1-3-4')) and
+                  (not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) then
                begin
                   Result := true;
                   Who := SidNameAt(pAce + 8);
@@ -2713,6 +2754,36 @@ begin
              (szExtension = '.cmd') or (szExtension = '.bat');
 end;
 
+// Whether a file's name is that of one that tells the service, the administrators'
+// tools or the uninstaller what to run, or where: Bin's hMailServer.INI, whose
+// [Directories] name the folder of the event scripts the service runs and its data,
+// and the REST API's key store, hMailServerApiKeys.ini; a .config or a .json beside a
+// program, which .NET reads before it loads the program's libraries and may name
+// where to look for them; and the uninstaller's record of the installation,
+// unins000.dat, which the uninstaller reads elevated. Held to the rule of a program
+// (CheckWhatIsInside, CheckWhatElseIsInside), as the live update holds
+// hMailServer.INI to it (AdminUpdateChecks).
+function IsSettingsFile(Name: String): Boolean;
+var
+   szExtension: String;
+begin
+   szExtension := Lowercase(ExtractFileExt(Name));
+   Result := (CompareText(Name, 'hMailServer.INI') = 0) or (CompareText(Name, 'hMailServerApiKeys.ini') = 0) or (szExtension = '.config') or (szExtension = '.json') or
+             ((CompareText(Copy(Name, 1, 5), 'unins') = 0) and (szExtension = '.dat'));
+end;
+
+// Whether a folder of the program folder's own level is one setup installs into that
+// holds what the service or the administrators run - the tools and the importer
+// (Addons), the event script (Events), the SQL DBSetup runs (DBScripts), the PHP of
+// WebAdmin and the languages the tools read (Languages) - which may not be a link
+// (CheckWhatElseIsInside): setup would install into, and the service and the
+// administrators run from, a folder it does not prepare.
+function IsRunFolderName(Name: String): Boolean;
+begin
+   Result := (CompareText(Name, 'Addons') = 0) or (CompareText(Name, 'Events') = 0) or (CompareText(Name, 'DBScripts') = 0) or (CompareText(Name, 'WebAdmin') = 0) or
+             (CompareText(Name, 'Languages') = 0);
+end;
+
 // Whether a folder in the program folder is one of the data folders the service writes
 // in - Data, Logs, Temp, Database - which /GrantServiceAccess gives the service Modify
 // on, and the service may own what it made there; setup does not look inside them.
@@ -2730,13 +2801,16 @@ end;
 //   - a link (a junction, a symbolic link, a mount point, any reparse point): what is
 //     reached through it is not in the folder, and setup would install, and the
 //     service and the administrators run, through it - the live update refuses one too;
-//   - a program or a library (IsProgramFile), or a folder, whose owner is not SYSTEM,
-//     the Administrators or TrustedInstaller, or cannot be read - its owner may change
-//     it whatever its permissions say, and setup replaces only the files it installs -
-//     or one an entry of whose own lets another account change it (OwnEntriesLetOthers).
-// Another file - the settings file, the service's key store, a note - whose owner is
-// another account, or cannot be read, is said in the setup log and added to
-// g_szFolderFindings when Final is set; the service's own files are not. Found counts
+//   - a program or a library (IsProgramFile), a file that says what they run or where
+//     (IsSettingsFile: the settings file, the service's key store, a .config or a .json
+//     beside a program), or a folder, whose owner is not SYSTEM, the Administrators or
+//     TrustedInstaller, or cannot be read - its owner may change it whatever its
+//     permissions say, and setup replaces only the files it installs - or one an entry
+//     of whose own lets another account change it (OwnEntriesLetOthers); the key store
+//     may also be the service's, and have its entry, which /GrantServiceAccess gives it.
+// Another file - a note - whose owner is another account, or cannot be read, is said
+// in the setup log and added to g_szFolderFindings when Final is set; the service's own
+// files are not. Found counts
 // what was refused. Run before the service is stopped, and again once Bin and
 // ControlPanel are hardened (Final), when only the administrators can add to them.
 function CheckWhatIsInside(Folder: String; Depth: Integer; Final: Boolean; Scripts: Boolean; var Found: Integer; var Why: String): Boolean;
@@ -2753,6 +2827,7 @@ var
    bFolder: Boolean;
    bCode: Boolean;
    bLink: Boolean;
+   bKeyStore: Boolean;
    szItem: String;
    szWho: String;
    szText: String;
@@ -2781,7 +2856,8 @@ begin
             szItem := AddBackslash(Folder) + rec.Name;
             bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;
             bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;
-            bCode := (not bFolder) and (IsProgramFile(rec.Name) or (Scripts and IsScriptFile(rec.Name)));
+            bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsSettingsFile(rec.Name) or (Scripts and IsScriptFile(rec.Name)));
+            bKeyStore := (not bFolder) and (CompareText(rec.Name, 'hMailServerApiKeys.ini') = 0);
             szWho := '';
             szRemedy := '';
             if bLink then
@@ -2809,7 +2885,7 @@ begin
                   begin
                      if pOwner = 0 then
                         szWho := 'its owner could not be read'
-                     else if not IsTrustedSid(pOwner) then
+                     else if (not IsTrustedSid(pOwner)) and (not (bKeyStore and SidIs(pOwner, HM_SERVICE_SID))) then
                      begin
                         if (not bCode) and (not bFolder) and SidIs(pOwner, HM_SERVICE_SID) then
                            szWho := ''
@@ -2818,7 +2894,7 @@ begin
                      end
                      else if bCode or bFolder then
                      begin
-                        if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then
+                        if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, bKeyStore, szText) then
                         begin
                            szWho := 'has an entry of its own that lets ' + szText + ' change it';
                            szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - and runs setup again.';
@@ -2901,6 +2977,114 @@ begin
          Result := false;
 end;
 
+// Whether the volume a held folder is on keeps permissions (FILE_PERSISTENT_ACLS):
+// not FAT or exFAT, which keep none, so that any account may change any file there.
+// Read through the handle that holds the deepest folder of each walk
+// (HoldFolderChain) - the program folder's, Bin's and ControlPanel's, each of which a
+// link the administrators control may take to a volume of its own. False, with Why,
+// when it keeps none or cannot be told: setup does not install where it cannot know.
+function VolumeKeepsPermissions(HeldHandle: Integer; Folder: String; var Why: String): Boolean;
+var
+   serial: cardinal;
+   longest: cardinal;
+   flags: cardinal;
+begin
+   Result := false;
+   Why := '';
+   serial := 0;
+   longest := 0;
+   flags := 0;
+   if not VolumeOfHeldFolder(HeldHandle, 0, 0, serial, longest, flags, 0, 0) then
+      Why := 'whether the volume of ' + Folder + ' keeps permissions could not be read (Windows error ' + IntToStr(DLLGetLastError()) + '), so setup cannot know that anybody but the ' +
+             'administrators is kept from changing the programs there'
+   else if (flags and HM_PERSISTENT_ACLS) = 0 then
+      Why := Folder + ' is on a volume that keeps no permissions (FAT or exFAT), where every account of this computer may change the programs that the service and the ' +
+             'administrators run, and nothing can stop that'
+   else
+      Result := true;
+end;
+
+// Work item 78's R4, for a data folder of the program folder's own level - Data, Logs,
+// Temp or Database - that is a link only the administrators control: where it leads
+// held to the rules of the program folder's own way (HoldFolderChain from the link's
+// target, LinkTarget, read through a hold on the link, HoldForSetup): every link on the
+// way to the rule of a link, every folder above it to the rule of a folder above the
+// program folder, no share, no network drive, the folder there, and its volume one
+// that keeps permissions (VolumeKeepsPermissions). Keeping Data or Logs on another
+// drive behind an administrator's junction or mount point is an ordinary layout
+// (docs/ServiceAccount.md), and the folder the link leads to may hand down what the
+// root of that drive hands down, as the server's own store commands take it: who may
+// write it is not asked, and an owner of it other than SYSTEM, the Administrators,
+// TrustedInstaller or the service is said, when Final is set, as for a data folder in
+// the program folder. False, with Why, otherwise.
+function DataLinkLeadsWhereAllowed(Link: String; Final: Boolean; var Why: String): Boolean;
+var
+   hLink: Integer;
+   hHeld: Integer;
+   szTarget: String;
+   szReal: String;
+   szHeld: String;
+   szWhy: String;
+   szText: String;
+   bWhole: Boolean;
+   bKnown: Boolean;
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+begin
+   Result := false;
+   Why := '';
+   hLink := HoldForSetup(Link);
+   if hLink = -1 then
+   begin
+      Why := 'it could not be held open while setup looks at it (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Exit;
+   end;
+   if not HeldIsLink(hLink, bKnown) then
+   begin
+      Why := 'it was changed while setup looked at it';
+      Exit;
+   end;
+   if not LinkTarget(hLink, Link, szTarget, szWhy) then
+   begin
+      Why := szWhy;
+      Exit;
+   end;
+   if not HoldFolderChain(szTarget, 1, szReal, szHeld, hHeld, bWhole, szWhy) then
+   begin
+      Why := 'where it leads, ' + szTarget + ', is not where setup lets a data folder be: ' + szWhy;
+      Exit;
+   end;
+   if not bWhole then
+   begin
+      Why := 'it leads to ' + szTarget + ', which is not there';
+      Exit;
+   end;
+   if not VolumeKeepsPermissions(hHeld, szHeld, szWhy) then
+   begin
+      Why := 'where it leads, ' + szTarget + ', is not where setup lets a data folder be: ' + szWhy;
+      Exit;
+   end;
+   Result := true;
+   if not Final then
+      Exit;
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   if ReadHeldSecurity(hHeld, HM_FILE_OBJECT, HM_OWNER_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) = 0 then
+   begin
+      if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then
+      begin
+         szText := Link + ' leads to ' + szReal + ', which is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators or TrustedInstaller, which may ' +
+                   'change it whatever its permissions say. An administrator checks that it is meant to be there and gives it to the Administrators - icacls "' + szReal +
+                   '" /setowner *S-1-5-32-544.';
+         Log('The program folder: ' + szText);
+         g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
+      end;
+      FreeWindowsMemory(pDescriptor);
+   end;
+end;
+
 // Work item 78's R4, past Bin and ControlPanel: what else in a program folder that is
 // there holds what the service and the administrators run. Each item of the program
 // folder's own level but Bin and ControlPanel, which have rules of their own - the
@@ -2908,9 +3092,14 @@ end;
 // opened on it as itself (AppHandle holds the program folder):
 //   - a link there that anybody but SYSTEM, the Administrators and TrustedInstaller owns
 //     or may change (LinkIsAdministratorsAlone, the link itself: the program folder it
-//     is in is setup's to harden), refused with the icacls that makes it theirs alone -
-//     a data folder behind an administrator's junction is an ordinary layout;
-//   - a program, a library, a script (IsScriptFile) or a folder whose owner is not one
+//     is in is setup's to harden), refused with the icacls that makes it theirs alone;
+//     one they alone control refused too when it is Addons, Events, DBScripts, WebAdmin
+//     or Languages (IsRunFolderName), which setup installs into and the service and the
+//     administrators run from; and, when it is Data, Logs, Temp or Database - a data
+//     folder behind an administrator's junction is an ordinary layout - held to where it
+//     leads (DataLinkLeadsWhereAllowed);
+//   - a program, a library, a script (IsScriptFile), a file that says what they run
+//     (IsSettingsFile: unins000.dat, the uninstaller's record) or a folder whose owner is not one
 //     of the three, or cannot be read, or an entry of whose own lets another account
 //     change it, refused; but for Data, Logs, Temp and Database (IsDataFolderName),
 //     which the service may own and has an entry of its own on (/GrantServiceAccess),
@@ -2919,7 +3108,8 @@ end;
 // Languages, the folders setup installs into that hold programs, the event script
 // the service runs, the SQL DBSetup runs and the PHP of WebAdmin, held to
 // CheckWhatIsInside's rule with scripts counted as programs. A program folder that is
-// the root of a volume (IsVolumeRoot) is not looked at on its own level. Found counts
+// the root of a volume (IsVolumeRoot), which CheckProgramFolders refuses before this
+// runs, is not looked at on its own level. Found counts
 // what was refused; what is said is said when Final is set.
 function CheckWhatElseIsInside(App: String; AppHandle: Integer; Final: Boolean; var Found: Integer; var Why: String): Boolean;
 var
@@ -2958,7 +3148,7 @@ begin
                bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;
                bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;
                bData := bFolder and IsDataFolderName(rec.Name);
-               bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsScriptFile(rec.Name));
+               bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsScriptFile(rec.Name) or IsSettingsFile(rec.Name));
                szWho := '';
                szRemedy := '';
                handle := HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
@@ -2972,6 +3162,19 @@ begin
                      begin
                         szWho := 'is a junction, a symbolic link or a mount point, and ' + szText;
                         szRemedy := LinkRemedy(szItem) + '.';
+                     end
+                     else if bFolder and IsRunFolderName(rec.Name) then
+                     begin
+                        szWho := 'is a junction, a symbolic link or a mount point, and setup installs into it what the service or the administrators run, which would then be ' +
+                                 'wherever the link leads, in a folder setup does not prepare';
+                        szRemedy := 'An administrator removes the link - rmdir "' + szItem + '", which leaves what it leads to as it is - and runs setup again, which makes the ' +
+                                    'folder itself. Event scripts kept in another folder are named by EventFolder in Bin\hMailServer.INI, as RelocatingAnInstallation.md says.';
+                     end
+                     else if bData and (not DataLinkLeadsWhereAllowed(szItem, Final, szText)) then
+                     begin
+                        szWho := 'is a junction, a symbolic link or a mount point that only the administrators control, but ' + szText;
+                        szRemedy := 'Setup holds where a data folder''s link leads, and the way there, to the rules of the program folder''s own way: an administrator sees to ' +
+                                    'what is named, or points the link at a folder that passes them, and runs setup again.';
                      end;
                   end
                   else
@@ -2995,7 +3198,7 @@ begin
                         end
                         else if bCode or (bFolder and (not bData)) then
                         begin
-                           if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szText) then
+                           if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, false, szText) then
                            begin
                               szWho := 'has an entry of its own that lets ' + szText + ' change it';
                               szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - and runs setup again.';
@@ -3074,8 +3277,9 @@ begin
          4: szFolder := 'Languages';
       end;
       szFolder := AddBackslash(App) + szFolder;
+      // One that is a link is refused above, and not looked through.
       if FolderAttributes(szFolder) <> HM_INVALID_ATTRIBUTES then
-         if (FolderAttributes(szFolder) and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+         if ((FolderAttributes(szFolder) and FILE_ATTRIBUTE_DIRECTORY) <> 0) and ((FolderAttributes(szFolder) and HM_REPARSE_POINT) = 0) then
             if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then
                Result := false;
    end;
@@ -3103,33 +3307,6 @@ begin
       if (Result = '') and DirExists(szFolder) and (not InheritsNothing(szFolder)) then
          Result := szFolder;
    end;
-end;
-
-// Whether the volume a held folder is on keeps permissions (FILE_PERSISTENT_ACLS):
-// not FAT or exFAT, which keep none, so that any account may change any file there.
-// Read through the handle that holds the deepest folder of each walk
-// (HoldFolderChain) - the program folder's, Bin's and ControlPanel's, each of which a
-// link the administrators control may take to a volume of its own. False, with Why,
-// when it keeps none or cannot be told: setup does not install where it cannot know.
-function VolumeKeepsPermissions(HeldHandle: Integer; Folder: String; var Why: String): Boolean;
-var
-   serial: cardinal;
-   longest: cardinal;
-   flags: cardinal;
-begin
-   Result := false;
-   Why := '';
-   serial := 0;
-   longest := 0;
-   flags := 0;
-   if not VolumeOfHeldFolder(HeldHandle, 0, 0, serial, longest, flags, 0, 0) then
-      Why := 'whether the volume of ' + Folder + ' keeps permissions could not be read (Windows error ' + IntToStr(DLLGetLastError()) + '), so setup cannot know that anybody but the ' +
-             'administrators is kept from changing the programs there'
-   else if (flags and HM_PERSISTENT_ACLS) = 0 then
-      Why := Folder + ' is on a volume that keeps no permissions (FAT or exFAT), where every account of this computer may change the programs that the service and the ' +
-             'administrators run, and nothing can stop that'
-   else
-      Result := true;
 end;
 
 // Whether the walks of Bin and ControlPanel (Held, Whole) agree with the program
@@ -3180,10 +3357,12 @@ end;
 // control it, and refused otherwise (R3); refused too, a program folder on a share or
 // a network drive, one whose walks do not agree (a folder or a link made while setup
 // looked), one on a volume that keeps no permissions or whose volume cannot be told -
-// each walk's own, since a link may lead to another volume - one of the three owned by
+// each walk's own, since a link may lead to another volume - one that is the root of a
+// volume, or whose Bin or ControlPanel leads to one, one of the three owned by
 // another account unless it is the earlier installation's (OwnerIsAllowed), and a
 // program, a library, a folder or a link in Bin or ControlPanel that another account
-// controls (CheckWhatIsInside, R4). Run from NextButtonClick on the Ready page, before
+// controls (CheckWhatIsInside, R4); and whether Bin and ControlPanel hold nothing, so
+// that PrepareProgramFolders makes them again. Run from NextButtonClick on the Ready page, before
 // the service is stopped, so that a refusal leaves a running server running; and from
 // PrepareToInstall when it was not, or {app} has changed since. Earlier is the folder
 // of the installation found before this one (PreviousInstallationFolder). '' when the
@@ -3196,11 +3375,13 @@ var
    found: Integer;
 begin
    Result := '';
-   // Back from the page that follows, and on again: what an earlier pass held and
-   // made is let go and removed first.
-   ReleaseHeldFolders();
+   // Back from the page that follows, and on again: what an earlier pass made is
+   // removed, while what it held is still held, and then let go.
    RemoveFoldersMadeHere();
+   ReleaseHeldFolders();
    g_szFolderFindings := '';
+   g_bRemakeBin := false;
+   g_bRemakeControlPanel := false;
 
    szApp := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
    g_szFoldersCheckedFor := szApp;
@@ -3224,6 +3405,17 @@ begin
    begin
       Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Install hMailServer into a folder on an NTFS or ReFS volume, such as the default ' +
                 ExpandConstant('{commonpf}') + '\hMailServer. Nothing has been changed.';
+      Exit;
+   end;
+   // The root of a volume - where a mount point, or a junction to a volume's root,
+   // leads (Inno Setup refuses a drive's root itself) - is not a program folder: its
+   // permissions are the volume's, and hand down to what is made there, the uninstaller
+   // and its record among it, which setup cannot make the administrators' alone.
+   if IsVolumeRoot(g_szProgramFolderReal) then
+   begin
+      Result := 'Setup does not install into ' + szApp + ': it is the root of a volume (' + g_szProgramFolderReal + '), whose permissions are the volume''s and are handed ' +
+                'down to what is made there, so that setup cannot keep the programs there the administrators'' alone. Install hMailServer into a folder on that volume, such as ' +
+                AddBackslash(szApp) + 'hMailServer, or into the default ' + ExpandConstant('{commonpf}') + '\hMailServer. Nothing has been changed.';
       Exit;
    end;
 
@@ -3259,10 +3451,23 @@ begin
                 'or one removed - so setup does not install there; run setup again to have it looked at. Nothing has been changed.';
       Exit;
    end;
+   if IsVolumeRoot(g_szBinReal) or IsVolumeRoot(g_szControlPanelReal) then
+   begin
+      Result := 'Setup does not install into ' + szApp + ': its Bin or its ControlPanel is a link to the root of a volume, whose permissions are the volume''s. An administrator ' +
+                'removes the link - rmdir "' + AddBackslash(szApp) + 'Bin" or rmdir "' + AddBackslash(szApp) + 'ControlPanel", which leaves the volume as it is - and runs setup ' +
+                'again, which makes the folder itself. Nothing has been changed.';
+      Exit;
+   end;
 
-   // The owners of the three, and what is in Bin and ControlPanel. The root of a
-   // volume is the volume's, and is not looked at.
-   if g_bProgramFolderThere and (not IsVolumeRoot(g_szProgramFolderReal)) then
+   // Work item 78's R2: Bin and ControlPanel that were there and hold nothing are made
+   // again by PrepareProgramFolders, not hardened - decided now, before anything
+   // changes: the program folder's hardening hands its permissions down to them, after
+   // which who could write one before can no longer be read from it (RemakeEmptyFolder).
+   g_bRemakeBin := g_bBinThere and FolderHoldsNothing(g_szBinReal);
+   g_bRemakeControlPanel := g_bControlPanelThere and FolderHoldsNothing(g_szControlPanelReal);
+
+   // The owners of the three, and what is in Bin and ControlPanel.
+   if g_bProgramFolderThere then
       if not OwnerIsAllowed(g_szProgramFolderReal, g_hProgramFolder, szWhy) then
       begin
          Result := 'Setup does not install into ' + szApp + ': ' + szWhy + '. Nothing has been changed.';
@@ -3293,6 +3498,18 @@ begin
       Result := 'Setup does not install into ' + szApp + ', since the service and the administrators would run programs there that another account controls: ' + szWhy + 'Nothing has been changed.';
 end;
 
+// The refusal of a folder PrepareProgramFolders holds - the program folder, Bin or
+// ControlPanel - that HeldIsLink, read through the handle that holds it, finds a link
+// now, or cannot read: an empty folder can be made one through a handle a program
+// opened on it while another account could write it, whatever its permissions say
+// since, and what goes by its path then goes where the link leads.
+function PreparedFolderIsLink(Folder: String): String;
+begin
+   Result := Folder + ' is a junction, a symbolic link or a mount point now, or what it is could not be read: it was made one while setup was preparing the installation, so ' +
+             'setup does not install there. An administrator removes the link - rmdir "' + Folder + '", which leaves what it leads to as it is - restarts Windows, so that ' +
+             'nothing opened while another account could change the folder stays open, and runs setup again. Nothing has been installed.';
+end;
+
 // Work item 78's R1 to R4, the second half, in PrepareToInstall: before anything is
 // installed, and before setup runs any program of the installation, the program
 // folder made, or hardened, Bin and ControlPanel with it, so that none of the three
@@ -3309,12 +3526,15 @@ end;
 //      Database or Events still inherit from it (an installation before 6.3.6, whose
 //      /ProtectFolders made them private): its change would then be handed down
 //      through the message store, so hMailServer.exe /ProtectFolders makes those
-//      private and hardens it after the files, as it does at every installation. A
-//      drive's root is not hardened: its permissions are the volume's.
-//   3. Then Bin and ControlPanel hardened before their files, or made by setup with its
-//      permissions when they are not there (ControlPanel when it is installed); and
-//      what is in them looked at again, now that only the administrators can add to
-//      them (CheckWhatIsInside, R4).
+//      private and hardens it after the files, as it does at every installation. The
+//      root of a volume CheckProgramFolders has refused.
+//   3. Then Bin and ControlPanel: one that held nothing when CheckProgramFolders looked
+//      removed and made again (RemakeEmptyFolder), one that holds something refused if
+//      it is a link now and otherwise hardened before its files, one that is not there
+//      made by setup with its permissions (ControlPanel when it is installed); the three
+//      read again through their handles, and refused if any is a link now; and what is
+//      in them looked at again, now that only the administrators can add to them
+//      (CheckWhatIsInside, R4).
 // Any of these that cannot be done is a refusal: nothing is installed into a folder
 // setup could not make or harden. The setup log says what was found and done; an
 // attended installation shows what an administrator is to look at
@@ -3327,6 +3547,7 @@ var
    index: Integer;
    found: Integer;
    hMade: Integer;
+   bKnown: Boolean;
 begin
    Result := '';
    szApp := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
@@ -3355,35 +3576,30 @@ begin
       Exit;
    end;
 
-   if IsVolumeRoot(g_szProgramFolderReal) then
-      Log('The program folder ' + szApp + ' is the root of a volume (' + g_szProgramFolderReal + '), whose permissions are the volume''s, so setup does not change them, and makes or hardens Bin and ControlPanel there, ' +
-          'but a folder of its own, such as ' + ExpandConstant('{commonpf}') + '\hMailServer, is the safer place.')
-   else
+   szInherits := '';
+   if g_bEarlierInstallation then
+      if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then
+         szInherits := DataFolderThatInherits(g_szProgramFolderReal);
+   if szInherits <> '' then
+      Log('The program folder ' + g_szProgramFolderReal + ' is not hardened before the files: it holds the earlier installation''s server, whose ' + szInherits + ' still inherits from it, and the change ' +
+          'would be handed down through the message store. hMailServer.exe /ProtectFolders makes the data folders private and then hardens it after the files' +
+          ' (an installation of the Control Panel alone runs none: an administrator runs "hMailServer.exe /ProtectFolders" from its Bin folder). Bin and ControlPanel are hardened, or made, before the files.')
+   else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then
    begin
-      szInherits := '';
-      if g_bEarlierInstallation then
-         if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then
-            szInherits := DataFolderThatInherits(g_szProgramFolderReal);
-      if szInherits <> '' then
-         Log('The program folder ' + g_szProgramFolderReal + ' is not hardened before the files: it holds the earlier installation''s server, whose ' + szInherits + ' still inherits from it, and the change ' +
-             'would be handed down through the message store. hMailServer.exe /ProtectFolders makes the data folders private and then hardens it after the files' +
-             ' (an installation of the Control Panel alone runs none: an administrator runs "hMailServer.exe /ProtectFolders" from its Bin folder). Bin and ControlPanel are hardened, or made, before the files.')
-      else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, g_bEarlierInstallation, szWhy) then
-      begin
-         Result := 'Setup does not install into ' + szApp + ': ' + g_szProgramFolderReal + ' could not be hardened before the files - ' + szWhy + ' - and the setup log says more. ' +
-                   'An administrator takes it - takeown /F "' + g_szProgramFolderReal + '" /A - and runs setup again, or installs into a folder setup makes. Nothing has been installed.';
-         Exit;
-      end
-      else
-         g_bProgramFolderHardened := true;
-   end;
+      Result := 'Setup does not install into ' + szApp + ': ' + g_szProgramFolderReal + ' could not be hardened before the files - ' + szWhy + ' - and the setup log says more. ' +
+                'An administrator takes it - takeown /F "' + g_szProgramFolderReal + '" /A - and runs setup again, or installs into a folder setup makes. Nothing has been installed.';
+      Exit;
+   end
+   else
+      g_bProgramFolderHardened := true;
    g_hProgramFolderPrepared := g_hProgramFolder;
 
-   // Bin and ControlPanel: one that holds nothing made again (RemakeEmptyFolder), one
-   // that holds something hardened, one that is not there made.
+   // Bin and ControlPanel: one that held nothing when CheckProgramFolders looked made
+   // again (RemakeEmptyFolder), one that holds something refused if it was made a link
+   // since the walk and hardened otherwise, one that is not there made.
    if g_bBinThere then
    begin
-      if FolderHoldsNothing(g_szBinReal) and HeldLetsOthersWrite(g_hBin) then
+      if g_bRemakeBin then
       begin
          if not RemakeEmptyFolder(g_szBinReal, g_hBin, 1, hMade, szWhy) then
          begin
@@ -3391,6 +3607,11 @@ begin
             Exit;
          end;
          g_hBinPrepared := hMade;
+      end
+      else if HeldIsLink(g_hBin, bKnown) then
+      begin
+         Result := 'Setup does not install into ' + szApp + ': ' + PreparedFolderIsLink(g_szBinReal);
+         Exit;
       end
       else if not HardenHeldFolder(g_szBinReal, g_hBin, g_bEarlierInstallation, szWhy) then
       begin
@@ -3411,7 +3632,7 @@ begin
 
    if g_bControlPanelThere then
    begin
-      if FolderHoldsNothing(g_szControlPanelReal) and HeldLetsOthersWrite(g_hControlPanel) then
+      if g_bRemakeControlPanel then
       begin
          if not RemakeEmptyFolder(g_szControlPanelReal, g_hControlPanel, 2, hMade, szWhy) then
          begin
@@ -3419,6 +3640,11 @@ begin
             Exit;
          end;
          g_hControlPanelPrepared := hMade;
+      end
+      else if HeldIsLink(g_hControlPanel, bKnown) then
+      begin
+         Result := 'Setup does not install into ' + szApp + ': ' + PreparedFolderIsLink(g_szControlPanelReal);
+         Exit;
       end
       else if not HardenHeldFolder(g_szControlPanelReal, g_hControlPanel, g_bEarlierInstallation, szWhy) then
       begin
@@ -3438,6 +3664,28 @@ begin
       end;
       g_hControlPanelPrepared := hMade;
    end;
+
+   // The three read again through the handles that hold them, just before the last
+   // look, which goes by their paths: one made a link since - an empty folder, through
+   // a handle opened on it while another account could write it - is refused.
+   if g_hProgramFolderPrepared <> -1 then
+      if HeldIsLink(g_hProgramFolderPrepared, bKnown) then
+      begin
+         Result := 'Setup does not install into ' + szApp + ': ' + PreparedFolderIsLink(g_szProgramFolderReal);
+         Exit;
+      end;
+   if g_hBinPrepared <> -1 then
+      if HeldIsLink(g_hBinPrepared, bKnown) then
+      begin
+         Result := 'Setup does not install into ' + szApp + ': ' + PreparedFolderIsLink(g_szBinReal);
+         Exit;
+      end;
+   if g_hControlPanelPrepared <> -1 then
+      if HeldIsLink(g_hControlPanelPrepared, bKnown) then
+      begin
+         Result := 'Setup does not install into ' + szApp + ': ' + PreparedFolderIsLink(g_szControlPanelReal);
+         Exit;
+      end;
 
    // What is in Bin and ControlPanel, and in the program folder's other folders, now
    // that only the administrators can add to it.
@@ -7147,6 +7395,15 @@ begin
       Log('The hMailServer service could not be set not to start (sc config hMailServer start= disabled returned ' + IntToStr(ResultCode) + '); an administrator does so before it starts.');
 end;
 
+// For section_run.iss: whether the folders setup prepared were as it left them after
+// the files (FoldersStillAsPrepared, CurStepChanged), so that the last page runs
+// nothing of an installation they were not - its Control Panel entry, which Finish
+// would run from ControlPanel, among it.
+function FoldersWereAsPrepared(): Boolean;
+begin
+   Result := not g_bFoldersNotAsPrepared;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
    szWhy: String;
@@ -7186,6 +7443,7 @@ begin
 	  // (GetCustomSetupExitCode), the exception putting it in the log and on screen.
 	  if not FoldersStillAsPrepared(szWhy) then
 	  begin
+	    g_bFoldersNotAsPrepared := true;
 	    g_bStepsIncomplete := true;
 	    KeepServiceFromStarting();
 	    RaiseException('Setup has copied the files, but the folders it prepared for them are not as it left them: ' + szWhy + 'Setup runs nothing of the installation, and an ' +
@@ -7272,15 +7530,16 @@ begin
 end;
 
 // Inno calls this just before setup ends, whatever happened, and when nothing was
-// installed too. The folders PrepareProgramFolders held from the root of their
-// volume down are let go; and when the files were not installed - setup cancelled,
-// failed, or stopped before them - the folders this setup made that are still empty
-// are removed, deepest first (RemoveFoldersMadeHere, work item 78's R1).
+// installed too. When the files were not installed - setup cancelled, failed, or
+// stopped before them - the folders this setup made that are still empty and still
+// where it made them are removed, deepest first, while the folders above them are
+// still held (RemoveFoldersMadeHere, work item 78's R1); then the folders
+// PrepareProgramFolders held from the root of their volume down are let go.
 procedure DeinitializeSetup();
 begin
-	ReleaseHeldFolders();
 	if not g_bFilesInstalled then
 		RemoveFoldersMadeHere();
+	ReleaseHeldFolders();
 end;
 
 // The uninstaller's own step before [UninstallRun] and before any file is deleted:
