@@ -233,11 +233,22 @@ no mailbox is, and nothing is sent.
 
 The rate limits are charged **before** anything is looked up, and for every address
 alike. Per address: one request a minute and six an hour, which is what stops a link
-being mailed at somebody over and over. Per client address: twenty an hour and no
-minute rule at all, because a client address is very often a shared one - an office
-NAT, a mail gateway, a webmail front end on loopback - and a minute rule there would
-let one person's forgotten password stop everybody else's. Both are in memory, and
-both are counted for an address that has no mailbox exactly as for one that has.
+being mailed at somebody over and over. The address is counted as a sign-in compares
+a name with an account's address - in lower case, after a domain alias or the default
+domain, with white space at either end taken off - so the address in other case, under
+one of its domain's aliases and as a bare local part are one address here, and share
+the one budget of the mailbox they name; that needs no lookup, so it takes the same
+time for an address with a mailbox as for one without. An address that holds a NUL
+character names no mailbox: it is answered as every request is, counted against the
+per-client limits below and against no address, and nothing is looked up for it. Up
+to 6.3.7 some other forms of the address each had a budget of their own, though each
+was looked up as the address itself; so a
+mailbox's recovery address could be sent more than six links an hour. Per client
+address: twenty an hour and no minute rule at all, because a client address is very
+often a shared one - an office NAT, a mail gateway, a webmail front end on loopback -
+and a minute rule there would let one person's forgotten password stop everybody
+else's. Both are in memory, and both are counted for an address that has no mailbox
+exactly as for one that has.
 
 **The per-client counter is skipped when the peer is loopback**, and an operator should
 know why. Nothing in this server reads a forwarded-for header, so on the ordinary way of

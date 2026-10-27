@@ -186,11 +186,18 @@ namespace HM
       // message - to the async work queue, answering ResetQueued, so that the
       // answer takes the same time whatever the address is. ResetTooSoon,
       // ResetTooMany and ResetUnavailable are decided here, before anything is
-      // looked up. What the queued work found is the log's (SendResetLink).
+      // looked up. What the queued work found is the log's (SendResetLink). The
+      // per-address counter is keyed by the address as a sign-in compares it
+      // with an account's (LogonName::Canonical), so every spelling that names
+      // an account shares that account's one budget; an address that holds a
+      // NUL is charged to no per-address counter and queues nothing.
+      // ResetNothingToDo for it, as for an empty address.
       static ResetOutcome BeginReset(const String &mailbox, const IPAddress &peer);
 
       // The work BeginReset queues: the lookup, the token and the message. The
-      // counters were charged already. Public for the task that runs it.
+      // counters were charged already, under the key made from mailbox, which is
+      // the address as BeginReset lowered it and is looked up as it is. Public
+      // for the task that runs it.
       static ResetOutcome SendResetLink(const String &mailbox, const IPAddress &peer);
 
       // Sets the new password a reset link's holder chose, through the same

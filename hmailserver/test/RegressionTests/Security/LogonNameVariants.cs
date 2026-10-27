@@ -38,12 +38,18 @@ namespace RegressionTests.Security
    ///    of its own on each of SMTP, IMAP and POP3, and the address with a space after
    ///    it signed in there too. IMAP LOGIN on Linux keeps a NUL in a name, as HTTP
    ///    Basic does, and that is held too. The REST API's request for a password reset,
-   ///    which asks for no credential, can be given an address holding a NUL; its
-   ///    address is lowered before anything else is done with it, and the lowering
-   ///    ends at the NUL, so it asks for the part before the NUL: that is held, and
-   ///    that it sends no more than a request for that part would. The held account's
-   ///    case is in API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH
-   ///    PLAIN, which carries a name as UTF-8.
+   ///    which asks for no credential, can be given an address holding a NUL. Up to
+   ///    6.3.7 its address was lowered twice, once for the per-address budget and once
+   ///    for the lookup, and the lowering ended at the NUL: the address followed by
+   ///    white space and a NUL was charged under the address and that white space, a
+   ///    budget of its own for each such spelling, and looked up as the address, whose
+   ///    account's link then went out under every one. Such an address is now refused
+   ///    before it is charged, and the address in other case, under a domain alias and
+   ///    as a bare local part under the default domain share the account's one budget,
+   ///    where each of the last two had its own: both are held by the number of links
+   ///    the recovery address receives. The held account's case is in
+   ///    API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH PLAIN, which
+   ///    carries a name as UTF-8.
    /// </summary>
    [TestFixture]
    public class LogonNameVariants : TestFixtureBase
@@ -340,36 +346,27 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("POST /api/v1/password-reset, which asks for no credential, with an address holding a NUL - at its end, before more text and inside it - in a body the JSON parser refuses, which the route's lenient reader then reads, and then with the address itself: each is answered as every request is, no database statement is sent with a NUL, so no error is reported, and the four together send what the address's own request alone would - one link to its recovery address, under the address's own budget")]
+      [Description("POST /api/v1/password-reset, which asks for no credential, with an address holding a NUL - at its end, before more text, inside it, and after a space, a tab and CR LF - in a body the JSON parser refuses, which the route's lenient reader then reads, and then with the address itself, all within the minute: each is answered as every request is, no database statement is sent with a NUL, so no error is reported, and the seven together send one link to the account's recovery address, which is what the address's own request alone sends. Up to 6.3.7 the address followed by white space and a NUL was charged under a budget of its own and sent the account's link, one for each such spelling")]
       public void APasswordResetForAnAddressHoldingANulSendsNoMoreThanOneForTheAddress()
       {
          Account recovery = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "variant-recovery@" + _domain.Name, Password);
 
-         _settings.SetAdministratorPassword(AdminPassword);
-         RestPort = RestListener.Start(RestPort);
-         _application.Reinitialize();
+         StartResetListener();
          try
          {
-            ClassicAssert.AreEqual(200, Rest("GET", "/api/v1/status", Basic("Administrator", AdminPassword), null).status,
-               "REST API did not answer /api/v1/status.");
-            (int status, string body) configured = Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword),
-               "{\"confidential_base_url\":\"https://mail.example.test\",\"account_recovery_enabled\":true}");
-            ClassicAssert.AreEqual(200, configured.status, configured.body);
-
-            // A proved recovery address, which is what a reset link is sent to.
             string address = _account.Address;
-            (int status, string body) set = Rest("PUT", "/api/v1/me/recovery", Basic(address, Password),
-               "{\"address\":\"" + recovery.Address + "\",\"password\":\"" + Password + "\"}");
-            ClassicAssert.AreEqual(200, set.status, set.body);
-            string confirmation = Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password);
-            ClassicAssert.AreEqual(200, Rest("POST", "/recovery/verify?token=" + TokenIn(confirmation, "/recovery/verify?token="), null, null).status,
-               "The recovery address was not confirmed.");
+            ProveRecoveryAddress(address, recovery);
 
             var names = new List<string>
             {
                address + JsonNulEscape,
                address + JsonNulEscape + "junk",
-               address.Substring(0, 3) + JsonNulEscape + address.Substring(3)
+               address.Substring(0, 3) + JsonNulEscape + address.Substring(3),
+               // White space before the NUL, which up to 6.3.7 was charged apart and
+               // trimmed away before the lookup: a link for each.
+               address + " " + JsonNulEscape,
+               address + "\\t" + JsonNulEscape,
+               address + "\\r\\n" + JsonNulEscape
             };
 
             string answer = null;
@@ -383,30 +380,111 @@ namespace RegressionTests.Security
                ClassicAssert.AreEqual(answer, asked.body, "Every request is answered alike.");
             }
 
-            // The address itself, within the minute: one link in all, whichever of the
-            // requests sent it, since a request for a name holding a NUL is at most a
-            // request for the part before it, under that part's own budget.
+            // The address itself, within the minute: one link in all, the one its own
+            // request sends, since a request for an address holding a NUL is refused
+            // before anything is charged or looked up.
             (int status, string body) own = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + address + "\"}");
             ClassicAssert.AreEqual(202, own.status, own.body);
             ClassicAssert.AreEqual(answer, own.body, "A request for the address itself is answered as the others were.");
 
-            // Waited for as long as the queued work would take, then counted once the
-            // delivery queue is empty, so that "one arrived" is not "the second has not
-            // arrived yet".
-            System.Threading.Thread.Sleep(3000);
-            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
-            Pop3ClientSimulator.AssertMessageCount(recovery.Address, Password, 1);
-            StringAssert.Contains("/portal/reset?token=", Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password));
+            AssertOneResetLink(recovery, "the address with a NUL at its end, before more text, inside it and after a space, a tab and CR LF, and the address itself");
 
             string errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadAndDeleteErrorLog() : "";
             ClassicAssert.IsEmpty(errors.Trim(), "An address holding a NUL reached a database statement from a password-reset request, and an error was reported.");
          }
          finally
          {
-            Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword), "{\"confidential_base_url\":\"\",\"account_recovery_enabled\":true}");
-            RestListener.Stop();
-            _application.Reinitialize();
+            StopResetListener();
          }
+      }
+
+      [Test]
+      [Description("POST /api/v1/password-reset for the address under one of its domain's aliases, for its local part alone under the default domain, and for the address itself, within the minute: one link in all to the account's recovery address, since every spelling that names the account shares its one per-address budget. Up to 6.3.7 the alias and the bare local part each had a budget of their own, and each sent a link")]
+      public void APasswordResetUnderADomainAliasOrTheDefaultDomainSharesTheAddressBudget()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reset-alias@" + _domain.Name, Password);
+         Account recovery = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reset-alias-recovery@" + _domain.Name, Password);
+
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.AliasName = "reset-alias.example";
+         alias.Save();
+
+         string defaultDomain = _settings.DefaultDomain;
+         StartResetListener();
+         try
+         {
+            ProveRecoveryAddress(account.Address, recovery);
+            _settings.DefaultDomain = _domain.Name;
+
+            string answer = null;
+            foreach (string name in new[] { "reset-alias@reset-alias.example", "reset-alias", account.Address })
+            {
+               (int status, string body) asked = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + name + "\"}");
+               ClassicAssert.AreEqual(202, asked.status, asked.body);
+               if (answer == null)
+                  answer = asked.body;
+               ClassicAssert.AreEqual(answer, asked.body, "Every request is answered alike.");
+            }
+
+            AssertOneResetLink(recovery, "the address under a domain alias, its local part under the default domain and the address itself");
+         }
+         finally
+         {
+            _settings.DefaultDomain = defaultDomain;
+            StopResetListener();
+            _domain.DomainAliases.DeleteByDBID(alias.ID);
+         }
+      }
+
+      /// <summary>The REST listener, with account recovery on and a web address for the links.</summary>
+      private void StartResetListener()
+      {
+         _settings.SetAdministratorPassword(AdminPassword);
+         RestPort = RestListener.Start(RestPort);
+         _application.Reinitialize();
+         ClassicAssert.AreEqual(200, Rest("GET", "/api/v1/status", Basic("Administrator", AdminPassword), null).status,
+            "REST API did not answer /api/v1/status.");
+         (int status, string body) configured = Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword),
+            "{\"confidential_base_url\":\"https://mail.example.test\",\"account_recovery_enabled\":true}");
+         ClassicAssert.AreEqual(200, configured.status, configured.body);
+      }
+
+      private void StopResetListener()
+      {
+         Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword), "{\"confidential_base_url\":\"\",\"account_recovery_enabled\":true}");
+         RestListener.Stop();
+         _application.Reinitialize();
+      }
+
+      /// <summary>A proved recovery address for address, which is what a reset link is sent to.</summary>
+      private static void ProveRecoveryAddress(string address, Account recovery)
+      {
+         (int status, string body) set = Rest("PUT", "/api/v1/me/recovery", Basic(address, Password),
+            "{\"address\":\"" + recovery.Address + "\",\"password\":\"" + Password + "\"}");
+         ClassicAssert.AreEqual(200, set.status, set.body);
+         string confirmation = Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password);
+         ClassicAssert.AreEqual(200, Rest("POST", "/recovery/verify?token=" + TokenIn(confirmation, "/recovery/verify?token="), null, null).status,
+            "The recovery address was not confirmed.");
+      }
+
+      /// <summary>
+      ///    One reset link, and no more, in the recovery mailbox: the first waited for,
+      ///    then as long again as the queued work would take, and counted once the
+      ///    delivery queue is empty, so that "one arrived" is not "the second has not
+      ///    arrived yet".
+      /// </summary>
+      private static void AssertOneResetLink(Account recovery, string requests)
+      {
+         var pop3 = new Pop3ClientSimulator();
+         DateTime until = DateTime.UtcNow + TimeSpan.FromSeconds(30);
+         while (DateTime.UtcNow < until && pop3.GetMessageCount(recovery.Address, Password) == 0)
+            System.Threading.Thread.Sleep(100);
+         System.Threading.Thread.Sleep(3000);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         int links = pop3.GetMessageCount(recovery.Address, Password);
+         ClassicAssert.AreEqual(1, links,
+            "Requests for " + requests + ", within the minute, must send one link to the account's recovery address, which is what its own per-address budget allows; " + links + " were sent.");
+         StringAssert.Contains("/portal/reset?token=", Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password));
       }
 
       private static (int status, string body) Rest(string method, string path, string authorization, string requestBody)

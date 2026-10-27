@@ -18,6 +18,7 @@
 #include "AlertManager.h"
 #include "FileUtilities.h"
 #include "Strings/Formatter.h"
+#include "LogonName.h"
 #include "Hashing/HashCreator.h"
 #include "Parsing/StringParser.h"
 #include "../Application/Application.h"
@@ -110,11 +111,22 @@ namespace HM
          return bytes;
       }
 
+      // Lowered, then trimmed, in that order. String::ToLower ends the string at
+      // its first NUL, so a Trim before it stopped at a NUL that was not white
+      // space and left the white space before it - and the lowering then took the
+      // NUL away, leaving that white space at the end: the address followed by
+      // white space and a NUL was lowered to the address and that white space,
+      // which a second Lower trimmed to the address itself. A reset request was
+      // charged under the first and looked up under the second, so each such
+      // spelling had a per-address budget of its own and the account's link went
+      // out under every one (6.3.4 to 6.3.7). In this order the result holds no
+      // NUL and no white space at either end, and lowering it again changes
+      // nothing.
       String Lower(const String &text)
       {
          String lower = text;
-         lower.Trim();
          lower.ToLower();
+         lower.Trim();
          return lower;
       }
 
@@ -860,9 +872,31 @@ namespace HM
       if (base.IsEmpty())
          return ResetUnavailable;
 
-      const String wanted = Lower(mailbox);
-      if (wanted.IsEmpty() || wanted.GetLength() > 254)
+      // An address that holds a NUL is no mailbox's, as a name that holds one is
+      // no account's at a sign-in (LogonName::HoldsNul), and it is refused before
+      // it is lowered or charged to any per-address budget: lowering ends a string
+      // at its NUL, so such an address was a request for whatever came before it,
+      // and before 6.3.8 the address followed by white space and a NUL was charged
+      // under a budget of its own while its link went to the address's account.
+      // It is answered as every request is, charged to the per-client counter and
+      // the loopback ceiling as any request is, and nothing is queued.
+      const bool holdsNul = LogonName::HoldsNul(mailbox);
+
+      const String wanted = holdsNul ? String() : Lower(mailbox);
+      if (!holdsNul && (wanted.IsEmpty() || wanted.GetLength() > 254))
          return ResetNothingToDo;
+
+      // The per-address budget's key: the address as a sign-in compares it with
+      // an account's stored address (LogonName::Canonical - in lower case, with a
+      // domain alias and the default domain applied), which is what the queued
+      // lookup takes for the account's own. So the address in other case, under
+      // one of its domain's aliases and as a bare local part with the default
+      // domain share the account's one budget, where before 6.3.8 each of the
+      // last two had one of its own and a link went out under each; and a request
+      // under the address itself is charged as it always was. Made from the
+      // aliases and the configuration alone, without looking an account up, so
+      // it takes the same time whether the address has a mailbox or not.
+      const AnsiString addressKey = holdsNul ? AnsiString() : Utf8(LogonName::Canonical(wanted));
 
       // Both counters are charged before anything is looked up, and for a name
       // that is no mailbox exactly as for one that is: the work done, and so
@@ -872,7 +906,7 @@ namespace HM
          std::lock_guard<std::mutex> guard(state_mutex);
          Prune(now);
 
-         const int address = Charge(by_address, Utf8(wanted), now, true, RequestsPerAddressPerHour);
+         const int address = holdsNul ? 0 : Charge(by_address, addressKey, now, true, RequestsPerAddressPerHour);
 
          // The per-client counter is skipped for a peer that is this machine
          // itself. The REST listener reads no forwarded-for header - nothing
@@ -907,6 +941,11 @@ namespace HM
          }
       }
 
+      // An address holding a NUL: nothing to look up, as for an address that
+      // has no mailbox, and answered as every request is.
+      if (holdsNul)
+         return ResetNothingToDo;
+
       // Everything from here looks something up - the account, its recovery
       // address, the token table - and on the way to a link writes a row, a
       // queue file and a message. Done after the answer, on the async work
@@ -930,7 +969,15 @@ namespace HM
       if (base.IsEmpty())
          return ResetUnavailable;
 
-      const String wanted = Lower(mailbox);
+      // The address BeginReset lowered and charged, looked up as it is and not
+      // lowered a second time, so that the name looked up is the one the
+      // per-address budget's key was made from. Until 6.3.8 it was lowered again
+      // here, and that second lowering trimmed white space the first had left
+      // before a NUL. Anything that is not already its own lowered form, or holds
+      // a NUL, is no request BeginReset queues, and nothing is sent for it.
+      const String wanted = mailbox;
+      if (LogonName::HoldsNul(wanted) || !LogonName::Same(Lower(wanted), wanted))
+         return ResetNothingToDo;
 
       std::shared_ptr<const Account> account = PasswordValidator::LookupAccount(wanted);
       if (!account || !account->GetActive())

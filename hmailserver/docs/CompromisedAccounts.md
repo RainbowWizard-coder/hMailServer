@@ -120,7 +120,11 @@ name, a client certificate's address, a Kerberos principal's (for an account
 linked to a directory user, the directory user name and domain the account
 holds), and the address an OpenID Connect or SAML identity provider signs a
 person in with; and so does a request for a password reset, for the mailbox whose
-recovery address a link is sent to ([AccountRecovery.md](AccountRecovery.md)). A name the database would also have taken for the account under
+recovery address a link is sent to, whose per-address limit counts the address under
+that same key, so that every spelling that names the mailbox - in other case, under a
+domain alias, as a bare local part - shares the mailbox's one limit, and an address
+with a NUL in it is counted against none and sends nothing
+([AccountRecovery.md](AccountRecovery.md)). A name the database would also have taken for the account under
 another spelling names no account:
 it fails as a name that does not exist fails, with the same reply, and the
 failure is counted as any failure is. A name with a NUL in it is refused before
