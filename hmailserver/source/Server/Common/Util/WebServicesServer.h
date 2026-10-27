@@ -55,6 +55,11 @@
 // in hMailServer.ini. The HTTPS listener uses WebServicesCertificateFile /
 // WebServicesPrivateKeyFile, falling back to the ACME certificate.
 //
+// A connection is refused, closed with no response, by the country policy and
+// by an IP range that allows none of SMTP, POP3 and IMAP - an auto-ban's or an
+// administrator's - except from loopback and the trusted proxies: see
+// IsConnectionAllowed_ and JudgeByRanges.
+//
 // Several of the features above are enabled by default while the listener
 // is not, so ReportUnreachableFeatures() exists to say so at startup. It is
 // a static settings-and-logging function on purpose: Application::StartServers
@@ -69,6 +74,8 @@
 
 namespace HM
 {
+   class SecurityRange;
+
    class WebServicesServer
    {
    public:
@@ -124,7 +131,36 @@ namespace HM
       // (Application::SubscribeToSettings_).
       static void ForgetDavRedirectTargets();
 
+      // What the IP ranges say of a connection to this listener, asked once a
+      // connection, when it is accepted, before a byte is read or a TLS
+      // handshake started (IsConnectionAllowed_). See WebServicesServer.cpp
+      // there for why the rule is what it is.
+      enum RangeVerdict
+      {
+         RangeLetsIn,          // no range bans it, or no range holds it
+         RangeForwarderLetIn,  // loopback or a WebServicesTrustedProxies entry: never refused by a range
+         RangeBans,            // the range that decides allows none of SMTP, POP3 and IMAP
+         RangeUnreadable,      // the ranges could not be read
+         RangePeerUnknown      // the peer's address could not be learned
+      };
+
+      // The rule, with what it is decided on already found: whether the peer is
+      // one whose failures are charged for others (IsForwarder), whether the
+      // ranges could be read, and the range that decides for the peer
+      // (PersistentSecurityRange::ReadMatchingIP), null when none holds it.
+      // Reads nothing.
+      static RangeVerdict JudgeByRanges(const IPAddress &peer, bool forwarder, bool unreadable, const SecurityRange *range);
+
+      // Whether peer is one whose word this listener takes on how the client
+      // came - X-Forwarded-Proto - and whose sign-in failures are therefore
+      // charged for clients behind it: loopback, or an entry of trustedProxies
+      // (the WebServicesTrustedProxies setting). Reads nothing.
+      static bool IsForwarder(const IPAddress &peer, const String &trustedProxies);
+
    private:
+
+      // The accept filter: the country policy, then the IP ranges (JudgeByRanges).
+      static bool IsConnectionAllowed_(const IPAddress &peer);
 
       struct ProtocolEndpoint
       {
@@ -236,5 +272,19 @@ namespace HM
       std::shared_ptr<HttpServer> server_;
       bool running_;
       bool tls_available_;
+   };
+
+   // The IP ranges' rule on this listener (WebServicesServer::JudgeByRanges and
+   // IsForwarder): a range that allows none of SMTP, POP3 and IMAP refuses, an
+   // auto-ban's and an administrator's alike, and one that allows any of them
+   // does not; no range lets in and ranges that cannot be read refuse; an
+   // unknown peer is refused; and loopback and the trusted proxies are never
+   // refused, whatever range holds them. No database, configuration or network:
+   // ClassTester on Windows, autoban-widen-tests on Linux. Every check runs;
+   // Test throws std::logic_error once at the end, naming each that did not hold.
+   class WebServicesRangeTester
+   {
+   public:
+      void Test();
    };
 }

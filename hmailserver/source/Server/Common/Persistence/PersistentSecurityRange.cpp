@@ -259,6 +259,15 @@ namespace HM
    std::shared_ptr<SecurityRange>
    PersistentSecurityRange::ReadMatchingIP(const IPAddress &ipaddress)
    {
+      bool unreadable = false;
+      return ReadMatchingIP(ipaddress, unreadable);
+   }
+
+   std::shared_ptr<SecurityRange>
+   PersistentSecurityRange::ReadMatchingIP(const IPAddress &ipaddress, bool &unreadable)
+   {
+      unreadable = false;
+
       std::shared_ptr<SecurityRange> empty;
 
       IPAddressSQLHelper helper;
@@ -268,10 +277,19 @@ namespace HM
       {
          std::shared_ptr<SecurityRange> pSR = std::shared_ptr<SecurityRange>(new SecurityRange());
 
-         sSQL.Format(_T("select * from hm_securityranges where %s >= rangelowerip1 and %s <= rangeupperip1 and rangelowerip2 IS NULL and rangeupperip2 IS NULL order by rangepriorityid desc"), 
+         sSQL.Format(_T("select * from hm_securityranges where %s >= rangelowerip1 and %s <= rangeupperip1 and rangelowerip2 IS NULL and rangeupperip2 IS NULL order by rangepriorityid desc"),
             String(helper.GetAddress1String(ipaddress)).c_str(), String(helper.GetAddress1String(ipaddress)).c_str());
 
-         if (!ReadObject(pSR, SQLCommand(sSQL)))
+         // ReadObject(pSR, SQLCommand) opened by hand, so that a statement that
+         // could not run is told from one that found no row.
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(SQLCommand(sSQL));
+         if (!pRS)
+         {
+            unreadable = true;
+            return empty;
+         }
+
+         if (pRS->IsEOF() || !ReadObject(pSR, pRS))
             return empty;
 
          return pSR;
@@ -282,17 +300,23 @@ namespace HM
          std::shared_ptr<SecurityRange> bestMatch;
 
          SQLCommand command(_T("select * from hm_securityranges where rangelowerip2 is not null order by rangepriorityid desc"));
-         
+
          std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
          if (!recordset)
+         {
+            unreadable = true;
             return empty;
+         }
 
          while (!recordset->IsEOF())
          {
             std::shared_ptr<SecurityRange> securityRange = std::shared_ptr<SecurityRange>(new SecurityRange());
 
             if (ReadObject(securityRange, recordset) == false)
+            {
+               unreadable = true;
                return empty;
+            }
 
             if (ipaddress.WithinRange(securityRange->GetLowerIP(), securityRange->GetUpperIP()))
             {

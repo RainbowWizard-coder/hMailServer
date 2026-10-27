@@ -19,6 +19,11 @@
 // characters, whatever the length of the user name, with the suffix that makes
 // each unique intact. Its half against a database runs on Windows alone.
 //
+// And the IP ranges' rule at the web services listener's accept
+// (WebServicesRangeTester, Common/Util/WebServicesServer.h), which needs nothing
+// either: which ranges refuse a connection there, and that loopback and the trusted
+// proxies never are.
+//
 // It prints one line a tester and exits non-zero on the first failure.
 
 #include <cstdio>
@@ -26,6 +31,7 @@
 
 #include "../Common/Util/AutoBanWidener.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/WebServicesServer.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -52,7 +58,19 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
+   try
+   {
+      HM::WebServicesRangeTester tester;
+      tester.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  the web services listener's IP range rule: %s\n", failure.what());
+      return 1;
+   }
+
    printf("ok    an auto-ban widened to its reverse-name neighbours: the run of a shared registrable domain (not one label stripped, a private-section suffix a domain of its own), the stops below and above (a foreign domain, no name, an address for a name, a name the never-ban list covers, AutoBanNeverBan, an administrator's range, the /24's edges, 32 lookups each way), the banned address's own name forward-confirmed, a lookup not answered or the time run out leaving the single address, hostile names kept out of the log, and the shapes the firewall mirrors\n");
    printf("ok    the names of auto-ban ranges: for user names of 86 to 91 and 200 characters every candidate within the column's 100, the prefix kept, its suffix intact after the cut and none the same once stored, a surrogate pair never split, a user name holding U+0000 named for the part before it with its suffix kept, the chooser never choosing the name a range stands under and asking only about names as the column stores them, the retry's GUID names, and the spam trap's, the null sender's and AUTH on a delivery port's names within the column\n");
+   printf("ok    the web services listener's IP range rule: a range that allows none of SMTP, POP3 and IMAP refuses, an auto-ban's and an administrator's alike, in both families; one that allows SMTP, POP3 or IMAP alone lets in; no range lets in and ranges that could not be read refuse; an unknown peer is refused; and loopback and the trusted proxies (an address, a block, IPv6, never across families) are never refused by a range\n");
    return 0;
 }

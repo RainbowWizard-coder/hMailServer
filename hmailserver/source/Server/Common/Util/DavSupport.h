@@ -82,7 +82,11 @@ namespace HM
       // The peer the accounting sees is the socket's: behind a TLS-terminating
       // proxy every failure is charged to the proxy's own address, so a proxy
       // front end belongs in WebServicesTrustedProxies with the per-IP auto-ban
-      // considered. Believing X-Forwarded-For is a change of its own.
+      // considered. Believing X-Forwarded-For is a change of its own. An address
+      // an IP range bans is refused at the listener's accept, never loopback or
+      // a trusted proxy (WebServicesServer::IsConnectionAllowed_), so through a
+      // proxy the per-name lockout is what limits the guesses; and each caller
+      // closes the connection a failure came on, whatever disconnect says.
       bool Authenticate(const HttpRequest &request, const char *service, int protocol, std::shared_ptr<const Account> &account, bool &disconnect);
 
       // The If-Match / If-None-Match rules of RFC 7232 for a write. current is

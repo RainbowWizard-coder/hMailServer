@@ -32,6 +32,8 @@
 #include "../BO/TCPIPPort.h"
 #include "../BO/TCPIPPorts.h"
 #include "../BO/SSLCertificate.h"
+#include "../BO/SecurityRange.h"
+#include "../Persistence/PersistentSecurityRange.h"
 #include "../TCPIP/DNSResolver.h"
 #include "../TCPIP/ProxyProtocol.h"
 #include "../TCPIP/SocketConstants.h"
@@ -48,6 +50,9 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -574,12 +579,7 @@ namespace HM
          },
          [](const IPAddress &peer)
          {
-            // The country policy for the HTTP listeners. The web services and
-            // the REST API share one policy because they are one surface from
-            // the outside: two listeners on one server answering over HTTP.
-            // Refused means the socket is closed with no response, exactly as
-            // the REST listener refuses.
-            return CountryBlocking::Instance()->IsConnectionAllowed(CountryBlocking::SurfaceHttp, peer);
+            return IsConnectionAllowed_(peer);
          },
          [](int status, const AnsiString &message)
          {
@@ -645,6 +645,124 @@ namespace HM
       tls_context_owner.reset();
 
       tls_available_ = false;
+   }
+
+   bool
+   WebServicesServer::IsConnectionAllowed_(const IPAddress &peer)
+   {
+      // The country policy for the HTTP listeners. The web services and the REST
+      // API share one policy because they are one surface from the outside: two
+      // listeners on one server answering over HTTP. Refused means the socket is
+      // closed with no response, exactly as the REST listener refuses.
+      if (!CountryBlocking::Instance()->IsConnectionAllowed(CountryBlocking::SurfaceHttp, peer))
+         return false;
+
+      // Then the IP ranges, which until this release this listener never asked.
+      // An address a range bans - an auto-ban written for its failed sign-ins
+      // here (CardDAV, CalDAV, Autodiscover's HTTP Basic) or on any other
+      // protocol, or an administrator's range that allows it nothing - was
+      // refused by every mail listener and by ManageSieve, and went on connecting
+      // here and guessing passwords for as long as it liked: each failed sign-in
+      // closed its connection, and the next connection was accepted. Now it is
+      // refused here as the mail listeners refuse it, closed before the request
+      // is read and before the TLS handshake.
+      //
+      // The rule is JudgeByRanges'. The range that decides for the address
+      // (ReadMatchingIP, the row the mail listeners read) refuses when it allows
+      // none of SMTP, POP3 and IMAP: an auto-ban, which is always written that
+      // way, and an administrator's deny-everything range, which says the
+      // address may do nothing with this server. Not ManageSieve's rule (neither
+      // IMAP nor POP3): this listener serves the world - MTA-STS policies to the
+      // sending MTAs, ACME http-01 challenges to the certificate authority, the
+      // Web Key Directory, autoconfiguration, a CRL - and a configuration that
+      // lets the Internet in for SMTP alone, keeping IMAP and POP3 to the local
+      // network, is a common one; under ManageSieve's rule its Internet range
+      // would refuse every policy fetch and every validation. Nor auto-bans
+      // alone: an administrator's range that allows nothing is a ban too, and
+      // leaving the address free to guess at this listener's sign-in is the
+      // same hole.
+      //
+      // Never for loopback or a WebServicesTrustedProxies entry (IsForwarder):
+      // behind such a proxy every failure is charged to the proxy's own address,
+      // since X-Forwarded-For is not believed, so a ban written against it would
+      // refuse every client behind it, and three wrong passwords from anybody
+      // would shut every user out for AutoBanMinutes. There the per-name lockout
+      // (AccountLockoutThreshold) is what limits the guesses at one account.
+      // These are the peers RequestArrivedOverHttps_ takes the word of, by the
+      // same function.
+      //
+      // One ReadMatchingIP a connection, as each mail listener pays at its
+      // accept, and none for the forwarders; a kept-alive connection's requests
+      // ask nothing more. Nothing needs to: every failed sign-in on this listener
+      // closes its connection (CardDavServer::Handle, CalDavServer::Handle,
+      // HandleAutodiscover_), so a connection opened before its address was
+      // banned - kept alive, or one of a parallel burst - has one guess at most
+      // after the ban, and the connection after it is refused here.
+      const bool forwarder = IsForwarder(peer, IniFileSettings::Instance()->GetWebServicesTrustedProxies());
+
+      bool unreadable = false;
+      std::shared_ptr<SecurityRange> range;
+      if (!forwarder && !peer.IsAny())
+         range = PersistentSecurityRange::ReadMatchingIP(peer, unreadable);
+
+      const RangeVerdict verdict = JudgeByRanges(peer, forwarder, unreadable, range.get());
+      if (verdict == RangeLetsIn || verdict == RangeForwarderLetIn)
+         return true;
+
+      // The debug log, as the mail listeners say their refusal by a range: a
+      // banned address that keeps connecting would otherwise be a line a
+      // connection in the application log. No range name: an auto-ban's holds
+      // the user name the address guessed at, which the address chose.
+      String message;
+      message.Format(_T("WebServices: The connection from %s was refused: %s."),
+         String(peer.ToString()).c_str(),
+         verdict == RangeBans ? _T("the IP range that decides for the address allows none of SMTP, POP3 and IMAP") :
+         verdict == RangeUnreadable ? _T("the IP ranges could not be read") :
+         _T("its address could not be learned"));
+      LOG_DEBUG(message);
+
+      return false;
+   }
+
+   WebServicesServer::RangeVerdict
+   WebServicesServer::JudgeByRanges(const IPAddress &peer, bool forwarder, bool unreadable, const SecurityRange *range)
+   {
+      // Before anything else: a proxy's address answers for its clients.
+      if (forwarder)
+         return RangeForwarderLetIn;
+
+      // A peer whose address could not be learned (HttpServer leaves 0.0.0.0)
+      // cannot be held to a range, so it is refused, as ManageSieve refuses it.
+      if (peer.IsAny())
+         return RangePeerUnknown;
+
+      // Ranges that could not be read are not taken for "no ban": refused, as
+      // the mail listeners refuse while the database cannot be read. While that
+      // lasts this listener answers loopback and the trusted proxies alone.
+      if (unreadable)
+         return RangeUnreadable;
+
+      // No range holds the address: nothing bans it. The ranges' allowance is
+      // what a mail session needs; this listener never asked for one, and what
+      // it serves without a sign-in is for anybody.
+      if (range == nullptr)
+         return RangeLetsIn;
+
+      if (!range->GetAllowSMTP() && !range->GetAllowPOP3() && !range->GetAllowIMAP())
+         return RangeBans;
+
+      return RangeLetsIn;
+   }
+
+   bool
+   WebServicesServer::IsForwarder(const IPAddress &peer, const String &trustedProxies)
+   {
+      // Loopback as it is - a proxy on the same machine is the common
+      // arrangement - and any other address only when an administrator named it.
+      if (peer.IsLoopback())
+         return true;
+
+      return TrustedProxyList::Matches(trustedProxies, peer, _T("WebServicesTrustedProxies"));
    }
 
    HttpResponse
@@ -877,10 +995,10 @@ namespace HM
       // listener can write it. Loopback is trusted as it is - a proxy on the
       // same machine is the common arrangement - and any other address has to
       // be named in [Settings] WebServicesTrustedProxies. From anyone else the
-      // header is ignored and the request is what it is: plain HTTP.
-      AnsiString peerText = peer.ToString();
-      bool loopback = peerText == "::1" || peerText.StartsWith("127.");
-      if (!loopback && !TrustedProxyList::Matches(IniFileSettings::Instance()->GetWebServicesTrustedProxies(), peer, _T("WebServicesTrustedProxies")))
+      // header is ignored and the request is what it is: plain HTTP. The same
+      // peers are the ones no IP range refuses at this listener's accept
+      // (IsForwarder, IsConnectionAllowed_).
+      if (!IsForwarder(peer, IniFileSettings::Instance()->GetWebServicesTrustedProxies()))
          return false;
 
       // X-Forwarded-Proto is the de facto header for this (RFC 7239's Forwarded
@@ -2225,5 +2343,123 @@ namespace HM
       }
 
       return result;
+   }
+
+   namespace
+   {
+      IPAddress Address(const char *text)
+      {
+         IPAddress address;
+         if (!address.TryParse(text, false))
+            throw std::logic_error(std::string("WebServicesRangeTester: the tester's own address does not parse: ") + text);
+         return address;
+      }
+
+      // A range as an auto-ban or an administrator writes it, allowing only what
+      // is asked for.
+      std::shared_ptr<SecurityRange> Range(const String &name, bool smtp, bool pop3, bool imap, bool expires)
+      {
+         std::shared_ptr<SecurityRange> range(new SecurityRange());
+         range->SetName(name);
+         range->SetPriority(100);
+         range->SetAllowSMTP(smtp);
+         range->SetAllowPOP3(pop3);
+         range->SetAllowIMAP(imap);
+         range->SetExpires(expires);
+         return range;
+      }
+
+      const char *VerdictName(WebServicesServer::RangeVerdict verdict)
+      {
+         switch (verdict)
+         {
+         case WebServicesServer::RangeLetsIn: return "let in";
+         case WebServicesServer::RangeForwarderLetIn: return "let in as a forwarder";
+         case WebServicesServer::RangeBans: return "banned";
+         case WebServicesServer::RangeUnreadable: return "refused for unreadable ranges";
+         case WebServicesServer::RangePeerUnknown: return "refused as an unknown peer";
+         }
+         return "?";
+      }
+   }
+
+   void
+   WebServicesRangeTester::Test()
+   {
+      std::vector<std::string> failures;
+
+      auto judge = [&failures](const char *what, const IPAddress &peer, bool forwarder, bool unreadable,
+                               const std::shared_ptr<SecurityRange> &range, WebServicesServer::RangeVerdict expected)
+      {
+         const WebServicesServer::RangeVerdict got = WebServicesServer::JudgeByRanges(peer, forwarder, unreadable, range.get());
+         if (got != expected)
+            failures.push_back(std::string(what) + ": " + VerdictName(got) + ", where " + VerdictName(expected) + " was expected");
+      };
+
+      auto forwards = [&failures](const char *peer, const String &list, bool expected)
+      {
+         if (WebServicesServer::IsForwarder(Address(peer), list) != expected)
+            failures.push_back(std::string(peer) + " with the trusted proxies '" + AnsiString(list).c_str() + "' is " +
+                               (expected ? "not " : "") + "taken for a forwarder");
+      };
+
+      const IPAddress outside = Address("203.0.113.9");
+      const IPAddress outside6 = Address("2001:db8:5::9");
+      const IPAddress unknown;
+
+      const std::shared_ptr<SecurityRange> autoBan = Range(_T("Auto-ban: someone@example.test"), false, false, false, true);
+      const std::shared_ptr<SecurityRange> denyAll = Range(_T("Hostile network"), false, false, false, false);
+      const std::shared_ptr<SecurityRange> smtpOnly = Range(_T("Internet, SMTP only"), true, false, false, false);
+      const std::shared_ptr<SecurityRange> pop3Only = Range(_T("POP3 only"), false, true, false, false);
+      const std::shared_ptr<SecurityRange> imapOnly = Range(_T("IMAP only"), false, false, true, false);
+      const std::shared_ptr<SecurityRange> everything = Range(_T("Internet"), true, true, true, false);
+      const std::shared_ptr<SecurityRange> none;
+
+      // A range that allows none of the three refuses, whoever wrote it.
+      judge("an auto-ban", outside, false, false, autoBan, WebServicesServer::RangeBans);
+      judge("an auto-ban over IPv6", outside6, false, false, autoBan, WebServicesServer::RangeBans);
+      judge("an administrator's range that allows nothing", outside, false, false, denyAll, WebServicesServer::RangeBans);
+
+      // One that allows any of them does not: SMTP alone above all, the Internet
+      // range of a server that keeps IMAP and POP3 to its own network.
+      judge("a range that allows SMTP alone", outside, false, false, smtpOnly, WebServicesServer::RangeLetsIn);
+      judge("a range that allows POP3 alone", outside, false, false, pop3Only, WebServicesServer::RangeLetsIn);
+      judge("a range that allows IMAP alone", outside, false, false, imapOnly, WebServicesServer::RangeLetsIn);
+      judge("a range that allows everything", outside, false, false, everything, WebServicesServer::RangeLetsIn);
+
+      // No range: let in. Ranges that could not be read: refused, range or none.
+      judge("no range", outside, false, false, none, WebServicesServer::RangeLetsIn);
+      judge("ranges that could not be read", outside, false, true, none, WebServicesServer::RangeUnreadable);
+      judge("ranges that could not be read, over IPv6", outside6, false, true, none, WebServicesServer::RangeUnreadable);
+
+      // An address that could not be learned is refused, whatever else.
+      judge("an unknown peer", unknown, false, false, none, WebServicesServer::RangePeerUnknown);
+      judge("an unknown peer a range lets in", unknown, false, false, everything, WebServicesServer::RangePeerUnknown);
+
+      // A forwarder is never refused by a range: banned, or the ranges unread.
+      judge("a forwarder an auto-ban holds", outside, true, false, autoBan, WebServicesServer::RangeForwarderLetIn);
+      judge("a forwarder an administrator's range refuses", outside, true, false, denyAll, WebServicesServer::RangeForwarderLetIn);
+      judge("a forwarder while the ranges could not be read", outside, true, true, none, WebServicesServer::RangeForwarderLetIn);
+
+      // Who is a forwarder: loopback always, an address only when named.
+      forwards("127.0.0.1", _T(""), true);
+      forwards("127.9.8.7", _T(""), true);
+      forwards("::1", _T(""), true);
+      forwards("203.0.113.9", _T(""), false);
+      forwards("0.0.0.0", _T(""), false);
+      forwards("203.0.113.9", _T("192.0.2.10, 203.0.113.9"), true);
+      forwards("192.0.2.77", _T("192.0.2.0/24"), true);
+      forwards("198.51.100.1", _T("192.0.2.0/24"), false);
+      forwards("2001:db8::5", _T("2001:db8::/32"), true);
+      forwards("2001:db9::5", _T("2001:db8::/32"), false);
+      forwards("192.0.2.10", _T("2001:db8::/32"), false);
+
+      if (failures.empty())
+         return;
+
+      std::string all = "WebServicesRangeTester: " + std::to_string(failures.size()) + " check(s) did not hold: ";
+      for (size_t i = 0; i < failures.size(); i++)
+         all += (i > 0 ? "; " : "") + failures[i];
+      throw std::logic_error(all);
    }
 }

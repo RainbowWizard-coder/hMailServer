@@ -158,6 +158,7 @@ namespace
 #include "NeverBanNameList.h"
 #include "AutoBanWidener.h"
 #include "AccountLogon.h"
+#include "WebServicesServer.h"
 #include "../AntiSpam/SURBL.h"
 #include "../AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
 #include "RateLimiter.h"
@@ -521,6 +522,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the names of auto-ban ranges\n"));
       AccountLogonRangeNameTester accountLogonRangeNameTester;
       accountLogonRangeNameTester.TestAll();
+
+      // The IP ranges' rule at the web services listener's accept: a range that
+      // allows none of SMTP, POP3 and IMAP refuses, one that allows any of them
+      // does not, ranges that cannot be read refuse, and loopback and the trusted
+      // proxies are never refused by a range.
+      OutputDebugString(_T("hMailServer: Testing the web services listener's IP range rule\n"));
+      WebServicesRangeTester webServicesRangeTester;
+      webServicesRangeTester.Test();
 
       // UTS 46, which the next reads a link's host with when it is not ASCII:
       // Unicode's own conformance tests, IdnaTestV2.txt, every line - the

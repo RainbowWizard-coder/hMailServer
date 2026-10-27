@@ -63,7 +63,15 @@ namespace HM
       static bool ReadObject(std::shared_ptr<SecurityRange> pSR, const String &name);
 
       static std::shared_ptr<SecurityRange> ReadMatchingIP(const IPAddress &ipaddress);
-      
+
+      // The same, saying apart the two answers the one above gives as none: no
+      // range holds the address (unreadable false), and the ranges could not be
+      // read (unreadable true). The mail listeners refuse both alike, since a
+      // session needs a range that allows it; the web services listener, which
+      // the ranges can only refuse, lets the first in and refuses the second
+      // (WebServicesServer::JudgeByRanges).
+      static std::shared_ptr<SecurityRange> ReadMatchingIP(const IPAddress &ipaddress, bool &unreadable);
+
       static bool DeleteExpired();
 
       // Whether a range is stored under name, as the column stores it

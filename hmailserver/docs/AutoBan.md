@@ -5,8 +5,57 @@ widened, when `AutoBanWidenByReverseName` is on, to its reverse-name neighbours
 (below) - at priority 100, allowing nothing, named `Auto-ban: ...` and expiring
 on its own.
 The listeners consult it when a connection is accepted, so a banned address is
-refused by the server itself; with `AutoBanFirewall` or `AutoBanCommand` set it
-is also blocked below the server (`Common/Util/AutoBanFirewall.h`).
+refused by the server itself (*Which listeners refuse a banned address*, below);
+with `AutoBanFirewall` or `AutoBanCommand` set it is also blocked below the
+server, on the TCP/IP ports of the mail listeners (`Common/Util/AutoBanFirewall.h`).
+
+## Which listeners refuse a banned address
+
+Each asks, when a connection is accepted, for the IP range that decides for the
+address - the one of highest priority that holds it:
+
+| Listener | Refuses | Ranges that cannot be read |
+|---|---|---|
+| SMTP, POP3, IMAP | A range that does not allow its own protocol, or no range; asked again for the client a PROXY protocol header names | Refused |
+| ManageSieve | A range that allows neither IMAP nor POP3, or no range | Refused |
+| The web services listener (MTA-STS, autoconfiguration, Autodiscover, CardDAV, CalDAV, the Web Key Directory; from the release after 6.3.7) | A range that allows none of SMTP, POP3 and IMAP - an auto-ban's, or an administrator's that allows nothing - except from loopback and the addresses in `WebServicesTrustedProxies`. No range lets the address in. Once a connection, not once a request | Refused, except loopback and those addresses |
+| The REST API | Asks no range: it keeps its own refusal, for five minutes, of an address whose failures there crossed `MaxInvalidLogonAttempts` (`RestApiServer.cpp`) | - |
+
+A refused connection is closed with nothing said, before the TLS handshake; the
+web services listener says why in the debug log.
+
+The web services listener's rule is not ManageSieve's because what it serves
+without a sign-in is for the world: MTA-STS policies for the sending MTAs, ACME
+http-01 challenges for the certificate authority, autoconfiguration, the Web
+Key Directory. A server that lets the Internet in for SMTP alone, keeping IMAP
+and POP3 to its own network, is a common one, and its Internet range must not
+refuse them. Up to 6.3.7 this listener asked the country policy alone, so an
+address an auto-ban held - for its failed CardDAV, CalDAV or Autodiscover sign-ins
+there or for failures on any other protocol - was not refused here, and could go
+on trying passwords at its HTTP Basic sign-in. Every failed
+sign-in there still closes its connection, so a connection opened before the ban
+- kept alive, or one of a parallel burst - has one guess at most after it.
+
+Loopback and `WebServicesTrustedProxies` are never refused by a range there.
+Behind a TLS-terminating proxy the listener sees the proxy's address and not the
+client's (`X-Forwarded-For` is not believed), so a ban that held the proxy's
+address would refuse every client behind it. Through a proxy the per-name lockout
+(`AccountLockoutThreshold`) is what limits the guesses at one account.
+
+`AutoBanFirewall` and `AutoBanCommand` are told the ports of the TCP/IP ports
+list (`AutoBanFirewall::ListeningPorts`) - the mail listeners' - and not the web
+services or REST API ports, which a ban below the server therefore leaves open;
+the server's own refusal above is what holds there.
+
+The rule is `WebServicesServer::JudgeByRanges` and `IsForwarder`, held by
+`WebServicesRangeTester` (ClassTester on Windows, `autoban-widen-tests` on
+Linux), and the listener by the regression fixture `Security/WebServicesBan`
+(both suites), from this machine's own address that is not loopback: an auto-ban
+written by three failed CardDAV sign-ins and one written over the API, and an
+administrator's range that allows nothing, each refuse the next connection; a
+range that allows SMTP alone does not; loopback and a trusted proxy a ban holds
+are served; and a connection kept alive from before the ban is closed at its
+next failed sign-in.
 
 Behind a load balancer every connection comes from the balancer, and without
 more one client's failed logons ban every client behind it. A listener that

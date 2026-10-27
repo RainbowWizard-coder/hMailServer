@@ -177,6 +177,23 @@ with `--check`).
   in `autoban-widen-tests` on Linux), and the regression fixtures `Security.AutoBanRangeName` and
   `Infrastructure.DatabaseFailureHandling` the bans ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the
   hMailServer project (Progressive Robot Ltd).
+- **Fixed: an address an auto-ban or an administrator's IP range banned was not refused by the web services
+  listener, so it could go on guessing passwords at the CardDAV, CalDAV and Autodiscover sign-in.** The listener,
+  off by default (`WebServicesHttpPort` and `WebServicesHttpsPort` 0), asked the country policy alone when it
+  accepted a connection. A failed sign-in there counted towards the auto-ban as on every other protocol, and the
+  ban it wrote refused the address at the SMTP, POP3, IMAP and ManageSieve listeners, but not at this one.
+  Now the listener asks, once a connection and before the TLS handshake, for the IP range that decides for the
+  address, and closes the connection with no answer when that range allows none of SMTP, POP3 and IMAP - an
+  auto-ban's, or an administrator's that allows nothing - or when the ranges cannot be read; no range lets the
+  address in. A range that allows any of the three does not refuse, since the listener also serves MTA-STS
+  policies, ACME challenges, the Web Key Directory and autoconfiguration to the world, and a server that lets the
+  Internet in for SMTP alone must still serve them. Loopback and the addresses in `WebServicesTrustedProxies` are
+  never refused by a range: behind such a proxy every failure is charged to the proxy's address, and a ban it earned
+  would refuse every client behind it; through a proxy the per-name lockout is what limits the guesses. Every failed
+  sign-in on the listener still closes its connection, so one opened before the ban has one guess at most after
+  it. `WebServicesRangeTester` holds the rule (inside the server on Windows, and in `autoban-widen-tests` on Linux),
+  and the regression fixture `Security.WebServicesBan` the listener, from the machine's own address that is not
+  loopback ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 

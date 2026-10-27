@@ -343,6 +343,7 @@
     <Compile Include="..\RegressionTests\Security\AutoBanWiden.cs" Link="Security\AutoBanWiden.cs" />
     <Compile Include="..\RegressionTests\Security\AutoBanHookRetry.cs" Link="Security\AutoBanHookRetry.cs" />
     <Compile Include="..\RegressionTests\Security\AutoBanRangeName.cs" Link="Security\AutoBanRangeName.cs" />
+    <Compile Include="..\RegressionTests\Security\WebServicesBan.cs" Link="Security\WebServicesBan.cs" />
     <Compile Include="..\RegressionTests\Security\Basics.cs" Link="Security\Basics.cs" />
     <Compile Include="..\RegressionTests\Security\EtrnAuthorization.cs" Link="Security\EtrnAuthorization.cs" />
     <Compile Include="..\RegressionTests\Security\HashPolicy.cs" Link="Security\HashPolicy.cs" />

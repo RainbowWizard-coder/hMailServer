@@ -731,8 +731,11 @@ set_target_properties(never-ban-tests PROPERTIES OUTPUT_NAME never-ban-tests)
 # shapes the firewall mirrors. And AccountLogonRangeNameTester
 # (Common/Util/AccountLogon.h): the names of the ranges an auto-ban writes, within
 # the column's 100 characters with the suffix that makes each unique intact,
-# whatever the length of the user name. No network - the tester answers its own
-# lookups - no configuration, no database. Not installed; a bench tool.
+# whatever the length of the user name. And WebServicesRangeTester
+# (Common/Util/WebServicesServer.h): which IP ranges refuse a connection at the web
+# services listener's accept, and that loopback and the trusted proxies never are.
+# No network - the tester answers its own lookups - no configuration, no database.
+# Not installed; a bench tool.
 add_executable(autoban-widen-tests ${SERVER_DIR}/platform/autoban_widen_tests_main.cpp)
 target_link_libraries(autoban-widen-tests PRIVATE hmailserver_core)
 set_target_properties(autoban-widen-tests PROPERTIES OUTPUT_NAME autoban-widen-tests)
