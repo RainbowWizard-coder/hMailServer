@@ -48,8 +48,9 @@ namespace RegressionTests.API
 
       // What the page makes: an ASCII-armoured PGP MESSAGE whose first packet is
       // a symmetric-key encrypted session key (tag 3, "wy4E" once decoded) and
-      // whose body is an integrity-protected data packet (tag 18).
-      private const string Vector =
+      // whose body is an integrity-protected data packet (tag 18). RestApiRequestBodies
+      // replies with it.
+      internal const string Vector =
          "-----BEGIN PGP MESSAGE-----\r\n" +
          "\r\n" +
          "wy4ECQMIDhJlWZpqtOn//QKmQPPvj1yaROry6YGBUB8MzkD0MHUdgdp+pnBWPeY0\r\n" +

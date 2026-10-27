@@ -375,7 +375,7 @@ can go on changing the rest of the list.
 
 | Status | `scimType` | When |
 |---|---|---|
-| `400` | `invalidSyntax` | The body is not one JSON object - text after it, a trailing comma, a member named twice in an object or an escaped U+0000 included, refused before the key is looked at - or a `PatchOp` has no operations or an operation no `op` |
+| `400` | `invalidSyntax` | The body is not one JSON object - text after it, a trailing comma, a member named twice in an object, an escaped U+0000, more than 100,000 values or more than 32 levels of nesting included, refused once the key is judged and before the body is read - or a `PatchOp` has no operations or an operation no `op` |
 | `400` | `invalidValue` | A value refused: an address at a domain the key does not provision, a password the policy or the breach check refuses, a name past sixty characters, the work address written as another, an attribute the schema does not have, an alias at a spam trap or past the domain's limit of aliases, a list as a member, or a `remove` of `active`, `userName` or `password` (or a `replace` of one with `null`) |
 | `400` | `invalidPath` | A `PATCH` path that names nothing of the schema, or a form of it this server does not take |
 | `400` | `noTarget` | A `remove` whose filter matches nothing |

@@ -199,6 +199,13 @@ namespace HM
          __int64 certificateId;
       };
 
+      // The members of a port's body that are words or a file name: each a
+      // string or null, or the request is refused.
+      const char *const PortWords[] =
+      {
+         "protocol", "address", "connection_security", "client_certificate_policy", "client_certificate_ca_file", "smtp_authentication"
+      };
+
       // Applies the request to the port, or names the first thing wrong with
       // it in a fixed sentence. Nothing is written to the port until every
       // check has passed, so a refused update leaves the object as it was read.
@@ -518,6 +525,16 @@ namespace HM
    HttpResponse
    RestApiServer::HandleCreatePort_(const AnsiString &requestBody)
    {
+      // A word written as anything but a string - an array, a number - would
+      // read as no word at all, and an absent address, security or client
+      // certificate policy is the widest there is: every interface, no TLS, no
+      // client certificate. Refused, as an API key's restrictions are.
+      for (const char *name : PortWords)
+      {
+         if (JsonMemberNotString_(requestBody, name))
+            return BuildResponse_(400, "{\"error\":\"" + AnsiString(name) + " must be a string\"}");
+      }
+
       PortRequest request;
       request.protocol = GetJsonStringValue_(requestBody, "protocol");
       request.address = GetJsonStringValue_(requestBody, "address");
@@ -591,6 +608,14 @@ namespace HM
       std::shared_ptr<TCPIPPort> port = ports->GetItemByDBID(portId);
       if (!port)
          return BuildResponse_(404, "{\"error\":\"port not found\"}");
+
+      // As HandleCreatePort_: a word that is not a string is refused, not read
+      // as the widest default.
+      for (const char *name : PortWords)
+      {
+         if (JsonMemberNotString_(requestBody, name))
+            return BuildResponse_(400, "{\"error\":\"" + AnsiString(name) + " must be a string\"}");
+      }
 
       PortRequest request;
       request.protocol = GetJsonStringValue_(requestBody, "protocol");

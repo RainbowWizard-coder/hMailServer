@@ -89,6 +89,16 @@ namespace HM
       // is not one complete JSON value.
       static bool Parse(const std::string &text, JsonValue &value, std::string &error);
 
+      // The same, held to at most maxValues values (every object, array, string,
+      // number, true, false and null counts one; a member's name does not) and to
+      // maxDepth levels below the outermost value, for a document from someone who
+      // need not be trusted: a request body. The text is refused at the first value
+      // past either bound, before more of the tree is built, with beyondBounds set,
+      // so that a reader can tell a document too big to read from one that is not
+      // JSON. A document within them reads exactly as Parse reads it.
+      static bool Parse(const std::string &text, JsonValue &value, std::string &error,
+                        size_t maxValues, int maxDepth, bool &beyondBounds);
+
    private:
       friend class JsonParser;
 
@@ -103,8 +113,9 @@ namespace HM
    };
 
    // AsInt64, AsInt and IsInt64 at both ends of their ranges and past them, in
-   // both notations. Run by ClassTester on Windows and by update-feed-tests on
-   // Linux; throws std::logic_error naming the first value answered wrongly.
+   // both notations, and the bounded Parse at its bounds and past them. Run by
+   // ClassTester on Windows and by update-feed-tests on Linux; throws
+   // std::logic_error naming the first value answered wrongly.
    class JsonValueTester
    {
    public:

@@ -33,7 +33,9 @@
 // (UpdateInstaller::ReadHelperUnitState, AskHelperUnitState): a helper that
 // refused the request has ended, and the drain is left at once. And JsonValue's
 // integers (JsonValueTester): exact from their digits, held at the end of the
-// range asked for when past it.
+// range asked for when past it; and its parse held to a number of values and a
+// depth, refused at the first value past either, and within them reading what
+// the unbounded parse reads.
 
 #include <cstdio>
 #include <exception>
@@ -230,7 +232,7 @@ int main()
    {
       HM::JsonValueTester tester;
       tester.Test();
-      std::printf("ok    JsonValueTester: a number as an integer, exact or held at the end of its range\n");
+      std::printf("ok    JsonValueTester: a number as an integer, exact or held at the end of its range; the parse held to its bounds\n");
    }
    catch (const std::exception &e)
    {

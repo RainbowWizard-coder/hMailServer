@@ -307,6 +307,12 @@ with `--check`).
   `Security.LogonNameVariants.APasswordResetUnderADomainAliasOrTheDefaultDomainSharesTheAddressBudget` hold it
   ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)). Found by the hMailServer project (Progressive Robot
   Ltd).
+- **Fixed: the REST API reads a request body in time and memory that follow its bytes.** From 6.3.2 the REST API
+  could take far more time and memory to read a JSON body than the body's size, in the service that also serves SMTP,
+  IMAP and POP3, and an account's own password was enough to send one. The parse now moves each value into its place
+  rather than copying it, and a request body of more than 100,000 values or 32 levels is answered 400
+  at the first value past them. The `RestApiRequestBodies` fixtures hold both. Found by the hMailServer project
+  (Progressive Robot Ltd).
 
 ### Correctness
 
@@ -628,15 +634,24 @@ with `--check`).
   to files with a byte order mark in every pipeline's `checkers` job, and `Set-HmOpenPgpKey -Path` to a file whose
   name has brackets.
 - **Changed: a REST request body meant to be JSON must be one JSON object, and the server answers 400 before it reads
-  one that is not.** This covers every route under `/api/` and `/scim/` that takes a JSON body, which is all but five.
-  The five take something else: a file's bytes (`PUT /api/v1/me/files/{id}/content`), a protected message's
-  ciphertext (`PUT /api/v1/me/protected/{id}/content`), a message to import
-  (`POST /api/v1/me/folders/{id}/messages` and `POST /api/v1/accounts/{address}/folders/{id}/messages`) and a
-  migration's CSV (`POST /api/v1/migrations/{id}/jobs`). A body is refused if it is not one JSON object (text after
-  the value, a trailing comma, a stray byte, an array), if one object in it names a member twice, or if a string in it
-  carries an escaped U+0000. The answer is `{"error":"the body must be a JSON object: ..."}`, saying why; on a `/scim/`
-  path it is RFC 7644's error with `scimType` `invalidSyntax`. It comes after the Host check and before the credential
-  is looked at or any route reads a member. An empty body is still no body.
+  one that is not.** This covers every route under `/api/` and `/scim/` that takes a JSON body, which is all but four.
+  The four take something else: a file's bytes (`PUT /api/v1/me/files/{id}/content`), a protected message's
+  ciphertext (`PUT /api/v1/me/protected/{id}/content`) and a message to import
+  (`POST /api/v1/me/folders/{id}/messages` and `POST /api/v1/accounts/{address}/folders/{id}/messages`). A
+  migration's jobs (`POST /api/v1/migrations/{id}/jobs`) are a JSON object or CSV: a body that starts with `{`, after a
+  byte order mark and white space, is JSON and held to the same rule, and anything else is CSV, as before. A body is
+  refused if it is not one JSON object (text after the value, a trailing comma, a stray byte, an array), if one object
+  in it names a member twice, if a string in it carries an escaped U+0000, or if it holds more than 100,000 values or
+  is nested more than 32 levels deep. The answer is `{"error":"the body must be a JSON object: ..."}`, saying why; on
+  a `/scim/` path it is RFC 7644's error with `scimType` `invalidSyntax`. An empty body is still no body.
+
+  Where it is judged: for `POST /api/v1/session` (whose passkey and single sign-on ticket are read before the
+  credential is known), the password reset and its completion and the passkey challenge, before the credential is
+  looked at; for the protected-message reply, once its address budget and its token are; and for every other route
+  once the credential and the route's authorisation are, before the route reads a member. So a request with no
+  credential to a route that needs one is answered 401 whatever its body, unparsed, as it always was. The parse moves
+  each value into its place rather than copying it, and stops at the first value past the bounds (the Security entry
+  above).
 
   Until now such a body was read anyway, by searching its text for each member's quoted name: every body from
   6.0.0-B1, and from 6.3.2 every body the parse refused. So a request a JSON client would call malformed was acted on
@@ -650,15 +665,18 @@ with `--check`).
   - A contact could not be renamed "address".
   - A draft whose subject was "replace_id" deleted the account's draft whose id began the next member's value.
   - A keyword named "deleted", an event whose summary was "invite" and an IP range named `deliver_remote_to_remote`
-    each took that flag from the next `true` in the body. That set `\Deleted`, mailed the event's attendees, or made
-    the range an open relay for its addresses.
+    each took that flag from the value after the next colon in the body, when that value was `true` or `false`. That
+    set `\Deleted`, mailed the event's attendees, or let the range relay for its addresses (for senders that
+    authenticate, as `require_auth_remote_to_remote` defaults to).
 
   Every member reader now reads the one parse, by the rule the string reader already had: the object's own member,
   else the first of that name in an object inside it. The readers cut a value at an escaped NUL while a route that read
   the document kept it whole; it is now refused, as the listener already refuses a raw NUL in a text body. A
-  restriction written as anything but a string was read by the parse as no restriction at all, and is now refused:
-  `domains` and `allowed_from` in `POST /api/v1/apikeys`, and `domains` in
-  `PUT /api/v1/role-assignments/{address}`.
+  member whose absence is the widest setting, written as anything but a string, was read by the parse as absent, and
+  is now refused: `domains` and `allowed_from` in `POST /api/v1/apikeys` (no restriction), `domains` in
+  `PUT /api/v1/role-assignments/{address}` (every domain), and a port's `address` (every interface),
+  `connection_security` (no TLS) and `client_certificate_policy` (no client certificate) in `POST /api/v1/ports` and
+  `PUT /api/v1/ports/{id}`, with its other words, `protocol`, `client_certificate_ca_file` and `smtp_authentication`.
 
   None of this let a caller do what a body that parses could not, because each check and the act it guards read a
   member the same way. The Control Deck, the webmail, `hmctl`, the PowerShell module and the Control Panel already send

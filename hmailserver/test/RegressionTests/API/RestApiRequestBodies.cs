@@ -30,6 +30,11 @@ namespace RegressionTests.API
    ///    sentence and leave nothing made. The bodies that parse must be read as the
    ///    parse reads them. Each fails against a server that searched the text, for
    ///    the reason its message names.
+   ///
+   ///    And what reading a body costs: a route that needs a credential judges the
+   ///    body only once the credential is, so a request with none is answered 401
+   ///    for a body of the large cap without its being parsed, and a body is parsed
+   ///    within bounds of values and depth, refused at the first value past them.
    /// </summary>
    [TestFixture]
    public class RestApiRequestBodies : TestFixtureBase
@@ -43,9 +48,20 @@ namespace RegressionTests.API
       // way reads it as the character.
       private static readonly string EscapedNul = "\\" + "u0000";
 
+      // A byte order mark, as a spreadsheet's "CSV UTF-8" starts with one.
+      private static readonly string ByteOrderMark = ((char) 0xFEFF).ToString();
+
+      // The port numbers the port controls ask for, removed in the teardown.
+      private static readonly int[] ControlPorts = { 2596, 2597, 2598, 2599 };
+
       private string Address
       {
          get { return "bodies@" + _domain.Name; }
+      }
+
+      private string ReaderAddress
+      {
+         get { return "bodies-reader@" + _domain.Name; }
       }
 
       [SetUp]
@@ -53,6 +69,7 @@ namespace RegressionTests.API
       {
          _settings.SetAdministratorPassword(AdminPassword);
          SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Address, UserPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, ReaderAddress, UserPassword);
 
          RestPort = RestListener.Start(RestPort);
          IniFileSetting.Write("RestApiCertificateFile", "");
@@ -61,6 +78,15 @@ namespace RegressionTests.API
 
          (int status, string body) probe = Admin("GET", "/api/v1/status", null);
          ClassicAssert.AreEqual(200, probe.status, "REST API did not answer /api/v1/status. Body: " + probe.body);
+
+         // A password-protected message to reply to, as RestApiProtectedMessages sets
+         // the server up for one.
+         ClassicAssert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"confidential_base_url\":\"http://127.0.0.1:" + RestPort + "\"}", null).status);
+         ClassicAssert.AreEqual(200, Admin("PUT", "/api/v1/settings/openpgp", "{\"portal_enabled\":true,\"protected_message_days\":30}", null).status);
+         var imap = new ImapClientSimulator();
+         ClassicAssert.IsTrue(imap.ConnectAndLogon(Address, UserPassword));
+         ClassicAssert.IsTrue(imap.CreateFolder("Sent"));
+         imap.Disconnect();
       }
 
       [TearDown]
@@ -69,6 +95,8 @@ namespace RegressionTests.API
          try
          {
             RemoveWhatTheControlsMayHaveMade();
+            Admin("PUT", "/api/v1/settings", "{\"confidential_base_url\":\"\"}", null);
+            Admin("PUT", "/api/v1/settings/openpgp", "{\"portal_enabled\":true,\"protected_message_days\":30}", null);
          }
          finally
          {
@@ -97,6 +125,11 @@ namespace RegressionTests.API
       {
          string token = new string('0', 64);
          string domain = _domain.Name;
+
+         // The reply route judges its body only once the token names a message
+         // that takes a reply, so it is sent to one, with the ciphertext a reply
+         // carries as the member the shapes break.
+         string protectedToken = MakeProtectedMessage();
 
          return new List<Target>
          {
@@ -141,8 +174,9 @@ namespace RegressionTests.API
                          ExtraHeader = "X-Requested-With: hMailServer", FirstKey = "purpose", FirstValue = "sign-in", Rest = "" },
             new Target { Name = "POST /api/v1/session (the passkey and single sign-on readers in Authenticate_)", Method = "POST", Path = "/api/v1/session", Credential = "none",
                          ExtraHeader = "X-Requested-With: hMailServer", FirstKey = "sso_ticket", FirstValue = "rbr-" + tag, Rest = "" },
-            new Target { Name = "POST /api/v1/protected/{token}/reply", Method = "POST", Path = "/api/v1/protected/" + token + "/reply", Credential = "none",
-                         FirstKey = "message", FirstValue = "x", Rest = "" },
+            new Target { Name = "POST /api/v1/protected/{token}/reply", Method = "POST", Path = "/api/v1/protected/" + protectedToken + "/reply", Credential = "none",
+                         FirstKey = "message", FirstValue = JsonText(RestApiProtectedMessages.Vector), Rest = "",
+                         Made = (t, v) => t.User("GET", "/api/v1/me/protected", null).body.Contains("\"reply_to\":\"" + protectedToken + "\"") ? "a reply to the protected message" : null },
          };
       }
 
@@ -204,13 +238,177 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The same refusal on a SCIM path is RFC 7644's error document, scimType invalidSyntax.")]
+      [Description("The same refusal on a SCIM path, to the API key SCIM answers to, is RFC 7644's error document, scimType invalidSyntax; without a credential the same body is SCIM's 401, the body not judged.")]
       public void AScimBodyThatIsNotJsonIsRefusedInScimsShape()
       {
-         (int status, string body) answer = Send("admin", "POST", "/scim/v2/Users", "{\"userName\":\"rbr\"} and more", null);
+         (int status, string body) key = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rbr-scim\",\"scope\":\"full\"}", null);
+         ClassicAssert.AreEqual(201, key.status, key.body);
+         string bearer = "Bearer " + Regex.Match(key.body, "\"key\":\"([^\"]+)\"").Groups[1].Value;
+
+         (int status, string body) answer = RestRequest.Send("127.0.0.1", RestPort, "POST", "/scim/v2/Users", bearer, "{\"userName\":\"rbr\"} and more");
          ClassicAssert.AreEqual(400, answer.status, answer.body);
          StringAssert.Contains("\"scimType\":\"invalidSyntax\"", answer.body);
          StringAssert.Contains(Refusal, answer.body);
+
+         (int status, string body) nobody = RestRequest.Send("127.0.0.1", RestPort, "POST", "/scim/v2/Users", null, "{\"userName\":\"rbr\"} and more");
+         ClassicAssert.AreEqual(401, nobody.status, "A SCIM body was judged before the credential: " + nobody.body);
+         StringAssert.DoesNotContain(Refusal, nobody.body);
+      }
+
+      // ------------------------------------------------------------------
+      // What a body costs.
+
+      [Test]
+      [Description("A body of the large cap sent with no credential to a route that needs one is answered 401 without being parsed: at once, and with the server's peak memory grown by little more than the body's own bytes. Sixteen megabytes of zeros in an array, flat and sixty-two arrays deep, to POST /api/v1/me/messages, which the listener grants the large cap before any credential is read.")]
+      public void ABodyIsNotParsedBeforeTheCredentialIsJudged()
+      {
+         var wrong = new StringBuilder();
+         foreach (KeyValuePair<string, string> shape in LargeShapes())
+         {
+            ServerMemory memory = ServerMemory.Start();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            (int status, string answer) = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/me/messages", null, shape.Value);
+            double seconds = watch.Elapsed.TotalSeconds;
+            string grew = memory.Grew(out long grownBytes);
+
+            if (status != 401)
+               wrong.Append("\r\n  " + shape.Key + ": " + status + " " + Shorten(answer));
+            if (seconds > SecondsForALargeBody)
+               wrong.Append("\r\n  " + shape.Key + ": answered after " + seconds.ToString("0.00") + " s");
+            if (grownBytes > BytesALargeBodyMayCost)
+               wrong.Append("\r\n  " + shape.Key + ": the server's peak memory grew " + grew);
+            TestContext.Progress.WriteLine("RestApiRequestBodies: no credential, " + shape.Key + ": " + status + " in " + seconds.ToString("0.00") + " s, peak memory grew " + grew);
+         }
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A body was parsed before its request's credential was judged:" + wrong);
+      }
+
+      [Test]
+      [Description("A body past the parse's bounds - more than 100000 values, or more than 32 levels deep - is answered 400 at the first value past them, to a credential the route takes: sixteen megabytes of zeros in an array, flat and sixty-two arrays deep, to POST /api/v1/me/messages, each refused at once and with the server's peak memory grown by little more than the body's own bytes; and nothing is sent.")]
+      public void ABodyPastTheParsesBoundsIsRefusedAtOnce()
+      {
+         var wrong = new StringBuilder();
+         foreach (KeyValuePair<string, string> shape in LargeShapes())
+         {
+            ServerMemory memory = ServerMemory.Start();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            (int status, string answer) = User("POST", "/api/v1/me/messages", shape.Value);
+            double seconds = watch.Elapsed.TotalSeconds;
+            string grew = memory.Grew(out long grownBytes);
+
+            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values, or is nested more than 32 levels deep"))
+               wrong.Append("\r\n  " + shape.Key + ": " + status + " " + Shorten(answer));
+            if (seconds > SecondsForALargeBody)
+               wrong.Append("\r\n  " + shape.Key + ": answered after " + seconds.ToString("0.00") + " s");
+            if (grownBytes > BytesALargeBodyMayCost)
+               wrong.Append("\r\n  " + shape.Key + ": the server's peak memory grew " + grew);
+            TestContext.Progress.WriteLine("RestApiRequestBodies: the account, " + shape.Key + ": " + status + " in " + seconds.ToString("0.00") + " s, peak memory grew " + grew);
+         }
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A body past the parse's bounds was read, or read slowly:" + wrong);
+
+         // Within the bounds a body past the ordinary cap is read as before: one
+         // string of four megabytes, the shape of a message's attachment, is one
+         // value.
+         string text = new string('a', 4 * 1024 * 1024);
+         (int status, string body) draft = User("POST", "/api/v1/me/drafts", "{\"subject\":\"rbr large\",\"text\":\"" + text + "\"}");
+         ClassicAssert.AreEqual(201, draft.status, "A draft of one four-megabyte string was refused: " + Shorten(draft.body));
+      }
+
+      // The two shapes, each just under the listener's 16 MB: an array of zeros, and
+      // the same zeros sixty-two arrays deep. Each is a JSON object.
+      private static IEnumerable<KeyValuePair<string, string>> LargeShapes()
+      {
+         int cap = 16 * 1024 * 1024 - 4096;
+         foreach (int depth in new[] { 1, 62 })
+         {
+            int zeros = (cap - 16 - 2 * depth) / 2;
+            var text = new StringBuilder(cap);
+            text.Append("{\"a\":");
+            text.Append('[', depth);
+            text.Append('0');
+            for (int i = 1; i < zeros; i++)
+               text.Append(",0");
+            text.Append(']', depth);
+            text.Append('}');
+            yield return new KeyValuePair<string, string>(depth == 1 ? "an array of zeros" : "the zeros 62 arrays deep", text.ToString());
+         }
+      }
+
+      // What one such request may take. The body's own bytes are held a few times
+      // over while it arrives and is answered - the listener's buffer, the request,
+      // the body - which is how a request with no credential grows the peak by
+      // about 60 MB on Linux; parsing either shape took more than 2 GB.
+      private const double SecondsForALargeBody = 5.0;
+      private const long BytesALargeBodyMayCost = 256L * 1024 * 1024;
+
+      // The server's peak memory over one request: on Linux the process's VmHWM,
+      // reset first where the kernel lets it be (clear_refs), and elsewhere its
+      // peak working set, of which only growth past the earlier peak shows.
+      private sealed class ServerMemory
+      {
+         private long _before;
+
+         public static ServerMemory Start()
+         {
+            var memory = new ServerMemory();
+            using (System.Diagnostics.Process server = Server())
+            {
+               if (server != null && System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+               {
+                  try
+                  {
+                     System.IO.File.WriteAllText("/proc/" + server.Id + "/clear_refs", "5");
+                  }
+                  catch (Exception)
+                  {
+                     // The peak since the process began, then.
+                  }
+               }
+               memory._before = Peak(server);
+            }
+            return memory;
+         }
+
+         public string Grew(out long grownBytes)
+         {
+            using (System.Diagnostics.Process server = Server())
+            {
+               long after = Peak(server);
+               if (_before < 0 || after < 0)
+               {
+                  grownBytes = 0;
+                  return "(not measured: the server's process could not be read)";
+               }
+               grownBytes = after - _before;
+               return (grownBytes / (1024 * 1024)) + " MB (" + (_before / (1024 * 1024)) + " MB to " + (after / (1024 * 1024)) + " MB)";
+            }
+         }
+
+         private static System.Diagnostics.Process Server()
+         {
+            System.Diagnostics.Process[] found = System.Diagnostics.Process.GetProcessesByName("hmailserver");
+            if (found.Length == 0)
+               found = System.Diagnostics.Process.GetProcessesByName("hMailServer");
+            for (int i = 1; i < found.Length; i++)
+               found[i].Dispose();
+            return found.Length > 0 ? found[0] : null;
+         }
+
+         private static long Peak(System.Diagnostics.Process server)
+         {
+            if (server == null)
+               return -1;
+            try
+            {
+               server.Refresh();
+               return server.PeakWorkingSet64;
+            }
+            catch (Exception)
+            {
+               return -1;
+            }
+         }
       }
 
       // ------------------------------------------------------------------
@@ -226,7 +424,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An IP range named deliver_remote_to_remote is not an open relay: the next boolean in the body is not read as that flag.")]
+      [Description("An IP range named deliver_remote_to_remote does not relay for its addresses: the value after the next colon in the body, when that is a boolean, is not read as that flag (which let the range relay for senders that authenticate, as require_auth_remote_to_remote defaults to).")]
       public void AnIpRangeNamedAfterAFlagDoesNotSetIt()
       {
          (int status, string body) made = Admin("POST", "/api/v1/ipranges",
@@ -236,7 +434,7 @@ namespace RegressionTests.API
          string range = RangeEntry("deliver_remote_to_remote");
          ClassicAssert.IsNotNull(range, "The range was not listed.");
          StringAssert.Contains("\"deliver_remote_to_remote\":false", range,
-            "The range's name was read as its deliver_remote_to_remote flag, and the next boolean in the body as its value: " + range);
+            "The range's name was read as its deliver_remote_to_remote flag, and the boolean after the next colon in the body as its value: " + range);
       }
 
       [Test]
@@ -320,7 +518,7 @@ namespace RegressionTests.API
          (int status, string body) flagged = User("PUT", "/api/v1/me/messages/" + id + "/flags", "{\"keywords_add\":[\"deleted\"],\"flagged\":true}");
          ClassicAssert.AreEqual(200, flagged.status, flagged.body);
          StringAssert.Contains("\"flagged\":true", flagged.body);
-         StringAssert.Contains("\"deleted\":false", flagged.body, "The keyword 'deleted' was read as the deleted flag, from the next boolean: " + flagged.body);
+         StringAssert.Contains("\"deleted\":false", flagged.body, "The keyword 'deleted' was read as the deleted flag, from the boolean after the next colon: " + flagged.body);
       }
 
       [Test]
@@ -345,6 +543,91 @@ namespace RegressionTests.API
          (int status, string body) answer = Admin("PUT", "/api/v1/role-assignments/" + Address, "{\"role\":\"auditor\",\"domains\":[\"" + _domain.Name + "\"]}");
          ClassicAssert.AreEqual(400, answer.status, "A role assigned with domains as an array was assigned in every domain: " + answer.body);
          StringAssert.Contains("domains must be", answer.body);
+      }
+
+      [Test]
+      [Description("A port's address, connection_security or client_certificate_policy written as anything but a string is refused, on POST and on PUT, not read as the widest default - every interface, no TLS, no client certificate - and nothing is made or changed.")]
+      public void APortsWordsWrittenAsAnythingButAStringAreRefused()
+      {
+         var wrong = new StringBuilder();
+         string[][] cases =
+         {
+            new[] { "address", "\"address\":[\"127.0.0.1\"]" },
+            new[] { "connection_security", "\"connection_security\":1" },
+            new[] { "client_certificate_policy", "\"client_certificate_policy\":[\"require\"]" },
+         };
+
+         for (int i = 0; i < cases.Length; i++)
+         {
+            int number = ControlPorts[i];
+            (int status, string body) made = Admin("POST", "/api/v1/ports", "{\"protocol\":\"pop3\",\"port\":" + number + "," + cases[i][1] + "}", null);
+            if (made.status != 400 || !made.body.Contains(cases[i][0] + " must be a string"))
+               wrong.Append("\r\n  POST with " + cases[i][1] + ": " + made.status + " " + Shorten(made.body));
+         }
+
+         // One port made as it should be, and each word put to it as something else.
+         int changed = ControlPorts[3];
+         (int status, string body) port = Admin("POST", "/api/v1/ports", "{\"protocol\":\"pop3\",\"port\":" + changed + ",\"address\":\"127.0.0.1\"}", null);
+         ClassicAssert.AreEqual(201, port.status, port.body);
+         string id = FirstNumber(port.body, "id");
+         foreach (string[] item in cases)
+         {
+            string address = item[0] == "address" ? "" : ",\"address\":\"127.0.0.1\"";
+            (int status, string body) put = Admin("PUT", "/api/v1/ports/" + id, "{\"protocol\":\"pop3\",\"port\":" + changed + address + "," + item[1] + "}", null);
+            if (put.status != 400 || !put.body.Contains(item[0] + " must be a string"))
+               wrong.Append("\r\n  PUT with " + item[1] + ": " + put.status + " " + Shorten(put.body));
+         }
+
+         string ports = Admin("GET", "/api/v1/ports", null).body;
+         for (int i = 0; i < cases.Length; i++)
+         {
+            if (ports.Contains("\"port\":" + ControlPorts[i] + ","))
+               wrong.Append("\r\n  a port " + ControlPorts[i] + " was made");
+         }
+         if (!Regex.IsMatch(ports, "\"id\":" + id + ",[^}]*\"address\":\"127\\.0\\.0\\.1\""))
+            wrong.Append("\r\n  the port made on 127.0.0.1 was changed: " + Shorten(ports));
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A port's word written as something other than a string was read as absent:" + wrong);
+      }
+
+      [Test]
+      [Description("A migration's jobs given as a JSON object are held to what every JSON body is - a name given twice and an escaped U+0000 are refused - while CSV is taken as before.")]
+      public void AMigrationsJobsAsJsonAreHeldToTheRule()
+      {
+         (int status, string body) migration = Admin("POST", "/api/v1/migrations", "{\"name\":\"rbr-migration\",\"kind\":\"imap\",\"host\":\"imap.example.net\"}", null);
+         ClassicAssert.AreEqual(201, migration.status, migration.body);
+         string jobs = "/api/v1/migrations/" + FirstNumber(migration.body, "id") + "/jobs";
+
+         var wrong = new StringBuilder();
+         string[][] refused =
+         {
+            new[] { "names one member twice", "{\"source_user\":\"rbr-one\",\"secret\":\"Source-1\",\"target\":\"" + Address + "\",\"source_user\":\"rbr-two\"}" },
+            new[] { "U+0000", "{\"source_user\":\"rbr-three" + EscapedNul + "z\",\"secret\":\"Source-3\",\"target\":\"" + Address + "\"}" },
+            new[] { "U+0000", ByteOrderMark + " {\"source_user\":\"rbr-four" + EscapedNul + "\",\"secret\":\"Source-4\",\"target\":\"" + Address + "\"}" },
+         };
+         foreach (string[] item in refused)
+         {
+            (int status, string body) answer = Admin("POST", jobs, item[1], null);
+            if (answer.status != 400 || !answer.body.Contains(Refusal) || !answer.body.Contains(item[0]))
+               wrong.Append("\r\n  " + item[1] + ": " + answer.status + " " + Shorten(answer.body));
+         }
+
+         string listed = Admin("GET", jobs, null).body;
+         foreach (string user in new[] { "rbr-one", "rbr-two", "rbr-three", "rbr-four" })
+         {
+            if (listed.Contains(user))
+               wrong.Append("\r\n  a job for " + user + " was made");
+         }
+
+         (int status, string body) csv = Admin("POST", jobs, "rbr-csv,Source-5," + Address, null);
+         if (csv.status != 201)
+            wrong.Append("\r\n  CSV: " + csv.status + " " + Shorten(csv.body));
+         (int status, string body) json = Admin("POST", jobs, "{\"source_user\":\"rbr-json\",\"secret\":\"Source-6\",\"target\":\"" + Address + "\"}", null);
+         if (json.status != 201)
+            wrong.Append("\r\n  a JSON object: " + json.status + " " + Shorten(json.body));
+
+         Admin("DELETE", "/api/v1/migrations/" + FirstNumber(migration.body, "id"), null);
+         ClassicAssert.IsTrue(wrong.Length == 0, "A migration's jobs were read otherwise than every JSON body is:" + wrong);
       }
 
       // ------------------------------------------------------------------
@@ -384,6 +667,40 @@ namespace RegressionTests.API
             Admin("DELETE", "/api/v1/apikeys/" + key.Groups[1].Value, null);
 
          Admin("DELETE", "/api/v1/role-assignments/" + Address, null);
+
+         string ports = Admin("GET", "/api/v1/ports", null).body;
+         foreach (int number in ControlPorts)
+         {
+            foreach (Match port in Regex.Matches(ports, "\\{\"id\":(\\d+),[^}]*\"port\":" + number + ","))
+               Admin("DELETE", "/api/v1/ports/" + port.Groups[1].Value, null);
+         }
+
+         string migrations = Admin("GET", "/api/v1/migrations", null).body;
+         foreach (Match migration in Regex.Matches(migrations, "\"id\":(\\d+),\"name\":\"rbr-migration\""))
+            Admin("DELETE", "/api/v1/migrations/" + migration.Groups[1].Value, null);
+      }
+
+      // A password-protected message from the fixture's account to the reader,
+      // complete, as the webmail makes one: its token.
+      private string MakeProtectedMessage()
+      {
+         string vector = RestApiProtectedMessages.Vector;
+         (int status, string body) made = User("POST", "/api/v1/me/protected",
+            "{\"recipient\":\"" + ReaderAddress + "\",\"hint\":\"rbr\",\"size\":" + vector.Length + "}");
+         ClassicAssert.AreEqual(201, made.status, made.body);
+         string id = FirstNumber(made.body, "id");
+         string token = Regex.Match(made.body, "\"token\":\"([^\"]+)\"").Groups[1].Value;
+
+         (int status, string body) content = User("PUT", "/api/v1/me/protected/" + id + "/content?offset=0", vector);
+         ClassicAssert.AreEqual(200, content.status, content.body);
+         StringAssert.Contains("\"complete\":true", content.body);
+         return token;
+      }
+
+      // Text as a JSON string's contents.
+      private static string JsonText(string text)
+      {
+         return text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
       }
 
       private string RangeEntry(string name)

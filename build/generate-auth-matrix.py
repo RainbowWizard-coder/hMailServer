@@ -3713,6 +3713,10 @@ try {
     const String keyRefusal = MailboxKeys :: SessionRefusal ( caller . account , SignInStore :: CredentialAppPassword ) ;
     if ( ! keyRefusal . IsEmpty ( ) ) return BuildResponse_ ( MailboxKeys :: RefusalStatus ( keyRefusal , 403 ) , "" + JsonEscape_ ( Utf8_ ( keyRefusal ) ) + "" ) ;
   }
+  if ( ! BodyIsReadBeforeAuthentication_ ( method , path ) ) {
+    HttpResponse bodyRefusal ;
+    if ( RefuseBodyThatIsNotJson_ ( method , path , request , peer_address , bodyRefusal ) ) return bodyRefusal ;
+  }
   AuditScope auditScope ( AuditActorFor_ ( caller ) ) ;
   switch ( route . kind ) {
     case ROUTE :
@@ -3922,8 +3926,9 @@ def render(decision, records, anon, web):
       "credential (429), the administrator password's throttle, the `X-Requested-With: hMailServer` header a "
       "session must send on anything but GET and HEAD (403), the refusal of a request that carries a credential "
       "and changes something when the browser reports it as sent from another site (403), the mailbox-key "
-      "refusal of an app password on an encrypted mailbox, and `ChangesAccountByAddress_`'s refusal of an "
-      "account the credential does not take in. Those are in WebThreatModel.md. All but the Host check, which "
+      "refusal of an app password on an encrypted mailbox, `ChangesAccountByAddress_`'s refusal of an "
+      "account the credential does not take in, and the refusal of a body meant to be JSON that is not one JSON "
+      "object (400, `RefuseBodyThatIsNotJson_`). Those are in WebThreatModel.md. All but the Host check, which "
       "comes before the anonymous routes, are called in the part of `ProcessRequest_` the script holds, with the "
       "conditions they are asked under and the names they compare or are kept under (the administrator's name and "
       "the throttle's key, the methods, the header and its value), so a check taken out, moved, put under another "

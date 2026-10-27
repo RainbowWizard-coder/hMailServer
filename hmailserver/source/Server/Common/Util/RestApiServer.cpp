@@ -2524,14 +2524,21 @@ namespace HM
          return BuildResponse_(421, "{\"error\":\"the request's Host is not one this server answers to: a reverse proxy that forwards the browser's Host needs that name configured (docs/DevicesAndSessions.md)\"}");
 
       // A body meant to be JSON is one JSON object, read by one parse, or the
-      // request is answered 400 here: before Authenticate_, which reads a
-      // passkey and a single sign-on ticket out of a body, and before any
-      // handler reads a member. Every reader of a member reads that parse
-      // (BodyObject_); until 6.3.7 a body the parse refused was searched for its
-      // keys instead, and read by other rules than the parse - a key spelt
-      // inside a value, a member of a nested object or an array, a name given
-      // twice and an escaped U+0000 each came out another way.
-      // RefuseBodyThatIsNotJson_.
+      // request is answered 400 before any handler reads a member. Every reader
+      // of a member reads that parse (BodyObject_); until 6.3.7 a body the parse
+      // refused was searched for its keys instead, and read by other rules than
+      // the parse - a key spelt inside a value, a member of a nested object or
+      // an array, a name given twice and an escaped U+0000 each came out
+      // another way. RefuseBodyThatIsNotJson_.
+      //
+      // Here only for the four routes whose body is read before there is a
+      // credential, all under the ordinary 64 KB: POST /api/v1/session, whose
+      // passkey and single sign-on ticket Authenticate_ reads, and the three
+      // dispatched below before it. Every other route's body is judged after
+      // its credential and its authorisation, below, so that a caller with no
+      // credential is answered 401 for a body of the large cap without its
+      // being parsed, as it always was.
+      if (BodyIsReadBeforeAuthentication_(method, path))
       {
          HttpResponse bodyRefusal;
          if (RefuseBodyThatIsNotJson_(method, path, request, peer_address, bodyRefusal))
@@ -3029,6 +3036,16 @@ namespace HM
             const String keyRefusal = MailboxKeys::SessionRefusal(caller.account, SignInStore::CredentialAppPassword);
             if (!keyRefusal.IsEmpty())
                return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 403), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
+         }
+
+         // The body, judged as above for every route not judged there: after
+         // the credential, the route's authorisation and the refusals that
+         // narrow it, and before the handler, which is the first to read it.
+         if (!BodyIsReadBeforeAuthentication_(method, path))
+         {
+            HttpResponse bodyRefusal;
+            if (RefuseBodyThatIsNotJson_(method, path, request, peer_address, bodyRefusal))
+               return bodyRefusal;
          }
 
          // The audit trail's identity chokepoint for REST, and the only one:
@@ -20934,7 +20951,7 @@ namespace HM
          "{"
          "\"openapi\":\"3.0.3\","
          "\"info\":{\"title\":\"hMailServer REST API\",\"version\":\"1\","
-         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds. A request body is JSON wherever a route takes one - all but five, which take a file's bytes, a protected message's ciphertext, a message to import (two) or a migration's CSV: such a body must be one JSON object (RFC 8259) that names no member twice in one object and carries no U+0000 in a string, or the request is answered 400, with error saying why, before anything reads it (on a /scim/ path as RFC 7644's error, scimType invalidSyntax). An empty body is no body. Every member is read from that one parse, by name: an object's own member, else the first of that name in an object inside it.\"},"
+         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds. A request body is JSON wherever a route takes one - all but four, which take a file's bytes, a protected message's ciphertext or a message to import (two), and a migration's jobs, which take a JSON object or CSV: such a body must be one JSON object (RFC 8259) that names no member twice in one object, carries no U+0000 in a string and holds at most 100000 values nested at most 32 levels deep, or the request is answered 400, with error saying why, before the route reads it (on a /scim/ path as RFC 7644's error, scimType invalidSyntax). The body of a route that needs a credential is judged only once the credential is: without one the answer is 401 whatever the body. An empty body is no body. Each route reads its members by name from the body as that parse reads it.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this server can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux); and, from the OpenSSL the server runs with rather than the one it was built against, argon2id (the Argon2id KDF, OpenSSL 3.2 or later) and post_quantum_key_exchange (whether the server can use a hybrid post-quantum key exchange group, OpenSSL 3.5 or later: a TlsKeyExchangeGroups list that names one taken, false when OpenSSL refused it - HM5720 in the error log - and, for a list that names none, whether the library implements X25519MLKEM768)\"}}}},"
          "\"/api/v1/store\":{\"get\":{\"summary\":\"The message store: what the messages are and what they take\",\"description\":\"{measured,measuring,messages,logical_bytes,stored_bytes,compressed_files,blobs,blob_bytes,blob_references,saved_bytes,saved_percent,compression,dedup_min_kb}. logical_bytes is what IMAP and POP3 say the delivered messages are; stored_bytes is what their files take, a file with several names counted once; blob_bytes is the parts held once; messages and logical_bytes count only the messages whose files could be sized. Always the last measurement, made on the server's own time: measured is when (seconds since 1970, 0 for never) and measuring is true while one runs. A request starts the next one when the last is a quarter of an hour old and the store is in use - compression on, a part held once, or a container found last time - so on a server that never turned compression on nothing is walked and measured stays 0 until POST /api/v1/store/measure. docs/MessageStore.md. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The totals\"}}}},"
@@ -21613,7 +21630,18 @@ namespace HM
          std::string error;
          bool parsed = false;
          bool object = false;
+         bool beyond_bounds = false;
       };
+
+      // What one request body may hold, so that reading one costs about what its
+      // bytes do. A tree of values costs far more than its text - eight million
+      // zeros in an array, 16 MB, took 2.1 GB to hold - and the routes granted the
+      // large cap take 16 MB. No body this API takes comes near either bound: a
+      // body under the ordinary 64 KB cap cannot hold 33,000 values, and those the
+      // large cap is for carry their weight in strings (a message's attachments, a
+      // photo, a key), each one value; the deepest is a few levels.
+      const size_t MaxBodyValues = 100000;
+      const int MaxBodyDepth = 32;
 
       thread_local std::shared_ptr<const ParsedBody> lastParsedBody_;
 
@@ -21626,7 +21654,7 @@ namespace HM
 
          std::shared_ptr<ParsedBody> parsed = std::make_shared<ParsedBody>();
          parsed->text.assign(json.c_str(), length);
-         parsed->parsed = JsonValue::Parse(parsed->text, parsed->document, parsed->error);
+         parsed->parsed = JsonValue::Parse(parsed->text, parsed->document, parsed->error, MaxBodyValues, MaxBodyDepth, parsed->beyond_bounds);
          parsed->object = parsed->parsed && parsed->document.IsObject();
          lastParsedBody_ = parsed;
          return parsed;
@@ -21813,8 +21841,23 @@ namespace HM
    }
 
    bool
-   RestApiServer::BodyMustBeJson_(const AnsiString &method, const AnsiString &path)
+   RestApiServer::BodyIsReadBeforeAuthentication_(const AnsiString &method, const AnsiString &path)
    {
+      // The routes under /api/ whose body is read with no credential before the
+      // dispatch below Authenticate_, each held to the ordinary 64 KB
+      // (IsLargeRequest_ grants none of them more). The protected-message reply
+      // is the other route that reads a body with no credential, and judges it
+      // itself, after its budget and its token (HandleProtectedReply_).
+      return method == "POST" &&
+             (path == "/api/v1/session" || path == "/api/v1/password-reset" ||
+              path == "/api/v1/password-reset/complete" || path == "/api/v1/passkeys/challenge");
+   }
+
+   bool
+   RestApiServer::BodyMustBeJson_(const AnsiString &method, const AnsiString &path, const AnsiString &body, AnsiString &json)
+   {
+      json = body;
+
       if (method == "GET" || method == "HEAD" || method == "OPTIONS")
          return false;
 
@@ -21834,8 +21877,20 @@ namespace HM
       case RouteMeProtectedContent:          // a piece of a protected message: its ciphertext
       case RouteMeFolderImport:              // a message into one of the account's folders: a .eml
       case RouteAccountFolderMessageCreate:  // the same, by the administrator
-      case RouteMigrationJobCreate:          // a migration's jobs: a JSON object, or else CSV
          return false;
+      case RouteMigrationJobCreate:
+         {
+            // A migration's jobs: a JSON object, or else CSV, told apart as the
+            // handler tells them apart (RestApiMigrations.cpp) - after the byte
+            // order mark a spreadsheet's "CSV UTF-8" starts with, and white
+            // space, a "{" is JSON, and is held to what every JSON body is.
+            if (json.GetLength() >= 3 && (unsigned char) json.GetAt(0) == 0xEF &&
+                (unsigned char) json.GetAt(1) == 0xBB && (unsigned char) json.GetAt(2) == 0xBF)
+               json = json.Mid(3);
+            AnsiString trimmed = json;
+            trimmed.Trim();
+            return trimmed.StartsWith("{");
+         }
       default:
          return true;
       }
@@ -21845,24 +21900,34 @@ namespace HM
    RestApiServer::RefuseBodyThatIsNotJson_(const AnsiString &method, const AnsiString &path, const AnsiString &request,
                                            const IPAddress &peer, HttpResponse &refusal)
    {
-      if (!BodyMustBeJson_(method, path))
+      AnsiString json;
+      if (!BodyMustBeJson_(method, path, GetRequestBody_(request), json))
          return false;
 
+      return RefuseJsonBody_(method, path, json, peer, refusal);
+   }
+
+   bool
+   RestApiServer::RefuseJsonBody_(const AnsiString &method, const AnsiString &loggedPath, const AnsiString &json,
+                                  const IPAddress &peer, HttpResponse &refusal)
+   {
       // A blank body is no body: every member is absent, as it always was.
-      const AnsiString body = GetRequestBody_(request);
       bool blank = true;
-      for (int i = 0; blank && i < body.GetLength(); i++)
+      for (int i = 0; blank && i < json.GetLength(); i++)
       {
-         const char c = body[i];
+         const char c = json[i];
          blank = c == ' ' || c == '\t' || c == '\r' || c == '\n';
       }
       if (blank)
          return false;
 
-      const std::shared_ptr<const ParsedBody> parsed = ParseBody(body);
+      const std::shared_ptr<const ParsedBody> parsed = ParseBody(json);
 
       std::string why;
-      if (!parsed->parsed)
+      if (parsed->beyond_bounds)
+         why = "it holds more than " + std::to_string(MaxBodyValues) + " values, or is nested more than " +
+               std::to_string(MaxBodyDepth) + " levels deep, which no route of this API takes";
+      else if (!parsed->parsed)
          why = "it is not JSON (" + parsed->error + ")";
       else if (!parsed->object)
          why = "it is JSON, but not an object";
@@ -21876,11 +21941,11 @@ namespace HM
 
       if (LogRefusalOnce_(String(_T("json-body:")) + String(peer.ToString())))
       {
-         LOG_APPLICATION("REST API: " + String(method) + " " + String(path) + " from " + String(peer.ToString()) +
+         LOG_APPLICATION("REST API: " + String(method) + " " + String(loggedPath) + " from " + String(peer.ToString()) +
             " was answered 400 before anything read its body - " + String(sentence) + ".");
       }
 
-      if (IsScimPath_(path))
+      if (IsScimPath_(loggedPath))
          refusal = BuildScimError_(400, "invalidSyntax", String(sentence));
       else
          refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(sentence) + "\"}");

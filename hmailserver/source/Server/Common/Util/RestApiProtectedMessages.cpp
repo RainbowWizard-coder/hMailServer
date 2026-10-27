@@ -508,6 +508,15 @@ namespace HM
       if (!original.IsReadable(now))
          return BuildResponse_(410, Refused(410, "this message has expired; a reply has nowhere to go", "expired"));
 
+      // The body is judged as every JSON body of the API is (RefuseJsonBody_),
+      // here and not in the dispatcher: the route needs no credential and is
+      // granted the large cap, so its body is parsed only once the address is
+      // within its budget and the token names a message that takes a reply.
+      // The token is the whole capability and stays out of the log.
+      HttpResponse bodyRefusal;
+      if (RefuseJsonBody_("POST", "/api/v1/protected/{token}/reply", requestBody, peer_address, bodyRefusal))
+         return bodyRefusal;
+
       JsonValue document;
       std::string parseError;
       if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())

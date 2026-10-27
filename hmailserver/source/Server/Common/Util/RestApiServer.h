@@ -2853,15 +2853,33 @@ namespace HM
       // BodyMustBeJson_ is whether a request's body is meant to be JSON: a write
       // (any method but GET, HEAD and OPTIONS) to /api/ or /scim/, except the
       // routes whose body is something else - a file's bytes, a protected
-      // message's ciphertext, a message to import, CSV for a migration's jobs.
-      // RefuseBodyThatIsNotJson_ is asked once, in ProcessRequest_, before
-      // Authenticate_ (which reads a passkey and a single sign-on ticket out of
-      // the body) and before any handler: such a body, unless it is blank, must
-      // be one JSON object, with no member named twice in an object and no
-      // U+0000 in a string, or the request is answered 400 and nothing reads it.
-      static bool BodyMustBeJson_(const AnsiString &method, const AnsiString &path);
+      // message's ciphertext, a message to import - and a migration's jobs,
+      // whose body is JSON when it is an object (it starts with "{", after a byte
+      // order mark and white space) and CSV otherwise; json is the text to read
+      // as JSON, the body without that byte order mark.
+      //
+      // RefuseBodyThatIsNotJson_ is asked once for each request, in
+      // ProcessRequest_: before Authenticate_ for the four routes whose body is
+      // read before there is a credential - POST /api/v1/session (Authenticate_
+      // reads a passkey and a single sign-on ticket out of it), the password
+      // reset and its completion and the passkey challenge, each held to the
+      // ordinary 64 KB - and for every other route after the credential and the
+      // route's authorisation are judged and before its handler, so that a
+      // caller with no credential never has a body of the large cap parsed. The
+      // protected-message reply, which needs no credential and is granted the
+      // large cap, asks RefuseJsonBody_ itself, after its address budget and
+      // its token. Such a body, unless it is blank, must be one JSON object,
+      // with no member named twice in an object and no U+0000 in a string, and
+      // within ParseBody's bounds of values and depth, or the request is
+      // answered 400 and nothing reads it. loggedPath is the path as the
+      // application log may carry it: a protected message's token, which is the
+      // whole capability, is not written there.
+      static bool BodyIsReadBeforeAuthentication_(const AnsiString &method, const AnsiString &path);
+      static bool BodyMustBeJson_(const AnsiString &method, const AnsiString &path, const AnsiString &body, AnsiString &json);
       static bool RefuseBodyThatIsNotJson_(const AnsiString &method, const AnsiString &path, const AnsiString &request,
                                            const IPAddress &peer, HttpResponse &refusal);
+      static bool RefuseJsonBody_(const AnsiString &method, const AnsiString &loggedPath, const AnsiString &json,
+                                  const IPAddress &peer, HttpResponse &refusal);
 
       // The document a body parses to when it is an object, else null. Parsed
       // once per distinct text and kept until the request is answered, so that

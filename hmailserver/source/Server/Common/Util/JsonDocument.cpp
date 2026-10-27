@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <climits>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <stdexcept>
 #include <unordered_set>
@@ -22,11 +23,18 @@ namespace HM
    class JsonParser
    {
    public:
-      JsonParser(const std::string &text) :
+      JsonParser(const std::string &text, size_t maxValues = SIZE_MAX, int maxDepth = MaxDepth) :
          text_(text),
-         position_(0)
+         position_(0),
+         max_values_(maxValues),
+         max_depth_(maxDepth < (int) MaxDepth ? maxDepth : (int) MaxDepth),
+         values_(0),
+         beyond_bounds_(false)
       {
       }
+
+      // Whether the text was refused for a bound rather than for its syntax.
+      bool BeyondBounds() const { return beyond_bounds_; }
 
       bool Parse(JsonValue &value, std::string &error)
       {
@@ -50,6 +58,10 @@ namespace HM
 
       const std::string &text_;
       size_t position_;
+      const size_t max_values_;
+      const int max_depth_;
+      size_t values_;
+      bool beyond_bounds_;
 
       std::string Where_(const char *what) const
       {
@@ -91,11 +103,22 @@ namespace HM
 
       bool ParseValue_(JsonValue &value, int depth, std::string &error)
       {
-         if (depth > MaxDepth)
+         if (depth > max_depth_)
          {
             error = Where_("nesting deeper than the parser accepts");
+            beyond_bounds_ = true;
             return false;
          }
+
+         // Counted as each value begins, so that a document of more values than
+         // the reader takes is refused before the one past the bound is built.
+         if (values_ >= max_values_)
+         {
+            error = Where_("more values than the reader takes");
+            beyond_bounds_ = true;
+            return false;
+         }
+         values_++;
 
          char c;
          if (!Peek_(c))
@@ -185,9 +208,11 @@ namespace HM
                return false;
 
             // The first of a duplicated key wins, as a search by name would find it,
-            // and the object says that it had one.
+            // and the object says that it had one. Moved, not copied: a copy into
+            // each parent copied every value once per level above it, so that
+            // eight million zeros sixty levels deep (16 MB) took 26 seconds.
             if (names.insert(key).second)
-               value.members_.push_back(std::make_pair(key, member));
+               value.members_.emplace_back(std::move(key), std::move(member));
             else
                value.duplicate_member_ = true;
 
@@ -228,10 +253,10 @@ namespace HM
          while (true)
          {
             SkipWhitespace_();
-            JsonValue item;
-            if (!ParseValue_(item, depth + 1, error))
+            // Read in its place, as the member above is moved into its own.
+            value.items_.emplace_back();
+            if (!ParseValue_(value.items_.back(), depth + 1, error))
                return false;
-            value.items_.push_back(item);
 
             SkipWhitespace_();
             if (!Peek_(c))
@@ -658,6 +683,43 @@ namespace HM
       JsonExpect(JsonValue::Parse("{\"big\":1e20,\"small\":-1e20}", object, error) &&
                  object.GetInt64("big") == LLONG_MAX && object.GetInt64("small") == LLONG_MIN,
          "GetInt64 of a member past an __int64's range was not held at its end");
+
+      // The bounded parse. Every value counts one, a member's name none: [1,2,3]
+      // is four values, {"a":{"b":1}} three, two levels below the outermost.
+      bool beyond = true;
+      JsonValue bounded;
+      JsonExpect(JsonValue::Parse("[1,2,3]", bounded, error, 4, 64, beyond) && !beyond && bounded.Size() == 3,
+         "[1,2,3] was refused at a bound of four values");
+      JsonExpect(!JsonValue::Parse("[1,2,3]", bounded, error, 3, 64, beyond) && beyond && bounded.IsNull(),
+         "[1,2,3] was read at a bound of three values, or refused as something else");
+      JsonExpect(JsonValue::Parse("{\"a\":{\"b\":1}}", bounded, error, 3, 2, beyond) && !beyond &&
+                 bounded.Get("a") && bounded.Get("a")->GetInt64("b") == 1,
+         "{\"a\":{\"b\":1}} was refused at three values and two levels");
+      JsonExpect(!JsonValue::Parse("{\"a\":{\"b\":1}}", bounded, error, 3, 1, beyond) && beyond,
+         "{\"a\":{\"b\":1}} was read at one level below the outermost, or refused as something else");
+      JsonExpect(!JsonValue::Parse("{\"a\":1,}", bounded, error, 100, 32, beyond) && !beyond,
+         "a trailing comma was refused as beyond a bound, or read");
+      JsonExpect(!JsonValue::Parse("[0,0,0,0] x", bounded, error, 5, 32, beyond) && !beyond,
+         "text after the value was refused as beyond a bound, or read");
+
+      // Within its bounds the bounded parse reads what Parse reads: the members in
+      // their order, the first of a name given twice (whose second value is read,
+      // and counted, before it is dropped), and every item of an array
+      // sixty levels deep, each read in its place rather than copied up a level.
+      const std::string nested = std::string(60, '[') + "0,1,2" + std::string(60, ']');
+      JsonValue deep;
+      JsonExpect(JsonValue::Parse(nested, deep, error, 64, 64, beyond), "sixty arrays deep were refused: " + error);
+      const JsonValue *inner = &deep;
+      for (int level = 0; level < 59 && inner; level++)
+         inner = inner->Size() == 1 ? inner->At(0) : nullptr;
+      JsonExpect(inner && inner->Size() == 3 && inner->At(2) && inner->At(2)->AsInt64() == 2,
+         "the innermost of sixty arrays did not hold its three items");
+
+      JsonValue whole;
+      JsonExpect(JsonValue::Parse("{\"b\":[1,{\"c\":\"x\"}],\"a\":true,\"b\":2}", whole, error, 7, 32, beyond) &&
+                 whole.Members().size() == 2 && whole.Members()[0].first == "b" && whole.Members()[1].first == "a" &&
+                 whole.HadDuplicateMember() && whole.Get("b")->IsArray() && whole.Get("b")->At(1)->GetString("c") == "x",
+         "the bounded parse read an object otherwise than Parse does");
    }
 
    bool
@@ -668,5 +730,20 @@ namespace HM
 
       JsonParser parser(text);
       return parser.Parse(value, error);
+   }
+
+   bool
+   JsonValue::Parse(const std::string &text, JsonValue &value, std::string &error,
+                    size_t maxValues, int maxDepth, bool &beyondBounds)
+   {
+      value = JsonValue();
+      error.clear();
+
+      JsonParser parser(text, maxValues, maxDepth);
+      const bool parsed = parser.Parse(value, error);
+      beyondBounds = !parsed && parser.BeyondBounds();
+      if (!parsed)
+         value = JsonValue();
+      return parsed;
    }
 }
