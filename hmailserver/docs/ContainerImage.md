@@ -121,13 +121,22 @@ exported): it writes the first into the
 it runs, the command it runs - the server, the container's PID 1 - or anything the
 server starts (7-Zip, the auto-ban hook, an event script, a virus scanner, the
 update helper). The server reads neither from its environment. 6.3.7's image, and
-the ones before it, leave both in the environment of every one of them. The
-server's own `/proc/1/environ` cannot be read inside the container, by its user or
-by root there, because the capability set on the binary makes the kernel keep it
-from both; but each program the server starts inherits that environment, and while
-it runs its `/proc/<pid>/environ` is readable by any program running as the image's
-user - which can read `hMailServer.ini`, and the database password in it, all the
-same: hardening, not a hole. A password given plain stays in the container's own
+the ones before it, leave both in the environment of every one of them. Each
+program the server starts inherits that environment and holds no capability, and
+while it runs its `/proc/<pid>/environ` is readable by any program running as the
+image's user. The server's own `/proc/1/environ` is kept from that user only where
+the kernel grants the binary the capability set on it (`cap_net_bind_service`), as
+it does under Docker's defaults. Under `no_new_privs` - the Helm chart's
+`allowPrivilegeEscalation: false`, which Kubernetes' restricted Pod Security
+Standard requires, and Docker's `--security-opt no-new-privileges` - the kernel
+never grants a file capability, and any program running as the image's user can
+read the server's own environment for as long as the server runs: under the
+chart's security context 6.3.7's server held both passwords there, read from their
+`_FILE` secrets, for its whole life. Root in the container reads none of these
+environments, the server's or a started program's, because it lacks
+`CAP_SYS_PTRACE`, which neither Docker's defaults nor the chart give it. The image's
+user can read `hMailServer.ini`, and the database password in it, all the same:
+hardening, not a hole. A password given plain stays in the container's own
 configuration all the same, which `docker inspect` shows and every `docker exec`
 session starts with; the `_FILE` forms keep it out of there too. The settings' variables - `HM_SETTING_*`, `HM_PROPERTY_*`, their `_FILE`
 forms and the four `HM_REST_*` - are stored in the database by the entrypoint's own
@@ -140,11 +149,17 @@ variable names any more, and the entrypoint cannot read what a shell's command l
 runs. The Compose file's and the Helm chart's commands are such command lines -
 `bash -c` running `--apply-new-install-defaults --if-marked` and then the server -
 so in those two deployments the settings' variables still reach the server and
-every program it starts, as they did before; only the passwords do not. A setting
+every program it starts, as they did before - under the chart's security context
+the server's own `/proc/1/environ` shows them too; only the passwords do not. A setting
 that is a secret is therefore best given as a `_FILE`, whose variable holds a path
 and not the value, as the Compose file's example and the Helm chart's
 `settingsFrom` do. `HM_INSTALL_KIND` stays, for the update check, and every other
-variable reaches the command as it was given.
+variable reaches the command as it was given, as in 6.3.7, but for these three:
+`HM_DB_TYPE`, given in another spelling the entrypoint accepts (`postgres`,
+`mariadb`), reaches it in the entrypoint's own (`PostgreSQL`, `MySQL` or `MSSQL`);
+and a variable named `INI` or `default_port`, two of the entrypoint's own names,
+reaches it holding the configuration file's path, or the database's default port
+when `HM_DB_TYPE` is given.
 
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
@@ -938,9 +953,28 @@ child inherit the server's environment as the server has it.
   image's user; the new entrypoint's hook and its child held no password's name in
   any, the settings' variables in the Compose start alone, and `HM_INSTALL_KIND` in
   all. A `docker exec` session, whose parent is not the server, started with the
-  container's configured environment in both, as Docker gives it. In both images the server's
-  own `/proc/1/environ` could not be read inside the container, as its user or as
-  root (`docker exec -u 0`). Started with its own command, the new one's REST
+  container's configured environment in both, as Docker gives it. In both images,
+  under Docker's defaults, the server held the binary's capability
+  (`CapPrm 0000000000000400`) and its own `/proc/1/environ` could not be read inside
+  the container, as its user or as root (`docker exec -u 0`).
+- **The chart's security context.** Both images were started again with the
+  passwords as `_FILE` and the Compose file's command, and then with them plain and
+  the image's own command, under the Helm chart's container security context as
+  Docker gives it (`--security-opt no-new-privileges:true --cap-drop ALL --cap-add
+  NET_BIND_SERVICE`). The server showed `NoNewPrivs 1` and no permitted capability,
+  port 25 answered all the same (the container's
+  `net.ipv4.ip_unprivileged_port_start` is 0), and its `/proc/1/environ` was read
+  as the image's user: 6.3.7's held `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD` in both
+  starts, both `_FILE` names in the first, and the four settings' variables in both;
+  the new entrypoint's held no password's name in either, the four settings'
+  variables under the Compose command alone, and `HM_INSTALL_KIND` in both. Root in
+  the container, whose effective capabilities hold no `CAP_SYS_PTRACE` (Docker's
+  default set, or `NET_BIND_SERVICE` alone under the chart's context), could read
+  neither the server's environment nor the hook child's in any start, under either.
+  In every start `HM_DB_TYPE`, given as `postgres`, reached the hook and its child
+  as `PostgreSQL`, and `INI` and `default_port`, given values of their own, as the
+  configuration file's path and 5432.
+- **The REST listener.** Started with its own command, the new one's REST
   listener answered 401 on the loopback port `HM_REST_PORT` gave, from the
   database, with no `HM_REST_*` in its environment.
 - **The start test.** `container-image-start-test.sh --docker`, with

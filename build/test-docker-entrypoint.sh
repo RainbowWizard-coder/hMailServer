@@ -16,8 +16,10 @@
 # the server's own verbs it runs or the command it execs, the server or another -
 # the entrypoint's own --apply-environment sees every one of the settings'
 # variables (HM_SETTING_*, HM_PROPERTY_*, their _FILE forms and the four
-# HM_REST_*), HM_INSTALL_KIND and any other variable reach the command as they
-# were, and the settings' variables reach a command that may run
+# HM_REST_*), HM_INSTALL_KIND and a variable of a name the entrypoint does not
+# use (name) reach the command as they were given, HM_DB_TYPE given in another
+# spelling the entrypoint accepts reaches it in the entrypoint's (postgres as
+# PostgreSQL), and the settings' variables reach a command that may run
 # --apply-environment and not the server itself.
 #
 # ENTRYPOINT defaults to the tree's; given another (an older copy), the same cases
@@ -77,7 +79,7 @@ run() {
   local exec_words=(true)
   [ "${#command[@]}" -gt 0 ] && exec_words=("${command[@]}")
   env -i PATH="$work/bin:/usr/bin:/bin" HOME="$work" HM_INI="$work/hMailServer.ini" TEST_CALLS="$work/calls" \
-    TEST_ENVS="$work/env" TEST_VALUES="HM_INSTALL_KIND name" HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
+    TEST_ENVS="$work/env" TEST_VALUES="HM_INSTALL_KIND name HM_DB_TYPE" HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
     bash "$entrypoint" "${exec_words[@]}" > "$work/out" 2>&1
   local code=$?
   if [ "$code" -ne "$expected" ]; then
@@ -136,8 +138,8 @@ run "a password of a single quote is written as it is" 0 HM_DB_TYPE=PostgreSQL "
   && { [ "$(database_value Password)" = "'" ] || fail "  ... the file holds [$(database_value Password)], not [']"; }
 
 # What reaches the programs the entrypoint runs. Each case gives both passwords, in
-# one form or the other, six settings' variables, HM_INSTALL_KIND and a variable
-# named name, and lets the entrypoint run every verb it would (the database created
+# one form or the other, six settings' variables, HM_INSTALL_KIND, a variable
+# named name and HM_DB_TYPE as postgres, and lets the entrypoint run every verb it would (the database created
 # and upgraded, the administrator password set, the environment applied); the stub
 # records the names in the environment of each of those and of the command execed
 # after them, and the cat recorder those of each cat.
@@ -162,7 +164,7 @@ env_case() {
   command=("$@")
   local passwords=("${plain[@]}")
   [ "$form" = file ] && passwords=("${from_files[@]}")
-  run_quiet=1 run "$name" 0 HM_CREATE_DATABASE=1 HM_UPGRADE_DATABASE=1 HM_DB_TYPE=PostgreSQL HM_INSTALL_KIND=container \
+  run_quiet=1 run "$name" 0 HM_CREATE_DATABASE=1 HM_UPGRADE_DATABASE=1 HM_DB_TYPE=postgres HM_INSTALL_KIND=container \
     name=keepme "${passwords[@]}" "${settings[@]}" || { command=(); return; }
   command=()
   calls="$(wc -l < "$work/calls" | tr -d ' ')"
@@ -204,7 +206,7 @@ env_case() {
   file="$work/env/$calls"
   if [ -f "$file" ]; then
     grep -qx HM_INSTALL_KIND "$file" || problems+=("HM_INSTALL_KIND did not reach the command")
-    for variable in "HM_INSTALL_KIND=container" "name=keepme"; do
+    for variable in "HM_INSTALL_KIND=container" "name=keepme" "HM_DB_TYPE=PostgreSQL"; do
       grep -qx -F -- "$variable" "$file.values" \
         || problems+=("${variable%%=*} reached the command as [$(sed -n "s/^${variable%%=*}=//p" "$file.values")], not [${variable#*=}]")
     done
