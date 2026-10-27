@@ -5700,8 +5700,11 @@ namespace HM
       // The account is the one whose stored address the name is (LogonName.h), and
       // not one the database's comparison takes for it under another spelling: a
       // token, a certificate or a ticket another party issued for such a name names
-      // somebody else. The default domain applied and no alias, as before.
+      // somebody else. The default domain applied and no alias, as before. A
+      // name that holds a NUL is no account's, and nothing is looked up with it.
       String sAccountAddress = DefaultDomain::ApplyDefaultDomain(sAddress);
+      if (LogonName::HoldsNul(sAccountAddress))
+         return std::shared_ptr<const Account>();
 
       std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
       if (!pAccount || !pAccount->GetActive() || !LogonName::Names(sAccountAddress, pAccount->GetAddress()))

@@ -6,6 +6,7 @@
 #include "CountryBlocking.h"
 
 #include "GeoIpDatabase.h"
+#include "LogonName.h"
 #include "ServerStatus.h"
 #include "Time.h"
 #include "../Application/Configuration.h"
@@ -561,6 +562,14 @@ namespace HM
       // as the client typed it, bob@alias-domain found no hm_domains row, was
       // allowed, and then signed in as bob@real-domain, whose policy was never
       // asked.
+      //
+      // A name that holds a NUL is no account's (LogonName.h): nothing is looked
+      // up with it, and no domain's policy judges it, as none judges a name at a
+      // domain the server does not have. The sign-in then fails as a wrong name
+      // fails.
+      if (LogonName::HoldsNul(username))
+         return true;
+
       String canonical = username;
       canonical.Trim();
 

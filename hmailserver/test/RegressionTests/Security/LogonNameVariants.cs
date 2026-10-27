@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 using hMailServer;
 
@@ -26,13 +29,19 @@ namespace RegressionTests.Security
    ///    narrow code page (Windows-1252 on Windows, Latin-1 on Linux; the same bytes
    ///    for every character here), as a client typing them sends them. On PostgreSQL,
    ///    which compares lower() of both sides, none of these spellings found the
-   ///    account before either, so there the tests hold of the old build too.
-   ///    The held account's case is in API/RestApiCompromisedAccount.
+   ///    account before either, so there those tests hold of the old build too. The
+   ///    web services listener's HTTP Basic (CalDAV, CardDAV, Autodiscover) carries a
+   ///    name as UTF-8, so a dotted capital I for an i - which PostgreSQL's lower()
+   ///    took for the i, as MySQL and MariaDB did - and a NUL reach the sign-in there:
+   ///    those tests hold the rule on every engine, and that a name holding a NUL is
+   ///    sent to no database statement. The held account's case is in
+   ///    API/RestApiCompromisedAccount.
    /// </summary>
    [TestFixture]
    public class LogonNameVariants : TestFixtureBase
    {
       private const string Password = "Variant-Passw0rd!";
+      private const int WebServicesPort = 9183;
 
       private Account _account;
 
@@ -83,8 +92,10 @@ namespace RegressionTests.Security
          string wrongName = ImapLogin("nobody-at-all@" + _domain.Name, Password);
          StringAssert.StartsWith("NO", wrongName);
 
+         // DomainAliases.Add gives the alias the collection's domain, so the
+         // domain's ID, which the Linux suite's stand-in for the COM API does not
+         // have, is not read.
          DomainAlias alias = _domain.DomainAliases.Add();
-         alias.DomainID = _domain.ID;
          alias.AliasName = "logon-alias.example";
          alias.Save();
 
@@ -160,6 +171,191 @@ namespace RegressionTests.Security
             SetIniSetting("AccountLockoutThreshold", null);
             _application.Reinitialize();
             StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password));
+         }
+      }
+
+      /// <summary>
+      ///    The spellings of address that the databases took for it over HTTP Basic, which
+      ///    carries a name as UTF-8: a dotted capital I for its first i (PostgreSQL, MySQL,
+      ///    MariaDB), an i grave for it (MySQL, MariaDB) and a space after it (MySQL,
+      ///    MariaDB, SQL Server, SQL Server Compact). address must hold an "i".
+      /// </summary>
+      public static List<string> Utf8Variants(string address)
+      {
+         int i = address.IndexOf('i');
+         return new List<string>
+         {
+            address.Substring(0, i) + "İ" + address.Substring(i + 1),
+            address.Substring(0, i) + "ì" + address.Substring(i + 1),
+            address + " "
+         };
+      }
+
+      [Test]
+      [Description("Over the web services listener's HTTP Basic, a locked name is not got round by a dotted capital I or an i grave for its i, nor by a space after it, with the right password")]
+      public void OverHttpBasicALockedNameIsNotGotRoundByAVariantSpelling()
+      {
+         StartWebServices("3");
+         try
+         {
+            for (int i = 0; i < 3; i++)
+               StringAssert.StartsWith("NO", ImapLogin(_account.Address, "wrong" + i));
+
+            int locked = DavOptions(_account.Address, Password);
+            ClassicAssert.AreEqual(401, locked, "The locked name refuses the right password over HTTP Basic.");
+
+            foreach (string variant in Utf8Variants(_account.Address))
+            {
+               ClassicAssert.AreEqual(locked, DavOptions(variant, Password),
+                  "The spelling '" + Escape(variant) + "' must not sign in to a locked name with its right password over HTTP Basic.");
+            }
+         }
+         finally
+         {
+            StopWebServices();
+            StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password));
+         }
+      }
+
+      [Test]
+      [Description("Over HTTP Basic, each spelling the databases took for the account fails with its right password as a name that does not exist fails, and is counted as a failure: three of the address followed by a space lock the account's name")]
+      public void OverHttpBasicAVariantSpellingFailsAndIsCountedAsAFailure()
+      {
+         StartWebServices("3");
+         try
+         {
+            ClassicAssert.AreEqual(200, DavOptions(_account.Address, Password), "The account's own name signs in over HTTP Basic.");
+
+            int wrongName = DavOptions("nobody-at-all@" + _domain.Name, Password);
+            ClassicAssert.AreEqual(401, wrongName);
+
+            foreach (string variant in Utf8Variants(_account.Address))
+            {
+               ClassicAssert.AreEqual(wrongName, DavOptions(variant, Password),
+                  "The spelling '" + Escape(variant) + "' with the account's right password must fail over HTTP Basic as a name that does not exist fails.");
+            }
+
+            // The space's spelling has failed once above; two more make three.
+            for (int i = 0; i < 2; i++)
+               ClassicAssert.AreEqual(wrongName, DavOptions(_account.Address + " ", Password));
+
+            StringAssert.StartsWith("NO", ImapLogin(_account.Address, Password),
+               "Three failures under a spelling the lockout counts as the account lock the account's name.");
+         }
+         finally
+         {
+            StopWebServices();
+            StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password));
+         }
+      }
+
+      [Test]
+      [Description("A name holding a NUL names no account: over HTTP Basic, with the account's right password, it fails as a name that does not exist fails, and no database statement is sent with it, so no error is reported")]
+      public void ANameHoldingANulNamesNoAccountAndIsSentToNoStatement()
+      {
+         StartWebServices(null);
+         try
+         {
+            ClassicAssert.AreEqual(200, DavOptions(_account.Address, Password), "The account's own name signs in over HTTP Basic.");
+
+            int wrongName = DavOptions("nobody-at-all@" + _domain.Name, Password);
+            ClassicAssert.AreEqual(401, wrongName);
+
+            string address = _account.Address;
+            var names = new List<string>
+            {
+               address + "\0",
+               address + "\0junk",
+               address.Substring(0, 3) + "\0" + address.Substring(3)
+            };
+
+            foreach (string name in names)
+            {
+               ClassicAssert.AreEqual(wrongName, DavOptions(name, Password),
+                  "The name '" + Escape(name) + "' with the account's right password must fail as a name that does not exist fails.");
+            }
+
+            string errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadAndDeleteErrorLog() : "";
+            ClassicAssert.IsEmpty(errors.Trim(), "A name holding a NUL reached a database statement, and an error was reported.");
+         }
+         finally
+         {
+            StopWebServices();
+         }
+      }
+
+      private void StartWebServices(string lockoutThreshold)
+      {
+         IniFileSetting.Write("CalDavRedirectUrl", "");
+         IniFileSetting.Write("CardDavRedirectUrl", "");
+         IniFileSetting.Write("WebServicesBindAddress", "127.0.0.1");
+         IniFileSetting.Write("WebServicesHttpPort", WebServicesPort.ToString());
+         IniFileSetting.Write("WebServicesHttpsPort", "0");
+         SetIniSetting("AccountLockoutThreshold", lockoutThreshold);
+         _application.Reinitialize();
+      }
+
+      private void StopWebServices()
+      {
+         IniFileSetting.Write("WebServicesHttpPort", "0");
+         SetIniSetting("AccountLockoutThreshold", null);
+         _application.Reinitialize();
+      }
+
+      /// <summary>
+      ///    OPTIONS /dav/ on the web services listener with HTTP Basic, the name and the
+      ///    password as UTF-8, on a connection of its own; the status code. The request
+      ///    says it came over HTTPS, as a TLS-terminating proxy on this machine says it
+      ///    (X-Forwarded-Proto), since DAV refuses Basic over plain HTTP, and the
+      ///    listener is plain HTTP here.
+      /// </summary>
+      private static int DavOptions(string user, string password)
+      {
+         string authorization = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
+         using (var client = new TcpClient())
+         {
+            Exception last = null;
+            for (int attempt = 0; attempt < 25; attempt++)
+            {
+               try
+               {
+                  client.Connect("127.0.0.1", WebServicesPort);
+                  last = null;
+                  break;
+               }
+               catch (SocketException ex)
+               {
+                  last = ex;
+                  System.Threading.Thread.Sleep(200);
+               }
+            }
+
+            if (last != null)
+               throw last;
+
+            client.ReceiveTimeout = 60000;
+            client.SendTimeout = 60000;
+            using (NetworkStream stream = client.GetStream())
+            using (var memory = new MemoryStream())
+            {
+               string head = "OPTIONS /dav/ HTTP/1.0\r\nHost: 127.0.0.1:" + WebServicesPort + "\r\nAuthorization: " + authorization +
+                             "\r\nX-Forwarded-Proto: https\r\nConnection: close\r\n\r\n";
+               byte[] bytes = Encoding.ASCII.GetBytes(head);
+               stream.Write(bytes, 0, bytes.Length);
+
+               var buffer = new byte[8192];
+               int read;
+               while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                  memory.Write(buffer, 0, read);
+
+               string raw = Encoding.UTF8.GetString(memory.ToArray());
+               int space = raw.IndexOf(' ');
+               int status;
+               if (!raw.StartsWith("HTTP/", StringComparison.Ordinal) || space < 0 || raw.Length < space + 4 ||
+                   !int.TryParse(raw.Substring(space + 1, 3), out status))
+                  throw new InvalidOperationException("The web services listener's answer was not an HTTP response: " + raw);
+               return status;
+            }
          }
       }
 

@@ -677,6 +677,16 @@ namespace HM
    {
       result.address = address;
 
+      // An address that holds a NUL is nobody's: it opens neither the Control
+      // Deck, whose list String's comparison would read only as far as the NUL,
+      // nor a mailbox, nothing is looked up with it, and no mailbox is made for it
+      // (LogonName.h).
+      if (LogonName::HoldsNul(address))
+      {
+         problem = deck ? "that address does not open the Control Deck on this server" : "that address has no mailbox on this server";
+         return false;
+      }
+
       // The Control Deck: the administrator, and only for an address the list
       // names. An issuer that says somebody is an administrator is not obeyed.
       if (deck)

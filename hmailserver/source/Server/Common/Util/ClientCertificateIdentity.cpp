@@ -207,7 +207,11 @@ namespace HM
       // The account whose stored address the certificate's address is
       // (LogonName.h), and not one the database's comparison takes for it under
       // another spelling: a certificate an authority issued for such an address
-      // names somebody else.
+      // names somebody else. An address that holds a NUL is no account's, and
+      // nothing is looked up with it.
+      if (LogonName::HoldsNul(address))
+         return std::shared_ptr<const Account>();
+
       std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(address);
       if (!account || !account->GetActive() || !LogonName::Names(address, account->GetAddress()))
          return std::shared_ptr<const Account>();

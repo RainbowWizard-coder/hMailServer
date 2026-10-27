@@ -22,6 +22,12 @@
 // and after the same work (one lookup, no password verification), and the
 // failure is counted as any failure is.
 //
+// A name that holds a NUL (U+0000) is no account's either, and is refused before
+// any lookup is made with it: no stored address holds one, MySQL, MariaDB and
+// PostgreSQL fail a statement that carries one (and the server reported that as a
+// database error), and SQL Server and SQL Server Compact read the bound value only
+// as far as it. Refusing it early tells nothing about any account.
+//
 // The key. Key is Canonical of the name trimmed, which is what
 // AccountLockout::NormalizeKey_ always computed; it is computed here, by the same
 // function the rule compares with, so that the two can never disagree: whatever
@@ -30,10 +36,22 @@
 // spaces around it, which the rule refuses, still counts under the account's key.
 //
 // What is folded is what String::ToLower folds, in the C locale the server runs in
-// (it never sets another): A to Z on Windows and with glibc, more with musl. A name
-// that differs from the stored address in the case of a letter the C library does
-// not lower is therefore refused, where MySQL or PostgreSQL would have taken it; it
-// was always counted apart by the lockout.
+// (it never sets another), and that differs by platform. With glibc it is A to Z
+// alone. On Windows (the C runtime's classic locale, which lowers by the system's
+// simple lower-case mapping, one UTF-16 unit at a time) it is A to Z and most
+// letters from U+0100 up that have a lower case - Latin Extended, Greek, Cyrillic
+// and full-width letters among them - but not Latin-1's own capitals, U+00C0 to
+// U+00DE, and not every letter that has a lower case: U+0130, the Kelvin, Ohm and
+// Angstrom signs, U+1E9E, title-case letters such as U+01C5, letters added in
+// recent versions of Unicode and any letter outside the Basic Multilingual Plane
+// are among those it leaves as they are. With musl it is nearly every letter that
+// has a lower case, U+0130 and the Kelvin sign (to i and k) among them, so there a
+// spelling with one of those for an i or a k names the account, and is counted
+// under the account's own key. A name that differs from the stored address in
+// the case of a letter the platform does not lower is therefore refused, where the
+// database would have taken it; it was always counted apart by the lockout. The
+// rule and the key are made by this one function on every platform, so they agree
+// wherever it folds differently.
 //
 // A lookup that is not a sign-in - an administrator's route, a delivery - keeps
 // the database's comparison: there the account found is the one acted on, and a
@@ -72,13 +90,33 @@ namespace HM
       static bool Names(const String &name, const String &storedAddress);
 
       // The account a sign-in names, or none: the account the cache or the
-      // database finds under Resolve(name), when Names(name, its address).
+      // database finds under Resolve(name), when Names(name, its address). None,
+      // with no lookup made, for a name that holds a NUL.
       static std::shared_ptr<const Account> FindAccount(const String &name);
 
       // The domain of the account a sign-in names, or none: the domain found
       // under the domain part of Resolve(name), when it is the account's own
-      // domain and its name is that part, folded.
+      // domain and its name is that part, folded. None, with no lookup made, for
+      // a name that holds a NUL.
       static std::shared_ptr<const Domain> FindDomain(const String &name, const std::shared_ptr<const Account> &account);
+
+      // The rule for a Kerberos principal and an account an administrator linked
+      // to a directory user: true when the account's directory user name is the
+      // principal's user part and its directory domain is the principal's realm
+      // or the realm's first label (its NetBIOS name), each folded and compared
+      // over the whole string, and none of them holds a NUL. The database's
+      // comparison only proposes the account; this decides.
+      static bool NamesDirectoryUser(const String &principalUser, const String &principalRealm,
+                                     const String &directoryUser, const String &directoryDomain);
+
+      // True when text holds a NUL (U+0000) anywhere. Such a name is no account's,
+      // and every sign-in path refuses it before it looks anything up with it.
+      static bool HoldsNul(const String &text);
+
+      // The two strings are the same, character for character over the whole of
+      // both: String's own comparisons read them as C strings, which end at the
+      // first NUL.
+      static bool Same(const String &left, const String &right);
 
       // The pure forms, with the aliases and the default domain given rather than
       // read from the caches and the configuration: what the four above compute.
@@ -89,8 +127,6 @@ namespace HM
 
    private:
       static String ResolveWith_(const String &name, const AliasFunction &aliases, const String &defaultDomain);
-      static bool Same_(const String &left, const String &right);
-      static bool HoldsNul_(const String &text);
    };
 
    // The rule and the key, without a server: for a stored address, its own
@@ -100,7 +136,10 @@ namespace HM
    // Server's and SQL Server Compact's comparison ignores, inside and at the end,
    // a NUL at the end, inside and before more text, spaces and tabs before and
    // after - is refused; and whatever the rule takes has the key of the stored
-   // address. Run by ClassTester on Windows and by sign-in-budget-tests on Linux.
+   // address. And the directory user rule: a principal whose user part and realm
+   // are an account's directory user name and domain, in other case and with the
+   // NetBIOS name, is taken, and the same spellings of either are refused. Run by
+   // ClassTester on Windows and by sign-in-budget-tests on Linux.
    // Every check runs; a std::logic_error at the end names every one that did not
    // hold.
    class LogonNameTester

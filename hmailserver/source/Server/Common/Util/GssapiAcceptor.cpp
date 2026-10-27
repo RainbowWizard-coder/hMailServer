@@ -410,23 +410,41 @@ namespace HM
 
       std::shared_ptr<const Account> account;
 
-      // 1. The account an administrator linked to this directory user.
-      if (!userLower.IsEmpty())
+      // A principal that holds a NUL names no account, and nothing is looked up
+      // with it (LogonName.h).
+      const bool lookUp = !userLower.IsEmpty() && !LogonName::HoldsNul(principal);
+
+      // 1. The account an administrator linked to this directory user: among the
+      // accounts the database's comparison finds, the one whose own directory user
+      // name and domain are the principal's (LogonName::NamesDirectoryUser), and
+      // not one it takes for them under another spelling - an accented or a
+      // full-width letter, a character the comparison ignores, padding - which is
+      // somebody else's principal.
+      if (lookUp)
       {
          SQLCommand command("select accountaddress from hm_accounts where lower(accountadusername) = @USERNAME and (lower(accountaddomain) = @REALM or lower(accountaddomain) = @NETBIOS)");
          command.AddParameter("@USERNAME", userLower);
          command.AddParameter("@REALM", realmLower);
          command.AddParameter("@NETBIOS", netbios);
          std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-         if (recordset && !recordset->IsEOF())
-            account = CacheContainer::Instance()->GetAccount(recordset->GetStringValue("accountaddress"));
+         while (recordset && !recordset->IsEOF())
+         {
+            std::shared_ptr<const Account> linked = CacheContainer::Instance()->GetAccount(recordset->GetStringValue("accountaddress"));
+            if (linked && LogonName::NamesDirectoryUser(user, realm, linked->GetADUsername(), linked->GetADDomain()))
+            {
+               account = linked;
+               break;
+            }
+
+            recordset->MoveNext();
+         }
       }
 
       // 2. The address the directory gives the user: user@realm - the account
       // whose stored address it is (LogonName.h), and not one the database's
       // comparison takes for it under another spelling, which is somebody else's
       // principal.
-      if (!account && !userLower.IsEmpty() && !realmLower.IsEmpty())
+      if (!account && lookUp && !realmLower.IsEmpty())
       {
          const String principalAddress = userLower + _T("@") + realmLower;
          account = CacheContainer::Instance()->GetAccount(principalAddress);

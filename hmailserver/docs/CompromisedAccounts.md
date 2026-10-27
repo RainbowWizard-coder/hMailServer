@@ -116,12 +116,14 @@ account by a name the client gave finds it this way (`LogonName`, in
 `Common/Util/LogonName.h`): the password logons of SMTP `AUTH`, IMAP, POP3,
 ManageSieve, the DAV services, the webmail, REST and COM, the authorisation
 identity the IMAP master user names, SCRAM-SHA-256, an OAuth2 bearer token's
-name, a client certificate's address, a Kerberos principal's, and the address an
-OpenID Connect or SAML identity provider signs a person in with. A name the
-database would also have taken for the account under another spelling names no
-account: it fails as a name that
-does not exist fails, with the same reply, and the failure is counted as any
-failure is. The lockout counts each name under the same key the comparison is
+name, a client certificate's address, a Kerberos principal's (for an account
+linked to a directory user, the directory user name and domain the account
+holds), and the address an OpenID Connect or SAML identity provider signs a
+person in with. A name the database would also have taken for the account under
+another spelling names no account:
+it fails as a name that does not exist fails, with the same reply, and the
+failure is counted as any failure is. A name with a NUL in it is refused before
+anything is looked up with it, so no database statement carries one. The lockout counts each name under the same key the comparison is
 made with (the name trimmed, in lower case, with the alias and the default
 domain applied), so a name that signs in to an account is counted as that
 account, and a name with spaces around it, which does not sign in, is counted as
@@ -135,10 +137,20 @@ spelling of its name with its password. A password logon now also asks the hold,
 the country policy and - for the account that authenticated - the lockout of the
 account's own address once the password has found it.
 
-The case folded is what the C library lowers in the C locale the server runs in:
-the letters of ASCII on Windows and with glibc, and more with musl (Alpine). A
-name that differs from the stored address in the case of a letter it does not
-lower is refused, as the lockout always counted it apart.
+The case folded is what the C library lowers in the C locale the server runs
+in, which differs by platform. With glibc, A to Z alone. On Windows, A to Z and
+most letters from U+0100 up that have a lower case (Latin Extended, Greek,
+Cyrillic and full-width letters among them), by the system's simple lower-case
+mapping one UTF-16 unit at a time, but not Latin-1's own capitals (U+00C0 to
+U+00DE, such as `É`) and not every letter that has a lower case: title-case
+letters such as `ǅ`, letters added in recent versions of Unicode and any letter
+outside the Basic Multilingual Plane are among those left as they are. With
+musl (Alpine), nearly every letter that has a lower case, so there a spelling
+with such a letter signs in to the account, and is counted under the
+account's own key. A name that differs from the stored address in
+the case of a letter the platform does not lower is refused, as the lockout
+always counted it apart. The lockout's key is folded by the same function, so
+the two agree on every platform.
 
 Reviewing
 ---------

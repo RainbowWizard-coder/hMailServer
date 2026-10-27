@@ -34,7 +34,7 @@ namespace HM
    }
 
    bool
-   LogonName::Same_(const String &left, const String &right)
+   LogonName::Same(const String &left, const String &right)
    {
       // Over the whole of both strings: String's own comparisons read them as C
       // strings, which end at the first NUL.
@@ -44,7 +44,7 @@ namespace HM
    }
 
    bool
-   LogonName::HoldsNul_(const String &text)
+   LogonName::HoldsNul(const String &text)
    {
       const std::basic_string<wchar_t> &whole = text;
       return whole.find(static_cast<wchar_t>(0)) != std::basic_string<wchar_t>::npos;
@@ -89,14 +89,14 @@ namespace HM
       // match among them, which would otherwise resolve "local@alias", a NUL and
       // anything after it to the account - and where SQL Server and SQL Server
       // Compact read a bound value. No stored address holds one.
-      if (HoldsNul_(name))
+      if (HoldsNul(name))
          return false;
 
       const String stored = KeyWith(storedAddress, aliases, defaultDomain);
       if (stored.IsEmpty())
          return false;
 
-      return Same_(CanonicalWith(name, aliases, defaultDomain), stored);
+      return Same(CanonicalWith(name, aliases, defaultDomain), stored);
    }
 
    String
@@ -144,22 +144,29 @@ namespace HM
    bool
    LogonName::Names(const String &name, const String &storedAddress)
    {
-      if (HoldsNul_(name))
+      if (HoldsNul(name))
          return false;
 
       const String stored = Key(storedAddress);
       if (stored.IsEmpty())
          return false;
 
-      return Same_(Canonical(name), stored);
+      return Same(Canonical(name), stored);
    }
 
    std::shared_ptr<const Account>
    LogonName::FindAccount(const String &name)
    {
-      // One lookup whatever the name, as for a name that does not exist: a
-      // spelling the rule refuses costs what a wrong name costs, and is answered
-      // as one.
+      // A name that holds a NUL is no account's, and no lookup is made with it:
+      // MySQL, MariaDB and PostgreSQL fail a statement that carries one, and SQL
+      // Server and SQL Server Compact read the bound value only as far as it.
+      // Refusing it here tells nothing about any account.
+      if (HoldsNul(name))
+         return std::shared_ptr<const Account>();
+
+      // Otherwise one lookup whatever the name, as for a name that does not
+      // exist: a spelling the rule refuses costs what a wrong name costs, and is
+      // answered as one.
       std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(Resolve(name));
 
       if (!account || !Names(name, account->GetAddress()))
@@ -171,7 +178,7 @@ namespace HM
    std::shared_ptr<const Domain>
    LogonName::FindDomain(const String &name, const std::shared_ptr<const Account> &account)
    {
-      if (!account)
+      if (!account || HoldsNul(name))
          return std::shared_ptr<const Domain>();
 
       const String domainName = StringParser::ExtractDomain(Resolve(name));
@@ -180,10 +187,33 @@ namespace HM
       if (!domain || domain->GetID() != account->GetDomainID())
          return std::shared_ptr<const Domain>();
 
-      if (HoldsNul_(domainName) || !Same_(Fold(domainName), Fold(domain->GetName())))
+      if (HoldsNul(domainName) || !Same(Fold(domainName), Fold(domain->GetName())))
          return std::shared_ptr<const Domain>();
 
       return domain;
+   }
+
+   bool
+   LogonName::NamesDirectoryUser(const String &principalUser, const String &principalRealm,
+                                 const String &directoryUser, const String &directoryDomain)
+   {
+      if (HoldsNul(principalUser) || HoldsNul(principalRealm) || HoldsNul(directoryUser) || HoldsNul(directoryDomain))
+         return false;
+
+      const String user = Fold(principalUser);
+      if (user.IsEmpty() || !Same(Fold(directoryUser), user))
+         return false;
+
+      // The realm, or its first label, as the directory's NetBIOS name is
+      // commonly the realm's first label (CORP for CORP.EXAMPLE.COM).
+      const String realm = Fold(principalRealm);
+      String netbios = realm;
+      const int dot = netbios.Find(_T("."));
+      if (dot > 0)
+         netbios = netbios.Mid(0, dot);
+
+      const String domain = Fold(directoryDomain);
+      return Same(domain, realm) || Same(domain, netbios);
    }
 
    namespace
@@ -393,6 +423,56 @@ namespace HM
       if (!Equal(key(_T("  ALICE@Alias.Example\t")), _T("alice@example.test")) || !Equal(key(_T(" Alice ")), _T("alice@example.test")) ||
           !key(_T("   ")).IsEmpty() || !Equal(key(_T("bob@else.example")), _T("bob@else.example")))
          failures.push_back("the key is not the name trimmed, in lower case, with the aliases and the default domain applied");
+
+      // The directory user rule, for an account linked to the directory user
+      // jsmith of CORP.EXAMPLE (NetBIOS name CORP): the principal's user part and
+      // realm in any case, the realm or its first label, are taken; every other
+      // spelling of either, which a database's comparison may take, is refused.
+      struct DirectoryCase { String user; String realm; String directoryUser; String directoryDomain; };
+      std::vector<DirectoryCase> directoryTaken =
+      {
+         { _T("jsmith"), _T("CORP.EXAMPLE"), _T("JSmith"), _T("corp.example") },
+         { _T("JSMITH"), _T("corp.example"), _T("jsmith"), _T("CORP") },
+         { _T("jsmith"), _T("Corp.Example"), _T("jsmith"), _T("Corp.Example") },
+         { _T("jsmith"), _T("corp"), _T("jsmith"), _T("corp") }
+      };
+      for (const DirectoryCase &c : directoryTaken)
+      {
+         if (!LogonName::NamesDirectoryUser(c.user, c.realm, c.directoryUser, c.directoryDomain))
+            failures.push_back("the principal '" + Narrow(c.user) + "@" + Narrow(c.realm) + "' is not taken for the directory user '" +
+                               Narrow(c.directoryUser) + "' of '" + Narrow(c.directoryDomain) + "'");
+      }
+
+      std::vector<DirectoryCase> directoryRefused =
+      {
+         { _T("jsm") + Char(0xEF) + _T("th"), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T("j") + Char(0xDF) + _T("mith"), _T("corp.example"), _T("jssmith"), _T("corp") },
+         { Char(0xFF4A) + _T("smith"), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmith "), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmith"), _T("corp.example"), _T("jsmith "), _T("corp") },
+         { _T("jsmith") + Char(0), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmith") + Char(0) + _T("x"), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmith"), _T("corp.ex") + Char(0xE0) + _T("mple"), _T("jsmith"), _T("corp.example") },
+         { _T("jsmith"), _T("c") + Char(0xFF4F) + _T("rp.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmith"), _T("corp.example"), _T("jsmith"), _T("corp ") },
+         { _T("jsmith"), _T("corp.example") + Char(0), _T("jsmith"), _T("corp.example") },
+         { _T("jsmith"), _T("corp.example"), _T("jsmith"), _T("corp.other") },
+         { _T("jsmith"), _T("other.example"), _T("jsmith"), _T("corp") },
+         { _T("jsmit"), _T("corp.example"), _T("jsmith"), _T("corp") },
+         { _T(""), _T("corp.example"), _T(""), _T("corp") }
+      };
+      for (unsigned int code : ignored)
+      {
+         directoryRefused.push_back({ _T("js") + Char(code) + _T("mith"), _T("corp.example"), _T("jsmith"), _T("corp") });
+         directoryRefused.push_back({ _T("jsmith") + Char(code), _T("corp.example"), _T("jsmith"), _T("corp") });
+         directoryRefused.push_back({ _T("jsmith"), _T("corp") + Char(code) + _T(".example"), _T("jsmith"), _T("corp") });
+      }
+      for (const DirectoryCase &c : directoryRefused)
+      {
+         if (LogonName::NamesDirectoryUser(c.user, c.realm, c.directoryUser, c.directoryDomain))
+            failures.push_back("the principal '" + Narrow(c.user) + "@" + Narrow(c.realm) + "' is taken for the directory user '" +
+                               Narrow(c.directoryUser) + "' of '" + Narrow(c.directoryDomain) + "'");
+      }
 
       if (!failures.empty())
       {

@@ -254,15 +254,24 @@ with `--check`).
   exist fails, with the same reply and no password verified, and is counted as a failure. The same rule finds the
   account for every sign-in by a name a client or another party gives: the password sign-ins of SMTP, IMAP, POP3,
   ManageSieve, the DAV services, the webmail, the REST API and COM, the IMAP master user's authorisation identity,
-  SCRAM-SHA-256, the name of an OAuth2 bearer token, a client certificate and a Kerberos ticket, and the address an
-  OpenID Connect or SAML identity provider signs a person in with (for which no mailbox is made either). A password
+  SCRAM-SHA-256, the name of an OAuth2 bearer token, a client certificate and a Kerberos ticket (for an account linked
+  to a directory user, the directory user name and domain the account holds, where the database's comparison had
+  chosen among the linked accounts), and the address an OpenID Connect or SAML identity provider signs a person in
+  with (for which no mailbox is made either). A name that holds a NUL names no account and is refused before anything
+  is looked up with it: up to 6.3.7 such a name reached the account and domain lookups, where MySQL, MariaDB and
+  PostgreSQL failed the statement and the server reported a database error for each. A password
   sign-in also asks the hold, the country policy and, for the account that authenticated, the lockout of the
   account's own address once the password has found it, and the `account.locked` webhook is raised only for a locked
   name that is an account's own. A name with spaces after it no longer signs in (it is still counted against the
   account), nor does one that
-  differs from the stored address in the case of a letter the C library does not lower in the C locale (outside
-  ASCII on Windows and with glibc). `LogonNameTester` holds the rule (inside the server on Windows, and in
-  `sign-in-budget-tests` on Linux), and the regression fixtures `Security.LogonNameVariants` and
+  differs from the stored address in the case of a letter the C library does not lower in the C locale: with glibc
+  every letter but A to Z; on Windows Latin-1's own capitals (U+00C0 to U+00DE) and some letters from U+0100 up -
+  title-case letters, letters added in recent versions of Unicode and any outside the Basic Multilingual Plane among
+  them - while it lowers most of the others; and with musl (Alpine) hardly any, since it lowers nearly every letter,
+  so that there such a spelling signs in to the account and is counted under the
+  account's own key. `LogonNameTester` holds the rule
+  (inside the server on Windows, and in `sign-in-budget-tests` on Linux), and the regression fixtures
+  `Security.LogonNameVariants` (over IMAP and over the web services' HTTP Basic, which carries a name as UTF-8) and
   `API.RestApiCompromisedAccount` the sign-ins ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)).
   Found by the hMailServer project (Progressive Robot Ltd).
 
