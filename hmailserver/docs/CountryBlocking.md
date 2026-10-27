@@ -39,12 +39,17 @@ Two kinds of policy, in one grammar:
   to an account only when the account's stored address is that name, in other case,
   under an alias or the default domain (see *Which account a name signs in to* in
   [CompromisedAccounts.md](CompromisedAccounts.md)), so no other spelling of a name
-  chooses the policy either.
+  chooses the policy either: the check before the password finds the account by
+  that same rule, so a spelling the rule refuses meets the policy of its domain, as
+  a name that does not exist does, and where that policy lets it through it is
+  refused by the rule and counted as a failed sign-in, as such a name is.
   The IMAP master user signing in as another account (`AUTHENTICATE PLAIN` with an
   authorisation identity) meets both accounts' policies: its own before the
-  password, and the mailbox's after it - and the mailbox's compromise hold - so a
-  master user in a domain with no policy cannot open a mailbox from a country the
-  mailbox's domain refuses. Until 26 September 2026 only the master user's was asked.
+  password and again, asked of its own address, after it, and the mailbox's after
+  it - with both accounts' compromise holds - so a master user in a domain with no
+  policy cannot open a mailbox from a country the mailbox's domain refuses. Until
+  26 September 2026 only the master user's was asked, and up to 6.3.7 only of the
+  name it gave.
 
 Each is written as one string, because it is one decision:
 

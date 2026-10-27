@@ -598,9 +598,17 @@ namespace HM
       // The policy is a setting with levels (Application/EffectiveSetting.h):
       // the account's own where an administrator gave it one - an empty one
       // judging nothing for that account - and its domain's otherwise. The
-      // account is the one the name signs in as, resolved above as the
-      // sign-in resolves it.
-      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(canonical);
+      // account is the one the name signs in to, found by the sign-in's own rule
+      // (LogonName::FindAccount): a spelling the rule refuses - one the
+      // database's comparison takes for the account, an accented or full-width
+      // letter, a character the comparison ignores, white space at either end -
+      // names no account, so it meets its domain's policy as a name that does
+      // not exist does, and where that lets it through it is refused by the
+      // rule and counted as a failure, as such a name is. Found by the
+      // database's comparison, it met
+      // the account's own policy instead, and a refusal there was counted as
+      // nothing.
+      std::shared_ptr<const Account> account = LogonName::FindAccount(username);
 
       Policy policy;
       String error;

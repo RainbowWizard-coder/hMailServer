@@ -299,13 +299,16 @@ namespace HM
             return false;
          }
 
-         // The compromise hold, the one gate of the logon that Logon itself
-         // does not apply: IMAP, POP3, SMTP and the REST API each ask it after
-         // a successful password, and until 22 September 2026 this surface did
-         // not, so a credential the detector had put on hold could still read
-         // the address book, the calendar and who delegates to the account.
-         // RefusedByHold resets the pointer and counts nothing, as it does for
-         // the other callers: the password was right, and a hold is not a guess.
+         // The compromise hold. Logon asks it before the password of the name
+         // given and, once the password has found the account, of the
+         // account's own address (RefusedByHold(account, ip), with the country
+         // policy), so this asks it a second time; it is kept so that this
+         // surface does not depend on that. Until 22 September 2026 neither
+         // Logon nor this surface asked it after the password, so a credential
+         // the detector had put on hold could still read the address book, the
+         // calendar and who delegates to the account. RefusedByHold resets the
+         // pointer and counts nothing, as it does for the other callers: the
+         // password was right, and a hold is not a guess.
          if (AccountLogon::RefusedByHold(account))
          {
             LOG_APPLICATION(String(service) + ": account " + username + " authenticated but is held for review; refused.");

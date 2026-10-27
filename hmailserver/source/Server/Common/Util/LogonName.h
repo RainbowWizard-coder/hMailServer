@@ -20,7 +20,9 @@
 // password. A name the rule refuses is no account: the
 // sign-in fails as it fails for a name that does not exist, with the same reply
 // and after the same work (one lookup, no password verification), and the
-// failure is counted as any failure is.
+// failure is counted as any failure is. The country policy asked before the
+// password finds the account by this rule too, so such a name meets its
+// domain's policy, as a name that does not exist does, and not the account's.
 //
 // A name that holds a NUL (U+0000) is no account's either, and is refused before
 // any lookup is made with it: no stored address holds one, MySQL, MariaDB and
@@ -39,7 +41,10 @@
 // for which no password is verified, still counts under the account's key, unless
 // a domain alias's own stored name has white space at its end (which the server
 // no longer saves): there the trimmed name is the alias's name without it, which
-// is no account's, and such a name is counted as a name of no account is.
+// is no account's, and such a name is counted as a name of no account is. The
+// default domain is read and saved without white space at either end
+// (Configuration::GetDefaultDomain), so a bare local part's canonical form and
+// key are the account's address however the setting was saved.
 //
 // What is folded is what String::ToLower folds, in the C locale the server runs in
 // (it never sets another), and that differs by platform. With glibc it is A to Z

@@ -43,9 +43,12 @@ namespace HM
 
       // sMasqname, when it names another account than sUsername (the IMAP
       // master user's authzid, RFC 4616), is the account the session will be:
-      // the lockout and the country policy are asked for sUsername before the
-      // password, and RefusedByHold(account, ipaddress) - room, hold, country
-      // policy - for the account signed into after it, charged to nothing.
+      // the lockout, the hold and the country policy are asked for sUsername
+      // before the password; after it, the account that authenticated (the
+      // master user) is asked its own lockout and RefusedByHold(master,
+      // ipaddress) - room, hold, country policy - by its own address, and the
+      // account signed into RefusedByHold(account, ipaddress), each refusal
+      // charged to nothing.
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sMasqname, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
                                            SecondFactorOffer *secondFactor = nullptr, bool chargeAddress = true);

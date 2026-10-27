@@ -53,7 +53,18 @@ namespace RegressionTests.Security
    ///    locked IMAP master user signed in as another account under it: the name is
    ///    now refused, COM saves an alias's name trimmed, and a locked master user is
    ///    refused under every spelling, asked by its own address once its password is
-   ///    proved. The held account's case is in
+   ///    proved: on Windows, up to 6.3.7, under the master's address with U+2064 or
+   ///    U+061C after its domain as well, while its other spellings were refused
+   ///    already by IMAP's master check, SASLprep or the key's trim, so with those the
+   ///    master user tests guard the checks of its own address rather than reproduce
+   ///    the defect. A default domain saved with a space after it, which COM and the
+   ///    REST API saved as given up to 6.3.7, gave the local part alone a lockout of
+   ///    its own on MySQL, MariaDB and both SQL Servers, and no account on PostgreSQL:
+   ///    it is now saved and read trimmed. And an account's own country policy is met
+   ///    only by the names the sign-in takes for it: a spelling the rule refuses meets
+   ///    its domain's policy, as a name that does not exist does, and is counted as a
+   ///    failure, where up to 6.3.7 the account's policy refused it uncounted. The
+   ///    held account's case is in
    ///    API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH PLAIN, which
    ///    carries a name as UTF-8.
    /// </summary>
@@ -329,10 +340,7 @@ namespace RegressionTests.Security
             for (int i = 0; i < 3; i++)
                StringAssert.StartsWith("NO", ImapLogin(master.Address, "wrong" + i));
 
-            var spellings = new List<string> { master.Address, master.Address.ToUpperInvariant(), master.Address + " " };
-            spellings.AddRange(Variants(master.Address));
-            spellings.AddRange(Utf8Variants(master.Address));
-            foreach (string spelling in spellings)
+            foreach (string spelling in MasterSpellings(master.Address))
             {
                StringAssert.DoesNotContain("A01 OK", ImapAuthenticateAs(target.Address, spelling, Password),
                   "A locked master user must not sign in as another account under '" + Escape(spelling) + "'.");
@@ -351,6 +359,145 @@ namespace RegressionTests.Security
             _settings.IMAPSASLPlainEnabled = sasl;
             SetIniSetting("AccountLockoutThreshold", null);
             _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    The spellings of a master user's address that a locked or held master user
+      ///    must not sign in as another account under, with IMAPMasterUser its bare local
+      ///    part: its own, upper case, a space after it, Variants and Utf8Variants - each
+      ///    of which IMAP's own master check, SASLprep or the key's trim already refused
+      ///    up to 6.3.7, so with those the test guards the checks of the master user's
+      ///    own address after the password rather than reproducing the defect - and the
+      ///    address with U+2064 or U+061C after its domain. Those two the bare master
+      ///    name, qualified with the domain the authenticating name gives, takes; on
+      ///    Windows SASLprep keeps them and SQL Server Compact's comparison ignores them,
+      ///    so up to 6.3.7 a locked or held master user signed in as another account under
+      ///    them there; on Linux SASLprep refuses them before the sign-in.
+      /// </summary>
+      public static List<string> MasterSpellings(string address)
+      {
+         var spellings = new List<string> { address, address.ToUpperInvariant(), address + " " };
+         spellings.AddRange(Variants(address));
+         spellings.AddRange(Utf8Variants(address));
+         spellings.Add(address + "\u2064");
+         spellings.Add(address + "\u061c");
+         return spellings;
+      }
+
+      [Test]
+      [Description("A default domain saved with white space around it is saved and read without it: the local part alone signs in under it with the account's password, in other case and over SMTP and IMAP AUTHENTICATE too, and once the account's own name is locked it does not sign in under the local part alone. Up to 6.3.7 COM and the REST API saved it as given, and with a space after it the local part alone was counted apart from the account on MySQL, MariaDB and both SQL Servers, which took it for the account, and named no account on PostgreSQL")]
+      public void ADefaultDomainSavedWithWhiteSpaceAfterItStillCompletesTheAccountsAddress()
+      {
+         string defaultDomain = _settings.DefaultDomain;
+         bool sasl = _settings.IMAPSASLPlainEnabled;
+         try
+         {
+            _settings.IMAPSASLPlainEnabled = true;
+            _settings.DefaultDomain = _domain.Name + " ";
+
+            StringAssert.StartsWith("OK", ImapLogin("variant", Password), "The local part alone signs in under the default domain.");
+            StringAssert.StartsWith("OK", ImapLogin("VARIANT", Password), "So it does in other case.");
+            StringAssert.StartsWith("235", SmtpAuthPlain("variant", Password), "The local part alone signs in over SMTP AUTH PLAIN.");
+            StringAssert.Contains("A01 OK", ImapAuthenticateAs("", "variant", Password), "The local part alone signs in over IMAP AUTHENTICATE PLAIN.");
+
+            SetIniSetting("AccountLockoutThreshold", "3");
+            _application.Reinitialize();
+            for (int i = 0; i < 3; i++)
+               StringAssert.StartsWith("NO", ImapLogin(_account.Address, "wrong" + i));
+
+            StringAssert.StartsWith("NO", ImapLogin(_account.Address, Password), "The locked name refuses the right password.");
+            StringAssert.StartsWith("NO", ImapLogin("variant", Password),
+               "The local part alone, which names the locked account, must not sign in with its right password.");
+            StringAssert.DoesNotStartWith("235", SmtpAuthPlain("variant", Password),
+               "Nor over SMTP AUTH PLAIN.");
+
+            SetIniSetting("AccountLockoutThreshold", null);
+            _application.Reinitialize();
+
+            ClassicAssert.AreEqual(_domain.Name, _settings.DefaultDomain, "The default domain is saved without the space after it.");
+            _settings.DefaultDomain = " " + _domain.Name + "\t";
+            ClassicAssert.AreEqual(_domain.Name, _settings.DefaultDomain, "The default domain is saved without the white space around it.");
+         }
+         finally
+         {
+            SetIniSetting("AccountLockoutThreshold", null);
+            _settings.DefaultDomain = defaultDomain;
+            _settings.IMAPSASLPlainEnabled = sasl;
+            _application.Reinitialize();
+         }
+
+         StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password));
+      }
+
+      [Test]
+      [Description("Where an account has a country policy of its own that refuses the client's country and its domain has none, each spelling the databases took for the account meets its domain's policy, as a name that does not exist does: with the account's right password it fails as such a name fails, is not refused by the country check and is counted as a failure. The account's own name, in other case too, is refused by the account's policy and not counted. Up to 6.3.7 a spelling the database took for the account met the account's own policy, and the refusal was counted as nothing")]
+      public void ASpellingTheSignInRefusesMeetsItsDomainsCountryPolicy()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "geovariant@" + _domain.Name, Password);
+         string databasePath = Paths.Combine(_settings.Directories.DataDirectory, "GeoIP", "RegressionTests-LogonNameVariants.mmdb");
+         GeoIpFixture.WriteCountryDatabase(databasePath, new Dictionary<string, string> { { "127.0.0.0/8", "SE" } });
+
+         // What the server ships, put back after: an empty exemption, left behind,
+         // would let every policy judge the whole suite.
+         string exemptAsShipped = _settings.CountryBlockingExemptRanges;
+         if (string.IsNullOrWhiteSpace(exemptAsShipped))
+            exemptAsShipped = "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,100.64.0.0/10,fe80::/10,fc00::/7";
+
+         bool autoBan = _settings.AutoBanOnLogonFailure;
+         int attempts = _settings.MaxInvalidLogonAttempts;
+         _settings.SetAdministratorPassword(AdminPassword);
+         RestPort = RestListener.Start(RestPort);
+         _application.Reinitialize();
+         string address = Uri.EscapeDataString(account.Address);
+         try
+         {
+            // Every counted failure writes its "logon failure" line, and none bans.
+            _settings.AutoBanOnLogonFailure = true;
+            _settings.MaxInvalidLogonAttempts = 1000;
+            _settings.ClearLogonFailureList();
+            _settings.GeoIpDatabaseFile = databasePath;
+            _settings.CountryBlockingExemptRanges = "";
+
+            (int status, string body) put = Rest("PUT", "/api/v1/accounts/" + address, Basic("Administrator", AdminPassword), "{\"country_policy\":\"block:SE\"}");
+            ClassicAssert.AreEqual(200, put.status, put.body);
+
+            string wrongName = ImapLogin("nobody-at-all@" + _domain.Name, Password);
+            StringAssert.StartsWith("NO", wrongName);
+
+            foreach (string name in new[] { account.Address, account.Address.ToUpperInvariant() })
+            {
+               LogHandler.DeleteCurrentDefaultLog();
+               ClassicAssert.AreEqual(wrongName, ImapLogin(name, Password), "The account's policy refuses '" + Escape(name) + "' with the ordinary refusal.");
+               ClassicAssert.IsTrue(LogHandler.DefaultLogContains("Country blocking: refused sign-in"), "The account's own policy refused '" + Escape(name) + "'.");
+               StringAssert.DoesNotContain("Auto-ban: logon failure", LogHandler.ReadCurrentDefaultLog(), "A country refusal of '" + Escape(name) + "' is counted as nothing.");
+            }
+
+            var spellings = new List<string> { "nobody-at-all@" + _domain.Name };
+            spellings.AddRange(Variants(account.Address));
+            foreach (string name in spellings)
+            {
+               LogHandler.DeleteCurrentDefaultLog();
+               ClassicAssert.AreEqual(wrongName, ImapLogin(name, Password),
+                  "The spelling '" + Escape(name) + "' with the account's right password must fail as a name that does not exist fails.");
+               ClassicAssert.IsTrue(LogHandler.DefaultLogContains("Auto-ban: logon failure"),
+                  "The spelling '" + Escape(name) + "' must be counted as a failure, as a name that does not exist is.");
+               StringAssert.DoesNotContain("Country blocking: refused", LogHandler.ReadCurrentDefaultLog(),
+                  "The spelling '" + Escape(name) + "' must meet its domain's policy, which has none, and not the account's.");
+            }
+         }
+         finally
+         {
+            Rest("PUT", "/api/v1/accounts/" + address, Basic("Administrator", AdminPassword), "{\"country_policy\":\"\"}");
+            _settings.CountryBlockingExemptRanges = exemptAsShipped;
+            _settings.GeoIpDatabaseFile = "";
+            _settings.AutoBanOnLogonFailure = autoBan;
+            _settings.MaxInvalidLogonAttempts = attempts;
+            _settings.ClearLogonFailureList();
+            RestListener.Stop();
+            _application.Reinitialize();
+            if (File.Exists(databasePath))
+               File.Delete(databasePath);
          }
       }
 

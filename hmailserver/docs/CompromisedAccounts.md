@@ -131,7 +131,9 @@ with a NUL in it is counted against none and sends nothing
 ([AccountRecovery.md](AccountRecovery.md)). A name the database would also have taken for the account under
 another spelling names no account:
 it fails as a name that does not exist fails, with the same reply, and the
-failure is counted as any failure is. A name with a NUL in it is refused before
+failure is counted as any failure is; the country policy asked before the
+password finds the account by the same rule, so such a name meets the policy of
+its domain, as a name that does not exist does, and not the account's own. A name with a NUL in it is refused before
 anything is looked up with it, so no database statement carries one. The lockout counts each name under the same key the comparison is
 made with (the name trimmed, in lower case, with the alias and the default
 domain applied), so a name that signs in to an account is counted as that
@@ -140,7 +142,11 @@ domain aliases hold, and no password is verified for it; it is counted as the
 account too, unless a domain alias's own stored name ends in white space, when it
 is counted as a name of no account is. The server takes the white space off an
 alias's name when it saves one, through COM and the Control Panel as through the
-REST API; an alias saved before may still hold it.
+REST API; an alias saved before may still hold it. The default domain is taken
+without white space at either end too, when it is saved and when it is read, so
+a bare local part signs in to the account and is counted as it however the
+setting was saved. Up to 6.3.7 COM and the REST API saved it as given, and with
+white space after it a bare local part could be counted apart from the account.
 
 Up to 6.3.7 the account a name signed in to was whichever one the database's own
 comparison found, and the databases find an account under spellings the lockout

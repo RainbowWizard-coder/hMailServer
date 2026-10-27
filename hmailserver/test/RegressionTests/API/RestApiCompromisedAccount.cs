@@ -261,10 +261,13 @@ namespace RegressionTests.API
             Submit(master.Address, third.Address, "Message 3");
             Assert.IsTrue(MiniJson.Flag(MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(master.Address) + "/review", null).body), "locked"), "The shape held the master user.");
 
-            var spellings = new List<string> { master.Address, master.Address.ToUpperInvariant(), master.Address + " " };
-            spellings.AddRange(global::RegressionTests.Security.LogonNameVariants.Variants(master.Address));
-            spellings.AddRange(global::RegressionTests.Security.LogonNameVariants.Utf8Variants(master.Address));
-            foreach (string spelling in spellings)
+            // Its own spelling and the ones the master check, SASLprep or the key's
+            // trim refused already up to 6.3.7, which guard the check of the master
+            // user's own address after the password, and two after its domain that
+            // SQL Server Compact's comparison ignores, under which a held master user
+            // signed in as another account on Windows up to 6.3.7
+            // (LogonNameVariants.MasterSpellings).
+            foreach (string spelling in global::RegressionTests.Security.LogonNameVariants.MasterSpellings(master.Address))
             {
                StringAssert.DoesNotContain("A01 OK", global::RegressionTests.Security.LogonNameVariants.ImapAuthenticateAs(target.Address, spelling, Password),
                   "A held master user must not sign in as another account under a spelling of its name of " + spelling.Length + " characters.");

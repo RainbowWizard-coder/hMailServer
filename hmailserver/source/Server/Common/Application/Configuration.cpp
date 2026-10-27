@@ -1494,13 +1494,28 @@ namespace HM
    String
    Configuration::GetDefaultDomain() const
    {
-      return GetSettings()->GetString(PROPERTY_DEFAULTDOMAIN);
+      // Without white space at either end, however it was saved: a sign-in
+      // appends it to a bare local part (LogonName::Resolve,
+      // DefaultDomain::ApplyDefaultDomain), and the sign-in's rule and the
+      // per-name lockout's key compare the result with an account's stored
+      // address over the whole string, so "example.test " made a bare local part
+      // name no account, while MySQL, MariaDB and both SQL Servers, which compare
+      // a trailing space away, found the account and its domain under it. Up to
+      // 6.3.7 COM and the REST API saved the text as given and only the Control
+      // Panel's field trimmed it; a value saved before is met here too.
+      String name = GetSettings()->GetString(PROPERTY_DEFAULTDOMAIN);
+      name.Trim();
+      return name;
    }
 
    void
    Configuration::SetDefaultDomain(const String &newVal)
    {
-      GetSettings()->SetString(PROPERTY_DEFAULTDOMAIN, newVal);
+      // Saved without white space at either end, through COM and the REST API
+      // alike, as a domain alias's name is (see GetDefaultDomain).
+      String name = newVal;
+      name.Trim();
+      GetSettings()->SetString(PROPERTY_DEFAULTDOMAIN, name);
    }
 
    long

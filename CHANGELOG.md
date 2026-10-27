@@ -251,8 +251,11 @@ with `--check`).
   be signed into under another spelling of its name with its password. Now a name signs in to an account only when
   the account's stored address is that name, compared in lower case after the alias and the default domain, by the
   function the lockout's key is made with: any other spelling names no account, fails as a name that does not
-  exist fails, with the same reply and no password verified, and is counted as a failure. The same rule finds the
-  account for every sign-in by a name a client or another party gives: the password sign-ins of SMTP, IMAP, POP3,
+  exist fails, with the same reply and no password verified, and is counted as a failure; the country policy asked
+  before the password finds the account by that rule too, so such a spelling meets its domain's policy, as a name
+  that does not exist does, where it had met the account's own and a refusal there was counted as nothing. The
+  same rule finds the account for every sign-in by a name a client or another party gives: the password sign-ins
+  of SMTP, IMAP, POP3,
   ManageSieve, the DAV services, the webmail, the REST API and COM, the IMAP master user's authorisation identity,
   SCRAM-SHA-256, the name of an OAuth2 bearer token, a client certificate and a Kerberos ticket (for an account linked
   to a directory user, the directory user name and domain the account holds, where the database's comparison had
@@ -265,12 +268,14 @@ with `--check`).
   master user's own hold, country policy and lockout are asked of its own address too, besides the other account's
   hold and country policy, where up to 6.3.7 they were asked only of the name it gave, so that a held or locked
   master user opens no mailbox under any spelling of its name; and the `account.locked` webhook is raised only for a
-  locked name that is an account's own. A name with white space at either end no longer signs in, whatever the domain
-  aliases hold (it
+  locked name that is an account's own. A name with white space at either end no longer signs in, whatever the
+  domain aliases hold (it
   is still counted against the account, or as a name of no account where a domain alias's own stored name ends in
   white space; the server now takes the white space off an alias's name when COM or the Control Panel saves one, as
-  the REST API did, where up to 6.3.7 a name under such an alias could be counted apart from the account), nor does
-  one that
+  the REST API did, where up to 6.3.7 a name under such an alias could be counted apart from the account; and the
+  default domain is saved and read without white space at either end, where up to 6.3.7 COM and the REST API saved it
+  as given, and with white space after it a bare local part could be counted apart from the account), nor does one
+  that
   differs from the stored address in the case of a letter the C library does not lower in the C locale: with glibc
   every letter but A to Z; on Windows Latin-1's own capitals (U+00C0 to U+00DE) and some letters from U+0100 up -
   title-case letters, letters added in recent versions of Unicode and any outside the Basic Multilingual Plane among
@@ -280,7 +285,8 @@ with `--check`).
   (inside the server on Windows, and in `sign-in-budget-tests` on Linux), and the regression fixtures
   `Security.LogonNameVariants` (over IMAP, over the web services' HTTP Basic, which carries a name as UTF-8, and over
   SCRAM-SHA-256 on SMTP, IMAP and POP3, and a name holding a NUL over IMAP LOGIN and in a request for a password
-  reset, an alias whose stored name ends in a space, and a locked IMAP master user) and
+  reset, an alias whose stored name ends in a space, a default domain saved with white space after it, an
+  account's own country policy and a locked IMAP master user) and
   `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP AUTH PLAIN, which carries a name as UTF-8
   too, and a held IMAP master user) and `Security.CountryBlocking` (the IMAP master user's own country policy) the
   sign-ins
