@@ -57,7 +57,6 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <fstream>
 #include <functional>
 #include <mutex>
@@ -92,6 +91,17 @@ namespace
       return text.find(part) != std::string::npos;
    }
 
+   // The address of the Unix socket at path. The structure is zeroed and no more
+   // than sun_path's size less one byte is copied, so the path is always ended by
+   // a zero; the paths this program binds and connects to are made to fit.
+   sockaddr_un UnixAddress(const std::string &path)
+   {
+      sockaddr_un address = {};
+      address.sun_family = AF_UNIX;
+      path.copy(address.sun_path, sizeof(address.sun_path) - 1);
+      return address;
+   }
+
    // A clamd of this program's own on a Unix socket: one connection at a time, one
    // command a connection, as clamd takes the n-prefixed commands.
    class FakeClamd
@@ -117,9 +127,7 @@ namespace
          if (listener_ < 0)
             return;
 
-         sockaddr_un address = {};
-         address.sun_family = AF_UNIX;
-         strncpy(address.sun_path, path_.c_str(), sizeof(address.sun_path) - 1);
+         sockaddr_un address = UnixAddress(path_);
          ::unlink(path_.c_str());
          if (::bind(listener_, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0 || ::listen(listener_, backlog) != 0)
          {
@@ -358,9 +366,7 @@ namespace
       std::vector<int> made;
       full = false;
 
-      sockaddr_un address = {};
-      address.sun_family = AF_UNIX;
-      strncpy(address.sun_path, path.c_str(), sizeof(address.sun_path) - 1);
+      sockaddr_un address = UnixAddress(path);
 
       for (int i = 0; i < 64; i++)
       {
@@ -492,9 +498,7 @@ namespace
       {
          const std::string path = directory + "/stale.sock";
          const int stale = ::socket(AF_UNIX, SOCK_STREAM, 0);
-         sockaddr_un address = {};
-         address.sun_family = AF_UNIX;
-         strncpy(address.sun_path, path.c_str(), sizeof(address.sun_path) - 1);
+         sockaddr_un address = UnixAddress(path);
          const bool bound = stale >= 0 && ::bind(stale, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0;
          if (stale >= 0)
             ::close(stale);

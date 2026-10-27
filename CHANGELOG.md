@@ -1193,9 +1193,10 @@ with `--check`).
 - **New: the Linux server reaches clamd over its Unix socket.** `ClamAVHost` takes, on Linux and the other POSIX
   systems, the absolute path of clamd's `LocalSocket` in place of a host name - `/var/run/clamav/clamd.ctl` for
   Debian's and Ubuntu's `clamav-daemon`, which listens on nothing else by default and leaves the socket open to every
-  user, `/run/clamav/clamd.sock` for Alpine's - and the message is streamed to that socket with INSTREAM, and the
-  connection test's PING and VERSION asked on it, with the deadlines it has over TCP
-  (`SynchronousConnection::ConnectLocal`); `ClamAVPort` is not used, and no setting is new. A clamd whose queue of
+  user, `/run/clamav/clamd.sock` for Alpine's - and the message is streamed to that socket with INSTREAM, with the
+  deadlines it has over TCP (`SynchronousConnection::ConnectLocal`); `ClamAVPort` is not used, and no setting is
+  new. The connection test would ask PING and VERSION on the socket the same way, but the REST API has no route for
+  it yet, so on Linux it is not offered and the Deck has no button for it: a test message and the log show the scan. A clamd whose queue of
   connections waiting to be accepted is full - at its `MaxConnectionQueueLength`, or reloading its signatures - is
   waited for until the deadline, as over TCP: the socket is connected with a blocking `connect()` that its send
   timeout bounds, since Linux's non-blocking one fails at once with EAGAIN on a full queue, which Boost.Asio takes for
