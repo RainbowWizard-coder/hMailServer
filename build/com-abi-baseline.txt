@@ -1,9 +1,127 @@
 # The COM interfaces of hmailserver/source/Server/hMailServer/hMailServer.idl at v6.3.7 (commit 31d656c0ce85650202b2c0f70bdd1cffa7243e34),
 # written by python build/check-com-abi.py --write-baseline v6.3.7, which reads that tag through git.
 # build/check-com-abi.py holds the tree to it: each interface's members, in this order, come first in
-# the tree's, so that an early-bound client built against that release's type library calls the
-# member it names. Not edited by hand; rewritten from the next release's tag.
+# the tree's, and each enumerator keeps its value, so that an early-bound client built against that
+# release's type library calls the member it names. Not edited by hand; rewritten from the next
+# release's tag.
 release v6.3.7 31d656c0ce85650202b2c0f70bdd1cffa7243e34
+enum eDBtype hDBTypeUnknown = 0
+enum eDBtype hDBTypeMySQL = 1
+enum eDBtype hDBTypeMSSQL = 2
+enum eDBtype hDBTypePostgreSQL = 3
+enum eDBtype hDBTypeMSSQLCE = 4
+enum eAntivirusAction hDeleteEmail = 0
+enum eAntivirusAction hDeleteAttachments = 1
+enum eServerState hStateUnknown = 0
+enum eServerState hStateStopped = 1
+enum eServerState hStateStarting = 2
+enum eServerState hStateRunning = 3
+enum eServerState hStateStopping = 4
+enum eServerState hStateDraining = 5
+enum eLogDevice hLogDeviceUnknown = 0
+enum eLogDevice hLogDeviceSQL = 1
+enum eLogDevice hLogDeviceFile = 2
+enum eLogOutputFormat hLogFormatDefault = 1
+enum eLogOutputFormat hLogFormatCSA = 2
+enum eAdminLevel hAdminLevelNormal = 0
+enum eAdminLevel hAdminLevelDomainAdmin = 1
+enum eAdminLevel hAdminLevelServerAdmin = 2
+enum eRulePredefinedField eFTUnknown = 0
+enum eRulePredefinedField eFTFrom = 1
+enum eRulePredefinedField eFTTo = 2
+enum eRulePredefinedField eFTCC = 3
+enum eRulePredefinedField eFTSubject = 4
+enum eRulePredefinedField eFTBody = 5
+enum eRulePredefinedField eFTMessageSize = 6
+enum eRulePredefinedField eFTRecipientList = 7
+enum eRulePredefinedField eFTDeliveryAttempts = 8
+enum eRulePredefinedField eFTAttachmentName = 9
+enum eRulePredefinedField eFTSensitiveContent = 10
+enum eRulePredefinedField eFTAttachmentType = 11
+enum eRulePredefinedField eFTExternalRecipient = 12
+enum eRulePredefinedField eFTContent = 13
+enum eRuleMatchType eMTUnknown = 0
+enum eRuleMatchType eMTEquals = 1
+enum eRuleMatchType eMTContains = 2
+enum eRuleMatchType eMTLessThan = 3
+enum eRuleMatchType eMTGreaterThan = 4
+enum eRuleMatchType eMTRegExMatch = 5
+enum eRuleMatchType eMTNotContains = 6
+enum eRuleMatchType eMTNotEquals = 7
+enum eRuleMatchType eMTWildcard = 8
+enum eRuleActionType eRAUnknown = 0
+enum eRuleActionType eRADeleteEmail = 1
+enum eRuleActionType eRAForwardEmail = 2
+enum eRuleActionType eRAReply = 3
+enum eRuleActionType eRAMoveToImapFolder = 4
+enum eRuleActionType eRARunScriptFunction = 5
+enum eRuleActionType eRAStopRuleProcessing = 6
+enum eRuleActionType eRASetHeaderValue = 7
+enum eRuleActionType eRASendUsingRoute = 8
+enum eRuleActionType eRACreateCopy = 9
+enum eRuleActionType eRABindToAddress = 10
+enum eRuleActionType eRAAddDisclaimer = 11
+enum eRuleActionType eRAReject = 12
+enum eRuleActionType eRARequireTLS = 13
+enum eRuleActionType eRAQuarantine = 14
+enum eRuleActionType eRAWarnSender = 15
+enum eDistributionListMode eLMPublic = 0
+enum eDistributionListMode eLMMembership = 1
+enum eDistributionListMode eLMAnnouncement = 2
+enum eDistributionListMode eLMDomainMembers = 3
+enum eDistributionListMode eLMServerMembers = 4
+enum eSessionType eSTUnknown = 0
+enum eSessionType eSTSMTP = 1
+enum eSessionType eSTSMTPClient = 2
+enum eSessionType eSTPOP3 = 3
+enum eSessionType eSTPOP3Client = 4
+enum eSessionType eSTIMAP = 5
+enum eConnectionSecurity eCSNone = 0
+enum eConnectionSecurity eCSTLS = 1
+enum eConnectionSecurity eCSSTARTTLSOptional = 2
+enum eConnectionSecurity eCSSTARTTLSRequired = 3
+enum eRemoteTlsRequirement eRTNone = 0
+enum eRemoteTlsRequirement eRTEncrypted = 1
+enum eRemoteTlsRequirement eRTVerified = 2
+enum eRemoteTlsRequirement eRTDane = 3
+enum eRemoteEncryption eREEncryptNone = 0
+enum eRemoteEncryption eREEncryptOpenPgp = 1
+enum eRemoteEncryption eREEncryptSmime = 2
+enum eDomainSignatureMethod eSMUnknown = 0
+enum eDomainSignatureMethod eSMSetIfNotSpecifiedInAccount = 1
+enum eDomainSignatureMethod eSMOverwriteAccountSignature = 2
+enum eDomainSignatureMethod eSMAppendToAccountSignature = 3
+enum eMessageFlag eMFSeen = 1
+enum eMessageFlag eMFDeleted = 2
+enum eMessageFlag eMFFlagged = 4
+enum eMessageFlag eMFAnswered = 8
+enum eMessageFlag eMFDraft = 16
+enum eMessageFlag eMFRecent = 32
+enum eMessageFlag eMFVirusScan = 64
+enum eMessageFlag eMFSpam = 128
+enum eACLPermission ePermissionLookup = 1
+enum eACLPermission ePermissionRead = 2
+enum eACLPermission ePermissionWriteSeen = 4
+enum eACLPermission ePermissionWriteOthers = 8
+enum eACLPermission ePermissionInsert = 16
+enum eACLPermission ePermissionPost = 32
+enum eACLPermission ePermissionCreate = 64
+enum eACLPermission ePermissionDeleteMailbox = 128
+enum eACLPermission ePermissionWriteDeleted = 256
+enum eACLPermission ePermissionExpunge = 512
+enum eACLPermission ePermissionAdminister = 1024
+enum eACLPermissionType ePermissionTypeUser = 0
+enum eACLPermissionType ePermissionTypeGroup = 1
+enum eACLPermissionType ePermissionTypeAnyone = 2
+enum eDKIMResult eDKNeutral = 0
+enum eDKIMResult eDKPass = 1
+enum eDKIMResult eDKTempFail = 2
+enum eDKIMResult eDKPermFail = 3
+enum eDKIMCanonicalizationMethod eCanonicalizationSimple = 1
+enum eDKIMCanonicalizationMethod eCanonicalizationRelaxed = 2
+enum eDKIMAlgorithm eSHA1 = 1
+enum eDKIMAlgorithm eSHA256 = 2
+enum eMaintenanceOperation eUpdateIMAPFolderUID = 1
 library hMailServer uuid(DB241B59-A1B1-4C59-98FC-8D101A2995F2) version(1.0)
 coclass DiagnosticResults uuid(3AC49BB3-3F3C-4D82-AC0F-28464C408EA9) default IInterfaceDiagnosticResults
 coclass DiagnosticResult uuid(430C3328-6348-4A86-8E12-74B5B5EFF48D) default IInterfaceDiagnosticResult
@@ -105,7 +223,7 @@ coclass IncomingRelays uuid(3E75EE53-EAA6-40A5-B2CE-9CB8D7EE9278) default IInter
 coclass MessageIndexing uuid(5F414F73-8E29-4E51-86F2-13C12EF9227A) default IInterfaceMessageIndexing
 coclass SenderListEntry uuid(5A012C36-D930-4F2E-9AC7-73C0D9EE1207) default IInterfaceSenderListEntry
 coclass SenderListEntries uuid(78E74BA8-BB64-46B9-AD47-F6F8061B68C0) default IInterfaceSenderListEntries
-interface IInterfaceAccount uuid(E5EDC050-0899-4A3B-BF4C-420212FC3895) : IDispatch
+interface IInterfaceAccount uuid(E5EDC050-0899-4A3B-BF4C-420212FC3895) : IDispatch dual object
   propget id(1) HRESULT Active([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Active([in] VARIANT_BOOL)
   propget id(2) HRESULT ADDomain([out,retval] BSTR*)
@@ -241,7 +359,7 @@ interface IInterfaceAccount uuid(E5EDC050-0899-4A3B-BF4C-420212FC3895) : IDispat
   propput id(87) HRESULT ExternalId([in] BSTR)
   propget id(88) HRESULT Kind([out,retval] long*)
   propput id(88) HRESULT Kind([in] long)
-interface IInterfaceAccounts uuid(0AD49AE7-05ED-45F2-8D5A-68FC964EB7EA) : IDispatch
+interface IInterfaceAccounts uuid(0AD49AE7-05ED-45F2-8D5A-68FC964EB7EA) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceAccount**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT Add([out,retval] IInterfaceAccount**)
@@ -250,7 +368,7 @@ interface IInterfaceAccounts uuid(0AD49AE7-05ED-45F2-8D5A-68FC964EB7EA) : IDispa
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceAccount**)
   propget id(6) HRESULT ItemByAddress([in] BSTR, [out,retval] IInterfaceAccount**)
   method id(7) HRESULT DeleteByDBID([in] long)
-interface IInterfaceAlias uuid(9420A3E9-ED5C-4699-98BE-0CBF3B7D3714) : IDispatch
+interface IInterfaceAlias uuid(9420A3E9-ED5C-4699-98BE-0CBF3B7D3714) : IDispatch dual object
   propget id(1) HRESULT Active([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Active([in] VARIANT_BOOL)
   propget id(2) HRESULT DomainID([out,retval] long*)
@@ -262,7 +380,7 @@ interface IInterfaceAlias uuid(9420A3E9-ED5C-4699-98BE-0CBF3B7D3714) : IDispatch
   propput id(6) HRESULT Value([in] BSTR)
   method id(7) HRESULT Delete()
   method id(8) HRESULT Save()
-interface IInterfaceAliases uuid(11AA2C23-66BA-4DE0-92AB-C4F8DCC21D32) : IDispatch
+interface IInterfaceAliases uuid(11AA2C23-66BA-4DE0-92AB-C4F8DCC21D32) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceAlias**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT Delete([in] long)
@@ -271,7 +389,7 @@ interface IInterfaceAliases uuid(11AA2C23-66BA-4DE0-92AB-C4F8DCC21D32) : IDispat
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceAlias**)
   method id(6) HRESULT DeleteByDBID([in] long)
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceAlias**)
-interface IInterfaceAntiSpam uuid(998A7E66-21FA-47CC-9DB4-81822F2D05C9) : IDispatch
+interface IInterfaceAntiSpam uuid(998A7E66-21FA-47CC-9DB4-81822F2D05C9) : IDispatch dual object
   propget id(1) HRESULT GreyListingEnabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT GreyListingEnabled([in] VARIANT_BOOL)
   propget id(2) HRESULT GreyListingInitialDelay([out,retval] long*)
@@ -382,7 +500,7 @@ interface IInterfaceAntiSpam uuid(998A7E66-21FA-47CC-9DB4-81822F2D05C9) : IDispa
   propput id(81) HRESULT RefuseMailFromDomainNotFqdn([in] VARIANT_BOOL)
   propget id(82) HRESULT SurblTooManyDomainsScore([out,retval] long*)
   propput id(82) HRESULT SurblTooManyDomainsScore([in] long)
-interface IInterfaceAntiVirus uuid(952EE84F-C1D4-4869-8B86-76A3BA8F39FA) : IDispatch
+interface IInterfaceAntiVirus uuid(952EE84F-C1D4-4869-8B86-76A3BA8F39FA) : IDispatch dual object
   propget id(1) HRESULT ClamWinEnabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT ClamWinEnabled([in] VARIANT_BOOL)
   propget id(2) HRESULT ClamWinExecutable([out,retval] BSTR*)
@@ -415,7 +533,7 @@ interface IInterfaceAntiVirus uuid(952EE84F-C1D4-4869-8B86-76A3BA8F39FA) : IDisp
   method id(16) HRESULT TestCustomerScanner([in] BSTR, long, [out] BSTR*, [out,retval] VARIANT_BOOL*)
   method id(17) HRESULT TestClamWinScanner([in] BSTR, BSTR, [out] BSTR*, [out,retval] VARIANT_BOOL*)
   method id(18) HRESULT TestClamAVScanner([in] BSTR, long, [out] BSTR*, [out,retval] VARIANT_BOOL*)
-interface IInterfaceAppPassword uuid(C82DBCD9-FAF5-415F-9BC2-874D0304D78F) : IDispatch
+interface IInterfaceAppPassword uuid(C82DBCD9-FAF5-415F-9BC2-874D0304D78F) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT Name([out,retval] BSTR*)
   propput id(2) HRESULT Name([in] BSTR)
@@ -427,7 +545,7 @@ interface IInterfaceAppPassword uuid(C82DBCD9-FAF5-415F-9BC2-874D0304D78F) : IDi
   method id(7) HRESULT SetPassword([in] BSTR)
   method id(8) HRESULT Save()
   method id(9) HRESULT Delete()
-interface IInterfaceAppPasswords uuid(7CD468C7-70DA-410E-B700-3D4B1AB2FEA8) : IDispatch
+interface IInterfaceAppPasswords uuid(7CD468C7-70DA-410E-B700-3D4B1AB2FEA8) : IDispatch dual object
   propget id(1) HRESULT Count([out,retval] LONG*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceAppPassword**)
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceAppPassword**)
@@ -435,7 +553,7 @@ interface IInterfaceAppPasswords uuid(7CD468C7-70DA-410E-B700-3D4B1AB2FEA8) : ID
   method id(6) HRESULT Delete(long)
   method id(7) HRESULT DeleteByDBID(long)
   method id(8) HRESULT Add([out,retval] IInterfaceAppPassword**)
-interface IInterfaceApplication uuid(2C1A3EF1-115F-4029-BB33-D9CCA4BB0DE8) : IDispatch
+interface IInterfaceApplication uuid(2C1A3EF1-115F-4029-BB33-D9CCA4BB0DE8) : IDispatch dual object
   method id(1) HRESULT Start()
   method id(2) HRESULT Stop()
   propget id(3) HRESULT Settings([out,retval] IInterfaceSettings**)
@@ -466,17 +584,17 @@ interface IInterfaceApplication uuid(2C1A3EF1-115F-4029-BB33-D9CCA4BB0DE8) : IDi
   method id(28) HRESULT ResetPassword([in] BSTR, [in] BSTR)
   method id(29) HRESULT UnlockAccount([in] BSTR)
   method id(30) HRESULT CreateMessage([out,retval] IInterfaceMessage**)
-interface IInterfaceAttachment uuid(0CD0DDFF-2D30-41BE-9845-D37EADB1A007) : IDispatch
+interface IInterfaceAttachment uuid(0CD0DDFF-2D30-41BE-9845-D37EADB1A007) : IDispatch dual object
   propget id(1) HRESULT Filename([out,retval] BSTR*)
   propget id(2) HRESULT Size([out,retval] long*)
   method id(3) HRESULT SaveAs(BSTR)
   method id(4) HRESULT Delete()
-interface IInterfaceAttachments uuid(BED37911-1180-4840-A831-196C6771EF54) : IDispatch
+interface IInterfaceAttachments uuid(BED37911-1180-4840-A831-196C6771EF54) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceAttachment**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT Clear()
   method id(3) HRESULT Add([in] BSTR)
-interface IInterfaceBackup uuid(BC84454B-FCE1-41FA-A3DD-2C57F61D4310) : IDispatch
+interface IInterfaceBackup uuid(BC84454B-FCE1-41FA-A3DD-2C57F61D4310) : IDispatch dual object
   method id(1) HRESULT StartRestore()
   propget id(2) HRESULT ContainsSettings([out,retval] VARIANT_BOOL*)
   propget id(3) HRESULT ContainsDomains([out,retval] VARIANT_BOOL*)
@@ -487,7 +605,7 @@ interface IInterfaceBackup uuid(BC84454B-FCE1-41FA-A3DD-2C57F61D4310) : IDispatc
   propput id(6) HRESULT RestoreDomains([in] VARIANT_BOOL)
   propget id(7) HRESULT RestoreMessages([out,retval] VARIANT_BOOL*)
   propput id(7) HRESULT RestoreMessages([in] VARIANT_BOOL)
-interface IInterfaceBackupManager uuid(E773E8FC-1C9A-4E96-A73C-CC02E7649637) : IDispatch
+interface IInterfaceBackupManager uuid(E773E8FC-1C9A-4E96-A73C-CC02E7649637) : IDispatch dual object
   method id(1) HRESULT StartBackup()
   method id(2) HRESULT LoadBackup([in] BSTR, [out,retval] IInterfaceBackup**)
   method id(3) HRESULT LoadEncryptedBackup([in] BSTR, [in] BSTR, [out,retval] IInterfaceBackup**)
@@ -495,7 +613,7 @@ interface IInterfaceBackupManager uuid(E773E8FC-1C9A-4E96-A73C-CC02E7649637) : I
   method id(5) HRESULT RestoreMessage([in] BSTR, [in] BSTR, [in] hyper, [in] BSTR, [in] BSTR, [out,retval] long*)
   method id(6) HRESULT DescribeMailbox([in] BSTR, [in] BSTR, [in] BSTR, [out,retval] BSTR*)
   method id(7) HRESULT MailboxRestoreStatus([in] long, [out,retval] BSTR*)
-interface IInterfaceBackupSettings uuid(2C5559F0-DF3F-43C0-935C-F79D41CF8A5B) : IDispatch
+interface IInterfaceBackupSettings uuid(2C5559F0-DF3F-43C0-935C-F79D41CF8A5B) : IDispatch dual object
   propget id(1) HRESULT Destination([out,retval] BSTR*)
   propput id(1) HRESULT Destination([in] BSTR)
   propget id(2) HRESULT BackupSettings([out,retval] VARIANT_BOOL*)
@@ -509,7 +627,7 @@ interface IInterfaceBackupSettings uuid(2C5559F0-DF3F-43C0-935C-F79D41CF8A5B) : 
   propget id(7) HRESULT LogFile([out,retval] BSTR*)
   propput id(8) HRESULT EncryptionPassphrase([in] BSTR)
   propget id(9) HRESULT EncryptionPassphraseSet([out,retval] VARIANT_BOOL*)
-interface IInterfaceBlockedAttachment uuid(BF5CBCFF-CD54-4FAB-AE60-ADFA9C961C1A) : IDispatch
+interface IInterfaceBlockedAttachment uuid(BF5CBCFF-CD54-4FAB-AE60-ADFA9C961C1A) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Wildcard([out,retval] BSTR*)
   propput id(2) HRESULT Wildcard([in] BSTR)
@@ -517,14 +635,14 @@ interface IInterfaceBlockedAttachment uuid(BF5CBCFF-CD54-4FAB-AE60-ADFA9C961C1A)
   propget id(4) HRESULT Description([out,retval] BSTR*)
   propput id(4) HRESULT Description([in] BSTR)
   method id(5) HRESULT Delete()
-interface IInterfaceBlockedAttachments uuid(8979F461-AD9D-49E8-8068-BBAB43FBA31A) : IDispatch
+interface IInterfaceBlockedAttachments uuid(8979F461-AD9D-49E8-8068-BBAB43FBA31A) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceBlockedAttachment**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
   method id(3) HRESULT Add([out,retval] IInterfaceBlockedAttachment**)
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceBlockedAttachment**)
   method id(6) HRESULT Refresh()
-interface IInterfaceBlockedSender uuid(F192BDA6-7B52-4969-8476-DF66F9A32AC7) : IDispatch
+interface IInterfaceBlockedSender uuid(F192BDA6-7B52-4969-8476-DF66F9A32AC7) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Address([out,retval] BSTR*)
   propput id(2) HRESULT Address([in] BSTR)
@@ -534,7 +652,7 @@ interface IInterfaceBlockedSender uuid(F192BDA6-7B52-4969-8476-DF66F9A32AC7) : I
   propput id(4) HRESULT Description([in] BSTR)
   method id(5) HRESULT Save()
   method id(6) HRESULT Delete()
-interface IInterfaceBlockedSenders uuid(778D2305-46DD-40B6-A34F-4C4065FD2E9E) : IDispatch
+interface IInterfaceBlockedSenders uuid(778D2305-46DD-40B6-A34F-4C4065FD2E9E) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceBlockedSender**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -543,7 +661,7 @@ interface IInterfaceBlockedSenders uuid(778D2305-46DD-40B6-A34F-4C4065FD2E9E) : 
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceBlockedSender**)
   method id(6) HRESULT Refresh()
   method id(7) HRESULT Clear()
-interface IInterfaceCache uuid(AE45B7CD-C050-4B14-A983-30D53059D24F) : IDispatch
+interface IInterfaceCache uuid(AE45B7CD-C050-4B14-A983-30D53059D24F) : IDispatch dual object
   propget id(1) HRESULT Enabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Enabled([in] VARIANT_BOOL)
   propget id(2) HRESULT DomainCacheTTL([out,retval] long*)
@@ -571,7 +689,7 @@ interface IInterfaceCache uuid(AE45B7CD-C050-4B14-A983-30D53059D24F) : IDispatch
   propget id(19) HRESULT DistributionListCacheMaxSizeKb([out,retval] long*)
   propput id(19) HRESULT DistributionListCacheMaxSizeKb([in] long)
   propget id(20) HRESULT DistributionListCacheSizeKb([out,retval] long*)
-interface IInterfaceClient uuid(63D8A81C-E3BA-4768-9F14-0FCF5A6844D7) : IDispatch
+interface IInterfaceClient uuid(63D8A81C-E3BA-4768-9F14-0FCF5A6844D7) : IDispatch dual object
   propget id(1) HRESULT Port([out,retval] LONG*)
   propget id(2) HRESULT IPAddress([out,retval] BSTR*)
   propget id(3) HRESULT Username([out,retval] BSTR*)
@@ -582,7 +700,7 @@ interface IInterfaceClient uuid(63D8A81C-E3BA-4768-9F14-0FCF5A6844D7) : IDispatc
   propget id(8) HRESULT CipherName([out,retval] BSTR*)
   propget id(9) HRESULT CipherBits([out,retval] LONG*)
   propget id(10) HRESULT SessionID([out,retval] LONG*)
-interface IInterfaceDNSBlackList uuid(6E011153-63D9-4B86-BA97-E55D152B221D) : IDispatch
+interface IInterfaceDNSBlackList uuid(6E011153-63D9-4B86-BA97-E55D152B221D) : IDispatch dual object
   propget id(1) HRESULT Active([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Active([in] VARIANT_BOOL)
   propget id(2) HRESULT ID([out,retval] long*)
@@ -596,7 +714,7 @@ interface IInterfaceDNSBlackList uuid(6E011153-63D9-4B86-BA97-E55D152B221D) : ID
   propget id(7) HRESULT Score([out,retval] long*)
   propput id(7) HRESULT Score([in] long)
   method id(8) HRESULT Delete()
-interface IInterfaceDNSBlackLists uuid(6B87D71F-93B7-4163-AA89-DA999A5A7239) : IDispatch
+interface IInterfaceDNSBlackLists uuid(6B87D71F-93B7-4163-AA89-DA999A5A7239) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceDNSBlackList**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -604,7 +722,7 @@ interface IInterfaceDNSBlackLists uuid(6B87D71F-93B7-4163-AA89-DA999A5A7239) : I
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceDNSBlackList**)
   method id(6) HRESULT Refresh()
   propget id(7) HRESULT ItemByDNSHost([in] BSTR, [out,retval] IInterfaceDNSBlackList**)
-interface IInterfaceDatabase uuid(90471F47-FE77-46C7-ADDB-F800B7ED0F66) : IDispatch
+interface IInterfaceDatabase uuid(90471F47-FE77-46C7-ADDB-F800B7ED0F66) : IDispatch dual object
   propget id(1) HRESULT RequiredVersion([out,retval] long*)
   propget id(2) HRESULT CurrentVersion([out,retval] long*)
   method id(3) HRESULT ExecuteSQL(BSTR)
@@ -624,20 +742,20 @@ interface IInterfaceDatabase uuid(90471F47-FE77-46C7-ADDB-F800B7ED0F66) : IDispa
   propget id(17) HRESULT DatabaseName([out,retval] BSTR*)
   method id(18) HRESULT ExecuteSQLWithReturn(BSTR, [out,retval] long*)
   method id(19) HRESULT EnsurePrerequisites(long)
-interface IInterfaceDeliveryQueue uuid(B870F27A-CA77-473C-8106-A9F296F342A5) : IDispatch
+interface IInterfaceDeliveryQueue uuid(B870F27A-CA77-473C-8106-A9F296F342A5) : IDispatch dual object
   method id(1) HRESULT Clear()
   method id(2) HRESULT ResetDeliveryTime([in] hyper)
   method id(3) HRESULT StartDelivery()
   method id(4) HRESULT Remove([in] hyper)
-interface IInterfaceDiagnosticResult uuid(7E97DEEC-29B3-4ADA-8524-EA8CEEE38918) : IDispatch
+interface IInterfaceDiagnosticResult uuid(7E97DEEC-29B3-4ADA-8524-EA8CEEE38918) : IDispatch dual object
   propget id(1) HRESULT Name([out,retval] BSTR*)
   propget id(2) HRESULT Description([out,retval] BSTR*)
   propget id(3) HRESULT ExecutionDetails([out,retval] BSTR*)
   propget id(4) HRESULT Result([out,retval] VARIANT_BOOL*)
-interface IInterfaceDiagnosticResults uuid(27EDFA15-CD0B-40C9-86D0-1BB11B3A1310) : IDispatch
+interface IInterfaceDiagnosticResults uuid(27EDFA15-CD0B-40C9-86D0-1BB11B3A1310) : IDispatch dual object
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT Item([in] long, [out,retval] IInterfaceDiagnosticResult**)
-interface IInterfaceDiagnostics uuid(FB8812B0-524A-4922-9E29-A7E9A9E9151D) : IDispatch
+interface IInterfaceDiagnostics uuid(FB8812B0-524A-4922-9E29-A7E9A9E9151D) : IDispatch dual object
   method id(1) HRESULT PerformTests([out,retval] IInterfaceDiagnosticResults**)
   propget id(2) HRESULT LocalDomainName([out,retval] BSTR*)
   propput id(2) HRESULT LocalDomainName([in] BSTR)
@@ -647,7 +765,7 @@ interface IInterfaceDiagnostics uuid(FB8812B0-524A-4922-9E29-A7E9A9E9151D) : IDi
   method id(5) HRESULT TriggerAssertion()
   method id(6) HRESULT DnssecChainStatus([in] BSTR, [in] BSTR, [out,retval] long*)
   method id(7) HRESULT AcmeRenewalTime([in] double, [in] double, [out,retval] double*)
-interface IInterfaceDirectories uuid(48B534F3-2C4E-47F6-8CB0-339676B0ABF3) : IDispatch
+interface IInterfaceDirectories uuid(48B534F3-2C4E-47F6-8CB0-339676B0ABF3) : IDispatch dual object
   propget id(1) HRESULT ProgramDirectory([out,retval] BSTR*)
   propput id(1) HRESULT ProgramDirectory([in] BSTR)
   propget id(2) HRESULT DatabaseDirectory([out,retval] BSTR*)
@@ -661,7 +779,7 @@ interface IInterfaceDirectories uuid(48B534F3-2C4E-47F6-8CB0-339676B0ABF3) : IDi
   propget id(6) HRESULT EventDirectory([out,retval] BSTR*)
   propput id(6) HRESULT EventDirectory([in] BSTR)
   propget id(7) HRESULT DBScriptDirectory([out,retval] BSTR*)
-interface IInterfaceDistributionList uuid(8251393D-27D8-4DF2-8A05-949C11D42C09) : IDispatch
+interface IInterfaceDistributionList uuid(8251393D-27D8-4DF2-8A05-949C11D42C09) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   method id(2) HRESULT Delete()
   method id(4) HRESULT Save()
@@ -705,7 +823,7 @@ interface IInterfaceDistributionList uuid(8251393D-27D8-4DF2-8A05-949C11D42C09) 
   propget id(24) HRESULT Owner([out,retval] BSTR*)
   propput id(24) HRESULT Owner([in] BSTR)
   method id(25) HRESULT SendDigest([out,retval] long*)
-interface IInterfaceDistributionListRecipient uuid(6DD90CB4-5E1E-45C8-9748-28A020A13E4D) : IDispatch
+interface IInterfaceDistributionListRecipient uuid(6DD90CB4-5E1E-45C8-9748-28A020A13E4D) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT RecipientAddress([out,retval] BSTR*)
   propput id(2) HRESULT RecipientAddress([in] BSTR)
@@ -717,13 +835,13 @@ interface IInterfaceDistributionListRecipient uuid(6DD90CB4-5E1E-45C8-9748-28A02
   propget id(7) HRESULT SoftBounces([out,retval] long*)
   propget id(8) HRESULT Confirmed([out,retval] long*)
   method id(9) HRESULT ResetBounces()
-interface IInterfaceDistributionListRecipients uuid(F8759D53-9D91-47EA-A8C2-A9AF151E1FD4) : IDispatch
+interface IInterfaceDistributionListRecipients uuid(F8759D53-9D91-47EA-A8C2-A9AF151E1FD4) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceDistributionListRecipient**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceDistributionListRecipient**)
   method id(3) HRESULT Add([out,retval] IInterfaceDistributionListRecipient**)
   method id(4) HRESULT DeleteByDBID([in] long)
-interface IInterfaceDistributionLists uuid(8F0E22B8-0824-42DF-9260-F8B9ABFA8C61) : IDispatch
+interface IInterfaceDistributionLists uuid(8F0E22B8-0824-42DF-9260-F8B9ABFA8C61) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceDistributionList**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceDistributionList**)
@@ -731,7 +849,7 @@ interface IInterfaceDistributionLists uuid(8F0E22B8-0824-42DF-9260-F8B9ABFA8C61)
   method id(4) HRESULT DeleteByDBID([in] long)
   propget id(5) HRESULT ItemByAddress([in] BSTR, [out,retval] IInterfaceDistributionList**)
   method id(6) HRESULT Refresh()
-interface IInterfaceDomain uuid(3F50C3AF-67C0-4628-91D6-E2EAC7786830) : IDispatch
+interface IInterfaceDomain uuid(3F50C3AF-67C0-4628-91D6-E2EAC7786830) : IDispatch dual object
   propget id(1) HRESULT Name([out,retval] BSTR*)
   propput id(1) HRESULT Name([in] BSTR)
   method id(2) HRESULT Save()
@@ -906,7 +1024,7 @@ interface IInterfaceDomain uuid(3F50C3AF-67C0-4628-91D6-E2EAC7786830) : IDispatc
   propput id(180) HRESULT SettingOverride([in] BSTR, [in] BSTR)
   propget id(181) HRESULT EffectiveSetting([in] BSTR, [out,retval] BSTR*)
   propget id(182) HRESULT EffectiveSettingSource([in] BSTR, [out,retval] BSTR*)
-interface IInterfaceDomainAlias uuid(8FD251D8-AAF1-4143-B185-E6C1BF281826) : IDispatch
+interface IInterfaceDomainAlias uuid(8FD251D8-AAF1-4143-B185-E6C1BF281826) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT AliasName([out,retval] BSTR*)
   propput id(2) HRESULT AliasName([in] BSTR)
@@ -914,7 +1032,7 @@ interface IInterfaceDomainAlias uuid(8FD251D8-AAF1-4143-B185-E6C1BF281826) : IDi
   propput id(3) HRESULT DomainID([in] LONG)
   method id(4) HRESULT Save()
   method id(5) HRESULT Delete()
-interface IInterfaceDomainAliases uuid(E4100C8D-E956-449C-A96D-261DDC33AE4F) : IDispatch
+interface IInterfaceDomainAliases uuid(E4100C8D-E956-449C-A96D-261DDC33AE4F) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceDomainAlias**)
   propget id(1) HRESULT Count([out,retval] LONG*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceDomainAlias**)
@@ -922,7 +1040,7 @@ interface IInterfaceDomainAliases uuid(E4100C8D-E956-449C-A96D-261DDC33AE4F) : I
   method id(4) HRESULT Delete(long)
   method id(5) HRESULT DeleteByDBID(long)
   method id(6) HRESULT Add([out,retval] IInterfaceDomainAlias**)
-interface IInterfaceDomains uuid(2CDFD68F-62F2-49CF-A14A-505E7F68EE9C) : IDispatch
+interface IInterfaceDomains uuid(2CDFD68F-62F2-49CF-A14A-505E7F68EE9C) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceDomain**)
   method id(1) HRESULT Refresh()
   propget id(2) HRESULT Count([out,retval] long*)
@@ -931,9 +1049,9 @@ interface IInterfaceDomains uuid(2CDFD68F-62F2-49CF-A14A-505E7F68EE9C) : IDispat
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceDomain**)
   propget id(6) HRESULT Names([out,retval] BSTR*)
   method id(7) HRESULT DeleteByDBID([in] long)
-interface IInterfaceEventLog uuid(2173A96C-A350-4342-A852-F4A059D7716A) : IDispatch
+interface IInterfaceEventLog uuid(2173A96C-A350-4342-A852-F4A059D7716A) : IDispatch dual object
   method id(1) HRESULT Write(BSTR)
-interface IInterfaceFetchAccount uuid(752C1F5E-74DD-424F-AB60-07D9ABB5B7A4) : IDispatch
+interface IInterfaceFetchAccount uuid(752C1F5E-74DD-424F-AB60-07D9ABB5B7A4) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT Name([out,retval] BSTR*)
   propput id(2) HRESULT Name([in] BSTR)
@@ -978,7 +1096,7 @@ interface IInterfaceFetchAccount uuid(752C1F5E-74DD-424F-AB60-07D9ABB5B7A4) : ID
   propput id(24) HRESULT MIMERecipientHeaders([in] BSTR)
   propget id(25) HRESULT MirrorFolders([out,retval] VARIANT_BOOL*)
   propput id(25) HRESULT MirrorFolders([in] VARIANT_BOOL)
-interface IInterfaceFetchAccounts uuid(1517E0BE-5226-46CC-8C2A-BB16B680FF48) : IDispatch
+interface IInterfaceFetchAccounts uuid(1517E0BE-5226-46CC-8C2A-BB16B680FF48) : IDispatch dual object
   propget id(1) HRESULT Count([out,retval] LONG*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceFetchAccount**)
   propget id(3) HRESULT Item([in] long, [out,retval] IInterfaceFetchAccount**)
@@ -986,11 +1104,11 @@ interface IInterfaceFetchAccounts uuid(1517E0BE-5226-46CC-8C2A-BB16B680FF48) : I
   method id(6) HRESULT Delete(long)
   method id(7) HRESULT DeleteByDBID(long)
   method id(8) HRESULT Add([out,retval] IInterfaceFetchAccount**)
-interface IInterfaceGlobalObjects uuid(F0FE3307-66D9-480D-B1B5-3AF6CD3C0C8A) : IDispatch
+interface IInterfaceGlobalObjects uuid(F0FE3307-66D9-480D-B1B5-3AF6CD3C0C8A) : IDispatch dual object
   propget id(1) HRESULT DeliveryQueue([out,retval] IInterfaceDeliveryQueue**)
   propget id(2) HRESULT Languages([out,retval] IInterfaceLanguages**)
   propget id(3) HRESULT MessageTrace([out,retval] IInterfaceMessageTrace**)
-interface IInterfaceGreyListingBypassEntries uuid(A23EE36A-C508-400D-B4F8-C7DC0752D165) : IDispatch
+interface IInterfaceGreyListingBypassEntries uuid(A23EE36A-C508-400D-B4F8-C7DC0752D165) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceGreyListingBypassEntry**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -998,7 +1116,7 @@ interface IInterfaceGreyListingBypassEntries uuid(A23EE36A-C508-400D-B4F8-C7DC07
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceGreyListingBypassEntry**)
   method id(6) HRESULT Refresh()
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceGreyListingBypassEntry**)
-interface IInterfaceGreyListingBypassEntry uuid(0EFF2E44-4758-4751-97BA-0BC5C1AFD989) : IDispatch
+interface IInterfaceGreyListingBypassEntry uuid(0EFF2E44-4758-4751-97BA-0BC5C1AFD989) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Pattern([out,retval] BSTR*)
   propput id(2) HRESULT Pattern([in] BSTR)
@@ -1014,7 +1132,7 @@ interface IInterfaceGreyListingBypassEntry uuid(0EFF2E44-4758-4751-97BA-0BC5C1AF
   propput id(7) HRESULT Note([in] BSTR)
   method id(8) HRESULT Save()
   method id(9) HRESULT Delete()
-interface IInterfaceGreyListingWhiteAddress uuid(A32DF62B-043F-4C0D-81E9-F4CC3CB62F33) : IDispatch
+interface IInterfaceGreyListingWhiteAddress uuid(A32DF62B-043F-4C0D-81E9-F4CC3CB62F33) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT IPAddress([out,retval] BSTR*)
   propput id(2) HRESULT IPAddress([in] BSTR)
@@ -1022,7 +1140,7 @@ interface IInterfaceGreyListingWhiteAddress uuid(A32DF62B-043F-4C0D-81E9-F4CC3CB
   propput id(3) HRESULT Description([in] BSTR)
   method id(4) HRESULT Save()
   method id(5) HRESULT Delete()
-interface IInterfaceGreyListingWhiteAddresses uuid(D8D54486-4CC5-4240-A4BF-DD68D9C3E85B) : IDispatch
+interface IInterfaceGreyListingWhiteAddresses uuid(D8D54486-4CC5-4240-A4BF-DD68D9C3E85B) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceGreyListingWhiteAddress**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1030,14 +1148,14 @@ interface IInterfaceGreyListingWhiteAddresses uuid(D8D54486-4CC5-4240-A4BF-DD68D
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceGreyListingWhiteAddress**)
   method id(6) HRESULT Refresh()
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceGreyListingWhiteAddress**)
-interface IInterfaceGroup uuid(096BA43E-55DA-44BD-A5AD-693DA54222ED) : IDispatch
+interface IInterfaceGroup uuid(096BA43E-55DA-44BD-A5AD-693DA54222ED) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(4) HRESULT Name([out,retval] BSTR*)
   propput id(4) HRESULT Name([in] BSTR)
   propget id(5) HRESULT Members([out,retval] IInterfaceGroupMembers**)
   method id(7) HRESULT Save()
   method id(8) HRESULT Delete()
-interface IInterfaceGroupMember uuid(EF796379-7192-43CD-B4A5-58E44A4A5B7D) : IDispatch
+interface IInterfaceGroupMember uuid(EF796379-7192-43CD-B4A5-58E44A4A5B7D) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT GroupID([out,retval] long*)
   propput id(2) HRESULT GroupID([in] long)
@@ -1046,14 +1164,14 @@ interface IInterfaceGroupMember uuid(EF796379-7192-43CD-B4A5-58E44A4A5B7D) : IDi
   method id(4) HRESULT Save()
   method id(5) HRESULT Delete()
   propget id(6) HRESULT Account([out,retval] IInterfaceAccount**)
-interface IInterfaceGroupMembers uuid(9002BDC6-BCA1-4F37-821C-AE6A70D3046E) : IDispatch
+interface IInterfaceGroupMembers uuid(9002BDC6-BCA1-4F37-821C-AE6A70D3046E) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceGroupMember**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
   method id(3) HRESULT Add([out,retval] IInterfaceGroupMember**)
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceGroupMember**)
   method id(6) HRESULT Refresh()
-interface IInterfaceGroups uuid(04B3AAAA-2B86-4C71-8A92-2D174055E1F1) : IDispatch
+interface IInterfaceGroups uuid(04B3AAAA-2B86-4C71-8A92-2D174055E1F1) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceGroup**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1061,7 +1179,7 @@ interface IInterfaceGroups uuid(04B3AAAA-2B86-4C71-8A92-2D174055E1F1) : IDispatc
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceGroup**)
   propget id(6) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceGroup**)
   method id(7) HRESULT Refresh()
-interface IInterfaceIMAPFolder uuid(6EB9E09E-EBE2-4BD7-A8C5-3499257DEB0B) : IDispatch
+interface IInterfaceIMAPFolder uuid(6EB9E09E-EBE2-4BD7-A8C5-3499257DEB0B) : IDispatch dual object
   propget id(0) HRESULT ID([out,retval] long*)
   propget id(1) HRESULT Name([out,retval] BSTR*)
   propput id(1) HRESULT Name([in] BSTR)
@@ -1075,7 +1193,7 @@ interface IInterfaceIMAPFolder uuid(6EB9E09E-EBE2-4BD7-A8C5-3499257DEB0B) : IDis
   method id(9) HRESULT Delete()
   propget id(10) HRESULT CurrentUID([out,retval] long*)
   propget id(11) HRESULT CreationTime([out,retval] BSTR*)
-interface IInterfaceIMAPFolderPermission uuid(A951C988-0D2C-42CA-A9D3-FE7A78F1AB25) : IDispatch
+interface IInterfaceIMAPFolderPermission uuid(A951C988-0D2C-42CA-A9D3-FE7A78F1AB25) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(3) HRESULT ShareFolderID([out,retval] long*)
   propget id(4) HRESULT PermissionType([out,retval] eACLPermissionType*)
@@ -1092,7 +1210,7 @@ interface IInterfaceIMAPFolderPermission uuid(A951C988-0D2C-42CA-A9D3-FE7A78F1AB
   method id(10) HRESULT Delete()
   propget id(11) HRESULT Account([out,retval] IInterfaceAccount**)
   propget id(12) HRESULT Group([out,retval] IInterfaceGroup**)
-interface IInterfaceIMAPFolderPermissions uuid(CBE3FE9E-3642-4BA1-9BE0-6E766C0DE961) : IDispatch
+interface IInterfaceIMAPFolderPermissions uuid(CBE3FE9E-3642-4BA1-9BE0-6E766C0DE961) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceIMAPFolderPermission**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT Delete([in] long)
@@ -1101,14 +1219,14 @@ interface IInterfaceIMAPFolderPermissions uuid(CBE3FE9E-3642-4BA1-9BE0-6E766C0DE
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceIMAPFolderPermission**)
   method id(6) HRESULT DeleteByDBID([in] long)
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceIMAPFolderPermission**)
-interface IInterfaceIMAPFolders uuid(328B16A7-8314-4398-B506-90937569EDBA) : IDispatch
+interface IInterfaceIMAPFolders uuid(328B16A7-8314-4398-B506-90937569EDBA) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceIMAPFolder**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceIMAPFolder**)
   propget id(2) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceIMAPFolder**)
   propget id(3) HRESULT Count([out,retval] long*)
   method id(4) HRESULT Add([in] BSTR, [out,retval] IInterfaceIMAPFolder**)
   method id(5) HRESULT DeleteByDBID([in] long)
-interface IInterfaceIncomingRelay uuid(088D748B-7CCE-4B8D-A103-D99DA83775AB) : IDispatch
+interface IInterfaceIncomingRelay uuid(088D748B-7CCE-4B8D-A103-D99DA83775AB) : IDispatch dual object
   propget id(0) HRESULT ID([out,retval] long*)
   propget id(1) HRESULT LowerIP([out,retval] BSTR*)
   propput id(1) HRESULT LowerIP([in] BSTR)
@@ -1118,7 +1236,7 @@ interface IInterfaceIncomingRelay uuid(088D748B-7CCE-4B8D-A103-D99DA83775AB) : I
   propput id(3) HRESULT Name([in] BSTR)
   method id(4) HRESULT Delete()
   method id(5) HRESULT Save()
-interface IInterfaceIncomingRelays uuid(49D48933-3219-4D7E-84D5-B26FE5F0E165) : IDispatch
+interface IInterfaceIncomingRelays uuid(49D48933-3219-4D7E-84D5-B26FE5F0E165) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceIncomingRelay**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceIncomingRelay**)
   method id(2) HRESULT Delete([in] long)
@@ -1127,21 +1245,21 @@ interface IInterfaceIncomingRelays uuid(49D48933-3219-4D7E-84D5-B26FE5F0E165) : 
   method id(5) HRESULT Add([out,retval] IInterfaceIncomingRelay**)
   propget id(6) HRESULT Count([out,retval] long*)
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceIncomingRelay**)
-interface IInterfaceLanguage uuid(A98C92EF-6AA0-4F22-A29F-BE9154CC242A) : IDispatch
+interface IInterfaceLanguage uuid(A98C92EF-6AA0-4F22-A29F-BE9154CC242A) : IDispatch dual object
   propget id(1) HRESULT String([in] BSTR, [out,retval] BSTR*)
   propget id(2) HRESULT Name([out,retval] BSTR*)
   propget id(3) HRESULT IsDownloaded([out,retval] VARIANT_BOOL*)
   method id(4) HRESULT Download()
-interface IInterfaceLanguages uuid(94720D8A-BC4D-493D-8BDC-8FB28BF31BA5) : IDispatch
+interface IInterfaceLanguages uuid(94720D8A-BC4D-493D-8BDC-8FB28BF31BA5) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceLanguage**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(3) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceLanguage**)
-interface IInterfaceLinks uuid(E252D063-7E86-4FCE-B702-A5E89E0DFB48) : IDispatch
+interface IInterfaceLinks uuid(E252D063-7E86-4FCE-B702-A5E89E0DFB48) : IDispatch dual object
   propget id(1) HRESULT Domain([in] long, [out,retval] IInterfaceDomain**)
   propget id(2) HRESULT Account([in] long, [out,retval] IInterfaceAccount**)
   propget id(3) HRESULT Alias([in] long, [out,retval] IInterfaceAlias**)
   propget id(4) HRESULT DistributionList([in] long, [out,retval] IInterfaceDistributionList**)
-interface IInterfaceLogging uuid(AAD8A0DF-2963-4C5B-A906-6B07B9CC0643) : IDispatch
+interface IInterfaceLogging uuid(AAD8A0DF-2963-4C5B-A906-6B07B9CC0643) : IDispatch dual object
   propget id(1) HRESULT Enabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Enabled([in] VARIANT_BOOL)
   propget id(2) HRESULT LogSMTP([out,retval] VARIANT_BOOL*)
@@ -1198,7 +1316,7 @@ interface IInterfaceLogging uuid(AAD8A0DF-2963-4C5B-A906-6B07B9CC0643) : IDispat
   propput id(34) HRESULT SyslogLogTCPIP([in] VARIANT_BOOL)
   propget id(35) HRESULT SyslogLogDebug([out,retval] VARIANT_BOOL*)
   propput id(35) HRESULT SyslogLogDebug([in] VARIANT_BOOL)
-interface IInterfaceMessage uuid(8C054031-7B42-485C-BF79-3D94A7B9605F) : IDispatch
+interface IInterfaceMessage uuid(8C054031-7B42-485C-BF79-3D94A7B9605F) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] hyper*)
   propget id(2) HRESULT Filename([out,retval] BSTR*)
   propget id(3) HRESULT Subject([out,retval] BSTR*)
@@ -1237,30 +1355,30 @@ interface IInterfaceMessage uuid(8C054031-7B42-485C-BF79-3D94A7B9605F) : IDispat
   propput id(26) HRESULT Charset([in] BSTR)
   method id(27) HRESULT Copy([in] long)
   propget id(28) HRESULT UID([out,retval] long*)
-interface IInterfaceMessageHeader uuid(FF69E250-CBFD-4AB6-9440-39599478365D) : IDispatch
+interface IInterfaceMessageHeader uuid(FF69E250-CBFD-4AB6-9440-39599478365D) : IDispatch dual object
   propget id(1) HRESULT Name([out,retval] BSTR*)
   propput id(1) HRESULT Name([in] BSTR)
   propget id(2) HRESULT Value([out,retval] BSTR*)
   propput id(2) HRESULT Value([in] BSTR)
   method id(3) HRESULT Delete()
-interface IInterfaceMessageHeaders uuid(1ADE0B5E-536C-4707-8385-32A7F6F92500) : IDispatch
+interface IInterfaceMessageHeaders uuid(1ADE0B5E-536C-4707-8385-32A7F6F92500) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceMessageHeader**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceMessageHeader**)
-interface IInterfaceMessageIndexing uuid(3C58B6AD-48CC-4775-B283-53C77F717EB9) : IDispatch
+interface IInterfaceMessageIndexing uuid(3C58B6AD-48CC-4775-B283-53C77F717EB9) : IDispatch dual object
   propget id(1) HRESULT TotalMessageCount([out,retval] long*)
   propget id(2) HRESULT TotalIndexedCount([out,retval] long*)
   propget id(3) HRESULT Enabled([out,retval] VARIANT_BOOL*)
   propput id(3) HRESULT Enabled([in] VARIANT_BOOL)
   method id(4) HRESULT Clear()
   method id(5) HRESULT Index()
-interface IInterfaceMessageTrace uuid(748E5AC8-2A0E-42AA-A427-687C479EB180) : IDispatch
+interface IInterfaceMessageTrace uuid(748E5AC8-2A0E-42AA-A427-687C479EB180) : IDispatch dual object
   propget id(1) HRESULT Count([out,retval] LONG*)
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceMessageTraceEvent**)
   method id(5) HRESULT Search([in] BSTR)
   method id(6) HRESULT SearchByQueueID([in] long)
   method id(7) HRESULT DeleteExpired([out,retval] LONG*)
-interface IInterfaceMessageTraceEvent uuid(251C0B9A-CEB1-4455-9F89-1725F2B502B8) : IDispatch
+interface IInterfaceMessageTraceEvent uuid(251C0B9A-CEB1-4455-9F89-1725F2B502B8) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT QueueID([out,retval] LONG*)
   propget id(3) HRESULT OccurredTime([out,retval] BSTR*)
@@ -1270,14 +1388,14 @@ interface IInterfaceMessageTraceEvent uuid(251C0B9A-CEB1-4455-9F89-1725F2B502B8)
   propget id(7) HRESULT SourceIP([out,retval] BSTR*)
   propget id(8) HRESULT StatusCode([out,retval] LONG*)
   propget id(9) HRESULT Detail([out,retval] BSTR*)
-interface IInterfaceMessages uuid(1259E989-465E-4B63-BB0B-4DB7F6244ACE) : IDispatch
+interface IInterfaceMessages uuid(1259E989-465E-4B63-BB0B-4DB7F6244ACE) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceMessage**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT ItemByDBID([in] hyper, [out,retval] IInterfaceMessage**)
   method id(3) HRESULT DeleteByDBID([in] hyper)
   method id(4) HRESULT Add([out,retval] IInterfaceMessage**)
   method id(5) HRESULT Clear()
-interface IInterfaceQuarantine uuid(5AFC3CED-1626-4612-B72E-D5C1C8090F1D) : IDispatch
+interface IInterfaceQuarantine uuid(5AFC3CED-1626-4612-B72E-D5C1C8090F1D) : IDispatch dual object
   propget id(1) HRESULT Count([out,retval] LONG*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceQuarantinedMessage**)
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceQuarantinedMessage**)
@@ -1287,7 +1405,7 @@ interface IInterfaceQuarantine uuid(5AFC3CED-1626-4612-B72E-D5C1C8090F1D) : IDis
   method id(8) HRESULT DeleteExpired([out,retval] LONG*)
   method id(9) HRESULT Bulk([in] BSTR, [out,retval] BSTR*)
   method id(10) HRESULT Search([in] BSTR, [in] long, [in] long, [out,retval] long*)
-interface IInterfaceQuarantinedMessage uuid(310F1911-69A5-4696-B08F-D364598105E5) : IDispatch
+interface IInterfaceQuarantinedMessage uuid(310F1911-69A5-4696-B08F-D364598105E5) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT Sender([out,retval] BSTR*)
   propget id(3) HRESULT Recipients([out,retval] BSTR*)
@@ -1303,14 +1421,14 @@ interface IInterfaceQuarantinedMessage uuid(310F1911-69A5-4696-B08F-D364598105E5
   propget id(13) HRESULT HeloDomain([out,retval] BSTR*)
   method id(14) HRESULT ReadHeaders([out,retval] BSTR*)
   method id(15) HRESULT ReadPreview([out,retval] BSTR*)
-interface IInterfaceRecipient uuid(65D57DF8-68A1-4358-BB98-C3B33595B699) : IDispatch
+interface IInterfaceRecipient uuid(65D57DF8-68A1-4358-BB98-C3B33595B699) : IDispatch dual object
   propget id(1) HRESULT Address([out,retval] BSTR*)
   propget id(2) HRESULT IsLocalUser([out,retval] VARIANT_BOOL*)
   propget id(3) HRESULT OriginalAddress([out,retval] BSTR*)
-interface IInterfaceRecipients uuid(9B47C955-4462-48E3-91FE-C5E1CFEC80E0) : IDispatch
+interface IInterfaceRecipients uuid(9B47C955-4462-48E3-91FE-C5E1CFEC80E0) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRecipient**)
   propget id(1) HRESULT Count([out,retval] LONG*)
-interface IInterfaceRemoteDomainPolicies uuid(36551AA6-228C-47A4-8342-74B010ED4C1F) : IDispatch
+interface IInterfaceRemoteDomainPolicies uuid(36551AA6-228C-47A4-8342-74B010ED4C1F) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRemoteDomainPolicy**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1321,7 +1439,7 @@ interface IInterfaceRemoteDomainPolicies uuid(36551AA6-228C-47A4-8342-74B010ED4C
   propget id(7) HRESULT PolicyForDomain([in] BSTR, [out,retval] IInterfaceRemoteDomainPolicy**)
   method id(8) HRESULT ClearVerificationCache()
   propget id(9) HRESULT VerificationCacheSize([out,retval] long*)
-interface IInterfaceRemoteDomainPolicy uuid(C5FE061A-5AC7-4A22-A60C-5D64910A7D77) : IDispatch
+interface IInterfaceRemoteDomainPolicy uuid(C5FE061A-5AC7-4A22-A60C-5D64910A7D77) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT DomainName([out,retval] BSTR*)
   propput id(2) HRESULT DomainName([in] BSTR)
@@ -1366,14 +1484,14 @@ interface IInterfaceRemoteDomainPolicy uuid(C5FE061A-5AC7-4A22-A60C-5D64910A7D77
   propget id(23) HRESULT EncryptKeyFingerprint([out,retval] BSTR*)
   propget id(24) HRESULT EncryptKeyExpires([out,retval] BSTR*)
   propget id(25) HRESULT EncryptKeySummary([out,retval] BSTR*)
-interface IInterfaceResult uuid(9038AE3E-CD88-4306-9A08-07F2580D50A0) : IDispatch
+interface IInterfaceResult uuid(9038AE3E-CD88-4306-9A08-07F2580D50A0) : IDispatch dual object
   propget id(1) HRESULT Value([out,retval] long*)
   propput id(1) HRESULT Value([in] long)
   propget id(2) HRESULT Message([out,retval] BSTR*)
   propput id(2) HRESULT Message([in] BSTR)
   propget id(3) HRESULT Parameter([out,retval] long*)
   propput id(3) HRESULT Parameter([in] long)
-interface IInterfaceRoute uuid(F78FA851-D3D3-4A28-AFCC-A471C00781D3) : IDispatch
+interface IInterfaceRoute uuid(F78FA851-D3D3-4A28-AFCC-A471C00781D3) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT DomainName([out,retval] BSTR*)
   propput id(2) HRESULT DomainName([in] BSTR)
@@ -1407,7 +1525,7 @@ interface IInterfaceRoute uuid(F78FA851-D3D3-4A28-AFCC-A471C00781D3) : IDispatch
   propput id(18) HRESULT TreatRecipientAsLocalDomain([in] VARIANT_BOOL)
   propget id(19) HRESULT ConnectionSecurity([out,retval] eConnectionSecurity*)
   propput id(19) HRESULT ConnectionSecurity([in] eConnectionSecurity)
-interface IInterfaceRouteAddress uuid(FD22CA52-BBF4-45BB-9165-986B3F4B5C77) : IDispatch
+interface IInterfaceRouteAddress uuid(FD22CA52-BBF4-45BB-9165-986B3F4B5C77) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Address([out,retval] BSTR*)
   propput id(2) HRESULT Address([in] BSTR)
@@ -1415,14 +1533,14 @@ interface IInterfaceRouteAddress uuid(FD22CA52-BBF4-45BB-9165-986B3F4B5C77) : ID
   propput id(3) HRESULT RouteID([in] long)
   method id(4) HRESULT Save()
   method id(5) HRESULT Delete()
-interface IInterfaceRouteAddresses uuid(315BF27F-F832-4FBE-83FE-1C5A5011FAC7) : IDispatch
+interface IInterfaceRouteAddresses uuid(315BF27F-F832-4FBE-83FE-1C5A5011FAC7) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRouteAddress**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
   method id(3) HRESULT Add([out,retval] IInterfaceRouteAddress**)
   method id(4) HRESULT DeleteByAddress([in] BSTR)
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceRouteAddress**)
-interface IInterfaceRoutes uuid(111F318A-C087-4091-BD1F-4226230EE513) : IDispatch
+interface IInterfaceRoutes uuid(111F318A-C087-4091-BD1F-4226230EE513) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRoute**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1430,7 +1548,7 @@ interface IInterfaceRoutes uuid(111F318A-C087-4091-BD1F-4226230EE513) : IDispatc
   propget id(4) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceRoute**)
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceRoute**)
   method id(6) HRESULT Refresh()
-interface IInterfaceRule uuid(41CCD467-9ADE-4ADA-AE14-760E94BA53E8) : IDispatch
+interface IInterfaceRule uuid(41CCD467-9ADE-4ADA-AE14-760E94BA53E8) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT AccountID([out,retval] LONG*)
   propput id(2) HRESULT AccountID([in] LONG)
@@ -1446,7 +1564,7 @@ interface IInterfaceRule uuid(41CCD467-9ADE-4ADA-AE14-760E94BA53E8) : IDispatch
   method id(9) HRESULT MoveUp()
   method id(10) HRESULT MoveDown()
   method id(11) HRESULT Delete()
-interface IInterfaceRuleAction uuid(F3F4A3E1-695E-499E-9F31-712DA8126982) : IDispatch
+interface IInterfaceRuleAction uuid(F3F4A3E1-695E-499E-9F31-712DA8126982) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT RuleID([out,retval] LONG*)
   propput id(2) HRESULT RuleID([in] LONG)
@@ -1480,7 +1598,7 @@ interface IInterfaceRuleAction uuid(F3F4A3E1-695E-499E-9F31-712DA8126982) : IDis
   propput id(18) HRESULT RouteID([in] LONG)
   propget id(19) HRESULT AbortSpamFlagged([out,retval] VARIANT_BOOL*)
   propput id(19) HRESULT AbortSpamFlagged([in] VARIANT_BOOL)
-interface IInterfaceRuleActions uuid(DBFD3E11-9121-4DDD-944B-5AF29BF3D2DF) : IDispatch
+interface IInterfaceRuleActions uuid(DBFD3E11-9121-4DDD-944B-5AF29BF3D2DF) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRuleAction**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceRuleAction**)
   propget id(2) HRESULT Count([out,retval] LONG*)
@@ -1488,7 +1606,7 @@ interface IInterfaceRuleActions uuid(DBFD3E11-9121-4DDD-944B-5AF29BF3D2DF) : IDi
   method id(4) HRESULT DeleteByDBID([in] LONG)
   method id(5) HRESULT Refresh()
   method id(6) HRESULT Delete([in] long)
-interface IInterfaceRuleCriteria uuid(2D8AA7DE-6155-44A5-802D-9FEC611A50A9) : IDispatch
+interface IInterfaceRuleCriteria uuid(2D8AA7DE-6155-44A5-802D-9FEC611A50A9) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] LONG*)
   propget id(2) HRESULT RuleID([out,retval] LONG*)
   propput id(2) HRESULT RuleID([in] LONG)
@@ -1504,7 +1622,7 @@ interface IInterfaceRuleCriteria uuid(2D8AA7DE-6155-44A5-802D-9FEC611A50A9) : ID
   propput id(8) HRESULT HeaderField([in] BSTR)
   method id(9) HRESULT Save()
   method id(10) HRESULT Delete()
-interface IInterfaceRuleCriterias uuid(D79148F6-78A9-4F60-B8E8-48C33D888FC5) : IDispatch
+interface IInterfaceRuleCriterias uuid(D79148F6-78A9-4F60-B8E8-48C33D888FC5) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRuleCriteria**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceRuleCriteria**)
   propget id(2) HRESULT Count([out,retval] LONG*)
@@ -1512,14 +1630,14 @@ interface IInterfaceRuleCriterias uuid(D79148F6-78A9-4F60-B8E8-48C33D888FC5) : I
   method id(4) HRESULT DeleteByDBID([in] LONG)
   method id(5) HRESULT Refresh()
   method id(6) HRESULT Delete([in] long)
-interface IInterfaceRules uuid(995F9181-E761-42FA-9057-FE070B37D0F3) : IDispatch
+interface IInterfaceRules uuid(995F9181-E761-42FA-9057-FE070B37D0F3) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceRule**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceRule**)
   propget id(2) HRESULT Count([out,retval] LONG*)
   method id(3) HRESULT Add([out,retval] IInterfaceRule**)
   method id(4) HRESULT DeleteByDBID([in] LONG)
   method id(5) HRESULT Refresh()
-interface IInterfaceSSLCertificate uuid(5CB10D83-8FDA-461B-AD5B-3CBBF9476FD6) : IDispatch
+interface IInterfaceSSLCertificate uuid(5CB10D83-8FDA-461B-AD5B-3CBBF9476FD6) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Name([out,retval] BSTR*)
   propput id(2) HRESULT Name([in] BSTR)
@@ -1531,7 +1649,7 @@ interface IInterfaceSSLCertificate uuid(5CB10D83-8FDA-461B-AD5B-3CBBF9476FD6) : 
   method id(6) HRESULT Delete()
   propget id(7) HRESULT PrivateKeyPassword([out,retval] BSTR*)
   propput id(7) HRESULT PrivateKeyPassword([in] BSTR)
-interface IInterfaceSSLCertificates uuid(A6C0B92B-3973-4E0A-86CB-440AD6C80B71) : IDispatch
+interface IInterfaceSSLCertificates uuid(A6C0B92B-3973-4E0A-86CB-440AD6C80B71) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceSSLCertificate**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1539,7 +1657,7 @@ interface IInterfaceSSLCertificates uuid(A6C0B92B-3973-4E0A-86CB-440AD6C80B71) :
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceSSLCertificate**)
   method id(6) HRESULT Refresh()
   method id(7) HRESULT Clear()
-interface IInterfaceSURBLServer uuid(A4866EDD-F0B8-49C7-A477-57D469F7D7D4) : IDispatch
+interface IInterfaceSURBLServer uuid(A4866EDD-F0B8-49C7-A477-57D469F7D7D4) : IDispatch dual object
   propget id(1) HRESULT Active([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Active([in] VARIANT_BOOL)
   propget id(2) HRESULT ID([out,retval] long*)
@@ -1553,7 +1671,7 @@ interface IInterfaceSURBLServer uuid(A4866EDD-F0B8-49C7-A477-57D469F7D7D4) : IDi
   propget id(9) HRESULT ExpectedResult([out,retval] BSTR*)
   propput id(9) HRESULT ExpectedResult([in] BSTR)
   method id(8) HRESULT Delete()
-interface IInterfaceSURBLServers uuid(D6B91C3A-90C1-4943-B818-EE66119E4702) : IDispatch
+interface IInterfaceSURBLServers uuid(D6B91C3A-90C1-4943-B818-EE66119E4702) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceSURBLServer**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1561,7 +1679,7 @@ interface IInterfaceSURBLServers uuid(D6B91C3A-90C1-4943-B818-EE66119E4702) : ID
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceSURBLServer**)
   method id(6) HRESULT Refresh()
   propget id(7) HRESULT ItemByDNSHost([in] BSTR, [out,retval] IInterfaceSURBLServer**)
-interface IInterfaceScripting uuid(B1EA04C0-B0B7-4638-80E4-41278CEF8C19) : IDispatch
+interface IInterfaceScripting uuid(B1EA04C0-B0B7-4638-80E4-41278CEF8C19) : IDispatch dual object
   propget id(1) HRESULT Enabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT Enabled([in] VARIANT_BOOL)
   propget id(2) HRESULT Language([out,retval] BSTR*)
@@ -1570,7 +1688,7 @@ interface IInterfaceScripting uuid(B1EA04C0-B0B7-4638-80E4-41278CEF8C19) : IDisp
   method id(4) HRESULT CheckSyntax([out,retval] BSTR*)
   propget id(5) HRESULT Directory([out,retval] BSTR*)
   propget id(6) HRESULT CurrentScriptFile([out,retval] BSTR*)
-interface IInterfaceSecurityRange uuid(3B1CB89D-9248-413D-BF2A-F000E6DB5F54) : IDispatch
+interface IInterfaceSecurityRange uuid(3B1CB89D-9248-413D-BF2A-F000E6DB5F54) : IDispatch dual object
   propget id(0) HRESULT ID([out,retval] long*)
   propget id(1) HRESULT LowerIP([out,retval] BSTR*)
   propput id(1) HRESULT LowerIP([in] BSTR)
@@ -1620,7 +1738,7 @@ interface IInterfaceSecurityRange uuid(3B1CB89D-9248-413D-BF2A-F000E6DB5F54) : I
   propput id(28) HRESULT RequireSMTPAuthExternalToExternal([in] VARIANT_BOOL)
   propget id(29) HRESULT RequireSSLTLSForAuth([out,retval] VARIANT_BOOL*)
   propput id(29) HRESULT RequireSSLTLSForAuth([in] VARIANT_BOOL)
-interface IInterfaceSecurityRanges uuid(3F0053E1-2328-452F-855D-87FF63E06BE0) : IDispatch
+interface IInterfaceSecurityRanges uuid(3F0053E1-2328-452F-855D-87FF63E06BE0) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceSecurityRange**)
   propget id(1) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceSecurityRange**)
   method id(2) HRESULT Delete([in] long)
@@ -1630,7 +1748,7 @@ interface IInterfaceSecurityRanges uuid(3F0053E1-2328-452F-855D-87FF63E06BE0) : 
   propget id(6) HRESULT Count([out,retval] long*)
   propget id(7) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceSecurityRange**)
   method id(8) HRESULT SetDefault()
-interface IInterfaceSenderListEntries uuid(C0C0F520-AB92-43F4-8E8F-1462CEDEDF0A) : IDispatch
+interface IInterfaceSenderListEntries uuid(C0C0F520-AB92-43F4-8E8F-1462CEDEDF0A) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceSenderListEntry**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -1639,7 +1757,7 @@ interface IInterfaceSenderListEntries uuid(C0C0F520-AB92-43F4-8E8F-1462CEDEDF0A)
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceSenderListEntry**)
   method id(6) HRESULT Refresh()
   method id(7) HRESULT Clear()
-interface IInterfaceSenderListEntry uuid(7FD56286-DBE1-4E8D-A480-4704070ED8F1) : IDispatch
+interface IInterfaceSenderListEntry uuid(7FD56286-DBE1-4E8D-A480-4704070ED8F1) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Value([out,retval] BSTR*)
   propput id(2) HRESULT Value([in] BSTR)
@@ -1654,20 +1772,20 @@ interface IInterfaceSenderListEntry uuid(7FD56286-DBE1-4E8D-A480-4704070ED8F1) :
   propget id(7) HRESULT Scope([out,retval] long*)
   method id(8) HRESULT Save()
   method id(9) HRESULT Delete()
-interface IInterfaceServerMessage uuid(6F7C0387-1AC5-466B-9068-67D659D57A86) : IDispatch
+interface IInterfaceServerMessage uuid(6F7C0387-1AC5-466B-9068-67D659D57A86) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Name([out,retval] BSTR*)
   propput id(2) HRESULT Name([in] BSTR)
   method id(3) HRESULT Save()
   propget id(4) HRESULT Text([out,retval] BSTR*)
   propput id(4) HRESULT Text([in] BSTR)
-interface IInterfaceServerMessages uuid(0E90D7D8-0144-4021-9240-8CB9CC6F7628) : IDispatch
+interface IInterfaceServerMessages uuid(0E90D7D8-0144-4021-9240-8CB9CC6F7628) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceServerMessage**)
   propget id(1) HRESULT Count([out,retval] long*)
   propget id(2) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceServerMessage**)
   propget id(3) HRESULT ItemByName([in] BSTR, [out,retval] IInterfaceServerMessage**)
   method id(4) HRESULT Refresh()
-interface IInterfaceSettings uuid(A4C709A3-98B2-410D-84F4-EDA999BF0CB2) : IDispatch
+interface IInterfaceSettings uuid(A4C709A3-98B2-410D-84F4-EDA999BF0CB2) : IDispatch dual object
   propget id(5) HRESULT MaxSMTPConnections([out,retval] long*)
   propput id(5) HRESULT MaxSMTPConnections([in] long)
   propget id(6) HRESULT MaxPOP3Connections([out,retval] long*)
@@ -1981,7 +2099,7 @@ interface IInterfaceSettings uuid(A4C709A3-98B2-410D-84F4-EDA999BF0CB2) : IDispa
   propput id(213) HRESULT POP3ProxyProtocolEnabled([in] VARIANT_BOOL)
   propget id(214) HRESULT POP3ProxyProtocolTrustedIPs([out,retval] BSTR*)
   propput id(214) HRESULT POP3ProxyProtocolTrustedIPs([in] BSTR)
-interface IInterfaceStatus uuid(C3E2DFFB-BE53-4BE6-BE57-7C5609938CEB) : IDispatch
+interface IInterfaceStatus uuid(C3E2DFFB-BE53-4BE6-BE57-7C5609938CEB) : IDispatch dual object
   propget id(1) HRESULT UndeliveredMessages([out,retval] BSTR*)
   propget id(2) HRESULT StartTime([out,retval] BSTR*)
   propget id(3) HRESULT ProcessedMessages([out,retval] long*)
@@ -2007,7 +2125,7 @@ interface IInterfaceStatus uuid(C3E2DFFB-BE53-4BE6-BE57-7C5609938CEB) : IDispatc
   propget id(23) HRESULT UpdatePreparation([out,retval] BSTR*)
   method id(24) HRESULT BeginUpdateForAdministrator([in] BSTR, [out,retval] VARIANT_BOOL*)
   method id(25) HRESULT CancelUpdateForAdministrator([in] BSTR)
-interface IInterfaceTCPIPPort uuid(5F46B580-89DA-44A3-9518-AEEEDB80F6D7) : IDispatch
+interface IInterfaceTCPIPPort uuid(5F46B580-89DA-44A3-9518-AEEEDB80F6D7) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT Protocol([out,retval] eSessionType*)
   propput id(2) HRESULT Protocol([in] eSessionType)
@@ -2029,7 +2147,7 @@ interface IInterfaceTCPIPPort uuid(5F46B580-89DA-44A3-9518-AEEEDB80F6D7) : IDisp
   propput id(11) HRESULT ClientCertificateCAFile([in] BSTR)
   propget id(12) HRESULT SMTPAuthentication([out,retval] long*)
   propput id(12) HRESULT SMTPAuthentication([in] long)
-interface IInterfaceTCPIPPorts uuid(70471130-C8FA-4218-B68A-F1C9AD973FF6) : IDispatch
+interface IInterfaceTCPIPPorts uuid(70471130-C8FA-4218-B68A-F1C9AD973FF6) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceTCPIPPort**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)
@@ -2037,7 +2155,7 @@ interface IInterfaceTCPIPPorts uuid(70471130-C8FA-4218-B68A-F1C9AD973FF6) : IDis
   propget id(5) HRESULT ItemByDBID([in] long, [out,retval] IInterfaceTCPIPPort**)
   method id(6) HRESULT Refresh()
   method id(7) HRESULT SetDefault()
-interface IInterfaceUtilities uuid(F6BB0F43-EDEE-49A8-8166-672F3017426F) : IDispatch
+interface IInterfaceUtilities uuid(F6BB0F43-EDEE-49A8-8166-672F3017426F) : IDispatch dual object
   method id(1) HRESULT GetMailServer([in] BSTR, [out,retval] BSTR*)
   method id(2) HRESULT IsValidEmailAddress([in] BSTR, [out,retval] VARIANT_BOOL*)
   method id(38) HRESULT RunReputationCheck([out,retval] BSTR*)
@@ -2105,7 +2223,7 @@ interface IInterfaceUtilities uuid(F6BB0F43-EDEE-49A8-8166-672F3017426F) : IDisp
   method id(46) HRESULT MoveMailbox([in] BSTR, [in] BSTR, [in] VARIANT_BOOL, [out,retval] BSTR*)
   method id(47) HRESULT GetMailboxMoves([in] BSTR, [in] long, [out,retval] BSTR*)
   method id(42) HRESULT BackupArchiveIsEncrypted([in] BSTR, [out,retval] VARIANT_BOOL*)
-interface IInterfaceWhiteListAddress uuid(D67457A7-3500-481F-900F-C9741C89D6AB) : IDispatch
+interface IInterfaceWhiteListAddress uuid(D67457A7-3500-481F-900F-C9741C89D6AB) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT LowerIPAddress([out,retval] BSTR*)
   propput id(2) HRESULT LowerIPAddress([in] BSTR)
@@ -2117,7 +2235,7 @@ interface IInterfaceWhiteListAddress uuid(D67457A7-3500-481F-900F-C9741C89D6AB) 
   propput id(5) HRESULT Description([in] BSTR)
   method id(6) HRESULT Save()
   method id(7) HRESULT Delete()
-interface IInterfaceWhiteListAddresses uuid(8492EE2E-7332-4253-B93E-D8B011B47D78) : IDispatch
+interface IInterfaceWhiteListAddresses uuid(8492EE2E-7332-4253-B93E-D8B011B47D78) : IDispatch dual object
   propget id(0) HRESULT Item([in] long, [out,retval] IInterfaceWhiteListAddress**)
   propget id(1) HRESULT Count([out,retval] long*)
   method id(2) HRESULT DeleteByDBID([in] long)

@@ -69,7 +69,7 @@ The other tables on this page name runners the same way.
 
 | Job | Stage | Runs on | Runs for | What it does |
 |---|---|---|---|---|
-| `checkers` | check | linix | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
+| `checkers` | check | linix | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers"). The checkout is a commit deep with no tag, so `build/check-com-abi.py` fetches from `origin` the release tag `build/com-abi-baseline.txt` names and every newer release tag, a commit deep each, holds the baseline to what that tag's `hMailServer.idl` says and the tree to each of them, and fails the job when they cannot be listed or fetched: a baseline edited along with the IDL, or rewritten from an older release, does not pass here (`GITLAB_CI`, which it goes by, is one of the variables `build/check-release-chain.py` refuses a CI file to set) |
 | `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |

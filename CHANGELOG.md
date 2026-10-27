@@ -1243,22 +1243,38 @@ with `--check`).
   that shipped calls another method for every early-bound client built against the released type library, and no
   build, test of the tree or late-bound script notices; `Utilities.RunAcmeCheck` and `GetAcmeStatus` were so declared
   (Correctness, above). `build/com-abi-baseline.txt` is what 6.3.7's `hMailServer.idl` says - the library's uuid and
-  version, each coclass's uuid and default interface, and each interface's IID, base and members in order, with each
-  member's kind, dispatch id, name, return type and its parameters' directions and types - and the check holds the
-  tree to beginning each of those interfaces with exactly those members, refusing an insertion, a removal, a move, a
-  changed dispatch id, kind or parameter type or direction, a changed IID and a missing interface, and naming the
-  interface, the member's place and its vtable slot. The baseline is written from a release tag with
-  `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag the file is also held to what the
-  tag's `hMailServer.idl` says, and the tree to every newer release tag there. Every run, the checkers job's among
-  them, proves its negative controls first (`--self-test` runs only those): the ACME methods put back after
-  `GetReputationReport`, a member inserted, removed, swapped, given another dispatch id, kind, parameter type or
-  direction, an IID changed and an interface taken away are refused, and a member appended, wrapped over two lines or
-  commented out are not; the parse is held to read every `HRESULT` of every interface body. MIDL runs the C
-  preprocessor first, and the check reads the text as written, so it refuses an `hMailServer.idl` that preprocessor
-  would change, naming the line: a preprocessor line (`#if 0` ... `#endif` around a member takes it out of the vtable,
-  an `#include` in a body brings members in) or a line ending in a backslash, which joins the next line to a `//`
-  comment; the file has neither, and three more controls - a released member inside `#if 0` ... `#endif`, an
-  `#include` in a body and such a comment above a member - must each stop the parse. It takes under a second.
+  version, each coclass's uuid and default interface, each enumerator's value, and each interface's IID, base, the
+  attributes a client binds by (`dual`, `local`, `object`, `oleautomation`) and members in order, with each member's
+  kind, dispatch id, name, return type and its parameters' directions and types - and the check holds the tree to
+  beginning each of those interfaces with exactly those members, refusing an insertion, a removal, a move, a changed
+  dispatch id, kind or parameter type or direction, a changed IID, base or binding attribute and a missing
+  interface, and naming the interface, the member's place and its vtable slot, and to keeping each of those
+  enumerators with its value, which an early-bound client compiles in. Every interface, a new one too, must derive
+  from `IDispatch` or `IUnknown`: one derived from another of the file's interfaces would have its own members moved
+  by a member appended to its base, which the check lets through, so it refuses such a base; none exists. It does
+  not hold an interface's other attributes, an enum's uuid or the parameters' names and default values. The baseline
+  is written from a release tag with `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag
+  the file is also held to what the tag's `hMailServer.idl` says, and the tree to every newer release tag there. The
+  CI's checkouts are a commit deep and have no tag, so in a CI job the check fetches the baseline's tag and every
+  newer release tag from `origin`, a commit deep each, and holds both there too, failing the job when it cannot: a
+  change that edits the baseline along with `hMailServer.idl`, or names an older release in it, is refused by the
+  checkers job. Every run, the checkers job's among them, proves its negative controls first (`--self-test` runs
+  only those): the ACME methods put back after `GetReputationReport`, a member inserted, removed, swapped, given
+  another dispatch id, kind, parameter type or direction, an IID changed, an interface taken away, a new interface
+  derived from a released one, `dual` taken off and an enumerator's value changed or removed are refused, and a
+  member appended, wrapped over two lines or commented out, a new interface derived from `IDispatch` and an
+  enumerator appended are not; the parse is held to read every `HRESULT` of every interface body. Its tokens are
+  string literals, comments of both kinds, words and single characters; MIDL runs the C preprocessor first and
+  reads character literals, so the check refuses an `hMailServer.idl` it would read otherwise than MIDL, naming the
+  line: a preprocessor line (`#if 0` ... `#endif` around a member takes it out of the vtable, an `#include` in a body
+  brings members in), a line ending in a backslash, which joins the next line to a `//` comment, a `'` outside a
+  string or a comment (in `custom(<uuid>, '"')` or `helpcontext('"')`, which MIDL builds, a reader that knew no
+  character literal took the `"` to open a string, and a member written between two of them on one line was text to
+  it, so that it passed a member MIDL inserted above `Address`, moving `IInterfaceAccount`'s vtable), a `"` that
+  opens no string on its line, and an enumerator without its value written out; the file has none of them, and seven
+  more controls - a released member inside `#if 0` ... `#endif`, an `#include` in a body, such a comment above a
+  member, a member between two `'"'` in `custom()` and in `helpcontext()`, the same with `L'"'`, and an enumerator
+  without a value - must each stop the parse with that refusal. It takes about a second.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in

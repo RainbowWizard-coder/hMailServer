@@ -19,56 +19,90 @@ put right before 6.2.22 shipped (Roadmap.md, "COM interface members were inserte
 rather than appended").
 
 build/com-abi-baseline.txt is what the last release's hMailServer.idl says of
-each interface: its IID, the interface it derives from, and each member in its
-order, with its kind (method, propget, propput, propputref), dispatch id, name,
-return type and parameters - their direction ([in], [out], [retval], [lcid]) and
-type, but not their names, which no binding reads by position, nor their
-defaultvalue or help text. This holds the tree's hMailServer.idl to it: every
-interface the release had is there, with its IID and base, and its members as
-the tree declares them begin with the release's, one for one - so a member is
-only ever added after the last one the release had. A member inserted, removed,
-moved, given another dispatch id or kind, or given another type or direction of
-a parameter is refused, naming the interface, the member's place and what the
-release had there. The type library's own identity - the library's uuid and
-version, and each coclass's uuid and default interface - is held the same way.
-A new interface or coclass is free, and so is anything added at an interface's
-end.
+each interface: its IID, the interface it derives from, the attributes a client
+binds by (dual, local, object, oleautomation), and each member in its order,
+with its kind (method, propget, propput, propputref), dispatch id, name, return
+type and parameters - their direction ([in], [out], [retval], [lcid]) and type,
+but not their names, which no binding reads by position, nor their defaultvalue
+or help text. This holds the tree's hMailServer.idl to it: every interface the
+release had is there, with its IID, base and those attributes, and its members
+as the tree declares them begin with the release's, one for one - so a member
+is only ever added after the last one the release had. A member inserted,
+removed, moved, given another dispatch id or kind, or given another type or
+direction of a parameter is refused, naming the interface, the member's place
+and what the release had there, and so is dual or another of those attributes
+taken off or put on. The type library's own identity - the library's uuid and
+version, and each coclass's uuid and default interface - is held the same way,
+and so is each enumerator's value, which an early-bound client compiles in: an
+enumerator the release had is in its enum with its value. A new interface,
+coclass, enum or enumerator is free, and so is anything added at an
+interface's end. Every interface of the tree, new ones too, must derive from
+IDispatch or IUnknown: one derived from another of the file's interfaces has
+its base's members first in its vtable, so a member appended to the base, which
+this lets through, would move each of its own, and the check, which counts an
+interface's members from the slot after IDispatch's or IUnknown's, refuses such
+a base rather than pass it. None derives from another today.
+
+What it does not hold: an interface's other attributes (helpstring,
+nonextensible, pointer_default, hidden), a member's attributes other than its
+kind and dispatch id, an enum's own uuid, the parameters' names and defaultvalues, and
+whatever hMailServer.idl does not declare, such as the coclasses' interfaces
+other than the default one and the registry entries an install writes.
 
 The baseline is written from a release tag, never from the tree:
 
   python build/check-com-abi.py --write-baseline v6.3.8
 
 after a release is tagged (RELEASE.md says when), which reads that tag's
-hMailServer.idl through git. A clone that has the baseline's tag - the CI's
-checkouts are a commit deep and have none - is also held to the baseline being
-what that tag's hMailServer.idl says, so that the file cannot be edited to let a
-change through, and the tree is held to each newer release tag it has as well,
-so that a baseline not yet rewritten after a release still holds that release.
+hMailServer.idl through git. A clone that has the baseline's tag is also held to
+the baseline being what that tag's hMailServer.idl says, so that the file cannot
+be edited to let a change through, and the tree is held to each newer release
+tag it has as well, so that a baseline not yet rewritten after a release still
+holds that release. The CI's checkouts are a commit deep and have no tag: in a
+CI job (GITLAB_CI=true) the check fetches the baseline's tag and every newer
+release tag from origin, a commit deep each, and holds the baseline and the
+tree to them as in a clone that has them, and the job fails when they cannot be
+listed or fetched - so a change of hMailServer.idl that edits the baseline to
+match, or names an older release in it, is refused there. Elsewhere a clone
+without the tag holds the tree to the baseline as committed, and says so.
 
 The check proves its negative controls on every run (--self-test runs only
 those), against the tree's hMailServer.idl changed in memory: a member inserted
 above the release's (the two ACME methods put back after GetReputationReport),
 one removed, two swapped, a dispatch id changed, a parameter's type and its
-direction changed, a propget made a method, an interface's IID changed and an
-interface taken away must each be refused, and a member appended, a member
-written over two lines and a member commented out where it would have been
-inserted must each pass. The parse is held to see every HRESULT of every
-interface body, so a member it stopped reading is not one it silently passes.
+direction changed, a propget made a method, an interface's IID changed, an
+interface taken away, a new interface derived from a released one, dual taken
+off an interface, an enumerator's value changed and an enumerator removed must
+each be refused, and a member appended, a member written over two lines, a
+member commented out where it would have been inserted, a new interface derived
+from IDispatch and an enumerator appended must each pass. The parse is held to
+see every HRESULT of every interface body, so a member it stopped reading is
+not one it silently passes.
 
-MIDL runs the C preprocessor over hMailServer.idl before it reads it, and this
-reads the text as written, so it refuses to read a file the preprocessor would
-change: a preprocessor line (#if 0 ... #endif around a member takes it out of
+The text is read as MIDL reads it or not at all. Its tokens are string
+literals, comments of both kinds, words and single characters; MIDL runs the C
+preprocessor over hMailServer.idl first, and reads character literals, which
+this does not. So it refuses, naming the line, a file in which MIDL would read
+otherwise: a preprocessor line (#if 0 ... #endif around a member takes it out of
 the vtable, an #include in a body brings members in, each moving every member
-below) and a line ending in a backslash (which joins the next line on, so a //
-comment can swallow the member under it). hMailServer.idl has neither; a # in a
-string or a comment is text. A released member inside #if 0 ... #endif, an
-#include at the top of a body and a // comment ending in a backslash above a
-member are three more of the controls, and each must stop the parse.
+below), a line ending in a backslash (which joins the next line on, so a //
+comment can swallow the member under it), a ' (a character literal, which MIDL
+takes as an attribute's argument: in custom(<uuid>, '"') a reader that knew no
+such literal would take the " to open a string, and a member written between
+two such literals on one line would be text to it where MIDL reads a member) and
+a " that opens no string on its line. hMailServer.idl has none of them; a #, a '
+or a " inside a string or a comment is text. And it reads an enumerator only
+with its value written out, as each is, refusing one whose value C or MIDL
+would work out. A released member inside #if 0 ... #endif, an #include at the
+top of a body, a // comment ending in a backslash above a member, a member
+between two '"' on one line in custom() and in helpcontext(), the same with
+L'"', and an enumerator without its value are seven more of the controls, and
+each must stop the parse with its refusal.
 
 Usage:  python build/check-com-abi.py [--self-test] [--write-baseline TAG]
-Exit 0 when every interface keeps the release's members, 1 when one does not,
-2 for a usage or git error or an hMailServer.idl this does not read, such as one
-with a preprocessor line.
+Exit 0 when every interface keeps the release's members, 1 when one does not
+or, in CI, the baseline's tag cannot be fetched, 2 for a usage or git error or
+an hMailServer.idl this does not read, such as one with a preprocessor line.
 """
 import os
 import re
@@ -85,7 +119,8 @@ TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 # A string literal (helpstring text holds any punctuation: semicolons, brackets,
 # "//" in a URL), a comment of either kind, a preprocessor line (which tokens()
 # refuses), a word (an identifier, a number, a piece of a uuid), or any other
-# single character - a # among them, refused too.
+# single character - a # among them, refused too, and a ' or a " that opens no
+# string on its line, refused as this does not read character literals.
 TOKEN = re.compile(r'"(?:[^"\\\n]|\\.)*"|//[^\n]*|/\*.*?\*/|^[ \t]*#[^\n]*|[A-Za-z0-9_.]+|\S',
                    re.DOTALL | re.MULTILINE)
 WORD = re.compile(r"^[A-Za-z0-9_.]+$")
@@ -93,6 +128,13 @@ KINDS = ("propget", "propput", "propputref")
 # What a parameter's attributes say that the vtable and the marshalling read.
 DIRECTIONS = ("in", "out", "retval", "lcid")
 VTABLE_BASE = {"IDispatch": 7, "IUnknown": 3}
+# An interface's attributes that say how a client binds to it and how its calls are
+# marshalled: dual (the vtable a type library's early-bound client calls),
+# oleautomation (marshalled from the type library), object (a COM interface) and
+# local (no proxy at all). Held as the release had them; the rest (helpstring,
+# nonextensible, pointer_default, hidden) are free.
+BINDING = ("dual", "local", "object", "oleautomation")
+ENUM_VALUE = re.compile(r"^-?(?:0[xX][0-9A-Fa-f]+|0|[1-9][0-9]*)$")
 
 
 class IdlError(Exception):
@@ -112,7 +154,11 @@ def tokens(text):
     (#if 0 ... #endif) or bring one in (#include) and move every member below it,
     and a backslash at the end of a line, which splices the next line on and so
     makes a // comment swallow the member written below it. hMailServer.idl has
-    neither; a # inside a string or a comment is text and stays allowed.
+    neither; a # inside a string or a comment is text and stays allowed. A
+    character literal is refused too: TOKEN knows string literals and comments
+    but not '...', so in '"' the " would open a string for this check running to
+    the next " on the line, and a member written between two such literals would
+    be text to it where MIDL reads it. So is a " that opens no string on its line.
     """
     splice = re.search(r"\\[ \t]*(?:\n|$)", text)
     if splice:
@@ -124,6 +170,14 @@ def tokens(text):
         value = match.group(0)
         if value.startswith("//") or value.startswith("/*"):
             continue
+        if value in ("'", '"'):
+            raise IdlError("line %d has %s: this check does not read C character "
+                           "literals, which MIDL takes as an attribute's argument ('\"' or L'\"' in custom() or "
+                           "helpcontext()), and a \" inside one would open a string for this check that hides the rest "
+                           "of the line, a member among it; hMailServer.idl holds none - give the argument as a number "
+                           "or a string" % (line_number(text, match.start()),
+                                            "a ' outside a string or a comment" if value == "'"
+                                            else "a \" that opens no string on its line"))
         if value.lstrip().startswith("#"):
             line_start = text.rfind("\n", 0, match.start()) + 1
             line_end = text.find("\n", match.start())
@@ -230,9 +284,29 @@ def member(toks, interface):
     return "%s id(%s) %s %s(%s)" % (kind, dispid if dispid is not None else "-", returns, name, ", ".join(parameters))
 
 
+def enumerators(toks, text):
+    """"<name> = <value>" of each enumerator between an enum's braces. Only a value written out is read: C
+    gives an enumerator without one its predecessor's plus one, and MIDL takes an expression, neither of which
+    this computes, so either is refused; every enumerator of hMailServer.idl has an integer of its own."""
+    found = []
+    for part in split_top(toks):
+        while part and part[0][0] == "[":
+            part = part[closing(part, 0, "[", "]") + 1:]
+        if not part:
+            continue
+        values = [token[0] for token in part]
+        literal = "".join(values[2:])
+        if len(values) < 3 or values[1] != "=" or not WORD.match(values[0]) or not ENUM_VALUE.match(literal):
+            raise IdlError("line %d: the enumerator %s is not written <name> = <integer>: this check reads only an "
+                           "enumerator's value written out, as every one in hMailServer.idl is, and not one C or MIDL "
+                           "would work out - write its value" % (line_number(text, part[0][1]), render(part)[:60]))
+        found.append("%s = %d" % (values[0], int(literal, 0)))
+    return found
+
+
 def parse(text):
-    """{"interfaces": {name: (iid, base, [member, ...])}, "types": [line, ...], "spans": {...},
-    "hresults": count}"""
+    """{"interfaces": {name: (iid, base, [member, ...], [binding attribute, ...])}, "types": [line, ...],
+    "spans": {...}}"""
     toks = tokens(text)
     interfaces, spans, types = {}, {}, []
     pending = {}
@@ -261,11 +335,29 @@ def parse(text):
                 member_spans.append((part[0][1], part[-1][2] + 1))   # with its ;
             if name in interfaces:
                 raise IdlError("interface %s is defined twice" % name)
-            interfaces[name] = ((pending.get("uuid") or "").upper(), base, members)
+            interfaces[name] = ((pending.get("uuid") or "").upper(), base, members,
+                                [flag for flag in BINDING if flag in pending])
             spans[name] = member_spans
             pending = {}
             index = end + 1
             continue
+        if value == "enum":
+            brace = index + 1
+            tag = None
+            if brace < len(toks) and WORD.match(toks[brace][0]):
+                tag = toks[brace][0]
+                brace += 1
+            if brace < len(toks) and toks[brace][0] == "{":
+                end = closing(toks, brace, "{", "}")
+                # typedef enum [tag] { ... } name; - the typedef's name is the one the type library gives it.
+                after = toks[end + 1][0] if end + 1 < len(toks) else ""
+                name = after if WORD.match(after) else tag
+                if not name:
+                    raise IdlError("line %d: an enum with no name" % line_number(text, toks[index][1]))
+                types += ["enum %s %s" % (name, entry) for entry in enumerators(toks[brace + 1:end], text)]
+                pending = {}
+                index = end + 1
+                continue
         if value == "library" and index + 2 < len(toks) and toks[index + 2][0] == "{":
             types.append("library %s uuid(%s) version(%s)"
                          % (toks[index + 1][0], (pending.get("uuid") or "").upper(), pending.get("version")))
@@ -299,14 +391,15 @@ def baseline_text(parsed, tag, commit):
         "# The COM interfaces of hmailserver/source/Server/hMailServer/hMailServer.idl at %s (commit %s)," % (tag, commit),
         "# written by python build/check-com-abi.py --write-baseline %s, which reads that tag through git." % tag,
         "# build/check-com-abi.py holds the tree to it: each interface's members, in this order, come first in",
-        "# the tree's, so that an early-bound client built against that release's type library calls the",
-        "# member it names. Not edited by hand; rewritten from the next release's tag.",
+        "# the tree's, and each enumerator keeps its value, so that an early-bound client built against that",
+        "# release's type library calls the member it names. Not edited by hand; rewritten from the next",
+        "# release's tag.",
         "release %s %s" % (tag, commit),
     ]
     lines += parsed["types"]
     for name in sorted(parsed["interfaces"]):
-        iid, base, members = parsed["interfaces"][name]
-        lines.append("interface %s uuid(%s) : %s" % (name, iid, base))
+        iid, base, members, binding = parsed["interfaces"][name]
+        lines.append("interface %s uuid(%s) : %s%s" % (name, iid, base, "".join(" " + flag for flag in binding)))
         lines += ["  " + entry for entry in members]
     return "\n".join(lines) + "\n"
 
@@ -321,16 +414,19 @@ def read_baseline(text):
                 raise IdlError("baseline line %d: a member before any interface" % number)
             interfaces[current][2].append(line[2:])
             continue
-        found = re.match(r"^interface (\w+) uuid\(([0-9A-F-]*)\) : (\w+)$", line)
+        found = re.match(r"^interface (\w+) uuid\(([0-9A-F-]*)\) : (\w+)((?: [a-z]+)*)$", line)
         if found:
             current = found.group(1)
-            interfaces[current] = (found.group(2), found.group(3), [])
+            binding = found.group(4).split()
+            if any(flag not in BINDING for flag in binding):
+                raise IdlError("baseline line %d names an attribute this does not hold: %s" % (number, line[:80]))
+            interfaces[current] = (found.group(2), found.group(3), [], binding)
             continue
         found = re.match(r"^release (v\d+\.\d+\.\d+) ([0-9a-f]{40})$", line)
         if found and release is None:
             release = (found.group(1), found.group(2))
             continue
-        if line.startswith("library ") or line.startswith("coclass "):
+        if line.startswith("library ") or line.startswith("coclass ") or re.match(r"^enum \w+ \w+ = -?\d+$", line):
             types.append(line)
             continue
         raise IdlError("baseline line %d is not one this reads: %s" % (number, line[:80]))
@@ -350,19 +446,25 @@ def problems(release, tree, label):
     for line in release["types"]:
         if line not in tree["types"]:
             kind, name = line.split(" ")[:2]
-            now = [entry for entry in tree["types"] if entry.split(" ")[:2] == [kind, name]]
+            # An enumerator by its enum and its own name; a library or coclass by its name.
+            key = 3 if kind == "enum" else 2
+            now = [entry for entry in tree["types"] if entry.split(" ")[:key] == line.split(" ")[:key]]
             found.append("%s %s: %s had \"%s\", the tree has %s" % (kind, name, label, line,
                          ("\"%s\"" % now[0]) if now else "none"))
     for name in sorted(release["interfaces"]):
-        iid, base, members = release["interfaces"][name]
+        iid, base, members, binding = release["interfaces"][name]
         if name not in tree["interfaces"]:
             found.append("%s: %s had it with %d member(s), the tree has no such interface" % (name, label, len(members)))
             continue
-        tree_iid, tree_base, tree_members = tree["interfaces"][name]
+        tree_iid, tree_base, tree_members, tree_binding = tree["interfaces"][name]
         if tree_iid != iid:
             found.append("%s: its IID is %s, where %s had %s" % (name, tree_iid or "missing", label, iid))
         if tree_base != base:
             found.append("%s: it derives from %s, where %s had %s" % (name, tree_base, label, base))
+        if tree_binding != binding:
+            found.append("%s: its attributes say %s, where %s's said %s: a client binds to it and its calls are "
+                         "marshalled as these say" % (name, ", ".join(tree_binding) or "none of " + "/".join(BINDING),
+                                                      label, ", ".join(binding) or "none of " + "/".join(BINDING)))
         for number, entry in enumerate(members, 1):
             have = tree_members[number - 1] if number <= len(tree_members) else None
             if have == entry:
@@ -382,10 +484,21 @@ def problems(release, tree, label):
     return found
 
 
-def git(*arguments):
+def base_problems(tree):
+    """Every interface of the tree derives from IDispatch or IUnknown. One derived from another of the file's
+    interfaces has its own members after its base's in its vtable, so a member appended to the base, which
+    problems() lets through, would move each of them; this holds each interface's members from the slot after
+    IDispatch's or IUnknown's, and so refuses a base it cannot count from."""
+    return ["%s: it derives from %s: an interface's vtable begins with its base's members, so one appended to %s "
+            "would move each of %s's, and this check holds an interface's members only from the slot after "
+            "IDispatch's or IUnknown's - derive it from IDispatch" % (name, entry[1], entry[1], name)
+            for name, entry in sorted(tree["interfaces"].items()) if entry[1] not in VTABLE_BASE]
+
+
+def git(*arguments, timeout=120):
     try:
         done = subprocess.run(["git", "-C", ROOT] + list(arguments), stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, timeout=120)
+                              stderr=subprocess.PIPE, timeout=timeout)
     except (OSError, subprocess.SubprocessError):
         return None
     if done.returncode != 0:
@@ -420,6 +533,29 @@ def newer_tags(release):
     return [name for _, name in sorted(found)]
 
 
+def fetch_release_tags(release):
+    """In a CI job, whose checkout is a commit deep and has no tag: fetch the baseline's release tag and every
+    newer release tag from origin, a commit deep each, so that the baseline is held to what its tag says and
+    the tree to every release after it, as in a clone that has them. None when they are here, or a problem."""
+    listed = git("ls-remote", "--tags", "--refs", "origin", timeout=300)
+    if listed is None:
+        return "origin's tags could not be listed (git ls-remote --tags origin)"
+    names = set()
+    for line in listed.decode("ascii", errors="replace").splitlines():
+        found = re.match(r"^[0-9a-f]{40}\trefs/tags/(v\d+\.\d+\.\d+)$", line)
+        if found:
+            names.add(found.group(1))
+    if release not in names:
+        return "origin has no tag %s, the release the baseline names" % release
+    own = tuple(int(part) for part in TAG.match(release).groups())
+    wanted = [release] + sorted((n for n in names if tuple(int(p) for p in TAG.match(n).groups()) > own),
+                                key=lambda n: tuple(int(p) for p in TAG.match(n).groups()))
+    if git("fetch", "--quiet", "--no-tags", "--depth=1", "origin",
+           *["+refs/tags/%s:refs/tags/%s" % (name, name) for name in wanted], timeout=600) is None:
+        return "origin's tag(s) %s could not be fetched" % ", ".join(wanted)
+    return None
+
+
 def read_tree():
     with open(IDL, encoding="utf-8-sig", errors="replace") as f:
         return f.read().replace("\r\n", "\n")
@@ -429,10 +565,10 @@ def cut(text, span):
     return text[:span[0]] + text[span[1]:]
 
 
-def self_test(text, release):
-    """Each control: (what, the IDL text changed, whether it must be refused - True, False, or "unread" for a
-    text the parse must refuse to read as MIDL's preprocessor would change it - and the interface it is about)."""
-    tree = parse(text)
+def make_controls(text, release, tree):
+    """Each control: (what, the IDL text changed, whether it must be refused - True, False, or ("unread", words
+    of the refusal) for a text the parse must refuse to read, as MIDL would read it otherwise than this does -
+    and the interface it is about)."""
     spans = tree["spans"]
 
     def member_span(interface, name):
@@ -476,11 +612,22 @@ def self_test(text, release):
     controls.append(("the first member written over two lines", text[:first[0]] + wrapped + text[first[1]:], False, name))
     # What MIDL's preprocessor would change: each must stop the parse, not be read past.
     controls.append(("the first member inside #if 0 ... #endif", text[:first[0]] + "#if 0\n" + one + "#endif\n"
-                     + text[first[1]:], "unread", name))
+                     + text[first[1]:], ("unread", "is a preprocessor line"), name))
     controls.append(("an #include at the top of a body", text[:first[0]] + "   #include \"self-test.idl\"\n"
-                     + text[first[0]:], "unread", name))
+                     + text[first[0]:], ("unread", "is a preprocessor line"), name))
     controls.append(("a // comment ending in a backslash above the first member", text[:first[0]] + "   // note \\\n"
-                     + text[first[0]:], "unread", name))
+                     + text[first[0]:], ("unread", "ends in a backslash"), name))
+    # A member between two character literals on one line: to a reader that took the
+    # " in '"' to open a string, the member and the first one's attributes are one
+    # string, where MIDL reads two members. In custom(), in helpcontext() and wide.
+    for literal, attribute in (("'\"'", "custom(D3A9C1F0-0000-4000-8000-000000000001, %s)"),
+                               ("'\"'", "helpcontext(%s)"),
+                               ("L'\"'", "custom(D3A9C1F0-0000-4000-8000-000000000001, %s)")):
+        given = attribute % literal
+        hidden = ("   [%s, id(9999)] HRESULT SelfTestMember([out, retval] long *Value); %s"
+                  % (given, one.lstrip().replace("[", "[%s, " % given, 1)))
+        controls.append(("a member between two %s on one line, in %s" % (literal, attribute.split("(")[0] + "()"),
+                         text[:first[0]] + hidden + text[first[1]:], ("unread", "character literals"), name))
 
     # A parameter's type, a parameter's direction and a property's kind, wherever the tree first has each.
     def first_line(pattern):
@@ -506,21 +653,61 @@ def self_test(text, release):
     controls.append(("an interface taken away", re.sub(r"\binterface %s\b(?=\s*:)" % name, "interface SelfTestGone", text,
                                                        count=1), True, name))
 
+    # What a client binds by or compiles in besides the members: an interface's base, its binding attributes
+    # and the enumerators' values.
+    def new_interface(interface, base, uuid):
+        return ("\n[\n   object,\n   uuid(%s),\n   dual\n]\ninterface %s : %s {\n"
+                "   [id(1)] HRESULT SelfTestMember([out, retval] BSTR *Value);\n};\n" % (uuid, interface, base))
+    controls.append(("a new interface derived from IDispatch", text + new_interface(
+        "SelfTestNew", "IDispatch", "D3A9C1F0-0000-4000-8000-000000000002"), False, "SelfTestNew"))
+    controls.append(("a new interface derived from %s" % name, text + new_interface(
+        "SelfTestDerived", name, "D3A9C1F0-0000-4000-8000-000000000003"), True, "SelfTestDerived"))
+    position = re.search(r"\binterface %s\s*:" % name, text).start()
+    head = text.rfind("\n[", 0, position)
+    undual = re.sub(r"\bdual\s*,\s*", "", text[head:position], count=1)
+    if head < 0 or undual == text[head:position]:
+        raise IdlError("self-test: %s's attributes have no dual" % name)
+    controls.append(("dual taken off an interface", text[:head] + undual + text[position:], True, name))
+    released = [line for line in release["types"] if line.startswith("enum ")]
+    if not released:
+        raise IdlError("self-test: the baseline holds no enumerator")
+    _, enum, enumerator, _, value = released[0].split(" ")
+    written = re.search(r"\b%s\s*=\s*%s\b" % (re.escape(enumerator), re.escape(value)), text)
+    removed = re.search(r"(?:\[[^\]\n]*\]\s*)?\b%s\s*=\s*%s\s*,\s*" % (re.escape(enumerator), re.escape(value)), text)
+    brace = text.find("}", written.end()) if written else -1
+    if not written or not removed or brace < 0:
+        raise IdlError("self-test: %s's %s = %s is not written so in the tree" % (enum, enumerator, value))
+    controls.append(("an enumerator's value changed", text[:written.start()] + "%s = 9999" % enumerator
+                     + text[written.end():], True, "enum " + enum))
+    controls.append(("an enumerator removed", text[:removed.start()] + text[removed.end():], True, "enum " + enum))
+    controls.append(("an enumerator appended", text[:brace] + "   SelfTestValue = 9999,\n" + text[brace:], False,
+                     "enum " + enum))
+    controls.append(("an enumerator without a value of its own", text[:brace] + "   SelfTestValue,\n" + text[brace:],
+                     ("unread", "is not written <name> = <integer>"), "enum " + enum))
+    return controls
+
+
+def self_test(text, release):
+    """The negative controls judged: (failures, how many controls)."""
+    tree = parse(text)
+    controls = make_controls(text, release, tree)
     # Judged beside what the tree as it is already breaks, so that a tree that fails
     # is reported for itself, not as a control that went wrong.
-    already = set(problems(release, tree, "the release"))
+    already = set(problems(release, tree, "the release") + base_problems(tree))
     failures = []
     for what, changed_text, refused, interface in controls:
+        unread = isinstance(refused, tuple)
         try:
             changed_tree = parse(changed_text)
         except IdlError as error:
-            if refused != "unread" or "preprocessor" not in str(error):
+            if not unread or refused[1] not in str(error):
                 failures.append("self-test: %s: the parse failed: %s" % (what, error))
             continue
-        if refused == "unread":
+        if unread:
             failures.append("self-test: %s (%s) was read past rather than refused" % (what, interface))
             continue
-        found = [p for p in problems(release, changed_tree, "the release") if p not in already]
+        found = [p for p in problems(release, changed_tree, "the release") + base_problems(changed_tree)
+                 if p not in already]
         named = [p for p in found if p.startswith(interface + ":")]
         if refused and not named:
             failures.append("self-test: %s (%s) was not refused%s" % (what, interface,
@@ -564,18 +751,36 @@ def main(arguments):
         tag, commit = release["release"]
         tree = parse(text)
         found = ["against %s: %s" % (tag, p) for p in problems(release, tree, tag)]
+        found += base_problems(tree)
         found += failures
         notes = []
         at_tag = tag_idl(tag)
+        if at_tag is None and os.environ.get("GITLAB_CI") == "true":
+            # A CI checkout has no tag: there the baseline is held to its tag all the same, fetched, and the
+            # job fails when it cannot be, so that a change of hMailServer.idl and the baseline together
+            # cannot pass where nothing reads the tag.
+            fetched = fetch_release_tags(tag)
+            if fetched:
+                found.append("in CI the baseline is held to the tag it names, and %s: it is not held" % fetched)
+            else:
+                notes.append("fetched %s and the release tags after it from origin" % tag)
+                at_tag = tag_idl(tag)
+                if at_tag is None:
+                    found.append("fetched %s from origin, and this clone still has no such tag" % tag)
         if at_tag is None:
-            notes.append("this clone has no tag %s: the committed baseline is held as it is" % tag)
+            if os.environ.get("GITLAB_CI") != "true":
+                notes.append("this clone has no tag %s: the committed baseline is held as it is" % tag)
         else:
             if at_tag[0] != commit:
                 found.append("build/com-abi-baseline.txt names %s as commit %s, where the tag is %s" % (tag, commit, at_tag[0]))
-            if baseline_text(parse(at_tag[1]), tag, at_tag[0]) != baseline_text(
+            tagged = parse(at_tag[1])
+            if baseline_text(tagged, tag, at_tag[0]) != baseline_text(
                     {"interfaces": release["interfaces"], "types": release["types"]}, tag, at_tag[0]):
                 found.append("build/com-abi-baseline.txt is not what %s's hMailServer.idl says: write it again with "
                              "python build/check-com-abi.py --write-baseline %s" % (tag, tag))
+                # And the tree against what the tag says, so that what the edited baseline let through is named.
+                found += ["against %s's own hMailServer.idl: %s" % (tag, p) for p in problems(
+                    {"types": tagged["types"], "interfaces": tagged["interfaces"]}, tree, tag)]
             for newer in newer_tags(tag):
                 newer_idl = tag_idl(newer)
                 if newer_idl is None:
@@ -600,9 +805,10 @@ def main(arguments):
                          "or change one it had.\n" % (len(found), tag))
         return 1
     members = sum(len(entry[2]) for entry in release["interfaces"].values())
+    values = sum(1 for line in release["types"] if line.startswith("enum "))
     sys.stdout.write("  OK    %d interface(s) and %d member(s) of %s are in the tree in their places, with %d type "
-                     "identities; %d negative controls refused or passed as they should\n"
-                     % (len(release["interfaces"]), members, tag, len(release["types"]), controls))
+                     "identities and %d enumerators' values; %d negative controls refused or passed as they should\n"
+                     % (len(release["interfaces"]), members, tag, len(release["types"]) - values, values, controls))
     return 0
 
 

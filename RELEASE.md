@@ -999,7 +999,8 @@ that administrators upgrade by hand.
     names only while every member added after the release is declared after
     the last one the release had. Until it is rewritten the check holds the
     tree to the older release, and, in a clone that has both tags, to the new
-    tag's `hMailServer.idl` as well.
+    tag's `hMailServer.idl` as well; the checkers job fetches both from
+    `origin` for it.
 
 ## Standing rules
 
