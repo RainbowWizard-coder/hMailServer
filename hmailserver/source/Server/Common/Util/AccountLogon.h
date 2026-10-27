@@ -34,8 +34,9 @@ namespace HM
       //
       // chargeAddress false: a failure is counted against the name alone (the
       // per-name lockout), never against ipaddress for the per-IP auto-ban; see
-      // RegisterFailedLogin. Only the web services listener passes it, for a
-      // peer whose failures are its clients' (Dav::Authenticate).
+      // RegisterFailedLogin. The web services listener and the REST listener
+      // pass it, for a peer whose failures are its clients' (Dav::Authenticate,
+      // RestApiServer::AuthenticateAccount_).
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
                                            SecondFactorOffer *secondFactor = nullptr, bool chargeAddress = true);
@@ -67,14 +68,16 @@ namespace HM
       // chargeAddress: pass false when ipaddress is not the client's own but a
       // proxy's that answers for many - a TLS-terminating proxy in front of the
       // web services listener, on this machine (loopback) or named in
-      // WebServicesTrustedProxies, whose X-Forwarded-For is not believed. The
-      // failure is then counted against the name alone: the per-IP half is
+      // WebServicesTrustedProxies, or a reverse proxy on this machine in front
+      // of the REST listener (loopback), whose X-Forwarded-For is not believed.
+      // The failure is then counted against the name alone: the per-IP half is
       // skipped as for an address on AutoBanNeverBan, since a ban written for
       // the proxy's address would refuse it at every mail listener and shut out
       // every client behind it - with loopback, the server's own local clients -
       // for AutoBanMinutes, after three wrong passwords from anybody. disconnect
       // is then never set; the web services listener closes the connection of
-      // every failed sign-in itself.
+      // every failed sign-in itself, and the REST listener answers each with its
+      // 401 and refuses no loopback peer.
       void RegisterFailedLogin(const IPAddress &ipaddress, const String &username, bool &disconnect,
                                bool countTowardsAccountLockout = true, bool chargeAddress = true);
 

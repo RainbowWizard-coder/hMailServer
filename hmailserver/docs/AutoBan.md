@@ -20,7 +20,7 @@ the REST API keeps a refusal of its own:
 | SMTP, POP3, IMAP | A range that does not allow its own protocol, or no range; asked again for the client a PROXY protocol header names | Refused |
 | ManageSieve | A range that allows neither IMAP nor POP3, or no range | Refused |
 | The web services listener (MTA-STS, autoconfiguration, Autodiscover, CardDAV, CalDAV, the Web Key Directory; from the release after 6.3.7) | A range that allows none of SMTP, POP3 and IMAP - an auto-ban's, or an administrator's that allows nothing - except from loopback and the addresses in `WebServicesTrustedProxies`. No range lets the address in. Once a connection, not once a request | Refused, except loopback and those addresses |
-| The REST API | Asks no range: it keeps its own refusal, for five minutes, of an address whose failures there crossed `MaxInvalidLogonAttempts` (`RestApiServer.cpp`) | - |
+| The REST API | Asks no range: it keeps its own refusal, for five minutes, of an address whose failures there crossed `MaxInvalidLogonAttempts` (`RestApiServer.cpp`), never of loopback | - |
 
 A refused connection is closed with nothing said, before the TLS handshake; the
 web services listener says why in the debug log, and a refusal by an
@@ -72,6 +72,32 @@ one. A ban of the proxy's address written for failures on another protocol - a
 webmail on this machine signing in over IMAP from 127.0.0.1 - is not this
 listener's to prevent: an address that answers for many belongs in
 `AutoBanNeverBan` (below).
+
+The REST listener - the webmail, the portal, the Control Deck and the API - is
+the same case behind a reverse proxy on this machine: every browser behind it
+reaches the listener from loopback, the one peer whose `X-Forwarded-Proto` it
+believes ([DevicesAndSessions.md](DevicesAndSessions.md)). From the release after
+6.3.7 a failed account sign-in from loopback there - HTTP Basic on any route,
+`POST /api/v1/session` (the webmail's and the portal's sign-in) among them - is
+counted against the name alone, never towards a ban of the address, and no
+`Auto-ban: logon failure` line is written for it (`RestApiServer::AuthenticateAccount_`,
+`IsForwarder_`, `AccountLogon::RegisterFailedLogin`); a failure from any other
+address is counted as before. From 6.2.28 to 6.3.7 it was counted against
+127.0.0.1, so a ban could be written that refused 127.0.0.1 at SMTP, POP3, IMAP
+and ManageSieve, while the REST listener, which
+asks no range, went on answering; on those versions put `127.0.0.1, ::1` in
+`AutoBanNeverBan`. The listener's own accounting of the credentials it checks
+itself - the administrator password, API keys, passkeys, the codes and passwords
+it asks again - has never charged loopback (`RegisterAuthenticationFailure_`),
+and spares all of 127.0.0.0/8 from the same release, where it spared 127.0.0.1
+and ::1 alone. The REST listener never refuses loopback, so through such a proxy
+the per-name lockout (`AccountLockoutThreshold`, off by default) is what limits
+the guesses at one account, as it always was there. The regression fixture
+`Security/RestApiLoopbackBan` holds it (both suites): three failed sign-ins at
+`GET /api/v1/me` and at `POST /api/v1/session` from loopback write no ban and no
+such line, SMTP and IMAP still greet loopback, and the name is locked; and, on the
+Windows suite, whose REST listener can be put on every address with TLS, three
+from this machine's own address that is not loopback are still charged to it.
 
 `AutoBanFirewall` and `AutoBanCommand` are told the ports of the TCP/IP ports
 list (`AutoBanFirewall::ListeningPorts`) - the SMTP, POP3 and IMAP listeners' -

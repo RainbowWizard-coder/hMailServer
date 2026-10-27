@@ -327,6 +327,21 @@ that only the administrators' network reaches. The delay does not believe
 `X-Forwarded-For`: any program on this machine can connect to `127.0.0.1` and
 write one, and a delay it could rotate away would be none.
 
+**Behind a reverse proxy on the same machine, an account's wrong password bans
+nobody.** From the release after 6.3.7 a failed account sign-in from loopback - a
+wrong password at `POST /api/v1/session`, the webmail's and the portal's sign-in,
+or in HTTP Basic on any other route - is counted against the name alone, by the
+per-name lockout, and never towards the auto-ban's count for the address, so it
+writes no ban and no `Auto-ban: logon failure` line for fail2ban; from any other
+address it is counted as on every protocol. From 6.2.28 to 6.3.7 it was counted
+against `127.0.0.1`, so a ban could be written that refused `127.0.0.1` at the
+SMTP, POP3, IMAP and ManageSieve listeners,
+while this listener, which never refuses loopback, went on answering; on those
+versions put `127.0.0.1, ::1` in `AutoBanNeverBan`. Since this listener never
+refuses loopback, what limits the guesses at one account through such a proxy is
+the per-name lockout, `AccountLockoutThreshold`, off by default: turn it on where
+the webmail is behind one ([AutoBan.md](AutoBan.md)).
+
 Which `Host` the listener answers
 ---------------------------------
 

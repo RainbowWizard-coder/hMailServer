@@ -2379,6 +2379,15 @@ namespace HM
       refused_addresses.shrink_to_fit();
    }
 
+   bool
+   RestApiServer::IsForwarder_(const IPAddress &peer)
+   {
+      // The whole of 127.0.0.0/8 and ::1, as BrowserCameOverTls_ has always
+      // taken them; HttpServer unmaps an IPv4 client of a dual-stack listener,
+      // and IsLoopback reads ::ffff:127.x.y.z as loopback all the same.
+      return peer.IsLoopback();
+   }
+
    void
    RestApiServer::RegisterAuthenticationFailure_(const IPAddress &peer_address)
    {
@@ -2386,14 +2395,17 @@ namespace HM
       // attempt against the management port is counted alongside one against
       // the mail ports and trips the same auto-ban.
       //
-      // Loopback is excluded on purpose. Auto-ban creates an IP range at
-      // priority 100, and a range covering 127.0.0.1 would deny the server's
-      // own local clients, hMailAdmin and every local script - a self-inflicted
-      // outage far worse than the brute-force attempt it was reacting to. An
-      // attacker who is already on the loopback interface is not being kept out
-      // by an IP ban in any case, and the listener refuses to run on a
-      // non-loopback address without TLS, so remote attempts are still counted.
-      if (peer_address.ToString() == "127.0.0.1" || peer_address.ToString() == "::1")
+      // Loopback is excluded on purpose (IsForwarder_). Auto-ban creates an IP
+      // range at priority 100, and a range covering 127.0.0.1 would deny the
+      // server's own local clients, hMailAdmin, a webmail on this machine and
+      // every local script - and every browser behind a reverse proxy here -
+      // a self-inflicted outage far worse than the brute-force attempt it was
+      // reacting to. An attacker who is already on the loopback interface is
+      // not being kept out by an IP ban in any case, and the listener refuses
+      // to run on a non-loopback address without TLS, so remote attempts are
+      // still counted. Until the release after 6.3.7 only 127.0.0.1 and ::1
+      // themselves were excluded here.
+      if (IsForwarder_(peer_address))
          return;
 
       if (peer_address.IsAny())
@@ -13918,11 +13930,23 @@ namespace HM
       // that feeds the auto-ban and the last-logon stamp all live behind
       // AccountLogon::Logon. A second implementation here would be a second
       // place for them to drift apart.
+      //
+      // Except that a failure from a forwarder - loopback, where a reverse proxy
+      // on this machine puts every browser behind it (IsForwarder_) - is counted
+      // against the name alone and never towards a ban of the address, and no
+      // "logon failure" line is written for it: from 6.2.28 to 6.3.7 Logon
+      // charged it to 127.0.0.1, before RegisterAuthenticationFailure_, which
+      // spares loopback, was called, so three wrong passwords from anybody behind
+      // the proxy, at any route and POST /api/v1/session among them, banned
+      // 127.0.0.1 from SMTP, POP3, IMAP and ManageSieve for AutoBanMinutes. The
+      // per-name lockout (AccountLockoutThreshold) still counts it, and is what
+      // limits the guesses at one account through such a proxy.
       bool disconnect = false;
       bool viaAppPassword = false;
       String appPasswordName;
       std::shared_ptr<const Account> account = AccountLogon().Logon(peer_address, username, password, disconnect,
-                                                                   &viaAppPassword, &appPasswordName, &secondFactor);
+                                                                   &viaAppPassword, &appPasswordName, &secondFactor,
+                                                                   !IsForwarder_(peer_address));
 
       if (!account)
       {

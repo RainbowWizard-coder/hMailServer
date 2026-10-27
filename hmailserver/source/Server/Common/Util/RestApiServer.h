@@ -2327,8 +2327,20 @@ namespace HM
       bool HostAllowed_(const AnsiString &request) const;
 
       // Records a rejected credential so that Configuration's auto-ban
-      // machinery counts it, exactly as the SMTP/IMAP/POP3 front ends do.
+      // machinery counts it, exactly as the SMTP/IMAP/POP3 front ends do -
+      // never for a forwarder (IsForwarder_).
       static void RegisterAuthenticationFailure_(const IPAddress &peer_address);
+
+      // Whether peer is one whose sign-in failures are its clients': loopback,
+      // where a reverse proxy on this machine puts every browser behind it (a
+      // plain-HTTP listener binds the loopback address only), and the one peer
+      // whose X-Forwarded-Proto is believed (BrowserCameOverTls_). Such a
+      // failure is counted against the name alone and never towards a ban of
+      // the address (AuthenticateAccount_, RegisterAuthenticationFailure_):
+      // a ban written for 127.0.0.1 would refuse it at every mail listener,
+      // and with it a webmail on this machine and every local script. Reads
+      // nothing.
+      static bool IsForwarder_(const IPAddress &peer);
 
       // The refused-source set: the in-process, bounded, self-expiring record
       // of addresses whose credentials have already tripped the auto-ban.

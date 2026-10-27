@@ -88,9 +88,9 @@ namespace HM
 
       // Start refuses a plain-HTTP listener anywhere but the loopback address,
       // so the only proxy that can stand in front of one is on this machine -
-      // and it is the one that may say the browser came over HTTPS.
-      const AnsiString peer = peer_address.ToString();
-      if (peer != "::1" && !peer.StartsWith("127."))
+      // and it is the one that may say the browser came over HTTPS: the peer
+      // whose sign-in failures are its clients' (IsForwarder_).
+      if (!IsForwarder_(peer_address))
          return false;
 
       AnsiString protocol = GetHeader_(request, "x-forwarded-proto");

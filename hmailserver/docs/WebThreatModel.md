@@ -152,7 +152,7 @@ Controls in place today
 | Bearer sessions: accounts only, never the administrator, never administrative | `HandleSessionCreate_` :14637 (the OpenAPI text at :21080 says each rule) |
 | Passkeys, OIDC and SAML: sealed cookies bind each flow to the browser that started it; a one-use ticket and an `hmsso` cookie for the exchange; `X-Requested-With` on the exchange, so a cross-site form cannot plant an attacker's session (login CSRF) | RestApiPasskeys.cpp:518; RestApiOidcSignIn.cpp:93; RestApiSamlSignIn.cpp:119; RestApiServer.cpp:1664-1684 |
 | A request budget per credential: 200 in 10 seconds | :316-317, :2861 |
-| The auto-ban on repeated failures | `RegisterAuthenticationFailure_` :2383 |
+| The auto-ban on repeated failures, never charged to loopback, where a reverse proxy on this machine puts every browser: an account's failed sign-in from there is counted against the name alone (the per-name lockout), from the release after 6.3.7; until then it banned 127.0.0.1 from the mail listeners | `RegisterAuthenticationFailure_` :2392; `AuthenticateAccount_` :13897, Logon's `chargeAddress` at :13940; `IsForwarder_` :2383; docs/AutoBan.md |
 | The web services listener: an address an IP range that allows none of SMTP, POP3 and IMAP holds (an auto-ban, or an administrator's range) refused at the accept, never loopback or a `WebServicesTrustedProxies` entry, whose failed sign-ins count against the name alone and never towards a ban of the address; every failed CalDAV, CardDAV or Autodiscover sign-in closes its connection | `IsConnectionAllowed_`, `JudgeByRanges`, `IsForwarder`, WebServicesServer.cpp:672-825; `Dav::Authenticate`, DavSupport.cpp:294; docs/AutoBan.md |
 
 ### Authorisation
