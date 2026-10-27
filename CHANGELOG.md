@@ -2727,10 +2727,11 @@ with `--check`).
   project was still in that namespace, where GitLab does not run the check, and GitLab skipped push protection for a
   push of 8,571 changed paths on 13 October 2026, above its threshold of 3,150 (all read through GitLab's API on 27
   October 2026, as were the rest). SECURITY.md, CONTRIBUTING.md, ContinuousIntegration.md and `build/scan-secrets.py`
-  say that push protection is on and has applied since the move into the group, what it does not read (only a push's
-  diffs, against GitLab's high-confidence patterns, nothing of a push over 3,150 paths or 350,000 lines, no file over 1
-  MiB, and a push its push option skips, by GitLab's documentation of that day), and what the hooks, the landing's scan
-  and `secret_detection` each read that it does not. The texts that give a date for Ultimate's features date them
+  say that push protection is on, that it reads only a push's diffs, against GitLab's high-confidence patterns, and
+  nothing of a push over 3,150 paths, and what the hooks, the landing's scan and `secret_detection` each read that it
+  does not; the first three that it has applied since the move into the group; and SECURITY.md and
+  ContinuousIntegration.md that it reads nothing of a push over 350,000 lines, no file over 1 MiB, and nothing of a
+  push its push option skips (by GitLab's documentation of that day). The texts that give a date for Ultimate's features date them
   from the move into the group, on the trial, and the open-source plan from 13 October 2026. SECURITY.md and
   ContinuousIntegration.md say that nothing makes a job
   required because no security policy project is linked to the project, where they said the free tier cannot.
@@ -2742,8 +2743,14 @@ with `--check`).
   approval being left unmet by the owner's decision of 6 October 2026), external status checks, protected
   environments, immutable tags, security policies, GitLab Advanced SAST, dependency scanning and the dependency list
   (empty), licence scanning and the custom rulesets, which the analyzers look for on every tier and would read on this
-  plan, and which `build/check-release-chain.py` keeps out of the tree; its GitLab for Open Source paragraph gives the
-  50,000 compute minutes a month. Channels.md, Snap.md and CommandLinePackages.md say that no environment is
+  plan, and which `build/check-release-chain.py` keeps out of the tree; the opening of the tier section dates each row
+  read on 27 October 2026, the protected container tags, the compute minutes and the refs the vulnerability report
+  tracks among them; its GitLab for Open Source paragraph gives the 50,000 compute minutes a month. Its "Whose tag"
+  says that the `v*` protected tag rule names the Maintainer role, which on this plan could name the owner's account,
+  as it could not on the free tier it was written on (GitLab's API and docs.gitlab.com's Protected tags, 27 October
+  2026), and its table of the container image's jobs that `container_scanning`'s findings are in the tag pipeline's
+  Security tab and the job's artifact, and not in the vulnerability report because it tracks `master` alone, where
+  that row gave the vulnerability report's tier as the reason. Channels.md, Snap.md and CommandLinePackages.md say that no environment is
   protected, where they said the free tier has none; Mirroring.md that a project access token serves the export job
   too; PackagesDeb.md what the plan's minutes change for the hosted runners the `.deb` builds, the arm64 cross builds
   among them, and the arm64 install and start jobs can be sent to; the comments of `.gitlab/ci/gitlab-security.yml`
@@ -2751,8 +2758,8 @@ with `--check`).
   there; and the comments of `.gitlab/ci/container-image.yml`, `build/ci/secret-detection-rules.sh`,
   `build/land-via-mr.py`, `build/ci/security-findings.py` and `build/ci/dependency-scan.py` say the same. Roadmap3.md's
   dependency alerts, branch protection and secret detection rows say what holds, and a new row, not started, weighs
-  what the plan offers that would let the project hold more than it does, the required approval left as the owner
-  decided it. Words only: no rule, job, setting or script changes. `HelpPagesData.cpp` is regenerated.
+  what the plan offers that would let the project hold more than it does, a `v*` tag rule that names the owner's
+  account among it, the required approval left as the owner decided it. Words only: no rule, job, setting or script changes. `HelpPagesData.cpp` is regenerated.
 - **SECURITY.md's "Build provenance" says that a release's SLSA provenance names every file of the release but the
   Sigstore bundles by its SHA-256, where it said every file of the release.** The in-toto statements of 6.3.6 and 6.3.7
   each name 62 of their release's 160 files - the installers, the PowerShell module's two files, every package, the

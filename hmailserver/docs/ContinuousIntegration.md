@@ -3631,9 +3631,16 @@ the upload and the release are the job's own `CI_JOB_TOKEN`. A token lives for
 the job and names the project, the tag and the pipeline.
 
 **Whose tag.** Release tags are created by Christopher Holloway, as
-`Progressiverobot`, alone (GOVERNANCE.md, 26 September 2026), and GitLab's free
-tier cannot hold tag creation to one account: the protected tag rule names a
-role. `release` reads `.gitlab/allowed_signers` from `master`, fetched by name
+`Progressiverobot`, alone (GOVERNANCE.md, 26 September 2026), and the protected
+tag rule does not hold tag creation to his account: the `v*` rule names a role,
+Maintainers (its *Allowed to create*, read through GitLab's API on 27 October
+2026). This was first written when the project was on GitLab's free tier, whose
+rule names roles and deploy keys alone; on Premium and Ultimate, which the
+group's open-source plan carries, *Allowed to create* can name a user or a group
+as well (docs.gitlab.com, Protected tags, read on 27 October 2026), so the rule
+could name the owner's account, which it does not today, and Roadmap3.md's row
+on what the open-source plan offers that the project does not use weighs it.
+`release` reads `.gitlab/allowed_signers` from `master`, fetched by name
 (`git show refs/remotes/origin/master:.gitlab/allowed_signers`), because a tag
 on a commit of its own could carry a key of its own in its tree; it takes that
 list only while it holds one key, requires the tag's signature to be that key's
@@ -3968,7 +3975,7 @@ so the first image is 6.3.6's.
 | `container-image-artifacthub` | linix, in the same regctl image; in the default branch's pipeline, started by hand and allowed to fail | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes only to the group's path, only from a protected `v*` tag or the protected default branch. While `platform/packaging/docker/artifacthub-repo.yml` holds no repository ID it pushes nothing and passes; it refuses a file with anything but comments, blank lines and one `repositoryID: <a UUID>`. Then it pushes that file, byte for byte, under the tag `artifacthub.io` alone, in the shape Artifact Hub documents for `oras push` (an empty configuration of the type `application/vnd.cncf.artifacthub.config.v1+yaml`, the file as the one layer of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`), and reads the manifest and the layer back. No job needs it, so a failure stops nothing of the image (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft reads that platform's pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM of that architecture names inside the binary and makes the image, by its digest and its platform (`--arch`), the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, or that is another architecture's, and an image in which Syft finds no `hmailserver` package of that architecture (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | linix, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the index and each platform's image, each by its own digest, with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies each signature with that identity. Every tag names the index, so its one signature covers them; a client that pulls a tag then fetches its platform's image by that image's digest, which carries its own. The signatures are stored beside what they sign in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests each platform's SBOM to that platform's image (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies each attestation with the same identity (`build/ci/container-image-sign.sh`) |
-| `container_scanning`, `container_scanning_arm64` | linix, in Trivy's image (`aquasec/trivy:0.74.0`, `dependency-scan`'s, by digest) | Trivy over each platform's pushed image by its digest, with that day's vulnerability database from `mirror.gcr.io` or `public.ecr.aws` (`build/ci/container-scan.sh`): the first scans `HM_IMAGE_AMD64`, from `container-image`'s dotenv report, and the second, which extends it, `HM_IMAGE_ARM64`, each chosen by the job's `HM_SCAN_ARCH`; the script refuses any image but the project's by a full digest. Trivy reads the image's files from the registry without credentials and runs nothing in it, so the platform is no matter to the runner. Each is `allow_failure`, as GitLab's template, which the jobs ran until 10 October 2026, made them: a finding is a warning. The report, in GitLab's container-scanning format and Trivy's own, is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
+| `container_scanning`, `container_scanning_arm64` | linix, in Trivy's image (`aquasec/trivy:0.74.0`, `dependency-scan`'s, by digest) | Trivy over each platform's pushed image by its digest, with that day's vulnerability database from `mirror.gcr.io` or `public.ecr.aws` (`build/ci/container-scan.sh`): the first scans `HM_IMAGE_AMD64`, from `container-image`'s dotenv report, and the second, which extends it, `HM_IMAGE_ARM64`, each chosen by the job's `HM_SCAN_ARCH`; the script refuses any image but the project's by a full digest. Trivy reads the image's files from the registry without credentials and runs nothing in it, so the platform is no matter to the runner. Each is `allow_failure`, as GitLab's template, which the jobs ran until 10 October 2026, made them: a finding is a warning. The report, in GitLab's container-scanning format and Trivy's own, is the job's artifact, for members with the Developer role or above, and the tag pipeline's Security tab shows its findings; the vulnerability report does not, since it tracks `master` alone, and these jobs run in a tag's pipeline (a Maintainer can track up to three more branches or tags) |
 | `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Each starts a platform's pushed image twice as services, once beside PostgreSQL and once beside MariaDB (`HM_DB_TYPE=MySQL`, through the MariaDB client the image carries from the release after 6.3.7), on a network of the job's own, through its entrypoint, and asks each for SMTP on 25 (with STARTTLS), for the REST API over TLS with the release's version and, from the release after 6.3.7, for `GET /api/v1/update`, which must say `installKind` `container`, `liveUpdate` false and an `updateCommand` of `docker pull` of the image, and reads from each database, with the CI image's `psql` and `mariadb`, the schema the server laid out there: the first the index by its digest, which the runner resolves to linux/amd64, and the second the linux/arm64 image by its own digest, as a service of the platform linux/arm64 (`services:docker:platform`), which the runner runs under qemu-user (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`, and `HM_START_PLATFORM` for another platform) |
 
 In 6.3.6's tag pipeline 2914690858 server2 ran `container-image-amd64`,
@@ -5381,7 +5388,7 @@ looks at `GITLAB_FEATURES` (the analyzers' ruleset library, `Load`): the log lin
 "`.gitlab/secret-detection-ruleset.toml` not found, ruleset customization will be
 disabled" was written on the Free tier on 27 September 2026 (job 16759948107) as
 it was on this plan on 27 October 2026 (job 17487843834), and shows only that the
-tree carries none. The tree carries none, and `build/check-release-chain.py` refuses a
+tree carries none. `build/check-release-chain.py` refuses a
 tree that does, as it refuses `.gitlab/sast-ruleset.toml`; nor does any CI file,
 or any project or group variable (their names, read on 27 October 2026), set
 `SECRET_DETECTION_RULESET_GIT_REFERENCE`, by which the analyzer would take a
@@ -6570,7 +6577,9 @@ and since 13 October 2026 the group's plan reads `opensource`, GitLab's
 open-source plan, with Ultimate's features.
 What each feature this page touches needs, by docs.gitlab.com on 28 September
 2026 and, for the custom rulesets, the security policies, Advanced SAST, the
-protected environments and the immutable tags, on 27 October 2026; and the
+protected environments, the immutable and the protected container tags, the
+compute minutes and the refs the vulnerability report tracks, on 27 October
+2026; and the
 *Here* column as GitLab's API and `master`'s pipelines read on 27 October 2026:
 
 | Feature | Tier | Here |
