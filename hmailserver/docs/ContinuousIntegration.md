@@ -5472,8 +5472,8 @@ what the free tier shows.
   tier they can be downloaded from the job's page and from the pipeline's
   download menu, and that is all. The pipeline's *Security* tab, the
   merge-request security widget, the vulnerability report and the dependency
-  list are GitLab Ultimate features. If the project is ever given Ultimate (GitLab
-  for Open Source grants it to qualifying projects), the same reports appear
+  list are GitLab Ultimate features. The project has had Ultimate since 13
+  October 2026 (GitLab for Open Source, below), and the same reports can appear
   there with no change to the jobs.
 - **The JUnit reports** are what the free tier shows: the pipeline's *Tests* tab
   lists them. So every job writes one as well. The two source scans write one
@@ -6477,9 +6477,11 @@ project was imported, so its values have been the scope since the first
 analysis; the project's settings hold none (`api/settings/values` for the
 project, 24 October 2026).
 
-**What it holds, and what it cannot.** On GitLab's free tier a merge request
-cannot be made to wait for SonarQube Cloud's quality gate (external status
-checks are GitLab Ultimate), so its verdict is the summary on the merge request
+**What it holds, and what it cannot.** A merge request does not wait for
+SonarQube Cloud's quality gate: external status checks, a GitLab Ultimate
+feature, have been available since the group went on the open-source plan on
+13 October 2026, and none is set up (the project's `external_status_checks`
+read `[]` on 27 October 2026), so its verdict is the summary on the merge request
 and the project's page on SonarQube Cloud (the README carries no badge of it);
 `semgrep-sast-gate` is the SAST that holds a merge request. Its findings are
 triaged in SonarQube Cloud itself: a Blocker or Critical bug or vulnerability is fixed, or marked there as a false positive or
@@ -6510,7 +6512,7 @@ it stood on the free tier, but for push protection:
 | Secret push protection | Ultimate | Yes since the open-source plan (`secret_push_protection_enabled` true, read on 26 October 2026), beside the hooks, the landing's scan and `secret_detection`, which were all there was on the free tier |
 | Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline |
 
-**GitLab for Open Source** grants Ultimate and 50,000 compute minutes a year to
+**GitLab for Open Source** grants Ultimate and 50,000 compute minutes a month to
 a qualifying namespace: every project in it under an OSI-approved licence,
 public, and an organisation that does not "seek to make a profit by selling
 services, by charging for enhancements or add-ons, or by other means". The

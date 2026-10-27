@@ -3155,7 +3155,12 @@ with `--check`).
   two accounts of what the free tier shows, its tier table's push protection row and its GitLab for Open Source
   paragraph say that the group is on the open-source plan since 13 October 2026, with push protection on;
   Roadmap.md's regression suite row dates its count of the files compiled on Linux (10 September 2026) and gives
-  today's; and its totals agree with its sections. `HelpPagesData.cpp` is regenerated.
+  today's, dates its count of the skips' call sites (299 then, 94 now) and says that groups and
+  `Account.ExportMessages`, which it gave as outside the Linux suite, have had routes and shims since 15 and 17
+  September 2026 and that `linux-suite` runs their fixtures; and its totals agree with its sections.
+  ContinuousIntegration.md gives GitLab for Open Source's 50,000 compute minutes a month, where it said a year, and
+  says that the project has Ultimate and that external status checks are available to it, none set up, where it
+  spoke of Ultimate as still to come. `HelpPagesData.cpp` is regenerated.
 
 ---
 
