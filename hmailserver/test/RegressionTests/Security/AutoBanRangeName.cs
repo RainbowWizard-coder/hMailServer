@@ -22,8 +22,9 @@ namespace RegressionTests.Security
    ///    like when a range holds it, in a column of 100 characters with a unique index.
    ///    Up to 6.3.7 the suffix was put after the whole user name and the name then cut
    ///    to 100 after the check for a name in use had asked about it uncut, so that
-   ///    with a user name of more than 86 characters the suffix was cut (from 90 every
-   ///    name the server could choose was the same once cut): while one ban for that
+   ///    with a user name of more than 77 characters a suffix could be cut (from 78 a
+   ///    name in use could be chosen again, below 86 by chance, and from 90 every name
+   ///    the server could choose was the same once cut): while one ban for that
    ///    user name stood, the unique index refused a later one, HM6099 was reported
    ///    and the address that had earned the ban was not banned - its spent failures
    ///    cleared all the same, so it was given the next set of attempts. The check for

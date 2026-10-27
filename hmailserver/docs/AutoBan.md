@@ -77,10 +77,11 @@ list shows the shortened user name. A user name holding a NUL character, which a
 sign-in can pass on, is named for the part before it: no
 database stores a NUL in a name. Up to 6.3.7 the suffix came after the whole user
 name and the cut to 100 characters, made after the check for a name in use, took
-it off again: with a user name long enough for its `(1)` to be cut, a later ban
-named for it could be refused, and the address was not banned (reported as HM6099
-from 6.2.19). On SQL Server a name in use could also go unrecognised; and a ban
-for a user name holding a NUL could fail too.
+it off again: with a user name long enough for a suffix to be cut, a later ban
+named for it could be refused (the second ban for it or a later one), and the
+address was not banned (reported as HM6099 from 6.2.19). On SQL Server a name in
+use could also go unrecognised; and a ban for a user name holding a NUL could fail
+too.
 
 The check for a name in use is the server's own; the database's unique index is
 the judge. A range it refuses even so - a name another server sharing the

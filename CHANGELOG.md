@@ -156,11 +156,11 @@ with `--check`).
   `Auto-ban: <user name>`, with `(1)` or
   another suffix after it when a range of that name exists, in a column of 100 characters that no two ranges may
   share. Up to 6.3.7 the suffix went after the whole user name and the name was cut to 100 characters only after the
-  check for a name in use: for a long user name the suffix `(1)` could be cut, and a later ban for the user name
-  could take a name in use. Such a ban was refused and the address was not banned (reported as HM6099 from 6.2.19) -
-  and its counted failures were cleared all the same, so it was given a whole new set of attempts. On SQL Server the
-  check for a name in use compared the name in the database's code page, so it could also miss a name in use. A ban
-  for a user name holding a NUL could fail too. Now the
+  check for a name in use, so that for a long user name a suffix could be cut and a later ban for the user name could
+  take a name in use: the second ban for it or a later one. Such a ban was refused and the address was not banned
+  (reported as HM6099 from 6.2.19) - and its counted failures were cleared all the same, so it was given a whole new
+  set of attempts. On SQL Server the check for a name in use compared the name in the database's code page, so it
+  could also miss a name in use. A ban for a user name holding a NUL could fail too. Now the
   user name (or the spam trap) ends before a NUL and is shortened so that the name, its suffix included, fits the
   column, never in the middle of a character, and the check asks about the name exactly as it will be stored,
   compared as the database compares it; a range refused even so - a name another server sharing the database wrote

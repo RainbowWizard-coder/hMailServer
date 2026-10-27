@@ -680,13 +680,15 @@ namespace HM
       // ends before a U+0000 it holds, which no engine stores (CutName), so that
       // the suffix is not lost there either. Up to 6.3.7 the whole reason went in
       // and SaveObject cut the name to 100 characters after the check for a name
-      // in use had asked about it uncut. With a user name of more than 86
-      // characters a suffix was cut: from 87 characters the second ban was stored
-      // under a cut suffix that the third chose again, at 89 the cut left the
-      // name and a space, which SQL Server and MySQL take for the name without
-      // it, and from 90 every candidate was the name in use. While one range of
-      // that name stood, a later ban named for the user name was refused by the
-      // unique index, and the address it was earned by was not banned.
+      // in use had asked about it uncut. With a user name of more than 77
+      // characters a suffix could be cut: from 78 to 85 the random one, whose
+      // kept digits a later ban's could repeat by chance; at 86 " (10)", which
+      // the twelfth ban chose again; from 87 " (1)", which the third chose
+      // again; at 89 the cut left the name and a space, which SQL Server and
+      // MySQL take for the name without it; and from 90 every candidate was the
+      // name in use. While one range of that name stood, a later ban named for
+      // the user name was refused by the unique index, and the address it was
+      // earned by was not banned.
       const String prefix = AutoBanRangePrefix;
       const int room = PersistentSecurityRange::MaxNameLength - prefix.GetLength() - suffix.GetLength();
 
@@ -869,8 +871,10 @@ namespace HM
 
       // Every candidate a ban for a user name of 86 to 91 and 200 units can be
       // written under: within the column, the prefix kept, its suffix intact
-      // after the cut, and no two the same once stored. Up to 6.3.7 a suffix was
-      // cut from 87 units (86 and " (1)" are the column's 100).
+      // after the cut, and no two the same once stored. At each of these lengths
+      // every kind of suffix needs room: the column's 100 hold "Auto-ban: " and
+      // 51 units beside the GUID, 77 beside a random suffix, 85 beside " (10)"
+      // and 86 beside " (1)", and up to 6.3.7 a suffix was cut past each.
       const String guid = _T(" {0F1E2D3C-4B5A-6978-8796-A5B4C3D2E1F0}");
       const int lengths[] = { 86, 87, 88, 89, 90, 91, 200 };
       for (int length : lengths)
