@@ -23,10 +23,10 @@ each interface: its IID, the interface it derives from, the attributes a client
 binds by (dual, local, object, oleautomation), and each member in its order,
 with its kind (method, propget, propput, propputref), dispatch id, name, return
 type and parameters - their direction ([in], [out], [retval], [lcid]) and type,
-but not their names, which no binding reads by position, nor their defaultvalue
-or help text. A parameter's name is its last word unless that word is one a
-type is written with (TYPE_WORDS, and every word that begins with _): MIDL
-builds "[in] long long", "[in] long double", "[in] long unsigned" and
+as written, but not their names, which no binding reads by position, nor their
+defaultvalue or help text. A parameter's name is its last word unless that word
+is one a type is written with (TYPE_WORDS, and every word that begins with _):
+MIDL builds "[in] long long", "[in] long double", "[in] long unsigned" and
 "BSTR * __ptr32", parameters with no name, as other types than "long" and
 "BSTR *", so their last word is read as part of the type. This holds the
 tree's hMailServer.idl to it: every interface the release had is there, with
@@ -35,38 +35,80 @@ begin with the release's, one for one - so a member is only ever added after
 the last one the release had. A member inserted, removed, moved, given another
 dispatch id or kind, or given another type or direction of a parameter is
 refused, naming the interface, the member's place and what the release had
-there, and so is dual or another of those attributes taken off or put on. A
-member is read only as it is declared: one given call_as() or local, by which
-MIDL fills a slot otherwise (call_as(X) puts the [local] method X, with X's
-parameters, in the member's slot of the header the server's classes
-implement, while the type library keeps the member), and one that returns
-other than HRESULT, as every member of the file does, stop the parse. The type
-library's own identity - the library's uuid and version, and each coclass's
-uuid and default interface, the part marked [default], as MIDL takes it - is
-held the same way, a coclass with a source interface or a second [default]
-stopping the parse, and so is each enumerator's value, which an early-bound
-client compiles in: an enumerator the release had is in its enum with its
-value. A new interface, coclass, enum or enumerator is free, and so is
-anything added at an interface's end. Every interface of the tree, new ones
-too, must be declared interface <name> : <base> { ... } with IDispatch or
-IUnknown its base: one derived from another of the file's interfaces has its
-base's members first in its vtable, so a member appended to the base, which
-this lets through, would move each of its own, and the check, which counts an
-interface's members from the slot after IDispatch's or IUnknown's, refuses
-such a base rather than pass it; one declared with no base is refused as one
-it does not read. None derives from another today.
+there, and so is dual taken off. A parameter's type is held as it is written,
+and so a declaration that could give the words it is written with another
+meaning is refused: MIDL takes hMailServer.idl's own typedef, enum, enumerator,
+interface, coclass or library of a name for the type of every member written
+with that name after it, one the Windows SDK defines too among them (typedef
+hyper LONG; after the imports gave 49 parameters of 36 released members I8 in
+the type library for I4, while every member's text stayed the release's), so a
+typedef of anything but an enum stops the parse, and a name the tree declares
+that the release's members are written with as a type (LONG, BSTR,
+VARIANT_BOOL, IDispatch) is refused unless the release declared it so too. The
+type library's own identity - the library's uuid and version, and each
+coclass's uuid and default interface - is held the same way, and so is each
+enumerator's value, which an early-bound client compiles in: an enumerator the
+release had is in its enum with its value. A new interface, coclass, enum or
+enumerator is free, and so is anything added at an interface's end. Every
+interface of the tree, new ones too, must be declared interface <name> : <base>
+{ ... }; with IDispatch or IUnknown its base: one derived from another of the
+file's interfaces has its base's members first in its vtable, so a member
+appended to the base, which this lets through, would move each of its own, and
+the check, which counts an interface's members from the slot after IDispatch's
+or IUnknown's, refuses such a base rather than pass it. None derives from
+another today.
+
+The file is read only in the forms it is written with, each release's since
+6.0.0 the same, and every other form is refused, naming the line, rather than
+taught to the reader: at file level the two imports, import "oaidl.idl"; and
+import "ocidl.idl";, an interface's forward declaration interface <name>;, an
+interface's definition [<attributes>] interface <name> : <base> { ... };, an
+enum typedef [<attributes>] enum { ... } <name>; (with no tag) and one library
+[<attributes>] library <name> { ... };; in the library importlib("stdole2.tlb");
+and [<attributes>] coclass <name> { [default] interface <name>; };; in an
+interface's body [<attributes>] HRESULT <name>(<parameters>); alone, each
+parameter [<attributes>] followed by words and *s; in an enum's body
+[<attributes>] <name> = <integer>. Each attribute list is one list on one of
+these, and gives the attributes hMailServer.idl gives that place and no other
+(ATTRIBUTES): an interface object, uuid, dual, nonextensible, helpstring and
+pointer_default(unique); a member propget, propput, id, helpstring and
+defaultbind; a parameter in, out, retval and defaultvalue; an enum uuid and
+helpstring; an enumerator hidden and helpstring; the library uuid, version and
+helpstring; a coclass uuid and helpstring; a coclass's part default - each
+argument in the form the file writes it (a uuid, a string literal, an integer,
+<major>.<minor>, unique), never a name the build's or the compiler's own
+definitions could give a value. So MIDL's other statements are refused at file
+level (cpp_quote, midl_pragma, a typedef of a structure, a union or a type,
+const, struct, union, module, dispinterface, a coclass or an importlib outside
+the library, declare_guid, _Pragma and __pragma, an attribute list on anything
+but an interface or the library), in the library (an interface, a typedef,
+cpp_quote, another importlib) and in an interface's body (a member without its
+attribute list, a cpp_quote, a word after a member's parameters, a parameter
+such as SAFEARRAY(BSTR)), and so are MIDL's other attributes, wherever they
+stand: a member's call_as() and local, by which MIDL fills a slot otherwise
+(call_as(X) puts the [local] method X, with X's parameters, in the member's
+slot of the header the server's classes implement), an interface's local,
+oleautomation and async_uuid, a member's vararg, restricted and propputref, a
+parameter's optional, lcid, size_is, iid_is and string, an enum's v1_enum, a
+coclass's noncreatable and a part's source or restricted (a coclass has one
+part, so a second [default] is refused too), and two attribute lists in a row,
+which MIDL merges where a reader of one list would read either ([default]
+[source] on a coclass's part made another interface its default; [local] as a
+list of its own made an interface local). A member that returns other than
+HRESULT stops the parse as well. A change of hMailServer.idl that needs a form,
+a statement or an attribute the file does not have yet changes this check with
+it, which says then what it holds of it.
 
 What it does not hold: an interface's other attributes (helpstring,
-nonextensible, pointer_default, hidden), a member's attributes other than its
-kind and dispatch id (call_as and local refused), an enum's own uuid, the
-parameters' names, defaultvalues and other attributes, what the Windows SDK's
-oaidl.idl and ocidl.idl declare, which the file imports (an import of any other
-file is refused, and so is a file beside hMailServer.idl that MIDL, which looks
-in the directory it runs in first, would read in place of the SDK's: another
-.idl, an .acf, a type library or one of SDK_HEADERS), the options the build
-runs MIDL with (the vcxproj's Midl settings and what MSBuild adds to them), and
-whatever hMailServer.idl does not declare, such as the coclasses' interfaces
-other than the default one and the registry entries an install writes.
+nonextensible, pointer_default), a member's attributes other than its kind and
+dispatch id, an enum's own uuid, the parameters' names, defaultvalues and other
+attributes, what the Windows SDK's oaidl.idl and ocidl.idl declare, which the
+file imports (an import of any other file is refused, and so is a file beside
+hMailServer.idl that MIDL, which looks in the directory it runs in first, would
+read in place of the SDK's: another .idl, an .acf, a type library or one of
+SDK_HEADERS), the options the build runs MIDL with (the vcxproj's Midl settings
+and what MSBuild adds to them), and whatever hMailServer.idl does not declare,
+such as the registry entries an install writes.
 
 The baseline is written from a release tag, never from the tree:
 
@@ -100,13 +142,31 @@ as [in] long long, [in] long double and [in] long unsigned, a released
 [out, retval] BSTR * given none as BSTR * __ptr32, an interface's IID changed,
 an interface taken away, a new interface derived from a released one, dual
 taken off an interface, an enumerator's value changed, an enumerator removed,
-and a file named oaidl.idl, wtypesbase.idl, hMailServer.acf, stdole2.tlb or
-basetsd.h beside hMailServer.idl must each be refused, and a member appended, a member written over two lines, a
-member commented out where it would have been inserted, a new interface derived
-from IDispatch and an enumerator appended must each pass. Every HRESULT of the
-file must be a member of an interface body the parse read, so a member it
-stopped reading, or one declared where it does not read (a dispinterface, a
-macro), is not one it silently passes.
+a new enum named LONG and one named VARIANT_BOOL, an interface declared as
+BSTR and an enumerator named LONG, and a file named oaidl.idl, wtypesbase.idl,
+hMailServer.acf, stdole2.tlb or basetsd.h beside hMailServer.idl must each be
+refused, and a member appended, a member written over two lines, a member
+commented out where it would have been inserted, a new interface derived from
+IDispatch and an enumerator appended must each pass. Every HRESULT of the file
+must be a member of an interface body the parse read, so a member it stopped
+reading is not one it silently passes. And each of the forms above that the
+file does not use is a control that must stop the parse with its refusal: at
+file level typedef hyper LONG; alone and between cpp_quote("#if 0") and
+cpp_quote("#endif"), a typedef of a structure, midl_pragma, const, struct,
+union, declare_guid, _Pragma, __pragma, an importlib, a module, a coclass, an
+attribute list on nothing and a dispinterface; in the library a typedef, a
+cpp_quote, an interface and another importlib; in an interface's body a member
+without its attribute list, a cpp_quote, a word after a member's parameters and
+a SAFEARRAY(BSTR) parameter; a coclass's part given [default] [source], [local]
+as a list of its own above an interface's, an interface given local and given
+oleautomation, a member given vararg, an enum v1_enum, an enumerator
+restricted, the library lcid(0), a coclass noncreatable, a parameter optional
+and a coclass's part restricted, a member's id given as a name and its
+helpstring as a wide string, a member's id taken off, an enum given a tag; a
+released member made call_as() of a [local] method appended with other
+parameters and one made [local], a coclass given a [default, source], a
+[source] or a second [default] interface, and a new interface derived from
+IUnknown with a member that returns void.
 
 The text is read as MIDL reads it or not at all. Its tokens are string
 literals, comments of both kinds, words and single characters; MIDL runs the C
@@ -141,19 +201,16 @@ body, a // comment ending in a backslash above a member, a member between two
 %:if 0 ... %:endif in the middle of an attribute's argument, a %:include at the
 top of a body, a // comment followed by a carriage return and a released
 member, read from bytes with CRLF line ends, a no-break space between two
-tokens, an import of another file, a new interface with no base, a
-dispinterface with a member, an enumerator without its value, a released member
-made call_as() of a [local] method appended with other parameters, a released
-member made [local], a coclass given a [default, source] interface, one given
-a [source] interface and one given a second [default] interface, and a new
-interface derived from IUnknown with a member that returns void are twenty-one
-more of the controls, and each must stop the parse with its refusal.
+tokens, an import of another file, a new interface with no base and an
+enumerator without its value are more of the controls, and each must stop the
+parse with its refusal.
 
 Usage:  python build/check-com-abi.py [--self-test] [--write-baseline TAG]
 Exit 0 when every interface keeps the release's members, 1 when one does not
 or, in CI, the baseline's tag cannot be listed or fetched from the project or a
 tag the clone had is not the project's, 2 for a usage or git error or an
-hMailServer.idl this does not read, such as one with a preprocessor line.
+hMailServer.idl this does not read, such as one with a preprocessor line or a
+statement or an attribute the file is not written with.
 """
 import os
 import re
@@ -337,20 +394,6 @@ def split_top(toks, separator=","):
     return parts
 
 
-def attributes(toks):
-    """{name: argument text or None} of the tokens between [ and ]."""
-    found = {}
-    for part in split_top(toks):
-        if not part:
-            continue
-        name = part[0][0]
-        argument = None
-        if len(part) > 1 and part[1][0] == "(":
-            argument = "".join(token[0] for token in part[2:-1])
-        found[name] = argument
-    return found
-
-
 def render(toks):
     """Type tokens as one string: a space only between two words."""
     out = ""
@@ -371,46 +414,146 @@ def type_word(word):
     return word in TYPE_WORDS or word.startswith("_")
 
 
-def parameter(toks):
+# The statements hMailServer.idl is written with, at each level, and in each the attributes, which are all this
+# reads - each release's since 6.0.0 has the same and no other: any other MIDL statement (cpp_quote, midl_pragma,
+# a typedef of anything but an enum, const, struct, union, module, dispinterface, coclass outside the library,
+# declare_guid, _Pragma and the rest) or attribute (local, oleautomation, async_uuid, vararg, optional, lcid,
+# size_is, iid_is, string, v1_enum, source, restricted and the rest) is refused, naming the line, rather than read
+# past, so that nothing MIDL reads is taken for nothing; a change of the file that needs another form changes this
+# check with it.
+FILE_FORMS = ('import "oaidl.idl"; and import "ocidl.idl";, interface <name>;, [<attributes>] interface <name> : '
+              '<base> { <members> };, typedef [<attributes>] enum { <enumerators> } <name>; and [<attributes>] '
+              'library <name> { ... };')
+FILE_OTHERS = ("cpp_quote, midl_pragma, a typedef of anything but an enum, const, struct, union, module, "
+               "dispinterface, a coclass or an importlib outside the library, declare_guid, _Pragma, __pragma")
+LIBRARY_FORMS = 'importlib("stdole2.tlb"); and [<attributes>] coclass <name> { [default] interface <name>; };'
+LIBRARY_OTHERS = "an interface, a typedef, cpp_quote, a module, a dispinterface, another importlib"
+MEMBER_FORM = "[<attributes>] HRESULT <name>(<parameters>);"
+IMPORTLIB = '"stdole2.tlb"'
+# The attributes each place is given, with the form of each one's argument: None for none, "uuid", "string" (one
+# string literal), "integer" (a dispatch id written out), "unique", "version" (<major>.<minor>) and "literal" (an
+# integer or a string written out) - so that no attribute's argument is a name, which the build's own definitions
+# (/D NDEBUG) or the compiler's could give a value.
+ATTRIBUTES = {
+    "interface": {"object": None, "uuid": "uuid", "dual": None, "nonextensible": None, "helpstring": "string",
+                  "pointer_default": "unique"},
+    "member": {"propget": None, "propput": None, "id": "integer", "helpstring": "string", "defaultbind": None},
+    "parameter": {"in": None, "out": None, "retval": None, "defaultvalue": "literal"},
+    "enum": {"uuid": "uuid", "helpstring": "string"},
+    "enumerator": {"hidden": None, "helpstring": "string"},
+    "library": {"uuid": "uuid", "version": "version", "helpstring": "string"},
+    "coclass": {"uuid": "uuid", "helpstring": "string"},
+    "coclass part": {"default": None},
+}
+# Those a place must have, as each has in hMailServer.idl.
+REQUIRED_ATTRIBUTES = {"interface": ("object", "uuid"), "member": ("id",), "library": ("uuid", "version"),
+                       "coclass": ("uuid",), "coclass part": ("default",)}
+ARGUMENT_FORMS = {
+    "uuid": re.compile(r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"),
+    "integer": re.compile(r"^(?:0[xX][0-9A-Fa-f]+|0|[1-9][0-9]*)$"),
+    "unique": re.compile(r"^unique$"),
+    "version": re.compile(r"^[0-9]+\.[0-9]+$"),
+    "literal": re.compile(r'^(?:-?(?:0[xX][0-9A-Fa-f]+|0|[1-9][0-9]*)|"(?:[^"\\\n]|\\.)*")$'),
+    "string": re.compile(r'^"(?:[^"\\\n]|\\.)*"$'),
+}
+
+
+def attribute_list(toks, index, place, text, owner):
+    """({name: argument text or None}, the index after its ]) of the attribute list that opens at toks[index],
+    read as the attributes hMailServer.idl gives a <place> (ATTRIBUTES), or IdlError: any other attribute, one
+    given twice, an argument of another form, one REQUIRED_ATTRIBUTES names missing, and a second list right
+    after it, which MIDL merges with it where this would read one."""
+    where = line_number(text, toks[index][1])
+    end = closing(toks, index, "[", "]")
+    allowed = ATTRIBUTES[place]
+    found = {}
+    for part in split_top(toks[index + 1:end]):
+        name = part[0][0] if part else ""
+        line = line_number(text, part[0][1]) if part else where
+        if place == "member" and name in SLOT_ATTRIBUTES:
+            raise IdlError("line %d: %s's member has [%s]: MIDL fills a vtable slot by it otherwise than as the member "
+                           "is declared (call_as(X) puts the [local] method X in the member's slot, with X's "
+                           "parameters, in the header the server's classes implement), which this check does not "
+                           "read; hMailServer.idl has neither" % (line, owner, name))
+        if place == "coclass part" and name == "source":
+            raise IdlError("line %d: %s has a source interface: MIDL takes the [default] part that is not a source for "
+                           "the default interface a client creates it by, which this check reads only where there is "
+                           "one [default] and no source, as in every coclass of hMailServer.idl" % (line, owner))
+        if not WORD.match(name) or name not in allowed:
+            raise IdlError("line %d: %s has [%s], which this check does not read: a %s of hMailServer.idl is given %s "
+                           "alone, and any other attribute MIDL knows is refused rather than read past, as MIDL may "
+                           "build the %s otherwise by it - a change that needs it changes build/check-com-abi.py "
+                           "with it" % (line, owner, render(part)[:50] if part else "", place,
+                                        ", ".join(sorted(allowed)), place))
+        if name in found:
+            raise IdlError("line %d: %s has [%s] twice" % (line, owner, name))
+        argument = None
+        if len(part) > 1:
+            if part[1][0] != "(" or closing(part, 1, "(", ")") != len(part) - 1 or len(part) < 4:
+                raise IdlError("line %d: %s's [%s] is not written %s(<argument>) or %s" % (line, owner, name, name,
+                                                                                         name))
+            argument = part[2:-1]
+        form = allowed[name]
+        if (form is None) != (argument is None) or form and (
+                not ARGUMENT_FORMS[form].match(text[argument[0][1]:argument[-1][2]])
+                or form == "string" and len(argument) != 1):
+            raise IdlError("line %d: %s's [%s] is not written as hMailServer.idl writes it (%s): an argument of "
+                           "another form, a name among them, is one this check does not read"
+                           % (line, owner, render(part)[:50], ("%s(<%s>)" % (name, form)) if form else name))
+        found[name] = "".join(token[0] for token in argument) if argument else None
+    for name in REQUIRED_ATTRIBUTES.get(place, ()):
+        if name not in found:
+            raise IdlError("line %d: %s's attributes have no %s, which every %s of hMailServer.idl has"
+                           % (where, owner, name, place))
+    if end + 1 < len(toks) and toks[end + 1][0] == "[":
+        raise IdlError("line %d: %s has two attribute lists in a row: MIDL merges them, where this check reads "
+                       "one list a place - write them as one" % (line_number(text, toks[end + 1][1]), owner))
+    return found, end + 1
+
+
+def parameter(toks, text, owner):
     direction = []
     if toks and toks[0][0] == "[":
-        end = closing(toks, 0, "[", "]")
-        attrs = attributes(toks[1:end])
+        attrs, after = attribute_list(toks, 0, "parameter", text, owner)
         direction = [name for name in DIRECTIONS if name in attrs]
-        toks = toks[end + 1:]
+        toks = toks[after:]
+    if not toks or not WORD.match(toks[0][0]) or any(not WORD.match(value) and value != "*" for value, _, _ in toks):
+        raise IdlError("line %d: %s has a parameter written %s, which this check does not read: every parameter of "
+                       "hMailServer.idl is [<attributes>] <type words and *> [<name>], or void"
+                       % (line_number(text, toks[0][1]) if toks else 0, owner, render(toks)[:50] or "with no type"))
     # The last word is the parameter's name, unless the type is all there is or the word is one a type is
     # written with: "[in] long long", "[in] long double" and "BSTR * __ptr32" name no parameter, and MIDL
     # builds each as another type than "long" or "BSTR *".
     if len(toks) > 1 and WORD.match(toks[-1][0]) and not type_word(toks[-1][0]):
         toks = toks[:-1]
-    text = render(toks)
-    return ("[%s] " % ",".join(direction) if direction else "") + text
+    text_of = render(toks)
+    return ("[%s] " % ",".join(direction) if direction else "") + text_of
 
 
 def member(toks, interface, text):
-    attrs = {}
-    where = line_number(text, toks[0][1]) if toks else 0
-    if toks and toks[0][0] == "[":
-        end = closing(toks, 0, "[", "]")
-        attrs = attributes(toks[1:end])
-        toks = toks[end + 1:]
+    where = line_number(text, toks[0][1])
+    if toks[0][0] != "[":
+        raise IdlError("line %d: %s has %s where hMailServer.idl writes a member %s: a member without its attribute "
+                       "list, a cpp_quote or another statement in an interface's body is one this check does not read"
+                       % (where, interface, render(toks)[:50], MEMBER_FORM))
+    attrs, after = attribute_list(toks, 0, "member", text, interface)
+    toks = toks[after:]
     opening = next((i for i, token in enumerate(toks) if token[0] == "("), None)
     if opening is None or opening < 2:
-        raise IdlError("%s: a member at offset %d is not <type> <name>(...)" % (interface, toks[0][1] if toks else -1))
+        raise IdlError("line %d: %s's member %s is not written %s" % (where, interface, render(toks)[:50], MEMBER_FORM))
     end = closing(toks, opening, "(", ")")
     name = toks[opening - 1][0]
     returns = render(toks[:opening - 1])
-    slotted = [attribute for attribute in SLOT_ATTRIBUTES if attribute in attrs]
-    if slotted:
-        raise IdlError("line %d: %s's member %s has [%s]: MIDL fills a vtable slot by it otherwise than as the member "
-                       "is declared (call_as(X) puts the [local] method X in the member's slot, with X's "
-                       "parameters, in the header the server's classes implement), which this check does not read; "
-                       "hMailServer.idl has neither" % (where, interface, name, ", ".join(slotted)))
     if returns != "HRESULT":
         raise IdlError("line %d: %s's member %s returns %s: this check reads members that return HRESULT, as every "
                        "member of hMailServer.idl does, and counts the file's HRESULTs against them"
                        % (where, interface, name, returns or "nothing"))
-    parameters = [parameter(part) for part in split_top(toks[opening + 1:end])]
+    if not WORD.match(name) or end != len(toks) - 1:
+        raise IdlError("line %d: %s's member %s is not written %s: a member with anything after its parameters, or "
+                       "not named by a word, is one this check does not read"
+                       % (where, interface, render(toks)[:50], MEMBER_FORM))
+    parameters = [parameter(part, text, "%s's member %s" % (interface, name))
+                  for part in split_top(toks[opening + 1:end])]
     if parameters == ["void"]:
         parameters = []
     kind = next((k for k in KINDS if k in attrs), "method")
@@ -418,137 +561,262 @@ def member(toks, interface, text):
     return "%s id(%s) %s %s(%s)" % (kind, dispid if dispid is not None else "-", returns, name, ", ".join(parameters))
 
 
-def enumerators(toks, text):
-    """"<name> = <value>" of each enumerator between an enum's braces. Only a value written out is read: C
-    gives an enumerator without one its predecessor's plus one, and MIDL takes an expression, neither of which
-    this computes, so either is refused; every enumerator of hMailServer.idl has an integer of its own."""
-    found = []
+def enumerators(toks, text, owner):
+    """(["<name> = <value>", ...], [name, ...]) of the enumerators between an enum's braces. Only a value written
+    out is read: C gives an enumerator without one its predecessor's plus one, and MIDL takes an expression,
+    neither of which this computes, so either is refused; every enumerator of hMailServer.idl has an integer of
+    its own."""
+    found, names = [], []
     for part in split_top(toks):
-        while part and part[0][0] == "[":
-            part = part[closing(part, 0, "[", "]") + 1:]
         if not part:
-            continue
+            raise IdlError("%s has two commas with no enumerator between them" % owner)
+        if part[0][0] == "[":
+            _, after = attribute_list(part, 0, "enumerator", text, "%s's enumerator" % owner)
+            part = part[after:]
         values = [token[0] for token in part]
         literal = "".join(values[2:])
         if len(values) < 3 or values[1] != "=" or not WORD.match(values[0]) or not ENUM_VALUE.match(literal):
             raise IdlError("line %d: the enumerator %s is not written <name> = <integer>: this check reads only an "
                            "enumerator's value written out, as every one in hMailServer.idl is, and not one C or MIDL "
-                           "would work out - write its value" % (line_number(text, part[0][1]), render(part)[:60]))
+                           "would work out - write its value" % (line_number(text, part[0][1]) if part else 0,
+                                                                 render(part)[:60]))
         found.append("%s = %d" % (values[0], int(literal, 0)))
-    return found
+        names.append((values[0], part[0][1]))
+    return found, names
 
 
 def parse(text):
     """{"interfaces": {name: (iid, base, [member, ...], [binding attribute, ...])}, "types": [line, ...],
-    "spans": {...}}"""
+    "spans": {...}, "defined": {name: kind}}, read from the statements of FILE_FORMS and LIBRARY_FORMS alone."""
     toks = tokens(text)
-    interfaces, spans, types = {}, {}, []
-    pending = {}
-    index = 0
-    # Every HRESULT of the file, so that one outside the interface bodies read below - in an interface declared
-    # some other way, a dispinterface, anywhere - stops the parse rather than being passed unread.
+    interfaces, spans, types, defined = {}, {}, [], {}
+    libraries = []
+    # Every HRESULT of the file, so that one outside the interface bodies read below stops the parse rather than
+    # being passed unread.
     hresults = sum(1 for token in toks if token[0] == "HRESULT")
+
+    def token(index):
+        return toks[index][0] if 0 <= index < len(toks) else ""
+
+    def at(index):
+        return line_number(text, toks[min(index, len(toks) - 1)][1]) if toks else 0
+
+    def define(name, kind, offset):
+        # One name, one declaration: an interface's forward declaration and its definition aside.
+        if name in defined and (defined[name], kind) != ("interface", "interface"):
+            raise IdlError("line %d: %s is declared as %s and as %s: MIDL takes the last for the name, where this "
+                           "check reads each" % (line_number(text, offset), name, defined[name], kind))
+        defined[name] = kind
+
+    def unread(index, forms, others, level):
+        raise IdlError("line %d: %s is not a statement this check reads %s: hMailServer.idl is written there with %s "
+                       "alone, and any other MIDL statement (%s) is refused rather than read past, as MIDL might "
+                       "read it otherwise - a typedef hyper LONG; makes every member written with LONG another type "
+                       "in the type library while the members' text stays the release's; a change that needs "
+                       "another changes build/check-com-abi.py with it"
+                       % (at(index), render(toks[index:index + 3])[:50], level, forms, others))
+
+    def attributed(index, places, level):
+        """The keyword an attribute list at toks[index] is on, or IdlError for one on another."""
+        end = closing(toks, index, "[", "]")
+        if token(end + 1) == "[":
+            raise IdlError("line %d: two attribute lists in a row: MIDL merges them, where this check reads one list "
+                           "a place - write them as one" % at(end + 1))
+        if token(end + 1) not in places:
+            raise IdlError("line %d: an attribute list on %s: %s hMailServer.idl gives one to %s alone, and an "
+                           "attribute list on anything else is one this check does not read"
+                           % (at(index), render(toks[end + 1:end + 3])[:40] or "nothing", level,
+                              " or ".join(places)))
+        return end
+
+    def read_interface(index):
+        end = closing(toks, index, "[", "]")
+        name = token(end + 2)
+        attrs, i = attribute_list(toks, index, "interface", text, "interface " + name)
+        if not WORD.match(name) or token(i + 2) != ":" or not WORD.match(token(i + 3)) or token(i + 4) != "{":
+            raise IdlError("line %d: interface %s is not declared as interface <name> : <base> { ... }; under its "
+                           "attribute list, or as interface <name>; - one with no base is a vtable this check does "
+                           "not read, and every interface of hMailServer.idl derives from IDispatch" % (at(i), name))
+        base, brace = token(i + 3), i + 4
+        close = closing(toks, brace, "{", "}")
+        if token(close + 1) != ";" or close > brace + 1 and token(close - 1) != ";":
+            raise IdlError("line %d: interface %s's body or its } is not ended by a ;, as hMailServer.idl ends each"
+                           % (at(close), name))
+        members, member_spans = [], []
+        for part in split_top(toks[brace + 1:close], ";"):
+            if not part:
+                raise IdlError("line %d: interface %s has a ; with no member before it" % (at(close), name))
+            members.append(member(part, name, text))
+            member_spans.append((part[0][1], part[-1][2] + 1))   # with its ;
+        if name in interfaces:
+            raise IdlError("interface %s is defined twice" % name)
+        define(name, "interface", toks[i + 1][1])
+        interfaces[name] = (attrs["uuid"].upper(), base, members, [flag for flag in BINDING if flag in attrs])
+        spans[name] = member_spans
+        return close + 2
+
+    def read_enum(index):
+        typedef = ("line %d: a typedef hMailServer.idl does not have: each of its typedefs is typedef [<attributes>] "
+                   "enum { <enumerators> } <name>;, and a typedef of anything else is refused - MIDL takes a "
+                   "typedef in hMailServer.idl for the type of every member written with its name after it, one the "
+                   "Windows SDK defines (LONG, BSTR, VARIANT_BOOL) among them, where this check reads the members' "
+                   "text: typedef hyper LONG; made 49 parameters of the release's members I8 for I4" % at(index))
+        if token(index + 1) != "[":
+            raise IdlError(typedef)
+        attrs, i = attribute_list(toks, index + 1, "enum", text, "a typedef")
+        if token(i) != "enum":
+            raise IdlError(typedef)
+        if token(i + 1) != "{":
+            raise IdlError("line %d: enum %s: hMailServer.idl's enums have no tag, and a tag is a name C shares with "
+                           "the structures' tags of the Windows SDK (tagVARIANT): write typedef [<attributes>] enum "
+                           "{ ... } <name>;" % (at(i), token(i + 1)))
+        close = closing(toks, i + 1, "{", "}")
+        name = token(close + 1)
+        if not WORD.match(name) or token(close + 2) != ";":
+            raise IdlError("line %d: an enum not named as typedef [<attributes>] enum { ... } <name>;" % at(close))
+        entries, names = enumerators(toks[i + 2:close], text, "enum " + name)
+        define(name, "enum", toks[close + 1][1])
+        for enumerator, offset in names:
+            define(enumerator, "enumerator", offset)
+        types.extend("enum %s %s" % (name, entry) for entry in entries)
+        return close + 3
+
+    def read_coclass(index):
+        end = closing(toks, index, "[", "]")
+        name = token(end + 2)
+        attrs, i = attribute_list(toks, index, "coclass", text, "coclass " + name)
+        if not WORD.match(name) or token(i + 2) != "{":
+            raise IdlError("line %d: coclass %s is not written coclass <name> { ... };" % (at(i), name))
+        close = closing(toks, i + 2, "{", "}")
+        if token(close + 1) != ";" or token(close - 1) != ";":
+            raise IdlError("line %d: coclass %s's part or its } is not ended by a ;" % (at(close), name))
+        # MIDL makes the part marked [default] that is not a source the coclass's default interface. Each coclass
+        # of hMailServer.idl has one part, [default] interface <name>;: a source interface or a second part is
+        # refused rather than read.
+        default = None
+        for part in split_top(toks[i + 3:close], ";"):
+            if not part:
+                raise IdlError("line %d: coclass %s has a ; with no part before it" % (at(close), name))
+            if part[0][0] != "[":
+                raise IdlError("line %d: coclass %s has a part without its [default]: each coclass of hMailServer.idl "
+                               "has one part, [default] interface <name>;" % (line_number(text, part[0][1]), name))
+            _, after = attribute_list(part, 0, "coclass part", text, "coclass " + name)
+            rest = [value for value, _, _ in part[after:]]
+            if len(rest) != 2 or rest[0] != "interface" or not WORD.match(rest[1]):
+                raise IdlError("line %d: coclass %s has a part written %s: each coclass of hMailServer.idl has one "
+                               "part, [default] interface <name>;" % (line_number(text, part[0][1]), name,
+                                                                     render(part)[:50]))
+            if default is not None:
+                raise IdlError("line %d: coclass %s has a second [default] part: MIDL takes the [default] part that "
+                               "is not a source for the default interface a client creates it by, which this check "
+                               "reads only where there is one [default] and no source, as in every coclass of "
+                               "hMailServer.idl" % (line_number(text, part[0][1]), name))
+            default = rest[1]
+        if default is None:
+            raise IdlError("line %d: coclass %s has no interface" % (at(close), name))
+        define(name, "coclass", toks[i + 1][1])
+        types.append("coclass %s uuid(%s) default %s" % (name, attrs["uuid"].upper(), default))
+        return close + 2
+
+    def read_library(index):
+        end = closing(toks, index, "[", "]")
+        name = token(end + 2)
+        attrs, i = attribute_list(toks, index, "library", text, "library " + name)
+        if not WORD.match(name) or token(i + 2) != "{":
+            raise IdlError("line %d: library %s is not written library <name> { ... };" % (at(i), name))
+        close = closing(toks, i + 2, "{", "}")
+        if token(close + 1) != ";":
+            raise IdlError("line %d: library %s's } is not followed by its ;" % (at(close), name))
+        if libraries:
+            raise IdlError("line %d: a second library: hMailServer.idl has one" % at(i))
+        libraries.append(name)
+        define(name, "library", toks[i + 1][1])
+        types.append("library %s uuid(%s) version(%s)" % (name, attrs["uuid"].upper(), attrs.get("version")))
+        j = i + 3
+        while j < close:
+            if token(j) == "importlib":
+                if [token(j + k) for k in range(1, 5)] != ["(", IMPORTLIB, ")", ";"]:
+                    raise IdlError("line %d: an importlib of other than %s: MIDL reads the type library it names, "
+                                   "and this check does not" % (at(j), IMPORTLIB))
+                j += 5
+            elif token(j) == "[":
+                attributed(j, ("coclass",), "in the library")
+                j = read_coclass(j)
+            else:
+                unread(j, LIBRARY_FORMS, LIBRARY_OTHERS, "in the library")
+        if j != close:
+            raise IdlError("line %d: library %s's body is not read to its }" % (at(j), name))
+        return close + 2
+
+    index = 0
     while index < len(toks):
-        value = toks[index][0]
+        value = token(index)
         if value == "import":
-            end = next((i for i in range(index, len(toks)) if toks[i][0] == ";"), len(toks))
-            names = [token[0] for token in toks[index + 1:end]]
-            if not names or any(name != "," and name.strip('"') not in IMPORTS for name in names):
+            names = []
+            for k in range(index + 1, len(toks)):
+                if toks[k][0] == ";":
+                    break
+                names.append(toks[k][0])
+            if len(names) != 1 or names[0].strip('"') not in IMPORTS or not names[0].startswith('"'):
                 raise IdlError("line %d imports %s: MIDL reads an imported file as well, and this check reads "
-                               "hMailServer.idl alone, which imports the Windows SDK's %s and nothing else"
-                               % (line_number(text, toks[index][1]), " ".join(names) or "nothing",
-                                  " and ".join(IMPORTS)))
-            index = end + 1
-            continue
-        if value == "interface" and not (index + 2 < len(toks) and toks[index + 2][0] in (":", ";")):
-            raise IdlError("line %d: interface %s is not declared as interface <name> : <base> { ... } or "
-                           "interface <name>; - one with no base is a vtable this check does not read, and every "
-                           "interface of hMailServer.idl derives from IDispatch" % (
-                               line_number(text, toks[index][1]), toks[index + 1][0] if index + 1 < len(toks) else ""))
-        if value == "[":
-            end = closing(toks, index, "[", "]")
-            pending = attributes(toks[index + 1:end])
-            index = end + 1
-            continue
-        if value == "interface" and index + 2 < len(toks) and toks[index + 2][0] == ":":
-            name, base = toks[index + 1][0], toks[index + 3][0]
-            brace = index + 4
-            if brace >= len(toks) or toks[brace][0] != "{":
-                raise IdlError("interface %s: no { after its base" % name)
-            end = closing(toks, brace, "{", "}")
-            body = toks[brace + 1:end]
-            members, member_spans = [], []
-            for part in split_top(body, ";"):
-                if not part:
-                    continue
-                members.append(member(part, name, text))
-                member_spans.append((part[0][1], part[-1][2] + 1))   # with its ;
-            if name in interfaces:
-                raise IdlError("interface %s is defined twice" % name)
-            interfaces[name] = ((pending.get("uuid") or "").upper(), base, members,
-                                [flag for flag in BINDING if flag in pending])
-            spans[name] = member_spans
-            pending = {}
-            index = end + 1
-            continue
-        if value == "enum":
-            brace = index + 1
-            tag = None
-            if brace < len(toks) and WORD.match(toks[brace][0]):
-                tag = toks[brace][0]
-                brace += 1
-            if brace < len(toks) and toks[brace][0] == "{":
-                end = closing(toks, brace, "{", "}")
-                # typedef enum [tag] { ... } name; - the typedef's name is the one the type library gives it.
-                after = toks[end + 1][0] if end + 1 < len(toks) else ""
-                name = after if WORD.match(after) else tag
-                if not name:
-                    raise IdlError("line %d: an enum with no name" % line_number(text, toks[index][1]))
-                types += ["enum %s %s" % (name, entry) for entry in enumerators(toks[brace + 1:end], text)]
-                pending = {}
-                index = end + 1
-                continue
-        if value == "library" and index + 2 < len(toks) and toks[index + 2][0] == "{":
-            types.append("library %s uuid(%s) version(%s)"
-                         % (toks[index + 1][0], (pending.get("uuid") or "").upper(), pending.get("version")))
-            pending = {}
+                               "hMailServer.idl alone, which imports the Windows SDK's %s and nothing else, each by "
+                               "an import of its own" % (at(index), " ".join(names) or "nothing", " and ".join(IMPORTS)))
             index += 3
-            continue
-        if value == "coclass" and index + 2 < len(toks) and toks[index + 2][0] == "{":
-            name = toks[index + 1][0]
-            end = closing(toks, index + 2, "{", "}")
-            # MIDL makes the part marked [default] that is not a source the coclass's default interface, and
-            # the first part that is not a source where none is marked. A source interface, or a second
-            # [default], is refused rather than read: hMailServer.idl has neither.
-            parts = []
-            for part in split_top(toks[index + 3:end], ";"):
-                if not part:
-                    continue
-                marked = {}
-                if part[0][0] == "[":
-                    marked = attributes(part[1:closing(part, 0, "[", "]")])
-                if "source" in marked or sum(1 for other, _ in parts if "default" in other) + ("default" in marked) > 1:
-                    raise IdlError("line %d: coclass %s has %s: MIDL takes the [default] part that is not a source "
-                                   "for the default interface a client creates it by, which this check reads only "
-                                   "where there is one [default] and no source, as in every coclass of "
-                                   "hMailServer.idl" % (line_number(text, part[0][1]), name,
-                                                        "a source interface" if "source" in marked
-                                                        else "a second [default] part"))
-                parts.append((marked, part[-1][0]))
-            default = next((part for marked, part in parts if "default" in marked), parts[0][1] if parts else "-")
-            types.append("coclass %s uuid(%s) default %s" % (name, (pending.get("uuid") or "").upper(), default))
-            pending = {}
-            index = end + 1
-            continue
-        if value not in ("interface", "dispinterface"):
-            pending = {} if value in (";", "}", "{") else pending
-        index += 1
+        elif value == "interface":
+            if not WORD.match(token(index + 1)) or token(index + 2) != ";":
+                raise IdlError("line %d: interface %s is not declared as interface <name> : <base> { ... }; under "
+                               "its attribute list, or as interface <name>; - one with no base is a vtable this check "
+                               "does not read, and every interface of hMailServer.idl derives from IDispatch"
+                               % (at(index), token(index + 1)))
+            define(token(index + 1), "interface", toks[index + 1][1])
+            index += 3
+        elif value == "typedef":
+            index = read_enum(index)
+        elif value == "[":
+            end = attributed(index, ("interface", "library"), "at file level")
+            index = read_interface(index) if token(end + 1) == "interface" else read_library(index)
+        else:
+            unread(index, FILE_FORMS, FILE_OTHERS, "at file level")
+    if not libraries:
+        raise IdlError("hMailServer.idl has no library: the type library's identity cannot be read")
     counted = sum(len(entry[2]) for entry in interfaces.values())
     if counted != hresults:
         raise IdlError("read %d members in the interfaces' bodies, where the file holds %d HRESULTs: one outside "
-                       "every interface body this reads (a dispinterface's, or one in a declaration it does not know) "
-                       "is one it would pass unread" % (counted, hresults))
-    return {"interfaces": interfaces, "types": types, "spans": spans}
+                       "every interface body this reads is one it would pass unread" % (counted, hresults))
+    return {"interfaces": interfaces, "types": types, "spans": spans, "defined": defined}
+
+
+def release_names(release):
+    """(the words the release's members are written with as types - their return types' and their parameters' -
+    with IDispatch and IUnknown, {name: kind} of what the release declared)."""
+    words, own = {"IDispatch", "IUnknown"}, {}
+    for name, entry in release["interfaces"].items():
+        own[name] = "interface"
+        for written in entry[2]:
+            found = re.match(r"^\S+ id\(\S*\) (.*?) \w+\((.*)\)$", written)
+            if found:
+                words.update(re.findall(r"[A-Za-z_]\w*", found.group(1) + " "
+                                        + re.sub(r"\[[^\]]*\]", " ", found.group(2))))
+    for line in release["types"]:
+        kind, name = line.split(" ")[:2]
+        own[name] = kind
+        if kind == "enum":
+            own[line.split(" ")[2]] = "enumerator"
+    return words, own
+
+
+def name_problems(release, tree, label):
+    """A name the tree declares that the release's members are written with as a type, but not as the release
+    declared it: MIDL takes hMailServer.idl's own declaration for the type of every member written with the name
+    after it, so a released member would keep its text and change its type (an enum named LONG, an interface
+    named BSTR)."""
+    words, own = release_names(release)
+    return ["%s: the tree declares it as %s %s, where %s's members are written with %s as a type%s: MIDL takes the "
+            "file's own declaration for the type of every member written with the name after it, so that a "
+            "released parameter keeps its text and changes its type - name it otherwise"
+            % (name, "an" if kind[0] in "aeiou" else "a", kind, label, name,
+               (" and %s declared it as %s" % (label, own[name])) if name in own else "")
+            for name, kind in sorted(tree.get("defined", {}).items()) if name in words and own.get(name) != kind]
 
 
 def baseline_text(parsed, tag, commit):
@@ -607,7 +875,7 @@ def slot(base, number):
 
 def problems(release, tree, label):
     """What the tree changed of the release's interfaces and type identities."""
-    found = []
+    found = name_problems(release, tree, label)
     for line in release["types"]:
         if line not in tree["types"]:
             kind, name = line.split(" ")[:2]
@@ -919,7 +1187,7 @@ def make_controls(text, release, tree):
                          ("unread", "coclass %s has" % coclass.group(1)), "coclass " + coclass.group(1)))
     controls.append(("a new interface derived from IUnknown with a member that returns void", text
                      + "\n[\n   object,\n   uuid(D3A9C1F0-0000-4000-8000-000000000006)\n]\n"
-                       "interface SelfTestVoid : IUnknown {\n   void SelfTestMember(void);\n};\n",
+                       "interface SelfTestVoid : IUnknown {\n   [id(1)] void SelfTestMember(void);\n};\n",
                      ("unread", "returns void"), "SelfTestVoid"))
     iid = tree["interfaces"][name][0]
     changed = re.sub(r"uuid\(%s\)" % re.escape(iid), "uuid(00000000-0000-0000-0000-000000000000)", text, count=1, flags=re.I)
@@ -944,7 +1212,7 @@ def make_controls(text, release, tree):
     controls.append(("a dispinterface with a member", text + "\n[\n   uuid(D3A9C1F0-0000-4000-8000-000000000005)\n]\n"
                      "dispinterface SelfTestDispatch {\nproperties:\nmethods:\n"
                      "   [id(1)] HRESULT SelfTestMember([out, retval] long *Value);\n};\n",
-                     ("unread", "HRESULTs: one outside"), "SelfTestDispatch"))
+                     ("unread", "an attribute list on dispinterface"), "SelfTestDispatch"))
     position = re.search(r"\binterface %s\s*:" % name, text).start()
     head = text.rfind("\n[", 0, position)
     undual = re.sub(r"\bdual\s*,\s*", "", text[head:position], count=1)
@@ -967,6 +1235,110 @@ def make_controls(text, release, tree):
                      "enum " + enum))
     controls.append(("an enumerator without a value of its own", text[:brace] + "   SelfTestValue,\n" + text[brace:],
                      ("unread", "is not written <name> = <integer>"), "enum " + enum))
+
+    # The statements and attributes the file is not written with, a family each, which the parse must refuse
+    # rather than read past: at file level after the imports, in the library after its first importlib, and in
+    # the body of the interface the controls above change.
+    def uuid(number):
+        return "D3A9C1F0-0000-4000-8000-0000000001%02d" % number
+
+    statement = "is not a statement this check reads"
+    for what, added, words in (
+            ("typedef hyper LONG; between cpp_quote(\"#if 0\") and cpp_quote(\"#endif\")",
+             "cpp_quote(\"#if 0\")\ntypedef hyper LONG;\ncpp_quote(\"#endif\")\n", statement),
+            ("typedef hyper LONG;", "typedef hyper LONG;\n", "a typedef hMailServer.idl does not have"),
+            ("a typedef of a structure", "typedef [uuid(%s)] struct SelfTestStruct { long a; } SelfTestStruct;\n"
+             % uuid(1), "a typedef hMailServer.idl does not have"),
+            ("midl_pragma", "midl_pragma warning (disable: 2111)\n", statement),
+            ("const", "const long SelfTestConst = 1;\n", statement),
+            ("struct", "struct SelfTestStruct { long a; };\n", statement),
+            ("union", "union SelfTestUnion { long a; };\n", statement),
+            ("declare_guid", "declare_guid(SelfTestGuid, %s);\n" % uuid(2), statement),
+            ("_Pragma", "_Pragma(\"warning(disable: 2111)\")\n", statement),
+            ("__pragma", "__pragma(warning(disable: 2111))\n", statement),
+            ("an importlib outside the library", "importlib(\"stdole2.tlb\");\n", statement),
+            ("a module", "[dllname(\"self-test.dll\")] module SelfTestModule { [entry(1)] HRESULT SelfTestMember(void); };\n",
+             "an attribute list on module"),
+            ("a coclass outside the library", "[uuid(%s)] coclass SelfTestClass { [default] interface %s; };\n"
+             % (uuid(3), name), "an attribute list on coclass"),
+            ("an attribute list on nothing", "[uuid(%s)];\n" % uuid(4), "an attribute list on ;")):
+        controls.append(("at file level, %s" % what, text[:after_imports] + added + text[after_imports:],
+                         ("unread", words), name))
+    importlib = text.find('importlib("stdole2.tlb");')
+    in_library = text.find("\n", importlib) + 1
+    if importlib < 0 or in_library <= 0:
+        raise IdlError("self-test: the tree's library has no importlib(\"stdole2.tlb\");")
+    for what, added, words in (
+            ("a typedef", "   typedef [uuid(%s)] enum { SelfTestLibrary = 1 } eSelfTestLibrary;\n" % uuid(5),
+             "is not a statement this check reads in the library"),
+            ("cpp_quote", "   cpp_quote(\"#define SelfTest 1\")\n", "is not a statement this check reads in the library"),
+            ("an interface", "   [object, uuid(%s), dual] interface SelfTestInLibrary : IDispatch {\n"
+             "      [id(1)] HRESULT SelfTestMember([out, retval] long *Value);\n   };\n" % uuid(6),
+             "an attribute list on interface"),
+            ("another importlib", "   importlib(\"self-test.tlb\");\n", "an importlib of other than")):
+        controls.append(("in the library, %s" % what, text[:in_library] + added + text[in_library:],
+                         ("unread", words), name))
+    for what, added, words in (
+            ("a member without its attribute list", "   HRESULT SelfTestMember([out, retval] long *Value);\n",
+             "a member without its attribute list"),
+            ("cpp_quote", "   cpp_quote(\"#define SelfTest 1\");\n", "a member without its attribute list"),
+            ("a member with a word after its parameters",
+             "   [id(9999)] HRESULT SelfTestMember([out, retval] long *Value) SelfTestMore;\n",
+             "anything after its parameters"),
+            ("a parameter of another form", "   [id(9999)] HRESULT SelfTestMember([in] SAFEARRAY(BSTR) Values);\n",
+             "has a parameter written")):
+        controls.append(("in %s's body, %s" % (name, what), text[:end_of_body] + added + text[end_of_body:],
+                         ("unread", words), name))
+    # Attribute lists: a second one, where MIDL merges both (a coclass part's [default] [source] made another
+    # interface the default; a [local] list above an interface's made it local); an attribute each place is not
+    # given; an argument written as a name; an attribute every such place has, taken off; and an enum's tag.
+    two = "two attribute lists in a row"
+    controls.append(("coclass %s's part given [default] [source]" % coclass.group(1), text[:coclass.start()]
+                     + coclass.group(0).replace("[default]", "[default] [source]", 1) + text[coclass.end():],
+                     ("unread", two), "coclass " + coclass.group(1)))
+    controls.append(("[local] as a list of its own above %s's" % name, text[:head + 1] + "[local]\n"
+                     + text[head + 1:], ("unread", two), name))
+    first_enum = re.search(r"\btypedef\s*\[", text)
+    first_enumerator = re.search(r"\[(?=helpstring\(\")", text[brace - 400 if brace > 400 else 0:brace])
+    if not first_enum or not first_enumerator:
+        raise IdlError("self-test: the tree has no typedef [ ... ] enum or no enumerator with a helpstring")
+    enumerator_at = (brace - 400 if brace > 400 else 0) + first_enumerator.start()
+    library_at = text.rfind("[", 0, text.find("library hMailServer"))
+    other = "which this check does not read"
+    for what, at, given in (
+            ("an interface given [local]", head + 2, "local, "),
+            ("an interface given [oleautomation]", head + 2, "oleautomation, "),
+            ("the first member given [vararg]", first[0] + one.index("[") + 1, "vararg, "),
+            ("an enum given [v1_enum]", first_enum.end(), "v1_enum, "),
+            ("an enumerator given [restricted]", enumerator_at + 1, "restricted, "),
+            ("the library given [lcid(0)]", library_at + 1, "lcid(0), "),
+            ("a coclass given [noncreatable]", text.rfind("[", 0, coclass.start()) + 1, "noncreatable, ")):
+        controls.append((what, text[:at] + given + text[at:], ("unread", other), name))
+    interface, start, end = first_line(r"\[in\] BSTR ")
+    controls.append(("an [in] BSTR given [optional]", text[:start] + text[start:end].replace("[in] BSTR ", "[in, optional] BSTR ", 1)
+                     + text[end:], ("unread", other), interface))
+    controls.append(("coclass %s's part given [restricted]" % coclass.group(1), text[:coclass.start()]
+                     + coclass.group(0).replace("[default]", "[default, restricted]", 1) + text[coclass.end():],
+                     ("unread", other), "coclass " + coclass.group(1)))
+    form = "is not written as hMailServer.idl writes it"
+    controls.append(("the first member's id given as a name", text[:first[0]] + re.sub(
+        r"\bid\(\d+\)", "id(NDEBUG)", one, count=1) + text[first[1]:], ("unread", form), name))
+    controls.append(("the first member's helpstring given as a wide string", text[:first[0]] + one.replace(
+        "helpstring(\"", "helpstring(L\"", 1) + text[first[1]:], ("unread", form), name))
+    controls.append(("the first member's id taken off", text[:first[0]] + re.sub(
+        r"\bid\(\d+\),\s*", "", one, count=1) + text[first[1]:], ("unread", "have no id"), name))
+    controls.append(("an enum given a tag", text[:first_enum.start()] + re.sub(
+        r"\benum(\s*)\{", r"enum tagSelfTest\1{", text[first_enum.start():], count=1),
+        ("unread", "have no tag"), name))
+    # A name the release's members are written with as a type, declared by the tree: MIDL takes it for every
+    # member written with it after the declaration, while each member's text stays the release's.
+    for what, added, named in (
+            ("a new enum named LONG", "typedef [uuid(%s)] enum { SelfTestLong = 1 } LONG;\n" % uuid(7), "LONG"),
+            ("a new enum named VARIANT_BOOL", "typedef [uuid(%s)] enum { SelfTestFalse = 0 } VARIANT_BOOL;\n"
+             % uuid(8), "VARIANT_BOOL"),
+            ("an interface declared as BSTR", "interface BSTR;\n", "BSTR"),
+            ("an enumerator named LONG", "typedef [uuid(%s)] enum { LONG = 1 } eSelfTestLong;\n" % uuid(9), "LONG")):
+        controls.append((what, text[:after_imports] + added + text[after_imports:], True, named))
     return controls
 
 

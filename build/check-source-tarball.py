@@ -91,17 +91,29 @@ tarball a third:
       sets OUTPUT_NAME alone (CMAKE_TARGET_PROPERTIES), set_property appends to
       the directory's CMAKE_CONFIGURE_DEPENDS alone, add_compile_options,
       add_link_options and target_compile_options give CMAKE_FLAGS alone,
-      target_link_libraries gives libraries and targets and no flag (one there
-      comes after the linker's own -o: -ohidden-tests made hidden-tests), a
-      launcher, another linker or compiler, CMAKE_<LANG>_FLAGS, -o, -Wl,, -B,
-      -fuse-ld and a specs file are refused anywhere, and check_c_source_runs,
-      which compiles and runs its program while CMake configures, runs the
-      iconv check's alone, held by its SHA-256 (CMAKE_RUN_SOURCES), with
-      CMAKE_REQUIRED_LIBRARIES Iconv::Iconv and no other CMAKE_REQUIRED_. It
-      does not read a variable's name CMake works out from variables
-      (set(${X} ...)) or what the commands it allows do with a name so made,
-      nor what CMake's own modules and the distribution's compiler and linker
-      do; the tree has none of the first. And the loops run what the lists name, as held: debian/rules is
+      target_link_libraries gives libraries, targets and no flag (one there
+      comes after the linker's own -o: -ohidden-tests made hidden-tests), and
+      of variables only ${LDAP_LIBRARY}, ${LBER_LIBRARY} and ${CMAKE_DL_LIBS}
+      (CMAKE_LINK_VARIABLES), the first two written by their own find_library
+      as the file has it and by nothing else, CMake's own by nothing; the CMake
+      variables written (by set, unset, option, list, string, file, foreach,
+      find_library, find_path or check_c_source_runs) are the five the file
+      sets (CMAKE_WRITTEN), so that a tool CMake runs with every compile
+      (CMAKE_CXX_CLANG_TIDY) or another compile rule (CMAKE_CXX_COMPILE_OBJECT)
+      is refused, and so is a variable written by a name CMake works out
+      (set(${X} ...), a variable alone in string()); a launcher, another linker
+      or compiler, CMAKE_<LANG>_FLAGS, -o with or without anything after it,
+      -Wl,, -B, -fuse-ld and a specs file are refused anywhere, and
+      check_c_source_runs, which compiles and runs its program while CMake
+      configures, runs the iconv check's alone, held by its SHA-256
+      (CMAKE_RUN_SOURCES), with CMAKE_REQUIRED_LIBRARIES Iconv::Iconv and no
+      other CMAKE_REQUIRED_. A carriage return that ends no line is refused, as
+      CMake takes it for a space between two arguments. Like the readers of
+      the other files, this one accepts only the forms CMakeLists.txt is written
+      with and refuses the rest, so a change to CMakeLists.txt that needs a new
+      command, flag, variable or form changes this check with it. It does not
+      read what CMake's own modules and the distribution's compiler and linker
+      do, nor the -D options the spec's %build gives CMake. And the loops run what the lists name, as held: debian/rules is
       held whole, line for line but for its comments, its blank lines and the
       names TESTERS gives (RULES_HELD, whose override_dh_auto_test is
       RULES_TEST_RECIPE: set -e, the server, then ./$$tester for each of
@@ -115,8 +127,11 @@ tarball a third:
       carriage return are refused, and a comment that a backslash joins to the
       line above is read as a line. The spec's one %check is SPEC_CHECK_LINES
       but for its comments and the loop's list, outside any conditional, as
-      rpm reads one (%if, %ifarch and their like with spaces or tabs before
-      them, and none after something else on its line, as %{?nil}%if is), its
+      rpm reads one after expanding the line's macros (%if, %ifarch and their
+      like with spaces or tabs and any run of % before them, as %%if is %if to
+      rpm; none after something else on its line, as %{?nil}%%if and
+      %{?quickjs_version:%%if 0} are; and every %endif closing one counted, the
+      count ending at nought), its
       comments expanding no macro (rpm expands a comment's macros, and one that
       ends in a line break and an exit, as %{___build_post} does, or a shell's
       output, %(...), ends the section there), with no macro defined but
@@ -549,7 +564,8 @@ CMAKE_NAMING_VARIABLES = re.compile(r"\b(?:CMAKE_EXECUTABLE_SUFFIX\w*|CMAKE_RUNT
                                     # that name an output or a program (-o, -Wl,, -B, -fuse-ld, a specs file).
                                     r"\b(?:CMAKE_\w*LAUNCHER\w*|RULE_LAUNCH_\w+|CMAKE_\w*LINKER\w*|CMAKE_\w*_FLAGS\w*|"
                                     r"CMAKE_\w+_COMPILER|CMAKE_REQUIRED_(?!LIBRARIES\b)\w+)\b|"
-                                    r"(?<![\w-])(?:-o|--output|-Xlinker|-wrapper)\b|-Wl,|(?<![\w-])-B|-fuse-ld|"
+                                    # -o with anything after it: -ohidden-tests is -o hidden-tests to the compiler.
+                                    r"(?<![\w-])-o|(?<![\w-])(?:--output|-Xlinker|-wrapper)\b|-Wl,|(?<![\w-])-B|-fuse-ld|"
                                     r"--ld-path|-specs\b|\b(?:LINKER|SHELL):")
 # The target properties set_target_properties may set, and how: OUTPUT_NAME, to the
 # target's own name, which is all CMakeLists.txt sets; any other (LINK_OPTIONS, a
@@ -572,6 +588,20 @@ CMAKE_FLAG_KEYWORDS = ("PUBLIC", "PRIVATE", "INTERFACE", "BEFORE")
 # the line break after its [=[ to its ]=]), with CMAKE_REQUIRED_LIBRARIES Iconv::Iconv.
 CMAKE_RUN_SOURCES = {"HM_ICONV_CONVERTS_UTF7": "d0a9eb5e46dab6ca9bf20769c405e3a516f6a76b44b1cade7413f8f5cf73cfd2"}
 CMAKE_REQUIRED = ("CMAKE_REQUIRED_LIBRARIES", "Iconv::Iconv")
+# The commands that write a variable by its name, and the CMake variables CMakeLists.txt
+# writes, the five it sets: any other CMAKE_* written (CMAKE_CXX_CLANG_TIDY, a tool CMake
+# runs in the build directory with every compile; CMAKE_CXX_COMPILE_OBJECT, the compile
+# rule itself) could run a program that writes a *-tests one, so it is refused, as is a
+# variable written by a name CMake works out (set(${X} ...)).
+CMAKE_WRITES = ("set", "unset", "option", "list", "string", "file", "foreach", "find_library", "find_path",
+                "check_c_source_runs")
+CMAKE_WRITTEN = ("CMAKE_CXX_STANDARD", "CMAKE_CXX_STANDARD_REQUIRED", "CMAKE_CXX_EXTENSIONS",
+                 "CMAKE_POSITION_INDEPENDENT_CODE", "CMAKE_REQUIRED_LIBRARIES")
+# The variables target_link_libraries may be given, the ones CMakeLists.txt gives it, and
+# what alone may write each: the find_library that finds it, as the file has it, or for
+# CMake's own CMAKE_DL_LIBS nothing. A variable there could hold a flag (-ohidden-tests).
+CMAKE_LINK_VARIABLES = {"LDAP_LIBRARY": ("LDAP_LIBRARY", "NAMES", "ldap"),
+                        "LBER_LIBRARY": ("LBER_LIBRARY", "NAMES", "lber"), "CMAKE_DL_LIBS": None}
 # The commands that make targets or run CMake code this does not read: from another
 # directory, file or project, by another name (cmake_language(CALL ...), the _-prefixed
 # originals of a command defined over), or in a function or macro, whose arguments it
@@ -677,6 +707,12 @@ def cmake_targets(cmake_text):
     a package looked for in a directory, and a file written that could be a *-tests program are problems."""
     cmake_text = cmake_text.replace("\r\n", "\n")
     testers, problems = [], []
+    if "\r" in cmake_text:
+        # CMake takes a carriage return alone for a space between arguments (OUTPUT_NAME<CR>hidden-tests is a
+        # key and its value), where a reader that took it for part of an argument would read one.
+        return [], ["%s line %d has a carriage return that is not followed by a line feed: CMake reads it as a "
+                    "space between two arguments, which build/check-source-tarball.py does not - end each line with "
+                    "a line feed" % (CMAKELISTS, cmake_text.count("\n", 0, cmake_text.find("\r")) + 1)]
     try:
         commands = cmake_commands(cmake_text)
     except CMakeUnread as error:
@@ -766,11 +802,17 @@ def cmake_targets(cmake_text):
                                     "(-o, -Wl,, -B, -fuse-ld) - add it there" % (where, value[:40]))
                     break
         elif lower == "target_link_libraries":
+            # A variable only as ${NAME} of CMAKE_LINK_VARIABLES, which only its find_library writes: another
+            # could hold a flag (set(X -ohidden-tests) then ${X}), and a generator expression could make one.
             odd = [value for value, kind in arguments if kind != "unquoted" or value.startswith("-")
-                   or re.match(r"^(?:LINKER|SHELL):|^\$<", value)]
+                   or re.match(r"^(?:LINKER|SHELL):", value)
+                   or "$" in value and not (re.match(r"^\$\{(\w+)\}$", value)
+                                            and re.match(r"^\$\{(\w+)\}$", value).group(1) in CMAKE_LINK_VARIABLES)]
             if odd:
-                problems.append("%s gives the linker %s, which is not a library or a target: a flag there comes after "
-                                "the linker's -o, and could name another output" % (where, odd[0][:40]))
+                problems.append("%s gives the linker %s, which is not a library, a target or one of the variables "
+                                "build/check-source-tarball.py lets it have (CMAKE_LINK_VARIABLES: %s): a flag there "
+                                "comes after the linker's -o, and could name another output"
+                                % (where, odd[0][:40], ", ".join(sorted(CMAKE_LINK_VARIABLES))))
         elif lower == "check_c_source_runs":
             source = arguments[0][0] if arguments and arguments[0][1] == "bracket" else None
             result = values[1] if len(values) == 2 else None
@@ -780,6 +822,40 @@ def cmake_targets(cmake_text):
                                 "configures, in the build directory, which could write a *-tests program there: "
                                 "build/check-source-tarball.py holds the one it runs by its SHA-256 "
                                 "(CMAKE_RUN_SOURCES) - change both together" % (CMAKELISTS, line, result or ""))
+        if lower in CMAKE_WRITES:
+            # The variable a command writes by a name CMake works out cannot be read; one CMake reads as its own
+            # (CMAKE_*) is one of the five the file sets, and one target_link_libraries is given is written by its
+            # own find_library alone.
+            # Where each writes it: set, unset, option, foreach, find_library and find_path the first argument,
+            # list the second, file(READ|STRINGS) the third and file(GLOB|GLOB_RECURSE) the second, the result
+            # of check_c_source_runs the second; string() at a place that differs by its mode, so in string() no
+            # unquoted argument may be a variable alone.
+            upper = values[0].upper() if values else ""
+            if lower == "list":
+                named = values[1:2]
+            elif lower == "file":
+                named = values[2:3] if upper in ("READ", "STRINGS") else values[1:2] if upper.startswith("GLOB") else []
+            elif lower == "check_c_source_runs":
+                named = values[1:2]
+            elif lower == "string":
+                named = [value for value, kind in arguments if kind == "unquoted" and re.match(r"^\$\{[^}]*\}$", value)]
+            else:
+                named = values[:1]
+            if any("$" in value for value in named):
+                problems.append("%s writes a variable whose name CMake works out (%s): it could be one CMake runs a "
+                                "program by - name it out" % (where, next(v for v in named if "$" in v)[:40]))
+            for value in values:
+                held = CMAKE_LINK_VARIABLES.get(value)
+                if value.startswith("CMAKE_") and value not in CMAKE_WRITTEN and value not in CMAKE_LINK_VARIABLES:
+                    problems.append("%s writes %s, a CMake variable CMakeLists.txt does not set (CMAKE_WRITTEN: %s): "
+                                    "CMake runs a program by some (CMAKE_CXX_CLANG_TIDY with every compile, "
+                                    "CMAKE_CXX_COMPILE_OBJECT for it), which could write a *-tests one - add it to "
+                                    "CMAKE_WRITTEN with what it may be" % (where, value[:40], ", ".join(CMAKE_WRITTEN)))
+                elif value in CMAKE_LINK_VARIABLES and not (lower == "find_library" and held is not None
+                                                             and tuple(values) == held):
+                    problems.append("%s writes %s, which target_link_libraries is given: only %s writes it "
+                                    "(CMAKE_LINK_VARIABLES), as a flag in it would come after the linker's -o"
+                                    % (where, value, "find_library(%s)" % " ".join(held) if held else "CMake"))
         if any(value.startswith("CMAKE_REQUIRED_") for value in values) and not (
                 lower == "unset" and values == [CMAKE_REQUIRED[0]]
                 or lower == "set" and tuple(values) == CMAKE_REQUIRED):
@@ -916,11 +992,13 @@ SPEC_CHECK_LINES = ("cd %{hm_builddir}", "echo \"== hmailserver --version\"", ".
 SPEC_MACROS = {"_vpath_srcdir": None, "__sourcedir": None, "__builddir": None, "__builder": None,
                "hm_builddir": ("_build", "%{__cmake_builddir}"), "hm_update_command": None,
                "quickjs_version": None, "_lto_cflags": None}
-# rpm's conditionals, which it reads with blanks before them (spaces or tabs); and %if
-# reached through a macro on the line ("%{?nil}%if 0"), which rpm reads too.
-SPEC_IF = re.compile(r"^[ \t]*%if(?:arch|narch|os|nos)?\b")
-SPEC_ENDIF = re.compile(r"^[ \t]*%endif\b")
-SPEC_CONDITIONAL = re.compile(r"(?<!%)%(?:if(?:arch|narch|os|nos)?|el(?:se|if\w*)|endif)\b")
+# rpm's conditionals, which it reads with blanks before them (spaces or tabs) and after
+# expanding the line's macros, so with any run of % before them (%%if 0 is %if 0 to it);
+# and one reached through a macro on the line ("%{?nil}%if 0", "%{?nil}%%if 0",
+# "%{?quickjs_version:%%if 0}"), which rpm reads too and this refuses.
+SPEC_IF = re.compile(r"^[ \t]*%+if(?:arch|narch|os|nos)?\b")
+SPEC_ENDIF = re.compile(r"^[ \t]*%+endif\b")
+SPEC_CONDITIONAL = re.compile(r"%+(?:if(?:arch|narch|os|nos)?|el(?:se|if\w*)|endif)\b")
 
 
 def rules_problems(text):
@@ -990,13 +1068,20 @@ def spec_loop_problems(text):
             depth += 1
         elif SPEC_ENDIF.match(line):
             depth -= 1
+            if depth < 0:
+                problems.append("%s line %d: an %%endif that closes no conditional this counted: rpm reads one "
+                                "this did not (written after something else on its line, or through a macro), "
+                                "which could leave %%check out" % (SPEC, number))
+                depth = 0
         elif re.match(r"^[ \t]*%check\b", line) and depth:
             problems.append("%s line %d: %%check is inside a conditional, which can leave it out" % (SPEC, number))
-        if (SPEC_CONDITIONAL.search(line) and not re.match(r"^[ \t]*%(?:if|el|endif)", line)
-                and not line.lstrip().startswith("#")):
-            problems.append("%s line %d has a conditional after something else on the line (%r): rpm reads "
-                            "\"%%{?nil}%%if 0\" as a conditional, which this would not count"
-                            % (SPEC, number, line[:60]))
+        # One conditional on a line, its % run first after the blanks; any other is one rpm may read and this
+        # does not count.
+        conditionals = [found.start() for found in SPEC_CONDITIONAL.finditer(line)]
+        if conditionals and not line.lstrip().startswith("#") and conditionals != [len(line) - len(line.lstrip(" \t"))]:
+            problems.append("%s line %d has a conditional after something else on the line (%r): rpm expands the "
+                            "line's macros first, so it reads \"%%{?nil}%%if 0\" and \"%%{?nil}%%%%if 0\" as "
+                            "conditionals, which this would not count" % (SPEC, number, line[:60]))
         # Anywhere on the line, a comment's too: rpm expands the macros in a comment as well, a %define and a
         # %{lua:} among them. %{define:...} and %{global:...} are the same as %define and %global, with or
         # without blanks after the colon.
@@ -1017,6 +1102,8 @@ def spec_loop_problems(text):
         if re.match(r"^\s*(?:BuildSystem|BuildOption)\b", line, re.I):
             problems.append("%s line %d: %s makes or changes rpm's own build sections, %%check among them"
                             % (SPEC, number, line.split(":")[0].strip()))
+    if depth:
+        problems.append("%s ends inside %d conditional(s) this counted: an %%if without its %%endif" % (SPEC, depth))
     return problems
 
 
@@ -1938,7 +2025,33 @@ def self_test():
             ("another program run while CMake configures", "include(CheckCSourceRuns)\ncheck_c_source_runs([=[\n"
              "int main(void) { return 0; }\n]=] HM_ICONV_CONVERTS_UTF7)\n", "compiles and runs a program"),
             ("that program given a library of the tree", "set(CMAKE_REQUIRED_LIBRARIES ${SERVER_DIR}/x.a)\n",
-             "gives check_c_source_runs' compile other inputs")):
+             "gives check_c_source_runs' compile other inputs"),
+            # Five more, each of which made an executable *-tests program in the top build directory in that
+            # image: a carriage return alone, which CMake takes for a space between arguments; a flag after it in
+            # target_link_libraries; a flag given through a variable, and -o with no word boundary after it; a
+            # tool CMake runs with every compile; and a second command in the compile rule.
+            ("a key and its value split by a carriage return alone", hidden + "set_target_properties(hidden "
+             "PROPERTIES OUTPUT_NAME\rhidden-tests)\n", "has a carriage return that is not followed by a line feed"),
+            ("a flag after a carriage return alone in target_link_libraries", hidden + "target_link_libraries("
+             "hidden PRIVATE m\r-ohidden-tests)\n", "has a carriage return that is not followed by a line feed"),
+            ("a flag given to target_link_libraries through a variable", "set(HM_PROBE_FLAG m)\n" + hidden
+             + "target_link_libraries(hidden PRIVATE ${HM_PROBE_FLAG})\n", "gives the linker ${HM_PROBE_FLAG}"),
+            ("-o with a name right after it, through a variable", "set(HM_PROBE_FLAG -ohidden3-tests)\n",
+             "-o names or places"),
+            ("a link variable written by set()", "set(LDAP_LIBRARY m)\n",
+             "writes LDAP_LIBRARY, which target_link_libraries is given"),
+            ("a link variable found elsewhere", "find_library(LBER_LIBRARY NAMES lber PATHS ${SERVER_DIR})\n",
+             "writes LBER_LIBRARY, which target_link_libraries is given"),
+            ("a tool run with every compile", "set(CMAKE_CXX_CLANG_TIDY sh -c \"cp /bin/true hidden5-tests\")\n",
+             "writes CMAKE_CXX_CLANG_TIDY, a CMake variable"),
+            ("a second command in the compile rule", "list(APPEND CMAKE_CXX_COMPILE_OBJECT \"cp /bin/true "
+             "hidden6-tests\")\n", "writes CMAKE_CXX_COMPILE_OBJECT, a CMake variable"),
+            ("a CMake variable written by string()", "string(APPEND CMAKE_CXX_COMPILE_OBJECT \" && true\")\n",
+             "writes CMAKE_CXX_COMPILE_OBJECT, a CMake variable"),
+            ("a variable written by a name worked out", "set(HM_NAME CMAKE_CXX_CLANG_TIDY)\nset(${HM_NAME} true)\n",
+             "writes a variable whose name CMake works out"),
+            ("a variable written by string() by a name worked out", "set(HM_NAME CMAKE_CXX_CLANG_TIDY)\n"
+             "string(TOLOWER true ${HM_NAME})\n", "writes a variable whose name CMake works out")):
         expect(label, testers(cmake=texts[CMAKELISTS] + "\n" + added), needle)
     # debian/rules, held whole: what the other rules' recipes run, and comments make joins on.
     for label, rules, needle in (
@@ -1986,7 +2099,21 @@ def self_test():
                                                             1), "makes or changes rpm's own build sections"),
             ("a shell command run while rpm reads the spec", spec_text.replace("1%{?dist}\n", "1%{?dist}%(true)\n", 1),
              "runs macro or shell code"),
-            ("a carriage return", spec_text.replace("\n%check\n", "\n%check\r\n", 1), "has a carriage return")):
+            ("a carriage return", spec_text.replace("\n%check\n", "\n%check\r\n", 1), "has a carriage return"),
+            # rpm expands a line's macros before it reads its conditional, so a %% before one is a %: each of these
+            # left %check out with rpmbuild exit 0 in that image, the %endif after the section a plain one.
+            ("%check inside a %%if", spec_text.replace("\n%check\n", "\n%%if 0\n%check\n", 1)
+             .replace(check_end, check_end + "%endif\n", 1), "inside a conditional"),
+            ("%check inside a %%if reached through a macro", spec_text.replace(
+                "\n%check\n", "\n%{?nil}%%if 0\n%check\n", 1).replace(check_end, check_end + "%endif\n", 1),
+             "a conditional after something else"),
+            ("%check inside a %%if in a macro's text", spec_text.replace(
+                "\n%check\n", "\n%{?quickjs_version:%%if 0}\n%check\n", 1).replace(check_end, check_end + "%endif\n", 1),
+             "a conditional after something else"),
+            ("an %endif that closes nothing counted", spec_text.replace(check_end, check_end + "%endif\n", 1),
+             "an %endif that closes no conditional"),
+            ("an %if never closed", spec_text.replace(check_end, check_end + "%if 0\n", 1),
+             "ends inside 1 conditional")):
         if spec == spec_text:
             failures.append("the spec: %s: the case cannot be made from the tree's spec" % label)
             continue

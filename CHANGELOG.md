@@ -1256,7 +1256,32 @@ with `--check`).
   `call_as()` or `local`, by which MIDL puts another method in its slot of the header the server's classes implement
   while the type library keeps the member, or returning other than `HRESULT`, stops the parse, and so does a coclass
   with a source interface or a second `[default]`, whose default interface is the `[default]` part that is not a
-  source, as MIDL takes it; the file has none of them. Every interface, a new one too, must be declared with `IDispatch`
+  source, as MIDL takes it; the file has none of them. A parameter's type is held as it is written, and a
+  declaration that could give the words it is written with another meaning is refused: MIDL takes the file's own
+  declaration of a name for the type of every member written with the name after it, one the Windows SDK defines
+  too among them, so `typedef hyper LONG;` after the imports, which MIDL builds with no warning, made 49 parameters
+  of 36 released members in 18 interfaces `I8` in the type library for `I4` while their text stayed 6.3.7's, and
+  kept out of the header between `cpp_quote("#if 0")` and `cpp_quote("#endif")` it built the server too, four-byte
+  `LONG`s behind an eight-byte type library, both passed by the check; now a typedef of anything but an enum stops
+  the parse, and a name the tree declares - an enum, an enumerator, an interface, a coclass, the library - that the
+  release's members are written with as a type (`LONG`, `BSTR`, `VARIANT_BOOL`, `IDispatch`) is refused unless the
+  release declared it so. And the file is read only in the forms it is written with, the same in every release since
+  6.0.0, every other refused, naming the line, rather than taught to the reader: at file level the two imports,
+  `interface <name>;`, an attributed `interface <name> : <base> { ... };`, `typedef [...] enum { ... } <name>;` with
+  no tag and one attributed library; in the library `importlib("stdole2.tlb");` and attributed coclasses of one
+  `[default] interface <name>;` part; in an interface's body `[...] HRESULT <name>(...);`, each parameter an
+  attribute list, words and `*`s; each attribute list one list on one of these, with the attributes the file gives
+  that place and no other, each argument in the form the file writes it. So MIDL's other statements (`cpp_quote`,
+  `midl_pragma`, `const`, `struct`, `union`, `module`, `dispinterface`, `declare_guid`, `_Pragma`, `__pragma`, a
+  coclass or an `importlib` outside the library, an interface or a typedef in it, a member without its attribute
+  list, a `SAFEARRAY(BSTR)` parameter) and its other attributes (an interface's `local`, `oleautomation` or
+  `async_uuid`, a member's `vararg` or `propputref`, a parameter's `optional`, `lcid` or `size_is`, an enum's
+  `v1_enum`, a coclass's `noncreatable`, a part's `source` or `restricted`), an argument given as a name
+  (`id(NDEBUG)`, which the build defines), an enum's tag and two attribute lists in a row, which MIDL merges where a
+  reader of one list read either (`[default] [source]` on `Account`'s part made `IInterfaceAlias` its default
+  interface, and `[local]` as a list of its own above `IInterfaceAccount`'s made it local, each built by MIDL and
+  passed by the check), are refused; a change of `hMailServer.idl` that needs a form it does not have yet changes
+  the check with it. Every interface, a new one too, must be declared with `IDispatch`
   or `IUnknown` for its base: one derived from another of the file's interfaces would have its own members moved by a
   member appended to its base, which the check lets through, so it refuses such a base, and one declared with no
   base, which MIDL builds with a warning, is refused as a vtable it does not read; none exists. It does not hold an
@@ -1300,16 +1325,17 @@ with `--check`).
   on the line is comment, where the check had read the file with universal newlines and so read the member (it passed
   `Address`'s getter so removed, a file git keeps byte for byte; the file is now read from its bytes, a carriage
   return and a line feed taken for a line feed and nothing else); an import of a file but those two; and an
-  enumerator without its value written out. The file has none of them, and twenty-one more controls - a released member
+  enumerator without its value written out. The file has none of them, and more controls - a released member
   inside `#if 0` ... `#endif`, an `#include` in a body, such a comment above a member, a member between two `'"'` in
   `custom()` and in `helpcontext()`, the same with `L'"'`, a `%:define` of a member used in a member's attributes, a
   released member inside `%:if 0` ... `%:endif` in an attribute's argument, a `%:include` in a body, a `//` comment
   and a carriage return before a released member, read from bytes with CRLF line ends, a no-break space between two
   tokens, an import of another file, an interface with no base, a dispinterface with a member, an enumerator
-  without a value, a released member made `call_as()` of a `[local]` method of other parameters appended to its
+  without a value, each statement, attribute and form named above that the file does not use, a released member made `call_as()` of a `[local]` method of other parameters appended to its
   interface, a released member made `[local]`, a coclass given a `[default, source]` interface, a `[source]` one or a
   second `[default]` one, and an interface derived from `IUnknown` with a member that returns `void` - must each stop the
-  parse with its refusal. It takes about a second.
+  parse with its refusal, and a new enum named `LONG` or `VARIANT_BOOL`, an interface declared as `BSTR` and an
+  enumerator named `LONG` must each be refused. It takes about a second.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in
@@ -2608,11 +2634,18 @@ with `--check`).
   file gives it: `set_target_properties` sets `OUTPUT_NAME` alone, `set_property` appends to the directory's
   `CMAKE_CONFIGURE_DEPENDS` alone, the compile and link options are the flags the file gives, `target_link_libraries`
   gives no flag (one there comes after the linker's own `-o`, and `-ohidden-tests` there made `hidden-tests` in the
-  srcpkg-debian13 job's image), a launcher, another compiler or linker, `CMAKE_<LANG>_FLAGS`, `-o`, `-Wl,`, `-B`,
-  `-fuse-ld` and a specs file are refused anywhere, and `check_c_source_runs`, which runs its program while CMake
-  configures, runs the iconv check's alone, held by its SHA-256, with `CMAKE_REQUIRED_LIBRARIES Iconv::Iconv`. A
-  variable whose name CMake works out from variables is not read, and the tree has none; nor is what CMake's own
-  modules and the distribution's compiler and linker do. And it holds the loops to running what the lists name:
+  srcpkg-debian13 job's image) and of variables only `${LDAP_LIBRARY}`, `${LBER_LIBRARY}` and `${CMAKE_DL_LIBS}`,
+  the first two written by their own `find_library` alone, the CMake variables written are the five the file sets
+  (`CMAKE_CXX_CLANG_TIDY`, a tool CMake runs with every compile, and an appended `CMAKE_CXX_COMPILE_OBJECT` each
+  made a `*-tests` program there), a variable written by a name CMake works out is refused, a launcher, another
+  compiler or linker, `CMAKE_<LANG>_FLAGS`, `-o` with or without anything after it (`set(X -ohidden-tests)`),
+  `-Wl,`, `-B`, `-fuse-ld` and a specs file are refused anywhere, a carriage return that ends no line is refused,
+  as CMake takes it for a space between two arguments (`OUTPUT_NAME<CR>hidden-tests` named a tester), and
+  `check_c_source_runs`, which runs its program while CMake configures, runs the iconv check's alone, held by its
+  SHA-256, with `CMAKE_REQUIRED_LIBRARIES Iconv::Iconv`. Like the other readers it accepts only the forms the file
+  is written with and refuses the rest, so a change of `CMakeLists.txt` that needs a new command, flag, variable or
+  form changes the check with it. What CMake's own modules and the distribution's compiler and linker do is not
+  read. And it holds the loops to running what the lists name:
   `debian/rules` is
   held whole, line for line but for its comments, its blank lines and the names `TESTERS` gives, its
   `override_dh_auto_test` the recipe the check holds (`set -e`, the server, then `./$$tester` for each of
@@ -2623,8 +2656,10 @@ with `--check`).
   `MAKEFLAGS=TESTERS=`, with which the loop ran over nothing, or that rewrites `debian/rules` before `dh` runs the
   held recipe; a comment ending in a backslash, which joins the next line to it, and a carriage return are refused
   too. The spec's one `%check` is the section it holds but for its comments and the loop's list, outside any
-  conditional as rpm reads one - an `%if` with spaces or a tab before it, which rpm obeys, and none after something
-  else on its line, as `%{?nil}%if 0` is - with comments that expand no macro (rpm expands a comment's macros, and
+  conditional as rpm reads one after expanding the line's macros - an `%if` with spaces or a tab and any run of `%`
+  before it (`%%if 0` is `%if 0` to rpm, which left `%check` out, `rpmbuild` exit 0), none after something else on
+  its line, as `%{?nil}%if 0`, `%{?nil}%%if 0` and `%{?quickjs_version:%%if 0}` are, and every `%endif` closing
+  one counted - with comments that expand no macro (rpm expands a comment's macros, and
   `# %{___build_post}`, which ends in a line break and `exit ${RPM_EC}`, or a shell's output, `%(...)`, in a comment
   of `%check` ended the section before the testers, `rpmbuild` exit 0), no macro defined but the ones the spec has
   (the build directory `%check` goes to as the spec gives it), spelt `%define`, `%global`, `%{define:...}` or
