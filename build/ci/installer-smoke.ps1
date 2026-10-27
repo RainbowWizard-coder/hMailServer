@@ -100,8 +100,9 @@
    setup, not Inno Setup, made it (R1); Bin and ControlPanel, there before the
    installer, inherited nothing and let no group of every user change them at the
    moment the first new file appeared in each, and the setup log hardens each before
-   the first file it copies there (R2) - an upgrade, and a folder made before the
-   first installer (-FolderCase precreated-admin, data-inherits); and a Bin and a
+   the first file it copies there - or, one that held nothing, says setup removed it
+   and made it again, not hardened in place - (R2) - an upgrade, and a folder made
+   before the first installer (-FolderCase precreated-admin, data-inherits); and a Bin and a
    ControlPanel that were not there in a program folder that was were made by setup
    with permissions of their own before their first file, the setup log making each
    before the first file it copies there (R1, R2).
@@ -110,9 +111,10 @@
    (-InstallDirectory) is to be found as - as the administrator; what a standard
    account owns is made and given to the account hmsmokeuser, which the run makes:
      precreated-admin  the program folder and Bin, inheriting from the folder above:
-                       the program folder hardened before the files, Bin, empty and
-                       open to other accounts, made again by setup, ControlPanel made
-                       by setup (R2);
+                       the program folder hardened before the files, Bin, which holds
+                       nothing, removed and made again by setup before its first file
+                       - the setup log saying so, a hardening in place not enough -
+                       ControlPanel made by setup (R2);
      precreated-user   the same owned by hmsmokeuser, with Full control of its own,
                        and Bin\notes.txt it owns: refused, exit code 7 - the account
                        may hold its folder open - nothing written (R2);
@@ -125,7 +127,8 @@
                        Administrators with takeown /A and rebuilt, exit 0 (R2);
      data-inherits     the program folder, Bin and an inheriting Data made by the
                        administrator, no ControlPanel: the program folder hardened
-                       before the files, ControlPanel made by setup (R2);
+                       before the files, Bin, which holds nothing, made again,
+                       ControlPanel made by setup (R2);
      foreign-dll       the program folder and Bin made by the administrator, and
                        Bin\version.dll hmsmokeuser owns: refused, exit 7, nothing
                        written (R4);
@@ -146,13 +149,35 @@
      held-open         the program folder and an empty Bin, inheriting from the
                        folder above, and Bin held open for writing by this script
                        before the installer, which makes it a junction to
-                       C:\hm-linktarget through that handle the moment the
-                       uninstaller appears in the program folder: setup made Bin
-                       again, and nothing was copied through the junction (R2);
+                       C:\hm-linktarget through that handle the moment the program
+                       folder's Data appears - after PrepareToInstall, before any
+                       file is copied: setup removed Bin and made it again before
+                       its first file, and nothing was copied through the junction
+                       (R2); the base, which hardens Bin in place, copies through it;
      nested-new        nothing: -InstallDirectory is two or more folders below one
                        that is there, and every folder setup makes has permissions of
                        its own; with -Components controlpanel the uninstall leaves
-                       none of them (R1).
+                       none of them (R1);
+     settings-user     the program folder and Bin made by the administrator, and
+                       Bin\hMailServer.INI hmsmokeuser owns: refused, exit 7, the
+                       file named with the /setowner remedy, nothing written (R4);
+     events-link       the program folder made by the administrator and Events a
+                       junction to C:\hm-linktarget only the administrators control:
+                       refused, exit 7, with the rmdir remedy, nothing written
+                       through it (R4);
+     volume-root       the program folder a mount point - icacls /L giving it to the
+                       administrators alone - of a volume of its own, a 64 MB VHD
+                       diskpart makes, attaches, formats NTFS and mounts there:
+                       refused, exit 7, the root of a volume named, with the remedy
+                       of a folder on that volume (R2);
+     weak-above        -InstallDirectory two folders below a drive's root, the root
+                       given the Authenticated Users' Modify a Windows client's root
+                       hands down and the folder between made by the administrator,
+                       which inherits it: refused, exit 7, that folder named with the
+                       icacls /inheritance:d and /remove:g *S-1-5-11 remedy, nothing
+                       made (R3); the base installs there;
+     weak-above-remedied  the same, the folder between given that remedy first:
+                       installed below it, exit 0 (R3).
    -Components LIST installs the first installer with /COMPONENTS=LIST rather than
    /TYPE=full - controlpanel for the Control Panel alone. A run with -Components, or
    one of the cases a whole server installation does not run (all but
@@ -221,7 +246,8 @@ param(
    [switch] $DatabaseInEnvironment,
    [string] $InstallDirectory = '',
    [switch] $WeakParent,
-   [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open')]
+   [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
+                'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -340,6 +366,8 @@ $State = @{
    SmokeAccountSid = ''
    TopMade = ''
    CaseFiles = @()
+   # weak-above and weak-above-remedied: the folder above the program folder the case made.
+   AboveMade = ''
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -2643,9 +2671,12 @@ function Stop-FolderWatch($Watch) {
 # while it let others write keeps that right after setup hardens it, and may make the
 # folder, while it is empty, a junction. A runspace of its own opens Folder for writing
 # its data (FILE_WRITE_DATA, every sharing, the folder itself), before the installer,
-# then waits for Marker - the uninstaller, which Inno Setup copies into the program
-# folder before Bin's files - and makes Folder a junction to Target through that handle,
-# holding it until it is stopped. What it did is in its Sync.
+# then waits for Marker - the program folder's Data, which Inno Setup makes ([Dirs])
+# after PrepareToInstall and before it copies any file, about 70 ms before Bin's first
+# on the VM (check 3 of R1 to R4, 27 October 2026: the uninstaller, the marker before,
+# came after Bin's first file, so that the junction was never made) - and makes Folder a
+# junction to Target through that handle, holding it until it is stopped. What it did
+# is in its Sync.
 $HeldOpenTurnScript = {
    param([string] $Folder, [string] $Marker, [string] $Target, [int] $Minutes, $Sync)
    try {
@@ -2736,10 +2767,18 @@ function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Cla
 # change them, a trusted owner, at the moment the first new file appeared in each - and
 # the setup log says each was hardened before the first file it copied there; and the
 # program folder too, when ProgramFolderToo says so (its data folders inherited
-# nothing from it before the installer, or it held no server installation).
-function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, $Watched, [string] $LogPath, [string[]] $There, [bool] $ProgramFolderToo) {
+# nothing from it before the installer, or it held no server installation). Remade
+# names those of There that held nothing before the installer, which setup removes and
+# makes again rather than hardens (RemakeEmptyFolder): for each the setup log must say,
+# before the first file it copies there, that setup removed it and made it again with
+# permissions of its own - a hardening in place is not enough, since a program that
+# opened it before keeps what it opened it for (check 3 of R1 to R4, 27 October 2026).
+function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, $Watched, [string] $LogPath, [string[]] $There, [bool] $ProgramFolderToo, [string[]] $Remade = @()) {
    if ($There.Count -eq 0) { return }
-   $name = "${Phase}: $(($There | ForEach-Object { Split-Path -Leaf $_ }) -join ' and '), there before the installer, were hardened before their files were copied$(if ($ProgramFolderToo) { ', and the program folder with them' }) (work item 78, R2)"
+   # An empty list may reach here as nothing at all (PowerShell 5.1's StrictMode 2.0 then
+   # has no Count for it, as smoke run 2 found for Missing).
+   $Remade = @($Remade | Where-Object { $_ })
+   $name = "${Phase}: $(($There | ForEach-Object { Split-Path -Leaf $_ }) -join ' and '), there before the installer, were $(if ($Remade.Count -gt 0) { "hardened or, held nothing ($(($Remade | ForEach-Object { Split-Path -Leaf $_ }) -join ' and ')), made again" } else { 'hardened' }) before their files were copied$(if ($ProgramFolderToo) { ', and the program folder with them' }) (work item 78, R2)"
    $said = @()
    foreach ($folder in $There) {
       $moment = $null
@@ -2759,11 +2798,21 @@ function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, 
             $escaped = [regex]::Escape($folder)
             $hardened = -1
             $copied = -1
+            $removed = -1
+            $remadeAt = -1
             for ($index = 0; $index -lt $lines.Count; $index++) {
-               # Hardened, rebuilt, or - one that held nothing and was open to other
-               # accounts - made again by setup (RemakeEmptyFolder).
+               # Hardened, rebuilt, or - one that held nothing - removed and made again
+               # by setup (RemakeEmptyFolder).
                if ($hardened -lt 0 -and $lines[$index] -match "(icacls hardened $escaped before the files|$escaped was owned by an account other than SYSTEM|Setup made $escaped with permissions of its own)") { $hardened = $index }
+               if ($removed -lt 0 -and $lines[$index] -match "Setup removed $escaped, which was there and held nothing") { $removed = $index }
+               if ($removed -ge 0 -and $remadeAt -lt 0 -and $index -gt $removed -and $lines[$index] -match "Setup made $escaped with permissions of its own") { $remadeAt = $index }
                if ($copied -lt 0 -and $lines[$index] -match "Dest filename: $escaped\\") { $copied = $index }
+            }
+            if ($Remade -contains $folder) {
+               if ($removed -lt 0) { throw "$folder held nothing before the installer, and Inno's log does not say setup removed it to make it again ('Setup removed $folder, which was there and held nothing')" }
+               if ($remadeAt -lt 0) { throw "Inno's log says setup removed $folder (line $($removed + 1)) and not that it made it again" }
+               if ($copied -ge 0 -and $copied -lt $remadeAt) { throw "Inno's log copies a file into $folder (line $($copied + 1)) before setup made it again (line $($remadeAt + 1))" }
+               $hardened = $remadeAt
             }
             if ($hardened -lt 0) { throw "Inno's log does not say $folder was hardened before the files" }
             if ($copied -ge 0 -and $copied -lt $hardened) { throw "Inno's log copies a file into $folder (line $($copied + 1)) before it hardens it (line $($hardened + 1))" }
@@ -2827,6 +2876,12 @@ function Get-FoldersToMake([string] $App, [string] $ComponentList) {
    $names = @('Bin')
    if (-not $ComponentList -or (@($ComponentList -split ',' | ForEach-Object { $_.Trim() }) -contains 'controlpanel')) { $names += 'ControlPanel' }
    return @($names | ForEach-Object { Join-Path $App $_ } | Where-Object { -not (Test-Path -LiteralPath $_) })
+}
+
+# Those of Folders that are there and hold nothing: what an installer after 6.3.7
+# removes and makes again before the files rather than hardens (RemakeEmptyFolder).
+function Get-FoldersThatHoldNothing([string[]] $Folders) {
+   return @($Folders | Where-Object { (Test-Path -LiteralPath $_) -and @(Get-ChildItem -LiteralPath $_ -Force -ErrorAction SilentlyContinue).Count -eq 0 })
 }
 
 # What is in the program folder, every file and folder, as full paths: what a refused
@@ -2991,7 +3046,68 @@ function New-FolderCase {
       'held-open' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
          New-LinkTarget $LinkTarget
-         "$app and $app\Bin made by the administrator, inheriting from the folder above; Bin to be held open for writing before the installer"
+         "$app and $app\Bin made by the administrator, inheriting from the folder above; Bin to be held open for writing before the installer, and made a junction through that handle when $app\Data appears"
+      }
+      'settings-user' {
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
+         Set-Content -LiteralPath (Join-Path $app 'Bin\hMailServer.INI') -Value '[Directories]' -Encoding ASCII
+         Set-OwnedByAccount (Join-Path $app 'Bin\hMailServer.INI')
+         $State.CaseFiles = @('Bin\hMailServer.INI')
+         "$app and $app\Bin made by the administrator, inheriting from the folder above; $app\Bin\hMailServer.INI owned by $SmokeAccountName"
+      }
+      'events-link' {
+         New-Item -ItemType Directory -Force -Path $app | Out-Null
+         New-LinkTarget $LinkTarget
+         $events = Join-Path $app 'Events'
+         New-Junction $events $LinkTarget
+         # The link itself the administrators' alone, as a link's remedy makes it: the
+         # rule refused is that of the folders setup installs into, not that of a link.
+         foreach ($arguments in @(@($events, '/L', '/setowner', '*S-1-5-32-544'), @($events, '/L', '/inheritance:r', '/grant:r', '*S-1-5-18:F', '*S-1-5-32-544:F', '*S-1-5-32-545:RX'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         "$app made by the administrator, $events a junction to $LinkTarget only the administrators control: $(Get-LinkList $events)"
+      }
+      'volume-root' {
+         # A volume of its own - a VHD made and attached by diskpart, formatted NTFS -
+         # mounted on the program folder's path, so that the program folder is the root
+         # of a volume reached through a mount point the administrators alone control.
+         $vhd = 'C:\hm-volume.vhdx'
+         New-Item -ItemType Directory -Force -Path $app | Out-Null
+         $script = Join-Path $env:TEMP 'hm-volume-diskpart.txt'
+         Set-Content -LiteralPath $script -Encoding ASCII -Value @("create vdisk file=`"$vhd`" maximum=64 type=expandable", "select vdisk file=`"$vhd`"", 'attach vdisk',
+                                                                    'create partition primary', 'format fs=ntfs quick label=hmvolume', "assign mount=`"$app`"")
+         $answer = Invoke-Native "diskpart.exe /s `"$script`""
+         if ($answer.ExitCode -ne 0) { throw "diskpart /s returned $($answer.ExitCode): $($answer.Output)" }
+         if (((Get-Item -LiteralPath $app -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0) { throw "$app is not a mount point after diskpart: $($answer.Output)" }
+         foreach ($arguments in @(@($app, '/L', '/setowner', '*S-1-5-32-544'), @($app, '/L', '/inheritance:r', '/grant:r', '*S-1-5-18:F', '*S-1-5-32-544:F', '*S-1-5-32-545:RX'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         "$app a mount point of a volume of its own ($vhd, NTFS), its list the administrators' alone: $(Get-LinkList $app)"
+      }
+      { $_ -in @('weak-above', 'weak-above-remedied') } {
+         # A folder an administrator made in the root of a Windows client's drive, which
+         # hands Authenticated Users Modify down to what is made in it: the folder above
+         # the program folder, which that group may then rename or empty.
+         $above = Split-Path -Parent $app
+         $root = (Split-Path -Qualifier $app) + '\'
+         if ((Split-Path -Parent $above) -ne $root) { throw "-InstallDirectory $app is not two folders below the root of its drive: $FolderCase makes the one between" }
+         $answer = @(& icacls.exe $root /grant '*S-1-5-11:(OI)(CI)(IO)M' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $root returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         New-Item -ItemType Directory -Force -Path $above | Out-Null
+         $writers = @(Get-BroadWriters $above)
+         if ($writers.Count -eq 0) { throw "$above, made in $root, does not let Authenticated Users change it" }
+         $State.AboveMade = $above
+         if ($FolderCase -eq 'weak-above') { return "$above made by the administrator in $root, which hands down Authenticated Users' Modify: $($writers -join ', ')" }
+         # The refusal's remedy, as it gives it.
+         foreach ($arguments in @(@($above, '/inheritance:d'), @($above, '/remove:g', '*S-1-5-11'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         $left = @(Get-BroadWriters $above)
+         if ($left.Count -gt 0) { throw "$above still lets a group of every user change it after the remedy: $($left -join ', ')" }
+         "$above made by the administrator in $root, which hands down Authenticated Users' Modify, and given the refusal's remedy (icacls /inheritance:d, then /remove:g *S-1-5-11): $((@(& icacls.exe $above) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')"
       }
       'nested-new' {
          $top = $app
@@ -3021,15 +3137,28 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # folder is kept as it was, or which check what the uninstall leaves. One installer,
 # its exit code held to the case, what it wrote checked, and an uninstall when
 # anything was installed.
-$FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open')
-$RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user')
-$LinkCases = @('link-user', 'link-admin', 'bin-link-user')
+$FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
+                  'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied')
+$RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user', 'settings-user', 'events-link', 'volume-root', 'weak-above')
+$LinkCases = @('link-user', 'link-admin', 'bin-link-user', 'events-link')
+# Which of work item 78's R1 to R4 a refused case is for.
+function Get-CaseItem {
+   if ($FolderCase -in @('link-user', 'link-admin', 'bin-link-user', 'weak-above')) { return 'R3' }
+   if ($FolderCase -in @('foreign-dll', 'settings-user', 'events-link')) { return 'R4' }
+   return 'R2'
+}
 # What a refused case's refusal says, and the remedy it gives (Inno's log, "Refused:").
 function Get-RefusalPattern {
    switch ($FolderCase) {
       'precreated-user' { return @(('was made by .*' + [regex]::Escape($State.SmokeAccountSid) + '.*, who may still hold it open'), 'remove or rename it') }
       'precreated-user-locked' { return @(('Bin was made by .*' + [regex]::Escape($State.SmokeAccountSid) + '.*, who may still hold it open'), 'remove or rename it') }
       'foreign-dll' { return @(('would run programs there that another account controls: .*' + [regex]::Escape('Bin\version.dll') + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid)), '/setowner \*S-1-5-32-544') }
+      'settings-user' { return @(('would run programs there that another account controls: .*' + [regex]::Escape('Bin\hMailServer.INI') + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid)), '/setowner \*S-1-5-32-544') }
+      'events-link' { return @(([regex]::Escape((Join-Path $State.App 'Events')) + ' is a junction, a symbolic link or a mount point, and setup installs into it what the service or the administrators run'),
+                               ('rmdir "' + [regex]::Escape((Join-Path $State.App 'Events')) + '"')) }
+      'volume-root' { return @('it is the root of a volume \(\\\\\?\\Volume\{', 'Install hMailServer into a folder on that volume') }
+      'weak-above' { return @(([regex]::Escape($State.AboveMade) + ', a folder on the way to it, lets .* rename it, remove what is in it or change who may'),
+                              [regex]::Escape("icacls `"$($State.AboveMade)`" /inheritance:d, then icacls `"$($State.AboveMade)`" /remove:g *S-1-5-11")) }
       default { return @('is a junction, a symbolic link or a mount point, and ', '/L /setowner \*S-1-5-32-544') }
    }
 }
@@ -3040,6 +3169,7 @@ function Invoke-FocusedRun([string] $Version) {
    $log = Join-Path $LogDirectory 'install.log'
    $refused = $RefusedCases -contains $FolderCase
    $there = @(@((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+   $remade = @(Get-FoldersThatHoldNothing $there)
    $missing = @(Get-FoldersToMake $app $Components)
    $appBefore = Test-Path -LiteralPath $app
    $itemsBefore = @(Get-ProgramFolderItems $app)
@@ -3049,7 +3179,7 @@ function Invoke-FocusedRun([string] $Version) {
    if (-not $State.PasswordInEnvironment) { $arguments += "/adminpassword=$AdminPassword" }
    $turn = $null
    if ($FolderCase -eq 'held-open') {
-      $turn = Start-HeldOpenTurn (Join-Path $app 'Bin') (Join-Path $app 'unins000.exe') $LinkTarget
+      $turn = Start-HeldOpenTurn (Join-Path $app 'Bin') (Join-Path $app 'Data') $LinkTarget
       if ($turn.Sync['Error']) { Write-Result 'FAIL' "case ${FolderCase}: Bin held open before the installer" $turn.Sync['Error'] }
    }
    $watch = Start-FolderWatch $app
@@ -3062,7 +3192,7 @@ function Invoke-FocusedRun([string] $Version) {
 
    if ($refused) {
       $pattern = Get-RefusalPattern
-      [void] (Test-Step "case ${FolderCase}: the installer was refused before it changed anything - exit code 7, PrepareToInstall's (work item 78, $(if ($LinkCases -contains $FolderCase) { 'R3' } elseif ($FolderCase -eq 'foreign-dll') { 'R4' } else { 'R2' }))" {
+      [void] (Test-Step "case ${FolderCase}: the installer was refused before it changed anything - exit code 7, PrepareToInstall's (work item 78, $(Get-CaseItem))" {
             if ($code -ne 7) { throw "it returned $code" }
             $line = Select-String -LiteralPath $log -Pattern ('Refused: Setup does not install into .*' + $pattern[0]) | Select-Object -First 1
             if ($null -eq $line) { throw "Inno's log does not say what was refused, and why (/$($pattern[0])/)" }
@@ -3078,10 +3208,17 @@ function Invoke-FocusedRun([string] $Version) {
                if ($null -ne (Get-HmService)) { throw 'the hMailServer service is registered' }
                "$LinkTarget is empty; no uninstall entry, no service"
             })
-         Write-Info "case ${FolderCase}: the link afterwards" (Get-LinkList $(if ($FolderCase -eq 'bin-link-user') { Join-Path $app 'Bin' } else { $app }))
+         Write-Info "case ${FolderCase}: the link afterwards" (Get-LinkList $(if ($FolderCase -eq 'bin-link-user') { Join-Path $app 'Bin' } elseif ($FolderCase -eq 'events-link') { Join-Path $app 'Events' } else { $app }))
       }
-      else {
+      if (-not ($LinkCases -contains $FolderCase) -or $FolderCase -eq 'events-link') {
          [void] (Test-Step "case ${FolderCase}: nothing was written, and the folders the case made are as they were" {
+               # A program folder that was not there is not made by a refused installer
+               # (weak-above): the refusal comes before anything is changed.
+               if (-not $appBefore -and (Test-Path -LiteralPath $app)) { throw "$app was made, where the installer was refused before it changed anything" }
+               if ($State.AboveMade) {
+                  $above = @(Get-ChildItem -LiteralPath $State.AboveMade -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+                  if ($above.Count -gt 0) { Write-Detail $above 10; throw "$($above.Count) files and folders were written into $($State.AboveMade)" }
+               }
                $after = @(Get-ProgramFolderItems $app)
                $new = @($after | Where-Object { $itemsBefore -notcontains $_ })
                $gone = @($itemsBefore | Where-Object { $after -notcontains $_ })
@@ -3089,9 +3226,9 @@ function Invoke-FocusedRun([string] $Version) {
                if ($gone.Count -gt 0) { Write-Detail $gone 10; throw "$($gone.Count) of the case's files and folders are gone" }
                if ($null -ne (Get-UninstallEntry)) { throw 'there is an uninstall entry' }
                if ($null -ne (Get-HmService)) { throw 'the hMailServer service is registered' }
-               "$app holds the $($itemsBefore.Count) items the case made, and nothing else; no uninstall entry, no service"
+               "$(if ($appBefore) { "$app holds the $($itemsBefore.Count) items the case made, and nothing else" } else { "$app was not made" }); no uninstall entry, no service"
             })
-         Write-Info "case ${FolderCase}: the folders afterwards" ((@($app, (Join-Path $app 'Bin')) | ForEach-Object { "$_ owner $((Get-FolderMoment $_).Owner): $(Get-LinkList $_)" }) -join ' || ')
+         Write-Info "case ${FolderCase}: the folders afterwards" ((@($app, (Join-Path $app 'Bin')) | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object { "$_ owner $((Get-FolderMoment $_).Owner): $(Get-LinkList $_)" }) -join ' || ')
       }
       return
    }
@@ -3101,12 +3238,12 @@ function Invoke-FocusedRun([string] $Version) {
          'exit code 0'
       })
    if (-not $appBefore) { Test-ProgramFolderMadeWithItsPermissions "case $FolderCase" $Version $watched $log }
-   Test-FoldersHardenedBeforeTheFiles "case $FolderCase" $Version $watched $log $there $true
+   Test-FoldersHardenedBeforeTheFiles "case $FolderCase" $Version $watched $log $there $true $remade
    Test-FoldersMadeBeforeTheFiles "case $FolderCase" $Version $watched $log $missing
 
    switch ($FolderCase) {
       'held-open' {
-         Write-Info "case ${FolderCase}: the handle opened before the installer" ("$(if ($turned['MarkerAt']) { "at $($turned['MarkerAt']), when the uninstaller appeared: " })$($turned['TurnResult'])$(if ($turned['Error']) { "; $($turned['Error'])" })")
+         Write-Info "case ${FolderCase}: the handle opened before the installer" ("$(if ($turned['MarkerAt']) { "at $($turned['MarkerAt']), when the program folder's Data appeared: " })$($turned['TurnResult'])$(if ($turned['Error']) { "; $($turned['Error'])" })")
          [void] (Test-Step "case ${FolderCase}: nothing was copied through the junction the handle opened before the installer made, and Bin is the folder setup made again (work item 78, R2)" {
                $bin = Join-Path $app 'Bin'
                $written = @(Get-ChildItem -LiteralPath $LinkTarget -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
@@ -3190,6 +3327,15 @@ function Invoke-FocusedRun([string] $Version) {
                if ($copied -ge 0 -and $copied -lt $hardened) { throw "Inno's log copies a file (line $($copied + 1)) before it hardens the program folder (line $($hardened + 1))" }
                if (Select-String -LiteralPath $log -Pattern 'is not hardened before the files' -Quiet) { throw 'the setup log leaves the program folder to /ProtectFolders' }
                "hardened at line $($hardened + 1), the first file at line $($copied + 1)"
+            })
+      }
+      'weak-above-remedied' {
+         [void] (Test-Step "case ${FolderCase}: the folder above the program folder, given the refusal's remedy, was gone through and the installation made below it (work item 78, R3)" {
+               if (Select-String -LiteralPath $log -Pattern 'Refused: ' -Quiet) { throw "Inno's log has a refusal" }
+               if (-not (Test-Path -LiteralPath (Join-Path $app 'Bin\hMailServer.exe'))) { throw "$app\Bin holds no hMailServer.exe" }
+               $writers = @(Get-BroadWriters $State.AboveMade)
+               if ($writers.Count -gt 0) { throw "$($State.AboveMade) lets a group of every user change it: $($writers -join ', ')" }
+               "$app installed below $($State.AboveMade), which no group of every user may change"
             })
       }
       'nested-new' {
@@ -3358,6 +3504,7 @@ Write-Info 'install: every user could read, before the installer' (($State.Progr
 # Work item 78: the program folder watched while the installer runs - its first
 # moment when it is not there yet, and Bin's and ControlPanel's when they are.
 $installThere = @(@((Join-Path $State.App 'Bin'), (Join-Path $State.App 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+$installRemade = @(Get-FoldersThatHoldNothing $installThere)
 $installMissing = @(Get-FoldersToMake $State.App '')
 $installWatch = Start-FolderWatch $State.App
 try {
@@ -3372,7 +3519,7 @@ if (-not $installed) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 $State.Installed = ($null -ne (Get-UninstallEntry)) -or (Test-Path -LiteralPath (Join-Path (Get-InstallDirectory) 'Bin\hMailServer.exe'))
 if ($State.Installed) {
    Test-ProgramFolderMadeWithItsPermissions 'install' $firstVersion $installWatched $installLog
-   Test-FoldersHardenedBeforeTheFiles 'install' $firstVersion $installWatched $installLog $installThere $true
+   Test-FoldersHardenedBeforeTheFiles 'install' $firstVersion $installWatched $installLog $installThere $true $installRemade
    Test-FoldersMadeBeforeTheFiles 'install' $firstVersion $installWatched $installLog $installMissing
 }
 

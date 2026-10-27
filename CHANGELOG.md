@@ -2662,7 +2662,12 @@ with `--check`).
   folders are prepared only with a refusal. A sweep of one-token changes of those routines - every `if`, `while`,
   `Result` and `Exit`, one at a time - had 433 of 903 pass the checker before; after, all 912 but the 19 in
   `PrepareToInstallRefusal`'s database refusals are refused. The checker's negative controls are 384, and each of those
-  that alters an installer script for R1 to R4 fails the fixture too.
+  that alters an installer script for R1 to R4 fails the fixture too. The installer smoke test's cases whose `Bin`
+  held nothing now require Inno's log to say setup removed it and made it again before its first file, the held-open
+  case makes its junction before any file is copied, and five cases
+  are new: a `Bin\hMailServer.INI` another account owns, a link at `Events`, a program folder that is a volume's
+  mount point, a folder above the program folder another account may rename, and the same with the refusal's remedy
+  applied ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The installer smoke test").
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

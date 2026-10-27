@@ -3430,7 +3430,10 @@ Inno's log saying setup made it and not Inno Setup (R1); a `Bin` and a `ControlP
 that were there - an upgrade, a folder made before the installer - must have inherited
 nothing, let no group of every user change them and had a trusted owner when their
 first file appeared, and Inno's log must harden each before the first file it copies
-there; the program folder with them when its data folders inherited nothing (R2). An
+there - or, for one that held nothing, say that setup removed it and made it again
+before that file, a hardening in place not enough, since a program that opened it
+before keeps what it opened it for; the program folder with them when its data folders
+inherited nothing (R2). An
 installer of 6.3.7 or earlier is not held to it, and what the watch saw is an INFO
 line; `--hardened-before-files` holds a build that still says 6.3.7 to it - never an
 earlier installer, such as the first of an upgrade run from 6.3.6 - which is how the
@@ -3443,19 +3446,24 @@ the Control Panel alone:
 
 | Case | Made before the installer | Expected |
 |---|---|---|
-| `precreated-admin` | the program folder and `Bin`, inheriting the folder above | the program folder hardened before the files, `Bin`, which holds nothing and lets other accounts write it, removed and made again by setup (R2), `ControlPanel` made by setup with permissions of its own before its first file (R1), then the whole run |
+| `precreated-admin` | the program folder and `Bin`, inheriting the folder above | the program folder hardened before the files; `Bin`, which holds nothing, removed and made again by setup, Inno's log saying "Setup removed `C:\...\Bin`, which was there and held nothing" and that setup made it before its first file - "icacls hardened" does not pass (R2); `ControlPanel` made by setup with permissions of its own before its first file (R1); then the whole run, or with `--components controlpanel` the Control Panel alone, held the same |
 | `precreated-user` | the same owned by `hmsmokeuser`, and `Bin\notes.txt` it owns | exit 7, the refusal (the account may hold its folder open) and its remedy in the log, nothing written (R2) |
 | `precreated-user-locked` | the program folder made by the administrator, `Bin` owned by `hmsmokeuser` with a list of its own that leaves SYSTEM and the Administrators no right to change it | exit 7, likewise (R2) |
 | `earlier-user-locked` | the same, with a `Bin\hMailServer.INI` the administrator made, and the program folder recorded as the earlier installation's (`InstallLocation`) | exit 0, `Bin` given to the Administrators with `takeown /A` and rebuilt before the files, no entry for `hmsmokeuser` left (R2) |
-| `data-inherits` | the program folder, `Bin` and an inheriting `Data` made by the administrator, no `ControlPanel` | exit 0, the program folder hardened before the files, `ControlPanel` made by setup (R1, R2) |
+| `data-inherits` | the program folder, `Bin` and an inheriting `Data` made by the administrator, no `ControlPanel` | exit 0, the program folder hardened before the files, `Bin`, which holds nothing, removed and made again before its first file, `ControlPanel` made by setup (R1, R2) |
 | `foreign-dll` | the program folder and `Bin` made by the administrator, a library in `Bin` owned by `hmsmokeuser` | exit 7, the file named with its remedy, nothing written (R4) |
 | `broad-entry` | the program folder with an entry of its own for `Authenticated Users` Modify, `Bin\notes.txt` owned by `hmsmokeuser` | exit 0, the entry taken away before the files (R2), both said in Inno's log (R4) |
 | `link-user` | the program folder a junction to `C:\hm-linktarget` owned by `hmsmokeuser` | exit 7, the refusal and its remedy in the log, nothing written through it (R3) |
 | `link-admin` | the same made by the administrator, with a list that lets another account change it | exit 7, likewise (R3) |
 | `link-admin-only` | the same given the remedy's list (`icacls /L`) | exit 0, installed through it, its target hardened (R3); `Bin` and `ControlPanel` made by setup in it with permissions of their own before their files (R1) |
 | `bin-link-user` | the program folder made by the administrator, `Bin` a junction owned by `hmsmokeuser` | exit 7, nothing written through it (R3) |
-| `held-open` | the program folder and an empty `Bin`, inheriting the folder above, and `Bin` held open for writing by the smoke script before the installer, which makes `Bin` a junction to `C:\hm-linktarget` through that handle when the uninstaller appears in the program folder | exit 0, `Bin` removed and made again by setup, so that the junction is made on the folder removed, nothing copied through it, and `Bin` a folder holding the files (R2) |
+| `held-open` | the program folder and an empty `Bin`, inheriting the folder above, and `Bin` held open for writing by the smoke script before the installer, which makes `Bin` a junction to `C:\hm-linktarget` through that handle before any file is copied | exit 0, Inno's log saying setup removed `Bin` and made it again before its first file, so that the junction falls on the folder removed, nothing copied through it, and `Bin` a folder holding the files (R2); the base, which hardens `Bin` in place, copies the files through the junction |
 | `nested-new` | nothing: `--install-directory` two or more folders below one that is there | every folder setup made with permissions of its own (R1); with `--components controlpanel`, each given to the uninstaller, and none left but those that hold the `Bin\hMailServer.INI` every uninstall keeps |
+| `settings-user` | the program folder and `Bin` made by the administrator, `Bin\hMailServer.INI` owned by `hmsmokeuser` | exit 7, the file named with the `/setowner *S-1-5-32-544` remedy, nothing written (R4) |
+| `events-link` | the program folder made by the administrator, `Events` a junction to `C:\hm-linktarget` that only the administrators control (`icacls /L`) | exit 7, the refusal of a link where setup installs what is run, with the `rmdir` remedy, nothing written through it or into the program folder (R4) |
+| `volume-root` | the program folder a mount point, only the administrators controlling it, of a volume of its own: a 64 MB VHD diskpart makes, attaches, formats NTFS and mounts there; with `--install-directory C:/hm-volume` and no `--weak-parent` | exit 7, the program folder named the root of a volume with the remedy of a folder on that volume, nothing written (R2); a VM where diskpart cannot make the volume fails the case's preflight, exit 2, and the refusal is then held by `check-installer-scripts.py` and `InstallerPackaging.cs` alone |
+| `weak-above` | with `--install-directory C:/hm-above/hMailServer`: the drive's root given the inherit-only Modify for `Authenticated Users` a Windows client's root carries, and `C:\hm-above` made by the administrator, which inherits it | exit 7, `C:\hm-above` named as a folder on the way that group may rename or empty, with the `icacls "C:\hm-above" /inheritance:d, then icacls "C:\hm-above" /remove:g *S-1-5-11` remedy, the program folder not made (R3); the base installs there |
+| `weak-above-remedied` | the same, `C:\hm-above` given that remedy before the installer | exit 0, installed below it, no refusal in Inno's log (R3) |
 
 A run with `--components`, or of a case a whole server installation does not run (all
 but `precreated-admin`), is one installer, the case's checks and an uninstall.
