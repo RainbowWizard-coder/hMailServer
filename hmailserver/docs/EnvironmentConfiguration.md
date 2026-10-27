@@ -156,7 +156,10 @@ environment. When the command is the server itself (`hmailserver` with nothing
 but `--foreground` and `--config`), the entrypoint takes these variables out of
 its environment once the verb has stored them, from the release after 6.3.7; any
 other command keeps them, since the verb, run again without them, gives their
-settings back ([ContainerImage.md](ContainerImage.md#the-image)). Run against a server that is already running, the verb's values reach
+settings back - a shell's command line among them, which the entrypoint cannot
+read, so that under the Compose file's and the Helm chart's commands the settings'
+variables still reach the server and what it starts, and a secret belongs in a
+`_FILE` ([ContainerImage.md](ContainerImage.md#the-image)). Run against a server that is already running, the verb's values reach
 that server at the server's next reinitialise (the Deck's and the Control Panel's
 **Apply now**) - or its next start for a key marked `restart`
 ([SettingsApply.md](SettingsApply.md)) - because nothing watches the table; the

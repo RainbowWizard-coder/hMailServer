@@ -12,18 +12,23 @@
 #   bash build/test-docker-entrypoint.sh [ENTRYPOINT]
 #
 # And what reaches the environment of the programs it runs: neither password, in
-# its plain or its _FILE form, reaches any of them - the server's own verbs it runs
-# or the command it execs, the server or another - HM_INSTALL_KIND reaches the
-# command, and the settings' variables (HM_SETTING_*, HM_PROPERTY_*, their _FILE
-# forms and the four HM_REST_*) reach a command that may run --apply-environment
-# and not the server itself.
+# its plain or its _FILE form, reaches any of them - the cat that reads a _FILE,
+# the server's own verbs it runs or the command it execs, the server or another -
+# the entrypoint's own --apply-environment sees every one of the settings'
+# variables (HM_SETTING_*, HM_PROPERTY_*, their _FILE forms and the four
+# HM_REST_*), HM_INSTALL_KIND and any other variable reach the command as they
+# were, and the settings' variables reach a command that may run
+# --apply-environment and not the server itself.
 #
 # ENTRYPOINT defaults to the tree's; given another (an older copy), the same cases
 # are its negative control. The entrypoint runs with a stub `hmailserver` first on
 # PATH that records its arguments and the names (never the values) of its
-# environment and succeeds, HM_INI naming a scratch file, and `true` as the command
-# it execs unless a case names another. Needs bash, awk, sed and mktemp. Reports
-# every case, and exits non-zero when any did not hold.
+# environment and succeeds, and a `cat` before the system's that records the names
+# in its environment and runs it; HM_INI names a scratch file, and `true` is the
+# command it execs unless a case names another. The harness's own variables are
+# TEST_*, outside the HM_ family the entrypoint looks at, so that whether it runs
+# --apply-environment depends on a case's variables alone. Needs bash, awk, sed
+# and mktemp. Reports every case, and exits non-zero when any did not hold.
 set -uo pipefail
 
 entrypoint="${1:-hmailserver/source/Server/platform/packaging/docker/docker-entrypoint.sh}"
@@ -32,16 +37,26 @@ entrypoint="${1:-hmailserver/source/Server/platform/packaging/docker/docker-entr
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/bin" "$work/secrets" "$work/env"
-# Each run of the stub: its arguments a line of HM_TEST_CALLS, and the names of its
-# environment, one a line, in HM_TEST_ENVS/<the number of that line>.
+# Each run of the stub: its arguments a line of TEST_CALLS, the names of its
+# environment, one a line, in TEST_ENVS/<the number of that line>, and NAME=VALUE
+# for each variable TEST_VALUES names - none of them a secret - in
+# TEST_ENVS/<that number>.values.
 cat > "$work/bin/hmailserver" <<'STUB'
 #!/bin/sh
-printf '%s\n' "$*" >> "$HM_TEST_CALLS"
-n="$(wc -l < "$HM_TEST_CALLS" | tr -d ' ')"
-awk 'BEGIN { for (name in ENVIRON) print name }' > "$HM_TEST_ENVS/$n"
+printf '%s\n' "$*" >> "$TEST_CALLS"
+n="$(wc -l < "$TEST_CALLS" | tr -d ' ')"
+awk 'BEGIN { for (name in ENVIRON) print name }' > "$TEST_ENVS/$n"
+awk -v names="${TEST_VALUES:-}" 'BEGIN { c = split(names, v, " "); for (i = 1; i <= c; i++) print v[i] "=" (v[i] in ENVIRON ? ENVIRON[v[i]] : "(not set)") }' \
+  > "$TEST_ENVS/$n.values"
 exit 0
 STUB
-chmod +x "$work/bin/hmailserver"
+# Each run of cat: the names of its environment in a TEST_ENVS/cat.* of its own.
+cat > "$work/bin/cat" <<'STUB'
+#!/bin/sh
+awk 'BEGIN { for (name in ENVIRON) print name }' > "$(mktemp "$TEST_ENVS/cat.XXXXXX")"
+PATH=/usr/bin:/bin exec cat "$@"
+STUB
+chmod +x "$work/bin/hmailserver" "$work/bin/cat"
 
 failures=0
 fail() {
@@ -61,8 +76,8 @@ run() {
   rm -f "$work/env/"*
   local exec_words=(true)
   [ "${#command[@]}" -gt 0 ] && exec_words=("${command[@]}")
-  env -i PATH="$work/bin:/usr/bin:/bin" HOME="$work" HM_INI="$work/hMailServer.ini" HM_TEST_CALLS="$work/calls" \
-    HM_TEST_ENVS="$work/env" HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
+  env -i PATH="$work/bin:/usr/bin:/bin" HOME="$work" HM_INI="$work/hMailServer.ini" TEST_CALLS="$work/calls" \
+    TEST_ENVS="$work/env" TEST_VALUES="HM_INSTALL_KIND name" HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
     bash "$entrypoint" "${exec_words[@]}" > "$work/out" 2>&1
   local code=$?
   if [ "$code" -ne "$expected" ]; then
@@ -121,10 +136,11 @@ run "a password of a single quote is written as it is" 0 HM_DB_TYPE=PostgreSQL "
   && { [ "$(database_value Password)" = "'" ] || fail "  ... the file holds [$(database_value Password)], not [']"; }
 
 # What reaches the programs the entrypoint runs. Each case gives both passwords, in
-# one form or the other, six settings' variables and HM_INSTALL_KIND, and lets the
-# entrypoint run every verb it would (the database created and upgraded, the
-# administrator password set, the environment applied); the stub records the
-# names in the environment of each of those and of the command execed after them.
+# one form or the other, six settings' variables, HM_INSTALL_KIND and a variable
+# named name, and lets the entrypoint run every verb it would (the database created
+# and upgraded, the administrator password set, the environment applied); the stub
+# records the names in the environment of each of those and of the command execed
+# after them, and the cat recorder those of each cat.
 printf 'db-secret\n' > "$work/secrets/db"
 printf 'admin-secret\n' > "$work/secrets/admin"
 printf '20480\n' > "$work/secrets/maxmessagesize"
@@ -140,36 +156,58 @@ from_files=("HM_DB_PASSWORD_FILE=$work/secrets/db" "HM_ADMIN_PASSWORD_FILE=$work
 # last run must be the command's own, with LAST-CALL as its arguments. One line per
 # case: ok, or FAIL and every reason it does not hold.
 env_case() {
-  local name="$1" form="$2" last_call="$3" settings_expected="$4" n file variable calls reached
+  local name="$1" form="$2" last_call="$3" settings_expected="$4" n file variable calls reached records cats apply
   shift 4
   local problems=()
   command=("$@")
   local passwords=("${plain[@]}")
   [ "$form" = file ] && passwords=("${from_files[@]}")
   run_quiet=1 run "$name" 0 HM_CREATE_DATABASE=1 HM_UPGRADE_DATABASE=1 HM_DB_TYPE=PostgreSQL HM_INSTALL_KIND=container \
-    "${passwords[@]}" "${settings[@]}" || { command=(); return; }
+    name=keepme "${passwords[@]}" "${settings[@]}" || { command=(); return; }
   command=()
   calls="$(wc -l < "$work/calls" | tr -d ' ')"
   # The entrypoint used both passwords before taking them away.
   [ "$(database_value Password)" = db-secret ] || problems+=("the [Database] section does not hold the database password")
   grep -q -- '--set-admin-password$' "$work/calls" || problems+=("the administrator password was not set")
-  grep -q -- '--apply-environment$' "$work/calls" || problems+=("the settings were not applied")
+  # Its own --apply-environment, the first run of the verb, ran and saw every one
+  # of the settings' variables: taken out before it, they would be stored at no
+  # start, and given back at every one after the first.
+  apply="$(grep -n -x -F -- "--config $ini --apply-environment" "$work/calls" | head -n 1 | cut -d: -f1)"
+  if [ -z "$apply" ]; then
+    problems+=("the entrypoint did not run --apply-environment")
+  elif [ -f "$work/env/$apply" ]; then
+    for variable in $setting_names; do
+      grep -qx "$variable" "$work/env/$apply" || problems+=("the entrypoint's --apply-environment did not see $variable")
+    done
+  fi
   [ "$(sed -n "${calls}p" "$work/calls")" = "$last_call" ] \
     || problems+=("the last program run was [$(sed -n "${calls}p" "$work/calls")], not the command [$last_call]")
-  # No program run, the verbs the entrypoint ran or the command, has a password.
+  # No program run, a cat that read a file, the verbs the entrypoint ran or the
+  # command, has a password.
   for n in $(seq 1 "$calls"); do
     [ -f "$work/env/$n" ] || problems+=("run $n left no record of its environment")
   done
+  records=("$work/env/"cat.*)
+  [ -e "${records[0]}" ] || records=()
+  cats="${#records[@]}"
+  [ "$cats" -gt 0 ] || problems+=("no run of cat was recorded")
+  for n in $(seq 1 "$calls"); do
+    records+=("$work/env/$n")
+  done
   for variable in $password_names; do
     reached=0
-    for n in $(seq 1 "$calls"); do
-      [ -f "$work/env/$n" ] && grep -qx "$variable" "$work/env/$n" && reached=$((reached + 1))
+    for file in "${records[@]}"; do
+      [ -f "$file" ] && grep -qx "$variable" "$file" && reached=$((reached + 1))
     done
-    [ "$reached" -eq 0 ] || problems+=("$variable reached $reached of the $calls programs run")
+    [ "$reached" -eq 0 ] || problems+=("$variable reached $reached of the ${#records[@]} programs run ($cats of them cat)")
   done
   file="$work/env/$calls"
   if [ -f "$file" ]; then
     grep -qx HM_INSTALL_KIND "$file" || problems+=("HM_INSTALL_KIND did not reach the command")
+    for variable in "HM_INSTALL_KIND=container" "name=keepme"; do
+      grep -qx -F -- "$variable" "$file.values" \
+        || problems+=("${variable%%=*} reached the command as [$(sed -n "s/^${variable%%=*}=//p" "$file.values")], not [${variable#*=}]")
+    done
     for variable in $setting_names; do
       if [ "$settings_expected" = kept ]; then
         grep -qx "$variable" "$file" || problems+=("$variable did not reach the command, which may run --apply-environment")
@@ -207,4 +245,4 @@ if [ "$failures" -ne 0 ]; then
   echo "$failures check(s) failed"
   exit 1
 fi
-echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written; no password reaches a program the entrypoint runs, and a setting's variable reaches every command but the server itself."
+echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written; no password reaches a program the entrypoint runs, its --apply-environment sees every setting's variable, and a setting's variable reaches every command but the server itself."

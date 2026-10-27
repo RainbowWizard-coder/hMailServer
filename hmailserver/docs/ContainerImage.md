@@ -113,7 +113,9 @@ otherwise is secured by hand ([SecureDefaults.md](SecureDefaults.md)).
 
 The two passwords stay with the entrypoint. From the release after 6.3.7,
 `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD`, given plain or as `_FILE`, are out of the
-environment before the entrypoint runs any program: it writes the first into the
+environment before the entrypoint runs any program, the `cat` that reads a `_FILE`
+among them (it reads the file's contents into a variable of its own, never
+exported): it writes the first into the
 `[Database]` section of `hMailServer.ini` and gives the second to
 `--set-admin-password` on its standard input, and neither reaches the server's verbs
 it runs, the command it runs - the server, the container's PID 1 - or anything the
@@ -128,16 +130,21 @@ user - which can read `hMailServer.ini`, and the database password in it, all th
 same: hardening, not a hole. A password given plain stays in the container's own
 configuration all the same, which `docker inspect` shows and every `docker exec`
 session starts with; the `_FILE` forms keep it out of there too. The settings' variables - `HM_SETTING_*`, `HM_PROPERTY_*`, their `_FILE`
-forms and the four `HM_REST_*` - are stored in the database by `--apply-environment`
-before the server starts, and leave the environment too when the command is the
-server itself: `hmailserver` with nothing but `--foreground` and `--config`, as the
-image's own command is. Any other command keeps them, because one that runs
-`--apply-environment` - as the command, or within a shell's command line, as the
-Compose file's and the Helm chart's are, which the entrypoint cannot read - gives
-back to the administrator every setting no variable names any more. A setting that
-is a secret is best given as a `_FILE`, whose variable holds a path and not the
-value, as the Compose file's example and the Helm chart's `settingsFrom` do.
-`HM_INSTALL_KIND` stays, for the update check.
+forms and the four `HM_REST_*` - are stored in the database by the entrypoint's own
+`--apply-environment`, which sees every one of them, before the server starts, and
+leave the environment too when the command is the server itself: `hmailserver` with
+nothing but `--foreground` and `--config`, as the image's own command is. Any other
+command keeps them, because one that runs `--apply-environment`, as the command or
+within a shell's command line, gives back to the administrator every setting no
+variable names any more, and the entrypoint cannot read what a shell's command line
+runs. The Compose file's and the Helm chart's commands are such command lines -
+`bash -c` running `--apply-new-install-defaults --if-marked` and then the server -
+so in those two deployments the settings' variables still reach the server and
+every program it starts, as they did before; only the passwords do not. A setting
+that is a secret is therefore best given as a `_FILE`, whose variable holds a path
+and not the value, as the Compose file's example and the Helm chart's
+`settingsFrom` do. `HM_INSTALL_KIND` stays, for the update check, and every other
+variable reaches the command as it was given.
 
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
@@ -917,17 +924,21 @@ On 27 October 2026, on the same kind of machine with Docker 29.1.3, the entrypoi
 of the release after 6.3.7 was copied over 6.3.7's published image (by its index's
 digest, `sha256:2a5de4eb...`), with nothing else changed. For the first question
 below a copy of that image and one of 6.3.7's own each had the auto-ban hook
-wrapped to write the names in its environment, never a value: the server runs the
-hook at every start, and it inherits the server's environment as the server has it.
+wrapped to write the names in its environment, never a value, and to leave a child
+of its own running: the server runs the hook at every start, and the hook and its
+child inherit the server's environment as the server has it.
 
 - **The passwords and the settings.** Each image was started beside PostgreSQL 18
   with the passwords plain, with them as `_FILE`, and with them as `_FILE` and the
   Compose file's `bash -c` command, with `HM_SETTING_MaxSubmissionsPerIPPerMinute`,
-  `HM_REST_PORT` and `HM_REST_BIND_ADDRESS` beside them. 6.3.7's hook held
-  `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD` in all three starts, and both `_FILE`
-  names too in the two given them, with the three settings' variables; the new
-  entrypoint's held no password's name in any, the settings' variables in the
-  Compose start alone, and `HM_INSTALL_KIND` in all. In both images the server's
+  `HM_REST_PORT`, `HM_REST_BIND_ADDRESS` and `HM_PROPERTY_smtprelayerpassword_FILE`
+  beside them. 6.3.7's hook held `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD` in all
+  three starts, and both `_FILE` names too in the two given them, with the four
+  settings' variables, and so did its child's `/proc/<pid>/environ`, read as the
+  image's user; the new entrypoint's hook and its child held no password's name in
+  any, the settings' variables in the Compose start alone, and `HM_INSTALL_KIND` in
+  all. A `docker exec` session, whose parent is not the server, started with the
+  container's configured environment in both, as Docker gives it. In both images the server's
   own `/proc/1/environ` could not be read inside the container, as its user or as
   root (`docker exec -u 0`). Started with its own command, the new one's REST
   listener answered 401 on the loopback port `HM_REST_PORT` gave, from the

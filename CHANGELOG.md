@@ -103,14 +103,18 @@ with `--check`).
   starts is not, and its `/proc/<pid>/environ` showed them to any program running as the image's user while it ran
   (6.3.7's image: the auto-ban hook the server runs at its start held both, plain or from a `_FILE`). The server reads
   neither from its environment on Linux. Both
-  now leave the environment, in whichever form they came, before the entrypoint runs any program, and stay its own
-  shell variables for the `[Database]` section and `--set-admin-password`'s standard input. The settings' variables
-  (`HM_SETTING_*`, `HM_PROPERTY_*`, their `_FILE` forms and the four `HM_REST_*`), which `--apply-environment` stores
-  in the database before the server starts and which the running server does not read, leave it too when the command
-  is the server itself (`hmailserver` with nothing but `--foreground` and `--config`, the image's own command); any
-  other command keeps them, since one that runs `--apply-environment` - the Compose file's and the Helm chart's shell
-  command lines among them - would otherwise give back every setting they name. `HM_INSTALL_KIND` stays, for the
-  update check. Hardening, not a flaw: a program running as the image's user can read `hMailServer.ini`, which holds
+  now leave the environment, in whichever form they came, before the entrypoint runs any program - the `cat` that
+  reads a `_FILE` among them, which held the password read before it - and stay its own shell variables for the
+  `[Database]` section and `--set-admin-password`'s standard input. The settings' variables (`HM_SETTING_*`,
+  `HM_PROPERTY_*`, their `_FILE` forms and the four `HM_REST_*`), which the entrypoint's own `--apply-environment`
+  still sees and stores in the database before the server starts, and which the running server does not read, leave
+  it too when the command is the server itself (`hmailserver` with nothing but `--foreground` and `--config`, the
+  image's own command); any other command keeps them, since one that runs `--apply-environment` would otherwise give
+  back every setting they name, and the entrypoint cannot read a shell's command line. So the Compose file's and the
+  Helm chart's commands, which are shell command lines (`--apply-new-install-defaults` and then the server), still
+  pass the settings' variables to the server and to what it starts, and a setting that is a secret belongs in a
+  `_FILE` there, as their examples give it. `HM_INSTALL_KIND` stays, for the update check, and any other variable
+  reaches the command as it was. Hardening, not a flaw: a program running as the image's user can read `hMailServer.ini`, which holds
   the database password, all the same. `build/test-docker-entrypoint.sh` holds it, with 6.3.7's entrypoint as its
   negative control (`hmailserver/docs/ContainerImage.md`).
 

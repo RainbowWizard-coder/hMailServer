@@ -110,7 +110,9 @@ set -eu
 INI="${HM_INI:-/etc/hmailserver/hMailServer.ini}"
 
 # VAR_FILE, when set, is where VAR's value is read from; setting both is a
-# mistake, not a precedence question.
+# mistake, not a precedence question. The value goes into the shell variable VAR,
+# not exported (a line break at its end dropped, as a command substitution drops
+# it): the two this reads are the script's alone (below).
 file_env() {
    local var="$1" file_var="${1}_FILE"
    if [ -n "${!file_var:-}" ]; then
@@ -122,7 +124,7 @@ file_env() {
          echo "$file_var names ${!file_var}, which cannot be read" >&2
          exit 66
       fi
-      export "$var"="$(cat "${!file_var}")"
+      printf -v "$var" '%s' "$(cat "${!file_var}")"
    fi
 }
 
@@ -247,9 +249,6 @@ wait_for_database() {
    echo "The database server $host:$port accepts connections (after $((SECONDS - started)) s)"
 }
 
-file_env HM_DB_PASSWORD
-file_env HM_ADMIN_PASSWORD
-
 # The two passwords are this script's alone: the [Database] section below is
 # written from the first and the second goes to --set-admin-password on its
 # standard input, and nothing else here or after reads either from the
@@ -260,10 +259,14 @@ file_env HM_ADMIN_PASSWORD
 # below, the command this script execs - the server, the container's PID 1 - and
 # everything the server starts (7-Zip, the auto-ban hook, event scripts, a virus
 # scanner, the update helper), whose /proc/<pid>/environ any program running as
-# the image's user can read while it runs. So they stay shell variables and leave
-# the environment now, before any program runs, whichever form they came in; a
-# _FILE form names a path and goes too.
-export -n HM_DB_PASSWORD HM_ADMIN_PASSWORD
+# the image's user can read while it runs. So all four names leave the
+# environment here, before the script runs any program - the cat that reads a
+# _FILE among them, which would otherwise hold the other password - and the
+# passwords stay shell variables, file_env putting a _FILE's contents into one
+# without exporting it; a _FILE form names a path, and goes once it is read.
+export -n HM_DB_PASSWORD HM_ADMIN_PASSWORD HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
+file_env HM_DB_PASSWORD
+file_env HM_ADMIN_PASSWORD
 unset -v HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
 
 if [ -n "${HM_DB_TYPE:-}" ]; then
@@ -399,18 +402,28 @@ runs_the_server() {
 # reads those rows. A setting can be a secret - a relay's password, a backup
 # passphrase - so when the command is the server itself they leave its environment
 # too, and with it that of everything the server starts. Any other command keeps
-# them: one that runs
-# --apply-environment - given as the command, or inside a shell's command line, as
-# the Compose file's and the Helm chart's are, which this cannot read - must see
-# every variable, because the verb gives back to the administrator a setting that
-# no variable names any more. Matched as applies_environment matches a name, in
-# capitals, so that no spelling the verb took is left behind.
-if runs_the_server "$@"; then
+# them: one that runs --apply-environment, given as the command or inside a shell's
+# command line, must see every variable, because the verb gives back to the
+# administrator a setting that no variable names any more - and a shell's command
+# line is one this cannot read, so it keeps them whatever it runs. The Compose
+# file's and the Helm chart's commands are shell command lines (they run
+# --apply-new-install-defaults before the server), so there the settings'
+# variables still reach the server and what it starts, and a setting that is a
+# secret belongs in a _FILE. Matched as applies_environment matches a name, in
+# capitals, so that no spelling the verb took is left behind; in a function, so
+# that its loop variable is local and a variable of the same name in the
+# environment reaches the command as it was.
+drop_settings_variables() {
+   local name
    for name in $(compgen -e); do
       case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
          HM_SETTING_*|HM_PROPERTY_*) unset -v "$name" ;;
          HM_REST_PORT|HM_REST_BIND_ADDRESS|HM_REST_CERTIFICATE_FILE|HM_REST_PRIVATE_KEY_FILE) unset -v "$name" ;;
       esac
    done
+}
+
+if runs_the_server "$@"; then
+   drop_settings_variables
 fi
 exec "$@"
