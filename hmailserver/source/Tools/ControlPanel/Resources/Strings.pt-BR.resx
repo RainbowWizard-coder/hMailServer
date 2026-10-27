@@ -1302,8 +1302,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Endereços que fazem login no Control Deck como administrador por meio de SAML (separados por vírgulas)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Endereços; o endereço de loopback é sempre confiável.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Endereços; o endereço de loopback é sempre confiável. Um endereço da lista nunca é recusado por um intervalo de IP neste ouvinte, e as falhas de login dele contam só contra o nome, nunca para um banimento do endereço: liste apenas proxies.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Soma</value>

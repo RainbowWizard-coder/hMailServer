@@ -14,6 +14,8 @@
 #include "SignInStore.h"
 #include "Unicode.h"
 #include "Encoding/Base64.h"
+#include "WebServicesServer.h"
+#include "../Application/IniFileSettings.h"
 #include "../BO/Account.h"
 
 #ifdef _DEBUG
@@ -279,9 +281,18 @@ namespace HM
          String username = Wide(decoded.Mid(0, separator));
          String password = Wide(decoded.Mid(separator + 1));
 
+         // A proxy's address, loopback's above all (a proxy on this machine is
+         // the arrangement README.md describes), answers for every client
+         // behind it, so its failures are counted against the name alone: a
+         // ban written for it would refuse it at every mail listener for
+         // AutoBanMinutes after three wrong passwords from anybody. The same
+         // peers this listener never refuses by a range (IsForwarder).
+         const bool forwarder = WebServicesServer::IsForwarder(request.peer, IniFileSettings::Instance()->GetWebServicesTrustedProxies());
+
          bool viaAppPassword = false;
          String appPasswordName;
-         account = AccountLogon().Logon(request.peer, username, password, disconnect, &viaAppPassword, &appPasswordName);
+         account = AccountLogon().Logon(request.peer, username, password, disconnect, &viaAppPassword, &appPasswordName,
+                                        nullptr, !forwarder);
          if (!account)
          {
             LOG_APPLICATION(String(service) + ": account authentication failed for " + LogSafe(username) + " from " + String(request.peer.ToString()) + ".");

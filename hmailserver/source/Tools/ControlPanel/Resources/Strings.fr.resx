@@ -1302,8 +1302,8 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresses qui se connectent au Control Deck en tant qu'administrateur via SAML (séparées par des virgules)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Des adresses ; l'adresse de bouclage est toujours de confiance.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Des adresses ; l'adresse de bouclage est toujours de confiance. Une adresse de la liste n'est jamais refusée par une plage IP sur cet écouteur, et ses connexions échouées ne comptent que contre le nom, jamais pour un bannissement de son adresse : n'y mettez que des proxys.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Ajoute</value>

@@ -1313,8 +1313,8 @@
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>SAML で Control Deck に管理者としてサインインするアドレス (コンマ区切り)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>アドレスです。ループバック アドレスは常に信頼されます。</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>アドレスです。ループバック アドレスは常に信頼されます。一覧のアドレスはこのリスナーで IP 範囲によって拒否されることがなく、そのサインインの失敗は名前に対してのみ数えられ、そのアドレスの禁止には決して数えられません。プロキシだけを列挙してください。</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>加算</value>

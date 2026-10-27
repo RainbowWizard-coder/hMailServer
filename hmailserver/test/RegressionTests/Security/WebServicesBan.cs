@@ -28,13 +28,17 @@ namespace RegressionTests.Security
    ///    DAV sign-in, for as long as it liked. Now a range that allows none of SMTP,
    ///    POP3 and IMAP refuses the connection, closed before a byte is read; a range
    ///    that allows SMTP alone does not, since this listener serves MTA-STS policies
-   ///    to the world; and loopback and the trusted proxies, whose failures are
-   ///    charged for every client behind them, are never refused by a range.
+   ///    to the world; and loopback and the trusted proxies, which answer for every
+   ///    client behind them, are never refused by a range, and their failed sign-ins
+   ///    are counted against the name alone, never towards a ban of their address.
+   ///    Ranges that cannot be read refuse, and an administrator's range's refusal is
+   ///    said in the application log.
    ///
    ///    The suites connect from loopback, which the rule leaves alone, so these
    ///    tests connect from this machine's own private address that is not loopback
-   ///    (TestSetup.GetLocalIpAddress; a run on a machine without one is ignored
-   ///    there, saying why), to the listener bound to every address: plain HTTP for
+   ///    (TestSetup.GetLocalIpAddress: on a machine without one the Linux suite skips
+   ///    these tests, saying why, and the Windows suite fails them, as it fails every
+   ///    fixture that asks for that address), to the listener bound to every address: plain HTTP for
    ///    the MTA-STS policy and HTTPS, with the suite's example certificate, for
    ///    the DAV sign-in, which is answered over HTTPS only and from an address the
    ///    listener does not take for a proxy. Over COM on Windows and REST on Linux
@@ -173,12 +177,114 @@ namespace RegressionTests.Security
 
       [Test]
       [Description("An administrator's range that allows nothing, not an auto-ban's and not expiring, refuses the " +
-                   "address's next connection.")]
+                   "address's next connection, and the refusal is said in the application log, naming the range, " +
+                   "once for two connections.")]
       public void AnAdministratorsRangeThatAllowsNothingIsRefused()
       {
+         LogHandler.DeleteCurrentDefaultLog();
+
          StandRange(OwnPrefix + "deny everything", _local.ToString(), false, false, false, false);
 
          AssertRefused(_local, "with an administrator's range that allows nothing");
+         AssertRefused(_local, "a second time with an administrator's range that allows nothing");
+
+         var line = "WebServices: The connection from " + _local + " was refused by the IP range \"" + OwnPrefix + "deny everything\"";
+         ClassicAssert.IsTrue(LogHandler.DefaultLogContains(line), "The application log does not say that the administrator's range refused " + _local + ".");
+
+         var log = LogHandler.ReadCurrentDefaultLog();
+         ClassicAssert.AreEqual(1, Occurrences(log, line), "The refusal by the administrator's range was not said exactly once for two connections:\r\n" + log);
+      }
+
+      [Test]
+      [Description("While the IP ranges cannot be read, a new connection from this machine's own address is refused, " +
+                   "over HTTP and over HTTPS, and loopback is still served; once they can be read again the address " +
+                   "is served.")]
+      public void RangesThatCannotBeReadRefuseTheAddressAndServeLoopback()
+      {
+         AssertServed(_local, "before the ranges become unreadable");
+
+         try
+         {
+            // The two statements ReadMatchingIP runs, for an IPv4 and an IPv6 peer.
+            // The injector announces itself (HM6119) for as long as it is set, and
+            // each failed statement is an error record of its own.
+            IniFileSetting.Write("SimulateDatabaseFailureFor", "from hm_securityranges where");
+            Restart();
+
+            AssertRefused(_local, "while the IP ranges cannot be read");
+            ClassicAssert.AreEqual("", DavOverHttps(_local, _account, UserPassword),
+               "A new HTTPS connection from " + _local + " was answered while the IP ranges cannot be read.");
+            AssertServed(IPAddress.Loopback, "from loopback while the IP ranges cannot be read");
+         }
+         finally
+         {
+            IniFileSetting.Write("SimulateDatabaseFailureFor", "");
+            Restart();
+            LogHandler.ClearErrorLogUntilSettled();
+         }
+
+         AssertServed(_local, "once the IP ranges can be read again");
+      }
+
+      [Test]
+      [Description("Three failed CardDAV sign-ins from loopback - a proxy on this machine - write no auto-ban for " +
+                   "127.0.0.1, so SMTP still greets loopback; they are counted against the name, which the per-name " +
+                   "lockout then refuses with the right password.")]
+      public void FailedSignInsFromLoopbackBanNothingAndCountAgainstTheName()
+      {
+         AssertGreeted(IPAddress.Loopback, "before the failed sign-ins");
+
+         try
+         {
+            IniFileSetting.Write("AccountLockoutThreshold", Threshold.ToString());
+            Restart();
+
+            for (var i = 1; i <= Threshold; i++)
+            {
+               var status = StatusOf(DavOverHttps(IPAddress.Loopback, _account, "not-the-password"));
+               ClassicAssert.AreEqual(401, status, "Failed sign-in " + i + " from loopback was not refused with 401.");
+            }
+
+            ClassicAssert.IsNull(RangeHolding(IPAddress.Loopback, AutoBanPrefix),
+               "An auto-ban was written for 127.0.0.1 after " + Threshold + " failed sign-ins from loopback. The ranges: " + RangeNames());
+            AssertGreeted(IPAddress.Loopback, "after the failed sign-ins");
+            AssertServed(IPAddress.Loopback, "after the failed sign-ins");
+
+            ClassicAssert.AreEqual(401, StatusOf(DavOverHttps(IPAddress.Loopback, _account, UserPassword)),
+               "The right password was not refused once " + Threshold + " failures had locked the name.");
+         }
+         finally
+         {
+            IniFileSetting.Delete("AccountLockoutThreshold");
+            Restart();
+         }
+
+         // With the threshold back at its default a successful sign-in erases the
+         // name's entry in the lockout store, which lives as long as the service.
+         ClassicAssert.AreEqual(200, StatusOf(DavOverHttps(IPAddress.Loopback, _account, UserPassword)),
+            "The right password from loopback was not let in once the lockout was off.");
+      }
+
+      [Test]
+      [Description("Three failed sign-ins through a trusted proxy (WebServicesTrustedProxies) write no auto-ban " +
+                   "for its address, so SMTP still greets it.")]
+      public void FailedSignInsThroughATrustedProxyBanNothing()
+      {
+         IniFileSetting.Write("WebServicesTrustedProxies", _local.ToString());
+         Restart();
+
+         AssertGreeted(_local, "before the failed sign-ins through it");
+
+         for (var i = 1; i <= Threshold; i++)
+         {
+            var refusal = Exchange(_local, HttpPort, false,
+               Request("OPTIONS", "/dav/", PolicyHost, Basic(_account, "not-the-password"), "X-Forwarded-Proto: https\r\n", true));
+            ClassicAssert.AreEqual(401, StatusOf(refusal), "Failed sign-in " + i + " through the trusted proxy was not answered 401: " + refusal);
+         }
+
+         ClassicAssert.IsNull(RangeHolding(_local, AutoBanPrefix),
+            "An auto-ban was written for the trusted proxy " + _local + " after " + Threshold + " failed sign-ins through it. The ranges: " + RangeNames());
+         AssertGreeted(_local, "after the failed sign-ins through it");
       }
 
       [Test]
@@ -234,7 +340,7 @@ namespace RegressionTests.Security
 
             var second = connection.Send(Request("OPTIONS", "/dav/", PolicyHost, Basic(_account, "not-the-password"), "", false));
             ClassicAssert.AreEqual(401, StatusOf(second), "The failed sign-in on the kept connection was not answered 401: " + second);
-            ClassicAssert.IsFalse(connection.IsOpen(), "The connection opened before the ban was not closed at its failed sign-in.");
+            ClassicAssert.IsTrue(connection.IsClosedWithin(10000), "The connection opened before the ban was not closed at its failed sign-in.");
          }
 
          AssertRefused(_local, "after the failed sign-in");
@@ -293,6 +399,53 @@ namespace RegressionTests.Security
       private void AssertRefused(IPAddress from, string when)
       {
          ClassicAssert.AreEqual("", Policy(from), "A new HTTP connection from " + from + " " + when + " was answered.");
+      }
+
+      private static void AssertGreeted(IPAddress from, string when)
+      {
+         var greeting = Greeting(from, TestPorts.Smtp);
+         ClassicAssert.IsTrue(greeting.StartsWith("220"), "SMTP did not greet " + from + " " + when + ": '" + greeting + "'");
+      }
+
+      private static int Occurrences(string text, string what)
+      {
+         var count = 0;
+         for (var at = text.IndexOf(what, StringComparison.Ordinal); at >= 0; at = text.IndexOf(what, at + what.Length, StringComparison.Ordinal))
+            count++;
+         return count;
+      }
+
+      /// <summary>
+      ///    The first line a listener sends to a new connection from the address
+      ///    given to the same address; "" when it closes or resets without one.
+      /// </summary>
+      private static string Greeting(IPAddress from, int port)
+      {
+         var client = new TcpClient(new IPEndPoint(from, 0));
+         try
+         {
+            client.ReceiveTimeout = 15000;
+            client.Connect(from, port);
+
+            var stream = client.GetStream();
+            var line = new StringBuilder();
+            var one = new byte[1];
+            while (!line.ToString().EndsWith("\r\n") && stream.Read(one, 0, 1) > 0)
+               line.Append((char) one[0]);
+            return line.ToString().TrimEnd('\r', '\n');
+         }
+         catch (IOException)
+         {
+            return "";
+         }
+         catch (SocketException)
+         {
+            return "";
+         }
+         finally
+         {
+            client.Close();
+         }
       }
 
       private string Policy(IPAddress from)
@@ -461,6 +614,34 @@ namespace RegressionTests.Security
             catch (IOException)
             {
                return false;
+            }
+         }
+
+         /// <summary>
+         ///    Whether the server closes the connection within the time given: a
+         ///    read of the TLS stream that ends (the server's close-notify) or is
+         ///    reset. Not the socket's wait IsOpen uses: the close-notify can come
+         ///    in the same segment as the answer before it, and the TLS stream has
+         ///    then already taken it off the socket, which stays silent while the
+         ///    server waits for the client's close-notify. The stream is not used
+         ///    again after this.
+         /// </summary>
+         public bool IsClosedWithin(int milliseconds)
+         {
+            _stream.ReadTimeout = milliseconds;
+            try
+            {
+               var one = new byte[1];
+               return _stream.Read(one, 0, 1) <= 0;
+            }
+            catch (IOException e)
+            {
+               var socket = e.InnerException as SocketException;
+               return socket == null || socket.SocketErrorCode != SocketError.TimedOut;
+            }
+            catch (ObjectDisposedException)
+            {
+               return true;
             }
          }
 

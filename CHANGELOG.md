@@ -179,8 +179,8 @@ with `--check`).
   hMailServer project (Progressive Robot Ltd).
 - **Fixed: an address an auto-ban or an administrator's IP range banned was not refused by the web services
   listener, so it could go on guessing passwords at the CardDAV, CalDAV and Autodiscover sign-in.** The listener,
-  off by default (`WebServicesHttpPort` and `WebServicesHttpsPort` 0), asked the country policy alone when it
-  accepted a connection. A failed sign-in there counted towards the auto-ban as on every other protocol, and the
+  off by default (`WebServicesHttpPort` and `WebServicesHttpsPort` 0), asked the country policy at most when it
+  accepted a connection (6.3.3 nothing at all). A failed sign-in there counted towards the auto-ban as on every other protocol, and the
   ban it wrote refused the address at the SMTP, POP3, IMAP and ManageSieve listeners, but not at this one.
   Now the listener asks, once a connection and before the TLS handshake, for the IP range that decides for the
   address, and closes the connection with no answer when that range allows none of SMTP, POP3 and IMAP - an
@@ -188,12 +188,32 @@ with `--check`).
   address in. A range that allows any of the three does not refuse, since the listener also serves MTA-STS
   policies, ACME challenges, the Web Key Directory and autoconfiguration to the world, and a server that lets the
   Internet in for SMTP alone must still serve them. Loopback and the addresses in `WebServicesTrustedProxies` are
-  never refused by a range: behind such a proxy every failure is charged to the proxy's address, and a ban it earned
-  would refuse every client behind it; through a proxy the per-name lockout is what limits the guesses. Every failed
-  sign-in on the listener still closes its connection, so one opened before the ban has one guess at most after
-  it. `WebServicesRangeTester` holds the rule (inside the server on Windows, and in `autoban-widen-tests` on Linux),
-  and the regression fixture `Security.WebServicesBan` the listener, from the machine's own address that is not
-  loopback ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
+  never refused by a range: behind such a proxy the listener sees the proxy's address for every client, and a ban
+  that held it would refuse every client behind it; through a proxy the per-name lockout is what limits the guesses.
+  Every failed sign-in on the listener still closes its connection, so one opened before the ban has one guess at
+  most after it. An administrator's range that allows none of the three now closes this listener to the addresses it
+  holds as well - the ACME http-01 validation when this listener answers it, MTA-STS, CalDAV, CardDAV, Autodiscover,
+  autoconfiguration and the Web Key Directory - so before upgrading a server whose own ranges allow some addresses
+  nothing (an Internet range that allows nothing because mail comes through a relay or a VPN, say), check that the
+  certificate authority, the sending MTAs and the clients of these services do not come from one; each such refusal
+  is said in the application log, naming the range, once an hour for each address. `WebServicesRangeTester` holds
+  the rule (inside the server on Windows, and in `autoban-widen-tests` on Linux), and the regression fixture
+  `Security.WebServicesBan` the listener, from the machine's own address that is not loopback, with the ranges
+  unreadable among its cases ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project
+  (Progressive Robot Ltd).
+- **Fixed: a failed CardDAV, CalDAV or Autodiscover sign-in through a proxy in front of the web services listener
+  counted towards an auto-ban of the proxy's own address.** The listener sees a TLS-terminating proxy's
+  address for every client behind it (`X-Forwarded-For` is not believed), and a failed sign-in through it was
+  counted towards the auto-ban against that address, so a ban written for that address could shut the proxy, and
+  every client behind it, out of the SMTP, POP3, IMAP and ManageSieve listeners. Since
+  6.3.3 for CardDAV and 6.3.4 for CalDAV and Autodiscover. A failed sign-in from loopback or a
+  `WebServicesTrustedProxies` entry - the peers this listener takes `X-Forwarded-Proto` from and never refuses by a
+  range - is now counted against the name alone (`AccountLockoutThreshold`, off by default, which is then the limit
+  on the guesses through a proxy), never towards a ban of the address; a failure from any other address counts as
+  before. The Control Panel's note under the trusted proxies says what a listed address is spared, and that only
+  proxies belong there, in English and in the 17 languages. `Security.WebServicesBan` holds it: three failed sign-ins
+  from loopback and through a trusted proxy write no ban and SMTP still greets each, and from loopback they lock the
+  name ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 

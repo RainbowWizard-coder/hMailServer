@@ -162,6 +162,10 @@ namespace HM
       // The accept filter: the country policy, then the IP ranges (JudgeByRanges).
       static bool IsConnectionAllowed_(const IPAddress &peer);
 
+      // Whether a refusal of peer by an administrator's range is to be said in
+      // the application log now: once an hour for each address, since Start().
+      static bool RangeRefusalToSay_(const IPAddress &peer);
+
       struct ProtocolEndpoint
       {
          int port = 0;

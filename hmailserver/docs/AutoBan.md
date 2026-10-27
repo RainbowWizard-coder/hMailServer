@@ -11,8 +11,9 @@ server, on the TCP/IP ports of the mail listeners (`Common/Util/AutoBanFirewall.
 
 ## Which listeners refuse a banned address
 
-Each asks, when a connection is accepted, for the IP range that decides for the
-address - the one of highest priority that holds it:
+Each listener but the REST API asks, when a connection is accepted, for the IP
+range that decides for the address - the one of highest priority that holds it;
+the REST API keeps a refusal of its own:
 
 | Listener | Refuses | Ranges that cannot be read |
 |---|---|---|
@@ -22,40 +23,74 @@ address - the one of highest priority that holds it:
 | The REST API | Asks no range: it keeps its own refusal, for five minutes, of an address whose failures there crossed `MaxInvalidLogonAttempts` (`RestApiServer.cpp`) | - |
 
 A refused connection is closed with nothing said, before the TLS handshake; the
-web services listener says why in the debug log.
+web services listener says why in the debug log, and a refusal by an
+administrator's range - one that does not expire, which no auto-ban is - in the
+application log as well, naming the range, once an hour for each address
+(`WebServices: The connection from ... was refused by the IP range "..."`).
 
 The web services listener's rule is not ManageSieve's because what it serves
 without a sign-in is for the world: MTA-STS policies for the sending MTAs, ACME
 http-01 challenges for the certificate authority, autoconfiguration, the Web
 Key Directory. A server that lets the Internet in for SMTP alone, keeping IMAP
 and POP3 to its own network, is a common one, and its Internet range must not
-refuse them. Up to 6.3.7 this listener asked the country policy alone, so an
-address an auto-ban held - for its failed CardDAV, CalDAV or Autodiscover sign-ins
+refuse them. Up to 6.3.7 this listener asked the country policy at most (6.3.3
+nothing at all), so an address an auto-ban held - for its failed CardDAV, CalDAV or Autodiscover sign-ins
 there or for failures on any other protocol - was not refused here, and could go
 on trying passwords at its HTTP Basic sign-in. Every failed
 sign-in there still closes its connection, so a connection opened before the ban
-- kept alive, or one of a parallel burst - has one guess at most after it.
+- kept alive, or one of a parallel burst (up to the listener's 128 connections) -
+has one guess at most after it.
 
-Loopback and `WebServicesTrustedProxies` are never refused by a range there.
-Behind a TLS-terminating proxy the listener sees the proxy's address and not the
-client's (`X-Forwarded-For` is not believed), so a ban that held the proxy's
-address would refuse every client behind it. Through a proxy the per-name lockout
-(`AccountLockoutThreshold`) is what limits the guesses at one account.
+**What this changes on an upgrade.** An administrator's range that allows none
+of SMTP, POP3 and IMAP now closes this listener too, to every address it holds:
+the ACME http-01 validation when this listener answers it (it holds
+`AcmeHttpPort`), MTA-STS policies, CalDAV, CardDAV, Autodiscover,
+autoconfiguration and the Web Key Directory. Before upgrading a server whose own
+ranges allow some addresses nothing - one whose Internet range allows nothing
+because its mail comes through a relay or a VPN, above all - check that the
+certificate authority's validation, the sending MTAs and the clients that use
+these services do not come from such a range. There is no range that lets an
+address in here and keeps it off all three mail protocols: let such a range
+allow one of them, or serve the listener through a proxy on this machine (loopback
+is never refused). The application log names the range at each such refusal, as
+above.
+
+Loopback and `WebServicesTrustedProxies` are never refused by a range there, and
+from the release after 6.3.7 a failed CardDAV, CalDAV or Autodiscover sign-in
+from one of them is counted against the name alone, never towards a ban of its
+address (`Dav::Authenticate`, `AccountLogon::RegisterFailedLogin`). Behind a
+TLS-terminating proxy the listener sees the proxy's address and not the client's
+(`X-Forwarded-For` is not believed), so every failure of every client behind it
+would be charged to the proxy: up to 6.3.7 it was, and a ban written for the
+proxy's address shut every client behind the proxy out of the SMTP, POP3, IMAP and
+ManageSieve listeners.
+Through a proxy the per-name lockout (`AccountLockoutThreshold`, off by default) is
+what limits the guesses at one account, so turn it on where the listener is behind
+one. A ban of the proxy's address written for failures on another protocol - a
+webmail on this machine signing in over IMAP from 127.0.0.1 - is not this
+listener's to prevent: an address that answers for many belongs in
+`AutoBanNeverBan` (below).
 
 `AutoBanFirewall` and `AutoBanCommand` are told the ports of the TCP/IP ports
-list (`AutoBanFirewall::ListeningPorts`) - the mail listeners' - and not the web
-services or REST API ports, which a ban below the server therefore leaves open;
-the server's own refusal above is what holds there.
+list (`AutoBanFirewall::ListeningPorts`) - the SMTP, POP3 and IMAP listeners' -
+and not the ManageSieve, web services or REST API ports, which a ban below the
+server therefore leaves open; the server's own refusal above is what holds there.
+Adding them is a question of its own.
 
 The rule is `WebServicesServer::JudgeByRanges` and `IsForwarder`, held by
 `WebServicesRangeTester` (ClassTester on Windows, `autoban-widen-tests` on
 Linux), and the listener by the regression fixture `Security/WebServicesBan`
 (both suites), from this machine's own address that is not loopback: an auto-ban
 written by three failed CardDAV sign-ins and one written over the API, and an
-administrator's range that allows nothing, each refuse the next connection; a
-range that allows SMTP alone does not; loopback and a trusted proxy a ban holds
-are served; and a connection kept alive from before the ban is closed at its
-next failed sign-in.
+administrator's range that allows nothing, each refuse the next connection, the
+administrator's refusal said once in the application log for two connections;
+ranges that cannot be read refuse the address and serve loopback; a range that
+allows SMTP alone does not refuse; loopback and a trusted proxy a ban holds are
+served; three failed sign-ins from loopback and through a trusted proxy write no
+ban, SMTP still greeting each, and from loopback lock the name; and a connection
+kept alive from before the ban is closed at its next failed sign-in. On a machine
+with no such address the Linux suite skips the fixture, saying why, and the
+Windows suite fails it, as it fails every fixture that asks for that address.
 
 Behind a load balancer every connection comes from the balancer, and without
 more one client's failed logons ban every client behind it. A listener that

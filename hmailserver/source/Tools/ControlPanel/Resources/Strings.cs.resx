@@ -1314,8 +1314,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresy, které se přihlašují do Control Deck jako správce přes SAML (oddělené čárkami)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Adresy; adresa loopback je důvěryhodná vždy.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Adresy; adresa loopback je důvěryhodná vždy. Uvedenou adresu tento listener nikdy neodmítne kvůli rozsahu IP a její neúspěšná přihlášení se počítají jen proti jménu, nikdy k zákazu její adresy: uvádějte jen proxy.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Přidává</value>

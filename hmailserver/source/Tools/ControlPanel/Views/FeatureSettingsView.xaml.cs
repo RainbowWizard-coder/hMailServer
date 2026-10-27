@@ -2791,7 +2791,7 @@ namespace hMailServer.ControlPanel.Views
                      new NumberSetting { Key = "WebServicesHttpPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTP port (0 = off)"), Blurb = L("80 is the port clients expect.") },
                      new NumberSetting { Key = "WebServicesHttpsPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTPS port (0 = off)"), Blurb = L("443 is the port clients expect.") },
                      new TextSetting { Key = "WebServicesBindAddress", Address = true, Default = "0.0.0.0", Label = L("Bind address") },
-                     new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)"), Blurb = L("Addresses; the loopback address is always trusted.") },
+                     new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (comma separated)"), Blurb = L("Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies.") },
                      new PathSetting { Key = "WebServicesCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Blurb = L("Left empty, the ACME certificate is used.") },
                      new PathSetting { Key = "WebServicesPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
                   }

@@ -1302,8 +1302,8 @@
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>通过 SAML 以管理员身份登录 Control Deck 的地址（逗号分隔）</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>地址；环回地址始终受信任。</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>地址；环回地址始终受信任。列出的地址在此监听器上从不因 IP 范围被拒绝，其登录失败只计入该名称，从不计入对其地址的封禁：只列出代理。</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>增加</value>

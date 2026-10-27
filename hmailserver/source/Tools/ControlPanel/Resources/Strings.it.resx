@@ -1302,8 +1302,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Indirizzi che accedono al Control Deck come amministratore tramite SAML (separati da virgole)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Indirizzi; l'indirizzo di loopback è sempre attendibile.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Indirizzi; l'indirizzo di loopback è sempre attendibile. Un indirizzo elencato non viene mai rifiutato da un intervallo IP su questo listener, e i suoi accessi falliti contano solo contro il nome, mai per un blocco del suo indirizzo: elencare solo proxy.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Aggiunge</value>

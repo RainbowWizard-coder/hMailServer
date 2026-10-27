@@ -1314,8 +1314,8 @@ Control Panel может читать файлы сообщений только
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Адреса, входящие в Control Deck как администратор через SAML (через запятую)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Адреса; адрес loopback считается доверенным всегда.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Адреса; адрес loopback считается доверенным всегда. Этот прослушиватель никогда не отклоняет указанный адрес из-за диапазона IP, а его неудачные входы засчитываются только имени, но никогда не ведут к блокировке его адреса: указывайте только прокси.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Добавляет</value>

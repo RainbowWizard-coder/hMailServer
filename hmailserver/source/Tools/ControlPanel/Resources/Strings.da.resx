@@ -1302,8 +1302,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresser, der logger på Control Deck som administrator via SAML (kommasepareret)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Adresser; loopback-adressen er altid betroet.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Adresser; loopback-adressen er altid betroet. En anført adresse afvises aldrig af et IP-område på denne lytter, og dens mislykkede logons tælles kun mod navnet, aldrig mod en udelukkelse af adressen: anfør kun proxyer.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Lægger til</value>

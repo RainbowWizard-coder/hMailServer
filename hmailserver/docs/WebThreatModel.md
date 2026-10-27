@@ -24,7 +24,7 @@ Four listeners speak HTTP:
 | Listener | Code | Off by default? | What it serves |
 |---|---|---|---|
 | **The REST listener** | `RestApiServer` on `HttpServer` (RestApiServer.cpp:1241 `Start`, :1343) | Yes: `RestApiPort=0`; bound to `127.0.0.1` unless configured; refuses to start without TLS anywhere but loopback (RestApiServer.cpp:1265) | The Control Deck, the webmail and portal, the REST API, SCIM, and the public pages a link in a mail opens |
-| **The web services listener** | `WebServicesServer` on `HttpServer` (WebServicesServer.cpp:575, :769; the accept's refusals :651) | Yes: `WebServicesPort` and `WebServicesHttpsPort` both 0 | MTA-STS, autoconfiguration, autodiscover, the Web Key Directory, the S/MIME authority's root and CRL, ACME challenges, security.txt, CalDAV and CardDAV |
+| **The web services listener** | `WebServicesServer` on `HttpServer` (WebServicesServer.cpp:596, :828; the accept's refusals :672) | Yes: `WebServicesPort` and `WebServicesHttpsPort` both 0 | MTA-STS, autoconfiguration, autodiscover, the Web Key Directory, the S/MIME authority's root and CRL, ACME challenges, security.txt, CalDAV and CardDAV |
 | **The ACME responder** | `AcmeChallengeServer`, its own accept loop (AcmeClient.cpp:1669-1862) | Runs only while a certificate is being validated, and only when the web services listener does not hold `AcmeHttpPort` (AcmeClient.cpp:1032-1036) | The HTTP-01 challenge answer: it binds the wildcard address of `AcmeHttpPort` (:1686-1716) and answers the one token, 404 otherwise. Each connection is served on a thread of its own, held to 5 seconds, and the accept loop never waits on one; past 64 at once a connection is closed unanswered (:1763, :1767-1810, :1813-1862; W-11) |
 | **The metrics listener** | `MetricsServer`, its own loop (MetricsServer.cpp) | Yes | Prometheus metrics; not a page, not a browser's. Its own bearer token or Basic credential, and 503 to anyone off loopback when neither is set (MetricsServer.cpp:375-449). Outside this model beyond this row |
 
@@ -95,7 +95,7 @@ Every route the two web listeners answer is in
   `IsLargeRequest_` names (RestApiServer.cpp:218-219, :20853-20917: sending, drafts,
   file and protected-message content, settings, directory entries, OpenPGP
   rings) and 256 KB for the SAML ACS (:226). The web services listener takes
-  64 KB, and about 1 MB for CardDAV (WebServicesServer.cpp:72, :83).
+  64 KB, and about 1 MB for CardDAV (WebServicesServer.cpp:75, :86).
 - **The browser side**: the Deck's and the webmail's scripts, the service worker
   (`/portal-sw.js`, scope `/`), the share target (`POST /portal/share`, answered
   by the worker), the message-HTML frame, the PDF preview frame, IndexedDB and
@@ -139,7 +139,7 @@ Controls in place today
 | The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at :2493 |
 | Chunked bodies refused (411); a NUL in a text body refused (400) | HttpServer.cpp:776-791 |
 | Absolute time limits per request and per connection, 64 connections | RestApiServer.cpp:227-229 |
-| Apple profiles (which carry a password) only over HTTPS | WebServicesServer.cpp:885-897 |
+| Apple profiles (which carry a password) only over HTTPS | WebServicesServer.cpp:944-956 |
 
 ### Authentication
 
@@ -153,7 +153,7 @@ Controls in place today
 | Passkeys, OIDC and SAML: sealed cookies bind each flow to the browser that started it; a one-use ticket and an `hmsso` cookie for the exchange; `X-Requested-With` on the exchange, so a cross-site form cannot plant an attacker's session (login CSRF) | RestApiPasskeys.cpp:518; RestApiOidcSignIn.cpp:93; RestApiSamlSignIn.cpp:119; RestApiServer.cpp:1664-1684 |
 | A request budget per credential: 200 in 10 seconds | :316-317, :2861 |
 | The auto-ban on repeated failures | `RegisterAuthenticationFailure_` :2383 |
-| The web services listener: an address an IP range that allows none of SMTP, POP3 and IMAP holds (an auto-ban, or an administrator's range) refused at the accept, never loopback or a `WebServicesTrustedProxies` entry; every failed CalDAV, CardDAV or Autodiscover sign-in closes its connection | `IsConnectionAllowed_`, `JudgeByRanges`, WebServicesServer.cpp:651-766; docs/AutoBan.md |
+| The web services listener: an address an IP range that allows none of SMTP, POP3 and IMAP holds (an auto-ban, or an administrator's range) refused at the accept, never loopback or a `WebServicesTrustedProxies` entry, whose failed sign-ins count against the name alone and never towards a ban of the address; every failed CalDAV, CardDAV or Autodiscover sign-in closes its connection | `IsConnectionAllowed_`, `JudgeByRanges`, `IsForwarder`, WebServicesServer.cpp:672-825; `Dav::Authenticate`, DavSupport.cpp:294; docs/AutoBan.md |
 
 ### Authorisation
 

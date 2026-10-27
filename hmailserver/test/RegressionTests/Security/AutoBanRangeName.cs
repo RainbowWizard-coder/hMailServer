@@ -5,12 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
+using RegressionTests.SSL;
 
 namespace RegressionTests.Security
 {
@@ -42,7 +46,11 @@ namespace RegressionTests.Security
    ///
    ///    The logons are POP3's AUTH PLAIN, which carries the user name in UTF-8 as
    ///    written (RFC 4616), and for the user name holding U+0000 - which no mail
-   ///    listener passes on - CardDAV's HTTP Basic; no account has these names. Over COM on Windows and
+   ///    listener passes on - CardDAV's HTTP Basic over HTTPS from this machine's own
+   ///    address that is not loopback, since a failed sign-in there from loopback is
+   ///    counted against the name alone and bans nothing (on a machine without such an
+   ///    address the Linux suite skips that test and the Windows suite fails it); no
+   ///    account has these names. Over COM on Windows and
    ///    REST on Linux alike: the Linux suite links this fixture. A build that cannot
    ///    prepare a user name outside ASCII for SASL (the Linux build: HM6450) never
    ///    lets such a name reach the auto-ban, and the second test says so and is
@@ -118,11 +126,18 @@ namespace RegressionTests.Security
       [Test]
       [Description("A user name holding U+0000, over the web services listener's HTTP Basic sign-in, which " +
                    "keeps it: a range stands under the name a ban for the part before the U+0000 takes, and " +
-                   "the threshold's failed sign-ins ban this machine under that name and \" (1)\", with no " +
-                   "error reported.")]
+                   "the threshold's failed sign-ins from this machine's own address ban it under that name " +
+                   "and \" (1)\", with no error reported.")]
       public void AUserNameHoldingANulIsBannedWhileARangeStandsUnderItsName()
       {
          const string before = "nulname@example.test";
+
+         // From this machine's own address that is not loopback, over HTTPS: a
+         // failed sign-in from loopback, a proxy's address, is counted against the
+         // name alone and bans nothing (Dav::Authenticate).
+         var local = TestSetup.GetLocalIpAddress();
+         if (local == null || IPAddress.IsLoopback(local))
+            Assert.Ignore("This machine has no address other than loopback that the server answers on, and a failed sign-in from loopback bans nothing.");
 
          StandRange(Prefix + before, Prefix + before);
 
@@ -131,7 +146,7 @@ namespace RegressionTests.Security
          {
             for (var i = 1; i <= Threshold; i++)
             {
-               var status = DavOptions(before + "\0junk" + i, "not-the-password");
+               var status = DavOptions(local, before + "\0junk" + i, "not-the-password");
                ClassicAssert.AreEqual(401, status, "Failed sign-in " + i + " was not refused.");
             }
 
@@ -139,8 +154,8 @@ namespace RegressionTests.Security
             ClassicAssert.Contains(Prefix + before + " (1)", names,
                "No range was written under the next name. The ranges: " + string.Join(" | ", names));
 
-            ClassicAssert.AreEqual("", new Pop3ClientSimulator().GetWelcomeMessage(),
-               "This machine was given a greeting: it is not banned.");
+            ClassicAssert.AreEqual("", Greeting(local, TestPorts.Pop3),
+               "This machine's address " + local + " was given a greeting: it is not banned.");
 
             // The ban's own statements report nothing. On MySQL and PostgreSQL the
             // sign-in's look-ups of the account and its domain are given the name in
@@ -221,56 +236,123 @@ namespace RegressionTests.Security
          }
       }
 
+      /// <summary>
+      ///    The web services listener on every address over HTTPS alone, with the
+      ///    suite's example certificate, and back once it answers a TLS handshake
+      ///    over loopback.
+      /// </summary>
       private void StartWebServices()
       {
-         IniFileSetting.Write("WebServicesBindAddress", "127.0.0.1");
-         IniFileSetting.Write("WebServicesHttpPort", WebServicesPort.ToString());
-         IniFileSetting.Write("WebServicesHttpsPort", "0");
+         IniFileSetting.Write("WebServicesBindAddress", "0.0.0.0");
+         IniFileSetting.Write("WebServicesHttpPort", "0");
+         IniFileSetting.Write("WebServicesHttpsPort", WebServicesPort.ToString());
+         IniFileSetting.Write("WebServicesCertificateFile", Paths.Combine(SslSetup.GetSslCertPath(), "example.crt"));
+         IniFileSetting.Write("WebServicesPrivateKeyFile", Paths.Combine(SslSetup.GetSslCertPath(), "example.key"));
+         IniFileSetting.Write("WebServicesTrustedProxies", "");
          _application.Reinitialize();
+
+         // An empty credential, which is refused before any logon is asked.
+         var deadline = DateTime.UtcNow.AddSeconds(20);
+         while (DavOptions(IPAddress.Loopback, "", "") == -1 && DateTime.UtcNow < deadline)
+            System.Threading.Thread.Sleep(200);
       }
 
       private void StopWebServices()
       {
-         IniFileSetting.Write("WebServicesHttpPort", "0");
+         IniFileSetting.Write("WebServicesHttpsPort", "0");
+         IniFileSetting.Write("WebServicesCertificateFile", "");
+         IniFileSetting.Write("WebServicesPrivateKeyFile", "");
+         IniFileSetting.Write("WebServicesBindAddress", "127.0.0.1");
          _application.Reinitialize();
       }
 
       private const int WebServicesPort = 9177;
 
       /// <summary>
-      ///    OPTIONS /dav/ with HTTP Basic, the user name and password in UTF-8 as
-      ///    given; the status the listener answers.
+      ///    OPTIONS /dav/ with HTTP Basic over TLS, from the address given to the same
+      ///    address, the user name and password in UTF-8 as given; the status the
+      ///    listener answers, -1 when it answers none.
       /// </summary>
-      private static int DavOptions(string user, string password)
+      private static int DavOptions(IPAddress from, string user, string password)
       {
          var authorization = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
-         using (var client = new TcpClient())
+         using (var client = new TcpClient(new IPEndPoint(from, 0)))
          {
-            client.Connect("127.0.0.1", WebServicesPort);
-            using (NetworkStream stream = client.GetStream())
-            using (var memory = new MemoryStream())
+            try
             {
-               var head = "OPTIONS /dav/ HTTP/1.0\r\nHost: 127.0.0.1:" + WebServicesPort + "\r\nAuthorization: " + authorization +
-                          "\r\nX-Forwarded-Proto: https\r\nConnection: close\r\n\r\n";
-               var bytes = Encoding.ASCII.GetBytes(head);
-               stream.Write(bytes, 0, bytes.Length);
-               var buffer = new byte[8192];
-               int read;
-               try
+               client.ReceiveTimeout = 15000;
+               client.SendTimeout = 15000;
+               client.Connect(from, WebServicesPort);
+               using (var stream = new SslStream(client.GetStream(), false, (sender, certificate, chain, errors) => true))
+               using (var memory = new MemoryStream())
                {
-                  while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
-                     memory.Write(buffer, 0, read);
-               }
-               catch (IOException)
-               {
-               }
+                  stream.AuthenticateAsClient("mail.example.test", null, SslProtocols.Tls12 | SslProtocols.Tls13, false);
 
-               var raw = Encoding.UTF8.GetString(memory.ToArray());
-               int status;
-               if (!raw.StartsWith("HTTP/") || raw.IndexOf(' ') < 0 || raw.Length < raw.IndexOf(' ') + 4 ||
-                   !int.TryParse(raw.Substring(raw.IndexOf(' ') + 1, 3), out status))
-                  return -1;
-               return status;
+                  var head = "OPTIONS /dav/ HTTP/1.0\r\nHost: mail.example.test\r\nAuthorization: " + authorization +
+                             "\r\nConnection: close\r\n\r\n";
+                  var bytes = Encoding.ASCII.GetBytes(head);
+                  stream.Write(bytes, 0, bytes.Length);
+                  var buffer = new byte[8192];
+                  int read;
+                  try
+                  {
+                     while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        memory.Write(buffer, 0, read);
+                  }
+                  catch (IOException)
+                  {
+                  }
+
+                  var raw = Encoding.UTF8.GetString(memory.ToArray());
+                  int status;
+                  if (!raw.StartsWith("HTTP/") || raw.IndexOf(' ') < 0 || raw.Length < raw.IndexOf(' ') + 4 ||
+                      !int.TryParse(raw.Substring(raw.IndexOf(' ') + 1, 3), out status))
+                     return -1;
+                  return status;
+               }
+            }
+            catch (IOException)
+            {
+               return -1;
+            }
+            catch (SocketException)
+            {
+               return -1;
+            }
+            catch (AuthenticationException)
+            {
+               return -1;
+            }
+         }
+      }
+
+      /// <summary>
+      ///    The first line a listener sends to a new connection from the address
+      ///    given to the same address; "" when it closes or resets without one.
+      /// </summary>
+      private static string Greeting(IPAddress from, int port)
+      {
+         using (var client = new TcpClient(new IPEndPoint(from, 0)))
+         {
+            try
+            {
+               client.ReceiveTimeout = 15000;
+               client.Connect(from, port);
+
+               var stream = client.GetStream();
+               var line = new StringBuilder();
+               var one = new byte[1];
+               while (!line.ToString().EndsWith("\r\n") && stream.Read(one, 0, 1) > 0)
+                  line.Append((char) one[0]);
+               return line.ToString().TrimEnd('\r', '\n');
+            }
+            catch (IOException)
+            {
+               return "";
+            }
+            catch (SocketException)
+            {
+               return "";
             }
          }
       }

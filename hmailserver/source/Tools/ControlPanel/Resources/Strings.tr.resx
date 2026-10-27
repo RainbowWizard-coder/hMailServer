@@ -1302,8 +1302,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>SAML ile Control Deck'te yönetici olarak oturum açan adresler (virgülle ayrılmış)</value>
   </data>
-  <data name="Addresses; the loopback address is always trusted." xml:space="preserve">
-    <value>Adresler; geri döngü adresine her zaman güvenilir.</value>
+  <data name="Addresses; the loopback address is always trusted. A listed address is never refused by an IP range at this listener, and its failed sign-ins count against the name alone, never towards a ban of its address: list only proxies." xml:space="preserve">
+    <value>Adresler; geri döngü adresine her zaman güvenilir. Listelenen bir adres bu dinleyicide bir IP aralığı tarafından asla reddedilmez ve başarısız oturum açmaları yalnızca ada karşı sayılır, adresinin yasaklanmasına asla sayılmaz: yalnızca proxy sunucularını listeleyin.</value>
   </data>
   <data name="Adds" xml:space="preserve">
     <value>Ekler</value>

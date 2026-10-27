@@ -31,9 +31,14 @@ namespace HM
       // is carried THROUGH this function rather than decided in front of it, so
       // that the per-name lockout and the country policy below run first; see
       // PasswordValidator::ValidatePassword, which is where it decides anything.
+      //
+      // chargeAddress false: a failure is counted against the name alone (the
+      // per-name lockout), never against ipaddress for the per-IP auto-ban; see
+      // RegisterFailedLogin. Only the web services listener passes it, for a
+      // peer whose failures are its clients' (Dav::Authenticate).
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
-                                           SecondFactorOffer *secondFactor = nullptr);
+                                           SecondFactorOffer *secondFactor = nullptr, bool chargeAddress = true);
 
       // sMasqname, when it names another account than sUsername (the IMAP
       // master user's authzid, RFC 4616), is the account the session will be:
@@ -42,7 +47,7 @@ namespace HM
       // policy - for the account signed into after it, charged to nothing.
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sMasqname, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
-                                           SecondFactorOffer *secondFactor = nullptr);
+                                           SecondFactorOffer *secondFactor = nullptr, bool chargeAddress = true);
 
       // Record a failed authentication attempt for auto-ban accounting. Sets
       // 'disconnect' to true when the connection should be dropped (and possibly the
@@ -58,8 +63,20 @@ namespace HM
       // password from the ini, not a mailbox name, so a per-name lock could only
       // ever lock a string nobody authenticates as. Such failures still feed the
       // per-IP auto-ban, which is the control that fits them.
+      //
+      // chargeAddress: pass false when ipaddress is not the client's own but a
+      // proxy's that answers for many - a TLS-terminating proxy in front of the
+      // web services listener, on this machine (loopback) or named in
+      // WebServicesTrustedProxies, whose X-Forwarded-For is not believed. The
+      // failure is then counted against the name alone: the per-IP half is
+      // skipped as for an address on AutoBanNeverBan, since a ban written for
+      // the proxy's address would refuse it at every mail listener and shut out
+      // every client behind it - with loopback, the server's own local clients -
+      // for AutoBanMinutes, after three wrong passwords from anybody. disconnect
+      // is then never set; the web services listener closes the connection of
+      // every failed sign-in itself.
       void RegisterFailedLogin(const IPAddress &ipaddress, const String &username, bool &disconnect,
-                               bool countTowardsAccountLockout = true);
+                               bool countTowardsAccountLockout = true, bool chargeAddress = true);
 
       // The compromised-account detection's hold (CompromiseDetector.h) for
       // the logons that prove identity without a password - a bearer token, a

@@ -59,14 +59,17 @@ namespace HM
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
+                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor,
+                       bool chargeAddress)
    {
-      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword, matchedAppPasswordName, secondFactor);
+      return Logon(ipaddress, _T(""), username, password, disconnect, matchedAppPassword, matchedAppPasswordName, secondFactor,
+                   chargeAddress);
    }
 
    std::shared_ptr<const Account>
    AccountLogon::Logon(const IPAddress &ipaddress, const String &masqname, const String &username, const String &password, bool &disconnect,
-                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
+                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor,
+                       bool chargeAddress)
    {
       disconnect = false;
       if (matchedAppPassword)
@@ -170,7 +173,7 @@ namespace HM
 
       ServerStatus::Instance()->OnAuthenticationFailed();
 
-      RegisterFailedLogin(ipaddress, username, disconnect);
+      RegisterFailedLogin(ipaddress, username, disconnect, true, chargeAddress);
 
       std::shared_ptr<Account> empty;
       return empty;
@@ -314,7 +317,7 @@ namespace HM
 
    void
    AccountLogon::RegisterFailedLogin(const IPAddress &ipaddress, const String &username, bool &disconnect,
-                                     bool countTowardsAccountLockout)
+                                     bool countTowardsAccountLockout, bool chargeAddress)
    {
       disconnect = false;
 
@@ -324,6 +327,16 @@ namespace HM
       // header for the failures that deliberately do not count.
       if (countTowardsAccountLockout)
          AccountLockout::Instance()->RecordFailure(username);
+
+      // A proxy's address, which answers for every client behind it (see the
+      // header): the name has been charged above, and the address is not, as
+      // an address on AutoBanNeverBan is not - no failure counted, no range
+      // written and no "logon failure" line for fail2ban to count.
+      if (!chargeAddress)
+      {
+         LOG_DEBUG("AccountLogon::RegisterFailedLogin - " + String(ipaddress.ToString()) + " forwards for other clients; the failure is counted against the name alone.");
+         return;
+      }
 
       // is auto banning enabled?
       int maxInvalidLogonAttempts = Configuration::Instance()->GetMaxInvalidLogonAttempts();

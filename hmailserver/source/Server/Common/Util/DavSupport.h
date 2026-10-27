@@ -80,13 +80,18 @@ namespace HM
       // is recorded as in the account's list of clients.
       //
       // The peer the accounting sees is the socket's: behind a TLS-terminating
-      // proxy every failure is charged to the proxy's own address, so a proxy
-      // front end belongs in WebServicesTrustedProxies with the per-IP auto-ban
-      // considered. Believing X-Forwarded-For is a change of its own. An address
-      // an IP range bans is refused at the listener's accept, never loopback or
-      // a trusted proxy (WebServicesServer::IsConnectionAllowed_), so through a
-      // proxy the per-name lockout is what limits the guesses; and each caller
-      // closes the connection a failure came on, whatever disconnect says.
+      // proxy it is the proxy's own address, X-Forwarded-For not being
+      // believed (a change of its own). A failure from a peer whose failures are
+      // its clients' - loopback or a WebServicesTrustedProxies entry
+      // (WebServicesServer::IsForwarder) - is counted against the name alone,
+      // never towards the per-IP auto-ban: a ban written for that address would
+      // refuse it at every mail listener, and with it every client behind the
+      // proxy, or with loopback the server's own local clients. An address an
+      // IP range bans is refused at the listener's accept, never loopback or a
+      // trusted proxy (WebServicesServer::IsConnectionAllowed_), so through a
+      // proxy the per-name lockout (AccountLockoutThreshold) is what limits the
+      // guesses; and each caller closes the connection a failure came on,
+      // whatever disconnect says.
       bool Authenticate(const HttpRequest &request, const char *service, int protocol, std::shared_ptr<const Account> &account, bool &disconnect);
 
       // The If-Match / If-None-Match rules of RFC 7232 for a write. current is

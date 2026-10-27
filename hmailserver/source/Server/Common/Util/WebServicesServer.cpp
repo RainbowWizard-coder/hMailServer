@@ -50,6 +50,9 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <map>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -144,6 +147,18 @@ namespace HM
       time_t dav_redirect_expires = 0;
       bool dav_caldav_invalid_reported = false;
       bool dav_carddav_invalid_reported = false;
+
+      // The addresses an administrator's IP range (one that does not expire)
+      // has had refused at the accept, with when the application log last said
+      // so: once an hour for each, so that a refusal an upgrade brought - this
+      // listener did not ask the ranges until the release after 6.3.7 - is
+      // found where an administrator looks, and an address that keeps
+      // connecting is not a line a connection. Held to RangeRefusalsKept
+      // addresses (emptied when full) and emptied by Start().
+      std::mutex range_refusals_mutex;
+      std::map<AnsiString, time_t> range_refusals_said;
+      const size_t RangeRefusalsKept = 1024;
+      const int RangeRefusalSeconds = 3600;
 
       // A Location header value is written into the response verbatim, so a
       // value carrying a CR or LF would let whoever can edit hMailServer.ini
@@ -470,6 +485,12 @@ namespace HM
          dav_carddav_invalid_reported = false;
       }
 
+      // A refusal by an administrator's range is said again after a start.
+      {
+         std::lock_guard<std::mutex> guard(range_refusals_mutex);
+         range_refusals_said.clear();
+      }
+
       // Report anything that is switched on but cannot be reached with the
       // configuration as it stands. Application::StartServers makes this call
       // unconditionally as well - it has to, because this function is not
@@ -683,10 +704,13 @@ namespace HM
       // same hole.
       //
       // Never for loopback or a WebServicesTrustedProxies entry (IsForwarder):
-      // behind such a proxy every failure is charged to the proxy's own address,
-      // since X-Forwarded-For is not believed, so a ban written against it would
-      // refuse every client behind it, and three wrong passwords from anybody
-      // would shut every user out for AutoBanMinutes. There the per-name lockout
+      // behind such a proxy the listener sees the proxy's own address for every
+      // client, since X-Forwarded-For is not believed, so a ban that holds it -
+      // written by another listener, or by an administrator - would refuse
+      // every client behind it. Its failed sign-ins here are not charged to its
+      // address at all (Dav::Authenticate counts them against the name alone),
+      // or three wrong passwords from anybody would ban it at every mail
+      // listener for AutoBanMinutes. There the per-name lockout
       // (AccountLockoutThreshold) is what limits the guesses at one account.
       // These are the peers RequestArrivedOverHttps_ takes the word of, by the
       // same function.
@@ -721,7 +745,42 @@ namespace HM
          _T("its address could not be learned"));
       LOG_DEBUG(message);
 
+      // An administrator's range - one that does not expire, which no auto-ban
+      // is - is said in the application log as well, once an hour for each
+      // address: until the release after 6.3.7 this listener did not ask the
+      // ranges, so a range written to keep an address off the mail listeners
+      // now keeps it off the ACME http-01 validation, MTA-STS, CalDAV, CardDAV
+      // and autoconfiguration too, and an administrator whose certificate stops
+      // renewing after the upgrade has to be able to find why. The range's name
+      // is the administrator's own, cleaned of control characters.
+      if (verdict == RangeBans && range && !range->GetExpires() && RangeRefusalToSay_(peer))
+      {
+         String said;
+         said.Format(_T("WebServices: The connection from %s was refused by the IP range \"%s\", which allows none of SMTP, POP3 and IMAP; this listener refuses such an address as the mail listeners do. Said once an hour for each address."),
+            String(peer.ToString()).c_str(), Dav::LogSafe(range->GetName()).c_str());
+         LOG_APPLICATION(said);
+      }
+
       return false;
+   }
+
+   bool
+   WebServicesServer::RangeRefusalToSay_(const IPAddress &peer)
+   {
+      const AnsiString key = peer.ToString();
+      const time_t now = time(nullptr);
+
+      std::lock_guard<std::mutex> guard(range_refusals_mutex);
+
+      auto found = range_refusals_said.find(key);
+      if (found != range_refusals_said.end() && now >= found->second && now - found->second < RangeRefusalSeconds)
+         return false;
+
+      if (found == range_refusals_said.end() && range_refusals_said.size() >= RangeRefusalsKept)
+         range_refusals_said.clear();
+
+      range_refusals_said[key] = now;
+      return true;
    }
 
    WebServicesServer::RangeVerdict
