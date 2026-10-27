@@ -167,7 +167,10 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                left it and removing nothing, any change failing the installation
                with exit code 12, keeping the service from starting and the last
                page from running the Control Panel (section_run.iss,
-               FoldersWereAsPrepared). Each decision is held to its
+               FoldersWereAsPrepared) - and hMailServer.Updater puts no earlier
+               version back over such folders, on 12 or on a refusal whose log has
+               FoldersChangedLine, in either of its modes (check_updater). Each
+               decision is held to its
                statement (PROGRAM_FOLDER_STATEMENTS), the helpers it relies on
                among them (SidIs, IsBroadSid, BroadGroupSid, AclLetsOthers,
                HoldForSetup and the uninstaller's records whole, the walk's start,
@@ -264,7 +267,8 @@ an empty folder removed by its path or through a handle not the folder of its na
 folder walked as a link or elsewhere, Bin or the five folders walked when not as setup
 left them, a folder setup made held to a hardened one's rule, folders found changed
 ending in 10, the service left to start or set not to start for good, the Updater not
-told, something new in the last look not taken for a change, a data folder's link held
+told, or putting the earlier version back over them in one mode, waiting for the
+service, or looking for another line than the installer writes, something new in the last look not taken for a change, a data folder's link held
 only to the way there, a Database link's target every user may write taken, and Bin
 not made in a new program folder) - must all be refused.
 
@@ -298,6 +302,10 @@ ADMIN_UPDATE_CHECKS = 'Common/Util/AdminUpdateChecks.cpp'
 # The server's question before it gives Users Read & execute (EveryUserReads_),
 # which the installer's read mask is held to.
 SERVICE_ACCOUNT = 'Common/Util/ServiceAccount.cpp'
+# hMailServer.Updater, which runs the installer in a live update and decides whether the
+# earlier version is put back (work item 78: never over folders the installer found
+# changed).
+UPDATER = 'hMailServer.Updater/hMailServer.Updater.cpp'
 DIRS = 'section_dirs.iss'
 EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
 # Under Tools: the database step the installer runs, and the password it hands on.
@@ -346,6 +354,7 @@ def load():
     texts[PROTECTED_FILE] = read(os.path.join(SERVER, PROTECTED_FILE))
     texts[ADMIN_UPDATE_CHECKS] = read(os.path.join(SERVER, ADMIN_UPDATE_CHECKS))
     texts[SERVICE_ACCOUNT] = read(os.path.join(SERVER, SERVICE_ACCOUNT))
+    texts[UPDATER] = read(os.path.join(SERVER, UPDATER))
     texts[EVENT_LOG] = read(os.path.join(SERVER, EVENT_LOG))
     texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
     texts[AUTHENTICATOR] = read(os.path.join(TOOLS, AUTHENTICATOR))
@@ -1925,6 +1934,27 @@ def check_access_masks(texts, problems):
                         'HM_FOLDER_READ_RIGHTS to what it asks now' % SERVICE_ACCOUNT)
 
 
+def check_updater(texts, problems):
+    """Work item 78 (check 4 of R1 to R4, 27 October 2026): hMailServer.Updater puts no
+    earlier version back over folders the installer found changed - its exit code 12, or a
+    refusal whose log has FoldersChangedLine - in either of its modes."""
+    updater = texts.get(UPDATER, '')
+    if not re.search(r'\bconst int InstallerFoldersChanged = 12;', updater):
+        problems.append('%s: InstallerFoldersChanged is not 12, the exit code of GetCustomSetupExitCode for folders not as setup left them' % UPDATER)
+    prefix = re.search(r'const std::wstring prefix = L"([^"]+)";', updater)
+    line = re.search(r"function FoldersChangedLine\(\): String;\s*begin\s*Result := '([^']+)';", texts.get(EXTENSION, ''))
+    if not prefix or not line or not line.group(1).startswith(prefix.group(1)):
+        problems.append('%s: what FoldersFoundChanged looks for in the installer\'s log is not the start of FoldersChangedLine, so a refusal that found the folders '
+                        'changed is rolled back' % UPDATER)
+    rollbacks = [match.start() for match in re.finditer(r'Log\(L"Rolling back to hMailServer "', updater)]
+    checks = [match.start() for match in re.finditer(r'if \(code == InstallerFoldersChanged \|\| \(code != 0 && FoldersFoundChanged\(installLog\)\)\)', updater)]
+    if len(rollbacks) != 2 or len(checks) != 2 or not (checks[0] < rollbacks[0] < checks[1] < rollbacks[1]):
+        problems.append('%s: an earlier version is put back over folders the installer found changed in one of the Updater\'s two modes' % UPDATER)
+    came = re.search(r'bool ServiceCameBack\(int code, const Arguments &arguments\)\s*\{\s*if \(([^)]*)\)', updater)
+    if not came or 'InstallerFoldersChanged' not in came.group(1):
+        problems.append('%s: the Updater waits for a service the installer set not to start (exit code 12) to come back' % UPDATER)
+
+
 def check(texts):
     problems = []
     entries = check_run_once(texts, problems)
@@ -1939,6 +1969,7 @@ def check(texts):
     check_program_folders(texts, problems)
     check_program_folder_code(texts, problems)
     check_access_masks(texts, problems)
+    check_updater(texts, problems)
     return problems, entries
 
 
@@ -2617,6 +2648,19 @@ def negative_controls(texts):
          altered(texts, EXTENSION, "   else if AclLetsEveryUserWrite(pDacl) then\n      Why := 'it leads to '", "   else if false then\n      Why := 'it leads to '")),
         ('a data folder\'s link into the program folder\'s Bin taken',
          altered(texts, EXTENSION, '   if IsAtOrBelow(szFinal, szApp) then\n      if not (IsAtOrBelow(szFinal,', '   if false then\n      if not (IsAtOrBelow(szFinal,')),
+        # The Updater (check 4 of R1 to R4, 27 October 2026).
+        ('the Updater\'s code for folders found changed not 12',
+         altered(texts, UPDATER, 'const int InstallerFoldersChanged = 12;', 'const int InstallerFoldersChanged = 13;')),
+        ('the Updater looking in the log for another line than the installer writes',
+         altered(texts, UPDATER, 'const std::wstring prefix = L"Setup found the folders it prepares changed";', 'const std::wstring prefix = L"Setup found the folders changed";')),
+        ('the administrator\'s install putting the earlier version back over folders found changed',
+         altered(texts, UPDATER, '      if (code == InstallerFoldersChanged || (code != 0 && FoldersFoundChanged(installLog)))\n', '      if (false)\n')),
+        ('the unattended apply putting the earlier version back over folders found changed',
+         altered(texts, UPDATER, '   if (code == InstallerFoldersChanged || (code != 0 && FoldersFoundChanged(installLog)))\n   {', '   if (false)\n   {')),
+        ('the Updater waiting for a service the installer set not to start',
+         altered(texts, UPDATER, 'code == InstallerDatabaseUpgraded || code == InstallerFoldersChanged)', 'code == InstallerDatabaseUpgraded)')),
+        ('the installer\'s line for the Updater changed',
+         altered(texts, EXTENSION, "Result := 'Setup found the folders it prepares changed (work item 78)", "Result := 'Setup found its folders changed (work item 78)")),
         # Bin and ControlPanel in a new program folder.
         ('Bin not made in a program folder setup made, so that a cancel leaves it and the program folder behind',
          altered(texts, EXTENSION, "      if not MakeFolders(g_szProgramFolderReal, hMade, AddBackslash(g_szProgramFolderReal) + 'Bin', 1, hInside, szWhy) then", '      if false then')),

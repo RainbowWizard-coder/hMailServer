@@ -2122,6 +2122,19 @@ namespace RegressionTests.Installation
          StringAssert.Contains("HM_PLACEHOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_CREATE_NEW, HM_PLACEHOLDER_FLAGS", CodeBody(extension, "MakePlaceholder"),
             "The file setup keeps in a folder it hardened in place is shared for deleting, or kept after setup.");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_PLACEHOLDER_FLAGS\s*=\s*\$04000102;"), "The file setup keeps is not deleted when setup lets it go (FILE_FLAG_DELETE_ON_CLOSE).");
+
+         // Folders found changed end in 12, and hMailServer.Updater puts no earlier version
+         // back over them - on 12, or on a refusal whose log has the installer's line - in
+         // either of its modes.
+         StringAssert.Contains("if g_bFoldersNotAsPrepared then", CodeBody(extension, "GetCustomSetupExitCode"), "Folders found not as setup left them do not end in 12.");
+         string updater = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer.Updater\hMailServer.Updater.cpp");
+         StringAssert.Contains("const int InstallerFoldersChanged = 12;", updater, "The Updater does not know exit code 12.");
+         Assert.AreEqual(2, Regex.Matches(updater, @"if \(code == InstallerFoldersChanged \|\| \(code != 0 && FoldersFoundChanged\(installLog\)\)\)").Count,
+            "One of the Updater's two modes puts the earlier version back over folders the installer found changed.");
+         Match prefix = Regex.Match(updater, @"const std::wstring prefix = L""([^""]+)"";");
+         Match line = Regex.Match(extension, @"function FoldersChangedLine\(\): String;\s*begin\s*Result := '([^']+)';");
+         Assert.IsTrue(prefix.Success && line.Success && line.Groups[1].Value.StartsWith(prefix.Groups[1].Value, StringComparison.Ordinal),
+            "What the Updater looks for in the installer's log is not the start of FoldersChangedLine.");
       }
 
       [Test]

@@ -42,7 +42,7 @@ namespace RegressionTests.API
       private const string AdminPassword = "testar";
       private const string LatestPath = "/repos/hmailserver/hmailserver/releases/latest";
 
-      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _incomplete, _putback, _upgraded, _upgradedStopper, _marker;
+      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _incomplete, _putback, _upgraded, _upgradedStopper, _foldersChanged, _foldersRefused, _marker;
 
       private FakeHttpEndpoint _feed;
       private FakeSigstore _sigstore;
@@ -329,6 +329,51 @@ namespace RegressionTests.API
          RestartServerAndReacquireCom();
          WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
          StringAssert.Contains("Code: HM5481", LogHandler.ReadErrorLog());
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      [Test]
+      [Description("An installer that found the folders it prepares changed after its files (exit code 12) is never rolled back, though the service is down: the earlier version's installer would install through those folders and start the service again (work item 78, check 4 of R1 to R4, 27 October 2026)")]
+      public void AnInstallerThatFoundItsFoldersChangedIsNeverRolledBack()
+      {
+         string newer = Newer;
+         ServeRelease(_foldersChanged, _starter);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("failed " + newer + " the installer exited with 12: it found the folders it prepares for the installation changed, and set the service not to start", outcome);
+         StringAssert.Contains("the earlier version is not put back over those folders", outcome);
+         StringAssert.DoesNotContain("starter", File.ReadAllText(_marker), "The rollback image ran over folders the installer found changed.");
+
+         // Bring it back ourselves, as an administrator does once the folders are seen to;
+         // its startup reports the outcome.
+         RestartServerAndReacquireCom();
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
+         StringAssert.Contains("Update to hMailServer " + newer + " did not succeed (failed)", LogHandler.ReadErrorLog());
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      [Test]
+      [Description("An installer that refused after it had stopped the service, its log saying it found the folders it prepares changed (exit code 7), is not rolled back either (work item 78, check 4 of R1 to R4, 27 October 2026)")]
+      public void ARefusalThatFoundTheFoldersChangedIsNotRolledBack()
+      {
+         string newer = Newer;
+         ServeRelease(_foldersRefused, _starter);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("failed " + newer + " the installer exited with 7: it found the folders it prepares for the installation changed, and set the service not to start", outcome);
+         StringAssert.DoesNotContain("starter", File.ReadAllText(_marker), "The rollback image ran over folders the installer found changed.");
+
+         RestartServerAndReacquireCom();
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
+         StringAssert.Contains("Update to hMailServer " + newer + " did not succeed (failed)", LogHandler.ReadErrorLog());
          Console.WriteLine("hMailServer error log (expected for this fixture):");
          Console.WriteLine(LogHandler.ReadErrorLog());
          LogHandler.ClearErrorLogUntilSettled();
@@ -854,6 +899,16 @@ namespace RegressionTests.API
          _upgradedStopper = Compile(directory, "upgradedstopper",
             @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-02 12:00:01.002   Database step begun: the database was at version 6105 before it.\r\n2026-10-02 12:00:09.003   Database step changed the database: it was at version 6105 before the step and is at version 6106.\r\n""); " +
             "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 0, newer);
+         // Installers that found the folders they prepare changed (work item 78): after
+         // their files, exit code 12, and in a refusal after the service was stopped, 7 -
+         // each stopping the service, as the real one leaves it set not to start, with
+         // the line its log has for it (FoldersChangedLine in hMailServerInnoExtension.iss).
+         _foldersChanged = Compile(directory, "folderschanged",
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-27 12:00:00.001   Setup found the folders it prepares changed (work item 78): the hMailServer service is set not to start, and no earlier version is to be put back over them.\r\n""); " +
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 12, newer);
+         _foldersRefused = Compile(directory, "foldersrefused",
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-27 12:00:00.001   Setup found the folders it prepares changed (work item 78): the hMailServer service is set not to start, and no earlier version is to be put back over them.\r\n2026-10-27 12:00:00.002   Refused: Setup does not install into C:\\Program Files\\hMailServer: C:\\Program Files\\hMailServer\\Bin is a junction, a symbolic link or a mount point now.\r\n""); " +
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 7, newer);
       }
 
       // A console program that records its name and arguments, does what it is told to
@@ -880,7 +935,7 @@ namespace RegressionTests.API
 
          // The name is one of the words CompileFakeInstallers passes - "quiet",
          // "stopper", "starter", "failing", "loud", "ager", "later", "incomplete", "putback",
-         // "upgraded", "upgradedstopper" - so what is appended here is a file
+         // "upgraded", "upgradedstopper", "folderschanged", "foldersrefused" - so what is appended here is a file
          // name, never a rooted path that would displace the directory.
          string path = Paths.Combine(directory, name + ".exe");
          using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))

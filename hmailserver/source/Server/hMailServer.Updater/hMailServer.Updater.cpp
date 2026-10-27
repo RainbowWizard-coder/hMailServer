@@ -225,6 +225,15 @@ namespace
    // upgraded-incomplete (GetCustomSetupExitCode in hMailServerInnoExtension.iss).
    const int InstallerDatabaseUpgraded = 11;
 
+   // The installer's exit code when the folders it prepared were not as it left them
+   // after its files (work item 78, FoldersStillAsPrepared in hMailServerInnoExtension.iss):
+   // the files are in, nothing of the installation ran, and the service is set not to
+   // start. Never rolled back: the earlier version's installer would install through the
+   // same folders - a Bin made a junction among them - and start the service again
+   // (check 4 of work item 78's R1 to R4, 27 October 2026). Nor is the 7 of a refusal whose
+   // log has the installer's line for it (FoldersFoundChanged).
+   const int InstallerFoldersChanged = 12;
+
    std::wstring StepsIncompleteReason(const std::wstring &service)
    {
       return L"the installer exited with " + std::to_wstring(InstallerStepsIncomplete) +
@@ -824,6 +833,65 @@ namespace
       return step;
    }
 
+   // Whether the installer's log says, on a line of its own, that the folders it
+   // prepares were found changed (FoldersChangedLine in hMailServerInnoExtension.iss,
+   // 6.3.8 and later): after its files, with exit code 12, or before them, in a refusal
+   // after it had stopped the service, exit code 7 - the service set not to start
+   // either way, and no earlier version to be put back over those folders. Read as
+   // DatabaseStepOf reads the log: the last 16 MB, a line stamped by the installer's Log()
+   // only, so that nothing a program the installer ran wrote can say it.
+   bool FoldersFoundChanged(const std::wstring &path)
+   {
+      HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      if (file == INVALID_HANDLE_VALUE)
+         return false;
+      LARGE_INTEGER size;
+      size.QuadPart = 0;
+      GetFileSizeEx(file, &size);
+      const LONGLONG most = 16 * 1024 * 1024;
+      if (size.QuadPart > most)
+      {
+         LARGE_INTEGER from;
+         from.QuadPart = size.QuadPart - most;
+         SetFilePointerEx(file, from, nullptr, FILE_BEGIN);
+         size.QuadPart = most;
+      }
+      std::vector<char> bytes((size_t) size.QuadPart);
+      DWORD readCount = 0;
+      if (!bytes.empty())
+         ReadFile(file, bytes.data(), (DWORD) bytes.size(), &readCount, nullptr);
+      CloseHandle(file);
+      bytes.resize(readCount);
+      const std::wstring text = Decoded(bytes);
+      const std::wstring prefix = L"Setup found the folders it prepares changed";
+      size_t start = 0;
+      while (start < text.size())
+      {
+         size_t end = text.find(L'\n', start);
+         if (end == std::wstring::npos)
+            end = text.size();
+         std::wstring line = text.substr(start, end - start);
+         start = end + 1;
+         if (!(line.size() > 24 && iswdigit(line[0]) && line[4] == L'-' && line[10] == L' '))
+            continue;
+         line = line.substr(23);
+         while (!line.empty() && line.front() == L' ')
+            line.erase(line.begin());
+         if (line.compare(0, prefix.size(), prefix) == 0)
+            return true;
+      }
+      return false;
+   }
+
+   // The outcome's detail when the installer found the folders it prepares changed
+   // (InstallerFoldersChanged, FoldersFoundChanged): not rolled back, and what to do.
+   std::wstring FoldersChangedDetail(int code, const std::wstring &service, const std::wstring &says)
+   {
+      return L"the installer exited with " + std::to_wstring(code) + L": it found the folders it prepares for the installation changed, and set the service not to start; " +
+             L"the earlier version is not put back over those folders, whose installer would install through them and start the service again; the service is " +
+             StateName(ServiceState(service)) + L". An administrator looks at what the installer's log names, restarts Windows and runs the installer again" + says;
+   }
+
    // Where the backup the update took before it is, as the service wrote it into
    // the Updates folder (update-backup-<version>.txt: the backup destination, then
    // the time the backup finished, written by UpdateInstaller for this install alone
@@ -947,7 +1015,7 @@ namespace
    // minutes on the installer smoke VM on 2 October 2026). Otherwise up to --wait.
    bool ServiceCameBack(int code, const Arguments &arguments)
    {
-      if (code == InstallerStepsIncomplete || code == InstallerDatabaseUpgraded)
+      if (code == InstallerStepsIncomplete || code == InstallerDatabaseUpgraded || code == InstallerFoldersChanged)
          return ServiceState(arguments.service) == SERVICE_RUNNING;
       return WaitForRunning(arguments.service, arguments.wait_seconds);
    }
@@ -1860,6 +1928,15 @@ namespace
          return finish(L"ok", L"the installer succeeded and the service is running", installLog, L"", true);
       }
 
+      // Folders the installer found changed: never rolled back (InstallerFoldersChanged).
+      if (code == InstallerFoldersChanged || (code != 0 && FoldersFoundChanged(installLog)))
+      {
+         if (workHeld != INVALID_HANDLE_VALUE)
+            CloseHandle(workHeld);
+         Log(L"Not rolled back: the installer found the folders it prepares changed, and set the service not to start.");
+         return finish(L"failed", FoldersChangedDetail(code, arguments.service, says), installLog, L"", true);
+      }
+
       // A database the installer's database step changed, or may have: never
       // rolled back, since the earlier version may not run on it.
       const DatabaseStep step = DatabaseStepOf(installLog);
@@ -2036,6 +2113,14 @@ int wmain(int argc, wchar_t *argv[])
    {
       WriteOutcome(arguments.outcome, L"ok " + arguments.version + L" the installer succeeded and the service is running");
       return 0;
+   }
+
+   // Folders the installer found changed: never rolled back (InstallerFoldersChanged).
+   if (code == InstallerFoldersChanged || (code != 0 && FoldersFoundChanged(installLog)))
+   {
+      Log(L"Not rolled back: the installer found the folders it prepares changed, and set the service not to start.");
+      WriteOutcome(arguments.outcome, L"failed " + arguments.version + L" " + FoldersChangedDetail(code, arguments.service, says) + L"; see " + installLog);
+      return 1;
    }
 
    // A database the installer's database step changed, or may have: never rolled
