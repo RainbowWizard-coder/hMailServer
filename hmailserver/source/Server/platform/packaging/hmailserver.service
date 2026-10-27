@@ -142,7 +142,9 @@ ProtectHome=yes
 # outside this unit cannot see into a private /tmp. clamd is unaffected - it is
 # reached over TCP or over its Unix socket under /run, and the message is streamed
 # to it with INSTREAM, never shared through the filesystem. A clamd socket under
-# /tmp is the exception: this unit sees its own /tmp, not clamd's.
+# /tmp or /var/tmp is the exception: this unit sees its own of each, not clamd's;
+# and one under /home, /root or /run/user is out of reach too, as ProtectHome
+# above makes them inaccessible to the service.
 PrivateTmp=yes
 PrivateDevices=yes
 

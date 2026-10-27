@@ -1213,11 +1213,14 @@ with `--check`).
   to put the `hmailserver` user in when it is closed (on Fedora `virusgroup` always, as its `/run/clamd.scan` is
   `0710 clamscan:virusgroup`), and Roles.md's *Network reach* names the local sockets a holder of `manage_settings`
   can make the server connect to; the systemd unit's comments say why `ProtectSystem=strict` does
-  not stand in the way and why a socket under `/tmp` would. Held by `clamd-socket-tests`, a tester the Linux build
+  not stand in the way and why a socket under `/tmp` or `/var/tmp` (`PrivateTmp=yes`) or under `/home`, `/root` or
+  `/run/user` (`ProtectHome=yes`) would, which ClamAV.md says too. Held by `clamd-socket-tests`, a tester the Linux build
   runs against a fake clamd on a Unix socket (and, given a real clamd's socket, the connection test against it), by
   the Linux suite's `AntiVirus/ClamdUnixSocket`, a fixture of that project's own, and by the Windows suite's
-  `AntiVirus/ClamdSocketPathOnWindows`. Roadmap.md's *Other clamd transports and commands* keeps TLS to clamd, STATS,
-  MULTISCAN and zINSTREAM declined.
+  `AntiVirus/ClamdSocketPathOnWindows`. The source packages' builds leave `clamd-socket-tests` out, as they leave out
+  every tester that needs a socket: it binds Unix sockets of its own under `$TMPDIR` (`SOURCE_TESTERS_LEFT_OUT` in
+  `build/check-source-tarball.py`, and SourcePackages.md's row of the tester programs). Roadmap.md's *Other clamd
+  transports and commands* keeps TLS to clamd, STATS, MULTISCAN and zINSTREAM declined.
 
 ### Build and tests
 

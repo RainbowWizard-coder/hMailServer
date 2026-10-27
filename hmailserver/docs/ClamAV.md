@@ -102,10 +102,14 @@ Under its systemd unit the server can reach the socket as it is:
 `RestrictAddressFamilies` allows `AF_UNIX`, and `ProtectSystem=strict`, which
 makes `/run` read-only to the service, does not stop a connection to a socket
 there - connecting writes to the socket, not to the file system it is on, and a
-read-only mount refuses writes to files, directories and links only. The one
-place that does not work is `/tmp`: the unit has `PrivateTmp=yes`, so a clamd
-socket under `/tmp` is not the one the service sees. Every package above keeps
-its socket under `/run`.
+read-only mount refuses writes to files, directories and links only. What the
+unit hides is out of reach: with `PrivateTmp=yes` the service has a `/tmp` and a
+`/var/tmp` of its own, so a clamd socket under either is not the one it sees, and
+with `ProtectHome=yes` it cannot enter `/home`, `/root` or `/run/user` at all, so
+a socket there (a clamd a user runs for themselves, under `/run/user/<uid>`, say)
+cannot be reached, whatever the groups; the log then says the server's user may
+not enter `/home`, `/root` or `/run/user`, and the cure is a socket elsewhere,
+not a group. Every package above keeps its socket under `/run`.
 
 Over TCP instead: set `TCPSocket 3310` (and `TCPAddr 127.0.0.1`) in
 `clamd.conf`, and `ClamAVHost` to the host and `ClamAVPort` to the port.
@@ -118,7 +122,7 @@ What the log says
 | `Unable to connect to ClamAV server at <path>: nothing is listening there, as there is no socket at that path.` | No socket at that path: clamd is not running, or `LocalSocket` names another path. |
 | `Unable to connect to ClamAV server at <path>: nothing is listening there: the socket is there, and no clamd accepts on it.` | A socket left behind by a clamd that is no longer running. |
 | `Unable to connect to ClamAV server at <path>: it is a directory, not a socket. ...` (or `it is a file, not a socket`) | `ClamAVHost` names the socket's directory, or another file such as `clamd.conf`, rather than the socket that `LocalSocket` names. |
-| `Unable to connect to ClamAV server at <path>: this server's user may not enter <directory>, a directory on the way to the socket, ...` | A directory above the socket keeps the server's user out, whatever the socket's own mode (Fedora's `/run/clamd.scan`): put the user in that directory's group, as above. |
+| `Unable to connect to ClamAV server at <path>: this server's user may not enter <directory>, a directory on the way to the socket, ...` | A directory above the socket keeps the server's user out, whatever the socket's own mode (Fedora's `/run/clamd.scan`): put the user in that directory's group, as above. Where the directory is `/home`, `/root` or `/run/user`, it is the systemd unit's `ProtectHome=yes` that keeps the service out, and no group helps: move the socket under `/run`. |
 | `Unable to connect to ClamAV server at <path>: the socket is there, and this server's user may not connect to it. ...` | The socket's mode or group keeps the server's user out: see above. |
 | `Unable to connect to ClamAV server at <path>: it did not accept the connection in the time allowed: the queue of connections waiting for clamd stayed full. ...`, after `Timed out after <n> seconds while connecting. Remote server: <path>.` | clamd accepted no new connection within the timeout: it is busy with as many scans as `MaxThreads`, `MaxQueue` and `MaxConnectionQueueLength` allow, or reloading its signatures. |
 | `ClamAVHost is <path>, a socket path of <n> bytes, and the path of a Unix socket can have at most 107.` | The path is too long for a socket address. |
