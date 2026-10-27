@@ -333,44 +333,51 @@ with `--check`).
   in it, and holds each folder the moment it is made and reads through the two handles where it is, so that a name
   somebody else takes in the meantime, a folder or a link, and a folder held above it made a link in the meantime, are
   refused rather than taken. In a program folder that is there it makes `Bin`, and `ControlPanel` when the Control
-  Panel is installed, the same way when they are not there, and when they are there, hold nothing and let another
-  account write them (R2). An entry the folder above hands down with generic rights counts as the rights they mean for
-  a folder, as the server counts it, so that `C:\Program Files\hMailServer`, where Program Files hands Users `(GR,GE)`
-  down, gets its Users entry; `InstallerPackaging.cs` and `build/check-installer-scripts.py` hold every mask setup
-  tests an entry's rights against to the generic rights that mean one of its own. In 6.3.7 Inno Setup made the folder
-  with the permissions the folder above hands down, and `icacls` replaced them just after, and made a missing `Bin` or
-  `ControlPanel` with what the program folder handed down. The uninstaller is given each folder setup made
-  (`section_dirs.iss`) and removes it when it is empty, and those still empty are removed when setup is cancelled or
-  fails before its files. `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke test,
-  which reads each folder's permissions the moment it appears, hold it
-  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the files"). Found by the hMailServer project
-  (Progressive Robot Ltd).
+  Panel is installed, the same way when they are not there, and when they are there and held nothing when setup first
+  looked, before anything changed (R2). An entry the folder above hands down with generic rights counts as the rights
+  they mean for a folder, as the server counts it, so that `C:\Program Files\hMailServer`, where Program Files hands
+  Users `(GR,GE)` down, gets its Users entry; `InstallerPackaging.cs` and `build/check-installer-scripts.py` hold
+  every mask setup tests an entry's rights against to the generic rights that mean one of its own. In 6.3.7 Inno Setup
+  made the folder with the permissions the folder above hands down, and `icacls` replaced them just after, and made a
+  missing `Bin` or `ControlPanel` with what the program folder handed down. The uninstaller is given each folder setup
+  made (`section_dirs.iss`) and removes it when it is empty, and those still empty are removed when setup is cancelled
+  or fails before its files: each recorded only once it was found where it was named, with where that is, and removed
+  only while it is still that folder, read through a handle opened on its path as itself while the folders above it
+  are still held; a folder found made elsewhere is left as it is. `InstallerPackaging.cs`,
+  `build/check-installer-scripts.py` and the installer smoke test, which reads each folder's permissions the moment it
+  appears, hold it ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the files"). Found by the
+  hMailServer project (Progressive Robot Ltd).
 
 - **Fixed: on Windows, setup hardens a program folder, `Bin` and `ControlPanel` that are already there before it
   copies a file or runs a program of the installation, and does not install into one it cannot harden** ([work item
   78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), CVE-2026-107571, R2): a server installed into a
-  folder made beforehand, an upgrade, a repair, and the Control Panel alone, whatever the folder holds. The program
-  folder is left as it is only when it is the root of a volume, a drive's or one a mount point leads to, whose
-  permissions are the volume's, or when it is the earlier installation's and its `Data`, `Logs`, `Temp`, `Database` or
-  `Events` still inherit from it, as an installation before 6.3.6 leaves them, which `/ProtectFolders` hardens after
-  the files; its `Bin` and `ControlPanel` are hardened or made before them all the same. Each folder is read through
-  the handle that holds it, and read again once hardened. An entry of its own that lets a group of every user change
-  it is taken away; one for another account is kept and said (R4). A folder another account owns is taken only when it
-  is the earlier installation's, whose folders an administrator's own account may own: it is given to the
-  Administrators with `takeown /A`, and its entries that give no right to write are kept, the service's Read & execute
-  on `Bin` among them, as `/ProtectFolders` keeps them, and setup says to restart Windows once the installation is
-  done. Any other such folder is refused, since its owner may hold it open with the right to change its permissions:
-  the refusal says to remove or rename it, or to install elsewhere. So that nothing another account opened while it
-  could write a folder decides where the files go, a `Bin` or a `ControlPanel` that holds nothing and let another
-  account write it is removed and made again by setup, an empty folder in `Bin`, `ControlPanel` and the folders that
-  hold what is run is removed before the files, and after the files, before setup runs anything of the installation,
-  the three are read again through the handles that hold them and looked through for a link or an empty folder setup
-  did not leave; anything not as setup left it ends the installation with exit code 10, runs nothing of it and sets
-  the service not to start. A folder setup cannot harden ends the installation with exit code 7 and what to do. In
-  6.3.7 a server installation into a folder that was there, and every upgrade, had the three hardened only at the end
-  of setup, by `/ProtectFolders`, and a folder another account owned, which only an installation of the Control Panel
-  alone hardened before its files, was left with the entries of SYSTEM, the Administrators and Users alone. Found by
-  the hMailServer project (Progressive Robot Ltd).
+  folder made beforehand, an upgrade, a repair, and the Control Panel alone, whatever the folder holds. A program
+  folder that is the root of a volume, which a mount point or a junction to a volume's root leads to, is refused,
+  since its permissions are the volume's and are handed down to what is made there, the uninstaller among it: the
+  refusal says to install into a folder on that volume; so is a `Bin` or a `ControlPanel` that leads to the root of a
+  volume. The program folder is left as it is only when it is the earlier installation's and its `Data`, `Logs`,
+  `Temp`, `Database` or `Events` still inherit from it, as an installation before 6.3.6 leaves them, which
+  `/ProtectFolders` hardens after the files; its `Bin` and `ControlPanel` are hardened or made before them all the
+  same. Each folder is read through the handle that holds it, and read again once hardened. An entry of its own that
+  lets a group of every user change it is taken away; one for another account is kept and said (R4). A folder another
+  account owns is taken only when it is the earlier installation's, whose folders an administrator's own account may
+  own: it is given to the Administrators with `takeown /A`, and its entries that give no right to write are kept, the
+  service's Read & execute on `Bin` among them, as `/ProtectFolders` keeps them, and setup says to restart Windows
+  once the installation is done. Any other such folder is refused, since its owner may hold it open with the right to
+  change its permissions: the refusal says to remove or rename it, or to install elsewhere. So that nothing another
+  account opened while it could write a folder decides where the files go, a `Bin` or a `ControlPanel` that held
+  nothing when setup first looked, before anything changed, is removed and made again by setup whoever could write it,
+  one that holds something is refused when it has been made a link since, read through the handle that holds it,
+  before it is hardened, the program folder, `Bin` and `ControlPanel` are read again through their handles for a link
+  just before setup's last look at what is in them, an empty folder in `Bin`, `ControlPanel` and the folders that hold
+  what is run is removed before the files, and after the files, before setup runs anything of the installation, the
+  three are read again through the handles that hold them and looked through for a link or an empty folder setup did
+  not leave; anything not as setup left it ends the installation with exit code 10, runs nothing of it - the Control
+  Panel the last page offers included - and sets the service not to start. A folder setup cannot harden ends the
+  installation with exit code 7 and what to do. In 6.3.7 a server installation into a folder that was there, and every
+  upgrade, had the three hardened only at the end of setup, by `/ProtectFolders`, and a folder another account owned,
+  which only an installation of the Control Panel alone hardened before its files, was left with the entries of
+  SYSTEM, the Administrators and Users alone. Found by the hMailServer project (Progressive Robot Ltd).
 
 - **Fixed: on Windows, setup refuses a junction, a symbolic link or a mount point on the way to the program folder,
   `Bin` or `ControlPanel` that anybody but SYSTEM, the Administrators and TrustedInstaller controls, and a folder on
@@ -404,18 +411,25 @@ with `--check`).
   `DBScripts`, `WebAdmin` and `Languages` at any depth - where the service runs the event script, the administrators
   the tools, and DBSetup the SQL - is looked at before setup stops the service and again once the folders are
   hardened, each item but a link, which is known by what the folder's listing says of it, through a handle opened on
-  it as itself: a link there, but for one only the administrators control on the program folder's own level, or a
-  program, a library, a script (in those five folders and on the program folder's own level) or a folder whose owner
-  is not SYSTEM, the Administrators or TrustedInstaller, or cannot be read, or an entry of whose own lets another
-  account change it, ends the installation with exit code 7, each named with the `icacls` that deals with it - as the
-  live update's check of an installation refuses them in `Bin` and `ControlPanel`. `Data`, `Logs`, `Temp` and
-  `Database`, which the service writes in, are not looked inside. Another file such an account owns, a data folder
-  another account owns, and an entry of a folder's own that lets a named account or group change it, which setup keeps
-  on a folder the administrators own as `/ProtectFolders` does, are said in the setup log with the `icacls` that deals
-  with each, and an attended installation shows them in one box. Setup replaces the files it installs, and leaves one
-  it does not install as it is. In 6.3.7 setup looked at none of it before the files; after them `/ProtectFolders`
-  held every folder, program and library in `Bin` and `ControlPanel`, and `Bin\hMailServer.INI`, to the live update's
-  rule, and said the first it found on a `CHECK` line. Found by the hMailServer project (Progressive Robot Ltd).
+  it as itself: a link there - on the program folder's own level one only the administrators control is taken for
+  `Data`, `Logs`, `Temp` and `Database` alone, where it leads then held to the rules of the program folder's own way,
+  every link and every folder above it, its volume and the folder being there, and refused for `Addons`, `Events`,
+  `DBScripts`, `WebAdmin` and `Languages`, which setup installs into - or a program, a library, a script (in those
+  five folders and on the program folder's own level), a file that says what they run or where (`Bin`'s
+  `hMailServer.INI`, the REST API's key store `hMailServerApiKeys.ini`, which may also be the service's, with the
+  Modify `/GrantServiceAccess` gives it, a `.config` or a `.json` beside a program, and the uninstaller's
+  `unins000.dat`) or a folder whose owner is not SYSTEM, the Administrators or TrustedInstaller, or cannot be read, or
+  an entry of whose own lets another account change it, ends the installation with exit code 7, each named with the
+  `icacls` that deals with it - as the live update's check of an installation refuses them in `Bin` and
+  `ControlPanel`. `Data`, `Logs`, `Temp` and `Database`, which the service writes in, are not looked inside. Another
+  file such an account owns, such as a note, a data folder another account owns, the folder another account owns that
+  a data folder's link leads to, and an entry of a folder's own that lets a named account or group change it, which
+  setup keeps on a folder the administrators own as `/ProtectFolders` does, are said in the setup log with the
+  `icacls` that deals with each, and an attended installation shows them in one box. Setup replaces the files it
+  installs, and leaves one it does not install as it is. In 6.3.7 setup looked at none of it before the files; after
+  them `/ProtectFolders` held every folder, program and library in `Bin` and `ControlPanel`, and
+  `Bin\hMailServer.INI`, to the live update's rule, and said the first it found on a `CHECK` line. Found by the
+  hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 
