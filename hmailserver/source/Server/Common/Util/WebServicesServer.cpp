@@ -2064,9 +2064,12 @@ namespace HM
       // review of 22 September 2026).
       //
       // The peer the lockout and the auto-ban see is the socket's. Behind the
-      // TLS-terminating proxy that RequestArrivedOverHttps_ trusts, every
-      // failure is charged to the proxy's own address, exactly as for CardDAV
-      // and CalDAV; the README says so, and X-Forwarded-For is not believed.
+      // TLS-terminating proxy that RequestArrivedOverHttps_ trusts, the
+      // listener sees the proxy's address for every client (X-Forwarded-For
+      // is not believed), so a failure from loopback or a
+      // WebServicesTrustedProxies entry is counted against the name alone and
+      // never towards a ban of that address (Dav::Authenticate, IsForwarder),
+      // exactly as for CardDAV and CalDAV; the README says so.
       std::shared_ptr<const Account> caller;
       bool disconnect = false;
 

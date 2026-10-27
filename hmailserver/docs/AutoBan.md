@@ -27,6 +27,8 @@ web services listener says why in the debug log, and a refusal by an
 administrator's range - one that does not expire, which no auto-ban is - in the
 application log as well, naming the range, once an hour for each address
 (`WebServices: The connection from ... was refused by the IP range "..."`).
+The record of the addresses said holds 1,024 and is emptied when it is full and
+when the listener starts, so past that many an address can be said again sooner.
 
 The web services listener's rule is not ManageSieve's because what it serves
 without a sign-in is for the world: MTA-STS policies for the sending MTAs, ACME

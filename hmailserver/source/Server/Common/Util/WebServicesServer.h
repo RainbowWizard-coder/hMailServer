@@ -145,7 +145,7 @@ namespace HM
       };
 
       // The rule, with what it is decided on already found: whether the peer is
-      // one whose failures are charged for others (IsForwarder), whether the
+      // one whose sign-in failures are its clients' (IsForwarder), whether the
       // ranges could be read, and the range that decides for the peer
       // (PersistentSecurityRange::ReadMatchingIP), null when none holds it.
       // Reads nothing.
@@ -153,8 +153,9 @@ namespace HM
 
       // Whether peer is one whose word this listener takes on how the client
       // came - X-Forwarded-Proto - and whose sign-in failures are therefore
-      // charged for clients behind it: loopback, or an entry of trustedProxies
-      // (the WebServicesTrustedProxies setting). Reads nothing.
+      // its clients', counted against the name alone and never towards a ban
+      // of its address (Dav::Authenticate): loopback, or an entry of
+      // trustedProxies (the WebServicesTrustedProxies setting). Reads nothing.
       static bool IsForwarder(const IPAddress &peer, const String &trustedProxies);
 
    private:

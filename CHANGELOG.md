@@ -196,11 +196,11 @@ with `--check`).
   autoconfiguration and the Web Key Directory - so before upgrading a server whose own ranges allow some addresses
   nothing (an Internet range that allows nothing because mail comes through a relay or a VPN, say), check that the
   certificate authority, the sending MTAs and the clients of these services do not come from one; each such refusal
-  is said in the application log, naming the range, once an hour for each address. `WebServicesRangeTester` holds
-  the rule (inside the server on Windows, and in `autoban-widen-tests` on Linux), and the regression fixture
-  `Security.WebServicesBan` the listener, from the machine's own address that is not loopback, with the ranges
-  unreadable among its cases ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project
-  (Progressive Robot Ltd).
+  is said in the application log, naming the range, once an hour for each address while fewer than 1,024 are
+  recorded. `WebServicesRangeTester` holds the rule (inside the server on Windows, and in `autoban-widen-tests` on
+  Linux), and the regression fixture `Security.WebServicesBan` the listener, from the machine's own address that is
+  not loopback, with the ranges unreadable among its cases ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by
+  the hMailServer project (Progressive Robot Ltd).
 - **Fixed: a failed CardDAV, CalDAV or Autodiscover sign-in through a proxy in front of the web services listener
   counted towards an auto-ban of the proxy's own address.** The listener sees a TLS-terminating proxy's
   address for every client behind it (`X-Forwarded-For` is not believed), and a failed sign-in through it was
@@ -210,10 +210,12 @@ with `--check`).
   `WebServicesTrustedProxies` entry - the peers this listener takes `X-Forwarded-Proto` from and never refuses by a
   range - is now counted against the name alone (`AccountLockoutThreshold`, off by default, which is then the limit
   on the guesses through a proxy), never towards a ban of the address; a failure from any other address counts as
-  before. The Control Panel's note under the trusted proxies says what a listed address is spared, and that only
-  proxies belong there, in English and in the 17 languages. `Security.WebServicesBan` holds it: three failed sign-ins
-  from loopback and through a trusted proxy write no ban and SMTP still greets each, and from loopback they lock the
-  name ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
+  before; the comments on Autodiscover's sign-in and on `WebServicesServer::IsForwarder` say so, where the first
+  still said that each failure was charged to the proxy's address. The Control Panel's note under the trusted
+  proxies says what a listed address is spared, and that only proxies belong there, in English and in the 17
+  languages. `Security.WebServicesBan` holds it: three failed sign-ins from loopback and through a trusted proxy
+  write no ban and SMTP still greets each, and from loopback they lock the name
+  ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 
