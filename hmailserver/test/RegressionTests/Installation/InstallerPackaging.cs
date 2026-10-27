@@ -1579,7 +1579,11 @@ namespace RegressionTests.Installation
          new[] { "HardenForRestart", "the installation goes on once what another account could change is hardened, rather than being refused until Windows has restarted", "szDone := szDone + g_aRestartFolders[index] + ', '; end; Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: " },
          new[] { "CheckFoldersBeforeTheStop", "what another account could change is not hardened and refused before the service is stopped, or is after a refusal of the check", "^function CheckFoldersBeforeTheStop(Earlier: String): String; begin Result := CheckProgramFolders(Earlier); if Result = '' then Result := HardenForRestart(); end;$" },
          new[] { "RestartNeededFor", "what setup recorded until Windows restarts is read elsewhere, or not by the program folder's name", "^function RestartNeededFor(App: String; var What: String): Boolean; begin What := ''; Result := RegQueryStringValue(HKLM64, HM_RESTART_KEY, App, What); end;$" },
-         new[] { "RecordRestartNeeded", "what is recorded until Windows restarts is written where a restart does not take it away, or by another name than the program folder's", "written := MakeVolatileKey(HM_HKEY_LOCAL_MACHINE, HM_RESTART_KEY, 0, 0, HM_REG_OPTION_VOLATILE, HM_KEY_SET_VALUE_64, 0, key, disposition); if written = 0 then begin written := WriteKeyText(key, App, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); CloseKey(key); end;" },
+         new[] { "RecordRestartNeeded", "what is recorded until Windows restarts is written where a restart does not take it away, or by another name than the program folder's, or not also by where the walks of the program folder, Bin and ControlPanel ended (check 5 of R1 to R4, 27 October 2026)", "written := MakeVolatileKey(HM_HKEY_LOCAL_MACHINE, HM_RESTART_KEY, 0, 0, HM_REG_OPTION_VOLATILE, HM_KEY_SET_VALUE_64, 0, key, disposition); if written = 0 then begin written := WriteKeyText(key, App, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); for which := 0 to 2 do begin szFinal := WalkedFinal(which); if (written = 0) and (szFinal <> '') and (not IsVolumeRoot(szFinal)) then written := WriteKeyText(key, szFinal, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); end; CloseKey(key); end;" },
+         new[] { "RestartRecordedForWalked", "a record by where a walk ended is not looked up, or one of another folder, or of none, is taken for it (check 5 of R1 to R4, 27 October 2026)", "if not RegGetValueNames(HKLM64, HM_RESTART_KEY, names) then Exit; for index := 0 to GetArrayLength(names) - 1 do if (not Result) and (CompareText(Copy(names[index], 1, 4), '\\\\?\\') = 0) then for which := 0 to 2 do begin szWalked := WalkedFinal(which); if (not Result) and IsAtOrBelow(szWalked, names[index]) then begin Result := true;" },
+         new[] { "WalkedFinal", "where a walk ended is named by a path rather than by its held handle, or a folder not there yet by the one above it alone (check 5 of R1 to R4, 27 October 2026)", "if (handle = -1) or (szHeld = '') or (szReal = '') then Exit; szFinal := FinalPathOfHeld(handle); if szFinal = '' then Exit; if CompareText(szHeld, szReal) = 0 then Result := szFinal else if CompareText(Copy(szReal, 1, Length(AddBackslash(szHeld))), AddBackslash(szHeld)) = 0 then Result := AddBackslash(szFinal) + Copy(szReal, Length(AddBackslash(szHeld)) + 1, Length(szReal));" },
+         new[] { "WalkedFinal", "the walks are named by another walk's handle", "0: begin handle := g_hProgramFolder; szHeld := g_szProgramFolderHeld; szReal := g_szProgramFolderReal; end; 1: begin handle := g_hBin; szHeld := g_szBinHeld; szReal := g_szBinReal; end; else begin handle := g_hControlPanel; szHeld := g_szControlPanelHeld; szReal := g_szControlPanelReal; end;" },
+         new[] { "CheckProgramFolders", "the record of a restart is not looked up by where the walks ended, so that another name for the same folder installs before the restart (check 5 of R1 to R4, 27 October 2026)", "@@if RestartRecordedForWalked(szWhy) then begin Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: " },
          new[] { "MakePlaceholder", "the file setup keeps in a folder it hardened in place is shared for deleting, kept after setup, or not made new", "handle := HoldFolder(AddBackslash(Folder) + HM_PLACEHOLDER_NAME, HM_PLACEHOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_CREATE_NEW, HM_PLACEHOLDER_FLAGS, 0);" },
          new[] { "MakePlaceholder", "the file setup keeps is taken where a link put the folder elsewhere", "if not MadeWhereNamed(HeldHandle, handle, HM_PLACEHOLDER_NAME, szWhere) then begin g_bFoldersChanged := true; Why := ~; Exit; end;" },
          new[] { "ReleasePlaceholders", "the files setup keeps are not let go, and so stay", "^procedure ReleasePlaceholders(); var index: Integer; begin for index := GetArrayLength(g_aPlaceholders) - 1 downto 0 do ReleaseFolder(g_aPlaceholders[index]); SetArrayLength(g_aPlaceholders, 0); end;$" },
@@ -1815,7 +1819,7 @@ namespace RegressionTests.Installation
          new[] { "AddRestartFolder", "3313d4d16987c5f5" },
          new[] { "BroadGroupSid", "963f744993f423ee" },
          new[] { "CheckFoldersBeforeTheStop", "a2e38e9db48a13e5" },
-         new[] { "CheckProgramFolders", "de4711c92ceb3ed2" },
+         new[] { "CheckProgramFolders", "044219bbb9f4e218" },
          new[] { "CheckWhatElseIsInside", "f2896ff3801fe3fb" },
          new[] { "CheckWhatIsInside", "5561af99098d653f" },
          new[] { "ControlPanelIsInstalled", "3ab47178b35c2ef7" },
@@ -1882,7 +1886,7 @@ namespace RegressionTests.Installation
          new[] { "ProfilesFolder", "510631cc6e496304" },
          new[] { "ProgramFolderMadeAsNamed", "4126d0c1e6214bee" },
          new[] { "RebuildFolderOfUntrustedOwner", "e5c2213894d2cbbf" },
-         new[] { "RecordRestartNeeded", "1b641736dcbd8348" },
+         new[] { "RecordRestartNeeded", "235f797c1cefa764" },
          new[] { "ReleaseHeldFolders", "f8c80f82d876588b" },
          new[] { "ReleasePlaceholders", "676d729ff0128f12" },
          new[] { "RemakeEmptyFolder", "f84455156da5337c" },
@@ -1890,6 +1894,7 @@ namespace RegressionTests.Installation
          new[] { "RemoveHeldFolder", "149850770478f53c" },
          new[] { "RemoveMadeFolder", "b58144954352dd5e" },
          new[] { "RestartNeededFor", "4ef98799db2b5bf9" },
+         new[] { "RestartRecordedForWalked", "070d8af3cd79ed43" },
          new[] { "RestoreServiceStart", "1ea970d4b76972e3" },
          new[] { "SayWriteEntriesKept", "d8f9b5d24a6298b6" },
          new[] { "SetupMadeBin", "1dbd327f1d6d18a6" },
@@ -1905,6 +1910,7 @@ namespace RegressionTests.Installation
          new[] { "TakenEntriesLetOthers", "eab4b339385484f1" },
          new[] { "TextOfSidAt", "f3c4acf66f69003e" },
          new[] { "VolumeKeepsPermissions", "7816988ef8c6a23f" },
+         new[] { "WalkedFinal", "471561a0e7f5164a" },
          new[] { "WalksAgree", "b3961e81811d817c" },
       };
 
@@ -2240,6 +2246,16 @@ namespace RegressionTests.Installation
          foreach (string name in new[] { "CheckWhatIsInside", "CheckWhatElseIsInside" })
             Assert.IsFalse(Regex.IsMatch(CodeBody(extension, name), @"\b(DeleteFile|RemoveDir|DelTree)\("), name + " removes an empty folder by its path.");
          StringAssert.Contains("HM_REG_OPTION_VOLATILE, HM_KEY_SET_VALUE_64", CodeBody(extension, "RecordRestartNeeded"), "What setup records until the restart is not volatile.");
+         // Recorded and looked up by where the walks ended too, so that another name for the
+         // same folder finds the record (check 5 of R1 to R4, 27 October 2026).
+         StringAssert.Contains("written := WriteKeyText(key, szFinal, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2);", CodeBody(extension, "RecordRestartNeeded"),
+            "The record of a restart is written by {app} as it was typed alone.");
+         string checkFolders = CodeBody(extension, "CheckProgramFolders");
+         Assert.Greater(checkFolders.IndexOf("if RestartRecordedForWalked(szWhy) then", StringComparison.Ordinal), checkFolders.IndexOf("WalksAgree(g_szControlPanelHeld", StringComparison.Ordinal),
+            "The record of a restart is not looked up by where the walks ended, once they are done.");
+         Assert.Less(checkFolders.IndexOf("if RestartRecordedForWalked(szWhy) then", StringComparison.Ordinal), checkFolders.IndexOf("NoteFoldersOthersCouldChange();", StringComparison.Ordinal),
+            "The record of a restart is looked up after setup has noted what to harden.");
+         StringAssert.Contains("FinalPathOfHeld(handle)", CodeBody(extension, "WalkedFinal"), "Where a walk ended is not read through its held handle.");
          StringAssert.Contains("HM_PLACEHOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_CREATE_NEW, HM_PLACEHOLDER_FLAGS", CodeBody(extension, "MakePlaceholder"),
             "The file setup keeps in a folder it hardened in place is shared for deleting, or kept after setup.");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_PLACEHOLDER_FLAGS\s*=\s*\$04000102;"), "The file setup keeps is not deleted when setup lets it go (FILE_FLAG_DELETE_ON_CLOSE).");

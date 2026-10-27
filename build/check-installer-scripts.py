@@ -786,7 +786,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
-                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers')
+                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -1289,8 +1289,20 @@ PROGRAM_FOLDER_STATEMENTS = (
      "^function CheckFoldersBeforeTheStop(Earlier: String): String; begin Result := CheckProgramFolders(Earlier); if Result = '' then Result := HardenForRestart(); end;$"),
     ('RestartNeededFor', 'what setup recorded until Windows restarts is read elsewhere, or not by the program folder\'s name',
      "^function RestartNeededFor(App: String; var What: String): Boolean; begin What := ''; Result := RegQueryStringValue(HKLM64, HM_RESTART_KEY, App, What); end;$"),
-    ('RecordRestartNeeded', 'what is recorded until Windows restarts is written where a restart does not take it away, or by another name than the program folder\'s',
-     "written := MakeVolatileKey(HM_HKEY_LOCAL_MACHINE, HM_RESTART_KEY, 0, 0, HM_REG_OPTION_VOLATILE, HM_KEY_SET_VALUE_64, 0, key, disposition); if written = 0 then begin written := WriteKeyText(key, App, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); CloseKey(key); end;"),
+    ('RecordRestartNeeded', 'what is recorded until Windows restarts is written where a restart does not take it away, or by another name than the program folder\'s, or not also by where the walks of the program folder, Bin and ControlPanel ended (check 5 of R1 to R4, 27 October 2026)',
+     "written := MakeVolatileKey(HM_HKEY_LOCAL_MACHINE, HM_RESTART_KEY, 0, 0, HM_REG_OPTION_VOLATILE, HM_KEY_SET_VALUE_64, 0, key, disposition); if written = 0 then begin written := WriteKeyText(key, App, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); "
+     "for which := 0 to 2 do begin szFinal := WalkedFinal(which); if (written = 0) and (szFinal <> '') and (not IsVolumeRoot(szFinal)) then written := WriteKeyText(key, szFinal, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2); end; CloseKey(key); end;"),
+    ('RestartRecordedForWalked', 'a record by where a walk ended is not looked up, or one of another folder, or of none, is taken for it (check 5 of R1 to R4, 27 October 2026)',
+     "if not RegGetValueNames(HKLM64, HM_RESTART_KEY, names) then Exit; for index := 0 to GetArrayLength(names) - 1 do if (not Result) and (CompareText(Copy(names[index], 1, 4), '\\\\?\\') = 0) then "
+     "for which := 0 to 2 do begin szWalked := WalkedFinal(which); if (not Result) and IsAtOrBelow(szWalked, names[index]) then begin Result := true;"),
+    ('WalkedFinal', 'where a walk ended is named by a path rather than by its held handle, or a folder not there yet by the one above it alone (check 5 of R1 to R4, 27 October 2026)',
+     "if (handle = -1) or (szHeld = '') or (szReal = '') then Exit; szFinal := FinalPathOfHeld(handle); if szFinal = '' then Exit; if CompareText(szHeld, szReal) = 0 then Result := szFinal "
+     "else if CompareText(Copy(szReal, 1, Length(AddBackslash(szHeld))), AddBackslash(szHeld)) = 0 then Result := AddBackslash(szFinal) + Copy(szReal, Length(AddBackslash(szHeld)) + 1, Length(szReal));"),
+    ('WalkedFinal', 'the walks are named by another walk\'s handle',
+     "0: begin handle := g_hProgramFolder; szHeld := g_szProgramFolderHeld; szReal := g_szProgramFolderReal; end; 1: begin handle := g_hBin; szHeld := g_szBinHeld; szReal := g_szBinReal; end; "
+     "else begin handle := g_hControlPanel; szHeld := g_szControlPanelHeld; szReal := g_szControlPanelReal; end;"),
+    ('CheckProgramFolders', 'the record of a restart is not looked up by where the walks ended, so that another name for the same folder installs before the restart (check 5 of R1 to R4, 27 October 2026)',
+     "@@if RestartRecordedForWalked(szWhy) then begin Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: "),
     ('MakePlaceholder', 'the file setup keeps in a folder it hardened in place is shared for deleting, kept after setup, or not made new',
      "handle := HoldFolder(AddBackslash(Folder) + HM_PLACEHOLDER_NAME, HM_PLACEHOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_CREATE_NEW, HM_PLACEHOLDER_FLAGS, 0);"),
     ('MakePlaceholder', 'the file setup keeps is taken where a link put the folder elsewhere',
@@ -1473,7 +1485,7 @@ PROGRAM_FOLDER_CODE = (
     ('AddRestartFolder', '3313d4d16987c5f5'),
     ('BroadGroupSid', '963f744993f423ee'),
     ('CheckFoldersBeforeTheStop', 'a2e38e9db48a13e5'),
-    ('CheckProgramFolders', 'de4711c92ceb3ed2'),
+    ('CheckProgramFolders', '044219bbb9f4e218'),
     ('CheckWhatElseIsInside', 'f2896ff3801fe3fb'),
     ('CheckWhatIsInside', '5561af99098d653f'),
     ('ControlPanelIsInstalled', '3ab47178b35c2ef7'),
@@ -1540,7 +1552,7 @@ PROGRAM_FOLDER_CODE = (
     ('ProfilesFolder', '510631cc6e496304'),
     ('ProgramFolderMadeAsNamed', '4126d0c1e6214bee'),
     ('RebuildFolderOfUntrustedOwner', 'e5c2213894d2cbbf'),
-    ('RecordRestartNeeded', '1b641736dcbd8348'),
+    ('RecordRestartNeeded', '235f797c1cefa764'),
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
     ('RemakeEmptyFolder', 'f84455156da5337c'),
@@ -1548,6 +1560,7 @@ PROGRAM_FOLDER_CODE = (
     ('RemoveHeldFolder', '149850770478f53c'),
     ('RemoveMadeFolder', 'b58144954352dd5e'),
     ('RestartNeededFor', '4ef98799db2b5bf9'),
+    ('RestartRecordedForWalked', '070d8af3cd79ed43'),
     ('RestoreServiceStart', '1ea970d4b76972e3'),
     ('SayWriteEntriesKept', 'd8f9b5d24a6298b6'),
     ('SetupMadeBin', '1dbd327f1d6d18a6'),
@@ -1563,6 +1576,7 @@ PROGRAM_FOLDER_CODE = (
     ('TakenEntriesLetOthers', 'eab4b339385484f1'),
     ('TextOfSidAt', 'f3c4acf66f69003e'),
     ('VolumeKeepsPermissions', '7816988ef8c6a23f'),
+    ('WalkedFinal', '471561a0e7f5164a'),
     ('WalksAgree', 'b3961e81811d817c'),
 )
 
@@ -2588,6 +2602,18 @@ def negative_controls(texts):
          altered(texts, EXTENSION, '(not HandsDownWriteTo(pFolderDescriptor, pFolderDacl, pAce + 8))', 'true')),
         ('a folder whose list cannot be read taken to hand every right down (check 5 of R1 to R4)',
          altered(texts, EXTENSION, '   if pFolderDescriptor = 0 then\n      Exit;\n   if pFolderDacl = 0 then', '   if pFolderDacl = 0 then')),
+        ('the record of a restart not looked up by where the walks ended (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '   if RestartRecordedForWalked(szWhy) then\n', '   if false then\n')),
+        ('the record of a restart written by {app} alone (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, "         if (written = 0) and (szFinal <> '') and (not IsVolumeRoot(szFinal)) then\n", '         if false then\n')),
+        ('the root of a volume recorded, so that nothing on it installs before a restart (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, " and (not IsVolumeRoot(szFinal)) then\n", ' then\n')),
+        ('a record by a path rather than where a walk ended taken (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, "(CompareText(Copy(names[index], 1, 4), '\\\\?\\') = 0)", '(true)')),
+        ('where the walk of a program folder not there yet ended named by the folder above it alone (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '      Result := AddBackslash(szFinal) + Copy(szReal, Length(AddBackslash(szHeld)) + 1, Length(szReal));', '      Result := szFinal;')),
+        ('Bin\'s walk named by the program folder\'s handle (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '1: begin handle := g_hBin;', '1: begin handle := g_hProgramFolder;')),
         ('a stale entry found but its folder not hardened for a restart (check 5 of R1 to R4)',
          altered(texts, EXTENSION, '      szWhat := StaleItemIn(Folder);\n', "      szWhat := '';\n")),
         ('an inherited entry that lets another account change a folder not counted for the restart rule (check 5 of R1 to R4)',

@@ -4249,6 +4249,35 @@ begin
              'setup again, which makes a new one with permissions of its own, or install into another folder';
 end;
 
+// Where the walk of the program folder (Which 0), Bin (1) or ControlPanel (2) ended, by the
+// path its held handle gives (FinalPathOfHeld, \\?\Volume{...}\...), with the names not
+// there yet after it, whatever drive letter, mount point, link or short name {app} reached
+// it by; '' when it was not walked or cannot be read (check 5 of R1 to R4, 27 October 2026).
+function WalkedFinal(Which: Integer): String;
+var
+   handle: Integer;
+   szHeld: String;
+   szReal: String;
+   szFinal: String;
+begin
+   Result := '';
+   case Which of
+      0: begin handle := g_hProgramFolder; szHeld := g_szProgramFolderHeld; szReal := g_szProgramFolderReal; end;
+      1: begin handle := g_hBin; szHeld := g_szBinHeld; szReal := g_szBinReal; end;
+   else
+      begin handle := g_hControlPanel; szHeld := g_szControlPanelHeld; szReal := g_szControlPanelReal; end;
+   end;
+   if (handle = -1) or (szHeld = '') or (szReal = '') then
+      Exit;
+   szFinal := FinalPathOfHeld(handle);
+   if szFinal = '' then
+      Exit;
+   if CompareText(szHeld, szReal) = 0 then
+      Result := szFinal
+   else if CompareText(Copy(szReal, 1, Length(AddBackslash(szHeld))), AddBackslash(szHeld)) = 0 then
+      Result := AddBackslash(szFinal) + Copy(szReal, Length(AddBackslash(szHeld)) + 1, Length(szReal));
+end;
+
 // Work item 78's R2 and R3: whether setup has recorded, since Windows last started,
 // that it is not to install into App until Windows has restarted (RecordRestartNeeded),
 // and what it recorded. The key is volatile: Windows does not keep it past a restart.
@@ -4256,6 +4285,38 @@ function RestartNeededFor(App: String; var What: String): Boolean;
 begin
    What := '';
    Result := RegQueryStringValue(HKLM64, HM_RESTART_KEY, App, What);
+end;
+
+// Work item 78's R2 and R3 (check 5 of R1 to R4, 27 October 2026): whether setup has
+// recorded, since Windows last started, a folder at or above where the walk of the program
+// folder, Bin or ControlPanel ended (WalkedFinal) - by the path a held handle gave, as
+// RecordRestartNeeded writes it beside {app} - so that another name for the same folder, an
+// administrators' junction or mount point to it, a short name or a second drive letter of
+// its volume, finds the record too; and what it recorded. Asked once the walks are done,
+// which change nothing.
+function RestartRecordedForWalked(var What: String): Boolean;
+var
+   names: TArrayOfString;
+   index: Integer;
+   which: Integer;
+   szWalked: String;
+begin
+   Result := false;
+   What := '';
+   if not RegGetValueNames(HKLM64, HM_RESTART_KEY, names) then
+      Exit;
+   for index := 0 to GetArrayLength(names) - 1 do
+      if (not Result) and (CompareText(Copy(names[index], 1, 4), '\\?\') = 0) then
+         for which := 0 to 2 do
+         begin
+            szWalked := WalkedFinal(which);
+            if (not Result) and IsAtOrBelow(szWalked, names[index]) then
+            begin
+               Result := true;
+               if not RegQueryStringValue(HKLM64, HM_RESTART_KEY, names[index], What) then
+                  What := names[index];
+            end;
+         end;
 end;
 
 // Work item 78's R2 and R3: that setup is not to install into App until Windows has
@@ -4266,12 +4327,18 @@ end;
 // another account started while it could change a folder or a file there keeps a
 // handle that keeps that right whatever the permissions say after, and a restart is the
 // one thing that closes it. What says what setup did, for the refusal of a later run.
+// Recorded by App, as {app} names it, and by where the walks of the program folder, Bin and
+// ControlPanel ended (WalkedFinal), which a later run looks up once its own walks are done
+// (RestartRecordedForWalked): another name for the same folder finds it (check 5 of R1 to
+// R4, 27 October 2026).
 procedure RecordRestartNeeded(App: String; What: String);
 var
    key: cardinal;
    disposition: cardinal;
    written: Integer;
+   which: Integer;
    szText: String;
+   szFinal: String;
 begin
    key := 0;
    disposition := 0;
@@ -4280,6 +4347,12 @@ begin
    if written = 0 then
    begin
       written := WriteKeyText(key, App, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2);
+      for which := 0 to 2 do
+      begin
+         szFinal := WalkedFinal(which);
+         if (written = 0) and (szFinal <> '') and (not IsVolumeRoot(szFinal)) then
+            written := WriteKeyText(key, szFinal, 0, HM_REG_SZ, szText, (Length(szText) + 1) * 2);
+      end;
       CloseKey(key);
    end;
    if written = 0 then
@@ -4679,6 +4752,16 @@ begin
    begin
       Result := 'Setup does not install into ' + szApp + ': a folder on the way to it, to Bin or to ControlPanel changed while setup was looking at it - a folder or a link made, ' +
                 'or one removed - so setup does not install there; run setup again to have it looked at. Nothing has been changed.';
+      Exit;
+   end;
+   // Work item 78's R2 and R3 (check 5 of R1 to R4, 27 October 2026): the record of a
+   // restart looked up again by where the walks ended, so that another name for a folder
+   // setup hardened, or refused, does not find setup willing to install before the restart.
+   if RestartRecordedForWalked(szWhy) then
+   begin
+      Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: since Windows last started, setup has recorded (' + szWhy + ', in HKLM\' +
+                HM_RESTART_KEY + ', which Windows does not keep past a restart) that a program another account started may hold a folder or a file of the same folder, ' +
+                'reached by another name, open with the right to change it, which only a restart takes away. Restart Windows, and run setup again. Nothing has been changed.';
       Exit;
    end;
    if IsVolumeRoot(g_szBinReal) or IsVolumeRoot(g_szControlPanelReal) then
