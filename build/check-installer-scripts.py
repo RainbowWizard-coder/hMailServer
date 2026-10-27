@@ -2072,6 +2072,24 @@ def check_access_masks(texts, problems):
 # What may run in CurStepChanged at ssInstall, before the files and so before the folders
 # setup prepared are read again after them: the state it reads and the settings file's move.
 SS_INSTALL_CALLS = ('IsNewDatabase', 'GetServiceAccountBefore', 'IsNewService', 'MoveIni')
+# The sections whose entries Inno Setup processes during the install, and so may name a
+# procedure to run before or after one (BeforeInstall, AfterInstall), or a function it
+# calls then (Check:, {code:...}) - check 5 of R1 to R4, 27 October 2026.
+INSTALL_SECTIONS = ('Files', 'Dirs', 'Icons', 'INI', 'Registry', 'Run', 'UninstallRun', 'InstallDelete', 'UninstallDelete', 'Tasks', 'Components', 'Types')
+# What a [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, may
+# run: the .NET runtime this installer carries, from {tmp}.
+RUN_BEFORE_POSTINSTALL = r'{tmp}\{#DOTNET_RUNTIME_FILE}'
+# The functions of the [Code] those entries name, which Inno Setup calls during the
+# install: the .NET runtime's check, the last page's, and the folders setup made, which
+# section_dirs.iss gives the uninstaller.
+INSTALL_TIME_FUNCTIONS = ('DotNetDesktopMissing', 'FoldersWereAsPrepared', 'FolderMadeBySetup', 'SetupMadeFolder', 'SetupMadeProgramFolder', 'SetupMadeBin',
+                          'SetupMadeControlPanel')
+# What lets go of what setup holds, or keeps in the folders it prepared, and where alone it
+# is called: the check that starts again, the end of setup, the files setup keeps once the
+# folders are read again after the files, and a folder made again or removed.
+RELEASE_CALLERS = (('ReleaseHeldFolders', ('CheckProgramFolders', 'DeinitializeSetup')),
+                   ('ReleasePlaceholders', ('CurStepChanged', 'DeinitializeSetup')),
+                   ('LetGoOfHeld', ('RemakeEmptyFolder', 'RemoveMadeFolder')))
 
 
 def check_install_sections(texts, problems):
@@ -2080,7 +2098,13 @@ def check_install_sections(texts, problems):
     prepared - no [Dirs] or [Files] entry under {app}, or a folder setup made, gives
     permissions (Inno Setup applies a Permissions: parameter as it makes the folder or copies
     the file, which would undo R1 and R2); no [Run] entry without postinstall, which Inno
-    Setup runs before ssPostInstall, runs a program from {app}; no file under {app} is
+    Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with
+    nothing of {app} or of a {code:} in it; no entry of any section names a procedure to
+    run before or after it (BeforeInstall, AfterInstall), and the functions entries name
+    for Inno Setup to call during the install (Check:, {code:...}) are INSTALL_TIME_FUNCTIONS;
+    ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now
+    alone (RELEASE_CALLERS); CurInstallProgressChanged is not defined, and CurPageChanged
+    runs no program and lets nothing go (check 5 of R1 to R4); no file under {app} is
     registered during the copy (regserver, regtypelib); no folder but the eleven setup made
     is given to the uninstaller whatever is in it (uninsalwaysuninstall); and nothing runs
     at ssInstall but what reads the state and moves the settings file. And whether the
@@ -2117,6 +2141,56 @@ def check_install_sections(texts, problems):
         for call in re.findall(r'\b(\w+)\s*\(', block):
             if call not in SS_INSTALL_CALLS:
                 problems.append('%s: CurStepChanged runs %s at ssInstall, before the files and before the folders setup prepared are read again' % (EXTENSION, call))
+    # Check 5 of R1 to R4 (27 October 2026): what Inno Setup runs of the [Code] during the
+    # install, and what it runs as a program, outside CurStepChanged. No entry of any
+    # section names a procedure to run before or after it is installed (BeforeInstall,
+    # AfterInstall), which would run between PrepareProgramFolders and the look after the
+    # files; the functions entries name (Check:, {code:...}), which Inno Setup calls during
+    # the install too, are those held here; no [Run] entry without postinstall, which runs
+    # before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of
+    # {app} or of a {code:} among its parameters; the holds and the files setup keeps are
+    # let go only where they are let go now; and no event function Inno Setup calls during
+    # the install - CurInstallProgressChanged, CurPageChanged - runs a program or lets
+    # them go.
+    called = set()
+    for name, text in sorted(texts.items()):
+        if not name.lower().endswith('.iss') or '/' in name:
+            continue
+        for section in INSTALL_SECTIONS:
+            for number, entry in section_entries(text, section):
+                for hook in ('BeforeInstall', 'AfterInstall'):
+                    if parameter(entry, hook) is not None:
+                        problems.append('%s:%d: a [%s] entry runs %s as its %s, during the install and before the folders setup prepared are read again'
+                                        % (name, number, section, parameter(entry, hook), hook))
+                called.update(re.findall(r'\{code:(\w+)', entry))
+                check = parameter(entry, 'Check')
+                if check:
+                    called.update(re.findall(r'\b(?!not\b|and\b|or\b)(\w+)\s*(?:\(|$|\s)', check.strip()))
+        for number, entry in section_entries(text, 'Run'):
+            flags = (parameter(entry, 'Flags') or '').lower().split()
+            if 'postinstall' in flags:
+                continue
+            # The whole entry, since a parameter's doubled quotes end what parameter() reads.
+            arguments = entry.lower()
+            if (parameter(entry, 'Filename') or '') != RUN_BEFORE_POSTINSTALL or '{app}' in arguments or '{code:' in arguments:
+                problems.append('%s:%d: a [Run] entry without postinstall runs %s %s, which Inno Setup runs before ssPostInstall and so before the folders setup '
+                                'prepared are read again: only the .NET runtime from {tmp} may run then' % (name, number, parameter(entry, 'Filename'), arguments))
+    if called != set(INSTALL_TIME_FUNCTIONS):
+        problems.append('the functions entries of the installer\'s sections name for Inno Setup to call during the install are %s, where work item 78 holds them to %s'
+                        % (', '.join(sorted(called)), ', '.join(sorted(INSTALL_TIME_FUNCTIONS))))
+    bodies = routine_bodies(ext)
+    for routine, callers in RELEASE_CALLERS:
+        found = sorted(body[0] for key, body in bodies.items() if key != routine.lower() and re.search(r'\b%s\s*\(' % routine, CODE_TOKEN.sub(' ', body[1])))
+        if found != sorted(callers):
+            problems.append('%s: %s is called from %s, where work item 78 holds it to %s: what setup holds, or keeps in the folders it prepared, would be let go '
+                            'before the look after the files' % (EXTENSION, routine, ', '.join(found) or 'nowhere', ', '.join(callers)))
+    if 'curinstallprogresschanged' in bodies:
+        problems.append('%s: CurInstallProgressChanged, which Inno Setup calls during the copy, is defined: nothing of the [Code] runs then but CurStepChanged\'s steps' % EXTENSION)
+    for event in ('CurPageChanged',):
+        body = CODE_TOKEN.sub(' ', bodies.get(event.lower(), (event, ''))[1])
+        for call in ('Exec', 'ShellExec', 'ExecAsOriginalUser', 'ShellExecAsOriginalUser', 'ProtectFolders') + tuple(routine for routine, _ in RELEASE_CALLERS):
+            if re.search(r'\b%s\s*\(' % call, body):
+                problems.append('%s: %s, which Inno Setup calls as the install begins, runs %s' % (EXTENSION, event, call))
     writers = {}
     for key, (routine, body) in routine_bodies(ext).items():
         for value in re.findall(r'g_bFoldersChecked\s*:=\s*(\w+)', body):
@@ -2973,6 +3047,55 @@ def negative_controls(texts):
          altered(texts, EXTENSION, "      if not MakeFolders(g_szProgramFolderReal, hMade, AddBackslash(g_szProgramFolderReal) + 'Bin', 1, hInside, szWhy) then", '      if false then')),
         ('a refusal of PrepareToInstallRefusal\'s, before the program folders are prepared, made a note',
          altered(texts, EXTENSION, "         Result := 'The database given with ' + g_szDatabaseFrom", "         Log('The database given with ' + g_szDatabaseFrom")),
+        # What Inno Setup runs outside the [Code]'s steps during the install (check 5 of R1
+        # to R4, 27 October 2026: its mutations 5.01 to 5.06 and 5.29 to 5.31 passed).
+        ('a [Files] entry running hMailServer.exe /ProtectFolders as soon as it is copied (AfterInstall: ProtectFolders)',
+         altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;',
+                 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; AfterInstall: ProtectFolders; Components: server admintools;')),
+        ('a [Files] entry letting every hold go during the copy (AfterInstall: ReleaseHeldFolders)',
+         altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;',
+                 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; AfterInstall: ReleaseHeldFolders; Components: server admintools;')),
+        ('a [Files] entry letting the files setup keeps go before the first file (BeforeInstall: ReleasePlaceholders)',
+         altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;',
+                 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete; BeforeInstall: ReleasePlaceholders; Components: server admintools;')),
+        ('CurInstallProgressChanged letting every hold and the files setup keeps go during the copy',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n\tReleasePlaceholders();\n\tReleaseHeldFolders();\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('CurInstallProgressChanged defined at all, doing nothing of R1 to R4',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n\tLog(IntToStr(CurProgress));\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('a [Run] entry without postinstall starting Bin\\hMailServer.exe through {cmd} before ssPostInstall',
+         altered(texts, 'section_run.iss', 'Filename: "{app}\\ControlPanel\\hMailCP.exe";',
+                 'Filename: "{cmd}"; Parameters: "/c ""{app}\\Bin\\hMailServer.exe"" /RegisterTypeLib"; Flags: runhidden; Components: server;\nFilename: "{app}\\ControlPanel\\hMailCP.exe";')),
+        ('a [Run] entry without postinstall starting Bin\\DBSetupQuick.exe through {sys}\\cmd.exe before ssPostInstall',
+         altered(texts, 'section_run.iss', 'Filename: "{app}\\ControlPanel\\hMailCP.exe";',
+                 'Filename: "{sys}\\cmd.exe"; Parameters: "/c ""{app}\\Bin\\DBSetupQuick.exe"""; Flags: runhidden; Components: server;\nFilename: "{app}\\ControlPanel\\hMailCP.exe";')),
+        ('a [Run] entry without postinstall starting Bin\\hMailServer.exe by a {code:} file name',
+         altered(texts, 'section_run.iss', 'Filename: "{app}\\ControlPanel\\hMailCP.exe";',
+                 'Filename: "{code:FolderMadeBySetup|0}\\Bin\\hMailServer.exe"; Parameters: "/RegisterTypeLib"; Flags: runhidden; Components: server;\nFilename: "{app}\\ControlPanel\\hMailCP.exe";')),
+        ('the .NET runtime\'s [Run] entry given a parameter of {app}',
+         altered(texts, 'section_run.iss', 'Parameters: "/install /quiet /norestart";', 'Parameters: "/install /quiet /norestart /log ""{app}\\Logs\\dotnet.log""";')),
+        ('an [INI] entry running /ProtectFolders during the install (AfterInstall: ProtectFolders)',
+         altered(texts, 'section_ini.iss', 'Filename: "{app}\\Bin\\hMailServer.INI"; Section: "Directories"; Key: "ProgramFolder"; String: "{app}";',
+                 'Filename: "{app}\\Bin\\hMailServer.INI"; Section: "Directories"; Key: "ProgramFolder"; String: "{app}"; AfterInstall: ProtectFolders;')),
+        ('an [Icons] entry letting the files setup keeps go during the install (AfterInstall: ReleasePlaceholders)',
+         altered(texts, 'section_icons.iss', 'Name: "{group}\\hMailServer Database Setup"; Filename: "{app}\\Bin\\DBSetup.exe"; Components: server;',
+                 'Name: "{group}\\hMailServer Database Setup"; Filename: "{app}\\Bin\\DBSetup.exe"; Components: server; AfterInstall: ReleasePlaceholders')),
+        ('a [Dirs] entry letting every hold go as Inno Setup makes Temp (AfterInstall: ReleaseHeldFolders)',
+         altered(texts, DIRS, 'Name: "{app}\\Temp"; Components: server;', 'Name: "{app}\\Temp"; Components: server; AfterInstall: ReleaseHeldFolders')),
+        ('a [Dirs] entry\'s Check a function the check does not hold, which Inno Setup calls during the install',
+         altered(texts, DIRS, 'Name: "{app}\\Temp"; Components: server;', 'Name: "{app}\\Temp"; Components: server; Check: ReleaseAndAllow')),
+        ('ReleaseHeldFolders called from CurPageChanged, as the install begins',
+         altered(texts, EXTENSION, '   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;',
+                 '   ReleaseHeldFolders();\n   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;')),
+        ('CurPageChanged running a program as the install begins',
+         altered(texts, EXTENSION, '   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;',
+                 '   Exec(\'cmd.exe\', \'\', \'\', SW_HIDE, ewNoWait, code);\n   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;')),
+        ('ReleasePlaceholders called from RunPostInstallTasks too',
+         altered(texts, EXTENSION, '      szCreate: String;\nbegin\n   Result := true;\n   bRuntimeReady := true;\n',
+                 '      szCreate: String;\nbegin\n   ReleasePlaceholders();\n   Result := true;\n   bRuntimeReady := true;\n')),
+        ('LetGoOfHeld called from HardenHeldFolder, letting a folder go before it is hardened',
+         altered(texts, EXTENSION, '   bUsers := EveryUserMayRead(pDacl);\n', '   LetGoOfHeld(HeldHandle);\n   bUsers := EveryUserMayRead(pDacl);\n')),
     ]
 
     # Every constant, Windows declaration and routine work item 78's check holds whole,

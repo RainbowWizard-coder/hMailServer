@@ -2197,10 +2197,11 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs a program from {app}; no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
+      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of {app} or of a {code:} in it; no entry names a procedure to run before or after it (BeforeInstall, AfterInstall), and the functions entries name for Inno Setup to call during the install are those held; ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now alone, CurInstallProgressChanged is not defined and CurPageChanged runs no program (check 5 of R1 to R4, 27 October 2026: nine one-line changes of that kind passed); no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
       public void WhatInnoSetupDoesOutsideTheCodeKeepsWhatSetupPrepared()
       {
          var failed = new List<string>();
+         var called = new HashSet<string>();
          foreach (FileInfo script in InstallerScripts())
          {
             string text = File.ReadAllText(script.FullName);
@@ -2222,9 +2223,31 @@ namespace RegressionTests.Installation
                string[] flags = (EntryParameter(entry.Value, "Flags") ?? "").ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                if ((EntryParameter(entry.Value, "Filename") ?? "").ToLowerInvariant().StartsWith("{app}") && !flags.Contains("postinstall"))
                   failed.Add(script.Name + ":" + entry.Key + " runs a program from {app} before ssPostInstall");
+               // Only the .NET runtime from {tmp} runs before ssPostInstall, with nothing of
+               // {app} or of a {code:} in it (check 5 of R1 to R4, 27 October 2026).
+               string whole = entry.Value.ToLowerInvariant();
+               if (!flags.Contains("postinstall") && (EntryParameter(entry.Value, "Filename") != @"{tmp}\{#DOTNET_RUNTIME_FILE}" || whole.Contains("{app}") || whole.Contains("{code:")))
+                  failed.Add(script.Name + ":" + entry.Key + " runs something other than the .NET runtime from {tmp} before ssPostInstall");
             }
+            // No entry names a procedure to run before or after it, and the functions entries
+            // name for Inno Setup to call during the install are those held here.
+            foreach (string section in new[] { "Files", "Dirs", "Icons", "INI", "Registry", "Run", "UninstallRun", "InstallDelete", "UninstallDelete", "Tasks", "Components", "Types" })
+               foreach (KeyValuePair<int, string> entry in SectionEntries(text, section))
+               {
+                  foreach (string hook in new[] { "BeforeInstall", "AfterInstall" })
+                     if (EntryParameter(entry.Value, hook) != null)
+                        failed.Add(script.Name + ":" + entry.Key + " runs " + EntryParameter(entry.Value, hook) + " as its " + hook + " during the install");
+                  foreach (Match code in Regex.Matches(entry.Value, @"\{code:(\w+)"))
+                     called.Add(code.Groups[1].Value);
+                  string check = EntryParameter(entry.Value, "Check");
+                  if (!string.IsNullOrEmpty(check))
+                     foreach (Match name in Regex.Matches(check.Trim(), @"\b(?!not\b|and\b|or\b)(\w+)\s*(?:\(|$|\s)"))
+                        called.Add(name.Groups[1].Value);
+               }
          }
          CollectionAssert.IsEmpty(failed, "What Inno Setup does outside the [Code] undoes what setup prepared, or runs it before it is read again: " + string.Join("; ", failed));
+         CollectionAssert.AreEquivalent(new[] { "DotNetDesktopMissing", "FoldersWereAsPrepared", "FolderMadeBySetup", "SetupMadeFolder", "SetupMadeProgramFolder", "SetupMadeBin", "SetupMadeControlPanel" },
+            called.ToArray(), "The functions the installer's sections name for Inno Setup to call during the install are not those held.");
 
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
          string step = CodeBody(extension, "CurStepChanged");
@@ -2239,6 +2262,26 @@ namespace RegressionTests.Installation
          CollectionAssert.AreEquivalent(new[] { "CheckProgramFolders=true", "PrepareProgramFolders=false" }, writers,
             "Whether the folders were checked is set or cleared elsewhere than in CheckProgramFolders and PrepareProgramFolders.");
          StringAssert.Contains("ProtectFolders();", CodeBody(extension, "RunPostInstallTasks"), "RunPostInstallTasks no longer runs /ProtectFolders after the files.");
+
+         // What lets go of what setup holds, or keeps in the folders it prepared, is called
+         // where it is now alone; CurInstallProgressChanged, which Inno Setup calls during the
+         // copy, is not defined; and CurPageChanged runs no program and lets nothing go.
+         var releases = new Dictionary<string, string[]>
+         {
+            { "ReleaseHeldFolders", new[] { "CheckProgramFolders", "DeinitializeSetup" } },
+            { "ReleasePlaceholders", new[] { "CurStepChanged", "DeinitializeSetup" } },
+            { "LetGoOfHeld", new[] { "RemakeEmptyFolder", "RemoveMadeFolder" } },
+         };
+         var routines = RoutineBodies(extension);
+         foreach (KeyValuePair<string, string[]> release in releases)
+            CollectionAssert.AreEquivalent(release.Value,
+               routines.Where(pair => pair.Key != release.Key.ToLowerInvariant() && Regex.IsMatch(Regex.Replace(pair.Value[1], @"//[^\n]*|\{[^}]*\}|'(?:[^'\n]|'')*'", " "), @"\b" + release.Key + @"\s*\("))
+                       .Select(pair => pair.Value[0]).ToArray(),
+               release.Key + " is called from elsewhere than " + string.Join(" and ", release.Value) + ", so that what setup holds is let go before the look after the files.");
+         Assert.IsFalse(routines.ContainsKey("curinstallprogresschanged"), "CurInstallProgressChanged, which Inno Setup calls during the copy, is defined.");
+         string page = Regex.Replace(CodeBody(extension, "CurPageChanged"), @"//[^\n]*|'(?:[^'\n]|'')*'", " ");
+         foreach (string call in new[] { "Exec", "ShellExec", "ExecAsOriginalUser", "ShellExecAsOriginalUser", "ProtectFolders", "ReleaseHeldFolders", "ReleasePlaceholders", "LetGoOfHeld" })
+            Assert.IsFalse(Regex.IsMatch(page, @"\b" + call + @"\s*\("), "CurPageChanged, which Inno Setup calls as the install begins, runs " + call + ".");
       }
 
       [Test]
