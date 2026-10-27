@@ -252,6 +252,16 @@ var
   g_aRestartHandles: array of Integer;
   g_szRestartWhy: String;
   g_aPlaceholders: array of Integer;
+  // For each of g_aRestartFolders, whether it is a data folder - Data, Logs, Temp or
+  // Database of the earlier installation, or where such a folder's link leads - that
+  // another account owned, which HardenForRestart takes keeping the service's entries
+  // (HardenDataFolder); and a program, a library, a script or a settings file there before
+  // this installation that an entry it inherited where it was before, and which the folder
+  // it is in does not hand down, let another account change, with what it let and whom
+  // (NoteFolderOthersCouldChange) - check 5 of R1 to R4, 27 October 2026.
+  g_aRestartData: array of Boolean;
+  g_aStaleItems: array of String;
+  g_aStaleWhat: array of String;
   // Set when PrepareProgramFolders, after the service was stopped, found a folder it
   // prepares changed - made a link, or something put in it - which PrepareToInstall
   // then refuses with the service set not to start, as after the files.
@@ -2407,15 +2417,20 @@ end;
 //     kept as an entry of its own; every other inherited entry dropped, and named
 //     when it gave a right to write;
 //   - BUILTIN\Users Read & execute, handed down, when every user could read the
-//     folder before (Users).
+//     folder before (Users);
+//   - for a data folder (Service: HardenDataFolder), every entry of the service's,
+//     NT SERVICE\hMailServer, its own or inherited, kept as an entry of the folder's own
+//     whatever it gives - the Modify /GrantServiceAccess gives it on Data, Logs, Temp and
+//     Database - and no entry for Users added (Users false): /ProtectFolders makes the
+//     data folders private after the files.
 // Deny entries first, as Windows' canonical order has them. pDacl is the folder's
 // list as it was read through the handle that holds it (HardenHeldFolder). The
 // Administrators are made the owner with takeown.exe /A, which takes the folder with
 // their privilege whatever its list gives them - its owner may have left them no
 // right to change its owner or its permissions - and the list is then written, which
 // its new owner may always do. Only the earlier installation's own folders come here
-// (HardenHeldFolder). True when it was written; false with Why otherwise.
-function RebuildFolderOfUntrustedOwner(Folder: String; pDacl: cardinal; Users: Boolean; var Why: String): Boolean;
+// (HardenHeldFolder, HardenDataFolder). True when it was written; false with Why otherwise.
+function RebuildFolderOfUntrustedOwner(Folder: String; pDacl: cardinal; Users: Boolean; Service: Boolean; var Why: String): Boolean;
 var
    info: ACL_SIZE_INFO;
    head: ACE_START;
@@ -2505,7 +2520,7 @@ begin
                begin
                   if aceType <> HM_ACCESS_ALLOWED then
                      szDropped := szDropped + ', an entry of its own of another kind'
-                  else if writes and (not IsTrustedSid(pAce + 8)) then
+                  else if writes and (not IsTrustedSid(pAce + 8)) and (not (Service and SidIs(pAce + 8, HM_SERVICE_SID))) then
                      szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s own'
                   else
                      ok := AddAsOwnEntry(pNew, pAce);
@@ -2517,7 +2532,7 @@ begin
                begin
                   if aceType <> HM_ACCESS_ALLOWED then
                      szDropped := szDropped + ', an inherited entry of another kind'
-                  else if SidIs(pAce + 8, HM_SERVICE_SID) and (not writes) then
+                  else if SidIs(pAce + 8, HM_SERVICE_SID) and (Service or (not writes)) then
                      ok := AddAsOwnEntry(pNew, pAce)
                   else if writes and (not SidIs(pAce + 8, 'S-1-5-18')) and (not SidIs(pAce + 8, 'S-1-5-32-544')) then
                      szDropped := szDropped + ', ' + SidNameAt(pAce + 8) + '''s inherited';
@@ -2531,6 +2546,8 @@ begin
    end;
 
    szSaid := 'no entry for Users, as no user could read it';
+   if Service then
+      szSaid := 'no entry for Users, as for a data folder, and the service''s entries kept';
    if ok and Users then
    begin
       pSid := 0;
@@ -2648,8 +2665,9 @@ end;
 // handle that holds it: its list inherits nothing, its owner is SYSTEM, the
 // Administrators or TrustedInstaller, and no entry lets a group of every user write
 // (LetsEveryUserWrite) - nor, when AnyAccount is set (a folder whose list setup
-// rebuilt), any account other than the three. Why says what is not.
-function HeldFolderIsHardened(HeldHandle: Integer; AnyAccount: Boolean; var Why: String): Boolean;
+// rebuilt), any account other than the three, and the service when ServiceMay is set
+// (a data folder, HardenDataFolder). Why says what is not.
+function HeldFolderIsHardened(HeldHandle: Integer; AnyAccount: Boolean; ServiceMay: Boolean; var Why: String): Boolean;
 var
    info: ACL_SIZE_INFO;
    head: ACE_START;
@@ -2700,7 +2718,8 @@ begin
                Result := false;
                Why := SidNameAt(pAce + 8) + ' may still change what is in it';
             end
-            else if AnyAccount and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) then
+            else if AnyAccount and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and
+                    (not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) then
             begin
                Result := false;
                Why := SidNameAt(pAce + 8) + ' may still change what is in it';
@@ -2854,14 +2873,14 @@ begin
    end
    else
    begin
-      Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, Why);
+      Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, bUsers, false, Why);
       FreeWindowsMemory(pDescriptor);
       if not Result then
          Exit;
       Result := false;
    end;
 
-   if not HeldFolderIsHardened(HeldHandle, not bTrusted, Why) then
+   if not HeldFolderIsHardened(HeldHandle, not bTrusted, false, Why) then
    begin
       Why := 'once setup had changed its permissions, ' + Why;
       Exit;
@@ -2944,6 +2963,313 @@ begin
       end;
       index := index + 1;
    end;
+end;
+
+// Whether the folder whose owner and list were read as pFolderDescriptor and pFolderDacl
+// hands a right to write (HM_FOLDER_WRITE_RIGHTS) down to the files made in it - an allow
+// entry handed down to files (HM_OBJECT_INHERIT) - to the SID at pSid. A folder with no
+// list at all hands everything down; one whose list could not be read (pFolderDescriptor
+// 0) is taken to hand nothing down.
+function HandsDownWriteTo(pFolderDescriptor: cardinal; pFolderDacl: cardinal; pSid: cardinal): Boolean;
+var
+   info: ACL_SIZE_INFO;
+   head: ACE_START;
+   pAce: cardinal;
+   index: cardinal;
+begin
+   Result := false;
+   if pFolderDescriptor = 0 then
+      Exit;
+   if pFolderDacl = 0 then
+   begin
+      Result := true;
+      Exit;
+   end;
+   if not ReadAclSize(pFolderDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+      Exit;
+   index := 0;
+   while (not Result) and (index < info.AceCount) do
+   begin
+      pAce := 0;
+      if ReadAclEntry(pFolderDacl, index, pAce) and (pAce <> 0) then
+      begin
+         CopyAceStart(head, pAce, 8);
+         if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and HM_OBJECT_INHERIT) <> 0) and
+            ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and SidsAreEqual(pAce + 8, pSid) then
+            Result := true;
+      end;
+      index := index + 1;
+   end;
+end;
+
+// Work item 78's R4 and the restart rule (check 5 of R1 to R4, 27 October 2026): whether an
+// inherited entry of a file's list (pDacl) that applies to it lets an account other than
+// SYSTEM, the Administrators or TrustedInstaller write it (HM_FOLDER_WRITE_RIGHTS) - the
+// service's on the key store aside (ServiceMay), OWNER RIGHTS the owner's, held to the three
+// before this is asked - when the folder it is in (pFolderDescriptor, pFolderDacl) hands that
+// account no such right down (HandsDownWriteTo): an entry the file kept from where it was
+// made, since a file moved into a folder keeps the entries it inherited there, still marked
+// inherited. Hardening the folder rewrites such an entry from the folder's, but a handle
+// opened while it applied keeps the right. Who is that account.
+function StaleEntryLetsOthers(pDacl: cardinal; pFolderDescriptor: cardinal; pFolderDacl: cardinal; ServiceMay: Boolean; var Who: String): Boolean;
+var
+   info: ACL_SIZE_INFO;
+   head: ACE_START;
+   pAce: cardinal;
+   index: cardinal;
+   aceFlags: cardinal;
+begin
+   Result := false;
+   Who := '';
+   if pDacl = 0 then
+      Exit;
+   if not ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+      Exit;
+   index := 0;
+   while (not Result) and (index < info.AceCount) do
+   begin
+      pAce := 0;
+      if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then
+      begin
+         CopyAceStart(head, pAce, 8);
+         aceFlags := (head.TypeFlagsSize shr 8) and $FF;
+         if ((aceFlags and HM_INHERITED_ACE) <> 0) and ((aceFlags and HM_INHERIT_ONLY) = 0) and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and
+            ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-4')) and
+            (not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) and (not HandsDownWriteTo(pFolderDescriptor, pFolderDacl, pAce + 8)) then
+         begin
+            Result := true;
+            Who := SidNameAt(pAce + 8);
+         end;
+      end;
+      index := index + 1;
+   end;
+end;
+
+// A program, a library, a script or a settings file there before this installation whose
+// inherited entry another account may write it by (StaleEntryLetsOthers), found in the
+// first look (CheckWhatIsInside, CheckWhatElseIsInside), for NoteFolderOthersCouldChange,
+// which notes the folder it is in for HardenForRestart.
+procedure NoteStaleItem(Item: String; Who: String);
+begin
+   SetArrayLength(g_aStaleItems, GetArrayLength(g_aStaleItems) + 1);
+   g_aStaleItems[GetArrayLength(g_aStaleItems) - 1] := Item;
+   SetArrayLength(g_aStaleWhat, GetArrayLength(g_aStaleItems));
+   g_aStaleWhat[GetArrayLength(g_aStaleItems) - 1] := Item + ' let ' + Who + ' change it, by an entry it kept from where it was made, which the folder it is in does not ' +
+                                                       'hand down';
+   Log('The program folder: ' + Item + ' has an inherited entry that lets ' + Who + ' change it, which the folder it is in does not hand down: one it kept from where it ' +
+       'was made, so that a program that account started may hold it open with that right.');
+end;
+
+// One folder for HardenForRestart (NoteFolderOthersCouldChange, CheckWhatElseIsInside,
+// DataLinkLeadsWhereAllowed), once: the folder; the handle that holds it, or -1 for one
+// HardenForRestart holds itself; whether it is a data folder, taken keeping the service's
+// entries (HardenDataFolder); and what another account could do, said in the setup log and
+// in the refusal.
+procedure AddRestartFolder(Folder: String; Handle: Integer; Data: Boolean; What: String);
+var
+   index: Integer;
+   count: Integer;
+begin
+   for index := 0 to GetArrayLength(g_aRestartFolders) - 1 do
+      if CompareText(g_aRestartFolders[index], Folder) = 0 then
+         Exit;
+   count := GetArrayLength(g_aRestartFolders) + 1;
+   SetArrayLength(g_aRestartFolders, count);
+   SetArrayLength(g_aRestartHandles, count);
+   SetArrayLength(g_aRestartData, count);
+   g_aRestartFolders[count - 1] := Folder;
+   g_aRestartHandles[count - 1] := Handle;
+   g_aRestartData[count - 1] := Data;
+   if g_szRestartWhy <> '' then
+      g_szRestartWhy := g_szRestartWhy + '; ';
+   g_szRestartWhy := g_szRestartWhy + What;
+   Log('The program folder: ' + What + ' before this installation.');
+end;
+
+// Work item 78's R2 and R4 (check 5 of R1 to R4, 27 October 2026): whether a data folder -
+// Data, Logs, Temp or Database of the program folder (IsDataFolderName), or the folder such
+// a folder's link leads to (DataLinkLeadsWhereAllowed) - held open as itself (Handle) is
+// SYSTEM's, the Administrators', TrustedInstaller's or the service's, NT SERVICE\hMailServer,
+// which makes what is in it, and has no entry of its own that lets an account other than
+// those write it (OwnEntriesLetOthers; ServiceMay, since /GrantServiceAccess gives the
+// service Modify there). hMailServer.exe /ProtectFolders makes a data folder private after
+// the files but keeps every entry of its own and never changes its owner, so that such an
+// account would keep the message store, the logs, the messages being scanned or the
+// built-in database's folder after the installation. Read through the handle. Owner says it
+// is its owner that is not - which, for the earlier installation's, setup takes before a
+// restart (HardenForRestart, HardenDataFolder) - Who what is not, said of the folder
+// ("is owned by ..."), and Remedy what an administrator does. True when it is as it may be.
+function DataFolderIsAllowed(Folder: String; Handle: Integer; var Owner: Boolean; var Who: String; var Remedy: String): Boolean;
+var
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   readResult: cardinal;
+   szText: String;
+   szSid: String;
+begin
+   Result := false;
+   Owner := false;
+   Who := '';
+   Remedy := 'An administrator takes it - takeown /F "' + Folder + '" /A - checks it, restarts Windows and runs setup again.';
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   readResult := ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+   if readResult <> 0 then
+   begin
+      Who := 'is there, and its owner and permissions could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   if pOwner = 0 then
+      Who := 'is there, and its owner could not be read'
+   else if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then
+   begin
+      Owner := true;
+      Who := 'is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators, TrustedInstaller or the service, which may change it, and what the ' +
+             'service keeps there, whatever its permissions say';
+      Remedy := 'An administrator checks that it is meant to be there and gives it to the Administrators - icacls "' + Folder + '" /setowner *S-1-5-32-544 - or removes it, ' +
+                'restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
+   end
+   else if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szText) then
+   begin
+      Who := 'has an entry of its own that lets ' + szText + ' change it and what the service keeps there';
+      szSid := SidInName(szText);
+      if szSid <> '' then
+         szSid := 'icacls "' + Folder + '" /remove:g *' + szSid
+      else
+         szSid := 'icacls "' + Folder + '" /remove:g with that account''s SID';
+      Remedy := 'An administrator checks it and takes that entry away - ' + szSid + ' - restarts Windows, since a program that account started may still hold it open with ' +
+                'the right to change it, and runs setup again.';
+   end
+   else
+      Result := true;
+   FreeWindowsMemory(pDescriptor);
+end;
+
+// Work item 78's R4 (check 5 of R1 to R4, 27 October 2026): the files of the program folder's
+// Database - the built-in database, whose settings name, among the rest, the program the
+// service runs to scan for viruses - held to the rule a Database link's target holds them
+// to (DatabaseTargetIsTheAdministrators) by their owners and their own entries: each
+// SYSTEM's, the Administrators', TrustedInstaller's or the service's, with no entry of its
+// own that lets another account but the service write it, and no link among them. What a
+// file inherits there is the program folder's, which setup hardens, and holds to the
+// restart rule before (OthersCouldChange). '' when so; otherwise what is not, said of the
+// Database ("holds ..."), with Remedy.
+function DatabaseFilesWhy(Folder: String; var Remedy: String): String;
+var
+   rec: TFindRec;
+   handle: Integer;
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   szItem: String;
+   szText: String;
+begin
+   Result := '';
+   Remedy := '';
+   if not FindFirst(AddBackslash(Folder) + '*', rec) then
+   begin
+      Result := 'is there, and what is in it could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Remedy := 'An administrator takes it - takeown /F "' + Folder + '" /A /R /D Y - checks it, restarts Windows and runs setup again.';
+      Exit;
+   end;
+   try
+      repeat
+         if (Result = '') and ((rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then
+         begin
+            szItem := AddBackslash(Folder) + rec.Name;
+            Remedy := 'An administrator takes it - takeown /F "' + szItem + '" /A - checks it, restarts Windows and runs setup again.';
+            if (rec.Attributes and HM_REPARSE_POINT) <> 0 then
+            begin
+               Result := 'holds ' + szItem + ', which is a link';
+               Remedy := 'An administrator checks it and removes the link - del "' + szItem + '" - restarts Windows, and runs setup again.';
+            end
+            else
+            begin
+               handle := HoldFolder(szItem, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+               if handle = -1 then
+                  Result := 'holds ' + szItem + ', whose owner could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')'
+               else
+               begin
+                  pOwner := 0;
+                  pDacl := 0;
+                  pDescriptor := 0;
+                  if ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) <> 0 then
+                     Result := 'holds ' + szItem + ', whose owner could not be read'
+                  else
+                  begin
+                     if (pOwner = 0) or ((not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID))) then
+                     begin
+                        Result := 'holds ' + szItem + ', which is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators, TrustedInstaller or ' +
+                                  'the service, which may change the built-in database whose settings name the program the service runs to scan for viruses';
+                        Remedy := 'An administrator checks that it is meant to be there and gives it to the Administrators - icacls "' + szItem + '" /setowner *S-1-5-32-544 - ' +
+                                  'restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
+                     end
+                     else if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szText) then
+                     begin
+                        Result := 'holds ' + szItem + ', which has an entry of its own that lets ' + szText + ' change the built-in database whose settings name the ' +
+                                  'program the service runs to scan for viruses';
+                        Remedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - restarts Windows, ' +
+                                  'since a program that account started may still hold it open with the right to change it, and runs setup again.';
+                     end;
+                     FreeWindowsMemory(pDescriptor);
+                  end;
+                  ReleaseFolder(handle);
+               end;
+            end;
+         end;
+      until (Result <> '') or (not FindNext(rec));
+   finally
+      FindClose(rec);
+   end;
+   if Result = '' then
+      Remedy := '';
+end;
+
+// Work item 78's R2 (check 5 of R1 to R4, 27 October 2026), for HardenForRestart: a data
+// folder of the earlier installation, or the folder such a folder's link leads to, that
+// another account owned (DataFolderIsAllowed) - an administrator's own account may own the
+// earlier installation's data folders, under Windows' policy that makes the maker the owner
+// - given to the Administrators and its permissions rebuilt with the service's entries kept
+// and no entry for Users (RebuildFolderOfUntrustedOwner, Service), then read again through
+// the handle that holds it (HeldFolderIsHardened). The installation is then refused until
+// Windows has restarted, as for Bin. True when it was done; false with Why otherwise.
+function HardenDataFolder(Folder: String; HeldHandle: Integer; var Why: String): Boolean;
+var
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   readResult: cardinal;
+   szOwner: String;
+   szText: String;
+begin
+   Result := false;
+   Why := '';
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+   if readResult <> 0 then
+   begin
+      Why := 'its owner and permissions could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   szOwner := SidNameAt(pOwner);
+   Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, false, true, Why);
+   FreeWindowsMemory(pDescriptor);
+   if not Result then
+      Exit;
+   Result := HeldFolderIsHardened(HeldHandle, true, true, Why);
+   if not Result then
+   begin
+      Why := 'once setup had changed its permissions, ' + Why;
+      Exit;
+   end;
+   szText := Folder + ' was owned by ' + szOwner + ', and setup gave it to the Administrators and rebuilt its permissions, the service''s entries kept, but a program that ' +
+             'account started before may still hold it open with the right to change it, which only a restart takes away: setup installs there once Windows has restarted.';
+   Log('The program folder: ' + szText);
+   g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
 end;
 
 // Whether a file's name is that of a program or a library: what the service, the
@@ -3058,6 +3384,9 @@ var
    szWho: String;
    szText: String;
    szRemedy: String;
+   pFolderOwner: cardinal;
+   pFolderDacl: cardinal;
+   pFolderDescriptor: cardinal;
 begin
    Result := true;
    count := 0;
@@ -3093,6 +3422,13 @@ begin
       Result := false;
       Exit;
    end;
+   // What the folder hands down to the files in it, for an entry a file kept from where it
+   // was made (StaleEntryLetsOthers); pFolderDescriptor 0 when it cannot be read.
+   pFolderOwner := 0;
+   pFolderDacl := 0;
+   pFolderDescriptor := 0;
+   if ReadHeldSecurity(folderHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pFolderOwner, 0, pFolderDacl, 0, pFolderDescriptor) <> 0 then
+      pFolderDescriptor := 0;
    try
       repeat
          if (rec.Name <> '.') and (rec.Name <> '..') then
@@ -3142,7 +3478,9 @@ begin
                         begin
                            szWho := 'has an entry of its own that lets ' + szText + ' change it';
                            szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
-                        end;
+                        end
+                        else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pFolderDescriptor, pFolderDacl, bKeyStore, szText) then
+                           NoteStaleItem(szItem, szText);
                      end;
                      FreeWindowsMemory(pDescriptor);
                   end;
@@ -3184,8 +3522,10 @@ begin
             begin
                // An empty folder there before this installation, in the last look:
                // removed, since a program that opened it while another account could
-               // change it may make it a junction whatever its permissions say now;
-               // Inno Setup makes it again if it installs into it.
+               // change it may make it a junction whatever its permissions say now, and
+               // the look after the files holds Bin, ControlPanel and the folders that
+               // hold what is run to having no empty folder setup did not leave
+               // (NothingTurnedIn); Inno Setup makes it again if it installs into it.
                if Final and FolderHoldsNothing(szItem) then
                begin
                   if RemoveHeldFolder(szItem, szFinal, szRemoved) then
@@ -3215,6 +3555,8 @@ begin
    finally
       FindClose(rec);
    end;
+   if pFolderDescriptor <> 0 then
+      FreeWindowsMemory(pFolderDescriptor);
 
    for index := 0 to count - 1 do
       if not CheckWhatIsInside(folders[index], AddBackslash(szFinal) + ExtractFileName(folders[index]), Depth + 1, Final, Scripts, Found, Why) then
@@ -3486,10 +3828,13 @@ end;
 // that keeps permissions (VolumeKeepsPermissions). Keeping Data or Logs on another
 // drive behind an administrator's junction or mount point is an ordinary layout
 // (docs/ServiceAccount.md), and the folder the link leads to may hand down what the
-// root of that drive hands down, as the server's own store commands take it: who may
-// write it is not asked, and an owner of it other than SYSTEM, the Administrators,
-// TrustedInstaller or the service is said, when Final is set, as for a data folder in
-// the program folder. False, with Why, otherwise.
+// root of that drive hands down, as the server's own store commands take it: what it
+// inherits is not asked. It is held to the rule of a data folder in the program folder
+// (DataFolderIsAllowed, check 5 of R1 to R4, 27 October 2026): its owner SYSTEM, the
+// Administrators, TrustedInstaller or the service, and no entry of its own letting another
+// account but the service write it - but for the earlier installation's that another
+// account owns, which setup takes before a restart (AddRestartFolder, HardenForRestart),
+// in the first look. False, with Why, otherwise.
 function DataLinkLeadsWhereAllowed(Link: String; Final: Boolean; var Why: String): Boolean;
 var
    hLink: Integer;
@@ -3498,12 +3843,11 @@ var
    szReal: String;
    szHeld: String;
    szWhy: String;
-   szText: String;
+   szWho: String;
+   szRemedy: String;
    bWhole: Boolean;
    bKnown: Boolean;
-   pOwner: cardinal;
-   pDacl: cardinal;
-   pDescriptor: cardinal;
+   bOwner: Boolean;
 begin
    Result := false;
    Why := '';
@@ -3551,24 +3895,17 @@ begin
          Why := szWhy;
          Exit;
       end;
-   Result := true;
-   if not Final then
-      Exit;
-   pOwner := 0;
-   pDacl := 0;
-   pDescriptor := 0;
-   if ReadHeldSecurity(hHeld, HM_FILE_OBJECT, HM_OWNER_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) = 0 then
+   if not DataFolderIsAllowed(szReal, hHeld, bOwner, szWho, szRemedy) then
    begin
-      if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then
+      if bOwner and g_bEarlierInstallation and (not Final) then
+         AddRestartFolder(szReal, hHeld, true, Link + ' led to ' + szReal + ', which was ' + Copy(szWho, 4, Length(szWho)))
+      else
       begin
-         szText := Link + ' leads to ' + szReal + ', which is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators or TrustedInstaller, which may ' +
-                   'change it whatever its permissions say. An administrator checks that it is meant to be there and gives it to the Administrators - icacls "' + szReal +
-                   '" /setowner *S-1-5-32-544.';
-         Log('The program folder: ' + szText);
-         g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
+         Why := 'it leads to ' + szReal + ', which ' + szWho + ' (' + Copy(szRemedy, 1, Length(szRemedy) - 1) + ')';
+         Exit;
       end;
-      FreeWindowsMemory(pDescriptor);
    end;
+   Result := true;
 end;
 
 // Work item 78's R4, past Bin and ControlPanel: what else in a program folder that is
@@ -3587,9 +3924,19 @@ end;
 //   - a program, a library, a script (IsScriptFile), a file that says what they run
 //     (IsSettingsFile: unins000.dat, the uninstaller's record) or a folder whose owner is not one
 //     of the three, or cannot be read, or an entry of whose own lets another account
-//     change it, refused; but for Data, Logs, Temp and Database (IsDataFolderName),
-//     which the service may own and has an entry of its own on (/GrantServiceAccess),
-//     whose owner another account is is said, as another file another account owns is;
+//     change it, refused; and, in the first look, one of the first four that an entry it
+//     inherited where it was made, and the program folder does not hand down, lets another
+//     account change noted for the restart rule (StaleEntryLetsOthers, NoteStaleItem);
+//   - Data, Logs, Temp and Database (IsDataFolderName), which the service may own and has
+//     an entry of its own on (/GrantServiceAccess), held to the rule of a data folder
+//     (DataFolderIsAllowed): one whose owner is not one of the three or the service, or an
+//     entry of whose own lets an account other than those write it, refused - but for the
+//     earlier installation's that another account owns, which setup takes before a
+//     restart, in the first look (AddRestartFolder, HardenForRestart) - and the files of
+//     the Database held to their rule too (DatabaseFilesWhy): /ProtectFolders, after the
+//     files, keeps a data folder's own entries and its owner, and so would leave that
+//     account the message store, the logs, the messages being scanned or the built-in
+//     database (check 5 of R1 to R4, 27 October 2026);
 // and then everything, at any depth, in Addons, Events, DBScripts, WebAdmin and
 // Languages, the folders setup installs into that hold programs, the event script
 // the service runs, the SQL DBSetup runs and the PHP of WebAdmin, held to
@@ -3597,13 +3944,15 @@ end;
 // the root of a volume (IsVolumeRoot), which CheckProgramFolders refuses before this
 // runs, is not looked at on its own level. Found counts
 // what was refused; what is said is said when Final is set. In the last look (Final)
-// an empty folder there before this installation - of those setup installs into, and
-// a data folder, which [Dirs] makes again - is removed through a handle opened on it as
-// itself (RemoveHeldFolder): one a program opened while another account could change it
-// may be made a junction whatever its permissions say now, and setup would install,
-// and the service write its messages or its logs, where that leads. The five folders
-// are walked only as the folders of their names in the program folder (CheckWhatIsInside,
-// Expected).
+// an empty folder there before this installation that setup or Inno Setup makes again -
+// one of the five, and a data folder when the server is installed, which [Dirs] makes -
+// is removed through a handle opened on it as itself (RemoveHeldFolder): one a program
+// opened while another account could change it may be made a junction whatever its
+// permissions say now, and setup would install, and the service write its messages or
+// its logs, where that leads. Any other empty folder there, which nothing installs into
+// or runs from, is left as it is, and said in the setup log (check 5 of R1 to R4). The
+// five folders are walked only as the folders of their names in the program folder
+// (CheckWhatIsInside, Expected).
 function CheckWhatElseIsInside(App: String; AppHandle: Integer; Final: Boolean; var Found: Integer; var Why: String): Boolean;
 var
    rec: TFindRec;
@@ -3624,6 +3973,10 @@ var
    szText: String;
    szRemedy: String;
    szFolder: String;
+   bOwner: Boolean;
+   pAppOwner: cardinal;
+   pAppDacl: cardinal;
+   pAppDescriptor: cardinal;
 begin
    Result := true;
    szAppFinal := FinalPathOfHeld(AppHandle);
@@ -3636,6 +3989,13 @@ begin
          Result := false;
          Exit;
       end;
+      // What the program folder hands down to the files in it (StaleEntryLetsOthers);
+      // pAppDescriptor 0 when it cannot be read.
+      pAppOwner := 0;
+      pAppDacl := 0;
+      pAppDescriptor := 0;
+      if ReadHeldSecurity(AppHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pAppOwner, 0, pAppDacl, 0, pAppDescriptor) <> 0 then
+         pAppDescriptor := 0;
       try
          repeat
             if (rec.Name <> '.') and (rec.Name <> '..') and (CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) then
@@ -3673,6 +4033,24 @@ begin
                                     'what is named, or points the link at a folder that passes them, and runs setup again.';
                      end;
                   end
+                  else if bData then
+                  begin
+                     // A data folder, held to its rule (DataFolderIsAllowed); the earlier
+                     // installation's that another account owns noted, in the first look, for
+                     // HardenForRestart, which takes it before a restart; and the Database's
+                     // files held to theirs (DatabaseFilesWhy).
+                     if not DataFolderIsAllowed(szItem, handle, bOwner, szWho, szRemedy) then
+                     begin
+                        if bOwner and g_bEarlierInstallation and (not Final) then
+                        begin
+                           AddRestartFolder(szItem, -1, true, szItem + ' was ' + Copy(szWho, 4, Length(szWho)));
+                           szWho := '';
+                           szRemedy := '';
+                        end;
+                     end
+                     else if CompareText(rec.Name, 'Database') = 0 then
+                        szWho := DatabaseFilesWhy(szItem, szRemedy);
+                  end
                   else
                   begin
                      pOwner := 0;
@@ -3686,19 +4064,16 @@ begin
                         if pOwner = 0 then
                            szWho := 'its owner could not be read'
                         else if not IsTrustedSid(pOwner) then
-                        begin
-                           if bData and SidIs(pOwner, HM_SERVICE_SID) then
-                              szWho := ''
-                           else
-                              szWho := 'is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators or TrustedInstaller, which may change it whatever its permissions say';
-                        end
-                        else if bCode or (bFolder and (not bData)) then
+                           szWho := 'is owned by ' + SidNameAt(pOwner) + ', an account other than SYSTEM, the Administrators or TrustedInstaller, which may change it whatever its permissions say'
+                        else if bCode or bFolder then
                         begin
                            if OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, false, szText) then
                            begin
                               szWho := 'has an entry of its own that lets ' + szText + ' change it';
                               szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
-                           end;
+                           end
+                           else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pAppDescriptor, pAppDacl, false, szText) then
+                              NoteStaleItem(szItem, szText);
                         end;
                         FreeWindowsMemory(pDescriptor);
                      end;
@@ -3719,7 +4094,7 @@ begin
                      if Pos('has ', szWho) <> 1 then
                         szWho := 'is there, and ' + szWho;
                   szText := szItem + ' ' + szWho + '. ' + szRemedy;
-                  if bLink or bCode or (bFolder and (not bData)) then
+                  if bLink or bCode or bFolder then
                   begin
                      Found := Found + 1;
                      if Found <= 10 then
@@ -3736,7 +4111,14 @@ begin
                      g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
                   end;
                end
-               else if Final and bFolder and (not bLink) and ((not bData) or IsComponentSelected('server')) and FolderHoldsNothing(szItem) then
+               else if Final and bFolder and (not bLink) and (not IsRunFolderName(rec.Name)) and (not (bData and IsComponentSelected('server'))) and
+                       FolderHoldsNothing(szItem) then
+                  // An empty folder setup neither installs into nor makes again: nothing is
+                  // installed into it or run from it, wherever a link made of it led, and an
+                  // administrator's folder is not setup's to remove (check 5 of R1 to R4).
+                  Log('The program folder: ' + szItem + ' is an empty folder there before this installation, which setup neither installs into nor makes again, and is left ' +
+                      'as it is.')
+               else if Final and bFolder and (not bLink) and FolderHoldsNothing(szItem) then
                begin
                   // An empty folder, there before this installation, of those setup
                   // installs into, or a data folder when the server is installed: removed,
@@ -3761,6 +4143,8 @@ begin
       finally
          FindClose(rec);
       end;
+      if pAppDescriptor <> 0 then
+         FreeWindowsMemory(pAppDescriptor);
    end;
 
    // The folders setup installs into that hold what is run, at any depth.
@@ -3887,15 +4271,85 @@ begin
       Log('Setup could not record that it ' + What + ' (Windows error ' + IntToStr(written) + '): an administrator restarts Windows before setup is run again.');
 end;
 
+// Work item 78's restart rule: whether an allow entry of a folder's list that applies to it,
+// and that setup's hardening takes away - an inherited one, or one of its own for a group of
+// every user (IsBroadSid, LetsEveryUserWrite) - lets an account other than SYSTEM, the
+// Administrators or TrustedInstaller do any of Rights; OWNER RIGHTS is the owner's, held to
+// the three before this is asked. An entry of its own for a named account or group setup
+// keeps, as hMailServer.exe /ProtectFolders keeps it, and says (SayWriteEntriesKept): that
+// account may change the folder after a restart as before it, and counting it refused every
+// run of setup, a restart between them or not (check 5 of R1 to R4, 27 October 2026). An
+// entry of a form setup does not read, or one that cannot be read, counts. No list at all
+// lets everyone. Who is that account.
+function TakenEntriesLetOthers(pDacl: cardinal; Rights: cardinal; var Who: String): Boolean;
+var
+   info: ACL_SIZE_INFO;
+   head: ACE_START;
+   pAce: cardinal;
+   index: cardinal;
+   aceType: cardinal;
+   aceFlags: cardinal;
+begin
+   Result := false;
+   Who := '';
+   if pDacl = 0 then
+   begin
+      Result := true;
+      Who := 'everyone (it has no list of permissions at all)';
+      Exit;
+   end;
+   if not ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+   begin
+      Result := true;
+      Who := 'an account in a list of permissions that could not be read';
+      Exit;
+   end;
+   index := 0;
+   while (not Result) and (index < info.AceCount) do
+   begin
+      pAce := 0;
+      if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then
+      begin
+         CopyAceStart(head, pAce, 8);
+         aceType := head.TypeFlagsSize and $FF;
+         aceFlags := (head.TypeFlagsSize shr 8) and $FF;
+         if (aceFlags and HM_INHERIT_ONLY) = 0 then
+         begin
+            if aceType = HM_ACCESS_ALLOWED then
+            begin
+               if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-4')) and
+                  (((aceFlags and HM_INHERITED_ACE) <> 0) or IsBroadSid(pAce + 8)) then
+               begin
+                  Result := true;
+                  Who := SidNameAt(pAce + 8);
+               end;
+            end
+            else if (aceType = 4) or (aceType = 5) or (aceType = 9) or (aceType = 11) then
+            begin
+               Result := true;
+               Who := 'an account in an entry of a form setup does not read';
+            end;
+         end;
+      end
+      else
+      begin
+         Result := true;
+         Who := 'an account in an entry that could not be read';
+      end;
+      index := index + 1;
+   end;
+end;
+
 // Work item 78's R2 and R3: whether another account could change a folder of the
 // program that is there, before setup changes anything (CheckProgramFolders), read
 // through a handle opened on it as itself: its owner not SYSTEM, the Administrators or
 // TrustedInstaller (an earlier installation's, OwnerIsAllowed), who may always change
-// its permissions; an allow entry, its own or inherited, that lets another account
-// change its permissions or its owner (HM_CHANGE_PERMISSIONS_RIGHTS: Everyone's or
-// Authenticated Users' Full control on a folder made beforehand, say); or, when
-// Contents is set - the folder holds something but empty folders (HoldsOnlyEmptyFolders)
-// - one that lets another account write it (HM_FOLDER_WRITE_RIGHTS). A program such an
+// its permissions; an allow entry that setup's hardening takes away, inherited or a group
+// of every user's own (TakenEntriesLetOthers), that lets another account change its
+// permissions or its owner (HM_CHANGE_PERMISSIONS_RIGHTS: Everyone's or Authenticated
+// Users' Full control on a folder made beforehand, say); or, when Contents is set - the
+// folder holds something but empty folders (HoldsOnlyEmptyFolders) - one that lets
+// another account write it (HM_FOLDER_WRITE_RIGHTS). A program such an
 // account started then keeps a handle, opened with that right, that setup's hardening
 // does not take away (check 4 of R1 to R4, 27 October 2026): with the right to change
 // the permissions it gives itself the folder back, and with a right to write a folder
@@ -3926,36 +4380,57 @@ begin
       What := Folder + ' had no owner'
    else if not IsTrustedSid(pOwner) then
       What := Folder + ' was owned by ' + SidNameAt(pOwner) + ', who may always change its permissions'
-   else if AclLetsOthers(pDacl, HM_CHANGE_PERMISSIONS_RIGHTS, true, szWho) then
+   else if TakenEntriesLetOthers(pDacl, HM_CHANGE_PERMISSIONS_RIGHTS, szWho) then
       What := Folder + ' let ' + szWho + ' change its permissions or its owner'
-   else if Contents and AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho) then
+   else if Contents and TakenEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szWho) then
       What := Folder + ' let ' + szWho + ' change what is in it'
    else
       Result := false;
    FreeWindowsMemory(pDescriptor);
 end;
 
-// One folder of the program that is there noted for HardenForRestart when another
-// account could change it (OthersCouldChange), with the handle that holds it when Keep
-// is set (the walk's, for the program folder, Bin and ControlPanel), or -1 for one
+// What NoteStaleItem found in Folder - directly in it for the program folder, at any depth
+// for Bin, ControlPanel and the five that hold what is run - or ''.
+function StaleItemIn(Folder: String): String;
+var
+   index: Integer;
+   bDirect: Boolean;
+   bIn: Boolean;
+begin
+   Result := '';
+   bDirect := CompareText(Folder, g_szProgramFolderReal) = 0;
+   for index := 0 to GetArrayLength(g_aStaleItems) - 1 do
+   begin
+      if bDirect then
+         bIn := CompareText(ExtractFileDir(g_aStaleItems[index]), Folder) = 0
+      else
+         bIn := CompareText(Copy(g_aStaleItems[index], 1, Length(AddBackslash(Folder))), AddBackslash(Folder)) = 0;
+      if bIn and (Result = '') then
+         Result := g_aStaleWhat[index];
+   end;
+end;
+
+// One folder of the program that is there noted for HardenForRestart (AddRestartFolder)
+// when another account could change it (OthersCouldChange), or a program, a library, a
+// script or a settings file in it by an entry it kept from where it was made (StaleItemIn,
+// check 5 of R1 to R4, 27 October 2026) - hardening the folder rewrites that entry, and a
+// restart closes what was opened while it applied - with the handle that holds it when
+// Keep is set (the walk's, for the program folder, Bin and ControlPanel), or -1 for one
 // HardenForRestart holds itself (Addons, Events, DBScripts, WebAdmin, Languages).
 procedure NoteFolderOthersCouldChange(Folder: String; HeldHandle: Integer; Keep: Boolean);
 var
    szWhat: String;
 begin
    if not OthersCouldChange(Folder, HeldHandle, not HoldsOnlyEmptyFolders(Folder), szWhat) then
-      Exit;
-   SetArrayLength(g_aRestartFolders, GetArrayLength(g_aRestartFolders) + 1);
-   g_aRestartFolders[GetArrayLength(g_aRestartFolders) - 1] := Folder;
-   SetArrayLength(g_aRestartHandles, GetArrayLength(g_aRestartFolders));
+   begin
+      szWhat := StaleItemIn(Folder);
+      if szWhat = '' then
+         Exit;
+   end;
    if Keep then
-      g_aRestartHandles[GetArrayLength(g_aRestartFolders) - 1] := HeldHandle
+      AddRestartFolder(Folder, HeldHandle, false, szWhat)
    else
-      g_aRestartHandles[GetArrayLength(g_aRestartFolders) - 1] := -1;
-   if g_szRestartWhy <> '' then
-      g_szRestartWhy := g_szRestartWhy + '; ';
-   g_szRestartWhy := g_szRestartWhy + szWhat;
-   Log('The program folder: ' + szWhat + ' before this installation.');
+      AddRestartFolder(Folder, -1, false, szWhat);
 end;
 
 // Work item 78's R2 and R3, in CheckProgramFolders, which changes nothing: the folders
@@ -3963,7 +4438,9 @@ end;
 // (NoteFolderOthersCouldChange) - the program folder, Bin and ControlPanel but one that
 // setup makes again (g_bRemakeBin, g_bRemakeControlPanel), and Addons, Events,
 // DBScripts, WebAdmin and Languages when each is there and no link (one that is a link
-// CheckWhatElseIsInside refuses). Nothing when the program folder is not there.
+// CheckWhatElseIsInside refuses) - after the data folders CheckWhatElseIsInside noted;
+// CheckProgramFolders empties the list when it starts. Nothing when the program folder
+// is not there.
 procedure NoteFoldersOthersCouldChange();
 var
    index: Integer;
@@ -3971,9 +4448,6 @@ var
    bKnown: Boolean;
    szFolder: String;
 begin
-   SetArrayLength(g_aRestartFolders, 0);
-   SetArrayLength(g_aRestartHandles, 0);
-   g_szRestartWhy := '';
    if not g_bProgramFolderThere then
       Exit;
    NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true);
@@ -4036,6 +4510,16 @@ begin
          handle := HoldForSetup(g_aRestartFolders[index]);
       if handle = -1 then
          szWhy := 'it could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')'
+      else if g_aRestartData[index] then
+      begin
+         if not HardenDataFolder(g_aRestartFolders[index], handle, szWhy) then
+         begin
+            if szWhy = '' then
+               szWhy := 'its permissions could not be rebuilt';
+         end
+         else
+            szWhy := '';
+      end
       else if not HardenHeldFolder(g_aRestartFolders[index], handle, g_bEarlierInstallation, szWhy) then
       begin
          if szWhy = '' then
@@ -4092,7 +4576,14 @@ begin
    g_bFoldersChanged := false;
    SetArrayLength(g_aRestartFolders, 0);
    SetArrayLength(g_aRestartHandles, 0);
+   SetArrayLength(g_aRestartData, 0);
+   SetArrayLength(g_aStaleItems, 0);
+   SetArrayLength(g_aStaleWhat, 0);
    g_szRestartWhy := '';
+   // The handles of an earlier pass are let go above: none is read again.
+   g_hProgramFolder := -1;
+   g_hBin := -1;
+   g_hControlPanel := -1;
 
    szApp := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
    g_szFoldersCheckedFor := szApp;
@@ -4605,7 +5096,7 @@ begin
       Why := Why + Folder + ', which setup prepared, is a junction, a symbolic link or a mount point now, or could not be read. '
    else if (Item <> '') and (not ItemIsIn(Item, Handle)) then
       Why := Why + Item + ' is not in ' + Folder + ', the folder setup prepared: the path leads elsewhere now. '
-   else if Hardened and (not HeldFolderIsHardened(Handle, AnyAccount, szWhy)) then
+   else if Hardened and (not HeldFolderIsHardened(Handle, AnyAccount, false, szWhy)) then
       Why := Why + Folder + ' is no longer as setup made or hardened it: ' + szWhy + '. '
    else
       Result := true;
