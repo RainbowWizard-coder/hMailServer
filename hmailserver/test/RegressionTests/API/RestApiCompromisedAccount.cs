@@ -184,7 +184,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A held account is not signed into under another spelling of its name with its right password: every spelling the databases took for it is refused over IMAP LOGIN while the hold stands, and the account's own name signs in once it is unlocked.")]
+      [Description("A held account is not signed into under another spelling of its name with its right password: every spelling the databases took for it is refused over IMAP LOGIN, and a dotted capital I for its i over SMTP AUTH PLAIN, while the hold stands, and the account's own name signs in once it is unlocked.")]
       public void AHeldAccountIsNotSignedIntoUnderAnotherSpellingOfItsName()
       {
          Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"compromise_detection_mode\":\"enforce\"}").status);
@@ -212,6 +212,22 @@ namespace RegressionTests.API
             Assert.AreEqual(held, global::RegressionTests.Security.LogonNameVariants.ImapLogin(variant, Password),
                "A spelling of the held account's name with its right password must be refused as the name itself is: " + variant.Length + " characters.");
          }
+
+         // SMTP AUTH PLAIN carries the name as UTF-8, and a dotted capital I for an i
+         // reaches the sign-in there: on Linux SASLprep refuses every name that is not
+         // ASCII and the name goes on as it was given, and on Windows it keeps that
+         // letter. PostgreSQL, MySQL and MariaDB took it for the i.
+         string heldOverSmtp = global::RegressionTests.Security.LogonNameVariants.SmtpAuthPlain(sender.Address, Password);
+         StringAssert.StartsWith("535", heldOverSmtp, "The held account's own name is refused its right password over SMTP AUTH PLAIN.");
+         int i = sender.Address.IndexOf('i');
+         string dotted = sender.Address.Substring(0, i) + "İ" + sender.Address.Substring(i + 1);
+         foreach (string variant in new[] { dotted, dotted.ToUpperInvariant() })
+         {
+            Assert.AreEqual(heldOverSmtp, global::RegressionTests.Security.LogonNameVariants.SmtpAuthPlain(variant, Password),
+               "A spelling of the held account's name with a dotted capital I and its right password must be refused over SMTP AUTH PLAIN as the name itself is.");
+         }
+
+         global::RegressionTests.Security.LogonNameVariants.ConsumeSaslPrepRefusals();
 
          Assert.AreEqual(200, Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(sender.Address) + "/review/unlock", null).status);
          StringAssert.StartsWith("OK", global::RegressionTests.Security.LogonNameVariants.ImapLogin(sender.Address, Password), "Unlocked, the account's own name signs in again.");

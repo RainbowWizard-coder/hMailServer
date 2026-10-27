@@ -271,9 +271,11 @@ with `--check`).
   so that there such a spelling signs in to the account and is counted under the
   account's own key. `LogonNameTester` holds the rule
   (inside the server on Windows, and in `sign-in-budget-tests` on Linux), and the regression fixtures
-  `Security.LogonNameVariants` (over IMAP and over the web services' HTTP Basic, which carries a name as UTF-8) and
-  `API.RestApiCompromisedAccount` the sign-ins ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)).
-  Found by the hMailServer project (Progressive Robot Ltd).
+  `Security.LogonNameVariants` (over IMAP, over the web services' HTTP Basic, which carries a name as UTF-8, and over
+  SCRAM-SHA-256 on SMTP, IMAP and POP3) and `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP
+  AUTH PLAIN, which carries a name as UTF-8 too) the sign-ins
+  ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)). Found by the hMailServer project (Progressive
+  Robot Ltd).
 
 ### Correctness
 

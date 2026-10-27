@@ -34,8 +34,11 @@ namespace RegressionTests.Security
    ///    name as UTF-8, so a dotted capital I for an i - which PostgreSQL's lower()
    ///    took for the i, as MySQL and MariaDB did - and a NUL reach the sign-in there:
    ///    those tests hold the rule on every engine, and that a name holding a NUL is
-   ///    sent to no database statement. The held account's case is in
-   ///    API/RestApiCompromisedAccount.
+   ///    sent to no database statement. SCRAM-SHA-256 finds its account by a lookup
+   ///    of its own on each of SMTP, IMAP and POP3, and the address with a space after
+   ///    it signed in there too. The held account's case is in
+   ///    API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH PLAIN, which
+   ///    carries a name as UTF-8.
    /// </summary>
    [TestFixture]
    public class LogonNameVariants : TestFixtureBase
@@ -281,6 +284,114 @@ namespace RegressionTests.Security
          finally
          {
             StopWebServices();
+         }
+      }
+
+      [Test]
+      [Description("Over SCRAM-SHA-256 on SMTP, IMAP and POP3, the address with a space after it, which MySQL, MariaDB and both SQL Servers took for the account, fails with the account's right password as a name that does not exist fails; the address itself signs in on each")]
+      public void OverScramAVariantSpellingFailsAsAWrongNameDoes()
+      {
+         bool saslEnabled = _settings.IMAPSASLPlainEnabled;
+         _settings.IMAPSASLPlainEnabled = true;
+         try
+         {
+            string[] wrongName = Scram("nobody-at-all@" + _domain.Name, Password);
+            StringAssert.StartsWith("535", wrongName[0], "A name that does not exist does not sign in over SMTP.");
+            StringAssert.DoesNotContain("A01 OK", wrongName[1], "A name that does not exist does not sign in over IMAP.");
+            StringAssert.StartsWith("-ERR", wrongName[2], "A name that does not exist does not sign in over POP3.");
+
+            string[] variant = Scram(_account.Address + " ", Password);
+            for (int i = 0; i < ScramProtocols.Length; i++)
+            {
+               ClassicAssert.AreEqual(wrongName[i], variant[i],
+                  "Over " + ScramProtocols[i] + " SCRAM-SHA-256, the address with a space after it and the account's right password must fail as a name that does not exist fails.");
+            }
+
+            string[] own = Scram(_account.Address, Password);
+            StringAssert.StartsWith("235", own[0], "The account's own address signs in over SMTP SCRAM-SHA-256.");
+            StringAssert.Contains("A01 OK", own[1], "The account's own address signs in over IMAP SCRAM-SHA-256.");
+            StringAssert.StartsWith("+OK", own[2], "The account's own address signs in over POP3 SCRAM-SHA-256.");
+         }
+         finally
+         {
+            _settings.IMAPSASLPlainEnabled = saslEnabled;
+         }
+      }
+
+      private static readonly string[] ScramProtocols = { "SMTP", "IMAP", "POP3" };
+
+      /// <summary>
+      ///    One SCRAM-SHA-256 exchange on each of SMTP, IMAP and POP3, each on a
+      ///    connection of its own; the final reply of each, in that order.
+      /// </summary>
+      private static string[] Scram(string user, string password)
+      {
+         var replies = new string[3];
+
+         using (var smtp = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(smtp.Connect(25), "Could not connect to SMTP.");
+            smtp.ReadUntil("220");
+            smtp.Send("EHLO example.test\r\n");
+            smtp.ReadUntil("250 ");
+            replies[0] = RegressionTests.SMTP.SmtpScramTestClient.Authenticate(smtp, user, password);
+         }
+
+         using (var imap = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(imap.Connect(143), "Could not connect to IMAP.");
+            imap.Receive();
+            replies[1] = RegressionTests.IMAP.ScramTestClient.Authenticate(imap, "A01", user, password);
+         }
+
+         using (var pop3 = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(pop3.Connect(110), "Could not connect to POP3.");
+            pop3.ReadUntil("+OK");
+            replies[2] = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(pop3, user, password);
+
+            // Released, so that the maildrop is not held for the next sign-in.
+            pop3.Send("QUIT\r\n");
+            pop3.Receive();
+         }
+
+         return replies;
+      }
+
+      /// <summary>
+      ///    SMTP AUTH PLAIN with an initial response, the name and the password as
+      ///    UTF-8, on a connection of its own; the reply line.
+      /// </summary>
+      public static string SmtpAuthPlain(string user, string password)
+      {
+         using (var con = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(con.Connect(25), "Could not connect to SMTP.");
+            con.ReadUntil("220");
+            con.Send("EHLO example.test\r\n");
+            con.ReadUntil("250 ");
+            con.Send("AUTH PLAIN " + Convert.ToBase64String(Encoding.UTF8.GetBytes("\0" + user + "\0" + password)) + "\r\n");
+            return con.Receive();
+         }
+      }
+
+      /// <summary>
+      ///    On Linux, where SASLprep cannot normalise a name that is not ASCII, SMTP
+      ///    AUTH PLAIN reports HM6450 for such a name to the error log and goes on with
+      ///    the name as it was given. Those lines, and only those, are read and removed
+      ///    here, so that the next test's SetUp does not take them for an error of its
+      ///    own; any other error fails the test.
+      /// </summary>
+      public static void ConsumeSaslPrepRefusals()
+      {
+         if (!File.Exists(LogHandler.GetErrorLogFileName()))
+            return;
+
+         string reported = LogHandler.ReadAndDeleteErrorLog();
+         foreach (string line in reported.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
+         {
+            if (line.Trim().Length > 0)
+               StringAssert.Contains("HM6450", line, "An error other than SASLprep's refusal of a name that is not ASCII was reported: " + line);
          }
       }
 
