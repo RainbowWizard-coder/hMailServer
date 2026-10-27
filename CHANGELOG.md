@@ -272,7 +272,8 @@ with `--check`).
   account's own key. `LogonNameTester` holds the rule
   (inside the server on Windows, and in `sign-in-budget-tests` on Linux), and the regression fixtures
   `Security.LogonNameVariants` (over IMAP, over the web services' HTTP Basic, which carries a name as UTF-8, and over
-  SCRAM-SHA-256 on SMTP, IMAP and POP3) and `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP
+  SCRAM-SHA-256 on SMTP, IMAP and POP3, and a name holding a NUL over IMAP LOGIN and in a request for a password
+  reset) and `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP
   AUTH PLAIN, which carries a name as UTF-8 too) the sign-ins
   ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)). Found by the hMailServer project (Progressive
   Robot Ltd).

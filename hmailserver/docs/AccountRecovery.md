@@ -225,6 +225,12 @@ stopwatch could sort a list of addresses into the ones that can be reset and the
 What the queued work found - no such mailbox, no confirmed address, a link sent, a
 failure - is in the application log, and nowhere else.
 
+The mailbox an address names is found as a sign-in finds the account a name names
+([CompromisedAccounts.md](CompromisedAccounts.md)): the one whose stored address is the
+address, in lower case, after a domain alias or the default domain. Another spelling the
+database would also have taken for it names no mailbox: it is answered as an address with
+no mailbox is, and nothing is sent.
+
 The rate limits are charged **before** anything is looked up, and for every address
 alike. Per address: one request a minute and six an hour, which is what stops a link
 being mailed at somebody over and over. Per client address: twenty an hour and no

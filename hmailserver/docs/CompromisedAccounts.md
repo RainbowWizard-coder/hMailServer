@@ -119,7 +119,8 @@ identity the IMAP master user names, SCRAM-SHA-256, an OAuth2 bearer token's
 name, a client certificate's address, a Kerberos principal's (for an account
 linked to a directory user, the directory user name and domain the account
 holds), and the address an OpenID Connect or SAML identity provider signs a
-person in with. A name the database would also have taken for the account under
+person in with; and so does a request for a password reset, for the mailbox whose
+recovery address a link is sent to ([AccountRecovery.md](AccountRecovery.md)). A name the database would also have taken for the account under
 another spelling names no account:
 it fails as a name that does not exist fails, with the same reply, and the
 failure is counted as any failure is. A name with a NUL in it is refused before

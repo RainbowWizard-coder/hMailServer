@@ -36,15 +36,27 @@ namespace RegressionTests.Security
    ///    those tests hold the rule on every engine, and that a name holding a NUL is
    ///    sent to no database statement. SCRAM-SHA-256 finds its account by a lookup
    ///    of its own on each of SMTP, IMAP and POP3, and the address with a space after
-   ///    it signed in there too. The held account's case is in
-   ///    API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH PLAIN, which
-   ///    carries a name as UTF-8.
+   ///    it signed in there too. IMAP LOGIN on Linux keeps a NUL in a name, as HTTP
+   ///    Basic does, and that is held too. The REST API's request for a password reset,
+   ///    which asks for no credential, can be given an address holding a NUL; its
+   ///    address is lowered before anything else is done with it, and the lowering
+   ///    ends at the NUL, so it asks for the part before the NUL: that is held, and
+   ///    that it sends no more than a request for that part would. The held account's
+   ///    case is in API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH
+   ///    PLAIN, which carries a name as UTF-8.
    /// </summary>
    [TestFixture]
    public class LogonNameVariants : TestFixtureBase
    {
       private const string Password = "Variant-Passw0rd!";
       private const int WebServicesPort = 9183;
+      private const string AdminPassword = "testar";
+
+      // The JSON escape of U+0000, made of its two halves so that no tool that
+      // reads this file decodes it.
+      private const string JsonNulEscape = "\\" + "u0000";
+
+      private static int RestPort = 9185;
 
       private Account _account;
 
@@ -288,6 +300,136 @@ namespace RegressionTests.Security
       }
 
       [Test]
+      [Description("IMAP LOGIN with a name holding a NUL - at its end, before more text and inside it - and the account's right password signs nothing in, and no database statement is sent with it, so no error is reported. On Linux the command line reaches LOGIN whole, and the name fails as a name that does not exist fails; on Windows the line ends at the NUL, so the command is never completed and nobody is signed in")]
+      public void OverImapLoginANameHoldingANulNamesNoAccountAndIsSentToNoStatement()
+      {
+         string wrongName = ImapLogin("nobody-at-all@" + _domain.Name, Password);
+         StringAssert.StartsWith("NO", wrongName);
+
+         // The suite reads the server's error log by its path, so it runs where the
+         // server runs, and the platform of this process is the server's.
+         bool lineKeepsTheNul = Environment.OSVersion.Platform == PlatformID.Unix;
+
+         string address = _account.Address;
+         var names = new List<string>
+         {
+            address + "\0",
+            address + "\0junk",
+            address.Substring(0, 3) + "\0" + address.Substring(3)
+         };
+
+         foreach (string name in names)
+         {
+            string reply = ImapLoginOrNoAnswer(name, Password, lineKeepsTheNul ? 60000 : 5000);
+            if (lineKeepsTheNul)
+            {
+               ClassicAssert.AreEqual(wrongName, reply,
+                  "Over IMAP LOGIN, the name '" + Escape(name) + "' with the account's right password must fail as a name that does not exist fails.");
+            }
+            else
+            {
+               ClassicAssert.IsFalse(reply != null && reply.StartsWith("OK", StringComparison.Ordinal),
+                  "Over IMAP LOGIN, the name '" + Escape(name) + "' with the account's right password signed in: " + reply);
+            }
+         }
+
+         string errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadAndDeleteErrorLog() : "";
+         ClassicAssert.IsEmpty(errors.Trim(), "A name holding a NUL reached a database statement over IMAP LOGIN, and an error was reported.");
+
+         StringAssert.StartsWith("OK", ImapLogin(address, Password), "The account's own address signs in.");
+      }
+
+      [Test]
+      [Description("POST /api/v1/password-reset, which asks for no credential, with an address holding a NUL - at its end, before more text and inside it - in a body the JSON parser refuses, which the route's lenient reader then reads, and then with the address itself: each is answered as every request is, no database statement is sent with a NUL, so no error is reported, and the four together send what the address's own request alone would - one link to its recovery address, under the address's own budget")]
+      public void APasswordResetForAnAddressHoldingANulSendsNoMoreThanOneForTheAddress()
+      {
+         Account recovery = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "variant-recovery@" + _domain.Name, Password);
+
+         _settings.SetAdministratorPassword(AdminPassword);
+         RestPort = RestListener.Start(RestPort);
+         _application.Reinitialize();
+         try
+         {
+            ClassicAssert.AreEqual(200, Rest("GET", "/api/v1/status", Basic("Administrator", AdminPassword), null).status,
+               "REST API did not answer /api/v1/status.");
+            (int status, string body) configured = Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword),
+               "{\"confidential_base_url\":\"https://mail.example.test\",\"account_recovery_enabled\":true}");
+            ClassicAssert.AreEqual(200, configured.status, configured.body);
+
+            // A proved recovery address, which is what a reset link is sent to.
+            string address = _account.Address;
+            (int status, string body) set = Rest("PUT", "/api/v1/me/recovery", Basic(address, Password),
+               "{\"address\":\"" + recovery.Address + "\",\"password\":\"" + Password + "\"}");
+            ClassicAssert.AreEqual(200, set.status, set.body);
+            string confirmation = Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password);
+            ClassicAssert.AreEqual(200, Rest("POST", "/recovery/verify?token=" + TokenIn(confirmation, "/recovery/verify?token="), null, null).status,
+               "The recovery address was not confirmed.");
+
+            var names = new List<string>
+            {
+               address + JsonNulEscape,
+               address + JsonNulEscape + "junk",
+               address.Substring(0, 3) + JsonNulEscape + address.Substring(3)
+            };
+
+            string answer = null;
+            foreach (string name in names)
+            {
+               // Text after the end of the value: the parser refuses the body.
+               (int status, string body) asked = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + name + "\"} x");
+               ClassicAssert.AreEqual(202, asked.status, asked.body);
+               if (answer == null)
+                  answer = asked.body;
+               ClassicAssert.AreEqual(answer, asked.body, "Every request is answered alike.");
+            }
+
+            // The address itself, within the minute: one link in all, whichever of the
+            // requests sent it, since a request for a name holding a NUL is at most a
+            // request for the part before it, under that part's own budget.
+            (int status, string body) own = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + address + "\"}");
+            ClassicAssert.AreEqual(202, own.status, own.body);
+            ClassicAssert.AreEqual(answer, own.body, "A request for the address itself is answered as the others were.");
+
+            // Waited for as long as the queued work would take, then counted once the
+            // delivery queue is empty, so that "one arrived" is not "the second has not
+            // arrived yet".
+            System.Threading.Thread.Sleep(3000);
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            Pop3ClientSimulator.AssertMessageCount(recovery.Address, Password, 1);
+            StringAssert.Contains("/portal/reset?token=", Pop3ClientSimulator.AssertGetFirstMessageText(recovery.Address, Password));
+
+            string errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadAndDeleteErrorLog() : "";
+            ClassicAssert.IsEmpty(errors.Trim(), "An address holding a NUL reached a database statement from a password-reset request, and an error was reported.");
+         }
+         finally
+         {
+            Rest("PUT", "/api/v1/settings", Basic("Administrator", AdminPassword), "{\"confidential_base_url\":\"\",\"account_recovery_enabled\":true}");
+            RestListener.Stop();
+            _application.Reinitialize();
+         }
+      }
+
+      private static (int status, string body) Rest(string method, string path, string authorization, string requestBody)
+      {
+         return RestRequest.Send("127.0.0.1", RestPort, method, path, authorization, requestBody);
+      }
+
+      private static string Basic(string user, string password)
+      {
+         return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
+      }
+
+      /// <summary>The 64 hex digits after the marker, out of the message as it was sent.</summary>
+      private static string TokenIn(string text, string marker)
+      {
+         int at = text.IndexOf(marker, StringComparison.Ordinal);
+         ClassicAssert.Greater(at, -1, "No " + marker + " in: " + text);
+         System.Text.RegularExpressions.Match token = System.Text.RegularExpressions.Regex.Match(text.Substring(at + marker.Length), "^[0-9a-f]{64}");
+         ClassicAssert.IsTrue(token.Success, "No token after " + marker + " in: " + text);
+         return token.Value;
+      }
+
+      [Test]
       [Description("Over SCRAM-SHA-256 on SMTP, IMAP and POP3, the address with a space after it, which MySQL, MariaDB and both SQL Servers took for the account, fails with the account's right password as a name that does not exist fails; the address itself signs in on each")]
       public void OverScramAVariantSpellingFailsAsAWrongNameDoes()
       {
@@ -477,6 +619,18 @@ namespace RegressionTests.Security
       /// </summary>
       public static string ImapLogin(string user, string password)
       {
+         string reply = ImapLoginOrNoAnswer(user, password, 60000);
+         if (reply == null)
+            throw new InvalidOperationException("The connection closed before the LOGIN was answered.");
+         return reply;
+      }
+
+      /// <summary>
+      ///    ImapLogin, waiting at most timeout milliseconds for the tagged reply; null
+      ///    when none came in that time or the connection closed first.
+      /// </summary>
+      private static string ImapLoginOrNoAnswer(string user, string password, int timeout)
+      {
          using (var client = new TcpClient(TestPorts.HostAddress.AddressFamily))
          {
             client.ReceiveTimeout = 60000;
@@ -486,13 +640,22 @@ namespace RegressionTests.Security
             ReadLine(stream);
 
             Write(stream, "A1 LOGIN \"" + user + "\" \"" + password + "\"\r\n");
+            client.ReceiveTimeout = timeout;
 
             string line;
             do
             {
-               line = ReadLine(stream);
+               try
+               {
+                  line = ReadLine(stream);
+               }
+               catch (IOException)
+               {
+                  return null;
+               }
+
                if (line == null)
-                  throw new InvalidOperationException("The connection closed before the LOGIN was answered.");
+                  return null;
             } while (!line.StartsWith("A1 ", StringComparison.Ordinal));
 
             try
