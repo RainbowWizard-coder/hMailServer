@@ -798,7 +798,13 @@ eicar_stream=$(stream_with "$eicar_token")
 [ "$(delivered_with "$eicar_token")" = 0 ] || fail "the EICAR message was delivered, where the action delete_email deletes it"
 api_expect 200 GET /api/v1/queue
 grep -q -E '"count": *0[,}]' "$work/api.json" || fail "the queue is not empty after the EICAR message: $(head -c 300 "$work/api.json")"
-virus_line=$(server_log | grep -F 'Virus detected: Eicar-Signature' | tail -n 1)
+virus_line=""
+for _ in $(seq 1 20); do
+  virus_line=$(server_log | grep -F 'Virus detected: Eicar-Signature' | tail -n 1)
+  [ -n "$virus_line" ] && break
+  sleep 0.5
+done
+[ -n "$virus_line" ] || fail "the server's log has no 'Virus detected: Eicar-Signature' for the EICAR message"
 echo "the fake clamd was given the EICAR message ($eicar_stream) and answered FOUND; it was not delivered and the queue is empty; the server's log:"
 echo "  $(cut -c1-300 <<< "$virus_line")"
 echo "  $(cut -c1-300 <<< "$eicar_line")"
@@ -806,10 +812,13 @@ echo "  $(cut -c1-300 <<< "$eicar_line")"
 groups=$(in_ctr awk '$1 == "Groups:" { $1 = ""; sub(/^ +/, ""); print }' "/proc/$pid/status")
 tr ' ' '\n' <<< "$groups" | grep -qx "$clamd_gid" || fail "the server reached the socket without $clamd_group ($clamd_gid) among its groups ($groups)"
 # The mount the socket's directory is on in the server's namespace: ProtectSystem=strict
-# has / read-only there (the sandbox step), and systemd leaves /run writable to the
-# service; a drop-in with ReadOnlyPaths= over the directory shows that a read-only
-# mount does not keep the server from the socket either, since connecting writes to
-# the socket and not to the file system it is on.
+# has / read-only there (the sandbox step), and /run is writable to the service, not
+# for strict, which alone would make it read-only too, but because the unit's
+# ProtectKernelTunables=, ProtectControlGroups=, ProtectProc= and ProcSubset= imply
+# MountAPIVFS=, whose /run systemd leaves out of strict's read-only remount; a drop-in
+# putting those four back to their defaults, or one with ReadOnlyPaths= over the
+# directory, shows that a read-only mount does not keep the server from the socket
+# either, since connecting writes to the socket and not to the file system it is on.
 in_ctr cat "/proc/$pid/mountinfo" > "$out/server-mountinfo-clamd.txt"
 clamd_mount=$(mount_of "$out/server-mountinfo-clamd.txt" "$clamd_dir" options)
 case ",$clamd_mount," in

@@ -131,10 +131,14 @@ NoNewPrivileges=yes
 # would be a privilege nothing here uses.
 #
 # systemd leaves /run writable here (259, on Ubuntu 26.04 and Fedora 44, as the
-# package-systemd jobs read it from the running server), and read-only would not
-# keep the service from a socket either: connecting to clamd's
-# /run/clamav/clamd.ctl is a write to the socket, which a read-only mount allows
-# (it refuses writes to files, directories and links), so ClamAVHost may name it.
+# package-systemd jobs read it from the running server), not for
+# ProtectSystem=strict, which alone would make /run read-only too, but because
+# ProtectKernelTunables=, ProtectControlGroups=, ProtectProc= and ProcSubset=
+# below imply MountAPIVFS=, whose /run systemd leaves out of strict's read-only
+# remount. Read-only would not keep the service from a socket either:
+# connecting to clamd's /run/clamav/clamd.ctl is a write to the socket, which a
+# read-only mount allows (it refuses writes to files, directories and links),
+# so ClamAVHost may name it.
 ProtectSystem=strict
 ProtectHome=yes
 

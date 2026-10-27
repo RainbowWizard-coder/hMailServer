@@ -719,9 +719,14 @@ branch's pipeline and on master, never on a `v*` tag: they are checks, like
    (contained virus Eicar-Signature).` logged, nothing delivered and the queue
    empty. The server's process must hold the group, and the step says how the
    socket's directory is mounted in its namespace: `ProtectSystem=strict` has
-   `/`, `/usr`, `/etc` and `/var` read-only there (step 4) and leaves `/run`
-   writable, and with a drop-in's `ReadOnlyPaths=` over the directory it is
-   read-only and the server reaches the socket all the same. The step waits out
+   `/`, `/usr`, `/etc` and `/var` read-only there (step 4), and `/run` is
+   writable, not for `ProtectSystem=strict`, which alone would make it read-only
+   too, but because the unit's `ProtectKernelTunables=`,
+   `ProtectControlGroups=`, `ProtectProc=` and `ProcSubset=` imply
+   `MountAPIVFS=`, whose `/run` systemd leaves out of strict's read-only
+   remount. With a drop-in putting those four back to their defaults `/run` is
+   read-only to the server, and with one setting `ReadOnlyPaths=` over the
+   directory that directory is, and the server reaches the socket all the same. The step waits out
    the moment the wrong password of step 5 keeps the administrator's credential
    throttled (a 429), as a client does. ClamAV is then turned off
    again, the logging put back and the fake stopped, so that the steps after run
@@ -814,8 +819,15 @@ Fedora 44's in 68 s from installing podman to removing the image, the step itsel
 in 2 s: the fake clamd was given the clean message (335 bytes) and the EICAR one,
 and the server logged `No virus detected: stream: OK`, `Virus detected:
 Eicar-Signature` and `SMTPDeliverer - Message 2: Message will be deleted
-(contained virus Eicar-Signature).` Under `ProtectSystem=strict`, systemd 259 on
-both left `/run` writable to the server (`rw,nosuid,nodev,relatime`); with a
+(contained virus Eicar-Signature).` systemd 259 on both left `/run` writable to
+the server (`rw,nosuid,nodev,relatime`), for `MountAPIVFS=`, which the unit's
+`ProtectKernelTunables=`, `ProtectControlGroups=`, `ProtectProc=` and
+`ProcSubset=` imply, and not for `ProtectSystem=strict`: on both, a drop-in
+setting `ProtectKernelTunables=no`, `ProtectControlGroups=no`,
+`ProtectProc=default` and `ProcSubset=all` with `ProtectSystem=strict` left alone
+made `/run` read-only to the server (`ro,nosuid,nodev,relatime`, its
+`/run/hmailserver` still writable), and the step passed; the same drop-in with
+`MountAPIVFS=yes` added had `/run` writable again (on Ubuntu 26.04); with a
 drop-in setting `ReadOnlyPaths=/run/hm-clamd` the directory was read-only to it
 (`ro,nosuid,nodev,relatime`) and the step passed all the same. Each of these
 made the step fail, with the server's own reason from its error log:
@@ -826,6 +838,12 @@ made the step fail, with the server's own reason from its error log:
 | a drop-in setting `InaccessiblePaths=/run/hm-clamd` | "this server's user may not enter /run/hm-clamd, a directory on the way to the socket, so the socket's own mode does not help", beside `InaccessiblePaths=/run/hm-clamd` |
 | the user out of the group: `SupplementaryGroups=` can only add one, so a drop-in's `ExecStartPre=+-/usr/bin/gpasswd -d hmailserver hm-clamd`, run as root outside the sandbox, takes it away just before systemd starts the server with the groups the user database then gives | the same "may not enter /run/hm-clamd", beside the server's groups, without `hm-clamd`'s (on Ubuntu 26.04 and on Fedora 44) |
 | `HM_SYSTEMD_TEST_CLAMD_DIR=/tmp/hm-clamd`, the fake's socket under the container's `/tmp` | "nothing is listening there, as there is no socket at that path", as the table in [ClamAV.md](ClamAV.md) says, and the step's note that the unit's `PrivateTmp=yes` gives the service a `/tmp` of its own |
+
+The step requires the scanner's own `Virus detected: Eicar-Signature` beside the
+deletion line: a copy of the script that turned debug logging off just before the
+EICAR message, so that the message was still scanned and deleted but the scanner's
+line not written, failed the step on Ubuntu 26.04 with "the server's log has no
+'Virus detected: Eicar-Signature' for the EICAR message".
 
 linix's 31 qemu handlers were there before and after every run. The first run of
 the group control on Fedora stopped at the step's first REST call with a 429:

@@ -1224,8 +1224,12 @@ with `--check`).
   the `hmailserver` user is in, as Fedora's `/run/clamd.scan` is, so that the unit is shown to give the service its
   user's supplementary groups too; a clean message reaches the fake and is delivered, and EICAR is deleted, as the
   default action says, each with the server's own log line. systemd 259, on both, leaves `/run` writable to the
-  service under `ProtectSystem=strict`, as the unit's comment and ClamAV.md now say where they had it read-only, and
-  with a drop-in's `ReadOnlyPaths=` over the socket's directory the scan goes through all the same; with `AF_UNIX` taken out of
+  service, where the unit's comment and ClamAV.md had it read-only: not for `ProtectSystem=strict`, which alone would
+  make `/run` read-only too, but because the unit's `ProtectKernelTunables=`, `ProtectControlGroups=`, `ProtectProc=`
+  and `ProcSubset=` imply `MountAPIVFS=`, whose `/run` systemd leaves out of strict's read-only remount, as the
+  comment, ClamAV.md and PackagesDeb.md now say; with a drop-in putting those four back to their defaults, which
+  makes `/run` read-only to the service, and with one setting `ReadOnlyPaths=` over the socket's directory, the scan
+  goes through all the same; with `AF_UNIX` taken out of
   `RestrictAddressFamilies=`, the socket's directory made inaccessible to the service, the user out of the group, or
   the socket under `/tmp`, which `PrivateTmp=yes` hides, the test fails, naming the cause. The source packages' builds leave `clamd-socket-tests` out, as they leave out
   every tester that needs a socket: it binds Unix sockets of its own under `$TMPDIR` (`SOURCE_TESTERS_LEFT_OUT` in

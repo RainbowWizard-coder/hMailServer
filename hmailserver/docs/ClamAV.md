@@ -100,13 +100,18 @@ sudo systemctl restart hmailserver
 
 Under its systemd unit the server can reach the socket as it is:
 `RestrictAddressFamilies` allows `AF_UNIX`, and `ProtectSystem=strict` does not
-stop a connection to a socket under `/run`. It makes `/`, `/usr`, `/etc` and
-`/var` read-only to the service and leaves `/run` writable (systemd 259, on
-Ubuntu 26.04 and on Fedora 44, as read from the running server); and a read-only
-mount over the socket's directory, such as a drop-in's `ReadOnlyPaths=`, would
-not stop it either - connecting writes to the socket, not to the file system it
-is on, and a read-only mount refuses writes to files, directories and links
-only. What the
+stop a connection to a socket under `/run`. On its own it would make all of
+`/run` read-only to the service, with `/`, `/usr`, `/etc` and `/var`; in this
+unit `/run` stays writable all the same (systemd 259, on Ubuntu 26.04 and on
+Fedora 44, as read from the running server), because `ProtectKernelTunables=`,
+`ProtectControlGroups=`, `ProtectProc=` and `ProcSubset=` imply
+`MountAPIVFS=`, and systemd leaves the `/run` that mounts out of strict's
+read-only remount. The connection works either way: with those four put back to
+their defaults `/run` is read-only to the service, and with a drop-in's
+`ReadOnlyPaths=` over the socket's directory that directory is, and the server
+reaches the socket in both - connecting writes to the socket, not to the file
+system it is on, and a read-only mount refuses writes to files, directories and
+links only. What the
 unit hides is out of reach: with `PrivateTmp=yes` the service has a `/tmp` and a
 `/var/tmp` of its own, so a clamd socket under either is not the one it sees, and
 with `ProtectHome=yes` it cannot enter `/home`, `/root` or `/run/user` at all, so
