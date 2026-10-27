@@ -261,9 +261,16 @@ with `--check`).
   is looked up with it: up to 6.3.7 such a name reached the account and domain lookups, where MySQL, MariaDB and
   PostgreSQL failed the statement and the server reported a database error for each. A password
   sign-in also asks the hold, the country policy and, for the account that authenticated, the lockout of the
-  account's own address once the password has found it, and the `account.locked` webhook is raised only for a locked
-  name that is an account's own. A name with spaces after it no longer signs in (it is still counted against the
-  account), nor does one that
+  account's own address once the password has found it; when the IMAP master user signs in as another account, the
+  master user's own hold, country policy and lockout are asked of its own address too, besides the other account's
+  hold and country policy, where up to 6.3.7 they were asked only of the name it gave, so that a held or locked
+  master user opens no mailbox under any spelling of its name; and the `account.locked` webhook is raised only for a
+  locked name that is an account's own. A name with white space at either end no longer signs in, whatever the domain
+  aliases hold (it
+  is still counted against the account, or as a name of no account where a domain alias's own stored name ends in
+  white space; the server now takes the white space off an alias's name when COM or the Control Panel saves one, as
+  the REST API did, where up to 6.3.7 a name under such an alias could be counted apart from the account), nor does
+  one that
   differs from the stored address in the case of a letter the C library does not lower in the C locale: with glibc
   every letter but A to Z; on Windows Latin-1's own capitals (U+00C0 to U+00DE) and some letters from U+0100 up -
   title-case letters, letters added in recent versions of Unicode and any outside the Basic Multilingual Plane among
@@ -273,8 +280,10 @@ with `--check`).
   (inside the server on Windows, and in `sign-in-budget-tests` on Linux), and the regression fixtures
   `Security.LogonNameVariants` (over IMAP, over the web services' HTTP Basic, which carries a name as UTF-8, and over
   SCRAM-SHA-256 on SMTP, IMAP and POP3, and a name holding a NUL over IMAP LOGIN and in a request for a password
-  reset) and `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP
-  AUTH PLAIN, which carries a name as UTF-8 too) the sign-ins
+  reset, an alias whose stored name ends in a space, and a locked IMAP master user) and
+  `API.RestApiCompromisedAccount` (a held account, over IMAP and over SMTP AUTH PLAIN, which carries a name as UTF-8
+  too, and a held IMAP master user) and `Security.CountryBlocking` (the IMAP master user's own country policy) the
+  sign-ins
   ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md)). Found by the hMailServer project (Progressive
   Robot Ltd).
 - **Fixed: a mailbox's recovery address could be sent more password-reset links than the per-address limit allows.**

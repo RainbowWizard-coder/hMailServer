@@ -82,7 +82,11 @@ When the mode is `enforce` and a submission completes the shape:
    twice: of the name as the client gave it, before the password, and of the
    account's own address once the password has found the account - and a name
    finds an account only when it is the account's address (below), so no other
-   spelling of the name reaches a held account.
+   spelling of the name reaches a held account. When the IMAP master user signs
+   in as another account, the second time is asked of both: the account the
+   session is for and the master user's own account, whose password was proved,
+   along with the master user's own per-name lockout and country policy, so a
+   held or locked master user opens no mailbox under any spelling of its name.
 3. **The alert is raised.** `account.compromised`, seeded on, with the account,
    the client address, the score, the signals and one sentence per signal; and
    the `account.locked` webhook, with the reason.
@@ -131,8 +135,12 @@ failure is counted as any failure is. A name with a NUL in it is refused before
 anything is looked up with it, so no database statement carries one. The lockout counts each name under the same key the comparison is
 made with (the name trimmed, in lower case, with the alias and the default
 domain applied), so a name that signs in to an account is counted as that
-account, and a name with spaces around it, which does not sign in, is counted as
-the account too.
+account. A name with white space at either end never signs in, whatever the
+domain aliases hold, and no password is verified for it; it is counted as the
+account too, unless a domain alias's own stored name ends in white space, when it
+is counted as a name of no account is. The server takes the white space off an
+alias's name when it saves one, through COM and the Control Panel as through the
+REST API; an alias saved before may still hold it.
 
 Up to 6.3.7 the account a name signed in to was whichever one the database's own
 comparison found, and the databases find an account under spellings the lockout

@@ -47,7 +47,13 @@ namespace RegressionTests.Security
    ///    before it is charged, and the address in other case, under a domain alias and
    ///    as a bare local part under the default domain share the account's one budget,
    ///    where each of the last two had its own: both are held by the number of links
-   ///    the recovery address receives. The held account's case is in
+   ///    the recovery address receives. A domain alias whose stored name ends in a
+   ///    space, which COM saved as given up to 6.3.7, made the address under it with
+   ///    the space after it the account's while the lockout counted it apart, and a
+   ///    locked IMAP master user signed in as another account under it: the name is
+   ///    now refused, COM saves an alias's name trimmed, and a locked master user is
+   ///    refused under every spelling, asked by its own address once its password is
+   ///    proved. The held account's case is in
    ///    API/RestApiCompromisedAccount, over IMAP LOGIN and over SMTP AUTH PLAIN, which
    ///    carries a name as UTF-8.
    /// </summary>
@@ -193,6 +199,178 @@ namespace RegressionTests.Security
             _application.Reinitialize();
             StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password));
          }
+      }
+
+      [Test]
+      [Description("A domain alias is saved without white space at either end of its name, as the REST API saves one")]
+      public void ADomainAliasIsSavedWithoutWhiteSpaceAroundItsName()
+      {
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.AliasName = " lnv-trimmed.example \t";
+         alias.Save();
+
+         try
+         {
+            DomainAliases stored = _application.Domains.get_ItemByName(_domain.Name).DomainAliases;
+            var names = new List<string>();
+            for (int i = 0; i < stored.Count; i++)
+               names.Add(stored[i].AliasName);
+
+            CollectionAssert.Contains(names, "lnv-trimmed.example", "The alias is stored under its name without the white space around it.");
+            StringAssert.StartsWith("OK", ImapLogin("variant@lnv-trimmed.example", Password), "The address under the alias signs in.");
+         }
+         finally
+         {
+            _domain.DomainAliases.DeleteByDBID(alias.ID);
+         }
+      }
+
+      [Test]
+      [Description("Under a domain alias whose stored name ends in a space, as an administrator could save one up to 6.3.7, the address under that name with the space after it fails with the right password as a name that does not exist fails, and a locked master user does not sign in as another account under it")]
+      public void UnderAnAliasWhoseStoredNameEndsInASpaceAPaddedNameSignsInToNothing()
+      {
+         string wrongName = ImapLogin("nobody-at-all@" + _domain.Name, Password);
+         StringAssert.StartsWith("NO", wrongName);
+
+         Account master = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lnvadmin@" + _domain.Name, Password);
+         Account target = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lnvtarget@" + _domain.Name, Password);
+
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.AliasName = "lnv-padded.example";
+         alias.Save();
+         var aliasId = alias.ID;
+
+         bool sasl = _settings.IMAPSASLPlainEnabled;
+         try
+         {
+            // The server no longer saves such a name, so the row is changed in the
+            // database, as it stands where one was saved before (the Linux suite's
+            // stand-in for the COM API has no database object, and skips this test).
+            string padded;
+            switch (_application.Database.DatabaseType)
+            {
+               case eDBtype.hDBTypeMySQL:
+                  padded = "concat(daalias, ' ')";
+                  break;
+               case eDBtype.hDBTypePostgreSQL:
+                  padded = "daalias || ' '";
+                  break;
+               default:
+                  padded = "daalias + ' '";
+                  break;
+            }
+            _application.Database.ExecuteSQL("update hm_domain_aliases set daalias = " + padded + " where daid = " + aliasId);
+
+            // The server reads the aliases again when one is saved or deleted.
+            DomainAlias other = _domain.DomainAliases.Add();
+            other.AliasName = "lnv-reload.example";
+            other.Save();
+            _domain.DomainAliases.DeleteByDBID(other.ID);
+            _application.Reinitialize();
+
+            DomainAliases stored = _application.Domains.get_ItemByName(_domain.Name).DomainAliases;
+            var names = new List<string>();
+            for (int i = 0; i < stored.Count; i++)
+               names.Add(stored[i].AliasName);
+            CollectionAssert.Contains(names, "lnv-padded.example ", "The alias's stored name ends in a space.");
+
+            ClassicAssert.AreEqual(wrongName, ImapLogin("variant@lnv-padded.example ", Password),
+               "The address under the alias's name with the space after it fails with the right password as a name that does not exist fails.");
+            ClassicAssert.AreEqual(wrongName, ImapLogin("VARIANT@LNV-Padded.Example ", Password),
+               "So it does in other case.");
+            StringAssert.StartsWith("OK", ImapLogin(_account.Address, Password), "The account's own address signs in.");
+
+            // The master user, configured as a bare name, which the IMAP server
+            // qualifies with the domain of the name that authenticates.
+            _settings.IMAPSASLPlainEnabled = true;
+            _settings.IMAPMasterUser = "lnvadmin";
+            StringAssert.Contains("A01 OK", ImapAuthenticateAs(target.Address, master.Address, Password),
+               "The master user signs in as another account under its own address.");
+            StringAssert.DoesNotContain("A01 OK", ImapAuthenticateAs(target.Address, "lnvadmin@lnv-padded.example ", Password),
+               "The master user's address under the alias's name with the space after it signs in as no account.");
+
+            SetIniSetting("AccountLockoutThreshold", "3");
+            _application.Reinitialize();
+            for (int i = 0; i < 3; i++)
+               StringAssert.StartsWith("NO", ImapLogin(master.Address, "wrong" + i));
+
+            StringAssert.DoesNotContain("A01 OK", ImapAuthenticateAs(target.Address, master.Address, Password),
+               "A locked master user does not sign in as another account under its own address.");
+            StringAssert.DoesNotContain("A01 OK", ImapAuthenticateAs(target.Address, "lnvadmin@lnv-padded.example ", Password),
+               "A locked master user does not sign in as another account under the alias's name with the space after it.");
+         }
+         finally
+         {
+            _settings.IMAPMasterUser = string.Empty;
+            _settings.IMAPSASLPlainEnabled = sasl;
+            SetIniSetting("AccountLockoutThreshold", null);
+            _domain.DomainAliases.DeleteByDBID(aliasId);
+            _application.Reinitialize();
+         }
+      }
+
+      [Test]
+      [Description("A locked master user does not sign in as another account under any spelling of its name, its own included, and does again once the lock is gone")]
+      public void ALockedMasterUserDoesNotSignInAsAnotherAccountUnderAnySpelling()
+      {
+         Account master = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lnvadmin@" + _domain.Name, Password);
+         Account target = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lnvtarget@" + _domain.Name, Password);
+
+         bool sasl = _settings.IMAPSASLPlainEnabled;
+         _settings.IMAPSASLPlainEnabled = true;
+         _settings.IMAPMasterUser = "lnvadmin";
+         try
+         {
+            StringAssert.Contains("A01 OK", ImapAuthenticateAs(target.Address, master.Address, Password),
+               "The master user signs in as another account before it is locked.");
+
+            SetIniSetting("AccountLockoutThreshold", "3");
+            _application.Reinitialize();
+            for (int i = 0; i < 3; i++)
+               StringAssert.StartsWith("NO", ImapLogin(master.Address, "wrong" + i));
+
+            var spellings = new List<string> { master.Address, master.Address.ToUpperInvariant(), master.Address + " " };
+            spellings.AddRange(Variants(master.Address));
+            spellings.AddRange(Utf8Variants(master.Address));
+            foreach (string spelling in spellings)
+            {
+               StringAssert.DoesNotContain("A01 OK", ImapAuthenticateAs(target.Address, spelling, Password),
+                  "A locked master user must not sign in as another account under '" + Escape(spelling) + "'.");
+            }
+
+            ConsumeSaslPrepRefusals();
+
+            SetIniSetting("AccountLockoutThreshold", null);
+            _application.Reinitialize();
+            StringAssert.Contains("A01 OK", ImapAuthenticateAs(target.Address, master.Address, Password),
+               "With the lock gone the master user signs in as another account again.");
+         }
+         finally
+         {
+            _settings.IMAPMasterUser = string.Empty;
+            _settings.IMAPSASLPlainEnabled = sasl;
+            SetIniSetting("AccountLockoutThreshold", null);
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    IMAP AUTHENTICATE PLAIN with an authorisation identity (RFC 4616), the message
+      ///    as UTF-8, on a connection of its own; the tagged reply.
+      /// </summary>
+      public static string ImapAuthenticateAs(string authzid, string authcid, string password)
+      {
+         var socket = new TcpConnection();
+         ClassicAssert.IsTrue(socket.Connect(143), "Could not connect to IMAP.");
+         socket.ReadUntil("* OK");
+         socket.Send("A01 AUTHENTICATE PLAIN\r\n");
+         string continuation = socket.Receive();
+         StringAssert.StartsWith("+", continuation);
+         socket.Send(Convert.ToBase64String(Encoding.UTF8.GetBytes(authzid + "\0" + authcid + "\0" + password)) + "\r\n");
+         string result = socket.ReadUntil("A01 ");
+         socket.Disconnect();
+         int at = result.IndexOf("A01 ", StringComparison.Ordinal);
+         return at >= 0 ? result.Substring(at).Trim() : result.Trim();
       }
 
       /// <summary>

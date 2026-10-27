@@ -132,7 +132,8 @@ namespace HM
       // Whether an app password matched is asked here too, whatever the caller
       // asked: only the account's own password opens its mailbox key.
       bool viaAppPassword = false;
-      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, &viaAppPassword, matchedAppPasswordName, secondFactor);
+      std::shared_ptr<const Account> authenticated;
+      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, &viaAppPassword, matchedAppPasswordName, secondFactor, &authenticated);
       if (matchedAppPassword)
          *matchedAppPassword = viaAppPassword;
 
@@ -159,7 +160,37 @@ namespace HM
       // per-name lockout is not: that counts guesses at the mailbox's own
       // password, and a master user's tool is not to be locked out of a mailbox
       // by somebody guessing at it.
+      //
+      // And the account that authenticated - the master user, whose password
+      // was proved - is asked by its own address too: its per-name lockout, its
+      // compromise hold and its country policy, as it would be signing in as
+      // itself. The checks before the password asked them of the name it gave;
+      // these hold for it as the ones above hold for the session's account, so
+      // that no spelling of a master user's name lets a locked or held master,
+      // or one its own country policy refuses, open another mailbox, even were
+      // the rule got round. Up to 6.3.7 only the name it gave was asked.
       const bool asItself = masqname.IsEmpty() || masqname.CompareNoCase(username) == 0;
+      if (account && !asItself)
+      {
+         std::shared_ptr<const Account> master = authenticated;
+         if (!master)
+         {
+            account.reset();
+         }
+         else if (AccountLockout::Instance()->IsLockedOut(master->GetAddress()))
+         {
+            ServerStatus::Instance()->OnAuthenticationFailed();
+
+            std::shared_ptr<Account> empty;
+            return empty;
+         }
+         else if (RefusedByHold(master, ipaddress))
+         {
+            std::shared_ptr<Account> empty;
+            return empty;
+         }
+      }
+
       if (account)
       {
          if (asItself && AccountLockout::Instance()->IsLockedOut(account->GetAddress()))

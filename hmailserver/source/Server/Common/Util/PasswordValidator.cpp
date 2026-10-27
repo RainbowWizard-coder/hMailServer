@@ -79,13 +79,16 @@ namespace HM
 
    std::shared_ptr<const Account>
    PasswordValidator::ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
-                                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor)
+                                       bool *matchedAppPassword, String *matchedAppPasswordName, SecondFactorOffer *secondFactor,
+                                       std::shared_ptr<const Account> *authenticated)
    {
       std::shared_ptr<Account> pEmpty;
       if (matchedAppPassword)
          *matchedAppPassword = false;
       if (matchedAppPasswordName)
          *matchedAppPasswordName = String();
+      if (authenticated)
+         authenticated->reset();
 
       // Domain aliases and the default domain applied, and the account the name
       // names under the sign-in's rule (LogonName.h): the one whose stored address
@@ -116,6 +119,11 @@ namespace HM
 
       if (!ValidatePassword(pAccount, sPassword, secondFactor, matchedAppPassword, matchedAppPasswordName))
          return pEmpty;
+
+      // The account whose password was proved, for the caller to ask its own
+      // lockout, hold and country policy of when the session is another's.
+      if (authenticated)
+         *authenticated = pAccount;
 
       if (sMasqname.GetLength() == 0)
          return pAccount;

@@ -234,6 +234,56 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A held master user does not sign in as another account with its right password under any spelling of its name, its own included, while the hold stands, and does again once it is unlocked.")]
+      public void AHeldMasterUserDoesNotSignInAsAnotherAccount()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"compromise_detection_mode\":\"enforce\"}").status);
+
+         Account master = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldadmin@" + _domain.Name, Password);
+         Account target = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "heldtarget@" + _domain.Name, Password);
+         Account first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger1@" + _domain.Name, Password);
+         Account second = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger2@" + _domain.Name, Password);
+         Account third = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stranger3@" + _domain.Name, Password);
+         _locked.Add(master.Address);
+
+         bool sasl = _settings.IMAPSASLPlainEnabled;
+         _settings.IMAPSASLPlainEnabled = true;
+         _settings.IMAPMasterUser = "heldadmin";
+         try
+         {
+            StringAssert.Contains("A01 OK", global::RegressionTests.Security.LogonNameVariants.ImapAuthenticateAs(target.Address, master.Address, Password),
+               "The master user signs in as another account before it is held.");
+
+            Submit(master.Address, first.Address, "Message 1");
+            Submit(master.Address, second.Address, "Message 2");
+            Pop3ClientSimulator.AssertMessageCount(first.Address, Password, 1);
+            Pop3ClientSimulator.AssertMessageCount(second.Address, Password, 1);
+            Submit(master.Address, third.Address, "Message 3");
+            Assert.IsTrue(MiniJson.Flag(MiniJson.Object(Admin("GET", "/api/v1/accounts/" + Uri.EscapeDataString(master.Address) + "/review", null).body), "locked"), "The shape held the master user.");
+
+            var spellings = new List<string> { master.Address, master.Address.ToUpperInvariant(), master.Address + " " };
+            spellings.AddRange(global::RegressionTests.Security.LogonNameVariants.Variants(master.Address));
+            spellings.AddRange(global::RegressionTests.Security.LogonNameVariants.Utf8Variants(master.Address));
+            foreach (string spelling in spellings)
+            {
+               StringAssert.DoesNotContain("A01 OK", global::RegressionTests.Security.LogonNameVariants.ImapAuthenticateAs(target.Address, spelling, Password),
+                  "A held master user must not sign in as another account under a spelling of its name of " + spelling.Length + " characters.");
+            }
+
+            global::RegressionTests.Security.LogonNameVariants.ConsumeSaslPrepRefusals();
+
+            Assert.AreEqual(200, Admin("POST", "/api/v1/accounts/" + Uri.EscapeDataString(master.Address) + "/review/unlock", null).status);
+            StringAssert.Contains("A01 OK", global::RegressionTests.Security.LogonNameVariants.ImapAuthenticateAs(target.Address, master.Address, Password),
+               "Unlocked, the master user signs in as another account again.");
+         }
+         finally
+         {
+            _settings.IMAPMasterUser = string.Empty;
+            _settings.IMAPSASLPlainEnabled = sasl;
+         }
+      }
+
+      [Test]
       [Description("In watch mode, the default, the same shape is recorded on the account and raises the alert saying what enforcing would have done, and nothing is held or locked.")]
       public void WatchModeRecordsTheShapeAndHoldsNothing()
       {

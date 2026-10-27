@@ -95,8 +95,13 @@ STDMETHODIMP InterfaceDomainAlias::put_AliasName(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetAlias(newVal);
-   
+      // Without white space at either end, as the REST API saves one: the alias
+      // match compares the whole name, so a name with a space after it matched
+      // no mail and only names that a sign-in now refuses (Util/LogonName.h).
+      HM::String name = newVal;
+      name.Trim();
+      object_->SetAlias(name);
+
       return S_OK;
    }
    catch (...)

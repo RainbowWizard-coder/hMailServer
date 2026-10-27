@@ -397,6 +397,40 @@ namespace RegressionTests.Security
             "A master user opened a mailbox from a country the mailbox's domain refuses.");
       }
 
+      [Test]
+      [Description("The IMAP master user signing in as another account meets its own policy as well, which is asked of its own address once its password has found it, in other case too")]
+      public void AMasterUserSignInMeetsItsOwnPolicy()
+      {
+         JudgeTheLoopbackAddress();
+
+         // The mailbox is in a domain with no policy; the master's domain gets one.
+         Domain targetDomain = SingletonProvider<TestSetup>.Instance.AddDomain("geo-own.test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(targetDomain, "mailbox@geo-own.test", "other");
+
+         _settings.IMAPSASLPlainEnabled = true;
+         _settings.IMAPMasterUser = "geo@example.test";
+
+         // The negative control: with no policy anywhere the master signs in as
+         // the mailbox.
+         StringAssert.Contains("A01 OK", ImapAuthenticatePlain("mailbox@geo-own.test", "geo@example.test", "test"),
+            "The master user must sign in as the mailbox while no policy is set.");
+
+         _domain.CountryPolicy = "block:" + LoopbackCountry;
+         _domain.Save();
+
+         foreach (string spelling in new[] { "geo@example.test", "GEO@Example.Test" })
+         {
+            StringAssert.Contains("A01 NO", ImapAuthenticatePlain("mailbox@geo-own.test", spelling, "test"),
+               "A master user whose own domain refuses the country opened another mailbox under '" + spelling + "'.");
+         }
+
+         _domain.CountryPolicy = "allow:" + LoopbackCountry;
+         _domain.Save();
+
+         StringAssert.Contains("A01 OK", ImapAuthenticatePlain("mailbox@geo-own.test", "geo@example.test", "test"),
+            "With the country allowed the master user signs in as the mailbox again.");
+      }
+
       private static string ImapAuthenticatePlain(string authzid, string authcid, string password)
       {
          using (var socket = new TcpConnection())

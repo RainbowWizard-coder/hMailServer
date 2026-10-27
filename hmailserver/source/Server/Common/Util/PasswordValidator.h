@@ -54,11 +54,17 @@ namespace HM
       static std::shared_ptr<const Account> LookupAccount(const String &sUsername);
       // secondFactor is passed straight to the overload below, which is where it
       // decides anything: the account's own password is refused for an account
-      // with a second factor enrolled unless one has been proved.
+      // with a second factor enrolled unless one has been proved. authenticated,
+      // when given, receives the account whose password was proved - the one
+      // sUsername names - even when the account returned is the authorisation
+      // identity sMasqname names, so that the caller can ask that account's own
+      // lockout, hold and country policy too; it is empty when no password was
+      // proved.
       static std::shared_ptr<const Account> ValidatePassword(const String &sMasqname, const String &sUsername, const String &sPassword,
                                                              bool *matchedAppPassword = nullptr,
                                                              String *matchedAppPasswordName = nullptr,
-                                                             SecondFactorOffer *secondFactor = nullptr);
+                                                             SecondFactorOffer *secondFactor = nullptr,
+                                                             std::shared_ptr<const Account> *authenticated = nullptr);
 
       // The account's own password and nothing else: never an app password,
       // whatever credential the request that carries it came in on. For a

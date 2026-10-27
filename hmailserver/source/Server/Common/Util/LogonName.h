@@ -30,10 +30,16 @@
 //
 // The key. Key is Canonical of the name trimmed, which is what
 // AccountLockout::NormalizeKey_ always computed; it is computed here, by the same
-// function the rule compares with, so that the two can never disagree: whatever
-// name the rule takes for an account has the key of the account's own address, so
-// the lockout and the hold asked of the name are asked of the account. A name with
-// spaces around it, which the rule refuses, still counts under the account's key.
+// function the rule compares with, so that the two can never disagree. The rule
+// refuses a name with white space at either end, so for every name it takes the
+// key and the compared form are made of the same string: whatever name the rule
+// takes for an account has the key of the account's own address, whatever the
+// domain alias table holds, and the lockout and the hold asked of the name are
+// asked of the account. A name with spaces around it, which the rule refuses and
+// for which no password is verified, still counts under the account's key, unless
+// a domain alias's own stored name has white space at its end (which the server
+// no longer saves): there the trimmed name is the alias's name without it, which
+// is no account's, and such a name is counted as a name of no account is.
 //
 // What is folded is what String::ToLower folds, in the C locale the server runs in
 // (it never sets another), and that differs by platform. With glibc it is A to Z
@@ -86,7 +92,8 @@ namespace HM
 
       // The rule: true when the account stored under storedAddress is the one
       // name names - Canonical(name) is Key(storedAddress), character for
-      // character over the whole string, and name holds no NUL.
+      // character over the whole string, name holds no NUL and has no white
+      // space at either end (so that Key(name) is Canonical(name)).
       static bool Names(const String &name, const String &storedAddress);
 
       // The account a sign-in names, or none: the account the cache or the
@@ -127,6 +134,9 @@ namespace HM
 
    private:
       static String ResolveWith_(const String &name, const AliasFunction &aliases, const String &defaultDomain);
+
+      // True when the name has white space at either end, as Trim takes it off.
+      static bool Padded_(const String &name);
    };
 
    // The rule and the key, without a server: for a stored address, its own
@@ -136,7 +146,8 @@ namespace HM
    // Server's and SQL Server Compact's comparison ignores, inside and at the end,
    // a NUL at the end, inside and before more text, spaces and tabs before and
    // after - is refused; and whatever the rule takes has the key of the stored
-   // address. And the directory user rule: a principal whose user part and realm
+   // address, under an alias whose stored name ends in white space as well, where
+   // the padded name is refused. And the directory user rule: a principal whose user part and realm
    // are an account's directory user name and domain, in other case and with the
    // NetBIOS name, is taken, and the same spellings of either are refused. Run by
    // ClassTester on Windows and by sign-in-budget-tests on Linux.

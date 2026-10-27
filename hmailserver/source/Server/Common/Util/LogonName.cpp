@@ -89,7 +89,7 @@ namespace HM
       // match among them, which would otherwise resolve "local@alias", a NUL and
       // anything after it to the account - and where SQL Server and SQL Server
       // Compact read a bound value. No stored address holds one.
-      if (HoldsNul(name))
+      if (HoldsNul(name) || Padded_(name))
          return false;
 
       const String stored = KeyWith(storedAddress, aliases, defaultDomain);
@@ -97,6 +97,22 @@ namespace HM
          return false;
 
       return Same(CanonicalWith(name, aliases, defaultDomain), stored);
+   }
+
+   bool
+   LogonName::Padded_(const String &name)
+   {
+      // White space at either end, as Trim takes it off. The key is the canonical
+      // form of the name trimmed, and the rule compares the canonical form of the
+      // name as given, so a name the trim changes is refused: then for every name
+      // the rule takes the two are made of the same string, and its key is the
+      // account's whatever the alias table holds. Without this a domain alias whose
+      // stored name ends in white space - which an administrator could save - took
+      // the name with that white space after it for the account while its key was
+      // the alias's name without it.
+      String trimmed = name;
+      trimmed.Trim();
+      return !Same(trimmed, name);
    }
 
    String
@@ -144,7 +160,7 @@ namespace HM
    bool
    LogonName::Names(const String &name, const String &storedAddress)
    {
-      if (HoldsNul(name))
+      if (HoldsNul(name) || Padded_(name))
          return false;
 
       const String stored = Key(storedAddress);
@@ -403,6 +419,52 @@ namespace HM
       {
          if (!Equal(key(name), storedKey))
             failures.push_back("the padded name '" + Narrow(name) + "' is not counted under the account's key");
+      }
+
+      // A domain alias whose stored name has white space at its end, which an
+      // administrator could save before the server trimmed it, and which the alias
+      // match takes only with that white space: a name ending in it is refused, as
+      // every padded name is, and whatever the rule takes under such an alias table
+      // still has the account's key.
+      const LogonName::AliasFunction paddedAliases = [](const String &address) -> String
+      {
+         const String domain = StringParser::ExtractDomain(address);
+         if (domain.CompareNoCase(_T("alias.example ")) == 0 || domain.CompareNoCase(_T("tab.example\t")) == 0)
+            return StringParser::ExtractAddress(address) + _T("@example.test");
+         return address;
+      };
+      {
+         const std::vector<String> paddedAliasNames =
+         {
+            _T("alice@alias.example "), _T("ALICE@Alias.Example "), _T("alice@alias.example  "), _T(" alice@alias.example "),
+            _T("alice@tab.example\t"), _T("alice@alias.example"), _T("alice@tab.example")
+         };
+         const String paddedStoredKey = LogonName::KeyWith(stored, paddedAliases, defaultDomain);
+         if (!Equal(paddedStoredKey, storedKey))
+            failures.push_back("under an alias whose name ends in white space the stored address's key is '" + Narrow(paddedStoredKey) + "'");
+
+         for (const String &name : paddedAliasNames)
+         {
+            if (LogonName::NamesWith(name, stored, paddedAliases, defaultDomain))
+               failures.push_back("under an alias whose name ends in white space the spelling '" + Narrow(name) + "' is taken for alice@example.test");
+         }
+
+         std::vector<String> every = all;
+         every.insert(every.end(), paddedAliasNames.begin(), paddedAliasNames.end());
+         for (const String &name : every)
+         {
+            if (LogonName::NamesWith(name, stored, paddedAliases, defaultDomain) &&
+                !Equal(LogonName::KeyWith(name, paddedAliases, defaultDomain), paddedStoredKey))
+               failures.push_back("under an alias whose name ends in white space the rule takes '" + Narrow(name) + "' while its key '" +
+                                  Narrow(LogonName::KeyWith(name, paddedAliases, defaultDomain)) + "' is not the account's");
+         }
+
+         // The account's own spellings are still taken under that alias table.
+         for (const String &name : { String(_T("alice@example.test")), String(_T("ALICE@Example.Test")), String(_T("alice")) })
+         {
+            if (!LogonName::NamesWith(name, stored, paddedAliases, defaultDomain))
+               failures.push_back("under an alias whose name ends in white space the name '" + Narrow(name) + "' is not taken for alice@example.test");
+         }
       }
 
       // The stored address in other case is the same account; a stored address

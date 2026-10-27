@@ -570,22 +570,14 @@ namespace HM
       if (LogonName::HoldsNul(username))
          return true;
 
-      String canonical = username;
-      canonical.Trim();
-
-      try
-      {
-         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
-         if (aliases)
-            canonical = aliases->ApplyAliasesOnAddress(canonical);
-      }
-      catch (...)
-      {
-         // The alias collection could not be read. The name as typed is then
-         // what is judged, which is what this function always judged.
-      }
-
-      canonical = DefaultDomain::ApplyDefaultDomain(canonical);
+      // The per-name lockout's key (LogonName::Key), made by the function the
+      // sign-in's rule compares with, so that this asks of the domain the
+      // lockout counts under. When the caches cannot be read it is the name
+      // trimmed and in lower case, which is what this function judged then. This
+      // is the early check, before the password; once the password has found the
+      // account, AccountLogon asks the policy again of the account's own address,
+      // and of the master user's own when it signs in as another.
+      const String canonical = LogonName::Key(username);
 
       const int at = canonical.ReverseFind(_T('@'));
 

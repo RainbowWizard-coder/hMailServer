@@ -27,8 +27,10 @@
 // And it is the key of the account the sign-in signs in to. NormalizeKey_ is
 // LogonName::Key, made by the function the sign-in's rule for which account a
 // name names compares with (LogonName.h): the account found under a name is the
-// account only if its stored address is that name in lower case, so every name
-// that signs in to an account has the account's key, and the account's own
+// account only if its stored address is that name in lower case, and never under
+// a name with white space at either end (the one input the key trims), so every
+// name that signs in to an account has the account's key, whatever the domain
+// alias table holds, and the account's own
 // address asks the same lock and the same hold. Up to 6.3.7 the account was
 // whichever one the database's comparison found, which took spellings this key
 // counted apart, each with a threshold and no hold of its own.
