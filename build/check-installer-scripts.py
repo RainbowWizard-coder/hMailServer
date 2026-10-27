@@ -138,8 +138,9 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                (check 4 of R1 to R4, 27 October 2026: a handle opened while another
                account could change a folder keeps that right after the hardening).
                PrepareProgramFolders, the last step of PrepareToInstall, then makes
-               a program folder that is not there with CreateDirectoryW and a
-               protected descriptor - exactly the names below the deepest folder
+               a program folder that is not there with NtCreateFile, by each name
+               relative to the handle of the folder above it, and a protected
+               descriptor - exactly the names below the deepest folder
                held, that folder read again through its handle and each folder made
                read where it is (HeldIsLink, MadeWhereNamed) - and section_dirs.iss
                gives the uninstaller each, when this setup made it - recorded only
@@ -786,7 +787,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
-                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal')
+                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -863,8 +864,9 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('HeldFolderIsHardened', 'a rebuilt folder is taken although another account may still write it',
      "else if AnyAccount and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and "
      "(not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) then begin Result := false;"),
-    ('MakeFolders', 'a folder is made without its descriptor',
-     "attributes.nLength := 12; attributes.lpSecurityDescriptor := pDescriptor; attributes.bInheritHandle := 0; Result := true; if HeldIsLink(HeldHandle, bKnown) then"),
+    ('MakeFolderIn', 'a folder is made without its descriptor, or relative to another handle than the folder above it',
+     "attributes.nLength := HM_OBJECT_ATTRIBUTES_SIZE; attributes.RootDirectory := Parent; attributes.ObjectName := pName; attributes.Attributes := HM_OBJ_CASE_INSENSITIVE; "
+     "attributes.SecurityDescriptor := pDescriptor; attributes.SecurityQualityOfService := 0;"),
     ('LinkTarget', 'a link to a share is gone through',
      "else if CompareText(Copy(szName, 1, 8), '\\??\\UNC\\') = 0 then begin Why := "),
     # The volumes.
@@ -911,16 +913,24 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if g_bProgramFolderThere then Result := Whole or (CompareText(Held, g_szProgramFolderReal) = 0) else "
      "Result := (not Whole) and (CompareText(Held, g_szProgramFolderHeld) = 0);"),
     # R1: made.
-    ('MakeFolders', 'a folder somebody else made in the meantime is taken',
-     "if MakeFolderWithSecurity(missing[index], attributes) then begin handle := HoldForSetup(missing[index]);"),
-    ('MakeFolders', 'a name somebody else took is not refused, or not taken for a folder changed while setup prepared it',
-     "lastError := DLLGetLastError(); if lastError = HM_ERROR_ALREADY_EXISTS then begin g_bFoldersChanged := true; Why := ~; end else Why := ~; Result := false;"),
+    ('MakeFolders', 'a folder is made by its path, through any link put on the way since the walk, or relative to another folder than the one made or held above it (check 5 of R1 to R4, 27 October 2026), or one somebody else made in the meantime is taken',
+     "status := 0; handle := MakeFolderIn(parent, ExtractFileName(missing[index]), pDescriptor, status); if handle <> -1 then begin if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then"),
+    ('MakeFolders', 'a name somebody else took is not refused, a folder above made a link is not taken for a folder changed while setup prepared it, or another failure is taken',
+     "if status = HM_STATUS_NAME_COLLISION then begin g_bFoldersChanged := true; Why := ~; end else if HeldIsLink(parent, bKnown) then begin g_bFoldersChanged := true; Why := ~; end else Why := ~; Result := false;"),
+    ('MakeFolderIn', 'a folder is made by a path, through a link, shared for deleting, or opened when it is there rather than made (check 5 of R1 to R4, 27 October 2026)',
+     "Status := MakeFileRelative(handle, HM_MAKE_FOLDER_ACCESS, attributes, io, 0, 0, HM_SHARE_ALL_BUT_DELETE, HM_FILE_CREATE, HM_MAKE_FOLDER_OPTIONS, 0, 0); FreeWindowsMemory(pName); if Status <> 0 then Exit;"),
+    ('MakeFolderIn', 'the name made is not the one name given, relative to the folder above it, with its length',
+     "CopyTextTo(pName + 8, Name, bytes); nameRecord.Lengths := bytes or ((bytes + 2) shl 16); nameRecord.Buffer := pName + 8; WriteNameRecord(pName, nameRecord, 8);"),
+    ('MakeFolderIn', 'a folder made is not held until setup ends',
+     "Result := handle; SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1); g_aHeldFolders[GetArrayLength(g_aHeldFolders) - 1] := Result; end;$"),
+    ('MakeFolderIn', 'a failure to make room for the name is taken for a folder made',
+     "Result := -1; Status := HM_STATUS_NO_MEMORY; bytes := Length(Name) * 2; pName := AllocateWindowsMemory(HM_LPTR, 8 + bytes + 2); if pName = 0 then Exit;"),
     ('MakeFolders', 'what is made is not the names below the deepest folder held',
      "szBase := AddBackslash(Held); if (Length(Folder) <= Length(szBase)) or (CompareText(Copy(Folder, 1, Length(szBase)), szBase) <> 0) then"),
     ('MakeFolders', 'the folder the walk held is not read again before a folder is made in it, so a link put in its place since is gone through (the review of 26 October 2026)',
      "Result := true; if HeldIsLink(HeldHandle, bKnown) then begin g_bFoldersChanged := true; if bKnown then Why := ~ else Why := ~; Result := false; end; index := 0; parent := HeldHandle; while Result and (index < count) do"),
     ('MakeFolders', 'a folder made is not held and read where it is through its handle, so one made through a link put on the way is taken',
-     "handle := HoldForSetup(missing[index]); if handle = -1 then begin Why := ~; Log(~); Result := false; end else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then begin g_bFoldersChanged := true; Why := ~; Log(~); Result := false; end else begin @@szWhere := FinalPathOfHeld(handle); if Kind = 0 then"),
+     "if handle <> -1 then begin if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then begin g_bFoldersChanged := true; Why := ~; Log(~); Result := false; end else begin @@szWhere := FinalPathOfHeld(handle); if Kind = 0 then"),
     ('MakeFolders', 'a folder made is recorded without where it was made and the handle that holds it, so that it is removed by a path that may lead elsewhere by then (check 3 of R1 to R4, 27 October 2026)',
      "SetArrayLength(g_aFoldersMade, GetArrayLength(g_aFoldersMade) + 1); g_aFoldersMade[GetArrayLength(g_aFoldersMade) - 1] := missing[index]; "
      "SetArrayLength(g_aFoldersMadeAt, GetArrayLength(g_aFoldersMade)); g_aFoldersMadeAt[GetArrayLength(g_aFoldersMade) - 1] := szWhere; "
@@ -1377,7 +1387,13 @@ PROGRAM_FOLDER_CONSTANTS = (
     ('HM_DRIVE_REMOTE', '4', 'DRIVE_REMOTE'),
     ('HM_TRUSTED_INSTALLER_SID', "'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'", 'NT SERVICE\\TrustedInstaller, AdminUpdateChecks.cpp\'s TrustedInstallerSid'),
     ('HM_SERVICE_SID', "'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809'", 'NT SERVICE\\hMailServer, as ServiceAccountTester holds it'),
-    ('HM_ERROR_ALREADY_EXISTS', '183', 'ERROR_ALREADY_EXISTS'),
+    ('HM_STATUS_NAME_COLLISION', '$C0000035', 'STATUS_OBJECT_NAME_COLLISION'),
+    ('HM_STATUS_NO_MEMORY', '$C0000017', 'STATUS_NO_MEMORY'),
+    ('HM_MAKE_FOLDER_ACCESS', '$1200A1', 'FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE'),
+    ('HM_FILE_CREATE', '2', 'FILE_CREATE'),
+    ('HM_MAKE_FOLDER_OPTIONS', '$00200021', 'FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT'),
+    ('HM_OBJ_CASE_INSENSITIVE', '$40', 'OBJ_CASE_INSENSITIVE'),
+    ('HM_OBJECT_ATTRIBUTES_SIZE', '24', 'sizeof(OBJECT_ATTRIBUTES) in a 32-bit process'),
     ('HM_ACL_REVISION', '2', 'ACL_REVISION'),
     ('HM_LPTR', '$40', 'LPTR'),
     ('HM_MAXDWORD', '$FFFFFFFF', 'MAXDWORD'),
@@ -1414,7 +1430,9 @@ PROGRAM_FOLDER_CONSTANTS = (
 PROGRAM_FOLDER_DECLARATIONS = (
     "ACL_SIZE_INFO = record AceCount : cardinal; AclBytesInUse : cardinal; AclBytesFree : cardinal; end;",
     "ACE_START = record TypeFlagsSize : cardinal; Mask : cardinal; end;",
-    "HM_SECURITY_ATTRIBUTES = record nLength : cardinal; lpSecurityDescriptor : cardinal; bInheritHandle : cardinal; end;",
+    "HM_OBJECT_ATTRIBUTES = record nLength : cardinal; RootDirectory : Integer; ObjectName : cardinal; Attributes : cardinal; SecurityDescriptor : cardinal; SecurityQualityOfService : cardinal; end;",
+    "HM_UNICODE_STRING = record Lengths : cardinal; Buffer : cardinal; end;",
+    "HM_IO_STATUS_BLOCK = record Status : cardinal; Information : cardinal; end;",
     "HM_FILE_INFORMATION = record dwFileAttributes : cardinal; ftCreationTimeLow : cardinal; ftCreationTimeHigh : cardinal; ftLastAccessTimeLow : cardinal; "
     "ftLastAccessTimeHigh : cardinal; ftLastWriteTimeLow : cardinal; ftLastWriteTimeHigh : cardinal; dwVolumeSerialNumber : cardinal; nFileSizeHigh : cardinal; "
     "nFileSizeLow : cardinal; nNumberOfLinks : cardinal; nFileIndexHigh : cardinal; nFileIndexLow : cardinal; end;",
@@ -1442,7 +1460,11 @@ PROGRAM_FOLDER_DECLARATIONS = (
     "function AppendAce(pAcl: cardinal; dwAceRevision: cardinal; dwStartingAceIndex: cardinal; pAceList: cardinal; nAceListLength: cardinal): Boolean; external 'AddAce@advapi32.dll stdcall';",
     "function AppendAllowAce(pAcl: cardinal; dwAceRevision: cardinal; AceFlags: cardinal; AccessMask: cardinal; pSid: cardinal): Boolean; external 'AddAccessAllowedAceEx@advapi32.dll stdcall';",
     "function ReadReparseData(hDevice: Integer; dwIoControlCode: cardinal; lpInBuffer: cardinal; nInBufferSize: cardinal; lpOutBuffer: String; nOutBufferSize: cardinal; var lpBytesReturned: cardinal; lpOverlapped: cardinal): Boolean; external 'DeviceIoControl@kernel32.dll stdcall';",
-    "function MakeFolderWithSecurity(lpPathName: String; var lpSecurityAttributes: HM_SECURITY_ATTRIBUTES): Boolean; external 'CreateDirectoryW@kernel32.dll stdcall';",
+    "function MakeFileRelative(var FileHandle: Integer; DesiredAccess: cardinal; var ObjectAttributes: HM_OBJECT_ATTRIBUTES; var IoStatusBlock: HM_IO_STATUS_BLOCK; "
+    "AllocationSize: cardinal; FileAttributes: cardinal; ShareAccess: cardinal; CreateDisposition: cardinal; CreateOptions: cardinal; EaBuffer: cardinal; EaLength: cardinal): cardinal; "
+    "external 'NtCreateFile@ntdll.dll stdcall';",
+    "procedure CopyTextTo(Destination: cardinal; Source: String; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+    "procedure WriteNameRecord(Destination: cardinal; var Source: HM_UNICODE_STRING; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
     "function VolumeOfHeldFolder(hFile: Integer; lpVolumeNameBuffer: cardinal; nVolumeNameSize: cardinal; var lpVolumeSerialNumber: cardinal; var lpMaximumComponentLength: cardinal; var lpFileSystemFlags: cardinal; lpFileSystemNameBuffer: cardinal; nFileSystemNameSize: cardinal): Boolean; external 'GetVolumeInformationByHandleW@kernel32.dll stdcall';",
     "function KindOfDrive(lpRootPathName: String): cardinal; external 'GetDriveTypeW@kernel32.dll stdcall';",
     "function LookupNameOfSid(lpSystemName: cardinal; Sid: cardinal; Name: String; var cchName: cardinal; ReferencedDomainName: String; var cchReferencedDomainName: cardinal; var peUse: cardinal): Boolean; external 'LookupAccountSidW@advapi32.dll stdcall';",
@@ -1536,7 +1558,8 @@ PROGRAM_FOLDER_CODE = (
     ('MadeParentCount', '98517a4e3b3fbbfe'),
     ('MadeParentOffset', '3298776306b79064'),
     ('MadeWhereNamed', '98d8f43dacc9751a'),
-    ('MakeFolders', '0a2e17407befcfd2'),
+    ('MakeFolderIn', '34f935fa5de4000f'),
+    ('MakeFolders', '2c2296fc7c4ad8cc'),
     ('MakePlaceholder', '0b825c9ab1d96d0e'),
     ('NoteFolderOthersCouldChange', '9566fa00378b4379'),
     ('NoteFoldersOthersCouldChange', '50fd84a9f84b7a28'),
@@ -1847,7 +1870,7 @@ def check_program_folders(texts, problems):
     elif "HM_SERVICE_SID              = '%s';" % tester.group(1) not in ext:
         problems.append('%s: HM_SERVICE_SID is not NT SERVICE\\hMailServer\'s SID, %s' % (EXTENSION, tester.group(1)))
     # A folder is made with a descriptor of its own, and nothing takes it away.
-    if len(re.findall(r'attributes\.lpSecurityDescriptor\s*:=', ext)) != 1:
+    if len(re.findall(r'attributes\.SecurityDescriptor\s*:=', ext)) != 1:
         problems.append('%s: the descriptor a folder is made with is set other than once, as setup made it' % EXTENSION)
     if not re.search(r'HM_REMOVE_FROM_FOLDER_RIGHTS\s*=\s*\$100C0040;', ext):
         problems.append('%s: what removes a link from its folder is not FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL' % EXTENSION)
@@ -1900,10 +1923,12 @@ def check_program_folders(texts, problems):
 
     # R1: made with its descriptor, recorded for the uninstaller, removed when not used.
     make = routines['MakeFolders']
-    if not re.search(r"function\s+MakeFolderWithSecurity\(lpPathName:\s*String;\s*var\s+lpSecurityAttributes:\s*HM_SECURITY_ATTRIBUTES\):\s*Boolean;\s*external\s+'CreateDirectoryW@kernel32\.dll stdcall';", ext):
-        problems.append('%s: CreateDirectoryW is not declared with a SECURITY_ATTRIBUTES' % EXTENSION)
+    if not re.search(r"function\s+MakeFileRelative\(var\s+FileHandle:\s*Integer;\s*DesiredAccess:\s*cardinal;\s*var\s+ObjectAttributes:\s*HM_OBJECT_ATTRIBUTES;[^;]*;[^)]*\):\s*cardinal;\s*external\s+'NtCreateFile@ntdll\.dll stdcall';", ext):
+        problems.append('%s: NtCreateFile is not declared with an OBJECT_ATTRIBUTES, so that a folder is made by its path rather than relative to the folder above it' % EXTENSION)
+    if re.search(r"external\s+'CreateDirectory\w*@", ext) or re.search(r'\b(CreateDir|ForceDirectories)\(', make or ''):
+        problems.append('%s: a folder of the program is made by its path (CreateDirectoryW), through any link put on the way since the walk' % EXTENSION)
     for word in ("'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "'(A;OICI;0x1200a9;;;BU)'", 'EveryUserMayReadMadeIn(HeldHandle)', 'g_aFoldersMade',
-                 'g_szBinMade := missing[index]', 'g_szControlPanelMade := missing[index]', 'HoldForSetup(missing[index])', 'HeldIsLink(HeldHandle, bKnown)',
+                 'g_szBinMade := missing[index]', 'g_szControlPanelMade := missing[index]', 'MakeFolderIn(parent, ExtractFileName(missing[index]), pDescriptor, status)', 'HeldIsLink(HeldHandle, bKnown)',
                  'MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere)'):
         if word not in make:
             problems.append('%s: MakeFolders does not use %s' % (EXTENSION, word))
@@ -2265,14 +2290,26 @@ def negative_controls(texts):
         # first repair of that review gave the installer.
         # R1: made, below what the walk held, and recorded for the uninstaller.
         ('a program folder made without its descriptor',
-         altered(texts, EXTENSION, 'if MakeFolderWithSecurity(missing[index], attributes) then', 'if CreateDir(missing[index]) then')),
+         altered(texts, EXTENSION, '   attributes.SecurityDescriptor := pDescriptor;\n', '   attributes.SecurityDescriptor := 0;\n')),
+        ('a folder made by its path again, through any link put on the way since the walk (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '      handle := MakeFolderIn(parent, ExtractFileName(missing[index]), pDescriptor, status);\n',
+                 '      handle := -1;\n      if CreateDir(missing[index]) then\n         handle := HoldForSetup(missing[index]);\n')),
+        ('each folder made relative to the folder the walk held, not the one made above it (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, 'handle := MakeFolderIn(parent, ExtractFileName(missing[index]), pDescriptor, status);', 'handle := MakeFolderIn(HeldHandle, ExtractFileName(missing[index]), pDescriptor, status);')),
+        ('a folder made shared for deleting (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, 'HM_MAKE_FOLDER_ACCESS, attributes, io, 0, 0, HM_SHARE_ALL_BUT_DELETE,', 'HM_MAKE_FOLDER_ACCESS, attributes, io, 0, 0, HM_SHARE_EVERYTHING,')),
+        ('a folder made opened when it is there rather than made (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, 'HM_SHARE_ALL_BUT_DELETE, HM_FILE_CREATE, HM_MAKE_FOLDER_OPTIONS', 'HM_SHARE_ALL_BUT_DELETE, 3, HM_MAKE_FOLDER_OPTIONS')),
+        ('a folder made not held until setup ends (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '   Result := handle;\n   SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1);\n', '   Result := handle;\n   Exit;\n   SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1);\n')),
+        ('a folder above made a link taken for a failure of another kind (check 5 of R1 to R4)',
+         altered(texts, EXTENSION, '         else if HeldIsLink(parent, bKnown) then\n         begin\n            g_bFoldersChanged := true;', '         else if false then\n         begin\n            g_bFoldersChanged := true;')),
         ('a folder somebody else made in the meantime taken (ERROR_ALREADY_EXISTS taken for made)',
-         altered(texts, EXTENSION, 'if MakeFolderWithSecurity(missing[index], attributes) then',
-                 'if MakeFolderWithSecurity(missing[index], attributes) or (DLLGetLastError() = HM_ERROR_ALREADY_EXISTS) then')),
+         altered(texts, EXTENSION, 'if status = HM_STATUS_NAME_COLLISION then', 'if false then')),
         ('the folder the walk held not read again before a folder is made in it (a link put in its place gone through; the review of 26 October 2026)',
          altered(texts, EXTENSION, '   if HeldIsLink(HeldHandle, bKnown) then\n', '   if false then\n')),
         ('a folder made not read where it is (one made through a link put on the way taken)',
-         altered(texts, EXTENSION, 'else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then', 'else if false then')),
+         altered(texts, EXTENSION, '         if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then', '         if false then')),
         ('each folder made compared with the folder the walk held, not with the one made above it',
          altered(texts, EXTENSION, '            parent := handle;\n            MadeHandle := handle;\n', '            MadeHandle := handle;\n')),
         ('a held folder whose attributes cannot be read taken for one that is no link',
@@ -2352,7 +2389,7 @@ def negative_controls(texts):
          altered(texts, EXTENSION, 'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);',
                  'HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, $02000000, 0);')),
         ('a folder made with no descriptor after its attributes are set',
-         altered(texts, EXTENSION, '   attributes.bInheritHandle := 0;\n', '   attributes.bInheritHandle := 0;\n   attributes.lpSecurityDescriptor := 0;\n')),
+         altered(texts, EXTENSION, '   attributes.SecurityQualityOfService := 0;\n', '   attributes.SecurityQualityOfService := 0;\n   attributes.SecurityDescriptor := 0;\n')),
         ('IsBroadSid taking no group for one of every user',
          altered(texts, EXTENSION, '      if SidIs(pSid, szSid) then\n         Result := true;\n      group := group + 1;', '      if SidIs(pSid, szSid) then\n         Result := false;\n      group := group + 1;')),
         ('Authenticated Users\' SID mistyped',
@@ -2393,8 +2430,8 @@ def negative_controls(texts):
         ('a Bin setup made removed with what is in it',
          altered(texts, EXTENSION, 'RemoveMadeFolder(g_szBinMade, g_szBinMadeAt, g_hBinMade);', 'DelTree(g_szBinMade, True, True, True);')),
         ('a folder made recorded before it is found where it was named (check 3 of R1 to R4, 27 October 2026)',
-         altered(texts, EXTENSION, '         handle := HoldForSetup(missing[index]);\n         if handle = -1 then',
-                 '         g_szBinMade := missing[index];\n         handle := HoldForSetup(missing[index]);\n         if handle = -1 then')),
+         altered(texts, EXTENSION, '      if handle <> -1 then\n      begin\n         if not MadeWhereNamed(',
+                 '      if handle <> -1 then\n      begin\n         g_szBinMade := missing[index];\n         if not MadeWhereNamed(')),
         ('a folder made recorded without where it was made',
          altered(texts, EXTENSION, '               g_szBinMadeAt := szWhere;\n', '')),
         ('a folder made removed by its path whatever it leads to now',

@@ -322,12 +322,29 @@ type
 		TypeFlagsSize				: cardinal;
 		Mask						: cardinal;
 	end;
-	// SECURITY_ATTRIBUTES, named apart from it: its size, 12, the security
-	// descriptor a folder is made with (MakeFolders), and no inheriting.
-	HM_SECURITY_ATTRIBUTES = record
+	// OBJECT_ATTRIBUTES, UNICODE_STRING and IO_STATUS_BLOCK, named apart from them, for a
+	// folder made relative to the handle of the folder above it (MakeFolderIn): this setup
+	// is a 32-bit program, so that each pointer and handle is four bytes and
+	// OBJECT_ATTRIBUTES is 24 (HM_OBJECT_ATTRIBUTES_SIZE) - its size, the handle the name is
+	// relative to, the name, OBJ_CASE_INSENSITIVE, the security descriptor the folder is
+	// made with, and none for quality of service; UNICODE_STRING's two lengths, two Words,
+	// are one cardinal here, the length in bytes in its low half and the room in its high,
+	// then the characters.
+	HM_OBJECT_ATTRIBUTES = record
 		nLength						: cardinal;
-		lpSecurityDescriptor		: cardinal;
-		bInheritHandle				: cardinal;
+		RootDirectory				: Integer;
+		ObjectName					: cardinal;
+		Attributes					: cardinal;
+		SecurityDescriptor			: cardinal;
+		SecurityQualityOfService	: cardinal;
+	end;
+	HM_UNICODE_STRING = record
+		Lengths						: cardinal;
+		Buffer						: cardinal;
+	end;
+	HM_IO_STATUS_BLOCK = record
+		Status						: cardinal;
+		Information					: cardinal;
 	end;
 	// BY_HANDLE_FILE_INFORMATION, named apart from it: what a handle says of the
 	// folder it holds - its attributes first (HeldIsLink) - thirteen DWORDs, 52 bytes.
@@ -451,13 +468,23 @@ const
 	HM_DRIVE_REMOTE             = 4;
 	HM_TRUSTED_INSTALLER_SID    = 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464';
 	HM_SERVICE_SID              = 'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809';
-	// For a folder made with permissions of its own (MakeFolders) and one
-	// rebuilt (RebuildFolderOfUntrustedOwner): ERROR_ALREADY_EXISTS; ACL_REVISION;
+	// For a folder made with permissions of its own (MakeFolders, MakeFolderIn) and one
+	// rebuilt (RebuildFolderOfUntrustedOwner): STATUS_OBJECT_NAME_COLLISION, NtCreateFile's
+	// answer for a name somebody else has taken; STATUS_NO_MEMORY; the access a folder is
+	// made and held with, HM_HOLD_FOLDER_ACCESS's with SYNCHRONIZE, which a synchronous open
+	// needs; FILE_CREATE; FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT |
+	// FILE_OPEN_REPARSE_POINT; OBJ_CASE_INSENSITIVE; OBJECT_ATTRIBUTES' size; ACL_REVISION;
 	// LPTR; MAXDWORD, AddAce's "at the end"; ACCESS_DENIED_ACE_TYPE; INHERITED_ACE,
 	// and the same bit where it sits in ACE_START's TypeFlagsSize; FILE_ALL_ACCESS;
 	// Read & execute (ServiceAccount::RightsReadExecute); SE_DACL_PROTECTED; and
 	// FILE_PERSISTENT_ACLS, which a volume that keeps permissions has.
-	HM_ERROR_ALREADY_EXISTS     = 183;
+	HM_STATUS_NAME_COLLISION    = $C0000035;
+	HM_STATUS_NO_MEMORY         = $C0000017;
+	HM_MAKE_FOLDER_ACCESS       = $1200A1;
+	HM_FILE_CREATE              = 2;
+	HM_MAKE_FOLDER_OPTIONS      = $00200021;
+	HM_OBJ_CASE_INSENSITIVE     = $40;
+	HM_OBJECT_ATTRIBUTES_SIZE   = 24;
 	HM_ACL_REVISION             = 2;
 	HM_LPTR                     = $40;
 	HM_MAXDWORD                 = $FFFFFFFF;
@@ -632,8 +659,9 @@ external 'SetNamedSecurityInfoW@advapi32.dll stdcall';
 // RtlMoveMemory between pointers, LocalAlloc, InitializeAcl, AddAce and
 // AddAccessAllowedAceEx, to rebuild a list (RebuildFolderOfUntrustedOwner);
 // DeviceIoControl with FSCTL_GET_REPARSE_POINT into a String, for where a link leads;
-// CreateDirectoryW with a SECURITY_ATTRIBUTES, to make a folder with permissions of
-// its own from the start; GetVolumeInformationByHandleW, for whether a volume keeps
+// NtCreateFile, with RtlMoveMemory from a String and from a record, to make a folder with
+// permissions of its own from the start, by its name relative to the handle of the folder
+// above it (MakeFolderIn); GetVolumeInformationByHandleW, for whether a volume keeps
 // permissions; GetDriveTypeW; and LookupAccountSidW, for the name of an account in
 // what setup says. Named apart from the API for the reason
 // SetProcessEnvironmentVariable is.
@@ -663,8 +691,14 @@ external 'AddAccessAllowedAceEx@advapi32.dll stdcall';
 function ReadReparseData(hDevice: Integer; dwIoControlCode: cardinal; lpInBuffer: cardinal; nInBufferSize: cardinal; lpOutBuffer: String; nOutBufferSize: cardinal;
                          var lpBytesReturned: cardinal; lpOverlapped: cardinal): Boolean;
 external 'DeviceIoControl@kernel32.dll stdcall';
-function MakeFolderWithSecurity(lpPathName: String; var lpSecurityAttributes: HM_SECURITY_ATTRIBUTES): Boolean;
-external 'CreateDirectoryW@kernel32.dll stdcall';
+function MakeFileRelative(var FileHandle: Integer; DesiredAccess: cardinal; var ObjectAttributes: HM_OBJECT_ATTRIBUTES; var IoStatusBlock: HM_IO_STATUS_BLOCK;
+                          AllocationSize: cardinal; FileAttributes: cardinal; ShareAccess: cardinal; CreateDisposition: cardinal; CreateOptions: cardinal;
+                          EaBuffer: cardinal; EaLength: cardinal): cardinal;
+external 'NtCreateFile@ntdll.dll stdcall';
+procedure CopyTextTo(Destination: cardinal; Source: String; Length: cardinal);
+external 'RtlMoveMemory@kernel32.dll stdcall';
+procedure WriteNameRecord(Destination: cardinal; var Source: HM_UNICODE_STRING; Length: cardinal);
+external 'RtlMoveMemory@kernel32.dll stdcall';
 function VolumeOfHeldFolder(hFile: Integer; lpVolumeNameBuffer: cardinal; nVolumeNameSize: cardinal; var lpVolumeSerialNumber: cardinal; var lpMaximumComponentLength: cardinal;
                             var lpFileSystemFlags: cardinal; lpFileSystemNameBuffer: cardinal; nFileSystemNameSize: cardinal): Boolean;
 external 'GetVolumeInformationByHandleW@kernel32.dll stdcall';
@@ -1730,8 +1764,9 @@ end;
 // (HeldHandle); Whole says whether that is the last, Real itself. A name found
 // missing is not held, and somebody else may make it, or a link, the moment after:
 // setup decides what is there by Whole and Held alone, never by looking at the path
-// again, and makes what was missing below Held with CreateDirectoryW, which refuses
-// a name somebody else has taken (MakeFolders). False, with Why - which names the
+// again, and makes what was missing below Held by each name relative to the handle of
+// the folder above it, which refuses a name somebody else has taken and goes through no
+// link (MakeFolders, MakeFolderIn). False, with Why - which names the
 // folder and what to do - when a link is not gone through, a folder cannot be held
 // or read, or the path is not one setup installs into: a share's, a network drive's,
 // one whose volume cannot be named. A folder on the way that is not a link - the root
@@ -1970,16 +2005,64 @@ begin
    FreeWindowsMemory(pDescriptor);
 end;
 
+// Work item 78's R1 and R3 (check 5 of R1 to R4, 27 October 2026): a folder made in the
+// folder held by Parent, by its one name relative to that handle - NtCreateFile with
+// OBJECT_ATTRIBUTES' RootDirectory, FILE_CREATE and FILE_DIRECTORY_FILE |
+// FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT - with the security descriptor
+// pDescriptor, and held as it is made as HoldForSetup holds a folder - shared for reading
+// and writing, not for deleting - and kept in g_aHeldFolders. No path is gone by, so that
+// no link put on the way since the walk is followed: a folder above made a junction since
+// it was held refuses the creation (repair5\probe-relative, 27 October 2026: NTSTATUS
+// $C0000280, nothing made where the junction led), where CreateDirectoryW by the path made
+// the folder where the junction led and setup refused only after. The handle, or -1 with
+// Status the NTSTATUS (HM_STATUS_NAME_COLLISION for a name somebody else has taken).
+function MakeFolderIn(Parent: Integer; Name: String; pDescriptor: cardinal; var Status: cardinal): Integer;
+var
+   attributes: HM_OBJECT_ATTRIBUTES;
+   nameRecord: HM_UNICODE_STRING;
+   io: HM_IO_STATUS_BLOCK;
+   pName: cardinal;
+   bytes: cardinal;
+   handle: Integer;
+begin
+   Result := -1;
+   Status := HM_STATUS_NO_MEMORY;
+   bytes := Length(Name) * 2;
+   pName := AllocateWindowsMemory(HM_LPTR, 8 + bytes + 2);
+   if pName = 0 then
+      Exit;
+   CopyTextTo(pName + 8, Name, bytes);
+   nameRecord.Lengths := bytes or ((bytes + 2) shl 16);
+   nameRecord.Buffer := pName + 8;
+   WriteNameRecord(pName, nameRecord, 8);
+   attributes.nLength := HM_OBJECT_ATTRIBUTES_SIZE;
+   attributes.RootDirectory := Parent;
+   attributes.ObjectName := pName;
+   attributes.Attributes := HM_OBJ_CASE_INSENSITIVE;
+   attributes.SecurityDescriptor := pDescriptor;
+   attributes.SecurityQualityOfService := 0;
+   io.Status := 0;
+   io.Information := 0;
+   handle := -1;
+   Status := MakeFileRelative(handle, HM_MAKE_FOLDER_ACCESS, attributes, io, 0, 0, HM_SHARE_ALL_BUT_DELETE, HM_FILE_CREATE, HM_MAKE_FOLDER_OPTIONS, 0, 0);
+   FreeWindowsMemory(pName);
+   if Status <> 0 then
+      Exit;
+   Result := handle;
+   SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1);
+   g_aHeldFolders[GetArrayLength(g_aHeldFolders) - 1] := Result;
+end;
+
 // Work item 78's R1: the program folder of a new installation, and every folder above
 // it that is not there yet - and Bin and ControlPanel when they are not there in a
 // program folder that is - made by setup itself with permissions of their own from
-// the moment each is made - CreateDirectoryW with a security descriptor - rather
+// the moment each is made - a security descriptor given as it is made - rather
 // than by Inno Setup, which made the folder with what the folder above hands down and
 // left icacls to replace it afterwards: SYSTEM and the Administrators full control,
 // BUILTIN\Users Read & execute where every user could read a folder made there
 // (EveryUserMayReadMadeIn), handed down, nothing inherited, the Administrators the
 // owner - what hMailServer.exe /ProtectFolders gives a program folder
-// (ServiceAccount::Harden), by SID. Each is held as it is made (HoldForSetup), and,
+// (ServiceAccount::Harden), by SID. Each is held as it is made (MakeFolderIn), and,
 // once it is found where it was named (below), recorded in g_aFoldersMade,
 // shallowest first, with where it was made and the handle that holds it - one found
 // elsewhere is not recorded, and so never removed through the path that led it
@@ -1988,17 +2071,19 @@ end;
 // SetupMadeProgramFolder), and DeinitializeSetup removes those still empty when the
 // installation did not reach its files. What is made is exactly the names of Folder
 // below Held, the deepest folder the walk found and held (HoldFolderChain), and
-// nothing is looked at again by its path: a name that somebody else has taken since
-// the walk - a folder or a link made in the meantime - is refused by CreateDirectoryW
-// (ERROR_ALREADY_EXISTS), and then setup does not install: false, with Why. A link put
-// on the way since the walk is refused too, through the handles: Held is read again
-// through HeldHandle before anything is made, and refused when it is a link now
-// (HeldIsLink) - an empty folder another account may write can be made one while it
-// is held, since the hold shares writing; and each folder made is held at once and
-// read through its handle where it is (MadeWhereNamed), refused unless it is in the
-// folder held above it with its name - CreateDirectoryW goes by the path, and so
-// through a link put there in the meantime. Once a folder is made in the one above,
-// that one is no longer empty, and nothing can make it a link. Kind says
+// nothing is looked at again by its path: each is made by its name relative to the handle
+// of the folder above it (MakeFolderIn), the first in Held through HeldHandle, so that
+// a name that somebody else has taken since the walk - a folder or a link made in the
+// meantime - is refused (HM_STATUS_NAME_COLLISION), and then setup does not install:
+// false, with Why. A link put on the way since the walk is refused too, through the
+// handles, and nothing is made where it leads: Held is read again through HeldHandle
+// before anything is made, and refused when it is a link now (HeldIsLink) - an empty
+// folder another account may write can be made one while it is held, since the hold
+// shares writing - and one made a link after that refuses the creation relative to its
+// handle; each folder made is held as it is made, and read through its handle where it
+// is (MadeWhereNamed), refused unless it is in the folder held above it with its name.
+// Once a folder is made in the one above, that one is no longer empty, and nothing can
+// make it a link. Kind says
 // what is made: 0 the program folder and the folders above it (g_aFoldersMade,
 // g_bProgramFolderNew), 1 Bin and 2 ControlPanel in a program folder that is there
 // (g_szBinMade, g_szControlPanelMade; section_dirs.iss gives each to the uninstaller
@@ -2014,12 +2099,11 @@ var
    szDescriptor: String;
    szSaid: String;
    szWhere: String;
-   attributes: HM_SECURITY_ATTRIBUTES;
    pDescriptor: cardinal;
+   status: cardinal;
    count: Integer;
    index: Integer;
    separator: Integer;
-   lastError: Integer;
    handle: Integer;
    parent: Integer;
    bKnown: Boolean;
@@ -2078,9 +2162,6 @@ begin
       Why := 'the permissions for ' + Folder + ' could not be made (Windows error ' + IntToStr(DLLGetLastError()) + ')';
       Exit;
    end;
-   attributes.nLength := 12;
-   attributes.lpSecurityDescriptor := pDescriptor;
-   attributes.bInheritHandle := 0;
 
    Result := true;
    if HeldIsLink(HeldHandle, bKnown) then
@@ -2096,16 +2177,11 @@ begin
    parent := HeldHandle;
    while Result and (index < count) do
    begin
-      if MakeFolderWithSecurity(missing[index], attributes) then
+      status := 0;
+      handle := MakeFolderIn(parent, ExtractFileName(missing[index]), pDescriptor, status);
+      if handle <> -1 then
       begin
-         handle := HoldForSetup(missing[index]);
-         if handle = -1 then
-         begin
-            Why := missing[index] + ', just made, could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')';
-            Log(missing[index] + ', which setup made, is not removed by setup: a path it could not hold need not lead to the folder it made.');
-            Result := false;
-         end
-         else if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then
+         if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then
          begin
             g_bFoldersChanged := true;
             Why := missing[index] + ', just made, ' + szWhere + ': a folder on the way was made a link while setup was preparing the installation, so setup does not install there - run setup again to have it looked at';
@@ -2147,14 +2223,19 @@ begin
       end
       else
       begin
-         lastError := DLLGetLastError();
-         if lastError = HM_ERROR_ALREADY_EXISTS then
+         if status = HM_STATUS_NAME_COLLISION then
          begin
             g_bFoldersChanged := true;
             Why := missing[index] + ' was made by somebody else - a folder or a link - while setup was preparing the installation, so setup does not install into it - run setup again to have it looked at';
          end
+         else if HeldIsLink(parent, bKnown) then
+         begin
+            g_bFoldersChanged := true;
+            Why := missing[index] + ' could not be made: the folder it is made in was made a junction, a symbolic link or a mount point while setup was preparing the installation, ' +
+                   'or what it is could not be read, so setup does not install there - run setup again to have it looked at';
+         end
          else
-            Why := missing[index] + ' could not be made (Windows error ' + IntToStr(lastError) + ')';
+            Why := missing[index] + ' could not be made (NTSTATUS ' + Format('%.8x', [status]) + ')';
          Result := false;
       end;
       index := index + 1;
