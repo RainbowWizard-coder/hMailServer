@@ -2616,7 +2616,24 @@ with `--check`).
   a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up, where a failure would
   say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the
   project's runners). It reads `CMakeLists.txt` as CMake reads it, each command in any case with its quoted, bracket
-  and unquoted arguments, so that a key given quoted is read unquoted, reads only the commands the file uses
+  and unquoted arguments, so that a key given quoted is read unquoted. CMake divides an unquoted argument at each
+  `;` of what it becomes into as many arguments and takes a keyword a variable's value gives as the keyword, so the
+  check refuses a `;` in an unquoted argument anywhere (`OUTPUT_NAME;hidden-tests`, `hidden;ALL`, `SCRIPT;<file>`,
+  `m;-nostdlib`), and where an argument's place or word decides what is made, written or run, an argument holding a
+  variable that could become another or none: `add_custom_target`'s name and the argument after it, where CMake
+  reads `ALL` (`${HM_ALL}`, `"${HM_ALL}"`, `A${HM_EMPTY}LL`), `install`'s first, where it reads `CODE` and `SCRIPT`,
+  `set_property`'s values, as it takes `PROPERTY`, `APPEND` and `APPEND_STRING` wherever they come (a second `PROPERTY`
+  gave the directory's `LINK_OPTIONS` every value), `configure_file`'s input and output, every argument of the
+  compile and link options (`-include ${X}` gave the compile a second flag), and every argument up to the name of
+  the variable a command writes, that name in any form (`file(READ ${F} LIMIT 100)`, `F` a file and
+  `CMAKE_C_COMPILE_OBJECT`, wrote the compile rule), `list()` and `string()` read in the modes the file uses alone,
+  as each mode writes at a place of its own (`list(GET ...)` and `string(REPLACE a b "${N}" ...)` wrote it too).
+  Each of those forms made a `*-tests` program in the top build directory in the srcpkg-debian13 job's image
+  (cmake 3.31.6), ran a script at `cmake --install`, or gave the link, the compile or the directory's link
+  options a flag not written. A variable CMake gives, which the file does not write, is read as written, and so is a variable where how
+  it divides makes no program in the build directory (a target's sources, the files `install()` copies, a custom
+  target's command); `CMakeLists.txt` quotes the seven arguments that held one of its own variables in those places.
+  It reads only the commands the file uses
   (`try_compile`, `exec_program`, `add_custom_command`, `execute_process` and any other are refused), and refuses
   what would make or write a `*-tests` program otherwise than by `add_executable` under its own name: an
   `add_executable` named by a variable or a `foreach`; a program named or placed otherwise than its target
@@ -2647,7 +2664,10 @@ with `--check`).
   is written with and refuses the rest, so a change of `CMakeLists.txt` that needs a new command, flag, variable or
   form changes the check with it. What CMake's own modules and the distribution's compiler and linker do is not
   read. And it holds the loops to running what the lists name:
-  `debian/rules` is
+  `debian/rules`' first line, which `dpkg-buildpackage` runs the file by, is `#!/usr/bin/make -f` and nothing
+  else: with `#!/usr/bin/make -if` or `#!/usr/bin/env -S make -i -f`, `make -i` let a failing first tester through
+  (`Error 1 (ignored)`), ran no tester after it and built the package, exit 0, in the srcpkg-debian13 job's image. Below
+  it `debian/rules` is
   held whole, line for line but for its comments, its blank lines and the names `TESTERS` gives, its
   `override_dh_auto_test` the recipe the check holds (`set -e`, the server, then `./$$tester` for each of
   `$(TESTERS)`, skipped only for `nocheck` and a cross build), so that `TESTERS` given another value for the recipe
@@ -2688,7 +2708,9 @@ with `--check`).
   outside a rule, by an `eval` in another recipe), `.IGNORE`, `MAKEFLAGS += -i`, `set +e`, `exit 0`, another
   condition, the rule inside a conditional, `dh` given `DEB_BUILD_OPTIONS=nocheck` and `MAKEFLAGS=TESTERS=` in the
   `%` rule's recipe, `debian/rules` rewritten by another recipe, a comment ending in a backslash above `TESTERS`, a
-  comment joined to the test recipe's first line and a carriage return; and in the spec `continue`, `set +e` and
+  comment joined to the test recipe's first line, a carriage return, and the interpreter line made `#!/usr/bin/make -if`,
+  `#!/usr/bin/env -S make -i -f` and `#!/bin/true`, taken out and put below a blank line; in `CMakeLists.txt` each
+  form of a `;` and of a variable named above; and in the spec `continue`, `set +e` and
   `exit 0` in `%check`, a build directory that ends the section, a check macro defined plainly, in a comment, as
   `%{define:...}`, as `%{define: ...}` and as `%{global:` and a tab, `%check` inside `%if 0`, inside one indented by
   spaces and by a tab and inside `%{?nil}%if 0`, a macro defined by Lua, plainly and in a comment, a comment of

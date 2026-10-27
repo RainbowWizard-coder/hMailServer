@@ -61,7 +61,29 @@ tarball a third:
       linux-build.sh runs it, or this says why it is not. CMakeLists.txt is
       read as CMake reads it: each command, its name in any case, with its
       quoted, bracket and unquoted arguments, comments of both kinds left out,
-      so that a key given quoted is read unquoted. Only the commands the file
+      so that a key given quoted is read unquoted. CMake divides an unquoted
+      argument at each ; of what it becomes into as many arguments, and takes a
+      keyword a variable's value gives as the keyword, where this reads an
+      argument as written: so a ; in an unquoted argument is refused anywhere
+      (OUTPUT_NAME;hidden-tests, x;ALL, SCRIPT;<file>, m;-nostdlib), and where
+      the place or the word of an argument decides what is made, written or run,
+      so is an argument holding a variable that could become another or none,
+      unquoted, or quoted where its value is the word: add_custom_target()'s name
+      and the argument after it, where CMake reads ALL; install()'s first, where
+      it reads CODE and SCRIPT; set_property()'s values, as it takes PROPERTY,
+      APPEND and APPEND_STRING wherever they come (a second PROPERTY gives every
+      value to another property), so those words there too; configure_file()'s
+      input and output; every argument of the flag commands; and every argument
+      up to the name of the variable a command writes, the name itself in any
+      form (list() and string() are read in the modes the file uses alone,
+      CMAKE_LIST_MODES and CMAKE_STRING_MODES, as each writes at a place of its
+      own). A variable CMake gives (CMAKE_*), which no command of the file may
+      write but those of CMAKE_WRITTEN, is read as the one argument it is written
+      in. Elsewhere - a target's sources, the directories it includes, the
+      files install() copies and where to, the values set() and list() give, the
+      words of a custom target's command - a variable's value is not read, as no
+      program the build makes in its directory depends on how it divides there.
+      Only the commands the file
       uses are read (CMAKE_COMMANDS); any other - try_compile, exec_program,
       add_custom_command, execute_process, a module's command - is refused, and
       add_subdirectory, subdirs, cmake_language, a _-prefixed command, a
@@ -101,7 +123,7 @@ tarball a third:
       sets (CMAKE_WRITTEN), so that a tool CMake runs with every compile
       (CMAKE_CXX_CLANG_TIDY) or another compile rule (CMAKE_CXX_COMPILE_OBJECT)
       is refused, and so is a variable written by a name CMake works out
-      (set(${X} ...), a variable alone in string()); a launcher, another linker
+      (set(${X} ...), list(LENGTH x "${X}"), string(STRIP x ${X})); a launcher, another linker
       or compiler, CMAKE_<LANG>_FLAGS, -o with or without anything after it,
       -Wl,, -B, -fuse-ld and a specs file are refused anywhere, and
       check_c_source_runs, which compiles and runs its program while CMake
@@ -113,7 +135,12 @@ tarball a third:
       with and refuses the rest, so a change to CMakeLists.txt that needs a new
       command, flag, variable or form changes this check with it. It does not
       read what CMake's own modules and the distribution's compiler and linker
-      do, nor the -D options the spec's %build gives CMake. And the loops run what the lists name, as held: debian/rules is
+      do, nor the -D options the spec's %build gives CMake. And the loops run what the lists name, as held: debian/rules'
+      first line, which dpkg-buildpackage runs the file by, is #!/usr/bin/make -f
+      and nothing else (RULES_INTERPRETER), so that make -i, which
+      #!/usr/bin/make -if or #!/usr/bin/env -S make -i -f gives it and which
+      ignores every recipe's failure as .IGNORE does, or another program is
+      refused; below it debian/rules is
       held whole, line for line but for its comments, its blank lines and the
       names TESTERS gives (RULES_HELD, whose override_dh_auto_test is
       RULES_TEST_RECIPE: set -e, the server, then ./$$tester for each of
@@ -573,6 +600,8 @@ CMAKE_NAMING_VARIABLES = re.compile(r"\b(?:CMAKE_EXECUTABLE_SUFFIX\w*|CMAKE_RUNT
 # CMAKE_CONFIGURE_DEPENDS, as CMakeLists.txt does.
 CMAKE_TARGET_PROPERTIES = ("OUTPUT_NAME",)
 CMAKE_SET_PROPERTY = ("DIRECTORY", "APPEND", "PROPERTY", "CMAKE_CONFIGURE_DEPENDS")
+# The keywords set_property() takes wherever they come after its scope (cmSetPropertyCommand).
+CMAKE_SET_PROPERTY_KEYWORDS = ("PROPERTY", "APPEND", "APPEND_STRING")
 # The flags add_compile_options, add_link_options and target_compile_options may give,
 # the ones CMakeLists.txt gives (the operand of -include and -mllvm after it): another
 # could name another output or program for the compiler or the linker.
@@ -595,6 +624,12 @@ CMAKE_REQUIRED = ("CMAKE_REQUIRED_LIBRARIES", "Iconv::Iconv")
 # variable written by a name CMake works out (set(${X} ...)).
 CMAKE_WRITES = ("set", "unset", "option", "list", "string", "file", "foreach", "find_library", "find_path",
                 "check_c_source_runs")
+# The modes of list() and string() CMakeLists.txt uses, each with the place of the name
+# of the variable it writes (list(LENGTH <list> <out>), string(REGEX REPLACE <expression>
+# <replacement> <out> <input>...)); any other mode is refused, as its name could be
+# anywhere (list(GET <list> <index> <out>)).
+CMAKE_LIST_MODES = {("APPEND",): 1, ("REMOVE_ITEM",): 1, ("LENGTH",): 2}
+CMAKE_STRING_MODES = {("REGEX", "REPLACE"): 4, ("REPLACE",): 3, ("STRIP",): 2, ("TIMESTAMP",): 1}
 CMAKE_WRITTEN = ("CMAKE_CXX_STANDARD", "CMAKE_CXX_STANDARD_REQUIRED", "CMAKE_CXX_EXTENSIONS",
                  "CMAKE_POSITION_INDEPENDENT_CODE", "CMAKE_REQUIRED_LIBRARIES")
 # The variables target_link_libraries may be given, the ones CMakeLists.txt gives it, and
@@ -723,10 +758,27 @@ def cmake_targets(cmake_text):
         number of arguments; or anywhere, a key or a name made of variables."""
         return [value for value, kind in arguments if kind == "unquoted" and "$" in value]
 
+    def divided(arguments):
+        """The arguments CMake could divide into others, or into none, by a variable's value: CMake divides an
+        unquoted argument at each ; of what it becomes, so ${X}, SERVER=${X} and A${X}LL can each be any number of
+        arguments, ALL, CODE, SCRIPT or PROPERTY among them. A variable CMake gives (CMAKE_*), which no command of
+        the file may write but those of CMAKE_WRITTEN, is read as the one argument it is written in."""
+        def own(match):
+            return "" if match.group(1) not in CMAKE_WRITTEN else match.group(0)
+        return [value for value, kind in arguments
+                if kind == "unquoted" and "$" in re.sub(r"\$\{(CMAKE_\w+)\}", own, value)]
+
     for command, arguments, line in commands:
         lower = command.lower()
         values = [value for value, _ in arguments]
         where = "%s line %d: %s(%s)" % (CMAKELISTS, line, command, " ".join(values)[:50])
+        divided_at = [value for value, kind in arguments if kind == "unquoted" and ";" in value]
+        if divided_at:
+            # CMake divides an unquoted argument at each ; into as many arguments, as it divides a list.
+            problems.append("%s has the unquoted argument %s, which CMake divides at each ; into as many arguments "
+                            "(OUTPUT_NAME;hidden-tests is a key and its value, x;ALL a target built with every build, "
+                            "m;-nostdlib a library and a flag), where build/check-source-tarball.py would read one - "
+                            "write each argument out, or quote it" % (where, divided_at[0][:40]))
         if CMAKE_ELSEWHERE.match(command):
             problems.append("%s line %d: %s() makes targets or runs CMake code this does not read (another "
                             "directory or project, another command's name, a function's or macro's arguments), a "
@@ -792,8 +844,22 @@ def cmake_targets(cmake_text):
                                 "(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ...) alone): a directory's "
                                 "COMPILE_OPTIONS or LINK_OPTIONS could give the compiler or the linker another output"
                                 % where)
+            elif divided(arguments[4:]) + [value for value in values[4:] if value in CMAKE_SET_PROPERTY_KEYWORDS]:
+                # set_property takes a keyword wherever it comes: a second PROPERTY names the property every value
+                # goes to, as one a variable's value divides into does.
+                odd = divided(arguments[4:]) + [value for value in values[4:] if value in CMAKE_SET_PROPERTY_KEYWORDS]
+                problems.append("%s gives CMAKE_CONFIGURE_DEPENDS %s: set_property() takes PROPERTY, APPEND or "
+                                "APPEND_STRING wherever it comes, and a second PROPERTY gives every value to another "
+                                "property (LINK_OPTIONS, which the linker reads), as one a variable's value divides "
+                                "into could - quote each value, and give no keyword after the property"
+                                % (where, odd[0][:40]))
         elif lower in ("add_compile_options", "add_link_options", "target_compile_options"):
             given = values[1:] if lower == "target_compile_options" else values
+            if divided(arguments):
+                # A flag read as written, or an operand, could be several by a variable's value (-include ${X},
+                # with X x.h;-ohidden-tests).
+                problems.append("%s gives %s, which CMake could divide into other flags than those written, by the ; "
+                                "of a variable's value - quote it" % (where, divided(arguments)[0][:40]))
             for index, value in enumerate(given):
                 operand = index and given[index - 1] in CMAKE_FLAG_OPERANDS and not value.startswith("-")
                 if value not in CMAKE_FLAGS and value not in CMAKE_FLAG_KEYWORDS and not operand:
@@ -827,23 +893,46 @@ def cmake_targets(cmake_text):
             # (CMAKE_*) is one of the five the file sets, and one target_link_libraries is given is written by its
             # own find_library alone.
             # Where each writes it: set, unset, option, foreach, find_library and find_path the first argument,
-            # list the second, file(READ|STRINGS) the third and file(GLOB|GLOB_RECURSE) the second, the result
-            # of check_c_source_runs the second; string() at a place that differs by its mode, so in string() no
-            # unquoted argument may be a variable alone.
+            # file(READ|STRINGS) the third and file(GLOB|GLOB_RECURSE) the second, the result of
+            # check_c_source_runs the second; list() and string() at a place that differs by their mode
+            # (CMAKE_LIST_MODES, CMAKE_STRING_MODES).
+            # And an argument before that place, or at it, that CMake could divide by a variable's value moves the
+            # name to another argument (file(READ ${F} LIMIT 9) with F x;CMAKE_CXX_COMPILE_OBJECT reads x into the
+            # compile rule), so none may be one.
             upper = values[0].upper() if values else ""
-            if lower == "list":
-                named = values[1:2]
+            if lower in ("list", "string"):
+                # Each mode writes the name at a place of its own (list(LENGTH <list> <out>), string(REGEX REPLACE
+                # <expression> <replacement> <out> <input>)): only the modes the file uses are read.
+                modes = CMAKE_LIST_MODES if lower == "list" else CMAKE_STRING_MODES
+                mode = next((mode for mode in modes if tuple(values[:len(mode)]) == mode
+                             and all(kind == "unquoted" for _, kind in arguments[:len(mode)])), None)
+                if mode is None:
+                    problems.append("%s is a mode of %s() build/check-source-tarball.py does not read (it reads %s, "
+                                    "as CMakeLists.txt uses them): the name of the variable it writes is at a place "
+                                    "of its own, and could be one CMake runs a program by - add it to %s with its "
+                                    "place" % (where, lower, ", ".join(" ".join(mode) for mode in modes),
+                                               "CMAKE_LIST_MODES" if lower == "list" else "CMAKE_STRING_MODES"))
+                    place = len(arguments)
+                    named = [value for value, kind in arguments
+                             if kind == "unquoted" and re.match(r"^\$\{[^}]*\}$", value)]
+                else:
+                    place = modes[mode] + 1
+                    named = values[modes[mode]:place]
             elif lower == "file":
-                named = values[2:3] if upper in ("READ", "STRINGS") else values[1:2] if upper.startswith("GLOB") else []
+                place = 3 if upper in ("READ", "STRINGS") else 2 if upper.startswith("GLOB") else 0
+                named = values[place - 1:place] if place else []
             elif lower == "check_c_source_runs":
-                named = values[1:2]
-            elif lower == "string":
-                named = [value for value, kind in arguments if kind == "unquoted" and re.match(r"^\$\{[^}]*\}$", value)]
+                named, place = values[1:2], 2
             else:
-                named = values[:1]
+                named, place = values[:1], 1
             if any("$" in value for value in named):
                 problems.append("%s writes a variable whose name CMake works out (%s): it could be one CMake runs a "
                                 "program by - name it out" % (where, next(v for v in named if "$" in v)[:40]))
+            elif divided(arguments[:place]):
+                problems.append("%s has %s before the name of the variable it writes, which CMake could divide by "
+                                "the ; of a variable's value into arguments that move the name to another, one CMake "
+                                "runs a program by perhaps (CMAKE_CXX_COMPILE_OBJECT) - quote it"
+                                % (where, divided(arguments[:place])[0][:40]))
             for value in values:
                 held = CMAKE_LINK_VARIABLES.get(value)
                 if value.startswith("CMAKE_") and value not in CMAKE_WRITTEN and value not in CMAKE_LINK_VARIABLES:
@@ -895,14 +984,31 @@ def cmake_targets(cmake_text):
                                 "or takes from its input (%s): it could write a program where linux-build.sh finds "
                                 "and runs every *-tests program - name both files out, neither a *-tests"
                                 % (CMAKELISTS, line, " ".join(values[:2])[:60]))
+            elif divided(arguments[:2]):
+                problems.append("%s line %d: configure_file() is given %s, which CMake could divide by the ; of a "
+                                "variable's value, so that its output is another file than the one written, a *-tests "
+                                "perhaps (it keeps its input's permissions) - quote it"
+                                % (CMAKELISTS, line, divided(arguments[:2])[0][:40]))
         elif lower == "add_custom_target":
+            # CMake takes ALL as the second argument it is given (in cmake 3.31.6, after COMMAND, DEPENDS or
+            # COMMENT it is a word of those), one a variable's value gives among them: ${X} or "${X}" with X ALL,
+            # A${X}LL with X empty, a name ${N} with N x;ALL. An ALL anywhere is refused.
             if any(value.upper() == "ALL" for value in values):
                 problems.append("%s is built with every build (ALL): its commands could write a *-tests program, "
                                 "which linux-build.sh's find would run" % where)
+            elif divided(arguments[:2]) or divided([(value, "unquoted") for value, _ in arguments[1:2]]):
+                problems.append("%s takes its name, or the argument after it, from a variable: CMake reads ALL "
+                                "there, a variable's value among it, and builds the target with every build, so that "
+                                "its commands could write a *-tests program - write both out" % where)
         elif lower == "install":
+            # CMake reads CODE or SCRIPT as the first argument, as a variable's value gives it too.
             if any(value.upper() in ("CODE", "SCRIPT") for value in values):
                 problems.append("%s runs CMake code at install, which rpm runs before %%check: it could write a "
                                 "*-tests program" % where)
+            elif values and "$" in values[0]:
+                problems.append("%s takes its first argument, which says what it installs, from a variable: CODE or "
+                                "SCRIPT there runs CMake code at install, which rpm runs before %%check - write it out"
+                                % where)
     for number, text in enumerate(cmake_text.split("\n"), 1):
         named = CMAKE_NAMING_VARIABLES.search(text)
         if named and not text.lstrip().startswith("#"):
@@ -950,7 +1056,12 @@ RULES_TEST_RECIPE = (
     "\t  for tester in $(TESTERS); do echo \"== $$tester\"; ./$$tester; done\n"
     "endif\n"
     "endif\n")
-# And debian/rules as a whole, held line for line but for its comments, its blank lines
+# debian/rules' first line, a comment to make but the line the kernel runs the file by,
+# as dpkg-buildpackage runs debian/rules as a program: make -i (#!/usr/bin/make -if,
+# #!/usr/bin/env -S make -i -f) ignores every recipe's failure, as .IGNORE does, and
+# another program need not run the recipe at all.
+RULES_INTERPRETER = "#!/usr/bin/make -f"
+# And debian/rules as a whole below that line, held line for line but for its comments, its blank lines
 # and the names TESTERS gives: what make reads anywhere in it - another recipe that
 # runs dh with DEB_BUILD_OPTIONS=nocheck or MAKEFLAGS=TESTERS=, rewrites debian/rules or
 # the build directory, a second or target-specific TESTERS, .IGNORE, MAKEFLAGS, an eval, a
@@ -1002,11 +1113,19 @@ SPEC_CONDITIONAL = re.compile(r"%+(?:if(?:arch|narch|os|nos)?|el(?:se|if\w*)|end
 
 
 def rules_problems(text):
-    """debian/rules is RULES_HELD but for its comments, blank lines and the TESTERS list."""
+    """debian/rules' first line is RULES_INTERPRETER, and the rest RULES_HELD but for its comments, blank lines and
+    the TESTERS list."""
     problems = []
     if "\r" in text:
         return ["%s has a carriage return: make would read it as part of a line (a rule's name, a recipe), and the "
                 "file is checked out with line feeds alone on every platform (.gitattributes)" % DEBIAN_RULES]
+    first = text.split("\n", 1)[0]
+    if first != RULES_INTERPRETER:
+        problems.append("%s line 1 is %r, where build/check-source-tarball.py holds %r (RULES_INTERPRETER): "
+                        "dpkg-buildpackage runs debian/rules as a program, by its first line, and make -i "
+                        "(#!/usr/bin/make -if, #!/usr/bin/env -S make -i -f) ignores every recipe's failure, a "
+                        "tester's among them, as .IGNORE does - change both together"
+                        % (DEBIAN_RULES, first[:70], RULES_INTERPRETER))
     read, previous = [], ""
     for number, line in enumerate(text.split("\n"), 1):
         # make ignores a comment and a blank line, but not one a backslash joined to the line above.
@@ -2053,6 +2172,70 @@ def self_test():
             ("a variable written by string() by a name worked out", "set(HM_NAME CMAKE_CXX_CLANG_TIDY)\n"
              "string(TOLOWER true ${HM_NAME})\n", "writes a variable whose name CMake works out")):
         expect(label, testers(cmake=texts[CMAKELISTS] + "\n" + added), needle)
+    # CMake divides an unquoted argument at each ; of what it becomes into as many arguments, and takes a keyword
+    # a variable's value gives as the keyword. In the srcpkg-debian13 job's image (cmake 3.31.6, ninja, gcc), a
+    # project of each of the eight forms before the first install() made an executable *-tests program in the top
+    # build directory, and so did ALL from an empty variable, a quoted one and a name divided into a name and ALL,
+    # file(READ) whose name a variable's value moved, list()'s mode from a variable, list(GET) and string(REPLACE)
+    # writing the compile rule by a name in a variable, and configure_file()'s input divided into its output; the
+    # three install()s ran their script at cmake --install; a second PROPERTY, written or from a value, gave the
+    # directory's LINK_OPTIONS every value; m;-nostdlib gave the link -nostdlib; and -include ${X} gave the compile
+    # X's second word as a flag. The last
+    # is the tree's own form, which must pass: after COMMAND, ALL is a word of the command to CMake.
+    divided_semicolon = "which CMake divides at each ;"
+    for label, added, needle in (
+            ("a key and its value in one unquoted argument", hidden + "set_target_properties(hidden PROPERTIES "
+             "OUTPUT_NAME;hidden-tests)\n", divided_semicolon),
+            ("a target, PROPERTIES, a key and its value in one unquoted argument", hidden + "set_target_properties("
+             "hidden;PROPERTIES;OUTPUT_NAME;hidden-tests)\n", divided_semicolon),
+            ("a suffix after a ;", hidden + "set_target_properties(hidden PROPERTIES OUTPUT_NAME hidden "
+             "SUFFIX;-tests)\n", divided_semicolon),
+            ("a CMake variable after a ; in list()", "list(APPEND;CMAKE_CXX_COMPILE_OBJECT \"cp /bin/true "
+             "hidden4-tests\")\n", divided_semicolon),
+            ("a CMake variable after a ; in file(READ)", "file(READ rule.txt;CMAKE_CXX_COMPILE_OBJECT)\n",
+             divided_semicolon),
+            ("a CMake variable after a ; in file(STRINGS)", "file(STRINGS tidy.txt;CMAKE_CXX_CLANG_TIDY)\n",
+             divided_semicolon),
+            ("ALL after a ;", "add_custom_target(hidden7;ALL COMMAND cp /bin/true hidden7-tests)\n",
+             divided_semicolon),
+            ("ALL from a variable", "set(HM_ALL ALL)\nadd_custom_target(hidden8 ${HM_ALL} COMMAND cp /bin/true "
+             "hidden8-tests)\n", "or the argument after it, from a variable"),
+            ("SCRIPT after a ;", "install(SCRIPT;${SERVER_DIR}/x.cmake)\n", divided_semicolon),
+            ("SCRIPT from a variable", "set(HM_SCRIPT SCRIPT)\ninstall(${HM_SCRIPT} ${SERVER_DIR}/x.cmake)\n",
+             "takes its first argument, which says what it installs, from a variable"),
+            ("a flag after a ; in target_link_libraries", hidden + "target_link_libraries(hidden PRIVATE "
+             "m;-nostdlib)\n", divided_semicolon),
+            ("ALL from an empty variable inside a word", "add_custom_target(hidden A${HM_EMPTY}LL COMMAND cp "
+             "/bin/true hidden-tests)\n", "or the argument after it, from a variable"),
+            ("ALL from a quoted variable", "set(HM_ALL ALL)\nadd_custom_target(hidden \"${HM_ALL}\" COMMAND cp "
+             "/bin/true hidden-tests)\n", "or the argument after it, from a variable"),
+            ("a name and ALL from a variable", "set(HM_N \"hidden;ALL\")\nadd_custom_target(${HM_N} COMMAND cp "
+             "/bin/true hidden-tests)\n", "or the argument after it, from a variable"),
+            ("install()'s first argument in a quoted variable", "install(\"${HM_SCRIPT}\" ${SERVER_DIR}/x.cmake)\n",
+             "takes its first argument, which says what it installs, from a variable"),
+            ("the name file(READ) writes moved by a variable's value", "set(HM_F \"x;CMAKE_CXX_COMPILE_OBJECT\")\n"
+             "file(READ ${HM_F} LIMIT 100)\n", "before the name of the variable it writes"),
+            ("list()'s mode from a variable", "set(HM_MODE \"APPEND;CMAKE_CXX_COMPILE_OBJECT\")\nlist(${HM_MODE} "
+             "\"cp /bin/true hidden-tests\")\n", "a mode of list() build/check-source-tarball.py does not read"),
+            ("a list() mode that writes at another place", "list(GET CORE_SOURCES 0 ${HM_NAME})\n",
+             "a mode of list() build/check-source-tarball.py does not read"),
+            ("a string() mode that writes at another place", "string(TOLOWER x \"${HM_NAME}\")\n",
+             "a mode of string() build/check-source-tarball.py does not read"),
+            ("the name string() writes in a quoted variable", "string(REPLACE a b \"${HM_NAME}\" x)\n",
+             "writes a variable whose name CMake works out"),
+            ("the name string() writes moved by a variable's value", "string(REPLACE ${HM_A} b HM_OUT x)\n",
+             "before the name of the variable it writes"),
+            ("a second PROPERTY in set_property()", "set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "
+             "x.txt PROPERTY LINK_OPTIONS -nostdlib)\n", "takes PROPERTY, APPEND or APPEND_STRING wherever it comes"),
+            ("a value of set_property() a variable's value could divide", "set_property(DIRECTORY APPEND PROPERTY "
+             "CMAKE_CONFIGURE_DEPENDS ${HM_X})\n", "takes PROPERTY, APPEND or APPEND_STRING wherever it comes"),
+            ("configure_file()'s input a variable's value could divide", "configure_file(${SERVER_DIR}/t.sh x.txt)\n",
+             "configure_file() is given ${SERVER_DIR}/t.sh"),
+            ("an operand a variable's value could divide into flags", "target_compile_options(hmailserver_core "
+             "PUBLIC -include ${SERVER_DIR}/x.h)\n", "could divide into other flags"),
+            ("a target whose command a variable gives words to", "add_custom_target(hidden COMMAND ${CMAKE_COMMAND} "
+             "-E env SERVER=${SERVER_DIR} true)\n", None)):
+        expect(label, testers(cmake=texts[CMAKELISTS] + "\n" + added), needle)
     # debian/rules, held whole: what the other rules' recipes run, and comments make joins on.
     for label, rules, needle in (
             ("dh told nocheck in the % rule's recipe", rules_text.replace("\tdh $@ ", "\tDEB_BUILD_OPTIONS=nocheck "
@@ -2068,7 +2251,17 @@ def self_test():
             ("a comment joined to the test recipe's first line", rules_text.replace(
                 "./hmailserver --version; \\\n", "./hmailserver --version; \\\n# note\n", 1), "(RULES_HELD)"),
             ("a carriage return", rules_text.replace("override_dh_auto_test:\n", "override_dh_auto_test:\r\n", 1),
-             "has a carriage return")):
+             "has a carriage return"),
+            # The interpreter line: dpkg-buildpackage in the srcpkg-debian13 job's image built a package whose
+            # first tester failed, exit 0, with each of the first two (make: "Error 1 (ignored)").
+            ("make -i on the interpreter line", rules_text.replace("#!/usr/bin/make -f\n", "#!/usr/bin/make -if\n", 1),
+             "line 1 is '#!/usr/bin/make -if'"),
+            ("make -i through env -S", rules_text.replace("#!/usr/bin/make -f\n", "#!/usr/bin/env -S make -i -f\n", 1),
+             "(RULES_INTERPRETER)"),
+            ("another program on the interpreter line", rules_text.replace("#!/usr/bin/make -f\n", "#!/bin/true\n", 1),
+             "(RULES_INTERPRETER)"),
+            ("no interpreter line", rules_text.replace("#!/usr/bin/make -f\n", "", 1), "(RULES_INTERPRETER)"),
+            ("a blank line above the interpreter line", "\n" + rules_text, "(RULES_INTERPRETER)")):
         expect("debian/rules: " + label, testers(rules=rules), needle)
     # The spec: conditionals and definitions as rpm reads them (rpm 6.0.2 in the srcpkg-fedora44 job's image
     # left %check out, exit 0, for each of the first five, and for a comment of %check that expands

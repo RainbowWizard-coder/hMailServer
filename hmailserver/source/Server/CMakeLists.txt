@@ -406,7 +406,7 @@ endif()
 # -Wall, which this build passes to nothing; HAVE_CLOSEFROM, the other definition
 # it can add, is read only by quickjs-libc.c. No C standard is named, as the
 # Makefile names none. The engine takes pthread for Atomics and libm for Math.
-file(READ ${SERVER_DIR}/quickjs/VERSION QUICKJS_VERSION)
+file(READ "${SERVER_DIR}/quickjs/VERSION" QUICKJS_VERSION)
 string(STRIP "${QUICKJS_VERSION}" QUICKJS_VERSION)
 
 add_library(quickjs STATIC
@@ -435,7 +435,7 @@ add_library(hmailserver_core STATIC ${CORE_SOURCES})
 # case cannot be checked out on Windows - so the lowercase one is generated here.
 set(PCH_LOWER ${CMAKE_CURRENT_BINARY_DIR}/pch-lower)
 file(MAKE_DIRECTORY ${PCH_LOWER})
-configure_file(${SERVER_DIR}/platform/pch/StdAfx.h ${PCH_LOWER}/stdafx.h COPYONLY)
+configure_file("${SERVER_DIR}/platform/pch/StdAfx.h" "${PCH_LOWER}/stdafx.h" COPYONLY)
 
 target_include_directories(hmailserver_core PUBLIC
    ${SERVER_DIR}/platform/pch
@@ -465,7 +465,7 @@ endif()
 # The precompiled-header substitute, forced into every translation unit exactly
 # as the MSVC build forces its own.
 target_compile_options(hmailserver_core PUBLIC
-   -include ${SERVER_DIR}/platform/portable_stdafx.h)
+   -include "${SERVER_DIR}/platform/portable_stdafx.h")
 
 # clang and GCC are both first-class here. An earlier version of this file passed
 # clang -fdelayed-template-parsing and warned that GCC would fail in
@@ -1250,10 +1250,10 @@ install(FILES ${SERVER_DIR}/quickjs/LICENSE
 # the PKGBUILD's included. The copyright file each package format keeps in its
 # own place is the packages' alone: CPACK_INSTALL_SCRIPTS, below.
 set(HM_AGPL_LICENSE ${SERVER_DIR}/../../../LICENSE)
-file(READ ${HM_AGPL_LICENSE} HM_AGPL_TEXT)
+file(READ "${HM_AGPL_LICENSE}" HM_AGPL_TEXT)
 string(REPLACE "\r" "" HM_AGPL_TEXT "${HM_AGPL_TEXT}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/packaging/AGPL-3.0.txt "${HM_AGPL_TEXT}")
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${HM_AGPL_LICENSE})
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${HM_AGPL_LICENSE}")
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/packaging/AGPL-3.0.txt
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses)
 
@@ -1630,7 +1630,7 @@ set(HM_RPM_CHANGELOG_TEXT
 set(HM_CHANGELOG_MD ${SERVER_DIR}/../../../CHANGELOG.md)
 if(EXISTS ${HM_CHANGELOG_MD})
    string(REPLACE "." "\\." HM_VERSION_PATTERN "${PROJECT_VERSION}")
-   file(STRINGS ${HM_CHANGELOG_MD} HM_CHANGELOG_HEADING REGEX "^## \\[${HM_VERSION_PATTERN}\\]\\(" LIMIT_COUNT 1)
+   file(STRINGS "${HM_CHANGELOG_MD}" HM_CHANGELOG_HEADING REGEX "^## \\[${HM_VERSION_PATTERN}\\]\\(" LIMIT_COUNT 1)
    if(HM_CHANGELOG_HEADING MATCHES "^## \\[([0-9.]+)\\]\\(([^)]+)\\) - ([0-9-]+)")
       set(HM_RPM_CHANGELOG_TEXT
          "- hMailServer ${CMAKE_MATCH_1}, released ${CMAKE_MATCH_3}. What it changes: ${CMAKE_MATCH_2}")
