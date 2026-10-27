@@ -99,10 +99,14 @@ sudo systemctl restart hmailserver
 ```
 
 Under its systemd unit the server can reach the socket as it is:
-`RestrictAddressFamilies` allows `AF_UNIX`, and `ProtectSystem=strict`, which
-makes `/run` read-only to the service, does not stop a connection to a socket
-there - connecting writes to the socket, not to the file system it is on, and a
-read-only mount refuses writes to files, directories and links only. What the
+`RestrictAddressFamilies` allows `AF_UNIX`, and `ProtectSystem=strict` does not
+stop a connection to a socket under `/run`. It makes `/`, `/usr`, `/etc` and
+`/var` read-only to the service and leaves `/run` writable (systemd 259, on
+Ubuntu 26.04 and on Fedora 44, as read from the running server); and a read-only
+mount over the socket's directory, such as a drop-in's `ReadOnlyPaths=`, would
+not stop it either - connecting writes to the socket, not to the file system it
+is on, and a read-only mount refuses writes to files, directories and links
+only. What the
 unit hides is out of reach: with `PrivateTmp=yes` the service has a `/tmp` and a
 `/var/tmp` of its own, so a clamd socket under either is not the one it sees, and
 with `ProtectHome=yes` it cannot enter `/home`, `/root` or `/run/user` at all, so
@@ -110,6 +114,19 @@ a socket there (a clamd a user runs for themselves, under `/run/user/<uid>`, say
 cannot be reached, whatever the groups; the log then says the server's user may
 not enter `/home`, `/root` or `/run/user`, and the cure is a socket elsewhere,
 not a group. Every package above keeps its socket under `/run`.
+
+The package test proves it: `package-systemd-ubuntu26.04` and
+`package-systemd-fedora44` start each package under its own unit, with systemd as
+PID 1 and `ProtectSystem=strict` and the rest of the unit's sandbox in force, and
+have the server connect to a fake clamd's socket under `/run`, in a directory of
+mode 0710 closed to all but a group the `hmailserver` user is in, as Fedora's
+`/run/clamd.scan` is: a clean message is scanned there and delivered, and EICAR
+is deleted ([PackagesDeb.md](PackagesDeb.md), *Started under systemd*). With a
+drop-in's `ReadOnlyPaths=` over the socket's directory it passes as well, the
+directory read-only to the server. With `AF_UNIX` taken out of
+`RestrictAddressFamilies`, the socket's directory made inaccessible to the
+service, the user out of the group, or the socket under `/tmp`, the test fails,
+naming the cause.
 
 Over TCP instead: set `TCPSocket 3310` (and `TCPAddr 127.0.0.1`) in
 `clamd.conf`, and `ClamAVHost` to the host and `ClamAVPort` to the port.
@@ -161,5 +178,8 @@ its argument (`clamd-socket-tests /var/run/clamav/clamd.ctl`) it runs the
 connection test against that clamd as well. The Linux suite's `AntiVirus/ClamdUnixSocket` sends messages
 through the running server to a fake clamd of its own, and through a real one
 when `HMTEST_CLAMD_SOCKET` names it ([RegressionEnvironment.md](RegressionEnvironment.md),
-*On Linux*). On Windows, `AntiVirus/ClamdSocketPathOnWindows` holds the
-refusals, and `AntiVirus/ClamAV` the scanner against a real clamd over TCP.
+*On Linux*). The package-systemd jobs have the packaged server, under its systemd
+unit, scan through a fake clamd's socket under `/run` that only a group of the
+`hmailserver` user's may reach (above). On Windows,
+`AntiVirus/ClamdSocketPathOnWindows` holds the refusals, and `AntiVirus/ClamAV`
+the scanner against a real clamd over TCP.

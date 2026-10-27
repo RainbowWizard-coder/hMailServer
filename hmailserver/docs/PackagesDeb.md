@@ -698,15 +698,46 @@ branch's pipeline and on master, never on a `v*` tag: they are checks, like
    properties, as `systemctl show` reports them, and reads nothing where systemd
    will not start it so. It must find nothing missing, and the journal must not
    hold a line in which systemd says it is ignoring part of that sandbox.
-6. `systemctl reload` must reinitialise the server in the same process. The
+6. clamd on a Unix socket under `/run`, reached from inside the unit
+   ([ClamAV.md](ClamAV.md)). Before the unit first starts, a fake clamd is put in
+   the container outside `hmailserver.service`: a short Perl program (Ubuntu's
+   image has Perl already, and Fedora's gets `perl-IO` from its archive), run as
+   root by `systemd-run`, that answers PING, VERSION and INSTREAM's
+   length-prefixed chunks as clamd does - `stream: OK` for a clean stream,
+   `stream: Eicar-Signature FOUND` for one carrying EICAR - and keeps each stream
+   it is given. Its socket is `/run/hm-clamd/clamd.sock`, mode 0660, in a
+   directory of mode 0710, both root's and the group `hm-clamd`'s, and the
+   `hmailserver` user is put in that group, as Fedora's `/run/clamd.scan` is
+   `0710 clamscan:virusgroup`: so the step proves too that the unit gives the
+   service its user's supplementary groups. Over the REST API an account is made,
+   application and debug logging turned on, and `clamav_enabled` and
+   `clamav_host`, the socket's path, set (`PUT /api/v1/settings/antivirus`). A
+   clean message sent on port 25 must reach the fake through the socket and be
+   delivered, the server logging `No virus detected: stream: OK`; one carrying
+   EICAR must be handled as the default action, `delete_email`, says: the fake
+   given it, `Virus detected: Eicar-Signature` and `Message will be deleted
+   (contained virus Eicar-Signature).` logged, nothing delivered and the queue
+   empty. The server's process must hold the group, and the step says how the
+   socket's directory is mounted in its namespace: `ProtectSystem=strict` has
+   `/`, `/usr`, `/etc` and `/var` read-only there (step 4) and leaves `/run`
+   writable, and with a drop-in's `ReadOnlyPaths=` over the directory it is
+   read-only and the server reaches the socket all the same. The step waits out
+   the moment the wrong password of step 5 keeps the administrator's credential
+   throttled (a 429), as a client does. ClamAV is then turned off
+   again, the logging put back and the fake stopped, so that the steps after run
+   as before. Where the fake was given nothing - a clean message is delivered
+   unscanned under the default `AVFailAction` - the step fails with the server's
+   own reason from its error log, the process's groups, and the unit's
+   `RestrictAddressFamilies=` and `InaccessiblePaths=`.
+7. `systemctl reload` must reinitialise the server in the same process. The
    server answers the unit's SIGHUP by stopping its servers and starting them
    again, so the socket listening on 25 must be a new one within a minute, and
    SMTP and the REST API must answer again. `systemctl stop` must end with the
    result `success` and nothing listening.
-7. Started again, the package is removed with the server running. Its scripts
+8. Started again, the package is removed with the server running. Its scripts
    must stop the server and disable both units, leaving nothing running, listening
    or linked.
-8. The container stops as a system does (`SIGRTMIN+3`), and it and its image are
+9. The container stops as a system does (`SIGRTMIN+3`), and it and its image are
    removed.
 
 **Why the container systemd runs in is not privileged.** linix's privileged
@@ -732,7 +763,7 @@ pipeline 2897966924 (`cec2b151d`: `linux-build` job 16842363185,
 `rpm-fedora44-x86_64` job 16842363163), and both passed, with systemd 259 on each
 distribution and an exposure of 1.7 ("OK") from `systemd-analyze security`. Each
 run took under two minutes, from installing podman to removing the image: the last
-ones, with the script as it is now, 95 s for Ubuntu 26.04 and 101 s for Fedora 44,
+ones, with the script as it was then, 95 s for Ubuntu 26.04 and 101 s for Fedora 44,
 and 100 s for Ubuntu with a drop-in that changes nothing, which the script put in
 and took out again. linix's 32 binfmt_misc handlers, the 31 of qemu among them,
 were there before and after every run. Each check was shown to fail when what it
@@ -775,6 +806,31 @@ on the drop-in's own directory: the reason the script now takes it out, so that 
 control which changes nothing passes. The same day a run failed
 when Fedora's mirror list timed out from linix, which is why the steps that fetch
 are now tried again.
+
+**The clamd step** (6) was run the same way on linix on 27 October 2026, over
+packages built in the `linux-build` and `rpm-fedora44-x86_64` jobs' own images
+from the change that added it. Both jobs passed, Ubuntu 26.04's in 60 s and
+Fedora 44's in 68 s from installing podman to removing the image, the step itself
+in 2 s: the fake clamd was given the clean message (335 bytes) and the EICAR one,
+and the server logged `No virus detected: stream: OK`, `Virus detected:
+Eicar-Signature` and `SMTPDeliverer - Message 2: Message will be deleted
+(contained virus Eicar-Signature).` Under `ProtectSystem=strict`, systemd 259 on
+both left `/run` writable to the server (`rw,nosuid,nodev,relatime`); with a
+drop-in setting `ReadOnlyPaths=/run/hm-clamd` the directory was read-only to it
+(`ro,nosuid,nodev,relatime`) and the step passed all the same. Each of these
+made the step fail, with the server's own reason from its error log:
+
+| Negative control | Where it failed |
+|---|---|
+| a drop-in leaving `AF_UNIX` out of `RestrictAddressFamilies=` | "Unable to connect to ClamAV server at /run/hm-clamd/clamd.sock: Address family not supported by protocol", beside `RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK` |
+| a drop-in setting `InaccessiblePaths=/run/hm-clamd` | "this server's user may not enter /run/hm-clamd, a directory on the way to the socket, so the socket's own mode does not help", beside `InaccessiblePaths=/run/hm-clamd` |
+| the user out of the group: `SupplementaryGroups=` can only add one, so a drop-in's `ExecStartPre=+-/usr/bin/gpasswd -d hmailserver hm-clamd`, run as root outside the sandbox, takes it away just before systemd starts the server with the groups the user database then gives | the same "may not enter /run/hm-clamd", beside the server's groups, without `hm-clamd`'s (on Ubuntu 26.04 and on Fedora 44) |
+| `HM_SYSTEMD_TEST_CLAMD_DIR=/tmp/hm-clamd`, the fake's socket under the container's `/tmp` | "nothing is listening there, as there is no socket at that path", as the table in [ClamAV.md](ClamAV.md) says, and the step's note that the unit's `PrivateTmp=yes` gives the service a `/tmp` of its own |
+
+linix's 31 qemu handlers were there before and after every run. The first run of
+the group control on Fedora stopped at the step's first REST call with a 429:
+the wrong password step 5 sends had left the administrator's credential
+throttled, which is why the step now waits a 429 out.
 
 The live update
 ---------------

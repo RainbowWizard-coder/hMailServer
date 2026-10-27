@@ -1216,8 +1216,18 @@ with `--check`).
   not stand in the way and why a socket under `/tmp` or `/var/tmp` (`PrivateTmp=yes`) or under `/home`, `/root` or
   `/run/user` (`ProtectHome=yes`) would, which ClamAV.md says too. Held by `clamd-socket-tests`, a tester the Linux build
   runs against a fake clamd on a Unix socket (and, given a real clamd's socket, the connection test against it), by
-  the Linux suite's `AntiVirus/ClamdUnixSocket`, a fixture of that project's own, and by the Windows suite's
-  `AntiVirus/ClamdSocketPathOnWindows`. The source packages' builds leave `clamd-socket-tests` out, as they leave out
+  the Linux suite's `AntiVirus/ClamdUnixSocket`, a fixture of that project's own, by the Windows suite's
+  `AntiVirus/ClamdSocketPathOnWindows`, and by the package test that the `package-systemd-ubuntu26.04` and
+  `package-systemd-fedora44` jobs run (`build/ci/package-systemd-test.sh`): with systemd as PID 1, each package's
+  server, under its own unit with `ProtectSystem=strict` and the rest of the sandbox in force, connects to a fake
+  clamd that runs outside the unit on a socket under `/run`, in a directory of mode 0710 closed to all but a group
+  the `hmailserver` user is in, as Fedora's `/run/clamd.scan` is, so that the unit is shown to give the service its
+  user's supplementary groups too; a clean message reaches the fake and is delivered, and EICAR is deleted, as the
+  default action says, each with the server's own log line. systemd 259, on both, leaves `/run` writable to the
+  service under `ProtectSystem=strict`, as the unit's comment and ClamAV.md now say where they had it read-only, and
+  with a drop-in's `ReadOnlyPaths=` over the socket's directory the scan goes through all the same; with `AF_UNIX` taken out of
+  `RestrictAddressFamilies=`, the socket's directory made inaccessible to the service, the user out of the group, or
+  the socket under `/tmp`, which `PrivateTmp=yes` hides, the test fails, naming the cause. The source packages' builds leave `clamd-socket-tests` out, as they leave out
   every tester that needs a socket: it binds Unix sockets of its own under `$TMPDIR` (`SOURCE_TESTERS_LEFT_OUT` in
   `build/check-source-tarball.py`, and SourcePackages.md's row of the tester programs). Roadmap.md's *Other clamd
   transports and commands* keeps TLS to clamd, STATS, MULTISCAN and zINSTREAM declined.

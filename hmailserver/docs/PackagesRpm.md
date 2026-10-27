@@ -940,8 +940,9 @@ Started under systemd
 `package-systemd-fedora44` (`.gitlab/ci/package-systemd.yml`) installs
 `rpm-fedora44-x86_64`'s `hmailserver-<v>-1.fc44.x86_64.rpm` with `dnf` in Fedora 44
 with systemd as PID 1. It starts the unit, reads the sandbox from the running
-server, asks SMTP, POP3, IMAP and the REST API whether they answer, then reloads,
-stops, starts and removes it. `package-systemd-ubuntu26.04` does the same for
+server, asks SMTP, POP3, IMAP and the REST API whether they answer, has the server
+scan mail through a fake clamd's socket under `/run`, then reloads, stops, starts
+and removes it. `package-systemd-ubuntu26.04` does the same for
 the `.deb`, and [PackagesDeb.md](PackagesDeb.md), "Started under systemd", says
 what each step holds the package to and what has run. What the Fedora job adds:
 

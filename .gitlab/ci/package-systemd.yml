@@ -14,7 +14,8 @@
 # pinned by digest, with systemd added; systemd as PID 1 in it, under podman; the
 # package installed with apt or dnf; the unit started, its sandbox read from the
 # running process, SMTP, submission, POP3, IMAP and the REST API asked whether they
-# answer; reloaded, stopped, started again and removed with the server running.
+# answer; a clean message and EICAR scanned through a fake clamd's socket under /run;
+# reloaded, stopped, started again and removed with the server running.
 #
 # The runner: linix's second runner entry, tag linix-systemd (runner 56932743),
 # protected refs only, like runner 56743206 beside it, and privileged, since podman

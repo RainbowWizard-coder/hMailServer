@@ -22,8 +22,10 @@
 # from the distribution's archive; configures it as packaging/README.md says;
 # starts the unit; asks SMTP, POP3, IMAP and the REST API whether they answer;
 # runs `hmailserver-update check`, whose schema probe systemd runs in the unit's own
-# sandbox; reloads, stops and starts it again; removes the package with the server
-# running; and removes the container and its image.
+# sandbox; has the server scan a clean message and EICAR with a fake clamd on a Unix
+# socket under /run, started outside the unit and closed to all but a group the
+# service's user is in; reloads, stops and starts it again; removes the package with
+# the server running; and removes the container and its image.
 #
 # The inner container is NOT privileged. It is given CAP_SYS_ADMIN, which systemd
 # needs to build the unit's mount namespace; without it Ubuntu 26.04's systemd 259
@@ -50,6 +52,9 @@
 #                               negative controls show that each check fails when
 #                               what it checks is not so (hmailserver/docs/
 #                               PackagesDeb.md, "Started under systemd").
+#   HM_SYSTEMD_TEST_CLAMD_DIR   the directory of the fake clamd's socket, /run/hm-clamd
+#                               by default. No job sets it either: a negative control
+#                               sets it under /tmp, which the unit's PrivateTmp hides.
 set -uo pipefail
 
 # The first of the files a glob names, or nothing.
@@ -87,6 +92,18 @@ tag="localhost/hm-systemd-$target:${CI_JOB_ID:-$$}"
 database="hmsystemd_${target//./_}_${CI_JOB_ID:-$$}"
 work=$(mktemp -d /tmp/package-systemd.XXXXXX)
 storage=/var/lib/containers
+# The fake clamd's socket, in a directory of mode 0710 owned by root and the group
+# below, as Fedora's /run/clamd.scan is root's, or clamscan's, and virusgroup's.
+clamd_dir="${HM_SYSTEMD_TEST_CLAMD_DIR:-/run/hm-clamd}"
+clamd_socket="$clamd_dir/clamd.sock"
+clamd_group=hm-clamd
+clamd_account=scan@clamd.test
+case "$clamd_dir" in
+  '' | [!/]* | */ | *..* | *[!A-Za-z0-9/._-]*)
+    echo "REFUSED: HM_SYSTEMD_TEST_CLAMD_DIR is '$clamd_dir', not an absolute path of letters, digits, '/', '.', '_' and '-' below /."
+    exit 2
+    ;;
+esac
 
 if [ -z "$package" ] || [ ! -f "$package" ]; then
   echo "REFUSED: no package for $target (${package:-none found}). The job that builds it left none; its log says why."
@@ -243,10 +260,12 @@ pg_address=$(getent ahostsv4 "$PGH" | awk 'NR == 1 { print $1 }')
 # ------------------------------------------------------------ the image: systemd in the distribution's own
 step "an image of $image with systemd in it, binfmt left alone"
 mkdir -p "$work/image"
+# Perl runs the fake clamd: Ubuntu's image has it already (perl-base, with
+# IO::Socket::UNIX), and Fedora's has none, so perl-IO comes from its archive.
 if [ "$kind" = deb ]; then
   install_systemd="apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends systemd systemd-sysv dbus ca-certificates > /dev/null"
 else
-  install_systemd="dnf -y -q --setopt=install_weak_deps=False install systemd dbus-broker > /dev/null"
+  install_systemd="dnf -y -q --setopt=install_weak_deps=False install systemd dbus-broker perl-IO > /dev/null"
 fi
 cat > "$work/image/Containerfile" << EOF
 FROM $image
@@ -341,6 +360,118 @@ printf '%s\n' "$admin_password" | podman exec -i "$ctr" /usr/bin/hmailserver --s
 in_ctr /usr/bin/hmailserver --set-setting "RestApiPort=$REST_PORT" | grep -F 'stored in the database' \
   || fail "--set-setting RestApiPort=$REST_PORT"
 (umask 077 && printf 'machine 127.0.0.1 login Administrator password %s\n' "$admin_password" > "$work/netrc")
+
+# ------------------------------------------------------------ a fake clamd, outside the unit
+# What clamd says on its Unix socket, as clamd-socket-tests' fake and the Linux suite's
+# answer: one n-prefixed command a connection, PING answered PONG, VERSION with a
+# version line, INSTREAM's chunks, each after its length in four octets, read to the
+# zero length that ends them and answered "stream: OK", or "stream: Eicar-Signature
+# FOUND" (ClamAV 1.4's name) for a stream carrying the EICAR test string. Each stream
+# it is given is kept in the directory its third argument names. It binds the socket
+# with a umask that leaves it its owner's alone, then gives it to the group and makes
+# it 0660: it is never open to others. EICAR is put together from two halves here and
+# in the step that sends it, so that no file of the project carries it whole.
+cat > "$work/fake-clamd.pl" << 'PERL'
+use strict;
+use warnings;
+use IO::Socket::UNIX;
+use Socket qw(SOCK_STREAM);
+
+my ($path, $group, $record) = @ARGV;
+my $gid = getgrnam($group);
+defined $gid or die "fake clamd: there is no group $group\n";
+unlink $path;
+umask 0177;
+my $listener = IO::Socket::UNIX->new(Type => SOCK_STREAM(), Local => $path, Listen => 16)
+  or die "fake clamd: cannot listen on $path: $!\n";
+chown(0, $gid, $path) or die "fake clamd: chown $path: $!\n";
+chmod(0660, $path) or die "fake clamd: chmod $path: $!\n";
+$| = 1;
+print "fake clamd: listening on $path, mode 0660, group $group\n";
+
+my $eicar = 'X5O!P%@AP[4\PZX54(P^)7CC)7}' . '$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+my $streams = 0;
+
+sub read_exactly {
+  my ($client, $size) = @_;
+  my $data = '';
+  while (length($data) < $size) {
+    my $got = sysread($client, $data, $size - length($data), length($data));
+    return undef unless $got;
+  }
+  return $data;
+}
+
+while (1) {
+  my $client = $listener->accept or next;
+  my $command = '';
+  while (length($command) < 64) {
+    my $c = read_exactly($client, 1);
+    last if !defined $c || $c eq "\n";
+    $command .= $c;
+  }
+  if ($command eq 'nPING') {
+    syswrite($client, "PONG\n");
+    print "fake clamd: PING answered PONG\n";
+  } elsif ($command eq 'nVERSION') {
+    syswrite($client, "ClamAV 1.4.3/27800/package-systemd-test\n");
+    print "fake clamd: VERSION answered\n";
+  } elsif ($command eq 'nINSTREAM') {
+    my ($stream, $whole) = ('', 0);
+    while (1) {
+      my $prefix = read_exactly($client, 4);
+      last unless defined $prefix;
+      my $size = unpack('N', $prefix);
+      if ($size == 0) { $whole = 1; last; }
+      last if $size > 1048576;
+      my $chunk = read_exactly($client, $size);
+      last unless defined $chunk;
+      $stream .= $chunk;
+    }
+    if ($whole) {
+      $streams++;
+      my $verdict = index($stream, $eicar) >= 0 ? 'stream: Eicar-Signature FOUND' : 'stream: OK';
+      if (open(my $out, '>', "$record/stream-$streams")) {
+        binmode($out);
+        print $out $stream;
+        close($out);
+      }
+      syswrite($client, "$verdict\n");
+      print "fake clamd: INSTREAM $streams, " . length($stream) . " bytes, answered $verdict\n";
+    } else {
+      print "fake clamd: an INSTREAM that ended before its zero length\n";
+    }
+  } else {
+    print "fake clamd: '$command' is no command it knows\n";
+  }
+  close($client);
+}
+PERL
+step "a fake clamd outside the unit, on $clamd_socket, closed to all but the group $clamd_group"
+# The group is the service user's before the unit first starts, as an administrator's
+# usermod -aG is followed by a restart: systemd gives the service the user's groups
+# from the user database when it starts it. The fake runs as root in a transient
+# service of its own (systemd-run), with nothing of hmailserver.service's sandbox.
+podman cp "$work/fake-clamd.pl" "$ctr:/usr/local/lib/hm-fake-clamd.pl" || fail "podman cp the fake clamd"
+in_ctr groupadd --system "$clamd_group" || fail "groupadd $clamd_group"
+in_ctr usermod -a -G "$clamd_group" hmailserver || fail "usermod -a -G $clamd_group hmailserver"
+in_ctr install -d -m 0710 -o root -g "$clamd_group" "$clamd_dir" || fail "making $clamd_dir"
+in_ctr install -d -m 0700 /run/hm-fake-clamd || fail "making /run/hm-fake-clamd"
+in_ctr systemd-run --quiet --unit=hm-fake-clamd --property=Type=exec \
+  /usr/bin/perl /usr/local/lib/hm-fake-clamd.pl "$clamd_socket" "$clamd_group" /run/hm-fake-clamd \
+  || fail "systemd-run the fake clamd"
+for _ in $(seq 1 20); do
+  in_ctr test -S "$clamd_socket" && break
+  sleep 0.5
+done
+in_ctr test -S "$clamd_socket" || fail "the fake clamd made no socket at $clamd_socket: $(in_ctr journalctl --no-pager -o cat -u hm-fake-clamd.service | tail -n 3 | tr '\n' ' ')"
+clamd_modes=$(in_ctr stat -c '%a %U:%G' "$clamd_dir" "$clamd_socket" | tr '\n' ' ')
+echo "$clamd_dir and its socket: $clamd_modes"
+[ "$clamd_modes" = "710 root:$clamd_group 660 root:$clamd_group " ] \
+  || fail "$clamd_dir and $clamd_socket are '$clamd_modes', not 710 and 660, root's and $clamd_group's"
+clamd_gid=$(in_ctr getent group "$clamd_group" | cut -d: -f3)
+in_ctr id -nG hmailserver | tr ' ' '\n' | grep -qx "$clamd_group" || fail "hmailserver is not in $clamd_group"
+echo "hmailserver is in $clamd_group (gid $clamd_gid); the fake clamd is process $(in_ctr systemctl show -p MainPID --value hm-fake-clamd.service) of hm-fake-clamd.service, as root"
 
 if [ -n "${HM_SYSTEMD_TEST_DROPIN:-}" ]; then
   step "the negative control's drop-in"
@@ -537,6 +668,161 @@ skipped=$(in_ctr journalctl --no-pager -o cat --since "$probe_since" | grep -E '
 [ -z "$skipped" ] || fail "systemd left part of the sandbox out of the schema probe: $skipped"
 echo "the probe ran as hmailserver in the unit's sandbox, every part of it set up"
 
+# ------------------------------------------------------------ clamd on its Unix socket
+step "clamd on a Unix socket under /run, reached from inside the unit"
+clamd_started=$SECONDS
+# ClamAV turned on with ClamAVHost the fake clamd's socket, over the REST API as an
+# administrator of the Linux server does it (PUT /api/v1/settings/antivirus,
+# clamav_enabled and clamav_host), with debug and application logging on for the
+# scan's own lines. A clean message must reach the fake through the socket and be
+# delivered; EICAR must be handled as the server's default anti-virus action says,
+# action delete_email (avaction 0, AntiVirusConfiguration::ActionDelete): deleted,
+# and SMTPDeliverer's "Message will be deleted (contained virus ...)" logged. Under
+# AVFailAction=0, the default, a clamd the server cannot reach lets the clean message
+# through unscanned, so it is what the fake was given that tells: where it was given
+# nothing, the step fails with the server's own reason from its error log, the
+# process's groups and the unit's RestrictAddressFamilies= and InaccessiblePaths=.
+api() {
+  local method=$1 path=$2 body=${3:-}
+  curl -sS --netrc-file "$work/netrc" -o "$work/api.json" -w '%{http_code}' -X "$method" \
+    -H 'Content-Type: application/json' ${body:+--data "$body"} "http://127.0.0.1:$REST_PORT$path" 2> "$work/api.err"
+}
+# The wrong password the REST step sent leaves the administrator's credential
+# throttled for a moment (a 429 with Retry-After, up to ten seconds), until the
+# right one is accepted: a 429 is waited out, as a client does.
+api_expect() {
+  local want=$1 code try
+  shift
+  for try in 1 2 3 4 5 6; do
+    code=$(api "$@")
+    [ "$code" = 429 ] || break
+    echo "$1 $2 answered 429 (the throttle after the wrong password), try $try of 6: waiting 2 s"
+    sleep 2
+  done
+  [ "$code" = "$want" ] || fail "$1 $2 answered '$code', not $want: $(head -c 300 "$work/api.json") $(head -c 200 "$work/api.err")"
+}
+json_field() {
+  grep -o -E "\"$1\": *(true|false|\"[^\"]*\")" "$work/api.json" | head -n 1 | cut -d: -f2- | sed -e 's/^ *//' -e 's/"//g'
+}
+server_log() {
+  in_ctr sh -c 'cat /var/log/hmailserver/*.log 2> /dev/null' | tr -d '\r'
+}
+clamd_failure() {
+  local why=$1 error groups families hidden note=""
+  error=$(server_log | grep -F "ClamAV server at $clamd_socket" | tail -n 1 | cut -c1-500)
+  groups=$(in_ctr awk '$1 == "Groups:" { $1 = ""; sub(/^ +/, ""); print }' "/proc/$pid/status")
+  families=$(in_ctr systemctl show -p RestrictAddressFamilies --value hmailserver.service)
+  hidden=$(in_ctr systemctl show -p InaccessiblePaths --value hmailserver.service)
+  case "$clamd_dir" in
+    /tmp | /tmp/* | /var/tmp | /var/tmp/*) note="; $clamd_dir is under the unit's private /tmp or /var/tmp (PrivateTmp=yes), so the service sees a directory of its own there, not the fake's" ;;
+  esac
+  echo "-- the fake clamd's journal"
+  in_ctr journalctl --no-pager -o cat -u hm-fake-clamd.service | tail -n 10
+  fail "$why: the server's error log says '${error:-nothing of $clamd_socket}'; the server's groups are ${groups:-none} ($clamd_group is $clamd_gid), RestrictAddressFamilies=$families, InaccessiblePaths=${hidden}$note"
+}
+send_message() {
+  local subject=$1 token=$2 body=$3 line
+  exec 3<> /dev/tcp/127.0.0.1/25 || fail "nothing listens on 25"
+  for line in "" "EHLO package-systemd.test" "MAIL FROM:<$clamd_account>" "RCPT TO:<$clamd_account>" "DATA"; do
+    [ -z "$line" ] || printf '%s\r\n' "$line" >&3
+    reply=""
+    while IFS= read -r -t 20 line <&3; do
+      line=${line%$'\r'}
+      reply+="$line"$'\n'
+      [[ $line =~ ^[0-9]{3}- ]] || break
+    done
+    [[ $reply == 2* || $reply == 354* ]] || fail "port 25 answered '${reply%%$'\n'*}' on the way to sending '$subject'"
+  done
+  printf '%s\r\n' "From: <$clamd_account>" "To: <$clamd_account>" "Subject: $subject" \
+    "Message-ID: <$token@package-systemd.test>" "" "$body" "$token" "." >&3
+  IFS= read -r -t 60 line <&3
+  line=${line%$'\r'}
+  [[ $line == "250 "* ]] || fail "port 25 answered '$line' to the end of '$subject'"
+  echo "SMTP 25 took '$subject': $line"
+  printf 'QUIT\r\n' >&3
+  exec 3<&- 3>&-
+}
+stream_with() {
+  in_ctr sh -c 'grep -l -F -- "$1" /run/hm-fake-clamd/stream-* 2> /dev/null' sh "$1" | head -n 1
+}
+delivered_with() {
+  in_ctr sh -c 'grep -r -l -F -- "$1" /var/lib/hmailserver/clamd.test 2> /dev/null' sh "$1" | grep -c '\.eml$'
+}
+api_expect 201 POST /api/v1/domains '{"name":"clamd.test"}'
+account_password=$(head -c 30 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)
+api_expect 201 POST /api/v1/domains/clamd.test/accounts "{\"address\":\"$clamd_account\",\"password\":\"$account_password\"}"
+api_expect 200 GET /api/v1/settings/logging
+logging_before="{\"enabled\":$(json_field enabled),\"log_application\":$(json_field log_application),\"log_debug\":$(json_field log_debug)}"
+api_expect 200 PUT /api/v1/settings/logging '{"enabled":true,"log_application":true,"log_debug":true}'
+api_expect 200 GET /api/v1/settings/antivirus
+av_action=$(json_field action)
+[ "$av_action" = delete_email ] || fail "the anti-virus action is '$av_action', not the default, delete_email"
+api_expect 200 PUT /api/v1/settings/antivirus "{\"clamav_enabled\":true,\"clamav_host\":\"$clamd_socket\"}"
+api_expect 200 GET /api/v1/settings/antivirus
+[ "$(json_field clamav_enabled)" = true ] && [ "$(json_field clamav_host)" = "$clamd_socket" ] \
+  || fail "the antivirus settings read back as clamav_enabled $(json_field clamav_enabled), clamav_host '$(json_field clamav_host)'"
+echo "over REST: $clamd_account made, logging $logging_before turned to application and debug, clamav_enabled true, clamav_host $clamd_socket, action $av_action (the default)"
+
+clean_token="clean-$(head -c 9 /dev/urandom | base64 | tr -dc 'A-Za-z0-9')"
+send_message "clean, through clamd's socket" "$clean_token" "Nothing in here for clamd to find."
+for _ in $(seq 1 60); do
+  [ "$(delivered_with "$clean_token")" -ge 1 ] && break
+  sleep 1
+done
+[ "$(delivered_with "$clean_token")" -ge 1 ] || clamd_failure "the clean message was not delivered in 60 seconds"
+clean_stream=$(stream_with "$clean_token")
+[ -n "$clean_stream" ] || clamd_failure "the clean message was delivered without the fake clamd having been given it"
+clean_line=""
+for _ in $(seq 1 20); do
+  clean_line=$(server_log | grep -F 'No virus detected: stream: OK' | tail -n 1)
+  [ -n "$clean_line" ] && break
+  sleep 0.5
+done
+[ -n "$clean_line" ] || fail "the server's log has no 'No virus detected: stream: OK' for the clean message"
+echo "the fake clamd was given the clean message ($(in_ctr stat -c %s "$clean_stream") bytes, $clean_stream), and it was delivered; the server's log:"
+echo "  $(cut -c1-300 <<< "$clean_line")"
+
+eicar_token="eicar-$(head -c 9 /dev/urandom | base64 | tr -dc 'A-Za-z0-9')"
+eicar_a='X5O!P%@AP[4\PZX54(P^)7CC)7}'
+eicar_b='$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+send_message "EICAR, through clamd's socket" "$eicar_token" "$eicar_a$eicar_b"
+eicar_line=""
+for _ in $(seq 1 60); do
+  eicar_line=$(server_log | grep -F 'Message will be deleted (contained virus Eicar-Signature).' | tail -n 1)
+  [ -n "$eicar_line" ] && break
+  sleep 1
+done
+[ -n "$eicar_line" ] || clamd_failure "the server logged no deletion of the EICAR message in 60 seconds"
+eicar_stream=$(stream_with "$eicar_token")
+[ -n "$eicar_stream" ] || clamd_failure "the EICAR message was deleted without the fake clamd having been given it"
+[ "$(delivered_with "$eicar_token")" = 0 ] || fail "the EICAR message was delivered, where the action delete_email deletes it"
+api_expect 200 GET /api/v1/queue
+grep -q -E '"count": *0[,}]' "$work/api.json" || fail "the queue is not empty after the EICAR message: $(head -c 300 "$work/api.json")"
+virus_line=$(server_log | grep -F 'Virus detected: Eicar-Signature' | tail -n 1)
+echo "the fake clamd was given the EICAR message ($eicar_stream) and answered FOUND; it was not delivered and the queue is empty; the server's log:"
+echo "  $(cut -c1-300 <<< "$virus_line")"
+echo "  $(cut -c1-300 <<< "$eicar_line")"
+
+groups=$(in_ctr awk '$1 == "Groups:" { $1 = ""; sub(/^ +/, ""); print }' "/proc/$pid/status")
+tr ' ' '\n' <<< "$groups" | grep -qx "$clamd_gid" || fail "the server reached the socket without $clamd_group ($clamd_gid) among its groups ($groups)"
+# The mount the socket's directory is on in the server's namespace: ProtectSystem=strict
+# has / read-only there (the sandbox step), and systemd leaves /run writable to the
+# service; a drop-in with ReadOnlyPaths= over the directory shows that a read-only
+# mount does not keep the server from the socket either, since connecting writes to
+# the socket and not to the file system it is on.
+in_ctr cat "/proc/$pid/mountinfo" > "$out/server-mountinfo-clamd.txt"
+clamd_mount=$(mount_of "$out/server-mountinfo-clamd.txt" "$clamd_dir" options)
+case ",$clamd_mount," in
+  *,ro,*) clamd_mount_is=read-only ;;
+  *) clamd_mount_is=writable ;;
+esac
+echo "the server reached $clamd_socket as hmailserver with $clamd_group among its groups ($groups); $clamd_dir is $clamd_mount_is to it ($clamd_mount), and / read-only (ProtectSystem=strict)"
+
+api_expect 200 PUT /api/v1/settings/antivirus '{"clamav_enabled":false,"clamav_host":"localhost"}'
+api_expect 200 PUT /api/v1/settings/logging "$logging_before"
+in_ctr systemctl stop hm-fake-clamd.service || fail "systemctl stop hm-fake-clamd"
+echo "ClamAV turned off again (clamav_host localhost), logging put back to $logging_before, and the fake clamd stopped: the step took $((SECONDS - clamd_started)) s"
+
 # ------------------------------------------------------------ reload, stop, start
 step "systemctl reload: the server reinitialises in the same process"
 # The unit's ExecReload sends SIGHUP, and the server's answer is
@@ -605,4 +891,4 @@ step "the container stops as a system does"
 podman stop -t 60 "$ctr" > /dev/null || fail "podman stop"
 podman rm "$ctr" > /dev/null
 echo ""
-echo "PACKAGE-SYSTEMD PASSED: $(basename "$package") on $target, under systemd as PID 1: installed, started under its unit with its sandbox in force, answered on SMTP, submission, POP3, IMAP and REST, reloaded, stopped, started and removed."
+echo "PACKAGE-SYSTEMD PASSED: $(basename "$package") on $target, under systemd as PID 1: installed, started under its unit with its sandbox in force, answered on SMTP, submission, POP3, IMAP and REST, scanned mail with clamd on a Unix socket under /run, reloaded, stopped, started and removed."
