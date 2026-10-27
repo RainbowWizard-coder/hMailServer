@@ -2545,14 +2545,24 @@ with `--check`).
   (OpenSSL 3.5.3) packages each ran `== acme-tests` and passed, lintian and rpmlint with no error.
 - **The source packages' builds run every tester the build makes that they can, and a check holds them to it.**
   `debian/rules`' `TESTERS` and the spec's `%check` loop, written by hand, had also missed `quarantine-search-tests`
-  (6.3.7), `report-parser-tests` (6.3.6) and `workqueue-teardown-tests` (6.3.7), none of which needs a database,
-  the system's configuration, a socket or root; both lists now run them. `build/check-source-tarball.py`, which the
-  checkers job runs, holds the two lists to each other, name for name and in order, and to every `*-tests` program
-  `CMakeLists.txt` makes but the seven it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a
-  loopback socket, which `offline.c` refuses, root, or every case held to a time on a builder shared with other
-  builds), and its `--self-test` sees a tester made and run by neither list, one list without a tester, the two in
-  another order, a tester left out and run, a tester run twice and a name the build no longer makes refused;
-  SourcePackages.md says which seven are left out and why.
+  (6.3.7) and `report-parser-tests` (6.3.6), neither of which needs a database, the system's configuration, a socket
+  or root; both lists now run them. `build/check-source-tarball.py`, which the checkers job runs, holds the two lists
+  to each other, name for name and in order, and to every `*-tests` program `CMakeLists.txt` makes but the eight it
+  leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback socket, which `offline.c` refuses,
+  root, every case held to a time on a builder shared with other builds, or, for `workqueue-teardown-tests`, two
+  tasks of twenty seconds held to outlast removes whose stops each give up after ten, a margin of ten seconds of
+  wall clock that such a builder, or an emulated one, can take up, where a failure would say only that the builder
+  was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the project's runners). It
+  reads `add_executable` as CMake does, in any case and with spaces before the bracket, and refuses what it cannot
+  read - an `add_executable` named by a variable or a `foreach`, a tester whose `OUTPUT_NAME` is not its target's
+  name, an `add_subdirectory` or an `include()` of a file - and it holds the loops to running what the lists name:
+  `debian/rules`' `override_dh_auto_test` to one `set -e; ... for tester in $(TESTERS); do ...; done` running
+  `./$$tester` as a command of its own, and the spec's loop to `./$tester` on a line of its own. Its `--self-test`
+  sees a tester made and run by neither list, one made by `ADD_EXECUTABLE` and one by `add_executable (`, testers
+  made in a `foreach`, a tester's `OUTPUT_NAME` another name, an `add_subdirectory`, one list without a tester, the
+  two in another order, a tester left out and run, a tester run twice, a name the build no longer makes, the Debian
+  loop over another variable, without `set -e`, with `: ./$$tester` and with `./$$tester || true`, and the spec's
+  loop with `: ./$tester` and with `./$tester || :` refused; SourcePackages.md says which eight are left out and why.
 
 ### Documentation
 

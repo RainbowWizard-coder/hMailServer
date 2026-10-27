@@ -52,13 +52,24 @@ tarball a third:
       its files by a commit on 29 September 2026);
     - the source packages' testers: debian/rules' TESTERS and the RPM spec's
       %check loop run the same tester programs in the same order, each once,
-      each one CMakeLists.txt makes (add_executable(<name>-tests ...)), and
+      each one CMakeLists.txt makes (add_executable(<name>-tests ...), read
+      as CMake reads it: in any case, with spaces before the bracket), and
       every one it makes but those SOURCE_TESTERS_LEFT_OUT below leaves out,
       each with its reason (a database, a loopback socket, root, or a pass
       held to a time on a builder a distribution shares), and nothing that
       list names is run or no longer made - so a tester added to the build is
       run by the PPA's, Copr's and the Build Service's builds as linux-build.sh
-      runs it, or this says why it is not.
+      runs it, or this says why it is not. What it cannot read it refuses: an
+      add_executable whose name is not a literal (a variable, a foreach's), a
+      tester whose OUTPUT_NAME is not its target's name (the lists run the
+      target's name, linux-build.sh the file's), and an add_subdirectory or an
+      include() of a file rather than a CMake module, which could make a
+      tester elsewhere. And the loops run what the lists name: debian/rules'
+      override_dh_auto_test has one "set -e; ... for tester in $(TESTERS); do
+      ...; done" whose body runs ./$$tester as a command of its own, and the
+      spec's loop runs ./$tester on a line of its own before its done - so a
+      loop over another variable, a tester not run (": ./$$tester") or a
+      failure let through ("|| true", or no set -e) is refused.
 
   a tarball (python3 build/check-source-tarball.py TARBALL [--commit SHA]):
     - gzip without a file name or a time in its header (gzip -n);
@@ -237,7 +248,8 @@ REQUIRED = (
 # CMakeLists.txt makes is in both lists, in the same order, or left out here with the
 # reason. Written by hand, the lists had missed acme-tests, a tester of the release
 # after 6.3.7, and quarantine-search-tests, report-parser-tests and
-# workqueue-teardown-tests, which 6.3.6 and 6.3.7 made.
+# workqueue-teardown-tests, which 6.3.6 and 6.3.7 made; the last is left out below,
+# as the testers held to a time are.
 SPEC = "hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec"
 SOURCE_TESTERS_LEFT_OUT = {
     "database-claim-tests": "it needs a database: given no configuration it says SKIPPED and tests nothing",
@@ -252,6 +264,11 @@ SOURCE_TESTERS_LEFT_OUT = {
                         "4 October 2026), on a builder a distribution shares with other builds",
     "input-cost-tests": "every case in it is a pass held to a time over an input made to be 6.3.5's worst, on a "
                         "builder a distribution shares with other builds",
+    "workqueue-teardown-tests": "it holds two tasks of twenty seconds to outlast removes whose stops each give up "
+                                "after ten, a margin of ten seconds of wall clock that a builder a distribution "
+                                "shares with other builds, or emulates, can take up, where a failure says only that "
+                                "the builder was slow; linux-build.sh, linux-sanitize and the CI's own package builds "
+                                "run it on the project's runners, and ClassTester on Windows",
 }
 
 
@@ -418,9 +435,48 @@ def check_debian_copyright(tracked, read, entries, cmake_text):
 
 # ---------------------------------------------------------------- the source packages' testers
 
+# add_executable as CMake reads it: a command's name in any case, spaces before its
+# bracket. A target's name is a literal or it is refused: one CMake works out - a
+# variable, a foreach's - cannot be held to the lists.
+CMAKE_EXECUTABLE = re.compile(r"^[ \t]*add_executable[ \t]*\([ \t\r\n]*([^\s)]+)", re.M | re.I)
+CMAKE_LITERAL = re.compile(r"^[A-Za-z0-9_.+-]+$")
+CMAKE_OUTPUT_NAME = re.compile(r"^[ \t]*set_target_properties[ \t]*\(([^)]*)\)", re.M | re.I)
+# Where a CMakeLists.txt would make targets from another file this does not read.
+CMAKE_ELSEWHERE = re.compile(r"^[ \t]*(add_subdirectory|include)[ \t]*\([ \t]*([^\s)]+)", re.M | re.I)
+
+
+def cmake_targets(cmake_text):
+    """(the *-tests programs CMakeLists.txt makes in its order, problems): a target named by other than a
+    literal, a tester whose OUTPUT_NAME is not its name, and another file of targets are problems."""
+    testers, problems = [], []
+    for found in CMAKE_EXECUTABLE.finditer(cmake_text):
+        name = found.group(1)
+        line = cmake_text.count("\n", 0, found.start()) + 1
+        if not CMAKE_LITERAL.match(name):
+            problems.append("%s line %d: add_executable(%s ...) is not named by a literal (a variable, or a "
+                            "foreach's): whether it makes a *-tests program, which linux-build.sh would run, cannot "
+                            "be read - write each tester's add_executable out" % (CMAKELISTS, line, name))
+        elif name.endswith("-tests"):
+            testers.append(name)
+    for found in CMAKE_OUTPUT_NAME.finditer(cmake_text):
+        words = found.group(1).split()
+        upper = [word.upper() for word in words]
+        if "OUTPUT_NAME" in upper and upper.index("OUTPUT_NAME") + 1 < len(words):
+            target, output = words[0], words[upper.index("OUTPUT_NAME") + 1]
+            if output != target and (target.endswith("-tests") or output.endswith("-tests")):
+                problems.append("%s: %s's OUTPUT_NAME is %s: the lists run a tester by its target's name, and "
+                                "linux-build.sh by the file's - give it its own name" % (CMAKELISTS, target, output))
+    for found in CMAKE_ELSEWHERE.finditer(cmake_text):
+        command, argument = found.group(1).lower(), found.group(2)
+        if command == "add_subdirectory" or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", argument):
+            problems.append("%s: %s(%s) brings in targets from a file this does not read, a tester among them "
+                            "perhaps - make the testers in %s" % (CMAKELISTS, command, argument, CMAKELISTS))
+    return testers, problems
+
+
 def cmake_testers(cmake_text):
     """The *-tests programs CMakeLists.txt makes, in its order."""
-    return re.findall(r"^\s*add_executable\(\s*([A-Za-z0-9_.+-]+-tests)\b", cmake_text, re.M)
+    return cmake_targets(cmake_text)[0]
 
 
 def rules_testers(text):
@@ -429,22 +485,60 @@ def rules_testers(text):
     return lines[0].split() if len(lines) == 1 else None
 
 
+def spec_check(text):
+    """The spec's %check section, or None."""
+    check = re.search(r"^%check\s*$(.*?)^%(?!%)", text, re.M | re.S)
+    return check.group(1).replace("\r\n", "\n") if check else None
+
+
 def spec_testers(text):
     """The names the spec's %check loop runs, or None where it has no one such loop."""
-    check = re.search(r"^%check\s*$(.*?)^%(?!%)", text, re.M | re.S)
-    if not check:
+    check = spec_check(text)
+    if check is None:
         return None
-    loops = re.findall(r"^for tester in ([^;\r\n]*); do\r?$", check.group(1), re.M)
+    loops = re.findall(r"^for tester in ([^;\n]*); do$", check, re.M)
     return loops[0].split() if len(loops) == 1 else None
+
+
+def rules_loop_problems(text):
+    """debian/rules' override_dh_auto_test runs every name of $(TESTERS), under set -e, as ./$$tester."""
+    recipe = re.search(r"^override_dh_auto_test:[^\n]*\n((?:(?:\t[^\n]*|ifeq[^\n]*|ifneq[^\n]*|else|endif)\n?)*)",
+                       text.replace("\r\n", "\n"), re.M)
+    if not recipe:
+        return ["%s has no override_dh_auto_test: what dh_auto_test runs cannot be read" % DEBIAN_RULES]
+    joined = re.sub(r"\\\n\s*", " ", recipe.group(1))
+    loops = re.findall(r"^\t[ \t]*set -e; (.*)$", joined, re.M)
+    shapes = [re.search(r"(?:^|;\s*)for tester in \$\(TESTERS\); do ([^\n]*?); done$", loop) for loop in loops]
+    shapes = [shape for shape in shapes if shape]
+    if len(shapes) != 1:
+        return ["%s's override_dh_auto_test has no one 'set -e; ... for tester in $(TESTERS); do ...; ./$$tester; "
+                "done': the testers TESTERS names may not each be run, or a failure may not fail the build"
+                % DEBIAN_RULES]
+    if "./$$tester" not in [command.strip() for command in shapes[0].group(1).split(";")]:
+        return ["%s's loop over $(TESTERS) does not run ./$$tester as a command of its own: a tester it names may "
+                "not be run, or its failure may not fail the build" % DEBIAN_RULES]
+    return []
+
+
+def spec_loop_problems(text):
+    """The spec's %check loop runs ./$tester, as a command of its own, before its done."""
+    check = spec_check(text)
+    body = re.search(r"^for tester in [^;\n]*; do\n(.*?)^done$", check or "", re.M | re.S)
+    if not body:
+        return ["%s's %%check has no 'for tester in ...; do' ... 'done': the testers it runs cannot be read" % SPEC]
+    if "./$tester" not in [line.strip() for line in body.group(1).split("\n")]:
+        return ["%s's %%check loop does not run ./$tester on a line of its own: a tester it names may not be run, "
+                "or its failure may not fail the build" % SPEC]
+    return []
 
 
 def check_source_testers(read):
     """debian/rules' TESTERS and the spec's %check loop against each other and against
     the *-tests programs CMakeLists.txt makes, less SOURCE_TESTERS_LEFT_OUT."""
-    problems = []
-    made = cmake_testers(read(CMAKELISTS))
+    made, problems = cmake_targets(read(CMAKELISTS))
     rules = rules_testers(read(DEBIAN_RULES))
     spec = spec_testers(read(SPEC))
+    problems += rules_loop_problems(read(DEBIAN_RULES)) + spec_loop_problems(read(SPEC))
     if not made:
         problems.append("%s makes no *-tests program (add_executable(<name>-tests ...)): the source packages' "
                         "testers cannot be held to it" % CMAKELISTS)
@@ -1174,6 +1268,38 @@ def self_test():
            testers(rules=changed(DEBIAN_RULES, rules_line, "# " + rules_line)), "has no one TESTERS := line")
     expect("the spec's loop outside %check",
            testers(spec=changed(SPEC, "\n%check", "\n%check_moved")), "has no one 'for tester in")
+    # add_executable as CMake reads it, and a name it would have to work out.
+    expect("a tester made by ADD_EXECUTABLE, which neither list runs",
+           testers(cmake=texts[CMAKELISTS] + "\n" + new_target.replace("add_executable(", "ADD_EXECUTABLE(")),
+           "makes cache-tests, and neither")
+    expect("a tester made with a space before add_executable's bracket, which neither list runs",
+           testers(cmake=texts[CMAKELISTS] + "\n" + new_target.replace("add_executable(", "add_executable (")),
+           "makes cache-tests, and neither")
+    expect("testers made in a foreach",
+           testers(cmake=texts[CMAKELISTS] + "\nforeach(name cache)\n   add_executable(${name}-tests "
+                   "${SERVER_DIR}/platform/${name}_tests_main.cpp)\nendforeach()\n"), "is not named by a literal")
+    expect("a tester whose program is named otherwise than its target",
+           testers(cmake=texts[CMAKELISTS] + "\nadd_executable(cache-check ${SERVER_DIR}/platform/cache_tests_main.cpp)\n"
+                   "set_target_properties(cache-check PROPERTIES OUTPUT_NAME cache-tests)\n"), "OUTPUT_NAME is cache-tests")
+    expect("targets brought in from another directory",
+           testers(cmake=texts[CMAKELISTS] + "\nadd_subdirectory(testers)\n"), "brings in targets from a file")
+    # The two loops: each runs every name it is given, and a failure fails the build.
+    expect("debian/rules' loop over another variable",
+           testers(rules=changed(DEBIAN_RULES, "for tester in $(TESTERS); do", "for tester in $(OTHER_TESTERS); do")),
+           "has no one 'set -e; ... for tester in $(TESTERS)")
+    expect("debian/rules' loop without set -e",
+           testers(rules=changed(DEBIAN_RULES, "set -e; cd $(BUILDDIR);", "cd $(BUILDDIR);")),
+           "has no one 'set -e; ... for tester in $(TESTERS)")
+    expect("debian/rules' loop that does not run its tester",
+           testers(rules=changed(DEBIAN_RULES, "; ./$$tester; done", "; : ./$$tester; done")),
+           "does not run ./$$tester as a command of its own")
+    expect("debian/rules' loop whose tester's failure is let through",
+           testers(rules=changed(DEBIAN_RULES, "; ./$$tester; done", "; ./$$tester || true; done")),
+           "does not run ./$$tester as a command of its own")
+    expect("the spec's loop that does not run its tester",
+           testers(spec=changed(SPEC, "  ./$tester", "  : ./$tester")), "does not run ./$tester on a line")
+    expect("the spec's loop whose tester's failure is let through",
+           testers(spec=changed(SPEC, "  ./$tester", "  ./$tester || :")), "does not run ./$tester on a line")
 
     if failures:
         print("")
