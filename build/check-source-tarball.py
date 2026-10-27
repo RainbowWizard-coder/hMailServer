@@ -86,8 +86,10 @@ tarball a third:
       comments and the loop's list, outside any conditional, with no macro
       defined but SPEC_MACROS (the build directory %check goes to as the spec
       defines it) and none taken away, read from another file or made by macro
-      code (%undefine, %include, %lua, %expand, %load, %bcond) - so a loop over
-      another list, a tester not run, a continue, set +e or an exit is refused.
+      code (%undefine, %include, %lua, %expand, %load, %bcond), on any line, a
+      comment's too, since rpm expands the macros of a comment, and spelt
+      %{define:...} or %{global:...} as well - so a loop over another list, a
+      tester not run, a continue, set +e or an exit is refused.
       What the other rules' recipes and the build do to the build directory is
       not read.
 
@@ -687,13 +689,16 @@ def spec_loop_problems(text):
             depth -= 1
         elif line.startswith("%check") and depth:
             problems.append("%s line %d: %%check is inside a conditional, which can leave it out" % (SPEC, number))
-        defined = re.match(r"^\s*%(?:global|define)\s+(\w+)\s*(.*?)\s*$", line)
-        if defined and (defined.group(1) not in SPEC_MACROS or (
-                SPEC_MACROS[defined.group(1)] is not None and defined.group(2) not in SPEC_MACROS[defined.group(1)])):
-            problems.append("%s line %d defines %%%s as %r, which is none of the macros build/check-source-tarball.py "
-                            "lets the spec define (SPEC_MACROS): a macro can change what %%check runs or where"
-                            % (SPEC, number, defined.group(1), defined.group(2)[:40]))
-        if re.search(r"%(?:\{)?(?:undefine|include|lua|expand|load|bcond\w*)\b", line) and not line.startswith("#"):
+        # Anywhere on the line, a comment's too: rpm expands the macros in a comment as well, a %define and a
+        # %{lua:} among them. %{define:...} and %{global:...} are the same as %define and %global.
+        for defined in list(re.finditer(r"(?<!%)%(?:global|define)\s+(\w+)\s*(.*?)\s*$", line)) + list(
+                re.finditer(r"(?<!%)%\{(?:global|define):(\w+)\s*([^}]*?)\s*\}", line)):
+            if defined.group(1) not in SPEC_MACROS or (SPEC_MACROS[defined.group(1)] is not None
+                                                       and defined.group(2) not in SPEC_MACROS[defined.group(1)]):
+                problems.append("%s line %d defines %%%s as %r, which is none of the macros "
+                                "build/check-source-tarball.py lets the spec define (SPEC_MACROS): a macro can change "
+                                "what %%check runs or where" % (SPEC, number, defined.group(1), defined.group(2)[:40]))
+        if re.search(r"(?<!%)%\{?(?:undefine|include|lua|expand|load|bcond\w*)\b", line):
             problems.append("%s line %d takes a macro away, reads another file or runs macro code (%%undefine, "
                             "%%include, %%lua, %%expand, %%load, %%bcond): what %%check runs could be another "
                             "section's than the one held" % (SPEC, number))
@@ -1544,7 +1549,17 @@ def self_test():
                 "\ndone\n", "\ndone\n%endif\n", 1), "inside a conditional"),
             ("a macro defined by Lua", spec_text.replace("%global quickjs_version", "%{lua: rpm.define(\"hm_builddir "
                                                          "/nowhere\")}\n%global quickjs_version", 1),
-             "runs macro code")):
+             "runs macro code"),
+            # rpm expands the macros of a comment too.
+            ("a check macro defined in a comment", spec_text.replace("\n%check\n", "\n%check\n# %define "
+                                                                     "__spec_check_pre exit 0\n", 1),
+             "defines %__spec_check_pre"),
+            ("a check macro defined as %{define:...}", spec_text.replace("%global quickjs_version", "%{define:"
+                                                                         "__spec_check_pre exit 0}\n%global "
+                                                                         "quickjs_version", 1),
+             "defines %__spec_check_pre"),
+            ("Lua in a comment", spec_text.replace("\n%check\n", "\n%check\n# %{lua: rpm.define(\"hm_builddir "
+                                                   "/nowhere\")}\n", 1), "runs macro code")):
         expect("the spec: " + label, testers(spec=spec), needle)
 
     if failures:

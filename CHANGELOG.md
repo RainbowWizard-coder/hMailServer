@@ -2590,20 +2590,22 @@ with `--check`).
   target-specific, assigned again), `.IGNORE`, `MAKEFLAGS`, a conditional around the rule, `set +e` or an `exit` is
   refused; and the spec's one `%check`, outside any conditional, is the section it holds but for its comments and the
   loop's list, with no macro defined but the ones the spec has (the build directory `%check` goes to as the spec
-  gives it) and none taken away, read from another file or made by Lua. What the other rules' recipes and the build
-  do to the build directory is not read. Its `--self-test` sees a tester made and run by neither list, one made by
-  `ADD_EXECUTABLE` and one by `add_executable (`, testers made in a `foreach`, a tester's `OUTPUT_NAME` another name,
-  an `add_subdirectory`, one list without a tester, the two in another order, a tester left out and run, a tester run
-  twice, a name the build no longer makes, the Debian loop over another variable, without `set -e`, with `:
-  ./$$tester` and with `./$$tester || true`, the spec's loop with `: ./$tester` and with `./$tester || :`, a tester
-  named by `set_property`, by `RUNTIME_OUTPUT_NAME` and by `SUFFIX`, one placed elsewhere, every program placed
-  elsewhere, testers made by `cmake_language(CALL)`, by `_add_executable`, by a macro defined over `add_executable`
-  and in a function, `subdirs`, a module of the tree through `CMAKE_MODULE_PATH`, `FetchContent` and a `*-tests` file
-  written by `configure_file`; in `debian/rules` `TESTERS` emptied for the recipe alone, assigned again (plainly,
-  indented by a space, by a tab outside a rule, by an `eval` in another recipe), `.IGNORE`, `MAKEFLAGS += -i`, `set
-  +e`, `exit 0`, another condition and the rule inside a conditional; and in the spec `continue`, `set +e` and `exit
-  0` in `%check`, a build directory that ends the section, a check macro defined, `%check` inside `%if 0` and a macro
-  defined by Lua refused; SourcePackages.md says which eight are left out and why, and what the check reads.
+  gives it) and none taken away, read from another file or made by Lua, on any line, a comment's too, since rpm
+  expands the macros of a comment, and in the `%{define:...}` spelling as well. What the other rules' recipes and the
+  build do to the build directory is not read. Its `--self-test` sees a tester made and run by neither list, one made
+  by `ADD_EXECUTABLE` and one by `add_executable (`, testers made in a `foreach`, a tester's `OUTPUT_NAME` another
+  name, an `add_subdirectory`, one list without a tester, the two in another order, a tester left out and run, a
+  tester run twice, a name the build no longer makes, the Debian loop over another variable, without `set -e`, with
+  `: ./$$tester` and with `./$$tester || true`, the spec's loop with `: ./$tester` and with `./$tester || :`, a
+  tester named by `set_property`, by `RUNTIME_OUTPUT_NAME` and by `SUFFIX`, one placed elsewhere, every program
+  placed elsewhere, testers made by `cmake_language(CALL)`, by `_add_executable`, by a macro defined over
+  `add_executable` and in a function, `subdirs`, a module of the tree through `CMAKE_MODULE_PATH`, `FetchContent` and
+  a `*-tests` file written by `configure_file`; in `debian/rules` `TESTERS` emptied for the recipe alone, assigned
+  again (plainly, indented by a space, by a tab outside a rule, by an `eval` in another recipe), `.IGNORE`,
+  `MAKEFLAGS += -i`, `set +e`, `exit 0`, another condition and the rule inside a conditional; and in the spec
+  `continue`, `set +e` and `exit 0` in `%check`, a build directory that ends the section, a check macro defined,
+  plainly, in a comment and as `%{define:...}`, `%check` inside `%if 0`, and a macro defined by Lua, plainly and in a
+  comment, refused; SourcePackages.md says which eight are left out and why, and what the check reads.
 
 ### Documentation
 
