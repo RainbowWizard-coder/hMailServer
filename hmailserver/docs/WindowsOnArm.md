@@ -423,6 +423,14 @@ MariaDB on an ARM64 server:
    Ninja generator.
 2. Copy `libmariadb.dll` to `hMailServer\Bin\libmysql.dll`, and the
    authentication plugins to `Bin\plugin`, as the x64 installer lays them out.
+   For a new installation, make `Bin` first with the permissions setup gives it -
+   from an elevated prompt, `icacls "<Bin>" /inheritance:r /grant:r
+   *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX` - in a
+   program folder whose permissions are the Administrators' alone: a `Bin` that
+   holds a file and that another account could write when setup finds it is
+   hardened, and the installation refused until Windows has restarted
+   ([ServiceAccount.md](ServiceAccount.md), "Before the files"), since a program
+   that account started may still hold the library open to change it.
 3. Start the service. If the client is missing or is the x64 one, the ERROR log
    says so (HM5094, "The MySQL client (libmysql.dll, ARM64) could not be
    loaded").
