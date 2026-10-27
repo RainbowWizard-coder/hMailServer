@@ -1335,7 +1335,8 @@ with `--check`).
   interface, a released member made `[local]`, a coclass given a `[default, source]` interface, a `[source]` one or a
   second `[default]` one, and an interface derived from `IUnknown` with a member that returns `void` - must each stop the
   parse with its refusal, and a new enum named `LONG` or `VARIANT_BOOL`, an interface declared as `BSTR` and an
-  enumerator named `LONG` must each be refused. It takes about a second.
+  enumerator named `LONG` must each be refused. It takes five to nine seconds, nearly all of it the negative controls,
+  each of which parses the whole file again.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in

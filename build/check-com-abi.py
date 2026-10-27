@@ -212,6 +212,8 @@ tag the clone had is not the project's, 2 for a usage or git error or an
 hMailServer.idl this does not read, such as one with a preprocessor line or a
 statement or an attribute the file is not written with.
 """
+import bisect
+import functools
 import os
 import re
 import subprocess
@@ -270,8 +272,9 @@ VTABLE_BASE = {"IDispatch": 7, "IUnknown": 3}
 # An interface's attributes that say how a client binds to it and how its calls are
 # marshalled: dual (the vtable a type library's early-bound client calls),
 # oleautomation (marshalled from the type library), object (a COM interface) and
-# local (no proxy at all). Held as the release had them; the rest (helpstring,
-# nonextensible, pointer_default, hidden) are free.
+# local (no proxy at all). Held as the release had them; of the others an interface
+# may be given (ATTRIBUTES), helpstring, nonextensible and pointer_default are free,
+# and any attribute ATTRIBUTES does not give an interface is refused.
 BINDING = ("dual", "local", "object", "oleautomation")
 ENUM_VALUE = re.compile(r"^-?(?:0[xX][0-9A-Fa-f]+|0|[1-9][0-9]*)$")
 
@@ -280,8 +283,16 @@ class IdlError(Exception):
     pass
 
 
+@functools.lru_cache(maxsize=8)
+def line_starts(text):
+    """The offset of each line feed of the text, in order. A parse asks for the line of every attribute list and
+    every member, and counting the line feeds from the start of the file each time made one parse of
+    hMailServer.idl take a second, the check's controls half a minute."""
+    return [match.start() for match in re.finditer("\n", text)]
+
+
 def line_number(text, offset):
-    return text.count("\n", 0, offset) + 1
+    return bisect.bisect_left(line_starts(text), offset) + 1
 
 
 def tokens(text):
