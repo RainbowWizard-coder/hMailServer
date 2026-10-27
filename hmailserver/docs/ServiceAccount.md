@@ -577,14 +577,14 @@ that a refusal here leaves a running server running:
   rules of the program folder's own: where it leads walked from that volume's root,
   every link on the way to the rule of a link and every folder above it to the rule of
   a folder on the way, a share, a network drive, a volume that keeps no permissions and
-  a folder that is not there refused, and an owner of the folder it leads to other than
-  SYSTEM, the Administrators, TrustedInstaller or the service said. Refused too, where
+  a folder that is not there refused, and the folder it leads to held to the rule of a
+  data folder (below). Refused too, where
   the grant after the files would refuse it ("Never granted, approved or not", above): a
   drive's root - a volume mounted with no letter of its own is gone through - what is,
   holds or is in the Windows folder, a Program Files folder, the profiles folder or
   `ProgramData\Microsoft`, what is or holds `ProgramData`, and what is or holds the
   program folder, or is in it outside its own `Data`, `Logs`, `Temp` and `Database`, each
-  asked by the final paths of the two folders. Who may write the folder a link leads to
+  asked by the final paths of the two folders. What the folder a link leads to inherits
   is not asked, as the server's own store commands do not ask it, but for a `Database`
   link: the built-in database there names, among its settings, the program the service
   runs to scan for viruses, so the folder it leads to, and every file in it, is held to
@@ -603,12 +603,21 @@ that a refusal here leaves a running server running:
   folder whose owner is not SYSTEM, the Administrators or TrustedInstaller, or cannot
   be read, or an entry of whose own lets another account change it; the key store may
   also be the service's own, with the Modify `/GrantServiceAccess` gives it there.
-  `Data`, `Logs`, `Temp` and `Database`, which the service writes in and may own what
-  it made in, are not looked inside; one another account owns is said. The refusal
-  names each, with what to do - `icacls ... /setowner *S-1-5-32-544` for an owner,
-  `icacls ... /reset` for an entry, `rmdir` or `del` for a link, `takeown ... /A` for
-  what cannot be read - once an administrator has checked that it is meant to be there,
-  and a restart of Windows before setup runs again.
+  `Data`, `Logs`, `Temp` and `Database` on the program folder's own level, and the
+  folder a data folder's link leads to, are held to a rule of their own, since
+  `/ProtectFolders` makes a data folder private after the files but keeps every entry
+  of its own and its owner: the owner SYSTEM, the Administrators, TrustedInstaller or
+  the service, which makes what is in them, and no entry of their own that lets
+  another account but the service write them; one that is not is refused - but for the
+  earlier installation's that another account owns, which is noted, as below, and taken
+  before a restart - and so is a file of the `Database`, the built-in database's, whose
+  owner is not one of those four or an entry of whose own lets another account but the
+  service write it. Otherwise the data folders are not looked inside. The refusal names
+  each, with what to do - `icacls ... /setowner *S-1-5-32-544` for an owner,
+  `icacls ... /reset` for an entry of a file's, `icacls ... /remove:g` for a data
+  folder's, `rmdir` or `del` for a link, `takeown ... /A` for what cannot be read - once
+  an administrator has checked that it is meant to be there, and a restart of Windows
+  before setup runs again.
 - **Not the root of a volume.** A program folder that is the root of a volume - one a
   mount point, or a junction to a volume's root, leads to, `\\?\Volume{...}\`; Inno
   Setup itself refuses a drive's root - is refused, since its permissions are the
@@ -629,7 +638,15 @@ that a refusal here leaves a running server running:
   permissions or its owner (`WRITE_DAC`, `WRITE_OWNER`, or `GENERIC_ALL`: `Everyone`'s
   Full control on a folder made beforehand, say), or it holds anything but empty folders
   and an entry lets another account write it (a folder at a Windows client's drive root,
-  which hands `Authenticated Users` Modify down, holding an earlier installation). A
+  which hands `Authenticated Users` Modify down, holding an earlier installation) - an
+  entry the hardening takes away, that is: an inherited one, or a group of every user's
+  own. An entry of its own for a named account or group, which setup keeps and says, as
+  `/ProtectFolders` keeps it, is not counted: that account may change the folder after a
+  restart as before it, and counting it would refuse every run. Noted too: a folder that
+  holds a program, a library, a script or a settings file whose inherited entry - one it
+  kept from where it was made, since a file moved into a folder keeps the entries it
+  inherited there - lets another account write it where the folder hands that account no
+  such right down, and the earlier installation's data folder another account owns. A
   program such an account started then may hold the folder, or a file in it, open with
   that right, which a handle keeps whatever the permissions say after: the hardening
   alone does not take it away - a restart does.
@@ -643,11 +660,16 @@ earlier installation's folder another account owns given to the Administrators w
 their privilege (`takeown /A`) and its permissions rebuilt, the entries of its own that
 give no right to write kept, the service's Read & execute on `Bin` among them, and the
 program folder hardened whatever its data folders inherit, as `/ProtectFolders` hands
-its permissions down through them after the files - and the installation is refused,
-exit code 7, until Windows has restarted, which closes every such handle. Setup records
-that in a volatile key of `HKEY_LOCAL_MACHINE`, `SOFTWARE\hMailServerSetupRestart`, by
-the program folder's name, which only an administrator may write and Windows does not
-keep past a restart; setup run again before then is refused by the record, and run
+its permissions down through them after the files, and a data folder another account
+owned given to the Administrators and rebuilt with the service's entries kept and none
+for Users - and the installation is refused, exit code 7, until Windows has restarted,
+which closes every such handle. Setup records that in a volatile key of
+`HKEY_LOCAL_MACHINE`, `SOFTWARE\hMailServerSetupRestart`, by the program folder's name
+and by where the program folder, `Bin` and `ControlPanel` are, as the handles that hold
+them give it (`\\?\Volume{...}\...`), which only an administrator may write and
+Windows does not keep past a restart; setup run again before then is refused by the
+record - also by another name for the same folder, a junction or a mount point to it, a
+short name or a second drive letter, which it looks up once its walks are done - and run
 after it finds the folders hardened and installs. A refusal whose remedy ends in a
 restart - a folder on the way, a link, an owner or an entry in the folders that hold
 what is run, a folder found changed - is recorded the same way. The service keeps
@@ -657,7 +679,9 @@ running until the restart.
 does before the files:
 
 - **A new program folder.** Setup makes it itself, and every folder above it that is
-  not there either - exactly the names below the deepest folder the first step held -
+  not there either - exactly the names below the deepest folder the first step held,
+  each by its one name relative to the handle of the folder above it (`NtCreateFile`),
+  so that no path is gone by and no link put on the way since is followed -
   each with permissions of its own from the moment it exists: SYSTEM and the
   Administrators full control, the Users' Read & execute where every user could read
   a folder made there, nothing inherited, the Administrators the owner - and not Inno
@@ -669,16 +693,20 @@ does before the files:
   setup stops, and running it again looks at what is there. What Inno Setup then makes
   in the folder inherits those permissions. Before it makes anything, setup reads the
   folder the walk held again through the handle that holds it, and refuses it when it
-  has been made a link since; and it holds each folder the moment it is made and reads,
-  through the handles, where it is, refusing one that is not in the folder held above
-  it with its name. Only a folder found where it was named is recorded, with where
+  has been made a link since; one made a link after that refuses the folder made in it
+  relative to its handle, and nothing is made where the link leads; and it holds each
+  folder as it is made and reads, through the handles, where it is, refusing one that
+  is not in the folder held above it with its name. Only a folder found where it was named is recorded, with where
   that is, for the uninstaller and for its removal when the installation stops before
   its files; that removal opens its path as itself, a link not followed, removes it only
   when it is still that folder, empty, and does so while the folders above it are still
-  held. One made elsewhere through a link put on the way is left as it is, and said.
+  held.
   `Bin`, and `ControlPanel` when the Control Panel is installed, are made in it the same
-  way and recorded with it, so that a cancel or a failure during the copy, after which
-  the folders setup made are removed, `Bin` first, leaves none of them behind.
+  way and recorded with it, so that a cancel or a failure during the copy removes them,
+  `Bin` first, with the folders setup made. The program folder stays only when Inno
+  Setup's rollback leaves in it the files it never uninstalls - those of `Addons` and
+  `Events` that it installs only when they are not there - the Administrators', with
+  the permissions setup made it with, and nothing else in it.
 - **A program folder that is there** is hardened, as `/ProtectFolders` hardens it,
   before the files, whatever it holds; only the earlier installation's is left, when
   its `Data`, `Logs`, `Temp`, `Database` or `Events` still inherit from it - an
@@ -704,8 +732,10 @@ does before the files:
   the handle that holds it and read again once it is done:
   - owned by SYSTEM, the Administrators or TrustedInstaller, it keeps the entries of
     its own, as `/ProtectFolders` keeps them, but for those that let a group of every
-    user (`Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` and the like)
-    change it, which setup takes away (`icacls ... /remove:g`) - an entry handed down
+    user change it - each group the server counts as one, `Everyone`, `Authenticated
+    Users`, `Users`, `INTERACTIVE`, `NETWORK`, `SERVICE`, the groups of application
+    packages, a domain's `Domain Users` and the rest of `ServiceAccount.cpp`'s list -
+    which setup takes away (`icacls ... /remove:g`) - an entry handed down
     from a drive's root becomes the folder's own when its inheritance is turned off
     with what it had - and the Users' Read & execute is given again where they could
     read it; an entry that lets another account or group change it is said, in the
@@ -725,15 +755,17 @@ does before the files:
   program folder's other folders is looked at again, as in the first step, now that
   only the administrators can add to it, each folder walked only when it is opened as
   itself, no link, where the folder above it says it is; an empty folder there before
-  the installation - a data folder too, when the server is installed - is removed,
-  through a handle read as that folder, never by a path that may lead elsewhere since -
-  Inno Setup makes it again when it installs into it - as an empty `Bin` is made again;
+  the installation in `Bin`, `ControlPanel` and the five folders that hold what is
+  run, and on the program folder's own level one of those five, or a data folder when
+  the server is installed, is removed, through a handle read as that folder, never by a
+  path that may lead elsewhere since - Inno Setup makes it again when it installs into
+  it - as an empty `Bin` is made again; another empty folder on the program folder's own
+  level, which nothing installs into or runs from, is left as it is, and said;
   what this look refuses was not there, or not so, when the first step looked, and is
   taken for a folder changed; and another file whose owner is not SYSTEM, the Administrators or
   TrustedInstaller - a note - is said in the setup log and the box, with the `icacls
-  ... /setowner *S-1-5-32-544` that gives it to the Administrators, as is the owner of
-  the folder a data folder's link leads to. Setup replaces the files it installs; one
-  it does not install stays as it is.
+  ... /setowner *S-1-5-32-544` that gives it to the Administrators. Setup replaces the
+  files it installs; one it does not install stays as it is.
 
 A refusal in `PrepareToInstall` comes after setup stopped the service for an upgrade:
 the refusal then says so, and that it is started again with `net start hMailServer`
@@ -1750,7 +1782,8 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   page saying, in a suppressible box and the log, and never refusing, when the chosen
   folder lets every user change what is in it; and what setup does before the files
   (work item 78), a test each: a new program folder, and the folders above it, made by
-  `CreateDirectoryW` with a protected descriptor in `PrepareToInstall`'s last step,
+  `NtCreateFile`, each by its name relative to the folder above it, with a protected
+  descriptor in `PrepareToInstall`'s last step, and no folder made by its path,
   the folder it is made in read again and each folder made read where it is through
   the handles, recorded for the uninstaller and removed again when the files were not
   installed; `Bin`, `ControlPanel` and the program folder that are there hardened
@@ -1767,16 +1800,26 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   a script, a settings file or a folder another account controls, in `Bin` and
   `ControlPanel` at any depth, on the program folder's own level and in the five
   folders that hold what is run, refused, a link at those five refused whoever controls
-  it and a data folder's link held to where it leads and to what the grant refuses, and
-  the entries kept said; what another account could change hardened and refused until
-  a restart, recorded in the volatile key, in one place reached only before the stop;
+  it and a data folder's link held to where it leads and to what the grant refuses, a
+  data folder and where its link leads to the rule of a data folder and the
+  `Database`'s files to theirs, and the entries kept said; the groups of every user
+  held to `ServiceAccount.cpp`'s; what another account could change - by the entries
+  the hardening takes away, and a program's inherited entry kept from where it was
+  made - hardened and refused until a restart, recorded in the volatile key by
+  `{app}` and by where the walks ended and looked up by both, in one place reached
+  only before the stop;
   the file setup keeps in a folder hardened in place; an empty folder removed only
   through a handle read as that folder; and the folders read again after the files
   before anything of the installation runs, walking only what was found as setup left
   it and removing nothing, exit code 12 and the last page running nothing when they are
   not as setup left them. What Inno Setup does outside the `[Code]` is held too: no
-  `Permissions:` under `{app}`, no `[Run]` entry before `ssPostInstall` from `{app}`, no
-  registration during the copy, nothing at `ssInstall` but the state's reads and the
+  `Permissions:` under `{app}`; no `[Run]` entry before `ssPostInstall` but the .NET
+  runtime's from `{tmp}`, with nothing of `{app}` or of a `{code:}` in it; no
+  `BeforeInstall` or `AfterInstall` on an entry of any section; the functions entries
+  name for Inno Setup to call during the install (`Check:`, `{code:...}`) the seven they
+  are; what lets go of setup's holds and of the files it keeps called where it is now
+  alone; no `CurInstallProgressChanged`, and a `CurPageChanged` that runs no program; no
+  registration during the copy; nothing at `ssInstall` but the state's reads and the
   settings file's move. `API/UpdateApply.cs` holds `hMailServer.Updater` to putting
   nothing back on 12, nor on a 7 whose log says the folders were found changed. Each decision is
   held to its statement, and so are the helpers the third review named - the

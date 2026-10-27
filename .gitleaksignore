@@ -178,7 +178,7 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private key:2412
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/alice.sec.asc:PGP private key:1
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/bob.sec.asc:PGP private key:1
-/builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1918
+/builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1948
 # 23 October 2026: the work item 78 folder cases' description and switches above it in
 # installer-smoke.ps1: 1766 to 1816, read again. 25 October 2026: the state of a case's
 # own files, three lines above it: to 1819, read again. 27 October 2026: the folder
@@ -189,7 +189,9 @@ c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private k
 # weak-above and weak-above-remedied - and its State entry in the description above it:
 # to 1872, read again. 27 October 2026: the fourth repair's cases - held-full, dac-handle,
 # copy-fails - and the restart's words in the description, and the rule of the folder
-# above the program folder, above it: to 1918, read again.
+# above the program folder, above it: to 1918, read again. 27 October 2026: the fifth
+# repair's cases - data-user, stale-entry, named-entry, service-entry - and copy-fails'
+# and broad-entry's words in the description above it: to 1948, read again.
 # 22 October 2026: the repositories' origin, label and description, ten lines above it in
 # generate-package-repos.py: to 385, read again; 28 October 2026, the guard of its module
 # path, nine lines above it: to 394, read again.

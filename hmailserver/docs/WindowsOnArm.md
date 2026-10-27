@@ -430,7 +430,10 @@ MariaDB on an ARM64 server:
    holds a file and that another account could write when setup finds it is
    hardened, and the installation refused until Windows has restarted
    ([ServiceAccount.md](ServiceAccount.md), "Before the files"), since a program
-   that account started may still hold the library open to change it.
+   that account started may still hold the library open to change it. Copy the
+   library, rather than move it: a file moved into `Bin` keeps the entries it
+   inherited where it was made, and one that lets another account change it is
+   refused the same way until a restart.
 3. Start the service. If the client is missing or is the x64 one, the ERROR log
    says so (HM5094, "The MySQL client (libmysql.dll, ARM64) could not be
    loaded").

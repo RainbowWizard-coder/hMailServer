@@ -2012,8 +2012,8 @@ end;
 // pDescriptor, and held as it is made as HoldForSetup holds a folder - shared for reading
 // and writing, not for deleting - and kept in g_aHeldFolders. No path is gone by, so that
 // no link put on the way since the walk is followed: a folder above made a junction since
-// it was held refuses the creation (repair5\probe-relative, 27 October 2026: NTSTATUS
-// $C0000280, nothing made where the junction led), where CreateDirectoryW by the path made
+// it was held refuses the creation (measured on 27 October 2026: NTSTATUS $C0000280, or
+// $C00004BC from this code, nothing made where the junction led), where CreateDirectoryW by the path made
 // the folder where the junction led and setup refused only after. The handle, or -1 with
 // Status the NTSTATUS (HM_STATUS_NAME_COLLISION for a name somebody else has taken).
 function MakeFolderIn(Parent: Integer; Name: String; pDescriptor: cardinal; var Status: cardinal): Integer;
