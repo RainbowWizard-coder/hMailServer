@@ -94,6 +94,25 @@ with `--check`).
   statement's error be ignored, now read a literal as each engine does.** `SqlLiteralScanTester` holds both to each
   engine's reading, inside the server on Windows (`ClassTester`) and in `connection-string-tests` on Linux. Found by
   the project's own review.
+- **Changed: the container image's two passwords no longer reach the server's environment, nor that of anything it
+  starts.** The entrypoint read `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD` (or their `_FILE` forms, whose contents it
+  exported into the plain variables), used them, and then ran the server - the container's PID 1 - with its whole
+  environment, so that the server's verbs it ran, the server itself and every program the server starts, 7-Zip, the
+  auto-ban hook, event scripts, a virus scanner and the update helper among them, held both: the server's own
+  `/proc/1/environ` is kept from the container's processes by the capability on the binary, but a program the server
+  starts is not, and its `/proc/<pid>/environ` showed them to any program running as the image's user while it ran
+  (6.3.7's image: the auto-ban hook the server runs at its start held both, plain or from a `_FILE`). The server reads
+  neither from its environment on Linux. Both
+  now leave the environment, in whichever form they came, before the entrypoint runs any program, and stay its own
+  shell variables for the `[Database]` section and `--set-admin-password`'s standard input. The settings' variables
+  (`HM_SETTING_*`, `HM_PROPERTY_*`, their `_FILE` forms and the four `HM_REST_*`), which `--apply-environment` stores
+  in the database before the server starts and which the running server does not read, leave it too when the command
+  is the server itself (`hmailserver` with nothing but `--foreground` and `--config`, the image's own command); any
+  other command keeps them, since one that runs `--apply-environment` - the Compose file's and the Helm chart's shell
+  command lines among them - would otherwise give back every setting they name. `HM_INSTALL_KIND` stays, for the
+  update check. Hardening, not a flaw: a program running as the image's user can read `hMailServer.ini`, which holds
+  the database password, all the same. `build/test-docker-entrypoint.sh` holds it, with 6.3.7's entrypoint as its
+  negative control (`hmailserver/docs/ContainerImage.md`).
 
 ### Correctness
 

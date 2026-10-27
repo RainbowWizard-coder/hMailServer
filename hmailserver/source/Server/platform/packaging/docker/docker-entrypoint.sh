@@ -62,7 +62,11 @@
 #                                   networking.
 #   HM_DB_PASSWORD_FILE, HM_ADMIN_PASSWORD_FILE
 #                                -> the same two secrets read from a file (a Docker
-#                                   or Compose secret) instead of the environment
+#                                   or Compose secret) instead of the environment.
+#                                   In either form the two passwords are this
+#                                   script's alone, and are out of the environment
+#                                   before it runs any program: neither reaches the
+#                                   server, nor anything the server starts
 #   HM_DB_WAIT_SECONDS (default 0, at most 999999)
 #                                -> before anything opens the database, wait up
 #                                   to that many seconds for the database server
@@ -96,7 +100,11 @@
 #                                   log names the entries.
 #
 # then exec the command - hmailserver --foreground unless told otherwise - so
-# signals reach the server and it is PID 1's child, not a grandchild.
+# signals reach the server and it is PID 1's child, not a grandchild. When the
+# command is the server itself, the settings' variables above (HM_SETTING_*,
+# HM_PROPERTY_*, their _FILE forms and the four HM_REST_*) are taken out of its
+# environment first, once --apply-environment has stored them; any other command
+# keeps them (below, before the exec).
 set -eu
 
 INI="${HM_INI:-/etc/hmailserver/hMailServer.ini}"
@@ -242,6 +250,22 @@ wait_for_database() {
 file_env HM_DB_PASSWORD
 file_env HM_ADMIN_PASSWORD
 
+# The two passwords are this script's alone: the [Database] section below is
+# written from the first and the second goes to --set-admin-password on its
+# standard input, and nothing else here or after reads either from the
+# environment: on Linux the server asks its environment for neither, in any verb
+# (hMailServer.exe's own --set-admin-password reads HM_ADMIN_PASSWORD on Windows,
+# which this script never runs). A process passes its environment on, so left
+# there they would reach every program run from here: the server's own verbs
+# below, the command this script execs - the server, the container's PID 1 - and
+# everything the server starts (7-Zip, the auto-ban hook, event scripts, a virus
+# scanner, the update helper), whose /proc/<pid>/environ any program running as
+# the image's user can read while it runs. So they stay shell variables and leave
+# the environment now, before any program runs, whichever form they came in; a
+# _FILE form names a path and goes too.
+export -n HM_DB_PASSWORD HM_ADMIN_PASSWORD
+unset -v HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
+
 if [ -n "${HM_DB_TYPE:-}" ]; then
    case "$HM_DB_TYPE" in
       PostgreSQL|postgresql|postgres|pgsql) HM_DB_TYPE=PostgreSQL; default_port=5432 ;;
@@ -348,5 +372,45 @@ fi
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then
    shift
    set -- hmailserver --config "$INI" "$@"
+fi
+
+# Whether the command is the server itself: hmailserver (by any path) with
+# nothing but --foreground and --config FILE, which is what a start with no verb
+# is (platform/main.cpp).
+runs_the_server() {
+   [ "$#" -gt 0 ] && [ "${1##*/}" = hmailserver ] || return 1
+   shift
+   while [ "$#" -gt 0 ]; do
+      case "$1" in
+         --foreground) ;;
+         --config) [ "$#" -ge 2 ] || return 1; shift ;;
+         *) return 1 ;;
+      esac
+      shift
+   done
+   return 0
+}
+
+# The settings' variables - HM_SETTING_*, HM_PROPERTY_*, their _FILE forms and the
+# four HM_REST_* - are stored in the database by --apply-environment above, and the
+# running server reads none of them from its environment: EnvironmentSettings reads
+# the environment in that verb alone, which records in hm_settings rows what the
+# environment manages and which values came from a file, and the running server
+# reads those rows. A setting can be a secret - a relay's password, a backup
+# passphrase - so when the command is the server itself they leave its environment
+# too, and with it that of everything the server starts. Any other command keeps
+# them: one that runs
+# --apply-environment - given as the command, or inside a shell's command line, as
+# the Compose file's and the Helm chart's are, which this cannot read - must see
+# every variable, because the verb gives back to the administrator a setting that
+# no variable names any more. Matched as applies_environment matches a name, in
+# capitals, so that no spelling the verb took is left behind.
+if runs_the_server "$@"; then
+   for name in $(compgen -e); do
+      case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
+         HM_SETTING_*|HM_PROPERTY_*) unset -v "$name" ;;
+         HM_REST_PORT|HM_REST_BIND_ADDRESS|HM_REST_CERTIFICATE_FILE|HM_REST_PRIVATE_KEY_FILE) unset -v "$name" ;;
+      esac
+   done
 fi
 exec "$@"

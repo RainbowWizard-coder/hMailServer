@@ -11,11 +11,19 @@
 #
 #   bash build/test-docker-entrypoint.sh [ENTRYPOINT]
 #
+# And what reaches the environment of the programs it runs: neither password, in
+# its plain or its _FILE form, reaches any of them - the server's own verbs it runs
+# or the command it execs, the server or another - HM_INSTALL_KIND reaches the
+# command, and the settings' variables (HM_SETTING_*, HM_PROPERTY_*, their _FILE
+# forms and the four HM_REST_*) reach a command that may run --apply-environment
+# and not the server itself.
+#
 # ENTRYPOINT defaults to the tree's; given another (an older copy), the same cases
 # are its negative control. The entrypoint runs with a stub `hmailserver` first on
-# PATH that records its arguments and succeeds, HM_INI naming a scratch file, and
-# `true` as the command it execs. Needs bash, awk, sed and mktemp. Exits non-zero
-# on the first case that does not hold.
+# PATH that records its arguments and the names (never the values) of its
+# environment and succeeds, HM_INI naming a scratch file, and `true` as the command
+# it execs unless a case names another. Needs bash, awk, sed and mktemp. Reports
+# every case, and exits non-zero when any did not hold.
 set -uo pipefail
 
 entrypoint="${1:-hmailserver/source/Server/platform/packaging/docker/docker-entrypoint.sh}"
@@ -23,10 +31,14 @@ entrypoint="${1:-hmailserver/source/Server/platform/packaging/docker/docker-entr
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-mkdir -p "$work/bin"
+mkdir -p "$work/bin" "$work/secrets" "$work/env"
+# Each run of the stub: its arguments a line of HM_TEST_CALLS, and the names of its
+# environment, one a line, in HM_TEST_ENVS/<the number of that line>.
 cat > "$work/bin/hmailserver" <<'STUB'
 #!/bin/sh
 printf '%s\n' "$*" >> "$HM_TEST_CALLS"
+n="$(wc -l < "$HM_TEST_CALLS" | tr -d ' ')"
+awk 'BEGIN { for (name in ENVIRON) print name }' > "$HM_TEST_ENVS/$n"
 exit 0
 STUB
 chmod +x "$work/bin/hmailserver"
@@ -38,21 +50,26 @@ fail() {
 }
 
 # run NAME EXPECTED-EXIT VAR=VALUE... : the entrypoint with the variables given and
-# no others of its family, against a fresh ini holding one line of its own.
+# no others of its family, against a fresh ini holding one line of its own, execing
+# the words of the array command (true when it is empty).
+command=()
 run() {
   local name="$1" expected="$2"
   shift 2
   printf '[Directories]\nDataFolder=%s/data\n' "$work" > "$work/hMailServer.ini"
   : > "$work/calls"
+  rm -f "$work/env/"*
+  local exec_words=(true)
+  [ "${#command[@]}" -gt 0 ] && exec_words=("${command[@]}")
   env -i PATH="$work/bin:/usr/bin:/bin" HOME="$work" HM_INI="$work/hMailServer.ini" HM_TEST_CALLS="$work/calls" \
-    HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
-    bash "$entrypoint" true > "$work/out" 2>&1
+    HM_TEST_ENVS="$work/env" HM_CREATE_DATABASE=0 HM_UPGRADE_DATABASE=0 "$@" \
+    bash "$entrypoint" "${exec_words[@]}" > "$work/out" 2>&1
   local code=$?
   if [ "$code" -ne "$expected" ]; then
     fail "$name: exit $code, not $expected ($(tr '\n' ' ' < "$work/out"))"
     return 1
   fi
-  echo "ok    $name (exit $code)"
+  [ "${run_quiet:-0}" = 1 ] || echo "ok    $name (exit $code)"
   return 0
 }
 
@@ -103,9 +120,91 @@ done
 run "a password of a single quote is written as it is" 0 HM_DB_TYPE=PostgreSQL "HM_DB_PASSWORD='" \
   && { [ "$(database_value Password)" = "'" ] || fail "  ... the file holds [$(database_value Password)], not [']"; }
 
+# What reaches the programs the entrypoint runs. Each case gives both passwords, in
+# one form or the other, six settings' variables and HM_INSTALL_KIND, and lets the
+# entrypoint run every verb it would (the database created and upgraded, the
+# administrator password set, the environment applied); the stub records the
+# names in the environment of each of those and of the command execed after them.
+printf 'db-secret\n' > "$work/secrets/db"
+printf 'admin-secret\n' > "$work/secrets/admin"
+printf '20480\n' > "$work/secrets/maxmessagesize"
+password_names="HM_DB_PASSWORD HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD HM_ADMIN_PASSWORD_FILE"
+setting_names="HM_SETTING_MaxSubmissionsPerIPPerMinute HM_PROPERTY_maxmessagesize_FILE HM_REST_PORT HM_REST_BIND_ADDRESS HM_REST_CERTIFICATE_FILE HM_REST_PRIVATE_KEY_FILE"
+settings=(HM_SETTING_MaxSubmissionsPerIPPerMinute=30 "HM_PROPERTY_maxmessagesize_FILE=$work/secrets/maxmessagesize"
+  HM_REST_PORT=8045 HM_REST_BIND_ADDRESS=0.0.0.0 HM_REST_CERTIFICATE_FILE=/certs/rest.pem HM_REST_PRIVATE_KEY_FILE=/certs/rest.key)
+plain=(HM_DB_PASSWORD=db-secret HM_ADMIN_PASSWORD=admin-secret)
+from_files=("HM_DB_PASSWORD_FILE=$work/secrets/db" "HM_ADMIN_PASSWORD_FILE=$work/secrets/admin")
+
+# env_case NAME FORM LAST-CALL SETTINGS(kept|removed) WORD... : the entrypoint
+# execing the words given, with the passwords in FORM (plain or file); the stub's
+# last run must be the command's own, with LAST-CALL as its arguments. One line per
+# case: ok, or FAIL and every reason it does not hold.
+env_case() {
+  local name="$1" form="$2" last_call="$3" settings_expected="$4" n file variable calls reached
+  shift 4
+  local problems=()
+  command=("$@")
+  local passwords=("${plain[@]}")
+  [ "$form" = file ] && passwords=("${from_files[@]}")
+  run_quiet=1 run "$name" 0 HM_CREATE_DATABASE=1 HM_UPGRADE_DATABASE=1 HM_DB_TYPE=PostgreSQL HM_INSTALL_KIND=container \
+    "${passwords[@]}" "${settings[@]}" || { command=(); return; }
+  command=()
+  calls="$(wc -l < "$work/calls" | tr -d ' ')"
+  # The entrypoint used both passwords before taking them away.
+  [ "$(database_value Password)" = db-secret ] || problems+=("the [Database] section does not hold the database password")
+  grep -q -- '--set-admin-password$' "$work/calls" || problems+=("the administrator password was not set")
+  grep -q -- '--apply-environment$' "$work/calls" || problems+=("the settings were not applied")
+  [ "$(sed -n "${calls}p" "$work/calls")" = "$last_call" ] \
+    || problems+=("the last program run was [$(sed -n "${calls}p" "$work/calls")], not the command [$last_call]")
+  # No program run, the verbs the entrypoint ran or the command, has a password.
+  for n in $(seq 1 "$calls"); do
+    [ -f "$work/env/$n" ] || problems+=("run $n left no record of its environment")
+  done
+  for variable in $password_names; do
+    reached=0
+    for n in $(seq 1 "$calls"); do
+      [ -f "$work/env/$n" ] && grep -qx "$variable" "$work/env/$n" && reached=$((reached + 1))
+    done
+    [ "$reached" -eq 0 ] || problems+=("$variable reached $reached of the $calls programs run")
+  done
+  file="$work/env/$calls"
+  if [ -f "$file" ]; then
+    grep -qx HM_INSTALL_KIND "$file" || problems+=("HM_INSTALL_KIND did not reach the command")
+    for variable in $setting_names; do
+      if [ "$settings_expected" = kept ]; then
+        grep -qx "$variable" "$file" || problems+=("$variable did not reach the command, which may run --apply-environment")
+      else
+        grep -qx "$variable" "$file" && problems+=("$variable reached the server's environment")
+      fi
+    done
+  fi
+  if [ "${#problems[@]}" -eq 0 ]; then
+    echo "ok    $name"
+  else
+    local reasons
+    reasons="$(printf '%s; ' "${problems[@]}")"
+    fail "$name: ${reasons%; }"
+  fi
+}
+
+ini="$work/hMailServer.ini"
+for form in plain file; do
+  env_case "the server's command, the passwords $form: neither password nor a setting's variable reaches it, HM_INSTALL_KIND does" \
+    "$form" "--config $ini --foreground" removed hmailserver --foreground
+  env_case "hmailserver --apply-environment as the command, the passwords $form: no password reaches it, every setting's variable and HM_INSTALL_KIND do" \
+    "$form" "--config $ini --apply-environment" kept hmailserver --apply-environment
+done
+env_case "the server by its path with no verb: neither password nor a setting's variable reaches it" \
+  plain "" removed "$work/bin/hmailserver"
+env_case "a shell's command line as the command (the Compose file's and the Helm chart's form): no password reaches it, every setting's variable does" \
+  file "--config $ini --foreground" kept \
+  bash -c 'hmailserver --config "$HM_INI" --apply-new-install-defaults --if-marked; exec hmailserver --config "$HM_INI" --foreground'
+env_case "the server with another option is not the server alone: no password reaches it, every setting's variable does" \
+  plain "--config $ini --foreground --check-config" kept hmailserver --foreground --check-config
+
 echo ""
 if [ "$failures" -ne 0 ]; then
-  echo "$failures case(s) failed"
+  echo "$failures check(s) failed"
   exit 1
 fi
-echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written."
+echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written; no password reaches a program the entrypoint runs, and a setting's variable reaches every command but the server itself."

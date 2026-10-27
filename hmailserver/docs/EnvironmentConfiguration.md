@@ -152,7 +152,11 @@ refuse it - or the file `.hmailserver-environment` in the data directory, which 
 verb keeps there while the environment manages anything, so that the first start
 without the variables gives those settings back. Otherwise the database is not
 opened before the server starts, as it was not before settings came from the
-environment. Run against a server that is already running, the verb's values reach
+environment. When the command is the server itself (`hmailserver` with nothing
+but `--foreground` and `--config`), the entrypoint takes these variables out of
+its environment once the verb has stored them, from the release after 6.3.7; any
+other command keeps them, since the verb, run again without them, gives their
+settings back ([ContainerImage.md](ContainerImage.md#the-image)). Run against a server that is already running, the verb's values reach
 that server at the server's next reinitialise (the Deck's and the Control Panel's
 **Apply now**) - or its next start for a key marked `restart`
 ([SettingsApply.md](SettingsApply.md)) - because nothing watches the table; the

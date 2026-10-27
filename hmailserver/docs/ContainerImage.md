@@ -111,6 +111,34 @@ run it with `--if-marked` before the server (the charts of 6.3.6 and 6.3.7 do no
 the Compose file points its REST listener at that pair. A container started
 otherwise is secured by hand ([SecureDefaults.md](SecureDefaults.md)).
 
+The two passwords stay with the entrypoint. From the release after 6.3.7,
+`HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD`, given plain or as `_FILE`, are out of the
+environment before the entrypoint runs any program: it writes the first into the
+`[Database]` section of `hMailServer.ini` and gives the second to
+`--set-admin-password` on its standard input, and neither reaches the server's verbs
+it runs, the command it runs - the server, the container's PID 1 - or anything the
+server starts (7-Zip, the auto-ban hook, an event script, a virus scanner, the
+update helper). The server reads neither from its environment. 6.3.7's image, and
+the ones before it, leave both in the environment of every one of them. The
+server's own `/proc/1/environ` cannot be read inside the container, by its user or
+by root there, because the capability set on the binary makes the kernel keep it
+from both; but each program the server starts inherits that environment, and while
+it runs its `/proc/<pid>/environ` is readable by any program running as the image's
+user - which can read `hMailServer.ini`, and the database password in it, all the
+same: hardening, not a hole. A password given plain stays in the container's own
+configuration all the same, which `docker inspect` shows and every `docker exec`
+session starts with; the `_FILE` forms keep it out of there too. The settings' variables - `HM_SETTING_*`, `HM_PROPERTY_*`, their `_FILE`
+forms and the four `HM_REST_*` - are stored in the database by `--apply-environment`
+before the server starts, and leave the environment too when the command is the
+server itself: `hmailserver` with nothing but `--foreground` and `--config`, as the
+image's own command is. Any other command keeps them, because one that runs
+`--apply-environment` - as the command, or within a shell's command line, as the
+Compose file's and the Helm chart's are, which the entrypoint cannot read - gives
+back to the administrator every setting no variable names any more. A setting that
+is a secret is best given as a `_FILE`, whose variable holds a path and not the
+value, as the Compose file's example and the Helm chart's `settingsFrom` do.
+`HM_INSTALL_KIND` stays, for the update check.
+
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
 Docker's builder since Docker 23, sets `TARGETARCH`; with the older builder, add
@@ -884,6 +912,31 @@ file and the chart were run as a user runs them, against the published image:
   create step asking a new database for its schema version. The other was HM5720:
   the image's OpenSSL is Ubuntu 24.04's 3.0.13, which has no hybrid post-quantum
   group, so the server took the classical ones (What is not shown yet, below).
+
+On 27 October 2026, on the same kind of machine with Docker 29.1.3, the entrypoint
+of the release after 6.3.7 was copied over 6.3.7's published image (by its index's
+digest, `sha256:2a5de4eb...`), with nothing else changed. For the first question
+below a copy of that image and one of 6.3.7's own each had the auto-ban hook
+wrapped to write the names in its environment, never a value: the server runs the
+hook at every start, and it inherits the server's environment as the server has it.
+
+- **The passwords and the settings.** Each image was started beside PostgreSQL 18
+  with the passwords plain, with them as `_FILE`, and with them as `_FILE` and the
+  Compose file's `bash -c` command, with `HM_SETTING_MaxSubmissionsPerIPPerMinute`,
+  `HM_REST_PORT` and `HM_REST_BIND_ADDRESS` beside them. 6.3.7's hook held
+  `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD` in all three starts, and both `_FILE`
+  names too in the two given them, with the three settings' variables; the new
+  entrypoint's held no password's name in any, the settings' variables in the
+  Compose start alone, and `HM_INSTALL_KIND` in all. In both images the server's
+  own `/proc/1/environ` could not be read inside the container, as its user or as
+  root (`docker exec -u 0`). Started with its own command, the new one's REST
+  listener answered 401 on the loopback port `HM_REST_PORT` gave, from the
+  database, with no `HM_REST_*` in its environment.
+- **The start test.** `container-image-start-test.sh --docker`, with
+  `HM_START_VERSION=6.3.7`, passed beside PostgreSQL and stopped beside MariaDB at
+  `--create-database` ("The MySQL client library could not be loaded"), as 6.3.7's
+  own image does; with Ubuntu's `libmariadb3` added to that image, as the
+  Dockerfile now installs it, every step passed beside both, schema 6108 in each.
 
 ### Packaging and serving the chart
 
