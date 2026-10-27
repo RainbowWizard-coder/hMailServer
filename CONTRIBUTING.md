@@ -899,7 +899,9 @@ As practised on `master`:
 ## Secrets
 
 Nothing that opens anything - a token, a password, a private key that is not a throwaway test fixture - goes
-into a commit. GitLab's secret push protection is on for this project (since 27 September 2026), but it reads
+into a commit. GitLab's secret push protection is on for this project (its setting since 27 September 2026, and
+in effect since the project moved into the group `hmailserver` on 29 September 2026, the Free plan of the user
+namespace it was in before not running the check), but it reads
 only the diffs of a push to this project, against GitLab's high-confidence patterns alone, and nothing of a push
 that changes more than 3,150 paths; a push to your fork is your fork's project's, under its own namespace's plan.
 So three more things stand in the way, each before or beside it:

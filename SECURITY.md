@@ -940,8 +940,11 @@ machine against the release's commit and the same gate over their reports before
   certificates and private keys under `hmailserver/test/SSL examples` are throwaway fixtures the regression suite
   uses to exercise TLS, trusted by nothing outside it.
 - On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab secret push
-  protection, an Ultimate feature that the group's open-source plan carries, is on for the project since 27
-  September 2026 (the project's audit log; the API read it true on 27 October 2026), and refuses a push whose diffs carry
+  protection, an Ultimate feature that the group's open-source plan carries, is on for the project: its setting was
+  turned on on 27 September 2026 (the project's audit log), while the project was still in the owner's user namespace
+  on the Free plan, where GitLab does not run the check, and it has applied to the project's pushes since the project
+  moved into the group on 29 September 2026, on the group's Ultimate trial and, since 13 October 2026, on its
+  open-source plan (the API read the setting true on 27 October 2026). It refuses a push whose diffs carry
   a secret that GitLab's high-confidence patterns find. It reads nothing of a push that changes more than 3,150 paths
   or 350,000 lines - GitLab skipped it for a push of 8,571 paths on 13 October 2026, and a batch's first push can be
   that large - nor a binary file or one over 1 MiB, and a pusher can skip it with a push option. So the refusal

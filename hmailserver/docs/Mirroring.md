@@ -209,8 +209,9 @@ file that gives either a value.
 
 Personal access tokens, or a project access token. On GitLab.com project and group
 access tokens need a Premium or Ultimate subscription (GitLab's documentation, read
-on 26 October 2026), and the group has had Ultimate's features since 13 October
-2026, on GitLab's open-source plan (its namespace's plan reads `opensource`). A
+on 26 October 2026), and the project has had Ultimate's features since it moved
+into the group on 29 September 2026, on the group's trial, and on GitLab's
+open-source plan since 13 October 2026 (its namespace's plan reads `opensource`). A
 project access token is a bot member of this project alone, with the role it is
 given, and the job reads the role from what the project says of the token's
 account (`permissions`), so either kind serves it. A personal access token acts

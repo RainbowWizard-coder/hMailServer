@@ -1664,10 +1664,11 @@ Protected branches: for `master`, *Allowed to push and merge* becomes *No one*,
 *Allowed to merge* stays *Maintainers*, and force push stays off. The edit is in
 place. Through the API, the protected branches API's `PATCH` changes an access
 level (`allowed_to_push` with an `access_level`) on Premium and Ultimate alone
-(GitLab's documentation, read on 26 October 2026). The group has had Ultimate's
-features since 13 October 2026, on GitLab's open-source plan, but no such `PATCH`
+(GitLab's documentation, read on 26 October 2026). The project has had
+Ultimate's features since it moved into the group on 29 September 2026, on the
+group's trial, and on GitLab's open-source plan since 13 October 2026, but no such `PATCH`
 of `master`'s rule has been run here. The two calls below work on every tier, and
-were the only way on the Free tier the project was on before: the branch is
+were the only way on the Free tier the project was on until 29 September 2026: the branch is
 unprotected and protected again, and is unprotected for the moment between the
 two:
 
@@ -4560,8 +4561,9 @@ Each merge request carries its own note of these steps.
    personal token puts the owner's name on them. A project access token (project,
    Settings, Access tokens, role Developer, scope `api`) gives Renovate a bot user
    of its own; gitlab.com offers project access tokens on the Premium and
-   Ultimate plans only, and the group has had Ultimate's features since 13 October
-   2026, on GitLab's open-source plan. On the Free tier the alternative is a
+   Ultimate plans only, and the project has had Ultimate's features since it
+   moved into the group on 29 September 2026, on the group's trial, and on
+   GitLab's open-source plan since 13 October 2026. On the Free tier the alternative is a
    separate GitLab account for the
    bot, made a Developer of the project, with a personal token of its own.
 2. **The CI variable.** In the project, open Settings, then CI/CD, then
@@ -5279,8 +5281,13 @@ the commit's pipeline's four reports before the tag.
 GitLab's secret push protection, which refuses a push that carries a secret, is
 an Ultimate feature, and it is on for the project: the project's audit log has
 "updated `secret_push_protection_enabled` to true" on 27 September 2026, and the
-project's API read it true on 27 October 2026, the group being on GitLab's
-open-source plan since 13 October 2026. It does not read everything a push
+project's API read it true on 27 October 2026. The setting was turned on while
+the project was still in the owner's user namespace, on the Free plan, where
+GitLab does not run the check (its eligibility check returns before the scan
+unless the project's licence carries the feature); it has applied to the
+project's pushes since the project moved into the group on 29 September 2026
+(the audit log), on the group's Ultimate trial and, since 13 October 2026, on
+GitLab's open-source plan. It does not read everything a push
 brings (GitLab's documentation, *Secret push protection*, read on 27 October
 2026): only the diffs of the commits pushed, against GitLab's high-confidence
 patterns alone, not a binary file or a file or diff over 1 MiB, and nothing of a
@@ -5368,10 +5375,13 @@ it runs as root in its image, and the file is replaced in the job's own
 container. GitLab's custom ruleset, which could name another file, is an
 Ultimate feature: the analyzer loads `.gitlab/secret-detection-ruleset.toml` only
 when `GITLAB_FEATURES` names `sast_custom_rulesets`, which it does not on the Free
-tier, and on the group's open-source plan it looks for the file - master's
-`secret_detection` of 27 October 2026 (job 17487843834) logged
+tier and does on the group's open-source plan, so on this plan a ruleset in the
+tree would be read. The analyzer looks for the file on every tier, before it
+looks at `GITLAB_FEATURES` (the analyzers' ruleset library, `Load`): the log line
 "`.gitlab/secret-detection-ruleset.toml` not found, ruleset customization will be
-disabled". The tree carries none, and `build/check-release-chain.py` refuses a
+disabled" was written on the Free tier on 27 September 2026 (job 16759948107) as
+it was on this plan on 27 October 2026 (job 17487843834), and shows only that the
+tree carries none. The tree carries none, and `build/check-release-chain.py` refuses a
 tree that does, as it refuses `.gitlab/sast-ruleset.toml`; nor does any CI file,
 or any project or group variable (their names, read on 27 October 2026), set
 `SECRET_DETECTION_RULESET_GIT_REFERENCE`, by which the analyzer would take a
@@ -5466,7 +5476,7 @@ which this tree has.
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its Scorecard workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
-| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history; and GitLab's secret push protection, an Ultimate feature, on since 27 September 2026 (the project's audit log; `secret_push_protection_enabled` read true on 27 October 2026), which refuses a push whose diffs carry a secret its high-confidence patterns find | The refusal of a push push protection does not read: one that changes more than 3,150 paths or 350,000 lines, as a batch's first push can (8,571 paths on 13 October 2026), a file over 1 MiB, or a push its push option skips. The hooks and the landing's scan read those before the push ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history; and GitLab's secret push protection, an Ultimate feature, whose setting was turned on on 27 September 2026, in the owner's user namespace on the Free plan, where GitLab does not run it, and which has applied since the project moved into the group on 29 September 2026 (the project's audit log; `secret_push_protection_enabled` read true on 27 October 2026), which refuses a push whose diffs carry a secret its high-confidence patterns find | The refusal of a push push protection does not read: one that changes more than 3,150 paths or 350,000 lines, as a batch's first push can (8,571 paths on 13 October 2026), a file over 1 MiB, or a push its push option skips. The hooks and the landing's scan read those before the push ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
 
 ### The jobs, and where each tool comes from
 
@@ -5496,8 +5506,10 @@ sources. That is GitHub's data, not a download from GitHub.
 ### What GitLab's free tier shows
 
 The project was on GitLab's free tier when this was written: its namespace's plan
-read `free` on 25 September 2026. Since 13 October 2026 the group's reads
-`opensource`, GitLab's open-source plan, which gives Ultimate's features. What
+read `free` on 25 September 2026. It moved into the group `hmailserver` on 29
+September 2026, on the group's Ultimate trial, and since 13 October 2026 the
+group's plan reads `opensource`, GitLab's open-source plan, which gives
+Ultimate's features. What
 follows says what the free tier shows, which the jobs write for, and what the
 plan shows of the same reports besides.
 
@@ -5515,14 +5527,18 @@ plan shows of the same reports besides.
   27 October 2026: the Security tab of `master`'s push pipeline 2992200439
   counts 1,119 SAST, 3,238 dependency-scanning and no secret-detection findings,
   and the merge request !32 has the security reports of its head pipeline; the
-  vulnerability report, which takes `master`'s pipelines alone, held 6,172
+  vulnerability report, which shows `master`, the one ref the project tracks
+  (GraphQL `securityTrackedRefs`; since GitLab 19.5 a Maintainer can track up to
+  three more branches or tags, under Secure, Security configuration), held 6,172
   records, 1,853 from the SAST reports and 4,319 from `dependency-scan`'s, the
   oldest detected on 30 September 2026, the day after the move into the group,
   whose plan the API then gave as `ultimate_trial` (Roadmap3.md, "The move into
   the group `hmailserver`") - 5,058 dismissed by the maintainer
   between 5 and 12 October 2026, each with a reason, 279 resolved, 834 detected
   and 1 confirmed - and none from `container_scanning`, which runs in a tag's
-  pipeline. A dismissal there holds nothing and waives nothing: the gates read
+  pipeline, a ref the report does not track: its findings are in that
+  pipeline's Security tab (33 for `v6.3.7`'s pipeline 2958958332) and in the
+  job's artifact. A dismissal there holds nothing and waives nothing: the gates read
   the jobs' own reports with `.gitlab/security-exceptions.yml`, the baselines and
   the VEX document ([SECURITY.md](../../SECURITY.md), "Source code (static
   analysis)", Suppressions). The
@@ -6536,8 +6552,9 @@ project, 24 October 2026).
 
 **What it holds, and what it cannot.** A merge request does not wait for
 SonarQube Cloud's quality gate: external status checks, a GitLab Ultimate
-feature, have been available since the group went on the open-source plan on
-13 October 2026, and none is set up (the project's `external_status_checks`
+feature, have been available since the project moved into the group on 29
+September 2026, on the group's trial, and on its open-source plan since 13
+October 2026, and none is set up (the project's `external_status_checks`
 read `[]` on 27 October 2026), so its verdict is the summary on the merge request
 and the project's page on SonarQube Cloud (the README carries no badge of it);
 `semgrep-sast-gate` is the SAST that holds a merge request. Its findings are
@@ -6547,8 +6564,10 @@ accepted, with the reason.
 ### What GitLab gives on each tier, and what the project uses
 
 The project was on GitLab's free tier when this section was first written (its
-namespace's plan read `free` on 25 September 2026); since 13 October 2026 the
-group's reads `opensource`, GitLab's open-source plan, with Ultimate's features.
+namespace's plan read `free` on 25 September 2026). It moved into the group
+`hmailserver` on 29 September 2026, whose plan was then GitLab's Ultimate trial,
+and since 13 October 2026 the group's plan reads `opensource`, GitLab's
+open-source plan, with Ultimate's features.
 What each feature this page touches needs, by docs.gitlab.com on 28 September
 2026 and, for the custom rulesets, the security policies, Advanced SAST, the
 protected environments and the immutable tags, on 27 October 2026; and the
@@ -6570,11 +6589,11 @@ protected environments and the immutable tags, on 27 October 2026; and the
 | The Security tab, the merge request security widget, the vulnerability report | Ultimate | Yes, from the reports the jobs already upload, with no change to them ([What GitLab's free tier shows](#what-gitlabs-free-tier-shows)); a dismissal there waives nothing in a gate |
 | Dependency scanning, the dependency list, `reports:cyclonedx` | Ultimate | Not used: GitLab's dependency-scanning template is not included and no job uploads a CycloneDX report, so the dependency list is empty; `dependency-scan`'s report is the dependency side of the vulnerability report, and `mr-dependency-check` holds a change |
 | Licence scanning of CycloneDX files | Ultimate | Not used: it reads the CycloneDX reports no job uploads |
-| Custom rulesets for SAST and secret detection (`.gitlab/sast-ruleset.toml`, `.gitlab/secret-detection-ruleset.toml`) | Ultimate | Not used, and kept out: both analyzers look for the file on this plan, and `build/check-release-chain.py` refuses a tree that carries either; a change that adds the first is a change of the scan to `build/ci/security-gate.py`, which answers for every finding in the tree ([What the secret scans read](#what-the-secret-scans-read)) |
+| Custom rulesets for SAST and secret detection (`.gitlab/sast-ruleset.toml`, `.gitlab/secret-detection-ruleset.toml`) | Ultimate | Not used, and kept out: both analyzers look for the file on every tier and load one only where `GITLAB_FEATURES` names `sast_custom_rulesets`, which this plan carries, so a ruleset in the tree would be read; `build/check-release-chain.py` refuses a tree that carries either; a change that adds the first is a change of the scan to `build/ci/security-gate.py`, which answers for every finding in the tree ([What the secret scans read](#what-the-secret-scans-read)) |
 | GitLab Advanced SAST | Ultimate | Not used: the SAST template starts its job only where `GITLAB_ADVANCED_SAST_ENABLED` is true, which nothing sets, and `master`'s pipelines have none |
 | Security policies: scan execution, pipeline execution and merge request approval policies | Ultimate | Not used: no security policy project is linked to the project, so no policy makes a job required ([SECURITY.md](../../SECURITY.md), "Every change", What the gates cannot hold) |
-| Secret push protection | Ultimate | Yes, since 27 September 2026 (the project's audit log), beside the hooks, the landing's scan and `secret_detection`, each for what it does not read ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
-| Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline; the vulnerability report takes the default branch's pipelines alone, so they are not in it |
+| Secret push protection | Ultimate | Yes: the setting since 27 September 2026, and in effect since the project moved into the group on 29 September 2026, the user namespace it was in before being on the Free plan, where GitLab does not run the check (the project's audit log), beside the hooks, the landing's scan and `secret_detection`, each for what it does not read ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
+| Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline, whose findings are in that pipeline's Security tab and in the job's artifact; the vulnerability report shows `master`, the one ref the project tracks, so they are not in it (a Maintainer can track up to three more branches or tags, under Secure, Security configuration, Vulnerability management) |
 | Immutable container tags | Ultimate | Not used: none is set, and `latest`, `stable` and the `x.y` tag move with every release ([The container image](#the-container-image)) |
 | Compute minutes on GitLab's hosted runners | 50,000 a month on the open-source plan | A merge request's pipeline and an unprotected branch's, and a class of the jobs on the project's runners when the owner sets its switch ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
 

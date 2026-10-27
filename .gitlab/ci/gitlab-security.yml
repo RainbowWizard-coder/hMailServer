@@ -263,9 +263,11 @@ secret_detection:
   script:
     # GitLab's rules, but for the two entries of their global allowlist the header names,
     # derived from the image's own file and put where the analyzer reads them: it takes
-    # /gitleaks.toml unless the tree carries a custom ruleset, which it reads on the
-    # group's open-source plan (it looks for .gitlab/secret-detection-ruleset.toml) and
-    # which build/check-release-chain.py refuses, and it runs as root in its image, so
+    # /gitleaks.toml unless the tree carries a custom ruleset: it looks for
+    # .gitlab/secret-detection-ruleset.toml on every tier and loads it where
+    # GITLAB_FEATURES names sast_custom_rulesets, as on the group's open-source plan, so
+    # one in the tree would be read; build/check-release-chain.py refuses a tree that
+    # carries one. It runs as root in its image, so
     # the file is replaced in the job's own container. No list of paths is read from
     # the tree: the script, one of the gates'
     # own files, is all of it that decides what is left out. The script refuses when

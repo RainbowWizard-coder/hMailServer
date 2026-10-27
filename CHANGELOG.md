@@ -2721,26 +2721,34 @@ with `--check`).
 ### Documentation
 
 - **The texts that said the project is on GitLab's free tier, or that push protection is not on, say what holds on
-  the group's open-source plan.** The group's namespace reads plan `opensource` (since 13 October 2026), the project's
-  audit log has `secret_push_protection_enabled` set to true on 27 September 2026, and GitLab skipped push protection
-  for a push of 8,571 changed paths on 13 October 2026, above its threshold of 3,150 (all read through GitLab's API on
-  27 October 2026, as were the rest). SECURITY.md, CONTRIBUTING.md, ContinuousIntegration.md, `build/scan-secrets.py`
-  and `.gitlab/ci/gitlab-security.yml` say that push protection is on, what it does not read (only a push's diffs,
-  against GitLab's high-confidence patterns, nothing of a push over 3,150 paths or 350,000 lines, no file over 1 MiB,
-  and a push its push option skips, by GitLab's documentation of that day), and what the hooks, the landing's scan and
-  `secret_detection` each read that it does not. SECURITY.md and ContinuousIntegration.md say that nothing makes a job
+  the group's open-source plan.** The group's namespace reads plan `opensource` (since 13 October 2026; the project
+  moved into the group on 29 September 2026, on its Ultimate trial, from the owner's user namespace, whose plan reads
+  `free`), the project's audit log has `secret_push_protection_enabled` set to true on 27 September 2026, while the
+  project was still in that namespace, where GitLab does not run the check, and GitLab skipped push protection for a
+  push of 8,571 changed paths on 13 October 2026, above its threshold of 3,150 (all read through GitLab's API on 27
+  October 2026, as were the rest). SECURITY.md, CONTRIBUTING.md, ContinuousIntegration.md and `build/scan-secrets.py`
+  say that push protection is on and has applied since the move into the group, what it does not read (only a push's
+  diffs, against GitLab's high-confidence patterns, nothing of a push over 3,150 paths or 350,000 lines, no file over 1
+  MiB, and a push its push option skips, by GitLab's documentation of that day), and what the hooks, the landing's scan
+  and `secret_detection` each read that it does not. The texts that give a date for Ultimate's features date them
+  from the move into the group, on the trial, and the open-source plan from 13 October 2026. SECURITY.md and
+  ContinuousIntegration.md say that nothing makes a job
   required because no security policy project is linked to the project, where they said the free tier cannot.
   ContinuousIntegration.md's two accounts of what each tier shows say what the project uses of Ultimate - the
   pipeline's Security tab (1,119 SAST and 3,238 dependency findings for `master`'s pipeline of 27 October), the merge
   request's security reports and the vulnerability report (6,172 records, 5,058 of them dismissed with a reason, none
-  of which waives a finding a gate reads) - and what it does not and why: approval rules (none, the approval being left
-  unmet by the owner's decision of 6 October 2026), external status checks, protected environments, immutable tags,
-  security policies, GitLab Advanced SAST, dependency scanning and the dependency list (empty), licence scanning and the
-  custom rulesets, which the analyzers look for on this plan and `build/check-release-chain.py` keeps out of the tree;
-  its GitLab for Open Source paragraph gives the 50,000 compute minutes a month. Channels.md, Snap.md and
-  CommandLinePackages.md say that no environment is protected, where they said the free tier has none; Mirroring.md
-  that a project access token serves the export job too; PackagesDeb.md what the plan's minutes change for the arm64
-  builds; and the comments of `.gitlab/ci/container-image.yml`, `build/ci/secret-detection-rules.sh`,
+  of which waives a finding a gate reads; it tracks `master` alone, so a release tag's container findings are in that
+  pipeline's Security tab and the job's artifact, not in it) - and what it does not and why: approval rules (none, the
+  approval being left unmet by the owner's decision of 6 October 2026), external status checks, protected
+  environments, immutable tags, security policies, GitLab Advanced SAST, dependency scanning and the dependency list
+  (empty), licence scanning and the custom rulesets, which the analyzers look for on every tier and would read on this
+  plan, and which `build/check-release-chain.py` keeps out of the tree; its GitLab for Open Source paragraph gives the
+  50,000 compute minutes a month. Channels.md, Snap.md and CommandLinePackages.md say that no environment is
+  protected, where they said the free tier has none; Mirroring.md that a project access token serves the export job
+  too; PackagesDeb.md what the plan's minutes change for the hosted runners the `.deb` builds, the arm64 cross builds
+  among them, and the arm64 install and start jobs can be sent to; the comments of `.gitlab/ci/gitlab-security.yml`
+  (Dependency-Scanning, Advanced SAST, the reports and `secret_detection`'s custom ruleset) say what the plan gives
+  there; and the comments of `.gitlab/ci/container-image.yml`, `build/ci/secret-detection-rules.sh`,
   `build/land-via-mr.py`, `build/ci/security-findings.py` and `build/ci/dependency-scan.py` say the same. Roadmap3.md's
   dependency alerts, branch protection and secret detection rows say what holds, and a new row, not started, weighs
   what the plan offers that would let the project hold more than it does, the required approval left as the owner
