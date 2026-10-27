@@ -24,34 +24,49 @@ binds by (dual, local, object, oleautomation), and each member in its order,
 with its kind (method, propget, propput, propputref), dispatch id, name, return
 type and parameters - their direction ([in], [out], [retval], [lcid]) and type,
 but not their names, which no binding reads by position, nor their defaultvalue
-or help text. This holds the tree's hMailServer.idl to it: every interface the
-release had is there, with its IID, base and those attributes, and its members
-as the tree declares them begin with the release's, one for one - so a member
-is only ever added after the last one the release had. A member inserted,
-removed, moved, given another dispatch id or kind, or given another type or
-direction of a parameter is refused, naming the interface, the member's place
-and what the release had there, and so is dual or another of those attributes
-taken off or put on. The type library's own identity - the library's uuid and
-version, and each coclass's uuid and default interface - is held the same way,
-and so is each enumerator's value, which an early-bound client compiles in: an
-enumerator the release had is in its enum with its value. A new interface,
-coclass, enum or enumerator is free, and so is anything added at an
-interface's end. Every interface of the tree, new ones too, must be declared
-interface <name> : <base> { ... } with IDispatch or IUnknown its base: one
-derived from another of the file's interfaces has its base's members first in
-its vtable, so a member appended to the base, which this lets through, would
-move each of its own, and the check, which counts an interface's members from
-the slot after IDispatch's or IUnknown's, refuses such a base rather than pass
-it; one declared with no base is refused as one it does not read. None derives
-from another today.
+or help text. A parameter's name is its last word unless that word is one a
+type is written with (TYPE_WORDS, and every word that begins with _): MIDL
+builds "[in] long long", "[in] long double", "[in] long unsigned" and
+"BSTR * __ptr32", parameters with no name, as other types than "long" and
+"BSTR *", so their last word is read as part of the type. This holds the
+tree's hMailServer.idl to it: every interface the release had is there, with
+its IID, base and those attributes, and its members as the tree declares them
+begin with the release's, one for one - so a member is only ever added after
+the last one the release had. A member inserted, removed, moved, given another
+dispatch id or kind, or given another type or direction of a parameter is
+refused, naming the interface, the member's place and what the release had
+there, and so is dual or another of those attributes taken off or put on. A
+member is read only as it is declared: one given call_as() or local, by which
+MIDL fills a slot otherwise (call_as(X) puts the [local] method X, with X's
+parameters, in the member's slot of the header the server's classes
+implement, while the type library keeps the member), and one that returns
+other than HRESULT, as every member of the file does, stop the parse. The type
+library's own identity - the library's uuid and version, and each coclass's
+uuid and default interface, the part marked [default], as MIDL takes it - is
+held the same way, a coclass with a source interface or a second [default]
+stopping the parse, and so is each enumerator's value, which an early-bound
+client compiles in: an enumerator the release had is in its enum with its
+value. A new interface, coclass, enum or enumerator is free, and so is
+anything added at an interface's end. Every interface of the tree, new ones
+too, must be declared interface <name> : <base> { ... } with IDispatch or
+IUnknown its base: one derived from another of the file's interfaces has its
+base's members first in its vtable, so a member appended to the base, which
+this lets through, would move each of its own, and the check, which counts an
+interface's members from the slot after IDispatch's or IUnknown's, refuses
+such a base rather than pass it; one declared with no base is refused as one
+it does not read. None derives from another today.
 
 What it does not hold: an interface's other attributes (helpstring,
 nonextensible, pointer_default, hidden), a member's attributes other than its
-kind and dispatch id, an enum's own uuid, the parameters' names and defaultvalues,
-what the Windows SDK's oaidl.idl and ocidl.idl declare, which the file imports
-(an import of any other file is refused), and whatever hMailServer.idl does not
-declare, such as the coclasses' interfaces other than the default one and the
-registry entries an install writes.
+kind and dispatch id (call_as and local refused), an enum's own uuid, the
+parameters' names, defaultvalues and other attributes, what the Windows SDK's
+oaidl.idl and ocidl.idl declare, which the file imports (an import of any other
+file is refused, and so is a file beside hMailServer.idl that MIDL, which looks
+in the directory it runs in first, would read in place of the SDK's: another
+.idl, an .acf, a type library or one of SDK_HEADERS), the options the build
+runs MIDL with (the vcxproj's Midl settings and what MSBuild adds to them), and
+whatever hMailServer.idl does not declare, such as the coclasses' interfaces
+other than the default one and the registry entries an install writes.
 
 The baseline is written from a release tag, never from the tree:
 
@@ -80,10 +95,13 @@ The check proves its negative controls on every run (--self-test runs only
 those), against the tree's hMailServer.idl changed in memory: a member inserted
 above the release's (the two ACME methods put back after GetReputationReport),
 one removed, two swapped, a dispatch id changed, a parameter's type and its
-direction changed, a propget made a method, an interface's IID changed, an
-interface taken away, a new interface derived from a released one, dual taken
-off an interface, an enumerator's value changed and an enumerator removed must
-each be refused, and a member appended, a member written over two lines, a
+direction changed, a propget made a method, a released [in] long given no name
+as [in] long long, [in] long double and [in] long unsigned, a released
+[out, retval] BSTR * given none as BSTR * __ptr32, an interface's IID changed,
+an interface taken away, a new interface derived from a released one, dual
+taken off an interface, an enumerator's value changed, an enumerator removed,
+and a file named oaidl.idl, wtypesbase.idl, hMailServer.acf, stdole2.tlb or
+basetsd.h beside hMailServer.idl must each be refused, and a member appended, a member written over two lines, a
 member commented out where it would have been inserted, a new interface derived
 from IDispatch and an enumerator appended must each pass. Every HRESULT of the
 file must be a member of an interface body the parse read, so a member it
@@ -124,7 +142,11 @@ body, a // comment ending in a backslash above a member, a member between two
 top of a body, a // comment followed by a carriage return and a released
 member, read from bytes with CRLF line ends, a no-break space between two
 tokens, an import of another file, a new interface with no base, a
-dispinterface with a member and an enumerator without its value are fifteen
+dispinterface with a member, an enumerator without its value, a released member
+made call_as() of a [local] method appended with other parameters, a released
+member made [local], a coclass given a [default, source] interface, one given
+a [source] interface and one given a second [default] interface, and a new
+interface derived from IUnknown with a member that returns void are twenty-one
 more of the controls, and each must stop the parse with its refusal.
 
 Usage:  python build/check-com-abi.py [--self-test] [--write-baseline TAG]
@@ -162,9 +184,31 @@ SINGLES = frozenset("()*,-:;=[]{}")
 GAP = re.compile(r"[^ \t\n]")
 # The files hMailServer.idl imports, the Windows SDK's: MIDL reads an imported file too, and this does not.
 IMPORTS = ("oaidl.idl", "ocidl.idl")
+# What MIDL reads through those imports and the library's importlib("stdole2.tlb"), in the Windows SDK
+# 10.0.26100: it looks for each file in the directory it runs in, hMailServer.idl's, before the SDK's, and
+# reads <name>.acf beside each <name>.idl, so a file there of one of these names, another .idl, an .acf or a
+# type library would be read in place of the SDK's, where this check reads hMailServer.idl alone.
+SDK_HEADERS = frozenset((
+    "basetsd.h", "corecrt.h", "corecrt_memcpy_s.h", "corecrt_memory.h", "corecrt_wstring.h", "errno.h", "guiddef.h",
+    "idispids.h", "msxmldid.h", "string.h", "vcruntime.h", "vcruntime_string.h", "winapifamily.h",
+    "winpackagefamily.h", "xmldomdid.h", "xmldsodid.h"))
+SHADOWING = re.compile(r"\.(?:idl|acf|tlb|olb)$", re.I)
 KINDS = ("propget", "propput", "propputref")
 # What a parameter's attributes say that the vtable and the marshalling read.
 DIRECTIONS = ("in", "out", "retval", "lcid")
+# The words a parameter's type is written with that are never its name, so that a parameter given no name
+# ("[in] long long", as CriteriaMatch's "[in] eRuleMatchType" has none) is read with its whole type: C's and
+# MIDL's type specifiers and qualifiers, and the older modifiers without a _ (type_word() takes every word
+# that begins with _ as one too).
+TYPE_WORDS = frozenset((
+    "long", "short", "int", "char", "small", "hyper", "double", "float", "signed", "unsigned", "wchar_t", "byte",
+    "boolean", "void", "const", "volatile", "far", "near", "huge", "pascal", "cdecl", "struct", "union", "enum",
+    "register", "auto", "static", "extern", "inline", "interface", "handle_t", "error_status_t"))
+# The attributes of a member by which MIDL fills its vtable slot otherwise than as the member is declared:
+# call_as(X) puts the [local] method X there, with X's parameters, in the header the server's classes
+# implement, while the type library keeps the member; local makes a member such an X. hMailServer.idl has
+# neither, and a member with one is refused rather than read.
+SLOT_ATTRIBUTES = ("call_as", "local")
 VTABLE_BASE = {"IDispatch": 7, "IUnknown": 3}
 # An interface's attributes that say how a client binds to it and how its calls are
 # marshalled: dual (the vtable a type library's early-bound client calls),
@@ -320,6 +364,13 @@ def render(toks):
     return out
 
 
+def type_word(word):
+    """Whether a word is one a parameter's type is written with and never its name: C's and MIDL's type
+    specifiers and qualifiers (TYPE_WORDS), and every word that begins with _, as Microsoft's modifiers and
+    sized types do (__ptr32, __int64, __RPC_FAR); no parameter of hMailServer.idl is named so."""
+    return word in TYPE_WORDS or word.startswith("_")
+
+
 def parameter(toks):
     direction = []
     if toks and toks[0][0] == "[":
@@ -327,15 +378,18 @@ def parameter(toks):
         attrs = attributes(toks[1:end])
         direction = [name for name in DIRECTIONS if name in attrs]
         toks = toks[end + 1:]
-    # The last word is the parameter's name, unless the type is all there is.
-    if len(toks) > 1 and WORD.match(toks[-1][0]):
+    # The last word is the parameter's name, unless the type is all there is or the word is one a type is
+    # written with: "[in] long long", "[in] long double" and "BSTR * __ptr32" name no parameter, and MIDL
+    # builds each as another type than "long" or "BSTR *".
+    if len(toks) > 1 and WORD.match(toks[-1][0]) and not type_word(toks[-1][0]):
         toks = toks[:-1]
     text = render(toks)
     return ("[%s] " % ",".join(direction) if direction else "") + text
 
 
-def member(toks, interface):
+def member(toks, interface, text):
     attrs = {}
+    where = line_number(text, toks[0][1]) if toks else 0
     if toks and toks[0][0] == "[":
         end = closing(toks, 0, "[", "]")
         attrs = attributes(toks[1:end])
@@ -346,6 +400,16 @@ def member(toks, interface):
     end = closing(toks, opening, "(", ")")
     name = toks[opening - 1][0]
     returns = render(toks[:opening - 1])
+    slotted = [attribute for attribute in SLOT_ATTRIBUTES if attribute in attrs]
+    if slotted:
+        raise IdlError("line %d: %s's member %s has [%s]: MIDL fills a vtable slot by it otherwise than as the member "
+                       "is declared (call_as(X) puts the [local] method X in the member's slot, with X's "
+                       "parameters, in the header the server's classes implement), which this check does not read; "
+                       "hMailServer.idl has neither" % (where, interface, name, ", ".join(slotted)))
+    if returns != "HRESULT":
+        raise IdlError("line %d: %s's member %s returns %s: this check reads members that return HRESULT, as every "
+                       "member of hMailServer.idl does, and counts the file's HRESULTs against them"
+                       % (where, interface, name, returns or "nothing"))
     parameters = [parameter(part) for part in split_top(toks[opening + 1:end])]
     if parameters == ["void"]:
         parameters = []
@@ -417,7 +481,7 @@ def parse(text):
             for part in split_top(body, ";"):
                 if not part:
                     continue
-                members.append(member(part, name))
+                members.append(member(part, name, text))
                 member_spans.append((part[0][1], part[-1][2] + 1))   # with its ;
             if name in interfaces:
                 raise IdlError("interface %s is defined twice" % name)
@@ -453,12 +517,25 @@ def parse(text):
         if value == "coclass" and index + 2 < len(toks) and toks[index + 2][0] == "{":
             name = toks[index + 1][0]
             end = closing(toks, index + 2, "{", "}")
-            default = "-"
+            # MIDL makes the part marked [default] that is not a source the coclass's default interface, and
+            # the first part that is not a source where none is marked. A source interface, or a second
+            # [default], is refused rather than read: hMailServer.idl has neither.
+            parts = []
             for part in split_top(toks[index + 3:end], ";"):
-                if part and part[0][0] == "[":
-                    close = closing(part, 0, "[", "]")
-                    if "default" in attributes(part[1:close]):
-                        default = part[-1][0]
+                if not part:
+                    continue
+                marked = {}
+                if part[0][0] == "[":
+                    marked = attributes(part[1:closing(part, 0, "[", "]")])
+                if "source" in marked or sum(1 for other, _ in parts if "default" in other) + ("default" in marked) > 1:
+                    raise IdlError("line %d: coclass %s has %s: MIDL takes the [default] part that is not a source "
+                                   "for the default interface a client creates it by, which this check reads only "
+                                   "where there is one [default] and no source, as in every coclass of "
+                                   "hMailServer.idl" % (line_number(text, part[0][1]), name,
+                                                        "a source interface" if "source" in marked
+                                                        else "a second [default] part"))
+                parts.append((marked, part[-1][0]))
+            default = next((part for marked, part in parts if "default" in marked), parts[0][1] if parts else "-")
             types.append("coclass %s uuid(%s) default %s" % (name, (pending.get("uuid") or "").upper(), default))
             pending = {}
             index = end + 1
@@ -581,6 +658,17 @@ def base_problems(tree):
             "would move each of %s's, and this check holds an interface's members only from the slot after "
             "IDispatch's or IUnknown's - derive it from IDispatch" % (name, entry[1], entry[1], name)
             for name, entry in sorted(tree["interfaces"].items()) if entry[1] not in VTABLE_BASE]
+
+
+def shadow_problems(names):
+    """The files beside hMailServer.idl that MIDL, which looks in the directory it runs in first, would read in
+    place of the Windows SDK's: another .idl, an .acf, a type library, or one of SDK_HEADERS."""
+    own = os.path.basename(IDL).lower()
+    return ["%s/%s: MIDL, run in hMailServer.idl's directory, looks for the files it imports there before the "
+            "Windows SDK's, so it would read this in place of the SDK's file of the name (or as hMailServer.idl's "
+            "attributes, an .acf), where this check reads hMailServer.idl alone - keep it elsewhere"
+            % (os.path.dirname(IDL_PATH), name) for name in sorted(names)
+            if name.lower() != own and (SHADOWING.search(name) or name.lower() in SDK_HEADERS)]
 
 
 def git(*arguments, timeout=120):
@@ -793,6 +881,46 @@ def make_controls(text, release, tree):
     interface, start, end = first_line(r"\[propget, ")
     controls.append(("a propget made a method", text[:start] + text[start:end].replace("[propget, ", "[", 1) + text[end:],
                      True, interface))
+    # A parameter given no name whose type ends in a word a type is written with: MIDL builds each as another
+    # type than the release's (I8, R8 and UI4 for a long; a 32-bit pointer in the header for a BSTR *), and a
+    # reader that took the last word for the name would read the release's.
+    interface, start, end = first_line(r"\[in\] long \w+\)")
+    named = re.search(r"\[in\] long \w+\)", text[start:end]).group(0)
+    for typed in ("long long", "long double", "long unsigned"):
+        controls.append(("an [in] long made an unnamed [in] %s" % typed, text[:start] + text[start:end].replace(
+            named, "[in] %s)" % typed, 1) + text[end:], True, interface))
+    interface, start, end = first_line(r"\[out, retval\] BSTR \*\w+\)")
+    named = re.search(r"\[out, retval\] BSTR \*\w+\)", text[start:end]).group(0)
+    controls.append(("an [out, retval] BSTR * made an unnamed BSTR * __ptr32", text[:start] + text[start:end].replace(
+        named, "[out, retval] BSTR * __ptr32)", 1) + text[end:], True, interface))
+    # A member MIDL fills its slot with otherwise than as declared: call_as() of a [local] method of other
+    # parameters appended to the interface, and [local] alone.
+    end_of_body = line_of(spans[name][-1])[1]
+    controls.append(("the first member made call_as() of a [local] method appended",
+                     text[:first[0]] + one.replace("[", "[call_as(SelfTestLocal), ", 1) + text[first[1]:end_of_body]
+                     + "   [local] HRESULT SelfTestLocal([in] long first, [in] long second);\n" + text[end_of_body:],
+                     ("unread", "MIDL fills a vtable slot by it"), name))
+    controls.append(("the first member made [local]", text[:first[0]] + one.replace("[", "[local, ", 1)
+                     + text[first[1]:], ("unread", "MIDL fills a vtable slot by it"), name))
+    # A coclass's default interface as MIDL takes it: the [default] part that is not a source.
+    coclass = re.search(r"\bcoclass (\w+)\s*\{\s*\[default\] interface (\w+);", text)
+    other = next((n for n in sorted(tree["interfaces"]) if coclass and n != coclass.group(2)), None)
+    if not coclass or not other:
+        raise IdlError("self-test: no coclass of the tree is coclass <name> { [default] interface <name>; ... }")
+    part = coclass.group(0)[coclass.group(0).index("[default]"):]
+    # (The first is the form MIDL makes another interface the default by: the [default] part that is not a source.)
+    for what, parts, names in (
+            ("a [default, source]", "[default] interface %s;\n      [default, source] interface %s;", (other, None)),
+            ("a [source]", "[default] interface %s;\n      [source] interface %s;", (None, other)),
+            ("a second [default]", "[default] interface %s;\n      [default] interface %s;", (other, None))):
+        given = parts % tuple(n or coclass.group(2) for n in names)
+        controls.append(("coclass %s given %s interface" % (coclass.group(1), what), text[:coclass.start()]
+                         + coclass.group(0).replace(part, given) + text[coclass.end():],
+                         ("unread", "coclass %s has" % coclass.group(1)), "coclass " + coclass.group(1)))
+    controls.append(("a new interface derived from IUnknown with a member that returns void", text
+                     + "\n[\n   object,\n   uuid(D3A9C1F0-0000-4000-8000-000000000006)\n]\n"
+                       "interface SelfTestVoid : IUnknown {\n   void SelfTestMember(void);\n};\n",
+                     ("unread", "returns void"), "SelfTestVoid"))
     iid = tree["interfaces"][name][0]
     changed = re.sub(r"uuid\(%s\)" % re.escape(iid), "uuid(00000000-0000-0000-0000-000000000000)", text, count=1, flags=re.I)
     controls.append(("an interface's IID changed", changed, True, name))
@@ -842,8 +970,8 @@ def make_controls(text, release, tree):
     return controls
 
 
-def self_test(text, release):
-    """The negative controls judged: (failures, how many controls)."""
+def self_test(text, release, names=()):
+    """The negative controls judged: (failures, how many controls); names are the files beside hMailServer.idl."""
     tree = parse(text)
     controls = make_controls(text, release, tree)
     # Judged beside what the tree as it is already breaks, so that a tree that fails
@@ -869,7 +997,13 @@ def self_test(text, release):
                             (": only " + "; ".join(found)) if found else ""))
         if not refused and found:
             failures.append("self-test: %s (%s) was refused: %s" % (what, interface, "; ".join(found)))
-    return failures, len(controls)
+    # And the files beside hMailServer.idl: each of these, added to what is there, must be refused.
+    names = list(names)
+    shadows = ("oaidl.idl", "wtypesbase.idl", "hMailServer.acf", "stdole2.tlb", "basetsd.h")
+    for shadow in shadows:
+        if not any(shadow in p for p in shadow_problems(names + [shadow])):
+            failures.append("self-test: a file named %s beside hMailServer.idl was not refused" % shadow)
+    return failures, len(controls) + len(shadows)
 
 
 def main(arguments):
@@ -894,7 +1028,8 @@ def main(arguments):
         with open(BASELINE, encoding="utf-8") as f:
             release = read_baseline(f.read())
         text = read_tree()
-        failures, controls = self_test(text, release)
+        beside = os.listdir(os.path.dirname(IDL))
+        failures, controls = self_test(text, release, beside)
         if only_self_test:
             for failure in failures:
                 sys.stdout.write("  FAIL  %s\n" % failure)
@@ -907,6 +1042,7 @@ def main(arguments):
         tree = parse(text)
         found = ["against %s: %s" % (tag, p) for p in problems(release, tree, tag)]
         found += base_problems(tree)
+        found += shadow_problems(beside)
         found += failures
         notes = []
         in_ci = os.environ.get("GITLAB_CI") == "true"

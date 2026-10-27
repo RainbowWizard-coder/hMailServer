@@ -1249,12 +1249,22 @@ with `--check`).
   beginning each of those interfaces with exactly those members, refusing an insertion, a removal, a move, a changed
   dispatch id, kind or parameter type or direction, a changed IID, base or binding attribute and a missing interface,
   and naming the interface, the member's place and its vtable slot, and to keeping each of those enumerators with its
-  value, which an early-bound client compiles in. Every interface, a new one too, must be declared with `IDispatch`
+  value, which an early-bound client compiles in. A parameter's last word is its name only when it is not a word a
+  type is written with (`long`, `double`, `unsigned`, `const` and their like, and every word beginning with `_`):
+  MIDL builds an unnamed `[in] long long`, `[in] long double` and `[in] long unsigned` as other types than `long`,
+  and `BSTR * __ptr32` with a 32-bit pointer in the header, and each is read as the type it is. A member given
+  `call_as()` or `local`, by which MIDL puts another method in its slot of the header the server's classes implement
+  while the type library keeps the member, or returning other than `HRESULT`, stops the parse, and so does a coclass
+  with a source interface or a second `[default]`, whose default interface is the `[default]` part that is not a
+  source, as MIDL takes it; the file has none of them. Every interface, a new one too, must be declared with `IDispatch`
   or `IUnknown` for its base: one derived from another of the file's interfaces would have its own members moved by a
   member appended to its base, which the check lets through, so it refuses such a base, and one declared with no
   base, which MIDL builds with a warning, is refused as a vtable it does not read; none exists. It does not hold an
-  interface's other attributes, an enum's uuid, the parameters' names and default values, or what the Windows SDK's
-  `oaidl.idl` and `ocidl.idl`, which the file imports, declare. The baseline is written from a release tag with
+  interface's other attributes, a member's other than its kind and dispatch id, an enum's uuid, the parameters'
+  names, default values and other attributes, what the Windows SDK's `oaidl.idl` and `ocidl.idl`, which the file
+  imports, declare, or the options the build runs MIDL with; a file beside `hMailServer.idl` that MIDL, which looks in
+  the directory it runs in first, would read in place of the SDK's - another `.idl`, an `.acf`, a type library or a
+  header the SDK's files import - is refused. The baseline is written from a release tag with
   `--write-baseline vX.Y.Z` (`RELEASE.md`, step 15); in a clone that has its tag the file is also held to what the
   tag's `hMailServer.idl` says, and the tree to every newer release tag there. In a CI job the tags are not taken
   from the clone, which may have none (a checkout a commit deep), only those its fork was made with, or tags that
@@ -1266,9 +1276,11 @@ with `--check`).
   job whatever its clone held, and a fork's merge request is held to the project's releases rather than failing for
   want of the fork's tags. Every run, the checkers job's among them, proves its negative controls first
   (`--self-test` runs only those): the ACME methods put back after `GetReputationReport`, a member inserted, removed,
-  swapped, given another dispatch id, kind, parameter type or direction, an IID changed, an interface taken away, a
-  new interface derived from a released one, `dual` taken off and an enumerator's value changed or removed are
-  refused, and a member appended, wrapped over two lines or commented out, a new interface derived from `IDispatch`
+  swapped, given another dispatch id, kind, parameter type or direction, a released `[in] long` made an unnamed
+  `[in] long long`, `[in] long double` and `[in] long unsigned`, a released `BSTR *` made an unnamed `BSTR * __ptr32`,
+  an IID changed, an interface taken away, a new interface derived from a released one, `dual` taken off, an
+  enumerator's value changed or removed, and a file named `oaidl.idl`, `wtypesbase.idl`, `hMailServer.acf`,
+  `stdole2.tlb` or `basetsd.h` beside `hMailServer.idl` are refused, and a member appended, wrapped over two lines or commented out, a new interface derived from `IDispatch`
   and an enumerator appended are not; every `HRESULT` of the file must be a member of an interface body the parse
   read. Its tokens are string literals, comments of both kinds, words and single characters; MIDL runs the C
   preprocessor first and reads character literals, so the check reads, outside strings and comments, words and `( ) *
@@ -1288,13 +1300,16 @@ with `--check`).
   on the line is comment, where the check had read the file with universal newlines and so read the member (it passed
   `Address`'s getter so removed, a file git keeps byte for byte; the file is now read from its bytes, a carriage
   return and a line feed taken for a line feed and nothing else); an import of a file but those two; and an
-  enumerator without its value written out. The file has none of them, and fifteen more controls - a released member
+  enumerator without its value written out. The file has none of them, and twenty-one more controls - a released member
   inside `#if 0` ... `#endif`, an `#include` in a body, such a comment above a member, a member between two `'"'` in
   `custom()` and in `helpcontext()`, the same with `L'"'`, a `%:define` of a member used in a member's attributes, a
   released member inside `%:if 0` ... `%:endif` in an attribute's argument, a `%:include` in a body, a `//` comment
   and a carriage return before a released member, read from bytes with CRLF line ends, a no-break space between two
-  tokens, an import of another file, an interface with no base, a dispinterface with a member and an enumerator
-  without a value - must each stop the parse with that refusal. It takes about a second.
+  tokens, an import of another file, an interface with no base, a dispinterface with a member, an enumerator
+  without a value, a released member made `call_as()` of a `[local]` method of other parameters appended to its
+  interface, a released member made `[local]`, a coclass given a `[default, source]` interface, a `[source]` one or a
+  second `[default]` one, and an interface derived from `IUnknown` with a member that returns `void` - must each stop the
+  parse with its refusal. It takes about a second.
 
 - **New: `SECURITY-INSIGHTS.yml`, the project's security facts in the OpenSSF Security Insights format, and
   `build/check-security-insights.py`, which holds it to the format and to the tree.** The file, at the root, says in
