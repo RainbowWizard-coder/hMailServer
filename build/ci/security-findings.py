@@ -37,9 +37,10 @@ which:
     could not analyse the source, or the exceptions file given cannot be read,
     which is never a pass.
 
-GitLab's free tier stores the SAST reports and offers them for download, and renders
-the JUnit report in the pipeline's Tests tab; docs/ContinuousIntegration.md says
-what each tier shows.
+GitLab stores the SAST reports and offers them for download, and renders the JUnit
+report in the pipeline's Tests tab, on every tier; on Ultimate, which the group's
+open-source plan carries, the reports of master's pipelines also fill the
+vulnerability report; docs/ContinuousIntegration.md says what each tier shows.
 
 A baseline only shrinks. It is rewritten with --write-baseline, from a job's
 artifacts (the raw outputs are in them) or from a run by hand:

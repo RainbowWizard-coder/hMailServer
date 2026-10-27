@@ -131,8 +131,9 @@ loads):
 Each job has a GitLab environment of its own (`container-registries`, `aur`,
 `launchpad`, `copr`, `obs`, `chocolatey`, `snap-store`), so each credential can be
 scoped to its environment (Settings, CI/CD, Variables: "Environments"), and a resource
-group, so two presses never publish at once. On GitLab Free there are no protected
-environments: the scope keeps a credential from the jobs that declare another
+group, so two presses never publish at once. None of the environments is protected: a
+protected environment is a Premium feature, which the group's open-source plan carries,
+and the project's `protected_environments` read `[]` on 27 October 2026. The scope keeps a credential from the jobs that declare another
 environment or none, but any job of a protected pipeline may declare `snap-store` or
 `aur` and be given it. What a credential may do is therefore limited where the
 service lets it be - the Snap Store's to `edge` and `candidate` (below) - and the

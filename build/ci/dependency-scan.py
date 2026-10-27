@@ -101,7 +101,7 @@ GitLab dependency-scanning report per scanner (gl-dependency-scanning-trivy.json
 gl-dependency-scanning-osv.json) and one with both (gl-dependency-scanning.json,
 the job's report: GitLab takes one file per report type, and refused the upload
 of two on the first pipeline, "only one file can be sent as raw"), junit.xml (a
-test case per scanned target - the part GitLab's free tier shows),
+test case per scanned target - what GitLab shows on every tier),
 findings.txt, and verdict.json, the scan's verdict (VERDICT, below): failed when a
 high or critical vulnerability with a fixed version is found (SECURITY.md's
 threshold: fixed before the next release; one against a header-only package of the

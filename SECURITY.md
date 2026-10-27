@@ -739,8 +739,12 @@ scanning".
 - **What the gates cannot hold**, said so that it is weighed. The gates hold against mistakes, not against a hostile
   change: a change's own CI files say which jobs run and what they run, and its own copies of the gate scripts run in
   them. The base's copies judge a change to the scripts too, and a landing asks for a person's word that it was read;
-  but a change that edits the jobs themselves can leave a gate out or run another, and GitLab's Free tier cannot make
-  a job required, so `build/land-via-mr.py` checks a batch's gate jobs and their base itself, and the owner, who alone
+  but a change that edits the jobs themselves can leave a gate out or run another, and nothing in GitLab makes a job
+  required: GitLab's security policies, which can (a pipeline execution policy enforces jobs in a project's
+  pipelines), are an Ultimate feature that the group's open-source plan carries, and no security policy project is
+  linked to the project (GitLab's API, 27 October 2026; [Roadmap3.md](Roadmap3.md), "What GitLab's open-source plan
+  offers that the project does not use"). So `build/land-via-mr.py` checks a batch's gate jobs and their base
+  itself, and the owner, who alone
   merges, reads every change to the CI files. The owner can unprotect `master` (above); Semgrep's registry rules,
   which *semgrep* fetches, are not pinned; *semgrep-sast*'s rules have a time limit for each file, which a slower
   runner can reach where another did not (a finding then missing from a file the change does not touch passes the
@@ -935,8 +939,13 @@ machine against the release's commit and the same gate over their reports before
 - The repository holds no credential that opens anything: no token, no password, no signing key. The
   certificates and private keys under `hmailserver/test/SSL examples` are throwaway fixtures the regression suite
   uses to exercise TLS, trusted by nothing outside it.
-- On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab push
-  protection is GitLab Ultimate, so the refusal happens before the push instead, on the pushing machine: the
+- On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab secret push
+  protection, an Ultimate feature that the group's open-source plan carries, is on for the project since 27
+  September 2026 (the project's audit log; the API read it true on 27 October 2026), and refuses a push whose diffs carry
+  a secret that GitLab's high-confidence patterns find. It reads nothing of a push that changes more than 3,150 paths
+  or 350,000 lines - GitLab skipped it for a push of 8,571 paths on 13 October 2026, and a batch's first push can be
+  that large - nor a binary file or one over 1 MiB, and a pusher can skip it with a push option. So the refusal
+  happens before the push as well, on the pushing machine, with every rule and whatever the push's size: the
   repository ships a pre-commit and a pre-push hook (`build/hooks/`; [CONTRIBUTING.md](CONTRIBUTING.md#secrets))
   that run `build/scan-secrets.py` - gitleaks from the image the `secret_detection` job of the clone's own working
   tree pins, with GitLab's rules and `.gitleaksignore` - and refuse the commit or the push on a finding, or when no

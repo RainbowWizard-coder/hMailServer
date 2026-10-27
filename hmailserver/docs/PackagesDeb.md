@@ -464,7 +464,11 @@ release's own amd64 container. Three routes were possible:
    linix's six cores about the time shown above would take roughly three times
    as long on the small runner, and there are four releases per pipeline.
    GitLab's free tier includes 400 compute minutes a month, and that estimate
-   uses a large share of them on every tag. It was not used.
+   used a large share of them on every tag, so it was not used. Since 13 October
+   2026 the group's open-source plan has 50,000 a month; the arm64 builds stay
+   cross-compiled on the project's runners, and the arm64 install and start jobs
+   can be sent to `saas-linux-medium-arm64` by a switch the owner sets
+   (ContinuousIntegration.md, "GitLab's hosted runners beside the project's").
 
 **Emulation is used only for the install test.** A package that was
 cross-compiled is proved to run by installing it in an arm64 container and

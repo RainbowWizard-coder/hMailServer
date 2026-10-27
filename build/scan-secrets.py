@@ -5,9 +5,13 @@
 
 """Secrets a change would put into the repository, found before it gets there.
 
-GitLab's push protection, which refuses a push that carries a secret, is GitLab
-Ultimate; on the Free tier the secret_detection job (.gitlab/ci/gitlab-security.yml)
-finds one only after the push. This is the scan that runs before: in the two git hooks
+GitLab's secret push protection, which refuses a push that carries a secret, is
+GitLab Ultimate, and is on for the project (the group's open-source plan carries
+it), but it reads only a push's diffs, against GitLab's high-confidence patterns,
+and nothing of a push that changes more than 3,150 paths, as a batch's first push
+can; the secret_detection job (.gitlab/ci/gitlab-security.yml) finds one only after
+the push. This is the scan that runs before, with every rule and whatever the size:
+in the two git hooks
 the repository ships (build/hooks/pre-commit and build/hooks/pre-push, turned on with
 `git config core.hooksPath build/hooks`), and in the maintainer's landing, which scans
 every commit a batch brings to master and pushes nothing when it finds something

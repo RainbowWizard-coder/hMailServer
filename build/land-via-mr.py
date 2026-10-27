@@ -84,8 +84,11 @@ refusal:
      a change of the code that decides whether that copy runs shows too.
   5. GitLab must call the merge request mergeable: the pipeline passed, every
      thread is resolved, it is not a draft, and master has not moved.
-  6. Approvals are read. On GitLab's Free tier anyone with the Developer role
-     can press Approve, but no rule can require it. What this records is whether
+  6. Approvals are read. Anyone with the Developer role can press Approve, and
+     no rule requires it: approval rules, which the group's open-source plan
+     carries, are not configured, the owner having left a second person's
+     approval unmet for the moment (GOVERNANCE.md, "Review"). What this
+     records is whether
      somebody other than the author approved: not the merge request's author,
      not an author of one of its commits, and not another account of either
      (ONE_PERSON), and given after the tip reached the merge request (its diff
@@ -485,9 +488,11 @@ def tip_arrived(api, project, iid, tip):
 
 def current_approvals(approvers, arrived):
     """(the approvals given on the tip, those given before it reached the merge request).
-    Whether a push takes the earlier approvals off is a setting of the paid tiers, which
-    the Free tier's API does not show, so an approval counts for the tip only when it was
-    given after the tip arrived; one whose time is unknown does not, once that is known.
+    Whether a push takes the earlier approvals off is a setting of the paid tiers
+    (reset_approvals_on_push), which a Free namespace's API does not show, and on the
+    group's open-source plan a project setting that can change, so an approval counts
+    for the tip only when it was given after the tip arrived; one whose time is unknown
+    does not, once that is known.
     Where the tip's arrival cannot be read, every approval is taken as it stands."""
     if arrived is None:
         return list(approvers), []

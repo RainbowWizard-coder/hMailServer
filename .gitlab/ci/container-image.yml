@@ -69,8 +69,8 @@
 #                         pipeline (allow_failure, as GitLab's template had it); the
 #                         report, in GitLab's container-scanning format and Trivy's
 #                         own, is the job's artifact, for members with the Developer
-#                         role or above, since the vulnerability report is GitLab
-#                         Ultimate;
+#                         role or above, since the vulnerability report takes the
+#                         default branch's pipelines alone and this runs in a tag's;
 #   container-image-start, container-image-start-arm64
 #                         linix: each platform's pushed image, by its digest, started
 #                         twice as a service through its own entrypoint, once beside
@@ -137,10 +137,11 @@
 # the project's registry, as gitlab-security.yml's two analyzers are: it carries
 # GitLab's Enterprise Edition code (the analyzer gem's ee/, under GitLab's EE licence)
 # and a database built with the GitLab Advisory Database (under GitLab's Security
-# Alert Database Terms), and neither allows a copy to be published. The analyzer on
-# the Free tier ran Trivy over Trivy's own database; this runs Trivy 0.74.0 itself,
-# the release dependency-scan runs, with that day's database downloaded as the job
-# runs, and its image stays on Docker Hub under its digest. build/check-release-chain.py
+# Alert Database Terms), and neither allows a copy to be published. The analyzer runs
+# Trivy over Trivy's own database, and on Ultimate over the legacy GitLab advisory
+# database as well; this runs Trivy 0.74.0 itself, the release dependency-scan runs,
+# with that day's copy of Trivy's own database downloaded as the job runs, and its
+# image stays on Docker Hub under its digest. build/check-release-chain.py
 # holds the two jobs to dependency-scan's image, to build/ci/container-scan.sh and to
 # each platform's image, and the tree to no GitLab container-scanning analyzer or
 # template (docs/ContinuousIntegration.md, "container_scanning's scanner"). kaniko's

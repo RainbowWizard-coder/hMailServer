@@ -1387,7 +1387,12 @@ not while allowed to fail, since every rule above runs in it.
 hostile change: a change's own CI files say which jobs run and what they run,
 and its own copies of the gate scripts run in them. A merge request from a fork
 runs in the fork, with its own CI files, which can leave a gate out, on runners
-its owner chooses, and GitLab's Free tier cannot make a job required: a fork's
+its owner chooses, and nothing in GitLab makes a job required: a security policy
+that enforces jobs in a project's pipelines is an Ultimate feature, which the
+group's open-source plan carries, and applies to the projects it is linked to,
+and none is linked to this one (GitLab's API read no security policy project and
+no policy for it on 27 October 2026; Roadmap3.md, "What GitLab's open-source plan
+offers that the project does not use"). A fork's
 change lands through a batch, or on a pipeline run here, and for a batch
 `build/land-via-mr.py` checks that each gate ran in the project's own pipeline,
 passed, and judged the batch against `master`'s tip, and asks for a person's
@@ -1557,7 +1562,9 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    approved the tip it lands ([GOVERNANCE.md](../../GOVERNANCE.md), "Review").
    An approval given before that tip reached the merge request (the merge
    request's diff versions say when) does not count: whether a push takes
-   earlier approvals off is a setting of the paid tiers. Without one it refuses
+   earlier approvals off is a setting of the paid tiers (`reset_approvals_on_push`,
+   which the group's open-source plan carries and which read true on 27 October
+   2026), and a setting can change. Without one it refuses
    (exit 7): from the first landing after 6.3.4 every merge request needs Zain
    Ul Abidin's approval, the owner's for Zain's own (the owner's decision of 26
    September 2026). The owner alone may override that for one landing with
@@ -4064,7 +4071,11 @@ pattern:
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but
    the owner delete them. A pre-release's tag (`6.3.5-rc1`) and the signatures
-   are outside it. Immutable tags are GitLab Ultimate. `artifacthub.io` is
+   are outside it. Immutable tags, which no role can overwrite or delete, are
+   GitLab Ultimate, which the group's open-source plan carries, and none is set:
+   the registry's tag rules read these two protection rules alone on 27 October
+   2026, and `latest`, `stable` and the `x.y` tag move with every release.
+   `artifacthub.io` is
    outside it too, and it needs the rule more than those: Artifact Hub reads
    from the file under that tag both the image listing's Verified publisher ID
    and the `owners` an ownership claim of the listing is checked against, so
@@ -5036,7 +5047,9 @@ Enterprise Edition code (the analyzer gem's `ee/`, under GitLab's EE licence,
 which allows no copy to be published) and a vulnerability database built with
 the GitLab Advisory Database (`/home/gitlab/.cache/trivy/ee`, 114 MB, under
 GitLab's Security Alert Database Terms, which forbid copying and mirroring it).
-On the Free tier the analyzer read Trivy's own database, which this reads too.
+The analyzer reads Trivy's own database on every tier, and on Ultimate the
+legacy GitLab advisory database as well (GitLab's documentation, *Container
+scanning*, read on 27 October 2026); this reads Trivy's own alone.
 Run as the jobs run it - `.no-github`'s `before_script`, then the script, in the
 pinned image - on server2 on 10 October 2026, it scanned 6.3.6's two published
 images by digest in 18 s each, 19 findings each (15 Medium and 4 Low), each
@@ -5264,26 +5277,43 @@ the commit's pipeline's four reports before the tag.
 ### Before a push: the secret scan
 
 GitLab's secret push protection, which refuses a push that carries a secret, is
-an Ultimate feature. The group has had Ultimate's features since 13 October 2026,
-on GitLab's open-source plan, and the project's security settings read
-`secret_push_protection_enabled` true on 26 October 2026. Beside it, and in its
-place on the Free tier the project was on before, these are built before the push:
+an Ultimate feature, and it is on for the project: the project's audit log has
+"updated `secret_push_protection_enabled` to true" on 27 September 2026, and the
+project's API read it true on 27 October 2026, the group being on GitLab's
+open-source plan since 13 October 2026. It does not read everything a push
+brings (GitLab's documentation, *Secret push protection*, read on 27 October
+2026): only the diffs of the commits pushed, against GitLab's high-confidence
+patterns alone, not a binary file or a file or diff over 1 MiB, and nothing of a
+push that changes more than 3,150 paths or 350,000 lines - the audit log has
+"Secret push protection was skipped: 8571 changed paths exceeds the threshold of
+3150" for a push that created a branch on 13 October 2026, and a batch's first
+push can be that large. A push that times out is let in, a pusher can skip it
+with the push option `secret_push_protection.skip_all` or `[skip secret push
+protection]` in a commit message (GitLab records the skip in the audit log), and
+a push to a fork is the fork's project's, under its own namespace's plan. So
+these stay, each for what push protection does not cover:
 
 - **Hooks the repository ships.** `build/hooks/pre-commit` scans the lines a
   commit adds and `build/hooks/pre-push` the commits a push brings, with
   `build/scan-secrets.py`; `git config core.hooksPath build/hooks` turns them
   on in a clone (CONTRIBUTING.md, "Secrets"). git runs no hook a clone has
-  not turned on, so they refuse nothing in a clone that has not.
+  not turned on, so they refuse nothing in a clone that has not. They refuse
+  before the commit is made, whatever remote it is pushed to - a fork's among
+  them - with every rule, not the high-confidence ones alone (below), whatever
+  the push's size.
 - **The landing.** `build/land-via-mr.py` scans every commit a batch brings to
   `master` (`build/scan-secrets.py`, over the commits from `master` to the tip)
   before it pushes the branch, and pushes nothing when it finds a secret, or when
-  the scan cannot run ([Landing on master](#landing-on-master), step 1).
+  the scan cannot run ([Landing on master](#landing-on-master), step 1). It reads
+  a batch of any size, with every rule, before the batch is on GitLab at all, and
+  no push option or commit message skips it.
 - **`secret_detection`**, above, fails the pipeline of a merge request, or of a
   push to `master`, on a finding `.gitleaksignore` does not name - after the
   push, and not for a push to another branch without a merge request. A batch's
   own pipeline does not run it, and `master`'s runs it only once the batch has
   landed, so for a batch the landing's scan is the one that reads its commits
-  before they reach `master`.
+  before they reach `master`. It reads the commits with every rule, once they
+  are on GitLab, and the `security` schedule reads the whole history.
 - **`.gitignore`** keeps the usual key and credential files (`*.pem`, `*.key`,
   `*.pfx`, `*.p12`, SSH private keys, `.env`, `.netrc` and the like) out of a
   `git add`, but for the test fixtures' directories, which hold throwaway keys on
@@ -5335,11 +5365,18 @@ the tree that decides it, and a gate file (below). `secret_detection` runs it
 before the analyzer and puts what it writes in place of `/gitleaks.toml`, which
 the analyzer reads;
 it runs as root in its image, and the file is replaced in the job's own
-container. GitLab's custom ruleset, which could name another file, is not read
-on the Free tier (the analyzer loads `.gitlab/secret-detection-ruleset.toml` only
-when `GITLAB_FEATURES` names `sast_custom_rulesets`), and gitleaks' `[extend]`
-adds a file's allowlists to its base's and takes none away, so neither could do
-it. `scan-secrets.py` runs the same script in the same image before gitleaks:
+container. GitLab's custom ruleset, which could name another file, is an
+Ultimate feature: the analyzer loads `.gitlab/secret-detection-ruleset.toml` only
+when `GITLAB_FEATURES` names `sast_custom_rulesets`, which it does not on the Free
+tier, and on the group's open-source plan it looks for the file - master's
+`secret_detection` of 27 October 2026 (job 17487843834) logged
+"`.gitlab/secret-detection-ruleset.toml` not found, ruleset customization will be
+disabled". The tree carries none, and `build/check-release-chain.py` refuses a
+tree that does, as it refuses `.gitlab/sast-ruleset.toml`; nor does any CI file,
+or any project or group variable (their names, read on 27 October 2026), set
+`SECRET_DETECTION_RULESET_GIT_REFERENCE`, by which the analyzer would take a
+ruleset from another repository. And gitleaks' `[extend]` adds a file's
+allowlists to its base's and takes none away, so it could not do it either. `scan-secrets.py` runs the same script in the same image before gitleaks:
 its own tree's copy of the script, never the scanned range's. The script names
 the hash of the GitLab table it was written for (`GITLAB_TABLE`), from GitLab's
 `[[allowlists]]` line to the end of the file, and refuses, and both scans with
@@ -5429,7 +5466,7 @@ which this tree has.
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. `dependency-scan-verdict`, after it, fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The checks Scorecard cannot answer on GitLab. The OpenSSF API's copy of the score, which takes results from GitHub's action alone, is the GitHub copy's since 18 October 2026, made by its Scorecard workflow ([OpenSSF Scorecard](#openssf-scorecard)) |
-| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history; and since the group's move to GitLab's open-source plan on 13 October 2026, GitLab's secret push protection, an Ultimate feature (`secret_push_protection_enabled` true, read on 26 October 2026) | Nothing: on the Free tier the project was on before, the refusal |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history; and GitLab's secret push protection, an Ultimate feature, on since 27 September 2026 (the project's audit log; `secret_push_protection_enabled` read true on 27 October 2026), which refuses a push whose diffs carry a secret its high-confidence patterns find | The refusal of a push push protection does not read: one that changes more than 3,150 paths or 350,000 lines, as a batch's first push can (8,571 paths on 13 October 2026), a file over 1 MiB, or a push its push option skips. The hooks and the landing's scan read those before the push ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
 
 ### The jobs, and where each tool comes from
 
@@ -5459,9 +5496,10 @@ sources. That is GitHub's data, not a download from GitHub.
 ### What GitLab's free tier shows
 
 The project was on GitLab's free tier when this was written: its namespace's plan
-read `free` on 25 September 2026. Since 13 October 2026 it reads `opensource`,
-GitLab's open-source plan, which gives Ultimate's features; what follows says
-what the free tier shows.
+read `free` on 25 September 2026. Since 13 October 2026 the group's reads
+`opensource`, GitLab's open-source plan, which gives Ultimate's features. What
+follows says what the free tier shows, which the jobs write for, and what the
+plan shows of the same reports besides.
 
 - **The SAST and dependency-scanning reports** are uploaded with the job as
   reports, and are also in its ordinary artifacts (`security/`). A job uploads
@@ -5472,9 +5510,25 @@ what the free tier shows.
   tier they can be downloaded from the job's page and from the pipeline's
   download menu, and that is all. The pipeline's *Security* tab, the
   merge-request security widget, the vulnerability report and the dependency
-  list are GitLab Ultimate features. The project has had Ultimate since 13
-  October 2026 (GitLab for Open Source, below), and the same reports can appear
-  there with no change to the jobs.
+  list are GitLab Ultimate features, and on the open-source plan the same
+  reports appear there with no change to the jobs. Read through GitLab's API on
+  27 October 2026: the Security tab of `master`'s push pipeline 2992200439
+  counts 1,119 SAST, 3,238 dependency-scanning and no secret-detection findings,
+  and the merge request !32 has the security reports of its head pipeline; the
+  vulnerability report, which takes `master`'s pipelines alone, held 6,172
+  records, 1,853 from the SAST reports and 4,319 from `dependency-scan`'s, the
+  oldest detected on 30 September 2026, the day after the move into the group,
+  whose plan the API then gave as `ultimate_trial` (Roadmap3.md, "The move into
+  the group `hmailserver`") - 5,058 dismissed by the maintainer
+  between 5 and 12 October 2026, each with a reason, 279 resolved, 834 detected
+  and 1 confirmed - and none from `container_scanning`, which runs in a tag's
+  pipeline. A dismissal there holds nothing and waives nothing: the gates read
+  the jobs' own reports with `.gitlab/security-exceptions.yml`, the baselines and
+  the VEX document ([SECURITY.md](../../SECURITY.md), "Source code (static
+  analysis)", Suppressions). The
+  dependency list read empty: it is filled by GitLab's own dependency scanning
+  or a CycloneDX report (`reports:cyclonedx`) of the default branch's pipeline,
+  and the project uploads neither.
 - **The JUnit reports** are what the free tier shows: the pipeline's *Tests* tab
   lists them. So every job writes one as well. The two source scans write one
   test case per tool that fails when anything is new beyond the baseline that no
@@ -5893,8 +5947,11 @@ Left out of Scorecard's checks, each for a reason:
   merge requests, which was then the project's rule. From the first change
   after 6.3.4 every change lands through a merge request that the other
   maintainer approves ([GOVERNANCE.md](../../GOVERNANCE.md), Review), and the
-  approvals are on the merge requests; GitLab's approval rules are a paid
-  feature, so no project setting records the rule for a check to read.
+  approvals are on the merge requests. GitLab's approval rules, a paid feature
+  that the group's open-source plan carries, are not configured (the project's
+  `approval_rules` read `[]` on 27 October 2026), a second person's approval
+  being left unmet for the moment by the owner's decision of 6 October 2026, so
+  no project setting records the rule for a check to read.
 - **Maintained** and **Contributors.** They measure activity and outside
   organisations, not the repository's settings.
 - **CII-Best-Practices.** It looks up an OpenSSF Best Practices badge. The
@@ -6487,13 +6544,15 @@ and the project's page on SonarQube Cloud (the README carries no badge of it);
 triaged in SonarQube Cloud itself: a Blocker or Critical bug or vulnerability is fixed, or marked there as a false positive or
 accepted, with the reason.
 
-### What GitLab gives on the free tier, and what Ultimate would
+### What GitLab gives on each tier, and what the project uses
 
-The project was on GitLab's free tier when this was written (its namespace's plan
-read `free` on 25 September 2026); since 13 October 2026 it reads `opensource`,
-GitLab's open-source plan, with Ultimate's features. What each feature this page
-touches needs, by docs.gitlab.com on 28 September 2026, and the *Here* column as
-it stood on the free tier, but for push protection:
+The project was on GitLab's free tier when this section was first written (its
+namespace's plan read `free` on 25 September 2026); since 13 October 2026 the
+group's reads `opensource`, GitLab's open-source plan, with Ultimate's features.
+What each feature this page touches needs, by docs.gitlab.com on 28 September
+2026 and, for the custom rulesets, the security policies, Advanced SAST, the
+protected environments and the immutable tags, on 27 October 2026; and the
+*Here* column as GitLab's API and `master`'s pipelines read on 27 October 2026:
 
 | Feature | Tier | Here |
 |---|---|---|
@@ -6503,29 +6562,43 @@ it stood on the free tier, but for push protection:
 | Code Quality: a job's `codequality` report in the merge request widget | Free (the pipeline's Code Quality tab is Premium; the diff view and the project summary Ultimate) | No: see below |
 | Coverage in a merge request's diff (Cobertura) | Free | No: the coverage job writes the report, but runs in its weekly schedule's pipeline alone, which is no merge request's head pipeline |
 | Project badges | Free | Yes: the README's badges, in its order (Settings, General, Badges) |
-| Merge request approvals, optional | Free: they "don't prevent merging" | Yes; the landing script requires them |
-| Required approval rules, code owners' approval | Premium, Ultimate | No |
-| External status checks (a merge request waiting on SonarQube Cloud) | Ultimate | No |
-| The Security tab, the merge request security widget, the vulnerability report | Ultimate | No; the same reports would appear there unchanged |
-| Dependency scanning, the dependency list, `reports:cyclonedx` | Ultimate | No: `dependency-scan` and `mr-dependency-check` instead |
-| Licence scanning of CycloneDX files | Ultimate | No |
-| Secret push protection | Ultimate | Yes since the open-source plan (`secret_push_protection_enabled` true, read on 26 October 2026), beside the hooks, the landing's scan and `secret_detection`, which were all there was on the free tier |
-| Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline |
+| Protected container tags | Free | Yes: two rules ([The container image](#the-container-image)) |
+| Merge request approvals, optional | Free: they "don't prevent merging" | Yes; the landing script requires them, but for the owner's override |
+| Required approval rules, code owners' approval | Premium, Ultimate | Not used: the project has no approval rule, and `master`'s rule does not ask for code owners' approval. A second person's approval is left unmet for the moment, by the owner's decision of 6 October 2026, and the landing script holds the rule ([GOVERNANCE.md](../../GOVERNANCE.md), Review) |
+| Protected environments | Premium, Ultimate | Not used: none is protected, so a credential's environment scope keeps it from the jobs that name another environment or none, and the jobs' rules do the rest ([Channels.md](Channels.md)) |
+| External status checks (a merge request waiting on SonarQube Cloud) | Ultimate | Not used: none is set up (above) |
+| The Security tab, the merge request security widget, the vulnerability report | Ultimate | Yes, from the reports the jobs already upload, with no change to them ([What GitLab's free tier shows](#what-gitlabs-free-tier-shows)); a dismissal there waives nothing in a gate |
+| Dependency scanning, the dependency list, `reports:cyclonedx` | Ultimate | Not used: GitLab's dependency-scanning template is not included and no job uploads a CycloneDX report, so the dependency list is empty; `dependency-scan`'s report is the dependency side of the vulnerability report, and `mr-dependency-check` holds a change |
+| Licence scanning of CycloneDX files | Ultimate | Not used: it reads the CycloneDX reports no job uploads |
+| Custom rulesets for SAST and secret detection (`.gitlab/sast-ruleset.toml`, `.gitlab/secret-detection-ruleset.toml`) | Ultimate | Not used, and kept out: both analyzers look for the file on this plan, and `build/check-release-chain.py` refuses a tree that carries either; a change that adds the first is a change of the scan to `build/ci/security-gate.py`, which answers for every finding in the tree ([What the secret scans read](#what-the-secret-scans-read)) |
+| GitLab Advanced SAST | Ultimate | Not used: the SAST template starts its job only where `GITLAB_ADVANCED_SAST_ENABLED` is true, which nothing sets, and `master`'s pipelines have none |
+| Security policies: scan execution, pipeline execution and merge request approval policies | Ultimate | Not used: no security policy project is linked to the project, so no policy makes a job required ([SECURITY.md](../../SECURITY.md), "Every change", What the gates cannot hold) |
+| Secret push protection | Ultimate | Yes, since 27 September 2026 (the project's audit log), beside the hooks, the landing's scan and `secret_detection`, each for what it does not read ([Before a push: the secret scan](#before-a-push-the-secret-scan)) |
+| Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline; the vulnerability report takes the default branch's pipelines alone, so they are not in it |
+| Immutable container tags | Ultimate | Not used: none is set, and `latest`, `stable` and the `x.y` tag move with every release ([The container image](#the-container-image)) |
+| Compute minutes on GitLab's hosted runners | 50,000 a month on the open-source plan | A merge request's pipeline and an unprotected branch's, and a class of the jobs on the project's runners when the owner sets its switch ([GitLab's hosted runners beside the project's](#gitlabs-hosted-runners-beside-the-projects)) |
 
 **GitLab for Open Source** grants Ultimate and 50,000 compute minutes a month to
 a qualifying namespace: every project in it under an OSI-approved licence,
 public, and an organisation that does not "seek to make a profit by selling
 services, by charging for enhancements or add-ons, or by other means". The
 group `hmailserver`, where the project has been since 29 September 2026, has
-been on it since 13 October 2026: its namespace's plan reads `opensource`. With
-Ultimate, and no change to a job, the rows above marked Ultimate can come on:
-the Security tab and the vulnerability report for the reports already uploaded,
-required approvals, external status checks for SonarQube Cloud's quality gate,
-and push protection, which is on.
+been on it since 13 October 2026: its namespace's plan reads `opensource`. The
+*Here* column says what of Ultimate the project uses: the Security tab, the
+merge request widget and the vulnerability report, which took the reports
+already uploaded with no change to a job, and push protection. What the plan
+offers that would let the project hold more than it does - a security policy
+that makes the gate jobs required, required approval rules, an external status
+check for SonarQube Cloud's quality gate, protected environments for the
+publishing jobs - is weighed in Roadmap3.md's row "What GitLab's open-source
+plan offers that the project does not use", the required approval among them as
+the owner left it.
 
 **Why GitLab's Code Quality widget is not used.** On the free tier the widget
 shows the findings of a `codequality` report written by a job of the merge
-request's own pipeline, against the target branch's. The scans that report on
+request's own pipeline, against the target branch's; on the open-source plan
+the pipeline's Code Quality tab and the merge request's diff show the same
+report too, and no more than it holds. The scans that report on
 code quality here, `static-analysis` and `semgrep`, run on linix for protected
 refs only and never in a merge request's pipeline, so they cannot feed it; the
 one scan that does run there, `semgrep-sast`, is already read and enforced by

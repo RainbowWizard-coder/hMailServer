@@ -407,7 +407,9 @@ has done this, once:
    credential without it may release any revision to any channel, `stable` among them,
    and every device following `stable` takes that revision at its next refresh; the CI
    variable can be read by any job of a protected pipeline that declares the
-   `snap-store` environment, since GitLab Free has no protected environments. So
+   `snap-store` environment, since no environment of the project is protected (a
+   Premium feature, which the group's open-source plan carries; none was, read on 27
+   October 2026). So
    `snap-upload` asks the credential what it may do (`snapcraft whoami`) before it
    uploads anything, and refuses one with no channel restriction, one whose channels
    name `stable`, and one of which `whoami` says nothing; and its own release list may

@@ -29,20 +29,27 @@
 # Not included, and why:
 #
 #   Dependency-Scanning   its jobs run only where GITLAB_FEATURES names
-#                         dependency_scanning, which is GitLab Ultimate; on the Free tier
-#                         the template creates no job. dependency-scan (Trivy and OSV,
-#                         on linix) covers the lock files and the CI image.
+#                         dependency_scanning, which is GitLab Ultimate: on the Free tier
+#                         the template creates no job, and on the group's open-source
+#                         plan it would. dependency-scan (Trivy and OSV, on linix)
+#                         covers the lock files and the CI image instead, and its
+#                         report is the dependency side of the vulnerability report.
 #   Container-Scanning    not here, nor anywhere since 10 October 2026: GitLab rebuilds
 #                         its analyzer's image daily and stops serving a digest of it
 #                         within days, and the image may not be copied. The jobs that
 #                         push the release's image run Trivy over it themselves, for a
 #                         v* tag (container_scanning, .gitlab/ci/container-image.yml).
-#   GitLab Advanced SAST  Ultimate only: its jobs never start on the Free tier.
+#   GitLab Advanced SAST  Ultimate only: its job never starts on the Free tier, and on
+#                         the open-source plan only where GITLAB_ADVANCED_SAST_ENABLED
+#                         is true, which nothing sets (the SAST template's rules).
 #
-# On the Free tier each job leaves its report as an artifact that project members
-# with the Developer role or above can download (artifacts:access in the templates);
-# the merge request widget, the pipeline's Security tab and the vulnerability report
-# are GitLab Ultimate. A finding does not fail semgrep-sast: the analyzer writes it to
+# Each job leaves its report as an artifact that project members with the Developer
+# role or above can download (artifacts:access in the templates), which is all the
+# Free tier shows of it; the merge request widget, the pipeline's Security tab and
+# the vulnerability report are GitLab Ultimate, which the group's open-source plan
+# carries, and show the same reports. None of them holds anything: a dismissal in
+# the vulnerability report waives no finding a gate reads. A finding does not fail
+# semgrep-sast: the analyzer writes it to
 # the report and succeeds. It holds a release instead: for a v* tag the
 # release job needs semgrep-sast's report and refuses while it has a finding of
 # severity Critical or High that .gitlab/security-exceptions.yml does not accept, or
@@ -256,9 +263,11 @@ secret_detection:
   script:
     # GitLab's rules, but for the two entries of their global allowlist the header names,
     # derived from the image's own file and put where the analyzer reads them: it takes
-    # /gitleaks.toml whatever the tree says on the Free tier, where a custom ruleset is
-    # not read, and it runs as root in its image, so the file is replaced in the job's own
-    # container. No list of paths is read from the tree: the script, one of the gates'
+    # /gitleaks.toml unless the tree carries a custom ruleset, which it reads on the
+    # group's open-source plan (it looks for .gitlab/secret-detection-ruleset.toml) and
+    # which build/check-release-chain.py refuses, and it runs as root in its image, so
+    # the file is replaced in the job's own container. No list of paths is read from
+    # the tree: the script, one of the gates'
     # own files, is all of it that decides what is left out. The script refuses when
     # GitLab's allowlist is not the one it was written for, and the job fails before
     # anything is scanned (build/ci/secret-detection-rules.sh).

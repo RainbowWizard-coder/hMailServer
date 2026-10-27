@@ -18,8 +18,9 @@
 # build/scan-secrets.py runs its own tree's copy in the same image before gitleaks.
 # GitLab's custom ruleset, which could name another file, is Ultimate's (the analyzer
 # reads .gitlab/secret-detection-ruleset.toml only when GITLAB_FEATURES has
-# sast_custom_rulesets), and gitleaks' [extend] adds a config's allowlists to its
-# base's and takes none away.
+# sast_custom_rulesets), which the group's open-source plan carries: the tree carries
+# no such file, and build/check-release-chain.py refuses a tree that does. And
+# gitleaks' [extend] adds a config's allowlists to its base's and takes none away.
 #
 #   sh build/ci/secret-detection-rules.sh <GitLab's gitleaks.toml> <out>
 #
