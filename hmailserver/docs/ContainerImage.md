@@ -82,7 +82,7 @@ started it, under emulation; no arm64 machine has run it yet.
 | Ports | 25, 110, 143, 465, 587, 993, 995, 4190 and 8045 (the REST API, the Control Deck and the webmail) |
 | Volumes | `/var/lib/hmailserver` (the message store), `/var/log/hmailserver`, `/etc/hmailserver` (`hMailServer.ini`) |
 | Health | port 25 accepts a connection |
-| Start | `docker-entrypoint.sh`: the environment becomes the configuration, the database is created or upgraded, and the server runs in the foreground |
+| Start | `docker-entrypoint.sh`: the environment becomes the configuration, the database is created or upgraded, a new one is secured (from the release after 6.3.7), and the server runs in the foreground |
 | Kind of installation | `HM_INSTALL_KIND=container`, for the update check (Updates, below) |
 
 The database is not in the image: point `HM_DB_*` at a PostgreSQL or MariaDB
@@ -104,12 +104,22 @@ else to wait for it. The REST API is the administration on Linux, and the server
 requires TLS on it anywhere but loopback, so a reachable API means a certificate
 mounted in (`HM_REST_CERTIFICATE_FILE`, `HM_REST_PRIVATE_KEY_FILE`; its key
 readable by the image's user, 999), or the self-signed pair `hmailserver
---apply-new-install-defaults` makes for a new installation. The image alone does not
-run that verb: the packaged systemd unit's and OpenRC service's first starts do, and
-from the release after 6.3.7 so do the Compose file's and the Helm chart's, which
-run it with `--if-marked` before the server (the charts of 6.3.6 and 6.3.7 do not);
-the Compose file points its REST listener at that pair. A container started
-otherwise is secured by hand ([SecureDefaults.md](SecureDefaults.md)).
+--apply-new-install-defaults` makes for a new installation. From the release after
+6.3.7 the image runs that verb itself: its entrypoint, last, before the container's
+command, runs `hmailserver --apply-new-install-defaults --if-marked`, as the packaged
+systemd unit's and OpenRC service's starts do, so that a database its
+`--create-database` made a moment before is secured - a self-signed certificate,
+STARTTLS on 25, 587, 110 and 143, AUTH on 25 a honeypot, a password taken from
+another address only over TLS - whatever the command, `docker run` of the image with
+its own included, and `--create-database` says so. At every other start it does
+nothing, and a failure (run as root, a database not reached) is said and forgiven,
+the server starting all the same, as the unit's `ExecStartPre=-` forgives it. The
+Compose file's and the Helm chart's commands, which run the same step before the
+server from the release after 6.3.7, keep it for an image of 6.3.7 or before, which
+does not; with the image of the release after it, theirs finds no marker and does
+nothing. The Compose file points its REST listener at that pair. The images of 6.3.7
+and before secure nothing by themselves: a container of one started otherwise is
+secured by hand ([SecureDefaults.md](SecureDefaults.md)).
 
 The two passwords stay with the entrypoint. From the release after 6.3.7,
 `HM_DB_PASSWORD` and `HM_ADMIN_PASSWORD`, given plain or as `_FILE`, are out of the
@@ -649,11 +659,14 @@ it). Then the fix is released as a new version; a tag is spent once.
 `build/ci/container-image-start-test.sh` starts the image as a user starts it,
 twice - once beside PostgreSQL and once beside MariaDB, told `HM_DB_TYPE=MySQL` -
 through its own entrypoint, with the database, the administrator password, the
-REST listener and `HM_DB_WAIT_SECONDS` from the environment, and the command
-`hmailserver --apply-new-install-defaults && exec hmailserver --foreground`: the
-new installation is secured - a self-signed certificate, STARTTLS - before the
-server starts, and the REST listener is pointed at that certificate, so the test
-needs no certificate from outside. It then asks each of the two:
+REST listener and `HM_DB_WAIT_SECONDS` from the environment, and the image's own
+command, `exec hmailserver --foreground`: from the release after 6.3.7 the
+entrypoint secures the new installation - a self-signed certificate, STARTTLS -
+before the server starts, and the REST listener is pointed at that certificate, so
+the test needs no certificate from outside, and an image that did not secure itself
+answers port 25 without STARTTLS and has no REST listener. Until then the command
+was `hmailserver --apply-new-install-defaults && exec hmailserver --foreground`,
+which secured it. It then asks each of the two:
 
 - port 25: the banner, `EHLO` answered with `STARTTLS` among the extensions;
 - the REST API on 8045 over TLS: `GET /api/v1/status` refused with 401 without
@@ -682,7 +695,34 @@ needs no certificate from outside. It then asks each of the two:
   (MariaDB's client prints its own errors there, such as 2013 or 2026, in the
   same form, with SQLSTATE HY000). The test prints the client's own words in
   both cases. Only the first is said to need the tags deleted; the second says
-  the test did not finish and is to be run again once its cause is found.
+  the test did not finish and is to be run again once its cause is found;
+- from the release after 6.3.7, its error log after the first start, read over the
+  REST API (`GET /api/v1/logs` and each `ERROR_hmailserver_<date>.log`): no entry
+  but HM5720, and HM5720 exactly when `GET /api/v1/status` says
+  `post_quantum_key_exchange` false, since it is the server saying that the
+  default key exchange groups, which name the hybrid post-quantum ones, were
+  refused and the classical ones taken - with a list that names one, the status
+  says whether it was taken; with one that names none, whether the library has
+  X25519MLKEM768. 6.3.7's create step logged HM5033 (High),
+  "relation hm_dbversion does not exist", at every new installation, asking the
+  new, empty database for its schema version before it made the schema;
+- and the status's `build.post_quantum_key_exchange` and `build.argon2id`, held to
+  what the server does: a TLS handshake against the REST listener with the job
+  image's `openssl s_client` (OpenSSL 3.5) offering X25519MLKEM768 alone, which
+  the server must complete exactly when the status says true and refuse with
+  `handshake_failure` when it says false; and `PreferredHashAlgorithm` set to 5
+  over the REST API, which the server must answer with HM5607 ("... has no
+  Argon2id KDF", scrypt used instead) exactly when the status says `argon2id`
+  false, and under which an account is made over the REST API whose stored hash,
+  read from the database with its own client, must be Argon2id (scheme 5, `$a2$`)
+  when the status says true and scrypt (7, `$s2$`) when it says false, and which
+  must sign in with its password (`GET /api/v1/me`) either way - a server that
+  took the KDF to be there from its headers would store a hash its library cannot
+  derive; the domain is then deleted with the account, and the setting set back
+  to 4. 6.3.7's image said true for both, from the
+  headers it was built against, and had neither. The test needs an `openssl` that
+  can offer X25519MLKEM768, and says so and stops (exit 2) where it cannot; a
+  handshake neither completed nor refused is a test that could not finish.
 
 In the job, the runner starts PostgreSQL (`db`), MariaDB (`mariadb`, the image
 `linux-db-upgrade-mysql` runs, by digest, and as it runs it, with root and no
@@ -1045,9 +1085,12 @@ and a package whose platforms had changed after the tree's were checked.
   that does is the release after 6.3.7's.
 - The image's OpenSSL is Ubuntu 24.04's, 3.0.13, which has neither the hybrid
   post-quantum key exchange groups (OpenSSL 3.5) nor Argon2id (3.2). Its server logs
-  HM5720 when it starts and takes the classical groups, while `GET /api/v1/status`
-  says `true` for both under `build`, which reads the OpenSSL the server was built
-  against, not the one it runs with.
+  HM5720 when it starts and takes the classical groups, and uses scrypt where
+  `PreferredHashAlgorithm` asks for Argon2id (HM5607). 6.3.7's image says `true` for
+  both under `build` in `GET /api/v1/status`, which read the OpenSSL the server was
+  built against (Ubuntu 26.04's 3.5); from the release after 6.3.7 it says `false`
+  for both, as the start test holds it to, read from the OpenSSL the server runs
+  with.
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
 - Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher label

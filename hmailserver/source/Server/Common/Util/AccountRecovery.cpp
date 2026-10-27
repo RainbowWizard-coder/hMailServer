@@ -1230,6 +1230,13 @@ namespace HM
          type = Crypt::ETArgon2id;
       }
 
+      // And scrypt, Argon2id's peer, where the OpenSSL the server runs with has no
+      // Argon2id KDF, as AppPassword::SetPassword does: an empty hash is no code.
+      // A guard only: IniFileSettings reads PreferredHashAlgorithm as 3, 4, 5 or 7,
+      // and 5 as 7 there, so neither the fallback above nor a 5 reaches this.
+      if (type == Crypt::ETArgon2id && !HashCreator::Argon2idAvailable())
+         type = Crypt::ETScrypt;
+
       std::vector<String> made;
 
       for (int index = 0; index < CodesPerAccount; index++)

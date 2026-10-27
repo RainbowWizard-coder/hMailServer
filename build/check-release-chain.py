@@ -6041,7 +6041,7 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
 # build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
 # its line ends LF, with the two image pins of START_TEST_PINS each made
 # START_TEST_PIN_TAKEN_OUT (start_test_digest_problems).
-START_TEST_SHA256 = "bafa4f470edc332240cfb06cc5252b2fa28605847b84e29ef6e50b7d13d0cf5e"
+START_TEST_SHA256 = "f03cf5efcfa302c4de0a44a00da93fd2c58262fda4523c2b89085939734b315e"
 # The images the test starts by hand (--docker), each the default of a variable on a line
 # of its own: the variable, the one that overrides it, the image's name and the alias of
 # the start jobs' service it is. Renovate's regex manager for HM_*_IMAGE moves them, with
@@ -8038,7 +8038,7 @@ def self_test(chain, feed):
            '      absent) id_said="none recorded" ;;', "the id required at either path")
     broken("a token sent where TLS is not checked", "image-deb", 'wget -q -U hmailserver-container-image',
            'wget -q --header "JOB-TOKEN: $CI_JOB_TOKEN" -U hmailserver-container-image', "sends or names a credential")
-    broken("the image started otherwise in the job", "image", "--apply-new-install-defaults && exec", "--foreground || exec",
+    broken("the image started otherwise in the job", "image", '"-c", "exec hmailserver --config', '"-c", "true; exec hmailserver --config',
            "does not run build/ci/container-image-start-test.sh's START_COMMAND")
     broken("the start test without a network of its own", "image", '    FF_NETWORK_PER_BUILD: "true"\n', "",
            "container-image-start has no network of its own")
@@ -8423,8 +8423,8 @@ def self_test(chain, feed):
     broken("the image started once", "image", "      alias: mail-mariadb\n", "      alias: mail2\n",
            "does not start $HM_IMAGE exactly twice")
     broken("the MariaDB start's command changed", "image",
-           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"hmailserver --config",
-           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"true; hmailserver --config",
+           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"exec hmailserver --config",
+           "        HM_DB_HOST: mariadb\n      command: [\"bash\", \"-c\", \"true; exec hmailserver --config",
            "service mail-mariadb does not run build/ci/container-image-start-test.sh's START_COMMAND")
     broken("the database type set for every service", "image", "    HM_DB_NAME: hmailserver\n",
            "    HM_DB_TYPE: PostgreSQL\n    HM_DB_NAME: hmailserver\n", "sets HM_DB_TYPE in the job's own variables")
@@ -8766,7 +8766,7 @@ def self_test(chain, feed):
         broken_start_test(what, edits, needle)
     # What the asks run, which the rules above do not read: held by the script's digest.
     first_local = '  local database="$1" host="$2" smtp_port="$3" rest_port="$4" container="${5:-}"\n'
-    ask_end = '  echo "hm_dbversion in $database: $version"\n  schema="$version"\n'
+    ask_end = '  schema="$version"\n}\n'
     not_held = "is not the script build/check-release-chain.py holds"
     for what, edits in (
             ("ask_image's body behind if false", [(first_local, first_local + "  if false; then\n"),

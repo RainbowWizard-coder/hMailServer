@@ -90,6 +90,20 @@ with `--check`).
 
 ### Security
 
+- **Fixed: the container image secures a new installation by itself, whatever the container's command, as the
+  packaged systemd unit's and OpenRC service's first starts do.** Its entrypoint now runs `hmailserver
+  --apply-new-install-defaults --if-marked` last, before the command: a database the entrypoint's `--create-database`
+  made a moment before gets a self-signed certificate, STARTTLS on 25, 587, 110 and 143, AUTH on 25 a honeypot and a
+  password taken from another address only over TLS, and at every other start the step opens nothing; a failure (run as
+  root, a database not reached) is said and forgiven, the server starting all the same, as the unit's `ExecStartPre=-`
+  forgives it. Until now only the Compose file's and the Helm chart's commands ran it, so a `docker run` of the image
+  with its own command took passwords in the clear on every port, and `--create-database` told such a container's
+  administrator to secure it by hand - and told the Compose file's and the chart's the same, whose next step did it. The
+  entrypoint gives its `--create-database` `HM_ENTRYPOINT_SECURES_NEW_DATABASE=1`, which makes it say that the
+  entrypoint secures the database next; run anywhere else, it says what it said before. The Compose file and the chart
+  keep their own step, for an image published before, whose entrypoint does not run it; with this image it finds no
+  marker and does nothing. SecureDefaults.md, ContainerImage.md and CommandLine.md say so.
+
 - **Fixed: the redaction of a statement's literals in the log and the trace, and the test for the marker that lets a
   statement's error be ignored, now read a literal as each engine does.** `SqlLiteralScanTester` holds both to each
   engine's reading, inside the server on Windows (`ClassTester`) and in `connection-string-tests` on Linux. Found by
@@ -128,6 +142,51 @@ with `--check`).
   (`hmailserver/docs/ContainerImage.md`).
 
 ### Correctness
+
+- **Fixed: `GET /api/v1/status` said `argon2id` and `post_quantum_key_exchange` from the OpenSSL headers the server
+  was compiled against, not the library it runs with.** Both were `OPENSSL_VERSION_NUMBER` comparisons, so the container
+  image - the `.deb` built on Ubuntu 26.04 against OpenSSL 3.5, run on Ubuntu 24.04's 3.0.13 - said `true` for both
+  while it logged HM5720, took the classical key exchange groups and used scrypt where `PreferredHashAlgorithm` asked
+  for Argon2id. `argon2id` is now `HashCreator::Argon2idAvailable()`, the KDF fetched from the library, which every
+  password hash and key derivation already asked first; `post_quantum_key_exchange` is what the TLS setup could set:
+  for a `TlsKeyExchangeGroups` list that names an ML-KEM group, whether `SSL_CTX_set1_groups_list` took it with one the
+  library implements (named outright, or behind `?` or in `DEFAULT`, asked of a context made for the question), and
+  false where it was refused, the finding HM5720 reports; for a list that names none - the Linux suite's configuration
+  writes a classical one - whether the library takes X25519MLKEM768, since the setup never asked. Every context the
+  server sets up records it, or one set up for the question before any is. The route's OpenAPI text says so. The other compile-time OpenSSL tests in
+  the tree guard declarations the headers need (the Argon2 KDF's parameter names in `HashCreator` and `MailboxCrypto`,
+  the certificate-compression option bits in `SslContextInitializer`) and are left as they are; a build against
+  headers older than 3.2 has no Argon2id code and says `false`, which is true of it. Measured on 27 October 2026: the
+  image built from this tree, beside PostgreSQL 18 and beside MariaDB 13, says `false` for both, and the server of the
+  same build in the CI image (OpenSSL 3.5.5) says `true` for both.
+- **Fixed: the reports that a server has no Argon2id named the OpenSSL of the headers, and a build against 3.5 running
+  with 3.0 refused an app password silently.** HM5606 (a stored Argon2id hash cannot be checked) named the headers'
+  version, "this build's OpenSSL (OpenSSL 3.5.x ...) has no Argon2id KDF", of a server whose headers had the KDF and
+  whose library did not, and HM5607 (`PreferredHashAlgorithm` 5 read as 7) called it "this build's OpenSSL"; both now
+  name the library's own version ("the OpenSSL this server runs with (OpenSSL 3.0.13 30 Jan 2024) has no Argon2id
+  KDF"), and a build against older headers says it was built against them. HM5605 is now reported where the library has
+  no KDF as well as where the headers have none: the derivation failed in silence there. An app password a
+  `MinimumAcceptedHashAlgorithm` of 5 raised to Argon2id on such a server was an empty hash, which the store refused as
+  "authenticates nothing": it is now made with scrypt, Argon2id's peer, which that minimum accepts, as
+  `PreferredHashAlgorithm` 5 already was, and the server says so once a load, as HM5607 ("MinimumAcceptedHashAlgorithm
+  is 5 (Argon2id), but ... App passwords, which it raises to Argon2id, are made with 7 (scrypt) instead"), where nothing
+  had said it; on the image built from this tree (OpenSSL 3.0.13) it was said once, and not again when the same value
+  was saved a second time, and an app password made then was stored as scheme 7. Recovery codes' fallback for a hash type that is not a scheme, Argon2id, takes scrypt there too, a case
+  the loader's reading of `PreferredHashAlgorithm` keeps from arising. A mailbox key wrapped with Argon2id that such a
+  server cannot unwrap says why in the same words, and EncryptionAtRest.md says that a new wrap is PBKDF2 where the
+  OpenSSL the server runs with has no Argon2, the container image's among them, where it said a build whose OpenSSL had
+  none.
+- **Fixed: every new installation's create step logged HM5033 (High), "relation hm_dbversion does not exist".**
+  `hmailserver --create-database` asked the new, empty database for its schema version, by reading `hm_dbversion`,
+  before it made the schema, and the error reached the error log - the first entry of every container image's first
+  start, beside PostgreSQL and beside MariaDB alike. The Linux verbs now ask first whether the table is there, in a
+  way that is no error when it is not: PostgreSQL's `to_regclass('hm_dbversion')`, which finds it as an unqualified name
+  in a query is found, along the `search_path`, and MySQL's and MariaDB's `information_schema.tables` in the
+  connection's database. A database that does not answer that question is still HM5033, and `--create-database` then
+  refuses, where it ran the create script before; one that holds the table with no version that can be read is refused
+  too, rather than having the create script run over it. SQL Server is refused on Linux before a connection is made, and
+  the Windows create path (`CreateExternalDatabase`) never asked; neither changes. The image built from this tree logs
+  HM5720 alone at its first start.
 
 - **Fixed: a host added to `AcmeDomains` got no certificate until the one in use was due for renewal (GitLab work
   item 98).** The hourly check looked only at the certificate's dates and the CA's renewal window, never at its names,
@@ -1269,6 +1328,42 @@ with `--check`).
   transports and commands* keeps TLS to clamd, STATS, MULTISCAN and zINSTREAM declined.
 
 ### Build and tests
+
+- **New: the container image's start test asks whether the image secured itself, whether its first start's error
+  log holds anything it need not, and whether the status's OpenSSL answers are what the server does.** The image is
+  started on its own command (`START_COMMAND`, `exec hmailserver --foreground`), so an image whose entrypoint does not
+  secure a new installation answers port 25 without STARTTLS and has no REST listener. Each of the two starts is then
+  asked, over the REST API: the error logs after the first start, which must hold no entry but HM5720, and HM5720
+  exactly when the status says `post_quantum_key_exchange` false; a TLS handshake against the REST listener with the
+  job image's `openssl s_client`, offering X25519MLKEM768 alone, which must be completed exactly when the status says
+  true and refused with `handshake_failure` when it says false; and `PreferredHashAlgorithm` set to 5, which must be
+  answered with HM5607 exactly when the status says `argon2id` false, and under which an account made over the REST
+  API must be stored, as the database's own client reads it, under Argon2id (scheme 5, `$a2$`) when the status says
+  true and scrypt (7, `$s2$`) when it says false, and must sign in with its password (`GET /api/v1/me`) either way;
+  the status and HM5607 ask one function, and the account holds it to the library itself, since a server that took the
+  KDF from its headers would store a hash it cannot derive. The domain is then deleted and the setting set back to 4.
+  The test needs an `openssl`
+  that can offer X25519MLKEM768, OpenSSL 3.5 or later, as the CI image's is, and stops (exit 2) without one.
+  `container-image-start`'s and `container-image-start-arm64`'s services start the image on that command, and
+  `build/check-release-chain.py` (a gate file) holds the test's new SHA-256 and has its two controls of the services'
+  command moved to it. `tls-options-tests` (`SslContextInitializerTester`) holds the post-quantum finding to the
+  library's own answer - whether a new context takes X25519MLKEM768 - for the default list, a classical one, one naming
+  no hybrid that OpenSSL refuses, one that adds no group and one with `?`, and to false for a list naming
+  X25519MLKEM768 that OpenSSL refuses; inside the service, through `ClassTester`, it runs only the two lists that
+  cannot fall back and report HM5720 into the server's own error log: the default, where the library has the hybrids,
+  and the classical one. Run on 27 October 2026 on an x86-64 Ubuntu machine
+  with Docker 29, in the jobs' images: the image built with `build/ci/linux-image.sh` in kaniko's image from this tree's
+  `.deb` (`linux-build.sh` with clang, every tester passing) passed the whole test beside PostgreSQL 18 and MariaDB 13,
+  schema 6108, each start's status `false` for both, its error log one HM5720, the handshake refused (alert 40) and
+  HM5607 naming OpenSSL 3.0.13, the account stored as `7 $s2$` and signed in (200). The image built the same way from
+  the tree before this change failed it at port 25 (no STARTTLS); started as the test started it before, with the verb
+  in its command, it failed at the error log (HM5033), with that step taken out at the handshake (`true` and refused),
+  and with both taken out at `PreferredHashAlgorithm` (`true` and HM5607). A server of this tree whose
+  `Argon2idAvailable()` answered from the headers, built and imaged the same way, passed every step before the
+  account, its status saying `argon2id` true and `PreferredHashAlgorithm` 5 taken without HM5607, and failed there:
+  the account was stored as scheme 5 with an empty hash (HM5605) and its sign-in answered 401. The same `.deb` in an image
+  whose base was the CI image's Ubuntu 26.04 (OpenSSL 3.5.5), a trial and not this image, passed the whole test with
+  `true` for both, no error-log entry, X25519MLKEM768 negotiated and the account stored as `5 $a2$` and signed in.
 
 - **New: `build/check-com-abi.py` holds every COM interface to the members the last release gave it, in their
   places.** A dual interface's vtable follows the order its members are declared in, so a member declared above one

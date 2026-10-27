@@ -71,20 +71,26 @@ namespace HM
       {
 #if OPENSSL_VERSION_NUMBER < 0x30200000L
          // The Argon2 KDF and its OSSL_KDF_PARAM_ARGON2_* names arrived in OpenSSL
-         // 3.2. A build against 3.0 has neither, so this cannot even be spelled;
-         // Argon2idAvailable() is false on such a build and every caller asks it
-         // first. Reported here too, because a caller that did not ask would
-         // otherwise see a bare false.
+         // 3.2. A build against 3.0's headers has neither, so this cannot even be
+         // spelled; Argon2idAvailable() is false on such a build and every caller
+         // asks it first. Reported here too, because a caller that did not ask
+         // would otherwise see a bare false.
          (void) password; (void) salt; (void) saltLen; (void) memoryKiB; (void) timeCost;
          (void) parallelism; (void) out; (void) outLen;
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5605, "HashCreator::DeriveArgon2id",
-            "This build's OpenSSL (" OPENSSL_VERSION_TEXT ") has no Argon2id KDF; OpenSSL 3.2 or later has it. "
-            "No Argon2id hash can be produced or checked by this build.");
+            String("No Argon2id hash can be produced or checked: " + HashCreator::Argon2idUnavailableReason() + "."));
          return false;
 #else
+         // The headers have the KDF; the library this process runs with may not -
+         // a build against 3.5 running with Ubuntu 24.04's 3.0, as the container
+         // image runs. Reported as on a build without it, and for the same reason.
          EVP_KDF *kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
          if (kdf == nullptr)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5605, "HashCreator::DeriveArgon2id",
+               String("No Argon2id hash can be produced or checked: " + HashCreator::Argon2idUnavailableReason() + "."));
             return false;
+         }
 
          EVP_KDF_CTX *kctx = EVP_KDF_CTX_new(kdf);
          EVP_KDF_free(kdf);
@@ -131,6 +137,20 @@ namespace HM
          return true;
       }();
       return available;
+#endif
+   }
+
+   AnsiString
+   HashCreator::Argon2idUnavailableReason()
+   {
+#if OPENSSL_VERSION_NUMBER < 0x30200000L
+      return AnsiString("this server was built against " OPENSSL_VERSION_TEXT
+         ", which has no Argon2id KDF; a build against OpenSSL 3.2 or later has it");
+#else
+      // The library's version, which is what lacks the KDF: the headers this was
+      // compiled against have it.
+      return AnsiString("the OpenSSL this server runs with (") + OpenSSL_version(OPENSSL_VERSION) +
+         ") has no Argon2id KDF; OpenSSL 3.2 or later has it";
 #endif
    }
 
@@ -443,9 +463,9 @@ namespace HM
       if (!Argon2idAvailable())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5606, "HashCreator::ValidateArgon2id",
-            "A stored Argon2id password hash cannot be checked: this build's OpenSSL (" OPENSSL_VERSION_TEXT
-            ") has no Argon2id KDF. The logon is refused. Either run a build against OpenSSL 3.2 or later, "
-            "or have the account's password set again so it is stored under PreferredHashAlgorithm.");
+            String("A stored Argon2id password hash cannot be checked: " + Argon2idUnavailableReason() + ". The logon is refused. "
+            "Either run the server with OpenSSL 3.2 or later, or have the account's password set again so it is "
+            "stored under PreferredHashAlgorithm."));
          return false;
       }
 

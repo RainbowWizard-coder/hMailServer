@@ -12,11 +12,15 @@
 #include "../Util/Utilities.h"
 
 #include <openssl/core_names.h>
+#include <openssl/crypto.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/params.h>
 #include <openssl/rand.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
+#include <atomic>
 #include <cstring>
 #include <iomanip>
 #include <mutex>
@@ -946,8 +950,155 @@ namespace HM
          "SslContextInitializer::SetKeyExchangeGroups_", message);
    }
 
+   namespace
+   {
+      // What SetKeyExchangeGroupList_ found when it last gave a context its groups:
+      // -1 before any context has been given them, 0 when the list it was left with
+      // holds no post-quantum group, 1 when it holds one.
+      std::atomic<int> postQuantumFinding(-1);
+
+      // Whether the OpenSSL this process runs with implements the TLS group of that
+      // name: asked of a context made for the question and freed again, so that no
+      // context a listener or a client uses has its list changed by the question.
+      bool GroupImplemented(const AnsiString &name)
+      {
+         SSL_CTX *scratch = SSL_CTX_new(TLS_method());
+         if (scratch == nullptr)
+         {
+            ERR_clear_error();
+            return false;
+         }
+
+         const bool implemented = SSL_CTX_set1_groups_list(scratch, name.c_str()) == 1;
+         SSL_CTX_free(scratch);
+         ERR_clear_error();
+         return implemented;
+      }
+   }
+
+   bool
+   SslContextInitializer::PostQuantumKeyExchange()
+   {
+      if (postQuantumFinding.load() < 0)
+      {
+         // No listener and no client has set up a context yet: one is set up as a
+         // listener's is, from the same setting, and given its groups the same way,
+         // which is the TLS setup's own answer rather than a second one. A list the
+         // OpenSSL refuses is reported here as HM5720, once, as the first listener
+         // would report it.
+         boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+         SetKeyExchangeGroups_(context);
+      }
+
+      return postQuantumFinding.load() == 1;
+   }
+
+   bool
+   SslContextInitializer::OffersPostQuantum_(const AnsiString &acceptedList)
+   {
+      // The list read as OpenSSL reads it: ':' separates the groups, and so does the
+      // '/' of OpenSSL 3.5's tuples; '*' (a key share for it) changes nothing here;
+      // '-' takes a group out again; '?' adds a group only if this OpenSSL
+      // implements it; DEFAULT is OpenSSL's own list, which from OpenSSL 3.5 begins
+      // with X25519MLKEM768. A post-quantum group is one whose name holds MLKEM -
+      // X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024, and MLKEM512 to
+      // MLKEM1024 on their own - as the Linux suite reads the setting
+      // (NotOnThisServer.cs, IniNamesClassicalGroups).
+      AnsiString flattened = acceptedList;
+      flattened.Replace("/", ":");
+
+      // Each group the list adds, in order, with whether it is added for certain.
+      std::vector<std::pair<AnsiString, bool>> added;
+
+      std::vector<AnsiString> entries = StringParser::SplitString(flattened, ":");
+      for (AnsiString entry : entries)
+      {
+         bool conditional = false;
+         bool removal = false;
+         while (!entry.IsEmpty() && (entry.GetAt(0) == '?' || entry.GetAt(0) == '*' || entry.GetAt(0) == '-'))
+         {
+            if (entry.GetAt(0) == '?')
+               conditional = true;
+            else if (entry.GetAt(0) == '-')
+               removal = true;
+            entry = entry.Mid(1);
+         }
+
+         if (entry.IsEmpty())
+            continue;
+
+         if (entry.CompareNoCase("DEFAULT") == 0)
+         {
+            if (!removal)
+               added.push_back(std::make_pair(AnsiString("X25519MLKEM768"), false));
+            continue;
+         }
+
+         if (removal)
+         {
+            for (auto group = added.begin(); group != added.end();)
+               group = group->first.CompareNoCase(entry.c_str()) == 0 ? added.erase(group) : group + 1;
+            continue;
+         }
+
+         added.push_back(std::make_pair(entry, !conditional));
+      }
+
+      // A group named outright is one OpenSSL implements, or it would have refused
+      // the whole list.
+      for (const auto &group : added)
+      {
+         if (group.second && group.first.ContainsNoCase("MLKEM"))
+            return true;
+      }
+
+      // One it adds only if it implements it is asked about.
+      for (const auto &group : added)
+      {
+         if (!group.second && group.first.ContainsNoCase("MLKEM") && GroupImplemented(group.first))
+            return true;
+      }
+
+      return false;
+   }
+
+   bool
+   SslContextInitializer::PostQuantumFinding_(const AnsiString &configuredGroups, bool accepted)
+   {
+      // Whether this server can use a hybrid post-quantum group, from what the TLS
+      // setup found when it set the configured list: a list that names one and was
+      // taken holds it (OffersPostQuantum_); a list that names one and was refused -
+      // HM5720, as OpenSSL 3.0 refuses the default list - could not be set, so the
+      // contexts have none. A list that names none - a classical one an
+      // administrator chose, or that the Linux suite's configuration writes - never
+      // asked OpenSSL about them, and the library is asked once instead, whether a
+      // context made for the question takes X25519MLKEM768: the server could use it
+      // with the setting changed, which is what the capability says.
+      bool names = false;
+      AnsiString flattened = configuredGroups;
+      flattened.Replace("/", ":");
+      for (AnsiString entry : StringParser::SplitString(flattened, ":"))
+      {
+         if (entry.ContainsNoCase("MLKEM") && entry.Find("-") < 0)
+            names = true;
+         if (entry.CompareNoCase("DEFAULT") == 0 || entry.CompareNoCase("?DEFAULT") == 0)
+            names = true;
+      }
+
+      if (!names)
+         return GroupImplemented("X25519MLKEM768");
+
+      return accepted && OffersPostQuantum_(configuredGroups);
+   }
+
    void
    SslContextInitializer::SetKeyExchangeGroups_(boost::asio::ssl::context& context)
+   {
+      SetKeyExchangeGroupList_(context, IniFileSettings::Instance()->GetTlsKeyExchangeGroups());
+   }
+
+   bool
+   SslContextInitializer::SetKeyExchangeGroupList_(boost::asio::ssl::context& context, const AnsiString &groups)
    {
       // The classical-only list hMailServer used before post-quantum groups
       // existed. Every peer we have ever interoperated with supports one of these,
@@ -957,7 +1108,7 @@ namespace HM
       // TLS down on every listener at once.
       const AnsiString classicalGroups = "secp384r1:x25519:secp256r1";
 
-      AnsiString configuredGroups = IniFileSettings::Instance()->GetTlsKeyExchangeGroups();
+      AnsiString configuredGroups = groups;
 
       configuredGroups.Replace("\r", "");
       configuredGroups.Replace("\n", "");
@@ -981,7 +1132,15 @@ namespace HM
          else if (1 == SSL_CTX_set1_curves_list(ssl, configuredGroups.c_str()))
          {
             LOG_DEBUG("SslContextInitializer::SetKeyExchangeGroups_ - TLS key exchange groups set to " + String(configuredGroups));
-            return;
+
+            // What GET /api/v1/status says, from the OpenSSL that took the list
+            // rather than the version of the headers this was compiled against. A
+            // build against OpenSSL 3.5 running with Ubuntu 24.04's 3.0 has the
+            // default list, which names the hybrid groups, refused (HM5720, below),
+            // and so says it has none.
+            const bool postQuantum = PostQuantumFinding_(configuredGroups, true);
+            postQuantumFinding.store(postQuantum ? 1 : 0);
+            return postQuantum;
          }
          else
          {
@@ -1002,7 +1161,18 @@ namespace HM
          ReportGroupListOnce_(ErrorManager::High, 5721,
             Formatter::Format("Failed to set the fallback TLS key exchange groups '{0}'. Message: {1}. TLS will use the OpenSSL default groups.",
                String(classicalGroups), String(GetOpenSslError_())));
+
+         // OpenSSL's own list, which holds X25519MLKEM768 where it implements it.
+         const bool postQuantum = OffersPostQuantum_("DEFAULT");
+         postQuantumFinding.store(postQuantum ? 1 : 0);
+         return postQuantum;
       }
+
+      // The classical groups: none of them post-quantum, and a list that named one
+      // could not be set.
+      const bool postQuantum = PostQuantumFinding_(configuredGroups, false);
+      postQuantumFinding.store(postQuantum ? 1 : 0);
+      return postQuantum;
    }
 
    namespace
@@ -1065,6 +1235,94 @@ namespace HM
 
       TestFloor_();
       TestInitClient_();
+      TestPostQuantumFinding_();
+   }
+
+   void
+   SslContextInitializerTester::TestPostQuantumFinding_()
+   {
+      // The library's own answer, asked here as plainly as it can be: whether a new
+      // context takes X25519MLKEM768 as its one group. Neither the headers' version
+      // nor the code under test is asked.
+      bool libraryHasHybrid = false;
+      {
+         SSL_CTX *probe = SSL_CTX_new(TLS_method());
+         CheckTlsOptions(probe != nullptr, "no context could be made to ask OpenSSL about X25519MLKEM768");
+         libraryHasHybrid = SSL_CTX_set1_groups_list(probe, "X25519MLKEM768") == 1;
+         SSL_CTX_free(probe);
+         ERR_clear_error();
+      }
+
+      const std::string runtime = OpenSSL_version(OPENSSL_VERSION);
+      const std::string says = libraryHasHybrid ? "implements X25519MLKEM768" : "does not implement X25519MLKEM768";
+
+      // The reading of a list OpenSSL has taken, which needs no library for a group
+      // named outright.
+      CheckTlsOptions(SslContextInitializer::OffersPostQuantum_("X25519MLKEM768:x25519"),
+         "a list naming X25519MLKEM768 outright is not read as offering a post-quantum group");
+      CheckTlsOptions(SslContextInitializer::OffersPostQuantum_("*X25519MLKEM768/x25519:secp256r1"),
+         "a list naming X25519MLKEM768 with a key share, in a tuple, is not read as offering a post-quantum group");
+      CheckTlsOptions(!SslContextInitializer::OffersPostQuantum_("x25519:secp384r1:secp256r1"),
+         "a list of the classical groups is read as offering a post-quantum group");
+      CheckTlsOptions(!SslContextInitializer::OffersPostQuantum_("X25519MLKEM768:-X25519MLKEM768:x25519"),
+         "a list that takes X25519MLKEM768 out again is read as offering it");
+      CheckTlsOptions(SslContextInitializer::OffersPostQuantum_("?X25519MLKEM768:x25519") == libraryHasHybrid,
+         "a list adding X25519MLKEM768 only if OpenSSL implements it is not read as " + runtime + ", which " + says + ", answers");
+      CheckTlsOptions(SslContextInitializer::OffersPostQuantum_("DEFAULT") == libraryHasHybrid,
+         "OpenSSL's DEFAULT list is not read as " + runtime + ", which " + says + ", answers");
+
+      // A context given its groups as a listener's is, from the server's default
+      // setting and from others: what PostQuantumKeyExchange then says is the
+      // library's answer - a build against OpenSSL 3.5's headers running with 3.0's
+      // library says false - for a list that names the hybrids and is taken, and for
+      // one that names none (the setup did not ask, and the library is asked); a
+      // list that names them and is refused could not set them, whatever the
+      // library has.
+      //
+      // A list that falls back is reported (HM5720) as a listener's would be. Inside
+      // the service, through ClassTester, that would be an entry in the server's own
+      // error log, so there only the lists that cannot fall back are set: the
+      // classical one, and the default where the library has the hybrids.
+      const bool inService = Configuration::Instance()->GetPropertySet() ? true : false;
+
+      struct Case
+      {
+         const char *list;
+         bool expected;
+         bool mayFallBack;
+         const char *what;
+      };
+      const Case cases[] =
+      {
+         { "X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1", libraryHasHybrid, !libraryHasHybrid, "the default TlsKeyExchangeGroups" },
+         { "x25519:secp256r1", libraryHasHybrid, false, "a classical list" },
+         { "nosuchgroup:x25519", libraryHasHybrid, true, "a list naming no hybrid that OpenSSL refuses, which falls back to the classical groups" },
+         { "-x25519", libraryHasHybrid, true, "a list that adds no group, which falls back to the classical groups" },
+         { "nosuchgroup:X25519MLKEM768:x25519", false, true, "a list naming X25519MLKEM768 that OpenSSL refuses, which falls back to the classical groups" },
+         { "?X25519MLKEM768:x25519", libraryHasHybrid, true, "a list adding X25519MLKEM768 only where it is implemented" },
+      };
+
+      for (const Case &item : cases)
+      {
+         if (inService && item.mayFallBack)
+            continue;
+
+         boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+         const bool set = SslContextInitializer::SetKeyExchangeGroupList_(context, item.list);
+         CheckTlsOptions(set == item.expected,
+            std::string(item.what) + " (" + item.list + ") was found to " + (set ? "give" : "not give") +
+            " the server a post-quantum group, on " + runtime + ", which " + says);
+         CheckTlsOptions(SslContextInitializer::PostQuantumKeyExchange() == item.expected,
+            std::string("after ") + item.what + " (" + item.list + "), PostQuantumKeyExchange does not say what was found");
+      }
+
+      // Inside the service, the finding goes back to what the server's own setting
+      // gives, which the status route reads.
+      if (inService)
+      {
+         boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+         SslContextInitializer::SetKeyExchangeGroups_(context);
+      }
    }
 
    void

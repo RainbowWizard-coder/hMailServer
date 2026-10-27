@@ -70,15 +70,18 @@ your own is there, that pair can be named in the two settings, as the container
 image's start test names it ([ContainerImage.md](ContainerImage.md), "The start
 test"): `self-signed-certificate.pem` and `self-signed-key.pem` in the data
 directory's `Certificates` folder, `/var/lib/hmailserver/Certificates` from the
-Linux packages and in the container image. A container is not given the pair by
-itself, and the verb that gives it must run with the server's own
-`/etc/hmailserver`: the entrypoint's `--create-database` writes the
+Linux packages and in the container image. From the release after 6.3.7 the
+image's entrypoint makes the pair at a new installation's first start, running
+`--apply-new-install-defaults --if-marked` before the container's command, whatever
+it is ([SecureDefaults.md](SecureDefaults.md), "The container image"). An image of
+6.3.7 or before does not, and the verb that gives the pair must run with the
+server's own `/etc/hmailserver`: the entrypoint's `--create-database` writes the
 installation's stored-secrets key there ([SecretsAtRest.md](SecretsAtRest.md),
 "Who makes it"), and a container that keeps it in an anonymous volume of its own -
 a one-off `docker run --rm` given the data volume alone - takes the key away with
 it, after which the server seals nothing and says so at every start (`HM7495`).
 Keep `/etc/hmailserver` in a named volume, as `hm-etc` is in the image's
-`docker-compose.yml`, and give the server's container the command
+`docker-compose.yml`, and give such an image's container the command
 
 ```bash
 bash -c 'hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground'
@@ -96,10 +99,11 @@ volume>:/var/lib/hmailserver -v <its configuration volume>:/etc/hmailserver
 --apply-new-install-defaults`, which exits 0 - and then start the server on the
 image's own command with the same volumes: without the network the one-off
 cannot reach a database container by its name, and without the host name it
-makes the certificate for its own. The start test runs the verb before the
-server, joined by `&&`, only because it starts each container once: the verb
-decides a database once and exits 5 at every later start, so a container started
-that way would not start again after a restart. The two settings are set as
+makes the certificate for its own. The start test of 6.3.7 and before ran the
+verb before the server, joined by `&&`, only because it started each container
+once: the verb decides a database once and exits 5 at every later start, so a
+container started that way would not start again after a restart; from the release
+after 6.3.7 it starts the image on its own command. The two settings are set as
 `RestApiPort` is set ("What neither client does", below) and taken when the
 listener next starts; empty them again once the ACME client has a certificate,
 which the listener takes only while they are empty. The certificate names the

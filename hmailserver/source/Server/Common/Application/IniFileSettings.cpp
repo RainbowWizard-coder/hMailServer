@@ -409,17 +409,19 @@ namespace HM
          v.preferred_hash_algorithm_ = 4;
       }
 
-      // Argon2id (5) is only a choice on a build whose OpenSSL has the KDF - 3.2
-      // or later; a Linux build against a distribution's 3.0 does not. Read as
-      // scrypt (7), the other memory-hard scheme, and reported: a preference this
-      // build cannot honour must not become an empty hash stored for a password.
+      // Argon2id (5) is only a choice where the OpenSSL the server runs with has
+      // the KDF - 3.2 or later; a Linux build against a distribution's 3.0 does
+      // not, and nor does a build against 3.5 running with 3.0's library, as the
+      // container image does. Read as scrypt (7), the other memory-hard scheme,
+      // and reported: a preference this server cannot honour must not become an
+      // empty hash stored for a password.
       if (v.preferred_hash_algorithm_ == 5 && !HashCreator::Argon2idAvailable())
       {
          if (ReportThisLoad_(_T("PreferredHashAlgorithm")))
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5607, "IniFileSettings::LoadSettings",
-               "PreferredHashAlgorithm is 5 (Argon2id), but this build's OpenSSL has no Argon2id KDF - OpenSSL 3.2 or later has it. "
-               "Using 7 (scrypt) instead, which is memory-hard as well. Set it to 7 or 4 to choose deliberately.");
+               String("PreferredHashAlgorithm is 5 (Argon2id), but " + HashCreator::Argon2idUnavailableReason() + ". "
+               "Using 7 (scrypt) instead, which is memory-hard as well. Set it to 7 or 4 to choose deliberately."));
          }
 
          v.preferred_hash_algorithm_ = 7;
@@ -430,6 +432,23 @@ namespace HM
       // which Argon2id and scrypt are peers) are refused. 0 (ETNone) disables the
       // policy and preserves prior behaviour.
       v.minimum_accepted_hash_algorithm_ = ReadIniSettingInteger_("Settings", "MinimumAcceptedHashAlgorithm", 0);
+
+      // A minimum of 5 (Argon2id) raises every app password to Argon2id
+      // (AppPassword::SetPassword), and where the OpenSSL the server runs with has
+      // no Argon2id KDF it is made with scrypt instead, its peer in StrengthRank,
+      // which the minimum accepts as it accepts Argon2id. Kept as it is - it is a
+      // floor, and scrypt meets it - and reported, as a PreferredHashAlgorithm of 5
+      // is above, so that the scheme the app passwords are made with is said.
+      if (v.minimum_accepted_hash_algorithm_ == 5 && !HashCreator::Argon2idAvailable())
+      {
+         if (ReportThisLoad_(_T("MinimumAcceptedHashAlgorithm")))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5607, "IniFileSettings::LoadSettings",
+               String("MinimumAcceptedHashAlgorithm is 5 (Argon2id), but " + HashCreator::Argon2idUnavailableReason() + ". "
+               "App passwords, which it raises to Argon2id, are made with 7 (scrypt) instead, which it accepts as Argon2id's peer. "
+               "Set it to 7 to choose deliberately."));
+         }
+      }
 
       // Optional server-wide secret ("pepper") HMAC-mixed into Argon2id password hashes
       // (see Crypt::EnCrypt/Validate). Empty disables it (no behaviour change). It only

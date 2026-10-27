@@ -220,10 +220,11 @@ sudo systemctl edit hmailserver
 `--create-database` says which of these it found when it made the database: that
 the first start under systemd secures it, if it comes within a day of
 `--create-database`, and a run by hand after that; that it will once the unit may write to
-the data directory; that the OpenRC service's next start does (below); or - with a
-configuration other than the packaged one, or on a machine neither systemd runs
-nor OpenRC is installed on, such as a container - that nothing will do it by
-itself, and the command that does.
+the data directory; that the OpenRC service's next start does (below); that the
+container image's entrypoint does next (below); or - with a configuration other than
+the packaged one, or on a machine neither systemd runs nor OpenRC is installed on and
+outside the image's entrypoint - that nothing will do it by itself, and the command
+that does.
 
 The Arch package installs the same unit, and `--create-database` is the same
 command there, so its first start does the same; it needs no maintainer script
@@ -236,21 +237,29 @@ within the same day. `--create-database` says so where `openrc-run` and that
 service are installed and the configuration is the packaged one; OpenRC has no
 `ReadWritePaths` to add a moved `DataFolder` to.
 
-**The Compose file and the Helm chart**
-([ContainerImage.md](ContainerImage.md)) run the same verb, from the release
-after 6.3.7: their container's command is `hmailserver --config
+**The container image** ([ContainerImage.md](ContainerImage.md)) runs the same
+verb from the release after 6.3.7: its entrypoint, after it has created or
+upgraded the database, stored the environment's settings and applied a profile,
+runs `hmailserver --config /etc/hmailserver/hMailServer.ini
+--apply-new-install-defaults --if-marked` as the image's user, before the
+container's command, whatever that command is. A failure is said and forgiven, as
+the unit's `-` forgives it, and the command runs all the same. The entrypoint gives
+its `--create-database` `HM_ENTRYPOINT_SECURES_NEW_DATABASE=1`, by which that step
+knows it, and says that the entrypoint secures the database next; a
+`--create-database` run otherwise in a container says what it says anywhere else.
+So `docker run` of the image with its own command secures a new installation, as
+the Compose file and the Helm chart do. Their commands, from the release after 6.3.7,
+run the same verb before the server (`hmailserver --config
 /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec
-hmailserver --config /etc/hmailserver/hMailServer.ini --foreground`, after the
-image's entrypoint has created the database and stored the environment's
-settings, as the image's user. The `;` forgives a failure, as the unit's `-`
-does. So their first start secures the database the entrypoint's
-`--create-database` made a moment before, although that step says nothing will:
-the image alone does not, and the step cannot tell what runs it. The Compose file
-also gives the REST listener the pair this makes. The charts of 6.3.6 and 6.3.7 do
-not run it.
+hmailserver --config /etc/hmailserver/hMailServer.ini --foreground`, the `;`
+forgiving a failure), which with the image of that release finds no marker and does
+nothing; it is kept for an image of 6.3.7 or before, whose entrypoint does not run
+it and whose `--create-database` says that nothing will, and for which their step is
+what secures the database. The Compose file also gives the REST listener the pair
+this makes. The charts of 6.3.6 and 6.3.7 do not run it.
 
-**By hand**, for anything else - the AppImage, a container started otherwise than
-by the Compose file or the chart, a server started
+**By hand**, for anything else - the AppImage, a container of an image of 6.3.7 or
+before started otherwise than by the Compose file or the chart, a server started
 by hand rather than by the unit, or a database whose defaults were left for
 later - with the service stopped, and on Linux as the service's user: the verb
 refuses to run as root, whose key the service could not read. With a

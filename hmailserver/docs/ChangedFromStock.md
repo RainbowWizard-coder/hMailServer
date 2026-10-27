@@ -236,8 +236,8 @@ It is the value **stored**, not the value the server settled on where the two
 differ. The loader clamps a handful and says so: `PasswordHashIterations` outside
 the range this server will derive a hash with is reported as HM5561 and the
 built-in work factor used, and a `PreferredHashAlgorithm` that is not a
-password-hashing scheme is reported as HM5528 (or HM5607, for Argon2id on a build
-whose OpenSSL has no Argon2id) and another used. What is listed there is what
+password-hashing scheme is reported as HM5528 (or HM5607, for Argon2id where the
+OpenSSL the server runs with has no Argon2id) and another used. What is listed there is what
 somebody set — which is what this list is for, since a value that did not take is
 exactly the kind of thing being looked for — and the error log says what the
 server did with it.

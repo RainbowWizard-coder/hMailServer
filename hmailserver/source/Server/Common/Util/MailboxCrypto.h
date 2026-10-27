@@ -29,9 +29,9 @@
 //                      recovery key's private half are: a key-encryption key
 //                      derived from the secret with Argon2id (RFC 9106, the
 //                      server's own password-hash parameters, never below
-//                      19 MiB and two passes) - or, on a build whose OpenSSL
-//                      has no Argon2 (3.0, 3.1), PBKDF2-HMAC-SHA256 at 600,000
-//                      iterations - and AES-256-GCM under it.
+//                      19 MiB and two passes) - or, where the OpenSSL the
+//                      server runs with has no Argon2 (3.0, 3.1), PBKDF2-HMAC-
+//                      SHA256 at 600,000 iterations - and AES-256-GCM under it.
 //
 // THE TEXT FORMS, stored in the database and never parsed from anywhere else:
 //
@@ -199,7 +199,8 @@ namespace HM
       static bool Decrypt(const std::string &key, const std::string &nonce, const std::string &aad, const std::string &cipher,
                           const std::string &tag, std::string &plain);
 
-      // Whether Argon2id is what a new wrap is made with on this build.
+      // Whether Argon2id is what a new wrap is made with: whether the OpenSSL the
+      // server runs with has the KDF (HashCreator::Argon2idAvailable).
       static bool Argon2Available();
 
       // Known answers (RFC 7748's X25519 vector, RFC 5869's first HKDF case),

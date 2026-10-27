@@ -87,11 +87,13 @@ services:
         condition: service_healthy
     # After the entrypoint (the database created or upgraded, the settings below
     # stored), the new installation is secured, and then the server runs. The
-    # first start's --create-database says that nothing will secure it, which is
-    # true of the image alone: this is what does. --if-marked acts only on a
-    # database --create-database made, within a day, and does nothing at any later
-    # start; a failure is forgiven, as the systemd unit's ExecStartPre=- forgives
-    # it, and the server starts all the same.
+    # image's entrypoint runs this same step itself, last, from the first image made
+    # after 27 October 2026, so with such an image this finds no marker and does
+    # nothing; it is kept for the images published before, whose entrypoint does
+    # not, and for which it is what secures a new installation. --if-marked acts
+    # only on a database --create-database made, within a day, and does nothing at
+    # any later start; a failure is forgiven, as the systemd unit's ExecStartPre=-
+    # forgives it, and the server starts all the same.
     command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults --if-marked; exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
     environment:
       HM_DB_TYPE: PostgreSQL

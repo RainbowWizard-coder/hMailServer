@@ -11776,15 +11776,24 @@ namespace HM
          status->GetNumberOfSessions(STIMAP),
          status->GetNumberOfSessions(STPOP3));
 
-      // What this build of the server can do, settled when it was compiled, so
-      // that a fixture layer - or an operator - can ask instead of finding out
-      // from an error: which languages the event handlers run in (VBScript and
-      // JScript through Windows Active Scripting; JavaScript in the engine the
-      // Linux builds embed - the scriptlanguage setting accepts all three
-      // everywhere and a build refuses the others when the script is loaded),
-      // and so whether there is a script engine at all; whether the OpenSSL it
-      // was built against has the Argon2id KDF (3.2 or later) and the hybrid
-      // post-quantum key exchange groups (3.5 or later).
+      // What this server can do, so that a fixture layer - or an operator - can
+      // ask instead of finding out from an error: which languages the event
+      // handlers run in (VBScript and JScript through Windows Active Scripting;
+      // JavaScript in the engine the Linux builds embed - the scriptlanguage
+      // setting accepts all three everywhere and a build refuses the others when
+      // the script is loaded), settled when it was compiled, and so whether there
+      // is a script engine at all; and, from the OpenSSL this process runs with,
+      // whether it has the Argon2id KDF (3.2 or later: the KDF fetched from the
+      // library, HashCreator::Argon2idAvailable, which every password hash and key
+      // derivation asks before using it) and whether it can use a hybrid
+      // post-quantum key exchange group (3.5 or later: what the TLS setup could set
+      // - the configured list, naming one, taken, or refused as HM5720 reports it -
+      // and where the list names none, whether the library has X25519MLKEM768;
+      // SslContextInitializer::PostQuantumKeyExchange). Until the release after
+      // 6.3.7 both were the version of the
+      // headers the server was compiled against, so that a build against OpenSSL
+      // 3.5 running with Ubuntu 24.04's 3.0 - the container image - said true for
+      // both while it had neither.
       AnsiString scriptLanguages;
       std::vector<AnsiString> runnable = ScriptServer::GetRunnableLanguages();
       for (const AnsiString &language : runnable)
@@ -11795,8 +11804,8 @@ namespace HM
       }
 
       const bool scriptEngine = !runnable.empty();
-      const bool argon2id = OPENSSL_VERSION_NUMBER >= 0x30200000L;
-      const bool postQuantum = OPENSSL_VERSION_NUMBER >= 0x30500000L;
+      const bool argon2id = HashCreator::Argon2idAvailable();
+      const bool postQuantum = SslContextInitializer::PostQuantumKeyExchange();
 
       AnsiString build;
       build.Format(",\"build\":{\"script_engine\":%hs,\"script_languages\":[%hs],\"argon2id\":%hs,\"post_quantum_key_exchange\":%hs}}",
@@ -21103,7 +21112,7 @@ namespace HM
          "\"info\":{\"title\":\"hMailServer REST API\",\"version\":\"1\","
          "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds.\"},"
          "\"paths\":{"
-         "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux), argon2id, post_quantum_key_exchange\"}}}},"
+         "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this server can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux); and, from the OpenSSL the server runs with rather than the one it was built against, argon2id (the Argon2id KDF, OpenSSL 3.2 or later) and post_quantum_key_exchange (whether the server can use a hybrid post-quantum key exchange group, OpenSSL 3.5 or later: a TlsKeyExchangeGroups list that names one taken, false when OpenSSL refused it - HM5720 in the error log - and, for a list that names none, whether the library implements X25519MLKEM768)\"}}}},"
          "\"/api/v1/store\":{\"get\":{\"summary\":\"The message store: what the messages are and what they take\",\"description\":\"{measured,measuring,messages,logical_bytes,stored_bytes,compressed_files,blobs,blob_bytes,blob_references,saved_bytes,saved_percent,compression,dedup_min_kb}. logical_bytes is what IMAP and POP3 say the delivered messages are; stored_bytes is what their files take, a file with several names counted once; blob_bytes is the parts held once; messages and logical_bytes count only the messages whose files could be sized. Always the last measurement, made on the server's own time: measured is when (seconds since 1970, 0 for never) and measuring is true while one runs. A request starts the next one when the last is a quarter of an hour old and the store is in use - compression on, a part held once, or a container found last time - so on a server that never turned compression on nothing is walked and measured stays 0 until POST /api/v1/store/measure. docs/MessageStore.md. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The totals\"}}}},"
          "\"/api/v1/store/measure\":{\"post\":{\"summary\":\"Measure the message store now\",\"description\":\"Starts a measurement of the message store on the server's own time, unless one is running, and answers what GET /api/v1/store answers: the last measurement, with measuring true. The walk reads the start of every stored file, so it is manage_server's, and refused for read-only and domain-restricted keys. docs/MessageStore.md.\",\"responses\":{\"202\":{\"description\":\"The last totals, measuring true\"}}}},"
          "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now - and every [Settings] key marked reinitialize that GET /api/v1/server/settings/pending lists is taken, which empties that list of them (a key marked restart waits for the service to start again). Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. A reinitialise ends maintenance mode: when the server was draining, drained is true in the answer and the listeners come back open. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"{reinitializing: true, drained}: reinitialising, the listeners restart in a moment; drained is true when this ends a drain\"}}}},"

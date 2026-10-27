@@ -49,6 +49,15 @@ namespace HM
       // false and keeps TLS 1.2 as its floor whatever the toggles say.
       static bool InitClient(boost::asio::ssl::context& context, bool honour_legacy_toggles = true);
 
+      // Whether this server can use a hybrid post-quantum key exchange group: what
+      // SetKeyExchangeGroups_ found when it last gave a context its groups - the
+      // configured list, naming the hybrids, taken, or refused as HM5720 reports it
+      // (PostQuantumFinding_) - from the OpenSSL this process runs with, not the
+      // headers it was built against. Before any context has been set up, one is set
+      // up for the question, as a listener's would be. GET /api/v1/status says it as
+      // build.post_quantum_key_exchange.
+      static bool PostQuantumKeyExchange();
+
 
    private:
 
@@ -96,6 +105,20 @@ namespace HM
       // because the list now carries hybrid post-quantum KEMs (X25519MLKEM768 and
       // friends) alongside the classical elliptic curves.
       static void SetKeyExchangeGroups_(boost::asio::ssl::context& context);
+      // The same, for the list given: what SetKeyExchangeGroups_ does with the
+      // configured one. Returns what it records for PostQuantumKeyExchange
+      // (PostQuantumFinding_).
+      static bool SetKeyExchangeGroupList_(boost::asio::ssl::context& context, const AnsiString &configuredGroups);
+      // Whether this server can use a hybrid post-quantum group, from what setting
+      // the configured list found: a list that names one says it by being taken
+      // (OffersPostQuantum_) or refused (HM5720: not); one that names none never
+      // asked, and the library is asked whether it implements X25519MLKEM768.
+      static bool PostQuantumFinding_(const AnsiString &configuredGroups, bool accepted);
+      // Whether a group list OpenSSL has taken holds a post-quantum (ML-KEM) group
+      // that this OpenSSL implements: one named outright, which OpenSSL would have
+      // refused had it not implemented it, or one it adds only if it does ('?', or
+      // the DEFAULT list), asked of a context made for the question.
+      static bool OffersPostQuantum_(const AnsiString &acceptedList);
       // One report per distinct message: see the definition.
       static void ReportGroupListOnce_(int severity, int code, const String &message);
 
@@ -128,6 +151,10 @@ namespace HM
    // request set theirs up, keeps certificate compression off as the others do.
    // Where the server's configuration is loaded (inside the service, through
    // ClassTester), the contexts InitClient sets up from it are read back as well.
+   // And whether a context offers a post-quantum key exchange group, which GET
+   // /api/v1/status says, is held to the library's own answer - whether a new
+   // context takes X25519MLKEM768 - for the default group list and others, so that
+   // a build against OpenSSL 3.5's headers running with 3.0 says false.
    class SslContextInitializerTester
    {
    public:
@@ -137,5 +164,6 @@ namespace HM
       void TestChoices_(const SslContextInitializer::ContextOptionChoices &choices, bool honour_legacy_toggles, bool listener);
       void TestFloor_();
       void TestInitClient_();
+      void TestPostQuantumFinding_();
    };
 }

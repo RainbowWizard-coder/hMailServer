@@ -491,7 +491,39 @@ namespace
       return connection;
    }
 
-   int ReadSchemaVersion(std::shared_ptr<HM::DALConnection> connection)
+   // Whether the database the connection is to holds an hm_dbversion table, asked
+   // in a way that is no error when it does not: 1 it does, 0 it does not, -1 the
+   // database did not answer the question (DALRecordset::Open has reported why, as
+   // HM5033). Until the release after 6.3.7 the table itself was asked, and on a
+   // new, empty database that is an error - PostgreSQL's "relation hm_dbversion
+   // does not exist", MySQL's and MariaDB's 1146 - which every new installation's
+   // create step wrote into the error log as HM5033 (High) a moment before it made
+   // the schema. PostgreSQL is asked for the table an unqualified name in a query
+   // finds, along the search_path (to_regclass, NULL where there is none); MySQL
+   // and MariaDB for the table in the database the connection uses. SQL Server and
+   // SQL Server Compact never get here (ReadDatabaseSettings refuses them on this
+   // platform), and anything else is asked the table, as before.
+   int SchemaTablePresent(std::shared_ptr<HM::DALConnection> connection)
+   {
+      std::shared_ptr<HM::DatabaseSettings> settings = connection->GetSettings();
+      const HM::DatabaseSettings::SQLDBType type = settings ? settings->GetType() : HM::DatabaseSettings::TypeUnknown;
+
+      const char *question = nullptr;
+      if (type == HM::DatabaseSettings::TypePGServer)
+         question = "select case when to_regclass('hm_dbversion') is null then 0 else 1 end as present";
+      else if (type == HM::DatabaseSettings::TypeMYSQLServer)
+         question = "select count(*) as present from information_schema.tables where table_schema = database() and table_name = 'hm_dbversion'";
+      else
+         return 1;
+
+      std::shared_ptr<HM::DALRecordset> recordset = connection->CreateRecordset();
+      if (!recordset || !recordset->Open(connection, HM::SQLCommand(question)) || recordset->IsEOF())
+         return -1;
+      return recordset->GetLongValue("present") > 0 ? 1 : 0;
+   }
+
+   // hm_dbversion's one row, or 0 when there is none or it cannot be read.
+   int ReadVersionRow(std::shared_ptr<HM::DALConnection> connection)
    {
       std::shared_ptr<HM::DALRecordset> recordset = connection->CreateRecordset();
       if (!recordset || !recordset->Open(connection, HM::SQLCommand("select * from hm_dbversion")))
@@ -499,6 +531,16 @@ namespace
       if (recordset->IsEOF())
          return 0;
       return (int) recordset->GetLongValue("value");
+   }
+
+   // The schema version the database is at: 0 when it holds no hm_dbversion table,
+   // which is said without an error, or none could be read. A database that does
+   // not answer at all is reported (HM5033), as it was before.
+   int ReadSchemaVersion(std::shared_ptr<HM::DALConnection> connection)
+   {
+      if (SchemaTablePresent(connection) != 1)
+         return 0;
+      return ReadVersionRow(connection);
    }
 
    // Whether the packaged unit's first start will find the marker --create-database
@@ -543,6 +585,27 @@ namespace
       return configuration == "/etc/hmailserver/hMailServer.ini";
    }
 
+   // Whether the container image's entrypoint (platform/packaging/docker/
+   // docker-entrypoint.sh) ran this, which says so by giving this command alone
+   // HM_ENTRYPOINT_SECURES_NEW_DATABASE=1: from the release after 6.3.7 it runs
+   // --apply-new-install-defaults --if-marked with the same --config before the
+   // container's command, as the unit's ExecStartPre does, whatever that command
+   // is - the image's own, the Compose file's or the Helm chart's. So the marker is
+   // where that step looks, and it comes seconds after this.
+   bool ContainerEntrypointFindsMarker()
+   {
+      // Read as --apply-environment reads the environment (environ), not with
+      // getenv, which is not thread safe.
+      std::vector<HM::EnvironmentSettings::Variable> variables;
+      HM::EnvironmentSettings::ReadProcessEnvironment(variables);
+      for (const HM::EnvironmentSettings::Variable &variable : variables)
+      {
+         if (variable.name == HM::String(_T("HM_ENTRYPOINT_SECURES_NEW_DATABASE")))
+            return variable.value == HM::String(_T("1"));
+      }
+      return false;
+   }
+
    // Whether the unit may write where the marker is: its ReadWritePaths. Anywhere
    // else its first start can neither write the certificate there nor remove the
    // marker until a drop-in adds the directory - which the server needs for its
@@ -583,7 +646,27 @@ namespace
       std::shared_ptr<HM::DALConnection> database = Connect(withDatabase, "the database", true);
       if (database)
       {
-         const int existing = ReadSchemaVersion(database);
+         // Whether there is a schema at all, asked first in a way that is no error
+         // when there is not (SchemaTablePresent): on a new, empty database the
+         // table read alone was an HM5033 in the error log. A database that does
+         // not answer even that is a refusal, as it must be: whatever this does next
+         // would be done blind.
+         const int present = SchemaTablePresent(database);
+         if (present < 0)
+         {
+            (void) std::fprintf(stderr, "Database %s could not be asked whether it holds an hMailServer schema; the error log has the database's answer (HM5033). Nothing was created.\n",
+               HM::AnsiString(withDatabase->GetDatabaseName()).c_str());
+            return 1;
+         }
+
+         const int existing = present > 0 ? ReadVersionRow(database) : 0;
+         if (present > 0 && existing <= 0)
+         {
+            (void) std::fprintf(stderr, "Database %s holds an hm_dbversion table but no schema version that could be read, so the create script is not run over it. Nothing was created.\n",
+               HM::AnsiString(withDatabase->GetDatabaseName()).c_str());
+            return 1;
+         }
+
          if (existing > 0)
          {
             const HM::AnsiString databaseName(withDatabase->GetDatabaseName());
@@ -667,13 +750,16 @@ namespace
          const HM::String marker = HM::NewInstallDefaults::FirstStartMarkerFile();
          const HM::AnsiString configuration(HM::IniFileSettings::GetInitializationFile());
          const bool unitFinds = PackagedUnitFindsMarker();
-         if (!WriteNewFileNoFollow(marker, HM::AnsiString("made by hmailserver --create-database; the unit's first start secures the new database and removes this file (docs/SecureDefaults.md)\n")))
+         if (!WriteNewFileNoFollow(marker, HM::AnsiString("made by hmailserver --create-database; the packaged service's or the container's first start secures the new database and removes this file (docs/SecureDefaults.md)\n")))
             (void) std::fprintf(stderr, "%s could not be written, so the first start will not secure the new database; run hmailserver --config %s --apply-new-install-defaults as the user the server runs as, with the server stopped (docs/SecureDefaults.md).\n",
                HM::AnsiString(marker).c_str(), configuration.c_str());
+         else if (!unitFinds && ContainerEntrypointFindsMarker())
+            std::printf("The container's entrypoint secures it next, before the server starts, as the packaged service's first start does: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's (docs/SecureDefaults.md). If that step cannot, it says why; hmailserver --config %s --apply-new-install-defaults, run as the image's user with the server stopped, then does it by hand.\n",
+               configuration.c_str());
          else if (!unitFinds && OpenRcServiceFindsMarker())
             std::printf("The OpenRC service's next start (rc-service hmailserver start), if it comes within a day of this, secures it: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's. A start later than that leaves it for hmailserver --apply-new-install-defaults, run by hand as the user the server runs as with the service stopped (docs/SecureDefaults.md).\n");
          else if (!unitFinds)
-            std::printf("Only the packaged service's first start secures a new database by itself - the systemd unit on a machine systemd runs, or the OpenRC service where OpenRC is installed, with /etc/hmailserver/hMailServer.ini - and this is not that (a container, the AppImage or another configuration): secure it with hmailserver --config %s --apply-new-install-defaults, run as the user the server runs as with the server stopped (docs/SecureDefaults.md).\n",
+            std::printf("Only the packaged service's first start and the container image's entrypoint secure a new database by themselves - the systemd unit on a machine systemd runs, or the OpenRC service where OpenRC is installed, with /etc/hmailserver/hMailServer.ini, and the image's start - and this is not one of those (the AppImage, a server started by hand, or another configuration): secure it with hmailserver --config %s --apply-new-install-defaults, run as the user the server runs as with the server stopped (docs/SecureDefaults.md).\n",
                configuration.c_str());
          else if (!UnitMayWrite(marker))
             std::printf("Its first start under systemd, if it comes within a day of this, secures it only once the unit may write to %s, which is outside the unit's ReadWritePaths: add the data directory with a drop-in (systemctl edit hmailserver) before that start, as the server needs for its mail in any case (docs/SecureDefaults.md).\n",

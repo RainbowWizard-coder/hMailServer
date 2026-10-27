@@ -80,7 +80,9 @@
 #                                   for the server's update check, which then names
 #                                   the image to pull instead of installing a file
 #   HM_CREATE_DATABASE (default 1) -> hmailserver --create-database, which is a
-#                                   no-op when the database already exists
+#                                   no-op when the database already exists; a
+#                                   database it makes is marked, and secured
+#                                   before the command runs (below)
 #   HM_UPGRADE_DATABASE (default 1) -> hmailserver --upgrade-database, which is a
 #                                   no-op when the schema is current
 #   HM_PROFILE (office|gateway|relay|sender|none)
@@ -99,8 +101,15 @@
 #                                   apply, the container does not start, and the
 #                                   log names the entries.
 #
-# then exec the command - hmailserver --foreground unless told otherwise - so
-# signals reach the server and it is PID 1's child, not a grandchild. When the
+# then, as the packaged systemd unit's ExecStartPre and the OpenRC service do
+# before every start, hmailserver --apply-new-install-defaults --if-marked
+# (docs/SecureDefaults.md): a database --create-database made a moment ago gets a
+# new installation's defaults - a self-signed certificate, STARTTLS on 25, 587, 110
+# and 143, AUTH on 25 a honeypot, a password taken from another address only over
+# TLS - and at every other start it does nothing, opening nothing; a failure is
+# said and forgiven, as the unit's "-" forgives it, and the server starts all the
+# same. Then exec the command - hmailserver --foreground unless told otherwise -
+# so signals reach the server and it is PID 1's child, not a grandchild. When the
 # command is the server itself, the settings' variables above (HM_SETTING_*,
 # HM_PROPERTY_*, their _FILE forms and the four HM_REST_*) are taken out of its
 # environment first, once --apply-environment has stored them; any other command
@@ -296,8 +305,10 @@ if [ "${HM_CREATE_DATABASE:-1}" != 0 ]; then
    # Exit status 0 also when the database already holds this build's schema or
    # an older one, which the upgrade below brings forward - so this runs at every
    # start. A schema from a newer build, or a database that cannot be reached,
-   # is a reason not to start.
-   hmailserver --config "$INI" --create-database
+   # is a reason not to start. The variable, given to this command alone, tells it
+   # that the step below secures a database it makes, which it then says, instead
+   # of telling the administrator to do it by hand.
+   HM_ENTRYPOINT_SECURES_NEW_DATABASE=1 hmailserver --config "$INI" --create-database
 fi
 
 if [ "${HM_UPGRADE_DATABASE:-1}" != 0 ]; then
@@ -370,6 +381,23 @@ if [ -n "${HM_PROFILE:-}" ]; then
       yes|YES|Yes|1|true|TRUE|True) hmailserver --config "$INI" --apply-profile "$HM_PROFILE" --once --confirm ;;
       *) hmailserver --config "$INI" --apply-profile "$HM_PROFILE" --once ;;
    esac
+fi
+
+# A new installation secured before anything else runs, as the unit's first start
+# secures it: the marker --create-database left in the configuration's DataFolder,
+# looked for and removed by the server's own verb, as the image's user (it refuses
+# root, whose key the server could not read). Last, so that it judges the database
+# with the environment's settings and the profile in place, as the Compose file's
+# and the Helm chart's own step after this entrypoint judged it before the image
+# did this itself; that step, which they keep for an image older than this one,
+# then finds no marker and does nothing. Its status is said and not acted on: 0
+# applied or nothing to do, 5 not a new installation's database, 2 the database not
+# reached or run as root - the marker kept, so the next start asks again - and 1
+# something not made (the error log says what).
+status=0
+hmailserver --config "$INI" --apply-new-install-defaults --if-marked || status=$?
+if [ "$status" -ne 0 ]; then
+   echo "hmailserver --apply-new-install-defaults --if-marked exited $status (above); starting all the same" >&2
 fi
 
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then

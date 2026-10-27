@@ -40,7 +40,10 @@
 # if it is behind, stores every setting the environment names - the REST
 # listener from HM_REST_*, and any other setting from HM_SETTING_<key> or
 # HM_PROPERTY_<name>, or their _FILE forms for a secret - through the server's
-# own --apply-environment, and then runs the server in the foreground. On Linux
+# own --apply-environment, secures a database it has just created as the
+# packaged service's first start does (--apply-new-install-defaults --if-marked:
+# a self-signed certificate, STARTTLS), and then runs the server in the
+# foreground. On Linux
 # the REST API is the administration (there is no Control Panel and no COM), and
 # the server requires TLS on it unless it is bound to loopback - which inside a
 # container is the container's own loopback - so a reachable API means a

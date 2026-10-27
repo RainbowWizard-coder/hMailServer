@@ -44,12 +44,21 @@ namespace HM
       static bool ValidateArgon2id(const AnsiString &password, const AnsiString &storedHash);
       static bool IsArgon2idHash(const AnsiString &storedHash);
 
-      // Whether the linked OpenSSL offers the Argon2id KDF at all. It arrived in
+      // Whether the OpenSSL this process runs with offers the Argon2id KDF at all,
+      // asked of the library (the KDF fetched), not of the headers. It arrived in
       // OpenSSL 3.2; the Windows build links 4.0 and always has it, while a Linux
       // build against a distribution's 3.0 - Ubuntu 24.04, Debian 12 - does not,
-      // and every caller that would store or check an Argon2id hash asks this
-      // first rather than discovering it as an empty hash or a failed logon.
+      // and nor does a build against 3.5 running with 3.0's library, as the
+      // container image, on Ubuntu 24.04, runs the .deb built on 26.04. Every
+      // caller that would store or check an Argon2id hash asks this first rather
+      // than discovering it as an empty hash or a failed logon.
       static bool Argon2idAvailable();
+
+      // Why there is no Argon2id, for a sentence: "the OpenSSL this server runs
+      // with (OpenSSL 3.0.13 30 Jan 2024) has no Argon2id KDF; OpenSSL 3.2 or later
+      // has it", the library's own version - or, for a build against headers older
+      // than 3.2, which cannot spell the KDF's parameters, the headers' version.
+      static AnsiString Argon2idUnavailableReason();
 
       // scrypt password hashing (RFC 7914, via OpenSSL EVP_PBE_scrypt) with the
       // OWASP parameters N=2^17, r=8, p=1 - 128 MiB per derivation. Produces a

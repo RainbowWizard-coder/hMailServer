@@ -17,7 +17,12 @@
 // hold exactly what was asked for - before 6.3.6 it held every option from bit 32
 // up as well - and a context set up with the floor alone, as the MTA-STS policy
 // fetch and the OAuth2 token request set theirs up, keeps certificate compression
-// off as the others do. No database, configuration, network or file.
+// off as the others do. And the post-quantum key exchange GET /api/v1/status
+// reports is what the library does with the group lists, not what the headers
+// were: the default list, a classical one, two OpenSSL refuses and one with '?',
+// each set on a context and held to whether a new context takes X25519MLKEM768 -
+// or, for a list naming it that OpenSSL refuses, to false.
+// No database, configuration, network or file.
 //
 // It prints one line either way and exits non-zero on the first failure.
 

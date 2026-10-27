@@ -160,9 +160,10 @@ namespace RegressionTests.Shared
       ///    HM5710, a VBScript or JScript event script asked for on a build that runs
       ///    JavaScript only (build.script_languages; an older build said it had "no script
       ///    engine" at all); HM5607,
-      ///    PreferredHashAlgorithm asks for Argon2id and the build's OpenSSL
-      ///    (below 3.2) has no such KDF, so scrypt is used - written at every reload
-      ///    while the hash-policy fixtures have the setting at 5, and blamed on
+      ///    PreferredHashAlgorithm (or MinimumAcceptedHashAlgorithm) asks for Argon2id
+      ///    and the OpenSSL the server runs with (below 3.2) has no such KDF, so scrypt
+      ///    is used - written at every reload while the hash-policy fixtures have the
+      ///    setting at 5, and blamed on
       ///    whichever test was running, a skipped one included; and HM5720, the
       ///    hybrid key exchange groups refused by an OpenSSL below 3.5 and the
       ///    classical ones used - what the fall-back test asserts happens. The tests

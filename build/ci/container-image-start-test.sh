@@ -13,6 +13,18 @@
 # release after 6.3.7 too, does the server know it runs in a container: GET
 # /api/v1/update must say installKind container, liveUpdate false and, as the command
 # that updates it, docker pull of the image (hmailserver/docs/LiveUpdateKinds.md).
+# And from the release after 6.3.7: is the new installation secured by the image
+# itself, its entrypoint running --apply-new-install-defaults --if-marked as the
+# packaged unit's first start does, with nothing in the command; does the error log
+# after the first start hold nothing but HM5720, and that only where the status
+# says the server has no post-quantum key exchange (6.3.7's create step logged
+# HM5033, asking a new, empty database for its schema version); and do the
+# status's argon2id and post_quantum_key_exchange say what the OpenSSL the server
+# runs with does - a TLS handshake offering X25519MLKEM768 alone, and, with
+# PreferredHashAlgorithm set to 5, HM5607 and an account whose password is stored
+# under Argon2id or scrypt, read from the database, and signs in - rather than what
+# the headers it was built against had (6.3.7's image, built against OpenSSL 3.5
+# and run with Ubuntu 24.04's 3.0.13, said true for both and had neither).
 #
 #   bash build/ci/container-image-start-test.sh
 #       the container-image-start job of .gitlab/ci/container-image.yml: the runner
@@ -31,14 +43,17 @@
 #       them, and says how to remove them)
 #
 # The image is started as the service starts it, through its own entrypoint, with
-# the command START_COMMAND below: the entrypoint writes the [Database] section and
-# the administrator's hash from the environment, waits for the database
-# (HM_DB_WAIT_SECONDS), creates and upgrades it and stores the REST listener's four
-# settings; then the command secures the new installation as SecureDefaults.md says a
-# container is secured - hmailserver --apply-new-install-defaults, which makes a
-# self-signed certificate and turns STARTTLS on - and starts the server, whose REST
-# listener takes that certificate. So the test needs no certificate from outside,
-# which a service container could not be given. Beside MariaDB the image is told
+# the command START_COMMAND below, which is the image's own command: the entrypoint
+# writes the [Database] section and the administrator's hash from the environment,
+# waits for the database (HM_DB_WAIT_SECONDS), creates and upgrades it, stores the
+# REST listener's four settings and secures the new installation as SecureDefaults.md
+# says the image does - hmailserver --apply-new-install-defaults --if-marked, which
+# makes a self-signed certificate and turns STARTTLS on - and the command starts the
+# server, whose REST listener takes that certificate. So the test needs no
+# certificate from outside, which a service container could not be given, and a
+# server that answers without STARTTLS, or whose REST listener does not start, is an
+# image that did not secure itself. Until the release after 6.3.7 the command ran
+# the verb itself before the server. Beside MariaDB the image is told
 # HM_DB_TYPE=MySQL, and reaches it through MariaDB Connector/C (libmariadb.so.3),
 # which the server opens at run time: an image without it stops at the entrypoint's
 # --create-database, and port 25 never answers.
@@ -69,9 +84,10 @@
 #                       four containers' names (hm-start-<the script's process id>)
 #
 # Exit status: 0 when both images answered as they must; 1 when not, or when a database
-# client could not ask (the test did not finish, and nothing is yet said of the image);
-# 2 when it could not be run. Nothing it prints holds a password, and no password is on
-# a command line.
+# client or openssl could not ask (the test did not finish, and nothing is yet said of
+# the image); 2 when it could not be run, an openssl that cannot offer X25519MLKEM768
+# among the reasons. Nothing it prints holds a password, and no password is on a
+# command line.
 set -uo pipefail
 
 # build/check-release-chain.py holds this file whole, by its SHA-256 (START_TEST_SHA256)
@@ -83,9 +99,10 @@ set -uo pipefail
 # The command the image runs, here and in the job's service definitions
 # (.gitlab/ci/container-image.yml, container-image-start, services: command);
 # build/check-release-chain.py holds them to each other.
-START_COMMAND='hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground'
+START_COMMAND='exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground'
 # The self-signed pair --apply-new-install-defaults writes under the data directory
-# (NewInstallDefaults.cpp), which the REST listener is pointed at.
+# (NewInstallDefaults.cpp), which the REST listener is pointed at: the entrypoint's
+# step makes it before the command runs.
 CERTIFICATE=/var/lib/hmailserver/Certificates/self-signed-certificate.pem
 PRIVATE_KEY=/var/lib/hmailserver/Certificates/self-signed-key.pem
 POSTGRES_IMAGE="${HM_START_POSTGRES_IMAGE:-postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722}"
@@ -100,7 +117,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --docker) [ "$#" -ge 2 ] || { echo "--docker takes an image"; exit 2; }; mode=docker; image="$2"; shift 2 ;;
     --keep) keep=1; shift ;;
-    -h|--help) sed -n '5,74p' "$0"; exit 0 ;;
+    -h|--help) sed -n '5,90p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1"; exit 2 ;;
   esac
 done
@@ -138,6 +155,11 @@ step() {
 
 command -v curl > /dev/null || { echo "curl is needed"; exit 2; }
 command -v timeout > /dev/null || { echo "timeout (coreutils) is needed"; exit 2; }
+# The handshake that offers X25519MLKEM768 alone needs an openssl that can offer it:
+# OpenSSL 3.5 or later, as the job image's (Ubuntu 26.04's) is.
+command -v openssl > /dev/null || { echo "openssl is needed"; exit 2; }
+openssl list -tls-groups -tls1_3 2> /dev/null | tr ':' '\n' | grep -qx X25519MLKEM768 \
+  || { echo "this openssl ($(openssl version)) cannot offer X25519MLKEM768; OpenSSL 3.5 or later is needed"; exit 2; }
 
 expected="${HM_START_VERSION:-}"
 if [ -z "$expected" ]; then
@@ -279,22 +301,25 @@ smtp_conversation() {
 }
 
 # The schema version the server wrote into its database (hm_dbversion), read with
-# that database's own client: $1 PostgreSQL or MariaDB. The password goes in the
+# that database's own client: $1 PostgreSQL or MariaDB; $2, when given, another
+# query of what the server wrote there, whose answer is printed instead (the
+# stored hash of the account the Argon2id step makes). The password goes in the
 # client's environment, never on its command line.
 schema_version() {
+  local query="${2:-select value from hm_dbversion}"
   if [ "$mode" = docker ]; then
     case "$1" in
       PostgreSQL) printf '%s' "$db_password" | docker exec -i "$pg_db_host" \
-                    bash -c 'PGPASSWORD=$(cat) exec psql -h 127.0.0.1 -U "$0" -d "$1" -v VERBOSITY=verbose -tAc "select value from hm_dbversion"' \
-                    "$db_user" "$db_name" ;;
+                    bash -c 'PGPASSWORD=$(cat) exec psql -h 127.0.0.1 -U "$0" -d "$1" -v VERBOSITY=verbose -tAc "$2"' \
+                    "$db_user" "$db_name" "$query" ;;
       MariaDB) printf '%s' "$db_password" | docker exec -i "$maria_db_host" \
-                 bash -c 'MYSQL_PWD=$(cat) exec mariadb -h 127.0.0.1 -u "$0" -N -B -e "select value from hm_dbversion" "$1"' \
-                 "$db_user" "$db_name" ;;
+                 bash -c 'MYSQL_PWD=$(cat) exec mariadb -h 127.0.0.1 -u "$0" -N -B -e "$2" "$1"' \
+                 "$db_user" "$db_name" "$query" ;;
     esac
   else
     case "$1" in
-      PostgreSQL) PGPASSWORD="$db_password" psql -h "$pg_db_host" -U "$db_user" -d "$db_name" -v VERBOSITY=verbose -tAc "select value from hm_dbversion" ;;
-      MariaDB) MYSQL_PWD="$db_password" mariadb -h "$maria_db_host" -u "$db_user" -N -B -e "select value from hm_dbversion" "$db_name" ;;
+      PostgreSQL) PGPASSWORD="$db_password" psql -h "$pg_db_host" -U "$db_user" -d "$db_name" -v VERBOSITY=verbose -tAc "$query" ;;
+      MariaDB) MYSQL_PWD="$db_password" mariadb -h "$maria_db_host" -u "$db_user" -N -B -e "$query" "$db_name" ;;
     esac
   fi
 }
@@ -410,6 +435,153 @@ ask_image() {
     ''|*[!0-9]*) fail "$database's hm_dbversion holds no number ('$version'): the server did not lay out its schema there" ;;
   esac
   echo "hm_dbversion in $database: $version"
+
+  # What GET /api/v1/status says under build of the OpenSSL the server runs with,
+  # held below to what the server does with it.
+  local pq argon logs logfiles logfile tail entries codes other handshake offered answer said_5607
+  case "$body" in
+    *'"post_quantum_key_exchange":true'*) pq=true ;;
+    *'"post_quantum_key_exchange":false'*) pq=false ;;
+    *) fail "beside $database, GET /api/v1/status says neither true nor false for build.post_quantum_key_exchange" ;;
+  esac
+  case "$body" in
+    *'"argon2id":true'*) argon=true ;;
+    *'"argon2id":false'*) argon=false ;;
+    *) fail "beside $database, GET /api/v1/status says neither true nor false for build.argon2id" ;;
+  esac
+  echo "build: post_quantum_key_exchange $pq, argon2id $argon"
+
+  step "beside $database: the error log after the first start holds nothing but HM5720, and that only with post_quantum_key_exchange false"
+  # Read over the REST API, the job's only way in: every error log the list names, the
+  # entries counted by their severity and their codes read. 6.3.7's create step asked
+  # the new, empty database for its schema version before it made the schema, which
+  # logged HM5033 (High), "relation hm_dbversion does not exist", at every new
+  # installation. HM5720 is the server saying the default key exchange groups, which
+  # name the hybrid post-quantum ones, were refused and the classical ones taken -
+  # what post_quantum_key_exchange false means, so there exactly when it says so.
+  logs=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs") \
+    || fail "beside $database, GET /api/v1/logs as Administrator failed"
+  # Not "names", which the cleanup trap reads: a fail in here would have it see this.
+  logfiles=$(grep -oE '"name":"ERROR_hmailserver_[A-Za-z0-9_.-]+[.]log"' <<< "$logs" | sed -e 's/^"name":"//' -e 's/"$//')
+  entries=0
+  codes=""
+  for logfile in $logfiles; do
+    tail=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs/$logfile?lines=2000") \
+      || fail "beside $database, GET /api/v1/logs/$logfile as Administrator failed"
+    printf '%s: %s\n' "$logfile" "${tail:0:1500}"
+    entries=$((entries + $(grep -o 'Severity: [0-9]' <<< "$tail" | wc -l)))
+    codes="$codes $(grep -oE 'Code: HM[0-9]+' <<< "$tail" | sed 's/^Code: //' | tr '\n' ' ')"
+  done
+  other=$(tr ' ' '\n' <<< "$codes" | sed '/^$/d' | grep -vx HM5720 | tr '\n' ' ')
+  [ -z "$other" ] || fail "beside $database, the error log after the first start holds $other- an entry no new installation should have"
+  [ "$(tr ' ' '\n' <<< "$codes" | grep -c '^HM')" -eq "$entries" ] \
+    || fail "beside $database, the error log after the first start holds $entries entries and $(tr ' ' '\n' <<< "$codes" | grep -c '^HM') codes"
+  if [ "$pq" = true ]; then
+    [ "$entries" -eq 0 ] || fail "beside $database, post_quantum_key_exchange is true and the error log holds HM5720: the default groups were refused"
+  else
+    [ "$entries" -gt 0 ] || fail "beside $database, post_quantum_key_exchange is false and the error log has no HM5720, with the default groups"
+  fi
+  echo "error log: $entries entries ($(tr ' ' '\n' <<< "$codes" | sed '/^$/d' | tr '\n' ' ')), as post_quantum_key_exchange $pq says"
+
+  step "beside $database: a TLS handshake offering X25519MLKEM768 alone finds what post_quantum_key_exchange says"
+  # Against the REST listener, whose context is set up as every listener's is, from
+  # the same TlsKeyExchangeGroups: this openssl offers the one hybrid group, and the
+  # server either takes it or ends the handshake with handshake_failure (alert 40).
+  handshake=$(timeout 30 openssl s_client -connect "$host:$rest_port" -tls1_3 -groups X25519MLKEM768 < /dev/null 2>&1)
+  if grep -q '^Negotiated TLS1.3 group: X25519MLKEM768' <<< "$handshake"; then
+    offered=true
+  elif grep -qE 'alert handshake failure|SSL alert number 40' <<< "$handshake"; then
+    offered=false
+  else
+    printf '%s\n' "$handshake" | tail -n 20
+    unasked "beside $database, openssl s_client neither completed a handshake with X25519MLKEM768 nor was refused one (what it said is above): the test could not finish, which says nothing yet of the image"
+  fi
+  grep -E '^(Negotiated TLS1.3 group|Protocol|Cipher is|New, )|alert' <<< "$handshake" | head -n 4
+  [ "$offered" = "$pq" ] \
+    || fail "beside $database, GET /api/v1/status says post_quantum_key_exchange $pq, and a handshake offering X25519MLKEM768 alone was $([ "$offered" = true ] && echo taken || echo refused)"
+  echo "X25519MLKEM768 alone: $([ "$offered" = true ] && echo taken || echo refused), as post_quantum_key_exchange $pq says"
+
+  step "beside $database: PreferredHashAlgorithm 5 finds what argon2id says, and an account made under it signs in"
+  # Set over the REST API, which the server reads at once: where the OpenSSL it runs
+  # with has no Argon2id KDF it takes 7 (scrypt) instead and says so, HM5607, "...
+  # has no Argon2id KDF"; where it has one, it says nothing. That is the report, and
+  # the status and the report ask the same function. So, with the setting at 5, an
+  # account is made over the REST API with a password, its stored hash is read from
+  # the database with the database's own client, and it signs in with that password
+  # (GET /api/v1/me): an Argon2id hash (scheme 5, $a2$) where the status says
+  # argon2id true, a scrypt one (7, $s2$) where it says false, and the sign-in
+  # answered 200 either way. That holds the status to the library itself: a server
+  # that took the KDF to be there from the headers it was built against would say
+  # true, report nothing, and store for the password a hash its library cannot
+  # derive, which signs nobody in. Then the domain is deleted, with the account, and
+  # the setting put back to 4, the default.
+  local domain=start-test.example account secret made stored want signin
+  account="argon2id@$domain"
+  answer=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - -o /dev/null -w '%{http_code}' -X PUT \
+             -H 'Content-Type: application/json' --data '{"value":"5"}' "https://$host:$rest_port/api/v1/settings/ini/PreferredHashAlgorithm") \
+    || fail "beside $database, PUT /api/v1/settings/ini/PreferredHashAlgorithm as Administrator failed"
+  [ "$answer" = 200 ] || fail "beside $database, PUT /api/v1/settings/ini/PreferredHashAlgorithm 5 answered $answer, not 200"
+  # The error logs listed again: with no entry before, there was no file to name.
+  logs=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs") \
+    || fail "beside $database, GET /api/v1/logs as Administrator failed"
+  logfiles=$(grep -oE '"name":"ERROR_hmailserver_[A-Za-z0-9_.-]+[.]log"' <<< "$logs" | sed -e 's/^"name":"//' -e 's/"$//')
+  said_5607=0
+  for logfile in $logfiles; do
+    tail=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs/$logfile?lines=2000") \
+      || fail "beside $database, GET /api/v1/logs/$logfile as Administrator failed"
+    said_5607=$((said_5607 + $(grep -o 'Code: HM5607, [^"]*has no Argon2id KDF' <<< "$tail" | wc -l)))
+  done
+  made=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - -o /dev/null -w '%{http_code}' -X POST \
+           -H 'Content-Type: application/json' --data "{\"name\":\"$domain\",\"active\":true}" "https://$host:$rest_port/api/v1/domains") \
+    || fail "beside $database, POST /api/v1/domains as Administrator failed"
+  [ "$made" = 201 ] || fail "beside $database, POST /api/v1/domains $domain answered $made, not 201"
+  # A throwaway password, with a capital, a digit and a sign besides, for whatever
+  # policy the installation has; it goes to curl in its configuration on standard
+  # input, the request's body among it, never on a command line.
+  secret="$(head -c 18 /dev/urandom | od -An -tx1 | tr -d ' \n')Aa1!"
+  made=$(printf 'user = "Administrator:%s"\ndata-binary = "{\\"address\\":\\"%s\\",\\"password\\":\\"%s\\",\\"active\\":true}"\n' \
+           "$password" "$account" "$secret" \
+           | curl -sk --max-time 60 -K - -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+               "https://$host:$rest_port/api/v1/domains/$domain/accounts") \
+    || fail "beside $database, POST /api/v1/domains/$domain/accounts as Administrator failed"
+  [ "$made" = 201 ] || fail "beside $database, with PreferredHashAlgorithm 5, POST /api/v1/domains/$domain/accounts answered $made, not 201"
+  said_errors=$(mktemp) || { echo "mktemp failed"; exit 2; }
+  stored=$(schema_version "$database" \
+             "select concat(accountpwencryption, ' ', substr(accountpassword, 1, 4)) from hm_accounts where accountaddress = '$account'" \
+             2> "$said_errors")
+  status=$?
+  errors=$(cat "$said_errors")
+  rm -f "$said_errors"
+  if [ "$status" -ne 0 ]; then
+    printf '%s\n' "$errors"
+    unasked "$client could not read $account's stored hash from $database (it exited $status; what it said is above): the test could not finish, which says nothing yet of the image"
+  fi
+  stored=$(printf '%s' "$stored" | tr -d '\r\n')
+  signin=$(printf 'user = "%s:%s"\n' "$account" "$secret" | curl -sk --max-time 60 -K - -o /dev/null -w '%{http_code}' \
+             "https://$host:$rest_port/api/v1/me") \
+    || fail "beside $database, GET /api/v1/me as $account failed"
+  answer=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - -o /dev/null -w '%{http_code}' -X PUT \
+             -H 'Content-Type: application/json' --data '{"value":"4"}' "https://$host:$rest_port/api/v1/settings/ini/PreferredHashAlgorithm") \
+    || fail "beside $database, PUT /api/v1/settings/ini/PreferredHashAlgorithm as Administrator failed"
+  [ "$answer" = 200 ] || fail "beside $database, PUT /api/v1/settings/ini/PreferredHashAlgorithm 4 answered $answer, not 200"
+  answer=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 60 -K - -o /dev/null -w '%{http_code}' -X DELETE \
+             "https://$host:$rest_port/api/v1/domains/$domain") \
+    || fail "beside $database, DELETE /api/v1/domains/$domain as Administrator failed"
+  [ "$answer" = 200 ] || fail "beside $database, DELETE /api/v1/domains/$domain answered $answer, not 200"
+  if [ "$argon" = true ]; then
+    [ "$said_5607" -eq 0 ] || fail "beside $database, GET /api/v1/status says argon2id true, and PreferredHashAlgorithm 5 was answered with HM5607, no Argon2id KDF"
+    want='5 $a2$'
+  else
+    [ "$said_5607" -gt 0 ] || fail "beside $database, GET /api/v1/status says argon2id false, and PreferredHashAlgorithm 5 was taken without HM5607"
+    want='7 $s2$'
+  fi
+  echo "PreferredHashAlgorithm 5: $([ "$said_5607" -gt 0 ] && echo "HM5607, scrypt used" || echo "taken"), as argon2id $argon says"
+  echo "$account, made with it: stored as '$stored' (scheme and the hash's first four characters); GET /api/v1/me with its password: $signin"
+  [ "$stored" = "$want" ] \
+    || fail "beside $database, GET /api/v1/status says argon2id $argon, and an account made with PreferredHashAlgorithm 5 was stored as '$stored', not '$want'"
+  [ "$signin" = 200 ] \
+    || fail "beside $database, an account made with PreferredHashAlgorithm 5, stored as '$stored', did not sign in with its password (GET /api/v1/me answered $signin)"
+  echo "stored as '$want' and signed in, as argon2id $argon says"
   schema="$version"
 }
 
@@ -422,4 +594,4 @@ maria_schema="$schema"
   || fail "the server laid out schema $pg_schema in PostgreSQL and $maria_schema in MariaDB: one image, one schema"
 
 echo ""
-echo "STARTED: beside PostgreSQL and beside MariaDB, the image answers SMTP on 25 with STARTTLS, and the REST API over TLS, as $expected, an installation of kind container that docker pull updates, with schema $pg_schema in each database."
+echo "STARTED: beside PostgreSQL and beside MariaDB, the image secured itself and answers SMTP on 25 with STARTTLS, and the REST API over TLS, as $expected, an installation of kind container that docker pull updates, with schema $pg_schema in each database, an error log with nothing the first start need not say, and a status whose argon2id and post_quantum_key_exchange are what its OpenSSL does."

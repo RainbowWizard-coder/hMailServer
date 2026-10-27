@@ -684,7 +684,7 @@ namespace HM
 
          if (!Argon2Available())
          {
-            problem = _T("it was wrapped with Argon2id, which this build's OpenSSL does not have");
+            problem = String("it was wrapped with Argon2id, and " + HashCreator::Argon2idUnavailableReason());
             return false;
          }
 

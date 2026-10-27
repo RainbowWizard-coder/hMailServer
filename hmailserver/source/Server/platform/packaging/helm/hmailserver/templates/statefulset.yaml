@@ -83,7 +83,11 @@ spec:
           # on 25, 587, 110 and 143, and no password taken in the clear from another
           # address until TLS is up. --if-marked does nothing at any other start, and a
           # failure is forgiven, as the systemd unit's ExecStartPre=- forgives it: the
-          # server starts all the same, and says what is wrong.
+          # server starts all the same, and says what is wrong. The image's entrypoint
+          # runs this step itself, before this command, from the first image made after
+          # 27 October 2026, so with such an image this finds no marker and does
+          # nothing; it is kept for an image.tag published before, whose entrypoint
+          # does not.
           args:
             - bash
             - -c

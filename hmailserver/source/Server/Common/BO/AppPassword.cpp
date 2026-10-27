@@ -7,6 +7,7 @@
 
 #include "../Application/IniFileSettings.h"
 #include "../Util/Crypt.h"
+#include "../Util/Hashing/HashCreator.h"
 #include "../Util/Parsing/StringParser.h"
 
 #include <openssl/rand.h>
@@ -124,6 +125,16 @@ namespace HM
 
       if (minimumIsAPasswordScheme && Crypt::StrengthRank(minimum) > Crypt::StrengthRank((int) type))
          type = (Crypt::EncryptionType) minimum;
+
+      // Argon2id - the fallback above, or a minimum of 5 - where the OpenSSL the
+      // server runs with has no Argon2id KDF would be an empty hash, which the
+      // store refuses as one that authenticates nothing: scrypt instead, its peer
+      // in strength, as IniFileSettings reads a PreferredHashAlgorithm of 5 there.
+      // The loader reports both there as HM5607, which says why: a
+      // PreferredHashAlgorithm of 5, read as 7, and a MinimumAcceptedHashAlgorithm
+      // of 5, which this then meets with scrypt.
+      if (type == Crypt::ETArgon2id && !HashCreator::Argon2idAvailable())
+         type = Crypt::ETScrypt;
 
       hash_ = Crypt::Instance()->EnCrypt(clearText, type);
       encryption_ = (int) type;

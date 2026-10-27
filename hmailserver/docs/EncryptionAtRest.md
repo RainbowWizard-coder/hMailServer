@@ -121,9 +121,11 @@ passphrase, and one, until the first sign-in, that this server can open by itsel
 * **Wrapped by the account's password** - a key-encryption key derived from the
   password with **Argon2id** (RFC 9106) at the server's own password-hash parameters,
   never below 19 MiB and two passes, and a random 16-byte salt; the private key under it
-  with AES-256-GCM, bound to the key's public half. On a build whose OpenSSL has no
-  Argon2 (3.0 and 3.1, the Linux distributions' before 3.2) it is PBKDF2-HMAC-SHA256 at
-  600,000 iterations instead, and the wrap says which. Empty until the first sign-in.
+  with AES-256-GCM, bound to the key's public half. Where the OpenSSL the server runs
+  with has no Argon2 (3.0 and 3.1: the Linux distributions' before 3.2, and the
+  container image's Ubuntu 24.04, whatever the OpenSSL its server was built against) it
+  is PBKDF2-HMAC-SHA256 at 600,000 iterations instead, and the wrap says which. Empty
+  until the first sign-in.
 * **Sealed to the domain's recovery key** - an ephemeral X25519 agreement with the
   recovery key's public half, put through HKDF-SHA256, the private key under AES-256-GCM,
   bound to both public keys and to the account's key.
