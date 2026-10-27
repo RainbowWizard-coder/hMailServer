@@ -890,6 +890,7 @@
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
     <Compile Include="API\RestApiNumberRanges.cs" />
+    <Compile Include="API\RestApiRequestBodies.cs" />
     <Compile Include="API\RestApiSetupChecklist.cs" />
     <Compile Include="API\RestApiProfiles.cs" />
     <Compile Include="API\RestApiSampleDomain.cs" />

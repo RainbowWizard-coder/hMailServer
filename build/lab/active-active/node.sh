@@ -59,6 +59,16 @@ sql() {
   esac
 }
 
+# A value as a JSON string's contents: the backslash and the double quote escaped,
+# so that a password holding either is still one JSON object the server takes, and
+# a control character refused rather than sent.
+json_string() {
+  case "$1" in
+    *[[:cntrl:]]*) echo "a value for a JSON body holds a control character" >&2; return 1 ;;
+  esac
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
 rest() {
   # rest METHOD PATH [BODY]: the administrator's credentials from a netrc file, so
   # that the password is on no command line.
@@ -163,7 +173,7 @@ if [ "${AA_LAYOUT:-0}" = 1 ]; then
   made=$(rest POST /api/v1/domains '{"name":"example.test","active":true}')
   echo "domain example.test: HTTP $made"
   for i in $(seq 1 "${AA_ACCOUNTS:-4}"); do
-    body=$(printf '{"address":"account%d@example.test","password":"%s"}' "$i" "$AA_ACCOUNT_PASSWORD")
+    body=$(printf '{"address":"account%d@example.test","password":"%s"}' "$i" "$(json_string "$AA_ACCOUNT_PASSWORD")")
     echo "account$i@example.test: HTTP $(rest POST /api/v1/domains/example.test/accounts "$body")"
   done
   route=$(printf '{"domain_name":"sink.test","target_smtp_host":"%s","target_smtp_port":2525,"number_of_tries":5,"minutes_between_try":1,"treat_recipient_as_local_domain":true}' "${AA_SINK_HOST:-sink}")

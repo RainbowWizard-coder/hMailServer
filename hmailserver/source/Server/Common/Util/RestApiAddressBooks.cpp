@@ -443,7 +443,7 @@ namespace HM
          return BuildResponse_(403, "{\"error\":\"the address book is another account's; only its owner names it\"}");
 
       String name = book.name;
-      if (requestBody.Find("\"name\"") >= 0)
+      if (JsonHasMember_(requestBody, "name"))
       {
          name = JsonUtf8Value_(requestBody, "name");
          name.TrimLeft();

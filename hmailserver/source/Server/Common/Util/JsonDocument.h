@@ -56,6 +56,12 @@ namespace HM
       __int64 GetInt64(const std::string &key, __int64 defaultValue = 0) const;
       const std::vector<std::pair<std::string, JsonValue> > &Members() const { return members_; }
 
+      // True for an object whose text named one member more than once. Parse keeps
+      // the first and drops the rest, as before; this says that it did, for a reader
+      // that must refuse such a document rather than take one of its readings (a
+      // request body: RestApiServer::RefuseBodyThatIsNotJson_).
+      bool HadDuplicateMember() const { return duplicate_member_; }
+
       // Arrays. At answers nullptr when this is not an array or the index is past the end.
       size_t Size() const { return items_.size(); }
       const JsonValue *At(size_t index) const;
@@ -88,6 +94,7 @@ namespace HM
 
       Type type_;
       bool bool_;
+      bool duplicate_member_;
       double number_;
       std::string raw_number_;
       std::string string_;

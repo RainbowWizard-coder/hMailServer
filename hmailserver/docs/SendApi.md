@@ -189,6 +189,11 @@ A member the route does not take (`body` for `text`, `reply-to` for
 `reply_to`) is `400` and named, rather than dropped: a message sent without
 what its sender meant it to carry is worse than a refusal.
 
+The body is one JSON object. One that is not JSON - text after it, a trailing
+comma - or that names a member twice, or carries an escaped U+0000 in a string,
+is `400` ("the body must be a JSON object: ...") before the key is looked at, as
+on every route of the API that takes JSON.
+
 ### What the server does to the message
 
 It is written and checked by the **same code as the webmail's send**

@@ -2126,8 +2126,6 @@ namespace HM
       static bool IsLargeRequest_(const AnsiString &method, const AnsiString &target);
       // A granted route's own ceiling below the large cap, or 0 (HttpServer.h).
       static size_t LargeRequestCeiling_(const AnsiString &method, const AnsiString &target);
-      static bool ReadJsonHex4_(const AnsiString &json, int at, unsigned int &value);
-      static void AppendUtf8_(AnsiString &out, unsigned int codePoint);
       static void CollectReadableFolders_(std::shared_ptr<const Account> account, std::shared_ptr<IMAPFolders> folders, const String &parentPath,
                                           const String &delimiter, std::vector<std::pair<std::shared_ptr<IMAPFolder>, String>> &out, int depth);
       // UTF-8 for the JSON: the plain String-to-AnsiString conversion is the
@@ -2823,7 +2821,6 @@ namespace HM
       HttpResponse DiscoveryDownload_(const Caller &caller, const Route &route);
       static AnsiString OpenApiDiscoveryPaths_();
       static bool GetJsonBoolValue_(const AnsiString &json, const AnsiString &key, bool defaultValue);
-      static std::vector<AnsiString> GetJsonStringArray_(const AnsiString &json, const AnsiString &key);
       static bool IsSafeLogName_(const AnsiString &name);
 
       // The reports (RestApiReports.cpp). One handler for every section,
@@ -2849,7 +2846,54 @@ namespace HM
       static bool QueueMessageExists_(__int64 messageId);
 
       static AnsiString GetRequestBody_(const AnsiString &request);
+
+      // A request body is read once, as one JSON document, and every member
+      // reader here reads that document; nothing searches the text for a key.
+      //
+      // BodyMustBeJson_ is whether a request's body is meant to be JSON: a write
+      // (any method but GET, HEAD and OPTIONS) to /api/ or /scim/, except the
+      // routes whose body is something else - a file's bytes, a protected
+      // message's ciphertext, a message to import, CSV for a migration's jobs.
+      // RefuseBodyThatIsNotJson_ is asked once, in ProcessRequest_, before
+      // Authenticate_ (which reads a passkey and a single sign-on ticket out of
+      // the body) and before any handler: such a body, unless it is blank, must
+      // be one JSON object, with no member named twice in an object and no
+      // U+0000 in a string, or the request is answered 400 and nothing reads it.
+      static bool BodyMustBeJson_(const AnsiString &method, const AnsiString &path);
+      static bool RefuseBodyThatIsNotJson_(const AnsiString &method, const AnsiString &path, const AnsiString &request,
+                                           const IPAddress &peer, HttpResponse &refusal);
+
+      // The document a body parses to when it is an object, else null. Parsed
+      // once per distinct text and kept until the request is answered, so that
+      // the twenty members a handler reads are one parse. JsonBodyMember_ is a
+      // member by FindJsonMember_'s rule; both answers hold the document for as
+      // long as the caller keeps them.
+      static std::shared_ptr<const JsonValue> BodyObject_(const AnsiString &json);
+      static std::shared_ptr<const JsonValue> JsonBodyMember_(const AnsiString &json, const AnsiString &key);
+
+      // Whether the body names the member, whatever its value; and whether it
+      // names it as something other than a string or null - which a route that
+      // reads a restriction refuses rather than reading it as no restriction.
+      static bool JsonHasMember_(const AnsiString &json, const AnsiString &key);
+      static bool JsonMemberNotString_(const AnsiString &json, const AnsiString &key);
+
+      // A string member, "" when absent or of another type.
       static AnsiString GetJsonStringValue_(const AnsiString &json, const AnsiString &key);
+
+      // The same readers over one object of the document, for a nested object a
+      // route reads whole: the settings' name, forwarding and signature, and each
+      // attachment of a message.
+      static AnsiString JsonMemberString_(const JsonValue &object, const AnsiString &key);
+      static String JsonMemberUtf8_(const JsonValue &object, const AnsiString &key);
+      static bool JsonMemberBool_(const JsonValue &object, const AnsiString &key, bool defaultValue);
+
+      // A member given as a run of digits, a number or a string of digits:
+      // folder_id, answered_id, replace_id. False when absent, negative or not
+      // digits. JsonInteger_ takes a minus sign as well (a port's number and
+      // its certificate's id), at most 18 digits.
+      static bool JsonDigits_(const AnsiString &json, const AnsiString &key, __int64 &value);
+      static bool JsonInteger_(const AnsiString &json, const AnsiString &key, __int64 &value);
+
       static const JsonValue *FindJsonMember_(const JsonValue &object, const std::string &key);
       static AnsiString JsonEscape_(const AnsiString &value);
 

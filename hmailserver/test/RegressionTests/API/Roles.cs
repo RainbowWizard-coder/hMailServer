@@ -732,7 +732,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A header line written into a request's body is not a header: an Authorization and an X-Requested-With in the body start no session, and in the head they do")]
+      [Description("A header line written into a request's body is not a header: an Authorization and an X-Requested-With in the body start no session and authenticate nothing, and in the head they do")]
       public void AHeaderInTheBodyIsNotAHeader()
       {
          // The negative control for GetHeader_, which until 26 September 2026
@@ -745,9 +745,18 @@ namespace RegressionTests.API
          string credential = Convert.ToBase64String(Encoding.UTF8.GetBytes("user@example.test:" + AccountPassword));
          string forged = "x=\r\nAuthorization: Basic " + credential + "\r\nX-Requested-With: hMailServer\r\n";
 
+         // A body meant to be JSON that is not JSON is now answered 400 before
+         // anything reads it, the credential search included.
          (int status, string body) fromBody = Http("POST", "/api/v1/session", null, forged);
-         Assert.AreEqual(401, fromBody.status, "A credential in the body started a session. Body: " + fromBody.body);
+         Assert.AreEqual(400, fromBody.status, "A credential in the body started a session, or the body was read. Body: " + fromBody.body);
+         StringAssert.Contains("the body must be a JSON object", fromBody.body);
          StringAssert.DoesNotContain("user@example.test", fromBody.body);
+
+         // A GET's body is no JSON body and meets no such refusal, so GetHeader_
+         // alone keeps the lines in it from being read as the request's own.
+         (int status, string body) getFromBody = Http("GET", "/api/v1/session", null, forged);
+         Assert.AreEqual(401, getFromBody.status, "A credential in a GET's body was read as the request's. Body: " + getFromBody.body);
+         StringAssert.DoesNotContain("user@example.test", getFromBody.body);
 
          (int status, string body) fromHead = AsAccount("user@example.test", "POST", "/api/v1/session");
          Assert.AreEqual(201, fromHead.status, "The same credential in the head starts a session. Body: " + fromHead.body);

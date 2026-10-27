@@ -184,9 +184,12 @@ namespace HM
             if (!ParseValue_(member, depth + 1, error))
                return false;
 
-            // The first of a duplicated key wins, as a search by name would find it.
+            // The first of a duplicated key wins, as a search by name would find it,
+            // and the object says that it had one.
             if (names.insert(key).second)
                value.members_.push_back(std::make_pair(key, member));
+            else
+               value.duplicate_member_ = true;
 
             SkipWhitespace_();
             if (!Peek_(c))
@@ -453,6 +456,7 @@ namespace HM
    JsonValue::JsonValue() :
       type_(TypeNull),
       bool_(false),
+      duplicate_member_(false),
       number_(0)
    {
    }

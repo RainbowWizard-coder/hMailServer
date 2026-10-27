@@ -43,6 +43,16 @@ failed=0
 
 [ -n "$PW" ] || { echo "HMLAB_BENCH_ACCOUNT_PASSWORD is not set (lab.sh passes it from ~/hmlab/secrets.env)"; exit 2; }
 
+# A value as a JSON string's contents: the backslash and the double quote escaped,
+# so that a password holding either is still one JSON object the server takes, and
+# a control character refused rather than sent.
+json_string() {
+  case "$1" in
+    *[[:cntrl:]]*) echo "a value for a JSON body holds a control character" >&2; return 1 ;;
+  esac
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
 # REST as the administrator; the JSON body on standard input. Prints the status.
 rest() {
   local method="$1" path="$2" body="${3:-}"
@@ -57,7 +67,7 @@ rest() {
 account() {
   local address="$1@example.test" status
   rest DELETE "/api/v1/accounts/$address" > /dev/null
-  status=$(rest POST /api/v1/domains/example.test/accounts "{\"address\":\"$address\",\"password\":\"$PW\",\"active\":true}")
+  status=$(rest POST /api/v1/domains/example.test/accounts "{\"address\":\"$address\",\"password\":\"$(json_string "$PW")\",\"active\":true}")
   case "$status" in
     200|201) echo "account $address" ;;
     *) echo "making $address failed: $status $(head -c 300 "$WORK/rest.out")"; return 1 ;;

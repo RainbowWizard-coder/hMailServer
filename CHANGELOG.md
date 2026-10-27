@@ -627,6 +627,43 @@ with `--check`).
   config diff`, `config apply` with and without `--force`, `--from-json`, `--password-file` and `--passphrase-file`
   to files with a byte order mark in every pipeline's `checkers` job, and `Set-HmOpenPgpKey -Path` to a file whose
   name has brackets.
+- **Changed: a REST request body meant to be JSON must be one JSON object, and the server answers 400 before it reads
+  one that is not.** This covers every route under `/api/` and `/scim/` that takes a JSON body, which is all but five.
+  The five take something else: a file's bytes (`PUT /api/v1/me/files/{id}/content`), a protected message's
+  ciphertext (`PUT /api/v1/me/protected/{id}/content`), a message to import
+  (`POST /api/v1/me/folders/{id}/messages` and `POST /api/v1/accounts/{address}/folders/{id}/messages`) and a
+  migration's CSV (`POST /api/v1/migrations/{id}/jobs`). A body is refused if it is not one JSON object (text after
+  the value, a trailing comma, a stray byte, an array), if one object in it names a member twice, or if a string in it
+  carries an escaped U+0000. The answer is `{"error":"the body must be a JSON object: ..."}`, saying why; on a `/scim/`
+  path it is RFC 7644's error with `scimType` `invalidSyntax`. It comes after the Host check and before the credential
+  is looked at or any route reads a member. An empty body is still no body.
+
+  Until now such a body was read anyway, by searching its text for each member's quoted name: every body from
+  6.0.0-B1, and from 6.3.2 every body the parse refused. So a request a JSON client would call malformed was acted on
+  with what the search found. Several readers also searched every body, including one that parsed:
+  - the booleans (since 6.2.25);
+  - `folder_id`, `answered_id` and `replace_id` (6.2.28), and a port's `port` and `certificate_id` (6.3.0);
+  - the account settings' `name`, `forwarding` and `signature` objects, and a message's `attachments` (6.2.28);
+  - the tests of whether a body names a member at all.
+
+  So a key spelt inside a value, or a member of a nested object or of an array, was read as the member it is not:
+  - A contact could not be renamed "address".
+  - A draft whose subject was "replace_id" deleted the account's draft whose id began the next member's value.
+  - A keyword named "deleted", an event whose summary was "invite" and an IP range named `deliver_remote_to_remote`
+    each took that flag from the next `true` in the body. That set `\Deleted`, mailed the event's attendees, or made
+    the range an open relay for its addresses.
+
+  Every member reader now reads the one parse, by the rule the string reader already had: the object's own member,
+  else the first of that name in an object inside it. The readers cut a value at an escaped NUL while a route that read
+  the document kept it whole; it is now refused, as the listener already refuses a raw NUL in a text body. A
+  restriction written as anything but a string was read by the parse as no restriction at all, and is now refused:
+  `domains` and `allowed_from` in `POST /api/v1/apikeys`, and `domains` in
+  `PUT /api/v1/role-assignments/{address}`.
+
+  None of this let a caller do what a body that parses could not, because each check and the act it guards read a
+  member the same way. The Control Deck, the webmail, `hmctl`, the PowerShell module and the Control Panel already send
+  JSON the parse takes. The `RestApiRequestBodies` fixtures hold the refusals and the readings on Windows and on
+  Linux.
 
 ### Downloads and the release
 
@@ -3042,6 +3079,9 @@ with `--check`).
   `%check` expanding `%{___build_post}` and one running the shell, a macro whose name a macro gives, a
   `BuildSystem` tag, a shell command in a tag and a carriage return, refused; SourcePackages.md says which nine are
   left out and why, and what the check reads.
+- `build/lab/interop.sh` and `build/lab/active-active/node.sh` escape the account password they write into a JSON
+  body. A password from the environment holding a double quote or a backslash had made a body that was not JSON,
+  which the REST API now refuses. Before, it was misread.
 
 ### Documentation
 

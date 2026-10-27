@@ -139,55 +139,6 @@ namespace HM
          return false;
       }
 
-      // A number in the body, as the IP range route reads its priority: the
-      // digits after the key's colon, up to the next separator. A number a
-      // client sent as a string ("2565") is taken as well, since nothing is
-      // gained by refusing it. False when the key is not there or what follows
-      // it is not a number, which the callers tell apart from a value of 0.
-      bool GetJsonInteger(const AnsiString &json, const AnsiString &key, __int64 &value)
-      {
-         AnsiString needle = "\"" + key + "\"";
-
-         int keyPosition = json.Find(needle);
-         if (keyPosition < 0)
-            return false;
-
-         int colon = json.Find(":", keyPosition + needle.GetLength());
-         if (colon < 0)
-            return false;
-
-         AnsiString digits;
-         bool quoted = false;
-
-         for (int i = colon + 1; i < json.GetLength(); i++)
-         {
-            char c = json[i];
-
-            if (digits.IsEmpty() && (c == ' ' || c == '\t' || c == '\r' || c == '\n'))
-               continue;
-
-            if (digits.IsEmpty() && !quoted && c == '\"')
-            {
-               quoted = true;
-               continue;
-            }
-
-            if ((c >= '0' && c <= '9') || (c == '-' && digits.IsEmpty()))
-            {
-               digits += c;
-               continue;
-            }
-
-            break;
-         }
-
-         if (digits.IsEmpty() || digits == "-" || digits.GetLength() > 18)
-            return false;
-
-         value = _atoi64(digits.c_str());
-         return true;
-      }
-
       // One certificate as GET /api/v1/certificates renders it, so that what
       // the create answers is exactly what the next listing will show. The
       // private key password is not here and is not anywhere: it is accepted
@@ -574,8 +525,8 @@ namespace HM
       request.policy = GetJsonStringValue_(requestBody, "client_certificate_policy");
       request.caFile = JsonUtf8Value_(requestBody, "client_certificate_ca_file");
       request.smtpAuthentication = GetJsonStringValue_(requestBody, "smtp_authentication");
-      request.hasPort = GetJsonInteger(requestBody, "port", request.port);
-      request.hasCertificateId = GetJsonInteger(requestBody, "certificate_id", request.certificateId);
+      request.hasPort = JsonInteger_(requestBody, "port", request.port);
+      request.hasCertificateId = JsonInteger_(requestBody, "certificate_id", request.certificateId);
 
       std::shared_ptr<SSLCertificates> certificates = Configuration::Instance()->GetSSLCertificates();
       if (certificates)
@@ -648,8 +599,8 @@ namespace HM
       request.policy = GetJsonStringValue_(requestBody, "client_certificate_policy");
       request.caFile = JsonUtf8Value_(requestBody, "client_certificate_ca_file");
       request.smtpAuthentication = GetJsonStringValue_(requestBody, "smtp_authentication");
-      request.hasPort = GetJsonInteger(requestBody, "port", request.port);
-      request.hasCertificateId = GetJsonInteger(requestBody, "certificate_id", request.certificateId);
+      request.hasPort = JsonInteger_(requestBody, "port", request.port);
+      request.hasCertificateId = JsonInteger_(requestBody, "certificate_id", request.certificateId);
 
       std::shared_ptr<SSLCertificates> certificates = Configuration::Instance()->GetSSLCertificates();
       if (certificates)

@@ -1404,7 +1404,7 @@ namespace HM
          return BuildResponse_(403, "{\"error\":\"the calendar is another account's; only its owner names or colours it\"}");
 
       String displayName = v.calendar.displayName;
-      if (requestBody.Find("\"display_name\"") >= 0)
+      if (JsonHasMember_(requestBody, "display_name"))
       {
          displayName = JsonUtf8Value_(requestBody, "display_name");
          displayName.TrimLeft();
@@ -1413,7 +1413,7 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"display_name is 1 to 255 characters\"}");
       }
       String color = v.calendar.color;
-      if (requestBody.Find("\"color\"") >= 0)
+      if (JsonHasMember_(requestBody, "color"))
       {
          color = JsonUtf8Value_(requestBody, "color");
          color.TrimLeft();

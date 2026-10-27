@@ -27,7 +27,8 @@
 //     reads as the pattern rather than as whatever the heap had.
 //   - A ScriptObject is made with its type.
 //   - RestApiServer::ReadIpRangePriority holds a POST /api/v1/ipranges priority to
-//     what PUT takes: a whole number from -2,000,000,000 to 2,000,000,000.
+//     what PUT takes: a whole number from -2,000,000,000 to 2,000,000,000, read
+//     from the parsed body alone.
 //   - An external account's DaysToKeepMessages has one meaning for POP3 and IMAP
 //     (FetchAccountTester, Common/BO/FetchAccount.cpp): from 6.2.25 to 6.3.5 the
 //     IMAP fetcher read 0 and -1 the other way round. What a value stored before
@@ -407,19 +408,22 @@ namespace
          // Not a number: refused, as PUT refuses it.
          { "{\"priority\":\"5\"}", false, 17 },
          { "{\"priority\":true}", false, 17 },
-         // A body that does not parse (the comma before the brace): the number
-         // after the key, held to the same bound; nothing there leaves it.
-         { "{\"priority\":5,}", true, 5 },
-         { "{\"priority\":99999999999,}", false, 17 },
+         // A body that does not parse (the comma before the brace, a sign with no
+         // digits, a plus sign) names no priority and leaves it: the route never
+         // sees one, since ProcessRequest_ answers it 400 first
+         // (RefuseBodyThatIsNotJson_). Until 6.3.7 such a body was searched for
+         // the number after the key.
+         { "{\"priority\":5,}", true, 17 },
+         { "{\"priority\":99999999999,}", true, 17 },
          { "{\"priority\":\"5\",}", true, 17 },
          { "{\"priority\":2000000001}", false, 17 },
          { "{\"priority\":-2000000001}", false, 17 },
          { "{\"priority\":99999999999}", false, 17 },
          { "{\"priority\":4294967338}", false, 17 },
          { "{\"priority\":123456789012345678901234567890}", false, 17 },
-         { "{\"priority\":-}", false, 17 },
+         { "{\"priority\":-}", true, 17 },
          { "{\"priority\":1.5}", false, 17 },
-         { "{\"priority\":+5}", false, 17 },
+         { "{\"priority\":+5}", true, 17 },
          { "{\"priority\":1e999}", false, 17 },
       };
 

@@ -256,6 +256,12 @@ namespace HM
    HttpResponse
    RestApiServer::HandleRoleAssign_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody)
    {
+      // domains narrows the role; written as anything but a string (or null) it
+      // would be read as absent, which is every domain the role reaches, so it
+      // is refused instead.
+      if (JsonMemberNotString_(requestBody, "domains"))
+         return BuildResponse_(400, "{\"error\":\"domains must be a comma-separated list of domain names, as a string\"}");
+
       AnsiString roleName = GetJsonStringValue_(requestBody, "role");
       AnsiString domains = GetJsonStringValue_(requestBody, "domains");
 

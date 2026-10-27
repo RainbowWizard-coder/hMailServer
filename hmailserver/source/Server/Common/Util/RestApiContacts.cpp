@@ -286,8 +286,8 @@ namespace HM
       // every contact carried before schema 6079 - so a client that sends it
       // means the default book rather than a book that is not there.
       __int64 wanted = 0;
-      const bool named = requestBody.Find("\"book\"") >= 0 && JsonWholeNumber_(requestBody, "book", wanted) >= 0;
-      if (requestBody.Find("\"book\"") >= 0 && !named)
+      const bool named = JsonHasMember_(requestBody, "book") && JsonWholeNumber_(requestBody, "book", wanted) >= 0;
+      if (JsonHasMember_(requestBody, "book") && !named)
          return BuildResponse_(400, "{\"error\":\"book must be an address book's id\"}");
 
       VisibleBook book;
@@ -323,7 +323,7 @@ namespace HM
 
       String card;
       String uid;
-      if (requestBody.Find("\"card\"") >= 0)
+      if (JsonHasMember_(requestBody, "card"))
       {
          card = JsonUtf8Value_(requestBody, "card");
          std::vector<VCardProperty> properties;
@@ -398,7 +398,7 @@ namespace HM
       String name = contact.name;
       String address = contact.address;
 
-      if (requestBody.Find("\"name\"") >= 0)
+      if (JsonHasMember_(requestBody, "name"))
       {
          name = JsonUtf8Value_(requestBody, "name");
          name.TrimLeft();
@@ -407,7 +407,7 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"name is at most 255 characters\"}");
       }
 
-      if (requestBody.Find("\"address\"") >= 0)
+      if (JsonHasMember_(requestBody, "address"))
       {
          String ignored;
          ContactStore::SplitEntry(JsonUtf8Value_(requestBody, "address"), ignored, address);
@@ -424,7 +424,7 @@ namespace HM
       // else's book would be giving away a contact rather than moving one - and
       // the destination must be writable.
       VisibleBook destination = book;
-      if (requestBody.Find("\"book\"") >= 0)
+      if (JsonHasMember_(requestBody, "book"))
       {
          __int64 wanted = 0;
          if (JsonWholeNumber_(requestBody, "book", wanted) < 0)
@@ -451,7 +451,7 @@ namespace HM
       // one direction there is - what the person wrote to does not become
       // something they merely wrote to again.
       int source = contact.source;
-      if (requestBody.Find("\"source\"") >= 0)
+      if (JsonHasMember_(requestBody, "source"))
       {
          String wanted = JsonUtf8Value_(requestBody, "source");
          if (wanted.CompareNoCase(_T("manual")) == 0)

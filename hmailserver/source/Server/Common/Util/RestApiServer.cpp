@@ -2457,9 +2457,27 @@ namespace HM
       }
    }
 
+   namespace
+   {
+      // Defined with the body readers, below.
+      void ForgetParsedBody();
+
+      // The parsed body is kept while the request is handled and dropped when
+      // it is answered, however ProcessRequest_ returns.
+      struct RequestBodyScope
+      {
+         RequestBodyScope() = default;
+         RequestBodyScope(const RequestBodyScope &) = delete;
+         RequestBodyScope &operator=(const RequestBodyScope &) = delete;
+         ~RequestBodyScope() { ForgetParsedBody(); }
+      };
+   }
+
    HttpResponse
    RestApiServer::ProcessRequest_(const AnsiString &request, const IPAddress &peer_address)
    {
+      RequestBodyScope bodyScope;
+
       // Parse the request line.
       int lineEnd = request.Find("\r\n");
       if (lineEnd < 0)
@@ -2504,6 +2522,21 @@ namespace HM
       // forwarded Host is one of the configured names and passes.
       if (!HostAllowed_(request))
          return BuildResponse_(421, "{\"error\":\"the request's Host is not one this server answers to: a reverse proxy that forwards the browser's Host needs that name configured (docs/DevicesAndSessions.md)\"}");
+
+      // A body meant to be JSON is one JSON object, read by one parse, or the
+      // request is answered 400 here: before Authenticate_, which reads a
+      // passkey and a single sign-on ticket out of a body, and before any
+      // handler reads a member. Every reader of a member reads that parse
+      // (BodyObject_); until 6.3.7 a body the parse refused was searched for its
+      // keys instead, and read by other rules than the parse - a key spelt
+      // inside a value, a member of a nested object or an array, a name given
+      // twice and an escaped U+0000 each came out another way.
+      // RefuseBodyThatIsNotJson_.
+      {
+         HttpResponse bodyRefusal;
+         if (RefuseBodyThatIsNotJson_(method, path, request, peer_address, bodyRefusal))
+            return bodyRefusal;
+      }
 
       // The web admin SPA shell is served without authentication (it is a
       // static login page). This is the only unauthenticated route in the
@@ -11232,6 +11265,14 @@ namespace HM
    HttpResponse
    RestApiServer::HandleCreateApiKey_(const AnsiString &requestBody)
    {
+      // The two members that narrow the key, written as anything but a string
+      // (or null): read as absent they would be no restriction at all, and a key
+      // asked for as ["example.com"] would reach every domain. Refused instead.
+      if (JsonMemberNotString_(requestBody, "domains"))
+         return BuildResponse_(400, "{\"error\":\"domains must be a comma-separated list of domain names, as a string\"}");
+      if (JsonMemberNotString_(requestBody, "allowed_from"))
+         return BuildResponse_(400, "{\"error\":\"allowed_from must be an address, an address range 'lower-upper', or CIDR, as a string\"}");
+
       AnsiString label = GetJsonStringValue_(requestBody, "label");
       AnsiString expires = GetJsonStringValue_(requestBody, "expires");
       AnsiString allowedFrom = GetJsonStringValue_(requestBody, "allowed_from");
@@ -12809,11 +12850,10 @@ namespace HM
       // "5" among them, which the create used to pass over, making the range
       // with priority 0 - is refused.
       {
-         JsonValue document;
-         std::string parseError;
-         if (JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) && document.IsObject())
+         const std::shared_ptr<const JsonValue> document = BodyObject_(requestBody);
+         if (document)
          {
-            const JsonValue *found = FindJsonMember_(document, "priority");
+            const JsonValue *found = FindJsonMember_(*document, "priority");
             if (!found || found->IsNull())
                return true;
 
@@ -12826,48 +12866,8 @@ namespace HM
          }
       }
 
-      // A body that does not parse is read the way the create reads the rest
-      // of one (GetJsonStringValue_'s search): the number written after the
-      // key, up to the next separator.
-      AnsiString needle = "\"priority\"";
-      int keyPosition = requestBody.Find(needle);
-      if (keyPosition < 0)
-         return true;
-
-      int colon = requestBody.Find(":", keyPosition + needle.GetLength());
-      if (colon < 0)
-         return true;
-
-      // The number as JSON writes it - a sign, the digits, a fraction and an
-      // exponent - so that it is judged whole as PUT judges it, not cut short
-      // at its point.
-      AnsiString number;
-      for (int i = colon + 1; i < requestBody.GetLength(); i++)
-      {
-         char c = requestBody[i];
-         if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && number.IsEmpty())
-            continue;
-         if ((c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E')
-         {
-            number += c;
-            continue;
-         }
-         break;
-      }
-      if (number.IsEmpty())
-         return true;
-
-      // PUT's bound. The scan has no length limit, and the atol this replaces
-      // took any run of digits: a value past a long's range was clamped on
-      // Windows and, on 64-bit Linux, made a long the int column cannot hold -
-      // a range created with a priority its update would then refuse.
-      char *end = nullptr;
-      const double value = std::strtod(number.c_str(), &end);
-      if (number[0] == '+' || end != number.c_str() + number.GetLength() || std::floor(value) != value ||
-          value < -2000000000.0 || value > 2000000000.0)
-         return false;
-
-      priority = (long) value;
+      // A body that is not an object names no priority: ProcessRequest_ refuses
+      // one before any handler reads it, and what is left is an empty body.
       return true;
    }
 
@@ -13718,71 +13718,12 @@ namespace HM
    bool
    RestApiServer::GetJsonBoolValue_(const AnsiString &json, const AnsiString &key, bool defaultValue)
    {
-      AnsiString needle = "\"" + key + "\"";
-      int keyPosition = json.Find(needle);
-      if (keyPosition < 0)
+      // true or false, as the parse reads it; absent, null or another type is
+      // the default.
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      if (!found || !found->IsBool())
          return defaultValue;
-      int colon = json.Find(":", keyPosition + needle.GetLength());
-      if (colon < 0)
-         return defaultValue;
-      for (int i = colon + 1; i < json.GetLength(); i++)
-      {
-         char c = json[i];
-         if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-            continue;
-         if (json.Mid(i, 4) == "true")
-            return true;
-         if (json.Mid(i, 5) == "false")
-            return false;
-         break;
-      }
-      return defaultValue;
-   }
-
-   std::vector<AnsiString>
-   RestApiServer::GetJsonStringArray_(const AnsiString &json, const AnsiString &key)
-   {
-      // The strings of a flat array: "members":["a@x","b@x"]. Nothing nested,
-      // which is all the bodies this server accepts contain.
-      std::vector<AnsiString> values;
-      AnsiString needle = "\"" + key + "\"";
-      int keyPosition = json.Find(needle);
-      if (keyPosition < 0)
-         return values;
-      int open = json.Find("[", keyPosition + needle.GetLength());
-      if (open < 0)
-         return values;
-      int close = json.Find("]", open);
-      if (close < 0)
-         return values;
-
-      AnsiString current;
-      bool inString = false;
-      for (int i = open + 1; i < close; i++)
-      {
-         char c = json[i];
-         if (inString)
-         {
-            if (c == '\\' && i + 1 < close)
-            {
-               current += json[i + 1];
-               i++;
-               continue;
-            }
-            if (c == '\"')
-            {
-               values.push_back(current);
-               current = "";
-               inString = false;
-               continue;
-            }
-            current += c;
-            continue;
-         }
-         if (c == '\"')
-            inString = true;
-      }
-      return values;
+      return found->AsBool();
    }
 
    // ------------------------------------------------------------------------
@@ -14385,14 +14326,13 @@ namespace HM
       // The whole state at once - enabled, subject, message and the optional
       // expiry - so that what the account has afterwards is exactly what the
       // body said, and nothing is left over from before.
-      AnsiString enabledText = GetJsonStringValue_(requestBody, "enabled");
       bool enabled = GetJsonBoolValue_(requestBody, "enabled", false);
       String subject = JsonUtf8Value_(requestBody, "subject");
       String message = JsonUtf8Value_(requestBody, "message");
       bool expires = GetJsonBoolValue_(requestBody, "expires", false);
       String expiresDate = JsonUtf8Value_(requestBody, "expires_date");
 
-      if (requestBody.Find("\"enabled\"") < 0)
+      if (!JsonHasMember_(requestBody, "enabled"))
          return BuildResponse_(400, "{\"error\":\"enabled is required\"}");
 
       if (subject.GetLength() > 200 || message.GetLength() > 20000)
@@ -17163,37 +17103,6 @@ namespace HM
       return BuildResponse_(200, json);
    }
 
-   namespace
-   {
-      // A bare number in a JSON body - folder_id - with or without quotes.
-      bool JsonNumber(const AnsiString &json, const AnsiString &key, __int64 &value)
-      {
-         AnsiString needle = "\"" + key + "\"";
-         int keyPosition = json.Find(needle);
-         if (keyPosition < 0)
-            return false;
-
-         int colon = json.Find(":", keyPosition + needle.GetLength());
-         if (colon < 0)
-            return false;
-
-         int i = colon + 1;
-         while (i < json.GetLength() && (json[i] == ' ' || json[i] == '\t' || json[i] == '\r' || json[i] == '\n' || json[i] == '\"'))
-            i++;
-
-         int start = i;
-         while (i < json.GetLength() && json[i] >= '0' && json[i] <= '9')
-            i++;
-
-         if (i == start)
-            return false;
-
-         value = _atoi64(json.Mid(start, i - start).c_str());
-         return true;
-      }
-
-   }
-
    // Every IMAP session on the folder is told, the way STORE, MOVE and
    // EXPUNGE tell them: by message id, which each turns into its own
    // sequence numbers. A member, so the route files beside this one
@@ -17299,8 +17208,7 @@ namespace HM
 
       for (int i = 0; i < 5; i++)
       {
-         AnsiString needle = AnsiString("\"") + names[i] + "\"";
-         if (requestBody.Find(needle) < 0)
+         if (!JsonHasMember_(requestBody, names[i]))
             continue;
 
          named[i] = true;
@@ -17448,7 +17356,7 @@ namespace HM
       else
       {
          __int64 folderId = 0;
-         if (!JsonNumber(requestBody, "folder_id", folderId))
+         if (!JsonDigits_(requestBody, "folder_id", folderId))
             return BuildResponse_(400, "{\"error\":\"folder_id or to is required\"}");
 
          // The destination goes through the same test as any folder id: the
@@ -19213,40 +19121,31 @@ namespace HM
    int
    RestApiServer::JsonWholeNumber_(const AnsiString &json, const AnsiString &key, __int64 &value)
    {
-      JsonValue document;
-      std::string parseError;
-      if (JsonValue::Parse(std::string(json.c_str(), json.size()), document, parseError) && document.IsObject())
+      // A body that is not an object names no member: ProcessRequest_ refuses
+      // one before any handler reads it, and what is left is an empty body.
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      if (!found)
+         return 0;
+      if (found->IsString())
       {
-         const JsonValue *found = FindJsonMember_(document, std::string(key.c_str()));
-         if (!found)
-            return 0;
-         if (found->IsString())
-         {
-            // Digits in quotes are read as the other readers read them; any
-            // other string is not a number.
-            const std::string &text = found->AsString();
-            if (text.empty() || text.size() > 15 || text.find_first_not_of("0123456789") != std::string::npos)
-               return -1;
-            value = _atoi64(text.c_str());
-            return 1;
-         }
-         if (!found->IsNumber())
+         // Digits in quotes are read as the other readers read them; any
+         // other string is not a number.
+         const std::string &text = found->AsString();
+         if (text.empty() || text.size() > 15 || text.find_first_not_of("0123456789") != std::string::npos)
             return -1;
-         const double number = found->AsNumber();
-         if (number < 0 || number > 9007199254740991.0)
-            return -1;
-         const __int64 whole = (__int64) number;
-         if ((double) whole != number)
-            return -1;
-         value = whole;
+         value = _atoi64(text.c_str());
          return 1;
       }
-
-      // What does not parse is read the way the other readers read it: a bare
-      // run of digits after the key, or nothing.
-      if (JsonNumber(json, key, value))
-         return 1;
-      return json.Find("\"" + key + "\"") >= 0 ? -1 : 0;
+      if (!found->IsNumber())
+         return -1;
+      const double number = found->AsNumber();
+      if (number < 0 || number > 9007199254740991.0)
+         return -1;
+      const __int64 whole = (__int64) number;
+      if ((double) whole != number)
+         return -1;
+      value = whole;
+      return 1;
    }
 
    // "a@x, Name <b@y>; c@z" -> the three addresses, and the entries as
@@ -19921,7 +19820,7 @@ namespace HM
       // The message this answers, when the caller names it, gets \Answered -
       // what a mail client does on send, under the right STORE would ask for.
       __int64 answeredId = 0;
-      if (JsonNumber(requestBody, "answered_id", answeredId) && answeredId > 0)
+      if (JsonDigits_(requestBody, "answered_id", answeredId) && answeredId > 0)
       {
          std::shared_ptr<IMAPFolder> answeredFolder;
          std::shared_ptr<Message> answered = FindOwnMessage_(account, answeredId, answeredFolder);
@@ -20096,60 +19995,6 @@ namespace HM
 
    namespace
    {
-      // The text of one object in a JSON body - for {"forwarding":{...}} the
-      // braces and what is between them - or empty when the key is absent.
-      // Keys inside two objects may repeat (enabled), so each object is read
-      // on its own.
-      AnsiString JsonObject(const AnsiString &json, const AnsiString &key)
-      {
-         AnsiString needle = "\"" + key + "\"";
-         int keyPosition = json.Find(needle);
-         if (keyPosition < 0)
-            return "";
-
-         int open = json.Find("{", keyPosition + needle.GetLength());
-         if (open < 0)
-            return "";
-
-         int depth = 0;
-         bool inString = false;
-         for (int i = open; i < json.GetLength(); i++)
-         {
-            char c = json[i];
-
-            if (inString)
-            {
-               if (c == '\\')
-               {
-                  i++;
-                  continue;
-               }
-
-               if (c == '\"')
-                  inString = false;
-
-               continue;
-            }
-
-            if (c == '\"')
-            {
-               inString = true;
-               continue;
-            }
-
-            if (c == '{')
-               depth++;
-            else if (c == '}')
-            {
-               depth--;
-               if (depth == 0)
-                  return json.Mid(open, i - open + 1);
-            }
-         }
-
-         return "";
-      }
-
       const int MaxNameLength = 100;
       const int MaxSignatureLength = 20000;
       // The formatted signature, counted in bytes of UTF-8 with its images in it:
@@ -20211,21 +20056,28 @@ namespace HM
 
       // Each of the three objects the body names is applied whole; one it
       // does not name is left as it is.
-      AnsiString nameObject = JsonObject(requestBody, "name");
-      AnsiString forwardingObject = JsonObject(requestBody, "forwarding");
-      AnsiString signatureObject = JsonObject(requestBody, "signature");
+      std::shared_ptr<const JsonValue> nameObject = JsonBodyMember_(requestBody, "name");
+      std::shared_ptr<const JsonValue> forwardingObject = JsonBodyMember_(requestBody, "forwarding");
+      std::shared_ptr<const JsonValue> signatureObject = JsonBodyMember_(requestBody, "signature");
+      if (nameObject && !nameObject->IsObject())
+         nameObject.reset();
+      if (forwardingObject && !forwardingObject->IsObject())
+         forwardingObject.reset();
+      if (signatureObject && !signatureObject->IsObject())
+         signatureObject.reset();
 
-      if (nameObject.IsEmpty() && forwardingObject.IsEmpty() && signatureObject.IsEmpty())
+      if (!nameObject && !forwardingObject && !signatureObject)
          return BuildResponse_(400, "{\"error\":\"nothing to change: name, forwarding or signature\"}");
 
       std::shared_ptr<Account> mutableAccount = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(mutableAccount, account->GetID()) || mutableAccount->GetID() == 0)
          return BuildResponse_(500, "{\"error\":\"the account could not be read\"}");
 
-      if (!nameObject.IsEmpty())
+      if (nameObject)
       {
-         String first = JsonUtf8Value_(nameObject, "first");
-         String last = JsonUtf8Value_(nameObject, "last");
+         const JsonValue &names = *nameObject;
+         String first = JsonMemberUtf8_(names, "first");
+         String last = JsonMemberUtf8_(names, "last");
          if (first.GetLength() > MaxNameLength || last.GetLength() > MaxNameLength)
             return BuildResponse_(400, "{\"error\":\"a name is at most 100 characters\"}");
 
@@ -20233,11 +20085,12 @@ namespace HM
          mutableAccount->SetPersonLastName(last);
       }
 
-      if (!forwardingObject.IsEmpty())
+      if (forwardingObject)
       {
-         bool enabled = GetJsonBoolValue_(forwardingObject, "enabled", false);
-         String address = JsonUtf8Value_(forwardingObject, "address");
-         bool keepOriginal = GetJsonBoolValue_(forwardingObject, "keep_original", true);
+         const JsonValue &forwarding = *forwardingObject;
+         bool enabled = JsonMemberBool_(forwarding, "enabled", false);
+         String address = JsonMemberUtf8_(forwarding, "address");
+         bool keepOriginal = JsonMemberBool_(forwarding, "keep_original", true);
          address.TrimLeft();
          address.TrimRight();
 
@@ -20255,11 +20108,12 @@ namespace HM
          mutableAccount->SetForwardKeepOriginal(keepOriginal);
       }
 
-      if (!signatureObject.IsEmpty())
+      if (signatureObject)
       {
-         bool enabled = GetJsonBoolValue_(signatureObject, "enabled", false);
-         String text = JsonUtf8Value_(signatureObject, "text");
-         String html = JsonUtf8Value_(signatureObject, "html");
+         const JsonValue &signature = *signatureObject;
+         bool enabled = JsonMemberBool_(signature, "enabled", false);
+         String text = JsonMemberUtf8_(signature, "text");
+         String html = JsonMemberUtf8_(signature, "html");
          if (text.GetLength() > MaxSignatureLength)
             return BuildResponse_(400, "{\"error\":\"a signature is at most 20000 characters\"}");
          if (Utf8_(html).GetLength() > MaxSignatureHtmlBytes)
@@ -20313,7 +20167,7 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (requestBody.Find("\"script\"") < 0)
+      if (!JsonHasMember_(requestBody, "script"))
          return BuildResponse_(400, "{\"error\":\"script is required; an empty script removes the filter\"}");
 
       String script = JsonUtf8Value_(requestBody, "script");
@@ -20757,7 +20611,7 @@ namespace HM
       // The draft this one replaces goes once the new one is safe - a new UID
       // for new content, as IMAP requires, and the old one expunged.
       __int64 replaceId = 0;
-      if (JsonNumber(requestBody, "replace_id", replaceId) && replaceId > 0)
+      if (JsonDigits_(requestBody, "replace_id", replaceId) && replaceId > 0)
       {
          std::shared_ptr<IMAPFolder> oldFolder;
          std::shared_ptr<Message> old = FindOwnMessage_(account, replaceId, oldFolder);
@@ -20779,72 +20633,6 @@ namespace HM
       // base64 adds a third, so twelve megabytes of files is what fits.
       const int MaxAttachmentsPerMessage = 20;
       const __int64 MaxAttachmentBytesPerMessage = 12 * 1024 * 1024;
-
-      // The text of the n-th object in the "attachments" array of a JSON
-      // body, by brace matching - or empty when there is none.
-      AnsiString JsonArrayObject(const AnsiString &json, const AnsiString &key, int index)
-      {
-         AnsiString needle = "\"" + key + "\"";
-         int keyPosition = json.Find(needle);
-         if (keyPosition < 0)
-            return "";
-
-         int bracket = json.Find("[", keyPosition + needle.GetLength());
-         if (bracket < 0)
-            return "";
-
-         int depth = 0;
-         bool inString = false;
-         int objectStart = -1;
-         int found = 0;
-         for (int i = bracket + 1; i < json.GetLength(); i++)
-         {
-            char c = json[i];
-
-            if (inString)
-            {
-               if (c == '\\')
-               {
-                  i++;
-                  continue;
-               }
-
-               if (c == '\"')
-                  inString = false;
-
-               continue;
-            }
-
-            if (c == '\"')
-            {
-               inString = true;
-               continue;
-            }
-
-            if (c == '{')
-            {
-               if (depth == 0)
-                  objectStart = i;
-               depth++;
-            }
-            else if (c == '}')
-            {
-               depth--;
-               if (depth == 0)
-               {
-                  if (found == index)
-                     return json.Mid(objectStart, i - objectStart + 1);
-                  found++;
-               }
-            }
-            else if (c == ']' && depth == 0)
-            {
-               break;
-            }
-         }
-
-         return "";
-      }
 
       // A file name for the temporary file the MIME library reads: the name
       // the sender gave, minus anything a path or a header could not carry.
@@ -20876,26 +20664,31 @@ namespace HM
    RestApiServer::AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error,
                                           const char *nameKey, const char *typeKey)
    {
-      if (requestBody.Find("\"attachments\"") < 0)
+      // The objects of the attachments array, as the parse reads the body; a
+      // member of another type names no attachment, as an item that is not an
+      // object is none.
+      const std::shared_ptr<const JsonValue> attachmentList = JsonBodyMember_(requestBody, "attachments");
+      if (!attachmentList || !attachmentList->IsArray())
          return 0;
 
       __int64 totalBytes = 0;
+      int index = 0;
 
-      for (int index = 0; index < MaxAttachmentsPerMessage + 1; index++)
+      for (const JsonValue &object : attachmentList->Items())
       {
-         AnsiString object = JsonArrayObject(requestBody, "attachments", index);
-         if (object.IsEmpty())
-            break;
+         if (!object.IsObject())
+            continue;
 
          if (index >= MaxAttachmentsPerMessage)
          {
             error.Format("{\"error\":\"at most %d attachments\"}", MaxAttachmentsPerMessage);
             return 400;
          }
+         index++;
 
-         String name = SafeAttachmentName(JsonUtf8Value_(object, nameKey));
-         String type = JsonUtf8Value_(object, typeKey);
-         AnsiString encoded = GetJsonStringValue_(object, "data");
+         String name = SafeAttachmentName(JsonMemberUtf8_(object, nameKey));
+         String type = JsonMemberUtf8_(object, typeKey);
+         AnsiString encoded = JsonMemberString_(object, "data");
 
          AnsiString bytes = Base64::Decode(encoded.c_str(), encoded.GetLength());
          totalBytes += bytes.GetLength();
@@ -21141,7 +20934,7 @@ namespace HM
          "{"
          "\"openapi\":\"3.0.3\","
          "\"info\":{\"title\":\"hMailServer REST API\",\"version\":\"1\","
-         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds.\"},"
+         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds. A request body is JSON wherever a route takes one - all but five, which take a file's bytes, a protected message's ciphertext, a message to import (two) or a migration's CSV: such a body must be one JSON object (RFC 8259) that names no member twice in one object and carries no U+0000 in a string, or the request is answered 400, with error saying why, before anything reads it (on a /scim/ path as RFC 7644's error, scimType invalidSyntax). An empty body is no body. Every member is read from that one parse, by name: an object's own member, else the first of that name in an object inside it.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this server can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux); and, from the OpenSSL the server runs with rather than the one it was built against, argon2id (the Argon2id KDF, OpenSSL 3.2 or later) and post_quantum_key_exchange (whether the server can use a hybrid post-quantum key exchange group, OpenSSL 3.5 or later: a TlsKeyExchangeGroups list that names one taken, false when OpenSSL refused it - HM5720 in the error log - and, for a list that names none, whether the library implements X25519MLKEM768)\"}}}},"
          "\"/api/v1/store\":{\"get\":{\"summary\":\"The message store: what the messages are and what they take\",\"description\":\"{measured,measuring,messages,logical_bytes,stored_bytes,compressed_files,blobs,blob_bytes,blob_references,saved_bytes,saved_percent,compression,dedup_min_kb}. logical_bytes is what IMAP and POP3 say the delivered messages are; stored_bytes is what their files take, a file with several names counted once; blob_bytes is the parts held once; messages and logical_bytes count only the messages whose files could be sized. Always the last measurement, made on the server's own time: measured is when (seconds since 1970, 0 for never) and measuring is true while one runs. A request starts the next one when the last is a quarter of an hour old and the store is in use - compression on, a part held once, or a container found last time - so on a server that never turned compression on nothing is walked and measured stays 0 until POST /api/v1/store/measure. docs/MessageStore.md. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The totals\"}}}},"
@@ -21806,155 +21599,292 @@ namespace HM
       return nullptr;
    }
 
-   AnsiString
-   RestApiServer::GetJsonStringValue_(const AnsiString &json, const AnsiString &key)
+   namespace
    {
-      // The document is parsed and the member found by name - at the top
-      // level, else the first of that name in any object below it, which is
-      // what the search below found for a nested member - so a value that
-      // happens to spell a key's name (a subject of exactly "from") is a
-      // value. The search below is kept for what does not parse.
+      // One request body as the parse read it: the text it was read from, the
+      // document, and whether that is an object. The last body read on this
+      // thread is kept, so that a handler reading twenty members parses its body
+      // once; ProcessRequest_ forgets it when the request is answered
+      // (RequestBodyScope), so that a sixteen-megabyte body is not held past it.
+      struct ParsedBody
       {
+         std::string text;
          JsonValue document;
-         std::string parseError;
-         if (JsonValue::Parse(std::string(json.c_str(), json.size()), document, parseError) && document.IsObject())
-         {
-            const JsonValue *found = FindJsonMember_(document, std::string(key.c_str()));
-            if (!found || !found->IsString())
-               return "";
-            return AnsiString(found->AsString().c_str());
-         }
+         std::string error;
+         bool parsed = false;
+         bool object = false;
+      };
+
+      thread_local std::shared_ptr<const ParsedBody> lastParsedBody_;
+
+      std::shared_ptr<const ParsedBody> ParseBody(const AnsiString &json)
+      {
+         const size_t length = (size_t) json.GetLength();
+         const std::shared_ptr<const ParsedBody> last = lastParsedBody_;
+         if (last && last->text.size() == length && (length == 0 || memcmp(last->text.data(), json.c_str(), length) == 0))
+            return last;
+
+         std::shared_ptr<ParsedBody> parsed = std::make_shared<ParsedBody>();
+         parsed->text.assign(json.c_str(), length);
+         parsed->parsed = JsonValue::Parse(parsed->text, parsed->document, parsed->error);
+         parsed->object = parsed->parsed && parsed->document.IsObject();
+         lastParsedBody_ = parsed;
+         return parsed;
       }
 
-      AnsiString needle = "\"" + key + "\"";
-
-      int keyPosition = json.Find(needle);
-      if (keyPosition < 0)
-         return "";
-
-      int colonPosition = json.Find(":", keyPosition + needle.GetLength());
-      if (colonPosition < 0)
-         return "";
-
-      int valueStart = json.Find("\"", colonPosition);
-      if (valueStart < 0)
-         return "";
-
-      valueStart++;
-
-      // RFC 8259 section 7: the two-character escapes, and \uXXXX with a
-      // surrogate pair for what is outside the BMP. The result stays UTF-8.
-      AnsiString result;
-      for (int i = valueStart; i < json.GetLength(); i++)
+      // Why a body that parsed as an object is refused all the same, or "" when
+      // it is not: a member named twice in one object, which readers of JSON read
+      // in different ways (this parse keeps the first; JavaScript, Python and
+      // .NET keep the last), and a U+0000 in a string or a member name, which the
+      // readers here cut the value at while a handler reading the document kept
+      // it, and which no member of this API takes - the listener refuses a NUL
+      // byte in a text body already (HttpServer.cpp). At most the parse's 64
+      // levels deep.
+      std::string RefusalOfParsedBody(const JsonValue &value)
       {
-         char character = json[i];
-
-         if (character == '\\' && i + 1 < json.GetLength())
+         if (value.IsString())
          {
-            char next = json[i + 1];
+            if (value.AsString().find('\0') == std::string::npos)
+               return std::string();
+            return "a string in it carries U+0000 (\\u0000), which no member of this API takes";
+         }
+
+         if (value.IsArray())
+         {
+            for (const JsonValue &item : value.Items())
+            {
+               const std::string refusal = RefusalOfParsedBody(item);
+               if (!refusal.empty())
+                  return refusal;
+            }
+            return std::string();
+         }
+
+         if (!value.IsObject())
+            return std::string();
+
+         if (value.HadDuplicateMember())
+            return "an object in it names one member twice, which readers of JSON read in different ways";
+
+         for (const std::pair<std::string, JsonValue> &member : value.Members())
+         {
+            if (member.first.find('\0') != std::string::npos)
+               return "a member name in it carries U+0000 (\\u0000)";
+
+            const std::string refusal = RefusalOfParsedBody(member.second);
+            if (!refusal.empty())
+               return refusal;
+         }
+         return std::string();
+      }
+
+      // A whole number a member gives as a number or as a string of digits, as
+      // the routes that read one by its digits have always taken either: a
+      // fraction is cut off, white space before the digits is passed over, and
+      // a minus sign is taken only where allowMinus says so. At most 18 digits.
+      bool DigitsOf(const JsonValue &found, bool allowMinus, __int64 &value)
+      {
+         if (found.IsNumber())
+         {
+            const double number = found.AsNumber();
+            if ((number < 0 && !allowMinus) || number <= -1e18 || number >= 1e18)
+               return false;
+            value = (__int64) number;
+            return true;
+         }
+
+         if (!found.IsString())
+            return false;
+
+         const std::string &text = found.AsString();
+         size_t i = 0;
+         while (i < text.size() && (text[i] == ' ' || text[i] == '\t' || text[i] == '\r' || text[i] == '\n'))
             i++;
 
-            switch (next)
-            {
-            case '\"': result += '\"'; continue;
-            case '\\': result += '\\'; continue;
-            case '/':  result += '/';  continue;
-            case 'n':  result += '\n'; continue;
-            case 'r':  result += '\r'; continue;
-            case 't':  result += '\t'; continue;
-            case 'b':  result += '\b'; continue;
-            case 'f':  result += '\f'; continue;
-            case 'u':
-               {
-                  unsigned int codePoint = 0;
-                  if (!ReadJsonHex4_(json, i + 1, codePoint))
-                  {
-                     result += "\\u";
-                     continue;
-                  }
-                  i += 4;
+         std::string digits;
+         if (allowMinus && i < text.size() && text[i] == '-')
+            digits += text[i++];
+         while (i < text.size() && text[i] >= '0' && text[i] <= '9')
+            digits += text[i++];
 
-                  if (codePoint >= 0xD800 && codePoint <= 0xDBFF && i + 6 < json.GetLength() &&
-                      json[i + 1] == '\\' && json[i + 2] == 'u')
-                  {
-                     unsigned int low = 0;
-                     if (ReadJsonHex4_(json, i + 3, low) && low >= 0xDC00 && low <= 0xDFFF)
-                     {
-                        codePoint = 0x10000 + ((codePoint - 0xD800) << 10) + (low - 0xDC00);
-                        i += 6;
-                     }
-                  }
+         if (digits.empty() || digits == "-" || digits.size() > 18)
+            return false;
 
-                  AppendUtf8_(result, codePoint);
-                  continue;
-               }
-            default:
-               result += character;
-               result += next;
-               continue;
-            }
-         }
-
-         if (character == '\"')
-            break;
-
-         result += character;
+         value = _atoi64(digits.c_str());
+         return true;
       }
 
-      return result;
+      // Declared before ProcessRequest_, whose RequestBodyScope calls it.
+      void ForgetParsedBody()
+      {
+         lastParsedBody_.reset();
+      }
+   }
+
+   std::shared_ptr<const JsonValue>
+   RestApiServer::BodyObject_(const AnsiString &json)
+   {
+      const std::shared_ptr<const ParsedBody> parsed = ParseBody(json);
+      if (!parsed->object)
+         return std::shared_ptr<const JsonValue>();
+      return std::shared_ptr<const JsonValue>(parsed, &parsed->document);
+   }
+
+   std::shared_ptr<const JsonValue>
+   RestApiServer::JsonBodyMember_(const AnsiString &json, const AnsiString &key)
+   {
+      const std::shared_ptr<const JsonValue> document = BodyObject_(json);
+      if (!document)
+         return document;
+
+      const JsonValue *found = FindJsonMember_(*document, std::string(key.c_str()));
+      if (!found)
+         return std::shared_ptr<const JsonValue>();
+      return std::shared_ptr<const JsonValue>(document, found);
    }
 
    bool
-   RestApiServer::ReadJsonHex4_(const AnsiString &json, int at, unsigned int &value)
+   RestApiServer::JsonHasMember_(const AnsiString &json, const AnsiString &key)
    {
-      if (at + 4 > json.GetLength())
-         return false;
-
-      value = 0;
-      for (int i = 0; i < 4; i++)
-      {
-         char c = json[at + i];
-         unsigned int digit;
-         if (c >= '0' && c <= '9')
-            digit = c - '0';
-         else if (c >= 'a' && c <= 'f')
-            digit = 10 + c - 'a';
-         else if (c >= 'A' && c <= 'F')
-            digit = 10 + c - 'A';
-         else
-            return false;
-
-         value = (value << 4) | digit;
-      }
-
-      return true;
+      return JsonBodyMember_(json, key) != nullptr;
    }
 
-   void
-   RestApiServer::AppendUtf8_(AnsiString &out, unsigned int codePoint)
+   bool
+   RestApiServer::JsonMemberNotString_(const AnsiString &json, const AnsiString &key)
    {
-      if (codePoint < 0x80)
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      return found && !found->IsString() && !found->IsNull();
+   }
+
+   AnsiString
+   RestApiServer::GetJsonStringValue_(const AnsiString &json, const AnsiString &key)
+   {
+      // The document parsed and the member found by name - at the top level,
+      // else the first of that name in any object below it - so that a value
+      // that happens to spell a key's name (a subject of exactly "from") is a
+      // value. A body that does not parse as an object names no member: one
+      // meant to be JSON is refused before any handler reads it
+      // (RefuseBodyThatIsNotJson_), and the search of the text that read such a
+      // body by other rules than the parse until 6.3.7 is gone.
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      if (!found || !found->IsString())
+         return "";
+      return AnsiString(found->AsString().c_str());
+   }
+
+   AnsiString
+   RestApiServer::JsonMemberString_(const JsonValue &object, const AnsiString &key)
+   {
+      const JsonValue *found = FindJsonMember_(object, std::string(key.c_str()));
+      if (!found || !found->IsString())
+         return "";
+      return AnsiString(found->AsString().c_str());
+   }
+
+   String
+   RestApiServer::JsonMemberUtf8_(const JsonValue &object, const AnsiString &key)
+   {
+      String value;
+      Unicode::MultiByteToWide(JsonMemberString_(object, key), value);
+      return value;
+   }
+
+   bool
+   RestApiServer::JsonMemberBool_(const JsonValue &object, const AnsiString &key, bool defaultValue)
+   {
+      const JsonValue *found = FindJsonMember_(object, std::string(key.c_str()));
+      if (!found || !found->IsBool())
+         return defaultValue;
+      return found->AsBool();
+   }
+
+   bool
+   RestApiServer::JsonDigits_(const AnsiString &json, const AnsiString &key, __int64 &value)
+   {
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      return found && DigitsOf(*found, false, value);
+   }
+
+   bool
+   RestApiServer::JsonInteger_(const AnsiString &json, const AnsiString &key, __int64 &value)
+   {
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      return found && DigitsOf(*found, true, value);
+   }
+
+   bool
+   RestApiServer::BodyMustBeJson_(const AnsiString &method, const AnsiString &path)
+   {
+      if (method == "GET" || method == "HEAD" || method == "OPTIONS")
+         return false;
+
+      // The listener's pages outside the API take forms - the reset page, a
+      // list's confirmation and subscription, a protected file's password, the
+      // SAML ACS - and keep taking them.
+      if (!path.StartsWith("/api/") && !IsScimPath_(path))
+         return false;
+
+      // The routes whose body is something else, found as the dispatch finds
+      // them; their handlers read it as what it is.
+      Route route;
+      ParseRoute_(method, path, route);
+      switch (route.kind)
       {
-         out += (char) codePoint;
+      case RouteMeFileContent:               // a piece of a file sent as a link: its bytes
+      case RouteMeProtectedContent:          // a piece of a protected message: its ciphertext
+      case RouteMeFolderImport:              // a message into one of the account's folders: a .eml
+      case RouteAccountFolderMessageCreate:  // the same, by the administrator
+      case RouteMigrationJobCreate:          // a migration's jobs: a JSON object, or else CSV
+         return false;
+      default:
+         return true;
       }
-      else if (codePoint < 0x800)
+   }
+
+   bool
+   RestApiServer::RefuseBodyThatIsNotJson_(const AnsiString &method, const AnsiString &path, const AnsiString &request,
+                                           const IPAddress &peer, HttpResponse &refusal)
+   {
+      if (!BodyMustBeJson_(method, path))
+         return false;
+
+      // A blank body is no body: every member is absent, as it always was.
+      const AnsiString body = GetRequestBody_(request);
+      bool blank = true;
+      for (int i = 0; blank && i < body.GetLength(); i++)
       {
-         out += (char) (0xC0 | (codePoint >> 6));
-         out += (char) (0x80 | (codePoint & 0x3F));
+         const char c = body[i];
+         blank = c == ' ' || c == '\t' || c == '\r' || c == '\n';
       }
-      else if (codePoint < 0x10000)
-      {
-         out += (char) (0xE0 | (codePoint >> 12));
-         out += (char) (0x80 | ((codePoint >> 6) & 0x3F));
-         out += (char) (0x80 | (codePoint & 0x3F));
-      }
+      if (blank)
+         return false;
+
+      const std::shared_ptr<const ParsedBody> parsed = ParseBody(body);
+
+      std::string why;
+      if (!parsed->parsed)
+         why = "it is not JSON (" + parsed->error + ")";
+      else if (!parsed->object)
+         why = "it is JSON, but not an object";
       else
+         why = RefusalOfParsedBody(parsed->document);
+
+      if (why.empty())
+         return false;
+
+      const AnsiString sentence = AnsiString("the body must be a JSON object: ") + AnsiString(why.c_str());
+
+      if (LogRefusalOnce_(String(_T("json-body:")) + String(peer.ToString())))
       {
-         out += (char) (0xF0 | (codePoint >> 18));
-         out += (char) (0x80 | ((codePoint >> 12) & 0x3F));
-         out += (char) (0x80 | ((codePoint >> 6) & 0x3F));
-         out += (char) (0x80 | (codePoint & 0x3F));
+         LOG_APPLICATION("REST API: " + String(method) + " " + String(path) + " from " + String(peer.ToString()) +
+            " was answered 400 before anything read its body - " + String(sentence) + ".");
       }
+
+      if (IsScimPath_(path))
+         refusal = BuildScimError_(400, "invalidSyntax", String(sentence));
+      else
+         refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(sentence) + "\"}");
+      return true;
    }
 
    HttpResponse
