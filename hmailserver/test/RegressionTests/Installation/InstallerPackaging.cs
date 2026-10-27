@@ -1245,7 +1245,9 @@ namespace RegressionTests.Installation
          string chain = CodeBody(extension, "HoldFolderChain");
          foreach (string word in new[] { "HoldForSetup(szRoot)", "HoldForSetup(szNext)", "HM_REPARSE_POINT", "LinkIsAdministratorsAlone(handle, parent, szWhy)", "LinkTarget(handle, szNext, szTarget, szWhy)",
                                          "HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why)", "Depth >= 8", "LinkRemedy(szNext)", "KindOfDrive(szRoot) = HM_DRIVE_REMOTE", "parent := handle;" })
-            StringAssert.Contains(word, chain, "HoldFolderChain does not use " + word + ".");
+            // A word, not a part of one: "Depth >= 8" is not in "Depth >= 80" (check 3 of
+            // R1 to R4, 27 October 2026).
+            Assert.IsTrue(Regex.IsMatch(chain, @"(?<!\w)" + Regex.Escape(word) + @"(?!\w)"), "HoldFolderChain does not use " + word + ".");
          Assert.IsTrue(chain.IndexOf("HoldForSetup(szNext)", StringComparison.Ordinal) < chain.IndexOf("LinkIsAdministratorsAlone(", StringComparison.Ordinal),
             "A link is looked at before it is held.");
          Assert.AreEqual(2, Regex.Matches(chain, @"attributes\s*:=\s*FolderAttributes\(szNext\);").Count, "A folder's attributes are not read before and after it is held.");
@@ -1420,7 +1422,7 @@ namespace RegressionTests.Installation
          new[] { "CheckProgramFolders", "a program folder that is the root of a volume is installed into, the uninstaller and its record given what the volume hands down (check 3 of R1 to R4, 27 October 2026)", "if IsVolumeRoot(g_szProgramFolderReal) then begin Result := ~; Exit; end;" },
          new[] { "CheckProgramFolders", "a Bin or a ControlPanel that leads to the root of a volume is installed into", "if IsVolumeRoot(g_szBinReal) or IsVolumeRoot(g_szControlPanelReal) then begin Result := ~; Exit; end;" },
          new[] { "CheckProgramFolders", "whether Bin and ControlPanel are made again is not decided before anything changes, every empty one, but after the program folder's hardening has handed its permissions down to them (check 3 of R1 to R4, 27 October 2026)", "g_bRemakeBin := g_bBinThere and FolderHoldsNothing(g_szBinReal); g_bRemakeControlPanel := g_bControlPanelThere and FolderHoldsNothing(g_szControlPanelReal);" },
-         new[] { "CheckProgramFolders", "what an earlier pass made is removed once its holds are let go, by a path nothing holds any more", "RemoveFoldersMadeHere(); ReleaseHeldFolders(); g_szFolderFindings := '';" },
+         new[] { "CheckProgramFolders", "what an earlier pass made is removed once its holds are let go, by a path nothing holds any more, or what it decided is kept", "RemoveFoldersMadeHere(); ReleaseHeldFolders(); g_szFolderFindings := ''; g_bRemakeBin := false; g_bRemakeControlPanel := false;" },
          new[] { "CheckProgramFolders", "Bin's owner is not held to the rule", "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "ControlPanel's owner is not held to the rule", "if g_bControlPanelThere then if not OwnerIsAllowed(g_szControlPanelReal, g_hControlPanel, szWhy) then begin Result := " },
          new[] { "CheckProgramFolders", "what is in Bin and ControlPanel is not refused before the service is stopped", "if g_bBinThere then CheckWhatIsInside(g_szBinReal, 0, false, false, found, szWhy); if g_bControlPanelThere then CheckWhatIsInside(g_szControlPanelReal, 0, false, false, found, szWhy); if g_bProgramFolderThere then CheckWhatElseIsInside(g_szProgramFolderReal, g_hProgramFolder, false, found, szWhy); if found > 0 then Result := " },
@@ -1508,6 +1510,40 @@ namespace RegressionTests.Installation
          new[] { "NextButtonClick", "whether setup stopped a running service is not known", "bWasRunning := IsServiceRunning('hMailServer'); if bWasRunning then g_bServiceStoppedForSetup := true; if (StopHMailServerService() = false) then Result := false;" },
          new[] { "PrepareToInstall", "a refusal after setup stopped the service does not say so", "Result := PrepareToInstallRefusal(); if Result <> '' then begin @@if g_bServiceStoppedForSetup then Result := Result + ' Setup stopped the hMailServer service~; Log('Refused: ' + Result); end; end;$" },
          new[] { "PrepareToInstallRefusal", "the program folders are not prepared last, their refusal the answer", "Result := PrepareProgramFolders(PreviousInstallationFolder()); end;$" },
+         new[] { "HoldFolderChain", "a walk follows links deeper than eight, or starts from what an earlier walk left (check 3 of R1 to R4, 27 October 2026)", "begin Result := false; Real := ''; Held := ''; HeldHandle := -1; Whole := false; Why := ''; if Depth >= 8 then begin Why := ~; Exit; end; if not SplitAtRoot(Path, szRoot, szRest, Why) then Exit;" },
+         new[] { "HoldFolderChain", "the root of a volume is not held, or one that cannot be opened is walked", "parent := HoldForSetup(szRoot); if parent = -1 then begin Why := ~; Exit; end;" },
+         new[] { "HoldFolderChain", "the next name is not cut from the path as it is written, so that a name is passed over or taken with the rest", "separator := Pos('\\', szRest); if separator = 0 then begin szName := szRest; szRest := ''; end else begin szName := Copy(szRest, 1, separator - 1); szRest := Copy(szRest, separator + 1, Length(szRest)); end;" },
+         new[] { "HoldFolderChain", "a name is not looked at where the walk is, or whether it could be read is not asked", "szNext := AddBackslash(szCurrent) + szName; attributes := FolderAttributes(szNext); lastError := DLLGetLastError(); if attributes = HM_INVALID_ATTRIBUTES then begin" },
+         new[] { "HoldFolderChain", "the folders below a missing name are not among those setup makes", "Real := szNext; if szRest <> '' then Real := AddBackslash(szNext) + szRest;" },
+         new[] { "HoldFolderChain", "the rest of the path after a link is not walked from where the link leads, so that the walk ends there", "if szRest <> '' then szTarget := AddBackslash(szTarget) + szRest; Result := HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why); end; bDone := true;" },
+         new[] { "LinkTarget", "a link is taken for one setup has read before its data is read", "begin Result := false; Target := ''; Why := '';" },
+         new[] { "LinkTarget", "a link whose data cannot be read, or is too short to hold a name, is taken", "if not ReadReparseData(hLink, HM_GET_REPARSE_POINT, 0, 0, buffer, 16384, returned, 0) then begin Why := ~; Exit; end; if returned < 20 then begin Why := ~; Exit; end;" },
+         new[] { "LinkTarget", "where a link leads is read from other words of its data - the name shown rather than the substitute name Windows follows", "tagLow := Ord(buffer[1]); tagHigh := Ord(buffer[2]); offset := Ord(buffer[5]); size := Ord(buffer[6]); relative := false;" },
+         new[] { "LinkTarget", "a name past the end of the link's data, or an empty one, is taken, or the name is read from elsewhere", "bytes := returned; if ((offset div 2) + (size div 2) + start - 1 > (bytes div 2)) or (size = 0) then begin Why := ~; Exit; end; szName := Copy(buffer, start + (offset div 2), size div 2);" },
+         new[] { "LinkTarget", "a relative symbolic link is taken from setup's own folder rather than the folder the link is in", "if relative then Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName) else if" },
+         new[] { "LinkTarget", "what a link leads to is not made a full path as Windows names it, a volume's root kept with its backslash", "else if Copy(szName, 1, 4) = '\\??\\' then begin Target := Copy(szName, 5, Length(szName)); if CompareText(Copy(Target, 1, 7), 'Volume{') = 0 then Target := '\\\\?\\' + Target; end else begin Why := ~; Exit; end; Target := RemoveBackslashUnlessRoot(Target); if Target = '' then begin Why := ~; Exit; end; if Copy(Target, 1, 4) = '\\\\?\\' then if Target[Length(Target)] = '}' then Target := Target + '\\'; Result := true;" },
+         new[] { "CheckWhatIsInside", "Bin and ControlPanel are looked at past 32 folders down, or a folder whose listing cannot be read is taken", "Result := true; count := 0; if Depth > 32 then begin Found := Found + 1; Why := ~; Result := false; Exit; end; if not FindFirst(AddBackslash(Folder) + '*', rec) then begin Found := Found + 1; Why := Why + 'what is in ' + Folder + ' could not be read (Windows error '" },
+         new[] { "CheckWhatIsInside", "what is a folder in Bin and ControlPanel is not read, so that nothing below their first level is looked at and a folder another account owns is only said", "if (rec.Name <> '.') and (rec.Name <> '..') then begin szItem := AddBackslash(Folder) + rec.Name; bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;" },
+         new[] { "CheckWhatElseIsInside", "the program folder's own level is not looked at, or one whose listing cannot be read is taken", "Result := true; if not IsVolumeRoot(App) then begin if not FindFirst(AddBackslash(App) + '*', rec) then begin Found := Found + 1;" },
+         new[] { "CheckWhatElseIsInside", "an item of the program folder's own level other than Bin and ControlPanel is passed over, or what is a folder there is not read", "if (rec.Name <> '.') and (rec.Name <> '..') and (CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) then begin szItem := AddBackslash(App) + rec.Name; bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;" },
+         new[] { "CheckWhatElseIsInside", "Addons, Events, DBScripts, WebAdmin or Languages, when it is there and no link, is not looked through, or one that is a link is", "for index := 0 to 4 do begin case index of 0: szFolder := 'Addons';" },
+         new[] { "CheckWhatElseIsInside", "one of the five folders that is there is not looked through, or one that is a link is (check 3 of R1 to R4, 27 October 2026)", "szFolder := AddBackslash(App) + szFolder; @@if FolderAttributes(szFolder) <> HM_INVALID_ATTRIBUTES then if ((FolderAttributes(szFolder) and FILE_ATTRIBUTE_DIRECTORY) <> 0) and ((FolderAttributes(szFolder) and HM_REPARSE_POINT) = 0) then if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then Result := false;" },
+         new[] { "EveryUserMayReadMadeIn", "the folder setup makes in is not read through its handle, or one whose permissions cannot be read is taken for one every user may read", "Result := false; pDescriptor := 0; pDacl := 0; pOwner := 0; if ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) <> 0 then Exit; if pDacl = 0 then Result := true else if ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then" },
+         new[] { "EveryUserMayReadMadeIn", "Users is given Read on a folder made where not every user could read one: an entry that is not an allow entry handed down to folders, does not read, or is another group's, counted", "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and HM_CONTAINER_INHERIT) <> 0) and ((head.Mask and HM_FOLDER_READ_RIGHTS) <> 0) then begin group := 0; while (not Result) and (group < 3) do begin szSid := BroadGroupSid(group, szName); if SidIs(pAce + 8, szSid) then Result := true; group := group + 1; end; end;" },
+         new[] { "ProgramFolderMadeAsNamed", "a program folder setup did not make, or made where a link leads, is given to the uninstaller as {app}", "^function ProgramFolderMadeAsNamed(): Boolean; begin Result := false; if g_bProgramFolderNew then Result := CompareText(g_szProgramFolderReal, RemoveBackslashUnlessRoot(ExpandConstant('{app}'))) = 0; end;$" },
+         new[] { "MadeParentCount", "the folders setup made above the program folder are counted with it, or without it where a link leads", "^function MadeParentCount(): Integer; begin Result := GetArrayLength(g_aFoldersMade); if ProgramFolderMadeAsNamed() then Result := Result - 1; if Result < 0 then Result := 0; end;$" },
+         new[] { "MadeParentOffset", "other than the eight folders setup made nearest the program folder are given to the uninstaller", "^function MadeParentOffset(): Integer; begin Result := MadeParentCount() - 8; if Result < 0 then Result := 0; end;$" },
+         new[] { "SetupMadeFolder", "a folder setup made above the program folder is not given to the uninstaller, or one it did not make is", "^function SetupMadeFolder(Index: Integer): Boolean; begin Result := g_bProgramFolderNew and (MadeParentOffset() + Index < MadeParentCount()); end;$" },
+         new[] { "FolderMadeBySetup", "the uninstaller is given another folder than the one setup made for an entry", "^function FolderMadeBySetup(Param: String): String; var index: Integer; begin index := MadeParentOffset() + StrToIntDef(Param, 0); Result := ''; if (index >= 0) and (index < GetArrayLength(g_aFoldersMade)) then Result := g_aFoldersMade[index]; end;$" },
+         new[] { "SetupMadeProgramFolder", "the program folder setup made is not given to the uninstaller, or one it did not make is", "^function SetupMadeProgramFolder(): Boolean; begin Result := ProgramFolderMadeAsNamed(); end;$" },
+         new[] { "SetupMadeBin", "Bin is given to the uninstaller whatever made it", "^function SetupMadeBin(): Boolean; begin Result := g_szBinMade <> ''; end;$" },
+         new[] { "SetupMadeControlPanel", "ControlPanel is given to the uninstaller whatever made it", "^function SetupMadeControlPanel(): Boolean; begin Result := g_szControlPanelMade <> ''; end;$" },
+         new[] { "RemoveFoldersMadeHere", "a folder setup made is not removed after a cancel, removed shallowest first, or remembered after it is gone (check 3 of R1 to R4, 27 October 2026)", "^procedure RemoveFoldersMadeHere(); var index: Integer; begin @@if g_szBinMade <> '' then RemoveMadeFolder(g_szBinMade, g_szBinMadeAt, g_hBinMade); if g_szControlPanelMade <> '' then RemoveMadeFolder(g_szControlPanelMade, g_szControlPanelMadeAt, g_hControlPanelMade); g_szBinMade := ''; g_szBinMadeAt := ''; g_szControlPanelMade := ''; g_szControlPanelMadeAt := ''; for index := GetArrayLength(g_aFoldersMade) - 1 downto 0 do RemoveMadeFolder(g_aFoldersMade[index], g_aFoldersMadeAt[index], g_aFoldersMadeHandle[index]); SetArrayLength(g_aFoldersMade, 0); SetArrayLength(g_aFoldersMadeAt, 0); SetArrayLength(g_aFoldersMadeHandle, 0); g_bProgramFolderNew := false; end;$" },
+         new[] { "DataLinkLeadsWhereAllowed", "a data folder's link is taken when it cannot be held, read or walked", "begin Result := false; Why := ''; hLink := HoldForSetup(Link);" },
+         new[] { "DataLinkLeadsWhereAllowed", "an owner of where a data folder's link leads other than the three or the service is not said", "Result := true; if not Final then Exit; pOwner := 0; pDacl := 0; pDescriptor := 0; if ReadHeldSecurity(hHeld, HM_FILE_OBJECT, HM_OWNER_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) = 0 then begin if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then begin szText := ~; Log('The program folder: ' + szText); g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;" },
+         new[] { "PreparedFolderIsLink", "the refusal of a prepared folder made a link does not name it", "^function PreparedFolderIsLink(Folder: String): String; begin Result := Folder + ' is a junction, a symbolic link or a mount point now" },
+         new[] { "ReleaseHeldFolders", "a folder setup holds is let go before the end, or not at all", "^procedure ReleaseHeldFolders(); var index: Integer; begin for index := GetArrayLength(g_aHeldFolders) - 1 downto 0 do ReleaseFolder(g_aHeldFolders[index]); SetArrayLength(g_aHeldFolders, 0); end;$" },
+         new[] { "ControlPanelIsInstalled", "ControlPanel is made, or not, whatever is installed", "^function ControlPanelIsInstalled(): Boolean; begin Result := IsComponentSelected('controlpanel'); end;$" },
       };
 
       /// <summary>A ProgramFolderStatements statement as a regular expression.</summary>
@@ -1558,7 +1594,7 @@ namespace RegressionTests.Installation
          string checker = ReadRepositoryFile(@"build\check-installer-scripts.py");
          foreach (string[] statement in ProgramFolderStatements)
             StringAssert.Contains("('" + statement[0] + "', ", checker, "build/check-installer-scripts.py does not hold " + statement[0] + " to a statement.");
-         Assert.AreEqual(ProgramFolderStatements.Length, Regex.Matches(checker, @"^    \('\w+', '", RegexOptions.Multiline).Count,
+         Assert.AreEqual(ProgramFolderStatements.Length, Regex.Matches(CheckerTable(checker, "PROGRAM_FOLDER_STATEMENTS"), @"^    \('\w+', '", RegexOptions.Multiline).Count,
             "build/check-installer-scripts.py's PROGRAM_FOLDER_STATEMENTS and this test's ProgramFolderStatements hold different numbers of statements.");
 
          // A folder is made with its descriptor, set once (the review of 26 October 2026:
@@ -1569,6 +1605,397 @@ namespace RegressionTests.Installation
          // cleared: a later click on the Ready page finds the service it stopped stopped.
          CollectionAssert.AreEqual(new[] { "true" }, Regex.Matches(extension, @"g_bServiceStoppedForSetup\s*:=\s*(\w+)").Cast<Match>().Select(match => match.Groups[1].Value).ToArray(),
             "Whether setup stopped a running service is set other than once, to true, so a later pass may clear it and a refusal would not say the service was stopped.");
+
+         // PrepareToInstallRefusal, which the rest of setup shares, leaves before the program
+         // folders are prepared only with a refusal (check 3 of R1 to R4, 27 October 2026).
+         string refusal = CodeToken.Replace(CodeBody(extension, "PrepareToInstallRefusal"),
+                                            match => match.Value.StartsWith("'", StringComparison.Ordinal) ? "'" + new string('x', match.Length - 2) + "'" : new string(' ', match.Length));
+         foreach (Match exit in Regex.Matches(refusal, @"\bExit\s*;"))
+            Assert.IsTrue(Regex.IsMatch(refusal.Substring(0, exit.Index), @"\bResult\s*:=\s*'x+'[^;]*;\s*$"),
+               "PrepareToInstallRefusal leaves before the program folders are prepared without a refusal, so that setup would install into folders it has not prepared.");
+      }
+
+      /// <summary>
+      ///    Work item 78's R1 to R4 whole, as build/check-installer-scripts.py holds them
+      ///    (PROGRAM_FOLDER_CONSTANTS, PROGRAM_FOLDER_DECLARATIONS, PROGRAM_FOLDER_ENTRY_POINTS,
+      ///    PROGRAM_FOLDER_SHARED and PROGRAM_FOLDER_CODE), entry for entry: every HM_ constant
+      ///    (its name, its value as the script writes it, what Windows calls it); the
+      ///    Windows functions and records R1 to R4 use, each as it is declared (a statement
+      ///    as ProgramFolderStatements' are); the routines R1 to R4 start from; those they
+      ///    reach that the rest of setup shares, and why; and every other routine they
+      ///    reach with the digest of its code (CodeDigest).
+      /// </summary>
+      private static readonly string[][] ProgramFolderConstants =
+      {
+         new[] { "HM_FILE_OBJECT", "1", "SE_FILE_OBJECT" },
+         new[] { "HM_DACL_INFORMATION", "4", "DACL_SECURITY_INFORMATION" },
+         new[] { "HM_ACL_SIZE_INFORMATION", "2", "AclSizeInformation" },
+         new[] { "HM_ACCESS_ALLOWED", "0", "ACCESS_ALLOWED_ACE_TYPE" },
+         new[] { "HM_OBJECT_INHERIT", "$01", "OBJECT_INHERIT_ACE" },
+         new[] { "HM_CONTAINER_INHERIT", "$02", "CONTAINER_INHERIT_ACE" },
+         new[] { "HM_NO_PROPAGATE_INHERIT", "$04", "NO_PROPAGATE_INHERIT_ACE" },
+         new[] { "HM_INHERIT_ONLY", "$08", "INHERIT_ONLY_ACE" },
+         new[] { "HM_FOLDER_WRITE_RIGHTS", "$500D0156", "FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_DELETE_CHILD | FILE_WRITE_ATTRIBUTES | DELETE | WRITE_DAC | WRITE_OWNER | GENERIC_WRITE | GENERIC_ALL" },
+         new[] { "HM_FOLDER_READ_RIGHTS", "$90000001", "FILE_LIST_DIRECTORY | GENERIC_READ | GENERIC_ALL" },
+         new[] { "HM_HOLD_FOLDER_ACCESS", "$200A1", "FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES | READ_CONTROL" },
+         new[] { "HM_READ_CONTROL", "$20000", "READ_CONTROL" },
+         new[] { "HM_SHARE_ALL_BUT_DELETE", "$3", "FILE_SHARE_READ | FILE_SHARE_WRITE" },
+         new[] { "HM_SHARE_EVERYTHING", "$7", "FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE" },
+         new[] { "HM_OPEN_EXISTING", "3", "OPEN_EXISTING" },
+         new[] { "HM_HOLD_FOLDER_FLAGS", "$02200000", "FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT" },
+         new[] { "HM_REPARSE_POINT", "$400", "FILE_ATTRIBUTE_REPARSE_POINT" },
+         new[] { "HM_INVALID_ATTRIBUTES", "$FFFFFFFF", "INVALID_FILE_ATTRIBUTES" },
+         new[] { "HM_OWNER_INFORMATION", "1", "OWNER_SECURITY_INFORMATION" },
+         new[] { "HM_OWNER_AND_DACL_INFORMATION", "5", "OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION" },
+         new[] { "HM_PROTECTED_DACL_INFORMATION", "$80000004", "PROTECTED_DACL_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION" },
+         new[] { "HM_REMOVE_FROM_FOLDER_RIGHTS", "$100C0040", "FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL" },
+         new[] { "HM_REPLACE_RIGHTS", "$100D0040", "FILE_DELETE_CHILD | DELETE | WRITE_DAC | WRITE_OWNER | GENERIC_ALL" },
+         new[] { "HM_GET_REPARSE_POINT", "$000900A8", "FSCTL_GET_REPARSE_POINT" },
+         new[] { "HM_DRIVE_REMOTE", "4", "DRIVE_REMOTE" },
+         new[] { "HM_TRUSTED_INSTALLER_SID", "'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'", "NT SERVICE\\TrustedInstaller, AdminUpdateChecks.cpp's TrustedInstallerSid" },
+         new[] { "HM_SERVICE_SID", "'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809'", "NT SERVICE\\hMailServer, as ServiceAccountTester holds it" },
+         new[] { "HM_ERROR_ALREADY_EXISTS", "183", "ERROR_ALREADY_EXISTS" },
+         new[] { "HM_ACL_REVISION", "2", "ACL_REVISION" },
+         new[] { "HM_LPTR", "$40", "LPTR" },
+         new[] { "HM_MAXDWORD", "$FFFFFFFF", "MAXDWORD" },
+         new[] { "HM_ACCESS_DENIED", "1", "ACCESS_DENIED_ACE_TYPE" },
+         new[] { "HM_INHERITED_ACE", "$10", "INHERITED_ACE" },
+         new[] { "HM_INHERITED_FLAG_BIT", "$1000", "INHERITED_ACE where it sits in ACE_START's TypeFlagsSize" },
+         new[] { "HM_FILE_ALL_ACCESS", "$1F01FF", "FILE_ALL_ACCESS" },
+         new[] { "HM_RIGHTS_READ_EXECUTE", "$1200A9", "FILE_GENERIC_READ | FILE_EXECUTE, ServiceAccount::RightsReadExecute" },
+         new[] { "HM_DACL_PROTECTED", "$1000", "SE_DACL_PROTECTED" },
+         new[] { "HM_PERSISTENT_ACLS", "$8", "FILE_PERSISTENT_ACLS" },
+         new[] { "HM_VOLUME_NAME_GUID", "1", "VOLUME_NAME_GUID" },
+      };
+
+      private static readonly string[] ProgramFolderDeclarations =
+      {
+         "ACL_SIZE_INFO = record AceCount : cardinal; AclBytesInUse : cardinal; AclBytesFree : cardinal; end;",
+         "ACE_START = record TypeFlagsSize : cardinal; Mask : cardinal; end;",
+         "HM_SECURITY_ATTRIBUTES = record nLength : cardinal; lpSecurityDescriptor : cardinal; bInheritHandle : cardinal; end;",
+         "HM_FILE_INFORMATION = record dwFileAttributes : cardinal; ftCreationTimeLow : cardinal; ftCreationTimeHigh : cardinal; ftLastAccessTimeLow : cardinal; ftLastAccessTimeHigh : cardinal; ftLastWriteTimeLow : cardinal; ftLastWriteTimeHigh : cardinal; dwVolumeSerialNumber : cardinal; nFileSizeHigh : cardinal; nFileSizeLow : cardinal; nNumberOfLinks : cardinal; nFileIndexHigh : cardinal; nFileIndexLow : cardinal; end;",
+         "function ReadFolderPermissions(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; ppsidOwner: cardinal; ppsidGroup: cardinal; var ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal; external 'GetNamedSecurityInfoW@advapi32.dll stdcall';",
+         "function ReadAclSize(pAcl: cardinal; var AclInformation: ACL_SIZE_INFO; nAclInformationLength: cardinal; dwAclInformationClass: cardinal): Boolean; external 'GetAclInformation@advapi32.dll stdcall';",
+         "function ReadAclEntry(pAcl: cardinal; dwAceIndex: cardinal; var pAce: cardinal): Boolean; external 'GetAce@advapi32.dll stdcall';",
+         "procedure CopyAceStart(var Destination: ACE_START; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+         "function SidOfText(StringSid: String; var Sid: cardinal): Boolean; external 'ConvertStringSidToSidW@advapi32.dll stdcall';",
+         "function SidsAreEqual(Sid1: cardinal; Sid2: cardinal): Boolean; external 'EqualSid@advapi32.dll stdcall';",
+         "function FreeWindowsMemory(hMem: cardinal): cardinal; external 'LocalFree@kernel32.dll stdcall';",
+         "function HoldFolder(lpFileName: String; dwDesiredAccess: cardinal; dwShareMode: cardinal; lpSecurityAttributes: cardinal; dwCreationDisposition: cardinal; dwFlagsAndAttributes: cardinal; hTemplateFile: cardinal): Integer; external 'CreateFileW@kernel32.dll stdcall';",
+         "function ReleaseFolder(hObject: Integer): Boolean; external 'CloseHandle@kernel32.dll stdcall';",
+         "function FolderAttributes(lpFileName: String): cardinal; external 'GetFileAttributesW@kernel32.dll stdcall';",
+         "function SecurityDescriptorOfText(StringSecurityDescriptor: String; StringSDRevision: cardinal; var SecurityDescriptor: cardinal; SecurityDescriptorSize: cardinal): Boolean; external 'ConvertStringSecurityDescriptorToSecurityDescriptorW@advapi32.dll stdcall';",
+         "function WriteFolderSecurity(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; psidOwner: cardinal; psidGroup: cardinal; pDacl: cardinal; pSacl: cardinal): cardinal; external 'SetNamedSecurityInfoW@advapi32.dll stdcall';",
+         "function ReadHeldSecurity(Handle: Integer; ObjectType: cardinal; SecurityInfo: cardinal; var ppsidOwner: cardinal; ppsidGroup: cardinal; var ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal; external 'GetSecurityInfo@advapi32.dll stdcall';",
+         "function ControlOfDescriptor(pSecurityDescriptor: cardinal; var pControl: Word; var lpdwRevision: cardinal): Boolean; external 'GetSecurityDescriptorControl@advapi32.dll stdcall';",
+         "function SidToText(Sid: cardinal; var StringSid: cardinal): Boolean; external 'ConvertSidToStringSidW@advapi32.dll stdcall';",
+         "function WideTextLength(lpString: cardinal): Integer; external 'lstrlenW@kernel32.dll stdcall';",
+         "procedure CopyWideText(Destination: String; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+         "procedure CopyBytes(Destination: cardinal; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+         "procedure WriteAceStart(Destination: cardinal; var Source: ACE_START; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+         "function AllocateWindowsMemory(uFlags: cardinal; uBytes: cardinal): cardinal; external 'LocalAlloc@kernel32.dll stdcall';",
+         "function StartAcl(pAcl: cardinal; nAclLength: cardinal; dwAclRevision: cardinal): Boolean; external 'InitializeAcl@advapi32.dll stdcall';",
+         "function AppendAce(pAcl: cardinal; dwAceRevision: cardinal; dwStartingAceIndex: cardinal; pAceList: cardinal; nAceListLength: cardinal): Boolean; external 'AddAce@advapi32.dll stdcall';",
+         "function AppendAllowAce(pAcl: cardinal; dwAceRevision: cardinal; AceFlags: cardinal; AccessMask: cardinal; pSid: cardinal): Boolean; external 'AddAccessAllowedAceEx@advapi32.dll stdcall';",
+         "function ReadReparseData(hDevice: Integer; dwIoControlCode: cardinal; lpInBuffer: cardinal; nInBufferSize: cardinal; lpOutBuffer: String; nOutBufferSize: cardinal; var lpBytesReturned: cardinal; lpOverlapped: cardinal): Boolean; external 'DeviceIoControl@kernel32.dll stdcall';",
+         "function MakeFolderWithSecurity(lpPathName: String; var lpSecurityAttributes: HM_SECURITY_ATTRIBUTES): Boolean; external 'CreateDirectoryW@kernel32.dll stdcall';",
+         "function VolumeOfHeldFolder(hFile: Integer; lpVolumeNameBuffer: cardinal; nVolumeNameSize: cardinal; var lpVolumeSerialNumber: cardinal; var lpMaximumComponentLength: cardinal; var lpFileSystemFlags: cardinal; lpFileSystemNameBuffer: cardinal; nFileSystemNameSize: cardinal): Boolean; external 'GetVolumeInformationByHandleW@kernel32.dll stdcall';",
+         "function KindOfDrive(lpRootPathName: String): cardinal; external 'GetDriveTypeW@kernel32.dll stdcall';",
+         "function LookupNameOfSid(lpSystemName: cardinal; Sid: cardinal; Name: String; var cchName: cardinal; ReferencedDomainName: String; var cchReferencedDomainName: cardinal; var peUse: cardinal): Boolean; external 'LookupAccountSidW@advapi32.dll stdcall';",
+         "function ReadHeldInformation(hFile: Integer; var lpFileInformation: HM_FILE_INFORMATION): Boolean; external 'GetFileInformationByHandle@kernel32.dll stdcall';",
+         "function FinalPathOfHandle(hFile: Integer; lpszFilePath: String; cchFilePath: cardinal; dwFlags: cardinal): cardinal; external 'GetFinalPathNameByHandleW@kernel32.dll stdcall';",
+      };
+
+      private static readonly string[] ProgramFolderEntryPoints =
+      {
+         "CheckProgramFolders",
+         "PrepareProgramFolders",
+         "FoldersStillAsPrepared",
+         "RemoveFoldersMadeHere",
+         "KeepServiceFromStarting",
+         "FoldersWereAsPrepared",
+         "FolderMadeBySetup",
+         "SetupMadeFolder",
+         "SetupMadeProgramFolder",
+         "SetupMadeBin",
+         "SetupMadeControlPanel",
+         "PreviousInstallationFolder",
+      };
+
+      private static readonly string[][] ProgramFolderShared =
+      {
+         new[] { "CheckProgramFolderPermissions", "the folder page's note of 6.3.7 on a program folder another account may write, which decides nothing" },
+         new[] { "IsServiceInstalled", "whether the service is installed, which the rest of setup asks too" },
+      };
+
+      private static readonly string[][] ProgramFolderCode =
+      {
+         new[] { "AccountNameOfSid", "d7f15a73b2a52847" },
+         new[] { "AclLetsOthers", "6b00430bd84cb1ab" },
+         new[] { "AddAsOwnEntry", "f0c0620c1378f54d" },
+         new[] { "BroadGroupSid", "a8763088c8e3e0a9" },
+         new[] { "CheckProgramFolders", "1ee35a172cd66627" },
+         new[] { "CheckWhatElseIsInside", "268826a67423bdd9" },
+         new[] { "CheckWhatIsInside", "ce7ebbe88c0acc89" },
+         new[] { "ControlPanelIsInstalled", "3ab47178b35c2ef7" },
+         new[] { "DataFolderThatInherits", "66c2cd8de8d2f08b" },
+         new[] { "DataLinkLeadsWhereAllowed", "21a19d137a137688" },
+         new[] { "EveryUserMayRead", "311a6e77de030208" },
+         new[] { "EveryUserMayReadMadeIn", "b9e6f38e684da9c5" },
+         new[] { "FinalPathOfHeld", "2c5642212af4ef31" },
+         new[] { "FolderAboveIsAdministratorsAlone", "82022b4d52c19256" },
+         new[] { "FolderHoldsNothing", "7335ca15ee314789" },
+         new[] { "FolderMadeBySetup", "3ed9e1d5025dba38" },
+         new[] { "FoldersStillAsPrepared", "f57b57e49832ab63" },
+         new[] { "FoldersWereAsPrepared", "7b86c82e306d4585" },
+         new[] { "HardenHeldFolder", "77c37a345fe0e8cf" },
+         new[] { "HeldFolderIsHardened", "6e48b1f5fbf3a15d" },
+         new[] { "HeldIsLink", "dc9e0afb79a54681" },
+         new[] { "HeldOwnerIsTrusted", "6c22996dbd870f3e" },
+         new[] { "HoldFolderChain", "3488e3586d2e893d" },
+         new[] { "HoldForSetup", "950dbbf8ac5695d2" },
+         new[] { "InheritsNothing", "ba9a5f635445f6e7" },
+         new[] { "IsAtOrAboveChecked", "65db442d814071a2" },
+         new[] { "IsBroadSid", "f8cbef14b7f00fb1" },
+         new[] { "IsDataFolderName", "ce6c435a26838422" },
+         new[] { "IsProgramFile", "219188cbc96d13c5" },
+         new[] { "IsRunFolderName", "618eab586bb72741" },
+         new[] { "IsScriptFile", "da5441e710f716d7" },
+         new[] { "IsSettingsFile", "a4a7b5a10ddbcbd9" },
+         new[] { "IsTrustedSid", "b1e4972ae9631bbd" },
+         new[] { "IsVolumeRoot", "1d8d1a5e9fee3a54" },
+         new[] { "ItemIsIn", "3f4a4540977f6580" },
+         new[] { "KeepServiceFromStarting", "4287271a337806a7" },
+         new[] { "LetGoOfHeld", "83a63b6a0c82fba3" },
+         new[] { "LetsEveryUserWrite", "f8c242f2bf668c73" },
+         new[] { "LinkIsAdministratorsAlone", "c2c9823696671e05" },
+         new[] { "LinkRemedy", "421eb698557d16a3" },
+         new[] { "LinkTarget", "0b2b7e365ebc3a70" },
+         new[] { "MadeParentCount", "98517a4e3b3fbbfe" },
+         new[] { "MadeParentOffset", "3298776306b79064" },
+         new[] { "MadeWhereNamed", "98d8f43dacc9751a" },
+         new[] { "MakeFolders", "5a0930ab6bb0c8e4" },
+         new[] { "NothingTurnedIn", "68bcd24f5fcc9511" },
+         new[] { "OwnEntriesLetOthers", "432884347c2a0dfa" },
+         new[] { "OwnerIsAllowed", "f76a2b8ffed2c6c1" },
+         new[] { "PreparedFolderIsAsLeft", "0f83d984aede2bc1" },
+         new[] { "PreparedFolderIsLink", "7ce997c2b15d1bea" },
+         new[] { "PrepareProgramFolders", "110510a870af6754" },
+         new[] { "PreviousInstallationFolder", "e5316bef61ccd228" },
+         new[] { "ProgramFolderMadeAsNamed", "4126d0c1e6214bee" },
+         new[] { "RebuildFolderOfUntrustedOwner", "9dc2b42bc43f1391" },
+         new[] { "ReleaseHeldFolders", "f8c80f82d876588b" },
+         new[] { "RemakeEmptyFolder", "3dc1f7796b498bcb" },
+         new[] { "RemoveFoldersMadeHere", "5d8963b8738f5484" },
+         new[] { "RemoveMadeFolder", "b58144954352dd5e" },
+         new[] { "SayWriteEntriesKept", "d8f9b5d24a6298b6" },
+         new[] { "SetupMadeBin", "1dbd327f1d6d18a6" },
+         new[] { "SetupMadeControlPanel", "1ac337150384c97d" },
+         new[] { "SetupMadeFolder", "96f12e0fabeb6aee" },
+         new[] { "SetupMadeProgramFolder", "7f70cdaa4f086ceb" },
+         new[] { "SidInName", "2a5e78371e8a3930" },
+         new[] { "SidIs", "389072b7476600fc" },
+         new[] { "SidNameAt", "c8f922d592759b87" },
+         new[] { "SplitAtRoot", "a9a5495b516a0a1a" },
+         new[] { "TextOfSidAt", "f3c4acf66f69003e" },
+         new[] { "VolumeKeepsPermissions", "7816988ef8c6a23f" },
+         new[] { "WalksAgree", "b3961e81811d817c" },
+      };
+
+      // A [Code] comment (// to the end of the line, { }, (* *)), a string, or a run of
+      // white space; an external function's declaration; a routine's header; a record's.
+      private static readonly Regex CodeToken = new Regex(@"//[^\n]*|\{[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'|\s+");
+      private static readonly Regex ExternalDeclaration = new Regex(@"^(?:function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;\s*external\s+'[^']*'\s*;",
+                                                                   RegexOptions.Multiline | RegexOptions.IgnoreCase);
+      private static readonly Regex RoutineHeader = new Regex(@"^(?:function|procedure)\s+(\w+)\s*[(:;]", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+      private static readonly Regex RecordHeader = new Regex(@"^\s*(\w+)\s*=\s*record\b", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+      /// <summary>
+      ///    A routine's code as the digest reads it: its comments dropped, each run of white
+      ///    space, a comment's place among it, one space, and every string as it is written
+      ///    (build/check-installer-scripts.py's routine_code).
+      /// </summary>
+      private static string RoutineCode(string body)
+      {
+         var code = new StringBuilder();
+         int at = 0;
+         foreach (Match token in CodeToken.Matches(body))
+         {
+            code.Append(body, at, token.Index - at);
+            if (token.Value.StartsWith("'", StringComparison.Ordinal))
+               code.Append(token.Value);
+            else if (code.Length > 0 && code[code.Length - 1] != ' ')
+               code.Append(' ');
+            at = token.Index + token.Length;
+         }
+         code.Append(body, at, body.Length - at);
+         return code.ToString().Trim();
+      }
+
+      /// <summary>The first 16 hex digits of the SHA-256 of a routine's code in UTF-8 (code_digest).</summary>
+      private static string CodeDigest(string body)
+      {
+         using (var sha = System.Security.Cryptography.SHA256.Create())
+            return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(RoutineCode(body))).Take(8).Select(part => part.ToString("x2")));
+      }
+
+      /// <summary>
+      ///    Each routine of the extension, its external declarations left out, by its name in
+      ///    lower case: its name, and its text from its header to the "end;" that closes it
+      ///    (routine_bodies, CodeBody's text).
+      /// </summary>
+      private static Dictionary<string, string[]> RoutineBodies(string extension)
+      {
+         var externals = new HashSet<string>(ExternalDeclaration.Matches(extension).Cast<Match>().Select(match => match.Groups[1].Value.ToLowerInvariant()));
+         var closing = new Regex(@"^end;", RegexOptions.Multiline);
+         var bodies = new Dictionary<string, string[]>();
+         foreach (Match header in RoutineHeader.Matches(extension))
+         {
+            string key = header.Groups[1].Value.ToLowerInvariant();
+            if (externals.Contains(key) || bodies.ContainsKey(key))
+               continue;
+            Match end = closing.Match(extension, header.Index + header.Length);
+            if (end.Success)
+               bodies[key] = new[] { header.Groups[1].Value, extension.Substring(header.Index, end.Index + end.Length - header.Index) };
+         }
+         return bodies;
+      }
+
+      /// <summary>
+      ///    The routines R1 to R4's entry points reach (ProgramFolderEntryPoints, through
+      ///    every routine but ProgramFolderShared's), in the order found (program_folder_reach);
+      ///    Used gets the external functions and records the reached routines but the shared
+      ///    use, Defined how many times each routine name is defined.
+      /// </summary>
+      private static List<string> ProgramFolderReach(string extension, HashSet<string> used, Dictionary<string, int> defined)
+      {
+         var externals = new Dictionary<string, string>();
+         foreach (Match match in ExternalDeclaration.Matches(extension))
+            externals[match.Groups[1].Value.ToLowerInvariant()] = match.Groups[1].Value;
+         foreach (Match match in RoutineHeader.Matches(extension))
+         {
+            string key = match.Groups[1].Value.ToLowerInvariant();
+            if (!externals.ContainsKey(key))
+               defined[key] = defined.TryGetValue(key, out int count) ? count + 1 : 1;
+         }
+         var bodies = RoutineBodies(extension);
+         var records = new Dictionary<string, string>();
+         foreach (Match match in RecordHeader.Matches(extension))
+            records[match.Groups[1].Value.ToLowerInvariant()] = match.Groups[1].Value;
+         var shared = new HashSet<string>(ProgramFolderShared.Select(entry => entry[0].ToLowerInvariant()));
+         var reached = new List<string>();
+         var todo = new Queue<string>(ProgramFolderEntryPoints.Select(name => name.ToLowerInvariant()));
+         while (todo.Count > 0)
+         {
+            string name = todo.Dequeue();
+            if (reached.Any(one => one.ToLowerInvariant() == name))
+               continue;
+            reached.Add(bodies.ContainsKey(name) ? bodies[name][0] : name);
+            if (!bodies.ContainsKey(name) || shared.Contains(name))
+               continue;
+            string code = CodeToken.Replace(bodies[name][1], match => match.Value.StartsWith("'", StringComparison.Ordinal) ? "''" : " ");
+            foreach (string word in new SortedSet<string>(Regex.Matches(code, @"\w+").Cast<Match>().Select(match => match.Value.ToLowerInvariant()), StringComparer.Ordinal))
+            {
+               if (word == name)
+                  continue;
+               if (externals.ContainsKey(word))
+                  used.Add(externals[word]);
+               else if (defined.ContainsKey(word))
+                  todo.Enqueue(word);
+               else if (records.ContainsKey(word))
+                  used.Add(records[word]);
+            }
+         }
+         return reached;
+      }
+
+      /// <summary>One table of build/check-installer-scripts.py: from "NAME = (" to the ")" that closes it.</summary>
+      private static string CheckerTable(string checker, string name)
+      {
+         string text = checker.Replace("\r\n", "\n");
+         int start = text.IndexOf("\n" + name + " = (\n", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(start, 0, "build/check-installer-scripts.py has no " + name + ".");
+         int end = text.IndexOf("\n)\n", start + 1, StringComparison.Ordinal);
+         Assert.Greater(end, start, "build/check-installer-scripts.py's " + name + " has no end.");
+         return text.Substring(start, end - start + 1);
+      }
+
+      [Test]
+      [Description("Work item 78, R1 to R4 whole: every HM_ constant of the installer's [Code] is held to its value and defined once, HM_TRUSTED_INSTALLER_SID to the live update's TrustedInstallerSid; every Windows function and record R1 to R4 use to its declaration; and every routine R1 to R4 reach, but those the rest of setup shares, to a digest of its code - comments dropped, white space one space, every string as it is written - so that no change of one passes until it has been reviewed and its digest written here and in build/check-installer-scripts.py, which holds the same, entry for entry. Check 3 of R1 to R4 (27 October 2026) changed twenty constants and helpers the decisions rely on by one line each - HM_REPARSE_POINT to $800, so that no link would be seen, among them - and the checker passed nineteen, these tests eleven; a sweep of every if, while, Result and Exit of those routines found 433 changes the statements alone let through.")]
+      public void EveryConstantDeclarationAndRoutineOfTheProgramFoldersIsHeldWhole()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         var failed = new List<string>();
+
+         // The constants.
+         var defined = Regex.Matches(extension, @"^[ \t]*(HM_\w+)[ \t]*=[ \t]*([^;\n]*);", RegexOptions.Multiline).Cast<Match>()
+                            .Select(match => new[] { match.Groups[1].Value, match.Groups[2].Value.Trim() }).ToList();
+         var held = ProgramFolderConstants.ToDictionary(constant => constant[0], constant => constant[1]);
+         foreach (string[] constant in ProgramFolderConstants)
+         {
+            var values = defined.Where(one => one[0] == constant[0]).Select(one => one[1]).ToList();
+            if (values.Count != 1)
+               failed.Add(constant[0] + " (" + constant[2] + ") is defined " + values.Count + " times, not once");
+            else if (values[0] != constant[1])
+               failed.Add(constant[0] + " (" + constant[2] + ") is " + values[0] + ", not " + constant[1]);
+         }
+         foreach (string[] one in defined.Where(one => !held.ContainsKey(one[0])))
+            failed.Add(one[0] + " = " + one[1] + " is a constant this test does not hold");
+         Match trusted = Regex.Match(ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\AdminUpdateChecks.cpp"), @"TrustedInstallerSid\s*=\s*L""(S-1-5-80-[0-9-]+)""");
+         Assert.IsTrue(trusted.Success, "AdminUpdateChecks.cpp's TrustedInstallerSid is not there.");
+         Assert.AreEqual("'" + trusted.Groups[1].Value + "'", held["HM_TRUSTED_INSTALLER_SID"], "HM_TRUSTED_INSTALLER_SID is not the SID the live update trusts.");
+
+         // The declarations.
+         foreach (string declaration in ProgramFolderDeclarations)
+         {
+            int count = Regex.Matches(extension, StatementPattern(declaration)).Count;
+            if (count != 1)
+               failed.Add("the declaration \"" + declaration.Substring(0, Math.Min(90, declaration.Length)) + "\" is there " + count + " times, not once");
+         }
+         var declared = new HashSet<string>(ProgramFolderDeclarations.Select(declaration => Regex.Match(declaration, @"(?:function|procedure)?\s*(\w+)").Groups[1].Value.ToLowerInvariant()));
+
+         // The routines.
+         var used = new HashSet<string>();
+         var counts = new Dictionary<string, int>();
+         List<string> reached = ProgramFolderReach(extension, used, counts);
+         foreach (string name in used.Where(name => !declared.Contains(name.ToLowerInvariant())))
+            failed.Add("R1 to R4 use " + name + ", whose declaration this test does not hold");
+         var digests = ProgramFolderCode.ToDictionary(entry => entry[0].ToLowerInvariant(), entry => entry[1]);
+         var shared = new HashSet<string>(ProgramFolderShared.Select(entry => entry[0].ToLowerInvariant()));
+         var bodies = RoutineBodies(extension);
+         foreach (string name in reached.Where(name => !shared.Contains(name.ToLowerInvariant())))
+         {
+            string key = name.ToLowerInvariant();
+            if (!bodies.ContainsKey(key))
+               failed.Add(name + ", which R1 to R4 reach, is not there");
+            else if (!digests.ContainsKey(key))
+               failed.Add(name + ", which R1 to R4 reach, is neither held whole (its digest is " + CodeDigest(bodies[key][1]) + ") nor said to be shared");
+            else if (counts[key] != 1)
+               failed.Add(name + " is defined " + counts[key] + " times");
+            else if (CodeDigest(bodies[key][1]) != digests[key])
+               failed.Add(name + " is not the code the reviews of work item 78 held (its digest is " + CodeDigest(bodies[key][1]) + ", held " + digests[key] + ")");
+         }
+         foreach (string name in digests.Keys.Concat(shared).Where(name => !reached.Any(one => one.ToLowerInvariant() == name)))
+            failed.Add(name + " is held as a routine of R1 to R4, which no longer reach it");
+         Assert.IsEmpty(failed, "Work item 78's R1 to R4 are not as they are held whole: " + string.Join("; ", failed) + ".");
+
+         // The checker holds the same, entry for entry.
+         string checker = ReadRepositoryFile(@"build\check-installer-scripts.py");
+         var checkerConstants = Regex.Matches(CheckerTable(checker, "PROGRAM_FOLDER_CONSTANTS"), @"^    \('(HM_\w+)', (?:'([^']*)'|""([^""]*)"")", RegexOptions.Multiline).Cast<Match>()
+                                     .ToDictionary(match => match.Groups[1].Value, match => match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value);
+         CollectionAssert.AreEquivalent(held, checkerConstants, "build/check-installer-scripts.py's PROGRAM_FOLDER_CONSTANTS and this test's ProgramFolderConstants differ.");
+         Assert.AreEqual(ProgramFolderDeclarations.Length, Regex.Matches(CheckerTable(checker, "PROGRAM_FOLDER_DECLARATIONS"), @""",$", RegexOptions.Multiline).Count,
+            "build/check-installer-scripts.py's PROGRAM_FOLDER_DECLARATIONS and this test's ProgramFolderDeclarations hold different numbers of declarations.");
+         Match entry = Regex.Match(checker, @"PROGRAM_FOLDER_ENTRY_POINTS = \(([^)]*)\)");
+         Assert.IsTrue(entry.Success, "build/check-installer-scripts.py has no PROGRAM_FOLDER_ENTRY_POINTS.");
+         CollectionAssert.AreEquivalent(ProgramFolderEntryPoints, Regex.Matches(entry.Groups[1].Value, @"'(\w+)'").Cast<Match>().Select(match => match.Groups[1].Value).ToArray(),
+            "build/check-installer-scripts.py's PROGRAM_FOLDER_ENTRY_POINTS and this test's ProgramFolderEntryPoints differ.");
+         CollectionAssert.AreEquivalent(ProgramFolderShared.Select(one => one[0]).ToArray(),
+            Regex.Matches(CheckerTable(checker, "PROGRAM_FOLDER_SHARED"), @"^    \('(\w+)', ", RegexOptions.Multiline).Cast<Match>().Select(match => match.Groups[1].Value).ToArray(),
+            "build/check-installer-scripts.py's PROGRAM_FOLDER_SHARED and this test's ProgramFolderShared differ.");
+         CollectionAssert.AreEquivalent(ProgramFolderCode.ToDictionary(one => one[0], one => one[1]),
+            Regex.Matches(CheckerTable(checker, "PROGRAM_FOLDER_CODE"), @"^    \('(\w+)', '([0-9a-f]{16})'\),", RegexOptions.Multiline).Cast<Match>().ToDictionary(match => match.Groups[1].Value, match => match.Groups[2].Value),
+            "build/check-installer-scripts.py's PROGRAM_FOLDER_CODE and this test's ProgramFolderCode differ.");
       }
 
       [Test]

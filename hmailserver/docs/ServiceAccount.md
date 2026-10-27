@@ -1702,9 +1702,18 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   folders that hold what is run, refused, a link at those five refused whoever controls
   it and a data folder's link held to where it leads, and the entries kept said; and
   the folders read again after the files before anything of the installation runs, the
-  last page running nothing when they are not as setup left them. Each decision, and each helper it relies on, is held to its
-  statement. `build/check-installer-scripts.py` holds the same, with a negative
-  control each, and the installer smoke test's watch and cases
+  last page running nothing when they are not as setup left them. Each decision is
+  held to its statement, and so are the helpers the third review named - the
+  uninstaller's records, the walk's start, names and way on after a link, where a link
+  leads, what is a folder in `Bin`, Users' Read on a folder setup makes. And R1 to R4
+  are held whole: every constant setup's `[Code]` tests with to its value, the
+  TrustedInstaller SID to the live update's; every Windows function and record it
+  reads and changes folders with to its declaration; and every routine of R1 to R4 -
+  those the entry points reach but the two the rest of setup shares - to a digest of
+  its code, so that no change of one, however small, passes until it has been
+  reviewed and its digest written again (`python build/check-installer-scripts.py
+  --digests` prints them as the tree is). `build/check-installer-scripts.py` holds
+  the same, with a negative control each, and the installer smoke test's watch and cases
   ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer smoke test")
   hold what the installer does on a machine.
 * `API/RestApiSetupChecklist.cs`: the tenth item, judged from the server's own

@@ -2651,6 +2651,18 @@ with `--check`).
   self-test's fixture has both files, and seven negative controls more - another licence, a second item, a second
   item after a comment and after a blank line, the licence written as a string on the key's line, another licence in
   the role and a second licence key there - each refused.
+- **`build/check-installer-scripts.py` and `InstallerPackaging.cs` hold the Windows setup's preparation of its folders
+  whole** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), R1 to R4): every constant of
+  setup's `[Code]` to its value, defined once, the TrustedInstaller SID to the live update's; every Windows function
+  and record the preparation reads and changes folders with to its declaration; and each routine its entry points
+  reach, 70 of them, but the two the rest of setup shares, which are named with why, to a digest of its code, comments
+  and white space aside, so that no change of one passes until it has been reviewed and its digest written in both
+  (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more statements hold
+  the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares, leaves before the
+  folders are prepared only with a refusal. A sweep of one-token changes of those routines - every `if`, `while`,
+  `Result` and `Exit`, one at a time - had 433 of 903 pass the checker before; after, all 912 but the 19 in
+  `PrepareToInstallRefusal`'s database refusals are refused. The checker's negative controls are 384, and each of those
+  that alters an installer script for R1 to R4 fails the fixture too.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

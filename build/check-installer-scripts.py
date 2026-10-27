@@ -145,10 +145,26 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                keeping the service from starting and the last page from running
                the Control Panel (section_run.iss, FoldersWereAsPrepared). Each decision is held to its
                statement (PROGRAM_FOLDER_STATEMENTS), the helpers it relies on
-               among them (SidIs, IsBroadSid, BroadGroupSid, AclLetsOthers and
-               HoldForSetup whole), so that a one-line change of one is refused;
+               among them (SidIs, IsBroadSid, BroadGroupSid, AclLetsOthers,
+               HoldForSetup and the uninstaller's records whole, the walk's start,
+               names and way on after a link, where a link leads, Users' Read on a
+               folder made), so that a one-line change of one is refused;
                HM_SERVICE_SID is the SID ServiceAccountTester holds the service's
-               to, and a folder is made with its descriptor set once.
+               to, and a folder is made with its descriptor set once. And R1 to R4
+               are held whole (check 3 of R1 to R4, 27 October 2026, whose twenty
+               one-line changes of constants and helpers the checker had passed
+               nineteen times): every HM_ constant to its value, defined once
+               (PROGRAM_FOLDER_CONSTANTS), HM_TRUSTED_INSTALLER_SID to the live
+               update's TrustedInstallerSid; every Windows function and record they
+               use to its declaration (PROGRAM_FOLDER_DECLARATIONS); and every
+               routine their entry points reach (PROGRAM_FOLDER_ENTRY_POINTS), but
+               the two the rest of setup shares (PROGRAM_FOLDER_SHARED), to a digest
+               of its code - comments dropped, white space one space, every string
+               as written (PROGRAM_FOLDER_CODE; --digests prints them as the tree
+               is) - so that no change of one passes until it has been reviewed and
+               its digest written here and in InstallerPackaging.cs. PrepareToInstallRefusal,
+               which the rest of setup shares, leaves before the folders are prepared
+               only with a refusal.
                HardenNewProgramFolder, which hardened a folder Inno Setup had made,
                and MakeProgramFolder, which looked at a path again, are not to come
                back.
@@ -208,11 +224,17 @@ the key store or the uninstaller's record another account controls only said, a 
 at the five folders setup installs into gone through, a data folder's link taken
 unwalked, a volume's root installed into, a folder made recorded before it was found
 where it was named or removed by a path whatever it leads to, or after its holds are
-let go, and the last page run whatever was found) - must all be refused.
+let go, and the last page run whatever was found) and the twenty changes of the
+constants and helpers check 3 of R1 to R4 made, twenty-five of the third repair's code,
+a way out of PrepareToInstallRefusal without a refusal, every held constant, declaration
+and routine changed, one more constant, one more Windows function and one more helper
+not held, and a routine defined twice - must all be refused.
 
-Usage: python build/check-installer-scripts.py
-Exits 1 listing what is wrong.
+Usage: python build/check-installer-scripts.py [--digests]
+Exits 1 listing what is wrong. --digests prints PROGRAM_FOLDER_CODE as the tree is.
 """
+import functools
+import hashlib
 import io
 import json
 import os
@@ -710,7 +732,8 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'RemakeEmptyFolder', 'LetGoOfHeld', 'FolderHoldsNothing', 'ItemIsIn', 'NothingTurnedIn', 'PreparedFolderIsAsLeft',
                            'FoldersStillAsPrepared', 'CurStepChanged', 'KeepServiceFromStarting', 'LinkRemedy',
                            'SidIs', 'IsBroadSid', 'BroadGroupSid', 'RemoveMadeFolder', 'PreparedFolderIsLink', 'IsSettingsFile', 'IsRunFolderName',
-                           'DataLinkLeadsWhereAllowed', 'FoldersWereAsPrepared')
+                           'DataLinkLeadsWhereAllowed', 'FoldersWereAsPrepared',
+                           'ProgramFolderMadeAsNamed', 'MadeParentCount', 'MadeParentOffset', 'ReleaseHeldFolders', 'ControlPanelIsInstalled')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -818,8 +841,8 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if IsVolumeRoot(g_szBinReal) or IsVolumeRoot(g_szControlPanelReal) then begin Result := ~; Exit; end;"),
     ('CheckProgramFolders', 'whether Bin and ControlPanel are made again is not decided before anything changes, every empty one, but after the program folder\'s hardening has handed its permissions down to them (check 3 of R1 to R4, 27 October 2026)',
      "g_bRemakeBin := g_bBinThere and FolderHoldsNothing(g_szBinReal); g_bRemakeControlPanel := g_bControlPanelThere and FolderHoldsNothing(g_szControlPanelReal);"),
-    ('CheckProgramFolders', 'what an earlier pass made is removed once its holds are let go, by a path nothing holds any more',
-     "RemoveFoldersMadeHere(); ReleaseHeldFolders(); g_szFolderFindings := '';"),
+    ('CheckProgramFolders', 'what an earlier pass made is removed once its holds are let go, by a path nothing holds any more, or what it decided is kept',
+     "RemoveFoldersMadeHere(); ReleaseHeldFolders(); g_szFolderFindings := ''; g_bRemakeBin := false; g_bRemakeControlPanel := false;"),
     ('CheckProgramFolders', 'Bin\'s owner is not held to the rule',
      "if g_bBinThere then if not OwnerIsAllowed(g_szBinReal, g_hBin, szWhy) then begin Result := "),
     ('CheckProgramFolders', 'ControlPanel\'s owner is not held to the rule',
@@ -1041,9 +1064,291 @@ PROGRAM_FOLDER_STATEMENTS = (
      "Log('Refused: ' + Result); end; end;$"),
     ('PrepareToInstallRefusal', 'the program folders are not prepared last, their refusal the answer',
      "Result := PrepareProgramFolders(PreviousInstallationFolder()); end;$"),
+    # The helpers the decisions rely on (check 3 of R1 to R4, 27 October 2026, whose
+    # twenty one-line changes of them and of the constants passed the checker nineteen
+    # times and the fixture eleven): the walk's start, its names and where it goes on
+    # after a link.
+    ('HoldFolderChain', 'a walk follows links deeper than eight, or starts from what an earlier walk left (check 3 of R1 to R4, 27 October 2026)',
+     "begin Result := false; Real := ''; Held := ''; HeldHandle := -1; Whole := false; Why := ''; if Depth >= 8 then begin Why := ~; Exit; end; "
+     "if not SplitAtRoot(Path, szRoot, szRest, Why) then Exit;"),
+    ('HoldFolderChain', 'the root of a volume is not held, or one that cannot be opened is walked',
+     "parent := HoldForSetup(szRoot); if parent = -1 then begin Why := ~; Exit; end;"),
+    ('HoldFolderChain', 'the next name is not cut from the path as it is written, so that a name is passed over or taken with the rest',
+     "separator := Pos('\\', szRest); if separator = 0 then begin szName := szRest; szRest := ''; end else begin szName := Copy(szRest, 1, separator - 1); "
+     "szRest := Copy(szRest, separator + 1, Length(szRest)); end;"),
+    ('HoldFolderChain', 'a name is not looked at where the walk is, or whether it could be read is not asked',
+     "szNext := AddBackslash(szCurrent) + szName; attributes := FolderAttributes(szNext); lastError := DLLGetLastError(); if attributes = HM_INVALID_ATTRIBUTES then begin"),
+    ('HoldFolderChain', 'the folders below a missing name are not among those setup makes',
+     "Real := szNext; if szRest <> '' then Real := AddBackslash(szNext) + szRest;"),
+    ('HoldFolderChain', 'the rest of the path after a link is not walked from where the link leads, so that the walk ends there',
+     "if szRest <> '' then szTarget := AddBackslash(szTarget) + szRest; Result := HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why); end; bDone := true;"),
+    # Where a link leads.
+    ('LinkTarget', 'a link is taken for one setup has read before its data is read',
+     "begin Result := false; Target := ''; Why := '';"),
+    ('LinkTarget', 'a link whose data cannot be read, or is too short to hold a name, is taken',
+     "if not ReadReparseData(hLink, HM_GET_REPARSE_POINT, 0, 0, buffer, 16384, returned, 0) then begin Why := ~; Exit; end; if returned < 20 then begin Why := ~; Exit; end;"),
+    ('LinkTarget', 'where a link leads is read from other words of its data - the name shown rather than the substitute name Windows follows',
+     "tagLow := Ord(buffer[1]); tagHigh := Ord(buffer[2]); offset := Ord(buffer[5]); size := Ord(buffer[6]); relative := false;"),
+    ('LinkTarget', 'a name past the end of the link\'s data, or an empty one, is taken, or the name is read from elsewhere',
+     "bytes := returned; if ((offset div 2) + (size div 2) + start - 1 > (bytes div 2)) or (size = 0) then begin Why := ~; Exit; end; "
+     "szName := Copy(buffer, start + (offset div 2), size div 2);"),
+    ('LinkTarget', 'a relative symbolic link is taken from setup\'s own folder rather than the folder the link is in',
+     "if relative then Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName) else if"),
+    ('LinkTarget', 'what a link leads to is not made a full path as Windows names it, a volume\'s root kept with its backslash',
+     "else if Copy(szName, 1, 4) = '\\??\\' then begin Target := Copy(szName, 5, Length(szName)); if CompareText(Copy(Target, 1, 7), 'Volume{') = 0 then "
+     "Target := '\\\\?\\' + Target; end else begin Why := ~; Exit; end; Target := RemoveBackslashUnlessRoot(Target); if Target = '' then begin Why := ~; Exit; end; "
+     "if Copy(Target, 1, 4) = '\\\\?\\' then if Target[Length(Target)] = '}' then Target := Target + '\\'; Result := true;"),
+    # What is in Bin, ControlPanel and the program folder.
+    ('CheckWhatIsInside', 'Bin and ControlPanel are looked at past 32 folders down, or a folder whose listing cannot be read is taken',
+     "Result := true; count := 0; if Depth > 32 then begin Found := Found + 1; Why := ~; Result := false; Exit; end; if not FindFirst(AddBackslash(Folder) + '*', rec) then "
+     "begin Found := Found + 1; Why := Why + 'what is in ' + Folder + ' could not be read (Windows error '"),
+    ('CheckWhatIsInside', 'what is a folder in Bin and ControlPanel is not read, so that nothing below their first level is looked at and a folder another account owns is only said',
+     "if (rec.Name <> '.') and (rec.Name <> '..') then begin szItem := AddBackslash(Folder) + rec.Name; bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;"),
+    ('CheckWhatElseIsInside', 'the program folder\'s own level is not looked at, or one whose listing cannot be read is taken',
+     "Result := true; if not IsVolumeRoot(App) then begin if not FindFirst(AddBackslash(App) + '*', rec) then begin Found := Found + 1;"),
+    ('CheckWhatElseIsInside', 'an item of the program folder\'s own level other than Bin and ControlPanel is passed over, or what is a folder there is not read',
+     "if (rec.Name <> '.') and (rec.Name <> '..') and (CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) then begin "
+     "szItem := AddBackslash(App) + rec.Name; bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;"),
+    ('CheckWhatElseIsInside', 'Addons, Events, DBScripts, WebAdmin or Languages, when it is there and no link, is not looked through, or one that is a link is',
+     "for index := 0 to 4 do begin case index of 0: szFolder := 'Addons';"),
+    ('CheckWhatElseIsInside', 'one of the five folders that is there is not looked through, or one that is a link is (check 3 of R1 to R4, 27 October 2026)',
+     "szFolder := AddBackslash(App) + szFolder; @@if FolderAttributes(szFolder) <> HM_INVALID_ATTRIBUTES then if ((FolderAttributes(szFolder) and FILE_ATTRIBUTE_DIRECTORY) <> 0) and "
+     "((FolderAttributes(szFolder) and HM_REPARSE_POINT) = 0) then if not CheckWhatIsInside(szFolder, 0, Final, true, Found, Why) then Result := false;"),
+    # Users' Read on a folder setup makes.
+    ('EveryUserMayReadMadeIn', 'the folder setup makes in is not read through its handle, or one whose permissions cannot be read is taken for one every user may read',
+     "Result := false; pDescriptor := 0; pDacl := 0; pOwner := 0; if ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) <> 0 then Exit; "
+     "if pDacl = 0 then Result := true else if ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then"),
+    ('EveryUserMayReadMadeIn', 'Users is given Read on a folder made where not every user could read one: an entry that is not an allow entry handed down to folders, does not read, or is another group\'s, counted',
+     "if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and HM_CONTAINER_INHERIT) <> 0) and ((head.Mask and HM_FOLDER_READ_RIGHTS) <> 0) then "
+     "begin group := 0; while (not Result) and (group < 3) do begin szSid := BroadGroupSid(group, szName); if SidIs(pAce + 8, szSid) then Result := true; group := group + 1; end; end;"),
+    # What the uninstaller is given, and what a cancel removes.
+    ('ProgramFolderMadeAsNamed', 'a program folder setup did not make, or made where a link leads, is given to the uninstaller as {app}',
+     "^function ProgramFolderMadeAsNamed(): Boolean; begin Result := false; if g_bProgramFolderNew then "
+     "Result := CompareText(g_szProgramFolderReal, RemoveBackslashUnlessRoot(ExpandConstant('{app}'))) = 0; end;$"),
+    ('MadeParentCount', 'the folders setup made above the program folder are counted with it, or without it where a link leads',
+     "^function MadeParentCount(): Integer; begin Result := GetArrayLength(g_aFoldersMade); if ProgramFolderMadeAsNamed() then Result := Result - 1; if Result < 0 then Result := 0; end;$"),
+    ('MadeParentOffset', 'other than the eight folders setup made nearest the program folder are given to the uninstaller',
+     "^function MadeParentOffset(): Integer; begin Result := MadeParentCount() - 8; if Result < 0 then Result := 0; end;$"),
+    ('SetupMadeFolder', 'a folder setup made above the program folder is not given to the uninstaller, or one it did not make is',
+     "^function SetupMadeFolder(Index: Integer): Boolean; begin Result := g_bProgramFolderNew and (MadeParentOffset() + Index < MadeParentCount()); end;$"),
+    ('FolderMadeBySetup', 'the uninstaller is given another folder than the one setup made for an entry',
+     "^function FolderMadeBySetup(Param: String): String; var index: Integer; begin index := MadeParentOffset() + StrToIntDef(Param, 0); Result := ''; "
+     "if (index >= 0) and (index < GetArrayLength(g_aFoldersMade)) then Result := g_aFoldersMade[index]; end;$"),
+    ('SetupMadeProgramFolder', 'the program folder setup made is not given to the uninstaller, or one it did not make is',
+     "^function SetupMadeProgramFolder(): Boolean; begin Result := ProgramFolderMadeAsNamed(); end;$"),
+    ('SetupMadeBin', 'Bin is given to the uninstaller whatever made it',
+     "^function SetupMadeBin(): Boolean; begin Result := g_szBinMade <> ''; end;$"),
+    ('SetupMadeControlPanel', 'ControlPanel is given to the uninstaller whatever made it',
+     "^function SetupMadeControlPanel(): Boolean; begin Result := g_szControlPanelMade <> ''; end;$"),
+    ('RemoveFoldersMadeHere', 'a folder setup made is not removed after a cancel, removed shallowest first, or remembered after it is gone (check 3 of R1 to R4, 27 October 2026)',
+     "^procedure RemoveFoldersMadeHere(); var index: Integer; begin @@if g_szBinMade <> '' then RemoveMadeFolder(g_szBinMade, g_szBinMadeAt, g_hBinMade); "
+     "if g_szControlPanelMade <> '' then RemoveMadeFolder(g_szControlPanelMade, g_szControlPanelMadeAt, g_hControlPanelMade); g_szBinMade := ''; g_szBinMadeAt := ''; "
+     "g_szControlPanelMade := ''; g_szControlPanelMadeAt := ''; for index := GetArrayLength(g_aFoldersMade) - 1 downto 0 do "
+     "RemoveMadeFolder(g_aFoldersMade[index], g_aFoldersMadeAt[index], g_aFoldersMadeHandle[index]); SetArrayLength(g_aFoldersMade, 0); SetArrayLength(g_aFoldersMadeAt, 0); "
+     "SetArrayLength(g_aFoldersMadeHandle, 0); g_bProgramFolderNew := false; end;$"),
+    # The third review's helpers (check 3 of R1 to R4, 27 October 2026).
+    ('DataLinkLeadsWhereAllowed', 'a data folder\'s link is taken when it cannot be held, read or walked',
+     "begin Result := false; Why := ''; hLink := HoldForSetup(Link);"),
+    ('DataLinkLeadsWhereAllowed', 'an owner of where a data folder\'s link leads other than the three or the service is not said',
+     "Result := true; if not Final then Exit; pOwner := 0; pDacl := 0; pDescriptor := 0; if ReadHeldSecurity(hHeld, HM_FILE_OBJECT, HM_OWNER_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor) = 0 then "
+     "begin if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then begin szText := ~; Log('The program folder: ' + szText); "
+     "g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;"),
+    ('PreparedFolderIsLink', 'the refusal of a prepared folder made a link does not name it',
+     "^function PreparedFolderIsLink(Folder: String): String; begin Result := Folder + ' is a junction, a symbolic link or a mount point now"),
+    ('ReleaseHeldFolders', 'a folder setup holds is let go before the end, or not at all',
+     "^procedure ReleaseHeldFolders(); var index: Integer; begin for index := GetArrayLength(g_aHeldFolders) - 1 downto 0 do ReleaseFolder(g_aHeldFolders[index]); SetArrayLength(g_aHeldFolders, 0); end;$"),
+    ('ControlPanelIsInstalled', 'ControlPanel is made, or not, whatever is installed',
+     "^function ControlPanelIsInstalled(): Boolean; begin Result := IsComponentSelected('controlpanel'); end;$"),
+)
+
+# The constants the R1 to R4 [Code] tests with, each held to its value (check 3 of R1 to
+# R4, 27 October 2026: HM_REPARSE_POINT, HM_ACCESS_ALLOWED, HM_INHERIT_ONLY and
+# HM_INHERITED_ACE changed by a digit passed the checker and the fixture, and with any of
+# them no link, no allow entry, no entry that applies to a folder or no inherited entry
+# would have been seen). Every HM_ constant the extension defines is one of these, and
+# each is defined once: (name, its value as the script writes it, what Windows calls it).
+PROGRAM_FOLDER_CONSTANTS = (
+    ('HM_FILE_OBJECT', '1', 'SE_FILE_OBJECT'),
+    ('HM_DACL_INFORMATION', '4', 'DACL_SECURITY_INFORMATION'),
+    ('HM_ACL_SIZE_INFORMATION', '2', 'AclSizeInformation'),
+    ('HM_ACCESS_ALLOWED', '0', 'ACCESS_ALLOWED_ACE_TYPE'),
+    ('HM_OBJECT_INHERIT', '$01', 'OBJECT_INHERIT_ACE'),
+    ('HM_CONTAINER_INHERIT', '$02', 'CONTAINER_INHERIT_ACE'),
+    ('HM_NO_PROPAGATE_INHERIT', '$04', 'NO_PROPAGATE_INHERIT_ACE'),
+    ('HM_INHERIT_ONLY', '$08', 'INHERIT_ONLY_ACE'),
+    ('HM_FOLDER_WRITE_RIGHTS', '$500D0156', 'FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_DELETE_CHILD | FILE_WRITE_ATTRIBUTES | DELETE | WRITE_DAC | WRITE_OWNER | GENERIC_WRITE | GENERIC_ALL'),
+    ('HM_FOLDER_READ_RIGHTS', '$90000001', 'FILE_LIST_DIRECTORY | GENERIC_READ | GENERIC_ALL'),
+    ('HM_HOLD_FOLDER_ACCESS', '$200A1', 'FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES | READ_CONTROL'),
+    ('HM_READ_CONTROL', '$20000', 'READ_CONTROL'),
+    ('HM_SHARE_ALL_BUT_DELETE', '$3', 'FILE_SHARE_READ | FILE_SHARE_WRITE'),
+    ('HM_SHARE_EVERYTHING', '$7', 'FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE'),
+    ('HM_OPEN_EXISTING', '3', 'OPEN_EXISTING'),
+    ('HM_HOLD_FOLDER_FLAGS', '$02200000', 'FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT'),
+    ('HM_REPARSE_POINT', '$400', 'FILE_ATTRIBUTE_REPARSE_POINT'),
+    ('HM_INVALID_ATTRIBUTES', '$FFFFFFFF', 'INVALID_FILE_ATTRIBUTES'),
+    ('HM_OWNER_INFORMATION', '1', 'OWNER_SECURITY_INFORMATION'),
+    ('HM_OWNER_AND_DACL_INFORMATION', '5', 'OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION'),
+    ('HM_PROTECTED_DACL_INFORMATION', '$80000004', 'PROTECTED_DACL_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION'),
+    ('HM_REMOVE_FROM_FOLDER_RIGHTS', '$100C0040', 'FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL'),
+    ('HM_REPLACE_RIGHTS', '$100D0040', 'FILE_DELETE_CHILD | DELETE | WRITE_DAC | WRITE_OWNER | GENERIC_ALL'),
+    ('HM_GET_REPARSE_POINT', '$000900A8', 'FSCTL_GET_REPARSE_POINT'),
+    ('HM_DRIVE_REMOTE', '4', 'DRIVE_REMOTE'),
+    ('HM_TRUSTED_INSTALLER_SID', "'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'", 'NT SERVICE\\TrustedInstaller, AdminUpdateChecks.cpp\'s TrustedInstallerSid'),
+    ('HM_SERVICE_SID', "'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809'", 'NT SERVICE\\hMailServer, as ServiceAccountTester holds it'),
+    ('HM_ERROR_ALREADY_EXISTS', '183', 'ERROR_ALREADY_EXISTS'),
+    ('HM_ACL_REVISION', '2', 'ACL_REVISION'),
+    ('HM_LPTR', '$40', 'LPTR'),
+    ('HM_MAXDWORD', '$FFFFFFFF', 'MAXDWORD'),
+    ('HM_ACCESS_DENIED', '1', 'ACCESS_DENIED_ACE_TYPE'),
+    ('HM_INHERITED_ACE', '$10', 'INHERITED_ACE'),
+    ('HM_INHERITED_FLAG_BIT', '$1000', 'INHERITED_ACE where it sits in ACE_START\'s TypeFlagsSize'),
+    ('HM_FILE_ALL_ACCESS', '$1F01FF', 'FILE_ALL_ACCESS'),
+    ('HM_RIGHTS_READ_EXECUTE', '$1200A9', 'FILE_GENERIC_READ | FILE_EXECUTE, ServiceAccount::RightsReadExecute'),
+    ('HM_DACL_PROTECTED', '$1000', 'SE_DACL_PROTECTED'),
+    ('HM_PERSISTENT_ACLS', '$8', 'FILE_PERSISTENT_ACLS'),
+    ('HM_VOLUME_NAME_GUID', '1', 'VOLUME_NAME_GUID'),
+)
+
+# The Windows functions and records the R1 to R4 [Code] reads and changes folders with,
+# each held to its declaration (a statement as PROGRAM_FOLDER_STATEMENTS' are, matched
+# once anywhere in the extension): a function declared from another DLL or with another
+# parameter, or a record's field moved, reads the wrong thing without a word. Every
+# external function a routine of PROGRAM_FOLDER_CODE calls is one of these.
+PROGRAM_FOLDER_DECLARATIONS = (
+    "ACL_SIZE_INFO = record AceCount : cardinal; AclBytesInUse : cardinal; AclBytesFree : cardinal; end;",
+    "ACE_START = record TypeFlagsSize : cardinal; Mask : cardinal; end;",
+    "HM_SECURITY_ATTRIBUTES = record nLength : cardinal; lpSecurityDescriptor : cardinal; bInheritHandle : cardinal; end;",
+    "HM_FILE_INFORMATION = record dwFileAttributes : cardinal; ftCreationTimeLow : cardinal; ftCreationTimeHigh : cardinal; ftLastAccessTimeLow : cardinal; "
+    "ftLastAccessTimeHigh : cardinal; ftLastWriteTimeLow : cardinal; ftLastWriteTimeHigh : cardinal; dwVolumeSerialNumber : cardinal; nFileSizeHigh : cardinal; "
+    "nFileSizeLow : cardinal; nNumberOfLinks : cardinal; nFileIndexHigh : cardinal; nFileIndexLow : cardinal; end;",
+    "function ReadFolderPermissions(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; ppsidOwner: cardinal; ppsidGroup: cardinal; var ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal; external 'GetNamedSecurityInfoW@advapi32.dll stdcall';",
+    "function ReadAclSize(pAcl: cardinal; var AclInformation: ACL_SIZE_INFO; nAclInformationLength: cardinal; dwAclInformationClass: cardinal): Boolean; external 'GetAclInformation@advapi32.dll stdcall';",
+    "function ReadAclEntry(pAcl: cardinal; dwAceIndex: cardinal; var pAce: cardinal): Boolean; external 'GetAce@advapi32.dll stdcall';",
+    "procedure CopyAceStart(var Destination: ACE_START; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+    "function SidOfText(StringSid: String; var Sid: cardinal): Boolean; external 'ConvertStringSidToSidW@advapi32.dll stdcall';",
+    "function SidsAreEqual(Sid1: cardinal; Sid2: cardinal): Boolean; external 'EqualSid@advapi32.dll stdcall';",
+    "function FreeWindowsMemory(hMem: cardinal): cardinal; external 'LocalFree@kernel32.dll stdcall';",
+    "function HoldFolder(lpFileName: String; dwDesiredAccess: cardinal; dwShareMode: cardinal; lpSecurityAttributes: cardinal; dwCreationDisposition: cardinal; dwFlagsAndAttributes: cardinal; hTemplateFile: cardinal): Integer; external 'CreateFileW@kernel32.dll stdcall';",
+    "function ReleaseFolder(hObject: Integer): Boolean; external 'CloseHandle@kernel32.dll stdcall';",
+    "function FolderAttributes(lpFileName: String): cardinal; external 'GetFileAttributesW@kernel32.dll stdcall';",
+    "function SecurityDescriptorOfText(StringSecurityDescriptor: String; StringSDRevision: cardinal; var SecurityDescriptor: cardinal; SecurityDescriptorSize: cardinal): Boolean; external 'ConvertStringSecurityDescriptorToSecurityDescriptorW@advapi32.dll stdcall';",
+    "function WriteFolderSecurity(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; psidOwner: cardinal; psidGroup: cardinal; pDacl: cardinal; pSacl: cardinal): cardinal; external 'SetNamedSecurityInfoW@advapi32.dll stdcall';",
+    "function ReadHeldSecurity(Handle: Integer; ObjectType: cardinal; SecurityInfo: cardinal; var ppsidOwner: cardinal; ppsidGroup: cardinal; var ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal; external 'GetSecurityInfo@advapi32.dll stdcall';",
+    "function ControlOfDescriptor(pSecurityDescriptor: cardinal; var pControl: Word; var lpdwRevision: cardinal): Boolean; external 'GetSecurityDescriptorControl@advapi32.dll stdcall';",
+    "function SidToText(Sid: cardinal; var StringSid: cardinal): Boolean; external 'ConvertSidToStringSidW@advapi32.dll stdcall';",
+    "function WideTextLength(lpString: cardinal): Integer; external 'lstrlenW@kernel32.dll stdcall';",
+    "procedure CopyWideText(Destination: String; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+    "procedure CopyBytes(Destination: cardinal; Source: cardinal; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+    "procedure WriteAceStart(Destination: cardinal; var Source: ACE_START; Length: cardinal); external 'RtlMoveMemory@kernel32.dll stdcall';",
+    "function AllocateWindowsMemory(uFlags: cardinal; uBytes: cardinal): cardinal; external 'LocalAlloc@kernel32.dll stdcall';",
+    "function StartAcl(pAcl: cardinal; nAclLength: cardinal; dwAclRevision: cardinal): Boolean; external 'InitializeAcl@advapi32.dll stdcall';",
+    "function AppendAce(pAcl: cardinal; dwAceRevision: cardinal; dwStartingAceIndex: cardinal; pAceList: cardinal; nAceListLength: cardinal): Boolean; external 'AddAce@advapi32.dll stdcall';",
+    "function AppendAllowAce(pAcl: cardinal; dwAceRevision: cardinal; AceFlags: cardinal; AccessMask: cardinal; pSid: cardinal): Boolean; external 'AddAccessAllowedAceEx@advapi32.dll stdcall';",
+    "function ReadReparseData(hDevice: Integer; dwIoControlCode: cardinal; lpInBuffer: cardinal; nInBufferSize: cardinal; lpOutBuffer: String; nOutBufferSize: cardinal; var lpBytesReturned: cardinal; lpOverlapped: cardinal): Boolean; external 'DeviceIoControl@kernel32.dll stdcall';",
+    "function MakeFolderWithSecurity(lpPathName: String; var lpSecurityAttributes: HM_SECURITY_ATTRIBUTES): Boolean; external 'CreateDirectoryW@kernel32.dll stdcall';",
+    "function VolumeOfHeldFolder(hFile: Integer; lpVolumeNameBuffer: cardinal; nVolumeNameSize: cardinal; var lpVolumeSerialNumber: cardinal; var lpMaximumComponentLength: cardinal; var lpFileSystemFlags: cardinal; lpFileSystemNameBuffer: cardinal; nFileSystemNameSize: cardinal): Boolean; external 'GetVolumeInformationByHandleW@kernel32.dll stdcall';",
+    "function KindOfDrive(lpRootPathName: String): cardinal; external 'GetDriveTypeW@kernel32.dll stdcall';",
+    "function LookupNameOfSid(lpSystemName: cardinal; Sid: cardinal; Name: String; var cchName: cardinal; ReferencedDomainName: String; var cchReferencedDomainName: cardinal; var peUse: cardinal): Boolean; external 'LookupAccountSidW@advapi32.dll stdcall';",
+    "function ReadHeldInformation(hFile: Integer; var lpFileInformation: HM_FILE_INFORMATION): Boolean; external 'GetFileInformationByHandle@kernel32.dll stdcall';",
+    "function FinalPathOfHandle(hFile: Integer; lpszFilePath: String; cchFilePath: cardinal; dwFlags: cardinal): cardinal; external 'GetFinalPathNameByHandleW@kernel32.dll stdcall';",
+)
+
+# Every routine of R1 to R4, held whole by a digest of its code - comments dropped, each
+# run of white space one space, every string as it is written (PROGRAM_FOLDER_CODE's
+# first 16 hex digits of SHA-256 over UTF-8; code_digest) - so that no change of one,
+# however small, passes until it has been reviewed against work item 78 and its digest
+# written here and in InstallerPackaging.cs (python build/check-installer-scripts.py
+# --digests prints them as they are). Check 3 of R1 to R4 (27 October 2026) found that a
+# one-line change of a helper the statements did not name passed the checker and the
+# fixture, and a sweep of every if, while, Result and Exit of these routines on 27
+# October 2026 found 433 such changes that the statements alone let through. The
+# routines are those the entry points reach (PROGRAM_FOLDER_ENTRY_POINTS), each one this
+# table or PROGRAM_FOLDER_SHARED names: a new helper of R1 to R4 is held, or said to be
+# another's, before the check passes.
+PROGRAM_FOLDER_ENTRY_POINTS = ('CheckProgramFolders', 'PrepareProgramFolders', 'FoldersStillAsPrepared', 'RemoveFoldersMadeHere', 'KeepServiceFromStarting',
+                               'FoldersWereAsPrepared', 'FolderMadeBySetup', 'SetupMadeFolder', 'SetupMadeProgramFolder', 'SetupMadeBin', 'SetupMadeControlPanel',
+                               'PreviousInstallationFolder')
+# The routines the entry points reach that are not R1 to R4's own, which the rest of setup
+# shares, and why they are not held here: (routine, why).
+PROGRAM_FOLDER_SHARED = (
+    ('CheckProgramFolderPermissions', 'the folder page\'s note of 6.3.7 on a program folder another account may write, which decides nothing'),
+    ('IsServiceInstalled', 'whether the service is installed, which the rest of setup asks too'),
+)
+PROGRAM_FOLDER_CODE = (
+    ('AccountNameOfSid', 'd7f15a73b2a52847'),
+    ('AclLetsOthers', '6b00430bd84cb1ab'),
+    ('AddAsOwnEntry', 'f0c0620c1378f54d'),
+    ('BroadGroupSid', 'a8763088c8e3e0a9'),
+    ('CheckProgramFolders', '1ee35a172cd66627'),
+    ('CheckWhatElseIsInside', '268826a67423bdd9'),
+    ('CheckWhatIsInside', 'ce7ebbe88c0acc89'),
+    ('ControlPanelIsInstalled', '3ab47178b35c2ef7'),
+    ('DataFolderThatInherits', '66c2cd8de8d2f08b'),
+    ('DataLinkLeadsWhereAllowed', '21a19d137a137688'),
+    ('EveryUserMayRead', '311a6e77de030208'),
+    ('EveryUserMayReadMadeIn', 'b9e6f38e684da9c5'),
+    ('FinalPathOfHeld', '2c5642212af4ef31'),
+    ('FolderAboveIsAdministratorsAlone', '82022b4d52c19256'),
+    ('FolderHoldsNothing', '7335ca15ee314789'),
+    ('FolderMadeBySetup', '3ed9e1d5025dba38'),
+    ('FoldersStillAsPrepared', 'f57b57e49832ab63'),
+    ('FoldersWereAsPrepared', '7b86c82e306d4585'),
+    ('HardenHeldFolder', '77c37a345fe0e8cf'),
+    ('HeldFolderIsHardened', '6e48b1f5fbf3a15d'),
+    ('HeldIsLink', 'dc9e0afb79a54681'),
+    ('HeldOwnerIsTrusted', '6c22996dbd870f3e'),
+    ('HoldFolderChain', '3488e3586d2e893d'),
+    ('HoldForSetup', '950dbbf8ac5695d2'),
+    ('InheritsNothing', 'ba9a5f635445f6e7'),
+    ('IsAtOrAboveChecked', '65db442d814071a2'),
+    ('IsBroadSid', 'f8cbef14b7f00fb1'),
+    ('IsDataFolderName', 'ce6c435a26838422'),
+    ('IsProgramFile', '219188cbc96d13c5'),
+    ('IsRunFolderName', '618eab586bb72741'),
+    ('IsScriptFile', 'da5441e710f716d7'),
+    ('IsSettingsFile', 'a4a7b5a10ddbcbd9'),
+    ('IsTrustedSid', 'b1e4972ae9631bbd'),
+    ('IsVolumeRoot', '1d8d1a5e9fee3a54'),
+    ('ItemIsIn', '3f4a4540977f6580'),
+    ('KeepServiceFromStarting', '4287271a337806a7'),
+    ('LetGoOfHeld', '83a63b6a0c82fba3'),
+    ('LetsEveryUserWrite', 'f8c242f2bf668c73'),
+    ('LinkIsAdministratorsAlone', 'c2c9823696671e05'),
+    ('LinkRemedy', '421eb698557d16a3'),
+    ('LinkTarget', '0b2b7e365ebc3a70'),
+    ('MadeParentCount', '98517a4e3b3fbbfe'),
+    ('MadeParentOffset', '3298776306b79064'),
+    ('MadeWhereNamed', '98d8f43dacc9751a'),
+    ('MakeFolders', '5a0930ab6bb0c8e4'),
+    ('NothingTurnedIn', '68bcd24f5fcc9511'),
+    ('OwnEntriesLetOthers', '432884347c2a0dfa'),
+    ('OwnerIsAllowed', 'f76a2b8ffed2c6c1'),
+    ('PreparedFolderIsAsLeft', '0f83d984aede2bc1'),
+    ('PreparedFolderIsLink', '7ce997c2b15d1bea'),
+    ('PrepareProgramFolders', '110510a870af6754'),
+    ('PreviousInstallationFolder', 'e5316bef61ccd228'),
+    ('ProgramFolderMadeAsNamed', '4126d0c1e6214bee'),
+    ('RebuildFolderOfUntrustedOwner', '9dc2b42bc43f1391'),
+    ('ReleaseHeldFolders', 'f8c80f82d876588b'),
+    ('RemakeEmptyFolder', '3dc1f7796b498bcb'),
+    ('RemoveFoldersMadeHere', '5d8963b8738f5484'),
+    ('RemoveMadeFolder', 'b58144954352dd5e'),
+    ('SayWriteEntriesKept', 'd8f9b5d24a6298b6'),
+    ('SetupMadeBin', '1dbd327f1d6d18a6'),
+    ('SetupMadeControlPanel', '1ac337150384c97d'),
+    ('SetupMadeFolder', '96f12e0fabeb6aee'),
+    ('SetupMadeProgramFolder', '7f70cdaa4f086ceb'),
+    ('SidInName', '2a5e78371e8a3930'),
+    ('SidIs', '389072b7476600fc'),
+    ('SidNameAt', 'c8f922d592759b87'),
+    ('SplitAtRoot', 'a9a5495b516a0a1a'),
+    ('TextOfSidAt', 'f3c4acf66f69003e'),
+    ('VolumeKeepsPermissions', '7816988ef8c6a23f'),
+    ('WalksAgree', 'b3961e81811d817c'),
 )
 
 
+@functools.lru_cache(maxsize=None)
 def statement_pattern(statement):
     """A PROGRAM_FOLDER_STATEMENTS statement as a regular expression."""
     out = []
@@ -1072,12 +1377,166 @@ def statement_pattern(statement):
     return ''.join(out)
 
 
+# A [Code] comment (// to the end of the line, { }, (* *)), a string, or a run of white
+# space; an external function's declaration; a routine's header; a record's.
+CODE_TOKEN = re.compile(r"//[^\n]*|\{[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'|\s+")
+EXTERNAL_DECLARATION = re.compile(r"^(?:function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;\s*external\s+'[^']*'\s*;", re.M | re.I)
+ROUTINE_HEADER = re.compile(r'^(?:function|procedure)\s+(\w+)\s*[(:;]', re.M | re.I)
+RECORD_HEADER = re.compile(r'^\s*(\w+)\s*=\s*record\b', re.M | re.I)
+
+
+def routine_code(body):
+    """A routine's code as PROGRAM_FOLDER_CODE's digest reads it: its comments
+    dropped, each run of white space, a comment's place among it, one space, and every
+    string as it is written."""
+    pieces = []
+    last = ''
+    at = 0
+    for match in CODE_TOKEN.finditer(body):
+        between = body[at:match.start()]
+        if between:
+            pieces.append(between)
+            last = between[-1]
+        token = match.group(0)
+        if token.startswith("'"):
+            pieces.append(token)
+            last = token[-1]
+        elif pieces and last != ' ':
+            pieces.append(' ')
+            last = ' '
+        at = match.end()
+    if body[at:]:
+        pieces.append(body[at:])
+    return ''.join(pieces).strip()
+
+
+def code_digest(body):
+    """PROGRAM_FOLDER_CODE's digest of a routine: the first 16 hex digits of the SHA-256 of
+    its code (routine_code) in UTF-8."""
+    return hashlib.sha256(routine_code(body).encode('utf-8')).hexdigest()[:16]
+
+
+def code_words(body):
+    """The words of a routine's code, its comments and strings left out, in lower case."""
+    return set(word.lower() for word in re.findall(r'\w+', CODE_TOKEN.sub(lambda match: "''" if match.group(0).startswith("'") else ' ', body)))
+
+
+@functools.lru_cache(maxsize=4)
+def routine_bodies(ext):
+    """Each routine of the extension, its external declarations left out, by its name in
+    lower case: (its name, the text pascal_routine gives of its first definition)."""
+    externals = set(match.group(1).lower() for match in EXTERNAL_DECLARATION.finditer(ext))
+    closing = re.compile(r'^end;', re.M)
+    bodies = {}
+    for match in ROUTINE_HEADER.finditer(ext):
+        name = match.group(1)
+        if name.lower() in externals or name.lower() in bodies:
+            continue
+        end = closing.search(ext, match.end())
+        if end:
+            bodies[name.lower()] = (name, ext[match.start():end.end()])
+    return bodies
+
+
+def program_folder_reach(ext):
+    """The routines R1 to R4's entry points reach (PROGRAM_FOLDER_ENTRY_POINTS, through
+    every routine but PROGRAM_FOLDER_SHARED's), in the order found; the external
+    functions and the records the reached routines but the shared use; and how many
+    times each routine name is defined."""
+    externals = dict((match.group(1).lower(), match.group(1)) for match in EXTERNAL_DECLARATION.finditer(ext))
+    defined = {}
+    for match in ROUTINE_HEADER.finditer(ext):
+        if match.group(1).lower() not in externals:
+            defined[match.group(1).lower()] = defined.get(match.group(1).lower(), 0) + 1
+    bodies = routine_bodies(ext)
+    names = dict((key, value[0]) for key, value in bodies.items())
+    records = dict((match.group(1).lower(), match.group(1)) for match in RECORD_HEADER.finditer(ext))
+    shared = set(name.lower() for name, _ in PROGRAM_FOLDER_SHARED)
+    reached = []
+    calls = set()
+    types = set()
+    todo = [name.lower() for name in PROGRAM_FOLDER_ENTRY_POINTS]
+    while todo:
+        name = todo.pop(0)
+        if name in [one.lower() for one in reached]:
+            continue
+        reached.append(names.get(name, name))
+        body = bodies.get(name, (None, None))[1]
+        if body is None or name in shared:
+            continue
+        for word in sorted(code_words(body)):
+            if word == name:
+                continue
+            if word in externals:
+                calls.add(externals[word])
+            elif word in defined:
+                todo.append(word)
+            elif word in records:
+                types.add(records[word])
+    return reached, calls, types, defined
+
+
+def check_program_folder_code(texts, problems):
+    """Work item 78's R1 to R4, whole: every constant, Windows declaration and routine
+    (PROGRAM_FOLDER_CONSTANTS, PROGRAM_FOLDER_DECLARATIONS, PROGRAM_FOLDER_CODE)."""
+    ext = texts.get(EXTENSION, '')
+    defined = re.findall(r'^[ \t]*(HM_\w+)[ \t]*=[ \t]*([^;\n]*);', ext, re.M)
+    held = dict((name, value) for name, value, _ in PROGRAM_FOLDER_CONSTANTS)
+    for name, value, meaning in PROGRAM_FOLDER_CONSTANTS:
+        values = [found.strip() for one, found in defined if one == name]
+        if len(values) != 1:
+            problems.append('%s: %s (%s) is defined %d times, where work item 78 holds it once, to %s' % (EXTENSION, name, meaning, len(values), value))
+        elif values[0] != value:
+            problems.append('%s: %s (%s) is %s, where work item 78 holds it to %s' % (EXTENSION, name, meaning, values[0], value))
+    for name, value in defined:
+        if name not in held:
+            problems.append('%s: %s = %s is a constant work item 78\'s check does not hold; hold it in PROGRAM_FOLDER_CONSTANTS and InstallerPackaging.cs' % (EXTENSION, name, value.strip()))
+    trusted = re.search(r'TrustedInstallerSid\s*=\s*L"(S-1-5-80-[0-9-]+)"', texts.get(ADMIN_UPDATE_CHECKS, ''))
+    if not trusted:
+        problems.append('%s: TrustedInstallerSid, which HM_TRUSTED_INSTALLER_SID is held to, is not there' % ADMIN_UPDATE_CHECKS)
+    elif held.get('HM_TRUSTED_INSTALLER_SID') != "'%s'" % trusted.group(1):
+        problems.append('%s: HM_TRUSTED_INSTALLER_SID is held to %s, where the live update trusts %s' % (EXTENSION, held.get('HM_TRUSTED_INSTALLER_SID'), trusted.group(1)))
+
+    for declaration in PROGRAM_FOLDER_DECLARATIONS:
+        count = len(re.findall(statement_pattern(declaration), ext))
+        if count != 1:
+            problems.append('%s: the declaration work item 78 holds to "%s" is there %d times, not once' % (EXTENSION, declaration[:90], count))
+    declared = set(re.match(r'(?:function|procedure)?\s*(\w+)', declaration).group(1).lower() for declaration in PROGRAM_FOLDER_DECLARATIONS)
+
+    reached, calls, types, counts = program_folder_reach(ext)
+    for name in sorted(calls | types):
+        if name.lower() not in declared:
+            problems.append('%s: R1 to R4 use %s, whose declaration work item 78\'s check does not hold; hold it in PROGRAM_FOLDER_DECLARATIONS and InstallerPackaging.cs' % (EXTENSION, name))
+    digests = dict((name.lower(), digest) for name, digest in PROGRAM_FOLDER_CODE)
+    shared = set(name.lower() for name, _ in PROGRAM_FOLDER_SHARED)
+    bodies = routine_bodies(ext)
+    for name in reached:
+        if name.lower() in shared:
+            continue
+        body = bodies.get(name.lower(), (None, None))[1]
+        if body is None:
+            problems.append('%s: %s, which R1 to R4 reach, is not there' % (EXTENSION, name))
+        elif name.lower() not in digests:
+            problems.append('%s: %s, which R1 to R4 reach, is neither held whole nor said to be shared; hold it in PROGRAM_FOLDER_CODE (its digest is %s) and '
+                            'InstallerPackaging.cs, or name it in PROGRAM_FOLDER_SHARED' % (EXTENSION, name, code_digest(body)))
+        elif counts.get(name.lower(), 0) != 1:
+            problems.append('%s: %s is defined %d times' % (EXTENSION, name, counts.get(name.lower(), 0)))
+        elif code_digest(body) != digests[name.lower()]:
+            problems.append('%s: %s is not the code the reviews of work item 78 held (its digest is %s, held %s): a change of R1 to R4 is reviewed against the '
+                            'work item, and its digest written in PROGRAM_FOLDER_CODE and InstallerPackaging.cs' % (EXTENSION, name, code_digest(body), digests[name.lower()]))
+    for name in list(digests) + list(shared):
+        if name not in [one.lower() for one in reached]:
+            problems.append('%s: %s is held as a routine of R1 to R4, which no longer reach it; take it out of the check' % (EXTENSION, name))
+
+
 def check_program_folders(texts, problems):
     """Work item 78's R1 to R4 (the docstring's "program folder")."""
     ext = texts.get(EXTENSION, '')
     routines = {}
+    bodies = routine_bodies(ext)
     for name in PROGRAM_FOLDER_ROUTINES:
-        routines[name] = pascal_routine(ext, name)
+        # pascal_routine's text of each, read in one pass.
+        routines[name] = bodies.get(name.lower(), (None, None))[1]
         if routines[name] is None:
             problems.append('%s: %s is not there (work item 78)' % (EXTENSION, name))
     if any(body is None for body in routines.values()):
@@ -1104,7 +1563,9 @@ def check_program_folders(texts, problems):
     chain = routines['HoldFolderChain']
     for word in ('HoldForSetup(szNext)', 'LinkTarget(handle, szNext, szTarget, szWhy)', 'HoldFolderChain(szTarget, Depth + 1, Real, Held, HeldHandle, Whole, Why)',
                  'Depth >= 8', 'LinkRemedy(szNext)', 'HM_DRIVE_REMOTE'):
-        if word not in chain:
+        # A word, not a part of one: "Depth >= 8" is not in "Depth >= 80" (check 3 of R1
+        # to R4, 27 October 2026).
+        if not re.search(r'(?<!\w)' + re.escape(word) + r'(?!\w)', chain):
             problems.append('%s: HoldFolderChain does not use %s' % (EXTENSION, word))
     if len(re.findall(r'attributes\s*:=\s*FolderAttributes\(szNext\);', chain)) != 2:
         problems.append('%s: HoldFolderChain does not read a folder\'s attributes before and after it holds it' % EXTENSION)
@@ -1177,6 +1638,16 @@ def check_program_folders(texts, problems):
         problems.append('%s: whether setup stopped a running service is set other than once, to true, so a later pass may clear it' % EXTENSION)
     if ready.find('CheckProgramFolders(') < 0 or ready.find('CheckProgramFolders(') > ready.find('StopHMailServerService()'):
         problems.append('%s: the folders are checked after the service is stopped, so a refusal leaves a running server stopped' % EXTENSION)
+    # PrepareToInstallRefusal, which the rest of setup shares, leaves early only with a
+    # refusal, so that nothing is installed without the folders prepared (check 3 of R1
+    # to R4, 27 October 2026).
+    refusal = CODE_TOKEN.sub(lambda match: "'" + 'x' * (len(match.group(0)) - 2) + "'" if match.group(0).startswith("'") else ' ' * len(match.group(0)),
+                             routines['PrepareToInstallRefusal'])
+    for match in re.finditer(r'\bExit\s*;', refusal):
+        if not re.search(r"\bResult\s*:=\s*'x+'[^;]*;\s*$", refusal[:match.start()]):
+            problems.append('%s: PrepareToInstallRefusal leaves before the program folders are prepared without a refusal, so that setup installs into folders it '
+                            'has not prepared' % EXTENSION)
+            break
 
     # R1: made with its descriptor, recorded for the uninstaller, removed when not used.
     make = routines['MakeFolders']
@@ -1315,6 +1786,7 @@ def check(texts):
     check_credential(texts, problems)
     check_original(texts, problems)
     check_program_folders(texts, problems)
+    check_program_folder_code(texts, problems)
     check_access_masks(texts, problems)
     return problems, entries
 
@@ -1816,7 +2288,148 @@ def negative_controls(texts):
                  '((head.Mask and ($000D0156)) <> 0) and (not IsTrustedSid(pAce + 8)) and\n')),
         ('the link rule asked about a narrowed mask',
          altered(texts, EXTENSION, 'AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szWho)', 'AclLetsOthers(pDacl, HM_FOLDER_WRITE_RIGHTS and $FFFFFEFF, true, szWho)')),
+        # Check 3 of R1 to R4 (27 October 2026): its changes of the constants and the
+        # helpers, nineteen of which the checker passed (the twentieth, shallowest first,
+        # is above).
+        ('HM_TRUSTED_INSTALLER_SID set to Users\' SID, so that every user is trusted (check 3 of R1 to R4, 27 October 2026: passed)',
+         altered(texts, EXTENSION, "HM_TRUSTED_INSTALLER_SID    = 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464';", "HM_TRUSTED_INSTALLER_SID    = 'S-1-5-32-545';")),
+        ('HM_REPARSE_POINT set to FILE_ATTRIBUTE_COMPRESSED ($800), so that no link is seen',
+         altered(texts, EXTENSION, 'HM_REPARSE_POINT            = $400;', 'HM_REPARSE_POINT            = $800;')),
+        ('HM_INHERIT_ONLY set to NO_PROPAGATE_INHERIT ($04), so that an entry that applies to a folder is passed over',
+         altered(texts, EXTENSION, 'HM_INHERIT_ONLY             = $08;', 'HM_INHERIT_ONLY             = $04;')),
+        ('HM_ACCESS_ALLOWED set to ACCESS_DENIED (1), so that no allow entry is weighed',
+         altered(texts, EXTENSION, 'HM_ACCESS_ALLOWED           = 0;', 'HM_ACCESS_ALLOWED           = 1;')),
+        ('HM_DRIVE_REMOTE set to DRIVE_CDROM (5), so that a network drive is installed into',
+         altered(texts, EXTENSION, 'HM_DRIVE_REMOTE             = 4;', 'HM_DRIVE_REMOTE             = 5;')),
+        ('HM_PERSISTENT_ACLS set to FILE_SUPPORTS_ENCRYPTION ($20000)',
+         altered(texts, EXTENSION, 'HM_PERSISTENT_ACLS          = $8;', 'HM_PERSISTENT_ACLS          = $20000;')),
+        ('HM_DACL_PROTECTED set to SE_DACL_AUTO_INHERITED ($400), so that a folder that inherits is taken for hardened',
+         altered(texts, EXTENSION, 'HM_DACL_PROTECTED           = $1000;', 'HM_DACL_PROTECTED           = $400;')),
+        ('HM_INHERITED_ACE set to OBJECT_INHERIT ($01), so that inherited entries are taken for a folder\'s own',
+         altered(texts, EXTENSION, 'HM_INHERITED_ACE            = $10;', 'HM_INHERITED_ACE            = $01;')),
+        ('the folders setup made above the program folder never given to the uninstaller (SetupMadeFolder false)',
+         altered(texts, EXTENSION, 'Result := g_bProgramFolderNew and (MadeParentOffset() + Index < MadeParentCount());', 'Result := false;')),
+        ('the program folder setup made never given to the uninstaller (SetupMadeProgramFolder false)',
+         altered(texts, EXTENSION, 'function SetupMadeProgramFolder(): Boolean;\nbegin\n   Result := ProgramFolderMadeAsNamed();', 'function SetupMadeProgramFolder(): Boolean;\nbegin\n   Result := false;')),
+        ('links followed eighty deep, not eight (the word rule found "Depth >= 8" in "Depth >= 80")',
+         altered(texts, EXTENSION, '   if Depth >= 8 then', '   if Depth >= 80 then')),
+        ('the rest of the path after a link not walked from where it leads',
+         altered(texts, EXTENSION, "                     if szRest <> '' then\n                        szTarget := AddBackslash(szTarget) + szRest;\n", '')),
+        ('a relative symbolic link taken from setup\'s own folder',
+         altered(texts, EXTENSION, 'Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName)', 'Target := ExpandFileName(szName)')),
+        ('where a link leads read from the name shown, not the substitute name',
+         altered(texts, EXTENSION, '   offset := Ord(buffer[5]);\n   size := Ord(buffer[6]);', '   offset := Ord(buffer[7]);\n   size := Ord(buffer[8]);')),
+        ('every item of Bin and ControlPanel taken for a file (bFolder false)',
+         altered(texts, EXTENSION, '            bFolder := (rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0;\n            bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;\n'
+                 '            bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsSettingsFile(rec.Name) or (Scripts',
+                 '            bFolder := false;\n            bLink := (rec.Attributes and HM_REPARSE_POINT) <> 0;\n'
+                 '            bCode := (not bFolder) and (IsProgramFile(rec.Name) or IsSettingsFile(rec.Name) or (Scripts')),
+        ('Events passed over on the program folder\'s own level, as Bin is',
+         altered(texts, EXTENSION, "(CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) then",
+                 "(CompareText(rec.Name, 'Bin') <> 0) and (CompareText(rec.Name, 'ControlPanel') <> 0) and (CompareText(rec.Name, 'Events') <> 0) then")),
+        ('Users given Read on a folder made where an entry handed down to files alone reads',
+         altered(texts, EXTENSION, "((((head.TypeFlagsSize shr 8) and $FF) and HM_CONTAINER_INHERIT) <> 0) and\n               ((head.Mask and HM_FOLDER_READ_RIGHTS) <> 0) then",
+                 "true and\n               ((head.Mask and HM_FOLDER_READ_RIGHTS) <> 0) then")),
+        ('the folders found as setup left them whatever was found after the files',
+         altered(texts, EXTENSION, "   Result := Why = '';\nend;", '   Result := true;\nend;')),
+        ('what an earlier pass made not removed when the folder page is gone back to',
+         altered(texts, EXTENSION, "   RemoveFoldersMadeHere();\n   ReleaseHeldFolders();\n   g_szFolderFindings := '';", "   ReleaseHeldFolders();\n   g_szFolderFindings := '';")),
+        # Repair 3a's code (27 October 2026), one line changed at a time.
+        ('an empty Bin never made again (decided false)',
+         altered(texts, EXTENSION, 'g_bRemakeBin := g_bBinThere and FolderHoldsNothing(g_szBinReal);', 'g_bRemakeBin := false;')),
+        ('an empty ControlPanel never made again (decided false)',
+         altered(texts, EXTENSION, 'g_bRemakeControlPanel := g_bControlPanelThere and FolderHoldsNothing(g_szControlPanelReal);', 'g_bRemakeControlPanel := false;')),
+        ('what an earlier pass decided kept when the folder page is gone back to',
+         altered(texts, EXTENSION, '   g_bRemakeBin := false;\n', '')),
+        ('Bin\'s hMailServer.INI not known as a settings file (its name misspelt)',
+         altered(texts, EXTENSION, "(CompareText(Name, 'hMailServer.INI') = 0)", "(CompareText(Name, 'hMailServer.INI.old') = 0)")),
+        ('the uninstaller\'s record never known (unins misspelt)',
+         altered(texts, EXTENSION, "((CompareText(Copy(Name, 1, 5), 'unins') = 0)", "((CompareText(Copy(Name, 1, 5), 'uninst') = 0)")),
+        ('every file of Bin and ControlPanel taken for the key store, which the service may own',
+         altered(texts, EXTENSION, "bKeyStore := (not bFolder) and (CompareText(rec.Name, 'hMailServerApiKeys.ini') = 0);", 'bKeyStore := not bFolder;')),
+        ('Languages taken behind an administrator\'s link',
+         altered(texts, EXTENSION, " or\n             (CompareText(Name, 'Languages') = 0);", ';')),
+        ('a link the administrators control at the five folders taken, the rule asked of files instead',
+         altered(texts, EXTENSION, 'else if bFolder and IsRunFolderName(rec.Name) then', 'else if (not bFolder) and IsRunFolderName(rec.Name) then')),
+        ('the service\'s entry taken on what is on the program folder\'s own level',
+         altered(texts, EXTENSION, 'OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, false, szText)', 'OwnEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, true, szText)')),
+        ('the five folders looked through when they are links',
+         altered(texts, EXTENSION, ' and ((FolderAttributes(szFolder) and HM_REPARSE_POINT) = 0)', '')),
+        ('a data folder\'s link taken when it cannot be held, read or walked (Result true from the start)',
+         altered(texts, EXTENSION, "begin\n   Result := false;\n   Why := '';\n   hLink := HoldForSetup(Link);", "begin\n   Result := true;\n   Why := '';\n   hLink := HoldForSetup(Link);")),
+        ('a data folder\'s link taken when it is a folder now',
+         altered(texts, EXTENSION, '   if not HeldIsLink(hLink, bKnown) then', '   if false then')),
+        ('where a data folder\'s link leads walked one link deeper',
+         altered(texts, EXTENSION, 'HoldFolderChain(szTarget, 1, szReal, szHeld, hHeld, bWhole, szWhy)', 'HoldFolderChain(szTarget, 0, szReal, szHeld, hHeld, bWhole, szWhy)')),
+        ('the owner of where a data folder\'s link leads not said',
+         altered(texts, EXTENSION, 'if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then', 'if false then')),
+        ('a folder setup made removed whatever it is now',
+         altered(texts, EXTENSION, '   if not bSame then\n', '   if false then\n')),
+        ('a Bin setup made not removed after a cancel',
+         altered(texts, EXTENSION, "   if g_szBinMade <> '' then\n      RemoveMadeFolder(g_szBinMade, g_szBinMadeAt, g_hBinMade);\n", '')),
+        ('where a folder was made not read through its handle when it is recorded',
+         altered(texts, EXTENSION, '            szWhere := FinalPathOfHeld(handle);\n', '')),
+        ('the handle of a Bin setup made not recorded',
+         altered(texts, EXTENSION, '               g_hBinMade := handle;\n', '               g_hBinMade := -1;\n')),
+        ('Bin not read again before the last look',
+         altered(texts, EXTENSION, '   if g_hBinPrepared <> -1 then\n      if HeldIsLink(g_hBinPrepared, bKnown) then', '   if g_hBinPrepared = -2 then\n      if HeldIsLink(g_hBinPrepared, bKnown) then')),
+        ('a ControlPanel that leads to the root of a volume installed into',
+         altered(texts, EXTENSION, 'if IsVolumeRoot(g_szBinReal) or IsVolumeRoot(g_szControlPanelReal) then', 'if IsVolumeRoot(g_szBinReal) then')),
+        ('the last page told the folders were as setup left them when they were not',
+         altered(texts, EXTENSION, '\t    g_bFoldersNotAsPrepared := true;\n', '\t    g_bFoldersNotAsPrepared := false;\n')),
+        ('the Control Panel run from the last page only when the folders were not as setup left them',
+         altered(texts, 'section_run.iss', ' Check: FoldersWereAsPrepared;', ' Check: not FoldersWereAsPrepared;')),
+        ('setup let go on, the program folders not prepared, by a way out of PrepareToInstallRefusal without a refusal',
+         altered(texts, EXTENSION, '   Result := PrepareProgramFolders(PreviousInstallationFolder());\nend;', '   if WizardSilent() then\n      Exit;\n   Result := PrepareProgramFolders(PreviousInstallationFolder());\nend;')),
+        ('a refusal of PrepareToInstallRefusal\'s, before the program folders are prepared, made a note',
+         altered(texts, EXTENSION, "         Result := 'The database given with ' + g_szDatabaseFrom", "         Log('The database given with ' + g_szDatabaseFrom")),
     ]
+
+    # Every constant, Windows declaration and routine work item 78's check holds whole,
+    # each changed (check 3 of R1 to R4, 27 October 2026).
+    ext = texts.get(EXTENSION, '')
+    for name, value, _ in PROGRAM_FOLDER_CONSTANTS:
+        match = re.search(r'^([ \t]*' + re.escape(name) + r'[ \t]*=[ \t]*)' + re.escape(value) + r'([ \t]*;)', ext, re.M)
+        if value.startswith("'"):
+            other = value[:-2] + ('2' if value[-2] == '1' else '1') + "'"
+        elif value.startswith('$'):
+            other = '$' + format(int(value[1:], 16) ^ 1, '0%dX' % (len(value) - 1))
+        else:
+            other = str(int(value) + 1)
+        controls.append(('%s held to %s, not %s' % (name, other, value),
+                         altered(texts, EXTENSION, match.group(0), match.group(1) + other + match.group(2)) if match else None))
+    controls.append(('a constant the check does not hold',
+                     altered(texts, EXTENSION, 'HM_VOLUME_NAME_GUID         = 1;\n', 'HM_VOLUME_NAME_GUID         = 1;\n\tHM_VOLUME_NAME_NT           = 2;\n')))
+    controls.append(('the live update\'s TrustedInstaller SID not the installer\'s',
+                     altered(texts, ADMIN_UPDATE_CHECKS, 'L"S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464"', 'L"S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478465"')))
+    for declaration in PROGRAM_FOLDER_DECLARATIONS:
+        name = re.match(r'(?:function|procedure)?\s*(\w+)', declaration).group(1)
+        match = re.search(statement_pattern(declaration), ext)
+        old = match.group(0) if match else ''
+        if '@kernel32.dll' in old:
+            new = old.replace('@kernel32.dll', '@advapi32.dll')
+        elif '@advapi32.dll' in old:
+            new = old.replace('@advapi32.dll', '@kernel32.dll')
+        else:
+            new = old.replace('cardinal', 'Word', 1)
+        controls.append(('%s declared otherwise (another DLL, or a field of another width)' % name, altered(texts, EXTENSION, old, new) if old else None))
+    controls.append(('a Windows function R1 to R4 call that the check does not hold',
+                     (lambda declared: altered(declared, EXTENSION, "   Result := false;\n   if FindFirst(AddBackslash(Folder) + '*', rec) then",
+                                               "   Result := false;\n   if FolderIsEmpty(Folder) and FindFirst(AddBackslash(Folder) + '*', rec) then") if declared else None)(
+                         altered(texts, EXTENSION, 'function FinalPathOfHandle(', "function FolderIsEmpty(pszPath: String): Boolean;\nexternal 'PathIsDirectoryEmptyW@shlwapi.dll stdcall';\n"
+                                 'function FinalPathOfHandle('))))
+    bodies = routine_bodies(ext)
+    for name, _ in PROGRAM_FOLDER_CODE:
+        body = bodies.get(name.lower(), (None, None))[1]
+        begin = re.search(r'\bbegin\b', CODE_TOKEN.sub(lambda match: ' ' * len(match.group(0)), body)) if body else None
+        controls.append(('%s changed by one statement (an Exit at its start)' % name,
+                         altered(texts, EXTENSION, body, body[:begin.end()] + ' Exit;' + body[begin.end():]) if begin else None))
+    controls.append(('a helper of R1 to R4 neither held nor said to be shared',
+                     altered(texts, EXTENSION, 'function FoldersWereAsPrepared(): Boolean;\nbegin\n   Result := not g_bFoldersNotAsPrepared;\nend;',
+                             'function FolderWasPrepared(): Boolean;\nbegin\n   Result := true;\nend;\n\n'
+                             'function FoldersWereAsPrepared(): Boolean;\nbegin\n   Result := FolderWasPrepared() and (not g_bFoldersNotAsPrepared);\nend;')))
+    trusted = bodies.get('istrustedsid', (None, ''))[1]
+    controls.append(('a routine of R1 to R4 defined twice', altered(texts, EXTENSION, trusted, trusted + '\n\n' + trusted) if trusted else None))
 
     missed = []
     for description, copy in controls:
@@ -1831,6 +2444,15 @@ def negative_controls(texts):
 
 def main():
     texts = load()
+    if '--digests' in sys.argv[1:]:
+        # PROGRAM_FOLDER_CODE as the tree is, for a reviewed change of R1 to R4.
+        reached, _, _, _ = program_folder_reach(texts.get(EXTENSION, ''))
+        shared = set(name.lower() for name, _ in PROGRAM_FOLDER_SHARED)
+        for name in sorted(reached, key=str.lower):
+            body = pascal_routine(texts.get(EXTENSION, ''), name)
+            if name.lower() not in shared and body is not None:
+                print("    ('%s', '%s')," % (name, code_digest(body)))
+        return 0
     problems, entries = check(texts)
     missed, controls = negative_controls(texts)
 
@@ -1850,8 +2472,8 @@ def main():
           'the original\'s 5.7 is refused first, by bounds the upgrade chain holds, and its self-test runs before the '
           'installer is built; the program folder, Bin and ControlPanel are held from the root down, a link only the '
           'administrators control is the only one gone through, they are made or hardened before the files or refused, '
-          'what is in Bin and ControlPanel is held to the live update\'s rule, and each decision is held to its statement; '
-          '%d negative controls refused' % (entries, controls))
+          'what is in Bin and ControlPanel is held to the live update\'s rule, each decision is held to its statement, and every constant, '
+          'Windows declaration and routine of R1 to R4 is held whole; %d negative controls refused' % (entries, controls))
     return 0
 
 
