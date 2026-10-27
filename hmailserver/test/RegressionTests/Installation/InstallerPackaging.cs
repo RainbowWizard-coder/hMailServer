@@ -1562,7 +1562,8 @@ namespace RegressionTests.Installation
          new[] { "MakePlaceholder", "the file setup keeps is taken where a link put the folder elsewhere", "if not MadeWhereNamed(HeldHandle, handle, HM_PLACEHOLDER_NAME, szWhere) then begin g_bFoldersChanged := true; Why := ~; Exit; end;" },
          new[] { "ReleasePlaceholders", "the files setup keeps are not let go, and so stay", "^procedure ReleasePlaceholders(); var index: Integer; begin for index := GetArrayLength(g_aPlaceholders) - 1 downto 0 do ReleaseFolder(g_aPlaceholders[index]); SetArrayLength(g_aPlaceholders, 0); end;$" },
          new[] { "CurStepChanged", "the files setup keeps go before the folders are read again after the files, or a service an earlier run set not to start stays so", "RaiseException(~); end; ReleasePlaceholders(); RestoreServiceStart();" },
-         new[] { "DeinitializeSetup", "the files setup keeps are not let go when setup ends before the files", "ReleasePlaceholders(); if not g_bFilesInstalled then RemoveFoldersMadeHere(); ReleaseHeldFolders();" },
+         new[] { "DeinitializeSetup", "the files setup keeps are not let go when setup ends before the files, or the folders setup made are removed after a successful installation too", "^procedure DeinitializeSetup(); begin ReleasePlaceholders(); if not g_bFilesInstalled then RemoveFoldersMadeHere(); ReleaseHeldFolders(); end;$" },
+         new[] { "IsServiceInstalled", "whether the service is installed is not asked of the service manager, so that a service found not as prepared is not kept from starting", "^function IsServiceInstalled(ServiceName: AnsiString) : boolean; var hSCM : HANDLE; hService: HANDLE; begin hSCM := OpenServiceManager(); Result := false; if hSCM <> 0 then begin hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_CONFIG); if hService <> 0 then begin Result := true; CloseServiceHandle(hService) end; CloseServiceHandle(hSCM) end end;$" },
          new[] { "RemoveHeldFolder", "an empty folder is removed through a link, or by a handle not read as that folder", "handle := HoldFolder(Folder, HM_REMOVE_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; szFinal := FinalPathOfHeld(handle); if HeldIsLink(handle, bKnown) then Why := ~ else if (szFinal = '') or (ParentFinal = '') or (CompareText(szFinal, AddBackslash(ParentFinal) + ExtractFileName(Folder)) <> 0) then Why := ~ else begin info := HM_DISPOSITION_DELETE_POSIX; Result := SetHeldInformation(handle, HM_FILE_DISPOSITION_INFO_EX, info, 4);" },
          new[] { "NothingTurnedIn", "a folder is walked after the files without being opened as itself, as no link, and as the folder its path names", "folderHandle := HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); szFinal := ''; if folderHandle <> -1 then if not HeldIsLink(folderHandle, bKnown) then szFinal := FinalPathOfHeld(folderHandle); if (szFinal = '') or (CompareText(szFinal, Expected) <> 0) then begin" },
          new[] { "GetCustomSetupExitCode", "folders found not as setup left them after the files end in 10, which hMailServer.Updater rolls back, rather than 12", "if g_bFoldersNotAsPrepared then Result := 12 else if g_bStepsIncomplete and g_bDatabaseChanged then Result := 11 else if g_bStepsIncomplete then Result := 10 else Result := 0;" },
@@ -2090,6 +2091,84 @@ namespace RegressionTests.Installation
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_DRIVE_REMOTE\s*=\s*4;"), "DRIVE_REMOTE is not 4.");
       }
 
+      /// <summary>
+      ///    The entry lines of every [section] of an Inno script, comment lines dropped, with
+      ///    their line numbers (section_entries).
+      /// </summary>
+      private static List<KeyValuePair<int, string>> SectionEntries(string script, string section)
+      {
+         var entries = new List<KeyValuePair<int, string>>();
+         bool inside = false;
+         string[] lines = script.Replace("\r\n", "\n").Split('\n');
+         for (int index = 0; index < lines.Length; index++)
+         {
+            string line = lines[index].Trim();
+            Match header = Regex.Match(line, @"^\[([^\]]+)\]");
+            if (header.Success)
+            {
+               inside = string.Equals(header.Groups[1].Value.Trim(), section, StringComparison.OrdinalIgnoreCase);
+               continue;
+            }
+            if (inside && line.Length > 0 && !line.StartsWith(";") && !line.StartsWith("#"))
+               entries.Add(new KeyValuePair<int, string>(index + 1, line));
+         }
+         return entries;
+      }
+
+      /// <summary>One parameter of an Inno entry line, or null (parameter).</summary>
+      private static string EntryParameter(string entry, string name)
+      {
+         Match match = Regex.Match(entry, @"(?:^|;)\s*" + Regex.Escape(name) + @"\s*:\s*(""([^""]*)""|[^;]*)", RegexOptions.IgnoreCase);
+         if (!match.Success)
+            return null;
+         return match.Groups[2].Success ? match.Groups[2].Value : match.Groups[1].Value.Trim();
+      }
+
+      [Test]
+      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs a program from {app}; no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
+      public void WhatInnoSetupDoesOutsideTheCodeKeepsWhatSetupPrepared()
+      {
+         var failed = new List<string>();
+         foreach (FileInfo script in InstallerScripts())
+         {
+            string text = File.ReadAllText(script.FullName);
+            foreach (string[] section in new[] { new[] { "Dirs", "Name" }, new[] { "Files", "DestDir" } })
+               foreach (KeyValuePair<int, string> entry in SectionEntries(text, section[0]))
+               {
+                  string where = (EntryParameter(entry.Value, section[1]) ?? "").ToLowerInvariant();
+                  bool ours = where.StartsWith("{app}") || where.StartsWith("{code:");
+                  string[] flags = (EntryParameter(entry.Value, "Flags") ?? "").ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                  if (ours && EntryParameter(entry.Value, "Permissions") != null)
+                     failed.Add(script.Name + ":" + entry.Key + " gives permissions under {app}");
+                  if (section[0] == "Files" && ours && flags.Any(flag => flag == "regserver" || flag == "regtypelib" || flag == "regserverx64" || flag == "regtypelibx64"))
+                     failed.Add(script.Name + ":" + entry.Key + " registers a file under {app} during the copy");
+                  if (section[0] == "Dirs" && flags.Contains("uninsalwaysuninstall") && EntryParameter(entry.Value, "Check") == null)
+                     failed.Add(script.Name + ":" + entry.Key + " gives the uninstaller a folder whatever made it");
+               }
+            foreach (KeyValuePair<int, string> entry in SectionEntries(text, "Run"))
+            {
+               string[] flags = (EntryParameter(entry.Value, "Flags") ?? "").ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+               if ((EntryParameter(entry.Value, "Filename") ?? "").ToLowerInvariant().StartsWith("{app}") && !flags.Contains("postinstall"))
+                  failed.Add(script.Name + ":" + entry.Key + " runs a program from {app} before ssPostInstall");
+            }
+         }
+         CollectionAssert.IsEmpty(failed, "What Inno Setup does outside the [Code] undoes what setup prepared, or runs it before it is read again: " + string.Join("; ", failed));
+
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string step = CodeBody(extension, "CurStepChanged");
+         int start = step.IndexOf("if CurStep = ssInstall then", StringComparison.Ordinal);
+         int end = step.IndexOf("if CurStep = ssPostInstall then", StringComparison.Ordinal);
+         Assert.IsTrue(start >= 0 && end > start, "CurStepChanged has no ssInstall step before its ssPostInstall step.");
+         string block = Regex.Replace(step.Substring(start, end - start), @"//[^\n]*", " ");
+         CollectionAssert.IsSubsetOf(Regex.Matches(block, @"\b(\w+)\s*\(").Cast<Match>().Select(match => match.Groups[1].Value).Distinct().ToArray(),
+            new[] { "IsNewDatabase", "GetServiceAccountBefore", "IsNewService", "MoveIni" }, "CurStepChanged runs something at ssInstall, before the files.");
+         var writers = RoutineBodies(extension).Values
+            .SelectMany(body => Regex.Matches(body[1], @"g_bFoldersChecked\s*:=\s*(\w+)").Cast<Match>().Select(match => body[0] + "=" + match.Groups[1].Value)).ToArray();
+         CollectionAssert.AreEquivalent(new[] { "CheckProgramFolders=true", "PrepareProgramFolders=false" }, writers,
+            "Whether the folders were checked is set or cleared elsewhere than in CheckProgramFolders and PrepareProgramFolders.");
+         StringAssert.Contains("ProtectFolders();", CodeBody(extension, "RunPostInstallTasks"), "RunPostInstallTasks no longer runs /ProtectFolders after the files.");
+      }
+
       [Test]
       [Description("Work item 78, R2 and R3 (check 4 of R1 to R4, 27 October 2026): a folder of the program that is there and that another account could change before this installation - its permissions or its owner, or what is in one that holds something - keeps that right in a handle such an account opened then, whatever setup does to the permissions after. Setup hardens it before the service is stopped, records in a volatile key that it is not to install there until Windows has restarted, and refuses; a refusal whose remedy ends in a restart is recorded the same way. Nothing is removed after the files, and before them an empty folder is removed only through a handle read as that folder; a folder setup hardened in place keeps a file of setup's until the files are in. In the third repair the folder was hardened and installed into, and after the files setup removed links and empty folders by their paths, through a junction too.")]
       public void WhatAnotherAccountCouldChangeIsHardenedAndRefusedUntilARestart()
@@ -2131,6 +2210,8 @@ namespace RegressionTests.Installation
          StringAssert.Contains("const int InstallerFoldersChanged = 12;", updater, "The Updater does not know exit code 12.");
          Assert.AreEqual(2, Regex.Matches(updater, @"if \(code == InstallerFoldersChanged \|\| \(code != 0 && FoldersFoundChanged\(installLog\)\)\)").Count,
             "One of the Updater's two modes puts the earlier version back over folders the installer found changed.");
+         Match came = Regex.Match(updater, @"bool ServiceCameBack\(int code, const Arguments &arguments\)\s*\{\s*if \(([^)]*)\)");
+         Assert.IsTrue(came.Success && came.Groups[1].Value.Contains("InstallerFoldersChanged"), "The Updater waits for a service the installer set not to start (exit code 12) to come back.");
          Match prefix = Regex.Match(updater, @"const std::wstring prefix = L""([^""]+)"";");
          Match line = Regex.Match(extension, @"function FoldersChangedLine\(\): String;\s*begin\s*Result := '([^']+)';");
          Assert.IsTrue(prefix.Success && line.Success && line.Groups[1].Value.StartsWith(prefix.Groups[1].Value, StringComparison.Ordinal),

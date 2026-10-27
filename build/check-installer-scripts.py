@@ -784,7 +784,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'HoldsOnlyEmptyFolders', 'FinalPathOf', 'RemoveHeldFolder', 'MakePlaceholder', 'ReleasePlaceholders', 'IsAtOrBelow', 'ProfilesFolder',
                            'DataLinkTargetIsGrantable', 'AclLetsEveryUserWrite', 'DatabaseTargetIsTheAdministrators', 'RestartNeededFor', 'RecordRestartNeeded',
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
-                           'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode')
+                           'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -1230,8 +1230,10 @@ PROGRAM_FOLDER_STATEMENTS = (
      "^procedure ReleasePlaceholders(); var index: Integer; begin for index := GetArrayLength(g_aPlaceholders) - 1 downto 0 do ReleaseFolder(g_aPlaceholders[index]); SetArrayLength(g_aPlaceholders, 0); end;$"),
     ('CurStepChanged', 'the files setup keeps go before the folders are read again after the files, or a service an earlier run set not to start stays so',
      "RaiseException(~); end; ReleasePlaceholders(); RestoreServiceStart();"),
-    ('DeinitializeSetup', 'the files setup keeps are not let go when setup ends before the files',
-     "ReleasePlaceholders(); if not g_bFilesInstalled then RemoveFoldersMadeHere(); ReleaseHeldFolders();"),
+    ('DeinitializeSetup', 'the files setup keeps are not let go when setup ends before the files, or the folders setup made are removed after a successful installation too',
+     "^procedure DeinitializeSetup(); begin ReleasePlaceholders(); if not g_bFilesInstalled then RemoveFoldersMadeHere(); ReleaseHeldFolders(); end;$"),
+    ('IsServiceInstalled', 'whether the service is installed is not asked of the service manager, so that a service found not as prepared is not kept from starting',
+     "^function IsServiceInstalled(ServiceName: AnsiString) : boolean; var hSCM : HANDLE; hService: HANDLE; begin hSCM := OpenServiceManager(); Result := false; if hSCM <> 0 then begin hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_CONFIG); if hService <> 0 then begin Result := true; CloseServiceHandle(hService) end; CloseServiceHandle(hSCM) end end;$"),
     ('RemoveHeldFolder', 'an empty folder is removed through a link, or by a handle not read as that folder',
      "handle := HoldFolder(Folder, HM_REMOVE_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; szFinal := FinalPathOfHeld(handle); if HeldIsLink(handle, bKnown) then Why := ~ else if (szFinal = '') or (ParentFinal = '') or (CompareText(szFinal, AddBackslash(ParentFinal) + ExtractFileName(Folder)) <> 0) then Why := ~ else begin info := HM_DISPOSITION_DELETE_POSIX; Result := SetHeldInformation(handle, HM_FILE_DISPOSITION_INFO_EX, info, 4);"),
     ('NothingTurnedIn', 'a folder is walked after the files without being opened as itself, as no link, and as the folder its path names',
@@ -1934,6 +1936,65 @@ def check_access_masks(texts, problems):
                         'HM_FOLDER_READ_RIGHTS to what it asks now' % SERVICE_ACCOUNT)
 
 
+# What may run in CurStepChanged at ssInstall, before the files and so before the folders
+# setup prepared are read again after them: the state it reads and the settings file's move.
+SS_INSTALL_CALLS = ('IsNewDatabase', 'GetServiceAccountBefore', 'IsNewService', 'MoveIni')
+
+
+def check_install_sections(texts, problems):
+    """Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside
+    the [Code] between PrepareProgramFolders and the look after the files keeps what setup
+    prepared - no [Dirs] or [Files] entry under {app}, or a folder setup made, gives
+    permissions (Inno Setup applies a Permissions: parameter as it makes the folder or copies
+    the file, which would undo R1 and R2); no [Run] entry without postinstall, which Inno
+    Setup runs before ssPostInstall, runs a program from {app}; no file under {app} is
+    registered during the copy (regserver, regtypelib); no folder but the eleven setup made
+    is given to the uninstaller whatever is in it (uninsalwaysuninstall); and nothing runs
+    at ssInstall but what reads the state and moves the settings file. And whether the
+    folders were checked is set by CheckProgramFolders and cleared by PrepareProgramFolders
+    alone, and RunPostInstallTasks runs /ProtectFolders."""
+    for name, text in sorted(texts.items()):
+        if not name.lower().endswith('.iss'):
+            continue
+        for section, key in (('Dirs', 'Name'), ('Files', 'DestDir')):
+            for number, entry in section_entries(text, section):
+                where = (parameter(entry, key) or '').lower()
+                ours = where.startswith('{app}') or where.startswith('{code:')
+                if ours and parameter(entry, 'Permissions') is not None:
+                    problems.append('%s:%d: a [%s] entry under {app} gives permissions (%s), which Inno Setup applies before the folders are read again '
+                                    'and which undo what setup prepared' % (name, number, section, parameter(entry, 'Permissions')))
+                flags = (parameter(entry, 'Flags') or '').lower().split()
+                if section == 'Files' and ours and any(flag in flags for flag in ('regserver', 'regtypelib', 'regserverx64', 'regtypelibx64')):
+                    problems.append('%s:%d: a file under {app} is registered during the copy (%s), running it before the folders are read again' % (name, number, entry[:80]))
+                if section == 'Dirs' and 'uninsalwaysuninstall' in flags and parameter(entry, 'Check') is None:
+                    problems.append('%s:%d: a [Dirs] entry the uninstaller removes whatever made it (uninsalwaysuninstall with no Check of a folder setup made)' % (name, number))
+        for number, entry in section_entries(text, 'Run'):
+            flags = (parameter(entry, 'Flags') or '').lower().split()
+            if (parameter(entry, 'Filename') or '').lower().startswith('{app}') and 'postinstall' not in flags:
+                problems.append('%s:%d: a [Run] entry without postinstall runs a program from {app}, which Inno Setup runs before ssPostInstall and so before '
+                                'the folders setup prepared are read again' % (name, number))
+    ext = texts.get(EXTENSION, '')
+    step = pascal_routine(ext, 'CurStepChanged') or ''
+    start = step.find('if CurStep = ssInstall then')
+    end = step.find('if CurStep = ssPostInstall then')
+    if start < 0 or end < start:
+        problems.append('%s: CurStepChanged has no ssInstall step before its ssPostInstall step' % EXTENSION)
+    else:
+        block = CODE_TOKEN.sub(' ', step[start:end])
+        for call in re.findall(r'\b(\w+)\s*\(', block):
+            if call not in SS_INSTALL_CALLS:
+                problems.append('%s: CurStepChanged runs %s at ssInstall, before the files and before the folders setup prepared are read again' % (EXTENSION, call))
+    writers = {}
+    for key, (routine, body) in routine_bodies(ext).items():
+        for value in re.findall(r'g_bFoldersChecked\s*:=\s*(\w+)', body):
+            writers.setdefault(routine, []).append(value)
+    if writers != {'CheckProgramFolders': ['true'], 'PrepareProgramFolders': ['false']}:
+        problems.append('%s: whether the folders were checked is set or cleared elsewhere than in CheckProgramFolders and PrepareProgramFolders (%s), so that the '
+                        'check of the Ready page may be lost or run again after the service is stopped' % (EXTENSION, writers))
+    if 'ProtectFolders();' not in (pascal_routine(ext, 'RunPostInstallTasks') or ''):
+        problems.append('%s: RunPostInstallTasks no longer runs /ProtectFolders after the files' % EXTENSION)
+
+
 def check_updater(texts, problems):
     """Work item 78 (check 4 of R1 to R4, 27 October 2026): hMailServer.Updater puts no
     earlier version back over folders the installer found changed - its exit code 12, or a
@@ -1970,6 +2031,7 @@ def check(texts):
     check_program_folder_code(texts, problems)
     check_access_masks(texts, problems)
     check_updater(texts, problems)
+    check_install_sections(texts, problems)
     return problems, entries
 
 
@@ -2648,6 +2710,37 @@ def negative_controls(texts):
          altered(texts, EXTENSION, "   else if AclLetsEveryUserWrite(pDacl) then\n      Why := 'it leads to '", "   else if false then\n      Why := 'it leads to '")),
         ('a data folder\'s link into the program folder\'s Bin taken',
          altered(texts, EXTENSION, '   if IsAtOrBelow(szFinal, szApp) then\n      if not (IsAtOrBelow(szFinal,', '   if false then\n      if not (IsAtOrBelow(szFinal,')),
+        # What Inno Setup does outside the [Code] (check 4 of R1 to R4, 27 October 2026,
+        # its mutations 4.01 to 4.12).
+        ('a later [Dirs] entry giving Bin Users Modify',
+         altered(texts, DIRS, 'Name: "{app}\\Temp"; Components: server;', 'Name: "{app}\\Temp"; Components: server;\nName: "{app}\\Bin"; Permissions: users-modify')),
+        ('a later [Dirs] entry giving the program folder Everyone Modify',
+         altered(texts, DIRS, 'Name: "{app}\\Temp"; Components: server;', 'Name: "{app}\\Temp"; Components: server;\nName: "{app}"; Permissions: everyone-modify')),
+        ('[Dirs] giving Events Users Modify',
+         altered(texts, DIRS, 'Name: "{app}\\Events"; Components: server;', 'Name: "{app}\\Events"; Components: server; Permissions: users-modify')),
+        ('[Files] giving Bin\\hMailServer.exe Users Modify',
+         altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete;',
+                 'hMailServer.exe"; DestDir: "{app}\\Bin"; Permissions: users-modify; Flags: ignoreversion uninsrestartdelete;')),
+        ('a [Run] entry without postinstall running Bin\\hMailServer.exe before ssPostInstall',
+         altered(texts, 'section_run.iss', 'Filename: "{app}\\ControlPanel\\hMailCP.exe";',
+                 'Filename: "{app}\\Bin\\hMailServer.exe"; Parameters: "/RegisterTypeLib"; Flags: runhidden; Components: server;\nFilename: "{app}\\ControlPanel\\hMailCP.exe";')),
+        ('a Bin program registered during the copy (regserver)',
+         altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete;',
+                 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete regserver;')),
+        ('IsServiceInstalled always false, so that no service found not as prepared is kept from starting',
+         altered(texts, EXTENSION, '\thSCM := OpenServiceManager();\n\tResult := false;', '\tResult := false;\n\tExit;\n\thSCM := OpenServiceManager();')),
+        ('RunPostInstallTasks no longer running /ProtectFolders',
+         altered(texts, EXTENSION, '         ProtectFolders();\n', '')),
+        ('folders not as prepared ending in 0 (steps incomplete taken for complete)',
+         altered(texts, EXTENSION, '\telse if g_bStepsIncomplete then\n\t\tResult := 10', '\telse if g_bStepsIncomplete then\n\t\tResult := 0')),
+        ('/ProtectFolders run from Bin at ssInstall, before the files',
+         altered(texts, EXTENSION, '\t   MoveIni();\n', '\t   MoveIni();\n\t   ProtectFolders();\n')),
+        ('the folders setup made removed after a successful installation too',
+         altered(texts, EXTENSION, '\tReleaseHeldFolders();\nend;', '\tReleaseHeldFolders();\n\tRemoveFoldersMadeHere();\nend;')),
+        ('the Ready page\'s check cleared after it, so that PrepareToInstall checks again after the stop',
+         altered(texts, EXTENSION, "\t\tif g_szFolderRefusal <> '' then\n\t\t\tExit;\n", "\t\tif g_szFolderRefusal <> '' then\n\t\t\tExit;\n\t\tg_bFoldersChecked := false;\n")),
+        ('a data folder given to the uninstaller whatever is in it',
+         altered(texts, DIRS, 'Name: "{app}\\Data"; Components: server;', 'Name: "{app}\\Data"; Flags: uninsalwaysuninstall; Components: server;')),
         # The Updater (check 4 of R1 to R4, 27 October 2026).
         ('the Updater\'s code for folders found changed not 12',
          altered(texts, UPDATER, 'const int InstallerFoldersChanged = 12;', 'const int InstallerFoldersChanged = 13;')),
