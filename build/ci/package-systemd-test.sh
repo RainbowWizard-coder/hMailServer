@@ -55,6 +55,7 @@
 #   HM_SYSTEMD_TEST_CLAMD_DIR   the directory of the fake clamd's socket, /run/hm-clamd
 #                               by default. No job sets it either: a negative control
 #                               sets it under /tmp, which the unit's PrivateTmp hides.
+#                               A directory directly under / (/run, /tmp) is refused.
 set -uo pipefail
 
 # The first of the files a glob names, or nothing.
@@ -99,8 +100,19 @@ clamd_socket="$clamd_dir/clamd.sock"
 clamd_group=hm-clamd
 clamd_account=scan@clamd.test
 case "$clamd_dir" in
-  '' | [!/]* | */ | *..* | *[!A-Za-z0-9/._-]*)
+  '' | [!/]* | */ | *..* | *//* | */./* | */. | *[!A-Za-z0-9/._-]*)
     echo "REFUSED: HM_SYSTEMD_TEST_CLAMD_DIR is '$clamd_dir', not an absolute path of letters, digits, '/', '.', '_' and '-' below /."
+    exit 2
+    ;;
+esac
+# The step makes the directory 0710, root's and $clamd_group's, with install -d,
+# which changes the mode and owners of a directory that is there already: one
+# directly under /, such as /run or /tmp, would be closed to everybody else in the
+# container. So the directory is one below such a directory, as /run/hm-clamd is.
+case "${clamd_dir#/}" in
+  */*) ;;
+  *)
+    echo "REFUSED: HM_SYSTEMD_TEST_CLAMD_DIR is '$clamd_dir', a directory directly under /, which the step would make mode 0710 inside its container; give one below it, as /run/hm-clamd is."
     exit 2
     ;;
 esac
