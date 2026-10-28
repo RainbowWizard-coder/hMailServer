@@ -226,6 +226,9 @@ spec:
                 securityContext:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+                unprivilegedPortsSysctl:
+                  type: boolean
+                  nullable: true
                 nodeSelector:
                   type: object
                   additionalProperties:
