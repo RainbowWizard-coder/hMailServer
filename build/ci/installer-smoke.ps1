@@ -192,8 +192,11 @@
                        space, and setup removes the Bin and the ControlPanel it made;
                        the program folder it made stays, the Administrators' with its
                        permissions its own, holding only what Inno Setup never
-                       uninstalls, Addons and Events (R1); the base's program folder
-                       inherits from the volume, which the case reads first;
+                       uninstalls, Addons and Events (R1), and the watch saw the
+                       program folder with permissions of its own from the first
+                       moment it was there; the base, which gives the folder Inno
+                       Setup made its permissions 61 ms after, fails that check of the
+                       watch, and writes no line of setup's removal;
      data-user         the program folder made by the administrator, inheriting from
                        the folder above, and an empty Data owned by hmsmokeuser with
                        Full control of its own, handed down: refused, exit 7, Data
@@ -206,6 +209,14 @@
                        inherited: Bin hardened and the installation refused until
                        Windows has restarted, exit 7, refused again, then installed,
                        the file with no entry left for Users to change it (R4);
+     stale-folder      the same with a folder in place of the file:
+                       C:\hm-elsewhere\plugin, holding hm-smoke-plugin.dll, made there
+                       and moved into Bin as Bin\plugin, the folder and the library
+                       keeping the entry for Users, still marked inherited: Bin
+                       hardened and refused until Windows has restarted, exit 7,
+                       Bin\plugin named, refused again, then installed, neither with
+                       an entry left for Users to change it (R4); the base and the tip
+                       before check 7 install at once;
      named-entry       the same without the file, Bin given an entry of its own for
                        hmsmokeuser Modify, and Bin\notes.txt: installed at once, exit 0,
                        the entry kept and said in the setup log, as /ProtectFolders
@@ -228,6 +239,16 @@
                        junction to C:\hm-linktarget only the administrators control:
                        refused, exit 7, with the rmdir remedy, nothing written
                        through it (R4);
+     mysql-link        the same at MySQL, where setup installs nothing and from which
+                       the uninstaller runs the bundled MySQL's mysqld-nt.exe: refused,
+                       exit 7, a link on the program folder's own level that is not a
+                       data folder's, with the rmdir remedy (R3, R4); the base and the
+                       tip before check 7 install;
+     mysql-user        the program folder made by the administrator and
+                       MySQL\Bin\mysqld-nt.exe hmsmokeuser owns, as an installation
+                       upgraded from hMailServer 4 keeps the bundled MySQL: refused,
+                       exit 7, the file named with the /setowner remedy, nothing
+                       written (R4); the base and the tip before check 7 install;
      volume-root       the program folder a mount point - icacls /L giving it to the
                        administrators alone - of a volume of its own, a 64 MB VHD
                        diskpart makes, attaches, formats NTFS and mounts there:
@@ -312,7 +333,7 @@ param(
    [switch] $WeakParent,
    [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                 'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails',
-                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier')]
+                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -3168,6 +3189,16 @@ function New-FolderCase {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Data') | Out-Null
          "$app, $app\Bin and $app\Data made by the administrator, inheriting from the folder above; no ControlPanel"
       }
+      'mysql-user' {
+         # The bundled MySQL of an installation upgraded from hMailServer 4, which the
+         # uninstaller runs (section_uninstallrun.iss), its program another account's
+         # (check 7 of R1 to R4, 28 October 2026).
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'MySQL\Bin') | Out-Null
+         Set-Content -LiteralPath (Join-Path $app 'MySQL\Bin\mysqld-nt.exe') -Value 'placed before the installation' -Encoding ASCII
+         Set-OwnedByAccount (Join-Path $app 'MySQL\Bin\mysqld-nt.exe')
+         $State.CaseFiles = @('MySQL\Bin\mysqld-nt.exe')
+         "$app and $app\MySQL\Bin made by the administrator, inheriting from the folder above; $app\MySQL\Bin\mysqld-nt.exe owned by $SmokeAccountName"
+      }
       'foreign-dll' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
          Set-Content -LiteralPath (Join-Path $app 'Bin\version.dll') -Value 'placed before the installation' -Encoding ASCII
@@ -3223,10 +3254,12 @@ function New-FolderCase {
          $State.CaseFiles = @('Bin\hMailServer.INI')
          "$app and $app\Bin made by the administrator, inheriting from the folder above; $app\Bin\hMailServer.INI owned by $SmokeAccountName"
       }
-      'events-link' {
+      { $_ -in @('events-link', 'mysql-link') } {
          New-Item -ItemType Directory -Force -Path $app | Out-Null
          New-LinkTarget $LinkTarget
-         $events = Join-Path $app 'Events'
+         # Events, which setup installs into, or MySQL, which it does not and the
+         # uninstaller runs from (check 7 of R1 to R4, 28 October 2026).
+         $events = Join-Path $app $(if ($FolderCase -eq 'mysql-link') { 'MySQL' } else { 'Events' })
          New-Junction $events $LinkTarget
          # The link itself the administrators' alone, as a link's remedy makes it: the
          # rule refused is that of the folders setup installs into, not that of a link.
@@ -3338,7 +3371,7 @@ function New-FolderCase {
          Set-OwnedByAccount (Join-Path $app 'Data')
          "$app made by the administrator, inheriting from the folder above; $app\Data, empty, owned by $SmokeAccountName with Full control of its own, handed down: $(Get-LinkList (Join-Path $app 'Data'))"
       }
-      { $_ -in @('stale-entry', 'named-entry', 'service-entry') } {
+      { $_ -in @('stale-entry', 'stale-folder', 'named-entry', 'service-entry') } {
          # The program folder and Bin with permissions of their own, as an installation
          # after 6.3.7 leaves them, so that what the case adds is all another account
          # could change (check 5 of R1 to R4, 27 October 2026).
@@ -3358,6 +3391,21 @@ function New-FolderCase {
             $kept = @(Get-StaleWriters (Join-Path $bin 'hm-smoke-tool.exe'))
             if ($kept.Count -eq 0) { throw "$bin\hm-smoke-tool.exe, moved from $elsewhere, kept no inherited entry that lets Users change it" }
             return "$app and $bin with permissions of their own; $bin\hm-smoke-tool.exe made in $elsewhere and moved into Bin, keeping $($kept -join ', ')"
+         }
+         if ($FolderCase -eq 'stale-folder') {
+            # A folder holding a library, made in a folder that hands Users Modify down and
+            # moved into Bin: the folder and the library keep the entry, still marked
+            # inherited, which the folder then hands down (check 7 of R1 to R4, 28 October
+            # 2026).
+            $elsewhere = 'C:\hm-elsewhere'
+            New-Item -ItemType Directory -Force -Path (Join-Path $elsewhere 'plugin') | Out-Null
+            $answer = @(& icacls.exe $elsewhere /grant '*S-1-5-32-545:(OI)(CI)M' 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $elsewhere returned ${LASTEXITCODE}: $($answer -join ' ')" }
+            Set-Content -LiteralPath (Join-Path $elsewhere 'plugin\hm-smoke-plugin.dll') -Value 'made where Users may change it' -Encoding ASCII
+            Move-Item -LiteralPath (Join-Path $elsewhere 'plugin') -Destination (Join-Path $bin 'plugin')
+            $kept = @(Get-StaleWriters (Join-Path $bin 'plugin')) + @(Get-StaleWriters (Join-Path $bin 'plugin\hm-smoke-plugin.dll'))
+            if ($kept.Count -lt 2) { throw "$bin\plugin, moved from $elsewhere, or the library in it kept no inherited entry that lets Users change it: $($kept -join ', ')" }
+            return "$app and $bin with permissions of their own; $bin\plugin and $bin\plugin\hm-smoke-plugin.dll made in $elsewhere and moved into Bin as a folder, keeping $($kept -join ', ')"
          }
          Set-Content -LiteralPath (Join-Path $bin 'notes.txt') -Value 'placed before the installation' -Encoding ASCII
          $State.CaseFiles = @('Bin\notes.txt')
@@ -3401,14 +3449,14 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # anything was installed.
 $FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                   'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails', 'data-user', 'stale-entry',
-                  'named-entry', 'service-entry', 'emptied-earlier')
+                  'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link')
 # The cases whose folders another account could change before the installer - their
 # permissions, or what is in one that holds something - which setup hardens and then
 # refuses until Windows has restarted (work item 78, check 4 of R1 to R4, 27 October
 # 2026): the installer is run three times, refused, refused again by what setup
 # recorded, and, the record taken away as a restart takes it away and every handle the
 # case held closed, run to the end.
-$RestartCases = @('broad-entry', 'earlier-user-locked', 'dac-handle', 'held-full', 'stale-entry', 'service-entry', 'emptied-earlier')
+$RestartCases = @('broad-entry', 'earlier-user-locked', 'dac-handle', 'held-full', 'stale-entry', 'service-entry', 'emptied-earlier', 'stale-folder')
 # The entries of a file's list, inherited and allowed, that let Users, Authenticated Users
 # or Everyone write it: the stale-entry case's, which the file kept from where it was made.
 function Get-StaleWriters([string] $Path) {
@@ -3426,16 +3474,18 @@ function Get-RestartPattern {
       'dac-handle' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-1-0[^;]* change its permissions or its owner'), @($State.App)) }
       'held-full' { return @(([regex]::Escape($bin) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App, $bin)) }
       'stale-entry' { return @(([regex]::Escape((Join-Path $bin 'hm-smoke-tool.exe')) + ' let [^;]*S-1-5-32-545[^;]* change it, by an entry it kept from where it was made'), @($bin)) }
+      'stale-folder' { return @(([regex]::Escape((Join-Path $bin 'plugin')) + ' let [^;]*S-1-5-32-545[^;]* change it, by an entry it kept from where it was made'), @($bin)) }
       'service-entry' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-5-6\)[^;]* change what is in it'), @($State.App, $bin)) }
       'emptied-earlier' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App)) }
    }
 }
-$RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user', 'settings-user', 'events-link', 'volume-root', 'weak-above', 'data-user')
-$LinkCases = @('link-user', 'link-admin', 'bin-link-user', 'events-link')
+$RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user', 'settings-user', 'events-link', 'volume-root', 'weak-above', 'data-user',
+                  'mysql-user', 'mysql-link')
+$LinkCases = @('link-user', 'link-admin', 'bin-link-user', 'events-link', 'mysql-link')
 # Which of work item 78's R1 to R4 a refused case is for.
 function Get-CaseItem {
-   if ($FolderCase -in @('link-user', 'link-admin', 'bin-link-user', 'weak-above', 'dac-handle')) { return 'R3' }
-   if ($FolderCase -in @('foreign-dll', 'settings-user', 'events-link', 'stale-entry')) { return 'R4' }
+   if ($FolderCase -in @('link-user', 'link-admin', 'bin-link-user', 'weak-above', 'dac-handle', 'mysql-link')) { return 'R3' }
+   if ($FolderCase -in @('foreign-dll', 'settings-user', 'events-link', 'stale-entry', 'stale-folder', 'mysql-user')) { return 'R4' }
    return 'R2'
 }
 # What a refused case's refusal says, and the remedy it gives (Inno's log, "Refused:").
@@ -3445,6 +3495,9 @@ function Get-RefusalPattern {
       'precreated-user-locked' { return @(('Bin was made by .*' + [regex]::Escape($State.SmokeAccountSid) + '.*, who may still hold it open'), 'remove or rename it') }
       'foreign-dll' { return @(('would run programs there that another account controls: .*' + [regex]::Escape('Bin\version.dll') + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid)), '/setowner \*S-1-5-32-544') }
       'settings-user' { return @(('would run programs there that another account controls: .*' + [regex]::Escape('Bin\hMailServer.INI') + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid)), '/setowner \*S-1-5-32-544') }
+      'mysql-user' { return @(('would run programs there that another account controls: .*' + [regex]::Escape('MySQL\Bin\mysqld-nt.exe') + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid)), '/setowner \*S-1-5-32-544') }
+      'mysql-link' { return @(([regex]::Escape((Join-Path $State.App 'MySQL')) + ' is a junction, a symbolic link or a mount point, and on the program folder''s own level setup takes a link only for Data, Logs, Temp or Database'),
+                              ('rmdir "' + [regex]::Escape((Join-Path $State.App 'MySQL')) + '"')) }
       'data-user' { return @(('would run programs there that another account controls: .*' + [regex]::Escape((Join-Path $State.App 'Data')) + ' is owned by .*' + [regex]::Escape($State.SmokeAccountSid) +
                               '.*, an account other than SYSTEM, the Administrators, TrustedInstaller or the service'), '/setowner \*S-1-5-32-544') }
       'events-link' { return @(([regex]::Escape((Join-Path $State.App 'Events')) + ' is a junction, a symbolic link or a mount point, and setup installs into it what the service or the administrators run'),
@@ -3593,12 +3646,14 @@ function Invoke-FocusedRun([string] $Version) {
    # mount point); the program folder stays when Inno Setup's rollback leaves in it the
    # files it never uninstalls (section_files_common.iss: Addons and Events,
    # onlyifdoesntexist uninsneveruninstall), the Administrators' with permissions of its
-   # own, holding those alone. The base's program folder inherits from the volume.
+   # own, holding those alone. And the watch's check of R1, the one look that sees the
+   # program folder as it was made, runs before the case returns: the base, 6.3.7, makes it
+   # with Inno Setup and gives it its permissions 61 ms after, so that by the end its
+   # folder passes the end state's clauses and fails only for want of setup's removal line,
+   # which no installer before R1 to R4 writes (check 7 of R1 to R4, 28 October 2026).
    if ($FolderCase -eq 'copy-fails') {
       [void] (Test-Step "case ${FolderCase}: the installation failed for want of space; setup removed the Bin and the ControlPanel it made, and the program folder it made is the Administrators' with permissions of its own, holding only what Inno Setup never uninstalls (work item 78, R1)" {
             if ($code -eq 0) { throw 'it returned 0: the files fitted, and the case shows nothing' }
-            # The program folder first, as the CI table says the base fails it (check 6 of
-            # R1 to R4, 28 October 2026: the base failed on the log line before it).
             $there = Test-Path -LiteralPath $app
             if ($there) {
                $moment = Get-FolderMoment $app
@@ -3620,6 +3675,7 @@ function Invoke-FocusedRun([string] $Version) {
             if ($other.Count -gt 0) { Write-Detail $other 10; throw "$($other.Count) files and folders besides Addons and Events are left in $app" }
             "exit code ${code}; Bin and ControlPanel removed by setup; $app the Administrators', its permissions its own, holding $($left.Count) items of Addons and Events, which Inno Setup never uninstalls"
          })
+      if (-not $appBefore) { Test-ProgramFolderMadeWithItsPermissions "case $FolderCase" $Version $watched $log }
       return
    }
 
@@ -3641,9 +3697,9 @@ function Invoke-FocusedRun([string] $Version) {
                if ($null -ne (Get-HmService)) { throw 'the hMailServer service is registered' }
                "$LinkTarget is empty; no uninstall entry, no service"
             })
-         Write-Info "case ${FolderCase}: the link afterwards" (Get-LinkList $(if ($FolderCase -eq 'bin-link-user') { Join-Path $app 'Bin' } elseif ($FolderCase -eq 'events-link') { Join-Path $app 'Events' } else { $app }))
+         Write-Info "case ${FolderCase}: the link afterwards" (Get-LinkList $(if ($FolderCase -eq 'bin-link-user') { Join-Path $app 'Bin' } elseif ($FolderCase -eq 'events-link') { Join-Path $app 'Events' } elseif ($FolderCase -eq 'mysql-link') { Join-Path $app 'MySQL' } else { $app }))
       }
-      if (-not ($LinkCases -contains $FolderCase) -or $FolderCase -eq 'events-link') {
+      if (-not ($LinkCases -contains $FolderCase) -or $FolderCase -in @('events-link', 'mysql-link')) {
          [void] (Test-Step "case ${FolderCase}: nothing was written, and the folders the case made are as they were" {
                # A program folder that was not there is not made by a refused installer
                # (weak-above): the refusal comes before anything is changed.
@@ -3711,6 +3767,19 @@ function Invoke-FocusedRun([string] $Version) {
                $left = @(Get-StaleWriters $tool)
                if ($left.Count -gt 0) { throw "$tool still lets Users change it: $($left -join ', ')" }
                "said in the first run; $tool now: $((@(& icacls.exe $tool) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')"
+            })
+      }
+      'stale-folder' {
+         [void] (Test-Step "case ${FolderCase}: the folder moved into Bin with an inherited entry for Users was found before the stop, and after the restart neither it nor the library in it lets Users change it (work item 78, R4)" {
+               $plugin = Join-Path $app 'Bin\plugin'
+               if (-not (Select-String -LiteralPath $State.FirstLog -Pattern ('The program folder: ' + [regex]::Escape($plugin) + ' has an inherited entry that lets .*S-1-5-32-545.* which the folder it is in does not hand down') -Quiet)) {
+                  throw "the first run's setup log does not say $plugin kept an entry from where it was made"
+               }
+               $library = Join-Path $plugin 'hm-smoke-plugin.dll'
+               if (-not (Test-Path -LiteralPath $library)) { throw "$library is gone" }
+               $left = @(Get-StaleWriters $plugin) + @(Get-StaleWriters $library)
+               if ($left.Count -gt 0) { throw "$plugin or $library still lets Users change it: $($left -join ', ')" }
+               "said in the first run; $library now: $((@(& icacls.exe $library) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')"
             })
       }
       'service-entry' {
