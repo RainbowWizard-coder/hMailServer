@@ -462,13 +462,16 @@ with `--check`).
   already there** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), CVE-2026-107571, R4).
   Everything in `Bin` and `ControlPanel` at any depth, on the program folder's own level, and in `Addons`, `Events`,
   `DBScripts`, `WebAdmin` and `Languages` at any depth - where the service runs the event script, the administrators
-  the tools, and DBSetup the SQL - is looked at before setup stops the service and again once the folders are
+  the tools, and DBSetup the SQL - and in `MySQL`, which holds the bundled MySQL's programs, is looked at before
+  setup stops the service and again once the folders are
   hardened, each item but a link, which is known by what the folder's listing says of it, through a handle opened on
   it as itself: a link there - on the program folder's own level one only the administrators control is taken for
   `Data`, `Logs`, `Temp` and `Database` alone, where it leads then held to the rules of the program folder's own way,
-  every link and every folder above it, its volume and the folder being there, and refused for `Addons`, `Events`,
-  `DBScripts`, `WebAdmin` and `Languages`, which setup installs into - or a program, a library, a script (in those
-  five folders and on the program folder's own level), a file that says what they run or where (`Bin`'s
+  every link and every folder above it, its volume and the folder being there, and any other there is refused
+  whoever controls it, `Addons`, `Events`, `DBScripts`, `WebAdmin` and `Languages`, which setup installs into,
+  `MySQL` and the uninstaller's `unins000.dat` among them - or a program, a
+  library, a script (in those five folders, `MySQL` and on the program folder's own level), a file that says what
+  they run or where (`Bin`'s
   `hMailServer.INI`, the REST API's key store `hMailServerApiKeys.ini`, which may also be the service's, with the
   Modify `/GrantServiceAccess` gives it, a `.config` or a `.json` beside a program, and the uninstaller's
   `unins000.dat`) or a folder whose owner is not SYSTEM, the Administrators or TrustedInstaller, or cannot be read, or

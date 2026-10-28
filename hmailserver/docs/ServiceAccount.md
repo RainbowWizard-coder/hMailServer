@@ -567,7 +567,9 @@ that a refusal here leaves a running server running:
   an installation looks at - everything on the program folder's own level, and
   everything in `Addons`, `Events`, `DBScripts`, `WebAdmin` and `Languages` at any
   depth, where the service runs the event script, the administrators the tools and
-  DBSetup the SQL, is looked at; each item but a link, which is known by what the
+  DBSetup the SQL, and in `MySQL`, which holds the bundled MySQL's programs (an
+  installation upgraded from hMailServer 4
+  may still use it), is looked at; each item but a link, which is known by what the
   folder's listing says of it, is read through a handle opened on it as itself. Setup
   does not install where the service and the administrators would run what another
   account controls: a link there (a junction, a symbolic link, a mount point, any
@@ -589,14 +591,17 @@ that a refusal here leaves a running server running:
   link: the built-in database there names, among its settings, the program the service
   runs to scan for viruses, so the folder it leads to, and every file in it, is held to
   the rule of a settings file - its owner SYSTEM, the Administrators, TrustedInstaller or
-  the service, no group of every user able to change it, no link. A link at
-  `Addons`, `Events`, `DBScripts`, `WebAdmin` or `Languages` is refused whoever controls
-  it: setup installs into them, and the service and the administrators would run what
-  is there from a folder setup does not prepare (event scripts kept elsewhere are named
-  by `EventFolder` in `Bin\hMailServer.INI`, as
-  [RelocatingAnInstallation.md](RelocatingAnInstallation.md) says). Refused too: a
+  the service, no group of every user able to change it, no link. Any other link on
+  the program folder's own level is refused whoever controls it, with the `rmdir` or the
+  `del` that removes it: at `Addons`, `Events`, `DBScripts`, `WebAdmin` or `Languages`
+  setup installs into it, and the service and the administrators would run what is
+  there from a folder setup does not prepare (event scripts kept elsewhere are named by
+  `EventFolder` in `Bin\hMailServer.INI`, as
+  [RelocatingAnInstallation.md](RelocatingAnInstallation.md) says); and at another name
+  there - `MySQL`, or the uninstaller's record `unins000.dat` - what is reached by that
+  name would be wherever the link leads. Refused too: a
   program, a library (`.exe`, `.dll`), a script (`.vbs`, `.js`, `.sql`, `.php`, `.ps1`,
-  `.cmd`, `.bat`, in those five folders and on the program folder's own level), a file
+  `.cmd`, `.bat`, in those five folders, `MySQL` and on the program folder's own level), a file
   that says what they run or where - `Bin\hMailServer.INI`, whose `[Directories]` name
   the event scripts' folder, `Bin\hMailServerApiKeys.ini`, the REST API's key store, a
   `.config` or a `.json` beside a program, and the uninstaller's `unins000.dat` - or a
@@ -617,7 +622,9 @@ that a refusal here leaves a running server running:
   `icacls ... /reset` for an entry of a file's, `icacls ... /remove:g` for a data
   folder's, `rmdir` or `del` for a link, `takeown ... /A` for what cannot be read - once
   an administrator has checked that it is meant to be there, and a restart of Windows
-  before setup runs again.
+  before setup runs again. An empty folder in `MySQL` is not removed in the last look,
+  as one in the other folders is: setup installs nothing there, and an empty folder
+  there is the bundled MySQL's, an empty database among them.
 - **Not the root of a volume.** A program folder that is the root of a volume - one a
   mount point, or a junction to a volume's root, leads to, `\\?\Volume{...}\`; Inno
   Setup itself refuses a drive's root - is refused, since its permissions are the
@@ -631,7 +638,7 @@ that a refusal here leaves a running server running:
   permissions down to it, after which who could write it before can no longer be read.
 - **What another account could change.** Of the program folder, a `Bin` and a
   `ControlPanel` that are there and not made again, and `Addons`, `Events`, `DBScripts`,
-  `WebAdmin` and `Languages`, each is noted, read through a handle opened on it as
+  `WebAdmin`, `Languages` and `MySQL`, each is noted, read through a handle opened on it as
   itself, when another account could change it before this installation: its owner is
   not SYSTEM, the Administrators or TrustedInstaller (the earlier installation's,
   above), an entry - its own or one it inherits - lets another account change its

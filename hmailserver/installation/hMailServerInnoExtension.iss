@@ -3415,6 +3415,16 @@ begin
    g_szFolderFindings := g_szFolderFindings + szText + #13#10#13#10;
 end;
 
+// Whether Path is Folder or in it, both final paths (FinalPathOfHeld, FinalPathOf);
+// false when either is ''.
+function IsAtOrBelow(Path: String; Folder: String): Boolean;
+begin
+   Result := false;
+   if (Path = '') or (Folder = '') then
+      Exit;
+   Result := (CompareText(AddBackslash(Path), AddBackslash(Folder)) = 0) or (CompareText(Copy(Path, 1, Length(AddBackslash(Folder))), AddBackslash(Folder)) = 0);
+end;
+
 // Whether a file's name is that of a program or a library: what the service, the
 // administrators' tools and the Control Panel load and run from Bin and ControlPanel
 // (AdminUpdateChecks' CheckFolderTree_ holds the same two to its rule).
@@ -3675,7 +3685,11 @@ begin
                // the look after the files holds Bin, ControlPanel and the folders that
                // hold what is run to having no empty folder setup did not leave
                // (NothingTurnedIn); Inno Setup makes it again if it installs into it.
-               if Final and FolderHoldsNothing(szItem) then
+               // Not in MySQL, which setup does not install into and the look after the
+               // files does not walk: an empty folder there is the bundled MySQL's, an
+               // empty database among them, and a link made of one is refused at the
+               // next run.
+               if Final and FolderHoldsNothing(szItem) and (not IsAtOrBelow(szItem, AddBackslash(g_szProgramFolderReal) + 'MySQL')) then
                begin
                   if RemoveHeldFolder(szItem, szFinal, szRemoved) then
                      Log('Setup removed ' + szItem + ', an empty folder there before this installation; Inno Setup makes it again if it installs into it.')
@@ -3738,16 +3752,6 @@ begin
              'administrators run, and nothing can stop that'
    else
       Result := true;
-end;
-
-// Whether Path is Folder or in it, both final paths (FinalPathOfHeld, FinalPathOf);
-// false when either is ''.
-function IsAtOrBelow(Path: String; Folder: String): Boolean;
-begin
-   Result := false;
-   if (Path = '') or (Folder = '') then
-      Exit;
-   Result := (CompareText(AddBackslash(Path), AddBackslash(Folder)) = 0) or (CompareText(Copy(Path, 1, Length(AddBackslash(Folder))), AddBackslash(Folder)) = 0);
 end;
 
 // The folder the profiles of the computer's users are in (ProfileList's
@@ -4062,14 +4066,16 @@ end;
 // folder's own level but Bin and ControlPanel, which have rules of their own - the
 // uninstaller, a folder setup installs into, a data folder - read through a handle
 // opened on it as itself (AppHandle holds the program folder):
-//   - a link there that anybody but SYSTEM, the Administrators and TrustedInstaller owns
-//     or may change (LinkIsAdministratorsAlone, the link itself: the program folder it
-//     is in is setup's to harden), refused with the icacls that makes it theirs alone;
-//     one they alone control refused too when it is Addons, Events, DBScripts, WebAdmin
+//   - a link there that is not Data, Logs, Temp or Database refused, whoever controls
+//     it, with the rmdir or the del that removes it - Addons, Events, DBScripts, WebAdmin
 //     or Languages (IsRunFolderName), which setup installs into and the service and the
-//     administrators run from; and, when it is Data, Logs, Temp or Database - a data
-//     folder behind an administrator's junction is an ordinary layout - held to where it
-//     leads (DataLinkLeadsWhereAllowed);
+//     administrators run from, MySQL, and a file such as unins000.dat, which Inno Setup
+//     appends to by its path, among them (check 7 of R1 to R4, 28 October 2026); a data
+//     folder's that anybody but SYSTEM, the Administrators and TrustedInstaller owns or
+//     may change (LinkIsAdministratorsAlone, the link itself: the program folder it is in
+//     is setup's to harden), refused with the icacls that makes it theirs alone; and one
+//     they alone control - a data folder behind an administrator's junction is an
+//     ordinary layout - held to where it leads (DataLinkLeadsWhereAllowed);
 //   - a program, a library, a script (IsScriptFile), a file that says what they run
 //     (IsSettingsFile: unins000.dat, the uninstaller's record) or a folder whose owner is not one
 //     of the three, or cannot be read, or an entry of whose own lets another account
@@ -4088,8 +4094,9 @@ end;
 //     database (check 5 of R1 to R4, 27 October 2026);
 // and then everything, at any depth, in Addons, Events, DBScripts, WebAdmin and
 // Languages, the folders setup installs into that hold programs, the event script
-// the service runs, the SQL DBSetup runs and the PHP of WebAdmin, held to
-// CheckWhatIsInside's rule with scripts counted as programs. A program folder that is
+// the service runs, the SQL DBSetup runs and the PHP of WebAdmin, and in MySQL, from
+// which the uninstaller runs the bundled MySQL's mysqld-nt.exe (check 7 of R1 to R4, 28
+// October 2026), held to CheckWhatIsInside's rule with scripts counted as programs. A program folder that is
 // the root of a volume (IsVolumeRoot), which CheckProgramFolders refuses before this
 // runs, is not looked at on its own level. Found counts
 // what was refused; what is said is said when Final is set. In the last look (Final)
@@ -4163,19 +4170,37 @@ begin
                begin
                   if bLink then
                   begin
-                     if not LinkIsAdministratorsAlone(handle, -1, szText) then
+                     // On the program folder's own level a link is taken for a data folder
+                     // alone, Data, Logs, Temp or Database, and then held to where it leads:
+                     // any other - a folder that holds what is run, MySQL, from which the
+                     // uninstaller runs the bundled MySQL's mysqld-nt.exe, the uninstaller's
+                     // record unins000.dat, which Inno Setup appends to by its path - is
+                     // refused whoever controls it, since what is written, read or run by
+                     // its name would be wherever it leads (check 7 of R1 to R4, 28 October
+                     // 2026).
+                     if not bData then
+                     begin
+                        if not LinkIsAdministratorsAlone(handle, -1, szText) then
+                           szWho := 'is a junction, a symbolic link or a mount point, and ' + szText
+                        else if bFolder and IsRunFolderName(rec.Name) then
+                           szWho := 'is a junction, a symbolic link or a mount point, and setup installs into it what the service or the administrators run, which would then be ' +
+                                    'wherever the link leads, in a folder setup does not prepare'
+                        else
+                           szWho := 'is a junction, a symbolic link or a mount point, and on the program folder''s own level setup takes a link only for Data, Logs, Temp or ' +
+                                    'Database: what setup, the service, the administrators or the uninstaller write, read or run by its name would be wherever it leads';
+                        if bFolder then
+                           szRemedy := 'An administrator removes the link - rmdir "' + szItem + '", which leaves what it leads to as it is - and runs setup again, which makes the ' +
+                                       'folder itself where it installs one. Event scripts kept in another folder are named by EventFolder in Bin\hMailServer.INI, as ' +
+                                       'RelocatingAnInstallation.md says.'
+                        else
+                           szRemedy := 'An administrator removes the link - del "' + szItem + '", which leaves what it leads to as it is - and runs setup again.';
+                     end
+                     else if not LinkIsAdministratorsAlone(handle, -1, szText) then
                      begin
                         szWho := 'is a junction, a symbolic link or a mount point, and ' + szText;
                         szRemedy := LinkRemedy(szItem) + '.';
                      end
-                     else if bFolder and IsRunFolderName(rec.Name) then
-                     begin
-                        szWho := 'is a junction, a symbolic link or a mount point, and setup installs into it what the service or the administrators run, which would then be ' +
-                                 'wherever the link leads, in a folder setup does not prepare';
-                        szRemedy := 'An administrator removes the link - rmdir "' + szItem + '", which leaves what it leads to as it is - and runs setup again, which makes the ' +
-                                    'folder itself. Event scripts kept in another folder are named by EventFolder in Bin\hMailServer.INI, as RelocatingAnInstallation.md says.';
-                     end
-                     else if bData and (not DataLinkLeadsWhereAllowed(szItem, Final, szText)) then
+                     else if not DataLinkLeadsWhereAllowed(szItem, Final, szText) then
                      begin
                         szWho := 'is a junction, a symbolic link or a mount point that only the administrators control, but ' + szText;
                         szRemedy := 'Setup holds where a data folder''s link leads, and the way there, to the rules of the program folder''s own way: an administrator sees to ' +
@@ -4296,8 +4321,11 @@ begin
          FreeWindowsMemory(pAppDescriptor);
    end;
 
-   // The folders setup installs into that hold what is run, at any depth.
-   for index := 0 to 4 do
+   // The folders setup installs into that hold what is run, at any depth, and MySQL,
+   // from which the uninstaller runs the bundled MySQL's mysqld-nt.exe as an
+   // administrator (section_uninstallrun.iss), as the service of an installation that
+   // still uses it does (check 7 of R1 to R4, 28 October 2026).
+   for index := 0 to 5 do
    begin
       case index of
          0: szFolder := 'Addons';
@@ -4305,6 +4333,7 @@ begin
          2: szFolder := 'DBScripts';
          3: szFolder := 'WebAdmin';
          4: szFolder := 'Languages';
+         5: szFolder := 'MySQL';
       end;
       szFolder := AddBackslash(App) + szFolder;
       // One that is a link is refused above, and not looked through.
@@ -4707,7 +4736,7 @@ begin
       NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true, false);
    if g_bControlPanelThere and (not g_bRemakeControlPanel) then
       NoteFolderOthersCouldChange(g_szControlPanelReal, g_hControlPanel, true, false);
-   for index := 0 to 4 do
+   for index := 0 to 5 do
    begin
       case index of
          0: szFolder := 'Addons';
@@ -4715,6 +4744,7 @@ begin
          2: szFolder := 'DBScripts';
          3: szFolder := 'WebAdmin';
          4: szFolder := 'Languages';
+         5: szFolder := 'MySQL';
       end;
       szFolder := AddBackslash(g_szProgramFolderReal) + szFolder;
       handle := HoldFolder(szFolder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
