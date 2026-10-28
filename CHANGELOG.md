@@ -348,7 +348,10 @@ with `--check`).
   it is empty, and those still empty are removed when setup is cancelled or fails before its files: each recorded only
   once it was found where it was named, with where that is, and removed only while it is still that folder, read
   through a handle opened on its path as itself while the folders above it are still held; a folder found made
-  elsewhere is left as it is. `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke
+  elsewhere is left as it is. An empty `Bin` or `ControlPanel` that was there, which setup removes and makes again,
+  and an empty folder that was there, which setup's last look removes for Inno Setup to make again (R2), are removed
+  too when setup is cancelled or fails before its files: such an installation does not put back the empty folders
+  that were there. `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke
   test, which reads each folder's permissions the moment it appears, hold it
   ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the files"). Found by the hMailServer project
   (Progressive Robot Ltd).
@@ -362,11 +365,16 @@ with `--check`).
   refusal says to install into a folder on that volume; so is a `Bin` or a `ControlPanel` that leads to the root of a
   volume. The program folder is left as it is only when it is the earlier installation's and its `Data`, `Logs`,
   `Temp`, `Database` or `Events` still inherit from it, as an installation before 6.3.6 leaves them, which
-  `/ProtectFolders` hardens after the files, and no other account may change it; its `Bin` and `ControlPanel` are
-  hardened or made before them all the same. Each folder is read through the handle that holds it, and read again
+  `/ProtectFolders` hardens after the files, and no other account may change it - an inherited entry or a group of
+  every user's own that lets another account write it counts whatever it holds, one emptied of all but empty
+  folders among them, so that setup hardens it and refuses until a restart, and an entry of its own for a named
+  account is said; its `Bin` and `ControlPanel` are hardened or made before them all the same. Each folder is read through the handle that holds it, and read again
   once hardened. An entry of its own that lets a group of every user change it is taken away - each group the server
   counts as one, `CONSOLE LOGON`, `NETWORK`, `BATCH`, `SERVICE`, `ANONYMOUS LOGON`, the two groups of application
-  packages and a domain's `Domain Users` among them; one for another account is kept and said (R4). A folder of the
+  packages, `This Organization`, `Local account`, `Authentication authority asserted identity`, `ALL SERVICES` and a
+  domain's `Domain Users` and `Domain Guests` among them, which `/ProtectFolders` and its `CHECK` lines count too; one
+  for another account is kept and said (R4), but not on a folder whose permissions another account could change, as
+  below. A folder of the
   program that is there and that another account could change before this installation - one it owns, one an entry
   lets it change the permissions or the owner of (`Everyone` Full control on a folder made beforehand, say), or one
   that holds anything but empty folders and that it may write, by an entry setup's hardening takes away, an inherited
@@ -374,7 +382,11 @@ with `--check`).
   not refuse every run - or one that holds a program, a library, a script or a settings file whose inherited entry,
   kept from where it was made and not handed down by the folder it is in, lets another account change it - keeps that
   right in a handle a program the account started then, whatever setup does to the permissions after. Setup hardens
-  each before it stops the service and refuses the installation, exit code 7, until Windows has restarted, which
+  each before it stops the service - one whose permissions or owner another account could change rebuilt as the
+  earlier installation's folder another account owned is, since through that right the account could have written an
+  entry of the folder's own for itself, which setup cannot tell from one an administrator gave: every entry of its own
+  that lets another account write is dropped and named in the setup log - and refuses the installation, exit code 7,
+  until Windows has restarted, which
   closes every such handle, and records that in a volatile key of `HKEY_LOCAL_MACHINE`,
   `SOFTWARE\hMailServerSetupRestart`, which Windows does not keep past a restart, by `{app}` and by where the program
   folder, `Bin` and `ControlPanel` are, read through the handles that hold them; setup run again before it, by that
@@ -2710,7 +2722,7 @@ with `--check`).
   files it keeps called where it is now alone, no `CurInstallProgressChanged`, and a `CurPageChanged` that runs no
   program, no file there registered during the copy, nothing run at `ssInstall` but the state's reads and the
   settings file's move - the groups of every user to `ServiceAccount.cpp`'s, and that `hMailServer.Updater` puts no
-  earlier version back over folders the installer found changed. The checker's negative controls are 563, and each of
+  earlier version back over folders the installer found changed. The checker's negative controls were 563, and each of
   those that alters an installer script for R1 to R4, or the Updater, fails the fixture too. The installer smoke
   test's cases whose `Bin` held nothing now require Inno's log to say setup removed it and made it again before its
   first file, the held-open case makes its junction before any file is copied, and five cases are new: a
@@ -2726,7 +2738,21 @@ with `--check`).
   `Bin` with the entry for `Users` it inherited where it was made to a refusal until a restart, a `Bin` with an entry
   for a named account to being installed into at once, and an entry for `SERVICE` to being taken away; and the run
   through another name for the program folder, before the restart, to the record
-  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The installer smoke test").
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The installer smoke test"). Both hold
+  what the Inno Setup preprocessor makes of the scripts, which ISCC compiles: every line it reads - a line whose
+  first character that is not white space is `#` (`#if 0` and `#endif`, `#emit`, `#include`, `#define`, `#pragma`)
+  and every inline directive, `{#...}`, which it replaces with the text of its expression in a comment or a string
+  too - is held to where it is now, by its script, the routine or the section it is in, the lines that are not blank
+  before and after it, and how many times (`--preprocessor` prints the table), and the digests read an inline
+  directive as code, not as a comment: six one-line inline directives that switched off the rule of a link, of a
+  folder above the program folder, of the owners, of the program folder's descriptor, of its hardening and of the
+  look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
+  both and compiled. The negative controls are 593. The smoke test's dac-handle case gives the program folder an
+  entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
+  permissions, and requires it dropped and named, and none for it after the restart; copy-fails reads the program
+  folder's permissions before Inno's log, so that the base fails on them; and emptied-earlier, the earlier
+  installation's program folder holding only an empty `Data` that inherits from it, with an entry of its own for
+  `Authenticated Users` Modify, is hardened and refused until a restart, then installed into.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

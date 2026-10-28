@@ -171,10 +171,21 @@
                        record taken away, installed into the folder Bin is (R2); the
                        base copies through the junction;
      dac-handle        the program folder with an entry of its own giving Everyone
-                       Full control, held open with WRITE_DAC before the installer:
-                       hardened and refused until Windows has restarted, exit 7,
-                       refused again, then installed with no entry for Everyone (R2,
-                       R3); the base installs at once;
+                       Full control, and one for hmsmokeuser Full control, as an
+                       account could write through Everyone's right to change the
+                       permissions, held open with WRITE_DAC before the installer:
+                       rebuilt and refused until Windows has restarted, exit 7, the
+                       entry for hmsmokeuser dropped and named, refused again, then
+                       installed with no entry for Everyone or hmsmokeuser (R2, R3);
+                       the base installs at once, and the tip before check 6 kept the
+                       entry for hmsmokeuser;
+     emptied-earlier   the earlier installation's program folder (InstallLocation
+                       recorded) holding only an empty Data that inherits from it, the
+                       folder with an entry of its own for Authenticated Users Modify,
+                       as an installation before 6.3.6 emptied of its files: hardened
+                       and refused until Windows has restarted, exit 7, refused again,
+                       then installed (R2); the base and the tip before check 6 install
+                       at once, the program folder unhardened before the files;
      copy-fails        -InstallDirectory two folders below a drive's root, a 64 MB
                        volume mounted on the folder between: setup makes the program
                        folder, Bin and ControlPanel there, the copy fails for want of
@@ -182,7 +193,7 @@
                        the program folder it made stays, the Administrators' with its
                        permissions its own, holding only what Inno Setup never
                        uninstalls, Addons and Events (R1); the base's program folder
-                       inherits from the volume;
+                       inherits from the volume, which the case reads first;
      data-user         the program folder made by the administrator, inheriting from
                        the folder above, and an empty Data owned by hmsmokeuser with
                        Full control of its own, handed down: refused, exit 7, Data
@@ -301,7 +312,7 @@ param(
    [switch] $WeakParent,
    [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                 'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails',
-                'data-user', 'stale-entry', 'named-entry', 'service-entry')]
+                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -3270,7 +3281,27 @@ function New-FolderCase {
          New-Item -ItemType Directory -Force -Path $app | Out-Null
          $answer = @(& icacls.exe $app /grant '*S-1-1-0:(OI)(CI)F' 2>&1)
          if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
-         "$app made by the administrator with an entry of its own giving Everyone Full control, to be held open with the right to change its permissions before the installer"
+         # An entry of the folder's own for a standard account, Full control, as that
+         # account could write it for itself through Everyone's right to change the
+         # permissions (check 6 of R1 to R4, 28 October 2026): setup cannot tell it from
+         # one an administrator gave, and is to drop it.
+         $sid = New-SmokeAccount
+         $answer = @(& icacls.exe $app /grant "*${sid}:(OI)(CI)F" 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         "$app made by the administrator with an entry of its own giving Everyone Full control and one giving $SmokeAccountName ($sid) Full control, to be held open with the right to change its permissions before the installer: $(Get-LinkList $app)"
+      }
+      'emptied-earlier' {
+         # The earlier installation's program folder, emptied of its files but an empty
+         # Data that still inherits from it, as an installation before 6.3.6 leaves one,
+         # and an entry of its own that lets Authenticated Users change what is in it
+         # (check 6 of R1 to R4, 28 October 2026): setup leaves such a program folder
+         # unhardened before the files, so another account may not write it.
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Data') | Out-Null
+         $answer = @(& icacls.exe $app /grant '*S-1-5-11:(OI)(CI)M' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         New-Item -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Force | Out-Null
+         Set-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Name 'InstallLocation' -Value $app
+         "$app recorded as the earlier installation's (HKLM\SOFTWARE\WOW6432Node\hMailServer InstallLocation), holding only an empty $app\Data that inherits from it, with an entry of its own for Authenticated Users Modify: $(Get-LinkList $app)"
       }
       'held-full' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
@@ -3370,14 +3401,14 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # anything was installed.
 $FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                   'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails', 'data-user', 'stale-entry',
-                  'named-entry', 'service-entry')
+                  'named-entry', 'service-entry', 'emptied-earlier')
 # The cases whose folders another account could change before the installer - their
 # permissions, or what is in one that holds something - which setup hardens and then
 # refuses until Windows has restarted (work item 78, check 4 of R1 to R4, 27 October
 # 2026): the installer is run three times, refused, refused again by what setup
 # recorded, and, the record taken away as a restart takes it away and every handle the
 # case held closed, run to the end.
-$RestartCases = @('broad-entry', 'earlier-user-locked', 'dac-handle', 'held-full', 'stale-entry', 'service-entry')
+$RestartCases = @('broad-entry', 'earlier-user-locked', 'dac-handle', 'held-full', 'stale-entry', 'service-entry', 'emptied-earlier')
 # The entries of a file's list, inherited and allowed, that let Users, Authenticated Users
 # or Everyone write it: the stale-entry case's, which the file kept from where it was made.
 function Get-StaleWriters([string] $Path) {
@@ -3396,6 +3427,7 @@ function Get-RestartPattern {
       'held-full' { return @(([regex]::Escape($bin) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App, $bin)) }
       'stale-entry' { return @(([regex]::Escape((Join-Path $bin 'hm-smoke-tool.exe')) + ' let [^;]*S-1-5-32-545[^;]* change it, by an entry it kept from where it was made'), @($bin)) }
       'service-entry' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-5-6\)[^;]* change what is in it'), @($State.App, $bin)) }
+      'emptied-earlier' { return @(([regex]::Escape($State.App) + ' let [^;]*S-1-5-11[^;]* change what is in it'), @($State.App)) }
    }
 }
 $RefusedCases = @('precreated-user', 'precreated-user-locked', 'foreign-dll', 'link-user', 'link-admin', 'bin-link-user', 'settings-user', 'events-link', 'volume-root', 'weak-above', 'data-user')
@@ -3487,6 +3519,14 @@ function Invoke-FocusedRun([string] $Version) {
                }
                $said += "$folder owner $($moment.Owner)"
             }
+            if ($FolderCase -eq 'dac-handle') {
+               # Check 6 of R1 to R4 (28 October 2026): the entry an account could have
+               # written through the right to change the permissions dropped and named.
+               $rebuilt = Select-String -LiteralPath $log -Pattern ([regex]::Escape($app) + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller, or its permissions let one change them') | Select-Object -First 1
+               if ($null -eq $rebuilt) { throw "Inno's log does not say the program folder was rebuilt as one whose permissions another account could change" }
+               if ($rebuilt.Line -notmatch ('dropped: .*' + [regex]::Escape($State.SmokeAccountSid))) { throw "Inno's log does not name the entry for $SmokeAccountName as dropped: $($rebuilt.Line)" }
+               $said += "the entry for $SmokeAccountName dropped and named"
+            }
             "exit code 7, recorded ($(Get-RestartRecord $app)); hardened: $($said -join '; ')"
          })
       if ($turn) {
@@ -3557,18 +3597,23 @@ function Invoke-FocusedRun([string] $Version) {
    if ($FolderCase -eq 'copy-fails') {
       [void] (Test-Step "case ${FolderCase}: the installation failed for want of space; setup removed the Bin and the ControlPanel it made, and the program folder it made is the Administrators' with permissions of its own, holding only what Inno Setup never uninstalls (work item 78, R1)" {
             if ($code -eq 0) { throw 'it returned 0: the files fitted, and the case shows nothing' }
+            # The program folder first, as the CI table says the base fails it (check 6 of
+            # R1 to R4, 28 October 2026: the base failed on the log line before it).
+            $there = Test-Path -LiteralPath $app
+            if ($there) {
+               $moment = Get-FolderMoment $app
+               if ($moment.Error) { throw "the permissions of $app could not be read: $($moment.Error)" }
+               if (-not $moment.Protected -or $moment.Inherited -gt 0) { throw "$app, which setup made, inherits from the folder above: $($moment.Sddl)" }
+               if ($moment.Owner -ne 'S-1-5-32-544') { throw "$app is owned by $($moment.Owner)" }
+               if ($moment.Broad.Count -gt 0) { throw "a group of every user may change ${app}: $($moment.Broad -join ', ')" }
+            }
             foreach ($name in @('Bin', 'ControlPanel')) {
                if (Test-Path -LiteralPath (Join-Path $app $name)) { throw "$app\$name is still there" }
                if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed \S*' + [regex]::Escape('\' + (Split-Path -Leaf $app) + '\' + $name) + ', which it had made and nothing was installed into') -Quiet)) {
                   throw "Inno's log does not say setup removed the $name it made"
                }
             }
-            if (-not (Test-Path -LiteralPath $app)) { return "exit code ${code}; Bin and ControlPanel removed by setup, and $app is gone too" }
-            $moment = Get-FolderMoment $app
-            if ($moment.Error) { throw "the permissions of $app could not be read: $($moment.Error)" }
-            if (-not $moment.Protected -or $moment.Inherited -gt 0) { throw "$app, which setup made, inherits from the folder above: $($moment.Sddl)" }
-            if ($moment.Owner -ne 'S-1-5-32-544') { throw "$app is owned by $($moment.Owner)" }
-            if ($moment.Broad.Count -gt 0) { throw "a group of every user may change ${app}: $($moment.Broad -join ', ')" }
+            if (-not $there) { return "exit code ${code}; Bin and ControlPanel removed by setup, and $app is gone too" }
             $kept = @((Join-Path $app 'Addons'), (Join-Path $app 'Events'))
             $left = @(Get-ChildItem -LiteralPath $app -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
             $other = @($left | Where-Object { $item = $_; -not @($kept | Where-Object { $item -eq $_ -or $item.StartsWith($_ + '\', [StringComparison]::OrdinalIgnoreCase) }).Count })
@@ -3699,10 +3744,22 @@ function Invoke-FocusedRun([string] $Version) {
             })
       }
       'dac-handle' {
-         [void] (Test-Step "case ${FolderCase}: after the restart, the program folder is the Administrators' with no entry for Everyone (work item 78, R2 and R3)" {
+         [void] (Test-Step "case ${FolderCase}: after the restart, the program folder is the Administrators' with no entry for Everyone or for $SmokeAccountName, whose entry an account could have written through Everyone's right (work item 78, R2 and R3; check 6 of R1 to R4)" {
                $moment = Get-FolderMoment $app
                if (-not $moment.Protected -or $TrustedOwnerSids -notcontains $moment.Owner) { throw "$app is not hardened: $($moment.Sddl)" }
-               if (@((Get-Acl -LiteralPath $app).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -eq 'S-1-1-0' }).Count -gt 0) { throw "$app still has an entry for Everyone: $($moment.Sddl)" }
+               foreach ($sid in @('S-1-1-0', $State.SmokeAccountSid)) {
+                  if (@((Get-Acl -LiteralPath $app).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -eq $sid }).Count -gt 0) { throw "$app still has an entry for ${sid}: $($moment.Sddl)" }
+               }
+               "$app owner $($moment.Owner): $($moment.Sddl)"
+            })
+      }
+      'emptied-earlier' {
+         [void] (Test-Step "case ${FolderCase}: after the restart, the earlier installation's program folder is hardened, with no entry for Authenticated Users, and the installation went on (work item 78, R2; check 6 of R1 to R4)" {
+               $moment = Get-FolderMoment $app
+               if (-not $moment.Protected -or $TrustedOwnerSids -notcontains $moment.Owner) { throw "$app is not hardened: $($moment.Sddl)" }
+               if ($moment.Broad.Count -gt 0) { throw "a group of every user may change ${app}: $($moment.Broad -join ', ')" }
+               if (@((Get-Acl -LiteralPath $app).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object { $_.IdentityReference.Value -eq 'S-1-5-11' }).Count -gt 0) { throw "$app still has an entry for Authenticated Users: $($moment.Sddl)" }
+               if (-not (Test-Path -LiteralPath (Join-Path $app 'Bin\hMailServer.exe'))) { throw "$app\Bin holds no hMailServer.exe" }
                "$app owner $($moment.Owner): $($moment.Sddl)"
             })
       }

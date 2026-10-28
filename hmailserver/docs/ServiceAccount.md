@@ -640,9 +640,13 @@ that a refusal here leaves a running server running:
   and an entry lets another account write it (a folder at a Windows client's drive root,
   which hands `Authenticated Users` Modify down, holding an earlier installation) - an
   entry the hardening takes away, that is: an inherited one, or a group of every user's
-  own. An entry of its own for a named account or group, which setup keeps and says, as
-  `/ProtectFolders` keeps it, is not counted: that account may change the folder after a
-  restart as before it, and counting it would refuse every run. Noted too: a folder that
+  own. The earlier installation's program folder that the next step leaves unhardened
+  before the files, its data folders still inheriting from it, is noted for an entry that
+  lets another account write it whatever it holds, one emptied of all but empty folders
+  among them, since Inno Setup then makes in it the folders the last look removed and
+  copies what they hold. An entry of its own for a named account or group, which setup
+  keeps and says, as `/ProtectFolders` keeps it, is not counted: that account may change
+  the folder after a restart as before it, and counting it would refuse every run. Noted too: a folder that
   holds a program, a library, a script or a settings file whose inherited entry - one it
   kept from where it was made, since a file moved into a folder keeps the entries it
   inherited there - lets another account write it where the folder hands that account no
@@ -658,7 +662,13 @@ that a refusal here leaves a running server running:
 Each folder the first step noted is hardened, as the next step hardens one - the
 earlier installation's folder another account owns given to the Administrators with
 their privilege (`takeown /A`) and its permissions rebuilt, the entries of its own that
-give no right to write kept, the service's Read & execute on `Bin` among them, and the
+give no right to write kept, the service's Read & execute on `Bin` among them; a folder
+whose permissions or owner another account could change rebuilt the same way, since
+through that right the account could have written an entry of the folder's own for
+itself, which setup cannot tell from one an administrator gave - every entry of its own
+that lets an account other than SYSTEM, the Administrators or TrustedInstaller write
+dropped and named in the setup log, so that none of them may change it after the
+restart; and the
 program folder hardened whatever its data folders inherit, as `/ProtectFolders` hands
 its permissions down through them after the files, and a data folder another account
 owned given to the Administrators and rebuilt with the service's entries kept and none
@@ -706,7 +716,11 @@ does before the files:
   `Bin` first, with the folders setup made. The program folder stays only when Inno
   Setup's rollback leaves in it the files it never uninstalls - those of `Addons` and
   `Events` that it installs only when they are not there - the Administrators', with
-  the permissions setup made it with, and nothing else in it.
+  the permissions setup made it with, and nothing else in it. An empty `Bin` or
+  `ControlPanel` that was there, which setup removes and makes again, and an empty
+  folder that was there, which the last look removes for Inno Setup to make again, are
+  removed too when the installation stops before its files: a cancelled or failed
+  installation does not put back the empty folders that were there.
 - **A program folder that is there** is hardened, as `/ProtectFolders` hardens it,
   before the files, whatever it holds; only the earlier installation's is left, when
   its `Data`, `Logs`, `Temp`, `Database` or `Events` still inherit from it - an
@@ -715,7 +729,8 @@ does before the files:
   makes those private and hardens it after the files, as at every installation (for
   the Control Panel alone, which runs no `/ProtectFolders`, the setup log says to run
   it) - and nobody else may change it, or the step before would have hardened it and
-  asked for a restart. A folder hardened in place is given a file of setup's,
+  asked for a restart, however little it holds; an entry of its own for a named
+  account is said, as for a folder hardened. A folder hardened in place is given a file of setup's,
   `hMailServer-setup-in-progress.tmp`, held open, not shared for deleting, and gone the
   moment setup lets it go, at the files' end or when setup ends however it ends, so
   that it holds something - and cannot be made a junction - until the files are in. Then
@@ -734,7 +749,9 @@ does before the files:
     its own, as `/ProtectFolders` keeps them, but for those that let a group of every
     user change it - each group the server counts as one, `Everyone`, `Authenticated
     Users`, `Users`, `INTERACTIVE`, `NETWORK`, `SERVICE`, the groups of application
-    packages, a domain's `Domain Users` and the rest of `ServiceAccount.cpp`'s list -
+    packages, `This Organization`, `Local account`, `Authentication authority asserted
+    identity`, `ALL SERVICES`, a domain's `Domain Users` and `Domain Guests` and the
+    rest of `ServiceAccount.cpp`'s list -
     which setup takes away (`icacls ... /remove:g`) - an entry handed down
     from a drive's root becomes the folder's own when its inheritance is turned off
     with what it had - and the Users' Read & execute is given again where they could
@@ -1831,7 +1848,13 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   those the entry points reach but the two the rest of setup shares - to a digest of
   its code, so that no change of one, however small, passes until it has been
   reviewed and its digest written again (`python build/check-installer-scripts.py
-  --digests` prints them as the tree is). `build/check-installer-scripts.py` holds
+  --digests` prints them as the tree is). Since ISCC compiles what the Inno Setup
+  preprocessor makes of the scripts, every line it reads - one that begins with `#`,
+  and every inline directive, `{#...}`, which it expands in a comment or a string too -
+  is held to where it is now, by its script, the routine or the section it is in, the
+  lines that are not blank before and after it, and how many times (`--preprocessor`
+  prints the table), and a digest reads an inline directive as code.
+  `build/check-installer-scripts.py` holds
   the same, with a negative control each, and the installer smoke test's watch and cases
   ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer smoke test")
   hold what the installer does on a machine.
