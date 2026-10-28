@@ -357,6 +357,57 @@ namespace HM
             Append(said, Formatter::Format(_T("with the servers stopped a delivery to one server left its recipient with the result {0}, and TLS {1}, where the recipient is deferred ({2}) and nothing was reached."),
                (int) recipient->GetDeliveryResult(), (int) tls, (int) MessageRecipient::ResultNonFatalError));
          }
+
+         // Deferred by this server, not tried: the pass is rescheduled without
+         // counting a try (RescheduleDelivery_'s uncounted path, which
+         // EveryFailureIsShaping_ chooses), however long the message has been
+         // queued, and the message trace is given no deferral of an attempt
+         // (CollectDeliveryResult_ writes none for a recipient in
+         // shaping_deferred_). Until this was so the pass was counted: a try
+         // spent an hour away at the defaults, and on the last try the message
+         // returned to its sender, though nobody had been offered it.
+         std::map<String, DeliveryFailure> failed;
+         failed.insert(std::make_pair(recipient->GetAddress(), DeliveryFailure(recipient->GetAddress(), recipient->GetEnhancedStatusCode(), recipient->GetErrorMessage())));
+
+         if (!delivery.EveryFailureIsShaping_(failed) || delivery.shaping_deferred_.find(recipient->GetAddress()) == delivery.shaping_deferred_.end())
+         {
+            Append(said, _T("with the servers stopped a delivery to one server deferred its recipient as a failed try, so that the pass was counted against the message's retries, and a message on its last try was returned to its sender, where nobody was offered it."));
+         }
+         else if (delivery.CountsOwnDeferral_(300L, 24L * 3600L))
+         {
+            Append(said, _T("with the servers stopped a delivery to one server was counted against the retries of a message queued for longer than its retry schedule spans, where nobody was offered it."));
+         }
+         else if (recipient->GetEnhancedStatusCode() != _T("4.3.0"))
+         {
+            Append(said, Formatter::Format(_T("with the servers stopped a delivery to one server deferred its recipient with the status {0}, where it is 4.3.0."), recipient->GetEnhancedStatusCode()));
+         }
+      }
+
+      {
+         CaseScope scope("a delivery to one domain (ExternalDelivery::DeliverToSingleDomain_)");
+
+         // A batch after the stop, or a delivery that began after it: no
+         // lookup is made (none could lead to a connection), the batch is
+         // deferred as the server's is, and the pass is not counted.
+         std::shared_ptr<Message> queued = std::make_shared<Message>(false);
+         RuleResult rules;
+         ExternalDelivery delivery(_T("127.0.0.1"), queued, rules);
+
+         std::shared_ptr<MessageRecipient> recipient = std::make_shared<MessageRecipient>();
+         recipient->SetAddress(_T("someone@example.test"));
+         std::vector<std::shared_ptr<MessageRecipient> > recipients;
+         recipients.push_back(recipient);
+
+         std::shared_ptr<ServerInfo> serverInfo = std::make_shared<ServerInfo>(false, _T("example.test"), String(), 25, String(), String(), CSNone);
+
+         delivery.DeliverToSingleDomain_(recipients, serverInfo, std::shared_ptr<RemoteDomainPolicy>());
+
+         if (recipient->GetDeliveryResult() != MessageRecipient::ResultNonFatalError || !delivery.servers_stopped_ ||
+             delivery.shaping_deferred_.find(recipient->GetAddress()) == delivery.shaping_deferred_.end())
+         {
+            Append(said, Formatter::Format(_T("with the servers stopped a delivery to one domain left its recipient with the result {0}, not deferred without counting a try ({1})."),
+               (int) recipient->GetDeliveryResult(), (int) MessageRecipient::ResultNonFatalError));
+         }
       }
 
       FileUtilities::DeleteFile(messageFile);

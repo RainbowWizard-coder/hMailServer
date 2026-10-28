@@ -271,6 +271,7 @@ namespace HM
       queue_randomness_minutes_(0),
       mxtries_factor_(0),
       shaping_deferral_minutes_(0),
+      servers_stopped_(false),
       warmup_hold_minutes_(0)
    {
 
@@ -374,6 +375,18 @@ namespace HM
       if (sFirstRecipientAddress.IsEmpty())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4226, "SMTPDeliverer::_DeliverToExternalAccounts", "Could not deliver message; Recipient address missing.");
+         return;
+      }
+
+      // The servers were stopped before this batch, in this pass or before it
+      // began: no lookup is made for a connection that cannot be made, and the
+      // batch is deferred as DeliverToSingleServer_ defers one.
+      if (servers_stopped_ || !Application::Instance()->GetIOService())
+      {
+         DeferForStoppedServers_(vecRecipients);
+
+         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) +
+            ": not delivered to " + serverInfo->GetHostName() + ": the servers are stopped. It will be retried, and the try is not counted.");
          return;
       }
 
@@ -1136,6 +1149,12 @@ namespace HM
 
          const SmtpTlsResult tlsResult = DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
 
+         // The servers were stopped: no host after this one can be reached
+         // either, and its lookups would be made for nothing. Nothing was
+         // reached, so there is no TLS session to report and no reply to read.
+         if (servers_stopped_)
+            return;
+
          bool retryWithoutStartTls = false;
 
          for(std::shared_ptr<MessageRecipient> recipient : remainingRecipients)
@@ -1548,6 +1567,39 @@ namespace HM
          shaping_deferral_minutes_ = minutes;
    }
 
+   void
+   ExternalDelivery::DeferForStoppedServers_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients)
+   {
+      // RFC 3463 X.3.0, "other or undefined mail system status": the mail
+      // system here is what could not take the message on.
+      const String stopped = _T("   Error Type: SMTP\r\n")
+         _T("   Connection to recipients server failed.\r\n")
+         _T("   Error: The servers were stopped before a connection was made. The message will be retried.\r\n");
+
+      // Only those not yet decided: a recipient a remote deferred earlier in
+      // this pass keeps that remote's answer, and the pass is counted for it.
+      for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+      {
+         if (recipient->GetDeliveryResult() == MessageRecipient::ResultUndefined)
+         {
+            recipient->SetDeliveryResult(MessageRecipient::ResultNonFatalError);
+            recipient->SetDeliveryError(stopped, _T("4.3.0"));
+            shaping_deferred_.insert(recipient->GetAddress());
+         }
+      }
+
+      servers_stopped_ = true;
+   }
+
+   bool
+   ExternalDelivery::CountsOwnDeferral_(long spanMinutes, long ageSeconds) const
+   {
+      if (servers_stopped_)
+         return false;
+
+      return spanMinutes > 0 && ageSeconds > spanMinutes * 60;
+   }
+
    bool
    ExternalDelivery::EveryFailureIsShaping_(const std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError) const
    {
@@ -1724,26 +1776,17 @@ namespace HM
       // Gone while the servers are stopped (Application::GetIOService), and a
       // delivery can come here then: one the stop is ending that goes on to its
       // next server. Until 6.3.8 the connection was built on the empty pointer.
-      // Nothing is sent; the recipients this server was to take are deferred and
-      // tried again after the start, as when no connection could be made.
+      // Nothing is sent; the recipients this server was to take are deferred,
+      // offered to nobody, and the pass is rescheduled without counting a try
+      // (DeferForStoppedServers_): a stop of the servers is this server's own
+      // doing, as a delivery the drain holds back is.
       std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
       if (!pIOService)
       {
-         const String stopped = _T("   Error Type: SMTP\r\n")
-            _T("   Connection to recipients server failed.\r\n")
-            _T("   Error: The servers were stopped before a connection was made. The message will be retried.\r\n");
-
-         for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
-         {
-            if (recipient->GetDeliveryResult() == MessageRecipient::ResultUndefined)
-            {
-               recipient->SetDeliveryResult(MessageRecipient::ResultNonFatalError);
-               recipient->SetDeliveryError(stopped, _T("4.3.0"));
-            }
-         }
+         DeferForStoppedServers_(vecRecipients);
 
          LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(message ? message->GetID() : (__int64) 0) +
-            ": not delivered to " + serverInfo->GetHostName() + ": the servers are stopped. It will be retried.");
+            ": not delivered to " + serverInfo->GetHostName() + ": the servers are stopped. It will be retried, and the try is not counted.");
 
          return SmtpTlsResult::NotReached;
       }
@@ -2076,8 +2119,9 @@ namespace HM
       }
 
       // Every failure of this pass was a deferral this server chose - a
-      // back-off window, a connection ceiling, a per-minute rate - and nothing
-      // was offered to anybody. The next try is the deferral's own length, the
+      // back-off window, a connection ceiling, a per-minute rate, or the
+      // servers stopped before a connection was made - and nothing was
+      // offered to anybody. The next try is the deferral's own length, the
       // tries counter is untouched, and neither the quick-retry schedule nor
       // the randomness applies: the minutes are the window's. A pass in which
       // any recipient failed at a remote takes the counted path below, because
@@ -2095,7 +2139,8 @@ namespace HM
          const long spanMinutes = (iMaxNoOfRetries + 1) * lMinutesBewteen;
          const long ageSeconds = SecondsSinceCreation_();
 
-         if (spanMinutes > 0 && ageSeconds > spanMinutes * 60)
+         // Not when the servers were stopped in this pass (CountsOwnDeferral_).
+         if (CountsOwnDeferral_(spanMinutes, ageSeconds))
          {
             LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Deferred by this server's own shaping, but it has been queued for " + StringParser::IntToString((int) (ageSeconds / 60)) + " minute(s), longer than the " + StringParser::IntToString((int) spanMinutes) + " minute(s) its retry schedule spans. This deferral is counted, so that the message is not held for ever.");
 
@@ -2127,7 +2172,7 @@ namespace HM
          {
             const long shapingMinutes = shaping_deferral_minutes_ > 0 ? shaping_deferral_minutes_ : 1;
 
-            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own shaping, not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own " + String(servers_stopped_ ? _T("stop of the servers or shaping") : _T("shaping")) + ", not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
 
             ReportWarmupHolds_(mapFailedDueToNonFatalError, WarmupNextAttempt_(shapingMinutes, false));
 

@@ -74,6 +74,23 @@ namespace HM
       void DeferBatchWithoutCounting_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, int minutes, String &sErrorString);
       bool EveryFailureIsShaping_(const std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError) const;
 
+      // The servers are stopped (Application::GetIOService is empty): the
+      // recipients of the batch not yet decided are offered to nobody. They
+      // are marked non-fatal with 4.3.0 and remembered as DeferBatchWithoutCounting_
+      // remembers its own, so that the pass is rescheduled without counting a
+      // try and writes no deferral of an attempt to the message trace; and
+      // servers_stopped_ is set, so that the rest of the pass makes no lookup
+      // and no connection.
+      void DeferForStoppedServers_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients);
+
+      // Whether a pass whose every failure was this server's own deferral is
+      // counted all the same, because the message has been queued for longer
+      // than its retry schedule spans (RescheduleDelivery_). Never when the
+      // servers were stopped in the pass: a stop is not a destination that
+      // keeps answering "slow down", and a message the stop kept from its
+      // server was tried by nobody, however long it has waited.
+      bool CountsOwnDeferral_(long spanMinutes, long ageSeconds) const;
+
       // How long a deferral by a rate or a connection ceiling waits: one to
       // five minutes by the message's id, so that a backlog held behind one
       // ceiling does not come back as one pass per message every minute.
@@ -122,6 +139,10 @@ namespace HM
       // the longest of those deferrals in minutes. See DeferBatchWithoutCounting_.
       std::set<String> shaping_deferred_;
       int shaping_deferral_minutes_;
+
+      // A delivery of this pass found the servers stopped. See
+      // DeferForStoppedServers_.
+      bool servers_stopped_;
 
       // What the IP warm-up held in this pass (SMTP/IpWarmup.h): the
       // recipients, and what the log line and the report say about why.

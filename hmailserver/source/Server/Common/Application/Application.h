@@ -487,13 +487,22 @@ namespace HM
       // handed out again. The folder manager holds nothing at all.
       std::shared_ptr<NotificationServer> notification_server_;
       std::shared_ptr<IOService> io_service_;
-      // Guards io_service_, smtp_delivery_manager_ and external_fetch_manager_,
-      // the pointers only: held to copy, assign or swap one, never across a call
-      // into any of them - a leaf. Until 6.3.8 GetIOService,
-      // GetSMTPDeliveryManager, GetExternalFetchManager and SubmitPendingEmail
-      // read them on any thread while StopServers reset them; SubmitPendingEmail,
-      // which a message's finalisation calls, read its pointer twice, so that a
-      // reset between the two was a call through an empty pointer.
+      // Guards io_service_, smtp_delivery_manager_, external_fetch_manager_ and
+      // manage_sieve_server_, the pointers only: held to copy, assign or swap
+      // one, never across a call into any of them - a leaf. Until 6.3.8
+      // GetIOService, GetSMTPDeliveryManager, GetExternalFetchManager,
+      // SubmitPendingEmail and GetDrainStatus read them on any thread while
+      // StopServers reset them; SubmitPendingEmail, which a message's
+      // finalisation calls, read its pointer twice, so that a reset between the
+      // two was a call through an empty pointer, and GetDrainStatus is polled
+      // by the live update's watch of its helper while the helper stops the
+      // service. Outside StartServers_ and StopServers_ the members are read
+      // directly only by CloseTheDoors_ and LeaveDrain, and only the first
+      // three: those two run under drain_mutex_ in the state Draining or
+      // Running, which a stop leaves under that lock before it writes them and
+      // a start reaches only after it has made them. The ManageSieve listener
+      // is made after the start reaches Running, so they copy it under this
+      // lock as well (GetManageSieveServer_).
       mutable boost::mutex server_objects_mutex_;
       std::shared_ptr<FolderManager> folder_manager_;
       std::shared_ptr<MetricsServer> metrics_server_;
@@ -504,7 +513,10 @@ namespace HM
 
       std::shared_ptr<RestApiServer> rest_api_server_;
       std::shared_ptr<WebServicesServer> web_services_server_;
+      // Written under server_objects_mutex_, and copied under it by any reader
+      // but StartServers_ and StopServers_ (GetManageSieveServer_).
       std::shared_ptr<ManageSieveServer> manage_sieve_server_;
+      std::shared_ptr<ManageSieveServer> GetManageSieveServer_() const;
 
       const String maintenance_queue_;
       // The random work queue can run any type of task.

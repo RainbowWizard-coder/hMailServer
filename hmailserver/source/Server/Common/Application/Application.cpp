@@ -1115,8 +1115,11 @@ namespace HM
       int manageSievePort = IniFileSettings::Instance()->GetManageSieveServerPort();
       if (manageSievePort > 0)
       {
-         manage_sieve_server_ = std::shared_ptr<ManageSieveServer>(new ManageSieveServer());
-         manage_sieve_server_->Start(IniFileSettings::Instance()->GetManageSieveServerBindAddress(), manageSievePort);
+         std::shared_ptr<ManageSieveServer> made = std::shared_ptr<ManageSieveServer>(new ManageSieveServer());
+         made->Start(IniFileSettings::Instance()->GetManageSieveServerBindAddress(), manageSievePort);
+
+         boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+         manage_sieve_server_ = made;
       }
 
       // A mailbox rename or move that was interrupted - the process killed
@@ -2122,10 +2125,20 @@ namespace HM
          web_services_server_.reset();
       }
 
-      if (manage_sieve_server_)
       {
-         manage_sieve_server_->Stop();
-         manage_sieve_server_.reset();
+         // Taken away under the lock GetDrainStatus copies it under, and stopped
+         // and let go of after it.
+         std::shared_ptr<ManageSieveServer> letGoOf;
+         {
+            boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+            letGoOf.swap(manage_sieve_server_);
+         }
+
+         if (letGoOf)
+         {
+            letGoOf->Stop();
+            letGoOf.reset();
+         }
       }
 
       LOG_DEBUG("Application::StopServers() - Removing server work queue");
@@ -2244,7 +2257,8 @@ namespace HM
 
       // The ManageSieve listener is its own accept loop, not one of IOService's
       // acceptors, and kept accepting through the drain until 23 September 2026.
-      if (manage_sieve_server_ && !manage_sieve_server_->StopAccepting())
+      std::shared_ptr<ManageSieveServer> manageSieve = GetManageSieveServer_();
+      if (manageSieve && !manageSieve->StopAccepting())
          closed = false;
 
       if (smtp_delivery_manager_)
@@ -2274,12 +2288,15 @@ namespace HM
 
       status.sessions = SessionManager::Instance()->GetNumberOfConnections();
 
-      // Copies of the pointers: StopServers resets the members on another thread.
-      std::shared_ptr<ManageSieveServer> manageSieve = manage_sieve_server_;
+      // Copies of the pointers, made under server_objects_mutex_: StopServers
+      // swaps the members on another thread - the live update's watch of its
+      // helper polls this while the helper stops the service - and a pointer
+      // copied while it is swapped is a torn read.
+      std::shared_ptr<ManageSieveServer> manageSieve = GetManageSieveServer_();
       if (manageSieve)
          status.sessions += manageSieve->GetNumberOfSessions();
 
-      std::shared_ptr<SMTPDeliveryManager> deliveryManager = smtp_delivery_manager_;
+      std::shared_ptr<SMTPDeliveryManager> deliveryManager = GetSMTPDeliveryManager();
       status.deliveries = deliveryManager ? deliveryManager->GetDeliveriesInFlight() : 0;
 
       status.drained = status.draining && status.sessions <= 0 && status.deliveries <= 0;
@@ -2333,8 +2350,9 @@ namespace HM
          return "the listeners could not be reopened";
       }
 
-      if (manage_sieve_server_ && !manage_sieve_server_->StartAccepting())
-         notReopened.push_back(Formatter::Format("{0}:{1} (ManageSieve)", manage_sieve_server_->GetBindAddress(), manage_sieve_server_->GetPort()));
+      std::shared_ptr<ManageSieveServer> manageSieve = GetManageSieveServer_();
+      if (manageSieve && !manageSieve->StartAccepting())
+         notReopened.push_back(Formatter::Format("{0}:{1} (ManageSieve)", manageSieve->GetBindAddress(), manageSieve->GetPort()));
 
       if (smtp_delivery_manager_)
          smtp_delivery_manager_->Resume();
@@ -2613,6 +2631,13 @@ namespace HM
    {
       boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
       return external_fetch_manager_;
+   }
+
+   std::shared_ptr<ManageSieveServer>
+   Application::GetManageSieveServer_() const
+   {
+      boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+      return manage_sieve_server_;
    }
 
    namespace

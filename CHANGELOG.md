@@ -731,7 +731,7 @@ with `--check`).
   open ended when the internal tests freed a queue such a stop had kept.
 
 - **Fixed: a task or a session that a stop of the servers could not end reached, when it went on after the stop, for
-  the TCP/IP service and the database manager the stop had let go of, which on Linux ended the process.** A stop
+  the TCP/IP service the stop had let go of, which on Linux ended the process.** A stop
   gives up on a thread still in a wait it cannot interrupt within ten seconds, and the thread goes on when the wait
   ends: a message's finalisation in one of the DNS tests (a lookup waits up to five seconds an attempt in the
   system's receive) then runs its SpamAssassin test, which built the connection to spamd on the TCP/IP service -
@@ -743,20 +743,27 @@ with `--check`).
   diagnostics' connection tests, run through COM with the servers stopped, which answered an error. Each now makes
   no connection and says why: the message goes on without a SpamAssassin verdict, as when spamd cannot be reached;
   the lesson is not delivered; the account is tried again at its next time; the delivery's recipients are deferred
-  (4.3.0) and retried after the start; the two tests answer that the servers are stopped. Two more calls COM makes
+  (4.3.0), the rest of its pass makes no lookup and no connection, and the message is retried after the start with
+  the try not counted against its retries, since nobody was offered it, as a deferral by this server's own shaping
+  is not counted; the two tests answer that the servers are stopped. Two more calls COM makes
   with the servers stopped reached for a manager the stop had let go of. An external account's `DownloadNow` called
   the fetch manager through the empty pointer and answered an error; it now succeeds, and the account is fetched
   when the servers start. A clear of the delivery queue read the delivery manager's queue name through the empty
   pointer, an access violation on the maintenance queue, and never said it was over, so that every clear asked for
   after it, after the start too, did nothing until the process ended - as did a clear that found no delivery queue;
   it now reports HM4210, that the servers are stopped, and clears nothing, and a clear after the start clears the
-  queue. The TCP/IP service's pointer, the delivery manager's and the fetch manager's are copied under a lock of
-  their own now, where another thread copied them while the stop reset them: a finalisation's wake of the delivery
-  queue read the manager's twice, so that a stop between the two reads was a call through an empty pointer. An IMAP
-  session that ended during a reinitialise, between the close of the database and its opening again - one such a
-  stop could not end, freed by the start's first new queue - refreshed its folder's messages and removed their
-  `\Recent` through an empty database manager, which threw and was swallowed: it now leaves the collection as it is
-  and the flags in the database, and the next session to select the folder is told the messages are `\Recent`. And
+  queue. The TCP/IP service's pointer, the delivery manager's, the fetch manager's and the ManageSieve listener's are
+  copied under a lock of their own now, where another thread copied them while the stop reset them: a finalisation's
+  wake of the delivery queue read the manager's twice, so that a stop between the two reads was a call through an
+  empty pointer, and the live update's watch of its helper reads the delivery manager's and the listener's while the
+  helper stops the service. An IMAP session that ended during a reinitialise, between the close of the database and
+  its opening again - one such a stop could not end, freed by the start's first new queue - refreshed its folder's
+  messages and removed their `\Recent` through an empty database manager, which threw and was swallowed: it now
+  leaves the collection as it is and the flags in the database, and the next session to select the folder is told
+  the messages are `\Recent`. That is the one change for the database manager, which a stop keeps and only a
+  reinitialise lets go of, from that close to that opening: a task such a stop could not end that makes a statement
+  in that interval - a finalisation saving its message, a delivery rescheduling one, a fetch recording its next
+  try - still goes through the empty manager, which throws, as it did, and the task's queue takes the exception. And
   such a session, still subscribed to its folder, was told of every change: in IDLE it took the new messages'
   `\Recent` for itself, in the database too, though it would never answer its client, so that the sessions that
   would were never told they were `\Recent`; otherwise it kept every change for good. A session on an I/O service
