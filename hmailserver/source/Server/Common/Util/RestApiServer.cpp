@@ -11945,6 +11945,11 @@ namespace HM
       if (name.IsEmpty())
          return BuildResponse_(400, "{\"error\":\"name is required\"}");
 
+      // active written as anything but true, false or null is refused: read as
+      // absent it was true, and a domain asked for as "active":"false" took mail.
+      if (JsonMemberNotBool_(requestBody, "active"))
+         return BuildResponse_(400, "{\"error\":\"active must be true or false\"}");
+
       // A duplicate is refused before the save rather than by it, so that it
       // is a 409 and not a 400 carrying the limitation check's sentence: to a
       // caller the two are different answers, and one of them means "already
@@ -12914,6 +12919,20 @@ namespace HM
       String wideName;
       if (!Unicode::MultiByteToWide(name, wideName))
          return BuildResponse_(400, "{\"error\":\"name must be UTF-8\"}");
+
+      // A flag written as anything but true, false or null is refused, as
+      // PUT /api/v1/ipranges/{id} refuses it: read as absent it took its
+      // default, and "allow_smtp":"false" or "require_tls_for_auth":"true" made
+      // a range wider than the one asked for.
+      static const char *flags[] = { "allow_smtp", "allow_imap", "allow_pop3",
+         "deliver_local_to_local", "deliver_local_to_remote", "deliver_remote_to_local", "deliver_remote_to_remote",
+         "require_auth_local_to_local", "require_auth_local_to_remote", "require_auth_remote_to_local", "require_auth_remote_to_remote",
+         "require_tls_for_auth", "spam_protection", "virus_protection", "expires" };
+      for (const char *flag : flags)
+      {
+         if (JsonMemberNotBool_(requestBody, flag))
+            return BuildResponse_(400, "{\"error\":\"" + AnsiString(flag) + " must be true or false\"}");
+      }
 
       std::shared_ptr<SecurityRange> range(new SecurityRange);
       range->SetName(wideName);
@@ -19553,6 +19572,10 @@ namespace HM
          return BuildResponse_(400, json);
       }
       const bool confidential = expiresState > 0 && expiresIn != 0;
+      // A passcode written as anything but a string (or null) is refused: read
+      // as absent, the message went with no passcode at all.
+      if (JsonMemberNotString_(requestBody, "passcode"))
+         return BuildResponse_(400, "{\"error\":\"passcode must be a string\"}");
       if (!confidential && !JsonUtf8Value_(requestBody, "passcode").IsEmpty())
          return BuildResponse_(400, "{\"error\":\"passcode is for a message that expires: give expires_in with it\"}");
       if (confidential)
@@ -21782,6 +21805,13 @@ namespace HM
    {
       const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
       return found && !found->IsString() && !found->IsNull();
+   }
+
+   bool
+   RestApiServer::JsonMemberNotBool_(const AnsiString &json, const AnsiString &key)
+   {
+      const std::shared_ptr<const JsonValue> found = JsonBodyMember_(json, key);
+      return found && !found->IsBool() && !found->IsNull();
    }
 
    AnsiString

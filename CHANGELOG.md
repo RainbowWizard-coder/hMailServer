@@ -309,10 +309,11 @@ with `--check`).
   Ltd).
 - **Fixed: the REST API reads a request body in time and memory that follow its bytes.** From 6.3.2 the REST API
   could take far more time and memory to read a JSON body than the body's size, in the service that also serves SMTP,
-  IMAP and POP3, and an account's own password was enough to send one. The parse now moves each value into its place
-  rather than copying it, and a request body of more than 100,000 values or 32 levels is answered 400
-  at the first value past them. The `RestApiRequestBodies` fixtures hold both. Found by the hMailServer project
-  (Progressive Robot Ltd).
+  IMAP and POP3, and an account's own password was enough to send one. From 6.3.4 the same was true of the reply to a
+  password-protected message. The parse now moves each value into its place rather than copying it, and a request
+  body of more than 100,000 values or 32 levels is answered 400 at the first value
+  past them, the protected-message reply's among them. The `RestApiRequestBodies` fixtures hold the bounds, with the
+  account's password and on the reply with no credential. Found by the hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 
@@ -641,9 +642,10 @@ with `--check`).
   migration's jobs (`POST /api/v1/migrations/{id}/jobs`) are a JSON object or CSV: a body that starts with `{`, after a
   byte order mark and white space, is JSON and held to the same rule, and anything else is CSV, as before. A body is
   refused if it is not one JSON object (text after the value, a trailing comma, a stray byte, an array), if one object
-  in it names a member twice, if a string in it carries an escaped U+0000, or if it holds more than 100,000 values or
-  is nested more than 32 levels deep. The answer is `{"error":"the body must be a JSON object: ..."}`, saying why; on
-  a `/scim/` path it is RFC 7644's error with `scimType` `invalidSyntax`. An empty body is still no body.
+  in it names a member twice, if a string or a member name in it, at any depth, carries an escaped U+0000, or if it
+  holds more than 100,000 values or is nested more than 32 levels deep. The answer is
+  `{"error":"the body must be a JSON object: ..."}`, saying why; on a `/scim/` path it is RFC 7644's error with
+  `scimType` `invalidSyntax`. An empty body is still no body.
 
   Where it is judged: for `POST /api/v1/session` (whose passkey and single sign-on ticket are read before the
   credential is known), the password reset and its completion and the passkey challenge, before the credential is
@@ -672,11 +674,23 @@ with `--check`).
   Every member reader now reads the one parse, by the rule the string reader already had: the object's own member,
   else the first of that name in an object inside it. The readers cut a value at an escaped NUL while a route that read
   the document kept it whole; it is now refused, as the listener already refuses a raw NUL in a text body. A
-  member whose absence is the widest setting, written as anything but a string, was read by the parse as absent, and
-  is now refused: `domains` and `allowed_from` in `POST /api/v1/apikeys` (no restriction), `domains` in
-  `PUT /api/v1/role-assignments/{address}` (every domain), and a port's `address` (every interface),
-  `connection_security` (no TLS) and `client_certificate_policy` (no client certificate) in `POST /api/v1/ports` and
-  `PUT /api/v1/ports/{id}`, with its other words, `protocol`, `client_certificate_ca_file` and `smtp_authentication`.
+  member whose absence is the wider setting, written as another type than the route reads, was read by the parse as
+  absent, and is now refused:
+  - as anything but a string or null: `domains` and `allowed_from` in `POST /api/v1/apikeys` (no restriction),
+    `domains` in `PUT /api/v1/role-assignments/{address}` (every domain), a port's `address` (every interface),
+    `connection_security` (no TLS) and `client_certificate_policy` (no client certificate) in `POST /api/v1/ports` and
+    `PUT /api/v1/ports/{id}`, with its other words, `protocol`, `client_certificate_ca_file` and
+    `smtp_authentication`; a file link's `password` in `POST /api/v1/me/files` (a link anyone can open, where
+    `PUT /api/v1/me/files/{id}` refused it already) and a message's `passcode` in `POST /api/v1/me/messages` (a
+    message that expires sent with none); and `domain` in `PUT /api/v1/portal/branding` and
+    `PUT /api/v1/portal/files` (the server's own branding or link policy written in place of the domain's);
+  - as anything but `true`, `false` or null: the flags of `POST /api/v1/ipranges`, as `PUT /api/v1/ipranges/{id}`
+    refused them already (`"allow_smtp":"false"` allowed SMTP, `"require_tls_for_auth":"true"` did not require TLS),
+    `active` in `POST /api/v1/domains` (a domain that takes mail) and `keep_alias` in
+    `POST /api/v1/accounts/{address}/move` (an alias kept where none was asked for).
+
+  Each of these is a client's mistake read the wrong way, not a way round a check: the credential that sends it may
+  set the wider value anyway.
 
   None of this let a caller do what a body that parses could not, because each check and the act it guards read a
   member the same way. The Control Deck, the webmail, `hmctl`, the PowerShell module and the Control Panel already send

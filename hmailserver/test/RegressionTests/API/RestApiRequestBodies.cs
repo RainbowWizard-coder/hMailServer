@@ -34,7 +34,10 @@ namespace RegressionTests.API
    ///    And what reading a body costs: a route that needs a credential judges the
    ///    body only once the credential is, so a request with none is answered 401
    ///    for a body of the large cap without its being parsed, and a body is parsed
-   ///    within bounds of values and depth, refused at the first value past them.
+   ///    within bounds of values and depth, refused at the first value past them -
+   ///    on the protected-message reply too, which takes no credential and the
+   ///    large cap. And a member whose absence is the wider setting, written as
+   ///    another type than the route reads, is refused, not read as absent.
    /// </summary>
    [TestFixture]
    public class RestApiRequestBodies : TestFixtureBase
@@ -238,6 +241,43 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A name given twice inside a nested object, and an escaped U+0000 in a nested string, in an array's item and in a member name, are refused as at the top level, and nothing is changed - the readers of a nested object took the first of a name given twice, and cut a value at the NUL.")]
+      public void ANameGivenTwiceOrANulBelowTheTopLevelIsRefused()
+      {
+         (int status, string body) draft = User("POST", "/api/v1/me/drafts", "{\"subject\":\"rbr nested\",\"text\":\"n\"}");
+         ClassicAssert.AreEqual(201, draft.status, draft.body);
+         string id = FirstNumber(draft.body, "id");
+
+         string[][] cases =
+         {
+            new[] { "names one member twice", "PUT", "/api/v1/me/settings", "{\"signature\":{\"enabled\":true,\"text\":\"rbr-twice-a\",\"text\":\"rbr-twice-b\"}}" },
+            new[] { "U+0000", "PUT", "/api/v1/me/settings", "{\"signature\":{\"enabled\":true,\"text\":\"rbr-nul-string" + EscapedNul + "z\"}}" },
+            new[] { "U+0000", "PUT", "/api/v1/me/settings", "{\"signature\":{\"enabled\":true,\"text\":\"rbr-nul-name\",\"no" + EscapedNul + "te\":\"x\"}}" },
+            new[] { "U+0000", "PUT", "/api/v1/me/messages/" + id + "/flags", "{\"keywords_add\":[\"rbrnul" + EscapedNul + "z\"]}" },
+         };
+
+         var wrong = new StringBuilder();
+         foreach (string[] item in cases)
+         {
+            (int status, string body) answer = User(item[1], item[2], item[3]);
+            if (answer.status != 400 || !answer.body.Contains(Refusal) || !answer.body.Contains(item[0]))
+               wrong.Append("\r\n  " + item[1] + " " + item[2] + " " + item[3] + ": " + answer.status + " " + Shorten(answer.body));
+         }
+
+         string settings = User("GET", "/api/v1/me/settings", null).body;
+         foreach (string text in new[] { "rbr-twice", "rbr-nul-string", "rbr-nul-name" })
+         {
+            if (settings.Contains(text))
+               wrong.Append("\r\n  the signature became " + text + ": " + Shorten(settings));
+         }
+         string message = User("GET", "/api/v1/me/messages/" + id, null).body;
+         if (message.Contains("rbrnul"))
+            wrong.Append("\r\n  the keyword rbrnul was set: " + Shorten(message));
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A nested object's name given twice, or a U+0000 below the top level, was read:" + wrong);
+      }
+
+      [Test]
       [Description("The same refusal on a SCIM path, to the API key SCIM answers to, is RFC 7644's error document, scimType invalidSyntax; without a credential the same body is SCIM's 401, the body not judged.")]
       public void AScimBodyThatIsNotJsonIsRefusedInScimsShape()
       {
@@ -313,6 +353,35 @@ namespace RegressionTests.API
          string text = new string('a', 4 * 1024 * 1024);
          (int status, string body) draft = User("POST", "/api/v1/me/drafts", "{\"subject\":\"rbr large\",\"text\":\"" + text + "\"}");
          ClassicAssert.AreEqual(201, draft.status, "A draft of one four-megabyte string was refused: " + Shorten(draft.body));
+      }
+
+      [Test]
+      [Description("The reply to a password-protected message takes no credential, only the token of its link, and the listener grants it the large cap: a body past the parse's bounds sent there is answered 400 at the first value past them, at once and with the server's peak memory grown by little more than the body's own bytes - sixteen megabytes of zeros in an array, flat and sixty-two arrays deep, with no credential - and no reply is made.")]
+      public void AProtectedMessagesReplyIsParsedWithinTheBounds()
+      {
+         string token = MakeProtectedMessage();
+         var wrong = new StringBuilder();
+         foreach (KeyValuePair<string, string> shape in LargeShapes())
+         {
+            ServerMemory memory = ServerMemory.Start();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            (int status, string answer) = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/protected/" + token + "/reply", null, shape.Value);
+            double seconds = watch.Elapsed.TotalSeconds;
+            string grew = memory.Grew(out long grownBytes);
+
+            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values, or is nested more than 32 levels deep"))
+               wrong.Append("\r\n  " + shape.Key + ": " + status + " " + Shorten(answer));
+            if (seconds > SecondsForALargeBody)
+               wrong.Append("\r\n  " + shape.Key + ": answered after " + seconds.ToString("0.00") + " s");
+            if (grownBytes > BytesALargeBodyMayCost)
+               wrong.Append("\r\n  " + shape.Key + ": the server's peak memory grew " + grew);
+            TestContext.Progress.WriteLine("RestApiRequestBodies: the protected-message reply, no credential, " + shape.Key + ": " + status + " in " + seconds.ToString("0.00") + " s, peak memory grew " + grew);
+         }
+
+         if (User("GET", "/api/v1/me/protected", null).body.Contains("\"reply_to\":\"" + token + "\""))
+            wrong.Append("\r\n  a reply to the protected message was made");
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A body of the large cap sent with no credential to a protected message's reply was read past the parse's bounds, or read slowly:" + wrong);
       }
 
       // The two shapes, each just under the listener's 16 MB: an array of zeros, and
@@ -591,6 +660,57 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A member whose absence is the wider setting, written as another type than the route reads, is refused rather than read as absent, and nothing is made or changed: a file link's password and a message's passcode as a number (no password, no passcode), the branding's and the files policy's domain as an array (the server's own in place of the domain's), an IP range's flags and a new domain's active as a string (allow_smtp \"false\" allowing SMTP, require_tls_for_auth \"true\" not requiring TLS, active \"false\" taking mail), and a mailbox move's keep_alias as a string (an alias kept where none was asked for).")]
+      public void AMemberWhoseAbsenceIsWiderWrittenAsAnotherTypeIsRefused()
+      {
+         var wrong = new StringBuilder();
+         string domain = _domain.Name;
+         string mover = "bodies-move@" + domain;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, mover, UserPassword);
+
+         string[][] cases =
+         {
+            new[] { "user", "POST", "/api/v1/me/files", "{\"name\":\"rbr-link.txt\",\"type\":\"text/plain\",\"size\":3,\"password\":123456}", "password is a string" },
+            new[] { "user", "POST", "/api/v1/me/messages", "{\"to\":\"" + ReaderAddress + "\",\"subject\":\"rbr passcode\",\"text\":\"t\",\"expires_in\":3600,\"passcode\":123456}", "passcode must be a string" },
+            new[] { "admin", "PUT", "/api/v1/portal/branding", "{\"domain\":[\"" + domain + "\"],\"announcement\":\"rbr-announcement\"}", "domain is a domain name, as a string" },
+            new[] { "admin", "PUT", "/api/v1/portal/files", "{\"domain\":[\"" + domain + "\"],\"days\":3}", "domain is a domain name, as a string" },
+            new[] { "admin", "POST", "/api/v1/ipranges", "{\"name\":\"rbr-smtp\",\"lower\":\"192.0.2.83\",\"upper\":\"192.0.2.83\",\"allow_smtp\":\"false\"}", "allow_smtp must be true or false" },
+            new[] { "admin", "POST", "/api/v1/ipranges", "{\"name\":\"rbr-tls\",\"lower\":\"192.0.2.84\",\"upper\":\"192.0.2.84\",\"require_tls_for_auth\":\"true\"}", "require_tls_for_auth must be true or false" },
+            new[] { "admin", "POST", "/api/v1/domains", "{\"name\":\"rbr-active.test\",\"active\":\"false\"}", "active must be true or false" },
+            new[] { "admin", "POST", "/api/v1/accounts/" + mover + "/move", "{\"new_address\":\"bodies-moved@" + domain + "\",\"keep_alias\":\"false\"}", "keep_alias must be true or false" },
+         };
+
+         foreach (string[] item in cases)
+         {
+            (int status, string body) answer = Send(item[0], item[1], item[2], item[3], null);
+            if (answer.status != 400 || !answer.body.Contains(item[4]))
+               wrong.Append("\r\n  " + item[1] + " " + item[2] + " " + item[3] + ": " + answer.status + " " + Shorten(answer.body));
+         }
+
+         if (User("GET", "/api/v1/me/files", null).body.Contains("rbr-link.txt"))
+            wrong.Append("\r\n  a file link was made");
+         if (User("GET", "/api/v1/me/confidential", null).body.Contains("rbr passcode"))
+            wrong.Append("\r\n  a message that expires was sent");
+         if (Admin("GET", "/api/v1/portal/branding", null).body.Contains("rbr-announcement"))
+            wrong.Append("\r\n  the server's own announcement was written");
+         string files = Admin("GET", "/api/v1/portal/files", null).body;
+         if (Regex.IsMatch(files, "\"days\":3[,}]"))
+            wrong.Append("\r\n  the server's files policy was written: " + Shorten(files));
+         string ranges = Admin("GET", "/api/v1/ipranges", null).body;
+         foreach (string name in new[] { "rbr-smtp", "rbr-tls" })
+         {
+            if (ranges.Contains("\"name\":\"" + name + "\""))
+               wrong.Append("\r\n  an IP range " + name + " was made");
+         }
+         if (Admin("GET", "/api/v1/domains/rbr-active.test", null).status == 200)
+            wrong.Append("\r\n  the domain rbr-active.test was made");
+         if (Admin("GET", "/api/v1/accounts/bodies-moved@" + domain, null).status == 200)
+            wrong.Append("\r\n  the mailbox was moved");
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "A member whose absence is the wider setting, written as another type, was read as absent:" + wrong);
+      }
+
+      [Test]
       [Description("A migration's jobs given as a JSON object are held to what every JSON body is - a name given twice and an escaped U+0000 are refused - while CSV is taken as before.")]
       public void AMigrationsJobsAsJsonAreHeldToTheRule()
       {
@@ -678,6 +798,12 @@ namespace RegressionTests.API
          string migrations = Admin("GET", "/api/v1/migrations", null).body;
          foreach (Match migration in Regex.Matches(migrations, "\"id\":(\\d+),\"name\":\"rbr-migration\""))
             Admin("DELETE", "/api/v1/migrations/" + migration.Groups[1].Value, null);
+
+         // What a server that read a member of another type as absent wrote in
+         // the server's own name.
+         Admin("DELETE", "/api/v1/domains/rbr-active.test", null);
+         Admin("PUT", "/api/v1/portal/branding", "{\"announcement\":\"\"}", null);
+         Admin("PUT", "/api/v1/portal/files", "{\"days\":null}", null);
       }
 
       // A password-protected message from the fixture's account to the reader,

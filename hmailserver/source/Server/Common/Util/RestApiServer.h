@@ -2890,10 +2890,12 @@ namespace HM
       static std::shared_ptr<const JsonValue> JsonBodyMember_(const AnsiString &json, const AnsiString &key);
 
       // Whether the body names the member, whatever its value; and whether it
-      // names it as something other than a string or null - which a route that
-      // reads a restriction refuses rather than reading it as no restriction.
+      // names it as something other than a string or null, or other than true,
+      // false or null - which a route that reads a restriction refuses rather
+      // than reading it as absent, where absent is the wider setting.
       static bool JsonHasMember_(const AnsiString &json, const AnsiString &key);
       static bool JsonMemberNotString_(const AnsiString &json, const AnsiString &key);
+      static bool JsonMemberNotBool_(const AnsiString &json, const AnsiString &key);
 
       // A string member, "" when absent or of another type.
       static AnsiString GetJsonStringValue_(const AnsiString &json, const AnsiString &key);

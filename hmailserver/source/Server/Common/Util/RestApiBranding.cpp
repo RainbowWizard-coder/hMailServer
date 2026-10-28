@@ -145,6 +145,12 @@ namespace HM
       if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())
          return BuildResponse_(400, "{\"error\":\"the body must be a JSON object: name, logo, announcement, and domain for a domain's own\"}");
 
+      // A domain written as anything but a string (or null) is refused: read
+      // as absent it wrote the server's own branding in place of the domain's.
+      const JsonValue *domainValue = document.Get("domain");
+      if (domainValue && !domainValue->IsString() && !domainValue->IsNull())
+         return BuildResponse_(400, "{\"error\":\"domain is a domain name, as a string\"}");
+
       String domain;
       Unicode::MultiByteToWide(AnsiString(document.GetString("domain").c_str()), domain);
       domain.TrimLeft();

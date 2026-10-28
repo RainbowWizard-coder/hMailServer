@@ -92,20 +92,25 @@ Every route the two web listeners answer is in
   the rest are public by design.
 - **Uploads**: every request body. The REST listener takes 64 KB
   (RestApiServer.cpp:214), 16 MB in five minutes for the routes
-  `IsLargeRequest_` names (RestApiServer.cpp:218-219, :20853-20917: sending, drafts,
-  file and protected-message content, settings, directory entries, OpenPGP
-  rings) and 256 KB for the SAML ACS (:226). The web services listener takes
+  `IsLargeRequest_` names (RestApiServer.cpp:218-219, :20723-20787: sending - the
+  webmail's and the send API's -, drafts, a message to import, file and
+  protected-message content, the reply to a protected message, which takes no
+  credential, settings, directory entries, OpenPGP rings) and 256 KB for the
+  SAML ACS (:226). The web services listener takes
   64 KB, and about 1 MB for CardDAV (WebServicesServer.cpp:75, :86). A body
   meant to be JSON - a write to any route under `/api/` or `/scim/` but the four
   that take a file's bytes, a protected message's ciphertext or a message to
   import (two), and a migration's jobs when they are a JSON object rather than
   CSV - is one JSON object of at most 100,000 values and 32 levels, read by one
   parse, or the request is answered 400 before any route reads a member
-  (`RefuseBodyThatIsNotJson_`). It is judged before the credential only on the
-  four routes read before there is one, under the ordinary 64 KB; everywhere else
-  once the credential and the route's authorisation are, so that a body of the
-  large cap from a caller with no credential is never parsed. The pages outside
-  `/api/` keep their forms.
+  (`RefuseBodyThatIsNotJson_`). It is judged before the credential on the four
+  routes read before there is one, under the ordinary 64 KB; on the reply to a
+  protected message, which takes no credential, once its address budget and its
+  token are (`RefuseJsonBody_` in `HandleProtectedReply_`), within the bounds; and
+  everywhere else once the credential and the
+  route's authorisation are, so that a body of the large cap from a caller with
+  no credential is never parsed there. The pages outside `/api/` keep their
+  forms.
 - **The browser side**: the Deck's and the webmail's scripts, the service worker
   (`/portal-sw.js`, scope `/`), the share target (`POST /portal/share`, answered
   by the worker), the message-HTML frame, the PDF preview frame, IndexedDB and
@@ -149,7 +154,7 @@ Controls in place today
 | The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at :2505 |
 | Chunked bodies refused (411); a NUL in a text body refused (400) | HttpServer.cpp:776-791 |
 | One reading of a JSON body: one that is not one JSON object - text after the value, a trailing comma, an array - or that names a member twice in an object, carries an escaped U+0000, or holds more than 100,000 values or 32 levels of nesting is refused (400) before any route reads it; every member reader reads that one parse, by name, so a key spelt inside a value or a member of an array is never read as the member. Until 6.3.7 a body the parse refused was searched for its keys, and several readers searched every body | `BodyMustBeJson_`, `RefuseBodyThatIsNotJson_` and `BodyObject_` in RestApiServer.cpp, asked in `ProcessRequest_` |
-| A body is parsed only once its request may be acted on: before `Authenticate_` only for the four routes read before there is a credential, all under the ordinary 64 KB (`POST /api/v1/session`, whose passkey and single sign-on ticket `Authenticate_` reads, the password reset and its completion, the passkey challenge); the protected-message reply after its address budget and its token; every other route after the credential and `Authorize_`. So a request with no credential is answered 401 for a body of the large cap without its being parsed; and the parse is linear, each value moved into its place, and stops at the first value past its bounds | `BodyIsReadBeforeAuthentication_` and `RefuseJsonBody_` in RestApiServer.cpp, `HandleProtectedReply_`; the bounded `JsonValue::Parse` in JsonDocument.cpp |
+| A body is parsed only once its request may be acted on: before `Authenticate_` only for the four routes read before there is a credential, all under the ordinary 64 KB (`POST /api/v1/session`, whose passkey and single sign-on ticket `Authenticate_` reads, the password reset and its completion, the passkey challenge); the protected-message reply after its address budget and its token; every other route after the credential and `Authorize_`. So a request with no credential to a route that needs one is answered 401 for a body of the large cap without its being parsed; and the parse is linear, each value moved into its place, and stops at the first value past its bounds | `BodyIsReadBeforeAuthentication_` and `RefuseJsonBody_` in RestApiServer.cpp, `HandleProtectedReply_`; the bounded `JsonValue::Parse` in JsonDocument.cpp |
 | Absolute time limits per request and per connection, 64 connections | RestApiServer.cpp:227-229 |
 | Apple profiles (which carry a password) only over HTTPS | WebServicesServer.cpp:944-956 |
 

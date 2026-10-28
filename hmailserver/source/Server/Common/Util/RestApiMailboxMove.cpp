@@ -83,7 +83,11 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"new_address is required\"}");
 
       // The default is to keep the old address, because that is what keeps mail
-      // flowing; a caller says keep_alias false to not keep it.
+      // flowing; a caller says keep_alias false to not keep it. Written as
+      // anything but true, false or null it is refused, not read as absent: a
+      // caller that asked for no alias got one.
+      if (JsonMemberNotBool_(requestBody, "keep_alias"))
+         return BuildResponse_(400, "{\"error\":\"keep_alias must be true or false\"}");
       const bool keepAlias = GetJsonBoolValue_(requestBody, "keep_alias", true);
 
       const String targetDomain = StringParser::ExtractDomain(String(newAddress));

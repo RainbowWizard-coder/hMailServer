@@ -720,6 +720,16 @@ namespace HM
                  whole.Members().size() == 2 && whole.Members()[0].first == "b" && whole.Members()[1].first == "a" &&
                  whole.HadDuplicateMember() && whole.Get("b")->IsArray() && whole.Get("b")->At(1)->GetString("c") == "x",
          "the bounded parse read an object otherwise than Parse does");
+
+      // A name given twice below the top level is recorded on the object that
+      // gives it, in an object and in an array's item, and not on the levels
+      // above: the request body's refusal looks at every object of the
+      // document.
+      JsonValue below;
+      JsonExpect(JsonValue::Parse("{\"s\":{\"t\":\"a\",\"t\":\"b\"},\"u\":[{\"v\":1,\"v\":2}],\"w\":{\"x\":1}}", below, error, 100, 32, beyond) &&
+                 !below.HadDuplicateMember() && below.Get("s")->HadDuplicateMember() && below.Get("s")->GetString("t") == "a" &&
+                 below.Get("u")->At(0)->HadDuplicateMember() && !below.Get("w")->HadDuplicateMember(),
+         "a name given twice in a nested object was not recorded on that object alone");
    }
 
    bool
