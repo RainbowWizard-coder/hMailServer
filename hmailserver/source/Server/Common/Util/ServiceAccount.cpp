@@ -1380,8 +1380,12 @@ namespace HM
       // The groups that hold ordinary accounts, or programs in an app container,
       // as SIDs: what the program's folders of mail, logs, keys and scripts, and
       // hMailServer.INI, are closed to (RunProtectCommand), and what its CHECK
-      // lines name. A domain's Domain Users group (S-1-5-21-...-513) is one of
-      // them too (IsBroad_).
+      // lines name. A domain's Domain Users and Domain Guests groups
+      // (S-1-5-21-...-513 and -514) are two of them too (IsBroad_). Local
+      // account, This Organization, the identity an authentication authority
+      // asserted and ALL SERVICES hold every local account, every account a
+      // trusted domain signs in, every account signed in with credentials and
+      // every service (check 6 of the installer's R1 to R4, 28 October 2026).
       const wchar_t *const BroadSids_[] = {
          L"S-1-1-0",       // Everyone
          L"S-1-2-0",       // LOCAL
@@ -1400,6 +1404,10 @@ namespace HM
          L"S-1-5-32-555",  // Remote Desktop Users
          L"S-1-15-2-1",    // ALL APPLICATION PACKAGES
          L"S-1-15-2-2",    // ALL RESTRICTED APPLICATION PACKAGES
+         L"S-1-5-15",      // This Organization
+         L"S-1-5-113",     // Local account
+         L"S-1-18-1",      // Authentication authority asserted identity
+         L"S-1-5-80-0",    // ALL SERVICES
       };
 
       bool IsBroad_(const String &sidText)
@@ -1409,7 +1417,7 @@ namespace HM
             if (sidText.CompareNoCase(broad) == 0)
                return true;
          }
-         return sidText.Left(9).CompareNoCase(_T("S-1-5-21-")) == 0 && sidText.Right(4) == _T("-513");
+         return sidText.Left(9).CompareNoCase(_T("S-1-5-21-")) == 0 && (sidText.Right(4) == _T("-513") || sidText.Right(4) == _T("-514"));
       }
 
       // An account as Windows names it - BUILTIN\Users, APPLICATION PACKAGE
@@ -3767,6 +3775,39 @@ namespace HM
          RemoveDirectoryW(serviceLink.c_str());
       }
 
+      // The groups of every user (IsBroad_), which /ProtectFolders takes away
+      // from the program's folders and its CHECK lines name, and which the
+      // installer counts alike (BroadGroupSid, IsBroadSid): every SID of
+      // BroadSids_, a domain's Domain Users and Domain Guests, and none of
+      // SYSTEM, the Administrators, TrustedInstaller, an account that is an
+      // administrator, a domain's Administrator or Domain Admins, or a
+      // service's own SID (check 6 of the installer's R1 to R4, 28 October 2026).
+      void TestBroad_()
+      {
+         const wchar_t *const broad[] = {
+            L"S-1-1-0", L"S-1-5-11", L"S-1-5-32-545", L"S-1-5-6", L"S-1-15-2-1", L"S-1-5-15", L"S-1-5-113", L"S-1-18-1", L"S-1-5-80-0",
+            L"S-1-5-21-1004336348-1177238915-682003330-513", L"S-1-5-21-1004336348-1177238915-682003330-514" };
+         for (const wchar_t *sid : broad)
+         {
+            if (!IsBroad_(sid))
+               FailGrant_(String(_T("IsBroad_ does not count ")) + sid + _T(" among the groups of every user."));
+         }
+         for (const wchar_t *sid : BroadSids_)
+         {
+            if (!IsBroad_(sid))
+               FailGrant_(String(_T("IsBroad_ does not count ")) + sid + _T(", which BroadSids_ lists."));
+         }
+         const wchar_t *const narrow[] = {
+            L"S-1-5-18", L"S-1-5-32-544", L"S-1-5-114", L"S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464",
+            L"S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809", L"S-1-5-21-1004336348-1177238915-682003330-500",
+            L"S-1-5-21-1004336348-1177238915-682003330-512", L"S-1-5-21-1004336348-1177238915-682003330-1513" };
+         for (const wchar_t *sid : narrow)
+         {
+            if (IsBroad_(sid))
+               FailGrant_(String(_T("IsBroad_ counts ")) + sid + _T(" among the groups of every user, which it is not."));
+         }
+      }
+
       // Which folders a grant may reach, on a machine made up for the purpose:
       // no folder here needs to exist.
       void TestLocations_()
@@ -4581,6 +4622,7 @@ namespace HM
       if (ServiceAccount::ProcessIsMostPrivileged() && !ServiceAccount::ProcessIsAdministrator())
          FailGrant_(_T("This process runs as LocalSystem and is not reported as an administrator."));
 
+      TestBroad_();
       TestLocations_();
       TestLogons_();
 

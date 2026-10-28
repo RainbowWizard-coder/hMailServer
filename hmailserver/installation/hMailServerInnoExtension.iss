@@ -748,9 +748,11 @@ external 'GetVolumePathNamesForVolumeNameW@kernel32.dll stdcall';
 // BroadSids_, every one of them, which build/check-installer-scripts.py holds this list
 // to (check 5 of R1 to R4, 27 October 2026: eight of them were left out, and an entry
 // of a folder's own for one was kept as a named account's) - with the name each is
-// given in what setup says. A domain's Domain Users (S-1-5-21-...-513) is one of them
-// too (IsBroadSid). The first three are those EveryUserMayRead asks for. Empty past the
-// last.
+// given in what setup says; This Organization, Local account, the identity an
+// authentication authority asserted and ALL SERVICES since check 6 of R1 to R4 (28 October
+// 2026), in BroadSids_ too. A domain's Domain Users and Domain Guests (S-1-5-21-...-513 and
+// -514) are two of them too (IsBroadSid). The first three are those EveryUserMayRead asks
+// for. Empty past the last.
 function BroadGroupSid(Index: Integer; var Name: String): String;
 begin
    Result := '';
@@ -773,6 +775,10 @@ begin
       14: begin Result := 'S-1-5-7'; Name := 'ANONYMOUS LOGON'; end;
       15: begin Result := 'S-1-15-2-1'; Name := 'ALL APPLICATION PACKAGES'; end;
       16: begin Result := 'S-1-15-2-2'; Name := 'ALL RESTRICTED APPLICATION PACKAGES'; end;
+      17: begin Result := 'S-1-5-15'; Name := 'This Organization'; end;
+      18: begin Result := 'S-1-5-113'; Name := 'Local account'; end;
+      19: begin Result := 'S-1-18-1'; Name := 'Authentication authority asserted identity'; end;
+      20: begin Result := 'S-1-5-80-0'; Name := 'ALL SERVICES'; end;
    end;
 end;
 
@@ -1067,7 +1073,8 @@ begin
 end;
 
 // Whether the SID at pSid is one of the groups that hold every user (BroadGroupSid), or a
-// domain's Domain Users, S-1-5-21-...-513, as ServiceAccount.cpp's IsBroad_ counts it.
+// domain's Domain Users or Domain Guests, S-1-5-21-...-513 or -514, as ServiceAccount.cpp's
+// IsBroad_ counts them.
 function IsBroadSid(pSid: cardinal): Boolean;
 var
    szSid: String;
@@ -1087,7 +1094,8 @@ begin
    if not Result then
    begin
       szSid := TextOfSidAt(pSid);
-      Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and (Copy(szSid, Length(szSid) - 3, 4) = '-513');
+      Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and
+                ((Copy(szSid, Length(szSid) - 3, 4) = '-513') or (Copy(szSid, Length(szSid) - 3, 4) = '-514'));
    end;
 end;
 

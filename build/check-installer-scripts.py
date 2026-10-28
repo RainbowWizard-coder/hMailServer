@@ -843,13 +843,16 @@ PROGRAM_FOLDER_STATEMENTS = (
      "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0,"),
     ('SidIs', 'a SID is taken for another, so that every owner is trusted or every group of every user is not one (the review of 26 October 2026)',
      "^function SidIs(pSid: cardinal; szSid: String): Boolean; var pOther: cardinal; begin Result := false; if pSid = 0 then Exit; pOther := 0; if SidOfText(szSid, pOther) then begin Result := SidsAreEqual(pSid, pOther); FreeWindowsMemory(pOther); end; end;$"),
-    ('IsBroadSid', 'a group of every user - a domain\'s Domain Users among them, as ServiceAccount.cpp\'s IsBroad_ counts it - is not taken for one, so that an entry that lets every user write is kept',
+    ('IsBroadSid', 'a group of every user - a domain\'s Domain Users and Domain Guests among them, as ServiceAccount.cpp\'s IsBroad_ counts them (check 6 of R1 to R4, 28 October 2026) - is not taken for one, so that an entry that lets every user write is kept',
      "^function IsBroadSid(pSid: cardinal): Boolean; var szSid: String; szName: String; group: Integer; begin Result := false; group := 0; szSid := BroadGroupSid(group, szName); while (not Result) and (szSid <> '') do begin if SidIs(pSid, szSid) then Result := true; group := group + 1; szSid := BroadGroupSid(group, szName); end; "
-     "if not Result then begin szSid := TextOfSidAt(pSid); Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and (Copy(szSid, Length(szSid) - 3, 4) = '-513'); end; end;$"),
-    ('BroadGroupSid', 'a group of every user is left out, or its SID mistyped - each of ServiceAccount.cpp\'s BroadSids_, eight of which were missing before check 5 of R1 to R4 (27 October 2026)',
+     "if not Result then begin szSid := TextOfSidAt(pSid); Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and "
+     "((Copy(szSid, Length(szSid) - 3, 4) = '-513') or (Copy(szSid, Length(szSid) - 3, 4) = '-514')); end; end;$"),
+    ('BroadGroupSid', 'a group of every user is left out, or its SID mistyped - each of ServiceAccount.cpp\'s BroadSids_, eight of which were missing before check 5 of R1 to R4 (27 October 2026), and four more before check 6 (28 October 2026)',
      "^function BroadGroupSid(Index: Integer; var Name: String): String; begin Result := ''; Name := ''; case Index of 0: begin Result := 'S-1-1-0'; Name := 'Everyone'; end; 1: begin Result := 'S-1-5-11'; Name := 'Authenticated Users'; end; 2: begin Result := 'S-1-5-32-545'; Name := 'Users'; end; 3: begin Result := 'S-1-5-4'; Name := 'INTERACTIVE'; end; 4: begin Result := 'S-1-2-0'; Name := 'LOCAL'; end; 5: begin Result := 'S-1-5-32-546'; Name := 'Guests'; end; 6: begin Result := 'S-1-5-32-547'; Name := 'Power Users'; end; 7: begin Result := 'S-1-5-32-555'; Name := 'Remote Desktop Users'; end; 8: begin Result := 'S-1-5-14'; Name := 'REMOTE INTERACTIVE LOGON'; end; 9: begin Result := 'S-1-5-13'; Name := 'TERMINAL SERVER USER'; end; "
      "10: begin Result := 'S-1-2-1'; Name := 'CONSOLE LOGON'; end; 11: begin Result := 'S-1-5-2'; Name := 'NETWORK'; end; 12: begin Result := 'S-1-5-3'; Name := 'BATCH'; end; 13: begin Result := 'S-1-5-6'; Name := 'SERVICE'; end; 14: begin Result := 'S-1-5-7'; Name := 'ANONYMOUS LOGON'; end; "
-     "15: begin Result := 'S-1-15-2-1'; Name := 'ALL APPLICATION PACKAGES'; end; 16: begin Result := 'S-1-15-2-2'; Name := 'ALL RESTRICTED APPLICATION PACKAGES'; end; end; end;$"),
+     "15: begin Result := 'S-1-15-2-1'; Name := 'ALL APPLICATION PACKAGES'; end; 16: begin Result := 'S-1-15-2-2'; Name := 'ALL RESTRICTED APPLICATION PACKAGES'; end; "
+     "17: begin Result := 'S-1-5-15'; Name := 'This Organization'; end; 18: begin Result := 'S-1-5-113'; Name := 'Local account'; end; "
+     "19: begin Result := 'S-1-18-1'; Name := 'Authentication authority asserted identity'; end; 20: begin Result := 'S-1-5-80-0'; Name := 'ALL SERVICES'; end; end; end;$"),
     ('AclLetsOthers', 'an entry of a form setup does not read, or one it cannot read, is taken for one that lets nobody, or another right counted',
      "^function AclLetsOthers(pDacl: cardinal; Rights: cardinal; OwnerTrusted: Boolean; var Who: String): Boolean; var info: ACL_SIZE_INFO; head: ACE_START; pAce: cardinal; index: cardinal; aceType: cardinal; aceFlags: cardinal; begin Result := false; Who := ''; if pDacl = 0 then begin Result := true; Who := 'everyone (it has no list of permissions at all)'; Exit; end; if not ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then begin Result := true; Who := 'an account in a list of permissions that could not be read'; Exit; end; index := 0; while (not Result) and (index < info.AceCount) do begin pAce := 0; if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then begin CopyAceStart(head, pAce, 8); aceType := head.TypeFlagsSize and $FF; aceFlags := (head.TypeFlagsSize shr 8) and $FF; if (aceFlags and HM_INHERIT_ONLY) = 0 then begin if aceType = HM_ACCESS_ALLOWED then begin if ((head.Mask and Rights) <> 0) and (not IsTrustedSid(pAce + 8)) then begin if not (OwnerTrusted and SidIs(pAce + 8, 'S-1-3-4')) then begin Result := true; Who := SidNameAt(pAce + 8); end; end; end else if (aceType = 4) or (aceType = 5) or (aceType = 9) or (aceType = 11) then begin Result := true; Who := 'an account in an entry of a form setup does not read'; end; end; end else begin Result := true; Who := 'an account in an entry that could not be read'; end; index := index + 1; end; end;$"),
     ('HoldForSetup', 'a folder is held shared for deleting, or through its link, or not kept until the end',
@@ -1513,7 +1516,7 @@ PROGRAM_FOLDER_CODE = (
     ('AclLetsOthers', '6b00430bd84cb1ab'),
     ('AddAsOwnEntry', 'f0c0620c1378f54d'),
     ('AddRestartFolder', '49938388fed2521d'),
-    ('BroadGroupSid', '963f744993f423ee'),
+    ('BroadGroupSid', '8b255776e8013335'),
     ('CheckFoldersBeforeTheStop', 'a2e38e9db48a13e5'),
     ('CheckProgramFolders', '85dbd1b64f25185c'),
     ('CheckWhatElseIsInside', 'fd39329fb2e6503e'),
@@ -1549,7 +1552,7 @@ PROGRAM_FOLDER_CODE = (
     ('InheritsNothing', 'ba9a5f635445f6e7'),
     ('IsAtOrAboveChecked', '65db442d814071a2'),
     ('IsAtOrBelow', 'ddb47adbbef155e5'),
-    ('IsBroadSid', 'e340b756f11bc5eb'),
+    ('IsBroadSid', '38c2f0d7a83df514'),
     ('IsDataFolderName', 'ce6c435a26838422'),
     ('IsProgramFile', '219188cbc96d13c5'),
     ('IsRunFolderName', '618eab586bb72741'),
@@ -1775,9 +1778,19 @@ def check_program_folder_code(texts, problems):
         if sorted(listed) != sorted(sids):
             problems.append('%s: BroadGroupSid counts %s as the groups of every user, where ServiceAccount.cpp\'s BroadSids_ counts %s'
                             % (EXTENSION, ', '.join(sorted(listed)), ', '.join(sorted(sids))))
-    if '_T("S-1-5-21-")) == 0 && sidText.Right(4) == _T("-513")' in server and \
-            "Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and (Copy(szSid, Length(szSid) - 3, 4) = '-513');" not in (pascal_routine(ext, 'IsBroadSid') or ''):
-        problems.append('%s: IsBroadSid does not count a domain\'s Domain Users (S-1-5-21-...-513), which ServiceAccount.cpp\'s IsBroad_ counts' % EXTENSION)
+    # A domain's Domain Users and Domain Guests (S-1-5-21-...-513 and -514): IsBroad_ counts
+    # both, and IsBroadSid counts what IsBroad_ counts (check 6 of R1 to R4, 28 October 2026).
+    server_rids = re.search(r'return sidText\.Left\(9\)\.CompareNoCase\(_T\("S-1-5-21-"\)\) == 0 && \((.*)\);', server)
+    rids = sorted(re.findall(r'sidText\.Right\(4\) == _T\("(-\d{3})"\)', server_rids.group(1))) if server_rids else []
+    if rids != ['-513', '-514']:
+        problems.append('%s: IsBroad_ counts the domain groups %s among the groups of every user, where Domain Users (-513) and Domain Guests (-514) are held'
+                        % (SERVICE_ACCOUNT, ', '.join(rids) or 'none'))
+    installer_rids = re.search(r"Result := \(Length\(szSid\) > 13\) and \(CompareText\(Copy\(szSid, 1, 9\), 'S-1-5-21-'\) = 0\) and\s*\((.*?)\);",
+                               pascal_routine(ext, 'IsBroadSid') or '', re.S)
+    counted = sorted(re.findall(r"\(Copy\(szSid, Length\(szSid\) - 3, 4\) = '(-\d{3})'\)", installer_rids.group(1))) if installer_rids else []
+    if counted != rids:
+        problems.append('%s: IsBroadSid counts the domain groups %s, where ServiceAccount.cpp\'s IsBroad_ counts %s'
+                        % (EXTENSION, ', '.join(counted) or 'none', ', '.join(rids) or 'none'))
 
     for declaration in PROGRAM_FOLDER_DECLARATIONS:
         count = len(re.findall(statement_pattern(declaration), ext))
@@ -3151,6 +3164,16 @@ def negative_controls(texts):
                      altered(texts, EXTENSION, "      13: begin Result := 'S-1-5-6'; Name := 'SERVICE'; end;", "      13: begin Result := 'S-1-5-19'; Name := 'LOCAL SERVICE'; end;")))
     controls.append(('a domain\'s Domain Users not counted among the groups of every user (check 5 of R1 to R4)',
                      altered(texts, EXTENSION, "(Copy(szSid, Length(szSid) - 3, 4) = '-513')", "(Copy(szSid, Length(szSid) - 3, 4) = '-512')")))
+    controls.append(('a domain\'s Domain Guests not counted among the groups of every user (check 6 of R1 to R4)',
+                     altered(texts, EXTENSION, " or (Copy(szSid, Length(szSid) - 3, 4) = '-514')", '')))
+    controls.append(('ServiceAccount.cpp not counting a domain\'s Domain Guests (check 6 of R1 to R4)',
+                     altered(texts, SERVICE_ACCOUNT, ' || sidText.Right(4) == _T("-514")', '')))
+    controls.append(('ServiceAccount.cpp and the installer counting a domain\'s Domain Admins as a group of every user (check 6 of R1 to R4)',
+                     (lambda server: altered(server, EXTENSION, "(Copy(szSid, Length(szSid) - 3, 4) = '-514')", "(Copy(szSid, Length(szSid) - 3, 4) = '-512')") if server else None)(
+                         altered(texts, SERVICE_ACCOUNT, 'sidText.Right(4) == _T("-514")', 'sidText.Right(4) == _T("-512")'))))
+    controls.append(('ALL SERVICES left out of the groups of every user, in ServiceAccount.cpp and the installer alike (check 6 of R1 to R4)',
+                     (lambda server: altered(server, EXTENSION, "      20: begin Result := 'S-1-5-80-0'; Name := 'ALL SERVICES'; end;\n", '') if server else None)(
+                         altered(texts, SERVICE_ACCOUNT, '         L"S-1-5-80-0",    // ALL SERVICES\n', ''))))
     controls.append(('ServiceAccount.cpp counting a group of every user the installer does not (check 5 of R1 to R4)',
                      altered(texts, SERVICE_ACCOUNT, '         L"S-1-15-2-2",    // ALL RESTRICTED APPLICATION PACKAGES\n',
                              '         L"S-1-15-2-2",    // ALL RESTRICTED APPLICATION PACKAGES\n         L"S-1-5-1",       // DIALUP\n')))
