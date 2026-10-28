@@ -175,6 +175,20 @@ and a variable named `INI` or `default_port`, two of the entrypoint's own names,
 reaches it holding the configuration file's path, or the database's default port
 when `HM_DB_TYPE` is given.
 
+`HMAILSERVER_RECOVERY_PASSPHRASE`, a domain's recovery passphrase, is read by one
+verb, `hmailserver --decrypt-store` ([EncryptionAtRest.md](EncryptionAtRest.md)),
+and never by the running server. The entrypoint takes it out of the environment with
+the passwords, so that no program it runs itself holds it, and gives it back to the
+command unless the command is the server itself, as for the settings' variables: a
+container whose command is the verb (`docker compose run --rm -e
+HMAILSERVER_RECOVERY_PASSPHRASE hmailserver hmailserver --decrypt-store --domain
+example.com`, with the server stopped) has it, and a server started on the image's
+own command does not. 6.3.7's entrypoint left it in the environment of every program,
+the server among them for its whole life. Under the Compose file's and the Helm
+chart's shell command lines it still reaches the server, as the settings' variables
+do, so it belongs only in the environment of a container started to run that verb,
+never in the service's or the chart's `extraEnv`.
+
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
 Docker's builder since Docker 23, sets `TARGETARCH`; with the older builder, add

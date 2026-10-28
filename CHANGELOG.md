@@ -140,6 +140,16 @@ with `--check`).
   the image's user can read `hMailServer.ini`, which holds the database password, all the same.
   `build/test-docker-entrypoint.sh` holds it, with 6.3.7's entrypoint as its negative control
   (`hmailserver/docs/ContainerImage.md`).
+- **Changed: the container image's `HMAILSERVER_RECOVERY_PASSPHRASE` no longer reaches the server's environment.**
+  The variable is read by one verb, `hmailserver --decrypt-store`, and by nothing the running server does; given in a
+  container's environment it stayed in the server's, and that of every program the server starts, for the server's
+  whole life, which under `no_new_privs` - the Helm chart's `allowPrivilegeEscalation: false` - any program running
+  as the image's user could read from `/proc/1/environ`. The entrypoint now takes it out of the environment with the
+  two passwords, before it runs any program of its own, and gives it back to the command unless the command is the
+  server itself, as it keeps the settings' variables: a container whose command is `--decrypt-store` has it, and the
+  Compose file's and the chart's shell command lines still pass it to the server they start, so it belongs only in
+  the environment of a container started to run the verb. ContainerImage.md and EncryptionAtRest.md say so, and
+  `build/test-docker-entrypoint.sh` holds it, with a case of its own for `--decrypt-store` as the command.
 
 ### Correctness
 

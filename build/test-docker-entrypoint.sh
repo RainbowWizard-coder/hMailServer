@@ -20,7 +20,9 @@
 # use (name) reach the command as they were given, HM_DB_TYPE given in another
 # spelling the entrypoint accepts reaches it in the entrypoint's (postgres as
 # PostgreSQL), and the settings' variables reach a command that may run
-# --apply-environment and not the server itself.
+# --apply-environment and not the server itself. HMAILSERVER_RECOVERY_PASSPHRASE,
+# which --decrypt-store alone reads, reaches none of the entrypoint's own programs,
+# and the command as the settings' variables do: every command but the server.
 #
 # ENTRYPOINT defaults to the tree's; given another (an older copy), the same cases
 # are its negative control. The entrypoint runs with a stub `hmailserver` first on
@@ -139,7 +141,7 @@ run "a password of a single quote is written as it is" 0 HM_DB_TYPE=PostgreSQL "
 
 # What reaches the programs the entrypoint runs. Each case gives both passwords, in
 # one form or the other, six settings' variables, HM_INSTALL_KIND, a variable
-# named name and HM_DB_TYPE as postgres, and lets the entrypoint run every verb it would (the database created
+# named name, HMAILSERVER_RECOVERY_PASSPHRASE and HM_DB_TYPE as postgres, and lets the entrypoint run every verb it would (the database created
 # and upgraded, the administrator password set, the environment applied); the stub
 # records the names in the environment of each of those and of the command execed
 # after them, and the cat recorder those of each cat.
@@ -158,14 +160,14 @@ from_files=("HM_DB_PASSWORD_FILE=$work/secrets/db" "HM_ADMIN_PASSWORD_FILE=$work
 # last run must be the command's own, with LAST-CALL as its arguments. One line per
 # case: ok, or FAIL and every reason it does not hold.
 env_case() {
-  local name="$1" form="$2" last_call="$3" settings_expected="$4" n file variable calls reached records cats apply
+  local name="$1" form="$2" last_call="$3" settings_expected="$4" n file variable calls reached records cats apply own
   shift 4
   local problems=()
   command=("$@")
   local passwords=("${plain[@]}")
   [ "$form" = file ] && passwords=("${from_files[@]}")
   run_quiet=1 run "$name" 0 HM_CREATE_DATABASE=1 HM_UPGRADE_DATABASE=1 HM_DB_TYPE=postgres HM_INSTALL_KIND=container \
-    name=keepme "${passwords[@]}" "${settings[@]}" || { command=(); return; }
+    name=keepme HMAILSERVER_RECOVERY_PASSPHRASE=recovery-secret "${passwords[@]}" "${settings[@]}" || { command=(); return; }
   command=()
   calls="$(wc -l < "$work/calls" | tr -d ' ')"
   # The entrypoint used both passwords before taking them away.
@@ -203,8 +205,27 @@ env_case() {
     done
     [ "$reached" -eq 0 ] || problems+=("$variable reached $reached of the ${#records[@]} programs run ($cats of them cat)")
   done
+  # The recovery passphrase reaches none of the entrypoint's own programs - each
+  # cat, and its verbs up to its last, --apply-new-install-defaults --if-marked,
+  # where a shell's command line runs that verb too - and the command unless the
+  # command is the server itself, below.
+  own="$(grep -n -x -F -- "--config $ini --apply-new-install-defaults --if-marked" "$work/calls" | head -n 1 | cut -d: -f1)"
+  [ -n "$own" ] || own=$((calls - 1))
+  reached=0
+  for file in "$work/env/"cat.*; do
+    [ -f "$file" ] && grep -qx HMAILSERVER_RECOVERY_PASSPHRASE "$file" && reached=$((reached + 1))
+  done
+  for n in $(seq 1 "$own"); do
+    [ -f "$work/env/$n" ] && grep -qx HMAILSERVER_RECOVERY_PASSPHRASE "$work/env/$n" && reached=$((reached + 1))
+  done
+  [ "$reached" -eq 0 ] || problems+=("HMAILSERVER_RECOVERY_PASSPHRASE reached $reached of the entrypoint's own $((own + cats)) programs ($cats of them cat)")
   file="$work/env/$calls"
   if [ -f "$file" ]; then
+    if [ "$settings_expected" = kept ]; then
+      grep -qx HMAILSERVER_RECOVERY_PASSPHRASE "$file" || problems+=("HMAILSERVER_RECOVERY_PASSPHRASE did not reach the command, which may run --decrypt-store")
+    else
+      grep -qx HMAILSERVER_RECOVERY_PASSPHRASE "$file" && problems+=("HMAILSERVER_RECOVERY_PASSPHRASE reached the server's environment")
+    fi
     grep -qx HM_INSTALL_KIND "$file" || problems+=("HM_INSTALL_KIND did not reach the command")
     for variable in "HM_INSTALL_KIND=container" "name=keepme" "HM_DB_TYPE=PostgreSQL"; do
       grep -qx -F -- "$variable" "$file.values" \
@@ -241,10 +262,12 @@ env_case "a shell's command line as the command (the Compose file's and the Helm
   bash -c 'hmailserver --config "$HM_INI" --apply-new-install-defaults --if-marked; exec hmailserver --config "$HM_INI" --foreground'
 env_case "the server with another option is not the server alone: no password reaches it, every setting's variable does" \
   plain "--config $ini --foreground --check-config" kept hmailserver --foreground --check-config
+env_case "hmailserver --decrypt-store as the command: no password reaches it, the recovery passphrase and every setting's variable do" \
+  file "--config $ini --decrypt-store --domain example.com" kept hmailserver --decrypt-store --domain example.com
 
 echo ""
 if [ "$failures" -ne 0 ]; then
   echo "$failures check(s) failed"
   exit 1
 fi
-echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written; no password reaches a program the entrypoint runs, its --apply-environment sees every setting's variable, and a setting's variable reaches every command but the server itself."
+echo "Every case passed: the [Database] section holds what the environment gave, or nothing is written; no password reaches a program the entrypoint runs, its --apply-environment sees every setting's variable, and a setting's variable and the recovery passphrase reach every command but the server itself, the passphrase none of the entrypoint's own programs."

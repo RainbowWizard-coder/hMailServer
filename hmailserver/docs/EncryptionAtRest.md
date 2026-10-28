@@ -529,7 +529,14 @@ while it runs, as `--compress-store` is: [MessageStore.md](MessageStore.md)).
   environment variable **`HMAILSERVER_RECOVERY_PASSPHRASE`** - never from the command
   line, which every user of the machine can read - and every file encrypted to it is put
   back as plain RFC 822, read back and compared. Switch the mailbox's encryption off
-  before starting the server again, or new mail is encrypted once more.
+  before starting the server again, or new mail is encrypted once more. In the
+  container image the variable reaches the command when the command is this verb
+  (or a shell's command line), and none of the programs the entrypoint runs before
+  it; when the command is the server itself, which never reads it, the entrypoint
+  takes it out of the server's environment ([ContainerImage.md](ContainerImage.md),
+  "The image"). Give it only to a container started to run the verb: under the
+  Compose file's and the Helm chart's own commands, shell command lines, it would
+  reach the server.
 
 `--compress-store` and `--decompress` leave a keyed mailbox's files as they are and say
 how many: encrypting and decrypting are these two verbs' business. `--measure-store` reads

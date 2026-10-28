@@ -79,6 +79,11 @@
 #   HM_INSTALL_KIND              -> not read here: the image sets it to container,
 #                                   for the server's update check, which then names
 #                                   the image to pull instead of installing a file
+#   HMAILSERVER_RECOVERY_PASSPHRASE
+#                                -> not read here: for hmailserver --decrypt-store
+#                                   given as the command. Out of the environment of
+#                                   every program this script runs, and of the
+#                                   server's when the command is the server
 #   HM_CREATE_DATABASE (default 1) -> hmailserver --create-database, which is a
 #                                   no-op when the database already exists; a
 #                                   database it makes is marked, and secured
@@ -273,7 +278,14 @@ wait_for_database() {
 # _FILE among them, which would otherwise hold the other password - and the
 # passwords stay shell variables, file_env putting a _FILE's contents into one
 # without exporting it; a _FILE form names a path, and goes once it is read.
-export -n HM_DB_PASSWORD HM_ADMIN_PASSWORD HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
+#
+# HMAILSERVER_RECOVERY_PASSPHRASE, a domain's recovery passphrase, is read by one
+# verb, hmailserver --decrypt-store (docs/EncryptionAtRest.md), and by nothing the
+# server does while it runs. It leaves the environment here too, so that no
+# program this script runs itself holds it - a cat that reads a _FILE among them -
+# and is given back to the command before the exec unless the command is the
+# server itself (below), so that a container whose command is that verb has it.
+export -n HM_DB_PASSWORD HM_ADMIN_PASSWORD HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE HMAILSERVER_RECOVERY_PASSPHRASE
 file_env HM_DB_PASSWORD
 file_env HM_ADMIN_PASSWORD
 unset -v HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
@@ -451,7 +463,19 @@ drop_settings_variables() {
    done
 }
 
+# The recovery passphrase goes with them when the command is the server, which
+# never reads it, and whose environment - and that of everything it starts - would
+# otherwise hold it for the server's whole life; under no_new_privs (the Helm
+# chart's allowPrivilegeEscalation: false) the server's own /proc/1/environ is
+# open to every program running as the image's user. Any other command gets it
+# back: --decrypt-store as the command, or a shell's command line, which this
+# cannot read and which may run it - and which, as the Compose file's and the Helm
+# chart's are, then hands it to the server it starts, so it belongs only in the
+# environment of a container started to run that verb.
 if runs_the_server "$@"; then
    drop_settings_variables
+   unset -v HMAILSERVER_RECOVERY_PASSPHRASE
+elif [ -n "${HMAILSERVER_RECOVERY_PASSPHRASE+set}" ]; then
+   export HMAILSERVER_RECOVERY_PASSPHRASE
 fi
 exec "$@"
