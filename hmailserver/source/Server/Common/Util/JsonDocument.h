@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
@@ -24,7 +25,9 @@ namespace HM
    // escape including surrogate pairs, numbers, true, false and null. Nesting is
    // capped so a hostile document cannot exhaust the stack; the size is the caller's
    // to bound before parsing. Duplicate keys keep the first, which is what a search
-   // by name would have found too.
+   // by name would have found too; the names an object has already seen are held in
+   // an ordered set, so the duplicate check's cost follows the bytes and not a hash
+   // a sender might aim, whatever the caller's trust in the document.
    class JsonValue
    {
    public:
@@ -90,14 +93,17 @@ namespace HM
       static bool Parse(const std::string &text, JsonValue &value, std::string &error);
 
       // The same, held to at most maxValues values (every object, array, string,
-      // number, true, false and null counts one; a member's name does not) and to
-      // maxDepth levels below the outermost value, for a document from someone who
-      // need not be trusted: a request body. The text is refused at the first value
-      // past either bound, before more of the tree is built, with beyondBounds set,
-      // so that a reader can tell a document too big to read from one that is not
-      // JSON. A document within them reads exactly as Parse reads it.
+      // number, true, false and null counts one; a member's name does not), to
+      // maxDepth levels below the outermost value, and to maxObjectMembers members
+      // in any one object, for a document from someone who need not be trusted: a
+      // request body, or a report mailed to a domain's report address. The text is
+      // refused at the first value, level or member past a bound, before more of the
+      // tree is built, with beyondBounds set, so that a reader can tell a document
+      // too big to read from one that is not JSON. A document within them reads
+      // exactly as Parse reads it.
       static bool Parse(const std::string &text, JsonValue &value, std::string &error,
-                        size_t maxValues, int maxDepth, bool &beyondBounds);
+                        size_t maxValues, int maxDepth, bool &beyondBounds,
+                        size_t maxObjectMembers = SIZE_MAX);
 
    private:
       friend class JsonParser;

@@ -191,7 +191,8 @@ what its sender meant it to carry is worse than a refusal.
 
 The body is one JSON object. One that is not JSON - text after it, a trailing
 comma - or that names a member twice, carries an escaped U+0000 in a string, or
-holds more than 100,000 values or more than 32 levels of nesting, is `400` ("the
+holds more than 100,000 values, an object of more than 10,000 members, or more
+than 32 levels of nesting, is `400` ("the
 body must be a JSON object: ...") once the key is judged and before any member is
 read, as on every route of the API that takes JSON. A request without a key is
 `401` whatever its body.

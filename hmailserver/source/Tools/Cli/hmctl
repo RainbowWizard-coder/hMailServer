@@ -48,6 +48,7 @@ import csv
 import getpass
 import io
 import json
+import math
 import os
 import ssl
 import sys
@@ -364,7 +365,15 @@ class Client:
         # archive listing's passphrase, which a GET has no body to put in.
         headers.update(extra)
         if body is not None:
-            data = json.dumps(body).encode("utf-8")
+            # allow_nan=False: NaN, Infinity and -Infinity are not JSON (RFC 8259
+            # section 6), and the server refuses a body that is not JSON. json
+            # writes them bare by default, so a float that slipped in through
+            # --set, --from-json or --body is caught here rather than sent as a
+            # body no JSON parser takes.
+            try:
+                data = json.dumps(body, allow_nan=False).encode("utf-8")
+            except ValueError:
+                raise ApiError(0, "the request body holds NaN or Infinity, which is not JSON; give a finite number")
             headers["Content-Type"] = "application/json"
 
         authorization = self.authorization()
@@ -540,8 +549,10 @@ def _is_number(text):
     if not text:
         return False
     try:
-        float(text)
-        return True
+        # Only a finite number is one: float() reads "NaN", "Infinity" and
+        # "-Infinity", which are not JSON, so --set name=NaN is the string the
+        # docstring promises, not a value no JSON parser takes.
+        return math.isfinite(float(text))
     except ValueError:
         return False
 

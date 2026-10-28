@@ -517,10 +517,13 @@ namespace HM
       if (RefuseJsonBody_("POST", "/api/v1/protected/{token}/reply", requestBody, peer_address, bodyRefusal))
          return bodyRefusal;
 
-      JsonValue document;
-      std::string parseError;
-      if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())
+      // RefuseJsonBody_ has parsed the body once, within the bounds, and kept
+      // it; this reads that one document rather than parsing the same body a
+      // second time. RefuseJsonBody_ returned false, so the body is an object.
+      const std::shared_ptr<const JsonValue> body = BodyObject_(requestBody);
+      if (!body)
          return BuildResponse_(400, "{\"error\":\"the body must be a JSON object: message, the armoured OpenPGP message the page encrypted\"}");
+      const JsonValue &document = *body;
       const JsonValue *messageValue = document.Get("message");
       if (!messageValue || !messageValue->IsString() || messageValue->AsString().empty())
          return BuildResponse_(400, "{\"error\":\"message: the armoured OpenPGP message the page encrypted under the password\"}");

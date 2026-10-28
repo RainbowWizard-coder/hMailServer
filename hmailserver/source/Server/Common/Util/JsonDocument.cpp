@@ -10,8 +10,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <set>
 #include <stdexcept>
-#include <unordered_set>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -23,11 +23,13 @@ namespace HM
    class JsonParser
    {
    public:
-      JsonParser(const std::string &text, size_t maxValues = SIZE_MAX, int maxDepth = MaxDepth) :
+      JsonParser(const std::string &text, size_t maxValues = SIZE_MAX, int maxDepth = MaxDepth,
+                 size_t maxObjectMembers = SIZE_MAX) :
          text_(text),
          position_(0),
          max_values_(maxValues),
          max_depth_(maxDepth < (int) MaxDepth ? maxDepth : (int) MaxDepth),
+         max_object_members_(maxObjectMembers),
          values_(0),
          beyond_bounds_(false)
       {
@@ -60,6 +62,7 @@ namespace HM
       size_t position_;
       const size_t max_values_;
       const int max_depth_;
+      const size_t max_object_members_;
       size_t values_;
       bool beyond_bounds_;
 
@@ -175,14 +178,30 @@ namespace HM
          }
 
          // The names this object already has, to keep the first of a duplicated
-         // one. They were looked for in the list of members, from the top, for
-         // every member, so an object of N members cost N squared comparisons:
-         // 64,000 of them (640 KB) took 2.4 s in the POSIX build, and the REST
-         // routes that take a message and its attachments read 16 MB.
-         std::unordered_set<std::string> names;
+         // one. An ordered set, so that an object of N members costs N log N
+         // comparisons whatever the names are: a std::unordered_set here cost N
+         // squared when a sender chose names that all hash to one bucket - every
+         // name walked every name before it - which no bound on the document's
+         // size or value count stopped, the names being short. A std::set's cost
+         // follows the bytes, not a hash a sender can aim. (Before 6.3.6 this was
+         // a scan of the member list, N squared for distinct names alone.)
+         std::set<std::string> names;
+         size_t member_count = 0;
 
          while (true)
          {
+            // One object held to its member count, so that a request body cannot
+            // carry an object of far more members than any route takes even
+            // within the document's value bound. Counted as each member begins,
+            // so the one past the bound is refused before it is built.
+            if (member_count >= max_object_members_)
+            {
+               error = Where_("an object with more members than the reader takes");
+               beyond_bounds_ = true;
+               return false;
+            }
+            member_count++;
+
             SkipWhitespace_();
             if (!Peek_(c) || c != '"')
             {
@@ -702,6 +721,39 @@ namespace HM
       JsonExpect(!JsonValue::Parse("[0,0,0,0] x", bounded, error, 5, 32, beyond) && !beyond,
          "text after the value was refused as beyond a bound, or read");
 
+      // The per-object member bound: an object of three members is read at a
+      // bound of three members and refused at two, with beyondBounds, before the
+      // third is built. The bound is on members of one object, not the document:
+      // a second object may have its own three.
+      JsonValue members3;
+      JsonExpect(JsonValue::Parse("{\"a\":1,\"b\":2,\"c\":3}", members3, error, 100, 32, beyond, 3) && !beyond &&
+                 members3.Members().size() == 3,
+         "an object of three members was refused at a member bound of three");
+      JsonExpect(!JsonValue::Parse("{\"a\":1,\"b\":2,\"c\":3}", members3, error, 100, 32, beyond, 2) && beyond,
+         "an object of three members was read at a member bound of two, or refused as something else");
+      JsonExpect(JsonValue::Parse("{\"o\":{\"a\":1,\"b\":2},\"p\":{\"c\":3,\"d\":4}}", members3, error, 100, 32, beyond, 2) && !beyond,
+         "two objects of two members each were refused at a member bound of two");
+
+      // Many members of one object, each distinct: read within the value bound
+      // whatever the names, which is what the ordered duplicate check gives - the
+      // cost follows the bytes, not a hash. Ten thousand of them, read in order.
+      {
+         std::string big = "{";
+         for (int i = 0; i < 10000; i++)
+         {
+            if (i)
+               big += ',';
+            big += "\"k" + std::to_string(i) + "\":" + std::to_string(i);
+         }
+         big += "}";
+         JsonValue many;
+         JsonExpect(JsonValue::Parse(big, many, error, 100000, 32, beyond, 10000) && !beyond &&
+                    many.Members().size() == 10000 && many.GetInt64("k9999") == 9999,
+            "ten thousand distinct members were not read within the bounds");
+         JsonExpect(!JsonValue::Parse(big, many, error, 100000, 32, beyond, 9999) && beyond,
+            "ten thousand members were read at a member bound of 9,999, or refused as something else");
+      }
+
       // Within its bounds the bounded parse reads what Parse reads: the members in
       // their order, the first of a name given twice (whose second value is read,
       // and counted, before it is dropped), and every item of an array
@@ -744,12 +796,12 @@ namespace HM
 
    bool
    JsonValue::Parse(const std::string &text, JsonValue &value, std::string &error,
-                    size_t maxValues, int maxDepth, bool &beyondBounds)
+                    size_t maxValues, int maxDepth, bool &beyondBounds, size_t maxObjectMembers)
    {
       value = JsonValue();
       error.clear();
 
-      JsonParser parser(text, maxValues, maxDepth);
+      JsonParser parser(text, maxValues, maxDepth, maxObjectMembers);
       const bool parsed = parser.Parse(value, error);
       beyondBounds = !parsed && parser.BeyondBounds();
       if (!parsed)

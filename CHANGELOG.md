@@ -307,13 +307,18 @@ with `--check`).
   `Security.LogonNameVariants.APasswordResetUnderADomainAliasOrTheDefaultDomainSharesTheAddressBudget` hold it
   ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)). Found by the hMailServer project (Progressive Robot
   Ltd).
-- **Fixed: the REST API reads a request body in time and memory that follow its bytes.** From 6.3.2 the REST API
-  could take far more time and memory to read a JSON body than the body's size, in the service that also serves SMTP,
-  IMAP and POP3, and an account's own password was enough to send one. From 6.3.4 the same was true of the reply to a
-  password-protected message. The parse now moves each value into its place rather than copying it, and a request
-  body of more than 100,000 values or 32 levels is answered 400 at the first value
-  past them, the protected-message reply's among them. The `RestApiRequestBodies` fixtures hold the bounds, with the
-  account's password and on the reply with no credential. Found by the hMailServer project (Progressive Robot Ltd).
+- **Fixed: the REST API, and the reader of a report mailed to a domain's report address, read a JSON body in time and
+  memory that follow its bytes.** From 6.3.2 the REST API could take far more time and memory to read a JSON body than
+  the body's size, in the service that also serves SMTP, IMAP and POP3, and an account's own password was enough to send
+  one. From 6.3.4 the same was true of the reply to a password-protected message. The parse now moves each value into
+  its place rather than copying it; it keeps the names an object has already seen in an ordered set; and a body of more
+  than 100,000 values, an object of more than 10,000 members, or more than 32 levels is answered 400 at the first value,
+  member or level past the bound, before any route reads a member. The reply to a password-protected message is now held
+  to 2 MB, room for its one armoured message, and is read by that one parse rather than a second. A TLS-RPT report
+  mailed to a domain's report address is now read through the bounded parse too, within bounds of its own. The
+  `RestApiRequestBodies` fixtures hold the bounds, with the account's password and on the
+  reply with no credential, and `JsonValueTester` and the `DomainReports` tester hold the parse. Found by the
+  hMailServer project (Progressive Robot Ltd).
 
 ### Correctness
 
@@ -693,9 +698,11 @@ with `--check`).
   set the wider value anyway.
 
   None of this let a caller do what a body that parses could not, because each check and the act it guards read a
-  member the same way. The Control Deck, the webmail, `hmctl`, the PowerShell module and the Control Panel already send
-  JSON the parse takes. The `RestApiRequestBodies` fixtures hold the refusals and the readings on Windows and on
-  Linux.
+  member the same way. The Control Deck, the webmail, `hmctl`, the PowerShell module and the Control Panel send
+  JSON the parse takes - `hmctl` now refuses a body holding `NaN` or `Infinity` before it is sent (they are not JSON,
+  RFC 8259), where `--set name=NaN`, a `--from-json` document or `api ... '{"x": NaN}'` would have sent a body no
+  parser takes; `--set name=NaN` is now the string `NaN`, and a finite number stays a number, with a `check-cli.py`
+  case for each. The `RestApiRequestBodies` fixtures hold the refusals and the readings on Windows and on Linux.
 
 ### Downloads and the release
 

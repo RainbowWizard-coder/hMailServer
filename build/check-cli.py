@@ -904,6 +904,12 @@ CASES = [
      "POST", "/api/v1/domains", {"name": "new.example", "active": True}, ["new.example"]),
     ("domain update", ["domain", "update", "example.com", "--set", "active=false"],
      "PUT", "/api/v1/domains/example.com", {"active": False}, []),
+    # --set name=NaN is the string "NaN", not a float: NaN is not JSON, and the
+    # body a client sends must parse as JSON. (--set name=1.5 is still a number.)
+    ("set NaN is a string", ["domain", "update", "example.com", "--set", "weird=NaN"],
+     "PUT", "/api/v1/domains/example.com", {"weird": "NaN"}, []),
+    ("set a finite number is a number", ["domain", "update", "example.com", "--set", "weight=1.5"],
+     "PUT", "/api/v1/domains/example.com", {"weight": 1.5}, []),
     ("domain delete", ["domain", "delete", "example.net"], "DELETE", "/api/v1/domains/example.net", None, ["deleted"]),
     ("account list under its domain", ["account", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/accounts", None, ["ann@example.com", "bob@example.com"]),
@@ -1338,6 +1344,17 @@ def run_python_refusals(url):
     completed = run(["domain", "get", "nothing.here"])
     check(completed.returncode == 4,
           "hmctl on a 404 should exit 4, exited %d" % completed.returncode)
+
+    # A body holding NaN or Infinity is refused before anything is sent: NaN and
+    # Infinity are not JSON, and the server refuses a body that is not JSON.
+    completed = run(["api", "POST", "/api/v1/x", '{"a": NaN}'])
+    check(completed.returncode != 0 and "NaN or Infinity" in (completed.stderr + completed.stdout),
+          "hmctl api with a NaN body should be refused before sending and name the cause, exited %d and said: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+    completed = run(["api", "POST", "/api/v1/x", '{"a": Infinity}'])
+    check(completed.returncode != 0 and "NaN or Infinity" in (completed.stderr + completed.stdout),
+          "hmctl api with an Infinity body should be refused before sending, exited %d and said: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
 
     # inherit for a level held in a field that always holds a value of its own:
     # refused with a sentence, and nothing is written - a null would have been

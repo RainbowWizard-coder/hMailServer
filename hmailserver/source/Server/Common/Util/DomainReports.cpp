@@ -1305,9 +1305,21 @@ namespace HM
       JsonValue root;
       std::string error;
 
-      if (!JsonValue::Parse(std::string(json), root, error))
+      // A TLS-RPT report is mailed to the domain's report address by anyone, and
+      // reaches here up to MaxInflatedBytes (16 MB) once decompressed. It is read
+      // in time and memory that follow its bytes: the parser's duplicate check is
+      // already independent of the member names (JsonDocument.cpp), and these
+      // bounds stop a value tree far larger than its text and an object or nesting
+      // no real report has. A genuine report is a few kilobytes and nowhere near
+      // them.
+      const size_t MaxReportValues = 200000;
+      const int MaxReportDepth = 32;
+      const size_t MaxReportObjectMembers = 10000;
+      bool beyondBounds = false;
+
+      if (!JsonValue::Parse(std::string(json), root, error, MaxReportValues, MaxReportDepth, beyondBounds, MaxReportObjectMembers))
       {
-         problem = AnsiString(error);
+         problem = beyondBounds ? AnsiString("the report is larger or more deeply nested than a report may be") : AnsiString(error);
          return false;
       }
 
@@ -3042,6 +3054,25 @@ namespace HM
              "A TLS-RPT report whose policy names no domain was read.");
       Expect(!R::ParseTlsJson(AnsiString("{\"report-id\":\"x\",\"date-range\":{\"start-datetime\":\"2026-09-15T00:00:00Z\",\"end-datetime\":\"2026-09-15T23:59:59Z\"},\"policies\":[{\"policy\":{\"policy-type\":\"sts\",\"policy-domain\":\"tls@example.com\"}}]}"), refusedTls, problem),
              "A TLS-RPT report whose policy domain is an address was read.");
+
+      // A report anyone may mail is read within bounds: an object of more members
+      // than a report has (above the bound, well within the value count) is
+      // refused by the bounded parse, naming its size, not read to the end. The
+      // bound follows the bytes whatever the member names, so a report built to
+      // make the duplicate-name check walk its members cannot hold the delivery
+      // thread. A genuine report is a few kilobytes and nowhere near it.
+      {
+         AnsiString huge = "{\"report-id\":\"x\"";
+         for (int i = 0; i < 11000; i++)
+         {
+            AnsiString member;
+            member.Format(",\"m%d\":0", i);
+            huge += member;
+         }
+         huge += "}";
+         Expect(!R::ParseTlsJson(huge, refusedTls, problem), "A TLS-RPT report of more than ten thousand members in one object was read.");
+         Expect(problem.Find("larger or more deeply nested") >= 0, ("A too-large TLS-RPT report was refused for the wrong reason: " + problem).c_str());
+      }
 
       // --------------------------------------------------------------- the keys
       Expect(R::DmarcKey("google.com", "123", "Example.com") == R::DmarcKey("Google.COM", " 123 ", "example.com"),

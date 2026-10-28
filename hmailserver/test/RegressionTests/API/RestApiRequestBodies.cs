@@ -336,7 +336,7 @@ namespace RegressionTests.API
             double seconds = watch.Elapsed.TotalSeconds;
             string grew = memory.Grew(out long grownBytes);
 
-            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values, or is nested more than 32 levels deep"))
+            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values"))
                wrong.Append("\r\n  " + shape.Key + ": " + status + " " + Shorten(answer));
             if (seconds > SecondsForALargeBody)
                wrong.Append("\r\n  " + shape.Key + ": answered after " + seconds.ToString("0.00") + " s");
@@ -356,12 +356,12 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The reply to a password-protected message takes no credential, only the token of its link, and the listener grants it the large cap: a body past the parse's bounds sent there is answered 400 at the first value past them, at once and with the server's peak memory grown by little more than the body's own bytes - sixteen megabytes of zeros in an array, flat and sixty-two arrays deep, with no credential - and no reply is made.")]
+      [Description("The reply to a password-protected message takes no credential, only the token of its link. It is granted more than the ordinary 64 KB but held to 2 MB, room for its one armoured message and nothing like the 16 MB the attachment routes take: a body larger than that is refused by the listener before anything reads it, so a message's link alone never reaches a large parse (a 16 MB body is covered by ABodyIsNotParsedBeforeTheCredentialIsJudged's counterpart on the credentialed route). A body within the 2 MB ceiling but past the parse's bounds - about 1.9 MB of zeros in an array, flat and sixty-two arrays deep, with no credential - is answered 400 at the first value past the bounds, at once and with the server's peak memory grown by little more than the body's own bytes; and no reply is made.")]
       public void AProtectedMessagesReplyIsParsedWithinTheBounds()
       {
          string token = MakeProtectedMessage();
          var wrong = new StringBuilder();
-         foreach (KeyValuePair<string, string> shape in LargeShapes())
+         foreach (KeyValuePair<string, string> shape in WithinCeilingShapes())
          {
             ServerMemory memory = ServerMemory.Start();
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -369,7 +369,7 @@ namespace RegressionTests.API
             double seconds = watch.Elapsed.TotalSeconds;
             string grew = memory.Grew(out long grownBytes);
 
-            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values, or is nested more than 32 levels deep"))
+            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 100000 values"))
                wrong.Append("\r\n  " + shape.Key + ": " + status + " " + Shorten(answer));
             if (seconds > SecondsForALargeBody)
                wrong.Append("\r\n  " + shape.Key + ": answered after " + seconds.ToString("0.00") + " s");
@@ -381,7 +381,86 @@ namespace RegressionTests.API
          if (User("GET", "/api/v1/me/protected", null).body.Contains("\"reply_to\":\"" + token + "\""))
             wrong.Append("\r\n  a reply to the protected message was made");
 
-         ClassicAssert.IsTrue(wrong.Length == 0, "A body of the large cap sent with no credential to a protected message's reply was read past the parse's bounds, or read slowly:" + wrong);
+         ClassicAssert.IsTrue(wrong.Length == 0, "A body within the reply's ceiling but past the parse's bounds was read past them, or read slowly:" + wrong);
+      }
+
+      // Two shapes just under the protected reply's 2 MB ceiling: an array of zeros,
+      // and the same zeros sixty-two arrays deep. Each is a JSON object, each holds
+      // far more than 100,000 values, so each is refused at the value bound.
+      private static IEnumerable<KeyValuePair<string, string>> WithinCeilingShapes()
+      {
+         int cap = 2 * 1024 * 1024 - 64 * 1024;
+         foreach (int depth in new[] { 1, 62 })
+         {
+            int zeros = (cap - 16 - 2 * depth) / 2;
+            var text = new StringBuilder(cap);
+            text.Append("{\"a\":");
+            text.Append('[', depth);
+            text.Append('0');
+            for (int i = 1; i < zeros; i++)
+               text.Append(",0");
+            text.Append(']', depth);
+            text.Append('}');
+            yield return new KeyValuePair<string, string>(depth == 1 ? "an array of zeros" : "the zeros 62 arrays deep", text.ToString());
+         }
+      }
+
+      [Test]
+      [Description("An object of more members than a route takes - more than 10000 in one object, well within the value and depth bounds - is answered 400 before the handler reads it, with the account's password to POST /api/v1/me/messages and with no credential to the protected-message reply, each at once and within five seconds; and no reply is made. The bound follows the bytes and not the member names, so it holds whatever a caller chooses to name the members: it is the request body's guard against one huge object, the shape a duplicate-name check that walked its members would have been slowest on.")]
+      public void AnObjectOfTooManyMembersIsRefused()
+      {
+         // Twenty thousand distinct members, each a short name and a zero: about
+         // 230 KB, far within the value bound (100000) and one level deep, and
+         // twice the 10000-member bound.
+         var text = new StringBuilder(256 * 1024);
+         text.Append('{');
+         for (int i = 0; i < 20000; i++)
+         {
+            if (i != 0)
+               text.Append(',');
+            text.Append("\"m").Append(i).Append("\":0");
+         }
+         text.Append('}');
+         string body = text.ToString();
+
+         string token = MakeProtectedMessage();
+         var cases = new[]
+         {
+            new KeyValuePair<string, (int, string)>("the account's password to POST /api/v1/me/messages", (0, "/api/v1/me/messages")),
+            new KeyValuePair<string, (int, string)>("no credential to the protected-message reply", (1, "/api/v1/protected/" + token + "/reply")),
+         };
+
+         var wrong = new StringBuilder();
+         foreach (KeyValuePair<string, (int who, string path)> one in cases)
+         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            (int status, string answer) = one.Value.who == 0
+               ? User("POST", one.Value.path, body)
+               : RestRequest.Send("127.0.0.1", RestPort, "POST", one.Value.path, null, body);
+            double seconds = watch.Elapsed.TotalSeconds;
+
+            if (status != 400 || !answer.Contains(Refusal) || !answer.Contains("more than 10000 members"))
+               wrong.Append("\r\n  " + one.Key + ": " + status + " " + Shorten(answer));
+            if (seconds > SecondsForALargeBody)
+               wrong.Append("\r\n  " + one.Key + ": answered after " + seconds.ToString("0.00") + " s");
+            TestContext.Progress.WriteLine("RestApiRequestBodies: too many members, " + one.Key + ": " + status + " in " + seconds.ToString("0.00") + " s");
+         }
+
+         if (User("GET", "/api/v1/me/protected", null).body.Contains("\"reply_to\":\"" + token + "\""))
+            wrong.Append("\r\n  a reply to the protected message was made");
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "An object of more than ten thousand members was read, or read slowly:" + wrong);
+
+         // Ten thousand members exactly - the bound itself - is read: the member
+         // of that name is found, so the bound refuses only past a count no route
+         // takes, not at it.
+         var atBound = new StringBuilder(160 * 1024);
+         atBound.Append("{\"subject\":\"rbr members\",\"text\":\"m\"");
+         for (int i = 0; i < 9998; i++)
+            atBound.Append(",\"m").Append(i).Append("\":0");
+         atBound.Append('}');
+         (int status, string body) draft = User("POST", "/api/v1/me/drafts", atBound.ToString());
+         ClassicAssert.AreEqual(201, draft.status, "A draft of ten thousand members (the bound) was refused: " + Shorten(draft.body));
       }
 
       // The two shapes, each just under the listener's 16 MB: an array of zeros, and

@@ -224,6 +224,15 @@ namespace HM
       // or ADFS is a few kilobytes, base64'd; 256 KB is room for a large
       // attribute statement and nothing like room for a flood.
       const size_t MaxSamlResponseSize = 256 * 1024;
+
+      // The reply to a password-protected message carries no credential and is
+      // granted more than the ordinary cap so its one armoured OpenPGP message
+      // arrives; held here to 2 MB, which is room for ProtectedMessages::
+      // ReplyMaximum (1 MB of armour) once it is JSON-escaped in {"message":...}
+      // and nothing like the 16 MB the attachment routes take, so a message's
+      // link alone never reaches a 16 MB parse. The route answers its own 413
+      // with the 1 MB limit for a body between the two.
+      const size_t MaxProtectedReplySize = static_cast<size_t>(2) * 1024 * 1024;
       const unsigned RequestSeconds = 30;
       const unsigned ConnectionSeconds = 300;
       const unsigned MaxConnections = 64;
@@ -20840,6 +20849,11 @@ namespace HM
       if (method == "POST" && path == "/portal/saml/acs")
          return MaxSamlResponseSize;
 
+      // The protected-message reply: no credential, one armoured message, held
+      // to 2 MB so its body never reaches a 16 MB parse (see above).
+      if (method == "POST" && path.StartsWith("/api/v1/protected/") && path.EndsWith("/reply"))
+         return MaxProtectedReplySize;
+
       // Every other granted route keeps the large cap.
       return 0;
    }
@@ -20974,7 +20988,7 @@ namespace HM
          "{"
          "\"openapi\":\"3.0.3\","
          "\"info\":{\"title\":\"hMailServer REST API\",\"version\":\"1\","
-         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds. A request body is JSON wherever a route takes one - all but four, which take a file's bytes, a protected message's ciphertext or a message to import (two), and a migration's jobs, which take a JSON object or CSV: such a body must be one JSON object (RFC 8259) that names no member twice in one object, carries no U+0000 in a string and holds at most 100000 values nested at most 32 levels deep, or the request is answered 400, with error saying why, before the route reads it (on a /scim/ path as RFC 7644's error, scimType invalidSyntax). The body of a route that needs a credential is judged only once the credential is: without one the answer is 401 whatever the body. An empty body is no body. Each route reads its members by name from the body as that parse reads it.\"},"
+         "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds. A request body is JSON wherever a route takes one - all but four, which take a file's bytes, a protected message's ciphertext or a message to import (two), and a migration's jobs, which take a JSON object or CSV: such a body must be one JSON object (RFC 8259) that names no member twice in one object, carries no U+0000 in a string and holds at most 100000 values, no object of more than 10000 members, nested at most 32 levels deep, or the request is answered 400, with error saying why, before the route reads it (on a /scim/ path as RFC 7644's error, scimType invalidSyntax). The body of a route that needs a credential is judged only once the credential is: without one the answer is 401 whatever the body. An empty body is no body. Each route reads its members by name from the body as that parse reads it.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this server can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux); and, from the OpenSSL the server runs with rather than the one it was built against, argon2id (the Argon2id KDF, OpenSSL 3.2 or later) and post_quantum_key_exchange (whether the server can use a hybrid post-quantum key exchange group, OpenSSL 3.5 or later: a TlsKeyExchangeGroups list that names one taken, false when OpenSSL refused it - HM5720 in the error log - and, for a list that names none, whether the library implements X25519MLKEM768)\"}}}},"
          "\"/api/v1/store\":{\"get\":{\"summary\":\"The message store: what the messages are and what they take\",\"description\":\"{measured,measuring,messages,logical_bytes,stored_bytes,compressed_files,blobs,blob_bytes,blob_references,saved_bytes,saved_percent,compression,dedup_min_kb}. logical_bytes is what IMAP and POP3 say the delivered messages are; stored_bytes is what their files take, a file with several names counted once; blob_bytes is the parts held once; messages and logical_bytes count only the messages whose files could be sized. Always the last measurement, made on the server's own time: measured is when (seconds since 1970, 0 for never) and measuring is true while one runs. A request starts the next one when the last is a quarter of an hour old and the store is in use - compression on, a part held once, or a container found last time - so on a server that never turned compression on nothing is walked and measured stays 0 until POST /api/v1/store/measure. docs/MessageStore.md. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The totals\"}}}},"
@@ -21665,6 +21679,12 @@ namespace HM
       // photo, a key), each one value; the deepest is a few levels.
       const size_t MaxBodyValues = 100000;
       const int MaxBodyDepth = 32;
+      // One object held far below the value bound: no route takes an object of
+      // thousands of members, and this is what stops a body of one huge object -
+      // the shape a hash flood would have been, were the parser's duplicate check
+      // not already independent of the names (JsonDocument.cpp) - well before the
+      // value count is reached.
+      const size_t MaxBodyObjectMembers = 10000;
 
       thread_local std::shared_ptr<const ParsedBody> lastParsedBody_;
 
@@ -21677,7 +21697,7 @@ namespace HM
 
          std::shared_ptr<ParsedBody> parsed = std::make_shared<ParsedBody>();
          parsed->text.assign(json.c_str(), length);
-         parsed->parsed = JsonValue::Parse(parsed->text, parsed->document, parsed->error, MaxBodyValues, MaxBodyDepth, parsed->beyond_bounds);
+         parsed->parsed = JsonValue::Parse(parsed->text, parsed->document, parsed->error, MaxBodyValues, MaxBodyDepth, parsed->beyond_bounds, MaxBodyObjectMembers);
          parsed->object = parsed->parsed && parsed->document.IsObject();
          lastParsedBody_ = parsed;
          return parsed;
@@ -21955,8 +21975,9 @@ namespace HM
 
       std::string why;
       if (parsed->beyond_bounds)
-         why = "it holds more than " + std::to_string(MaxBodyValues) + " values, or is nested more than " +
-               std::to_string(MaxBodyDepth) + " levels deep, which no route of this API takes";
+         why = "it holds more than " + std::to_string(MaxBodyValues) + " values, is nested more than " +
+               std::to_string(MaxBodyDepth) + " levels deep, or has an object of more than " +
+               std::to_string(MaxBodyObjectMembers) + " members, which no route of this API takes";
       else if (!parsed->parsed)
          why = "it is not JSON (" + parsed->error + ")";
       else if (!parsed->object)

@@ -71,7 +71,7 @@ Entry points
 Every route the two web listeners answer is in
 [WebAuthorisationMatrix.md](WebAuthorisationMatrix.md), read from the code:
 
-- **41 routes before any credential** (`ProcessRequest_`, RestApiServer.cpp:2505-2735), in four kinds:
+- **41 routes before any credential** (`ProcessRequest_`, RestApiServer.cpp, from the Host check to the `/portal-sw.js` route), in four kinds:
   - the pages and their static files: `/`, `/index.html`, `/deck-lang/*.json`,
     `/portal`, `/portal*.js`, `/portal.webmanifest`, `/portal-sw.js`,
     `/portal-lang/*.json`, `/portal-protected.js`, `/api/v1/help` and its pages,
@@ -92,7 +92,7 @@ Every route the two web listeners answer is in
   the rest are public by design.
 - **Uploads**: every request body. The REST listener takes 64 KB
   (RestApiServer.cpp:214), 16 MB in five minutes for the routes
-  `IsLargeRequest_` names (RestApiServer.cpp:218-219, :20723-20787: sending - the
+  `IsLargeRequest_` names (RestApiServer.cpp:218-219, `IsLargeRequest_` and `LargeRequestCeiling_`: sending - the
   webmail's and the send API's -, drafts, a message to import, file and
   protected-message content, the reply to a protected message, which takes no
   credential, settings, directory entries, OpenPGP rings) and 256 KB for the
@@ -101,16 +101,19 @@ Every route the two web listeners answer is in
   meant to be JSON - a write to any route under `/api/` or `/scim/` but the four
   that take a file's bytes, a protected message's ciphertext or a message to
   import (two), and a migration's jobs when they are a JSON object rather than
-  CSV - is one JSON object of at most 100,000 values and 32 levels, read by one
-  parse, or the request is answered 400 before any route reads a member
-  (`RefuseBodyThatIsNotJson_`). It is judged before the credential on the four
-  routes read before there is one, under the ordinary 64 KB; on the reply to a
-  protected message, which takes no credential, once its address budget and its
-  token are (`RefuseJsonBody_` in `HandleProtectedReply_`), within the bounds; and
-  everywhere else once the credential and the
-  route's authorisation are, so that a body of the large cap from a caller with
-  no credential is never parsed there. The pages outside `/api/` keep their
-  forms.
+  CSV - is one JSON object of at most 100,000 values, 32 levels and 10,000
+  members in any one object, read by one parse, or the request is answered 400
+  before any route reads a member (`RefuseBodyThatIsNotJson_`). It is judged
+  before the credential on the four routes read before there is one, under the
+  ordinary 64 KB; on the reply to a protected message, which takes no credential
+  and is granted more than 64 KB, once its address budget and its token are
+  (`RefuseJsonBody_` in `HandleProtectedReply_`, which then reads that one parse
+  rather than a second). That reply is held by `LargeRequestCeiling_` to 2 MB,
+  room for its one 1 MB armoured message once JSON-escaped. Everywhere else the
+  body is parsed once the
+  credential and the route's authorisation are, so that a body of the large cap
+  from a caller with no credential is never parsed there. The pages outside
+  `/api/` keep their forms.
 - **The browser side**: the Deck's and the webmail's scripts, the service worker
   (`/portal-sw.js`, scope `/`), the share target (`POST /portal/share`, answered
   by the worker), the message-HTML frame, the PDF preview frame, IndexedDB and
@@ -151,10 +154,10 @@ Controls in place today
 | TLS required except on loopback | RestApiServer.cpp:1265 |
 | HSTS (one year, the name used, no includeSubDomains) on every response over TLS | RestApiServer.cpp:1368 |
 | `X-Forwarded-Proto` believed only from a loopback peer | `BrowserCameOverTls_`, RestApiSamlSignIn.cpp:84-100 |
-| The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at :2505 |
+| The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at the top of `ProcessRequest_` |
 | Chunked bodies refused (411); a NUL in a text body refused (400) | HttpServer.cpp:776-791 |
 | One reading of a JSON body: one that is not one JSON object - text after the value, a trailing comma, an array - or that names a member twice in an object, carries an escaped U+0000, or holds more than 100,000 values or 32 levels of nesting is refused (400) before any route reads it; every member reader reads that one parse, by name, so a key spelt inside a value or a member of an array is never read as the member. Until 6.3.7 a body the parse refused was searched for its keys, and several readers searched every body | `BodyMustBeJson_`, `RefuseBodyThatIsNotJson_` and `BodyObject_` in RestApiServer.cpp, asked in `ProcessRequest_` |
-| A body is parsed only once its request may be acted on: before `Authenticate_` only for the four routes read before there is a credential, all under the ordinary 64 KB (`POST /api/v1/session`, whose passkey and single sign-on ticket `Authenticate_` reads, the password reset and its completion, the passkey challenge); the protected-message reply after its address budget and its token; every other route after the credential and `Authorize_`. So a request with no credential to a route that needs one is answered 401 for a body of the large cap without its being parsed; and the parse is linear, each value moved into its place, and stops at the first value past its bounds | `BodyIsReadBeforeAuthentication_` and `RefuseJsonBody_` in RestApiServer.cpp, `HandleProtectedReply_`; the bounded `JsonValue::Parse` in JsonDocument.cpp |
+| A body is parsed only once its request may be acted on: before `Authenticate_` only for the four routes read before there is a credential, all under the ordinary 64 KB (`POST /api/v1/session`, whose passkey and single sign-on ticket `Authenticate_` reads, the password reset and its completion, the passkey challenge); the protected-message reply after its address budget and its token; every other route after the credential and `Authorize_`. So a request with no credential to a route that needs one is answered 401 for a body of the large cap without its being parsed; and the parse reads a body once, in time and memory that follow its bytes - each value moved into its place, and the names an object has seen held in an ordered set - and stops at the first value, level or member past its bounds (100,000 values, 32 levels, 10,000 members in an object). The protected-message reply reads that one parse rather than a second | `BodyIsReadBeforeAuthentication_` and `RefuseJsonBody_` in RestApiServer.cpp, `HandleProtectedReply_`; the bounded `JsonValue::Parse` and the ordered duplicate check in JsonDocument.cpp |
 | Absolute time limits per request and per connection, 64 connections | RestApiServer.cpp:227-229 |
 | Apple profiles (which carry a password) only over HTTPS | WebServicesServer.cpp:944-956 |
 
@@ -196,7 +199,7 @@ Controls in place today
 | A credential in a body (passkey, SSO ticket) is accepted only with the same header | :1664-1684 |
 | A request that changes something and carries any credential - a session, HTTP Basic, which a browser keeps once it has answered the sign-in box, or a bearer token - is refused when the browser reports it as sent from another site: a `Sec-Fetch-Site` of `cross-site` or `same-site`, or, from a browser that sends no fetch metadata, an `Origin` that names another host than the request's own or names no host. A script, `hmctl` and the PowerShell module send neither header and pass; the Deck and the webmail act on their own origin (W-2) | `RequestIsCrossSite_` :1526-1580, asked at :2847-2853 |
 | The anonymous pages that act on a capability token (`/files/{token}`, `/confidential/{token}`, `/recovery/verify`, `/portal/reset`, `/held/release` and `/held/stop`, `/lists/confirm`, `/lists/unsubscribe`, `/lists/approve`) post back to themselves, each held by its token, and change nothing on GET but what the table of flagged routes says | the handlers of each page; the matrix's `F-anonymous-get` |
-| The two anonymous posts that carry no token - the public subscribe form (`POST /lists/{list}/subscribe`) and the reset request (`POST /api/v1/password-reset`) - are held by double opt-in, by one answer for every address, by a budget per source address, and by the same rule as a credentialed change: a post the browser reports as sent from another site is refused before its handler. The subscribe form alone takes an `Origin` that names no host, which a browser that sends no fetch metadata may send with this server's own form, as it is served under `Referrer-Policy: no-referrer` (W-12) | RestApiServer.cpp:2662-2677, :2712-2729; RestApiMailingLists.cpp:898-937; RestApiAccountRecovery.cpp:669-698 |
+| The two anonymous posts that carry no token - the public subscribe form (`POST /lists/{list}/subscribe`) and the reset request (`POST /api/v1/password-reset`) - are held by double opt-in, by one answer for every address, by a budget per source address, and by the same rule as a credentialed change: a post the browser reports as sent from another site is refused before its handler. The subscribe form alone takes an `Origin` that names no host, which a browser that sends no fetch metadata may send with this server's own form, as it is served under `Referrer-Policy: no-referrer` (W-12) | RestApiServer.cpp, the subscribe-form and password-reset-request branches of `ProcessRequest_`; RestApiMailingLists.cpp:898-937; RestApiAccountRecovery.cpp:669-698 |
 
 ### Script in the pages (T-2)
 
@@ -219,7 +222,7 @@ Controls in place today
 
 | Control | Where |
 |---|---|
-| The worker is a fixed route compiled in; `worker-src 'self'`; a worker needs a script type, which no attachment or shared file is served as | RestApiServer.cpp:2735, :21034-21042 |
+| The worker is a fixed route compiled in; `worker-src 'self'`; a worker needs a script type, which no attachment or shared file is served as | RestApiServer.cpp, the `/portal-sw.js` route in `ProcessRequest_` and `HandlePortalServiceWorker_` |
 | A fixed shell list, network first | PortalServiceWorker.js:6-14, :185-189 |
 | Offline parts answered from IndexedDB with `Content-Security-Policy: sandbox` and attachment disposition for the types a browser would run | PortalServiceWorker.js:84-160 |
 | Web Push: the payload encrypted to the subscription; the worker shows it and fetches nothing | PortalServiceWorker.js:16-76 |
@@ -339,9 +342,10 @@ here so that the rebuild keeps the forced type.
 - **JSON answers carry no `X-Content-Type-Options: nosniff`** (`BuildResponse_`,
   RestApiServer.cpp:10628-10646 adds `Cache-Control` only). No current browser
   renders `application/json` as a page; add the header for completeness.
-- **A stale comment.** RestApiServer.cpp:2509 says the Deck's page "is the only
-  unauthenticated route in the listener"; 41 routes come before
-  `Authenticate_`. The matrix lists them; the comment should say so.
+- **A stale comment.** The comment above the Deck's page route in
+  `ProcessRequest_` (RestApiServer.cpp) says it "is the only unauthenticated
+  route in the listener"; 41 routes come before `Authenticate_`. The matrix
+  lists them; the comment should say so.
 - **A domain administrator reads the custom role definitions**
   (`GET /api/v1/roles`, `view_configuration`): names and permission sets, no
   holders outside its domain (the assignment list is filtered,
