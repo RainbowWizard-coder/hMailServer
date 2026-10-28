@@ -91,14 +91,20 @@ auto-ban on failed logons switched off (`AutoBanOnLogonFailure` false, or
 `MaxInvalidLogonAttempts` 0) or `AutoBanMinutes` 0, which disconnects without
 writing a range, avoids it, each for every address. The listener's own accounting of the credentials it checks
 itself - the administrator password, API keys, passkeys, the codes and passwords
-it asks again - has never charged loopback (`RegisterAuthenticationFailure_`),
-and spares all of 127.0.0.0/8 from the same release, where it spared 127.0.0.1
-and ::1 alone. The REST listener never refuses loopback, so through such a proxy
-the per-name lockout (`AccountLockoutThreshold`, off by default) is what limits
-the guesses at one account, as it always was there. The regression fixture
+it asks again - has never charged 127.0.0.1 or ::1
+(`RegisterAuthenticationFailure_`), and spares all of 127.0.0.0/8 from the same
+release, where it spared those two alone: up to 6.3.7 a failure from another
+loopback address, such as 127.0.0.2, was charged to it, and at
+`MaxInvalidLogonAttempts` the listener refused it for five minutes. The REST
+listener never refuses loopback now, so through such a proxy the per-name lockout
+(`AccountLockoutThreshold`, off by default) is what limits the guesses at one
+account, as it always was there for a proxy on 127.0.0.1 or ::1. The regression fixture
 `Security/RestApiLoopbackBan` holds it (both suites): three failed sign-ins at
 `GET /api/v1/me` and at `POST /api/v1/session` from loopback write no ban and no
-such line, SMTP and IMAP still greet loopback, and the name is locked; and, on the
+such line, SMTP and IMAP still greet loopback, and the name is locked; failed
+account sign-ins, a wrong administrator password and a wrong API key from
+127.0.0.2, and on the Windows suite over ::1 with the listener bound there, are
+charged to nothing, and the listener still answers the address; and, on the
 Windows suite, whose REST listener can be put on every address with TLS, three
 from this machine's own address that is not loopback are still charged to it.
 

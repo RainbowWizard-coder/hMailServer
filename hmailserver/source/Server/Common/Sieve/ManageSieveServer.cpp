@@ -1865,8 +1865,10 @@ namespace HM
                   // no guess at a password, and three of them would otherwise ban the
                   // webmail's address from SMTP, IMAP and POP3 for everyone behind it.
                   // Until 6.3.6's last re-check it was counted. A wrong password from
-                  // it is still counted, as on every listener, and AutoBanNeverBan is
-                  // still the way to spare any other address.
+                  // it is still counted, as at the SMTP, POP3 and IMAP listeners - the
+                  // web services and REST listeners count one from loopback against
+                  // the name alone (Dav::Authenticate, RestApiServer::AuthenticateAccount_)
+                  // - and AutoBanNeverBan is still the way to spare any other address.
                   LOG_DEBUG(_T("ManageSieveServer: ") + String(client_address.ToString()) +
                      _T(" is this computer's loopback address; a connection from it that did not sign in in time is not counted towards the auto-ban."));
                }

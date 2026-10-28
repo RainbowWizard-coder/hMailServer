@@ -29,15 +29,22 @@ namespace RegressionTests.Security
    ///    passwords from anybody behind the proxy banned 127.0.0.1 for AutoBanMinutes
    ///    from SMTP, POP3, IMAP and ManageSieve, and with it a webmail on this machine
    ///    and every local script. The listener's own accounting
-   ///    (RegisterAuthenticationFailure_) spared loopback, but it ran after Logon,
+   ///    (RegisterAuthenticationFailure_) spared 127.0.0.1 and ::1, but it ran after Logon,
    ///    which had charged the address already. Now such a failure is counted against
    ///    the name alone - the per-name lockout - and never towards a ban of the
    ///    address, and no "logon failure" line is written for it; from any other
    ///    address it is charged as before.
    ///
+   ///    Loopback is the whole of 127.0.0.0/8 and ::1 (RestApiServer::IsForwarder_),
+   ///    where the listener's own accounting spared 127.0.0.1 and ::1 alone up to
+   ///    6.3.7: a test signs in from 127.0.0.2 too, and, on the Windows suite, over
+   ///    ::1 with the listener bound there.
+   ///
    ///    The loopback tests run on both suites, against the listener the suite has:
    ///    the Windows bench's own on a port of this fixture's, the Linux suite's the
-   ///    one its fixture layer talks to. The test from another address needs the
+   ///    one its fixture layer talks to. The test over ::1 moves the listener, so it
+   ///    runs on the Windows bench alone, and so does the test from another address,
+   ///    which needs the
    ///    listener on every address with TLS, which the Linux suite's listener is not
    ///    and cannot be made while the suite talks to it, so it runs on the Windows
    ///    bench alone. Every range a test writes is deleted again when it ends, and
@@ -52,6 +59,7 @@ namespace RegressionTests.Security
       private const string AutoBanPrefix = "Auto-ban: ";
       private const string UserPassword = "Rest-Ban-Passw0rd!";
       private const string WrongPassword = "not-the-password";
+      private static readonly IPAddress OtherLoopback = IPAddress.Parse("127.0.0.2");
 
       private string _account;
 
@@ -148,6 +156,45 @@ namespace RegressionTests.Security
       }
 
       [Test]
+      [Description("Three failed account sign-ins from 127.0.0.2 - loopback, as 127.0.0.1 is - then a wrong " +
+                   "administrator password and a wrong API key write no auto-ban for 127.0.0.2 and no logon-failure " +
+                   "line; the REST listener still answers the address and SMTP still greets it.")]
+      public void FailuresFromAnotherLoopbackAddressBanNothing()
+      {
+         AssertFailuresFromLoopbackBanNothing(OtherLoopback, IPAddress.Loopback, "restban-other", true);
+      }
+
+      [Test]
+      [Description("With the REST listener bound to ::1, three failed account sign-ins over ::1, then a wrong " +
+                   "administrator password and a wrong API key, write no auto-ban for ::1 and no logon-failure line, " +
+                   "and the listener still answers ::1.")]
+      public void FailuresFromIpv6LoopbackBanNothing()
+      {
+         if (RestListener.Provided > 0)
+            Assert.Ignore("The suite's own REST listener is on 127.0.0.1, and the fixture layer talks to it; it cannot be moved to ::1 while the suite runs.");
+
+         if (!Socket.OSSupportsIPv6)
+            Assert.Ignore("This machine has no IPv6, so nothing reaches the listener over ::1.");
+
+         IniFileSetting.Write("RestApiBindAddress", "::1");
+         _application.Reinitialize();
+
+         var deadline = DateTime.UtcNow.AddSeconds(20);
+         var probe = -1;
+         while (DateTime.UtcNow < deadline)
+         {
+            probe = StatusOf(Exchange(IPAddress.IPv6Loopback, IPAddress.IPv6Loopback, false, "GET", "/api/v1/status", Basic("Administrator", AdminPassword), ""));
+            if (probe == 200)
+               break;
+            Thread.Sleep(200);
+         }
+
+         ClassicAssert.AreEqual(200, probe, "The REST listener bound to ::1 did not answer GET /api/v1/status over ::1.");
+
+         AssertFailuresFromLoopbackBanNothing(IPAddress.IPv6Loopback, IPAddress.IPv6Loopback, "restban-v6", false);
+      }
+
+      [Test]
       [Description("Three failed account sign-ins over HTTPS from this machine's own address that is not loopback " +
                    "are still charged to it: an auto-ban is written for the address.")]
       public void FailedAccountSignInsFromAnotherAddressAreStillCharged()
@@ -194,6 +241,55 @@ namespace RegressionTests.Security
       }
 
       // ------------------------------------------------------------------ helpers
+
+      /// <summary>
+      ///    Three failed account sign-ins from the loopback address given to the
+      ///    listener on the address given - at GET /api/v1/me, POST /api/v1/session
+      ///    and GET /api/v1/me again - then a wrong administrator password and a wrong
+      ///    API key: none of them is charged to the address, so no auto-ban is written
+      ///    for it and no logon-failure line names it, and the listener answers it
+      ///    still, the wrong credentials with 401 and the account's right password
+      ///    with 200.
+      ///    Where asked, SMTP greets the address before and after.
+      /// </summary>
+      private void AssertFailuresFromLoopbackBanNothing(IPAddress from, IPAddress to, string localPart, bool greetSmtp)
+      {
+         AddAccount(localPart);
+
+         ClassicAssert.AreEqual(200, StatusOf(Exchange(from, to, false, "GET", "/api/v1/me", Basic(_account, UserPassword), "")),
+            "The right password from " + from + " was not let in before the failed sign-ins.");
+         if (greetSmtp)
+            AssertGreeted(from, TestPorts.Smtp, "220", "before the failed sign-ins");
+         LogHandler.DeleteCurrentDefaultLog();
+
+         string[] methods = { "GET", "POST", "GET" };
+         string[] paths = { "/api/v1/me", "/api/v1/session", "/api/v1/me" };
+         var refusals = new List<string>();
+         for (var i = 0; i < Threshold; i++)
+            refusals.Add(methods[i] + " " + paths[i] + " -> " +
+                         StatusOf(Exchange(from, to, false, methods[i], paths[i], Basic(_account, WrongPassword), "")));
+
+         var administrator = StatusOf(Exchange(from, to, false, "GET", "/api/v1/status", Basic("Administrator", "not-the-administrator-password"), ""));
+         var key = StatusOf(Exchange(from, to, false, "GET", "/api/v1/status", "Bearer hmapi_" + new string('0', 40), ""));
+         // The account's right password, not the administrator's: a wrong
+         // administrator password starts that source's growing delay, which
+         // answers the next try at it with 429 whatever it holds.
+         var after = StatusOf(Exchange(from, to, false, "GET", "/api/v1/me", Basic(_account, UserPassword), ""));
+
+         ClassicAssert.IsNull(RangeHolding(from),
+            "An auto-ban was written for " + from + " after " + Threshold + " failed account sign-ins from it (" +
+            string.Join(", ", refusals) + "). The ranges: " + RangeNames());
+         ClassicAssert.IsFalse(LogHandler.DefaultLogContains("from " + from + " for "),
+            "A failure from " + from + " was counted towards a ban of the address (an \"Auto-ban: logon failure\" line names it):\r\n" +
+            LogHandler.ReadCurrentDefaultLog());
+         foreach (var refusal in refusals)
+            ClassicAssert.IsTrue(refusal.EndsWith(" -> 401"), "A failed sign-in from " + from + " was not refused with 401: " + string.Join(", ", refusals));
+         ClassicAssert.AreEqual(401, administrator, "A wrong administrator password from " + from + " was not refused with 401 (no answer is -1: the listener refused the address).");
+         ClassicAssert.AreEqual(401, key, "A wrong API key from " + from + " was not refused with 401 (no answer is -1: the listener refused the address).");
+         ClassicAssert.AreEqual(200, after, "The account's right password from " + from + " was not let in after the failures (no answer is -1: the listener refused the address).");
+         if (greetSmtp)
+            AssertGreeted(from, TestPorts.Smtp, "220", "after the failed sign-ins");
+      }
 
       private void ThreeFailuresFromLoopback(string method, string path, int signedIn, string localPart)
       {
@@ -264,22 +360,28 @@ namespace RegressionTests.Security
 
       private static void AssertGreeted(int port, string expected, string when)
       {
-         var greeting = Greeting(IPAddress.Loopback, port);
+         AssertGreeted(IPAddress.Loopback, port, expected, when);
+      }
+
+      private static void AssertGreeted(IPAddress from, int port, string expected, string when)
+      {
+         var greeting = Greeting(from, port);
          ClassicAssert.IsTrue(greeting.StartsWith(expected),
-            "The listener on port " + port + " did not greet loopback " + when + ": '" + greeting + "'");
+            "The listener on port " + port + " did not greet " + from + " " + when + ": '" + greeting + "'");
       }
 
       /// <summary>
-      ///    The first line a listener sends to a new connection from loopback; ""
-      ///    when it closes or resets without one.
+      ///    The first line a listener on 127.0.0.1 sends to a new connection from the
+      ///    loopback address given (the client's socket bound to it); "" when it
+      ///    closes or resets without one.
       /// </summary>
-      private static string Greeting(IPAddress to, int port)
+      private static string Greeting(IPAddress from, int port)
       {
-         var client = new TcpClient(new IPEndPoint(to, 0));
+         var client = new TcpClient(new IPEndPoint(from, 0));
          try
          {
             client.ReceiveTimeout = 15000;
-            client.Connect(to, port);
+            client.Connect(IPAddress.Loopback, port);
 
             var stream = client.GetStream();
             var line = new StringBuilder();
@@ -322,20 +424,25 @@ namespace RegressionTests.Security
          return status;
       }
 
+      private static string Exchange(IPAddress from, bool tls, string method, string path, string authorization, string extraHeaders)
+      {
+         return Exchange(from, from, tls, method, path, authorization, extraHeaders);
+      }
+
       /// <summary>
       ///    One request on a new connection from the address given (the client's
-      ///    socket bound to it) to the same address on the fixture's REST port, over
+      ///    socket bound to it) to the address given on the fixture's REST port, over
       ///    TLS when asked, and everything read until the server closes. "" when
       ///    nothing was answered.
       /// </summary>
-      private static string Exchange(IPAddress from, bool tls, string method, string path, string authorization, string extraHeaders)
+      private static string Exchange(IPAddress from, IPAddress to, bool tls, string method, string path, string authorization, string extraHeaders)
       {
          var client = new TcpClient(new IPEndPoint(from, 0));
          try
          {
             client.ReceiveTimeout = 15000;
             client.SendTimeout = 15000;
-            client.Connect(from, RestPort);
+            client.Connect(to, RestPort);
 
             Stream stream = client.GetStream();
             if (tls)

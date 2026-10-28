@@ -336,7 +336,7 @@ writes no ban and no `Auto-ban: logon failure` line for fail2ban; from any other
 address it is counted as before. From 6.2.28 to 6.3.7 it was counted
 against `127.0.0.1`, so a ban could be written that refused `127.0.0.1` at the
 SMTP, POP3, IMAP and ManageSieve listeners,
-while this listener, which never refuses loopback, went on answering. On 6.3.2 to
+while this listener, which has never refused 127.0.0.1 or ::1, went on answering. On 6.3.2 to
 6.3.7 put `127.0.0.1, ::1` in `AutoBanNeverBan`; 6.2.28 to 6.3.1 have no
 `AutoBanNeverBan`, and there only the auto-ban on failed logons switched off
 (`AutoBanOnLogonFailure` false, or `MaxInvalidLogonAttempts` 0) or

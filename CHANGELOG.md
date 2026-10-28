@@ -218,14 +218,14 @@ with `--check`).
   ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the hMailServer project (Progressive Robot Ltd).
 - **Fixed: an account's failed sign-in at the REST listener through a reverse proxy on the same machine counted
   towards an auto-ban of 127.0.0.1.** Every browser behind such a proxy reaches the listener from loopback, the one
-  peer whose `X-Forwarded-Proto` it believes. The listener's own accounting of a refused credential spared loopback,
-  but an account's failed HTTP Basic sign-in - on any route, `POST /api/v1/session`, the webmail's and the portal's
+  peer whose `X-Forwarded-Proto` it believes. The listener's own accounting of a refused credential spared 127.0.0.1
+  and ::1, but an account's failed HTTP Basic sign-in - on any route, `POST /api/v1/session`, the webmail's and the portal's
   sign-in, among them - had already been counted towards the auto-ban against the connection's address by the logon
   the mail protocols share, so a ban could be written that refused 127.0.0.1 at the SMTP, POP3, IMAP and ManageSieve
   listeners, while the REST listener, which asks no range, went on answering. Since 6.2.28, where accounts
   first signed in there. A failed account sign-in from loopback is now counted against the name alone
   (`AccountLockoutThreshold`, off by default, which is the limit on the guesses at one account through such a
-  proxy, as it already was, since the REST listener never refused loopback), never towards a ban of the address, and
+  proxy, as it already was, since the REST listener never refused 127.0.0.1 or ::1), never towards a ban of the address, and
   no `Auto-ban: logon failure` line is written for it; a failure from any other address counts as before. The
   listener's own accounting - of the administrator password, API keys, passkeys and the codes and passwords it
   checks itself - now spares all of 127.0.0.0/8, the peers it takes `X-Forwarded-Proto` from, where it spared
@@ -234,7 +234,9 @@ with `--check`).
   false, or `MaxInvalidLogonAttempts` 0) or `AutoBanMinutes` 0, which disconnects without writing a range, avoids
   it, each for every address. The regression fixture `Security.RestApiLoopbackBan` holds it: three failed sign-ins at `GET /api/v1/me` and at
   `POST /api/v1/session` from loopback write no ban and no such line, SMTP and IMAP still greet loopback, and the
-  name is locked; on the Windows suite, three from another address are still charged to it
+  name is locked; failed account sign-ins, a wrong administrator password and a wrong API key from 127.0.0.2, and on
+  the Windows suite over ::1, are charged to nothing and the listener still answers; on the Windows suite, three
+  from another address are still charged to it
   ([AutoBan.md](hmailserver/docs/AutoBan.md), [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).
   Found by the hMailServer project (Progressive Robot Ltd).
 
