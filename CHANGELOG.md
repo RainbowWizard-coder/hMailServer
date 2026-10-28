@@ -2937,19 +2937,19 @@ with `--check`).
   to each other, name for name and in order, and to every `*-tests` program `CMakeLists.txt` makes by
   `add_executable` but the nine it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback
   socket, which `offline.c` refuses, Unix sockets of its own, root, every case held to a time on a builder shared with
-  other builds, or, for `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops each give up after ten,
-  a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up, where a failure would
-  say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the
-  project's runners). It reads `CMakeLists.txt` as CMake reads it, each command in any case with its quoted, bracket
-  and unquoted arguments, so that a key given quoted is read unquoted. CMake divides an unquoted argument at each
-  `;` of what it becomes into as many arguments and takes a keyword a variable's value gives as the keyword, so the
-  check refuses a `;` in an unquoted argument anywhere (`OUTPUT_NAME;hidden-tests`, `hidden;ALL`, `SCRIPT;<file>`,
-  `m;-nostdlib`), and where an argument's place or word decides what is made, written or run, an argument holding a
-  variable that could become another or none: `add_custom_target`'s name and the argument after it, where CMake
-  reads `ALL` (`${HM_ALL}`, `"${HM_ALL}"`, `A${HM_EMPTY}LL`), `install`'s first, where it reads `CODE` and `SCRIPT`,
-  `set_property`'s values, as it takes `PROPERTY`, `APPEND` and `APPEND_STRING` wherever they come (a second `PROPERTY`
-  gave the directory's `LINK_OPTIONS` every value), `configure_file`'s input and output, every argument of the
-  compile and link options (`-include ${X}` gave the compile a second flag), and every argument up to the name of
+  other builds, or, for `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops
+  each give up after ten, a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up,
+  where a failure would say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package
+  builds run it on the project's runners). It reads `CMakeLists.txt` as CMake reads it, each command in any case with
+  its quoted, bracket and unquoted arguments, so that a key given quoted is read unquoted. CMake divides an unquoted
+  argument at each `;` of what it becomes into as many arguments and takes a keyword a variable's value gives as the
+  keyword, so the check refuses a `;` in an unquoted argument anywhere (`OUTPUT_NAME;hidden-tests`, `hidden;ALL`,
+  `SCRIPT;<file>`, `m;-nostdlib`), and where an argument's place or word decides what is made, written or run, an
+  argument holding a variable that could become another or none: `add_custom_target`'s name and the argument after it,
+  where CMake reads `ALL` (`${HM_ALL}`, `"${HM_ALL}"`, `A${HM_EMPTY}LL`), `install`'s first, where it reads `CODE` and
+  `SCRIPT`, `set_property`'s values, as it takes `PROPERTY`, `APPEND` and `APPEND_STRING` wherever they come (a second
+  `PROPERTY` gave the directory's `LINK_OPTIONS` every value), `configure_file`'s input and output, every argument of
+  the compile and link options (`-include ${X}` gave the compile a second flag), and every argument up to the name of
   the variable a command writes, that name in any form (`file(READ ${F} LIMIT 100)`, `F` a file and
   `CMAKE_C_COMPILE_OBJECT`, wrote the compile rule), `list()` and `string()` read in the modes the file uses alone,
   as each mode writes at a place of its own (`list(GET ...)` and `string(REPLACE a b "${N}" ...)` wrote it too).
