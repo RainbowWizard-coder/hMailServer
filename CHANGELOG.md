@@ -3142,7 +3142,20 @@ with `--check`).
   is held as the start jobs are: its keys bare and each once, and none but its stage, image, needs, timeout,
   interruptible, rules, ID token, variables, script and artifacts - no `when`, `before_script`, `hooks` or
   `allow_failure` -, and its image, needs (the image, its SBOM and both start tests), rules (`.release-rules`'
-  alone), variables (`COSIGN_YES` alone) and script as they are written (`sign_job_problems`).
+  alone), variables (`COSIGN_YES` alone) and script as they are written (`sign_job_problems`); and what it takes
+  from `container-image-sbom`, whose artifacts GitLab unpacks over its checkout and whose dotenv report would give
+  it variables over its own, is that job's `container-image-sbom/` alone, written as the tree has it, with no
+  report and no `extends` (adding `build/ci/container-image-sign.sh` to those artifacts, or a dotenv report, passed
+  the check before). A rule a `v*` tag can match may say `allow_failure` only as `false`: `allow_failure: true`
+  or `exit_codes` in `.release-rules`' tag rule passed, and would have let `container-image-sign` sign an image
+  whose start test failed and offered `release-publish` after a failed verification. And each job of the chain,
+  and every block it reaches by `extends` or `!reference`, is defined once in the CI files
+  (`chain_definition_problems`): the check read the first definition of each, where GitLab merges a second one
+  in any included file into the job, keeping every key the first does not set, so that `release-sign:` with
+  `when: always` alone, or `release-verify:` with a `before_script` of `exit 0`, appended to
+  `.gitlab/ci/snap.yml`, which is not a gate file, passed it, and so did the package jobs of the chain defined
+  again with their tags and rules copied. The tree's one second definition, `pages: false` in
+  `.gitlab/ci/package-repos.yml`, is let through as that line alone.
 - **The release-chain check refuses a control byte in any file it reads.** bash and busybox sh drop a NUL from the
   line they run, so `e`, a NUL and `xit 0` after `build/ci/container-image-push.sh`'s `set -eu` is `exit 0` to them,
   would end the push green having pushed nothing, and passed every line the check reads; and a NUL in a file's first 8,000
@@ -3159,35 +3172,62 @@ with `--check`).
   `rpm-fedora44-aarch64-start`) now writes `extends`, `stage`, `tags`, `needs`, `timeout`, `rules`, `variables`,
   `services` and `script` alone, bare and each once; extends one template of its own file that writes `image:`
   alone; is defined once in the CI files with all it reaches; sets no variable but `HM_PACKAGES_DIR` and a number of
-  seconds in `HM_START_WAIT`; takes no `before_script`, `hooks` or `cache` from `default:`; and needs its build alone,
-  whose artifacts stay under its own file's folder and carry no dotenv report, since GitLab unpacks a need's
-  artifacts over the checkout the script runs from and gives its dotenv variables over the job's
-  (`package_start_key_problems`). The script was held by the lines `START_SCRIPT_LINES` names, and
-  an `exit 0` after `set -uo pipefail`, a `fail` made to return 0 and an `rc=0` before the SMTP verdict each kept
-  them and passed, while the start jobs and `linux-package-deb` are jobs `release` waits for and the script is not
-  one of `build/land-via-mr.py`'s gate files: it is now held whole by the SHA-256 of its text with its line ends LF
-  (`PACKAGE_INSTALL_SHA256`), as the image's start test is by `START_TEST_SHA256`, so a change to it fails the check,
-  printing the new digest, until the digest in the check changes with it - a gate change, landed only with
-  `--gates-read`. A digest rather than a place in the gate files: the script changed in ten commits from 25 September
-  to 24 October 2026, a one-line change to the check each time; the gate files are what judges a change and says how
-  the gate jobs run; and the branch's own `checkers` job says the script changed, not only the landing. Whoever
-  changes the script reads the change whole, runs the check, puts the digest it prints in `PACKAGE_INSTALL_SHA256`
-  and lands with `--gates-read`; the script's header and ContinuousIntegration.md say so. And the script's requests
-  after the start wait - `GET /api/v1/status`, `GET /`, the German catalogue and the four that must be answered 404 -
-  had no `--max-time`, so one that hung held the job to its timeout: each is given 30 s, and the check refuses a
-  `curl` there without `--max-time` on its line.
+  seconds in `HM_START_WAIT`; takes no `before_script`, `hooks` or `cache` from `default:`; has the one PostgreSQL
+  service by digest, as it is written, and no other service, command or entrypoint; and needs its build alone,
+  written `needs: [<build>]` (an entry in flow mapping, `needs:project` and `needs:pipeline`, which the check's
+  reader of needs skipped, are refused), whose artifacts are written once, by the build or a template of it, as
+  its file's folder alone with `when: always` and `expire_in: 14 days` - flow style, `!reference`, a path through
+  `..` and a dotenv report each passed a first reading and are refused -, since GitLab unpacks a need's artifacts
+  over the checkout the script runs from and gives its dotenv variables over the job's; and the image of its
+  template is the distribution's by digest, its `pull_policy` and `docker: platform: linux/arm64`, with no
+  `entrypoint`, which would run in place of the runner's shell (`package_start_key_problems`). The script was held
+  by the lines `START_SCRIPT_LINES` names, and an `exit 0` after `set -uo pipefail`, a `fail` made to return 0 and
+  an `rc=0` before the SMTP verdict each kept them and passed, while the start jobs, `linux-package-deb` and
+  `linux-package-rpm` are jobs `release` waits for and the script is not one of `build/land-via-mr.py`'s gate
+  files: it is now held whole by the SHA-256 of its text with its line ends LF (`PACKAGE_INSTALL_SHA256`), as the
+  image's start test is by `START_TEST_SHA256`, so a change to it fails the check, printing the new digest, until
+  the digest in the check changes with it - a gate change, landed only with `--gates-read`. So is each file of the
+  tree it runs (`PACKAGE_INSTALL_RUNS`): `build/ci/packages/check-licenses.sh`, which it runs as root before the
+  server is started and which could have put a stand-in in place of `curl` or `cmp`, by `PACKAGE_LICENSES_SHA256`;
+  a file of the tree it runs that is not listed there fails the check. And the script's body is now one `{ ... }`
+  group ending in `exit 0`, which the check holds: bash reads a script's commands from the file as it runs them, and
+  a licence check that ran the real one and then wrote `echo HOSTILE-LINE-RAN; exit 0` over the running script after
+  its own line ended the arm64 `.deb`'s start job green in 74 s with the script as it was, the line printed and the
+  server never started, where with the group the line never ran and the job went on to `PACKAGE PASSED` (run on 28
+  October 2026 as `deb-ubuntu26.04-arm64-start` runs, over a package built as `deb-ubuntu26.04-arm64` builds it; a
+  stand-in did the same under bash 5.3.9 in the Ubuntu 26.04 and Fedora 44 images). A digest rather than a place in the gate files: the script changed in ten
+  commits from 25 September to 24 October 2026 and the licence check in four from 29 September, a one-line change
+  to the check each time; the gate files are what judges a change and says how the gate jobs run; and the branch's
+  own `checkers` job says the script changed, not only the landing. Whoever changes the script or the licence check
+  reads the change whole, runs the check, puts the digest it prints in `PACKAGE_INSTALL_SHA256` or
+  `PACKAGE_LICENSES_SHA256` and lands with `--gates-read`; the script's header and ContinuousIntegration.md say so.
+  And the script's requests after the start wait - `GET /api/v1/status`, `GET /`, the German catalogue and the four
+  that must be answered 404 - had no `--max-time`, so one that hung held the job to its timeout: each is given 30 s,
+  and the check refuses a `curl` there without `--max-time` on its line, and one, wherever a command starts -
+  after `command`, `time`, `{` or a backquote among the places -, without `--max-time` or `-m` among its own
+  arguments, a comment after it not counted.
 - **The release-chain check holds the documents' sentences on the SLSA level by a list.** Its tripwire over the
   README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and the pages of `hmailserver/docs` refuses a higher level named
   without a negation attached to it or affirmed, and "Our SLSA level is 3.", "SLSA compliance level: 3" and "It
   cannot be said that Build L2 is not met." each passed it. Rather than more patterns, every sentence of those
-  documents that names SLSA beside a level or a figure, a level in SLSA's own form (Build L2, SLSA3) or the slsa.dev
-  badge must now be one of `SLSA_SENTENCES`, which lists the tree's 22 as the documents have them, read in units of
-  a paragraph, a list item, a heading, a table cell, a line of a fenced block or a badge's line, with their white
-  space as one space (`slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, named as the
-  check reads it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and
-  a listed one the documents no longer say fails until it is taken out. Whoever writes or rewords such a sentence
-  copies it from the failure into `SLSA_SENTENCES`, takes out the one it replaced and lands the change with
-  `--gates-read`; ContinuousIntegration.md says so. The tripwire stays.
+  documents that names SLSA at all - as it reads, so that `SL**SA**`, `SLS&#65;`, a zero-width space or a Cyrillic
+  A inside the name count as the name -, a level in SLSA's own form (Build L2, SLSA3) or the slsa.dev badge, and
+  every sentence of the paragraph after a heading that names it, must now be one of `SLSA_SENTENCES`, which lists
+  the tree's 30 as the documents have them, read in units of a paragraph, a list item with the items under it, a
+  heading, a table's row, a line of a fenced block or a badge's line, with their white space as one space
+  (`slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, given whole as the check reads
+  it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and a listed
+  one the documents no longer say fails until it is taken out. A first reading that took a sentence only with a
+  figure or the word level beside the name, and split a table's row into its cells, a list item from its
+  sub-items and a heading from its paragraph, passed "| SLSA | 3 |", "SLSA: three.", "Our SLSA rating is three.",
+  "We are fully SLSA compliant.", "* SLSA:" over "  * L3" and "## SLSA" over "Three, from 6.3.8."; each is refused.
+  Whoever writes or rewords such a sentence copies it from the failure into `SLSA_SENTENCES`, takes out the one it
+  replaced and lands the change with `--gates-read`; ContinuousIntegration.md says so. The tripwire stays.
+- **The release-chain check's rules on the documents' whole text run once for each set of texts.** Each run of
+  `check()` split every page of `hmailserver/docs` into sentences for the SLSA list and the tripwire, about a
+  second of it, and the self-test runs it some 1,300 times over the same documents but for its SLSA cases:
+  `docs_rule` keeps each rule's answer for the texts it was given, so that a `check()` took 0.86 s in place of 2.00
+  s over the same tree on 28 October 2026 (1.17 s before the list was added).
 
 ### Documentation
 

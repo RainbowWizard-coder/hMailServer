@@ -65,7 +65,15 @@
 # package, not a distribution's libraries, which are a question for a build made on
 # it - the generic .rpm built in Fedora 44, which rpm-fedora installs with dnf and
 # starts.
+#
+# The script's body is one command, the { ... } group below, which ends in an exit:
+# bash reads a script as it runs it, a command at a time from where it is in the file,
+# but reads a group to its end before it runs any of it. So nothing it runs as root -
+# build/ci/packages/check-licenses.sh, the package's own maintainer scripts - can change
+# what it does next by writing over this file: an exit 0 written after the licence
+# check's line would otherwise be the next command it read.
 set -uo pipefail
+{
 
 kind="${1:-}"
 packages="${HM_PACKAGES_DIR:-linux-build/packages}"
@@ -492,3 +500,5 @@ fi
 [ ! -f /usr/bin/hmailserver ] || fail "/usr/bin/hmailserver is still there after the package was removed"
 echo ""
 echo "PACKAGE PASSED: $found installs on $PRETTY_NAME $arch with its dependencies, the packaged server starts as its unit starts it, answers SMTP on 25 and its REST API, serves the Deck, and comes off again."
+exit 0
+}

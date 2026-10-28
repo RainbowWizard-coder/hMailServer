@@ -3646,11 +3646,31 @@ jobs, `pages` and `package-repos`) - its own, or a template's it takes with
 `!reference [X, rules]`, `.release-rules` and the install jobs' rules among
 them - brings a key but `if`, `when`, `allow_failure` and `changes`, or a
 `when` but `never`, `on_success` and `manual`; when such a template writes a
-key beside `rules:`, which a job that extends it would take; and when a job of
-the chain, or a template it extends, says `when: always` itself. `needs: []` in
+key beside `rules:`, which a job that extends it would take; when a job of
+the chain, or a template it extends, says `when: always` itself; and when a
+rule a `v*` tag can match says `allow_failure` but `false` (`true`, or
+`exit_codes`), with which `container-image-sign` would sign an image whose
+start test failed and `release-publish` be offered after a failed verification
+- a rule a tag cannot match is one whose `if:` asks, with `&&` alone, for
+`$CI_COMMIT_TAG !~ /^v/` or for `$CI_COMMIT_BRANCH` to be a value, which a
+tag's pipeline, having no branch, never meets. `needs: []` in
 `.release-rules`' tag rule would have started `release-sign` before
 `release-authenticode` had signed, and only the container scans' own rule on
-`rules:needs` refused it, for the scans alone.
+`rules:needs` refused it, for the scans alone. And each job of the chain, and
+every block it reaches by `extends` or `!reference`, is defined once in the CI
+files (`chain_definition_problems`): GitLab merges a second definition in any
+included file into the job, keeping every key the first does not set, so that
+`release-sign:` with `when: always` alone, or `release-verify:` with a
+`before_script` of `exit 0`, appended to a file that is not a gate file, such
+as `.gitlab/ci/snap.yml`, would have been the job's, past every rule on its own
+block. The one second definition the tree has, `pages: false` in
+`package-repos.yml`, which turns the `pages` job's own deployment off, is let
+through as those lines and no other (`CHAIN_SECOND_DEFINITIONS`).
+`container-image-sbom`'s artifacts, which `container-image-sign` takes, are
+`container-image-sbom/` alone, as they are written, with no report and no
+`extends`: GitLab unpacks them over the sign job's checkout, where
+`build/ci/container-image-sign.sh` is, and gives a dotenv report's variables
+over the job's.
 
 **What the package start jobs take, and their script.** The two start jobs
 (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`) write `extends`,
@@ -3661,29 +3681,47 @@ alone (GitLab takes a template from any CI file `.gitlab-ci.yml` includes, and a
 third file's was read by nothing), take no `before_script`, `hooks` or `cache`
 from `default:`, set no variable but `HM_PACKAGES_DIR` and `HM_START_WAIT` (a
 number) - `BASH_ENV`, which bash runs before the script, and the rest are
-refused -, and need their build alone, whose artifacts stay under its own
-file's folder and carry no dotenv report, since GitLab unpacks them over the
-checkout the script is in and gives a dotenv report's variables over the job's.
-`build/ci/linux-package-install.sh`, which they and `linux-package-deb` run, is
-held whole, by the SHA-256 of its text with its line ends LF
-(`PACKAGE_INSTALL_SHA256` in `build/check-release-chain.py`), as
+refused -, and need their build alone, written `needs: [<build>]`, the one
+form the checker reads (an entry in flow mapping, `needs:project` and
+`needs:pipeline` are refused), whose artifacts are written once, by the build
+or one of its templates, as `packages-deb/` or `packages-rpm/` alone, with
+`when: always` and `expire_in: 14 days` and no report (flow style,
+`!reference` and a path through `..` are refused), since GitLab unpacks them
+over the checkout the script is in and gives a dotenv report's variables over
+the job's. The template's image is written as the distribution's image by
+digest, its `pull_policy` and `docker: platform: linux/arm64`, and nothing else:
+an `entrypoint` would run in place of the runner's shell.
+`build/ci/linux-package-install.sh`, which they, `linux-package-deb` and
+`linux-package-rpm` run, is held whole, by the SHA-256 of its text with its
+line ends LF (`PACKAGE_INSTALL_SHA256` in `build/check-release-chain.py`), as
 `container-image-start-test.sh` is by `START_TEST_SHA256`: an `exit 0` after
 `set -uo pipefail`, a `fail` that returns 0 and an `rc=0` before the SMTP
-verdict each kept every line `START_SCRIPT_LINES` names. Whoever changes the
-script reads the change whole, runs `python build/check-release-chain.py`,
-whose failure prints the script's new digest, puts that digest in
-`PACKAGE_INSTALL_SHA256` in the same commit, and lands it with `--gates-read`,
-since the checker is one of `build/land-via-mr.py`'s `GATE_FILES` and the
-script is not. A digest rather than a place in `GATE_FILES`: the script
-changed in ten commits from 25 September to 24 October 2026, three of them in
-the last two days, which is a one-line change to the checker each time, as the
-start test has taken four since its digest was added on 23 October 2026; the gate files are what judges a change and says
-how its jobs run, a list the checker holds to those; and the branch's own
+verdict each kept every line `START_SCRIPT_LINES` names. So is each file of the
+tree it runs, by its own digest (`PACKAGE_INSTALL_RUNS`):
+`build/ci/packages/check-licenses.sh`, which it runs as root before the server
+is started (`PACKAGE_LICENSES_SHA256`); a file of the tree it runs that is not
+listed there is refused. And its body is one `{ ... }` group that ends in
+`exit 0`, which bash reads to its end before it runs any of it: bash reads a
+script's other commands from the file as it runs them, so that the licence
+check, or a package's maintainer script, writing `exit 0` over the file after
+its own line would have ended the job green without the start. Whoever changes
+the script or the licence check reads the change whole, runs `python
+build/check-release-chain.py`, whose failure prints the file's new digest, puts
+that digest in `PACKAGE_INSTALL_SHA256` or `PACKAGE_LICENSES_SHA256` in the
+same commit, and lands it with `--gates-read`, since the checker is one of
+`build/land-via-mr.py`'s `GATE_FILES` and the scripts are not. A digest rather
+than a place in `GATE_FILES`: the script changed in ten commits from 25
+September to 24 October 2026, three of them in the last two days, and the
+licence check in four from 29 September, which is a one-line change to the
+checker each time, as the start test has taken three since its digest was
+added on 23 October 2026; the gate files are what judges a change and says how
+its jobs run, a list the checker holds to those; and the branch's own
 `checkers` job says the script changed, not only the landing. Every `curl` the
-script runs after the start is given a time (`--max-time`): the wait's requests
-what is left of `HM_START_WAIT`, 30 s at most, and `GET /api/v1/status`, `GET
-/`, the German catalogue and the four requests that must be answered 404 30 s
-each, so that one that hangs fails the job there and not at its timeout.
+script runs after the start is given a time (`--max-time`, or `-m`, among its
+own arguments): the wait's requests what is left of `HM_START_WAIT`, 30 s at
+most, and `GET /api/v1/status`, `GET /`, the German catalogue and the four
+requests that must be answered 404 30 s each, so that one that hangs fails the
+job there and not at its timeout.
 
 **Why no secret.** Sigstore takes the job's ID token for the audience
 `sigstore`; Entra ID takes another, for `api://AzureADTokenExchange`, through a
@@ -3830,11 +3868,16 @@ SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs`
 names a higher level without a negation attached to it or affirms one - a
 tripwire over wordings, which three claims passed. So it also holds each of
 those sentences by a list: every sentence of those documents that names the
-framework beside a level or a figure, a level in its own form (a Build level
-by its number) or its badge must be one of `SLSA_SENTENCES`, the sentences the
+framework at all - as it reads, its character references decoded, a zero-width
+character or emphasis inside the name taken out and a lookalike letter of
+another script read as the Latin one -, a level in its own form (a Build level
+by its number) or its badge, and every sentence of the paragraph after a
+heading that names it, must be one of `SLSA_SENTENCES`, the sentences the
 checker lists for each document as the document has them, read in units of a
-paragraph, a list item, a heading, a table cell, a line of a fenced block or a
-badge's line, with their white space taken as one space. A sentence added or
+paragraph, a list item with the items under it, a heading, a table's row, a
+line of a fenced block or a badge's line, with their white space taken as one
+space, so that a level said in words, or in a cell, a sub-item or a paragraph
+apart from the name, is held with it. A sentence added or
 reworded fails `checkers`, naming the sentence as the check reads it, until it
 is listed; a listed one the document no longer says fails until it is taken
 out. Whoever writes or rewords such a sentence reads it against SECURITY.md's
