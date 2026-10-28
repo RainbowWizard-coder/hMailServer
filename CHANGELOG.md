@@ -140,7 +140,8 @@ with `--check`).
   the image's user can read `hMailServer.ini`, which holds the database password, all the same.
   `build/test-docker-entrypoint.sh` holds it, with 6.3.7's entrypoint as its negative control
   (`hmailserver/docs/ContainerImage.md`).
-- **Changed: the container image's `HMAILSERVER_RECOVERY_PASSPHRASE` no longer reaches the server's environment.**
+- **Changed: the container image's `HMAILSERVER_RECOVERY_PASSPHRASE` no longer reaches the server's environment when
+  the container runs the image's own command.**
   The variable is read by one verb, `hmailserver --decrypt-store`, and by nothing the running server does; given in a
   container's environment it stayed in the server's, and that of every program the server starts, for the server's
   whole life, which under `no_new_privs` - the Helm chart's `allowPrivilegeEscalation: false` - any program running
