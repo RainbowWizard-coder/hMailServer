@@ -3148,7 +3148,16 @@ with `--check`).
   report and no `extends` (adding `build/ci/container-image-sign.sh` to those artifacts, or a dotenv report, passed
   the check before). A rule a `v*` tag can match may say `allow_failure` only as `false`: `allow_failure: true`
   or `exit_codes` in `.release-rules`' tag rule passed, and would have let `container-image-sign` sign an image
-  whose start test failed and offered `release-publish` after a failed verification. And each job of the chain,
+  whose start test failed and offered `release-publish` after a failed verification. Whether a tag's pipeline can
+  match a rule is read from its `if:` as an expression, with the tag set, the branch unset and every other clause
+  tried either way in every kind of pipeline (`tag_pipeline_can_match`), not from its text: a first reading took a
+  rule whose `if:` held `$CI_COMMIT_TAG !~ /^v/` anywhere, or `$CI_COMMIT_BRANCH ==` or `=~` anything, for one no
+  tag matches, and passed `$CI_COMMIT_BRANCH == null`, which a tag's pipeline meets (it has no branch, and null
+  equals null), the branch compared with a variable that may be unset, and the marker inside a quoted string, each
+  with `allow_failure: true` in the first rule of `container-image-sbom` - in `container-image.yml`, which is not a
+  gate file, and whose failure `container-image-sign` would then sign past - or of `.release-rules`; GitLab's CI
+  lint, run dry for the tag `v6.3.7`, made a job of each of those three rules, allowed to fail, and none of a rule
+  of the default branch, which still passes. And each job of the chain,
   and every block it reaches by `extends` or `!reference`, is defined once in the CI files
   (`chain_definition_problems`): the check read the first definition of each, where GitLab merges a second one
   in any included file into the job, keeping every key the first does not set, so that `release-sign:` with
@@ -3156,6 +3165,20 @@ with `--check`).
   `.gitlab/ci/snap.yml`, which is not a gate file, passed it, and so did the package jobs of the chain defined
   again with their tags and rules copied. The tree's one second definition, `pages: false` in
   `.gitlab/ci/package-repos.yml`, is let through as that line alone.
+- **No CI file writes what GitLab takes from its top level as `default:`'s.** GitLab still reads `before_script`,
+  `after_script`, `image`, `services` and `cache` written at the top level of any CI file, an included one too, as
+  `default:`'s (its globally-defined keywords, deprecated) and gives them every job that sets none of its own; the
+  check read `default:` only as `.gitlab-ci.yml`'s `default:` block, so that a `before_script` of `exit 0` appended
+  to `.gitlab/ci/packages-deb.yml`, the start jobs' own file, or to `.gitlab/ci/container-image.yml`, neither a gate
+  file, ended the package start jobs or `container-image-sign` green having started or signed nothing, and a `cache`
+  of `build/ci/` there would have been unpacked over their checkout, and each passed every rule (GitLab's CI lint,
+  run dry, gave a job of the start jobs' shape that `before_script`, and one from the top level of an included
+  GitLab template too). `build/check-release-chain.py` now fails when any CI file, `.gitlab-ci.yml` among them,
+  writes one of them at its top level (`GLOBAL_DEFAULTS`), when a top-level line is not a key written bare - a
+  quoted key with its escapes, an explicit key, a merge key or another document, through which one could be
+  written past it (`TOP_LEVEL_LINE`) -, and when a CI file includes one of GitLab's templates outside `Jobs/`, whose
+  language templates (`Python.gitlab-ci.yml` among them) write an `image`, a `before_script` and a `cache` there
+  (`ci_override_problems`); ContinuousIntegration.md says so.
 - **The release-chain check refuses a control byte in any file it reads.** bash and busybox sh drop a NUL from the
   line they run, so `e`, a NUL and `xit 0` after `build/ci/container-image-push.sh`'s `set -eu` is `exit 0` to them,
   would end the push green having pushed nothing, and passed every line the check reads; and a NUL in a file's first 8,000
@@ -3172,7 +3195,8 @@ with `--check`).
   `rpm-fedora44-aarch64-start`) now writes `extends`, `stage`, `tags`, `needs`, `timeout`, `rules`, `variables`,
   `services` and `script` alone, bare and each once; extends one template of its own file that writes `image:`
   alone; is defined once in the CI files with all it reaches; sets no variable but `HM_PACKAGES_DIR` and a number of
-  seconds in `HM_START_WAIT`; takes no `before_script`, `hooks` or `cache` from `default:`; has the one PostgreSQL
+  seconds in `HM_START_WAIT`; takes no `before_script`, `hooks` or `cache` from `default:`, nor from a CI file's top
+  level (below); has the one PostgreSQL
   service by digest, as it is written, and no other service, command or entrypoint; and needs its build alone,
   written `needs: [<build>]` (an entry in flow mapping, `needs:project` and `needs:pipeline`, which the check's
   reader of needs skipped, are refused), whose artifacts are written once, by the build or a template of it, as
@@ -3188,9 +3212,9 @@ with `--check`).
   image's start test is by `START_TEST_SHA256`, so a change to it fails the check, printing the new digest, until
   the digest in the check changes with it - a gate change, landed only with `--gates-read`. So is each file of the
   tree it runs (`PACKAGE_INSTALL_RUNS`): `build/ci/packages/check-licenses.sh`, which it runs as root before the
-  server is started and which could have put a stand-in in place of `curl` or `cmp`, by `PACKAGE_LICENSES_SHA256`;
-  a file of the tree it runs that is not listed there fails the check. And the script's body is now one `{ ... }`
-  group ending in `exit 0`, which the check holds: bash reads a script's commands from the file as it runs them, and
+  server is started and which could have put a stand-in in place of `curl` or `cmp`, by `PACKAGE_LICENSES_SHA256`.
+  And the script's body is now one `{ ... }` group ending in `exit 0`: bash reads a script's commands from the file
+  as it runs them, and
   a licence check that ran the real one and then wrote `echo HOSTILE-LINE-RAN; exit 0` over the running script after
   its own line ended the arm64 `.deb`'s start job green in 74 s with the script as it was, the line printed and the
   server never started, where with the group the line never ran and the job went on to `PACKAGE PASSED` (run on 28
@@ -3202,25 +3226,47 @@ with `--check`).
   reads the change whole, runs the check, puts the digest it prints in `PACKAGE_INSTALL_SHA256` or
   `PACKAGE_LICENSES_SHA256` and lands with `--gates-read`; the script's header and ContinuousIntegration.md say so.
   And the script's requests after the start wait - `GET /api/v1/status`, `GET /`, the German catalogue and the four
-  that must be answered 404 - had no `--max-time`, so one that hung held the job to its timeout: each is given 30 s,
-  and the check refuses a `curl` there without `--max-time` on its line, and one, wherever a command starts -
-  after `command`, `time`, `{` or a backquote among the places -, without `--max-time` or `-m` among its own
-  arguments, a comment after it not counted.
+  that must be answered 404 - had no `--max-time`, so one that hung held the job to its timeout: each is given 30 s.
+  The digest is what holds the script; the check's other rules on it are for whoever reads a change that moves the
+  digest, and read it as the shell does as far as they go. A path of the checkout under `build/` or `hmailserver/`
+  anywhere on a line of its code, in any argument - after `bash`, `env`, `timeout` or nothing, quoted or after
+  `$PWD/` -, that is neither in `PACKAGE_INSTALL_RUNS` nor one of the three it only reads (`PACKAGE_INSTALL_READS`:
+  the Deck's page and catalogues and `Version.h`), fails the check; the group is followed by its braces, outside
+  quotes, comments and here-documents, from the `{` after `set -uo pipefail` to the file's last line, so that a `}`
+  that closes it before the licence check and a `{` after it fail; and a `curl` there without `--max-time` on its
+  line fails, and one, wherever a command starts - after `command`, `time`, `{` or a backquote among the places -,
+  without `--max-time` or `-m` among its own arguments outside quotes, a comment after it or a header's value
+  (`-H "X-Note: --max-time 30"`) not counted. A first reading of each, which took a file run only after `bash` or
+  where a command starts, the group by its first and last lines and curl's arguments with their quoted text, passed
+  `env bash`, `timeout 60 bash` and `bash "$PWD/..."` of another file of the tree, the group closed and opened again
+  around the licence check, and that header, each with the digest moved.
 - **The release-chain check holds the documents' sentences on the SLSA level by a list.** Its tripwire over the
   README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and the pages of `hmailserver/docs` refuses a higher level named
   without a negation attached to it or affirmed, and "Our SLSA level is 3.", "SLSA compliance level: 3" and "It
-  cannot be said that Build L2 is not met." each passed it. Rather than more patterns, every sentence of those
-  documents that names SLSA at all - as it reads, so that `SL**SA**`, `SLS&#65;`, a zero-width space or a Cyrillic
-  A inside the name count as the name -, a level in SLSA's own form (Build L2, SLSA3) or the slsa.dev badge, and
-  every sentence of the paragraph after a heading that names it, must now be one of `SLSA_SENTENCES`, which lists
-  the tree's 30 as the documents have them, read in units of a paragraph, a list item with the items under it, a
-  heading, a table's row, a line of a fenced block or a badge's line, with their white space as one space
-  (`slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, given whole as the check reads
+  cannot be said that Build L2 is not met." each passed it. Rather than more patterns, the documents are read in
+  units of a paragraph, a list item with the items under it, a heading, a table's row, a line of a fenced block or
+  a badge's line, and every sentence of a unit that names SLSA at all, not only the sentence that names it - as it
+  reads, too, with character references and percent-encoding decoded, every default-ignorable character, combining
+  mark and format character dropped (a zero-width space, a variation selector, a combining grapheme joiner),
+  emphasis taken out, a letter Unicode's confusables table (UTS #39, version 18.0.0) gives as one of the name's read
+  as it (a Cyrillic A, the Lisu letters) and a Latin variant by its name (a small capital L) -, in either spelling
+  of its long name (Artifacts, Artefacts), a level in SLSA's own form (Build L2, SLSA3), a Build level or the build
+  track with or without a number, or the slsa.dev badge; every sentence of every unit under a heading that names
+  SLSA, up to the next heading of its level or above; and every row of a table whose header row names it, must now
+  be one of `SLSA_SENTENCES`, which lists the tree's 70 as the documents have them, with their white space as one
+  space (`slsa_names`, `slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, given whole
+  as the check reads
   it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and a listed
   one the documents no longer say fails until it is taken out. A first reading that took a sentence only with a
   figure or the word level beside the name, and split a table's row into its cells, a list item from its
   sub-items and a heading from its paragraph, passed "| SLSA | 3 |", "SLSA: three.", "Our SLSA rating is three.",
-  "We are fully SLSA compliant.", "* SLSA:" over "  * L3" and "## SLSA" over "Three, from 6.3.8."; each is refused.
+  "We are fully SLSA compliant.", "* SLSA:" over "  * L3" and "## SLSA" over "Three, from 6.3.8."; and a second,
+  which held only the sentence that named SLSA, the unit right after a heading and a table's header row, passed
+  "From 6.3.8 the releases meet the highest Build level." after SECURITY.md's listed sentence on the level, a
+  second paragraph under "## SLSA", a data row under "| Release | SLSA Build level |", and the name with a
+  variation selector or a combining grapheme joiner in it, in Lisu letters, with a small capital L, spelt
+  Artefacts or percent-encoded in a badge's label; each is refused. The tripwire reads each sentence as it reads
+  as well, so that a badge of SLSA L3 whose label is percent-encoded is refused by it too.
   Whoever writes or rewords such a sentence copies it from the failure into `SLSA_SENTENCES`, takes out the one it
   replaced and lands the change with `--gates-read`; ContinuousIntegration.md says so. The tripwire stays.
 - **The release-chain check's rules on the documents' whole text run once for each set of texts.** Each run of

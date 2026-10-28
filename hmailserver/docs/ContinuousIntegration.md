@@ -1355,11 +1355,22 @@ could take any key the job does not set itself - its rules, script,
 `extends` - from a file the landing asks no person's word for;
 when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
 `workflow` at its top level, which every job takes, or includes anything but
-one of GitLab's templates; when `.gitlab-ci.yml` includes anything but those
+one of GitLab's job templates (under `Jobs/`; its other templates, the
+language ones such as `Python.gitlab-ci.yml`, write an `image`, a
+`before_script` and a `cache` at their top level); when `.gitlab-ci.yml`
+includes anything but those
 and the files of `.gitlab/ci/` named `<name>.yml`, which the checker reads, each
 by a line of its own, since GitLab merges a definition in any file it includes
 into the job's, and one in a `.yaml` file, a file beside `.gitlab/ci/` or a
-remote one passed every rule; when a CI file writes a top-level key twice - a
+remote one passed every rule; when any CI file, `.gitlab-ci.yml` among them,
+writes `before_script`, `after_script`, `image`, `services` or `cache` at its
+top level, which GitLab moves into `default:` from any file and gives every job
+that sets none of its own (`GLOBAL_DEFAULTS`) - a `before_script` of `exit 0`
+appended to `packages-deb.yml` or `container-image.yml`, neither a gate file,
+ended the package start jobs or `container-image-sign` green having run
+nothing, and passed every rule -, or a top-level line that is not a key written
+bare (a quoted key with its escapes, an explicit key, a merge key, another
+document); when a CI file writes a top-level key twice - a
 second `default:`, `variables:` or `workflow:`, or a job written again in its
 own file - since GitLab's YAML reader takes the last of the two without a word,
 where the checker reads the first or any; when a key of a job, a template,
@@ -3651,9 +3662,13 @@ the chain, or a template it extends, says `when: always` itself; and when a
 rule a `v*` tag can match says `allow_failure` but `false` (`true`, or
 `exit_codes`), with which `container-image-sign` would sign an image whose
 start test failed and `release-publish` be offered after a failed verification
-- a rule a tag cannot match is one whose `if:` asks, with `&&` alone, for
-`$CI_COMMIT_TAG !~ /^v/` or for `$CI_COMMIT_BRANCH` to be a value, which a
-tag's pipeline, having no branch, never meets. `needs: []` in
+- a rule a tag cannot match is one whose `if:`, read as an expression with the
+tag set, the branch unset and every other clause either way, is false in every
+kind of pipeline (`tag_pipeline_can_match`): a tag's pipeline has no branch, so
+`$CI_COMMIT_BRANCH == "master"`, `=~` a pattern and `== $CI_DEFAULT_BRANCH` are
+false there, but `$CI_COMMIT_BRANCH == null` and the branch compared with a
+variable that may be unset are true, and `$CI_COMMIT_TAG !~ /^v/` inside a
+quoted string is a string, not the clause. `needs: []` in
 `.release-rules`' tag rule would have started `release-sign` before
 `release-authenticode` had signed, and only the container scans' own rule on
 `rules:needs` refused it, for the scans alone. And each job of the chain, and
@@ -3679,7 +3694,8 @@ over the job's.
 `allow_failure` -, extend one template of their own file that writes `image:`
 alone (GitLab takes a template from any CI file `.gitlab-ci.yml` includes, and a
 third file's was read by nothing), take no `before_script`, `hooks` or `cache`
-from `default:`, set no variable but `HM_PACKAGES_DIR` and `HM_START_WAIT` (a
+from `default:` - nor from a CI file's top level, which GitLab moves into
+`default:` and the checker refuses in every file -, set no variable but `HM_PACKAGES_DIR` and `HM_START_WAIT` (a
 number) - `BASH_ENV`, which bash runs before the script, and the rest are
 refused -, and need their build alone, written `needs: [<build>]`, the one
 form the checker reads (an entry in flow mapping, `needs:project` and
@@ -3699,12 +3715,22 @@ line ends LF (`PACKAGE_INSTALL_SHA256` in `build/check-release-chain.py`), as
 verdict each kept every line `START_SCRIPT_LINES` names. So is each file of the
 tree it runs, by its own digest (`PACKAGE_INSTALL_RUNS`):
 `build/ci/packages/check-licenses.sh`, which it runs as root before the server
-is started (`PACKAGE_LICENSES_SHA256`); a file of the tree it runs that is not
-listed there is refused. And its body is one `{ ... }` group that ends in
-`exit 0`, which bash reads to its end before it runs any of it: bash reads a
-script's other commands from the file as it runs them, so that the licence
-check, or a package's maintainer script, writing `exit 0` over the file after
-its own line would have ended the job green without the start. Whoever changes
+is started (`PACKAGE_LICENSES_SHA256`). And its body is one `{ ... }` group
+that ends in `exit 0`, which bash reads to its end before it runs any of it:
+bash reads a script's other commands from the file as it runs them, so that the
+licence check, or a package's maintainer script, writing `exit 0` over the file
+after its own line would have ended the job green without the start. The
+digest is what holds the script; the checker's other rules on it help whoever
+reads a change to it, and read it as the shell does as far as they go: a path
+of the checkout under `build/` or `hmailserver/` anywhere on a line of its
+code - after `bash`, `env`, `timeout` or nothing, quoted or after `$PWD/` - that
+is neither in `PACKAGE_INSTALL_RUNS` nor among the files it only reads
+(`PACKAGE_INSTALL_READS`: the Deck's page and catalogues, and `Version.h`) is
+refused, the group is followed by its braces, outside quotes, comments and
+here-documents, from the `{` after `set -uo pipefail` to the file's last line,
+so that a `}` that closes it early is refused, and a `curl` must have its
+`--max-time` among its own arguments outside quotes, not in a header's value.
+Whoever changes
 the script or the licence check reads the change whole, runs `python
 build/check-release-chain.py`, whose failure prints the file's new digest, puts
 that digest in `PACKAGE_INSTALL_SHA256` or `PACKAGE_LICENSES_SHA256` in the
@@ -3866,18 +3892,25 @@ fails when SECURITY.md, this page or EvidencePack.md stops saying the level
 where its `SLSA_CLAIMS` says it, and when a sentence of the README,
 SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs`
 names a higher level without a negation attached to it or affirms one - a
-tripwire over wordings, which three claims passed. So it also holds each of
-those sentences by a list: every sentence of those documents that names the
-framework at all - as it reads, its character references decoded, a zero-width
-character or emphasis inside the name taken out and a lookalike letter of
-another script read as the Latin one -, a level in its own form (a Build level
-by its number) or its badge, and every sentence of the paragraph after a
-heading that names it, must be one of `SLSA_SENTENCES`, the sentences the
-checker lists for each document as the document has them, read in units of a
-paragraph, a list item with the items under it, a heading, a table's row, a
-line of a fenced block or a badge's line, with their white space taken as one
-space, so that a level said in words, or in a cell, a sub-item or a paragraph
-apart from the name, is held with it. A sentence added or
+tripwire over wordings, which three claims passed. So it also holds those
+documents' sentences by a list. It reads them in units - a paragraph, a list
+item with the items under it, a heading, a table's row, a line of a fenced
+block or a badge's line - and holds a unit whole when it names the framework
+at all, in either spelling of its long name, or a level in the framework's own
+form, the framework's own term for its levels (with or without a number) or
+its badge: as the unit reads, too, with its character references and
+percent-encoding decoded, every character that shows as nothing (a zero-width
+or other default-ignorable one, a variation selector, a combining mark) and
+emphasis inside the name taken out, and a letter of another script that
+Unicode's confusables table gives as one of the name's, or a variant of a
+Latin letter, read as that letter. It holds every unit under a heading that
+names the framework too, up to the next heading of that heading's level or
+above, and every row of a table whose header row names it. Every sentence of a
+unit it holds must be one of `SLSA_SENTENCES`, the sentences the checker lists
+for each document as the document has them, with their white space taken as
+one space, so that a level said in words, by a superlative or an ordinal, or
+in a cell, a sub-item, another sentence or another paragraph under such a
+heading, is held with the name. A sentence added or
 reworded fails `checkers`, naming the sentence as the check reads it, until it
 is listed; a listed one the document no longer says fails until it is taken
 out. Whoever writes or rewords such a sentence reads it against SECURITY.md's
