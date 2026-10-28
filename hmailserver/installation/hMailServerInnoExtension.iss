@@ -3088,11 +3088,13 @@ begin
 end;
 
 // Whether the folder whose owner and list were read as pFolderDescriptor and pFolderDacl
-// hands a right to write (HM_FOLDER_WRITE_RIGHTS) down to the files made in it - an allow
-// entry handed down to files (HM_OBJECT_INHERIT) - to the SID at pSid. A folder with no
-// list at all hands everything down; one whose list could not be read (pFolderDescriptor
-// 0) is taken to hand nothing down.
-function HandsDownWriteTo(pFolderDescriptor: cardinal; pFolderDacl: cardinal; pSid: cardinal): Boolean;
+// hands a right to write (HM_FOLDER_WRITE_RIGHTS) down to the SID at pSid by an allow
+// entry with the inheritance Inherit names - HM_OBJECT_INHERIT, what the files made in it
+// inherit and the folders in it inherit to hand down to theirs, or HM_CONTAINER_INHERIT,
+// what applies to the folders made in it (check 7 of R1 to R4, 28 October 2026). A folder
+// with no list at all hands everything down; one whose list could not be read
+// (pFolderDescriptor 0) is taken to hand nothing down.
+function HandsDownWriteTo(pFolderDescriptor: cardinal; pFolderDacl: cardinal; pSid: cardinal; Inherit: cardinal): Boolean;
 var
    info: ACL_SIZE_INFO;
    head: ACE_START;
@@ -3116,7 +3118,7 @@ begin
       if ReadAclEntry(pFolderDacl, index, pAce) and (pAce <> 0) then
       begin
          CopyAceStart(head, pAce, 8);
-         if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and HM_OBJECT_INHERIT) <> 0) and
+         if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and Inherit) <> 0) and
             ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and SidsAreEqual(pAce + 8, pSid) then
             Result := true;
       end;
@@ -3132,14 +3134,21 @@ end;
 // account no such right down (HandsDownWriteTo): an entry the file kept from where it was
 // made, since a file moved into a folder keeps the entries it inherited there, still marked
 // inherited. Hardening the folder rewrites such an entry from the folder's, but a handle
-// opened while it applied keeps the right. Who is that account.
-function StaleEntryLetsOthers(pDacl: cardinal; pFolderDescriptor: cardinal; pFolderDacl: cardinal; ServiceMay: Boolean; var Who: String): Boolean;
+// opened while it applied keeps the right. A folder (Folder set) moved so keeps its entries
+// as a file does, and so does every file in it, which the folder then hands down (check 7 of
+// R1 to R4, 28 October 2026): its inherited entries are asked too, one that applies to it
+// against what the folder it is in hands down to folders (HM_CONTAINER_INHERIT), and one
+// that only hands down to what is in it (inherit-only) against what that folder hands down
+// at all - to files (HM_OBJECT_INHERIT), which is how such an entry comes to a folder, or
+// to folders, as CREATOR OWNER's does. Who is that account.
+function StaleEntryLetsOthers(pDacl: cardinal; pFolderDescriptor: cardinal; pFolderDacl: cardinal; ServiceMay: Boolean; Folder: Boolean; var Who: String): Boolean;
 var
    info: ACL_SIZE_INFO;
    head: ACE_START;
    pAce: cardinal;
    index: cardinal;
    aceFlags: cardinal;
+   inherit: cardinal;
 begin
    Result := false;
    Who := '';
@@ -3155,9 +3164,17 @@ begin
       begin
          CopyAceStart(head, pAce, 8);
          aceFlags := (head.TypeFlagsSize shr 8) and $FF;
-         if ((aceFlags and HM_INHERITED_ACE) <> 0) and ((aceFlags and HM_INHERIT_ONLY) = 0) and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and
+         inherit := HM_OBJECT_INHERIT;
+         if Folder then
+         begin
+            if (aceFlags and HM_INHERIT_ONLY) = 0 then
+               inherit := HM_CONTAINER_INHERIT
+            else
+               inherit := HM_OBJECT_INHERIT or HM_CONTAINER_INHERIT;
+         end;
+         if ((aceFlags and HM_INHERITED_ACE) <> 0) and (Folder or ((aceFlags and HM_INHERIT_ONLY) = 0)) and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and
             ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-4')) and
-            (not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) and (not HandsDownWriteTo(pFolderDescriptor, pFolderDacl, pAce + 8)) then
+            (not (ServiceMay and SidIs(pAce + 8, HM_SERVICE_SID))) and (not HandsDownWriteTo(pFolderDescriptor, pFolderDacl, pAce + 8, inherit)) then
          begin
             Result := true;
             Who := SidNameAt(pAce + 8);
@@ -3476,6 +3493,11 @@ end;
 //     permissions say, and setup replaces only the files it installs - or one an entry
 //     of whose own lets another account change it (OwnEntriesLetOthers); the key store
 //     may also be the service's, and have its entry, which /GrantServiceAccess gives it.
+// In the first look, a program, a library, a script, a settings file or a folder whose
+// inherited entry, kept from where it was made, lets another account change it, which the
+// folder it is in does not hand down (StaleEntryLetsOthers), is noted for the restart rule
+// (NoteStaleItem) - a folder moved in keeps its entries, and so does every file in it
+// (check 7 of R1 to R4, 28 October 2026).
 // Another file - a note - whose owner is another account, or cannot be read, is said
 // in the setup log and added to g_szFolderFindings when Final is set; the service's own
 // files are not. Found counts
@@ -3548,8 +3570,9 @@ begin
       Result := false;
       Exit;
    end;
-   // What the folder hands down to the files in it, for an entry a file kept from where it
-   // was made (StaleEntryLetsOthers); pFolderDescriptor 0 when it cannot be read.
+   // What the folder hands down to the files and the folders in it, for an entry one of them
+   // kept from where it was made (StaleEntryLetsOthers); pFolderDescriptor 0 when it cannot
+   // be read.
    pFolderOwner := 0;
    pFolderDacl := 0;
    pFolderDescriptor := 0;
@@ -3605,7 +3628,7 @@ begin
                            szWho := 'has an entry of its own that lets ' + szText + ' change it';
                            szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
                         end
-                        else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pFolderDescriptor, pFolderDacl, bKeyStore, szText) then
+                        else if (not Final) and StaleEntryLetsOthers(pDacl, pFolderDescriptor, pFolderDacl, bKeyStore, bFolder, szText) then
                            NoteStaleItem(szItem, szText);
                      end;
                      FreeWindowsMemory(pDescriptor);
@@ -4198,7 +4221,7 @@ begin
                               szWho := 'has an entry of its own that lets ' + szText + ' change it';
                               szRemedy := 'An administrator checks it and gives it the permissions of the folder it is in - icacls "' + szItem + '" /reset - restarts Windows, since a program that account started may still hold it open with the right to change it, and runs setup again.';
                            end
-                           else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pAppDescriptor, pAppDacl, false, szText) then
+                           else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pAppDescriptor, pAppDacl, false, false, szText) then
                               NoteStaleItem(szItem, szText);
                         end;
                         FreeWindowsMemory(pDescriptor);

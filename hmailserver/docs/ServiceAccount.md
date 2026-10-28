@@ -650,7 +650,12 @@ that a refusal here leaves a running server running:
   holds a program, a library, a script or a settings file whose inherited entry - one it
   kept from where it was made, since a file moved into a folder keeps the entries it
   inherited there - lets another account write it where the folder hands that account no
-  such right down, and the earlier installation's data folder another account owns. A
+  such right down; `Bin`, `ControlPanel` or a folder that holds what is run that holds a
+  folder so moved in, at any depth, since the folder keeps its entries as a file does and
+  every file in it then has them, handed down by the folder it is in (an entry that
+  applies to the folder held to what the folder above hands down to folders, one that
+  only hands down to what is in it to what that folder hands down at all); and the
+  earlier installation's data folder another account owns. A
   program such an account started then may hold the folder, or a file in it, open with
   that right, which a handle keeps whatever the permissions say after: the hardening
   alone does not take it away - a restart does.

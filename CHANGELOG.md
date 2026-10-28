@@ -383,7 +383,9 @@ with `--check`).
   that holds anything but empty folders and that it may write, by an entry setup's hardening takes away, an inherited
   one or a group of every user's own - a named account's own, which setup keeps and says, is not counted, and so does
   not refuse every run - or one that holds a program, a library, a script or a settings file whose inherited entry,
-  kept from where it was made and not handed down by the folder it is in, lets another account change it - keeps that
+  kept from where it was made and not handed down by the folder it is in, lets another account change it, or a folder
+  moved so into `Bin`, `ControlPanel` or a folder that holds what is run, which keeps its entries as a file does and
+  hands them down to every file in it - keeps that
   right in a handle a program the account started then, whatever setup does to the permissions after. Setup hardens
   each before it stops the service - one whose permissions or owner another account could change rebuilt as the
   earlier installation's folder another account owned is, since through that right the account could have written an
