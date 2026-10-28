@@ -7532,9 +7532,11 @@ def python_isolation_problems(texts):
     for name, value in PYTHON_ISOLATION:
         if top.get(name) != value:
             problems.append(".gitlab-ci.yml's variables: do not set %s to %r (%s): every job is given it so that the tree's "
-                            "Python runs as its text - no bytecode written, none read from the checkout, and the script's "
+                            "Python runs as its text - no bytecode written, none read from the checkout, the script's "
                             "own directory kept off sys.path, where a build/ci/argparse.py ran as argparse in "
-                            "build/ci/release-chain.py" % (name, value, "it sets %r" % top[name] if name in top else "not set"))
+                            "build/ci/release-chain.py, and no user site-packages folder on it, which Python finds under "
+                            "HOME and runs a .pth file in as it starts" % (
+                                name, value, "it sets %r" % top[name] if name in top else "not set"))
     for name in sorted(set(top) & set(PYTHON_RUN_VARIABLES) - set(n for n, _ in PYTHON_ISOLATION)):
         problems.append(".gitlab-ci.yml's variables: set %s, which changes which code Python runs or where it finds it: "
                         "no CI file sets it" % name)
