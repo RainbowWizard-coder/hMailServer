@@ -671,7 +671,7 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("POST /api/v1/password-reset, which asks for no credential, with an address holding a NUL - at its end, before more text, inside it, and after a space, a tab and CR LF - in a body the JSON parser refuses, which the route's lenient reader then reads, and then with the address itself, all within the minute: each is answered as every request is, no database statement is sent with a NUL, so no error is reported, and the seven together send one link to the account's recovery address, which is what the address's own request alone sends. Up to 6.3.7 the address followed by white space and a NUL was charged under a budget of its own and sent the account's link, one for each such spelling")]
+      [Description("POST /api/v1/password-reset, which asks for no credential, with an address holding a NUL - at its end, before more text, inside it, and after a space, a tab and CR LF - written as an escaped U+0000, in a body the JSON parser refuses and in one it reads, and then with the address itself, all within the minute: each body carrying the NUL is answered 400 before the route reads it, as every REST body that carries an escaped U+0000 or is not one JSON object is, no database statement is sent with a NUL, so no error is reported, and the thirteen together send one link to the account's recovery address, which is what the address's own request alone sends. Up to 6.3.7 the route read either body, the one the parser refused by a search of its text, and the address followed by white space and a NUL was charged under a budget of its own and sent the account's link, one for each such spelling")]
       public void APasswordResetForAnAddressHoldingANulSendsNoMoreThanOneForTheAddress()
       {
          Account recovery = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "variant-recovery@" + _domain.Name, Password);
@@ -694,15 +694,19 @@ namespace RegressionTests.Security
                address + "\\r\\n" + JsonNulEscape
             };
 
-            string answer = null;
             foreach (string name in names)
             {
-               // Text after the end of the value: the parser refuses the body.
-               (int status, string body) asked = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + name + "\"} x");
-               ClassicAssert.AreEqual(202, asked.status, asked.body);
-               if (answer == null)
-                  answer = asked.body;
-               ClassicAssert.AreEqual(answer, asked.body, "Every request is answered alike.");
+               // Text after the end of the value, which the parser refuses, and the
+               // body alone, which it reads: up to 6.3.7 the route read the first by
+               // a search of its text and the second by the parse, which cut the
+               // address at the NUL. Both are refused now before the route reads
+               // either (RestApiServer::RefuseBodyThatIsNotJson_).
+               foreach (string sent in new[] { "{\"address\":\"" + name + "\"} x", "{\"address\":\"" + name + "\"}" })
+               {
+                  (int status, string body) asked = Rest("POST", "/api/v1/password-reset", null, sent);
+                  ClassicAssert.AreEqual(400, asked.status, "POST /api/v1/password-reset with " + sent + ": " + asked.body);
+                  StringAssert.Contains("the body must be a JSON object", asked.body, "POST /api/v1/password-reset with " + sent);
+               }
             }
 
             // The address itself, within the minute: one link in all, the one its own
@@ -710,7 +714,7 @@ namespace RegressionTests.Security
             // before anything is charged or looked up.
             (int status, string body) own = Rest("POST", "/api/v1/password-reset", null, "{\"address\":\"" + address + "\"}");
             ClassicAssert.AreEqual(202, own.status, own.body);
-            ClassicAssert.AreEqual(answer, own.body, "A request for the address itself is answered as the others were.");
+            StringAssert.Contains("\"requested\":true", own.body, "A request for the address itself is answered as every request the route reads is.");
 
             AssertOneResetLink(recovery, "the address with a NUL at its end, before more text, inside it and after a space, a tab and CR LF, and the address itself");
 

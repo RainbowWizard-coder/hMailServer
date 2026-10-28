@@ -239,8 +239,11 @@ domain, with white space at either end taken off - so the address in other case,
 one of its domain's aliases and as a bare local part are one address here, and share
 the one budget of the mailbox they name; that needs no lookup, so it takes the same
 time for an address with a mailbox as for one without. An address that holds a NUL
-character names no mailbox: it is answered as every request is, counted against the
-per-client limits below and against no address, and nothing is looked up for it. Up
+character names no mailbox. It comes as an escaped U+0000 in the JSON body, and a body
+that carries one is answered 400 before the route reads it, as every REST body that
+carries one is ([WebThreatModel.md](WebThreatModel.md), Uploads); were such an address to reach the route all
+the same, it would be counted against the per-client limits below and against no
+address, and nothing would be looked up for it. Up
 to 6.3.7 some other forms of the address each had a budget of their own, though each
 was looked up as the address itself; so a
 mailbox's recovery address could be sent more than six links an hour. Per client

@@ -301,8 +301,9 @@ with `--check`).
   a name with an account's address - in lower case, with the alias and the default domain applied and the white space
   at either end taken off - so every spelling that names a mailbox shares its one limit, with no lookup made for the
   count; a request under the address itself is counted as before; the address is lowered once, and what is looked up
-  is what was counted; and an address that holds a NUL character, which names no mailbox, is answered as every
-  request is, counted against the per-client limits alone, and looks nothing up. The regression fixtures
+  is what was counted; and an address that holds a NUL character, which names no mailbox, is counted against the
+  per-client limits alone and looks nothing up, while a body that carries one, as an escaped U+0000, is now answered
+  400 before the route reads it, as every REST body that carries one is. The regression fixtures
   `Security.LogonNameVariants.APasswordResetForAnAddressHoldingANulSendsNoMoreThanOneForTheAddress` and
   `Security.LogonNameVariants.APasswordResetUnderADomainAliasOrTheDefaultDomainSharesTheAddressBudget` hold it
   ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)). Found by the hMailServer project (Progressive Robot
