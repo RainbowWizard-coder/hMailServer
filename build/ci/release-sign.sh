@@ -59,7 +59,15 @@
 # Rekor v1 dsse entry. No server reads it; a person checks a download against it with
 # cosign verify-blob-attestation (SECURITY.md, "Build provenance"), and each file is
 # checked so here before the bundle is kept.
+#
+# The script's body is one command, the { ... } group below, which ends in an exit:
+# sh reads a script as it runs it, a command at a time from where it is in the file,
+# but reads a group to its end before it runs any of it. So nothing it runs can change
+# what it does next by writing over this file: an exit 0 written after the line that
+# ran it would otherwise be the next command it read (build/check-release-chain.py
+# holds the group).
 set -eu
+{
 
 in=release-assets
 authenticode=release-authenticode
@@ -300,3 +308,5 @@ else
   echo "All $signed files of $tag are signed as $identity."
 fi
 ls -l "$out"
+exit
+}

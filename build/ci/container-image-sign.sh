@@ -58,7 +58,15 @@
 # CI_REGISTRY_PASSWORD, handed to cosign login on its standard input into a
 # configuration folder of the job's, removed at the end. Neither is ever on a command
 # line or printed.
+#
+# The script's body is one command, the { ... } group below, which ends in an exit:
+# sh reads a script as it runs it, a command at a time from where it is in the file,
+# but reads a group to its end before it runs any of it. So nothing it runs can change
+# what it does next by writing over this file: an exit 0 written after the line that
+# ran it would otherwise be the next command it read (build/check-release-chain.py
+# holds the group).
 set -eu
+{
 
 out=container-image-signed
 issuer=https://gitlab.com
@@ -255,3 +263,5 @@ done
 cat "$out/verification.txt"
 echo ""
 echo "SIGNED: $index and its linux/amd64 and linux/arm64 images, as $identity with the project's id $project_id, each image with its SBOM attested."
+exit
+}

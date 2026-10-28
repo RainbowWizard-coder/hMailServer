@@ -3163,15 +3163,26 @@ with `--check`).
   it makes the release's jobs and the image's allowed to fail); the same lint made a job
   of `=~ /.*/` and of `=~ /^$/`, allowed to fail, and none of `=~ /xy/` or `== ""`. The clause is now read as
   GitLab reads it, against the empty string (`tag_pipeline_branch_match`, with Python's `re` standing in for RE2
-  and a pattern it reads otherwise, a look-around or a back-reference, tried either way), and `=~ /^batch/` still
-  makes a rule no tag matches. And each job of the chain,
+  and a pattern it may read otherwise tried either way), and `=~ /^batch/` still makes a rule no tag matches. Such
+  a pattern was at first only a look-around or a back-reference, and `=~ /^[[:alnum:]]*$/` passed in both places:
+  Python reads a POSIX bracket expression as a set followed by `]`, which needs a character, where RE2 matches the
+  unset branch (GitLab's lint, run dry for `v6.3.7`, made a job of it, allowed to fail), and `\B` matches the empty
+  string under Python 3.14 and RE2 but not under 3.13. Every group but `(?:` and flags, every backslash before a
+  letter or a figure but `\d \D \s \S \w \W \b \n \t \r \f \v`, a bracket expression, a nested set or a set
+  operation, a possessive quantifier and `{,n}` now make a pattern one read either way (`re2_unread`), and a kind
+  variable matched against one - `$CI_PIPELINE_SOURCE =~ /^[[:alpha:]]+$/`, which Python matched against no
+  source - a clause that may be either. And each job of the chain,
   and every block it reaches by `extends` or `!reference`, is defined once in the CI files
   (`chain_definition_problems`): the check read the first definition of each, where GitLab merges a second one
   in any included file into the job, keeping every key the first does not set, so that `release-sign:` with
   `when: always` alone, or `release-verify:` with a `before_script` of `exit 0`, appended to
   `.gitlab/ci/snap.yml`, which is not a gate file, passed it, and so did the package jobs of the chain defined
-  again with their tags and rules copied. The tree's one second definition, `pages: false` in
-  `.gitlab/ci/package-repos.yml`, is let through as that line alone.
+  again with their tags and rules copied. So is every job the check reads for an escape below - the jobs
+  `release-packages` waits for and every job those wait for -, which are read from every CI file:
+  `deb-debian12-amd64-install` written again whole at the end of `snap.yml` with `allow_failure: true` or `when:
+  manual` passed, and `release-packages` would have gathered the Debian 12 `.deb` past its install test. The
+  tree's one second definition, `pages: false` in `.gitlab/ci/package-repos.yml`, is let through as that line
+  alone.
 - **The jobs `release` waits for are read for `allow_failure` and `when: manual` as GitLab reads them.** The check
   held each job a release, a build or `release-packages` waits for - the package builds, SBOMs, install and start
   jobs a release carries from, every job `release-packages` waits for, `build-inputs-authenticode`, the ARM64
@@ -3181,11 +3192,27 @@ with `--check`).
   starts without) each passed on `deb-ubuntu26.04-arm64-install`, `rpm-fedora44-aarch64-install`, the
   `.deb-install-arm64` template, `deb-debian12-amd64-install` and `build-inputs-authenticode`, in files that are
   not gate files, and GitLab's CI lint, run dry for `v6.3.7`, made each such job allowed to fail. Each value is now
-  read as GitLab reads it, quoted or plain and with a comment after it taken off: `allow_failure` with any value but
-  `false`, `no` or `off`, in any case, or a mapping below it, and `when: manual`, in the job, a template it extends
-  or a rule a tag can match, fail the check (`tag_escapes`, `escape_line`), and a rule is one no tag matches only
-  when `tag_pipeline_can_match` finds so too, not by the text `$CI_COMMIT_TAG !~ /^v/` alone. The rehearsal's rule
-  on a press on a `batch*` branch reads `when: manual` the same way. ContinuousIntegration.md says so.
+  read as one value on its key's line, quoted or plain and with a comment after it taken off, and every other form
+  is taken for the escape: `allow_failure` with any value but `false`, `no` or `off`, in any case, and `when:
+  manual`, in the job, a template it extends or a rule a tag can match, fail the check, and so does either key with
+  its value in a form not read as one value on its line - nothing there (the value, or a mapping such as
+  `exit_codes`, below it at any indent), a block scalar, a tag, an anchor, an alias, a quoted value with more than
+  a comment after it (`tag_escapes`, `escape_line`, `escape_value`) -, as does a rule a tag can match written in a form not read as keys (in flow style, an alias), and a rule is one no tag matches only when
+  `tag_pipeline_can_match` finds so too, not by the text `$CI_COMMIT_TAG !~ /^v/` alone. A first reading of the
+  value through the reader of one-line values passed `when: "manual" # x` and `when: 'manual' # x`, `when:` over
+  `manual`, `when: >-` or `|-` over it, `when: !!str manual` and `when: &m manual` on
+  `deb-debian12-amd64-install`, and `allow_failure:` over `true` three spaces in on
+  `deb-ubuntu26.04-arm64-install`, `release-packages` and the chart's job - GitLab's lint, run dry, made each of
+  them manual or allowed to fail -, and passed `when:` over `manual` in a rule, which the check had refused before
+  it. The rehearsal's rule on a press on a `batch*` branch reads `when: manual` the same way. And the release and
+  image jobs another job of the chain needs are held so too, their own keys and their templates' as well as their
+  rules (`chain_escape_problems`): `allow_failure: true` as `container-image-sbom`'s own key, in
+  `container-image.yml`, which is not a gate file, passed, and `container-image-sign` would then have attested the
+  SBOM `container-image-sbom.sh` writes before its own check fails; on `release-verify` it passed, and
+  `release-publish` would have been offered after a failed verification. There `when: manual` passes only with
+  `allow_failure: false` beside it, as `release`, `release-publish` and `container-image-deb`'s tag rule write it:
+  GitLab then holds the jobs that need the job until it has been started and has passed. ContinuousIntegration.md
+  says so.
 - **What signs and verifies the release and the image is held whole.** `build/ci/release-sign.sh`,
   `build/ci/release-verify.sh`, `build/ci/container-image-sign.sh` and `build/ci/container-image-push.sh`, none of
   them a gate file, were held by the lines the check reads - the identity, cosign's flags, the files counted, the
@@ -3199,7 +3226,33 @@ with `--check`).
   whole, runs the check, puts the digest it prints in `CHAIN_SCRIPT_SHA256` and lands with `--gates-read`;
   ContinuousIntegration.md says so. A plain `exit 0` there passed the line scans as `e`, a NUL and `xit 0` did:
   the digest is what holds an early exit in these four, and the control-byte rule below what keeps git and
-  `build/check-control-bytes.py` reading them, and every file the check reads, as text.
+  `build/check-control-bytes.py` reading them, and every file the check reads, as text. The four were not all,
+  and the digest alone did not hold what they do. `build/ci/windows-authenticode.ps1`, which `release-authenticode`
+  runs three times to sign the two installers and the PowerShell module with the project's Authenticode
+  certificate, was held by the lines on the timestamp, so that a second SignTool call beside the release's,
+  signing another file of the checkout, passed; it is held by its digest too. And the files of the tree they run
+  were held by nothing: `container-image-sign.sh` runs `build/ci/sigstore-certificate.sh` after `cosign sign` with
+  the Sigstore token and the registry's login in its environment, where a `cosign sign` of another digest passed,
+  and `release-verify.sh` runs `build/asset-sbom.py`, `build/ci/release-chain.py` and
+  `build/ci/sigstore-certificate.py`, any of which could have answered for the verification or written an `exit 0`
+  over the script after its loop, which bash would have run next. Each is now held by its digest, with the modules
+  `release-chain.py` loads into its process - `build/generate-update-feed.py`, `build/generate-package-repos.py`
+  and, through the first, `build/check-atom-feed.py`; `build/ci/security-gate.py`, which it loads too, and what that
+  loads are gate files. A path of the tree one of the held files names where it could run or load it - on a line
+  of shell code, in PowerShell outside a comment, put together by `os.path.join` or handed to a call as a
+  command's word in Python - fails the check unless it is held so, one of `build/land-via-mr.py`'s gate files, or
+  one of `CHAIN_SCRIPT_NOT_RUN`, which say why it is not: `Version.h`, which two of them read, the pages named in
+  what they print, the project's path, and `build/check-source-tarball.py`, `build/native-dependencies.ps1` and
+  `build/ci/packages/package-sbom.sh`, which `release-chain.py` runs as processes of their own in `collect` and
+  `gather` alone, before anything is signed (`chain_script_run_problems`). And the four shell scripts' bodies are
+  each one `{ ... }` group after the `set` line, ending in `exit`, which sh and bash read whole before they run any
+  of it, so that nothing they run - the server's own verifier, built from the tree, among what `release-verify.sh`
+  runs - can write over the rest (`chain_script_group_problems`), as `linux-package-install.sh`'s is. The eight
+  files newly held changed in 48 commits from 26 September to 25 October 2026, 19 of which changed the check as
+  well: a digest rather than a place in the gate files, as for the four, since the gate files are what judges a
+  change, and each Python file of them must keep its own folder off `sys.path`. With a NUL on its third line,
+  `sigstore-certificate.sh` showed in git as binary and was skipped by `build/check-control-bytes.py`, while dash,
+  bash and busybox sh ran it: it is a file the check reads now, and the control-byte rule refuses that.
 - **No CI file writes what GitLab takes from its top level as `default:`'s.** GitLab still reads `before_script`,
   `after_script`, `image`, `services` and `cache` written at the top level of any CI file, an included one too, as
   `default:`'s (its globally-defined keywords, deprecated) and gives them every job that sets none of its own; the
@@ -3291,7 +3344,7 @@ with `--check`).
   an ordinal or a superlative before level: `SLSA_ANY_LEVEL`), a Build level or the build track with or without a
   number, or the slsa.dev badge; every sentence of every unit under a heading that names SLSA, up to the next
   heading of its level or above; and every row of a table whose header row names it, must now be one of
-  `SLSA_SENTENCES`, which lists the tree's 129 as the documents have them, with their white space as one
+  `SLSA_SENTENCES`, which lists the tree's 136 as the documents have them, with their white space as one
   space (`slsa_names`, `slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, given whole
   as the check reads
   it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and a listed
@@ -3313,7 +3366,17 @@ with `--check`).
   its fenced blocks and of the CI page's paragraph on what holds the documents, and, a level's word being read
   wherever it is said, a heading's level in ControlPanelDesign.md and Help.md, Autocrypt's Level 1, a blocklist's
   Level 1, `_FORTIFY_SOURCE`'s level and SECURITY.md's error-level findings: 60 sentences more, each read and
-  listed. No such document may hold a
+  listed. A fourth, which needed a word's edge at the name and at the level, passed "From 6.3.8 the provenance is
+  SLSABuildL3.", "... is SlsaBuildLevel3 compliant.", "... meets BuildL3." and "... is BuildLevelThree." in a
+  paragraph of their own, a level's figure written as a lookalike ("Build L" with the Cyrillic Ze, the Latin ezh
+  or an Arabic-Indic three), and an image that names nothing, such as a copy of slsa.dev's level-3 badge kept in
+  the tree: words written together are now read apart as well (`slsa_split`: a small letter before a capital, a
+  capital before a capital and a small letter, a letter beside a figure), each lookalike the confusables table
+  gives a level's figure 2, 3 or 4 as its skeleton, and every figure of another script, is read as the figure
+  (`SLSA_FIGURES`), in the list and the tripwire alike, and a unit that shows an image of any kind is held
+  (`SLSA_IMAGE`), which brings the README's two rows of badges and its three screenshots, and a line of a
+  message's tree in Signatures.md, into the list, with the CI page's sentence on this reading: 7 sentences more, each read, none claiming a level. No such
+  document may hold a
   bidirectional embedding, override or isolate (U+202A to U+202E, U+2066 to U+2069: `SLSA_BIDI`), which shows a
   text in another order than it is written, so that an override before ASLS showed SLSA and was read as ASLS. The
   tripwire reads each sentence as it reads as well, so that a badge of SLSA L3 whose label is percent-encoded, a

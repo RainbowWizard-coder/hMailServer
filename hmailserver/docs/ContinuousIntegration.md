@@ -3635,10 +3635,18 @@ or tests a file the release carries (through `release-packages` for the
 gathered ones, and every job those wait for), when one of them may fail or
 waits for a press in a tag's pipeline (`allow_failure` with any value but
 `false`, `no` or `off` - `true`, `yes`, `on`, `True`, a mapping with
-`exit_codes` - or `when: manual`, each read as GitLab's YAML reader reads it,
+`exit_codes` - or `when: manual`, each read as one value on its key's line,
 quoted or plain and with a comment after it taken off, so that `allow_failure:
-true  # a note` is the `true` it is), since `release` would start after it
-failed, and when any job needs more than fifty. `release-publish` waits for
+true  # a note` is the `true` it is, and every other form taken for the
+escape: the value on the line below its key, at any indent, a block scalar
+such as `>-` over `manual`, a tag such as `!!str`, an anchor, an alias, or a
+quoted value with more than a comment after it, each of which GitLab's YAML
+reader reads and its CI lint, run dry, made manual or allowed to fail), since
+`release` would start after it failed, and when any job needs more than fifty.
+Each of those jobs, and every block it reaches, is defined once in the CI
+files, read from all of them: a second definition in another file, which GitLab
+merges into the first, could say `allow_failure: true` past every rule on the
+first. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with
@@ -3673,9 +3681,24 @@ kind of pipeline (`tag_pipeline_can_match`): a tag's pipeline has no branch, so
 there, but `$CI_COMMIT_BRANCH == null` and the branch compared with a variable
 that may be unset are true; GitLab matches the unset branch against a pattern
 as the empty string, so `=~` a pattern that can match it (`/.*/`, `/^$/`,
-`/a|/`) is true there and `=~ /^batch/` false, as GitLab's CI lint of 28
-October 2026 made them for the ref `v6.3.7`; and `$CI_COMMIT_TAG !~ /^v/`
-inside a quoted string is a string, not the clause. `needs: []` in
+`/a|/`, `/^[[:alnum:]]*$/`) is true there and `=~ /^batch/` false, as GitLab's
+CI lint of 28 October 2026 made them for the ref `v6.3.7`. The checker matches
+the pattern with Python's `re`, which reads some patterns otherwise than RE2,
+GitLab's - a POSIX bracket expression such as `[[:alnum:]]` as a set followed
+by `]`, `\B` otherwise from one version of Python to the next -, so a pattern
+with a group but `(?:`, a backslash before a letter or a figure but `\d`, `\s`,
+`\w`, `\b` and the like, a bracket expression, a possessive quantifier or
+`{,n}` is tried either way, and a pipeline's kind matched against one
+(`$CI_PIPELINE_SOURCE =~ /^[[:alpha:]]+$/`) is taken as either. And
+`$CI_COMMIT_TAG !~ /^v/` inside a quoted string is a string, not the clause.
+The release and image jobs another job of the chain needs are held the same way
+by their own keys and their templates' as well: `allow_failure: true` on
+`container-image-sbom` would have let `container-image-sign` attest an SBOM
+whose check had failed, and on `release-verify` let `release-publish` be
+offered after a failed verification; `when: manual` passes there only with
+`allow_failure: false` beside it, as `release`, `release-publish` and
+`container-image-deb`'s tag rule have it, since GitLab then holds the jobs that
+need the job until it has passed. `needs: []` in
 `.release-rules`' tag rule would have started `release-sign` before
 `release-authenticode` had signed, and only the container scans' own rule on
 `rules:needs` refused it, for the scans alone. And each job of the chain, and
@@ -3704,12 +3727,35 @@ tags moved -, and an `exit 0` after a script's `set` line, or a second `sign
 index` of another digest beside `container-image-sign.sh`'s own, kept every
 one of those lines: `container-image-sign` would have ended green having signed
 nothing, or signed another image with the tag pipeline's identity, a signature
-users take for the release's. Whoever changes one of them reads the change
-whole, runs `python build/check-release-chain.py`, whose failure prints the
-script's new digest, puts it in `CHAIN_SCRIPT_SHA256` in the same commit and
-lands it with `--gates-read`: the four changed in 22 commits from 26 September
-to 20 October 2026 and in none since, a one-line change to the checker each
-time.
+users take for the release's. So is `build/ci/windows-authenticode.ps1`, which
+`release-authenticode` runs to sign the two installers and the PowerShell module
+with the project's Authenticode certificate, where a second SignTool call
+signing another file kept every line read; and so is every file of the tree
+they run or load: `build/ci/sigstore-certificate.sh`, which
+`container-image-sign.sh` runs after `cosign sign` with the Sigstore token in
+its environment, `build/asset-sbom.py`, `build/ci/release-chain.py` and
+`build/ci/sigstore-certificate.py`, which `release-verify.sh` runs, and the
+modules `release-chain.py` loads into its process,
+`build/generate-update-feed.py`, `build/generate-package-repos.py` and
+`build/check-atom-feed.py` (`build/ci/security-gate.py` and what it loads are
+gate files). A path of the tree one of these files names where it could run or
+load it - on a line of shell code, in PowerShell outside a comment, or put
+together by `os.path.join` or handed to a call as a command's word in Python -
+fails the check unless it is held so, a gate file, or one of
+`CHAIN_SCRIPT_NOT_RUN`, which say why it is not (the pages named in what the
+scripts print, `Version.h`, and the three scripts `release-chain.py` runs as
+processes of their own in `collect` and `gather` only, before anything is
+signed). And the four shell scripts' bodies are each one `{ ... }` group after
+their `set` line, ending in `exit`, which sh and bash read whole before they run
+any of it, so that nothing they run can write over the rest. Whoever changes
+one of these files reads the change whole, runs `python
+build/check-release-chain.py`, whose failure prints the file's new digest, puts
+it in `CHAIN_SCRIPT_SHA256` in the same commit and lands it with
+`--gates-read`; one that makes a script run another file of the tree holds that
+file there as well, or says in `CHAIN_SCRIPT_NOT_RUN` why it is not run. The
+first four changed in 22 commits from 26 September to 20 October 2026, and the
+eight held since in 48 from 26 September to 25 October, 19 of which changed the
+checker too.
 
 **What the package start jobs take, and their script.** The two start jobs
 (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`) write `extends`,
@@ -3935,7 +3981,11 @@ default-ignorable one, a variation selector, a combining mark) and emphasis
 inside the name taken out, the name's letters with spaces, dots, hyphens or
 underscores between them read as the name, and a letter of another script that
 Unicode's confusables table gives as one of the name's, or a variant of a
-Latin letter, read as that letter. None of these documents may hold a
+Latin letter, read as that letter. It reads words written together apart as
+well - the name run into the word after it, a level's letter run into its
+figure -, a lookalike of a figure that the same table gives, or a figure of
+another script, as the figure, and holds a unit that shows an image of any
+kind, whose picture it does not read. None of these documents may hold a
 bidirectional embedding, override or isolate (`SLSA_BIDI`), which shows a text
 in another order than it is written, so that an override before the name
 written backwards shows the name. It holds every unit under a heading that

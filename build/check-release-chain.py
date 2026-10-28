@@ -92,8 +92,11 @@ refuses it. This checker holds them to each other. It fails when:
     allow_failure or manual in a v* tag's pipeline, in the job, a template it extends
     or a rule a tag can take (a needed job that may fail lets release start after it
     failed) - allow_failure with any value but false, no or off (yes, on, True, a
-    mapping) and when: manual, each read as GitLab reads it, quoted or plain and with a
-    comment after it taken off (tag_escapes, escape_line); the start job runs build/ci/linux-package-install.sh of the package's
+    mapping) and when: manual, each read as one value on the key's own line, quoted or
+    plain and with a comment after it taken off, and every other form - the value on the
+    lines below its key at any indent, a block scalar, a tag, an anchor, an alias, a
+    quoted value with more than a comment after it - taken for the escape (tag_escapes,
+    escape_line, escape_value); the start job runs build/ci/linux-package-install.sh of the package's
     kind and nothing else, with no before_script of its own, a template's or
     default:'s, on the build's folder, in the install job's linux/arm64 image (a
     scalar image: has no platform), beside linux-package-deb's PostgreSQL by digest as
@@ -148,14 +151,26 @@ refuses it. This checker holds them to each other. It fails when:
     itself, which GitLab keeps beside its rules; or a rule a v* tag can match says
     allow_failure but false, which lets the jobs after it start when it failed - a rule
     whose if:, read as an expression with the tag set, the branch unset - matched
-    against a pattern as the empty string, as GitLab matches it - and every other
-    clause either way, can hold (tag_pipeline_can_match), so that $CI_COMMIT_BRANCH ==
-    null and $CI_COMMIT_BRANCH =~ /.*/, which a tag's pipeline meets, are not taken for
-    a branch's rule (chain_rule_problems); or a job of the chain, or a block it reaches by extends or
-    !reference, is defined more than once in the CI files but as
-    CHAIN_SECOND_DEFINITIONS lets it be - GitLab merges a second definition in any
+    against a pattern as the empty string, as GitLab matches it, a pattern Python may
+    read otherwise than RE2 (a POSIX bracket expression such as [[:alnum:]], a
+    backslash before B or z, a group but (?: and flags, a possessive quantifier) tried
+    either way, and a kind variable matched against such a pattern read as an open
+    clause (re2_unread) - and every other clause either way, can hold
+    (tag_pipeline_can_match), so that $CI_COMMIT_BRANCH == null, $CI_COMMIT_BRANCH =~
+    /.*/ and =~ /^[[:alnum:]]*$/, which a tag's pipeline meets, are not taken for a
+    branch's rule (chain_rule_problems); or an image or release job another job of the
+    chain needs - container-image-sbom, which container-image-sign attests past,
+    release-verify, past which release-publish is offered - may be allowed to fail or
+    manual in a tag's pipeline by its own key or a template's as well as by a rule, when:
+    manual being let only with allow_failure: false beside it (chain_escape_problems:
+    tag_escapes, the rules read by tag_pipeline_can_match); or a job of the chain, a job
+    check() reads for an escape (the jobs release-packages waits for, and theirs), or a
+    block one reaches by extends or !reference, is defined more than once in the CI files
+    but as CHAIN_SECOND_DEFINITIONS lets it be - GitLab merges a second definition in any
     included file into the job, keeping every key the first does not set, where these
-    rules read the first (chain_definition_problems);
+    rules read the first: deb-debian12-amd64-install written again whole in snap.yml with
+    allow_failure: true would have let release-packages gather past its install test
+    (chain_definition_problems);
   * the release job's tag check (build/ci/release-chain.py collect), given a git
     that answers as the job's checkout would, accepts a tag signed by a key the
     tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
@@ -335,8 +350,9 @@ refuses it. This checker holds them to each other. It fails when:
     character but a space and a tab for white space, where this reads lines at line
     feeds alone and Python takes every Unicode space for white space, so that a
     comment line holding an LS hid from every rule what GitLab reads after it
-    (character_problems); nor may a file of FILES - the shell scripts this reads among
-    them - hold a control byte but a tab and a line feed (DEL included), a carriage
+    (character_problems); nor may a file of FILES - the shell scripts this reads, and
+    every file the signing and verifying scripts run or load, sigstore-certificate.sh
+    among them, among them - hold a control byte but a tab and a line feed (DEL included), a carriage
     return in a shell script, or one not right before a line feed in any other: bash
     and busybox sh drop a NUL from the line they run, so that e<NUL>xit 0 after
     container-image-push.sh's set -eu passed every line scan and ended the push (as a
@@ -357,13 +373,27 @@ refuses it. This checker holds them to each other. It fails when:
     release's files are signed with, or no longer attests each platform's SBOM
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
     and verifies the attestation; or build/ci/release-sign.sh, release-verify.sh,
-    container-image-sign.sh or container-image-push.sh is not the script this file
-    holds by the SHA-256 of its text, its line ends LF (CHAIN_SCRIPT_SHA256,
-    chain_script_digest_problems) - an exit 0 after a set line, or a second signature
-    of another digest beside container-image-sign.sh's own, kept every line the rules
-    on them read -, so that whoever changes one runs this check, which prints the new
-    digest, puts it there in the same commit and lands the change with --gates-read,
-    this file being a gate file and the scripts not; or container-image-start does not
+    container-image-sign.sh, container-image-push.sh or windows-authenticode.ps1, or a
+    file of the tree one of them runs or loads - build/ci/sigstore-certificate.sh and
+    .py, build/asset-sbom.py, build/ci/release-chain.py and the modules it loads into its
+    process, build/generate-update-feed.py, build/generate-package-repos.py and
+    build/check-atom-feed.py -, is not the script this file holds by the SHA-256 of its
+    text, its line ends LF (CHAIN_SCRIPT_SHA256, chain_script_digest_problems) - an exit
+    0 after a set line, a second signature of another digest beside
+    container-image-sign.sh's own, a second SignTool call signing another file with the
+    project's certificate, or cosign sign in sigstore-certificate.sh, which
+    container-image-sign.sh runs with the Sigstore token in its environment, kept every
+    line the rules on them read -; or one of them names a file of the tree where it could
+    run or load it (a path on a line of shell code, a PowerShell path outside a comment,
+    a path a Python file puts together with os.path.join or hands a call as a command's
+    word) that is neither held so, one of land-via-mr.py's GATE_FILES nor one of
+    CHAIN_SCRIPT_NOT_RUN, which say why each is not held (chain_script_run_problems); or
+    the body of one of the four shell scripts the jobs run is not one { ... } group
+    after its set line that ends in exit, which sh and bash read whole before they run
+    any of it (chain_script_group_problems) - so that whoever changes one of these files
+    runs this check, which prints the new digest, puts it there in the same commit and
+    lands the change with --gates-read, this file being a gate file and the scripts not;
+    or container-image-start does not
     start the pushed image with the command its test script names, on a network of its
     own, or a start
     job's service has a key but START_SERVICE_KEYS' - an entrypoint for the image, an
@@ -520,8 +550,12 @@ refuses it. This checker holds them to each other. It fails when:
     Latin variant, a small capital L), in either spelling of its long name, Level or
     Levels, or names a level in any form, whatever it is said of (SLSA_ANY_LEVEL: L1 to
     L4, level 1 to 4 in figures, words or Roman figures, an ordinal or a superlative
-    before level), a Build level or the build track with or without a number, or the
-    slsa.dev badge; every sentence of every unit under a heading that names SLSA, up to the next
+    before level), a Build level or the build track with or without a number - each
+    read as well with words written together read apart (slsa_split: SLSABuildL3,
+    BuildLevelThree) and with a figure's lookalike read as the figure (SLSA_FIGURES: the
+    Cyrillic Ze, the Latin ezh; a figure of another script by its value) -, the slsa.dev
+    badge, or shows an image of any kind (SLSA_IMAGE), whose picture this does not read;
+    every sentence of every unit under a heading that names SLSA, up to the next
     heading of its level or above; and every row of a table whose header row names it
     (slsa_sentences) - must be one of SLSA_SENTENCES, which lists them as the tree has
     them, and each listed one must still be said there (slsa_sentence_problems): "Our
@@ -647,6 +681,7 @@ import html
 import importlib.util
 import io
 import json
+import posixpath
 import re
 import subprocess
 import shutil
@@ -690,6 +725,15 @@ FILES = {
     "package-install": os.path.join("build", "ci", "linux-package-install.sh"),
     # The licence check it runs as root before the start (PACKAGE_LICENSES_SHA256).
     "package-licenses": os.path.join("build", "ci", "packages", "check-licenses.sh"),
+    # What the signing and verifying scripts run or load, each held by its digest
+    # (CHAIN_SCRIPT_SHA256): the certificate readers, the SBOM check, and the modules
+    # release-chain.py loads.
+    "certificate-sh": os.path.join("build", "ci", "sigstore-certificate.sh"),
+    "certificate-py": os.path.join("build", "ci", "sigstore-certificate.py"),
+    "asset-sbom": os.path.join("build", "asset-sbom.py"),
+    "update-feed": os.path.join("build", "generate-update-feed.py"),
+    "repos-py": os.path.join("build", "generate-package-repos.py"),
+    "atom-feed": os.path.join("build", "check-atom-feed.py"),
     "packages-appimage": os.path.join(".gitlab", "ci", "packages-appimage.yml"),
     "packages-windows": os.path.join(".gitlab", "ci", "packages-windows.yml"),
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
@@ -1374,41 +1418,66 @@ def unread_rules(name, jobs, seen=None):
     return found
 
 
-def tag_escapes(name, jobs):
+def tag_escapes(name, jobs, blocking_manual=False):
     """How a job, in a v* tag's pipeline, could let a job that needs it start without its
     having passed: allow_failure with any value but false, no or off (YAML_FALSE) - true,
     yes, on, True, a mapping with exit_codes (a need on a job that failed with one of
-    them is met, as on one allowed to fail at all) - or when: manual, each read as GitLab
-    reads it, quoted or plain and with a comment after it taken off (escape_line), in
-    the job or a template it extends, or in a rule of the rules it takes that a v* tag
-    can match. A rule whose if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone, and that
-    tag_pipeline_can_match finds no tag can match is one no tag matches. jobs holds every
-    block the job, its templates and their references can name."""
+    them is met, as on one allowed to fail at all) - or when: manual, each read as one
+    value on the key's own line, quoted or plain and with a comment after it taken off,
+    and every other form taken for the escape (escape_line: the value on the line below,
+    a block scalar, a tag, an anchor), in the job or a template it extends, or in a rule
+    of the rules it takes that a v* tag can match - and such a rule written in a form not
+    read as keys (in flow style, an alias), which GitLab may read either. A rule whose if: asks for
+    $CI_COMMIT_TAG !~ /^v/, with && alone, and that tag_pipeline_can_match finds no tag
+    can match is one no tag matches. With blocking_manual, when: manual is no escape where
+    allow_failure: false goes with it - in the same rule, or, for the job's own when, in
+    the first of the job and its templates that says allow_failure -: GitLab holds the
+    jobs that need such a job until it has been started and has passed (release's and
+    release-publish's own keys, container-image-deb's rule) -, and a rule is one a tag can
+    match as tag_pipeline_can_match reads it, as chain_rule_problems reads the same rules
+    (a rule of a batch* branch is none). jobs holds every block the job, its templates and
+    their references can name."""
     found = []
     order = template_order(name, jobs)
+    deciding_failure = next((current for current in order
+                             if re.search(r"^  allow_failure[ \t]*:", jobs[current], re.MULTILINE)), None)
+    blocking = blocking_manual and deciding_failure is not None and \
+        re.search(r"^  allow_failure: false[ \t]*$", jobs[deciding_failure], re.MULTILINE) is not None and \
+        len(re.findall(r"^  allow_failure[ \t]*:", jobs[deciding_failure], re.MULTILINE)) == 1
     for current in order:
-        for line in jobs[current].split("\n"):
-            if escape_line(line, "  "):
-                found.append("%s says %s" % (current, line.strip()))
-        for match in re.finditer(r"^  allow_failure[ \t]*:[ \t]*(?:#[^\n]*)?\n    ([^\n]*)", jobs[current], re.MULTILINE):
-            found.append("%s says allow_failure: %s" % (current, " ".join(match.group(1).split())))
+        lines = jobs[current].split("\n")
+        for at, line in enumerate(lines):
+            escape = escape_line(line, "  ")
+            if escape and not (escape == "when" and blocking):
+                said = line.strip()
+                if not re.split(r"\s#", said.partition(":")[2], maxsplit=1)[0].strip():
+                    # Its value below it: say the line it is on (exit_codes: [3]).
+                    below = next((more.strip() for more in lines[at + 1:] if more.strip()), "")
+                    said = (said.partition(":")[0] + ": " + below).strip()
+                found.append("%s says %s" % (current, said))
     deciding = [current for current in order if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
     for item in (rule_items(jobs[deciding[0]], jobs) if deciding else []):
         lines = item.split("\n")
-        # allow_failure with nothing after it on its line and a line further in below it:
-        # a mapping, exit_codes among its forms.
-        escapes = [escape_line(line, "") or (re.match(r"^\s*allow_failure[ \t]*:[ \t]*(?:#.*)?$", line) and
-                                             any(more.strip() and len(more) - len(more.lstrip()) > len(line) - len(line.lstrip())
-                                                 for more in lines[at + 1:at + 2]) and "allow_failure")
-                   for at, line in enumerate(lines)]
-        escapes = [escape for escape in escapes if escape]
+        # allow_failure or when with nothing after it on its line - a mapping below it,
+        # exit_codes among its forms, or the value on the next line - is an escape
+        # (escape_line), as is every form escape_value does not read.
+        escapes = [escape for escape in (escape_line(line, "") for line in lines) if escape]
+        if not re.match(r"[a-z_]+[ \t]*:(?:[ \t]|$)", item.strip()):
+            # A rule this does not read as keys - in flow style, an alias -: GitLab may
+            # read a when or an allow_failure in it.
+            escapes.append("unread")
+        if blocking_manual and escapes == ["when"] and \
+                any(re.match(r"^\s*allow_failure: false[ \t]*$", line) for line in lines):
+            continue
         if not escapes:
             continue
         condition = re.match(r"if:\s*(.+)", item.strip())
         condition = condition.group(1) if condition else ""
-        if "$CI_COMMIT_TAG !~ /^v/" not in condition or "||" in condition or tag_pipeline_can_match(item):
+        if (not blocking_manual and ("$CI_COMMIT_TAG !~ /^v/" not in condition or "||" in condition)) or \
+                tag_pipeline_can_match(item):
             found.append("a rule a v* tag can match, %r, makes it %s" % (
-                condition or item.strip().split("\n")[0], "manual" if "when" in escapes else "allowed to fail"))
+                condition or item.strip().split("\n")[0], "manual" if "when" in escapes else
+                "allowed to fail" if "allow_failure" in escapes else "manual or allowed to fail, in a form this does not read"))
     return found
 
 
@@ -1421,17 +1490,46 @@ YAML_FALSE = ("false", "no", "off")
 def escape_line(line, indent):
     """For a line of a job's keys (indent "  ") or of a rule (indent "", any spaces),
     "allow_failure" when it says allow_failure with a value but YAML_FALSE's, "when" when
-    it says when: manual, None otherwise - each value read as GitLab's YAML reader reads
-    it, quoted or plain, a comment after it taken off (yaml_scalar): allow_failure: yes,
-    allow_failure: True, allow_failure: true # a note and when: manual # a note among
-    them. A key with no value on its line (a mapping below it) is not read here."""
+    it says when: manual, None otherwise - each value read as one value on the key's own
+    line, quoted or plain, a comment after it taken off (escape_value): allow_failure:
+    yes, allow_failure: True, allow_failure: true # a note, when: manual # a note and
+    when: "manual" # a note among them. A value in a form escape_value does not read as
+    one value on the line - none on the line (the value, or a mapping such as exit_codes,
+    on the lines below it, at any indent), a quoted value with more than a comment after
+    it, a tag (!!str), an anchor, an alias, a block scalar (>- or |- over manual), a flow
+    collection - is taken for the escape its key can make: GitLab's YAML reader reads
+    each of them, and each of when: manual's made the job manual and allowed to fail in
+    GitLab's CI lint (28 October 2026)."""
     match = re.match(r"^%s(allow_failure|when)[ \t]*:(.*)$" % (re.escape(indent) if indent else r"\s*(?:-\s+)?"), line)
     if not match:
         return None
-    value = yaml_scalar(match.group(2))
+    value = escape_value(match.group(2))
+    if value is None:
+        return match.group(1)
     if match.group(1) == "allow_failure":
-        return "allow_failure" if value and value.lower() not in YAML_FALSE else None
+        return "allow_failure" if value.lower() not in YAML_FALSE else None
     return "when" if value == "manual" else None
+
+
+# A value on a key's own line as escape_value reads it: plain - letters, figures, _ . and
+# -, a comment after a space aside -, or quoted, with nothing but a comment after it.
+ESCAPE_PLAIN = re.compile(r"^[ \t]+([A-Za-z0-9_.\-]+)[ \t]*(?:[ \t]#[^\n]*)?$")
+ESCAPE_DOUBLE = re.compile(r"^[ \t]+\"([A-Za-z0-9_.\- ]*)\"[ \t]*(?:#[^\n]*)?$")
+ESCAPE_SINGLE = re.compile(r"^[ \t]+'([A-Za-z0-9_.\- ]*)'[ \t]*(?:#[^\n]*)?$")
+
+
+def escape_value(rest):
+    """The value of allow_failure or when as written after its colon (rest), when it is
+    one value on that line in a form read here - plain, or in double or single quotes
+    holding no escape, with a comment after it or nothing (ESCAPE_PLAIN, ESCAPE_DOUBLE,
+    ESCAPE_SINGLE) -; None for any other form, which GitLab's YAML reader may read as
+    any value: nothing on the line (its value below it), a tag, an anchor, an alias, a
+    block scalar, a flow collection, a quoted value with more after it."""
+    for form in (ESCAPE_PLAIN, ESCAPE_DOUBLE, ESCAPE_SINGLE):
+        match = form.match(rest)
+        if match:
+            return match.group(1).strip()
+    return None
 
 
 def takes_no_github(name, jobs):
@@ -1998,8 +2096,9 @@ def slsa_level_problems(docs):
         flat = re.sub(r"\s+", " ", docs[name])
         for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z*`(\[])", flat):
             # And as it reads (slsa_plain): the name with a variation selector in it, a
-            # lookalike letter or percent-encoded, as in a badge's label.
-            for read in (sentence, slsa_plain(sentence)):
+            # lookalike letter or figure or percent-encoded, as in a badge's label; and
+            # with words written together read apart (slsa_split: SLSABuildL3).
+            for read in (sentence, slsa_plain(sentence), slsa_split(slsa_plain(sentence))):
                 mentions = slsa_higher_mentions(read)
                 if not mentions and not SLSA_BADGE.search(read):
                     continue
@@ -2024,12 +2123,35 @@ def slsa_level_problems(docs):
 # --gates-read.
 SLSA_SENTENCES = {
     "README.md": (
+        "[![Pipeline on "
+        "master](https://gitlab.com/hmailserver/hmailserver/badges/master/pipeline.svg)](https://gitlab.com/hmailserver/hmailserver/-/pipelines?ref=master) "
+        "[![Latest "
+        "release](https://gitlab.com/hmailserver/hmailserver/-/badges/release.svg)](https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest) "
+        "[![Licence: "
+        "AGPL-3.0-or-later](https://img.shields.io/badge/licence-AGPL--3.0--or--later-blue)](LICENSE)",
         "[![OpenSSF Best "
         "Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949) "
         "[![OpenSSF Scorecard, the copy on "
         "GitHub](https://api.scorecard.dev/projects/github.com/RainbowWizard-coder/hMailServer/badge)](https://scorecard.dev/viewer/?uri=github.com/RainbowWizard-coder/hMailServer) "
         "[![SLSA Build "
         "L1](https://slsa.dev/images/gh-badge-level1.svg)](https://slsa.dev/spec/v1.0/levels#build-l1)",
+        "[![hmailserver-cli on "
+        "PyPI](https://img.shields.io/pypi/v/hmailserver-cli)](https://pypi.org/project/hmailserver-cli/) "
+        "[![HmailServer on the PowerShell "
+        "Gallery](https://img.shields.io/powershellgallery/v/HmailServer)](https://www.powershellgallery.com/packages/HmailServer) "
+        "[![hmailserver-progressiverobot on "
+        "Chocolatey](https://img.shields.io/chocolatey/v/hmailserver-progressiverobot)](https://community.chocolatey.org/packages/hmailserver-progressiverobot) "
+        "[![progressiverobot/hmailserver on Docker "
+        "Hub](https://img.shields.io/docker/pulls/progressiverobot/hmailserver)](https://hub.docker.com/r/progressiverobot/hmailserver) "
+        "[![The Helm chart on Artifact "
+        "Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/hmailserver)](https://artifacthub.io/packages/helm/hmailserver/hmailserver) "
+        "[![progressiverobot/hmailserver on Fedora "
+        "Copr](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcopr.fedorainfracloud.org%2Fapi_3%2Fpackage%2F%3Fownername%3Dprogressiverobot%26projectname%3Dhmailserver%26packagename%3Dhmailserver%26with_latest_succeeded_build%3DTrue&query=%24.builds.latest_succeeded.source_package.version&label=copr)](https://copr.fedorainfracloud.org/coprs/progressiverobot/hmailserver/) "
+        "[![home:progressiverobot/hmailserver on the openSUSE Build "
+        "Service](https://build.opensuse.org/projects/home:progressiverobot/packages/hmailserver/badge.svg?type=default)](https://build.opensuse.org/package/show/home:progressiverobot/hmailserver)",
+        "![The Control Panel's Welcome page](hmailserver/docs/images/control-panel-welcome.png)",
+        "![The webmail: the inbox](hmailserver/docs/images/webmail-inbox.png)",
+        "![The webmail: a message open](hmailserver/docs/images/webmail-message.png)",
     ),
     "RELEASE.md": (
         "4.",
@@ -2260,6 +2382,10 @@ SLSA_SENTENCES = {
         "combining mark) and emphasis inside the name taken out, the name's letters with spaces, dots, hyphens or "
         "underscores between them read as the name, and a letter of another script that Unicode's confusables table "
         "gives as one of the name's, or a variant of a Latin letter, read as that letter.",
+        "It reads words written together apart as well - the name run into the word after it, a level's "
+        "letter run into its figure -, a lookalike of a figure that the same table gives, or a figure of "
+        "another script, as the figure, and holds a unit that shows an image of any kind, whose picture it "
+        "does not read.",
         "None of these documents may hold a bidirectional embedding, override or isolate (`SLSA_BIDI`), which shows "
         "a text in another order than it is written, so that an override before the name written backwards shows the "
         "name.",
@@ -2478,6 +2604,9 @@ SLSA_SENTENCES = {
         "says little about this server.",
         "Level 1 lists single addresses and is a reasonable addition.",
     ),
+    "hmailserver/docs/Signatures.md": (
+        '├── text/html <img src="cid:img1.3f2a…@host" alt="">',
+    ),
 }
 # A document's text in the units its sentences are read in: a paragraph, a list item with
 # the items, lines and paragraphs indented under it - a fenced block indented under it
@@ -2553,6 +2682,18 @@ SLSA_CONFUSABLES = {
         0x1DF5A),
 }
 SLSA_SKELETON = dict((code, letter) for letter, codes in SLSA_CONFUSABLES.items() for code in codes)
+# Every character the same table gives a level's figure, 2, 3 or 4, as its skeleton that
+# NFKD does not make the figure and that is not a figure of its own script: the Cyrillic
+# Ze, the Latin ezh and yogh, the Cherokee se and the rest, read as that figure (slsa_plain),
+# so that "Build L" and a Ze reads Build L3. The figure 1's lookalikes are l's
+# (SLSA_CONFUSABLES), and every figure of another script is read as its value.
+SLSA_FIGURE_CONFUSABLES = {
+    "2": (0x01A7, 0x03E8, 0x10C7, 0x14BF, 0x1616, 0x1CB7, 0xA644, 0xA6EF, 0xA75A, 0x1CCF2),
+    "3": (0x01B7, 0x021C, 0x0417, 0x04E0, 0x0545, 0x1702, 0x1C95, 0x2C9C, 0x2CC4, 0x2CCC, 0xA76A, 0xA7AB, 0x118CA,
+          0x16F3B, 0x1CCF3, 0x1D206),
+    "4": (0x13CE, 0xAB9E, 0x118AF, 0x16E82, 0x1CCF4),
+}
+SLSA_FIGURES = dict((code, figure) for figure, codes in SLSA_FIGURE_CONFUSABLES.items() for code in codes)
 # Unicode's default-ignorable code points (DerivedCoreProperties.txt), which a text shows
 # as nothing: the soft hyphen, the combining grapheme joiner, the zero-width characters
 # and the bidirectional marks, the Hangul fillers, the variation selectors, the tags. With
@@ -2629,6 +2770,11 @@ def slsa_read_character(character, skeleton):
             read = ""
         elif letter and (skeleton or (ord(character) > 127 and unicodedata.category(character) != "Nd")):
             read = letter
+        elif ord(character) in SLSA_FIGURES:
+            read = SLSA_FIGURES[ord(character)]
+        elif ord(character) > 127 and unicodedata.category(character) == "Nd":
+            # A figure of another script (an Arabic-Indic three) is the figure.
+            read = str(unicodedata.decimal(character, 0))
         elif named:
             read = named.group(1)
         else:
@@ -2637,17 +2783,38 @@ def slsa_read_character(character, skeleton):
     return SLSA_READ[key]
 
 
+# Where a run of words written together is read as words (slsa_split): a small letter
+# before a capital, a capital before a capital and a small letter, and a letter beside a
+# figure - SLSABuildL3 reads SLSA Build L 3, BuildLevelThree Build Level Three.
+SLSA_JOINED = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|(?<=[A-Za-z])(?=[0-9])|(?<=[0-9])(?=[A-Za-z])")
+# An image, outside a code span: what it shows - a badge's level, a copy of slsa.dev's
+# badge kept in the tree, a picture of a sentence - is not read here, so a unit that
+# shows one is held (slsa_names), its address and its text with it.
+SLSA_IMAGE = re.compile(r"!\[[^\]\n]*\]|<img\b", re.IGNORECASE)
+
+
+def slsa_split(text):
+    """text with a space wherever SLSA_JOINED reads words written together."""
+    return SLSA_JOINED.sub(" ", text)
+
+
 def slsa_names(text):
     """Whether a text names SLSA or a level: SLSA_NAMED in it, in it as it reads
     (slsa_plain) or in its skeleton; a level as SLSA_MENTION reads one, or in any form,
     whatever it is said of (SLSA_ANY_LEVEL); the specification's term for its levels
-    (SLSA_TERMS); or the slsa.dev badge."""
+    (SLSA_TERMS); each in the text as it is, as it reads, and with its words written
+    together read apart (slsa_split: SLSABuildL3, BuildLevelThree); the slsa.dev badge;
+    or an image of any kind (SLSA_IMAGE), whose picture is not read here."""
     plain = slsa_plain(text)
+    split = slsa_split(plain)
     return bool(SLSA_NAMED.search(text) or SLSA_NAMED.search(plain) or SLSA_NAMED.search(slsa_plain(text, True)) or
-                SLSA_MENTION.search(text) or SLSA_MENTION.search(plain) or SLSA_ANY_LEVEL.search(text) or
-                SLSA_ANY_LEVEL.search(plain) or SLSA_TERMS.search(text) or
-                SLSA_TERMS.search(plain) or re.search(r"slsa\.dev/images/", text, re.IGNORECASE) or
-                re.search(r"slsa\.dev/images/", plain, re.IGNORECASE))
+                SLSA_NAMED.search(split) or SLSA_NAMED.search(slsa_split(slsa_plain(text, True))) or
+                SLSA_MENTION.search(text) or SLSA_MENTION.search(plain) or SLSA_MENTION.search(split) or
+                SLSA_ANY_LEVEL.search(text) or SLSA_ANY_LEVEL.search(plain) or SLSA_ANY_LEVEL.search(split) or
+                SLSA_TERMS.search(text) or SLSA_TERMS.search(plain) or SLSA_TERMS.search(split) or
+                re.search(r"slsa\.dev/images/", text, re.IGNORECASE) or
+                re.search(r"slsa\.dev/images/", plain, re.IGNORECASE) or
+                SLSA_IMAGE.search(re.sub(r"`[^`\n]*`", "", text)))
 
 
 def slsa_units(text):
@@ -3495,32 +3662,90 @@ def package_install_digest_problems(script, licenses=None):
     return problems
 
 
-# The scripts that sign and verify what the release and the image put out, as this file
-# holds them: the SHA-256 of each one's text, its line ends LF, by its key of FILES
-# (chain_script_digest_problems). Their rules here read lines - the identity, cosign's
-# flags, the files counted -, and an exit 0 after the set line, or a second signature
-# of another digest beside container-image-sign.sh's own, kept every one of those lines
-# and passed: container-image-sign would have ended green having signed nothing, or
-# signed another image with the tag pipeline's identity, a signature users take for the
-# release's. None of the four is one of land-via-mr.py's GATE_FILES; this file is.
+# The scripts that sign and verify what the release and the image put out, and every file
+# of the tree they run or load, as this file holds them: the SHA-256 of each one's text,
+# its line ends LF, by its key of FILES (chain_script_digest_problems). Their rules here
+# read lines - the identity, cosign's flags, the files counted, SignTool's timestamp -,
+# and an exit 0 after the set line, a second signature of another digest beside
+# container-image-sign.sh's own, or a second SignTool call in windows-authenticode.ps1
+# signing another file with the project's certificate, kept every one of those lines and
+# passed: container-image-sign would have ended green having signed nothing, or signed
+# another image with the tag pipeline's identity, and release-authenticode another
+# program as the project's publisher - signatures users, and Windows, take for the
+# release's. The files of the tree they run (chain_script_run_problems):
+# build/ci/sigstore-certificate.sh, which container-image-sign.sh runs after cosign sign
+# with the Sigstore token and the registry's login in its environment; build/asset-sbom.py,
+# build/ci/release-chain.py and build/ci/sigstore-certificate.py, which release-verify.sh
+# runs; and what those load into their own process - build/generate-update-feed.py,
+# build/generate-package-repos.py and build/check-atom-feed.py, and
+# build/ci/security-gate.py with what it loads, which are GATE_FILES. None of the others
+# is one of land-via-mr.py's GATE_FILES; this file is.
 CHAIN_SCRIPT_SHA256 = {
-    "sign": "b486d25d22ba09cb349eec33d83aabc244bcfb7aa95a655866bae4f9d5901656",
-    "verify": "ecea4a7d2814c48f689504d8af53e3dab4b1e6df33900c0ba3b60f190ce104cb",
-    "image-sign": "4eaaa20230405c1bf1bc79a29bbaecf30669c041200a645b462efbc81dca2d70",
-    "image-push": "19f1c94b9ac5627991b8165f6eeb2c9b4fc05450a532721c5e5b36b9119a36d0",
+    "sign": "fe8ccb470d6bf38ab7492a71db3afa40b3ec2a323b1f8e3a3f099c7904a8e732",
+    "verify": "e047ccd2f7869f1724935478141fc1dac6ec945718c6fc9e9d10e486e156cc29",
+    "image-sign": "4f2857d7b275f21be01266e1a0aee7f23bfcb66e0e7d646fa526344ff185f941",
+    "image-push": "800aaff9d237ee738b24f0f9cbfa065553eead6416389f7f680da6afa74c28a4",
+    "authenticode": "0b88ec8d725b26d22919a58f34ae50385d80b3eeae7d0a691736ee7f919b5f6c",
+    "certificate-sh": "2b64c796d75ec52549255705719232ee8f5c1853c192fd3647dd94f5d98b5f9b",
+    "certificate-py": "6f4de6862e1b5a4c8a6175797e9f59a5b45a23dc22d51c96f141b2a247c0fe47",
+    "asset-sbom": "b716554857c777ac33f0bb1be99c8f46cb1e4fd86dc0448e25d32cd5b827b61f",
+    "chain": "2c393c61e128346a41565caa8ad9bbcc5d4fef0a3a7837e841fe53e360c1897c",
+    "update-feed": "8a34cce001d86020c20bbee26bc33e36239448b26ef8358852ed9c2e1624553a",
+    "repos-py": "88af5d8868914e59cf0d39f46698d08504495de3258ad8a6bd7518429f62cb99",
+    "atom-feed": "18c67e82b1fe025416b4dd9f3ef81f3960efcec7066240fc12b709ab463a44ac",
 }
+# The scripts of CHAIN_SCRIPT_SHA256 the release's and the image's jobs run, each a body
+# of one { ... } group after its set line that ends in exit (chain_script_group_problems):
+# sh and bash read a script's commands from the file as they run them, and a group whole
+# before they run any of it, so that nothing they run - the server's own verifier, built
+# from the tree, among what release-verify.sh runs - can write an exit 0 over the file
+# after its own line. sigstore-certificate.sh, which container-image-sign.sh runs inside
+# its group, runs nothing but base64, od and awk.
+CHAIN_SCRIPT_GROUPED = ("sign", "verify", "image-sign", "image-push")
+# What a file of CHAIN_SCRIPT_SHA256 names where it could run or load it, and does not, or
+# runs only as a process of its own from a part that the jobs that sign and verify do not
+# run (chain_script_run_problems), each with why it is not held.
+CHAIN_SCRIPT_NOT_RUN = {
+    "hmailserver/hmailserver": "the project's path on GitLab, which release-sign.sh, release-verify.sh and "
+                               "container-image-sign.sh hold CI_PROJECT_PATH to",
+    "hmailserver/source/Server/Common/Application/Version.h": "read for the version by release-sign.sh and "
+                                                              "release-verify.sh",
+    "hmailserver/docs/ContainerImage.md": "named in what container-image-sign.sh and container-image-push.sh print",
+    "hmailserver/docs/WindowsOnArm.md": "named in the notes release-verify.sh writes",
+    "hmailserver/docs/PackagesAppImage.md": "named in the notes release-verify.sh writes",
+    "hmailserver/docs/SourceTarball.md": "named in the notes release-verify.sh writes",
+    "hmailserver/docs/PackagesWindows.md": "named in the notes release-verify.sh writes",
+    "hmailserver/docs/ReproducibleBuilds.md": "named in the notes release-verify.sh writes",
+    "build/check-source-tarball.py": "run as a process of its own by release-chain.py's collect and gather, in release "
+                                     "and release-packages, which make the release's files before anything is signed",
+    "build/native-dependencies.ps1": "run as a process of its own by release-chain.py's gather, in release-packages, "
+                                     "which makes a package's SBOM before anything is signed",
+    "build/ci/packages/package-sbom.sh": "run as a process of its own by release-chain.py's gather, in "
+                                         "release-packages, which makes a package's SBOM before anything is signed",
+}
+# A path of the tree on a line of a held script's code, as PACKAGE_INSTALL_RUN finds one,
+# and in a PowerShell script with \ between its names as well.
+CHAIN_SCRIPT_PATH = re.compile(r"(?:(?<![A-Za-z0-9_.\-/\\$])|(?<=\$PWD/)|(?<=\$\{PWD\}/)|(?<=\$CI_PROJECT_DIR/)|"
+                               r"(?<=\$\{CI_PROJECT_DIR\}/))(?:\./)?((?:build|hmailserver)[/\\][^\s;&|)`'\"]*)")
+CHAIN_SCRIPT_KINDS = (".py", ".sh", ".ps1", ".psm1", ".bash")
+# What chain_script_named found in a text, by its path and digest: the self-test runs
+# check() some 1,300 times over the same Python files.
+CHAIN_SCRIPT_NAMED = {}
 
 
 def chain_script_digest_problems(texts):
-    """[problem] for each script of CHAIN_SCRIPT_SHA256 - build/ci/release-sign.sh,
-    release-verify.sh, container-image-sign.sh and container-image-push.sh - whose text,
+    """[problem] for each file of CHAIN_SCRIPT_SHA256 - build/ci/release-sign.sh,
+    release-verify.sh, container-image-sign.sh, container-image-push.sh and
+    windows-authenticode.ps1, and the files of the tree they run or load - whose text,
     its line ends LF, is not the one this file holds, as START_TEST_SHA256 holds the
-    image's start test and PACKAGE_INSTALL_SHA256 the package start script: a change
-    to any of them fails this check until its digest changes with it here, so that the
+    image's start test and PACKAGE_INSTALL_SHA256 the package start script: a change to
+    any of them fails this check until its digest changes with it here, so that the
     landing that changes what signs or verifies a release changes a gate file, which
     build/land-via-mr.py lands only with --gates-read, a person's word that the change
     was read whole. Whoever changes one runs this check, whose problem gives the new
-    digest, and puts it here in the same commit."""
+    digest, and puts it here in the same commit. With them, what they name and do not
+    hold (chain_script_run_problems) and the scripts' groups
+    (chain_script_group_problems)."""
     problems = []
     for key, held in sorted(CHAIN_SCRIPT_SHA256.items()):
         text = texts.get(key)
@@ -3529,10 +3754,129 @@ def chain_script_digest_problems(texts):
         digest = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()
         if digest != held:
             problems.append("%s is not the script build/check-release-chain.py holds (the SHA-256 of its text, its line ends "
-                            "LF, is %s; CHAIN_SCRIPT_SHA256[%r] %s): what signs and verifies the release and the image is "
-                            "held whole, so a change to it takes a change to CHAIN_SCRIPT_SHA256 with it, in a gate file, "
-                            "which build/land-via-mr.py lands only with --gates-read, a person's word that the change was "
-                            "read whole" % (FILES[key].replace(os.sep, "/"), digest, key, held))
+                            "LF, is %s; CHAIN_SCRIPT_SHA256[%r] %s): what signs and verifies the release and the image, "
+                            "and every file of the tree it runs or loads, is held whole, so a change to it takes a change "
+                            "to CHAIN_SCRIPT_SHA256 with it, in a gate file, which build/land-via-mr.py lands only with "
+                            "--gates-read, a person's word that the change was read whole" % (
+                                FILES[key].replace(os.sep, "/"), digest, key, held))
+    problems.extend(chain_script_run_problems(texts))
+    problems.extend(chain_script_group_problems(texts))
+    return problems
+
+
+def chain_script_named(path, text):
+    """[(line number, path)] of what a file of CHAIN_SCRIPT_SHA256 names where it could
+    run or load it: in a shell script, every path of the tree (CHAIN_SCRIPT_PATH) on a
+    line of its code (shell_code_lines: a comment and a here-document's body left out); in
+    a PowerShell one, every path, / or a backslash between its names, outside a comment
+    and a <# #> block; in a Python one, every script of the tree (CHAIN_SCRIPT_KINDS) that
+    os.path.join puts together from a name and strings alone - how each of them finds a
+    file of the tree to load or to run - and every string naming one in a list or a tuple
+    handed to a call (a command's words)."""
+    key = (path, hashlib.sha256(text.encode("utf-8")).hexdigest())
+    if key in CHAIN_SCRIPT_NAMED:
+        return CHAIN_SCRIPT_NAMED[key]
+    found = []
+    if path.endswith(".sh"):
+        for number, code in shell_code_lines(text):
+            found += [(number, m.group(1)) for m in CHAIN_SCRIPT_PATH.finditer(code)]
+    elif path.endswith((".ps1", ".psm1")):
+        code = re.sub(r"<#.*?#>", lambda m: "\n" * m.group(0).count("\n"), text, flags=re.DOTALL)
+        for number, line in enumerate(code.split("\n"), 1):
+            line = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
+            found += [(number, m.group(1).replace("\\", "/")) for m in CHAIN_SCRIPT_PATH.finditer(line)]
+    elif path.endswith(".py"):
+        try:
+            nodes = list(ast.walk(ast.parse(text)))
+        except (SyntaxError, ValueError):
+            nodes = []
+            found.append((0, "a Python text this check cannot parse"))
+        for node in nodes:
+            if not isinstance(node, ast.Call):
+                continue
+            if isinstance(node.func, ast.Attribute) and node.func.attr == "join" and len(node.args) > 1 and \
+                    all(isinstance(a, ast.Constant) and isinstance(a.value, str) for a in node.args[1:]):
+                # From the tree's root (ROOT, root, or nothing) or from the file's own
+                # folder (HERE): both are read, and the one that is no file of the tree
+                # is let be (chain_script_run_problems).
+                parts = node.args if isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str) \
+                    else node.args[1:]
+                joined = "/".join(a.value for a in parts)
+                if joined.endswith(CHAIN_SCRIPT_KINDS):
+                    found += [(node.lineno, posixpath.normpath(named)) for named in
+                              (joined, posixpath.join(posixpath.dirname(path), joined))]
+            for argument in node.args:
+                for item in argument.elts if isinstance(argument, (ast.List, ast.Tuple)) else []:
+                    if isinstance(item, ast.Constant) and isinstance(item.value, str):
+                        found += [(item.lineno, m.group(1)) for m in CHAIN_SCRIPT_PATH.finditer(item.value)
+                                  if m.group(1).endswith(CHAIN_SCRIPT_KINDS)]
+    if len(CHAIN_SCRIPT_NAMED) >= 256:
+        CHAIN_SCRIPT_NAMED.clear()
+    CHAIN_SCRIPT_NAMED[key] = found
+    return found
+
+
+def chain_script_run_problems(texts):
+    """[problem] for each path a file of CHAIN_SCRIPT_SHA256 names where it could run or
+    load it (chain_script_named) that is not held: not itself one of CHAIN_SCRIPT_SHA256,
+    not one of build/land-via-mr.py's GATE_FILES (each change to which is landed with
+    --gates-read) and not one of CHAIN_SCRIPT_NOT_RUN, which say why they are not held -
+    a file of the tree, a script it does not have, or a path built at run time ($, * or ?
+    in it); a folder of the tree aside. What the signing and verifying scripts run is as
+    much theirs as their own lines: container-image-sign.sh runs sigstore-certificate.sh
+    with the Sigstore token and the registry's login in its environment, where cosign
+    sign of another digest would sign another image as the tag's pipeline, and
+    release-verify.sh runs Python scripts that could answer for the verification, or
+    write an exit 0 over the script."""
+    gate_files = set(getattr(landing_module(), "GATE_FILES", None) or ())
+    held = dict((FILES[key].replace(os.sep, "/"), key) for key in CHAIN_SCRIPT_SHA256)
+    tree = set(texts.get("tree") or ())
+    folders = set(posixpath.dirname(p) for p in tree)
+    problems = []
+    for path, key in sorted(held.items()):
+        text = texts.get(key)
+        if not text:
+            continue
+        for number, named in chain_script_named(path, text.replace("\r\n", "\n")):
+            named = named.rstrip(".,:\\")
+            if named in held or named in gate_files or named in CHAIN_SCRIPT_NOT_RUN:
+                continue
+            built = re.search(r"[$*?]", named)
+            if not built and (named.rstrip("/") in folders or named not in tree and (
+                    not named.endswith(CHAIN_SCRIPT_KINDS) or path.endswith(".py"))):
+                # A folder; a path that is no file of the tree and names no script; and
+                # a Python file's join that is no file of the tree, read from the root
+                # or from the file's own folder.
+                continue
+            problems.append("%s names %s on its line %d, which is not held: what signs and verifies the release and the "
+                            "image is held whole with every file of the tree it runs or loads - hold it by its SHA-256 in "
+                            "CHAIN_SCRIPT_SHA256, or, not run there, say why in CHAIN_SCRIPT_NOT_RUN, in "
+                            "build/check-release-chain.py, a gate file" % (path, named, number))
+    return problems
+
+
+def chain_script_group_problems(texts):
+    """[problem] for each script of CHAIN_SCRIPT_GROUPED whose body after its set line is
+    not one { ... } group that closes on its last line of code and whose last command is
+    exit, as linux-package-install.sh's is (package_install_digest_problems): sh and bash
+    read a script's commands from the file as they run them, and a group whole before
+    they run any of it."""
+    problems = []
+    for key in CHAIN_SCRIPT_GROUPED:
+        text = (texts.get(key) or "").replace("\r\n", "\n")
+        if not text:
+            continue
+        code_lines = [(number, code.strip()) for number, code in shell_code_lines(text) if code.strip()]
+        set_line = next((number for number, code in code_lines if re.match(r"^set -[A-Za-z]", code)), None)
+        after = [(number, code) for number, code in code_lines if set_line and number > set_line]
+        closed = shell_group_end(text, after[0][0]) if after and after[0][1] == "{" else None
+        if len(after) < 3 or closed != after[-1][0] or after[-1][1] != "}" or after[-2][1] != "exit":
+            problems.append("%s's body after its set line is not one { ... } group that ends in exit%s: sh and bash read a "
+                            "script's commands from the file as they run them, so that what it runs could write an exit 0 "
+                            "over it after its own line, and read a group whole before they run any of it" % (
+                                FILES[key].replace(os.sep, "/"),
+                                " (the group opened after it closes on line %d, and the file goes on to line %d)" % (
+                                    closed, after[-1][0]) if closed is not None and closed != after[-1][0] else ""))
     return problems
 
 
@@ -3906,22 +4250,43 @@ TAG_PIPELINE_CLAUSES = (
                 r"\$CI_COMMIT_BRANCH)$"), True),
 )
 TAG_PIPELINE_BRANCH_MATCH = re.compile(r"^\$CI_COMMIT_BRANCH (=~|!~) (/[^\n]*/)([a-z]*)$")
-# What Python's re reads otherwise than RE2, GitLab's: a look-around and a back-reference,
-# which RE2 has not. A pattern with one is read as either way.
-TAG_PIPELINE_NOT_RE2 = re.compile(r"\(\?<?[=!]|\\[1-9]|\(\?P[=>]|\\[gk]<")
+# What Python's re may read otherwise than RE2, GitLab's, or otherwise from one version of
+# Python to the next: a group of any kind but (?: and inline flags (a look-around, a named
+# group, an atomic group, a conditional); a backslash before a letter or a figure but the
+# classes and escapes both read alike (\d \D \s \S \w \W \b \n \t \r \f \v) - a
+# back-reference, \B (which matches the empty string in Python 3.14 and RE2, and not in
+# 3.13), \z and \Z, \A, \p and \P, \Q and \E, \C, \x and the octal escapes among them; a
+# POSIX bracket expression ([[:alnum:]], which Python reads as the set [[:alnum:] followed
+# by ], so that it needs a character, and RE2 as the class, matching the empty string), a
+# nested set and the set operations Python warns of (--, &&, ~~, ||); a possessive
+# quantifier; and {,n}. A pattern with one is read as either way (tag_pipeline_branch_match),
+# and as an open clause where a kind variable is matched against it (condition_tree).
+TAG_PIPELINE_NOT_RE2 = re.compile(r"\(\?(?![a-zA-Z]*(?:-[a-zA-Z]+)?[:)])|\(\?[a-zA-Z]*[^a-zA-Z:)\-]|\\[A-Za-z0-9]|"
+                                  r"\[[:=.]|\[\[|--|&&|~~|\|\||[*+?}]\+|\{,")
+# The escapes before a letter Python and RE2 read alike (TAG_PIPELINE_NOT_RE2 takes every
+# other backslash before a letter or a figure for one they may not).
+TAG_PIPELINE_RE2_ESCAPES = re.compile(r"\\[dDsSwWbntrfv]")
+
+
+def re2_unread(body):
+    """Whether a pattern's body holds what Python's re may read otherwise than RE2
+    (TAG_PIPELINE_NOT_RE2), the escapes both read alike (TAG_PIPELINE_RE2_ESCAPES) and an
+    escaped character that is not a letter or a figure aside."""
+    return bool(TAG_PIPELINE_NOT_RE2.search(TAG_PIPELINE_RE2_ESCAPES.sub("", re.sub(r"\\[^A-Za-z0-9]", "", body))))
 
 
 def tag_pipeline_branch_match(clause):
     """Whether a clause $CI_COMMIT_BRANCH =~ /p/flags or !~ holds in a v* tag's
     pipeline, whose branch GitLab matches as the empty string: re.search(p, "") as a
     stand-in for RE2 on it, True or False; None for a clause of another form, a flag but
-    i, m and s, or a pattern Python does not compile or reads otherwise than RE2
-    (TAG_PIPELINE_NOT_RE2), which is then tried both ways."""
+    i, m and s, or a pattern Python does not compile or may read otherwise than RE2
+    (re2_unread: a POSIX bracket expression, and a backslash before B, among them), which
+    is then tried both ways."""
     match = TAG_PIPELINE_BRANCH_MATCH.match(clause)
     if not match or set(match.group(3)) - set("ims"):
         return None
     body = match.group(2)[1:-1]
-    if TAG_PIPELINE_NOT_RE2.search(body):
+    if re2_unread(body):
         return None
     flags = (re.IGNORECASE if "i" in match.group(3) else 0) | (re.MULTILINE if "m" in match.group(3) else 0) | \
         (re.DOTALL if "s" in match.group(3) else 0)
@@ -4091,26 +4456,72 @@ def chain_rule_problems(texts):
     return problems
 
 
+def chain_blocks(texts):
+    """{name: text} of every block of every CI file (ci_files), the first definition of
+    each, .gitlab-ci.yml's first: the jobs of the release chain, and every job one needs
+    and block one reaches, are each defined once (chain_definition_problems)."""
+    every_ci = ci_files(texts)
+    named = {}
+    for path in [".gitlab-ci.yml"] + sorted(p for p in every_ci if p != ".gitlab-ci.yml"):
+        for other, body in blocks(every_ci.get(path) or "").items():
+            named.setdefault(other, body)
+    return named
+
+
+def chain_escape_problems(texts):
+    """[problem] for each release job and image job (RELEASE_JOBS, IMAGE_JOBS, Artifact
+    Hub's) that another job of the release chain (chain_rule_jobs) needs, and that could
+    let it start in a v* tag's pipeline without its having passed (tag_escapes): its own
+    allow_failure, or a template's, as well as a rule's, so that allow_failure: true on
+    container-image-sbom (.gitlab/ci/container-image.yml, which is not one of
+    land-via-mr.py's GATE_FILES) would have let container-image-sign sign and attest an
+    image's SBOM that container-image-sbom.sh writes before its own check fails, and on
+    release-verify let release-publish be offered after a failed verification. when:
+    manual with allow_failure: false beside it is no escape here (release's and
+    release-publish's own keys, container-image-deb's tag rule): GitLab holds the jobs
+    that need such a job until it has passed. The package, chart, ARM64 installer and
+    build-input jobs are held where check() reads them."""
+    named = chain_blocks(texts)
+    needed = set()
+    for job in chain_rule_jobs():
+        if job in named:
+            needed.update(needs(named[job]))
+    problems = []
+    for name in list(RELEASE_JOBS) + sorted(IMAGE_JOBS) + [ARTIFACTHUB_JOB]:
+        if name not in needed or name not in named:
+            continue
+        for escape in tag_escapes(name, named, blocking_manual=True):
+            problems.append("%s can let the jobs of the release chain that need it start in a v* tag's pipeline without its "
+                            "having passed (%s): container-image-sign would sign what a failed job left, and release-publish "
+                            "be offered after a failed verification - a job another job of the chain needs says allow_failure "
+                            "false or nothing, and when: manual only with allow_failure: false" % (name, escape))
+    return problems
+
+
 # The second definitions the tree has on purpose of a job of the release chain or a block
 # one reaches, by (name, file), each as the lines it writes and no other: package-repos.yml
 # turns the pages job's own deployment off, since package-repos deploys the site.
 CHAIN_SECOND_DEFINITIONS = {("pages", ".gitlab/ci/package-repos.yml"): ("  pages: false",)}
 
 
-def chain_definition_problems(texts):
-    """[problem] for each job of the release chain (chain_rule_jobs), and each block one
-    reaches by extends or !reference at any remove (reached_definitions, through every
-    definition), that is defined more than once in the CI files (ci_files) but as
-    CHAIN_SECOND_DEFINITIONS lets it be. GitLab merges a second definition in any included
-    file into the job, keeping every key the first does not set, and of two in one file
-    takes the last, where the rules of this file read one: release-sign: with when:
-    always alone, appended to .gitlab/ci/snap.yml, which is not one of land-via-mr.py's
-    GATE_FILES, would run the release's signature whatever Authenticode did, and
-    release-verify: with a before_script of exit 0 there would end the verification green
-    unrun, past every rule on the jobs' own blocks."""
+def chain_definition_problems(texts, more=()):
+    """[problem] for each job of the release chain (chain_rule_jobs) and of more - every
+    job check() reads for an escape (tag_escapes): the jobs release-packages waits for and
+    every job those wait for -, and each block one reaches by extends or !reference at any
+    remove (reached_definitions, through every definition), that is defined more than
+    once in the CI files (ci_files) but as CHAIN_SECOND_DEFINITIONS lets it be. GitLab
+    merges a second definition in any included file into the job, keeping every key the
+    first does not set, and of two in one file takes the last, where the rules of this
+    file read one: release-sign: with when: always alone, appended to
+    .gitlab/ci/snap.yml, which is not one of land-via-mr.py's GATE_FILES, would run the
+    release's signature whatever Authenticode did, release-verify: with a before_script
+    of exit 0 there would end the verification green unrun, and
+    deb-debian12-amd64-install: written again there whole with allow_failure: true would
+    let release-packages gather the Debian 12 .deb past a failed install test, past every
+    rule on the jobs' own blocks."""
     every_ci = ci_files(texts)
     problems = []
-    for reached, paths in sorted(reached_definitions(every_ci, chain_rule_jobs()).items()):
+    for reached, paths in sorted(reached_definitions(every_ci, chain_rule_jobs() + sorted(more)).items()):
         counts = dict((path, top_level_keys(every_ci[path]).count(reached)) for path in paths)
         allowed = [path for path in paths if counts[path] == 1 and (reached, path) in CHAIN_SECOND_DEFINITIONS and
                    tuple(line for line in blocks(every_ci[path]).get(reached, "").split("\n") if line.strip()) ==
@@ -4223,7 +4634,7 @@ def check(texts, chain, feed):
     if texts["package-install"]:
         problems.extend(package_install_digest_problems(texts["package-install"], texts.get("package-licenses")))
     problems.extend(chain_rule_problems(texts))
-    problems.extend(chain_definition_problems(texts))
+    problems.extend(chain_escape_problems(texts))
 
     # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
     # and held to its file before the release is published.
@@ -4911,6 +5322,9 @@ def check(texts, chain, feed):
 
     # Every other file the release carries from the package jobs, gathered by one job
     # that needs each build and its test, none of which may fail on a tag.
+    # Every block of every CI file, so that a job one of them needs that is defined in
+    # another file is read too; each is defined once (chain_definition_problems, over
+    # every job read here for an escape).
     job_file = {}
     everything = dict(jobs)
     for key in ("packages-deb", "packages-rpm", "packages-appimage", "tarball-ci", "release-packages", "helm", "packages-windows"):
@@ -4918,6 +5332,9 @@ def check(texts, chain, feed):
             if not name.startswith("."):
                 job_file[name] = key
             everything.setdefault(name, text)
+    for name, text in chain_blocks(texts).items():
+        everything.setdefault(name, text)
+    upstream = set()
     gather = blocks(texts["release-packages"]).get(GATHER_JOB)
     if not re.search(r"^  - local: \.gitlab/ci/release-packages\.yml\s*$", ci, re.MULTILINE):
         problems.append(".gitlab-ci.yml does not include .gitlab/ci/release-packages.yml: nothing gathers what a release carries "
@@ -4993,6 +5410,9 @@ def check(texts, chain, feed):
         problems.append("%s does not package the chart into helm-chart/ for a v* tag (build/ci/helm-chart-package.sh)" % CHART_JOB)
     for escape in tag_escapes(CHART_JOB, everything) if chart else []:
         problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s)" % (CHART_JOB, escape))
+    # Each job read for an escape here, and every block it reaches, defined once: a second
+    # definition in another file would be merged into the one read.
+    problems.extend(chain_definition_problems(texts, upstream))
     chart_name = chain.chart_name("9.9.9")
     if chain.sources("9.9.9").get(chart_name, "").replace(os.sep, "/") != "helm-chart/" + chart_name or \
             chain.package_job_sums("9.9.9").get(chart_name, ("", ""))[0].replace(os.sep, "/") != "helm-chart/SHA256SUMS.txt":
@@ -6736,6 +7156,10 @@ def condition_tree(expr):
             if left[0] == "var" and left[1] in KIND_VARIABLES and right[0] in ("str", "null", "re"):
                 if op in ("=~", "!~") and right[0] != "re":
                     raise ValueError("%r: %s against %s" % (expr, op, spelled(right)))
+                if right[0] == "re" and kind_pattern_unread(right[1]):
+                    # A pattern Python may read otherwise than RE2 decides nothing here:
+                    # the clause may be either.
+                    return ("clause", ("open", "%s %s %s" % (spelled(left), op, spelled(right))))
                 return ("clause", ("kind", left[1], op, right[1]))
             return ("clause", ("open", "%s %s %s" % (spelled(left), op, spelled(right))))
         if token[0] == "var" and token[1] in KIND_VARIABLES:
@@ -6762,6 +7186,21 @@ def condition_tree(expr):
     if at[0] != len(tokens):
         raise ValueError("%r: %r after the end" % (expr, tokens[at[0]]))
     return tree
+
+
+def kind_pattern_unread(pattern):
+    """Whether condition_holds cannot read a pattern (/body/flags) a kind variable is
+    matched against as GitLab does: a flag but i, a body Python may read otherwise than
+    RE2 (re2_unread: $CI_PIPELINE_SOURCE =~ /^[[:alpha:]]+$/, which RE2 matches against
+    push and Python against nothing), or one Python does not compile."""
+    body, flags = pattern[1:pattern.rindex("/")], pattern[pattern.rindex("/") + 1:]
+    if set(flags) - set("i") or re2_unread(body):
+        return True
+    try:
+        re.compile(body)
+    except (re.error, OverflowError, RecursionError):
+        return True
+    return False
 
 
 def open_clauses(tree, found=None):
@@ -12963,6 +13402,13 @@ def self_test(chain, feed):
             ("the branch =~ /^$/", "$CI_COMMIT_BRANCH =~ /^$/ && " + push, True),
             ("the branch =~ /a|/", "$CI_COMMIT_BRANCH =~ /a|/ && " + push, True),
             ("the branch =~ /.*/i", "$CI_COMMIT_BRANCH =~ /.*/i && " + push, True),
+            # A POSIX bracket expression, which Python reads as a set followed by ], and
+            # a pattern one version of Python reads otherwise than the next (\B), as
+            # either way; and a kind variable matched against a bracket expression.
+            ("the branch =~ /^[[:alnum:]]*$/", "$CI_COMMIT_BRANCH =~ /^[[:alnum:]]*$/ && " + push, True),
+            ("the branch =~ /\\B/", "$CI_COMMIT_BRANCH =~ /\\B/ && " + push, True),
+            ("the source =~ /^[[:alpha:]]+$/",
+             '$CI_PIPELINE_SOURCE =~ /^[[:alpha:]]+$/ && $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~ /^v/', True),
             ("the branch =~ /^batch/", "$CI_COMMIT_BRANCH =~ /^batch/ && " + push, False)):
         if sbom_rules_at < 0 or tag_rule not in texts["ci"]:
             failures.append("allow_failure with %s: container-image-sbom's rules or .release-rules' tag rule are not in the tree"
@@ -13085,6 +13531,132 @@ def self_test(chain, feed):
     # And the tripwire reads a link's text in place and the letters hyphenated as the name.
     for what, planted in (("a link inside the name", "Our [SL](https://example.com)SA L3 provenance."),
                           ("the name hyphenated", "Our SL-SA L3 provenance.")):
+        docs = dict(texts["slsa-docs"], **{"README.md": texts["slsa-docs"].get("README.md", "") + "\n\n" + planted + "\n"})
+        if not any("README.md claims an SLSA level above Build L1" in p for p in slsa_level_problems(docs)):
+            failures.append("%s is caught by the tripwire: %s" % (what, slsa_level_problems(docs)))
+
+    # The Authenticode signer held whole, and what the held scripts run or load
+    # (CHAIN_SCRIPT_SHA256, chain_script_run_problems, chain_script_group_problems): a
+    # second SignTool call in windows-authenticode.ps1 signing another file of the checkout
+    # with the project's certificate, cosign sign of another digest in
+    # sigstore-certificate.sh when the Sigstore token is set, a file of the tree
+    # release-verify.sh runs that nothing holds, a script generate-update-feed.py would
+    # load and one release-chain.py would run that nothing holds, and release-verify.sh's
+    # group taken out. Each passed the checker at ba4137d8bd and after.
+    signtool = ("   & $signtool sign /v /fd SHA256 /tr $timestampUrl /td SHA256 /dlib $dlib /dmdf $metadata @signing 2>&1 | "
+                "ForEach-Object { \"  $_\" }\n")
+    for what, key, old, new, needle in (
+            ("a second SignTool call in windows-authenticode.ps1", "authenticode", signtool,
+             signtool + "   & $signtool sign /v /fd SHA256 /tr $timestampUrl /td SHA256 /dlib $dlib /dmdf $metadata "
+             "(Join-Path $env:CI_PROJECT_DIR 'hmailserver\\test\\other.exe')\n",
+             "build/ci/windows-authenticode.ps1 is not the script build/check-release-chain.py holds"),
+            ("cosign sign in sigstore-certificate.sh", "certificate-sh", "\nset -eu\n",
+             '\nset -eu\nif [ -n "${SIGSTORE_ID_TOKEN:-}" ]; then\n  cosign sign --yes '
+             '"registry.gitlab.com/hmailserver/hmailserver@sha256:' + "ab" * 32 + '" > /dev/null 2>&1 || true\nfi\n',
+             "build/ci/sigstore-certificate.sh is not the script build/check-release-chain.py holds"),
+            ("another file of the tree release-verify.sh runs", "verify", "\nsaid=$(python3 build/ci/sigstore-certificate.py",
+             "\npython3 build/ci/channels/registry-mirror.py --self-test\nsaid=$(python3 build/ci/sigstore-certificate.py",
+             "build/ci/release-verify.sh names build/ci/channels/registry-mirror.py on its line"),
+            ("a script generate-update-feed.py loads that nothing holds", "update-feed", "\ndef atom_checker():",
+             '\ndef more_checker():\n    return os.path.join(ROOT, "build", "check-changelog.py")\n\n\ndef atom_checker():',
+             "build/generate-update-feed.py names build/check-changelog.py on its line"),
+            ("a script release-chain.py runs that nothing holds", "chain", "\ndef tarball_problems(",
+             '\ndef build_again():\n    return subprocess.run(["sh", "build/ci/linux-build.sh"])\n\n\ndef tarball_problems(',
+             "build/ci/release-chain.py names build/ci/linux-build.sh on its line"),
+            ("release-verify.sh's group taken out", "verify", "\nset -uo pipefail\n{\n", "\nset -uo pipefail\n",
+             "build/ci/release-verify.sh's body after its set line is not one { ... } group that ends in exit")):
+        broken(what, key, old, new, needle)
+    # A NUL on sigstore-certificate.sh's third line, which git and
+    # build/check-control-bytes.py take for binary and dash, bash and busybox sh run past.
+    raw = texts["script-bytes"].get("certificate-sh", b"")
+    second = raw.find(b"\n", raw.find(b"\n") + 1) + 1
+    if second <= 0:
+        failures.append("a NUL in sigstore-certificate.sh: the file is not in the tree")
+    else:
+        copy = dict(texts, **{"script-bytes": dict(texts["script-bytes"], **{
+            "certificate-sh": raw[:second] + b"#" + bytes([0]) + b"\n" + raw[second:]})})
+        found, _ = check(copy, chain, feed)
+        if not any("build/ci/sigstore-certificate.sh holds the control byte NUL (0x00) on its line 3" in p for p in found):
+            failures.append("a NUL on sigstore-certificate.sh's third line is caught: %s" % found)
+
+    # A job's own allow_failure on an image or a release job another job of the chain
+    # needs (chain_escape_problems): container-image-sbom, whose failure container-image-sign
+    # would have attested past, and release-verify, past whose failure release-publish
+    # would have been offered. Each passed the checker at ba4137d8bd and after.
+    for what, key, old, needle in (
+            ("container-image-sbom allow_failure: true", "image", "container-image-sbom:\n",
+             "container-image-sbom can let the jobs of the release chain that need it start"),
+            ("release-verify allow_failure: true", "ci", "release-verify:\n  extends: .linix\n",
+             "release-verify can let the jobs of the release chain that need it start")):
+        broken(what, key, old, old + "  allow_failure: true\n", needle)
+
+    # when: manual and allow_failure in the forms GitLab's YAML reader reads and a reading of
+    # the value on its line alone did not (escape_line, escape_value): a quoted value with
+    # a comment after it, the value on the line below, a block scalar, a tag and an anchor,
+    # on an install job release-packages waits for; allow_failure over true three spaces in
+    # on the arm64 .deb's install job; and when: over manual in a rule a tag matches and in
+    # a rule of a batch* branch of the install jobs' rules, which the checker of ba4137d8bd
+    # refused and that of the last commit did not. Each of the others passed the checker at
+    # ba4137d8bd and after.
+    rules = ".deb-install-rules:\n  rules:\n    - !reference [.own-runners, rules]\n"
+    escaped12 = "deb-debian12-amd64-install can let release start in a v* tag's pipeline without its having passed ("
+    for what, key, old, new, needle in (
+            ('when: "manual" with a comment', "packages-deb", deb12_install, deb12_install + '  when: "manual" # held back\n',
+             escaped12 + 'deb-debian12-amd64-install says when: "manual"'),
+            ("when: 'manual' with a comment", "packages-deb", deb12_install, deb12_install + "  when: 'manual' # held back\n",
+             escaped12 + "deb-debian12-amd64-install says when: 'manual'"),
+            ("when: over manual", "packages-deb", deb12_install, deb12_install + "  when:\n    manual\n",
+             escaped12 + "deb-debian12-amd64-install says when: manual)"),
+            ("when: >- over manual", "packages-deb", deb12_install, deb12_install + "  when: >-\n    manual\n",
+             escaped12 + "deb-debian12-amd64-install says when: >-)"),
+            ("when: |- over manual", "packages-deb", deb12_install, deb12_install + "  when: |-\n    manual\n",
+             escaped12 + "deb-debian12-amd64-install says when: |-)"),
+            ("when: !!str manual", "packages-deb", deb12_install, deb12_install + "  when: !!str manual\n",
+             escaped12 + "deb-debian12-amd64-install says when: !!str manual)"),
+            ("when: &m manual", "packages-deb", deb12_install, deb12_install + "  when: &m manual\n",
+             escaped12 + "deb-debian12-amd64-install says when: &m manual)"),
+            ("a rule in flow style", "packages-deb", deb12_install,
+             deb12_install + "  rules:\n    - {if: $CI_COMMIT_TAG, when: manual}\n",
+             "makes it manual or allowed to fail, in a form this does not read): release would carry"),
+            ("allow_failure: over true three spaces in", "packages-deb", install, install + "  allow_failure:\n   true\n",
+             escaped + "deb-ubuntu26.04-arm64-install says allow_failure: true)"),
+            ("when: over manual in a rule a tag matches", "packages-deb", rules,
+             ".deb-install-rules:\n  rules:\n    - if: " + push + "\n      when:\n        manual\n"
+             "    - !reference [.own-runners, rules]\n", "makes it manual): release would carry"),
+            ("when: over manual in a rule of a batch* branch", "packages-deb", rules,
+             ".deb-install-rules:\n  rules:\n    - if: $CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == \"true\"\n"
+             "      when:\n        manual\n    - !reference [.own-runners, rules]\n",
+             "waits for a press on a batch* branch")):
+        broken(what, key, old, new, needle)
+
+    # A job release-packages waits for defined again, whole, in another CI file, with
+    # allow_failure: true or when: manual (chain_definition_problems over the jobs check()
+    # reads for an escape). Each passed the checker at ba4137d8bd and after.
+    for what, addition in (("allow_failure: true", "  allow_failure: true\n"), ("when: manual", "  when: manual\n")):
+        broken_include("deb-debian12-amd64-install defined again in snap.yml with " + what, ".gitlab/ci/snap.yml",
+                       "\n" + deb12_install + "  needs: [deb-debian12-amd64]\n" + addition,
+                       "deb-debian12-amd64-install, which the release chain takes, is defined in")
+
+    # SLSA: a level written so that no pattern found a word's edge - SLSABuildL3,
+    # SlsaBuildLevel3, BuildL3, BuildLevelThree -, a level's figure written as a lookalike
+    # of another script (the Cyrillic Ze, the Latin ezh, an Arabic-Indic three), and an
+    # image of the tree, which shows what this check does not read. Each passed the
+    # checker at ba4137d8bd and after, the list and the tripwire alike.
+    evidence = "hmailserver/docs/EvidencePack.md"
+    for what, name, new, needle in (
+            ("SLSABuildL3", evidence, "From 6.3.8 the provenance is SLSABuildL3.", None),
+            ("SlsaBuildLevel3", evidence, "From 6.3.8 the provenance is SlsaBuildLevel3 compliant.", None),
+            ("BuildL3", evidence, "From 6.3.8 the provenance meets BuildL3.", None),
+            ("BuildLevelThree", evidence, "From 6.3.8 the provenance is BuildLevelThree.", None),
+            ("the Cyrillic Ze for 3", evidence, "From 6.3.8 the provenance meets Build L" + chr(0x0417) + ".", None),
+            ("the Latin ezh for 3", evidence, "From 6.3.8 the provenance meets Build L" + chr(0x01B7) + ".", None),
+            ("an Arabic-Indic three", evidence, "From 6.3.8 the provenance meets Build L" + chr(0x0663) + ".", None),
+            ("an image of the tree", "README.md", "![](hmailserver/docs/provenance-badge.svg)", None)):
+        docs = dict(texts["slsa-docs"], **{name: texts["slsa-docs"].get(name, "") + "\n\n" + new + "\n"})
+        if not any(p.startswith("%s says %r" % (name, new)) for p in slsa_sentence_problems(docs)):
+            failures.append("%s is caught by the list: %s" % (what, slsa_sentence_problems(docs)))
+    for what, planted in (("SLSABuildL3", "The provenance is SLSABuildL3."),
+                          ("the Cyrillic Ze for 3", "Our SLSA provenance is Build L" + chr(0x0417) + ".")):
         docs = dict(texts["slsa-docs"], **{"README.md": texts["slsa-docs"].get("README.md", "") + "\n\n" + planted + "\n"})
         if not any("README.md claims an SLSA level above Build L1" in p for p in slsa_level_problems(docs)):
             failures.append("%s is caught by the tripwire: %s" % (what, slsa_level_problems(docs)))

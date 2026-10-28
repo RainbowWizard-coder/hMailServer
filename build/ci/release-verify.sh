@@ -37,7 +37,15 @@
 #                                          the provenance's envelope as one line, which
 #                                          this job's artifact carries to release-publish
 #                                          beside release-sign's files
+#
+# The script's body is one command, the { ... } group below, which ends in an exit:
+# bash reads a script as it runs it, a command at a time from where it is in the file,
+# but reads a group to its end before it runs any of it. So nothing it runs can change
+# what it does next by writing over this file: an exit 0 written after the line that
+# ran it would otherwise be the next command it read (build/check-release-chain.py
+# holds the group).
 set -uo pipefail
+{
 
 server=release-tools/hmailserver
 signed=release-signed
@@ -361,3 +369,5 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
 
 echo ""
 echo "All $verified files verify with the server's own verifier, and a changed copy of each is refused."
+exit
+}
