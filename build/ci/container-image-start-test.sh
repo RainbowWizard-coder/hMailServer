@@ -39,8 +39,8 @@
 #       four containers started here from IMAGE - a registry's reference, or a local
 #       name after `docker load` of the tarball linux-image keeps with
 #       HM_KEEP_IMAGE=1 - the same questions asked, the databases read with their
-#       own containers' clients, and all four removed at the end (--keep leaves
-#       them, and says how to remove them)
+#       own containers' clients, and all four removed at the end with their
+#       volumes (--keep leaves them, and says how to remove them)
 #
 # The image is started as the service starts it, through its own entrypoint, with
 # the command START_COMMAND below, which is the image's own command: the entrypoint
@@ -197,9 +197,11 @@ cleanup() {
       done
     fi
     if [ "$keep" = 1 ]; then
-      echo "Left running (--keep): docker rm -f $names-mail $names-mail-mariadb $names-db $names-mariadb; docker network rm $names"
+      echo "Left running (--keep): docker rm -fv $names-mail $names-mail-mariadb $names-db $names-mariadb; docker network rm $names"
     else
-      docker rm -f "$names-mail" "$names-mail-mariadb" "$names-db" "$names-mariadb" > /dev/null 2>&1
+      # -v: with each container its anonymous volumes - the three the image declares
+      # and each database's one - which docker rm alone leaves on the machine.
+      docker rm -fv "$names-mail" "$names-mail-mariadb" "$names-db" "$names-mariadb" > /dev/null 2>&1
       docker network rm "$names" > /dev/null 2>&1
     fi
   fi

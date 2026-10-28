@@ -1357,6 +1357,13 @@ with `--check`).
 
 ### Build and tests
 
+- **Fixed: `build/ci/container-image-start-test.sh --docker` removes its containers' volumes with them.** It removed
+  its four containers with `docker rm -f`, which leaves their anonymous volumes - the three the image declares and
+  each database's one, eight a run - on the machine; it now uses `docker rm -fv`, and `--keep` says so. No other
+  script under `build/` that starts a container left one: each runs with `--rm`, mounts a named volume over every
+  path its image declares, or starts an image that declares none. `build/ci/linux-coverage.sh`'s instructions for a
+  run by hand now say how to remove the PostgreSQL container they start, with its volume.
+
 - **New: the container image's start test asks whether the image secured itself, whether its first start's error
   log holds anything it need not, and whether the status's OpenSSL answers are what the server does.** The image is
   started on its own command (`START_COMMAND`, `exec hmailserver --foreground`), so an image whose entrypoint does not

@@ -23,6 +23,12 @@
 #   docker run --rm --network hmcov -e HM_PG_HOST=hmcov-pg -v "$PWD":/src -w /src \
 #       hmailserver-ci/linux:<tag> bash build/ci/linux-coverage.sh
 #
+# and afterwards, PostgreSQL's container with the anonymous volume its image's
+# data directory is, then the network:
+#
+#   docker rm -fv hmcov-pg
+#   docker network rm hmcov
+#
 # What it measures, and what it does not. The figure is a FLOOR for the server as
 # a whole: the Linux suite links the fixtures the REST shims can drive
 # (LinuxRegressionTests.csproj says which), fewer than the Windows suite runs, and
