@@ -3758,13 +3758,25 @@ eight held since in 48 from 26 September to 25 October, 19 of which changed the
 checker too.
 
 **What runs beside them, and how Python runs.** A job's steps run one after
-another in one checkout, so what a job runs before or beside a file held whole
-is held whole too: a job of the chain, or one it waits for at any remove, whose
-`before_script`, `script`, `after_script` or `hooks` - its own, or a
-template's it takes by `extends` or `!reference`, at any remove - run a file
-held whole may run no other file of the tree there (a path under `build/` or
-`hmailserver/`, or any word of a step that is a file of the tree, such as
-`nix/probe.sh`) that is neither held so nor a gate file. `build/check-ci-image.py`, `.linix`'s `before_script`, which
+another in one checkout, so what a job runs before or beside the scripts that
+sign, verify, publish and start is held whole too: a job of the chain, or one
+it waits for at any remove, whose `before_script`, `script`, `after_script` or
+`hooks` - its own, or a template's it takes by `extends` or `!reference`, at
+any remove - run one of those (`release-sign.sh`, `release-verify.sh`, the
+container image's signing and pushing scripts, `windows-authenticode.ps1`,
+`release-chain.py`, the start test and `linux-package-install.sh`:
+`CHAIN_JOB_ENTRIES` in the checker) may run no other file of the tree there (a
+path under `build/` or `hmailserver/`, or any word of a step that is a file of
+the tree, such as `nix/probe.sh`) that is neither held so nor a gate file. A
+job that runs another file held whole and none of those is not read so: in the
+tree of 28 October 2026 twelve of the jobs the chain waits for do -
+`check-ci-image.py`, `.linix`'s `before_script`, runs before `linux-build.sh`,
+`linux-suite.sh`, `linux-sbom.sh`, `linux-cross.sh`, `linux-repro.sh`,
+`linux-sanitize.sh` and `linux-db-upgrade.sh` (both of its jobs), before
+`package-sbom.sh` in the two package SBOM jobs and before
+`container-image-sbom.sh` in `container-image-sbom`, and `package-repos` runs
+`build/ci/helm-repo.py` and `build/ci/scorecard-pages.py` beside the feed and
+repository generators - and what those run beside the held file is not held. `build/check-ci-image.py`, `.linix`'s `before_script`, which
 `release-verify`, `release-packages` and both image start jobs run first, and
 `build/ci/arm64-emulation.sh`, which `container-image-start-arm64` runs, are
 held by their digests in `CHAIN_SCRIPT_SHA256` for it: four lines of the first
@@ -3791,18 +3803,36 @@ loaded, the checker's own process among them, where it replaced the checker's
 rules. And `.gitlab-ci.yml`'s `variables:` give every job
 `PYTHONDONTWRITEBYTECODE`, `PYTHONSAFEPATH` (the script's own directory, or
 the current one for `-m` and `-c`, kept off the module path, from Python 3.11,
-which every image of the chain has) and `PYTHONPYCACHEPREFIX:
+which every Python the chain's jobs run is: the python image's 3.14, and
+Debian 13's 3.13, which `package-repos` installs; the distributions' Pythons
+other jobs install, in `harnesses`, `chart-and-compose` and
+`package-templates` (Ubuntu 24.04's 3.12), are 3.11 or later too),
+`PYTHONPYCACHEPREFIX:
 /tmp/hm-no-pycache`, a folder outside the checkout - in a job's container the
 container's own, which nothing writes to -, so that a `__pycache__` folder a
-job's artifacts bring into the checkout is never read; nothing else in the CI
-files - a job, a rule, a service, a template or a workflow rule - sets one of
-those or another variable that changes which code Python runs or where it
-finds it (`PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP` and the rest of
-`PYTHON_RUN_VARIABLES`). The checker itself runs no file of the tree in its
-own process but `build/land-via-mr.py` and the Python files of
-`CHAIN_SCRIPT_SHA256` whose digests are the ones it holds, which it asks before
-it runs any of them, and it reads the tables of `build/ci/hosted-runners.py`
-as text: a module it ran could end it with exit 0 whatever its rules found, and
+job's artifacts bring into the checkout is never read, and `PYTHONNOUSERSITE`,
+which keeps the user site-packages folder off the module path: Python finds
+it under `HOME`, which a runner sets and a step may change, so that `HOME:
+/builds/x` given to `release-verify` would have put a folder of the checkout
+there, with any `.pth` file in it run as Python started (no job installs with
+`pip --user`; the virtual environments the jobs make are no user site);
+nothing else in the CI files - a job, a rule, a service, a template or a
+workflow rule - sets one of those or another of `PYTHON_RUN_VARIABLES`, the
+variables that change which code Python runs or where it finds it
+(`PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`, `PYTHONUSERBASE` and the rest).
+The checker itself runs no file of the tree in its own process but
+`build/land-via-mr.py`, the Python files of `CHAIN_SCRIPT_SHA256` whose
+digests are the ones it holds, which it asks before it runs any of them, and
+the gate files `build/ci/release-chain.py` loads as it is loaded
+(`build/ci/security-gate.py`, and `build/ci/security-findings.py`, which the
+first loads in turn), which run as their files; and it reads the tables of
+`build/ci/hosted-runners.py` as text, refusing that file when anything in it
+could change a table after its one literal (a `+=`, an item set or deleted, a
+method other than those that read, the name bound again or named by `global`,
+the table passed on or given another name, `globals()`, `sys.modules`,
+`__main__` and the other ways a module's names are reached without being
+written), as they were compared once it had run when the checker ran it: a
+module it ran could end it with exit 0 whatever its rules found, and
 `build/ci/release-chain.py` or `hosted-runners.py` given a line that did made
 it pass a `release-sign.sh` with an `exit 0` after its `set` line. Whoever
 changes `check-ci-image.py` or `arm64-emulation.sh` does as for the other
@@ -3821,9 +3851,12 @@ a distribution's packages), a runner's own configuration (its volumes, its
 pre-build script, its environment, a shell runner's machine), the project's and
 the group's CI/CD variables, which stand above the CI files, the project's
 settings (who may push a `v*` tag, which refs are protected), the scripts of
-the jobs the chain waits for that run no file held whole (`linux-build.sh`, the
-suites, the package builds: their result is held, and a second definition of
-the job refused, but not their text), what a held script makes of the
+the jobs the chain waits for that run none of the scripts that sign, verify,
+publish and start, though twelve of them run `check-ci-image.py` or the feed
+and repository generators beside them (`linux-build.sh`, the suites, the
+package builds and SBOMs, `container-image-sbom.sh`, and `package-repos`'
+`helm-repo.py` and `scorecard-pages.py`: their result is held, and a second
+definition of the job refused, but not their text), what a held script makes of the
 artifacts it is handed beyond what the rules read, the server's own verifier
 as it is built from the tree, and the packages' maintainer scripts. Beyond it
 stands the landing: `build/land-via-mr.py`'s `--gates-read`, a person's word

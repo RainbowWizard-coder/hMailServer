@@ -661,7 +661,10 @@ refuses it. This checker holds them to each other. It fails when:
   * what a job that runs a file held whole runs before or beside it is not held whole
     too: a job of the release chain, or one it waits for at any remove, whose
     before_script, script, after_script or hooks - its own, a template's it extends or
-    one a !reference names, at any remove - name a file held whole (CHAIN_JOB_ENTRIES)
+    one a !reference names, at any remove - name one of the files held whole that
+    CHAIN_JOB_ENTRIES names, the scripts that sign, verify, publish and start (not every
+    file held whole: a job that runs only check-ci-image.py or the feed generators of
+    those is not read, below)
     may name no file of the tree there - a path under build/ or hmailserver/, or any
     word of a step that is a file of the tree - that is not held so or a gate file
     (chain_job_run_problems): check-ci-image.py, .linix's before_script, which
@@ -678,14 +681,22 @@ refuses it. This checker holds them to each other. It fails when:
     build/ci/release-chain.py took a build/ci/argparse.py for argparse; no file of the
     tree is Python bytecode - a .pyc or .pyo, or any file in a __pycache__ folder -,
     which Python runs in place of the source beside it (bytecode_problems); every job is
-    given PYTHONDONTWRITEBYTECODE, PYTHONSAFEPATH and a PYTHONPYCACHEPREFIX outside the
-    checkout by .gitlab-ci.yml's variables:, and nothing else in the CI files sets one of
+    given PYTHONDONTWRITEBYTECODE, PYTHONSAFEPATH, a PYTHONPYCACHEPREFIX outside the
+    checkout and PYTHONNOUSERSITE, which keeps the user site that Python finds under
+    HOME off sys.path, by .gitlab-ci.yml's variables:, and nothing else in the CI files sets one of
     PYTHON_RUN_VARIABLES (python_isolation_problems); and this checker runs no file of
     the tree in its own process but land-via-mr.py and the Python files of
     CHAIN_SCRIPT_SHA256 whose digests are the ones held, which it asks before it runs any
     (load_problem, held_module_problems), running each from the text it read through
-    the same loader, and reads
-    the tables of build/ci/hosted-runners.py as text (literal_tables): a module run here
+    the same loader, and the gate files release-chain.py loads as it is loaded
+    (build/ci/security-gate.py, and build/ci/security-findings.py, which the first loads
+    with Python's own loader), which run as their files; and it reads
+    the tables of build/ci/hosted-runners.py as text (literal_tables), refusing that
+    file when anything in it could change a table after its one literal - a +=, an item
+    set or deleted, a method that is not one of those that read, the name bound again
+    anywhere or by global, the table passed on or given another name, or one of the ways
+    a module's names are reached without being written (globals(), sys.modules,
+    __main__ and the rest) (table_use_problems): a module run here
     could have ended the process with exit 0 at its exit whatever the rules found.
 
 What this checker holds of the release chain is the CI files' text as the rules above
@@ -699,9 +710,17 @@ what is installed beside them, cosign, the distributions' packages), a runner's 
 configuration (its volumes, its pre-build script, its environment, a shell runner's
 machine), the project's and the group's CI/CD variables, which stand above the CI files,
 the project's settings (who may push a v* tag, which branches and tags are protected),
-the scripts of the jobs the chain waits for that run no file held whole (linux-build.sh,
-the suites, the package builds: their result is read, and a second definition of the job
-refused, but their text is not held), what a held script makes of the artifacts it is
+the scripts of the jobs whose steps run none of the files of CHAIN_JOB_ENTRIES (the
+scripts that sign, verify, publish and start), which chain_job_run_problems does not
+read, though twelve of the jobs it waits for run another file held whole beside a
+script of their own (the tree of 28 October 2026) - check-ci-image.py, .linix's
+before_script, before linux-build.sh, linux-suite.sh, linux-sbom.sh, linux-cross.sh,
+linux-repro.sh, linux-sanitize.sh and linux-db-upgrade.sh (both of its jobs), before
+package-sbom.sh in the two package SBOM jobs and before container-image-sbom.sh in
+container-image-sbom, and the feed and repository generators beside
+build/ci/helm-repo.py and build/ci/scorecard-pages.py in package-repos: the result of
+those jobs is read, and a second definition of the job refused, but the text of what
+they run beside the held files is not held -, what a held script makes of the artifacts it is
 handed beyond what the rules read, the server's own verifier as it is built from the
 tree, and the packages' maintainer scripts. Beyond it stands the landing:
 build/land-via-mr.py's --gates-read, a person's word that a change to a gate file was
@@ -1245,9 +1264,18 @@ BRANCH_REF = 'ref="refs/heads/${branch}"'
 TAG_SCRIPT_IDENTITY = 'identity="${repository}%s${tag}"' % IDENTITY_TAIL
 
 
-# The one file of the tree this checker loads into its own process that is held as a
-# gate file rather than by a digest here: build/land-via-mr.py, which names itself among
-# its GATE_FILES, and which a landing runs from master's checkout (CHECKOUT_COPIES).
+# The one file of the tree this checker loads into its own process itself that is held
+# as a gate file rather than by a digest here: build/land-via-mr.py, which names itself
+# among its GATE_FILES, and which a landing runs from master's checkout
+# (CHECKOUT_COPIES). Two more gate files run in this process, loaded by
+# build/ci/release-chain.py as it is loaded, not by this checker, which load_problem
+# does not ask about: build/ci/security-gate.py, which release-chain.py loads with
+# load_source, and build/ci/security-findings.py, which security-gate.py loads with
+# Python's own loader as it is loaded (GATE_CODE of land-via-mr.py, both; the bytecode
+# beside the second is never read here because this process's bytecode cache is a new
+# empty folder, and bytecode_problems refuses a file of bytecode in the tree).
+# security-gate.py loads build/ci/dependency-scan.py, a gate file too, only when a
+# release's dependency findings are read, which this checker never asks.
 LOADED_GATE_FILES = ("build/land-via-mr.py",)
 
 
@@ -1382,24 +1410,145 @@ def held_module_problems():
     return problems
 
 
+# How a table literal_tables reads may be used in its file, all of which leave it as its
+# literal: read by a subscript, by one of these methods, by in or not in, or iterated by
+# a for or a comprehension.
+TABLE_READ_METHODS = frozenset(("get", "items", "keys", "values", "count", "index"))
+# The ways Python reaches a module's names other than by them - its namespace, its
+# module object, the frames and the objects that refer to it - and the modules that
+# give them: a file whose tables are read as text names none of these, since through
+# any of them a table could be changed as the file runs without the name being written.
+TABLE_REFLECTIVE_NAMES = frozenset(("globals", "vars", "locals", "exec", "eval", "compile", "setattr", "delattr",
+                                    "__import__", "__builtins__", "__loader__", "__spec__"))
+TABLE_REFLECTIVE_ATTRIBUTES = frozenset(("__dict__", "__globals__", "__builtins__", "__setattr__", "__delattr__",
+                                         "__setitem__", "__delitem__", "f_globals", "f_locals", "f_back", "tb_frame",
+                                         "gi_frame", "cr_frame", "modules", "import_module", "get_referrers",
+                                         "get_objects", "currentframe", "_getframe", "stack", "exec_module",
+                                         "load_module", "run_path", "run_module"))
+TABLE_REFLECTIVE_MODULES = frozenset(("__main__", "builtins", "ctypes", "gc", "importlib", "inspect", "runpy", "types"))
+
+
+def table_frozen(value):
+    """True when value, a table's item, is a literal no code can change in place: a
+    tuple, a string, a number, a bool or None, and a tuple of those."""
+    if isinstance(value, tuple):
+        return all(table_frozen(item) for item in value)
+    return value is None or isinstance(value, (str, bytes, int, float, complex, bool))
+
+
+def table_use_problems(relative, tree, names, assigned):
+    """[problem] for each place in a Python file's syntax tree that could change one of
+    the tables names, other than its one top-level assignment (assigned, the Name nodes
+    it assigns): a name of them bound or deleted anywhere - an assignment, an augmented
+    one, a for, a with, an import, a def or class, an except, a match, a walrus, del -,
+    named by global or nonlocal, a subscript or an attribute of one assigned or deleted,
+    an attribute of one that is not one of TABLE_READ_METHODS, one used bare other than
+    by in, not in or as what a for or a comprehension iterates (passed to a function, or
+    made another name for it, by which it could be changed unread), and every name,
+    attribute and module of TABLE_REFLECTIVE_NAMES, TABLE_REFLECTIVE_ATTRIBUTES and
+    TABLE_REFLECTIVE_MODULES, through which a module's names are reached without being
+    written. Each is a way a file's tables could be other than their literals once it
+    has run its top level, which is what this checker compared when it ran the file."""
+    path = relative.replace(os.sep, "/")
+    parents = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parents[child] = node
+    problems = []
+
+    def problem(node, what):
+        problems.append("%s line %s %s" % (path, getattr(node, "lineno", "?"), what))
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            if node.id in TABLE_REFLECTIVE_NAMES:
+                problem(node, "names %s, through which a module's tables are reached without being named" % node.id)
+            if node.id not in names:
+                continue
+            if not isinstance(node.ctx, ast.Load):
+                if node not in assigned:
+                    problem(node, "%s %s, which is read as its one top-level literal" % (
+                        "deletes" if isinstance(node.ctx, ast.Del) else "binds", node.id))
+                continue
+            child, parent = node, parents.get(node)
+            while isinstance(parent, (ast.Subscript, ast.Attribute)) and parent.value is child:
+                if isinstance(parent, ast.Attribute) and parent.attr not in TABLE_READ_METHODS:
+                    problem(parent, "takes %s.%s, which is not one of the methods that read a table" % (node.id, parent.attr))
+                if not isinstance(parent.ctx, ast.Load):
+                    problem(parent, "changes an item of %s, which is read as its one top-level literal" % node.id)
+                child, parent = parent, parents.get(parent)
+            if child is node:
+                compared = (isinstance(parent, ast.Compare) and any(c is node for c in parent.comparators)
+                            and all(isinstance(op, (ast.In, ast.NotIn)) for op in parent.ops))
+                iterated = isinstance(parent, (ast.For, ast.AsyncFor, ast.comprehension)) and parent.iter is node
+                if not (compared or iterated):
+                    problem(node, "uses %s other than by a subscript, in or a for, by which it could be changed "
+                                  "where it is not named" % node.id)
+        elif isinstance(node, (ast.Global, ast.Nonlocal)) and set(node.names) & set(names):
+            problem(node, "names %s in a %s statement" % (", ".join(sorted(set(node.names) & set(names))),
+                                                          type(node).__name__.lower()))
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in names:
+            problem(node, "binds %s by a %s" % (node.name, "class" if isinstance(node, ast.ClassDef) else "def"))
+        elif isinstance(node, ast.ExceptHandler) and node.name in names:
+            problem(node, "binds %s in an except" % node.name)
+        elif isinstance(node, (ast.MatchAs, ast.MatchStar)) and node.name in names:
+            problem(node, "binds %s in a match" % node.name)
+        elif isinstance(node, ast.MatchMapping) and node.rest in names:
+            problem(node, "binds %s in a match" % node.rest)
+        elif isinstance(node, ast.Attribute) and node.attr in TABLE_REFLECTIVE_ATTRIBUTES:
+            problem(node, "takes .%s, through which a module's tables are reached without being named" % node.attr)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module or ""]
+            for module in modules:
+                if module.split(".")[0] in TABLE_REFLECTIVE_MODULES:
+                    problem(node, "imports %s, through which a module's tables are reached without being named" % module)
+            for alias in node.names:
+                bound = alias.asname or alias.name.split(".")[0]
+                if alias.name == "*" or bound in names:
+                    problem(node, "imports %s%s, which binds a name of its own" % (
+                        alias.name, " as " + alias.asname if alias.asname else ""))
+    return problems
+
+
 def literal_tables(relative, names, text=None):
     """A namespace of the top-level names of a Python file of the tree that are assigned a
     literal (a tuple, a dict, a string and the like, ast.literal_eval), read from its text
-    without running it; a name that is not so assigned once is a ValueError. The tables
-    of a file this checker does not hold are read so (load_problem)."""
+    without running it; a name that is not so assigned once, alone on the left of its
+    =, a literal any item of which could be changed in place (a list, a dict or a set
+    inside it), and a file that could change one of the tables after that assignment
+    (table_use_problems) are a ValueError. The tables of a file this checker does not
+    hold are read so (load_problem), where they were compared as the file left them once
+    it had run: an augmented assignment, an item set or a method called on one at the
+    file's top level changed them, and a reading of the literal alone would have passed
+    them."""
     text = read(relative) if text is None else text
-    found = {}
-    for node in ast.parse(text).body:
+    path = relative.replace(os.sep, "/")
+    tree = ast.parse(text)
+    found, assigned = {}, set()
+    for node in tree.body:
         targets = node.targets if isinstance(node, ast.Assign) else [node.target] if isinstance(node, ast.AnnAssign) else []
         for target in targets:
             if isinstance(target, ast.Name) and target.id in names:
                 if target.id in found:
-                    raise ValueError("%s assigns %s more than once" % (relative.replace(os.sep, "/"), target.id))
-                found[target.id] = ast.literal_eval(node.value)
+                    raise ValueError("%s assigns %s more than once" % (path, target.id))
+                if len(targets) != 1:
+                    raise ValueError("%s assigns %s beside another name on its line %d: it is read as its literal alone"
+                                     % (path, target.id, node.lineno))
+                value = ast.literal_eval(node.value)
+                items = list(value.items()) if isinstance(value, dict) else [value]
+                if not isinstance(value, (dict, tuple)) or not all(table_frozen(item) for item in items):
+                    raise ValueError("%s assigns %s a literal that holds a list, a dict or a set below its top on its line "
+                                     "%d, which could be changed in place: a table is a tuple or a dict of tuples, strings, "
+                                     "numbers and None" % (path, target.id, node.lineno))
+                found[target.id] = value
+                assigned.add(target)
     missing = [name for name in names if name not in found]
     if missing:
-        raise ValueError("%s does not assign %s a literal at its top level" % (relative.replace(os.sep, "/"),
-                                                                                ", ".join(missing)))
+        raise ValueError("%s does not assign %s a literal at its top level" % (path, ", ".join(missing)))
+    problems = table_use_problems(relative, tree, names, assigned)
+    if problems:
+        raise ValueError("%s, where its tables %s are read as their literals: %s" % (
+            path, ", ".join(names), "; ".join(problems)))
     return types.SimpleNamespace(**found)
 
 
@@ -7333,17 +7482,30 @@ def variable_key_problems(texts):
 # text and Python's own modules as theirs (python_isolation_problems): no bytecode
 # written; the script's own directory, or the current one for -m and -c, kept off
 # sys.path, so that a build/ci/argparse.py is not taken for argparse by python3
-# build/ci/release-chain.py (Python 3.11 and later, which every image of the release
-# chain has: 3.14); and bytecode read from, and written to, a folder outside the checkout
+# build/ci/release-chain.py (Python 3.11 and later, which every Python the release
+# chain's jobs run is: the python image's 3.14, and Debian 13's 3.13, which
+# package-repos installs; the distributions' Pythons other jobs install - Debian 13's in
+# harnesses, Alpine 3.24's in chart-and-compose, Ubuntu 24.04's 3.12 in package-templates
+# - are 3.11 or later too);
+# bytecode read from, and written to, a folder outside the checkout
 # alone, so that a __pycache__ folder a job's artifacts bring into the checkout is never
 # read - in a job's container that folder is the container's own, new for each job, and
-# empty, since nothing writes bytecode.
-PYTHON_ISOLATION = (("PYTHONDONTWRITEBYTECODE", "1"), ("PYTHONSAFEPATH", "1"), ("PYTHONPYCACHEPREFIX", "/tmp/hm-no-pycache"))
+# empty, since nothing writes bytecode; and no user site-packages folder on sys.path,
+# which Python's site module takes from PYTHONUSERBASE or, without it, from HOME, a
+# variable no rule here could refuse every job (a runner sets it, and a step may), so
+# that a .local/lib/python3.14/site-packages folder under a HOME given as /builds/<the
+# checkout> would have been put on sys.path of every Python the job ran, with a .pth
+# file in it run as each started - no job installs with pip --user, and the virtual
+# environments the jobs make are no user site.
+PYTHON_ISOLATION = (("PYTHONDONTWRITEBYTECODE", "1"), ("PYTHONSAFEPATH", "1"), ("PYTHONPYCACHEPREFIX", "/tmp/hm-no-pycache"),
+                    ("PYTHONNOUSERSITE", "1"))
 # The variables that change which code Python runs or where it finds it, which no CI file
-# sets anywhere but those three in .gitlab-ci.yml's variables: (a job's own, a rule's, a
+# sets anywhere but those four in .gitlab-ci.yml's variables: (a job's own, a rule's, a
 # service's or a workflow rule's would stand above them, or add a folder to sys.path).
+# HOME is not among them: where it would change which code Python runs, by the user
+# site, PYTHONNOUSERSITE takes that folder off sys.path whatever HOME is.
 PYTHON_RUN_VARIABLES = tuple(name for name, _ in PYTHON_ISOLATION) + (
-    "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE", "PYTHONNOUSERSITE", "PYTHONPLATLIBDIR",
+    "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE", "PYTHONPLATLIBDIR",
     "PYTHONEXECUTABLE", "PYTHONBREAKPOINT", "PYTHONCASEOK")
 # A job's variables: written as a mapping on one line of bare names and plain values -
 # variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}, as the package jobs write theirs -,
@@ -14406,16 +14568,53 @@ def self_test(chain, feed):
             failures.append("hosted-runners.py's tables are read as text: %r" % (tables.CLASSES,))
     except ValueError as error:
         failures.append("hosted-runners.py's tables are read as text: %s" % error)
-    for what, change in (("CLASSES computed", "\nCLASSES = tuple(CLASSES)\n"), ("HOSTED assigned twice", "\nHOSTED = {}\n")):
+    # A table changed after its literal (table_use_problems): the first two lines, which
+    # the checker at ba4137d8bd refused with two problems, since it ran the file and read
+    # the tables as it left them, passed it once it read the literals alone; each of the
+    # others changes a table as the file's top level runs, without assigning its name a
+    # second time.
+    hosted_text = read(HOSTED_SCRIPT)
+    for what, text, needle in (
+            ("CLASSES computed", hosted_text + "\nCLASSES = tuple(CLASSES)\n", "assigns CLASSES more than once"),
+            ("HOSTED assigned twice", hosted_text + "\nHOSTED = {}\n", "assigns HOSTED more than once"),
+            ("CLASSES given a class by +=", hosted_text + '\nCLASSES += (("HM_RUNNER_EXTRA", "amd64", None, None),)\n',
+             "binds CLASSES"),
+            ("TEMPLATE_GLOBALS given a template by an item",
+             hosted_text + '\nTEMPLATE_GLOBALS["Jobs/Code-Quality.gitlab-ci.yml"] = ("HM_EXAMPLE_NAME",)\n',
+             "changes an item of TEMPLATE_GLOBALS"),
+            ("TEMPLATE_GLOBALS.update()", hosted_text + '\nTEMPLATE_GLOBALS.update({"Jobs/Code-Quality.gitlab-ci.yml": ()})\n',
+             "takes TEMPLATE_GLOBALS.update"),
+            ("an item of HOSTED deleted", hosted_text + '\ndel HOSTED["arm64"]\n', "changes an item of HOSTED"),
+            ("CLASSES rebound by a function's global", hosted_text + "\ndef _f():\n    global CLASSES\n    CLASSES = ()\n_f()\n",
+             "names CLASSES in a global statement"),
+            ("TEMPLATE_GLOBALS changed through another name",
+             hosted_text + '\n_t = TEMPLATE_GLOBALS\n_t["Jobs/Code-Quality.gitlab-ci.yml"] = ()\n', "uses TEMPLATE_GLOBALS other"),
+            ("HOSTED passed to a function that clears it", hosted_text + "\ndef _g(t):\n    t.clear()\n_g(HOSTED)\n",
+             "uses HOSTED other"),
+            ("CLASSES unpacked", hosted_text + "\nCLASSES, _x = (), 0\n", "binds CLASSES"),
+            ("globals() written", hosted_text + '\nglobals()["CLASSES"] = ()\n', "names globals"),
+            ("sys.modules written", hosted_text + "\nsys.modules[__name__].CLASSES = ()\n", "takes .modules"),
+            ("__main__ imported", hosted_text + "\nimport __main__\n", "imports __main__"),
+            ("a star import", hosted_text + "\nfrom os.path import *\n", "imports *"),
+            ("CLASSES assigned beside another name", hosted_text.replace("CLASSES = (\n", "CLASSES = _C = (\n", 1),
+             "assigns CLASSES beside another name"),
+            ("a list in TEMPLATE_GLOBALS", hosted_text.replace(
+                '"Jobs/SAST.gitlab-ci.yml": (', '"Jobs/SAST.gitlab-ci.yml": [', 1).replace(
+                '"GITLAB_ADVANCED_SAST_EXT_INCREMENTAL_ENABLED"),', '"GITLAB_ADVANCED_SAST_EXT_INCREMENTAL_ENABLED"],', 1),
+             "assigns TEMPLATE_GLOBALS a literal that holds a list")):
+        if text == hosted_text:
+            failures.append("hosted-runners.py with %s: the change was not made" % what)
+            continue
         try:
-            literal_tables(HOSTED_SCRIPT, ("CLASSES", "HOSTED", "TEMPLATE_GLOBALS"), read(HOSTED_SCRIPT) + change)
+            literal_tables(HOSTED_SCRIPT, ("CLASSES", "HOSTED", "TEMPLATE_GLOBALS"), text)
             failures.append("hosted-runners.py with %s is not read as its tables" % what)
-        except ValueError:
-            pass
+        except ValueError as error:
+            if needle not in str(error):
+                failures.append("hosted-runners.py with %s is refused for its change: %s" % (what, error))
 
     # Python run as its text in every job (python_isolation_problems): .gitlab-ci.yml's
-    # variables: without PYTHONSAFEPATH, PYTHONDONTWRITEBYTECODE or PYTHONPYCACHEPREFIX as
-    # PYTHON_ISOLATION gives them, PYTHONPATH given every job, a workflow rule, a job of
+    # variables: without PYTHONSAFEPATH, PYTHONDONTWRITEBYTECODE, PYTHONPYCACHEPREFIX or
+    # PYTHONNOUSERSITE as PYTHON_ISOLATION gives them, PYTHONPATH given every job, a workflow rule, a job of
     # the release chain, a job release needs and a package job's one-line variables
     # setting one, and a job of the chain writing its variables in a form this does not
     # read. Each passed the checker at ba4137d8bd, which read none of these variables.
@@ -14426,6 +14625,14 @@ def self_test(chain, feed):
              ".gitlab-ci.yml's variables: do not set PYTHONDONTWRITEBYTECODE to '1'"),
             ("bytecode read from the checkout", "ci", '  PYTHONPYCACHEPREFIX: "/tmp/hm-no-pycache"\n',
              '  PYTHONPYCACHEPREFIX: "build"\n', ".gitlab-ci.yml's variables: do not set PYTHONPYCACHEPREFIX"),
+            # The user site, which Python takes from HOME: release-verify given HOME:
+            # /builds/x passed with a site-packages folder under it on sys.path, where
+            # PYTHONUSERBASE given the same value was refused (28 October 2026).
+            ("the user site kept on sys.path", "ci", '  PYTHONNOUSERSITE: "1"\n', "",
+             ".gitlab-ci.yml's variables: do not set PYTHONNOUSERSITE to '1'"),
+            ("release-verify's PYTHONNOUSERSITE", "ci", "release-verify:\n  extends: .linix\n",
+             'release-verify:\n  extends: .linix\n  variables:\n    PYTHONNOUSERSITE: ""\n',
+             "release-verify (.gitlab-ci.yml) sets PYTHONNOUSERSITE"),
             ("PYTHONPATH given every job", "ci", '  PYTHONSAFEPATH: "1"\n', '  PYTHONSAFEPATH: "1"\n  PYTHONPATH: build/ci\n',
              ".gitlab-ci.yml's variables: set PYTHONPATH"),
             ("a workflow rule's PYTHONSAFEPATH", "ci", "      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",

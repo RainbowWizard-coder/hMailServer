@@ -321,15 +321,19 @@ variables:
   # The tree's Python runs as its text, and Python's own modules as theirs, in every job:
   # no bytecode written; the script's own directory (the current one for -m and -c) kept
   # off sys.path, so that a file of the checkout named as one of Python's modules is not
-  # taken for it (Python 3.11 and later); and bytecode read from a folder outside the
+  # taken for it (Python 3.11 and later); bytecode read from a folder outside the
   # checkout alone - in a job's container the container's own, which nothing writes
   # to; on a shell runner the machine's -, never from a
-  # __pycache__ folder a job's artifacts bring into the checkout. No CI file sets these,
-  # or any other variable that changes which code Python runs, anywhere else
-  # (build/check-release-chain.py, PYTHON_ISOLATION).
+  # __pycache__ folder a job's artifacts bring into the checkout; and no user
+  # site-packages folder on sys.path, which Python finds under HOME (or
+  # PYTHONUSERBASE) and would put there whatever HOME a step gave it - no job installs
+  # with pip --user, and the virtual environments the jobs make are no user site. No
+  # CI file sets these, or any other variable that changes which code Python runs,
+  # anywhere else (build/check-release-chain.py, PYTHON_ISOLATION).
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONSAFEPATH: "1"
   PYTHONPYCACHEPREFIX: "/tmp/hm-no-pycache"
+  PYTHONNOUSERSITE: "1"
 
 # Every scheduled pipeline runs one job, chosen by the schedule's description
 # ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate
