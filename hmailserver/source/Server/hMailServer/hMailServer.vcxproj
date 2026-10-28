@@ -408,6 +408,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\Logger.cpp" />
     <ClCompile Include="..\Common\Application\NcsaLogFormatter.cpp" />
     <ClCompile Include="..\Common\Application\SqlLogDevice.cpp" />
+    <ClCompile Include="..\Common\Application\StoppedServersTester.cpp" />
     <ClCompile Include="..\Common\Application\MessageIndexer.cpp" />
     <ClCompile Include="..\Common\Application\MigrationJob.cpp" />
     <ClCompile Include="..\Common\Application\MigrationJobPst.cpp" />
@@ -1422,6 +1423,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\Logger.h" />
     <ClInclude Include="..\Common\Application\NcsaLogFormatter.h" />
     <ClInclude Include="..\Common\Application\SqlLogDevice.h" />
+    <ClInclude Include="..\Common\Application\StoppedServersTester.h" />
     <ClInclude Include="..\Common\Application\MessageIndexer.h" />
     <ClInclude Include="..\Common\Application\MigrationJob.h" />
     <ClInclude Include="..\Common\Application\MigrationManager.h" />

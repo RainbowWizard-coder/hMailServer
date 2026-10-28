@@ -1721,10 +1721,35 @@ namespace HM
          serverInfo->GetEffectiveConnectionSecurity(), 
          serverInfo->GetUsername()));
 
+      // Gone while the servers are stopped (Application::GetIOService), and a
+      // delivery can come here then: one the stop is ending that goes on to its
+      // next server. Until 6.3.8 the connection was built on the empty pointer.
+      // Nothing is sent; the recipients this server was to take are deferred and
+      // tried again after the start, as when no connection could be made.
       std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
+      if (!pIOService)
+      {
+         const String stopped = _T("   Error Type: SMTP\r\n")
+            _T("   Connection to recipients server failed.\r\n")
+            _T("   Error: The servers were stopped before a connection was made. The message will be retried.\r\n");
+
+         for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+         {
+            if (recipient->GetDeliveryResult() == MessageRecipient::ResultUndefined)
+            {
+               recipient->SetDeliveryResult(MessageRecipient::ResultNonFatalError);
+               recipient->SetDeliveryError(stopped, _T("4.3.0"));
+            }
+         }
+
+         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(message ? message->GetID() : (__int64) 0) +
+            ": not delivered to " + serverInfo->GetHostName() + ": the servers are stopped. It will be retried.");
+
+         return SmtpTlsResult::NotReached;
+      }
 
       std::shared_ptr<Event> disconnectEvent = std::shared_ptr<Event>(new Event()) ;
-      std::shared_ptr<SMTPClientConnection> pClientConnection 
+      std::shared_ptr<SMTPClientConnection> pClientConnection
          = std::shared_ptr<SMTPClientConnection> (new SMTPClientConnection(serverInfo->GetEffectiveConnectionSecurity(), pIOService->GetIOContext(), pIOService->GetClientContext(), disconnectEvent, serverInfo->GetHostName()));
 
       // Apply TLS policy requirements (MTA-STS / DANE / a remote domain policy)

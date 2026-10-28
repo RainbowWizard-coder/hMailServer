@@ -122,6 +122,16 @@ namespace HM
    bool
    SpamAssassinLearner::Tell(const String &messageFile, bool spam, const String &user)
    {
+      // Gone while the servers are stopped, and a lesson queued before a stop
+      // can be told after it (Application::GetIOService): there is no
+      // connection to make then, and the lesson is not delivered.
+      std::shared_ptr<IOService> ioService = Application::Instance()->GetIOService();
+      if (!ioService)
+      {
+         LOG_APPLICATION(Formatter::Format("The lesson for {0} was not delivered to SpamAssassin: the servers are stopped.", messageFile));
+         return false;
+      }
+
       AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
 
       DNSResolver resolver;
@@ -135,7 +145,6 @@ namespace HM
          return false;
       }
 
-      std::shared_ptr<IOService> ioService = Application::Instance()->GetIOService();
       std::shared_ptr<bool> completed = std::make_shared<bool>(false);
       std::shared_ptr<Event> disconnected = std::shared_ptr<Event>(new Event());
 

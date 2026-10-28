@@ -104,6 +104,18 @@ namespace HM
       if (!parentConnection)
          return;
 
+      // A session on an I/O service a stop of the servers has stopped will never
+      // answer its client again: one the stop could not end, kept with that
+      // service until the queue that holds it is freed, which can be after the
+      // next start. The notification server lives as long as the process, so
+      // such a session is still subscribed and is told of every change to its
+      // folder: in IDLE it would take the new messages' \Recent for itself, in
+      // the database too (ClaimRecentMessages_), which the sessions that will
+      // answer are then never told, and otherwise it would keep every change for
+      // good. It is told nothing.
+      if (parentConnection->GetIOContextStopped())
+         return;
+
       // This is not the connection's own thread. Hold its state lock across the
       // idling check and the send, so the folder cannot be closed in between.
       IMAPConnection::StateLock lock(parentConnection->GetStateMutex());

@@ -56,7 +56,22 @@ namespace HM
    SpamTestSpamAssassin::RunTest(std::shared_ptr<SpamTestData> pTestData)
    {
       std::set<std::shared_ptr<SpamTestResult> > setSpamTestResults;
-      
+
+      // The connection to spamd is made on the servers' TCP/IP service, which is
+      // gone while they are stopped - and this test can run then: a message's
+      // finalisation that a stop gave up on, still in one of the DNS tests that
+      // run before this one (a lookup waits in the system's receive, which no
+      // stop interrupts), goes on to it when the lookup ends. Until 6.3.8 the
+      // client was built on the empty pointer: an access violation on Windows, a
+      // SIGSEGV that ended the process on Linux. The message goes on without a
+      // SpamAssassin verdict, as it does when spamd cannot be reached.
+      std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
+      if (!pIOService)
+      {
+         LOG_APPLICATION("SpamAssassin was not asked about a message: the servers are stopped, so there is no connection to make to it. The message goes on without a SpamAssassin verdict.");
+         return setSpamTestResults;
+      }
+
       AntiSpamConfiguration& config = Configuration::Instance()->GetAntiSpamConfiguration();
 
       std::shared_ptr<Message> pMessage = pTestData->GetMessageData()->GetMessage();
@@ -87,8 +102,6 @@ namespace HM
          const AnsiString envelopePath = sEnvelopeFrom.IsEmpty() ? "<>" : "<" + sEnvelopeFrom + ">";
          sReturnPath = envelopePath;
       }
-
-      std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
 
       // Shared with the client (not a reference to this stack frame) so the bounded
       // wait below can return while the connection is still alive.

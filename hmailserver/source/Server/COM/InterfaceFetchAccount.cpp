@@ -566,10 +566,16 @@ STDMETHODIMP InterfaceFetchAccount::DownloadNow(void)
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       HM::PersistentFetchAccount::SetRetryNow(object_->GetID());
-   
-      // Notify the fetch manager to look for accounts to fetch from now.
-      HM::Application::Instance()->GetExternalFetchManager()->SetCheckNow();
-   
+
+      // Notify the fetch manager to look for accounts to fetch from now. There is
+      // none while the servers are stopped, and the account is then fetched when
+      // they start: the fetch manager's first pass takes every account due, and
+      // this one is due now. Until 6.3.8 the call was made through the empty
+      // pointer, an access violation answered as an error.
+      std::shared_ptr<HM::ExternalFetchManager> fetchManager = HM::Application::Instance()->GetExternalFetchManager();
+      if (fetchManager)
+         fetchManager->SetCheckNow();
+
       return S_OK;
    }
    catch (...)

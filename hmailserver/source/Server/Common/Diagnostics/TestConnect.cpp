@@ -26,7 +26,15 @@ namespace HM
    bool
    TestConnect::PerformTest(ConnectionSecurity connection_security, const String  &localAddressStr, const String &server, int port, String &result)
    {
+      // Gone while the servers are stopped, and the diagnostics are reached
+      // through COM then too. Until 6.3.8 the connection was built on the empty
+      // pointer, an access violation the COM call answered as an error.
       std::shared_ptr<IOService> io_service_wrapper = Application::Instance()->GetIOService();
+      if (!io_service_wrapper)
+      {
+         result.append(_T("ERROR: The servers are stopped, so no connection can be made. Start them and test again.\r\n"));
+         return false;
+      }
 
       // The setting may name one address of each family; which one applies is
       // known only once the remote has been resolved, so it is chosen per

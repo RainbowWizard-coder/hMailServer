@@ -37,6 +37,9 @@ namespace HM
       static void OnDeliveryQueueCleared();
    private:
 
+      // Reads whether a clear is under way (StoppedServersTester.h).
+      friend class StoppedServersTester;
+
       static bool is_clearing_;
    };
 }

@@ -961,7 +961,11 @@ namespace HM
       // and run only after them: nothing listens until its task runs on the main
       // server queue below, so no listener can ever accept a connection on a
       // context whose session queues do not exist yet.
-      io_service_ = std::shared_ptr<IOService>(new IOService);
+      {
+         std::shared_ptr<IOService> made = std::shared_ptr<IOService>(new IOService);
+         boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+         io_service_ = made;
+      }
       io_service_->Initialize();
 
       CreateSessionWorkQueues_();
@@ -986,10 +990,18 @@ namespace HM
 
       WorkQueueManager::Instance()->AddTask(iMainServerQueue, io_service_);
 
-      smtp_delivery_manager_ = std::shared_ptr<SMTPDeliveryManager>(new SMTPDeliveryManager);
+      {
+         std::shared_ptr<SMTPDeliveryManager> made = std::shared_ptr<SMTPDeliveryManager>(new SMTPDeliveryManager);
+         boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+         smtp_delivery_manager_ = made;
+      }
       WorkQueueManager::Instance()->AddTask(iMainServerQueue, smtp_delivery_manager_);
 
-      external_fetch_manager_ = std::shared_ptr<ExternalFetchManager> (new ExternalFetchManager);
+      {
+         std::shared_ptr<ExternalFetchManager> made = std::shared_ptr<ExternalFetchManager>(new ExternalFetchManager);
+         boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+         external_fetch_manager_ = made;
+      }
       WorkQueueManager::Instance()->AddTask(iMainServerQueue, external_fetch_manager_);
 
       CreateScheduledTasks_();
@@ -2134,13 +2146,39 @@ namespace HM
       // a queue whose stop gave up on a thread still keeps it - the IOCP queue, a
       // session queue - in which case it is freed after that queue, once the
       // thread has left (WorkQueueManager::SweepRetiredQueues), and not under it.
-      // The next start makes its own; the listeners of this one are closed.
+      // The next start makes its own; the listeners of this one are closed. Let go
+      // of after the lock, which the copies GetIOService makes on other threads
+      // are made under. From here to the next start it is empty, and a task the
+      // stop gave up on that asks for it then is told so (GetIOService).
       LOG_DEBUG("Application::StopServers() - Destructing IOCP");
-      if (io_service_) io_service_.reset();
+      {
+         std::shared_ptr<IOService> letGoOf;
+         {
+            boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+            letGoOf.swap(io_service_);
+         }
+         letGoOf.reset();
+      }
       LOG_DEBUG("Application::StopServers() - Destructing DeliveryManager");
-      if (smtp_delivery_manager_) smtp_delivery_manager_.reset();
+      {
+         // As the TCP/IP service above: let go of after the lock.
+         std::shared_ptr<SMTPDeliveryManager> letGoOf;
+         {
+            boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+            letGoOf.swap(smtp_delivery_manager_);
+         }
+         letGoOf.reset();
+      }
       LOG_DEBUG("Application::StopServers() - Destructing FetchManager");
-      if (external_fetch_manager_) external_fetch_manager_.reset();
+      {
+         // As the TCP/IP service above: let go of after the lock.
+         std::shared_ptr<ExternalFetchManager> letGoOf;
+         {
+            boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+            letGoOf.swap(external_fetch_manager_);
+         }
+         letGoOf.reset();
+      }
       LOG_DEBUG("Application::StopServers() - Destructing Scheduler");
       // The two task handles a saved setting reaches go with the scheduler that
       // holds the tasks, under the lock the subscribers copy them under. The
@@ -2471,8 +2509,11 @@ namespace HM
    {
       LOG_DEBUG("Requesting SMTPDeliveryManager to start message delivery");
 
-      if (smtp_delivery_manager_)
-         smtp_delivery_manager_->SetDeliverMessage();
+      // One copy: a message's finalisation that a stop gave up on calls this as
+      // the stop lets go of the manager (server_objects_mutex_).
+      std::shared_ptr<SMTPDeliveryManager> manager = GetSMTPDeliveryManager();
+      if (manager)
+         manager->SetDeliverMessage();
       else
          // We could not notify the SMTP delivery manager, since it does not exit.
          ErrorManager::Instance()->ReportError(ErrorManager::High, 4219, "Application::SubmitPendingEmail", "Could not notify SMTP deliverer about new message, since SMTP deliverer does not exist. The operation requires the SMTP server to be on.");
@@ -2551,6 +2592,27 @@ namespace HM
    Application::GetFolderManager()
    {
       return folder_manager_;
+   }
+
+   std::shared_ptr<IOService>
+   Application::GetIOService() const
+   {
+      boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+      return io_service_;
+   }
+
+   std::shared_ptr<SMTPDeliveryManager>
+   Application::GetSMTPDeliveryManager() const
+   {
+      boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+      return smtp_delivery_manager_;
+   }
+
+   std::shared_ptr<ExternalFetchManager>
+   Application::GetExternalFetchManager() const
+   {
+      boost::lock_guard<boost::mutex> guard(server_objects_mutex_);
+      return external_fetch_manager_;
    }
 
    namespace

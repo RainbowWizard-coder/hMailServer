@@ -44,13 +44,31 @@ namespace HM
    {
       LOG_DEBUG("Clearing delivery queue");
 
+      // The delivery manager, taken once for the whole clear. There is none while
+      // the servers are stopped, and a clear asked for through COM then runs here
+      // all the same, on the maintenance queue, which a stop keeps. Until 6.3.8
+      // its queue's name was read through the empty pointer - an access
+      // violation the queue took - and nothing then said the clear was over, so
+      // that every clear asked for after it, after the start too, did nothing
+      // until the process ended. The same was true of a clear that found no
+      // delivery queue. Either is now reported and ends the clear.
+      std::shared_ptr<SMTPDeliveryManager> deliveryManager = Application::Instance()->GetSMTPDeliveryManager();
+      if (!deliveryManager)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4210, "DeliveryQueueClearer::DoWork", "Could not fetch SMTP delivery queue: the servers are stopped. The delivery queue was not cleared; start the servers and clear it again.");
+
+         DeliveryQueue::OnDeliveryQueueCleared();
+         return;
+      }
+
       // First stop the delivery queue.
-      const String& sQueueName = Application::Instance()->GetSMTPDeliveryManager()->GetQueueName();
-         std::shared_ptr<WorkQueue> pWQ = WorkQueueManager::Instance()->GetQueue(sQueueName);
+      const String sQueueName = deliveryManager->GetQueueName();
+      std::shared_ptr<WorkQueue> pWQ = WorkQueueManager::Instance()->GetQueue(sQueueName);
       if (!pWQ)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4210, "DeliveryQueueClearer::DoWork", "Could not fetch SMTP delivery queue.");
 
+         DeliveryQueue::OnDeliveryQueueCleared();
          return;
       }
       
@@ -91,7 +109,7 @@ namespace HM
       }
 
       // Tell the delivery queue to clear it's pending messages list.
-      Application::Instance()->GetSMTPDeliveryManager()->UncachePendingMessages();
+      deliveryManager->UncachePendingMessages();
 
       // Make sure there doesn't exist any delivery tasks.
       pWQ->Start();

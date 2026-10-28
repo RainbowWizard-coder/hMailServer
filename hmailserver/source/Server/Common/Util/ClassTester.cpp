@@ -7,6 +7,7 @@
 #include "ClassTester.h"
 #include "../Application/BackupManager.h"
 #include "../Application/TimeoutCalculator.h"
+#include "../Application/StoppedServersTester.h"
 #include "../Threading/WorkQueueManager.h"
 #include "../BO/MessageData.h"
 #include "../BO/Message.h"
@@ -1082,6 +1083,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing a session's subscription given back after a stop of the servers\n"));
       NotificationServerLifetimeTester notificationServerLifetimeTester;
       notificationServerLifetimeTester.Test();
+
+      // What a task or a session a stop could not end reaches after it: a session
+      // on an I/O service that has stopped is told nothing of a change, and with
+      // the TCP/IP service gone the SpamAssassin test, a lesson, the two
+      // connection tests, a fetch and a delivery each return, saying why. It stops
+      // and starts the servers. stopped-servers-tests runs it on Linux, with no
+      // database manager as well.
+      OutputDebugString(_T("hMailServer: Testing what a task or a session reaches after a stop of the servers\n"));
+      StoppedServersTester stoppedServersTester;
+      stoppedServersTester.Test();
 
       // The close before the process ends (Application::ShutDown), over a
       // manager of the test's own with stand-in connections: an idle one is

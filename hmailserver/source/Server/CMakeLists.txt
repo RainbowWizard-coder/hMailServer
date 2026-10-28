@@ -597,6 +597,20 @@ add_executable(notification-server-tests ${SERVER_DIR}/platform/notification_ser
 target_link_libraries(notification-server-tests PRIVATE hmailserver_core)
 set_target_properties(notification-server-tests PROPERTIES OUTPUT_NAME notification-server-tests)
 
+# ---------------------------------------------------------------- what a stop leaves behind
+#
+# What a task or a session that a stop of the servers could not end reaches
+# after the stop - no TCP/IP service, and in a reinitialise no database manager
+# - as a program of its own, for the reason spf-tests is one: on Windows
+# StoppedServersTester (Common/Application/StoppedServersTester.h), which this
+# program runs, runs inside the service through ClassTester, which nothing
+# reaches here, and stops the servers for it. Here they have never started. No
+# database, configuration (but a scratch directory of its own) or network:
+# nothing in it connects. Well under a second. Not installed; a bench tool.
+add_executable(stopped-servers-tests ${SERVER_DIR}/platform/stopped_servers_tests_main.cpp)
+target_link_libraries(stopped-servers-tests PRIVATE hmailserver_core)
+set_target_properties(stopped-servers-tests PROPERTIES OUTPUT_NAME stopped-servers-tests)
+
 # ---------------------------------------------------------------- the backup index's XML
 #
 # XmlTreeTester (Common/Util/XmlTreeTester.h) as a program of its own, for the

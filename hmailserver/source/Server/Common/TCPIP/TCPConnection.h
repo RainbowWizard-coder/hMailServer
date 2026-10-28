@@ -200,6 +200,13 @@ namespace HM
 
       int GetSessionID();
 
+      // Whether the io_context this connection is on has been stopped, which a
+      // stop of the servers does (IOService::Stop) and nothing undoes: nothing
+      // this connection is asked to write is written again, and nothing it is
+      // sent is read. A session a stop could not end lives on so until the
+      // queue that keeps its I/O service is freed (WorkQueueManager).
+      bool GetIOContextStopped() const;
+
       // The protocol this session speaks, as the live session list names it
       // (SessionFollow): "SMTP", "POP3" and "IMAP" for a session this server
       // answers, "SMTP client", "POP3 client" and "IMAP client" for one it

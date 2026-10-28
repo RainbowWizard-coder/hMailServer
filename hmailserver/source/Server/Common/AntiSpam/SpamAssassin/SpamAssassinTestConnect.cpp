@@ -23,16 +23,24 @@ namespace HM
    bool
    SpamAssassinTestConnect::TestConnect(const String &hostName, int port, String &message)
    {
-     
-      String bodyText = 
+      // The connection is made on the servers' TCP/IP service, which is gone
+      // while they are stopped - and the Control Panel's button is reached through
+      // COM then too. Until 6.3.8 the client was built on the empty pointer, an
+      // access violation the COM call answered as an error.
+      std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
+      if (!pIOService)
+      {
+         message = "The servers are stopped, so no connection to SpamAssassin can be made. Start them and test again.";
+         return false;
+      }
+
+      String bodyText =
          "From: SpamAssassinTest@example.com\r\n"
          "\r\n"
          "XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X.\r\n";
 
       String tempFile = FileUtilities::GetTempFileName();
       FileUtilities::WriteToFile(tempFile, bodyText, false);
-
-      std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
 
       std::shared_ptr<bool> testCompleted = std::make_shared<bool>(false);
 

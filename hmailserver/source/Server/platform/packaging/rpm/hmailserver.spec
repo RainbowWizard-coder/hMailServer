@@ -221,9 +221,10 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # the CA issued refused for another key, a missing name or its expiry among them,
 # against keys and certificates made in memory with the distribution's own
 # OpenSSL, the statements a search of the quarantine sends, the readers of
-# delivery status notifications and abuse feedback reports, and an IMAP
-# session's subscription to the notification server given back with the
-# servers not running (a scratch directory under $TMPDIR) - the list
+# delivery status notifications and abuse feedback reports, an IMAP session's
+# subscription to the notification server given back with the servers not
+# running (a scratch directory under $TMPDIR), and what a task or a session a
+# stop could not end reaches after it (a scratch directory too) - the list
 # debian/rules runs, and build/check-source-tarball.py holds both to every
 # *-tests program CMakeLists.txt makes by add_executable but those it leaves
 # out, each with its reason, and this section, but for its comments, which
@@ -235,7 +236,7 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests quarantine-search-tests report-parser-tests notification-server-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests quarantine-search-tests report-parser-tests notification-server-tests stopped-servers-tests; do
   echo "== $tester"
   ./$tester
 done

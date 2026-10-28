@@ -29,6 +29,9 @@ namespace HM
 
    private:
 
+      // Delivers to one server with the servers stopped (StoppedServersTester.h).
+      friend class StoppedServersTester;
+
 
 
       // encryption is the remote domain policy whose gateway encryption governs

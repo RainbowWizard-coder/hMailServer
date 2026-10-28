@@ -723,11 +723,47 @@ with `--check`).
   account's `Messages` - was made and then answered with an error, the same null pointer, so that a caller that took
   the error at its word and saved the message again stored it twice. The notification server, and the folder manager beside it, which holds nothing, are
   now made with the process and kept until it ends: a session that ends at any point of a stop or a start gives back
-  its own subscription and nobody else's, and a change made with the servers stopped tells nobody and succeeds.
+  its own subscription and nobody else's, and a change made with the servers stopped succeeds and tells no session
+  that can still answer its client (the next entry says why a session the stop could not end is told nothing).
   `NotificationServerLifetimeTester` holds it inside the server on Windows (`ClassTester`), across a stop and a
   start, and in `notification-server-tests` on Linux, with the servers not running; the regression suite saves a
   message into a folder with the servers stopped. Found by a regression run in which a session a fixture had left
   open ended when the internal tests freed a queue such a stop had kept.
+
+- **Fixed: a task or a session that a stop of the servers could not end reached, when it went on after the stop, for
+  the TCP/IP service and the database manager the stop had let go of, which on Linux ended the process.** A stop
+  gives up on a thread still in a wait it cannot interrupt within ten seconds, and the thread goes on when the wait
+  ends: a message's finalisation in one of the DNS tests (a lookup waits up to five seconds an attempt in the
+  system's receive) then runs its SpamAssassin test, which built the connection to spamd on the TCP/IP service -
+  empty from the stop's "Destructing IOCP" to the next start, through the rest of a stop, a reinitialise
+  (`systemctl reload`, SIGHUP, the Control Panel's or the REST API's) and the life of the process after a service
+  stop - so that on Linux the process ended with a SIGSEGV in the middle of the reinitialise or the stop, and on
+  Windows the finalisation faulted. A lesson for SpamAssassin, a fetch from an external account and a delivery going
+  on to its next server did the same, and so did the Control Panel's test of the connection to SpamAssassin and the
+  diagnostics' connection tests, run through COM with the servers stopped, which answered an error. Each now makes
+  no connection and says why: the message goes on without a SpamAssassin verdict, as when spamd cannot be reached;
+  the lesson is not delivered; the account is tried again at its next time; the delivery's recipients are deferred
+  (4.3.0) and retried after the start; the two tests answer that the servers are stopped. Two more calls COM makes
+  with the servers stopped reached for a manager the stop had let go of. An external account's `DownloadNow` called
+  the fetch manager through the empty pointer and answered an error; it now succeeds, and the account is fetched
+  when the servers start. A clear of the delivery queue read the delivery manager's queue name through the empty
+  pointer, an access violation on the maintenance queue, and never said it was over, so that every clear asked for
+  after it, after the start too, did nothing until the process ended - as did a clear that found no delivery queue;
+  it now reports HM4210, that the servers are stopped, and clears nothing, and a clear after the start clears the
+  queue. The TCP/IP service's pointer, the delivery manager's and the fetch manager's are copied under a lock of
+  their own now, where another thread copied them while the stop reset them: a finalisation's wake of the delivery
+  queue read the manager's twice, so that a stop between the two reads was a call through an empty pointer. An IMAP
+  session that ended during a reinitialise, between the close of the database and its opening again - one such a
+  stop could not end, freed by the start's first new queue - refreshed its folder's messages and removed their
+  `\Recent` through an empty database manager, which threw and was swallowed: it now leaves the collection as it is
+  and the flags in the database, and the next session to select the folder is told the messages are `\Recent`. And
+  such a session, still subscribed to its folder, was told of every change: in IDLE it took the new messages'
+  `\Recent` for itself, in the database too, though it would never answer its client, so that the sessions that
+  would were never told they were `\Recent`; otherwise it kept every change for good. A session on an I/O service
+  the stop has stopped is now told nothing. `StoppedServersTester` holds these inside the server on Windows
+  (`ClassTester`), with the servers stopped for it, and in `stopped-servers-tests` on Linux, with no TCP/IP service,
+  no delivery manager and no database manager; the regression suite tests the connection to SpamAssassin, an
+  account's `DownloadNow` and a clear of the delivery queue with the servers stopped.
 
 ### Downloads and the release
 

@@ -220,8 +220,12 @@ namespace HM
       // run out. Empty by default; hMailServer.cpp sets it before a stop.
       void SetStopProgressCallback(std::function<void()> callback);
 
-      std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() {return smtp_delivery_manager_;} 
-      std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() {return external_fetch_manager_;} 
+      // Empty while the servers are stopped. Copied under server_objects_mutex_.
+      std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() const;
+      // As the delivery manager: empty while the servers are stopped - and an
+      // account's "download now" reaches it through COM then too - and copied
+      // under server_objects_mutex_.
+      std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() const;
 
       // Under managers_mutex_ (GetDBManager says why).
       std::shared_ptr<BackupManager> GetBackupManager() const;
@@ -235,7 +239,15 @@ namespace HM
       // can never delay message finalization - the work that sends the final
       // "250 OK" - or POP3 external fetching.
       std::shared_ptr<WorkQueue> GetNameLookupWorkQueue();
-      std::shared_ptr<IOService> GetIOService() {return io_service_; }
+      // Empty while the servers are stopped: from StopServers' "Destructing
+      // IOCP" to the next start, the rest of a stop, a reinitialise's
+      // ExitInstance and InitInstance, and the life of the process after a stop
+      // before it ends. A task a stop gave up on still runs then - a message's
+      // finalisation still in a DNS lookup no stop interrupts goes on to its
+      // SpamAssassin test when the lookup ends - so every caller checks it
+      // (StoppedServersTester). Copied under server_objects_mutex_, which
+      // StartServers_ and StopServers write it under.
+      std::shared_ptr<IOService> GetIOService() const;
       // The random work queue can run any task.
 
       std::shared_ptr<NotificationServer> GetNotificationServer();
@@ -475,6 +487,14 @@ namespace HM
       // handed out again. The folder manager holds nothing at all.
       std::shared_ptr<NotificationServer> notification_server_;
       std::shared_ptr<IOService> io_service_;
+      // Guards io_service_, smtp_delivery_manager_ and external_fetch_manager_,
+      // the pointers only: held to copy, assign or swap one, never across a call
+      // into any of them - a leaf. Until 6.3.8 GetIOService,
+      // GetSMTPDeliveryManager, GetExternalFetchManager and SubmitPendingEmail
+      // read them on any thread while StopServers reset them; SubmitPendingEmail,
+      // which a message's finalisation calls, read its pointer twice, so that a
+      // reset between the two was a call through an empty pointer.
+      mutable boost::mutex server_objects_mutex_;
       std::shared_ptr<FolderManager> folder_manager_;
       std::shared_ptr<MetricsServer> metrics_server_;
 

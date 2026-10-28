@@ -1803,6 +1803,12 @@ namespace HM
       return session_id_;
    }
 
+   bool
+   TCPConnection::GetIOContextStopped() const
+   {
+      return strand_.get_inner_executor().context().stopped();
+   }
+
 
    AnsiString 
    TCPConnection::GetIPAddressString()

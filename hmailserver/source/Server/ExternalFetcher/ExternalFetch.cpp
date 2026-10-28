@@ -39,7 +39,15 @@ namespace HM
    {  
       LOG_DEBUG(Formatter::Format("Retrieving messages from external account {0}", pFA->GetName()));
       
+      // Gone while the servers are stopped, and a fetch a stop gave up on can
+      // start then (Application::GetIOService). Until 6.3.8 the connection was
+      // built on the empty pointer. The account is tried again at its next time.
       std::shared_ptr<IOService> pIOService = Application::Instance()->GetIOService();
+      if (!pIOService)
+      {
+         LOG_APPLICATION(Formatter::Format("Messages were not retrieved from external account {0}: the servers are stopped. It is tried again at its next time.", pFA->GetName()));
+         return;
+      }
 
       std::shared_ptr<Event> disconnectEvent = std::shared_ptr<Event>(new Event()) ;
       // The account says which protocol its server speaks; both clients share

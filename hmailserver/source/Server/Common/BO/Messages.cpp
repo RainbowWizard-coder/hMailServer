@@ -374,7 +374,16 @@ namespace HM
 
       command.SetQueryString(sSQL);
 
-      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      // None between a reinitialise's CloseDatabase and its OpenDatabase, and an
+      // IMAP session can end then and ask for its folder's messages as it closes
+      // it: one whose I/O service a queue the stop gave up on kept, freed by the
+      // start's first new queue (IMAPConnection::CloseCurrentFolder). The
+      // collection stays as it was and is refreshed when next asked for.
+      std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+      if (!database)
+         return false;
+
+      std::shared_ptr<DALRecordset> pRS = database->OpenRecordset(command);
       if (!pRS)
          return false;
 
@@ -439,7 +448,13 @@ namespace HM
          updateCommand.AddParameter("@FOLDERID", folder_id_);
          updateCommand.SetQueryString(sql);
 
-         Application::Instance()->GetDBManager()->Execute(updateCommand);
+         // With no database manager - an IMAP session that ends during a
+         // reinitialise, as Refresh says - the flags stay in the database, and
+         // the next session to select the folder is told the messages are
+         // \Recent. Until 6.3.8 the update was made through the empty pointer.
+         std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+         if (database)
+            database->Execute(updateCommand);
       }
 
 
@@ -475,7 +490,11 @@ namespace HM
          updateCommand.AddParameter("@MAXID", *claimed.rbegin());
          updateCommand.SetQueryString(sql);
 
-         Application::Instance()->GetDBManager()->Execute(updateCommand);
+         // As RemoveRecentFlags: with no database manager the claim is this
+         // session's in memory alone.
+         std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+         if (database)
+            database->Execute(updateCommand);
       }
 
       return claimed;
