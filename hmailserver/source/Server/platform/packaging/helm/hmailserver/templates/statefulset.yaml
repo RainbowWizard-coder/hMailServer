@@ -42,6 +42,26 @@ spec:
       {{- $_ := set $podSecurityContext $key 999 }}
       {{- end }}
       {{- end }}
+      {{- /* The mail ports below 1024 bound by a server that is not root and, under
+             allowPrivilegeEscalation: false, holds no capability (values.yaml,
+             unprivilegedPortsSysctl): the pod's own network namespace lets every
+             user bind them. Left out or null is on, as for the user above, so that
+             a release upgraded with --reuse-values from a chart whose values do
+             not name it gets it too; false leaves it out. A sysctl of that name
+             the values give in podSecurityContext.sysctls is kept, and not given
+             twice, which the API would refuse. */}}
+      {{- if or (kindIs "invalid" .Values.unprivilegedPortsSysctl) .Values.unprivilegedPortsSysctl }}
+      {{- $sysctls := (index $podSecurityContext "sysctls") | default list }}
+      {{- $named := false }}
+      {{- range $sysctls }}
+      {{- if eq (.name | toString) "net.ipv4.ip_unprivileged_port_start" }}
+      {{- $named = true }}
+      {{- end }}
+      {{- end }}
+      {{- if not $named }}
+      {{- $_ := set $podSecurityContext "sysctls" (append $sysctls (dict "name" "net.ipv4.ip_unprivileged_port_start" "value" "0")) }}
+      {{- end }}
+      {{- end }}
       securityContext:
         {{- toYaml $podSecurityContext | nindent 8 }}
       initContainers:
@@ -83,11 +103,11 @@ spec:
           # on 25, 587, 110 and 143, and no password taken in the clear from another
           # address until TLS is up. --if-marked does nothing at any other start, and a
           # failure is forgiven, as the systemd unit's ExecStartPre=- forgives it: the
-          # server starts all the same, and says what is wrong. The image's entrypoint
-          # runs this step itself, before this command, from the first image made after
-          # 27 October 2026, so with such an image this finds no marker and does
-          # nothing; it is kept for an image.tag published before, whose entrypoint
-          # does not.
+          # server starts all the same, and says what is wrong. An image whose
+          # entrypoint runs this step itself, before this command, leaves no marker
+          # here, so this does nothing; an image whose entrypoint does not, which
+          # image.tag may name, is the one this is kept for, and for it this is what
+          # secures the new installation.
           args:
             - bash
             - -c

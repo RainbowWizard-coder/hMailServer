@@ -86,11 +86,11 @@ services:
       db:
         condition: service_healthy
     # After the entrypoint (the database created or upgraded, the settings below
-    # stored), the new installation is secured, and then the server runs. The
-    # image's entrypoint runs this same step itself, last, from the first image made
-    # after 27 October 2026, so with such an image this finds no marker and does
-    # nothing; it is kept for the images published before, whose entrypoint does
-    # not, and for which it is what secures a new installation. --if-marked acts
+    # stored), the new installation is secured, and then the server runs. An image
+    # whose entrypoint runs this same step itself, last, leaves no marker here, so
+    # this does nothing; an image whose entrypoint does not, which image: may name,
+    # is the one this is kept for, and for it this is what secures a new
+    # installation. --if-marked acts
     # only on a database --create-database made, within a day, and does nothing at
     # any later start; a failure is forgiven, as the systemd unit's ExecStartPre=-
     # forgives it, and the server starts all the same.

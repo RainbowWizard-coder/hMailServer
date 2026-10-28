@@ -1225,10 +1225,24 @@ chart-and-compose:
       #   write [Database], create the database or set the administrator password.
       #   Its arguments secure the new installation before the server's first start,
       #   as the packaged service's first start does: STARTTLS on 25 and a certificate.
+      # - The pod sets net.ipv4.ip_unprivileged_port_start to 0 in its own network
+      #   namespace: under allowPrivilegeEscalation: false the kernel grants the
+      #   server not the capability its binary carries, and it holds none, so it
+      #   binds the mail ports below 1024 only where that sysctl is 0, which
+      #   containerd 1.7 and CRI-O leave at 1024. It does so too with values that do
+      #   not name unprivilegedPortsSysctl (reused.yaml), sets nothing with it false
+      #   (no-sysctl.yaml), and keeps a sysctl of that name the values give, once
+      #   (own-sysctl.yaml).
       helm template mail "$chart" --set database.host=db --set database.password=x \
         --set administrator.password=y --set podSecurityContext.runAsUser=null \
-        --set podSecurityContext.runAsGroup=null --set podSecurityContext.fsGroup=1000 > reused.yaml
-      python3 - rendered.yaml reused.yaml <<'EOF' || exit 1
+        --set podSecurityContext.runAsGroup=null --set podSecurityContext.fsGroup=1000 \
+        --set unprivilegedPortsSysctl=null > reused.yaml
+      helm template mail "$chart" --set database.host=db --set database.password=x \
+        --set administrator.password=y --set unprivilegedPortsSysctl=false > no-sysctl.yaml
+      helm template mail "$chart" --set database.host=db --set database.password=x \
+        --set administrator.password=y --set 'podSecurityContext.sysctls[0].name=net.ipv4.ip_unprivileged_port_start' \
+        --set-string 'podSecurityContext.sysctls[0].value=25' > own-sysctl.yaml
+      python3 - rendered.yaml reused.yaml no-sysctl.yaml own-sysctl.yaml <<'EOF' || exit 1
       import sys
 
       import yaml
@@ -1263,6 +1277,18 @@ chart-and-compose:
                " of 6.3.6 and 6.3.7, the pod does not run as 999:999")
       if reused.get("fsGroup") != 1000:
           fail("the pod does not keep the fsGroup the values give")
+      PORTS = "net.ipv4.ip_unprivileged_port_start"
+      if context.get("sysctls") != [{"name": PORTS, "value": "0"}]:
+          fail("the pod's securityContext does not set the sysctl %s to 0: under allowPrivilegeEscalation: false the"
+               " server holds no capability, and binds the mail ports below 1024 only where its network namespace"
+               " lets every user bind them" % PORTS)
+      if reused.get("sysctls") != [{"name": PORTS, "value": "0"}]:
+          fail("with values that do not name unprivilegedPortsSysctl, as helm upgrade --reuse-values takes from the"
+               " charts before it, the pod's securityContext does not set the sysctl %s to 0" % PORTS)
+      if "sysctls" in (pod(sys.argv[3]).get("securityContext") or {}):
+          fail("with unprivilegedPortsSysctl false the pod's securityContext still sets a sysctl")
+      if (pod(sys.argv[4]).get("securityContext") or {}).get("sysctls") != [{"name": PORTS, "value": "25"}]:
+          fail("the pod does not keep, once and as given, the sysctl %s the values name" % PORTS)
       inits = spec.get("initContainers") or []
       containers = spec.get("containers") or []
       for container in inits + containers:

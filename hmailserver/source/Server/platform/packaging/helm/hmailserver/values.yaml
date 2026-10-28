@@ -167,12 +167,37 @@ podSecurityContext:
   fsGroup: 999
 securityContext:
   runAsNonRoot: true
+  # Sets no_new_privs, as the restricted Pod Security Standard requires: no
+  # program the container runs gains a privilege at exec, and so the server does
+  # not gain the capability its binary carries (below).
   allowPrivilegeEscalation: false
   capabilities:
     drop: ["ALL"]
-    # The binary carries cap_net_bind_service as a file capability; the
-    # container must be allowed to keep it for the ports below 1024.
+    # The binary carries cap_net_bind_service as a file capability, which the
+    # kernel grants at exec where no_new_privs is not set (Docker's defaults, the
+    # Compose file), and only if the container's bounding set keeps it, which this
+    # does. Under allowPrivilegeEscalation: false above the kernel grants it to
+    # nobody, and Kubernetes gives a container that is not root no ambient
+    # capabilities, so the server runs with none: it is
+    # unprivilegedPortsSysctl, below, that lets it bind the mail ports.
     add: ["NET_BIND_SERVICE"]
+
+# The mail ports below 1024 - 25, 110, 143 and 587, and 465, 993 and 995 where they
+# are turned on - bound by a server that is not root and, under the
+# securityContext above, holds no capability. A process without
+# CAP_NET_BIND_SERVICE may bind a port from net.ipv4.ip_unprivileged_port_start
+# up, a sysctl of each network namespace whose kernel default is 1024. Docker sets
+# it to 0 in every container's namespace, and so does containerd's CRI from 2.0
+# (enable_unprivileged_ports, on by default there); containerd 1.7 and CRI-O
+# leave it at 1024, and there, without this, the server cannot listen on any of
+# those ports, and the startup probe on SMTP never passes. true sets it to 0 in
+# the pod's own network namespace (the pod's securityContext.sysctls), which
+# changes nothing outside the pod: a safe sysctl, which the kubelet accepts with
+# no --allowed-unsafe-sysctls from Kubernetes 1.22 on, and one the baseline and
+# restricted Pod Security Standards admit. Left out or null is true. false leaves
+# it out, for a cluster whose policy forbids every sysctl: the mail ports then
+# bind only where the runtime sets it, or where allowPrivilegeEscalation is true.
+unprivilegedPortsSysctl: true
 
 nodeSelector: {}
 tolerations: []

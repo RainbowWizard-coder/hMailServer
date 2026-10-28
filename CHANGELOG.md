@@ -143,6 +143,24 @@ with `--check`).
 
 ### Correctness
 
+- **Fixed: the Helm chart's server binds the mail ports below 1024 whatever the cluster's container runtime.** The
+  chart runs the server as 999:999 with `allowPrivilegeEscalation: false`, which the restricted Pod Security Standard
+  requires and which sets `no_new_privs`, and under it the kernel grants no file capability at `execve`, so the
+  `cap_net_bind_service` the binary carries was never the server's there, and Kubernetes gives a container that is not
+  root no ambient capability: the server held none (`CapPrm` and `CapEff` 0), and bound 25, 110, 143 and 587 only
+  because Docker, and containerd's CRI from 2.0 (`enable_unprivileged_ports`), set
+  `net.ipv4.ip_unprivileged_port_start` to 0 in the container's network namespace. containerd 1.7 and CRI-O leave the
+  kernel's 1024, and there the server listened on none of the mail ports (HM4316, "Failed to bind to local port",
+  error 13, for each) and the pod's startup probe never passed. The pod now sets that sysctl to 0 in its own
+  `securityContext.sysctls`, a sysctl of the pod's own network namespace, which the kubelet counts as safe from
+  Kubernetes 1.22 and the baseline and restricted Pod Security Standards admit; `unprivilegedPortsSysctl: false`
+  leaves it out for a cluster whose policy refuses every sysctl, and a release upgraded with `--reuse-values` from a
+  chart whose values do not name it gets it too. A sysctl of that name given in `podSecurityContext.sysctls` is kept
+  and not given twice. `values.yaml`, the chart's README and ContainerImage.md ("The mail ports under the chart") say
+  where the file capability is used - under Docker's defaults and the Compose file - and that under the chart it is
+  the sysctl that binds the ports; the `chart-and-compose` job holds the rendered pod to the sysctl, with the value
+  left out and with it false.
+
 - **Fixed: `GET /api/v1/status` said `argon2id` and `post_quantum_key_exchange` from the OpenSSL headers the server
   was compiled against, not the library it runs with.** Both were `OPENSSL_VERSION_NUMBER` comparisons, so the container
   image - the `.deb` built on Ubuntu 26.04 against OpenSSL 3.5, run on Ubuntu 24.04's 3.0.13 - said `true` for both

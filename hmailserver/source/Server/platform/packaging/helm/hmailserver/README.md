@@ -40,7 +40,9 @@ chart is listed only to `helm search repo --devel` and installed only with
 What that makes:
 
 - a StatefulSet of one pod, running as the image's own user and group, 999, with
-  only the capability to bind the mail ports below 1024;
+  no new privileges and no capability, whose own network namespace lets it bind the
+  mail ports below 1024 (`net.ipv4.ip_unprivileged_port_start` set to 0, a pod
+  sysctl; below);
 - before the server, a first container that puts the image's `hMailServer.ini` on
   the configuration volume while the volume holds none, and makes the data volume's
   `temp`, `events` and `database` folders, since Kubernetes copies nothing of an
@@ -74,6 +76,18 @@ the administrator password) and `/portal` the webmail.
 - **Two passwords.** `database.password` and `administrator.password`, or a Secret of
   your own with the keys `existingSecretKeys` names. The administrator password is
   stored as a PBKDF2 hash, never as it is.
+- **A pod sysctl, or a runtime that sets it.** The server is not root, and under
+  the chart's `allowPrivilegeEscalation: false`, which sets `no_new_privs`, the
+  kernel does not grant it the `cap_net_bind_service` its binary carries, so it
+  binds 25, 110, 143 and 587 (and 465, 993 and 995 when they are turned on) only
+  where the pod's network namespace has `net.ipv4.ip_unprivileged_port_start` at
+  0. Docker and containerd's CRI from 2.0 set it so in every container; containerd
+  1.7 and CRI-O leave the kernel's 1024, where the server listens on none of those
+  ports. So the chart sets it in the pod's `securityContext.sysctls`
+  (`unprivilegedPortsSysctl: true`): a safe sysctl, of the pod's own namespace, which
+  the kubelet takes from Kubernetes 1.22 on and the baseline and restricted Pod
+  Security Standards admit. On a cluster whose policy refuses every sysctl, set
+  `unprivilegedPortsSysctl: false`, and run it where the runtime sets the sysctl.
 
 ## Values
 
@@ -90,6 +104,7 @@ Every value is in `values.yaml`, with what it does. The ones most installations 
 | `settingsFrom` | none | a setting whose value is a secret, from a key of a Secret you made |
 | `service.type`, `service.loadBalancerIP` | `LoadBalancer` | how the mail ports reach the world |
 | `persistence.*.size`, `persistence.storageClassName` | 50Gi, 5Gi, 100Mi | the three volumes |
+| `unprivilegedPortsSysctl` | `true` | the pod sysctl that lets the server bind the mail ports below 1024; `false` leaves it out |
 
 A setting named in `settings`, `properties` or `settingsFrom` is the environment's:
 the server stores it at every start and refuses a change to it in the Control Deck

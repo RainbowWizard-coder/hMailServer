@@ -54,7 +54,11 @@ chart and these documents give.
 The Dockerfile is `hmailserver/source/Server/platform/packaging/docker/Dockerfile`.
 The image is the release's `.deb` installed on Ubuntu 24.04, pinned by digest,
 running as the package's own user, `hmailserver`, with the one capability the mail
-ports below 1024 need set on the binary rather than given to the container.
+ports below 1024 need set on the binary rather than given to the container. The
+kernel grants it when the server starts where `no_new_privs` is not set, as under
+Docker's defaults and the Compose file; under the Helm chart, whose
+`allowPrivilegeEscalation: false` sets it, it never does, and the pod's own sysctl
+is what lets the server bind those ports (The Helm chart, below).
 
 It is built for two platforms, **linux/amd64** and **linux/arm64**, each from the
 release's `.deb` of its own architecture - `hmailserver_<version>_amd64.deb` and
@@ -277,6 +281,45 @@ pre-release's chart has a SemVer pre-release version, which Helm lists only to
 `--devel`. In the tree the chart's version is a placeholder, `0.1.0`, and its
 appVersion `latest`: `build/check-linux-version-stamp.sh` refuses a release's number
 written there.
+
+### The mail ports under the chart
+
+The server is not root, and binds 25, 110, 143 and 587 (and 465, 993 and 995 when
+they are turned on) with `CAP_NET_BIND_SERVICE` or not at all - unless its network
+namespace lets every user bind them. The chart runs it with
+`allowPrivilegeEscalation: false`, which the restricted Pod Security Standard
+requires and which sets `no_new_privs`: then `execve` grants no file capability
+(prctl(2), `PR_SET_NO_NEW_PRIVS`; the kernel's `cap_bprm_creds_from_file` keeps the
+new permitted set to the old one, which a process that is not root has empty), and
+Kubernetes gives a container that is not root no ambient capability (its
+`capabilities` have `add` and `drop` alone). The `NET_BIND_SERVICE` the chart adds
+keeps the capability in the bounding set, which matters only where privilege
+escalation is allowed. So, under the chart, the server holds no capability at all
+(`CapPrm` and `CapEff` 0 in `/proc/1/status`), and the mail ports bind only where
+`net.ipv4.ip_unprivileged_port_start`, a sysctl of each network namespace whose
+kernel default is 1024, is 0 in the pod's. Docker sets it to 0 in every container
+it gives a network namespace of its own, and containerd's CRI does with
+`enable_unprivileged_ports`, which is on by default from containerd 2.0 and off in
+1.7; CRI-O sets it nowhere unless its `default_sysctls` say so. On those, a server
+started by a chart without the sysctl listens on none of the mail ports, logs
+HM4316 for each ("Failed to bind to local port ... Error code: 13"), and its
+startup probe on SMTP never passes.
+
+So the chart sets it, `net.ipv4.ip_unprivileged_port_start=0`, in the pod's
+`securityContext.sysctls` (`unprivilegedPortsSysctl`, on unless set to `false`, and
+on too in a release upgraded with `--reuse-values` whose values do not name it). It
+is a sysctl of the pod's own network namespace, which changes nothing outside the
+pod: the kubelet counts it among the safe sysctls, which it accepts without
+`--allowed-unsafe-sysctls`, from Kubernetes 1.22 (an older kubelet refuses the pod,
+SysctlForbidden), and the Pod Security Standards' baseline profile - and with it
+restricted - admits it at every version of their sysctls check. A cluster whose own
+policy refuses every sysctl takes the chart with `unprivilegedPortsSysctl: false`,
+and binds the mail ports then only where the runtime sets the sysctl itself.
+Keeping the server's listeners on the mail ports, rather than moving them above
+1024 behind the Service's `targetPort`, keeps the database the same as every other
+installation's: the ports are the server's own settings, which the Control Deck
+shows and an administrator changes, and the Compose file and every package use
+them as they are.
 
 ### Checking a chart
 
