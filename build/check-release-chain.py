@@ -91,7 +91,9 @@ refuses it. This checker holds them to each other. It fails when:
     optionally, the first two with their artifacts; none of the four may be
     allow_failure or manual in a v* tag's pipeline, in the job, a template it extends
     or a rule a tag can take (a needed job that may fail lets release start after it
-    failed); the start job runs build/ci/linux-package-install.sh of the package's
+    failed) - allow_failure with any value but false, no or off (yes, on, True, a
+    mapping) and when: manual, each read as GitLab reads it, quoted or plain and with a
+    comment after it taken off (tag_escapes, escape_line); the start job runs build/ci/linux-package-install.sh of the package's
     kind and nothing else, with no before_script of its own, a template's or
     default:'s, on the build's folder, in the install job's linux/arm64 image (a
     scalar image: has no platform), beside linux-package-deb's PostgreSQL by digest as
@@ -145,10 +147,11 @@ refuses it. This checker holds them to each other. It fails when:
     would take; or a job of the chain, or a template it extends, says when: always
     itself, which GitLab keeps beside its rules; or a rule a v* tag can match says
     allow_failure but false, which lets the jobs after it start when it failed - a rule
-    whose if:, read as an expression with the tag set, the branch unset and every other
+    whose if:, read as an expression with the tag set, the branch unset - matched
+    against a pattern as the empty string, as GitLab matches it - and every other
     clause either way, can hold (tag_pipeline_can_match), so that $CI_COMMIT_BRANCH ==
-    null, which a tag's pipeline meets, is not taken for a branch's rule
-    (chain_rule_problems); or a job of the chain, or a block it reaches by extends or
+    null and $CI_COMMIT_BRANCH =~ /.*/, which a tag's pipeline meets, are not taken for
+    a branch's rule (chain_rule_problems); or a job of the chain, or a block it reaches by extends or
     !reference, is defined more than once in the CI files but as
     CHAIN_SECOND_DEFINITIONS lets it be - GitLab merges a second definition in any
     included file into the job, keeping every key the first does not set, where these
@@ -336,8 +339,9 @@ refuses it. This checker holds them to each other. It fails when:
     them - hold a control byte but a tab and a line feed (DEL included), a carriage
     return in a shell script, or one not right before a line feed in any other: bash
     and busybox sh drop a NUL from the line they run, so that e<NUL>xit 0 after
-    container-image-push.sh's set -eu passed every line scan and ended the push, and a
-    NUL early in a file makes git and build/check-control-bytes.py take it for binary
+    container-image-push.sh's set -eu passed every line scan and ended the push (as a
+    plain exit 0 did: CHAIN_SCRIPT_SHA256 holds that script whole), and a NUL early in a
+    file makes git and build/check-control-bytes.py take it for binary
     (control_byte_problems); and each Python script of GATE_FILES must keep its own
     directory off sys.path before it imports anything but os and sys (PATH_GUARD).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
@@ -352,8 +356,16 @@ refuses it. This checker holds them to each other. It fails when:
     build/ci/container-image-sign.sh expects another identity or log than the
     release's files are signed with, or no longer attests each platform's SBOM
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
-    and verifies the attestation; or container-image-start does not start the pushed
-    image with the command its test script names, on a network of its own, or a start
+    and verifies the attestation; or build/ci/release-sign.sh, release-verify.sh,
+    container-image-sign.sh or container-image-push.sh is not the script this file
+    holds by the SHA-256 of its text, its line ends LF (CHAIN_SCRIPT_SHA256,
+    chain_script_digest_problems) - an exit 0 after a set line, or a second signature
+    of another digest beside container-image-sign.sh's own, kept every line the rules
+    on them read -, so that whoever changes one runs this check, which prints the new
+    digest, puts it there in the same commit and lands the change with --gates-read,
+    this file being a gate file and the scripts not; or container-image-start does not
+    start the pushed image with the command its test script names, on a network of its
+    own, or a start
     job's service has a key but START_SERVICE_KEYS' - an entrypoint for the image, an
     entrypoint or a command for a database (start_service_problems) - or
     either start job has a key but START_JOB_KEYS' (allow_failure, when and
@@ -500,13 +512,16 @@ refuses it. This checker holds them to each other. It fails when:
     (slsa_level_problems): a tripwire for a claim, not a reader of every wording, the
     level itself held to the specification by hand (SECURITY.md, "Build provenance");
     and so every sentence of a unit of those documents - a paragraph, a list item with
-    its sub-items, a heading, a table's row - that names SLSA at all, as it reads too
-    (slsa_plain: SLS&#65;, S%4CSA, SL**SA**, a zero-width space, a variation selector or
-    another default-ignorable character in the name, a letter Unicode's confusables
-    give as one of its own - a Cyrillic A, the Lisu letters - or a Latin variant, a
-    small capital L), in either spelling of its long name, a level as SLSA_MENTION reads
-    one, a Build level or the build track with or without a number, or the slsa.dev
-    badge; every sentence of every unit under a heading that names SLSA, up to the next
+    the items, lines, paragraphs and fenced blocks indented under it, a heading, a
+    table's row - that names SLSA at all, as it reads too (slsa_plain: SLS&#65;,
+    S%4CSA, SL**SA**, [SL](https://example.com)SA, S.L.S.A., SL-SA, a zero-width space,
+    a variation selector or another default-ignorable character in the name, a letter
+    Unicode's confusables give as one of its own - a Cyrillic A, the Lisu letters - or a
+    Latin variant, a small capital L), in either spelling of its long name, Level or
+    Levels, or names a level in any form, whatever it is said of (SLSA_ANY_LEVEL: L1 to
+    L4, level 1 to 4 in figures, words or Roman figures, an ordinal or a superlative
+    before level), a Build level or the build track with or without a number, or the
+    slsa.dev badge; every sentence of every unit under a heading that names SLSA, up to the next
     heading of its level or above; and every row of a table whose header row names it
     (slsa_sentences) - must be one of SLSA_SENTENCES, which lists them as the tree has
     them, and each listed one must still be said there (slsa_sentence_problems): "Our
@@ -516,7 +531,11 @@ refuses it. This checker holds them to each other. It fails when:
     and "From 6.3.8 the releases meet the highest Build level." beside SECURITY.md's
     listed sentence, a second paragraph under an SLSA heading and a table's data row
     its second, which held only a sentence that named it and the unit right after a
-    heading. Whoever adds or rewords such a sentence reads
+    heading, and "From 6.3.8 the provenance meets L3." in a paragraph of its own, or
+    indented under SECURITY.md's provenance item after a fenced block, which ended the
+    item, its third, which held a unit only when it named SLSA. And no such document
+    may hold a bidirectional embedding, override or isolate (SLSA_BIDI): U+202E before
+    ASLS shows SLSA. Whoever adds or rewords such a sentence reads
     it against the specification, copies it from the problem into SLSA_SENTENCES, takes
     out the one it replaced, and lands the change with --gates-read;
   * the rehearsal (.gitlab/ci/release-rehearsal.yml) can run for a tag, for master,
@@ -1357,31 +1376,62 @@ def unread_rules(name, jobs, seen=None):
 
 def tag_escapes(name, jobs):
     """How a job, in a v* tag's pipeline, could let a job that needs it start without its
-    having passed: allow_failure: true, allow_failure with exit_codes (a need on a job
-    that failed with one of them is met, as on one allowed to fail at all) or when:
-    manual in the job or a template it extends, or in a rule of the rules it takes that
-    a v* tag can match. A rule whose if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone,
-    is one no tag matches. jobs holds every block the job, its templates and their
-    references can name."""
+    having passed: allow_failure with any value but false, no or off (YAML_FALSE) - true,
+    yes, on, True, a mapping with exit_codes (a need on a job that failed with one of
+    them is met, as on one allowed to fail at all) - or when: manual, each read as GitLab
+    reads it, quoted or plain and with a comment after it taken off (escape_line), in
+    the job or a template it extends, or in a rule of the rules it takes that a v* tag
+    can match. A rule whose if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone, and that
+    tag_pipeline_can_match finds no tag can match is one no tag matches. jobs holds every
+    block the job, its templates and their references can name."""
     found = []
     order = template_order(name, jobs)
     for current in order:
         for line in jobs[current].split("\n"):
-            if re.match(r"^  (allow_failure:\s*true|when:\s*manual)\s*$", line):
+            if escape_line(line, "  "):
                 found.append("%s says %s" % (current, line.strip()))
-        for match in re.finditer(r"^  allow_failure:[ \t]*(?:\{[^}\n]*exit_codes[^}\n]*\}|\n    exit_codes:[^\n]*)", jobs[current],
-                                 re.MULTILINE):
-            found.append("%s says %s" % (current, " ".join(match.group(0).split())))
+        for match in re.finditer(r"^  allow_failure[ \t]*:[ \t]*(?:#[^\n]*)?\n    ([^\n]*)", jobs[current], re.MULTILINE):
+            found.append("%s says allow_failure: %s" % (current, " ".join(match.group(1).split())))
     deciding = [current for current in order if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
     for item in (rule_items(jobs[deciding[0]], jobs) if deciding else []):
-        if not re.search(r"^\s*(allow_failure:\s*true|when:\s*manual)\s*$", item, re.MULTILINE):
+        lines = item.split("\n")
+        # allow_failure with nothing after it on its line and a line further in below it:
+        # a mapping, exit_codes among its forms.
+        escapes = [escape_line(line, "") or (re.match(r"^\s*allow_failure[ \t]*:[ \t]*(?:#.*)?$", line) and
+                                             any(more.strip() and len(more) - len(more.lstrip()) > len(line) - len(line.lstrip())
+                                                 for more in lines[at + 1:at + 2]) and "allow_failure")
+                   for at, line in enumerate(lines)]
+        escapes = [escape for escape in escapes if escape]
+        if not escapes:
             continue
         condition = re.match(r"if:\s*(.+)", item.strip())
         condition = condition.group(1) if condition else ""
-        if "$CI_COMMIT_TAG !~ /^v/" not in condition or "||" in condition:
+        if "$CI_COMMIT_TAG !~ /^v/" not in condition or "||" in condition or tag_pipeline_can_match(item):
             found.append("a rule a v* tag can match, %r, makes it %s" % (
-                condition or item.strip().split("\n")[0], "manual" if "manual" in item else "allowed to fail"))
+                condition or item.strip().split("\n")[0], "manual" if "when" in escapes else "allowed to fail"))
     return found
+
+
+# What GitLab's YAML reader (YAML 1.1) takes for false, in any case: allow_failure written
+# with any other value - true, yes, on, a mapping (exit_codes), an alias - lets a job that
+# needs the job start after it failed.
+YAML_FALSE = ("false", "no", "off")
+
+
+def escape_line(line, indent):
+    """For a line of a job's keys (indent "  ") or of a rule (indent "", any spaces),
+    "allow_failure" when it says allow_failure with a value but YAML_FALSE's, "when" when
+    it says when: manual, None otherwise - each value read as GitLab's YAML reader reads
+    it, quoted or plain, a comment after it taken off (yaml_scalar): allow_failure: yes,
+    allow_failure: True, allow_failure: true # a note and when: manual # a note among
+    them. A key with no value on its line (a mapping below it) is not read here."""
+    match = re.match(r"^%s(allow_failure|when)[ \t]*:(.*)$" % (re.escape(indent) if indent else r"\s*(?:-\s+)?"), line)
+    if not match:
+        return None
+    value = yaml_scalar(match.group(2))
+    if match.group(1) == "allow_failure":
+        return "allow_failure" if value and value.lower() not in YAML_FALSE else None
+    return "when" if value == "manual" else None
 
 
 def takes_no_github(name, jobs):
@@ -2030,7 +2080,21 @@ SLSA_SENTENCES = {
         "tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE "
         "envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's "
         "`slsa-verifier` is not needed.",
-        "To check that a download is one the tag's pipeline built:",
+        "To check that a download is one the tag's pipeline built: It says `Verified OK` only when the file's "
+        "SHA-256 is one the statement names and the statement was signed by that identity, at the group's path, "
+        "where every release that carries a provenance (from 6.3.6) is signed.",
+        "To read the statement itself: `jq -r .dsseEnvelope.payload hmailserver-x.y.z.intoto.sigstore.json | base64 "
+        "-d | jq .`.",
+        "The file is named for what it is, a Sigstore bundle (`.sigstore.json`, the name Sigstore's clients take).",
+        "The statement names the tag as its external parameter `ref`, the commit as its one resolved dependency's "
+        "`gitCommit`, and the tag's pipeline as its `invocationId`; and the signing certificate records the commit "
+        "and the tag again, in Fulcio's source repository digest and ref extensions (`1.3.6.1.4.1.57264.1.13` and "
+        "`.14`), which Fulcio writes from the identity token GitLab gave the job, not from anything the job says.",
+        "To compare the two: The first prints the commit, `refs/tags/vx.y.z` and the pipeline's address; the second "
+        "the same commit and tag, each after two characters that are the value's DER tag and length.",
+        "From the release after 6.3.7 the release pipeline refuses to publish a provenance whose statement names "
+        "another commit, tag or pipeline than its own, or whose certificate records another commit or tag "
+        "(`build/ci/release-chain.py`, `check-provenance` and `publish`); 6.3.7's provenance passes the same check.",
         "From the release after 6.3.7 the release also carries `hmailserver-<version>.intoto.jsonl`: the bundle's "
         "DSSE envelope alone - the statement and its one signature, each as the bundle has it - as one line of "
         "JSON.",
@@ -2087,6 +2151,11 @@ SLSA_SENTENCES = {
         "in the Windows runner's long-lived checkout, not a clean one. 6.3.4 and 6.3.5 carry no provenance, "
         "so no Build level; the levels of 6.3.3 and earlier, built and attested on GitHub, are not assessed "
         "here.",
+        "- **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, "
+        "is fixed before merge, or declared not exploitable before the change that needs it.",
+        "A medium finding is fixed within 30 days; a low or note-level one with the next change to that file, or "
+        "declared not exploitable with its reason.",
+        "A release is not cut with an open error-level finding.",
     ),
     "hmailserver/docs/ContinuousIntegration.md": (
         "| `release-sbom` | release | linix | a `v*` tag, after `release-authenticode` | Each signed installer's "
@@ -2172,6 +2241,40 @@ SLSA_SENTENCES = {
         "extension): `gitlab-hosted` for 6.3.6, whose `release-sbom` and `release-sign` ran on GitLab's runners, "
         "and `self-hosted` for 6.3.7 - the runner that signed the provenance, which says nothing of where the "
         "files were built.",
+        "**What holds the documents to that level.** `build/check-release-chain.py` fails when SECURITY.md, this "
+        "page or EvidencePack.md stops saying the level where its `SLSA_CLAIMS` says it, and when a sentence of the "
+        "README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs` names a higher level "
+        "without a negation attached to it or affirms one - a tripwire over wordings, which three claims passed.",
+        "So it also holds those documents' sentences by a list.",
+        "It reads them in units - a paragraph, a list item with the items, lines, paragraphs and fenced blocks "
+        "indented under it (a fenced block does not end the item it is indented under), a heading, a table's row, a "
+        "line of a fenced block or a badge's line - and holds a unit whole when it names the framework at all, in "
+        "either spelling of its long name, `Level` or `Levels`, or a level in any form, whatever it is said of: `L` "
+        "and a figure, `level` and a figure, its word or its Roman figure, or an ordinal or a superlative before "
+        "`level`, so that a paragraph that says the provenance meets a level and names nothing else, or a table's "
+        "row under a header that does not name the framework, is held, and a heading's level or another standard's "
+        "is listed with the rest.",
+        "It also holds the framework's own term for its levels (with or without a number) and its badge, each as the "
+        "unit reads, too: with its character references and percent-encoding decoded, a link read as its text, every "
+        "character that shows as nothing (a zero-width or other default-ignorable one, a variation selector, a "
+        "combining mark) and emphasis inside the name taken out, the name's letters with spaces, dots, hyphens or "
+        "underscores between them read as the name, and a letter of another script that Unicode's confusables table "
+        "gives as one of the name's, or a variant of a Latin letter, read as that letter.",
+        "None of these documents may hold a bidirectional embedding, override or isolate (`SLSA_BIDI`), which shows "
+        "a text in another order than it is written, so that an override before the name written backwards shows the "
+        "name.",
+        "It holds every unit under a heading that names the framework too, up to the next heading of that heading's "
+        "level or above, and every row of a table whose header row names it.",
+        "Every sentence of a unit it holds must be one of `SLSA_SENTENCES`, the sentences the checker lists for each "
+        "document as the document has them, with their white space taken as one space, so that a level said in "
+        "words, by a superlative or an ordinal, or in a cell, a sub-item, another sentence or another paragraph "
+        "under such a heading, is held with the name.",
+        "A sentence added or reworded fails `checkers`, naming the sentence as the check reads it, until it is "
+        "listed; a listed one the document no longer says fails until it is taken out.",
+        "Whoever writes or rewords such a sentence reads it against SECURITY.md's \"Build provenance\" - it may "
+        "claim no level the provenance does not meet -, copies it from the failure into `SLSA_SENTENCES` under its "
+        "document, takes out the one it replaced, and lands the change with `--gates-read`, the checker being a gate "
+        "file.",
         "GitLab's own provenance is not used.",
         "GitLab Runner can write a statement for a job's artifacts (`RUNNER_GENERATE_ARTIFACTS_METADATA`: an "
         "in-toto v0.1 statement with the SLSA v1 predicate, unsigned, in a JSON file stored with the "
@@ -2243,20 +2346,177 @@ SLSA_SENTENCES = {
         "They are what the apt and dnf repositories serve once those are published "
         "([PackageManagers.md](PackageManagers.md)).",
     ),
+    "hmailserver/docs/ControlPanelDesign.md": (
+        "The **sidebar** is the `TreeView` built from `Services/NavigationMap.cs`, in the order a new administrator "
+        "needs it (since 27 September 2026): *Welcome*, *Dashboard*, then *Set up this server* - the *Setup "
+        "checklist*, *Setting profiles* and *DNS records* - then *Accounts & domains*, *Mail flow & delivery*, "
+        "*Connections & protocols*, *Certificates & encryption*, *Spam filtering*, *Virus scanning*, *Sign-in & "
+        "access*, *Monitoring & troubleshooting*, *Compliance*, *Maintenance* and *About*.",
+        "Every page automation id (`nav-<key>`) is what it was; one page title changed (*External setup* is the "
+        "*Setup checklist*), and two group headings were renamed in plain words - *TLS & certificates* is "
+        "*Certificates & encryption*, and *Access & abuse protection* is *Sign-in & access*; each old name is an "
+        "alias the palette finds, and a group's `navgroup-<slug>` follows its heading.",
+        "*REST API keys* is under *Sign-in & access*, after *Administrative access* (since 10 October 2026, review "
+        "finding F152): a key is a credential, and *Monitoring & troubleshooting* asks whether mail is flowing.",
+        "The audit trail, journaling and eDiscovery are *Compliance*, after it, and the three virus pages *Virus "
+        "scanning*, after *Spam filtering*, which holds spam alone (review findings F152 and F153, the owner's "
+        "decision of 12 October 2026), each group its rail glyph - the gavel and the bug; at 760 by 520 the rail's "
+        "last glyphs are below the fold, which is accepted, and the old heading *Spam & virus filtering* is an alias "
+        "of both groups.",
+        "Inside *Spam filtering* the six allow and block lists are under the sub-heading *Lists* (review finding "
+        "F269): a sub-heading is a run of pages that share a `Section` in the map (`NavigationMap.SectionBefore` "
+        "decides where one is drawn, on the pages as the credential sees them), drawn as a caption at the pages' "
+        "text column that neither the pointer nor the keyboard lands on and a level-3 heading to a screen reader, in "
+        "the tree and in the rail's flyout alike; it is not a level of the tree, so the breadcrumb and the palette "
+        "do not know of it.",
+        "A page row ellipsizes its title when the pane is narrow, as a group row does, and the whole title is in its "
+        "tool tip.",
+        "Rows are `AppNavRowHeight` tall with the control radius, the hover fill and the brand pill on the selected "
+        "row, the secondary text at rest and the focus border round the row the keyboard is on, at every level: the "
+        "tree's row style is each group's item style as well (`MainWindow.BuildNavItem`), since a `TreeView` gives "
+        "its `ItemContainerStyle` to its own items alone, and the pages inside a group, which are their own "
+        "containers, took WPF-UI's row until 9 October 2026 - the Windows accent's bar outside a shorter highlight, "
+        "primary text at rest, no keyboard border.",
+        "Pages are indented under their group's label rather than under its glyph, so the two text columns line up.",
+        "Below `DesignTokens.Shell.CollapseSidebarBelow` (1000 pixels of window width) the sidebar collapses to the "
+        "**rail** (`nav-rail`): one glyph per top-level group (`navrail-<slug>`), the group of the page on screen "
+        "marked.",
+        "Above that width a click on a glyph expands the sidebar on that group; below it the tree cannot be shown - "
+        "a maximised window at 150 % scaling is 853 pixels - so the click opens the group's **flyout** instead "
+        "(`MainWindow.NavFlyout.cs`): a popup beside the glyph (`nav-flyout`) listing the group's pages as rows the "
+        "credential may open (`navflyout-<key>`), the page on screen marked, the arrow keys moving through them, "
+        "Enter opening the page the keyboard is on and a click the one under the pointer, Escape or a click outside "
+        "closing it, and the keyboard going back to what opened it - the glyph, or the breadcrumb's group button as "
+        "the breadcrumb was rebuilt for the page chosen.",
+        "The breadcrumb's group button opens the same flyout under itself while the rail shows, and reveals the "
+        "group in the tree otherwise.",
+        "A click never leaves the rail marking a group that does not hold the page on screen.",
+        "The toggle collapses and expands the sidebar by choice above the threshold, and the choice is kept in the "
+        "registry beside the window bounds (`SidebarCollapsed` under `HKCU\\Software\\hMailServer\\ControlPanel`).",
+        "The footer under the tree carries the server's version and hides with the rail.",
+        "| `PageHeader` | The top of every page: the title with an optional status pill beside it, the page's help "
+        "button and the page's actions on the right, and an optional subtitle on a line of its own under them, "
+        "across the header's width up to `AppSubtitleWidth` (840 pixels).",
+        "The actions go under the subtitle, from the left, where the title would not fit beside them whole "
+        "(`Services/PageHeaderLayout`).",
+        "It is the page's level-1 heading. | `PageKey` (string: the page's navigation key, which sets `Title` to the "
+        "page's title in `NavigationMap` - a page names its key and not its title, and `PageTitlesTests` holds every "
+        "page to it), `Title`, `Subtitle` (string); `Status`, `Actions` (object slots); `TourId` (string, null for "
+        "no help button - the shell sets it as it opens a page, from `TourCatalog`); `SubtitleInToolTip` (bool: the "
+        "subtitle as the title's tool tip, which a page that pins its header above content that scrolls sets below "
+        "600 pixels of page, `PageHeaderLayout.SubtitleInToolTip` - the settings pages that ServerSettingsView "
+        "builds, whose notice is above the first card of the tab on screen and scrolls with it); event `ShowTour`, "
+        "which bubbles to the shell.",
+        "Automation: Text, HeadingLevel1, Name = Title, HelpText = Subtitle; the help button is `page-help`. |",
+        "| `SettingsSection` | A section of a settings page: a heading, a description, the fields.",
+        "A level-2 heading under the page's level-1.",
+        "Named SettingsSection because System.Windows.Documents has a Section and a dozen views import that "
+        "namespace. | `Heading`, `Description` (string); `Content`.",
+        "Automation: Group, HeadingLevel2, Name = Heading. |",
+        "2.",
+        "**`Card` has no status slot and no heading level.** `PageHeader` has a status slot; a card that needs one "
+        "puts the pill in the first row of its content.",
+        "A settings card *is* a section, so it is a title-less `Card` wrapping a `SettingsSection` to get the "
+        "level-2 heading - one unnamed group around one named one.",
+    ),
+    "hmailserver/docs/Help.md": (
+        "`build/generate-help-pages.py` embeds every document except `README.md` (the index of the others), "
+        "`DeckParity.md` (a census a checker rewrites), `WebAuthorisationMatrix.md` (a table another generator "
+        "writes from the routes) and `WebThreatModel.md` (a model of the web surface for those who change and review "
+        "it) as `hmailserver/source/Server/Common/Util/HelpPagesData.cpp`: the text with LF line endings, in pieces "
+        "of at most four thousand characters, with a table of the file name without its extension, the byte length "
+        "of the text, the document's level-one and level-two headings with the line each starts on, and the wiki's "
+        "page made from the document, or none, read from `build/help-wiki-pages.txt` ([The wiki "
+        "link](#the-wiki-link)).",
+        "The table ends with a build tag, the first sixteen hex digits of the SHA-256 of every page's text and wiki "
+        "page, which the routes serve as the ETag.",
+        "Today that is 125 documents and 4.0 MB of text, which is 4.2 MB of generated C++ and about 4.0 MB in the "
+        "binary; `--check` fails when the unit, or the Control Panel's copy of the wiki table below, is behind the "
+        "documents or the table, and GitLab CI's checkers job runs it on every push and merge request.",
+        "| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, wiki_page, headings:[{text, level, "
+        "line}]}]}`.",
+        "`wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; "
+        "each page's `name` is what the page route takes, its `title` its first heading, its `wiki_page` the project "
+        "wiki's page made from the document (`Backup-and-Restore` for `Backup`), which a pane adds to `wiki` "
+        "whatever its address, or empty when the project's wiki has none and there is no link, and its `headings` "
+        "the level-one and level-two ones with the line each starts on, counted from 0.",
+        "The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and "
+        "a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a "
+        "browser on its next page load, not a day later. |",
+        "The heading, where one is named, is a level-one or level-two heading of the document, and the pane scrolls "
+        "to it.",
+        "A Control Panel page whose subject has no document of its own maps to `HelpTarget.NoGuide`, and its pane "
+        "shows the page's title and purpose, says that no guide covers the page yet, and lists every document; when "
+        "a document is written for such a page, its entry is the one line that changes.",
+        "Until October 2026 such a page was mapped to \"the nearest\" document, which on some twenty pages was one "
+        "about something else - the groups and public folders opened what a backup carries, the five certificate and "
+        "TLS pages one remote domain's outbound TLS, LDAP the webmail's OpenID Connect, the virus pages what an "
+        "encrypted message gets.",
+    ),
+    "hmailserver/docs/OpenPGP.md": (
+        "[Autocrypt](https://autocrypt.org) Level 1, both ways.",
+    ),
+    "hmailserver/docs/PackagesRpm.md": (
+        "- **The executables are hardened** with the core of what the distributions build their own packages with: "
+        "position-independent (`-fPIE`, linked `-pie`), full RELRO (`-z relro -z now`), `-fstack-protector-strong`, "
+        "`-fstack-clash-protection` and `_FORTIFY_SOURCE=2`, for the server, the testers and the Boost built in the "
+        "job.",
+        "Fedora's own packages now take `_FORTIFY_SOURCE=3` (`redhat-rpm-config`'s `%_fortify_level`) and add more, "
+        "such as `_GLIBCXX_ASSERTIONS`; neither was tried here, and the packages in [What has run](#what-has-run) "
+        "were built at level 2.",
+        "CMake is not run from a spec here, so nothing adds them unless the build does, and Fedora's and RHEL's "
+        "clang link a non-PIE executable by default: the first trials of 26 September made `LSB executable` binaries "
+        "on Fedora 44 and UBI 9, and `LSB pie executable` only on Leap 16.0.",
+        "`rpm-build.sh` fails when the packaged `/usr/bin/hmailserver` is not a PIE, has no `GNU_RELRO` segment or "
+        "is not linked with `BIND_NOW`.",
+        "`-fPIE` goes to every compile, as `redhat-rpm-config`'s hardening does: CMake's own test programs do not "
+        "get `CMAKE_POSITION_INDEPENDENT_CODE`, and the first run with `-pie` alone failed CMake's compiler ABI "
+        "check and then its search for zlib.",
+    ),
+    "hmailserver/docs/ReputationWatch.md": (
+        "* `dnsbl-2`/`dnsbl-3.uceprotect.net` — they list whole networks for a neighbour's behaviour, so a listing "
+        "says little about this server.",
+        "Level 1 lists single addresses and is a reasonable addition.",
+    ),
 }
 # A document's text in the units its sentences are read in: a paragraph, a list item with
-# the items and lines indented under it, a heading, a row of a table, a line of a fenced
+# the items, lines and paragraphs indented under it - a fenced block indented under it
+# among them, which does not end it -, a heading, a row of a table, a line of a fenced
 # block, and a line that is an image or a badge alone - so that a table, a block of
 # badges or a code block does not make one sentence of the text around it, which any edit
 # nearby would change, and a level is not read apart from the SLSA it is said of: a cell
 # "| SLSA | 3 |" is in its row, a sub-item "  * L3" in "* SLSA:", every sentence of a unit
-# that names SLSA is taken with it, every unit under a heading that names SLSA up to the
-# next heading of its level or above, and every row of a table whose header row names it
-# (slsa_sentences). The name in either spelling, Artifacts or Artefacts; and the
-# specification's own term for its levels, a Build level or the build track, with or
-# without a number, so that "the highest Build level" is read as the claim it is.
-SLSA_NAMED = re.compile(r"\bSLSA\b|\bSupply[\s-]*chain\s+Levels\s+for\s+Software\s+Art[ei]facts\b", re.IGNORECASE)
+# that names SLSA or a level is taken with it, every unit under a heading that names SLSA
+# up to the next heading of its level or above, and every row of a table whose header row
+# names it (slsa_sentences). The name in either spelling, Artifacts or Artefacts, Level or
+# Levels; and the specification's own term for its levels, a Build level or the build
+# track, with or without a number, so that "the highest Build level" is read as the claim
+# it is.
+SLSA_NAMED = re.compile(r"\bSLSA\b|\bSupply[\s-]*chain\s+Levels?\s+for\s+Software\s+Art[ei]facts\b", re.IGNORECASE)
 SLSA_TERMS = re.compile(r"\bbuild[\s_-]*(?:track|levels?)\b", re.IGNORECASE)
+# A level in any form, whatever it is said of (slsa_names): L1 to L4, level 1 to 4, in
+# words or in Roman figures, and an ordinal or a superlative before level ("the third
+# level", "the highest level"). "From 6.3.8 the provenance meets L3." in a paragraph of
+# its own, or "| Provenance | L3 |" under a header that does not name SLSA, names nothing
+# else the list reads, and passed; a unit that names a level is held as one that names
+# SLSA, so that a level's word is read wherever it is said, a heading's level or another
+# standard's among them (Autocrypt Level 1), each listed once read.
+SLSA_ANY_LEVEL = re.compile(r"\bL" + SLSA_SEP + r"?[1-4]\b|\blevels?" + SLSA_SEP + r"*(?:[1-4]|one|two|three|four)\b|"
+                            r"\blevels?" + SLSA_SEP + r"*(?-i:I{1,3}|IV)\b|"
+                            r"\b(?:first|second|third|fourth|1st|2nd|3rd|4th|highest|higher|lowest|maximum|topmost|uppermost)" +
+                            SLSA_SEP + r"+(?:build" + SLSA_SEP + r"+)?levels?\b", re.IGNORECASE)
+# A link written inside the name renders as its text: [SL](https://example.com)SA reads
+# SLSA (slsa_plain), as does a reference link's. An image is left as it is written: what
+# it shows is its address's (a badge's label), which is read there.
+SLSA_LINK = re.compile(r"(?<!!)\[([^\[\]\n]*)\](?:\([^()\n]*\)|\[[^\[\]\n]*\])")
+# The name's letters with a space, a dot, a hyphen or an underscore between them, one or
+# two of them at each place (S L S A, S.L.S.A., S. L. S. A., SL-SA), read as the name.
+SLSA_SPACED = re.compile(r"\bS[ ._\-]{0,2}L[ ._\-]{0,2}S[ ._\-]{0,2}A\b", re.IGNORECASE)
+# Unicode's bidirectional embeddings, overrides and isolates, which show a text in another
+# order than it is written: U+202E then ASLS shows SLSA, which slsa_plain, dropping the
+# override, reads as ASLS. The documents slsa_texts reads may hold none of them
+# (slsa_bidi_problems).
+SLSA_BIDI = re.compile("[\u202a-\u202e\u2066-\u2069]")
 SLSA_FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
 SLSA_ITEM = re.compile(r"^(\s*)(?:[*+-]|[0-9]{1,9}[.)])\s")
 SLSA_HEADING = re.compile(r"^\s*#|^\s*(?:=+|-+)\s*$")
@@ -2322,8 +2582,10 @@ def slsa_plain(text, skeleton=False):
     zero-width space, a soft hyphen, a variation selector, a combining grapheme joiner),
     lookalikes of other scripts read as Latin by Unicode's confusables (SLSA_CONFUSABLES:
     a Cyrillic A, the Lisu letters) and a Latin letter by its name (SLSA_LATIN_NAME: a
-    small capital L), and Markdown's and HTML's emphasis taken out (SL**SA**,
-    SL<b>SA</b>). A figure, and the ASCII I and bar, are read as l only with skeleton."""
+    small capital L), Markdown's and HTML's emphasis taken out (SL**SA**,
+    SL<b>SA</b>), a link read as its text ([SL](https://example.com)SA: SLSA_LINK), and
+    the name's letters spaced, dotted or hyphenated read as the name (S.L.S.A., SL-SA:
+    SLSA_SPACED). A figure, and the ASCII I and bar, are read as l only with skeleton."""
     if "&" in text:
         text = html.unescape(text)
     for _ in range(4):
@@ -2333,11 +2595,19 @@ def slsa_plain(text, skeleton=False):
         if decoded == text:
             break
         text = decoded
+    if "[" in text:
+        for _ in range(4):
+            linked = SLSA_LINK.sub(r"\1", text)
+            if linked == text:
+                break
+            text = linked
     if text.isascii():
         # Nothing in ASCII is ignorable, decomposes or has a name of SLSA_LATIN_NAME's.
-        return SLSA_EMPHASIS.sub("", text.translate(SLSA_ASCII_SKELETON) if skeleton else text)
-    return SLSA_EMPHASIS.sub("", "".join(slsa_read_character(character, skeleton)
-                                         for character in unicodedata.normalize("NFKD", text)))
+        read = SLSA_EMPHASIS.sub("", text.translate(SLSA_ASCII_SKELETON) if skeleton else text)
+    else:
+        read = SLSA_EMPHASIS.sub("", "".join(slsa_read_character(character, skeleton)
+                                             for character in unicodedata.normalize("NFKD", text)))
+    return SLSA_SPACED.sub("SLSA", read)
 
 
 # What slsa_plain reads each character as, by (character, skeleton): the documents' text
@@ -2368,12 +2638,14 @@ def slsa_read_character(character, skeleton):
 
 
 def slsa_names(text):
-    """Whether a text names SLSA or one of its levels: SLSA_NAMED in it, in it as it reads
-    (slsa_plain) or in its skeleton; a level as SLSA_MENTION reads one; the
-    specification's term for its levels (SLSA_TERMS); or the slsa.dev badge."""
+    """Whether a text names SLSA or a level: SLSA_NAMED in it, in it as it reads
+    (slsa_plain) or in its skeleton; a level as SLSA_MENTION reads one, or in any form,
+    whatever it is said of (SLSA_ANY_LEVEL); the specification's term for its levels
+    (SLSA_TERMS); or the slsa.dev badge."""
     plain = slsa_plain(text)
     return bool(SLSA_NAMED.search(text) or SLSA_NAMED.search(plain) or SLSA_NAMED.search(slsa_plain(text, True)) or
-                SLSA_MENTION.search(text) or SLSA_MENTION.search(plain) or SLSA_TERMS.search(text) or
+                SLSA_MENTION.search(text) or SLSA_MENTION.search(plain) or SLSA_ANY_LEVEL.search(text) or
+                SLSA_ANY_LEVEL.search(plain) or SLSA_TERMS.search(text) or
                 SLSA_TERMS.search(plain) or re.search(r"slsa\.dev/images/", text, re.IGNORECASE) or
                 re.search(r"slsa\.dev/images/", plain, re.IGNORECASE))
 
@@ -2402,7 +2674,11 @@ def slsa_units(text):
                 units.append((line, "text", 0, 0))
         else:
             listed = SLSA_ITEM.match(line)
-            if opened:
+            if opened and item[0] is not None and len(line) - len(line.lstrip()) > item[0]:
+                # A fenced block indented under a list item is the item's: its lines are
+                # units of their own, and what the item says after it is still the item.
+                fence = opened.group(1)
+            elif opened:
                 flush()
                 fence = opened.group(1)
             elif not line.strip():
@@ -2448,9 +2724,10 @@ def slsa_units(text):
 
 def slsa_sentences(docs):
     """{path: [sentence]} of each document's sentences, in order, that slsa_sentence_problems
-    holds: every sentence of a unit (slsa_units) that names SLSA (slsa_names: the name as
-    it is, as it reads or by its skeleton, a level as SLSA_MENTION reads one, a Build level
-    or the build track, the slsa.dev badge), not only the sentence that names it; every
+    holds: every sentence of a unit (slsa_units) that names SLSA or a level (slsa_names:
+    the name as it is, as it reads or by its skeleton, a level as SLSA_MENTION reads one or
+    in any form, whatever it is said of (SLSA_ANY_LEVEL), a Build level or the build
+    track, the slsa.dev badge), not only the sentence that names it; every
     sentence of every unit under a heading that names SLSA, up to the next heading of its
     level or above, the headings under it among them; and every sentence of every row of
     a table whose header row names SLSA - each with its white space taken as one space."""
@@ -2475,18 +2752,27 @@ def slsa_sentences(docs):
 
 
 def slsa_sentence_problems(docs):
-    """[problem] for each sentence of docs that names SLSA, or is in a unit, under a
-    heading or in a table that does (slsa_sentences), and is not one SLSA_SENTENCES lists
-    for its document - the
-    sentence given whole, to be copied into the list once it is read -, and for each one
-    listed there that its document no longer says."""
+    """[problem] for each sentence of docs that names SLSA or a level, or is in a unit,
+    under a heading or in a table that does (slsa_sentences), and is not one
+    SLSA_SENTENCES lists for its document - the sentence given whole, to be copied into
+    the list once it is read -, for each one listed there that its document no longer
+    says, and for each bidirectional embedding, override or isolate in a document
+    (SLSA_BIDI), which shows a text in another order than it is read here."""
     problems = []
+    for name in sorted(docs):
+        for number, line in enumerate(docs[name].split("\n"), 1):
+            for control in sorted(set(SLSA_BIDI.findall(line))):
+                problems.append("%s holds the bidirectional control U+%04X on its line %d, which shows the text around it in "
+                                "another order than it is written - U+202E then ASLS shows SLSA -, so that what a reader "
+                                "sees is not what the SLSA sentences are read as: the documents slsa_texts reads hold none "
+                                "(SLSA_BIDI)" % (name, ord(control), number))
     found = slsa_sentences(docs)
     for name, sentences in sorted(found.items()):
         listed = SLSA_SENTENCES.get(name, ())
         for sentence in sentences:
             if sentence not in listed:
-                problems.append("%s says %r, which names SLSA, or is in a unit, under a heading or in a table that does, and is not "
+                problems.append("%s says %r, which names SLSA or a level, or is in a unit, under a heading or in a table that does, and "
+                                "is not "
                                 "one of the sentences "
                                 "SLSA_SENTENCES lists for it: what the documents say of the release's SLSA level is read "
                                 "against the specification (SECURITY.md, \"Build provenance\") before it is published - "
@@ -3209,6 +3495,47 @@ def package_install_digest_problems(script, licenses=None):
     return problems
 
 
+# The scripts that sign and verify what the release and the image put out, as this file
+# holds them: the SHA-256 of each one's text, its line ends LF, by its key of FILES
+# (chain_script_digest_problems). Their rules here read lines - the identity, cosign's
+# flags, the files counted -, and an exit 0 after the set line, or a second signature
+# of another digest beside container-image-sign.sh's own, kept every one of those lines
+# and passed: container-image-sign would have ended green having signed nothing, or
+# signed another image with the tag pipeline's identity, a signature users take for the
+# release's. None of the four is one of land-via-mr.py's GATE_FILES; this file is.
+CHAIN_SCRIPT_SHA256 = {
+    "sign": "b486d25d22ba09cb349eec33d83aabc244bcfb7aa95a655866bae4f9d5901656",
+    "verify": "ecea4a7d2814c48f689504d8af53e3dab4b1e6df33900c0ba3b60f190ce104cb",
+    "image-sign": "4eaaa20230405c1bf1bc79a29bbaecf30669c041200a645b462efbc81dca2d70",
+    "image-push": "19f1c94b9ac5627991b8165f6eeb2c9b4fc05450a532721c5e5b36b9119a36d0",
+}
+
+
+def chain_script_digest_problems(texts):
+    """[problem] for each script of CHAIN_SCRIPT_SHA256 - build/ci/release-sign.sh,
+    release-verify.sh, container-image-sign.sh and container-image-push.sh - whose text,
+    its line ends LF, is not the one this file holds, as START_TEST_SHA256 holds the
+    image's start test and PACKAGE_INSTALL_SHA256 the package start script: a change
+    to any of them fails this check until its digest changes with it here, so that the
+    landing that changes what signs or verifies a release changes a gate file, which
+    build/land-via-mr.py lands only with --gates-read, a person's word that the change
+    was read whole. Whoever changes one runs this check, whose problem gives the new
+    digest, and puts it here in the same commit."""
+    problems = []
+    for key, held in sorted(CHAIN_SCRIPT_SHA256.items()):
+        text = texts.get(key)
+        if text is None:
+            continue
+        digest = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+        if digest != held:
+            problems.append("%s is not the script build/check-release-chain.py holds (the SHA-256 of its text, its line ends "
+                            "LF, is %s; CHAIN_SCRIPT_SHA256[%r] %s): what signs and verifies the release and the image is "
+                            "held whole, so a change to it takes a change to CHAIN_SCRIPT_SHA256 with it, in a gate file, "
+                            "which build/land-via-mr.py lands only with --gates-read, a person's word that the change was "
+                            "read whole" % (FILES[key].replace(os.sep, "/"), digest, key, held))
+    return problems
+
+
 def shell_code_lines(text):
     """[(line number, code)] of a shell script's lines as the shell reads them: a line
     ending in a backslash joined to the next (numbered as the first), a comment - a # at
@@ -3558,8 +3885,12 @@ CHAIN_RULE_WHEN = ("never", "on_success", "manual")
 # A clause of a rules:if as a v* tag's pipeline decides it, by its text as condition_tree
 # spells an open clause (tag_pipeline_can_match): the tag is set and begins with v, and
 # the branch is unset - GitLab gives a tag's pipeline no CI_COMMIT_BRANCH, so that it
-# equals null and any variable that is not set, differs from any string, and matches no
-# regular expression -, and CI_DEFAULT_BRANCH is set. Any other clause may be either.
+# equals null and any variable that is not set and differs from any string, the empty
+# one among them -, and CI_DEFAULT_BRANCH is set. The branch matched with =~ or !~ is
+# read as GitLab reads it unset, as the empty string (tag_pipeline_branch_match): =~ a
+# pattern that can match "" (/.*/, /^$/, /a|/) holds in a tag's pipeline, GitLab's CI
+# lint of 28 October 2026 for the ref v6.3.7 having made a job of $CI_COMMIT_BRANCH =~
+# /.*/ and of =~ /^$/ and none of =~ /xy/ or == "". Any other clause may be either.
 TAG_PIPELINE_CLAUSES = (
     (re.compile(r"^\$CI_COMMIT_TAG =~ /\^v/$"), True),
     (re.compile(r"^\$CI_COMMIT_TAG !~ /\^v/$"), False),
@@ -3573,21 +3904,46 @@ TAG_PIPELINE_CLAUSES = (
                 r"\$CI_COMMIT_BRANCH)$"), False),
     (re.compile(r"^(?:\$CI_COMMIT_BRANCH != (?:\"[^\n]*\"|\$CI_DEFAULT_BRANCH)|(?:\"[^\n]*\"|\$CI_DEFAULT_BRANCH) != "
                 r"\$CI_COMMIT_BRANCH)$"), True),
-    (re.compile(r"^\$CI_COMMIT_BRANCH =~ /[^\n]*/[a-z]*$"), False),
-    (re.compile(r"^\$CI_COMMIT_BRANCH !~ /[^\n]*/[a-z]*$"), True),
 )
+TAG_PIPELINE_BRANCH_MATCH = re.compile(r"^\$CI_COMMIT_BRANCH (=~|!~) (/[^\n]*/)([a-z]*)$")
+# What Python's re reads otherwise than RE2, GitLab's: a look-around and a back-reference,
+# which RE2 has not. A pattern with one is read as either way.
+TAG_PIPELINE_NOT_RE2 = re.compile(r"\(\?<?[=!]|\\[1-9]|\(\?P[=>]|\\[gk]<")
+
+
+def tag_pipeline_branch_match(clause):
+    """Whether a clause $CI_COMMIT_BRANCH =~ /p/flags or !~ holds in a v* tag's
+    pipeline, whose branch GitLab matches as the empty string: re.search(p, "") as a
+    stand-in for RE2 on it, True or False; None for a clause of another form, a flag but
+    i, m and s, or a pattern Python does not compile or reads otherwise than RE2
+    (TAG_PIPELINE_NOT_RE2), which is then tried both ways."""
+    match = TAG_PIPELINE_BRANCH_MATCH.match(clause)
+    if not match or set(match.group(3)) - set("ims"):
+        return None
+    body = match.group(2)[1:-1]
+    if TAG_PIPELINE_NOT_RE2.search(body):
+        return None
+    flags = (re.IGNORECASE if "i" in match.group(3) else 0) | (re.MULTILINE if "m" in match.group(3) else 0) | \
+        (re.DOTALL if "s" in match.group(3) else 0)
+    try:
+        found = re.search(body, "", flags) is not None
+    except (re.error, OverflowError, RecursionError):
+        return None
+    return found if match.group(1) == "=~" else not found
 
 
 def tag_pipeline_can_match(item):
     """Whether a rule (an item of a rules list, as rule_items reads it) can match in a
     pipeline of a v* tag: its if: read with condition_tree (parsed_rule),
-    its clauses on the tag and the branch decided as TAG_PIPELINE_CLAUSES says, every
-    other open clause tried both ways and the pipeline's kind (protected or not, each
-    source) every way; True as well for no condition, for one this does not read, and
-    for one with more open clauses than MOST_OPEN_CLAUSES. Read from the condition's
-    parse, not its text, so that $CI_COMMIT_BRANCH == null, which a tag's pipeline
-    meets, a branch compared with a variable that may be unset, and the text
-    $CI_COMMIT_TAG !~ /^v/ inside a quoted string are each a rule a tag can match."""
+    its clauses on the tag and the branch decided as TAG_PIPELINE_CLAUSES says, the
+    branch matched against a pattern as the empty string (tag_pipeline_branch_match),
+    every other open clause tried both ways and the pipeline's kind (protected or not,
+    each source) every way; True as well for no condition, for one this does not read,
+    and for one with more open clauses than MOST_OPEN_CLAUSES. Read from the
+    condition's parse, not its text, so that $CI_COMMIT_BRANCH == null and
+    $CI_COMMIT_BRANCH =~ /.*/, which a tag's pipeline meets, a branch compared with a
+    variable that may be unset, and the text $CI_COMMIT_TAG !~ /^v/ inside a quoted
+    string are each a rule a tag can match."""
     try:
         tree = parsed_rule(item, "a rule of the release chain")["if"]
     except ValueError:
@@ -3600,6 +3956,10 @@ def tag_pipeline_can_match(item):
             if pattern.match(clause):
                 fixed[clause] = value
                 break
+        else:
+            value = tag_pipeline_branch_match(clause)
+            if value is not None:
+                fixed[clause] = value
     free = [clause for clause in clauses if clause not in fixed]
     if len(free) > MOST_OPEN_CLAUSES:
         return True
@@ -3821,6 +4181,7 @@ def check(texts, chain, feed):
 
     # The packages a release carries from the package jobs: built, described and
     # installed before release starts, and collected from where their build leaves them.
+    problems.extend(chain_script_digest_problems(texts))
     release_entries = need_entries(jobs["release"])
     for platform, job in sorted(CARRIED_PACKAGES.items()):
         found = blocks(texts[job["file"]])
@@ -4607,7 +4968,7 @@ def check(texts, chain, feed):
             deciding = [c for c in template_order(name, everything) if re.search(r"^  rules:", everything[c], re.MULTILINE)]
             for item in rule_items(everything[deciding[0]], everything) if deciding else []:
                 condition = re.match(r"if:\s*(.+)", item.strip())
-                if re.search(r"^\s*when:\s*manual\s*$", item, re.MULTILINE) and (
+                if any(escape_line(line, "") == "when" for line in item.split("\n")) and (
                         not condition or "$CI_COMMIT_BRANCH !~ /^batch/" not in condition.group(1) or "||" in condition.group(1)):
                     problems.append("%s waits for a press on a batch* branch (%s), where the release is rehearsed: the "
                                     "rehearsal would wait for it" % (name, condition.group(1) if condition else item.strip()))
@@ -12591,6 +12952,142 @@ def self_test(chain, feed):
     if package_install_digest_problems(texts["package-install"], texts.get("package-licenses")):
         failures.append("the tree's linux-package-install.sh passes the rules on it: %s" %
                         package_install_digest_problems(texts["package-install"], texts.get("package-licenses")))
+
+    # allow_failure in a rule whose if: matches the branch against a pattern that matches
+    # the empty string, as GitLab matches a tag's unset branch: $CI_COMMIT_BRANCH =~ /.*/
+    # and =~ /^$/ as the first rule of container-image-sbom (container-image.yml, not a
+    # gate file) and of .release-rules. Each passed the checker at ba4137d8bd and after.
+    # And a pattern that cannot match the empty string still makes a rule no tag matches.
+    for what, condition, caught in (
+            ("the branch =~ /.*/", "$CI_COMMIT_BRANCH =~ /.*/ && " + push, True),
+            ("the branch =~ /^$/", "$CI_COMMIT_BRANCH =~ /^$/ && " + push, True),
+            ("the branch =~ /a|/", "$CI_COMMIT_BRANCH =~ /a|/ && " + push, True),
+            ("the branch =~ /.*/i", "$CI_COMMIT_BRANCH =~ /.*/i && " + push, True),
+            ("the branch =~ /^batch/", "$CI_COMMIT_BRANCH =~ /^batch/ && " + push, False)):
+        if sbom_rules_at < 0 or tag_rule not in texts["ci"]:
+            failures.append("allow_failure with %s: container-image-sbom's rules or .release-rules' tag rule are not in the tree"
+                            % what)
+            break
+        rule = "    - if: %s\n      allow_failure: true\n" % condition
+        for where, copy in (
+                ("container-image-sbom", dict(texts, image=texts["image"][:sbom_rules_at] + "  rules:\n" + rule +
+                                                "    - !reference [.release-rules, rules]\n" +
+                                                texts["image"][sbom_rules_at + len(sbom_rules):])),
+                (".release-rules", dict(texts, ci=texts["ci"].replace(tag_rule, rule + tag_rule, 1)))):
+            found, _ = check(copy, chain, feed)
+            said = [p for p in found if "takes a rule of %s's" % where in p and "that a v* tag can match" in p]
+            if bool(said) != caught:
+                failures.append("allow_failure: true in %s's rule with %s is %s: %s" % (
+                    where, what, "caught" if caught else "let pass", said or found))
+
+    # allow_failure and when: manual on the jobs release waits for, as GitLab's YAML
+    # reader reads them (tag_escapes, escape_line): yes, on and True, a comment after
+    # true, and when: manual with a comment after it, on the arm64 .deb's install job, the
+    # aarch64 .rpm's, the install template, an install job release-packages waits for and
+    # build-inputs-authenticode; and allow_failure: yes in a rule a tag matches of the
+    # install jobs' rules. Each passed the checker at ba4137d8bd and after.
+    install = "deb-ubuntu26.04-arm64-install:\n  extends: [.deb-install-arm64, .deb-image-ubuntu26.04-arm64]\n"
+    rpm_install = "rpm-fedora44-aarch64-install:\n  extends: [.rpm-install-aarch64, .rpm-image-fedora44-aarch64]\n"
+    deb12_install = "deb-debian12-amd64-install:\n  extends: [.deb-install, .deb-image-debian12-amd64]\n"
+    build_inputs = BUILD_INPUTS_JOB + ":\n  extends: .own-runners\n"
+    escaped = "deb-ubuntu26.04-arm64-install can let release start in a v* tag's pipeline without its having passed ("
+    for what, key, old, new, needle in (
+            ("the install job allow_failure: yes", "packages-deb", install, install + "  allow_failure: yes\n",
+             escaped + "deb-ubuntu26.04-arm64-install says allow_failure: yes)"),
+            ("the install job allow_failure: on", "packages-deb", install, install + "  allow_failure: on\n",
+             escaped + "deb-ubuntu26.04-arm64-install says allow_failure: on)"),
+            ("the install job allow_failure: True", "packages-deb", install, install + "  allow_failure: True\n",
+             escaped + "deb-ubuntu26.04-arm64-install says allow_failure: True)"),
+            ("the install job allow_failure: true with a comment", "packages-deb", install,
+             install + "  allow_failure: true  # a note\n", escaped + "deb-ubuntu26.04-arm64-install says allow_failure: true"),
+            ("the install job when: manual with a comment", "packages-deb", install, install + "  when: manual  # a note\n",
+             escaped + "deb-ubuntu26.04-arm64-install says when: manual"),
+            ("the aarch64 .rpm's install job allow_failure: yes", "packages-rpm", rpm_install,
+             rpm_install + "  allow_failure: yes\n", "rpm-fedora44-aarch64-install can let release start in a v* tag's pipeline "
+             "without its having passed (rpm-fedora44-aarch64-install says allow_failure: yes)"),
+            ("the arm64 install template allow_failure: yes", "packages-deb", ".deb-install-arm64:\n  extends: .deb-install\n",
+             ".deb-install-arm64:\n  extends: .deb-install\n  allow_failure: yes\n", escaped + ".deb-install-arm64 says allow_failure: yes)"),
+            ("an install job release-packages waits for allow_failure: yes", "packages-deb", deb12_install,
+             deb12_install + "  allow_failure: yes\n", "deb-debian12-amd64-install can let release start in a v* tag's pipeline "
+             "without its having passed (deb-debian12-amd64-install says allow_failure: yes)"),
+            ("build-inputs-authenticode allow_failure: yes", "packages-windows", build_inputs, build_inputs + "  allow_failure: yes\n",
+             "build-inputs-authenticode can let a build start without its having passed (build-inputs-authenticode says "
+             "allow_failure: yes)"),
+            ("allow_failure: yes in a rule of the install jobs' a tag matches", "packages-deb",
+             ".deb-install-rules:\n  rules:\n    - !reference [.own-runners, rules]\n",
+             ".deb-install-rules:\n  rules:\n    - if: " + push + "\n      allow_failure: yes\n"
+             "    - !reference [.own-runners, rules]\n", "makes it allowed to fail): release would carry")):
+        broken(what, key, old, new, needle)
+
+    # The scripts that sign and verify the release and the image, held whole
+    # (CHAIN_SCRIPT_SHA256): an exit 0 after each one's set line, and a second signature
+    # of another digest beside container-image-sign.sh's own. Each passed the checker at
+    # ba4137d8bd and after.
+    for what, key, old, new in (
+            ("an exit 0 after container-image-sign.sh's set -eu", "image-sign", "\nset -eu\n", "\nset -eu\nexit 0\n"),
+            ("a second signature of another digest", "image-sign", '\nsign index "$index"\n',
+             '\nsign index "$index"\nsign index "${repository}@sha256:' + "ab" * 32 + '"\n'),
+            ("an exit 0 after release-sign.sh's set -eu", "sign", "\nset -eu\n", "\nset -eu\nexit 0\n"),
+            ("an exit 0 after release-verify.sh's set -uo pipefail", "verify", "\nset -uo pipefail\n",
+             "\nset -uo pipefail\nexit 0\n"),
+            ("an exit 0 after container-image-push.sh's set -eu", "image-push", "\nset -eu\n", "\nset -eu\nexit 0\n")):
+        broken(what, key, old, new, "%s is not the script build/check-release-chain.py holds" % FILES[key].replace(os.sep, "/"))
+    if chain_script_digest_problems(texts):
+        failures.append("the tree's signing and verifying scripts are the ones held: %s" % chain_script_digest_problems(texts))
+
+    # SLSA: a level claimed in a unit that does not name SLSA - a paragraph indented under
+    # SECURITY.md's provenance item after its fenced blocks, one in the CI page's
+    # paragraph on what holds the documents, a new item of SECURITY.md's list, a table's
+    # row under a header that names nothing, a paragraph of EvidencePack's own and one
+    # after an HTML heading -, and the name written so that it reads SLSA and is not the
+    # word: a link inside it, its letters dotted, spaced or hyphenated, the long name's
+    # Level singular, and the right-to-left override before it written backwards. Each
+    # passed the checker at ba4137d8bd and after, the list and the tripwire alike.
+    holds = "**What holds the documents to that level.** `build/check-release-chain.py`"
+    rtl = chr(0x202E) + "ASLS" + chr(0x202C)
+    for what, name, old, new, needle in (
+            ("a paragraph indented under SECURITY.md's provenance item", "SECURITY.md", "\n- **Authenticode.**",
+             "\n  From 6.3.8 the provenance meets L3.\n\n- **Authenticode.**", "SECURITY.md says 'From 6.3.8 the provenance meets L3.'"),
+            ("the third level in the CI page's paragraph on the list", "hmailserver/docs/ContinuousIntegration.md", holds,
+             "**What holds the documents to that level.** From 6.3.8 the provenance meets the framework's third level. "
+             "`build/check-release-chain.py`", "hmailserver/docs/ContinuousIntegration.md says \"**What holds the documents to "
+             "that level.** From 6.3.8 the provenance meets the framework's third level.\""),
+            ("a new item of SECURITY.md's list", "SECURITY.md", "\n- **Authenticode.**",
+             "\n- **Its level.** From 6.3.8 the provenance meets the third level.\n- **Authenticode.**",
+             "SECURITY.md says '- **Its level.** From 6.3.8 the provenance meets the third level.'"),
+            ("a table's row under a header that names nothing", "README.md", None,
+             "\n\n| What | Level |\n| --- | --- |\n| Provenance | L3 |\n", "README.md says '| Provenance | L3 |'"),
+            ("a paragraph of EvidencePack's own", "hmailserver/docs/EvidencePack.md", None,
+             "\n\nFrom 6.3.8 the provenance meets L3 for every file it names.\n",
+             "hmailserver/docs/EvidencePack.md says 'From 6.3.8 the provenance meets L3 for every file it names.'"),
+            ("a paragraph after an HTML heading", "README.md", None,
+             "\n\n<h2>Provenance</h2>\n\nThe provenance meets level 3 from 6.3.8.\n",
+             "README.md says 'The provenance meets level 3 from 6.3.8.'"),
+            ("a link inside the name", "README.md", None, "\n\nOur [SL](https://example.com)SA level is 3.\n",
+             "README.md says 'Our [SL](https://example.com)SA level is 3.'"),
+            ("the name's letters dotted", "README.md", None, "\n\nOur S.L.S.A. rating is three.\n",
+             "README.md says 'Our S.L.S.A. rating is three.'"),
+            ("the name's letters spaced", "README.md", None, "\n\nOur S L S A rating is three.\n",
+             "README.md says 'Our S L S A rating is three.'"),
+            ("the name hyphenated", "README.md", None, "\n\nOur SL-SA rating is three.\n", "README.md says 'Our SL-SA rating is three.'"),
+            ("the long name's Level singular", "README.md", None,
+             "\n\nWe meet the top of the Supply-chain Level for Software Artifacts.\n",
+             "README.md says 'We meet the top of the Supply-chain Level for Software Artifacts.'"),
+            ("the right-to-left override before the name written backwards", "README.md", None,
+             "\n\nOur %s rating is three.\n" % rtl, "README.md holds the bidirectional control U+202E")):
+        docs = dict(texts["slsa-docs"])
+        if old is not None and old not in docs.get(name, ""):
+            failures.append("%s: the text to break is not in %s" % (what, name))
+            continue
+        docs[name] = docs.get(name, "") + new if old is None else docs[name].replace(old, new, 1)
+        if not any(p.startswith(needle) for p in slsa_sentence_problems(docs)):
+            failures.append("%s is caught: %s" % (what, slsa_sentence_problems(docs)))
+    # And the tripwire reads a link's text in place and the letters hyphenated as the name.
+    for what, planted in (("a link inside the name", "Our [SL](https://example.com)SA L3 provenance."),
+                          ("the name hyphenated", "Our SL-SA L3 provenance.")):
+        docs = dict(texts["slsa-docs"], **{"README.md": texts["slsa-docs"].get("README.md", "") + "\n\n" + planted + "\n"})
+        if not any("README.md claims an SLSA level above Build L1" in p for p in slsa_level_problems(docs)):
+            failures.append("%s is caught by the tripwire: %s" % (what, slsa_level_problems(docs)))
 
     for failure in failures:
         print("FAILED: " + failure)

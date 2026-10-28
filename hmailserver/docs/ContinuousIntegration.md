@@ -1387,9 +1387,10 @@ Python and PowerShell ones, the CI files and the rest of its `FILES` - holds a
 control byte but a tab and a line feed (DEL among them), a carriage return in a
 shell script, or one not right before a line feed in any other, since bash and
 busybox sh drop a NUL from the line they run, so that `e`, a NUL and `xit 0` is
-`exit 0` to them and passed every line the checker reads, and a NUL early in a
-file makes git and `build/check-control-bytes.py` take it for binary and show
-or read none of it; and
+`exit 0` to them and passed every line the checker reads (as a plain `exit 0`
+did in the four scripts that sign and verify, which their digests now hold), and
+a NUL early in a file makes git and `build/check-control-bytes.py` take it for
+binary and show or read none of it; and
 when a Python script of `GATE_FILES` imports anything but `os` and `sys` before
 it takes its own directory off its module path (`PATH_GUARD`). Each of those
 has a case in its self-test that must fail.
@@ -3632,9 +3633,12 @@ failed. `build/check-release-chain.py` fails when a job of `.gitlab-ci.yml`
 that can fail is not among its needs, or one that builds, describes, installs
 or tests a file the release carries (through `release-packages` for the
 gathered ones, and every job those wait for), when one of them may fail or
-waits for a press in a tag's pipeline (`allow_failure: true` or `when:
-manual`), since `release` would start after it failed, and when any job needs
-more than fifty. `release-publish` waits for
+waits for a press in a tag's pipeline (`allow_failure` with any value but
+`false`, `no` or `off` - `true`, `yes`, `on`, `True`, a mapping with
+`exit_codes` - or `when: manual`, each read as GitLab's YAML reader reads it,
+quoted or plain and with a comment after it taken off, so that `allow_failure:
+true  # a note` is the `true` it is), since `release` would start after it
+failed, and when any job needs more than fifty. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with
@@ -3665,10 +3669,13 @@ start test failed and `release-publish` be offered after a failed verification
 - a rule a tag cannot match is one whose `if:`, read as an expression with the
 tag set, the branch unset and every other clause either way, is false in every
 kind of pipeline (`tag_pipeline_can_match`): a tag's pipeline has no branch, so
-`$CI_COMMIT_BRANCH == "master"`, `=~` a pattern and `== $CI_DEFAULT_BRANCH` are
-false there, but `$CI_COMMIT_BRANCH == null` and the branch compared with a
-variable that may be unset are true, and `$CI_COMMIT_TAG !~ /^v/` inside a
-quoted string is a string, not the clause. `needs: []` in
+`$CI_COMMIT_BRANCH == "master"`, `== ""` and `== $CI_DEFAULT_BRANCH` are false
+there, but `$CI_COMMIT_BRANCH == null` and the branch compared with a variable
+that may be unset are true; GitLab matches the unset branch against a pattern
+as the empty string, so `=~` a pattern that can match it (`/.*/`, `/^$/`,
+`/a|/`) is true there and `=~ /^batch/` false, as GitLab's CI lint of 28
+October 2026 made them for the ref `v6.3.7`; and `$CI_COMMIT_TAG !~ /^v/`
+inside a quoted string is a string, not the clause. `needs: []` in
 `.release-rules`' tag rule would have started `release-sign` before
 `release-authenticode` had signed, and only the container scans' own rule on
 `rules:needs` refused it, for the scans alone. And each job of the chain, and
@@ -3686,6 +3693,23 @@ through as those lines and no other (`CHAIN_SECOND_DEFINITIONS`).
 `extends`: GitLab unpacks them over the sign job's checkout, where
 `build/ci/container-image-sign.sh` is, and gives a dotenv report's variables
 over the job's.
+
+**What signs and verifies, held whole.** `build/ci/release-sign.sh`,
+`build/ci/release-verify.sh`, `build/ci/container-image-sign.sh` and
+`build/ci/container-image-push.sh` are each held by the SHA-256 of their text
+with its line ends LF (`CHAIN_SCRIPT_SHA256` in `build/check-release-chain.py`),
+as the start test and the package start script are. The checker's other rules
+on them read lines - the identity, cosign's flags, the files counted, the
+tags moved -, and an `exit 0` after a script's `set` line, or a second `sign
+index` of another digest beside `container-image-sign.sh`'s own, kept every
+one of those lines: `container-image-sign` would have ended green having signed
+nothing, or signed another image with the tag pipeline's identity, a signature
+users take for the release's. Whoever changes one of them reads the change
+whole, runs `python build/check-release-chain.py`, whose failure prints the
+script's new digest, puts it in `CHAIN_SCRIPT_SHA256` in the same commit and
+lands it with `--gates-read`: the four changed in 22 commits from 26 September
+to 20 October 2026 and in none since, a one-line change to the checker each
+time.
 
 **What the package start jobs take, and their script.** The two start jobs
 (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`) write `extends`,
@@ -3894,16 +3918,27 @@ SECURITY.md, RELEASE.md, ASSURANCE-CASE.md or a page of `hmailserver/docs`
 names a higher level without a negation attached to it or affirms one - a
 tripwire over wordings, which three claims passed. So it also holds those
 documents' sentences by a list. It reads them in units - a paragraph, a list
-item with the items under it, a heading, a table's row, a line of a fenced
-block or a badge's line - and holds a unit whole when it names the framework
-at all, in either spelling of its long name, or a level in the framework's own
-form, the framework's own term for its levels (with or without a number) or
-its badge: as the unit reads, too, with its character references and
-percent-encoding decoded, every character that shows as nothing (a zero-width
-or other default-ignorable one, a variation selector, a combining mark) and
-emphasis inside the name taken out, and a letter of another script that
+item with the items, lines, paragraphs and fenced blocks indented under it (a
+fenced block does not end the item it is indented under), a heading, a table's
+row, a line of a fenced block or a badge's line - and holds a unit whole when
+it names the framework at all, in either spelling of its long name, `Level` or
+`Levels`, or a level in any form, whatever it is said of: `L` and a figure,
+`level` and a figure, its word or its Roman figure, or an ordinal or a
+superlative before `level`, so that a paragraph that says the provenance meets
+a level and names nothing else, or a table's row under a header that does not
+name the framework, is held, and a heading's level or another standard's is
+listed with the rest. It also holds the framework's own term for its levels
+(with or without a number) and its badge, each as the unit reads, too: with
+its character references and percent-encoding decoded, a link read as its
+text, every character that shows as nothing (a zero-width or other
+default-ignorable one, a variation selector, a combining mark) and emphasis
+inside the name taken out, the name's letters with spaces, dots, hyphens or
+underscores between them read as the name, and a letter of another script that
 Unicode's confusables table gives as one of the name's, or a variant of a
-Latin letter, read as that letter. It holds every unit under a heading that
+Latin letter, read as that letter. None of these documents may hold a
+bidirectional embedding, override or isolate (`SLSA_BIDI`), which shows a text
+in another order than it is written, so that an override before the name
+written backwards shows the name. It holds every unit under a heading that
 names the framework too, up to the next heading of that heading's level or
 above, and every row of a table whose header row names it. Every sentence of a
 unit it holds must be one of `SLSA_SENTENCES`, the sentences the checker lists

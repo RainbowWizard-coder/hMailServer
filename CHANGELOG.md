@@ -3157,7 +3157,14 @@ with `--check`).
   with `allow_failure: true` in the first rule of `container-image-sbom` - in `container-image.yml`, which is not a
   gate file, and whose failure `container-image-sign` would then sign past - or of `.release-rules`; GitLab's CI
   lint, run dry for the tag `v6.3.7`, made a job of each of those three rules, allowed to fail, and none of a rule
-  of the default branch, which still passes. And each job of the chain,
+  of the default branch, which still passes. A second reading took `$CI_COMMIT_BRANCH =~` any pattern for false in a
+  tag's pipeline, where GitLab matches the unset branch against a pattern as the empty string, and passed `=~
+  /.*/`, `=~ /^$/`, `=~ /a|/` and `=~ /.*/i` with `allow_failure: true` in the same two places (in `.release-rules`
+  it makes the release's jobs and the image's allowed to fail); the same lint made a job
+  of `=~ /.*/` and of `=~ /^$/`, allowed to fail, and none of `=~ /xy/` or `== ""`. The clause is now read as
+  GitLab reads it, against the empty string (`tag_pipeline_branch_match`, with Python's `re` standing in for RE2
+  and a pattern it reads otherwise, a look-around or a back-reference, tried either way), and `=~ /^batch/` still
+  makes a rule no tag matches. And each job of the chain,
   and every block it reaches by `extends` or `!reference`, is defined once in the CI files
   (`chain_definition_problems`): the check read the first definition of each, where GitLab merges a second one
   in any included file into the job, keeping every key the first does not set, so that `release-sign:` with
@@ -3165,6 +3172,34 @@ with `--check`).
   `.gitlab/ci/snap.yml`, which is not a gate file, passed it, and so did the package jobs of the chain defined
   again with their tags and rules copied. The tree's one second definition, `pages: false` in
   `.gitlab/ci/package-repos.yml`, is let through as that line alone.
+- **The jobs `release` waits for are read for `allow_failure` and `when: manual` as GitLab reads them.** The check
+  held each job a release, a build or `release-packages` waits for - the package builds, SBOMs, install and start
+  jobs a release carries from, every job `release-packages` waits for, `build-inputs-authenticode`, the ARM64
+  installer and the chart - against being allowed to fail or manual by the text `allow_failure: true` or `when:
+  manual` alone, while GitLab's YAML reader reads more: `allow_failure: yes`, `on` or `True`, `allow_failure: true`
+  with a comment after it and `when: manual` with a comment after it (a manual job allowed to fail, which `release`
+  starts without) each passed on `deb-ubuntu26.04-arm64-install`, `rpm-fedora44-aarch64-install`, the
+  `.deb-install-arm64` template, `deb-debian12-amd64-install` and `build-inputs-authenticode`, in files that are
+  not gate files, and GitLab's CI lint, run dry for `v6.3.7`, made each such job allowed to fail. Each value is now
+  read as GitLab reads it, quoted or plain and with a comment after it taken off: `allow_failure` with any value but
+  `false`, `no` or `off`, in any case, or a mapping below it, and `when: manual`, in the job, a template it extends
+  or a rule a tag can match, fail the check (`tag_escapes`, `escape_line`), and a rule is one no tag matches only
+  when `tag_pipeline_can_match` finds so too, not by the text `$CI_COMMIT_TAG !~ /^v/` alone. The rehearsal's rule
+  on a press on a `batch*` branch reads `when: manual` the same way. ContinuousIntegration.md says so.
+- **What signs and verifies the release and the image is held whole.** `build/ci/release-sign.sh`,
+  `build/ci/release-verify.sh`, `build/ci/container-image-sign.sh` and `build/ci/container-image-push.sh`, none of
+  them a gate file, were held by the lines the check reads - the identity, cosign's flags, the files counted, the
+  tags moved -, and an `exit 0` after each one's `set` line passed, as did a second `sign index` of another digest
+  beside `container-image-sign.sh`'s own, which would have signed another image with the tag pipeline's identity,
+  a signature users take for the release's, or ended `container-image-sign` green having signed nothing. Each is
+  now held by the SHA-256 of its text with its line ends LF (`CHAIN_SCRIPT_SHA256`), as the image's start test and
+  the package start script are, so a change to one fails the check, printing the new digest, until the digest in
+  the check changes with it - a gate change, landed only with `--gates-read`. The four changed in 22 commits from
+  26 September to 20 October 2026, a one-line change to the check each time. Whoever changes one reads the change
+  whole, runs the check, puts the digest it prints in `CHAIN_SCRIPT_SHA256` and lands with `--gates-read`;
+  ContinuousIntegration.md says so. A plain `exit 0` there passed the line scans as `e`, a NUL and `xit 0` did:
+  the digest is what holds an early exit in these four, and the control-byte rule below what keeps git and
+  `build/check-control-bytes.py` reading them, and every file the check reads, as text.
 - **No CI file writes what GitLab takes from its top level as `default:`'s.** GitLab still reads `before_script`,
   `after_script`, `image`, `services` and `cache` written at the top level of any CI file, an included one too, as
   `default:`'s (its globally-defined keywords, deprecated) and gives them every job that sets none of its own; the
@@ -3244,16 +3279,19 @@ with `--check`).
   README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and the pages of `hmailserver/docs` refuses a higher level named
   without a negation attached to it or affirmed, and "Our SLSA level is 3.", "SLSA compliance level: 3" and "It
   cannot be said that Build L2 is not met." each passed it. Rather than more patterns, the documents are read in
-  units of a paragraph, a list item with the items under it, a heading, a table's row, a line of a fenced block or
-  a badge's line, and every sentence of a unit that names SLSA at all, not only the sentence that names it - as it
-  reads, too, with character references and percent-encoding decoded, every default-ignorable character, combining
-  mark and format character dropped (a zero-width space, a variation selector, a combining grapheme joiner),
-  emphasis taken out, a letter Unicode's confusables table (UTS #39, version 18.0.0) gives as one of the name's read
-  as it (a Cyrillic A, the Lisu letters) and a Latin variant by its name (a small capital L) -, in either spelling
-  of its long name (Artifacts, Artefacts), a level in SLSA's own form (Build L2, SLSA3), a Build level or the build
-  track with or without a number, or the slsa.dev badge; every sentence of every unit under a heading that names
-  SLSA, up to the next heading of its level or above; and every row of a table whose header row names it, must now
-  be one of `SLSA_SENTENCES`, which lists the tree's 70 as the documents have them, with their white space as one
+  units of a paragraph, a list item with the items, lines, paragraphs and fenced blocks indented under it, a
+  heading, a table's row, a line of a fenced block or a badge's line, and every sentence of a unit that names SLSA
+  at all, not only the sentence that names it - as it reads, too, with character references and percent-encoding
+  decoded, a link read as its text, every default-ignorable character, combining mark and format character dropped
+  (a zero-width space, a variation selector, a combining grapheme joiner), emphasis taken out, the name's letters
+  with spaces, dots, hyphens or underscores between them read as the name, a letter Unicode's confusables table
+  (UTS #39, version 18.0.0) gives as one of the name's read as it (a Cyrillic A, the Lisu letters) and a Latin
+  variant by its name (a small capital L) -, in either spelling of its long name (Artifacts, Artefacts; Level,
+  Levels), a level in any form, whatever it is said of (L1 to L4, level 1 to 4 in figures, words or Roman figures,
+  an ordinal or a superlative before level: `SLSA_ANY_LEVEL`), a Build level or the build track with or without a
+  number, or the slsa.dev badge; every sentence of every unit under a heading that names SLSA, up to the next
+  heading of its level or above; and every row of a table whose header row names it, must now be one of
+  `SLSA_SENTENCES`, which lists the tree's 129 as the documents have them, with their white space as one
   space (`slsa_names`, `slsa_sentences`, `slsa_sentence_problems`): a sentence added or reworded fails, given whole
   as the check reads
   it, until it has been read against the specification (SECURITY.md, "Build provenance") and added, and a listed
@@ -3265,8 +3303,21 @@ with `--check`).
   "From 6.3.8 the releases meet the highest Build level." after SECURITY.md's listed sentence on the level, a
   second paragraph under "## SLSA", a data row under "| Release | SLSA Build level |", and the name with a
   variation selector or a combining grapheme joiner in it, in Lisu letters, with a small capital L, spelt
-  Artefacts or percent-encoded in a badge's label; each is refused. The tripwire reads each sentence as it reads
-  as well, so that a badge of SLSA L3 whose label is percent-encoded is refused by it too.
+  Artefacts or percent-encoded in a badge's label; and a third, which held a unit only when it named SLSA and ended
+  a list item at a fenced block indented under it, passed "From 6.3.8 the provenance meets L3." indented under
+  SECURITY.md's provenance item after its fenced blocks, in a paragraph of its own on the CI page or in
+  EvidencePack.md, "From 6.3.8 the provenance meets the framework's third level." in the CI page's paragraph on
+  what holds the documents, a new item of SECURITY.md's list, "| Provenance | L3 |" under a header that names
+  nothing, and the name as `[SL](https://example.com)SA`, S.L.S.A., S L S A, SL-SA or "Supply-chain Level for
+  Software Artifacts"; each is refused. So the list now holds the sentences of SECURITY.md's provenance item after
+  its fenced blocks and of the CI page's paragraph on what holds the documents, and, a level's word being read
+  wherever it is said, a heading's level in ControlPanelDesign.md and Help.md, Autocrypt's Level 1, a blocklist's
+  Level 1, `_FORTIFY_SOURCE`'s level and SECURITY.md's error-level findings: 60 sentences more, each read and
+  listed. No such document may hold a
+  bidirectional embedding, override or isolate (U+202A to U+202E, U+2066 to U+2069: `SLSA_BIDI`), which shows a
+  text in another order than it is written, so that an override before ASLS showed SLSA and was read as ASLS. The
+  tripwire reads each sentence as it reads as well, so that a badge of SLSA L3 whose label is percent-encoded, a
+  link inside the name and the name hyphenated before L3 are refused by it too.
   Whoever writes or rewords such a sentence copies it from the failure into `SLSA_SENTENCES`, takes out the one it
   replaced and lands the change with `--gates-read`; ContinuousIntegration.md says so. The tripwire stays.
 - **The release-chain check's rules on the documents' whole text run once for each set of texts.** Each run of
