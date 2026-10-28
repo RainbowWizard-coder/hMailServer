@@ -582,6 +582,21 @@ add_executable(workqueue-teardown-tests ${SERVER_DIR}/platform/workqueue_teardow
 target_link_libraries(workqueue-teardown-tests PRIVATE hmailserver_core)
 set_target_properties(workqueue-teardown-tests PROPERTIES OUTPUT_NAME workqueue-teardown-tests)
 
+# ---------------------------------------------------------------- the notification server's lifetime
+#
+# An IMAP session's subscription to the notification server given back with the
+# servers not running - the state a session ends in when a queue a stop gave up
+# on keeps its I/O service until after the stop - as a program of its own, for
+# the reason spf-tests is one: on Windows NotificationServerLifetimeTester
+# (Common/Application/Application.h), which this program runs, runs inside the
+# service through ClassTester, which nothing reaches here, with a round across a
+# stop and a start that needs a running server. No database, configuration (but
+# a scratch directory of its own) or network. Well under a second. Not
+# installed; a bench tool.
+add_executable(notification-server-tests ${SERVER_DIR}/platform/notification_server_tests_main.cpp)
+target_link_libraries(notification-server-tests PRIVATE hmailserver_core)
+set_target_properties(notification-server-tests PROPERTIES OUTPUT_NAME notification-server-tests)
+
 # ---------------------------------------------------------------- the backup index's XML
 #
 # XmlTreeTester (Common/Util/XmlTreeTester.h) as a program of its own, for the

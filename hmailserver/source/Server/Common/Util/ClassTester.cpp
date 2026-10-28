@@ -1072,6 +1072,17 @@ namespace HM
       IOServiceLifetimeTester ioServiceLifetimeTester;
       ioServiceLifetimeTester.Test();
 
+      // An IMAP session's subscription to the notification server given back with
+      // the servers stopped, as a session the I/O service kept above gives it back
+      // when that service is freed after the stop, and a session subscribed before
+      // a stop that ends after the start: the notification server lives as long as
+      // the process, and the newer session's subscription is not the one given
+      // back. It stops and starts the servers. notification-server-tests runs the
+      // part that needs no running server on Linux.
+      OutputDebugString(_T("hMailServer: Testing a session's subscription given back after a stop of the servers\n"));
+      NotificationServerLifetimeTester notificationServerLifetimeTester;
+      notificationServerLifetimeTester.Test();
+
       // The close before the process ends (Application::ShutDown), over a
       // manager of the test's own with stand-in connections: an idle one is
       // closed at once and one in use only when it is handed back, nothing is

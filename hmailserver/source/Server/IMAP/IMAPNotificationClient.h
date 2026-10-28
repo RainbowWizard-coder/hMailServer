@@ -41,6 +41,10 @@ namespace HM
 
    private:
 
+      // Reads the subscription's key, to subscribe another client until the
+      // notification server hands that key out again (Application.h).
+      friend class NotificationServerLifetimeTester;
+
       // Takes, for this session, the \Recent of the messages that just arrived.
       static void ClaimRecentMessages_(std::shared_ptr<IMAPConnection> connection, std::shared_ptr<Messages> pMessages);
 

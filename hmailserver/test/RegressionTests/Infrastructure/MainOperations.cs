@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2010 Martin Knafve / hMailServer.com.
 
+using hMailServer;
 using NUnit.Framework;
 using RegressionTests.Shared;
 
@@ -14,7 +15,8 @@ namespace RegressionTests.Infrastructure
       [SetUp]
       public void Setup()
       {
-         SingletonProvider<TestSetup>.Instance.PerformBasicSetup();
+         // The domain the base class's setup made is made again here: the one to add to.
+         _domain = SingletonProvider<TestSetup>.Instance.PerformBasicSetup();
       }
 
       [Test]
@@ -27,6 +29,29 @@ namespace RegressionTests.Infrastructure
 
             application.Start();
          }
+      }
+
+      [Test]
+      [Description("A message saved into an IMAP folder through COM with the servers stopped is stored and the call succeeds. Saving tells the notification server, which IMAP sessions subscribe to; until 6.3.8 the stop let go of it, so that the save stored the message and then read through a null pointer, and the call answered an error for a message it had kept.")]
+      public void AMessageSavedIntoAFolderWithTheServersStoppedIsSavedWithoutAnError()
+      {
+         var application = SingletonProvider<TestSetup>.Instance.GetApp();
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "stopped-save@example.test", "test");
+         var inbox = account.IMAPFolders.get_ItemByName("INBOX");
+
+         application.Stop();
+         try
+         {
+            var message = inbox.Messages.Add();
+            message.set_Flag(eMessageFlag.eMFSeen, true);
+            message.Save();
+         }
+         finally
+         {
+            application.Start();
+         }
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
       }
 
       [Test]

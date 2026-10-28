@@ -706,6 +706,29 @@ with `--check`).
   parser takes; `--set name=NaN` is now the string `NaN`, and a finite number stays a number, with a `check-cli.py`
   case for each. The `RestApiRequestBodies` fixtures hold the refusals and the readings on Windows and on Linux.
 
+- **Fixed: an IMAP session that ended after a stop of the servers had returned faulted as it gave back its folder's
+  subscription, which on Linux ended the process.** A stop that gives up on a thread still in a task it cannot
+  interrupt within ten seconds - a message's finalisation waiting on a scanner, a slow reverse lookup, an event
+  script on a listener - keeps that thread's queue, and with it the I/O service the open sessions' connections are
+  on, until the thread has left, and the sessions end when the queue is freed: at the next start, whose first new
+  queue frees it, or as the process ends, when the removal of the maintenance queue does. The stop had already let
+  go of the notification server those sessions subscribe to, and the start made the next one only after that point,
+  so a session with a folder selected unsubscribed through a null pointer: on Windows an access violation the
+  session's own handler took, reported as HM4308 (`MailboxChangeNotifier::Unsubscribe`), on Linux a SIGSEGV in the
+  middle of a reinitialise (`systemctl reload`, SIGHUP, the Control Panel's or the REST API's) or of a stop. A
+  session that lived through a stop and the start after it gave its key back to the new notification server,
+  whose keys had begun again at 1, and could take away the subscription of a session that had selected the same
+  folder after the start, which then heard nothing of new mail - in IDLE too - until it selected the folder again.
+  And a change made through COM with the servers stopped - a message saved into an IMAP folder, one deleted through an
+  account's `Messages` - was made and then answered with an error, the same null pointer, so that a caller that took
+  the error at its word and saved the message again stored it twice. The notification server, and the folder manager beside it, which holds nothing, are
+  now made with the process and kept until it ends: a session that ends at any point of a stop or a start gives back
+  its own subscription and nobody else's, and a change made with the servers stopped tells nobody and succeeds.
+  `NotificationServerLifetimeTester` holds it inside the server on Windows (`ClassTester`), across a stop and a
+  start, and in `notification-server-tests` on Linux, with the servers not running; the regression suite saves a
+  message into a folder with the servers stopped. Found by a regression run in which a session a fixture had left
+  open ended when the internal tests freed a queue such a stop had kept.
+
 ### Downloads and the release
 
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record

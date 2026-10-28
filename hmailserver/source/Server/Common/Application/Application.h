@@ -463,6 +463,16 @@ namespace HM
 
       // The thread holding servers_mutex_, none while it is free.
       std::atomic<std::thread::id> servers_mutex_holder_{std::thread::id()};
+
+      // Both made by the constructor and never let go of until the process ends,
+      // so neither is ever null and neither is written while another thread reads
+      // it. What a session holds refers to the first: its subscription, which it
+      // gives back as it ends - and a session can end after a stop of the servers
+      // has returned, or during the next start, when a queue the stop gave up on
+      // is freed with the I/O service its connections are on. The subscription
+      // keys count up for the life of the process, so a session of one run that
+      // ends in the next gives back its own key and not one the new run has
+      // handed out again. The folder manager holds nothing at all.
       std::shared_ptr<NotificationServer> notification_server_;
       std::shared_ptr<IOService> io_service_;
       std::shared_ptr<FolderManager> folder_manager_;
@@ -574,5 +584,38 @@ namespace HM
 
       // The listener of that service on that address and port, if it has one.
       static std::shared_ptr<TCPServer> ListenerOn_(IOService &service, const IPAddress &address, int port);
+   };
+
+   // An IMAP session's subscription to the notification server, given back
+   // after a stop of the servers - as a session whose I/O service a queue the
+   // stop gave up on kept alive gives it back, when that queue is freed after
+   // the stop has returned (IOServiceLifetimeTester's first round frees one so).
+   // Through IMAPNotificationClient, the object a session holds, on an account
+   // id no account has:
+   //
+   //   - with the servers as they are: the notification server exists, a
+   //     subscriber is told of a change to its folder, and both a session's
+   //     unsubscribe and its client's end give it back;
+   //   - in a running server, across a stop and a start (on Windows, through
+   //     ClassTester): a session's unsubscribe and end with the servers
+   //     stopped, and a session subscribed before the stop that ends after the
+   //     start, which must give back its own subscription and not the one a
+   //     session subscribed after the start was given. Until 6.3.8 the stop let
+   //     go of the server and the start made a new one whose keys began again
+   //     at 1: the first read through a null pointer, and the second removed
+   //     the newer session's subscription when the keys met.
+   //
+   // notification-server-tests runs the first part on Linux, where the servers
+   // are not running. A second or two for the stop and the start. Throws
+   // std::logic_error naming everything that did not hold; the servers are
+   // started again whatever happened.
+   class NotificationServerLifetimeTester
+   {
+   public:
+      void Test();
+
+   private:
+      String TestWithTheServersAsTheyAre_();
+      String TestAcrossAStopAndAStart_();
    };
 }

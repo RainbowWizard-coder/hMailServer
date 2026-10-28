@@ -56,12 +56,14 @@
 #include "../../SMTP/IpWarmup.h"
 #include "../../IMAP/IMAPConfiguration.h"
 #include "../../IMAP/IMAPCommandAppend.h"
+#include "../../IMAP/IMAPNotificationClient.h"
 #include "../../ExternalFetcher/ExternalFetchManager.h"
 
 #include "../Threading/WorkQueueManager.h"
 #include "../Threading/WorkQueue.h"
 #include "../Threading/Task.h"
 #include "../Tracking/NotificationServer.h"
+#include "../Tracking/ChangeNotification.h"
 #include "SessionManager.h"
 #include "EnvironmentSettings.h"
 
@@ -154,6 +156,17 @@ namespace HM
    {
       version_ = Formatter::Format("{0}-B{1}", HMAILSERVER_VERSION, HMAILSERVER_BUILD);
       start_time_ = Time::GetCurrentDateTime();
+
+      // Made once, for the life of the process, and never let go of by a stop of
+      // the servers (Application.h, at the members). An IMAP session unsubscribes
+      // from the first as it ends (IMAPConnection::CloseCurrentFolder), and a
+      // session can end after a stop: one whose context a queue the stop gave up
+      // on still keeps ends when that queue is freed, which can be after
+      // StopServers has returned and before the next start has made anything.
+      // Until 6.3.8 both were made by StartServers_ and let go of by StopServers,
+      // and such a session's unsubscribe read through a null pointer.
+      notification_server_ = std::make_shared<NotificationServer>();
+      folder_manager_ = std::make_shared<FolderManager>();
    }
 
    Application::~Application()
@@ -958,9 +971,12 @@ namespace HM
       // Create the main work queue.
       size_t iMainServerQueue = WorkQueueManager::Instance()->CreateWorkQueue(4, server_work_queue_);
 
-      notification_server_ = std::shared_ptr<NotificationServer>(new NotificationServer());
-      folder_manager_ = std::shared_ptr<FolderManager>(new FolderManager());
-      
+      // The notification server and the folder manager are not made here: they
+      // live as long as the process (the constructor). Each CreateWorkQueue above
+      // sweeps the queues an earlier stop retired, and a sweep that frees one
+      // ends the sessions on its I/O service - before this point, where these
+      // two used to be made.
+
       // Create the scheduler. This is always in use.
       {
          boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
@@ -2144,9 +2160,10 @@ namespace HM
       // left open stay open until the next start's sweep, or the process's end.
       MailboxKeys::StopIdleSweep();
 
+      // The notification server and the folder manager stay (the constructor
+      // says why): a session the queues above could not end with the stop ends
+      // later, and unsubscribes then.
       LOG_DEBUG("Application::StopServers() - Destructing Rest");
-      if (notification_server_) notification_server_.reset();
-      if (folder_manager_) folder_manager_.reset();
 
       // Joined, with the service controller's checkpoint meanwhile: a Reinitialize
       // closes the database as soon as this returns (ExitInstance), and until 10
@@ -4064,5 +4081,208 @@ namespace HM
          return _T("the old TCP/IP service was still kept after the handler had ended and a sweep had run.");
 
       return String();
+   }
+
+   namespace
+   {
+      // A subscriber that counts what it is told: a session subscribed after the
+      // start, without the session.
+      class CountingNotificationClient : public NotificationClient
+      {
+      public:
+         void OnNotification(std::shared_ptr<ChangeNotification> /*notification*/) override
+         {
+            told_++;
+         }
+
+         int Told() const
+         {
+            return told_.load();
+         }
+
+      private:
+         std::atomic<int> told_{0};
+      };
+
+      // An account id no account has - the database's count up from 1 - so that
+      // nothing else subscribes to it or tells of a change to it.
+      const __int64 NoSuchAccountID = 4000000000000000001LL;
+
+      // How many subscriptions the stop and start round makes, at most, to meet
+      // the key of the session subscribed before the stop.
+      const int MostSubscriptionsToMeetAKey = 100000;
+
+      void Append(String &said, const String &what)
+      {
+         if (what.IsEmpty())
+            return;
+
+         if (!said.IsEmpty())
+            said += _T(" And ");
+
+         said += what;
+      }
+   }
+
+   void
+   NotificationServerLifetimeTester::Test()
+   {
+      String said = TestWithTheServersAsTheyAre_();
+
+      // In a running server alone: the standalone program has no servers to stop.
+      if (ServerStatus::Instance()->GetState() == ServerStatus::StateRunning)
+         Append(said, TestAcrossAStopAndAStart_());
+
+      if (!said.IsEmpty())
+         throw std::logic_error(AnsiString(String(_T("NotificationServerLifetimeTester: ")) + said).c_str());
+   }
+
+   String
+   NotificationServerLifetimeTester::TestWithTheServersAsTheyAre_()
+   {
+      const String state = ServerStatus::Instance()->GetState() == ServerStatus::StateRunning ? _T("running") : _T("not running");
+
+      std::shared_ptr<NotificationServer> server = Application::Instance()->GetNotificationServer();
+      if (!server)
+      {
+         return Formatter::Format(_T("with the servers {0} there was no notification server, and a session that ends then gives its subscription back through it (IMAPConnection::CloseCurrentFolder): through a null pointer."), state);
+      }
+
+      // A session with a folder selected, and another subscriber to that folder.
+      std::shared_ptr<IMAPNotificationClient> session = std::make_shared<IMAPNotificationClient>();
+      session->SubscribeMessageChanges(NoSuchAccountID, 1);
+
+      std::shared_ptr<CountingNotificationClient> watcher = std::make_shared<CountingNotificationClient>();
+      const __int64 watcherKey = server->SubscribeMessageChanges(NoSuchAccountID, 1, watcher);
+
+      server->SendNotification(std::make_shared<ChangeNotification>(NoSuchAccountID, 1, ChangeNotification::NotificationMessageAdded));
+      const int told = watcher->Told();
+
+      // The session ends: its unsubscribe, then its notification client's end.
+      session->UnsubscribeMessageChanges();
+      session.reset();
+      const bool watcherKept = server->HasMessageSubscribers(NoSuchAccountID);
+
+      server->UnsubscribeMessageChanges(NoSuchAccountID, 1, watcherKey);
+      const bool noneLeft = !server->HasMessageSubscribers(NoSuchAccountID);
+
+      if (told != 1)
+         return Formatter::Format(_T("with the servers {0} a subscriber was told of a change to its folder {1} time(s), not once."), state, told);
+
+      if (!watcherKept)
+         return Formatter::Format(_T("with the servers {0} a session's unsubscribe took away another subscriber's subscription to the same folder."), state);
+
+      if (!noneLeft)
+         return Formatter::Format(_T("with the servers {0} a subscription was still counted after it had been given back."), state);
+
+      return String();
+   }
+
+   String
+   NotificationServerLifetimeTester::TestAcrossAStopAndAStart_()
+   {
+      Application &application = *Application::Instance();
+
+      // A session with a folder selected through the stop that ends while the
+      // servers are stopped, as a session ends whose I/O service a queue the
+      // stop gave up on kept; and one subscribed before the stop that ends after
+      // the start.
+      std::shared_ptr<IMAPNotificationClient> endsWhileStopped = std::make_shared<IMAPNotificationClient>();
+      endsWhileStopped->SubscribeMessageChanges(NoSuchAccountID, 1);
+
+      std::shared_ptr<IMAPNotificationClient> endsAfterTheStart = std::make_shared<IMAPNotificationClient>();
+      endsAfterTheStart->SubscribeMessageChanges(NoSuchAccountID, 2);
+      const __int64 oldKey = endsAfterTheStart->message_change_subscription_id_;
+
+      String said;
+
+      const String refused = application.StopServers();
+      if (!refused.IsEmpty())
+      {
+         Append(said, String(_T("the stop of the servers was refused: ")) + refused);
+      }
+      else
+      {
+         std::shared_ptr<NotificationServer> stopped = application.GetNotificationServer();
+         if (!stopped)
+         {
+            // Not called: it would fault, and on Linux end the program.
+            Append(said, _T("once the servers had stopped there was no notification server, and a session that ends then - one whose I/O service a queue the stop gave up on kept, ended when that queue is freed - gives its subscription back through it (IMAPConnection::CloseCurrentFolder): through a null pointer, which read address 0x24 on Windows (HM4308, MailboxChangeNotifier::Unsubscribe) and is a SIGSEGV on Linux."));
+         }
+         else
+         {
+            endsWhileStopped->UnsubscribeMessageChanges();
+            endsWhileStopped.reset();
+
+            // A change made while the servers are stopped - COM's Message.Save into
+            // a folder - tells nobody, and nothing faults.
+            stopped->SendNotification(std::make_shared<ChangeNotification>(NoSuchAccountID, 1, ChangeNotification::NotificationMessageAdded));
+         }
+      }
+
+      endsWhileStopped.reset();
+
+      String startRefused;
+      const bool started = application.StartServers(0, &startRefused);
+      if (!started)
+      {
+         Append(said, String(_T("the servers did not start again: ")) + startRefused);
+         return said;
+      }
+
+      std::shared_ptr<NotificationServer> server = application.GetNotificationServer();
+      if (!server)
+      {
+         Append(said, _T("there was no notification server after the start."));
+         return said;
+      }
+
+      // Sessions subscribed after the start to the old session's folder, until the
+      // server hands out a key at least as high as the old session's: one, when the
+      // keys go on counting, and the one given the old session's key when they had
+      // begun again.
+      std::vector<std::pair<__int64, std::shared_ptr<CountingNotificationClient> > > newcomers;
+      for (;;)
+      {
+         std::shared_ptr<CountingNotificationClient> newcomer = std::make_shared<CountingNotificationClient>();
+         const __int64 key = server->SubscribeMessageChanges(NoSuchAccountID, 2, newcomer);
+         newcomers.push_back(std::make_pair(key, newcomer));
+
+         if (key >= oldKey || (int) newcomers.size() >= MostSubscriptionsToMeetAKey)
+            break;
+      }
+
+      // The old session ends.
+      endsAfterTheStart->UnsubscribeMessageChanges();
+      endsAfterTheStart.reset();
+
+      server->SendNotification(std::make_shared<ChangeNotification>(NoSuchAccountID, 2, ChangeNotification::NotificationMessageAdded));
+
+      int untold = 0;
+      __int64 untoldKey = 0;
+      for (const auto &newcomer : newcomers)
+      {
+         if (newcomer.second->Told() != 1)
+         {
+            untold++;
+            untoldKey = newcomer.first;
+         }
+      }
+
+      for (const auto &newcomer : newcomers)
+         server->UnsubscribeMessageChanges(NoSuchAccountID, 2, newcomer.first);
+
+      const bool noneLeft = !server->HasMessageSubscribers(NoSuchAccountID);
+
+      if (untold > 0)
+      {
+         Append(said, Formatter::Format(_T("a session subscribed before the stop that ended after the start took away the subscription of {0} session(s) subscribed after the start (key {1}; the old session's own was {2}): the start had made a notification server whose keys began again."),
+            untold, untoldKey, oldKey));
+      }
+
+      if (!noneLeft)
+         Append(said, _T("a subscription made across the stop and the start was still counted after it had been given back."));
+
+      return said;
    }
 }
