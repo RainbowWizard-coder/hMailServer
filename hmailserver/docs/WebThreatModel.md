@@ -11,7 +11,12 @@ The route-by-route authorisation is [WebAuthorisationMatrix.md](WebAuthorisation
 written from the code by `build/generate-auth-matrix.py`; "The routes the matrix
 flags, judged", under Findings, judges the routes that file flags.
 
-File and line references are to 6e1a336c5. Source files are under
+File and line references are to 6e1a336c5, and move with later edits. The
+reading of a JSON body (the Uploads entry point, and the two rows of "Transport
+and origin" that follow the one on chunked bodies) is the tree's after 6.3.7,
+and its functions are named without a line: `BodyMustBeJson_`,
+`RefuseBodyThatIsNotJson_`, `BodyObject_`, `BodyIsReadBeforeAuthentication_`
+and `RefuseJsonBody_` are not in 6e1a336c5. Source files are under
 `hmailserver/source/Server/Common/Util/` unless another directory is named: a
 directory named is under `Server/Common/`, but `SMTP/`, `ExternalFetcher/` and
 `COM/`, which are under `Server/`.

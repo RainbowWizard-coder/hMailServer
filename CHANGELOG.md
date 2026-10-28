@@ -3164,6 +3164,13 @@ with `--check`).
   dependency alerts, branch protection and secret detection rows say what holds, and a new row, not started, weighs
   what the plan offers that would let the project hold more than it does, a `v*` tag rule that names the owner's
   account among it, the required approval left as the owner decided it. Words only: no rule, job, setting or script changes. `HelpPagesData.cpp` is regenerated.
+- **hmailserver/docs/WebThreatModel.md says which of its references are not to the commit it names.** Its file and
+  line references are to 6e1a336c5, as it says, and each of its RestApiServer.cpp, RestApiFiles.cpp,
+  RestApiBranding.cpp and RestApiMailboxMove.cpp lines still names there what the text says; but its account of the
+  reading of a JSON body, in the Uploads entry point and two rows of "Transport and origin", is the tree's after 6.3.7
+  and names five functions that are not in 6e1a336c5. The note on references now says so, and that the lines move with
+  later edits.
+
 - **SECURITY.md's "Build provenance" says that a release's SLSA provenance names every file of the release but the
   Sigstore bundles by its SHA-256, where it said every file of the release.** The in-toto statements of 6.3.6 and 6.3.7
   each name 62 of their release's 160 files - the installers, the PowerShell module's two files, every package, the
