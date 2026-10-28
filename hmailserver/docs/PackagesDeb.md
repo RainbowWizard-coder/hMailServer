@@ -845,10 +845,13 @@ made the step fail, with the server's own reason from its error log:
 | the user out of the group: `SupplementaryGroups=` can only add one, so a drop-in's `ExecStartPre=+-/usr/bin/gpasswd -d hmailserver hm-clamd`, run as root outside the sandbox, takes it away just before systemd starts the server with the groups the user database then gives | the same "may not enter /run/hm-clamd", beside the server's groups, without `hm-clamd`'s (on Ubuntu 26.04 and on Fedora 44) |
 | `HM_SYSTEMD_TEST_CLAMD_DIR=/tmp/hm-clamd`, the fake's socket under the container's `/tmp` | "nothing is listening there, as there is no socket at that path", as the table in [ClamAV.md](ClamAV.md) says, and the step's note that the unit's `PrivateTmp=yes` gives the service a `/tmp` of its own |
 
-`HM_SYSTEMD_TEST_CLAMD_DIR` must be a directory below one directly under `/`: the
-step makes it `0710`, root's and the group's, with `install -d`, which changes a
-directory that is there already, so `/run` or `/tmp` itself is refused before
-anything starts.
+`HM_SYSTEMD_TEST_CLAMD_DIR` must be a directory the container does not have yet,
+named as itself: the step makes it `0710`, root's and the group's, with
+`install -d`, which changes a directory that is there already and follows a
+symbolic link to one. `/run` or `/tmp` itself, or any directory directly under
+`/`, is refused before anything starts; a directory the container has already,
+such as `/var/tmp`, or another name for one, such as `/var/run`, which is a link
+to `/run` in both images, is refused in the clamd step, before `install -d`.
 
 The step requires the scanner's own `Virus detected: Eicar-Signature` beside the
 deletion line: a copy of the script that turned debug logging off just before the

@@ -55,7 +55,11 @@
 #   HM_SYSTEMD_TEST_CLAMD_DIR   the directory of the fake clamd's socket, /run/hm-clamd
 #                               by default. No job sets it either: a negative control
 #                               sets it under /tmp, which the unit's PrivateTmp hides.
-#                               A directory directly under / (/run, /tmp) is refused.
+#                               It must be a directory the container does not have
+#                               yet, named as itself: one directly under / (/run,
+#                               /tmp) is refused before anything starts, and one that
+#                               is there already (/var/tmp) or another name for one
+#                               (/var/run is /run) when the container is up.
 set -uo pipefail
 
 # The first of the files a glob names, or nothing.
@@ -108,7 +112,8 @@ esac
 # The step makes the directory 0710, root's and $clamd_group's, with install -d,
 # which changes the mode and owners of a directory that is there already: one
 # directly under /, such as /run or /tmp, would be closed to everybody else in the
-# container. So the directory is one below such a directory, as /run/hm-clamd is.
+# container. So the directory is one below such a directory, as /run/hm-clamd is;
+# the step itself refuses one that is there already or is another name for one.
 case "${clamd_dir#/}" in
   */*) ;;
   *)
@@ -467,6 +472,19 @@ step "a fake clamd outside the unit, on $clamd_socket, closed to all but the gro
 podman cp "$work/fake-clamd.pl" "$ctr:/usr/local/lib/hm-fake-clamd.pl" || fail "podman cp the fake clamd"
 in_ctr groupadd --system "$clamd_group" || fail "groupadd $clamd_group"
 in_ctr usermod -a -G "$clamd_group" hmailserver || fail "usermod -a -G $clamd_group hmailserver"
+# install -d changes the mode and owners of a directory that is there already, and
+# follows a symbolic link to it: /var/run, spelt below /, is /run in both images,
+# and /var/tmp is the 1777 directory everybody writes to. So the directory must be
+# one the container does not have yet, named as itself, with no link on the way to it.
+clamd_real=$(in_ctr realpath -m "$clamd_dir") || fail "realpath -m $clamd_dir"
+if in_ctr test -e "$clamd_dir" || in_ctr test -L "$clamd_dir"; then
+  echo "REFUSED: HM_SYSTEMD_TEST_CLAMD_DIR is '$clamd_dir', which the container has already ($(in_ctr stat -c '%F, mode %a' "$clamd_dir")); the step would make it mode 0710, root's and $clamd_group's. Give a directory that is not there yet, as /run/hm-clamd is not."
+  exit 2
+fi
+if [ "$clamd_real" != "$clamd_dir" ]; then
+  echo "REFUSED: HM_SYSTEMD_TEST_CLAMD_DIR is '$clamd_dir', which is '$clamd_real' in the container: a symbolic link on the way to it would have install -d make that directory. Give its own name."
+  exit 2
+fi
 in_ctr install -d -m 0710 -o root -g "$clamd_group" "$clamd_dir" || fail "making $clamd_dir"
 in_ctr install -d -m 0700 /run/hm-fake-clamd || fail "making /run/hm-fake-clamd"
 in_ctr systemd-run --quiet --unit=hm-fake-clamd --property=Type=exec \
