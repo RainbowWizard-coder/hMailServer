@@ -2935,9 +2935,9 @@ with `--check`).
   (6.3.7) and `report-parser-tests` (6.3.6), neither of which needs a database, the system's configuration, a socket
   or root; both lists now run them. `build/check-source-tarball.py`, which the checkers job runs, holds the two lists
   to each other, name for name and in order, and to every `*-tests` program `CMakeLists.txt` makes by
-  `add_executable` but the eight it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback
-  socket, which `offline.c` refuses, root, every case held to a time on a builder shared with other builds, or, for
-  `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops each give up after ten,
+  `add_executable` but the nine it leaves out with their reasons (`SOURCE_TESTERS_LEFT_OUT`: a database, a loopback
+  socket, which `offline.c` refuses, Unix sockets of its own, root, every case held to a time on a builder shared with
+  other builds, or, for `workqueue-teardown-tests`, two tasks of twenty seconds held to outlast removes whose stops each give up after ten,
   a margin of ten seconds of wall clock that such a builder, or an emulated one, can take up, where a failure would
   say only that the builder was slow; `linux-build`, `linux-sanitize` and the CI's own package builds run it on the
   project's runners). It reads `CMakeLists.txt` as CMake reads it, each command in any case with its quoted, bracket
@@ -3040,7 +3040,7 @@ with `--check`).
   `%{define:...}`, as `%{define: ...}` and as `%{global:` and a tab, `%check` inside `%if 0`, inside one indented by
   spaces and by a tab and inside `%{?nil}%if 0`, a macro defined by Lua, plainly and in a comment, a comment of
   `%check` expanding `%{___build_post}` and one running the shell, a macro whose name a macro gives, a
-  `BuildSystem` tag, a shell command in a tag and a carriage return, refused; SourcePackages.md says which eight are
+  `BuildSystem` tag, a shell command in a tag and a carriage return, refused; SourcePackages.md says which nine are
   left out and why, and what the check reads.
 
 ### Documentation
