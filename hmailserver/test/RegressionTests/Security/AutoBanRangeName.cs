@@ -157,20 +157,15 @@ namespace RegressionTests.Security
             ClassicAssert.AreEqual("", Greeting(local, TestPorts.Pop3),
                "This machine's address " + local + " was given a greeting: it is not banned.");
 
-            // The ban's own statements report nothing. On MySQL and PostgreSQL the
-            // sign-in's look-ups of the account and its domain are given the name in
-            // their text, which ends at the U+0000, and report it (HM5033): the
-            // sign-in's, not the ban's, and taken out of the log here.
-            var unexpected = new List<string>();
+            // Nothing reports an error, on any engine: a name that holds a U+0000 is
+            // refused before anything is looked up with it (LogonName.h), so the
+            // sign-in's look-ups of the account and its domain, which on MySQL and
+            // PostgreSQL reported HM5033 for it up to 6.3.7, are never made, and the
+            // ban's own statements are given the part before it.
             var errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadAndDeleteErrorLog() : "";
-            foreach (var line in errors.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-               var lookup = line.Contains("HM5033") && (line.Contains("FROM hm_accounts") || line.Contains("FROM hm_domains"));
-               if (!lookup)
-                  unexpected.Add(line);
-            }
+            var reported = errors.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            ClassicAssert.IsEmpty(unexpected, "The ban reported an error: " + string.Join(Environment.NewLine, unexpected));
+            ClassicAssert.IsEmpty(reported, "An error was reported: " + string.Join(Environment.NewLine, reported));
          }
          finally
          {
