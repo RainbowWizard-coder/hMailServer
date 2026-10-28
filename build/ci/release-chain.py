@@ -120,32 +120,77 @@ Usage, from the repository root:
   python3 build/ci/release-chain.py --self-test      no network, no git, no token
 """
 
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (argparse.py, json.py)
+# would run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD, which holds every Python file of
+# CHAIN_SCRIPT_SHA256 to it as it holds the gate files).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
+import atexit
 import base64
 import datetime
 import hashlib
+import importlib.machinery
 import importlib.util
 import io
 import json
-import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
 
+# Bytecode is neither written nor read from here on: every module this process loads
+# after this line - the five below, and what security-gate.py loads in turn - is
+# compiled from its text, never taken from a __pycache__ folder of the checkout, where a
+# file a job's artifacts or cache brought in would run in a module's place (PEP 3147,
+# PEP 552). The folder named is new and empty, and is removed at exit.
+sys.dont_write_bytecode = True
+sys.pycache_prefix = tempfile.mkdtemp(prefix="hm-no-bytecode-")
+atexit.register(shutil.rmtree, sys.pycache_prefix, True)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+class SourceTextLoader(importlib.machinery.SourceFileLoader):
+    """The loader of a file of the tree that runs the text it is given, compiled, and
+    nothing else: never the bytecode in a __pycache__ folder beside the file, which
+    Python's own loader runs in place of the text - without reading the text at all, for
+    a hash-based .pyc that is not checked (PEP 552) -, so that what runs is the text
+    build/check-release-chain.py holds by its digest (LOAD_SOURCE)."""
+
+    def __init__(self, fullname, path, source):
+        super().__init__(fullname, path)
+        self.source = source
+
+    def get_code(self, fullname):
+        return self.source_to_code(self.source, self.path)
+
+
+def load_source(module_name, path, source=None):
+    """The module of the file at path, run from source - its bytes, read from the file
+    when they are not given - by SourceTextLoader."""
+    if source is None:
+        with open(path, "rb") as f:
+            source = f.read()
+    loader = SourceTextLoader(module_name, path, source)
+    spec = importlib.util.spec_from_file_location(module_name, path, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
 
 
 def _load_feed():
     path = os.path.join(ROOT, "build", "generate-update-feed.py")
-    spec = importlib.util.spec_from_file_location("generate_update_feed", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_source("generate_update_feed", path)
 
 
 feed = _load_feed()
@@ -153,10 +198,7 @@ feed = _load_feed()
 
 def _load_asset_sbom():
     path = os.path.join(ROOT, "build", "asset-sbom.py")
-    spec = importlib.util.spec_from_file_location("asset_sbom", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_source("asset_sbom", path)
 
 
 asset_sbom = _load_asset_sbom()
@@ -164,10 +206,7 @@ asset_sbom = _load_asset_sbom()
 
 def _load_gate():
     path = os.path.join(ROOT, "build", "ci", "security-gate.py")
-    spec = importlib.util.spec_from_file_location("security_gate", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_source("security_gate", path)
 
 
 # The security scans' verdict (build/ci/security-gate.py), which collect asks for
@@ -177,10 +216,7 @@ security_gate = _load_gate()
 
 def _load_repos():
     path = os.path.join(ROOT, "build", "generate-package-repos.py")
-    spec = importlib.util.spec_from_file_location("generate_package_repos", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_source("generate_package_repos", path)
 
 
 # The apt and dnf repositories the pages job adds to the feed's site, whose
@@ -190,10 +226,7 @@ repos = _load_repos()
 
 def _load_certificate():
     path = os.path.join(ROOT, "build", "ci", "sigstore-certificate.py")
-    spec = importlib.util.spec_from_file_location("sigstore_certificate", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return load_source("sigstore_certificate", path)
 
 
 # A Fulcio certificate's fields, read from its extensions and never by a search of its

@@ -352,7 +352,7 @@ refuses it. This checker holds them to each other. It fails when:
     comment line holding an LS hid from every rule what GitLab reads after it
     (character_problems); nor may a file of FILES - the shell scripts this reads, and
     every file the signing and verifying scripts run or load, sigstore-certificate.sh
-    among them, among them - hold a control byte but a tab and a line feed (DEL included), a carriage
+    among them - hold a control byte but a tab and a line feed (DEL included), a carriage
     return in a shell script, or one not right before a line feed in any other: bash
     and busybox sh drop a NUL from the line they run, so that e<NUL>xit 0 after
     container-image-push.sh's set -eu passed every line scan and ended the push (as a
@@ -658,6 +658,54 @@ refuses it. This checker holds them to each other. It fails when:
     build/ci/hosted-runners.py's check and quota on linix in a pipeline any switch or
     lane is set for, compute-quota in the environment compute-quota and hosted-runners
     in none, with the script's classes the CI files' (runner_class_problems).
+  * what a job that runs a file held whole runs before or beside it is not held whole
+    too: a job of the release chain, or one it waits for at any remove, whose
+    before_script, script, after_script or hooks - its own, a template's it extends or
+    one a !reference names, at any remove - name a file held whole (CHAIN_JOB_ENTRIES)
+    may name no file of the tree there - a path under build/ or hmailserver/, or any
+    word of a step that is a file of the tree - that is not held so or a gate file
+    (chain_job_run_problems): check-ci-image.py, .linix's before_script, which
+    release-verify, release-packages and both image start jobs run first in the same
+    checkout, and arm64-emulation.sh, which the arm64 start job runs, are held by their
+    digests for it; every job release needs, and every job those need, is defined once
+    in the CI files (chain_definition_problems), where linux-package-deb defined again in
+    .gitlab/ci/snap.yml with before_script: [exit 0] ended it green before
+    linux-package-install.sh ran; a Python file held whole keeps its own directory off
+    sys.path (PATH_GUARD) and loads a module of the tree with load_source, LOAD_SOURCE
+    word for word, a loader that runs the text it is given and never the bytecode
+    beside the file, naming the import machinery nowhere else
+    (chain_script_python_problems), since python3
+    build/ci/release-chain.py took a build/ci/argparse.py for argparse; no file of the
+    tree is Python bytecode - a .pyc or .pyo, or any file in a __pycache__ folder -,
+    which Python runs in place of the source beside it (bytecode_problems); every job is
+    given PYTHONDONTWRITEBYTECODE, PYTHONSAFEPATH and a PYTHONPYCACHEPREFIX outside the
+    checkout by .gitlab-ci.yml's variables:, and nothing else in the CI files sets one of
+    PYTHON_RUN_VARIABLES (python_isolation_problems); and this checker runs no file of
+    the tree in its own process but land-via-mr.py and the Python files of
+    CHAIN_SCRIPT_SHA256 whose digests are the ones held, which it asks before it runs any
+    (load_problem, held_module_problems), running each from the text it read through
+    the same loader, and reads
+    the tables of build/ci/hosted-runners.py as text (literal_tables): a module run here
+    could have ended the process with exit 0 at its exit whatever the rules found.
+
+What this checker holds of the release chain is the CI files' text as the rules above
+read it and the files they name: the 34 jobs of chain_rule_jobs and the jobs they wait
+for (107 in the tree of 28 October 2026), the blocks those take by extends and
+!reference, a second definition of any of them in any CI file, what a CI file's top
+level gives every job, and the files held whole - CHAIN_SCRIPT_SHA256's fourteen,
+START_TEST_SHA256's, PACKAGE_INSTALL_SHA256's and PACKAGE_LICENSES_SHA256's - with the
+gate files. It does not hold what an image holds by its digest (Python's own modules and
+what is installed beside them, cosign, the distributions' packages), a runner's own
+configuration (its volumes, its pre-build script, its environment, a shell runner's
+machine), the project's and the group's CI/CD variables, which stand above the CI files,
+the project's settings (who may push a v* tag, which branches and tags are protected),
+the scripts of the jobs the chain waits for that run no file held whole (linux-build.sh,
+the suites, the package builds: their result is read, and a second definition of the job
+refused, but their text is not held), what a held script makes of the artifacts it is
+handed beyond what the rules read, the server's own verifier as it is built from the
+tree, and the packages' maintainer scripts. Beyond it stands the landing:
+build/land-via-mr.py's --gates-read, a person's word that a change to a gate file was
+read whole, and the merge request every change lands through, where it is read.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -675,9 +723,11 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
                os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
 
 import ast
+import atexit
 import base64
 import hashlib
 import html
+import importlib.machinery
 import importlib.util
 import io
 import json
@@ -686,8 +736,18 @@ import re
 import subprocess
 import shutil
 import tempfile
+import types
 import unicodedata
 import urllib.parse
+
+# Bytecode is neither written nor read from here on: a module of the tree a module this
+# process runs loads through Python's import machinery (land-via-mr.py's sign-off.py,
+# security-gate.py's own) is compiled from its text, never taken from a __pycache__
+# folder beside it (PEP 3147, PEP 552). The folder named is new and empty, and is
+# removed at exit.
+sys.dont_write_bytecode = True
+sys.pycache_prefix = tempfile.mkdtemp(prefix="hm-no-bytecode-")
+atexit.register(shutil.rmtree, sys.pycache_prefix, True)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = {
@@ -734,6 +794,12 @@ FILES = {
     "update-feed": os.path.join("build", "generate-update-feed.py"),
     "repos-py": os.path.join("build", "generate-package-repos.py"),
     "atom-feed": os.path.join("build", "check-atom-feed.py"),
+    # What the jobs that run those scripts run before them in the same checkout, each
+    # held by its digest too (CHAIN_SCRIPT_SHA256, chain_job_run_problems): .linix's
+    # before_script, which release-verify, release-packages and the image's start jobs
+    # take, and the arm64 start job's check of the emulation.
+    "ci-image-check": os.path.join("build", "check-ci-image.py"),
+    "arm64-emulation": os.path.join("build", "ci", "arm64-emulation.sh"),
     "packages-appimage": os.path.join(".gitlab", "ci", "packages-appimage.yml"),
     "packages-windows": os.path.join(".gitlab", "ci", "packages-windows.yml"),
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
@@ -1179,11 +1245,162 @@ BRANCH_REF = 'ref="refs/heads/${branch}"'
 TAG_SCRIPT_IDENTITY = 'identity="${repository}%s${tag}"' % IDENTITY_TAIL
 
 
+# The one file of the tree this checker loads into its own process that is held as a
+# gate file rather than by a digest here: build/land-via-mr.py, which names itself among
+# its GATE_FILES, and which a landing runs from master's checkout (CHECKOUT_COPIES).
+LOADED_GATE_FILES = ("build/land-via-mr.py",)
+
+
+class HeldModuleError(Exception):
+    """A file of the tree this checker was asked to run in its own process that it does
+    not hold (load_problem)."""
+
+
+def load_problem(relative, text):
+    """None when text, a file of the tree's text as read() gives it, is one this checker may
+    run in its own process: a file of LOADED_GATE_FILES, or a Python file of
+    CHAIN_SCRIPT_SHA256 whose text has the digest held there. Otherwise the problem. A
+    module run here can do anything this process can - write over its rules, print
+    nothing, end it with exit 0 at its exit -, so that a change to one would pass every
+    rule of this file without a change to a gate file: build/ci/release-chain.py given a
+    line that ended the process with exit 0 at its exit, or build/ci/hosted-runners.py
+    (which is not held, and whose tables runner_class_problems now reads without running
+    it: literal_tables), made the checker pass a release-sign.sh with an exit 0 after its
+    set line."""
+    path = relative.replace(os.sep, "/")
+    if path in LOADED_GATE_FILES:
+        return None
+    keys = [key for key in CHAIN_SCRIPT_SHA256 if FILES[key].replace(os.sep, "/") == path]
+    if not keys:
+        return ("%s is not a file build/check-release-chain.py may run in its own process: it runs a gate file "
+                "(LOADED_GATE_FILES) or a file held by its digest in CHAIN_SCRIPT_SHA256 alone, and reads any other "
+                "file of the tree as text" % path)
+    digest = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    if digest != CHAIN_SCRIPT_SHA256[keys[0]]:
+        return ("%s is not the script build/check-release-chain.py holds (the SHA-256 of its text, its line ends LF, is %s; "
+                "CHAIN_SCRIPT_SHA256[%r] %s), and this checker runs it in its own process, so it is refused before it "
+                "runs: a module run here could write over every rule of this file - read the change whole, put the new "
+                "digest in CHAIN_SCRIPT_SHA256 in the same commit and land it with --gates-read" % (
+                    path, digest, keys[0], CHAIN_SCRIPT_SHA256[keys[0]]))
+    return None
+
+
 def _load(relative, name):
-    spec = importlib.util.spec_from_file_location(name, os.path.join(ROOT, relative))
+    """A file of the tree as a module, compiled from the text this checker holds: refused
+    before it runs unless load_problem lets it run here, and never taken from bytecode in
+    a __pycache__ folder beside it, which Python's import machinery runs in its place,
+    and, for a hash-based .pyc that is not checked (PEP 552), without reading the text at
+    all - so that what runs here is the text the rules read and CHAIN_SCRIPT_SHA256 holds
+    (bytecode_problems refuses a file of bytecode in the tree before anything is loaded,
+    and held_module_problems every held module whose digest differs)."""
+    text = read(relative)
+    problem = load_problem(relative, text)
+    if problem:
+        raise HeldModuleError(problem)
+    return load_source(name, os.path.join(ROOT, relative), text.encode("utf-8"))
+
+
+# The one loader of the tree's modules: this checker's own, and, as this text, the one
+# each Python file of CHAIN_SCRIPT_SHA256 that loads a module has (LOAD_SOURCE,
+# chain_script_python_problems).
+class SourceTextLoader(importlib.machinery.SourceFileLoader):
+    """The loader of a file of the tree that runs the text it is given, compiled, and
+    nothing else: never the bytecode in a __pycache__ folder beside the file, which
+    Python's own loader runs in place of the text - without reading the text at all, for
+    a hash-based .pyc that is not checked (PEP 552) -, so that what runs is the text
+    build/check-release-chain.py holds by its digest (LOAD_SOURCE)."""
+
+    def __init__(self, fullname, path, source):
+        super().__init__(fullname, path)
+        self.source = source
+
+    def get_code(self, fullname):
+        return self.source_to_code(self.source, self.path)
+
+
+def load_source(module_name, path, source=None):
+    """The module of the file at path, run from source - its bytes, read from the file
+    when they are not given - by SourceTextLoader."""
+    if source is None:
+        with open(path, "rb") as f:
+            source = f.read()
+    loader = SourceTextLoader(module_name, path, source)
+    spec = importlib.util.spec_from_file_location(module_name, path, loader=loader)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    loader.exec_module(module)
     return module
+
+
+LOAD_SOURCE = (
+    'class SourceTextLoader(importlib.machinery.SourceFileLoader):\n'
+    '    """The loader of a file of the tree that runs the text it is given, compiled, and\n'
+    '    nothing else: never the bytecode in a __pycache__ folder beside the file, which\n'
+    "    Python's own loader runs in place of the text - without reading the text at all, for\n"
+    '    a hash-based .pyc that is not checked (PEP 552) -, so that what runs is the text\n'
+    '    build/check-release-chain.py holds by its digest (LOAD_SOURCE)."""\n'
+    '\n'
+    '    def __init__(self, fullname, path, source):\n'
+    '        super().__init__(fullname, path)\n'
+    '        self.source = source\n'
+    '\n'
+    '    def get_code(self, fullname):\n'
+    '        return self.source_to_code(self.source, self.path)\n'
+    '\n'
+    '\n'
+    'def load_source(module_name, path, source=None):\n'
+    '    """The module of the file at path, run from source - its bytes, read from the file\n'
+    '    when they are not given - by SourceTextLoader."""\n'
+    '    if source is None:\n'
+    '        with open(path, "rb") as f:\n'
+    '            source = f.read()\n'
+    '    loader = SourceTextLoader(module_name, path, source)\n'
+    '    spec = importlib.util.spec_from_file_location(module_name, path, loader=loader)\n'
+    '    module = importlib.util.module_from_spec(spec)\n'
+    '    loader.exec_module(module)\n'
+    '    return module\n'
+)
+
+
+def held_module_problems():
+    """[problem] for each Python file of CHAIN_SCRIPT_SHA256 that load_problem refuses, read
+    from the tree: main() asks this before it runs any of them, since
+    build/ci/release-chain.py, which it runs, runs the others in its process in turn, as
+    their text, with no digest of its own."""
+    problems = []
+    for key in sorted(CHAIN_SCRIPT_SHA256):
+        if not FILES[key].endswith(".py"):
+            continue
+        try:
+            text = read(FILES[key])
+        except (OSError, UnicodeDecodeError) as error:
+            problems.append("%s cannot be read as UTF-8 (%s): it is held by its digest in CHAIN_SCRIPT_SHA256" % (
+                FILES[key].replace(os.sep, "/"), error))
+            continue
+        problem = load_problem(FILES[key], text)
+        if problem:
+            problems.append(problem)
+    return problems
+
+
+def literal_tables(relative, names, text=None):
+    """A namespace of the top-level names of a Python file of the tree that are assigned a
+    literal (a tuple, a dict, a string and the like, ast.literal_eval), read from its text
+    without running it; a name that is not so assigned once is a ValueError. The tables
+    of a file this checker does not hold are read so (load_problem)."""
+    text = read(relative) if text is None else text
+    found = {}
+    for node in ast.parse(text).body:
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target] if isinstance(node, ast.AnnAssign) else []
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id in names:
+                if target.id in found:
+                    raise ValueError("%s assigns %s more than once" % (relative.replace(os.sep, "/"), target.id))
+                found[target.id] = ast.literal_eval(node.value)
+    missing = [name for name in names if name not in found]
+    if missing:
+        raise ValueError("%s does not assign %s a literal at its top level" % (relative.replace(os.sep, "/"),
+                                                                                ", ".join(missing)))
+    return types.SimpleNamespace(**found)
 
 
 def read(relative):
@@ -2000,22 +2217,51 @@ SLSA_AFFIRMED = re.compile(r"\b(?:meets?|met|achieves?|achieved|reach(?:es|ed)?|
                            SLSA_SEP + r"*)(?:[234]|two|three|four)\b", re.IGNORECASE)
 
 
-def slsa_texts():
+def slsa_texts(unread=None):
     """{path: text} of the project's own documents that could claim an SLSA level: the
     README, SECURITY.md, RELEASE.md, ASSURANCE-CASE.md and every page of
     hmailserver/docs. The change log and the roadmaps say what was done, and are not
-    read."""
+    read. A document that cannot be read, or whose bytes are not UTF-8, is read with each
+    byte that is not as U+FFFD (slsa_document_text) and named in unread, which check()
+    reports (slsa_unread_problems): left out, a claim in it passed both SLSA rules - "From
+    6.3.8 the release's provenance meets SLSA Build L3, the highest Build level." in
+    ASSURANCE-CASE.md with a 0xE9 elsewhere in it, as an editor saving Windows-1252 writes
+    one."""
     texts = {}
     for name in tree_files():
         if name not in ("README.md", "SECURITY.md", "RELEASE.md", "ASSURANCE-CASE.md") and \
                 not (name.startswith("hmailserver/docs/") and name.endswith(".md")):
             continue
         try:
-            with io.open(os.path.join(ROOT, name), encoding="utf-8") as f:
-                texts[name] = f.read().replace("\r\n", "\n")
-        except (OSError, UnicodeDecodeError):
-            continue
+            with open(os.path.join(ROOT, name), "rb") as f:
+                data = f.read()
+        except OSError as error:
+            data, why = b"", "it cannot be read (%s)" % (error.strerror or type(error).__name__)
+        else:
+            why = None
+        text, decoded = slsa_document_text(data)
+        texts[name] = text
+        if (why or not decoded) and unread is not None:
+            unread.append((name, why or "its bytes are not UTF-8"))
     return texts
+
+
+def slsa_document_text(data):
+    """(text, whether data was UTF-8): data decoded as UTF-8, each byte that is not read
+    as U+FFFD, its CR LF line ends made LF."""
+    try:
+        return data.decode("utf-8").replace("\r\n", "\n"), True
+    except UnicodeDecodeError:
+        return data.decode("utf-8", "replace").replace("\r\n", "\n"), False
+
+
+def slsa_unread_problems(unread):
+    """[problem] for each document of those slsa_texts reads that it could not read whole
+    as UTF-8: the SLSA rules read such a document with U+FFFD for each byte that is not,
+    so that a claim beside the byte is read, but a document of the project is UTF-8."""
+    return ["%s is one of the documents the SLSA rules read, and %s: they read it with U+FFFD for each byte that is not "
+            "UTF-8, and a document of the project is UTF-8 - save it so (slsa_level_problems and slsa_sentence_problems "
+            "read every sentence of it that names SLSA or a level)" % (name, why) for name, why in sorted(unread)]
 
 
 def slsa_clause(sentence, start, end):
@@ -2621,7 +2867,7 @@ SLSA_SENTENCES = {
 # Levels; and the specification's own term for its levels, a Build level or the build
 # track, with or without a number, so that "the highest Build level" is read as the claim
 # it is.
-SLSA_NAMED = re.compile(r"\bSLSA\b|\bSupply[\s-]*chain\s+Levels?\s+for\s+Software\s+Art[ei]facts\b", re.IGNORECASE)
+SLSA_NAMED = re.compile(r"\bSLSA\b|\bSupply[\s-]*chain\s+Levels?\s+for\s+Software\s+Art[ei]facts?\b", re.IGNORECASE)
 SLSA_TERMS = re.compile(r"\bbuild[\s_-]*(?:track|levels?)\b", re.IGNORECASE)
 # A level in any form, whatever it is said of (slsa_names): L1 to L4, level 1 to 4, in
 # words or in Roman figures, and an ordinal or a superlative before level ("the third
@@ -2638,9 +2884,29 @@ SLSA_ANY_LEVEL = re.compile(r"\bL" + SLSA_SEP + r"?[1-4]\b|\blevels?" + SLSA_SEP
 # SLSA (slsa_plain), as does a reference link's. An image is left as it is written: what
 # it shows is its address's (a badge's label), which is read there.
 SLSA_LINK = re.compile(r"(?<!!)\[([^\[\]\n]*)\](?:\([^()\n]*\)|\[[^\[\]\n]*\])")
-# The name's letters with a space, a dot, a hyphen or an underscore between them, one or
-# two of them at each place (S L S A, S.L.S.A., S. L. S. A., SL-SA), read as the name.
-SLSA_SPACED = re.compile(r"\bS[ ._\-]{0,2}L[ ._\-]{0,2}S[ ._\-]{0,2}A\b", re.IGNORECASE)
+# The name's letters with a space, a dot, a hyphen, an underscore or a slash between them,
+# one or two of them at each place (S L S A, S.L.S.A., S. L. S. A., SL-SA, S/L/S/A), read
+# as the name; a dash or a hyphen of any kind, a middle dot and a slash of another script
+# are read as the ASCII one first (SLSA_SEPARATORS), and Markdown's backslash escapes
+# taken out (S\.L\.S\.A\. renders S.L.S.A.: slsa_plain).
+SLSA_SPACED = re.compile(r"\bS[ ._\-/]{0,2}L[ ._\-/]{0,2}S[ ._\-/]{0,2}A\b", re.IGNORECASE)
+# The name written as an abbreviation, a dot after each letter (S.L.S.A., S. L. S. A.),
+# read as the name with the last dot too, so that "S.L.S.A. 3" reads "SLSA 3" and not
+# "SLSA. 3", which names no level after the name.
+SLSA_DOTTED = re.compile(r"\bS\. ?L\. ?S\. ?A\.(?=[ \t]|$)", re.IGNORECASE)
+# What slsa_plain reads as the ASCII separator it looks like, by code point: every dash and
+# hyphen (Unicode's Pd - U+2010 HYPHEN, the non-breaking hyphen, the en and em dashes -,
+# with the minus sign and the hyphen bullet) as -, the middle dots as ., and the slashes
+# (the fraction slash, the division slash) as /, so that SL<U+2010>SA reads SL-SA, and the
+# long name's Supply<U+2010>chain, as an editor's typographic hyphen writes it, Supply-chain.
+SLSA_SEPARATORS = dict([(code, "-") for code in range(0x80, 0x20000) if unicodedata.category(chr(code)) == "Pd"] +
+                       [(code, "-") for code in (0x2043, 0x2212, 0x2796, 0xFE63, 0xFF0D)] +
+                       [(code, ".") for code in (0x00B7, 0x0387, 0x16EB, 0x2022, 0x2027, 0x2219, 0x22C5, 0x2E31, 0x30FB,
+                                                 0xFF65)] +
+                       [(code, "/") for code in (0x2044, 0x2215, 0x2571, 0x29F8, 0x3033, 0xFF0F)])
+# Markdown's backslash escape (CommonMark 0.31.2, 2.4): a backslash before ASCII
+# punctuation renders the punctuation alone.
+SLSA_ESCAPE = re.compile(r"\\([!-/:-@\[-`{-~])")
 # Unicode's bidirectional embeddings, overrides and isolates, which show a text in another
 # order than it is written: U+202E then ASLS shows SLSA, which slsa_plain, dropping the
 # override, reads as ASLS. The documents slsa_texts reads may hold none of them
@@ -2726,7 +2992,11 @@ def slsa_plain(text, skeleton=False):
     small capital L), Markdown's and HTML's emphasis taken out (SL**SA**,
     SL<b>SA</b>), a link read as its text ([SL](https://example.com)SA: SLSA_LINK), and
     the name's letters spaced, dotted or hyphenated read as the name (S.L.S.A., SL-SA:
-    SLSA_SPACED). A figure, and the ASCII I and bar, are read as l only with skeleton."""
+    SLSA_SPACED), any dash, hyphen, middle dot or slash read as the ASCII one
+    (SLSA_SEPARATORS), and Markdown's backslash escapes taken out (S\\.L\\.S\\.A\\.:
+    SLSA_ESCAPE). A figure, and the ASCII I and bar, are read as l only with skeleton."""
+    if "\\" in text:
+        text = SLSA_ESCAPE.sub(r"\1", text)
     if "&" in text:
         text = html.unescape(text)
     for _ in range(4):
@@ -2748,7 +3018,7 @@ def slsa_plain(text, skeleton=False):
     else:
         read = SLSA_EMPHASIS.sub("", "".join(slsa_read_character(character, skeleton)
                                              for character in unicodedata.normalize("NFKD", text)))
-    return SLSA_SPACED.sub("SLSA", read)
+    return SLSA_SPACED.sub("SLSA", SLSA_DOTTED.sub("SLSA", read))
 
 
 # What slsa_plain reads each character as, by (character, skeleton): the documents' text
@@ -2775,6 +3045,8 @@ def slsa_read_character(character, skeleton):
         elif ord(character) > 127 and unicodedata.category(character) == "Nd":
             # A figure of another script (an Arabic-Indic three) is the figure.
             read = str(unicodedata.decimal(character, 0))
+        elif ord(character) in SLSA_SEPARATORS:
+            read = SLSA_SEPARATORS[ord(character)]
         elif named:
             read = named.group(1)
         else:
@@ -3678,8 +3950,13 @@ def package_install_digest_problems(script, licenses=None):
 # build/ci/release-chain.py and build/ci/sigstore-certificate.py, which release-verify.sh
 # runs; and what those load into their own process - build/generate-update-feed.py,
 # build/generate-package-repos.py and build/check-atom-feed.py, and
-# build/ci/security-gate.py with what it loads, which are GATE_FILES. None of the others
-# is one of land-via-mr.py's GATE_FILES; this file is.
+# build/ci/security-gate.py with what it loads, which are GATE_FILES. And what the jobs
+# that run them run before them in the same checkout (chain_job_run_problems):
+# build/check-ci-image.py, .linix's before_script, which release-verify, release-packages
+# and both image start jobs run first, and build/ci/arm64-emulation.sh, which the arm64
+# start job runs after it. Each Python file of them keeps its own directory off sys.path
+# and loads the tree's modules from their text (chain_script_python_problems). None of
+# the others is one of land-via-mr.py's GATE_FILES; this file is.
 CHAIN_SCRIPT_SHA256 = {
     "sign": "fe8ccb470d6bf38ab7492a71db3afa40b3ec2a323b1f8e3a3f099c7904a8e732",
     "verify": "e047ccd2f7869f1724935478141fc1dac6ec945718c6fc9e9d10e486e156cc29",
@@ -3687,12 +3964,14 @@ CHAIN_SCRIPT_SHA256 = {
     "image-push": "800aaff9d237ee738b24f0f9cbfa065553eead6416389f7f680da6afa74c28a4",
     "authenticode": "0b88ec8d725b26d22919a58f34ae50385d80b3eeae7d0a691736ee7f919b5f6c",
     "certificate-sh": "2b64c796d75ec52549255705719232ee8f5c1853c192fd3647dd94f5d98b5f9b",
-    "certificate-py": "6f4de6862e1b5a4c8a6175797e9f59a5b45a23dc22d51c96f141b2a247c0fe47",
-    "asset-sbom": "b716554857c777ac33f0bb1be99c8f46cb1e4fd86dc0448e25d32cd5b827b61f",
-    "chain": "2c393c61e128346a41565caa8ad9bbcc5d4fef0a3a7837e841fe53e360c1897c",
-    "update-feed": "8a34cce001d86020c20bbee26bc33e36239448b26ef8358852ed9c2e1624553a",
-    "repos-py": "88af5d8868914e59cf0d39f46698d08504495de3258ad8a6bd7518429f62cb99",
-    "atom-feed": "18c67e82b1fe025416b4dd9f3ef81f3960efcec7066240fc12b709ab463a44ac",
+    "certificate-py": "31e9c58a3b55a1b78cfbc2c02751c67176853cc153b3f488320dc56221c9ede7",
+    "asset-sbom": "a487c30fd64436282696a3082054f8d87221bab4438cc398200087a899a26cf4",
+    "chain": "8f99259bafdebc0ed0666cca2eb249e44c094be5bfe1bec67bbf6beb0d0b5b06",
+    "update-feed": "c0401b88bc7e63d363960c1971c94b1011bc8480fde9d0c84f2d5fe86fcfe212",
+    "repos-py": "0312a39473b19596064b67a000c78bf409f02093048889446630ec958d648bcf",
+    "atom-feed": "05a7e5dff5d64b1a50d85212294c0c39a54895cf1be4af82a4237f97a3b571fc",
+    "ci-image-check": "48ef8c09d4447fbaa253f5d8a8c76c9cf96c085680c95b292d543654f510bbd0",
+    "arm64-emulation": "8b52092cde4ae3437c2aa95e283905b80f2858e5988a67e0382008e29ca0c403",
 }
 # The scripts of CHAIN_SCRIPT_SHA256 the release's and the image's jobs run, each a body
 # of one { ... } group after its set line that ends in exit (chain_script_group_problems):
@@ -3722,6 +4001,9 @@ CHAIN_SCRIPT_NOT_RUN = {
                                      "which makes a package's SBOM before anything is signed",
     "build/ci/packages/package-sbom.sh": "run as a process of its own by release-chain.py's gather, in "
                                          "release-packages, which makes a package's SBOM before anything is signed",
+    "build/ci/build-linux-image.sh": "run by build/check-ci-image.py's --self-test alone, in the checkers job, with a "
+                                     "docker of its own; the jobs of the release chain run check-ci-image.py with --job, "
+                                     "which runs no file of the tree",
 }
 # A path of the tree on a line of a held script's code, as PACKAGE_INSTALL_RUN finds one,
 # and in a PowerShell script with \ between its names as well.
@@ -3761,6 +4043,9 @@ def chain_script_digest_problems(texts):
                                 FILES[key].replace(os.sep, "/"), digest, key, held))
     problems.extend(chain_script_run_problems(texts))
     problems.extend(chain_script_group_problems(texts))
+    problems.extend(chain_script_python_problems(texts))
+    problems.extend(chain_job_run_problems(texts))
+    problems.extend(bytecode_problems(texts.get("tree") or ()))
     return problems
 
 
@@ -3877,6 +4162,213 @@ def chain_script_group_problems(texts):
                                 FILES[key].replace(os.sep, "/"),
                                 " (the group opened after it closes on line %d, and the file goes on to line %d)" % (
                                     closed, after[-1][0]) if closed is not None and closed != after[-1][0] else ""))
+    return problems
+
+
+# A file of bytecode in the tree: a .pyc or a .pyo anywhere, and any file under a
+# __pycache__ folder (bytecode_problems).
+BYTECODE = re.compile(r"(?:^|/)__pycache__/|\.py[co]$", re.IGNORECASE)
+# The names of Python's import machinery that take a module from a file - and so its
+# bytecode from a __pycache__ folder beside it, where there is one - which no Python file
+# of CHAIN_SCRIPT_SHA256 names but inside LOAD_SOURCE, the loader that runs the text it is
+# given (chain_script_python_problems).
+CHAIN_SCRIPT_IMPORTERS = ("spec_from_file_location", "spec_from_loader", "exec_module", "load_module", "SourceFileLoader",
+                          "SourcelessFileLoader", "import_module", "__import__", "find_spec", "run_path", "run_module",
+                          "reload")
+
+
+def bytecode_problems(tree):
+    """[problem] for each file of the tree (git's list of it) that is Python bytecode: a
+    .pyc or .pyo, or any file in a __pycache__ folder. Python takes a module's bytecode
+    from the __pycache__ folder beside its source, and a hash-based .pyc that is not
+    checked (PEP 552) without reading the source at all, so that one put in the tree with
+    git add -f past .gitignore runs in place of the text every rule here reads and every
+    digest holds: build/__pycache__/generate-update-feed.cpython-314.pyc, compiled from
+    the feed generator with five lines in front of it, replaced this checker's own
+    check() and self_test() when it loaded the generator, and ran wherever
+    build/ci/release-chain.py loaded it. main() asks this before it loads any module of
+    the tree, and this checker and the Python files of CHAIN_SCRIPT_SHA256 compile the
+    modules they load from their text (_load, chain_script_python_problems)."""
+    return ["%s is Python bytecode in the tree: Python runs a module's bytecode from the __pycache__ folder beside its "
+            "source in place of the source - an unchecked hash-based .pyc without reading the source at all -, so that "
+            "what runs is not the text the rules here read and the digests hold, whatever the binary manifest says of it "
+            "- take it out of the tree (git rm --cached); a cache is made where the code runs, never committed" % name
+            for name in sorted(tree) if BYTECODE.search(name)]
+
+
+def chain_script_python_problems(texts):
+    """[problem] for each Python file of CHAIN_SCRIPT_SHA256 that does not keep its own
+    directory off sys.path before it imports anything but os and sys (PATH_GUARD,
+    path_guard_problems, as each Python gate file must), or that names Python's import
+    machinery (CHAIN_SCRIPT_IMPORTERS, or importlib itself, as a name or an attribute,
+    called or not) anywhere but inside LOAD_SOURCE, the loader that runs the text it is
+    given and never the bytecode beside a file. python3 build/ci/release-chain.py puts
+    build/ci/ first on sys.path, so that a build/ci/argparse.py, which no held file names
+    and no rule read, ran as argparse, the first import of release-chain.py,
+    sigstore-certificate.py and build/asset-sbom.py: twenty lines of it that loaded the
+    real one and, in a v* tag's pipeline, ended check-provenance with exit 0 made
+    release-verify.sh's check of the provenance and the .sigstore.json copies pass having
+    checked nothing. And a module loaded by spec_from_file_location with Python's own
+    loader is taken from the bytecode beside it where there is some (bytecode_problems).
+    The files are held whole by their digests; this holds them to the form whoever reads
+    a change to one reads them in."""
+    problems = []
+    for key in sorted(CHAIN_SCRIPT_SHA256):
+        path = FILES[key].replace(os.sep, "/")
+        text = (texts.get(key) or "").replace("\r\n", "\n")
+        if not path.endswith(".py") or not text:
+            continue
+        problems.extend(chain_script_python_file_problems(path, text))
+    return problems
+
+
+# What chain_script_python_file_problems found, by (path, text).
+CHAIN_PYTHON_FOUND = {}
+
+
+def chain_script_python_file_problems(path, text):
+    """chain_script_python_problems' problems of one file, kept for its text: the
+    self-test runs check() some 1,300 times over the same files, and parsing them is most
+    of what the rule costs."""
+    found = CHAIN_PYTHON_FOUND.get((path, text))
+    if found is not None:
+        return list(found)
+    problems = []
+    problems.extend(path_guard_problems({path: text}))
+    try:
+        nodes = list(ast.walk(ast.parse(text)))
+    except (SyntaxError, ValueError):
+        CHAIN_PYTHON_FOUND[(path, text)] = tuple(problems)
+        return problems
+    # The lines of each copy of LOAD_SOURCE in the file, where the names may stand.
+    allowed = set()
+    at = text.find(LOAD_SOURCE)
+    while at >= 0:
+        first = text.count("\n", 0, at) + 1
+        allowed.update(range(first, first + LOAD_SOURCE.count("\n")))
+        at = text.find(LOAD_SOURCE, at + 1)
+    for node in nodes:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        named = node.attr if isinstance(node, ast.Attribute) else node.id if isinstance(node, ast.Name) else None
+        if (named in CHAIN_SCRIPT_IMPORTERS or named == "importlib") and node.lineno not in allowed:
+            problems.append("%s names %s on its line %d, outside LOAD_SOURCE: a module the files that sign and verify "
+                            "the release load through Python's own loader is taken from the bytecode in the "
+                            "__pycache__ folder beside it where there is some, in place of the text CHAIN_SCRIPT_SHA256 "
+                            "holds - load it with load_source, which runs the text it is given (LOAD_SOURCE, in "
+                            "build/check-release-chain.py, word for word)" % (path, named, node.lineno))
+    CHAIN_PYTHON_FOUND[(path, text)] = tuple(problems)
+    return problems
+
+
+# The keys of a job whose steps run in its checkout (chain_job_run_problems).
+CHAIN_JOB_RUN_KEYS = ("before_script", "script", "after_script", "hooks")
+# The files held whole that a job of the release chain runs to sign, verify, publish or
+# start what the release carries, by their key in FILES: a job that runs one of them runs
+# nothing else of the tree that is not held whole too (chain_job_run_problems). The
+# modules release-chain.py loads, which the pages jobs run to make the feed, and every
+# held file the checkers job runs for its self-test, are not among them: those jobs sign,
+# verify and start nothing.
+CHAIN_JOB_ENTRIES = ("sign", "verify", "image-sign", "image-push", "authenticode", "chain", "image-start", "package-install")
+
+
+def chain_job_held_paths():
+    """{path: what holds it} of the files a job of the release chain may run, each held
+    whole: CHAIN_SCRIPT_SHA256's, the start test and the package start script with the
+    licence check it runs."""
+    held = dict((FILES[key].replace(os.sep, "/"), "CHAIN_SCRIPT_SHA256[%r]" % key) for key in CHAIN_SCRIPT_SHA256)
+    held[FILES["image-start"].replace(os.sep, "/")] = "START_TEST_SHA256"
+    held[FILES["package-install"].replace(os.sep, "/")] = "PACKAGE_INSTALL_SHA256"
+    held[FILES["package-licenses"].replace(os.sep, "/")] = "PACKAGE_LICENSES_SHA256"
+    return held
+
+
+# A word of a job's step, as chain_job_runs reads one for a file of the tree: what lies
+# between white space, quotes and the shell's operators, with ./, $PWD/ or
+# $CI_PROJECT_DIR/ before it taken off.
+CHAIN_JOB_WORD = re.compile(r"[^\s;&|()<>`'\"=]+")
+CHAIN_JOB_PREFIX = re.compile(r"^(?:\./|\$\{?(?:PWD|CI_PROJECT_DIR)\}?/)+")
+
+
+def chain_job_runs(name, named, tree=()):
+    """[(block, key, path)] of each path of the tree (CHAIN_SCRIPT_PATH) a job's
+    before_script, script, after_script or hooks name, in the job's own block and in every
+    block it takes text from - the templates it extends and every block a !reference in
+    one of them names, at any remove (taken_blocks) -, as GitLab merges them into the job:
+    a template's script the job's own replaces is read as well. With tree, git's list of
+    the tree's files, every word of a step that is one of them (CHAIN_JOB_WORD) is a path
+    too, wherever it is in the tree: a file at its top level or under nix/ or .gitlab/,
+    which CHAIN_SCRIPT_PATH does not take, runs as well."""
+    files = set(tree)
+    found = []
+    for block in taken_blocks(name, named):
+        for key in CHAIN_JOB_RUN_KEYS:
+            for lines in _job_key_texts(named[block], key):
+                for line in lines:
+                    if line.strip().startswith("#"):
+                        continue
+                    found += [(block, key, m.group(1).replace("\\", "/").rstrip(".,:/"))
+                              for m in CHAIN_SCRIPT_PATH.finditer(line)]
+                    for word in CHAIN_JOB_WORD.findall(line):
+                        word = CHAIN_JOB_PREFIX.sub("", word.replace("\\", "/"))
+                        if word in files:
+                            found.append((block, key, word))
+    return found
+
+
+def chain_job_closure(named, names):
+    """names and every job one of them needs, at any remove, as the needs of each job's
+    own block and of every block it takes text from say (taken_blocks): what release, and
+    each job of the release chain, waits for."""
+    found, pending = set(), [n for n in names if n in named]
+    while pending:
+        name = pending.pop()
+        if name in found:
+            continue
+        found.add(name)
+        for block in taken_blocks(name, named):
+            pending.extend(n for n in needs(named[block]) if n in named and n not in found)
+    return found
+
+
+def chain_job_run_problems(texts):
+    """[problem] for each file of the tree that a job of the release chain, or one it
+    waits for at any remove (chain_job_closure), runs in its before_script, script,
+    after_script or hooks - its own or a template's, by extends or !reference
+    (chain_job_runs) - beside a file that is held whole (chain_job_held_paths), and that
+    is not held so itself nor one of land-via-mr.py's GATE_FILES. A job's steps run in one
+    checkout, one after another: release-verify runs .linix's before_script, python3
+    build/check-ci-image.py --job, before bash build/ci/release-verify.sh, and both start
+    jobs run it before the start test, so that four lines of check-ci-image.py, which
+    neither digest held, writing a stand-in over the script the job runs next in a v*
+    tag's pipeline ended release-verify green having verified nothing and each start test
+    green having started nothing, with no change to a gate file. Paths of the tree that
+    are no file of it (a folder, a path built as the job runs) are let be, as
+    chain_script_run_problems lets them."""
+    named = chain_blocks(texts)
+    held = chain_job_held_paths()
+    entries = set(FILES[key].replace(os.sep, "/") for key in CHAIN_JOB_ENTRIES)
+    gate_files = set(getattr(landing_module(), "GATE_FILES", None) or ())
+    tree = set(texts.get("tree") or ())
+    problems = []
+    for name in sorted(chain_job_closure(named, chain_rule_jobs() + list(START_HELD_DEFINITIONS))):
+        if name in HELD_JOBS:
+            # A landing's gate (checkers runs the held files' self-tests among its checks):
+            # its jobs are held by ci_override_problems, and it signs nothing.
+            continue
+        runs = chain_job_runs(name, named, tree)
+        holding = sorted(set(path for _, _, path in runs if path in entries))
+        if not holding:
+            continue
+        for block, key, path in sorted(set(runs)):
+            if path in held or path in gate_files or path not in tree:
+                continue
+            problems.append("%s runs %s in its %s (%s), in the checkout in which it runs %s, which is held whole: a job's "
+                            "steps run one after another in one checkout, so that what runs before or beside a held file "
+                            "could write over it or answer for it - hold %s by its SHA-256 in CHAIN_SCRIPT_SHA256, in "
+                            "build/check-release-chain.py, a gate file" % (
+                                name, path, key, "its own" if block == name else "from " + block,
+                                ", ".join(holding), path))
     return problems
 
 
@@ -4507,9 +4999,16 @@ CHAIN_SECOND_DEFINITIONS = {("pages", ".gitlab/ci/package-repos.yml"): ("  pages
 def chain_definition_problems(texts, more=()):
     """[problem] for each job of the release chain (chain_rule_jobs) and of more - every
     job check() reads for an escape (tag_escapes): the jobs release-packages waits for and
-    every job those wait for -, and each block one reaches by extends or !reference at any
-    remove (reached_definitions, through every definition), that is defined more than
-    once in the CI files (ci_files) but as CHAIN_SECOND_DEFINITIONS lets it be. GitLab
+    every job those wait for -, each job any of them waits for at any remove
+    (chain_job_closure: every job release needs, linux-package-deb, linux-suite and
+    linux-build among them, and every job those need), and each block one reaches by
+    extends or !reference at any remove (reached_definitions, through every definition),
+    that is defined more than once in the CI files (ci_files) but as
+    CHAIN_SECOND_DEFINITIONS lets it be. linux-package-deb defined again in
+    .gitlab/ci/snap.yml with before_script: [exit 0], which .gitlab-ci.yml's own does not
+    set, ended the job green before build/ci/linux-package-install.sh ran, and
+    allow_failure: true or when: manual there for it, linux-package-rpm, linux-suite or
+    linux-build let release start past a failed install test, suite or build. GitLab
     merges a second definition in any included file into the job, keeping every key the
     first does not set, and of two in one file takes the last, where the rules of this
     file read one: release-sign: with when: always alone, appended to
@@ -4521,7 +5020,8 @@ def chain_definition_problems(texts, more=()):
     rule on the jobs' own blocks."""
     every_ci = ci_files(texts)
     problems = []
-    for reached, paths in sorted(reached_definitions(every_ci, chain_rule_jobs() + sorted(more)).items()):
+    waited = chain_job_closure(chain_blocks(texts), chain_rule_jobs() + sorted(more))
+    for reached, paths in sorted(reached_definitions(every_ci, sorted(set(chain_rule_jobs()) | set(more) | waited)).items()):
         counts = dict((path, top_level_keys(every_ci[path]).count(reached)) for path in paths)
         allowed = [path for path in paths if counts[path] == 1 and (reached, path) in CHAIN_SECOND_DEFINITIONS and
                    tuple(line for line in blocks(every_ci[path]).get(reached, "").split("\n") if line.strip()) ==
@@ -5306,6 +5806,7 @@ def check(texts, chain, feed):
     # The SLSA Build level said where it is said, and no higher one claimed anywhere.
     problems.extend(docs_rule(slsa_level_problems, texts["slsa-docs"]))
     problems.extend(docs_rule(slsa_sentence_problems, texts["slsa-docs"]))
+    problems.extend(slsa_unread_problems(texts.get("slsa-unread") or ()))
     collect_text = function_text(texts["chain"], "collect")
     if collect_text.find("check_budget(") < 0 or collect_text.find("check_budget(") > collect_text.find("shutil.copyfile(") \
             or "tarball_problems(" not in collect_text:
@@ -5938,6 +6439,7 @@ def check(texts, chain, feed):
     problems.extend(repeated_key_problems(texts))
     problems.extend(job_key_problems(texts))
     problems.extend(variable_key_problems(texts))
+    problems.extend(python_isolation_problems(texts))
     problems.extend(character_problems(texts))
     problems.extend(script_line_end_problems(texts))
     problems.extend(control_byte_problems(texts))
@@ -6824,6 +7326,89 @@ def variable_key_problems(texts):
             problems.append(".gitlab-ci.yml's %s writes %s %s: GitLab's YAML reader takes the last alone, without a word, "
                             "where the rules that read a variable read the first or any - write each name once" % (
                                 where, name, {2: "twice"}.get(names.count(name), "%d times" % names.count(name))))
+    return problems
+
+
+# What .gitlab-ci.yml's variables: give every job so that the tree's Python runs as its
+# text and Python's own modules as theirs (python_isolation_problems): no bytecode
+# written; the script's own directory, or the current one for -m and -c, kept off
+# sys.path, so that a build/ci/argparse.py is not taken for argparse by python3
+# build/ci/release-chain.py (Python 3.11 and later, which every image of the release
+# chain has: 3.14); and bytecode read from, and written to, a folder outside the checkout
+# alone, so that a __pycache__ folder a job's artifacts bring into the checkout is never
+# read - in a job's container that folder is the container's own, new for each job, and
+# empty, since nothing writes bytecode.
+PYTHON_ISOLATION = (("PYTHONDONTWRITEBYTECODE", "1"), ("PYTHONSAFEPATH", "1"), ("PYTHONPYCACHEPREFIX", "/tmp/hm-no-pycache"))
+# The variables that change which code Python runs or where it finds it, which no CI file
+# sets anywhere but those three in .gitlab-ci.yml's variables: (a job's own, a rule's, a
+# service's or a workflow rule's would stand above them, or add a folder to sys.path).
+PYTHON_RUN_VARIABLES = tuple(name for name, _ in PYTHON_ISOLATION) + (
+    "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE", "PYTHONNOUSERSITE", "PYTHONPLATLIBDIR",
+    "PYTHONEXECUTABLE", "PYTHONBREAKPOINT", "PYTHONCASEOK")
+# A job's variables: written as a mapping on one line of bare names and plain values -
+# variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}, as the package jobs write theirs -,
+# the one form beside a block mapping python_isolation_problems reads.
+FLOW_VARIABLES = re.compile(r"^variables:[ \t]*\{((?:[ \t]*[A-Za-z_][A-Za-z0-9_]*:[ \t]+[A-Za-z0-9_.\-/]+[ \t]*,)*"
+                            r"[ \t]*[A-Za-z_][A-Za-z0-9_]*:[ \t]+[A-Za-z0-9_.\-/]+[ \t]*)\}[ \t]*$")
+
+
+def python_isolation_problems(texts):
+    """[problem] when .gitlab-ci.yml's variables: do not give every job PYTHON_ISOLATION's
+    values; when a workflow rule, or any block of any CI file - a job's own variables, a
+    rule's, a service's, a template's - sets one of PYTHON_RUN_VARIABLES; and when a job
+    of the release chain, or one it waits for at any remove (chain_job_closure: every job
+    release needs among them), or a block it takes text from, writes a variables: entry
+    this checker does not read as a name and a value, by which one could be set unread.
+    python3 build/ci/release-chain.py put build/ci/ first on sys.path, so that a
+    build/ci/argparse.py, which no rule read, was run as argparse; the held Python files
+    keep their own directory off sys.path themselves (chain_script_python_problems), and
+    PYTHONSAFEPATH keeps it off for every other Python file every job runs. What a
+    project's or a group's CI/CD variable, or a runner's configuration, gives a job stands
+    above the CI files and is not held here."""
+    problems = []
+    top = variable_block(texts["ci"], "")[0]
+    for name, value in PYTHON_ISOLATION:
+        if top.get(name) != value:
+            problems.append(".gitlab-ci.yml's variables: do not set %s to %r (%s): every job is given it so that the tree's "
+                            "Python runs as its text - no bytecode written, none read from the checkout, and the script's "
+                            "own directory kept off sys.path, where a build/ci/argparse.py ran as argparse in "
+                            "build/ci/release-chain.py" % (name, value, "it sets %r" % top[name] if name in top else "not set"))
+    for name in sorted(set(top) & set(PYTHON_RUN_VARIABLES) - set(n for n, _ in PYTHON_ISOLATION)):
+        problems.append(".gitlab-ci.yml's variables: set %s, which changes which code Python runs or where it finds it: "
+                        "no CI file sets it" % name)
+    workflow = rule_variables(blocks(texts["ci"]).get("workflow") or "")[0]
+    for name in sorted(set(workflow) & set(PYTHON_RUN_VARIABLES)):
+        problems.append(".gitlab-ci.yml's workflow rules set %s, which every job of their pipeline is given over "
+                        "variables:' %s: it changes which code Python runs or where it finds it - no rule sets it" % (
+                            name, "value" if name in dict(PYTHON_ISOLATION) else "none"))
+    every_ci = ci_files(texts)
+    for path, text in sorted(every_ci.items()):
+        for block, body in sorted(blocks(text or "").items()):
+            if block in NOT_JOB_BLOCKS or block == "workflow":
+                continue
+            for name in sorted(set(rule_variables(body)[0]) & set(PYTHON_RUN_VARIABLES)):
+                problems.append("%s (%s) sets %s, which changes which code Python runs or where it finds it, over what "
+                                ".gitlab-ci.yml's variables: give every job: no job, rule, service or template sets it" % (
+                                    block, path, name))
+    named = chain_blocks(texts)
+    taken = set()
+    for name in chain_job_closure(named, chain_rule_jobs() + list(START_HELD_DEFINITIONS)):
+        taken.update(taken_blocks(name, named))
+    for block in sorted(taken):
+        for line in variable_block(named[block], "  ")[1]:
+            flow = FLOW_VARIABLES.match(line)
+            if flow:
+                # The package jobs' one-line form, {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}:
+                # bare names and plain values alone, read as the mapping it is.
+                names = [pair.split(":", 1)[0].strip() for pair in flow.group(1).split(",")]
+                for name in sorted(set(names) & set(PYTHON_RUN_VARIABLES)):
+                    problems.append("%s sets %s in its one-line variables:, which changes which code Python runs or "
+                                    "where it finds it, over what .gitlab-ci.yml's variables: give every job: no job, "
+                                    "rule, service or template sets it" % (block, name))
+                continue
+            problems.append("%s, which the release chain takes or waits for, writes variables: in a form this checker does "
+                            "not read as a name and a value (%s): one of PYTHON_RUN_VARIABLES could be set past "
+                            "python_isolation_problems - write each name bare and its value on its line" % (block, line[:60]))
     return problems
 
 
@@ -7891,7 +8476,8 @@ def runner_class_problems(texts, script=None, package_lanes=None):
                                 "owner to read, and a failure of it would save no minute - no job waits for it - and hold a "
                                 "gate whose every job had passed until a pipeline was made again" % HOSTED_CHECKS_FILE)
     try:
-        module = script if script is not None else _load(HOSTED_SCRIPT, "hosted_runners")
+        # Read as text, never run here: the script is not held (load_problem).
+        module = script if script is not None else literal_tables(HOSTED_SCRIPT, ("CLASSES", "HOSTED", "TEMPLATE_GLOBALS"))
         theirs = dict((c[0], (c[1], (c[2], c[3]) if c[2] else None)) for c in module.CLASSES)
         ours = dict((variable, (spec["arch"], spec["lane"])) for variable, spec in RUNNER_CLASSES.items())
         if theirs != ours:
@@ -8920,8 +9506,9 @@ def start_dotenv_problems(texts, image_jobs):
     checkout before the push script runs. (container-image and both are held to one
     definition by start_job_line_problems.) The script's rules are a scan of its lines,
     not of sh: a value of the block's own variables given a line break, a command made
-    another thing, or a copy into $out under a name built as it runs, is not read here,
-    and the script is not held whole as the start test is."""
+    another thing, or a copy into $out under a name built as it runs, is not read by
+    these rules; the script is held whole besides, by its digest in CHAIN_SCRIPT_SHA256
+    (chain_script_digest_problems), and these rules read its lines as well."""
     problems = []
     name = FILES["image-push"].replace(os.sep, "/")
     lines = texts["image-push"].split("\n")
@@ -9535,7 +10122,9 @@ def load_texts():
     texts["tree"] = tree_files()
     texts["permalinks"] = permalink_texts()
     texts["gate-docs"] = gate_texts()
-    texts["slsa-docs"] = slsa_texts()
+    unread = []
+    texts["slsa-docs"] = slsa_texts(unread)
+    texts["slsa-unread"] = unread
     texts["ci-includes"] = dict((name, read(name)) for name in texts["tree"]
                                 if name.startswith(".gitlab/ci/") and name.endswith(".yml"))
     return texts
@@ -11653,8 +12242,8 @@ def self_test(chain, feed):
              "GATE_FILES leave out build/ci/semgrep.sh"),
             ("GATE_FILES", tuple(f for f in files_held if f != "build/ci/static-analysis.sh"),
              "GATE_FILES leave out build/ci/static-analysis.sh"),
-            ("GATE_FILES", files_held + ("build/ci/release-chain.py",),
-             "build/ci/release-chain.py does not keep its own directory off sys.path"),
+            ("GATE_FILES", files_held + ("build/ci/helm-repo.py",),
+             "build/ci/helm-repo.py does not keep its own directory off sys.path"),
             ("CHECKOUT_COPIES", tuple(f for f in landing.CHECKOUT_COPIES if f != ".gitlab/ci/gitlab-security.yml"),
              "CHECKOUT_COPIES leave out .gitlab/ci/gitlab-security.yml"),
             ("CHECKOUT_COPIES", tuple(f for f in landing.CHECKOUT_COPIES if f != "build/scan-secrets.py"),
@@ -13661,6 +14250,200 @@ def self_test(chain, feed):
         if not any("README.md claims an SLSA level above Build L1" in p for p in slsa_level_problems(docs)):
             failures.append("%s is caught by the tripwire: %s" % (what, slsa_level_problems(docs)))
 
+    # Bytecode in the tree (bytecode_problems), whatever the binary manifest says of it: the
+    # feed generator's .pyc, which replaced this checker's check() and self_test() when it
+    # loaded the generator and ran wherever release-chain.py loaded it, a .pyc beside a
+    # gate file, and any file of a __pycache__ folder. Each passed the checker at
+    # ba4137d8bd, which read no list of the tree's files for it.
+    for what, planted in (("the feed generator's bytecode", "build/__pycache__/generate-update-feed.cpython-314.pyc"),
+                          ("a .pyc beside a gate file", "build/ci/security-gate.pyc"),
+                          ("a file of a __pycache__ folder", "hmailserver/__pycache__/notes.txt")):
+        copy = dict(texts, tree=list(texts["tree"]) + [planted])
+        found, _ = check(copy, chain, feed)
+        if not any(p.startswith(planted + " is Python bytecode in the tree") for p in found):
+            failures.append("%s in the tree is caught: %s" % (what, found))
+
+    # The Python files of CHAIN_SCRIPT_SHA256 keep their own directory off sys.path and load
+    # the tree's modules from their text (chain_script_python_problems): release-chain.py,
+    # sigstore-certificate.py and check-ci-image.py without PATH_GUARD, which a
+    # build/ci/argparse.py made pass release-verify.sh's check of the provenance having
+    # checked nothing, and the feed generator loading the Atom check by
+    # spec_from_file_location, which takes a module from the bytecode beside it. Each passed
+    # the checker at ba4137d8bd, which held none of these files whole; the digest refuses
+    # each besides.
+    atom_load = '        _ATOM_CHECKER.append(load_source("check_atom_feed", os.path.join(ROOT, "build", "check-atom-feed.py")))\n'
+    for what, key, old, new, needle in (
+            ("release-chain.py without PATH_GUARD", "chain", PATH_GUARD + "\n", "",
+             "build/ci/release-chain.py does not keep its own directory off sys.path"),
+            ("sigstore-certificate.py without PATH_GUARD", "certificate-py", PATH_GUARD + "\n", "",
+             "build/ci/sigstore-certificate.py does not keep its own directory off sys.path"),
+            ("check-ci-image.py without PATH_GUARD", "ci-image-check", PATH_GUARD + "\n", "",
+             "build/check-ci-image.py does not keep its own directory off sys.path"),
+            ("the feed generator loading a module by spec_from_file_location", "update-feed", atom_load,
+             "        import importlib.util\n"
+             '        spec = importlib.util.spec_from_file_location("check_atom_feed", os.path.join(ROOT, "build", '
+             '"check-atom-feed.py"))\n'
+             "        module = importlib.util.module_from_spec(spec)\n"
+             "        spec.loader.exec_module(module)\n"
+             "        _ATOM_CHECKER.append(module)\n",
+             "build/generate-update-feed.py names spec_from_file_location on its line"),
+            ("release-chain.py's loader taking Python's own get_code, which reads the bytecode beside a file", "chain",
+             "    def get_code(self, fullname):\n        return self.source_to_code(self.source, self.path)\n\n", "",
+             "build/ci/release-chain.py names SourceFileLoader on its line")):
+        broken(what, key, old, new, needle)
+    # The checker's own loader is LOAD_SOURCE, word for word.
+    if LOAD_SOURCE not in read(os.path.join("build", "check-release-chain.py")):
+        failures.append("build/check-release-chain.py's own load_source is LOAD_SOURCE")
+
+    # What a job that runs a file held whole runs before or beside it in the same checkout
+    # (chain_job_run_problems, CHAIN_SCRIPT_SHA256): check-ci-image.py, .linix's
+    # before_script, made to write a stand-in over release-verify.sh under --job, and
+    # arm64-emulation.sh given an exit 0, which ended release-verify and the start tests
+    # green having run nothing; a file of the tree no digest holds run in release-verify's
+    # before_script and in release-sign's after_script. Each passed the checker at
+    # ba4137d8bd.
+    job_step = '    if "--job" in sys.argv[1:]:\n'
+    for what, key, old, new, needle in (
+            ("check-ci-image.py writing over release-verify.sh under --job", "ci-image-check", job_step,
+             job_step + '        with open(os.path.join(ROOT, "build", "ci", "release-verify.sh"), "w") as f:\n'
+             '            f.write("exit 0\\n")\n',
+             "build/check-ci-image.py is not the script build/check-release-chain.py holds"),
+            ("arm64-emulation.sh with exit 0", "arm64-emulation", "\nset -u\n", "\nset -u\nexit 0\n",
+             "build/ci/arm64-emulation.sh is not the script build/check-release-chain.py holds"),
+            ("a file no digest holds in release-verify's before_script", "ci",
+             "release-verify:\n  extends: .linix\n",
+             "release-verify:\n  extends: .linix\n  before_script:\n    - python3 build/check-ci-image.py --job\n"
+             "    - sh build/ci/linux-build.sh\n",
+             "release-verify runs build/ci/linux-build.sh in its before_script (its own)"),
+            ("a file outside build/ and hmailserver/ in release-verify's before_script", "ci",
+             "release-verify:\n  extends: .linix\n",
+             "release-verify:\n  extends: .linix\n  before_script:\n    - python3 build/check-ci-image.py --job\n"
+             "    - sh ./nix/probe.sh\n",
+             "release-verify runs nix/probe.sh in its before_script (its own)"),
+            ("a file no digest holds in release-sign's after_script", "ci", "\nrelease-sign:\n",
+             "\nrelease-sign:\n  after_script:\n    - python3 build/ci/channels/registry-mirror.py --self-test\n",
+             "release-sign runs build/ci/channels/registry-mirror.py in its after_script (its own)")):
+        broken(what, key, old, new, needle)
+
+    # A job release waits for, beyond the release chain's and the landing's, defined again
+    # in another CI file (chain_definition_problems over chain_job_closure): linux-package-deb
+    # with before_script: [exit 0], which ended it green before linux-package-install.sh
+    # ran, or with allow_failure: true; linux-suite with when: manual; linux-build with
+    # hooks. Each passed the checker at ba4137d8bd and after.
+    for what, job, addition in (("before_script: [exit 0]", "linux-package-deb", "  before_script: [exit 0]\n"),
+                                ("allow_failure: true", "linux-package-deb", "  allow_failure: true\n"),
+                                ("when: manual", "linux-suite", "  when: manual\n"),
+                                ("hooks", "linux-build", "  hooks:\n    pre_get_sources_script:\n      - exit 0\n")):
+        broken_include("%s defined again in snap.yml with %s" % (job, what), ".gitlab/ci/snap.yml",
+                       "\n%s:\n%s" % (job, addition), "%s, which the release chain takes, is defined in" % job)
+
+    # A document the SLSA rules read that is not UTF-8 (slsa_texts, slsa_document_text,
+    # slsa_unread_problems): ASSURANCE-CASE.md with a 0xE9 and an L3 claim, which
+    # slsa_texts left out of both rules at ba4137d8bd and after.
+    claim = "From 6.3.8 the release's provenance meets SLSA Build L3, the highest Build level."
+    text, decoded = slsa_document_text(b"Caf\xe9.\n\n" + claim.encode("utf-8") + b"\n")
+    if decoded or claim not in text:
+        failures.append("a document with a byte that is not UTF-8 is read as such, its claim kept: %r %r" % (decoded, text))
+    docs = dict(texts["slsa-docs"], **{"ASSURANCE-CASE.md": text})
+    copy = dict(texts, **{"slsa-docs": docs, "slsa-unread": [("ASSURANCE-CASE.md", "its bytes are not UTF-8")]})
+    found, _ = check(copy, chain, feed)
+    for needle in ("ASSURANCE-CASE.md is one of the documents the SLSA rules read, and its bytes are not UTF-8",
+                   "ASSURANCE-CASE.md claims an SLSA level above Build L1",
+                   "ASSURANCE-CASE.md says %r" % claim):
+        if not any(needle in p for p in found):
+            failures.append("ASSURANCE-CASE.md not UTF-8 with an L3 claim is caught (%s): %s" % (needle, found))
+
+    # The name read through a dash or hyphen of any kind, a middle dot, a slash and
+    # Markdown's escapes (SLSA_SEPARATORS, SLSA_SPACED, SLSA_ESCAPE), and the long name with
+    # a typographic hyphen or Artifact singular (SLSA_NAMED). Each passed the list and the
+    # tripwire at ba4137d8bd and after.
+    for what, new, tripwire in (
+            ("SL<U+2010>SA 3", "From 6.3.8 the provenance is SL" + chr(0x2010) + "SA 3.", True),
+            ("SL<U+2011>SA 3", "From 6.3.8 the provenance is SL" + chr(0x2011) + "SA 3.", True),
+            ("SL<U+2013>SA 3", "From 6.3.8 the provenance is SL" + chr(0x2013) + "SA 3.", True),
+            ("S<U+00B7>L<U+00B7>S<U+00B7>A 3", "From 6.3.8 the provenance is S" + chr(0xB7) + "L" + chr(0xB7) + "S" +
+             chr(0xB7) + "A 3.", True),
+            ("S/L/S/A 3", "From 6.3.8 the provenance is S/L/S/A 3.", True),
+            ("SL<U+2044>SA 3", "From 6.3.8 the provenance is SL" + chr(0x2044) + "SA 3.", True),
+            ("S\\.L\\.S\\.A\\. 3", "From 6.3.8 the provenance is S\\.L\\.S\\.A\\. 3.", True),
+            ("S.L.S.A. 3", "From 6.3.8 the provenance is S.L.S.A. 3.", True),
+            ("Supply<U+2010>chain Levels", "We meet the top of the Supply" + chr(0x2010) + "chain Levels for Software "
+             "Artifacts.", False),
+            ("Software Artifact", "We meet the top of the Supply-chain Levels for Software Artifact.", False)):
+        docs = dict(texts["slsa-docs"], **{evidence: texts["slsa-docs"].get(evidence, "") + "\n\n" + new + "\n"})
+        if not any(p.startswith("%s says %r" % (evidence, new)) for p in slsa_sentence_problems(docs)):
+            failures.append("%s is caught by the list: %s" % (what, slsa_sentence_problems(docs)))
+        if tripwire and not any(evidence + " claims an SLSA level above Build L1" in p for p in slsa_level_problems(docs)):
+            failures.append("%s is caught by the tripwire: %s" % (what, slsa_level_problems(docs)))
+
+    # What this checker runs in its own process (load_problem, held_module_problems,
+    # literal_tables): a held module whose text is not the one held is refused before it
+    # runs, a file that is neither held nor a gate file is never run, and
+    # hosted-runners.py's tables are read without running it. build/ci/release-chain.py
+    # given a line that ended the process with exit 0 at its exit, and the same line in
+    # build/ci/hosted-runners.py, which nothing holds, each made the checker at ba4137d8bd
+    # pass a release-sign.sh with an exit 0 after its set line: main() ran both before any
+    # rule (the chain module since that commit, the hosted runners' in check()).
+    planted = "\nimport atexit as _a, os as _o\n_a.register(_o._exit, 0)\n"
+    if held_module_problems():
+        failures.append("the tree's held modules are the ones held: %s" % held_module_problems())
+    for relative in (FILES["chain"], FILES["update-feed"], FILES["certificate-py"], FILES["land"]):
+        if load_problem(relative, read(relative)):
+            failures.append("%s as the tree has it may be run here: %s" % (relative, load_problem(relative, read(relative))))
+    for what, relative, needle in (
+            ("release-chain.py ending the process with exit 0", FILES["chain"],
+             "build/ci/release-chain.py is not the script build/check-release-chain.py holds"),
+            ("the feed generator ending the process with exit 0", FILES["update-feed"],
+             "build/generate-update-feed.py is not the script build/check-release-chain.py holds"),
+            ("hosted-runners.py, which nothing holds", HOSTED_SCRIPT,
+             "build/ci/hosted-runners.py is not a file build/check-release-chain.py may run in its own process")):
+        problem = load_problem(relative, read(relative) + planted) or ""
+        if needle not in problem:
+            failures.append("%s is refused before it runs: %r" % (what, problem))
+    try:
+        tables = literal_tables(HOSTED_SCRIPT, ("CLASSES", "HOSTED", "TEMPLATE_GLOBALS"), read(HOSTED_SCRIPT) + planted)
+        if dict((c[0], c[1]) for c in tables.CLASSES) != dict((v, s["arch"]) for v, s in RUNNER_CLASSES.items()):
+            failures.append("hosted-runners.py's tables are read as text: %r" % (tables.CLASSES,))
+    except ValueError as error:
+        failures.append("hosted-runners.py's tables are read as text: %s" % error)
+    for what, change in (("CLASSES computed", "\nCLASSES = tuple(CLASSES)\n"), ("HOSTED assigned twice", "\nHOSTED = {}\n")):
+        try:
+            literal_tables(HOSTED_SCRIPT, ("CLASSES", "HOSTED", "TEMPLATE_GLOBALS"), read(HOSTED_SCRIPT) + change)
+            failures.append("hosted-runners.py with %s is not read as its tables" % what)
+        except ValueError:
+            pass
+
+    # Python run as its text in every job (python_isolation_problems): .gitlab-ci.yml's
+    # variables: without PYTHONSAFEPATH, PYTHONDONTWRITEBYTECODE or PYTHONPYCACHEPREFIX as
+    # PYTHON_ISOLATION gives them, PYTHONPATH given every job, a workflow rule, a job of
+    # the release chain, a job release needs and a package job's one-line variables
+    # setting one, and a job of the chain writing its variables in a form this does not
+    # read. Each passed the checker at ba4137d8bd, which read none of these variables.
+    for what, key, old, new, needle in (
+            ("PYTHONSAFEPATH taken out", "ci", '  PYTHONSAFEPATH: "1"\n', "",
+             ".gitlab-ci.yml's variables: do not set PYTHONSAFEPATH to '1'"),
+            ("bytecode written", "ci", '  PYTHONDONTWRITEBYTECODE: "1"\n', '  PYTHONDONTWRITEBYTECODE: "0"\n',
+             ".gitlab-ci.yml's variables: do not set PYTHONDONTWRITEBYTECODE to '1'"),
+            ("bytecode read from the checkout", "ci", '  PYTHONPYCACHEPREFIX: "/tmp/hm-no-pycache"\n',
+             '  PYTHONPYCACHEPREFIX: "build"\n', ".gitlab-ci.yml's variables: do not set PYTHONPYCACHEPREFIX"),
+            ("PYTHONPATH given every job", "ci", '  PYTHONSAFEPATH: "1"\n', '  PYTHONSAFEPATH: "1"\n  PYTHONPATH: build/ci\n',
+             ".gitlab-ci.yml's variables: set PYTHONPATH"),
+            ("a workflow rule's PYTHONSAFEPATH", "ci", "      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+             '      variables:\n        HM_RUNNER: saas-linux-small-amd64\n        PYTHONSAFEPATH: "0"\n',
+             ".gitlab-ci.yml's workflow rules set PYTHONSAFEPATH"),
+            ("release-verify's PYTHONPATH", "ci", "release-verify:\n  extends: .linix\n",
+             "release-verify:\n  extends: .linix\n  variables:\n    PYTHONPATH: build/ci\n",
+             "release-verify (.gitlab-ci.yml) sets PYTHONPATH"),
+            ("linux-package-deb's PYTHONSAFEPATH", "ci", "linux-package-deb:\n  extends: .own-runners\n",
+             'linux-package-deb:\n  extends: .own-runners\n  variables:\n    PYTHONSAFEPATH: "0"\n',
+             "linux-package-deb (.gitlab-ci.yml) sets PYTHONSAFEPATH"),
+            ("a package job's one-line PYTHONPYCACHEPREFIX", "packages-rpm", "{HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}",
+             "{HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64, PYTHONPYCACHEPREFIX: build}", "sets PYTHONPYCACHEPREFIX"),
+            ("release-sbom's variables in flow style with a quoted value", "ci", "release-sbom:\n  stage: release\n",
+             'release-sbom:\n  stage: release\n  variables: {PYTHONPATH: "build/ci"}\n',
+             "release-sbom, which the release chain takes or waits for, writes variables: in a form")):
+        broken(what, key, old, new, needle)
+
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
@@ -13684,6 +14467,15 @@ def run_checks(texts, chain, feed):
 
 
 def main():
+    # Before any module of the tree is loaded: a file of bytecode in the tree would run in
+    # its place in this process (bytecode_problems), and a held module whose text is not
+    # the one held would run in it as it is (held_module_problems).
+    planted = bytecode_problems(tree_files()) + held_module_problems()
+    if planted:
+        for problem in planted:
+            print("PROBLEM: " + problem)
+        print("check-release-chain: %d problem(s)" % len(planted))
+        return 1
     feed = _load(os.path.join("build", "generate-update-feed.py"), "generate_update_feed")
     chain = _load(os.path.join("build", "ci", "release-chain.py"), "release_chain")
     if "--self-test" in sys.argv[1:]:

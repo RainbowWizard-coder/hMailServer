@@ -318,7 +318,18 @@ variables:
   # (docs/ContinuousIntegration.md, "The release").
   HM_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:v2.6.5-dev@sha256:76029a0246bcfde96caa72469a62a1094f6e0978dc3f537f5cafd4c5f6c6a417"
   PYTHONUTF8: "1"
+  # The tree's Python runs as its text, and Python's own modules as theirs, in every job:
+  # no bytecode written; the script's own directory (the current one for -m and -c) kept
+  # off sys.path, so that a file of the checkout named as one of Python's modules is not
+  # taken for it (Python 3.11 and later); and bytecode read from a folder outside the
+  # checkout alone - in a job's container the container's own, which nothing writes
+  # to; on a shell runner the machine's -, never from a
+  # __pycache__ folder a job's artifacts bring into the checkout. No CI file sets these,
+  # or any other variable that changes which code Python runs, anywhere else
+  # (build/check-release-chain.py, PYTHON_ISOLATION).
   PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONSAFEPATH: "1"
+  PYTHONPYCACHEPREFIX: "/tmp/hm-no-pycache"
 
 # Every scheduled pipeline runs one job, chosen by the schedule's description
 # ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate

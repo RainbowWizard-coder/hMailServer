@@ -111,17 +111,28 @@ Usage, from the repository root:
   python3 build/generate-update-feed.py --self-test
       the above against canned API answers, with no network
 """
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (argparse.py, json.py)
+# would run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD, which holds every Python file of
+# CHAIN_SCRIPT_SHA256 to it as it holds the gate files).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
 import datetime
 import html
 import html.entities
 import http.server
+import importlib.machinery
+import importlib.util
 import json
-import os
 import re
 import shutil
 import socketserver
-import sys
 import threading
 import time
 import urllib.error
@@ -538,6 +549,34 @@ def atom_bytes(rendered, summaries):
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
+class SourceTextLoader(importlib.machinery.SourceFileLoader):
+    """The loader of a file of the tree that runs the text it is given, compiled, and
+    nothing else: never the bytecode in a __pycache__ folder beside the file, which
+    Python's own loader runs in place of the text - without reading the text at all, for
+    a hash-based .pyc that is not checked (PEP 552) -, so that what runs is the text
+    build/check-release-chain.py holds by its digest (LOAD_SOURCE)."""
+
+    def __init__(self, fullname, path, source):
+        super().__init__(fullname, path)
+        self.source = source
+
+    def get_code(self, fullname):
+        return self.source_to_code(self.source, self.path)
+
+
+def load_source(module_name, path, source=None):
+    """The module of the file at path, run from source - its bytes, read from the file
+    when they are not given - by SourceTextLoader."""
+    if source is None:
+        with open(path, "rb") as f:
+            source = f.read()
+    loader = SourceTextLoader(module_name, path, source)
+    spec = importlib.util.spec_from_file_location(module_name, path, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
 _ATOM_CHECKER = []
 
 
@@ -545,11 +584,7 @@ def atom_checker():
     """build/check-atom-feed.py, loaded once: what holds releases.atom to RFC 4287
     and to releases.json."""
     if not _ATOM_CHECKER:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location("check_atom_feed", os.path.join(ROOT, "build", "check-atom-feed.py"))
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _ATOM_CHECKER.append(module)
+        _ATOM_CHECKER.append(load_source("check_atom_feed", os.path.join(ROOT, "build", "check-atom-feed.py")))
     return _ATOM_CHECKER[0]
 
 
@@ -1358,10 +1393,7 @@ def self_test():
         "/download/hMailServer-aarch64.AppImage"], "the download names: %s" % aliases)
     # The names a release's own permanent links have (release-chain.py), so that a
     # link that read .../permalink/latest/downloads/<name> reads /download/<name>.
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("release_chain", os.path.join(ROOT, "build", "ci", "release-chain.py"))
-    chain = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(chain)
+    chain = load_source("release_chain", os.path.join(ROOT, "build", "ci", "release-chain.py"))
     for platform, name in sorted(installer_names("6.3.5").items()):
         expect(DOWNLOAD + chain.permalink_name(name, "6.3.5") == aliases[platform],
                "the download name of %s is its release's permanent name: %s" % (name, chain.permalink_name(name, "6.3.5")))

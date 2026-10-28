@@ -3757,6 +3757,79 @@ first four changed in 22 commits from 26 September to 20 October 2026, and the
 eight held since in 48 from 26 September to 25 October, 19 of which changed the
 checker too.
 
+**What runs beside them, and how Python runs.** A job's steps run one after
+another in one checkout, so what a job runs before or beside a file held whole
+is held whole too: a job of the chain, or one it waits for at any remove, whose
+`before_script`, `script`, `after_script` or `hooks` - its own, or a
+template's it takes by `extends` or `!reference`, at any remove - run a file
+held whole may run no other file of the tree there (a path under `build/` or
+`hmailserver/`, or any word of a step that is a file of the tree, such as
+`nix/probe.sh`) that is neither held so nor a gate file. `build/check-ci-image.py`, `.linix`'s `before_script`, which
+`release-verify`, `release-packages` and both image start jobs run first, and
+`build/ci/arm64-emulation.sh`, which `container-image-start-arm64` runs, are
+held by their digests in `CHAIN_SCRIPT_SHA256` for it: four lines of the first
+that wrote a stand-in over the script its job ran next ended `release-verify`
+and the start tests green having verified and started nothing. Every job
+`release` needs, and every job those need, is defined once in the CI files:
+`linux-package-deb` defined again in `.gitlab/ci/snap.yml` with
+`before_script: [exit 0]` ended the job green before
+`build/ci/linux-package-install.sh` ran. Each Python file held whole takes its
+own directory off its module path before it imports anything but `os` and
+`sys` (`PATH_GUARD`, as the gate files do), since `python3
+build/ci/release-chain.py` puts `build/ci/` first there and took a
+`build/ci/argparse.py`, which nothing held, for Python's `argparse`; and it
+loads a module of the tree with `load_source`, a loader that runs the text it
+is given and never the bytecode in the `__pycache__` folder beside the file,
+which Python's own loader runs in the module's place - a hash-based `.pyc`
+that is not checked without reading the source at all; the loader is
+`LOAD_SOURCE` in the checker, word for word, and the files name Python's
+import machinery nowhere else. No file of the tree is bytecode (a `.pyc` or `.pyo`, or any
+file in a `__pycache__` folder, which `git add -f` puts past `.gitignore`):
+`build/__pycache__/generate-update-feed.cpython-314.pyc`, compiled from the
+feed generator with five lines in front of it, ran wherever the generator was
+loaded, the checker's own process among them, where it replaced the checker's
+rules. And `.gitlab-ci.yml`'s `variables:` give every job
+`PYTHONDONTWRITEBYTECODE`, `PYTHONSAFEPATH` (the script's own directory, or
+the current one for `-m` and `-c`, kept off the module path, from Python 3.11,
+which every image of the chain has) and `PYTHONPYCACHEPREFIX:
+/tmp/hm-no-pycache`, a folder outside the checkout - in a job's container the
+container's own, which nothing writes to -, so that a `__pycache__` folder a
+job's artifacts bring into the checkout is never read; nothing else in the CI
+files - a job, a rule, a service, a template or a workflow rule - sets one of
+those or another variable that changes which code Python runs or where it
+finds it (`PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP` and the rest of
+`PYTHON_RUN_VARIABLES`). The checker itself runs no file of the tree in its
+own process but `build/land-via-mr.py` and the Python files of
+`CHAIN_SCRIPT_SHA256` whose digests are the ones it holds, which it asks before
+it runs any of them, and it reads the tables of `build/ci/hosted-runners.py`
+as text: a module it ran could end it with exit 0 whatever its rules found, and
+`build/ci/release-chain.py` or `hosted-runners.py` given a line that did made
+it pass a `release-sign.sh` with an `exit 0` after its `set` line. Whoever
+changes `check-ci-image.py` or `arm64-emulation.sh` does as for the other
+files held whole; one who adds a file to a step of such a job holds it there
+as well.
+
+**What the checker does not hold.** It holds the CI files' text as its rules
+read it and the files they name: the 34 jobs of the release chain and the jobs
+they wait for (107 in the tree of 28 October 2026), the blocks those take by
+`extends` and `!reference` from any CI file, a second definition of any of
+them, what a CI file's top level gives every job, the files held whole (the
+fourteen of `CHAIN_SCRIPT_SHA256`, the start test, the package start script
+and its licence check) and the gate files. It does not hold what an image holds
+by its digest (Python's own modules and what is installed beside them, cosign,
+a distribution's packages), a runner's own configuration (its volumes, its
+pre-build script, its environment, a shell runner's machine), the project's and
+the group's CI/CD variables, which stand above the CI files, the project's
+settings (who may push a `v*` tag, which refs are protected), the scripts of
+the jobs the chain waits for that run no file held whole (`linux-build.sh`, the
+suites, the package builds: their result is held, and a second definition of
+the job refused, but not their text), what a held script makes of the
+artifacts it is handed beyond what the rules read, the server's own verifier
+as it is built from the tree, and the packages' maintainer scripts. Beyond it
+stands the landing: `build/land-via-mr.py`'s `--gates-read`, a person's word
+that a change to a gate file was read whole, and the merge request every
+change lands through, where it is read.
+
 **What the package start jobs take, and their script.** The two start jobs
 (`deb-ubuntu26.04-arm64-start`, `rpm-fedora44-aarch64-start`) write `extends`,
 `stage`, `tags`, `needs`, `timeout`, `rules`, `variables`, `services` and

@@ -55,13 +55,23 @@ Usage, from the repository root:
 generate-update-feed.py --self-test and --serve-check run the same checks, so the
 pages job runs them on the canned feed and on the one it publishes.
 """
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (argparse.py, json.py)
+# would run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD, which holds every Python file of
+# CHAIN_SCRIPT_SHA256 to it as it holds the gate files).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
 import datetime
+import importlib.machinery
 import importlib.util
 import json
-import os
 import re
-import sys
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -395,11 +405,36 @@ def read_json(path):
         return json.loads(f.read().decode("utf-8"))
 
 
-def load_generator():
-    spec = importlib.util.spec_from_file_location("generate_update_feed", os.path.join(ROOT, "build", "generate-update-feed.py"))
+class SourceTextLoader(importlib.machinery.SourceFileLoader):
+    """The loader of a file of the tree that runs the text it is given, compiled, and
+    nothing else: never the bytecode in a __pycache__ folder beside the file, which
+    Python's own loader runs in place of the text - without reading the text at all, for
+    a hash-based .pyc that is not checked (PEP 552) -, so that what runs is the text
+    build/check-release-chain.py holds by its digest (LOAD_SOURCE)."""
+
+    def __init__(self, fullname, path, source):
+        super().__init__(fullname, path)
+        self.source = source
+
+    def get_code(self, fullname):
+        return self.source_to_code(self.source, self.path)
+
+
+def load_source(module_name, path, source=None):
+    """The module of the file at path, run from source - its bytes, read from the file
+    when they are not given - by SourceTextLoader."""
+    if source is None:
+        with open(path, "rb") as f:
+            source = f.read()
+    loader = SourceTextLoader(module_name, path, source)
+    spec = importlib.util.spec_from_file_location(module_name, path, loader=loader)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    loader.exec_module(module)
     return module
+
+
+def load_generator():
+    return load_source("generate_update_feed", os.path.join(ROOT, "build", "generate-update-feed.py"))
 
 
 def canned_tree(feed, project_url=None, extra=None):

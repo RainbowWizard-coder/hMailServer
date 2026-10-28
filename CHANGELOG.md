@@ -3388,6 +3388,57 @@ with `--check`).
   second of it, and the self-test runs it some 1,300 times over the same documents but for its SLSA cases:
   `docs_rule` keeps each rule's answer for the texts it was given, so that a `check()` took 0.86 s in place of 2.00
   s over the same tree on 28 October 2026 (1.17 s before the list was added).
+- **The release-chain check holds what runs beside the files it holds whole, and how Python runs them.** It held
+  what signs and verifies the release by the digests of the files' text, and four ways round that passed it.
+  Python does not run a module's text when bytecode of it is beside it: `build/__pycache__/` with an unchecked
+  hash-based `.pyc` of the feed generator, five lines in front of it and staged with `git add -f` past
+  `.gitignore`, ran wherever the generator was loaded, the checker's own process among them, where it replaced the
+  checker's rules, so that a `release-sign.sh` with `exit 0` after its `set` line passed it and its self-test said
+  no failure. `python3 build/ci/release-chain.py` puts `build/ci/` first on the module path, so that a
+  `build/ci/argparse.py`, which no rule read, ran as Python's `argparse` and made `check-provenance`, the step of
+  `release-verify.sh` that holds the provenance and the `.sigstore.json` copies, pass having checked nothing. A
+  job's steps run in one checkout: `build/check-ci-image.py`, `.linix`'s `before_script`, which `release-verify`
+  and both image start jobs run first, given four lines that wrote a stand-in over the script the job ran next,
+  ended `release-verify` and the start tests green, and `build/ci/arm64-emulation.sh` is run the same way in
+  `container-image-start-arm64`. And `linux-package-deb` defined again in `.gitlab/ci/snap.yml` with
+  `before_script: [exit 0]`, or `allow_failure: true` or `when: manual` there for it, `linux-package-rpm`,
+  `linux-suite` or `linux-build`, let `release` start past a failed install test, suite or build: only the
+  chain's jobs, the ones `release-packages` gathers and the landing's were held to one definition. And the checker
+  ran `build/ci/release-chain.py` and `build/ci/hosted-runners.py` in its own process, the first before it checked
+  its digest and the second not held at all, so that a line in either that ended the process with exit 0 made it
+  pass whatever its rules found. Each passed the checker as it was at ba4137d8bd. The checker now refuses
+  any file of the tree that is Python bytecode (a `.pyc` or `.pyo`, or any file in a `__pycache__` folder),
+  before it loads anything; runs no file of the tree in its own process but `build/land-via-mr.py` and the Python
+  files it holds whose digests are the ones held, which it asks first, running each from the text it read through
+  a loader that never takes the bytecode beside a file, and reads `hosted-runners.py`'s tables as text; holds
+  `check-ci-image.py` and `arm64-emulation.sh` by their digests, and refuses a file of the tree that a job of the
+  chain, or one it waits for, runs in its `before_script`, `script`, `after_script` or `hooks` - its own or a
+  template's, by `extends` or `!reference` at any remove, a path under `build/` or `hmailserver/` or any word of
+  a step that is a file of the tree - beside a file held whole, unless that file is held so or a gate file; holds every job `release` needs, and every job those need, to one definition across the CI
+  files; and holds each Python file it holds whole to the gate files' `PATH_GUARD` and to loading the tree's
+  modules with `load_source`, that loader, written as the checker's `LOAD_SOURCE` word for word, naming
+  Python's import machinery nowhere else (`release-chain.py`, `generate-update-feed.py` and `check-atom-feed.py`
+  now do; the first also sets a new empty folder as its own bytecode cache before it loads anything). `.gitlab-ci.yml`'s
+  `variables:` give every job `PYTHONSAFEPATH`, which keeps the script's own directory off the module path from
+  Python 3.11 (every image of the chain has 3.14), and `PYTHONPYCACHEPREFIX: /tmp/hm-no-pycache`, a folder outside
+  the checkout, beside `PYTHONDONTWRITEBYTECODE`, so that a `__pycache__` folder a job's artifacts bring into the
+  checkout is never read; the check refuses those three set otherwise there, and `PYTHONPATH`, `PYTHONHOME`,
+  `PYTHONSTARTUP` or another variable that changes which code Python runs set by any job, rule, service,
+  template or workflow rule of the CI files. A document the SLSA rules read that is not UTF-8 is now a problem
+  that names it, where it was left out of both rules, so that an L3 claim beside a byte 0xE9 passed them; and the
+  name is read through a dash or hyphen of any kind, a middle dot or a slash and with Markdown's backslash
+  escapes taken out, and as the abbreviation S.L.S.A. with its last dot, with "Supply-chain Levels for Software
+  Artifact" read in the singular too, where SL‐SA with U+2010 or `S\.L\.S\.A\. 3` passed both rules. The module
+  docstring and ContinuousIntegration.md ("What runs beside them, and how Python runs", "What the checker does
+  not hold") say what the checker holds - the CI files' text as its rules read it, the 34 jobs of the chain and
+  the 107 they and the jobs they wait for make, the blocks those take by `extends` and `!reference`, second
+  definitions, what a CI file's top level gives every job, and the files it holds whole - and what it does not:
+  what an image holds by its digest, a runner's own configuration, the project's and the group's CI/CD
+  variables, the project's settings, the scripts of the jobs the chain waits for that run no file held whole, the
+  server's own verifier and the packages' maintainer scripts, beyond which stand `--gates-read` and the merge
+  request every change lands through. Whoever changes `check-ci-image.py` or `arm64-emulation.sh` puts the new
+  digest the check prints in `CHAIN_SCRIPT_SHA256` and lands it with `--gates-read`, as for the other files held
+  whole.
 
 ### Documentation
 

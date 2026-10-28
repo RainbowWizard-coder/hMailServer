@@ -92,6 +92,17 @@ The default --out is the asset's own path with .cdx.json added. How a user finds
 checks these documents: SECURITY.md, "Software bills of materials".
 """
 
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (argparse.py, json.py)
+# would run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD, which holds every Python file of
+# CHAIN_SCRIPT_SHA256 to it as it holds the gate files).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
 import base64
 import datetime
@@ -100,11 +111,9 @@ import glob
 import hashlib
 import io
 import json
-import os
 import re
 import shutil
 import subprocess
-import sys
 import tarfile
 import tempfile
 import uuid
