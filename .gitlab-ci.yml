@@ -1231,8 +1231,9 @@ chart-and-compose:
       #   binds the mail ports below 1024 only where that sysctl is 0, which
       #   containerd 1.7 and CRI-O leave at 1024. It does so too with values that do
       #   not name unprivilegedPortsSysctl (reused.yaml), sets nothing with it false
-      #   (no-sysctl.yaml), and keeps a sysctl of that name the values give, once
-      #   (own-sysctl.yaml).
+      #   (no-sysctl.yaml), keeps a sysctl of that name the values give, once
+      #   (own-sysctl.yaml), and adds its own after every other sysctl the values
+      #   give, which it keeps as given (other-sysctl.yaml).
       helm template mail "$chart" --set database.host=db --set database.password=x \
         --set administrator.password=y --set podSecurityContext.runAsUser=null \
         --set podSecurityContext.runAsGroup=null --set podSecurityContext.fsGroup=1000 \
@@ -1242,7 +1243,10 @@ chart-and-compose:
       helm template mail "$chart" --set database.host=db --set database.password=x \
         --set administrator.password=y --set 'podSecurityContext.sysctls[0].name=net.ipv4.ip_unprivileged_port_start' \
         --set-string 'podSecurityContext.sysctls[0].value=25' > own-sysctl.yaml
-      python3 - rendered.yaml reused.yaml no-sysctl.yaml own-sysctl.yaml <<'EOF' || exit 1
+      helm template mail "$chart" --set database.host=db --set database.password=x \
+        --set administrator.password=y --set 'podSecurityContext.sysctls[0].name=net.ipv4.ping_group_range' \
+        --set-string 'podSecurityContext.sysctls[0].value=0 2147483647' > other-sysctl.yaml
+      python3 - rendered.yaml reused.yaml no-sysctl.yaml own-sysctl.yaml other-sysctl.yaml <<'EOF' || exit 1
       import sys
 
       import yaml
@@ -1289,6 +1293,10 @@ chart-and-compose:
           fail("with unprivilegedPortsSysctl false the pod's securityContext still sets a sysctl")
       if (pod(sys.argv[4]).get("securityContext") or {}).get("sysctls") != [{"name": PORTS, "value": "25"}]:
           fail("the pod does not keep, once and as given, the sysctl %s the values name" % PORTS)
+      OTHER = {"name": "net.ipv4.ping_group_range", "value": "0 2147483647"}
+      if (pod(sys.argv[5]).get("securityContext") or {}).get("sysctls") != [OTHER, {"name": PORTS, "value": "0"}]:
+          fail("the pod does not keep the sysctl %s the values give, as given, with %s at 0 after it"
+               % (OTHER["name"], PORTS))
       inits = spec.get("initContainers") or []
       containers = spec.get("containers") or []
       for container in inits + containers:

@@ -170,7 +170,7 @@ with `--check`).
   and not given twice. `values.yaml`, the chart's README and ContainerImage.md ("The mail ports under the chart") say
   where the file capability is used - under Docker's defaults and the Compose file - and that under the chart it is
   the sysctl that binds the ports; the `chart-and-compose` job holds the rendered pod to the sysctl, with the value
-  left out and with it false.
+  left out and with it false, and to every other sysctl the values give kept as given, before it.
 
 - **Fixed: `GET /api/v1/status` said `argon2id` and `post_quantum_key_exchange` from the OpenSSL headers the server
   was compiled against, not the library it runs with.** Both were `OPENSSL_VERSION_NUMBER` comparisons, so the container
