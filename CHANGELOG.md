@@ -368,7 +368,10 @@ with `--check`).
   `/ProtectFolders` hardens after the files, and no other account may change it - an inherited entry or a group of
   every user's own that lets another account write it counts whatever it holds, one emptied of all but empty
   folders among them, so that setup hardens it and refuses until a restart, and an entry of its own for a named
-  account is said; its `Bin` and `ControlPanel` are hardened or made before them all the same. Each folder is read through the handle that holds it, and read again
+  account is said; its `Bin` and `ControlPanel` are hardened or made before them all the same. Whether it is left so
+  is decided once, before anything changes, and the restart rule goes by the same answer: asked again before the
+  files, an answer that differs - a data folder made, renamed or removed since setup looked - ends the installation
+  as a folder changed while setup prepared it, exit code 7. Each folder is read through the handle that holds it, and read again
   once hardened. An entry of its own that lets a group of every user change it is taken away - each group the server
   counts as one, `CONSOLE LOGON`, `NETWORK`, `BATCH`, `SERVICE`, `ANONYMOUS LOGON`, the two groups of application
   packages, `This Organization`, `Local account`, `Authentication authority asserted identity`, `ALL SERVICES` and a

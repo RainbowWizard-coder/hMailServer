@@ -228,6 +228,12 @@ var
   // the program folder is hardened, whose new permissions Windows hands down to them.
   g_bRemakeBin: Boolean;
   g_bRemakeControlPanel: Boolean;
+  // Whether PrepareProgramFolders leaves the program folder unhardened before the files,
+  // and for which data folder (ProgramFolderWaitsForTheFiles) - asked once, in
+  // CheckProgramFolders, before anything changes, so that the restart rule and
+  // PrepareProgramFolders go by the same answer; PrepareProgramFolders asks again and
+  // refuses when the answer is not the same (check 7 of R1 to R4, 28 October 2026).
+  g_szProgramFolderWaits: String;
   // For each folder this setup made (MakeFolders), recorded once it was found where it
   // was named: where it was made, read through the handle that holds it
   // (FinalPathOfHeld), and that handle - g_aFoldersMade's, Bin's and ControlPanel's -
@@ -4673,7 +4679,7 @@ var
 begin
    if not g_bProgramFolderThere then
       Exit;
-   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, ProgramFolderWaitsForTheFiles() <> '');
+   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, g_szProgramFolderWaits <> '');
    if g_bBinThere and (not g_bRemakeBin) then
       NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true, false);
    if g_bControlPanelThere and (not g_bRemakeControlPanel) then
@@ -4859,6 +4865,7 @@ begin
    g_szFolderFindings := '';
    g_bRemakeBin := false;
    g_bRemakeControlPanel := false;
+   g_szProgramFolderWaits := '';
    g_bFoldersChanged := false;
    SetArrayLength(g_aRestartFolders, 0);
    SetArrayLength(g_aRestartHandles, 0);
@@ -4975,6 +4982,13 @@ begin
    // which who could write one before can no longer be read from it (RemakeEmptyFolder).
    g_bRemakeBin := g_bBinThere and FolderHoldsNothing(g_szBinReal);
    g_bRemakeControlPanel := g_bControlPanelThere and FolderHoldsNothing(g_szControlPanelReal);
+   // And whether the program folder waits for the files, decided now too, once: the
+   // restart rule counts a right to write it by this answer (NoteFoldersOthersCouldChange),
+   // and PrepareProgramFolders leaves it unhardened by this answer alone (check 7 of R1 to
+   // R4, 28 October 2026: asked again there, after the service stop, a data folder renamed
+   // in the meantime decided it).
+   if g_bProgramFolderThere then
+      g_szProgramFolderWaits := ProgramFolderWaitsForTheFiles();
 
    // The owners of the three, and what is in Bin and ControlPanel.
    if g_bProgramFolderThere then
@@ -5140,7 +5154,22 @@ begin
       Exit;
    end;
 
-   szInherits := ProgramFolderWaitsForTheFiles();
+   // Whether the program folder waits for the files is CheckProgramFolders' answer,
+   // given before anything changed, which the restart rule went by; asked again now,
+   // after the service stop, a different answer is a data folder made, renamed or
+   // removed in the meantime - an account that may write the program folder can rename
+   // an empty folder in it to Data - and is refused, not taken (check 7 of R1 to R4, 28
+   // October 2026).
+   szInherits := g_szProgramFolderWaits;
+   if CompareText(ProgramFolderWaitsForTheFiles(), szInherits) <> 0 then
+   begin
+      g_bFoldersChanged := true;
+      Result := 'Setup does not install into ' + szApp + ': a data folder of the earlier installation in ' + g_szProgramFolderReal + ' - Data, Logs, Temp, Database or Events - ' +
+                'was made, renamed or removed, or its permissions changed, while setup was preparing the installation, so setup does not install there. An administrator ' +
+                'looks at the program folder, restarts Windows, so that nothing opened while another account could change it stays open, and runs setup again. Nothing has ' +
+                'been installed.';
+      Exit;
+   end;
    if szInherits <> '' then
    begin
       Log('The program folder ' + g_szProgramFolderReal + ' is not hardened before the files: it holds the earlier installation''s server, whose ' + szInherits + ' still inherits from it, and the change ' +

@@ -730,7 +730,12 @@ does before the files:
   the Control Panel alone, which runs no `/ProtectFolders`, the setup log says to run
   it) - and nobody else may change it, or the step before would have hardened it and
   asked for a restart, however little it holds; an entry of its own for a named
-  account is said, as for a folder hardened. A folder hardened in place is given a file of setup's,
+  account is said, as for a folder hardened. Whether the program folder is left so is
+  decided once, when the step before looks, before anything changes, and the restart
+  rule goes by the same answer; asked again before the files, after the service stop,
+  an answer that differs - a data folder made, renamed or removed in the meantime - is
+  refused as a folder changed while setup prepared it, exit code 7, and setup is not run
+  again before Windows has restarted. A folder hardened in place is given a file of setup's,
   `hMailServer-setup-in-progress.tmp`, held open, not shared for deleting, and gone the
   moment setup lets it go, at the files' end or when setup ends however it ends, so
   that it holds something - and cannot be made a junction - until the files are in. Then
